@@ -1,5 +1,4 @@
-import { keepNeededProperties } from '~/api/shared'
-import { formatNum, formattedNum, getPercentChange, slug } from '~/utils'
+import { formatNum, formattedNum, getPercentChange, keepNeededProperties, slug } from '~/utils'
 import type { StablecoinChartPoint, StablecoinListAsset, StablecoinPricesResponse } from './api.types'
 
 interface IStablecoinToken {

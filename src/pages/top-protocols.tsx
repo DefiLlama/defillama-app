@@ -8,7 +8,6 @@ import {
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -16,6 +15,9 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { parseExcludeParam } from '~/containers/Protocols/utils'
+import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
@@ -26,14 +28,10 @@ const excludeChainsStatic = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOve
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
 const COLUMN_HELPER = createColumnHelper<any>()
 
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
-	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
+	const { protocols, chains } = await fetchProtocols().then(
+		basicProtocolPropertiesToKeepV1List(['name', 'extraTvl', 'chainTvls', 'category'])
+	)
 	const topProtocolPerChainAndCategory = {}
 
 	for (const p of protocols) {

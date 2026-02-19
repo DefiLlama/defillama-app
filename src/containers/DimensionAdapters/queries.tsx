@@ -1,7 +1,6 @@
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
-import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import {

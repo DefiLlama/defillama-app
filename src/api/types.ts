@@ -1,5 +1,4 @@
 import type { IRaise } from '~/containers/ProtocolOverview/api.types'
-import type { IJSON } from './categories/adaptors/types'
 
 interface Protocol {
 	id: string
@@ -117,7 +116,7 @@ interface IProtocolResponse extends Protocol {
 	chainTvls: IChainTvl
 	currentChainTvls: ICurrentChainTvls
 	tvl: { date: number; totalLiquidityUSD: number }[]
-	metrics?: IJSON<boolean>
+	metrics?: Record<string, boolean>
 	tokenPrice?: number | null
 	tokenSupply?: number | null
 	tokenMcap?: number | null

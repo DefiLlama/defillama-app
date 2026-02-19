@@ -33,9 +33,9 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 		pageIndex: 0,
 		pageSize: 10
 	})
+	const width = useBreakpointWidth()
 
 	const { data, isLoading, error } = useFeesData(chains)
-	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: data ?? EMPTY_DATA,

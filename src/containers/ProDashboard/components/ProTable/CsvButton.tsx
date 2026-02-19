@@ -1,6 +1,9 @@
+'use no memo'
+
+import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 
-export const ProTableCSVButton = ({
+export const ProTableCSVButton = React.memo(function ProTableCSVButton({
 	onClick,
 	smol,
 	isLoading,
@@ -10,7 +13,7 @@ export const ProTableCSVButton = ({
 	smol?: boolean
 	isLoading?: boolean
 	className?: string
-}) => {
+}) {
 	return (
 		<CSVDownloadButton
 			onClick={onClick}
@@ -23,4 +26,4 @@ export const ProTableCSVButton = ({
 			isLoading={isLoading}
 		/>
 	)
-}
+})

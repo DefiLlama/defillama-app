@@ -1,4 +1,7 @@
+'use no memo'
+
 import type { Table } from '@tanstack/react-table'
+import * as React from 'react'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import type { NormalizedRow } from '../types'
 import { UnifiedVirtualTable } from './UnifiedVirtualTable'
@@ -11,7 +14,7 @@ interface TableRendererProps {
 	rowStateVersion?: string
 }
 
-export function TableRenderer({
+export const TableRenderer = React.memo(function TableRenderer({
 	table,
 	isLoading,
 	isEmpty = false,
@@ -40,4 +43,4 @@ export function TableRenderer({
 			)}
 		</div>
 	)
-}
+})

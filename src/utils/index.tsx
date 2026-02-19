@@ -41,6 +41,20 @@ interface VolumeChartEntry {
 	[key: string]: unknown
 }
 
+export function keepNeededProperties<T extends object, K extends keyof T & string>(
+	protocol: T,
+	propertiesToKeep: readonly K[]
+): Pick<T, K>
+export function keepNeededProperties(protocol: object, propertiesToKeep: readonly string[]): Record<string, unknown>
+export function keepNeededProperties(protocol: object, propertiesToKeep: readonly string[]): Record<string, unknown> {
+	const obj = protocol as Record<string, unknown>
+	const result: Record<string, unknown> = {}
+	for (const prop of propertiesToKeep) {
+		result[prop] = obj[prop]
+	}
+	return result
+}
+
 /** gives output like `5 days ago` or `17 hours ago` from a timestamp, https://day.js.org/docs/en/plugin/relative-time */
 export const toNiceDaysAgo = (date: number): string => dayjs().to(dayjs.utc(dayjs.unix(date)))
 
@@ -931,4 +945,14 @@ export function toNumberOrNullFromQueryParam(value: string | string[] | null | u
 	const finalValue = value ? (typeof value === 'string' ? value : (value?.[0] ?? null)) : null
 	if (finalValue == null) return null
 	return Number.isNaN(Number(finalValue)) ? null : Number(finalValue)
+}
+
+export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
+	if (numerator == null || denominator == null) {
+		return null
+	}
+	if (denominator === 0) {
+		return null
+	}
+	return Number((numerator / (denominator * 12)).toFixed(2))
 }

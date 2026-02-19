@@ -1,3 +1,5 @@
+'use no memo'
+
 import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-table'
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
@@ -20,14 +22,6 @@ import type { MetricGroup, NormalizedRow, NumericMetrics } from '../types'
 import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/customColumns'
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
-
-declare module '@tanstack/table-core' {
-	// oxlint-disable-next-line no-unused-vars
-	interface ColumnMeta<TData, TValue> {
-		align?: 'start' | 'center' | 'end'
-		hidden?: boolean
-	}
-}
 
 const renderDash = () => <span className="pro-text3">-</span>
 

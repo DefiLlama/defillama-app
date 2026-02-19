@@ -1,440 +1,126 @@
+'use no memo'
+
 import {
-	type ColumnDef,
-	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	type SortingState,
+	type Updater,
 	useReactTable
 } from '@tanstack/react-table'
-import { Parser } from 'expr-eval'
 import * as React from 'react'
-import {
-	useGetProtocolsAggregatorsByMultiChain,
-	useGetProtocolsBridgeAggregatorsByMultiChain,
-	useGetProtocolsEarningsByMultiChain,
-	useGetProtocolsFeesAndRevenueByMultiChain,
-	useGetProtocolsListMultiChain,
-	useGetProtocolsOpenInterestByMultiChain,
-	useGetProtocolsOptionsVolumeByMultiChain,
-	useGetProtocolsPerpsVolumeByMultiChain,
-	useGetProtocolsVolumeByMultiChain
-} from '~/api/categories/chains/multiChainClient'
-import { Icon } from '~/components/Icon'
-import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
-import { protocolsByChainColumns } from '~/components/Table/Defi/Protocols/columns'
-import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
-import { formatProtocolsList } from '~/hooks/data/defi'
+import { areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { downloadCSV, formatNum, getPercentChange } from '~/utils'
+import { downloadCSV } from '~/utils'
 import type { CustomView, TableFilters } from '../../types'
+import {
+	buildColumnVisibilityMap,
+	COLUMN_PRESETS,
+	DEFAULT_SORTING,
+	SHARE_METRIC_DEFINITIONS
+} from './proTable.constants'
+import type { CustomColumn, UseProTableOptions } from './proTable.types'
+import { protocolsByChainTableColumns, useProTableColumns } from './useProTableColumns'
+import { useProTableData } from './useProTableData'
+import { useProTableState } from './useProTableState'
 
-interface CustomColumn {
-	id: string
-	name: string
-	expression: string
-	isValid: boolean
-	errorMessage?: string
+const isUpdaterFunction = <T,>(updater: Updater<T>): updater is (old: T) => T => {
+	return typeof updater === 'function'
 }
 
-export interface ColumnPresetDefinition {
-	id: string
-	label: string
-	columns: string[]
-	sort?: SortingState
-	group?: 'core' | 'dataset'
-	description?: string
-	icon?: string
+const resolveUpdater = <T,>(updater: Updater<T>, previousValue: T): T => {
+	return isUpdaterFunction(updater) ? updater(previousValue) : updater
 }
 
-const COLUMN_PRESETS: ColumnPresetDefinition[] = [
-	{
-		id: 'essential',
-		label: 'Essential',
-		group: 'core',
-		columns: ['name', 'category', 'chains', 'tvl', 'change_1d', 'change_7d', 'mcap']
-	},
-	{
-		id: 'advanced',
-		label: 'Advanced',
-		group: 'core',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'tvl',
-			'change_1d',
-			'fees_24h',
-			'revenue_24h',
-			'volume_24h',
-			'mcaptvl',
-			'pf',
-			'ps'
-		]
-	},
-	{
-		id: 'fees',
-		label: 'Fees',
-		group: 'dataset',
-		description: '24h/7d/30d fees with change metrics and cumulative totals',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'tvl',
-			'fees_24h',
-			'fees_7d',
-			'fees_30d',
-			'fees_1y',
-			'average_1y',
-			'feesChange_1d',
-			'feesChange_7d',
-			'feesChange_1m',
-			'feesChange_7dover7d',
-			'feesChange_30dover30d',
-			'cumulativeFees',
-			'pf'
-		],
-		sort: [{ id: 'fees_24h', desc: true }]
-	},
-	{
-		id: 'revenue',
-		label: 'Revenue',
-		group: 'dataset',
-		description: 'Protocol revenue across timeframes and change rates',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'tvl',
-			'revenue_24h',
-			'revenue_7d',
-			'revenue_30d',
-			'revenue_1y',
-			'average_revenue_1y',
-			'revenueChange_1d',
-			'revenueChange_7d',
-			'revenueChange_1m',
-			'revenueChange_7dover7d',
-			'revenueChange_30dover30d',
-			'treasuryRevenue_24h',
-			'supplySideRevenue_24h',
-			'userFees_24h',
-			'ps'
-		],
-		sort: [{ id: 'revenue_24h', desc: true }]
-	},
-	{
-		id: 'holders',
-		label: 'Holders Rev',
-		group: 'dataset',
-		description: 'Revenue distributions to token holders',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'holderRevenue_24h',
-			'holdersRevenue30d',
-			'holdersRevenueChange_30dover30d',
-			'revenue_30d',
-			'revenueChange_1m'
-		],
-		sort: [{ id: 'holderRevenue_24h', desc: true }]
-	},
-	{
-		id: 'earnings',
-		label: 'Earnings',
-		group: 'dataset',
-		description: 'Net protocol earnings across daily, weekly, monthly, and yearly windows',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'earnings_24h',
-			'earnings_7d',
-			'earnings_30d',
-			'earnings_1y',
-			'earningsChange_1d',
-			'earningsChange_7d',
-			'earningsChange_1m'
-		],
-		sort: [{ id: 'earnings_24h', desc: true }]
-	},
-	{
-		id: 'spot-volume',
-		label: 'Spot Volume',
-		group: 'dataset',
-		description: 'DEX spot volume with dominance share',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'volume_24h',
-			'volume_7d',
-			'volume_30d',
-			'volumeChange_1d',
-			'volumeChange_7d',
-			'volumeChange_1m',
-			'volumeDominance_24h',
-			'volumeMarketShare7d',
-			'cumulativeVolume'
-		],
-		sort: [{ id: 'volume_24h', desc: true }]
-	},
-	{
-		id: 'perps-volume',
-		label: 'Perps Volume',
-		group: 'dataset',
-		description: 'Perpetuals volume and open interest',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'perps_volume_24h',
-			'perps_volume_7d',
-			'perps_volume_30d',
-			'perps_volume_change_1d',
-			'perps_volume_change_7d',
-			'perps_volume_change_1m',
-			'perps_volume_dominance_24h',
-			'openInterest'
-		],
-		sort: [{ id: 'perps_volume_24h', desc: true }]
-	},
-	{
-		id: 'open-interest',
-		label: 'Open Interest',
-		group: 'dataset',
-		description: 'Rank protocols by open interest',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'openInterest',
-			'perps_volume_24h',
-			'perps_volume_change_1d',
-			'perps_volume_change_7d'
-		],
-		sort: [{ id: 'openInterest', desc: true }]
-	},
-	{
-		id: 'dex-aggregators',
-		label: 'DEX Aggregators',
-		group: 'dataset',
-		description: 'Aggregator trading volume and dominance metrics',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'aggregators_volume_24h',
-			'aggregators_volume_change_1d',
-			'aggregators_volume_7d',
-			'aggregators_volume_change_7d',
-			'aggregators_volume_30d',
-			'aggregators_volume_dominance_24h',
-			'aggregators_volume_marketShare7d'
-		],
-		sort: [{ id: 'aggregators_volume_24h', desc: true }]
-	},
-	{
-		id: 'bridge-aggregators',
-		label: 'Bridge Aggregators',
-		group: 'dataset',
-		description: 'Bridge aggregator flows with 24h dominance share',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'bridge_aggregators_volume_24h',
-			'bridge_aggregators_volume_change_1d',
-			'bridge_aggregators_volume_7d',
-			'bridge_aggregators_volume_change_7d',
-			'bridge_aggregators_volume_30d',
-			'bridge_aggregators_volume_dominance_24h'
-		],
-		sort: [{ id: 'bridge_aggregators_volume_24h', desc: true }]
-	},
-	{
-		id: 'options',
-		label: 'Options',
-		group: 'dataset',
-		description: 'Options trading volume across timeframes',
-		columns: [
-			'name',
-			'category',
-			'chains',
-			'options_volume_24h',
-			'options_volume_change_1d',
-			'options_volume_7d',
-			'options_volume_change_7d',
-			'options_volume_30d',
-			'options_volume_dominance_24h'
-		],
-		sort: [{ id: 'options_volume_24h', desc: true }]
+const hasOwnKeys = (record: Record<string, boolean>): boolean => {
+	return Object.keys(record).length > 0
+}
+
+const areVisibilityEqual = (a: Record<string, boolean>, b: Record<string, boolean>): boolean => {
+	const aKeys = Object.keys(a)
+	const bKeys = Object.keys(b)
+	if (aKeys.length !== bKeys.length) return false
+	for (const key of aKeys) {
+		if (a[key] !== b[key]) return false
 	}
-]
+	return true
+}
 
-// Helper function to recalculate parent protocol metrics based on filtered children
-function recalculateParentMetrics(parent: any, filteredSubRows: any[]) {
-	// Initialize aggregated values
-	let tvl = 0
-	let tvlPrevDay = 0
-	let tvlPrevWeek = 0
-	let tvlPrevMonth = 0
-	let mcap = 0
-	let volume_24h = 0
-	let volume_7d = 0
-	let volume_30d = 0
-	let fees_24h = 0
-	let fees_7d = 0
-	let fees_30d = 0
-	let fees_1y = 0
-	let average_1y = 0
-	let revenue_24h = 0
-	let revenue_7d = 0
-	let revenue_30d = 0
-	let revenue_1y = 0
-	let perps_volume_24h = 0
-	let perps_volume_7d = 0
-	let perps_volume_30d = 0
-	let openInterest = 0
+const isCustomColumn = (value: unknown): value is CustomColumn => {
+	if (typeof value !== 'object' || value === null) return false
+	const id = Reflect.get(value, 'id')
+	const name = Reflect.get(value, 'name')
+	const expression = Reflect.get(value, 'expression')
+	const isValid = Reflect.get(value, 'isValid')
+	return (
+		typeof id === 'string' && typeof name === 'string' && typeof expression === 'string' && typeof isValid === 'boolean'
+	)
+}
 
-	let weightedVolumeChange = 0
-	let totalVolumeWeight = 0
-	let weightedPerpsVolumeChange = 0
-	let totalPerpsVolumeWeight = 0
+const normalizeSearchValue = (value: unknown): string => {
+	return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
 
-	// Aggregate metrics from filtered children
-	for (const child of filteredSubRows) {
-		if (child.tvl != null) tvl += child.tvl
-		if (child.tvlPrevDay != null) tvlPrevDay += child.tvlPrevDay
-		if (child.tvlPrevWeek != null) tvlPrevWeek += child.tvlPrevWeek
-		if (child.tvlPrevMonth != null) tvlPrevMonth += child.tvlPrevMonth
-		if (child.mcap != null) mcap += child.mcap
-		if (child.volume_24h != null) volume_24h += child.volume_24h
-		if (child.volume_7d != null) volume_7d += child.volume_7d
-		if (child.volume_30d != null) volume_30d += child.volume_30d
-		if (child.volume_7d != null && child.volumeChange_7d !== undefined && child.volumeChange_7d !== null) {
-			weightedVolumeChange += child.volumeChange_7d * child.volume_7d
-			totalVolumeWeight += child.volume_7d
-		}
-		if (child.fees_24h != null) fees_24h += child.fees_24h
-		if (child.fees_7d != null) fees_7d += child.fees_7d
-		if (child.fees_30d != null) fees_30d += child.fees_30d
-		if (child.fees_1y != null) fees_1y += child.fees_1y
-		if (child.average_1y != null) average_1y += child.average_1y
-		if (child.revenue_24h != null) revenue_24h += child.revenue_24h
-		if (child.revenue_7d != null) revenue_7d += child.revenue_7d
-		if (child.revenue_30d != null) revenue_30d += child.revenue_30d
-		if (child.revenue_1y != null) revenue_1y += child.revenue_1y
-		if (child.perps_volume_24h != null) perps_volume_24h += child.perps_volume_24h
-		if (child.perps_volume_7d != null) perps_volume_7d += child.perps_volume_7d
-		if (child.perps_volume_30d != null) perps_volume_30d += child.perps_volume_30d
+const isStringArray = (value: unknown): value is string[] => {
+	return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+}
+
+const isBooleanRecord = (value: unknown): value is Record<string, boolean> => {
+	if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
+	for (const [, entry] of Object.entries(value)) {
+		if (typeof entry !== 'boolean') return false
+	}
+	return true
+}
+
+const isCustomView = (value: unknown): value is CustomView => {
+	if (typeof value !== 'object' || value === null) return false
+	const id = Reflect.get(value, 'id')
+	const name = Reflect.get(value, 'name')
+	const columnOrder = Reflect.get(value, 'columnOrder')
+	const columnVisibility = Reflect.get(value, 'columnVisibility')
+	const createdAt = Reflect.get(value, 'createdAt')
+	const customColumns = Reflect.get(value, 'customColumns')
+
+	const validCustomColumns =
+		customColumns === undefined ||
+		(Array.isArray(customColumns) && customColumns.every((column) => isCustomColumn(column)))
+
+	return (
+		typeof id === 'string' &&
+		typeof name === 'string' &&
+		isStringArray(columnOrder) &&
+		isBooleanRecord(columnVisibility) &&
+		typeof createdAt === 'number' &&
+		validCustomColumns
+	)
+}
+
+const areCustomColumnsEqual = (a: CustomColumn[], b: CustomColumn[]): boolean => {
+	if (a.length !== b.length) return false
+	for (let index = 0; index < a.length; index += 1) {
+		const left = a[index]
+		const right = b[index]
 		if (
-			child.perps_volume_7d != null &&
-			child.perps_volume_change_7d !== undefined &&
-			child.perps_volume_change_7d !== null
+			left.id !== right.id ||
+			left.name !== right.name ||
+			left.expression !== right.expression ||
+			left.isValid !== right.isValid ||
+			left.errorMessage !== right.errorMessage
 		) {
-			weightedPerpsVolumeChange += child.perps_volume_change_7d * child.perps_volume_7d
-			totalPerpsVolumeWeight += child.perps_volume_7d
-		}
-		if (child.openInterest != null) openInterest += child.openInterest
-	}
-
-	const change_1d = getPercentChange(tvl, tvlPrevDay)
-	const change_7d = getPercentChange(tvl, tvlPrevWeek)
-	const change_1m = getPercentChange(tvl, tvlPrevMonth)
-
-	let volumeChange_7d = null
-	if (totalVolumeWeight > 0) {
-		volumeChange_7d = weightedVolumeChange / totalVolumeWeight
-	}
-
-	let perps_volume_change_7d = null
-	if (totalPerpsVolumeWeight > 0) {
-		perps_volume_change_7d = weightedPerpsVolumeChange / totalPerpsVolumeWeight
-	}
-
-	let mcaptvl = null
-	const finalMcap = mcap > 0 ? mcap : parent.mcap || 0
-	if (tvl && finalMcap) {
-		mcaptvl = +formatNum(+finalMcap.toFixed(2) / +tvl.toFixed(2))
-	}
-
-	const oracleSet = new Set<string>()
-	const oraclesByChainAgg: Record<string, Set<string>> = {}
-	const addOracles = (obj: any) => {
-		if (Array.isArray(obj?.oracles)) {
-			for (const o of obj.oracles as string[]) oracleSet.add(o)
-		}
-		if (obj?.oraclesByChain) {
-			for (const k in obj.oraclesByChain as Record<string, string[]>) {
-				const set = (oraclesByChainAgg[k] = oraclesByChainAgg[k] || new Set<string>())
-				for (const o of (obj.oraclesByChain[k] || []) as string[]) set.add(o)
-			}
+			return false
 		}
 	}
-	addOracles(parent)
-	for (const subRow of filteredSubRows) addOracles(subRow)
-
-	const aggregatedOraclesByChain: Record<string, string[]> = {}
-	let hasAggregatedOracles = false
-	for (const k in oraclesByChainAgg) {
-		const v = oraclesByChainAgg[k]
-		aggregatedOraclesByChain[k] = Array.from(v).sort((a, b) => a.localeCompare(b))
-		hasAggregatedOracles = true
-	}
-
-	return {
-		...parent,
-		tvl,
-		tvlPrevDay,
-		tvlPrevWeek,
-		tvlPrevMonth,
-		mcap: finalMcap,
-		volume_24h: volume_24h || 0,
-		volume_7d: volume_7d || 0,
-		volume_30d: volume_30d || 0,
-		volumeChange_7d,
-		fees_24h,
-		fees_7d,
-		fees_30d,
-		fees_1y,
-		average_1y,
-		revenue_24h,
-		revenue_7d,
-		revenue_30d,
-		revenue_1y,
-		perps_volume_24h,
-		perps_volume_7d,
-		perps_volume_30d,
-		perps_volume_change_7d,
-		openInterest,
-		change_1d,
-		change_7d,
-		change_1m,
-		mcaptvl,
-		subRows: filteredSubRows,
-		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
-		oraclesByChain: hasAggregatedOracles ? aggregatedOraclesByChain : parent.oraclesByChain
-	}
+	return true
 }
 
-interface UseProTableOptions {
-	initialColumnOrder?: string[]
-	initialColumnVisibility?: Record<string, boolean>
-	initialCustomColumns?: CustomColumn[]
-	initialActiveViewId?: string
-	initialActivePresetId?: string
-	onColumnsChange?: (
-		columnOrder: string[],
-		columnVisibility: Record<string, boolean>,
-		customColumns: CustomColumn[],
-		activeViewId?: string,
-		activePresetId?: string
-	) => void
+type ColumnsSnapshot = {
+	columnOrder: string[]
+	columnVisibility: Record<string, boolean>
+	customColumns: CustomColumn[]
+	activeViewId: string | null
+	activePresetId: string | null
 }
 
 export function useProTable(
@@ -443,737 +129,266 @@ export function useProTable(
 	onFilterClick?: () => void,
 	options?: UseProTableOptions
 ) {
-	const { fullProtocolsList, parentProtocols, isLoading: isLoadingProtocols } = useGetProtocolsListMultiChain(chains)
-	const { data: chainProtocolsVolumes, isLoading: isLoadingVolumes } = useGetProtocolsVolumeByMultiChain(chains)
-	const { data: chainProtocolsFees, isLoading: isLoadingFees } = useGetProtocolsFeesAndRevenueByMultiChain(chains)
-	const { data: chainProtocolsPerps, isLoading: isLoadingPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
-	const { data: chainProtocolsOpenInterest, isLoading: isLoadingOI } = useGetProtocolsOpenInterestByMultiChain(chains)
-	const { data: chainProtocolsEarnings } = useGetProtocolsEarningsByMultiChain(chains)
-	const { data: chainProtocolsAggregators } = useGetProtocolsAggregatorsByMultiChain(chains)
-	const { data: chainProtocolsBridgeAggregators } = useGetProtocolsBridgeAggregatorsByMultiChain(chains)
-	const { data: chainProtocolsOptions } = useGetProtocolsOptionsVolumeByMultiChain(chains)
-	const isLoading =
-		isLoadingProtocols ||
-		isLoadingVolumes ||
-		isLoadingFees ||
-		isLoadingPerps ||
-		isLoadingOI ||
-		fullProtocolsList.length === 0
-	const finalProtocolsList = React.useMemo(() => {
-		if (!fullProtocolsList) return []
-
-		let protocols = formatProtocolsList({
-			extraTvlsEnabled: {},
-			protocols: fullProtocolsList,
-			parentProtocols,
-			volumeData: chainProtocolsVolumes,
-			feesData: chainProtocolsFees,
-			perpsData: chainProtocolsPerps,
-			openInterestData: chainProtocolsOpenInterest,
-			earningsData: chainProtocolsEarnings,
-			aggregatorsData: chainProtocolsAggregators,
-			bridgeAggregatorsData: chainProtocolsBridgeAggregators,
-			optionsData: chainProtocolsOptions
+	const { finalProtocolsList, isLoading, isEmptyProtocols, categories, availableProtocols, parentProtocols } =
+		useProTableData({
+			chains,
+			filters
 		})
+	const onColumnsChange = options?.onColumnsChange
 
-		// Apply filters
-		if (filters) {
-			const protocolSet = filters.protocols?.length ? new Set(filters.protocols) : null
-			const categorySet = filters.categories?.length ? new Set(filters.categories) : null
-			const excludedCategorySet = filters.excludedCategories?.length ? new Set(filters.excludedCategories) : null
-			const oracleSet = filters.oracles?.length ? new Set(filters.oracles) : null
+	const initialKnownColumnIdsRef = React.useRef<string[] | null>(null)
+	if (initialKnownColumnIdsRef.current === null) {
+		const baseColumnIds = protocolsByChainTableColumns.map((column) => column.key)
+		const shareColumnIds = SHARE_METRIC_DEFINITIONS.map((metric) => `${metric.key}_share`)
+		const initialCustomColumnIds = (options?.initialCustomColumns ?? []).map((column) => column.id)
+		initialKnownColumnIdsRef.current = Array.from(
+			new Set([...baseColumnIds, ...shareColumnIds, ...initialCustomColumnIds])
+		)
+	}
 
-			if (excludedCategorySet) {
-				protocols = protocols
-					.map((p) => {
-						if (p.category && excludedCategorySet.has(p.category)) {
-							return null
-						}
+	const preferredPresetRef = React.useRef<(typeof COLUMN_PRESETS)[number] | null>(null)
+	if (preferredPresetRef.current === null) {
+		const preferredPreset = options?.initialActivePresetId
+			? COLUMN_PRESETS.find((preset) => preset.id === options.initialActivePresetId)
+			: undefined
+		preferredPresetRef.current = preferredPreset ?? COLUMN_PRESETS.find((preset) => preset.id === 'essential') ?? null
+	}
 
-						const protocolWithSubRows = p as any
-						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
-							const filteredSubRows = protocolWithSubRows.subRows.filter(
-								(child: any) => !child.category || !excludedCategorySet.has(child.category)
-							)
-
-							if (filteredSubRows.length > 0) {
-								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
-							} else {
-								return null
-							}
-						}
-
-						return p
-					})
-					.filter((p) => p !== null)
-			}
-
-			if (protocolSet) {
-				protocols = protocols
-					.map((p) => {
-						// Check if this protocol matches directly
-						if (p.name && protocolSet.has(p.name)) {
-							return p
-						}
-
-						// If this is a parent protocol, filter its subRows
-						const protocolWithSubRows = p as any
-						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
-							const filteredSubRows = protocolWithSubRows.subRows.filter(
-								(child: any) => child.name && protocolSet.has(child.name)
-							)
-
-							// If any child protocols match, return the parent with filtered subRows and recalculated metrics
-							if (filteredSubRows.length > 0) {
-								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
-							}
-						}
-
-						return null
-					})
-					.filter((p) => p !== null)
-			}
-
-			if (oracleSet) {
-				protocols = protocols
-					.map((p) => {
-						const getOracles = (obj: any): string[] => {
-							if (Array.isArray(obj?.oracles) && obj.oracles.length) return obj.oracles
-							if (obj?.oraclesByChain) {
-								return Array.from(new Set(Object.values(obj.oraclesByChain as Record<string, string[]>).flat()))
-							}
-							return []
-						}
-
-						const protocolWithSubRows = p as any
-						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
-							const filteredSubRows = protocolWithSubRows.subRows.filter((child: any) => {
-								const childOracles = getOracles(child)
-								return childOracles.some((o) => oracleSet.has(o))
-							})
-
-							if (filteredSubRows.length > 0) {
-								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
-							}
-							return null
-						}
-
-						const pOracles = getOracles(p)
-						return pOracles.some((o) => oracleSet.has(o)) ? p : null
-					})
-					.filter((p) => p !== null)
-			}
-			if (categorySet) {
-				protocols = protocols
-					.map((p) => {
-						if (p.category && categorySet.has(p.category)) {
-							return p
-						}
-
-						const protocolWithSubRows = p as any
-						if (protocolWithSubRows.isParentProtocol && protocolWithSubRows.subRows) {
-							const filteredSubRows = protocolWithSubRows.subRows.filter(
-								(child: any) => child.category && categorySet.has(child.category)
-							)
-
-							if (filteredSubRows.length > 0) {
-								return recalculateParentMetrics(protocolWithSubRows, filteredSubRows)
-							}
-						}
-
-						return null
-					})
-					.filter((p) => p !== null)
-			}
-		}
-
-		return protocols
-	}, [
-		fullProtocolsList,
-		parentProtocols,
-		chainProtocolsVolumes,
-		chainProtocolsFees,
-		chainProtocolsPerps,
-		chainProtocolsOpenInterest,
-		chainProtocolsEarnings,
-		chainProtocolsAggregators,
-		chainProtocolsBridgeAggregators,
-		chainProtocolsOptions,
-		filters
-	])
-
-	const defaultSortingRef = React.useRef<SortingState>([{ id: 'tvl', desc: true }])
-	const [sorting, setSorting] = React.useState<SortingState>(defaultSortingRef.current)
-	const [expanded, setExpanded] = React.useState<ExpandedState>({})
-	const [showColumnPanel, setShowColumnPanel] = React.useState(false)
-	const [searchTerm, setSearchTerm] = React.useState('')
-	const [columnOrder, setColumnOrder] = React.useState<string[]>(options?.initialColumnOrder || [])
-	const [customColumns, setCustomColumns] = React.useState<CustomColumn[]>(options?.initialCustomColumns || [])
-	const [selectedPreset, setSelectedPreset] = React.useState<string | null>(options?.initialActivePresetId || null)
-	const [columnVisibility, setColumnVisibility] = React.useState(options?.initialColumnVisibility || {})
-	const [activeCustomView, setActiveCustomView] = React.useState<string | null>(options?.initialActiveViewId || null)
-	const [activeDatasetMetric, setActiveDatasetMetric] = React.useState<string | null>(null)
-
-	const filteredProtocolsList = React.useMemo(() => {
-		if (!activeDatasetMetric) {
-			return finalProtocolsList
-		}
-
-		return finalProtocolsList.filter((protocol) => {
-			const value = protocol[activeDatasetMetric as keyof IProtocolRow]
-			return typeof value === 'number' && value > 0
-		})
-	}, [finalProtocolsList, activeDatasetMetric])
-
-	const { userConfig, saveUserConfig } = useUserConfig()
-
-	const customViews = React.useMemo(() => {
-		if (!userConfig || !userConfig?.tableViews) {
-			return []
-		}
-		return userConfig?.tableViews as CustomView[]
-	}, [userConfig])
-
-	const onApplyInitialCustomView = React.useEffectEvent((initialViewId: string | undefined, views: CustomView[]) => {
-		if (!initialViewId || views.length === 0) {
-			return
-		}
-		const view = views.find((v) => v.id === initialViewId)
-		let hasVisibility = false
-		for (const _ in columnVisibility) {
-			hasVisibility = true
-			break
-		}
-		if (view && !columnOrder.length && !hasVisibility) {
-			setColumnOrder(view.columnOrder)
-			setColumnVisibility(view.columnVisibility)
-			setCustomColumns(view.customColumns || [])
-		}
+	const { state, actions } = useProTableState({
+		options,
+		defaultSorting: DEFAULT_SORTING,
+		defaultPreset: preferredPresetRef.current ?? undefined,
+		initialKnownColumnIds: initialKnownColumnIdsRef.current ?? []
 	})
 
-	React.useEffect(() => {
-		onApplyInitialCustomView(options?.initialActiveViewId, customViews)
-	}, [customViews, options?.initialActiveViewId])
+	const filteredProtocolsList = React.useMemo(() => {
+		if (!state.activeDatasetMetric) return finalProtocolsList
 
-	// Create custom column definitions
-	const customColumnDefs = React.useMemo(() => {
-		const parser = new Parser()
+		return finalProtocolsList.filter((protocol) => {
+			const value = Reflect.get(protocol, state.activeDatasetMetric)
+			return typeof value === 'number' && value > 0
+		})
+	}, [finalProtocolsList, state.activeDatasetMetric])
 
-		return customColumns
-			.filter((col) => col.isValid)
-			.map(
-				(customCol): ColumnDef<IProtocolRow> => ({
-					id: customCol.id,
-					header: customCol.name,
-					accessorFn: (row) => {
-						try {
-							const context: Record<string, number> = {}
+	const { allColumns, allLeafColumnIds } = useProTableColumns({
+		customColumns: state.customColumns,
+		protocols: finalProtocolsList,
+		filters,
+		onFilterClick
+	})
 
-							for (const tableCol of protocolsByChainTableColumns) {
-								const value = row[tableCol.key as keyof IProtocolRow]
-								if (typeof value === 'number') {
-									context[tableCol.key] = value
-								} else if (typeof value === 'string') {
-									const numValue = parseFloat(value)
-									if (!Number.isNaN(numValue)) {
-										context[tableCol.key] = numValue
-									}
-								}
-							}
+	const resolvedColumnVisibility = React.useMemo(() => {
+		if (allLeafColumnIds.length === 0) return state.columnVisibility
 
-							const expr = parser.parse(customCol.expression)
-							const result = expr.evaluate(context)
-
-							return typeof result === 'number' ? result : null
-						} catch (error) {
-							console.log(`Error evaluating custom column "${customCol.name}":`, error)
-							return null
-						}
-					},
-					cell: ({ getValue }) => {
-						const value = getValue() as number | null
-						if (value == null) return '-'
-
-						if (Math.abs(value) >= 1e9) {
-							return `$${(value / 1e9).toFixed(2)}B`
-						} else if (Math.abs(value) >= 1e6) {
-							return `$${(value / 1e6).toFixed(2)}M`
-						} else if (Math.abs(value) >= 1e3) {
-							return `$${(value / 1e3).toFixed(2)}K`
-						} else {
-							return `$${value.toFixed(2)}`
-						}
-					},
-					sortingFn: (rowA, rowB, columnId) => {
-						const desc = false
-						let a = (rowA.getValue(columnId) ?? null) as any
-						let b = (rowB.getValue(columnId) ?? null) as any
-						if (a === null && b !== null) {
-							return desc ? -1 : 1
-						}
-						if (a !== null && b === null) {
-							return desc ? 1 : -1
-						}
-						if (a === null && b === null) {
-							return 0
-						}
-						return a - b
-					}
-				})
-			)
-	}, [customColumns])
-
-	// Create custom columns with filter button
-	const columnsWithFilter = React.useMemo(() => {
-		if (!onFilterClick) return { name: null, category: null, oracles: null }
-
-		const originalNameColumn = protocolsByChainColumns.find((col) => col.id === 'name')
-		const originalCategoryColumn = protocolsByChainColumns.find((col) => col.id === 'category')
-		const originalOraclesColumn = protocolsByChainColumns.find((col) => col.id === 'oracles')
-
-		const hasActiveFilters =
-			filters &&
-			(filters.protocols?.length ||
-				filters.categories?.length ||
-				filters.excludedCategories?.length ||
-				filters.oracles?.length)
-
-		const filterButton = (
-			<button
-				onClick={(e) => {
-					e.stopPropagation()
-					onFilterClick()
-				}}
-				className={`rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) ${
-					hasActiveFilters ? 'text-pro-blue-400 dark:text-pro-blue-200' : 'text-(--text-tertiary)'
-				}`}
-				title="Filter protocols"
-			>
-				<Icon name="settings" height={14} width={14} />
-			</button>
-		)
-
-		const nameColumn = originalNameColumn
-			? {
-					...originalNameColumn,
-					id: 'name',
-					header: () => (
-						<div className="flex items-center gap-2">
-							<span>Name</span>
-							{filterButton}
-						</div>
-					)
-				}
-			: null
-
-		const categoryColumn = originalCategoryColumn
-			? {
-					...originalCategoryColumn,
-					id: 'category',
-					header: () => (
-						<div className="flex items-center justify-end gap-2">
-							<span>Category</span>
-							{React.cloneElement(filterButton, { key: 'category-filter' })}
-						</div>
-					)
-				}
-			: null
-
-		const oraclesColumn = originalOraclesColumn
-			? {
-					...originalOraclesColumn,
-					id: 'oracles',
-					header: () => (
-						<div className="flex items-center justify-end gap-2">
-							<span>Oracles</span>
-							{React.cloneElement(filterButton, { key: 'oracles-filter' })}
-						</div>
-					)
-				}
-			: null
-
-		return { name: nameColumn, category: categoryColumn, oracles: oraclesColumn }
-	}, [filters, onFilterClick])
-
-	const totals = React.useMemo(() => {
-		const sums: Record<string, number> = {}
-		const usdMetrics = [
-			'tvl',
-			'mcap',
-			'fees_24h',
-			'fees_7d',
-			'fees_30d',
-			'fees_1y',
-			'average_1y',
-			'revenue_24h',
-			'revenue_7d',
-			'revenue_30d',
-			'revenue_1y',
-			'volume_24h',
-			'volume_7d',
-			'cumulativeFees',
-			'cumulativeVolume',
-			'perps_volume_24h',
-			'perps_volume_7d',
-			'perps_volume_30d',
-			'openInterest',
-			'earnings_24h',
-			'earnings_7d',
-			'earnings_30d',
-			'earnings_1y',
-			'aggregators_volume_24h',
-			'aggregators_volume_7d',
-			'aggregators_volume_30d',
-			'bridge_aggregators_volume_24h',
-			'bridge_aggregators_volume_7d',
-			'bridge_aggregators_volume_30d',
-			'options_volume_24h',
-			'options_volume_7d',
-			'options_volume_30d'
-		]
-
-		for (const metric of usdMetrics) {
-			sums[metric] = 0
-		}
-
-		for (const protocol of finalProtocolsList) {
-			for (const metric of usdMetrics) {
-				const value = protocol[metric as keyof IProtocolRow]
-				if (typeof value === 'number' && value > 0) {
-					sums[metric] += value
-				}
+		const nextVisibility: Record<string, boolean> = {}
+		const columnOrderSet = new Set(state.columnOrder)
+		for (const columnId of allLeafColumnIds) {
+			if (Object.prototype.hasOwnProperty.call(state.columnVisibility, columnId)) {
+				nextVisibility[columnId] = state.columnVisibility[columnId]
+			} else if (state.columnOrder.length > 0) {
+				nextVisibility[columnId] = columnOrderSet.has(columnId)
+			} else {
+				nextVisibility[columnId] = true
 			}
 		}
-
-		return sums
-	}, [finalProtocolsList])
-
-	const percentageShareColumnDefs = React.useMemo(() => {
-		const usdMetrics = [
-			{ key: 'tvl', name: 'TVL % Share' },
-			{ key: 'mcap', name: 'Market Cap % Share' },
-			{ key: 'fees_24h', name: 'Fees 24h % Share' },
-			{ key: 'fees_7d', name: 'Fees 7d % Share' },
-			{ key: 'fees_30d', name: 'Fees 30d % Share' },
-			{ key: 'fees_1y', name: 'Fees 1y % Share' },
-			{ key: 'average_1y', name: 'Monthly Avg 1Y Fees % Share' },
-			{ key: 'revenue_24h', name: 'Revenue 24h % Share' },
-			{ key: 'revenue_7d', name: 'Revenue 7d % Share' },
-			{ key: 'revenue_30d', name: 'Revenue 30d % Share' },
-			{ key: 'revenue_1y', name: 'Revenue 1y % Share' },
-			{ key: 'volume_24h', name: 'Volume 24h % Share' },
-			{ key: 'volume_7d', name: 'Volume 7d % Share' },
-			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share' },
-			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share' },
-			{ key: 'earnings_24h', name: 'Earnings 24h % Share' },
-			{ key: 'earnings_7d', name: 'Earnings 7d % Share' },
-			{ key: 'earnings_30d', name: 'Earnings 30d % Share' },
-			{ key: 'earnings_1y', name: 'Earnings 1y % Share' },
-			{ key: 'aggregators_volume_24h', name: 'Agg Volume 24h % Share' },
-			{ key: 'aggregators_volume_7d', name: 'Agg Volume 7d % Share' },
-			{ key: 'aggregators_volume_30d', name: 'Agg Volume 30d % Share' },
-			{ key: 'bridge_aggregators_volume_24h', name: 'Bridge Agg Volume 24h % Share' },
-			{ key: 'bridge_aggregators_volume_7d', name: 'Bridge Agg Volume 7d % Share' },
-			{ key: 'bridge_aggregators_volume_30d', name: 'Bridge Agg Volume 30d % Share' },
-			{ key: 'options_volume_24h', name: 'Options Volume 24h % Share' },
-			{ key: 'options_volume_7d', name: 'Options Volume 7d % Share' },
-			{ key: 'options_volume_30d', name: 'Options Volume 30d % Share' }
-		]
-
-		return usdMetrics.map(
-			(metric): ColumnDef<IProtocolRow> => ({
-				id: `${metric.key}_share`,
-				header: metric.name,
-				accessorFn: (row) => {
-					const value = row[metric.key as keyof IProtocolRow]
-					const total = totals[metric.key]
-
-					if (typeof value === 'number' && value > 0 && total > 0) {
-						return (value / total) * 100
-					}
-					return null
-				},
-				cell: ({ getValue }) => {
-					const value = getValue() as number | null
-					if (value == null) return ''
-
-					return `${value.toFixed(2)}%`
-				}
-			})
-		)
-	}, [totals])
-
-	const allColumns = React.useMemo(() => {
-		const baseColumns = [...protocolsByChainColumns]
-
-		if (columnsWithFilter.name) {
-			const nameIndex = baseColumns.findIndex((col) => col.id === 'name')
-			if (nameIndex !== -1) {
-				baseColumns[nameIndex] = columnsWithFilter.name as ColumnDef<IProtocolRow>
-			}
-		}
-
-		if (columnsWithFilter.category) {
-			const categoryIndex = baseColumns.findIndex((col) => col.id === 'category')
-			if (categoryIndex !== -1) {
-				baseColumns[categoryIndex] = columnsWithFilter.category as ColumnDef<IProtocolRow>
-			}
-		}
-
-		if (columnsWithFilter.oracles) {
-			const oraclesIndex = baseColumns.findIndex((col) => col.id === 'oracles')
-			if (oraclesIndex !== -1) {
-				baseColumns[oraclesIndex] = columnsWithFilter.oracles as ColumnDef<IProtocolRow>
-			}
-		}
-
-		return [...baseColumns, ...customColumnDefs, ...percentageShareColumnDefs]
-	}, [customColumnDefs, columnsWithFilter, percentageShareColumnDefs])
+		return nextVisibility
+	}, [allLeafColumnIds, state.columnOrder, state.columnVisibility])
 
 	const table = useReactTable({
 		data: filteredProtocolsList,
 		columns: allColumns,
 		state: {
-			sorting,
-			expanded,
-			columnVisibility
+			sorting: state.sorting,
+			pagination: state.pagination,
+			expanded: state.expanded,
+			globalFilter: state.searchTerm,
+			columnVisibility: resolvedColumnVisibility,
+			columnOrder: state.columnOrder
+		},
+		globalFilterFn: (row, _columnId, filterValue) => {
+			const query = normalizeSearchValue(filterValue)
+			if (!query) return true
+
+			const protocolName = normalizeSearchValue(row.original.name)
+			const protocolCategory = normalizeSearchValue(row.original.category)
+			const protocolSymbol = normalizeSearchValue(row.original.symbol)
+			const protocolChains = Array.isArray(row.original.chains)
+				? row.original.chains.map((chain) => normalizeSearchValue(chain)).join(' ')
+				: ''
+			const protocolOracles = Array.isArray(row.original.oracles)
+				? row.original.oracles.map((oracle) => normalizeSearchValue(oracle)).join(' ')
+				: ''
+
+			return (
+				protocolName.includes(query) ||
+				protocolCategory.includes(query) ||
+				protocolSymbol.includes(query) ||
+				protocolChains.includes(query) ||
+				protocolOracles.includes(query)
+			)
 		},
 		sortingFns: {
 			alphanumericFalsyLast: (rowA, rowB, columnId) => {
-				const desc = sorting.length ? sorting[0].desc : true
-				let a = (rowA.getValue(columnId) ?? null) as any
-				let b = (rowB.getValue(columnId) ?? null) as any
-				if (a === null && b !== null) {
-					return desc ? -1 : 1
-				}
-				if (a !== null && b === null) {
-					return desc ? 1 : -1
-				}
-				if (a === null && b === null) {
-					return 0
-				}
-				return a - b
+				const isDesc = state.sorting.length > 0 ? state.sorting[0].desc : true
+				const valueA = rowA.getValue(columnId)
+				const valueB = rowB.getValue(columnId)
+				const numberA = typeof valueA === 'number' ? valueA : null
+				const numberB = typeof valueB === 'number' ? valueB : null
+
+				if (numberA === null && numberB !== null) return isDesc ? -1 : 1
+				if (numberA !== null && numberB === null) return isDesc ? 1 : -1
+				if (numberA === null && numberB === null) return 0
+				return numberA - numberB
 			}
 		},
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		onSortingChange: setSorting,
-		filterFromLeafRows: true,
-		onExpandedChange: setExpanded,
-		onColumnVisibilityChange: setColumnVisibility,
-		getSubRows: (row: IProtocolRow) => row.subRows,
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
+		getSubRows: (row) => (Array.isArray(row.subRows) ? row.subRows : []),
+		onSortingChange: (updater) => actions.setSorting(resolveUpdater(updater, state.sorting)),
+		onPaginationChange: (updater) => actions.setPagination(resolveUpdater(updater, state.pagination)),
+		onExpandedChange: (updater) => actions.setExpanded(resolveUpdater(updater, state.expanded)),
+		onColumnVisibilityChange: (updater) => {
+			actions.setColumnVisibility(resolveUpdater(updater, resolvedColumnVisibility))
+		},
+		onColumnOrderChange: (updater) => {
+			actions.setColumnOrder(resolveUpdater(updater, state.columnOrder))
+		},
+		filterFromLeafRows: true,
 		autoResetPageIndex: false
 	})
 
-	const visibleLeafColumnsKey = table
-		? table
-				.getAllLeafColumns()
-				.map((col) => col.getIsVisible())
-				.join(',')
-		: ''
+	const currentColumns = React.useMemo(() => {
+		if (allLeafColumnIds.length === 0) return resolvedColumnVisibility
 
-	// Initialize column order on first render
-	React.useEffect(() => {
-		if (table && columnOrder.length === 0) {
-			const visibleColumns = table
-				.getAllLeafColumns()
-				.filter((col) => col.getIsVisible())
-				.map((col) => col.id)
-			setColumnOrder(visibleColumns)
+		const normalizedVisibility: Record<string, boolean> = {}
+		for (const columnId of allLeafColumnIds) {
+			normalizedVisibility[columnId] = resolvedColumnVisibility[columnId] ?? false
 		}
-	}, [table, visibleLeafColumnsKey, columnOrder.length])
+		return normalizedVisibility
+	}, [allLeafColumnIds, resolvedColumnVisibility])
 
-	React.useEffect(() => {
-		if (table && columnOrder.length > 0) {
-			table.setColumnOrder(columnOrder)
-		}
-	}, [table, columnOrder])
-
-	const prevColumnOrderRef = React.useRef<string[]>(null)
-	const prevColumnVisibilityRef = React.useRef<Record<string, boolean>>(null)
-	const prevCustomColumnsRef = React.useRef<CustomColumn[]>(null)
-	const prevActiveCustomViewRef = React.useRef<string | null>(null)
-	const prevSelectedPresetRef = React.useRef<string | null>(null)
-
-	React.useEffect(() => {
-		if (options?.onColumnsChange) {
-			const columnOrderChanged = JSON.stringify(prevColumnOrderRef.current) !== JSON.stringify(columnOrder)
-			const columnVisibilityChanged =
-				JSON.stringify(prevColumnVisibilityRef.current) !== JSON.stringify(columnVisibility)
-			const customColumnsChanged = JSON.stringify(prevCustomColumnsRef.current) !== JSON.stringify(customColumns)
-			const activeViewChanged = prevActiveCustomViewRef.current !== activeCustomView
-			const selectedPresetChanged = prevSelectedPresetRef.current !== selectedPreset
-
-			if (
-				columnOrderChanged ||
-				columnVisibilityChanged ||
-				customColumnsChanged ||
-				activeViewChanged ||
-				selectedPresetChanged
-			) {
-				prevColumnOrderRef.current = columnOrder
-				prevColumnVisibilityRef.current = columnVisibility
-				prevCustomColumnsRef.current = customColumns
-				prevActiveCustomViewRef.current = activeCustomView
-				prevSelectedPresetRef.current = selectedPreset
-				options.onColumnsChange(
-					columnOrder,
-					columnVisibility,
-					customColumns,
-					activeCustomView || undefined,
-					selectedPreset || undefined
-				)
-			}
-		}
-	}, [columnOrder, columnVisibility, customColumns, activeCustomView, selectedPreset, options])
+	const clearPresetAndViewSelection = React.useCallback(() => {
+		actions.setSelectedPreset(null)
+		actions.setActiveCustomView(null)
+		actions.setActiveDatasetMetric(null)
+	}, [actions])
 
 	const addOption = React.useCallback(
-		(newOptions: string[]) => {
-			if (!table) return
-			const ops = Object.fromEntries(table.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-			setColumnVisibility(ops)
+		(newOptions: string[], _setLocalStorage?: boolean) => {
+			const dedupedOptions = Array.from(new Set(newOptions))
+			const nextVisibility = buildColumnVisibilityMap(allLeafColumnIds, dedupedOptions)
+
+			const nextColumnOrder = state.columnOrder.filter((columnId) => dedupedOptions.includes(columnId))
+			for (const columnId of dedupedOptions) {
+				if (!nextColumnOrder.includes(columnId)) {
+					nextColumnOrder.push(columnId)
+				}
+			}
+
+			actions.setColumnVisibilityAndOrder(nextVisibility, nextColumnOrder)
+			clearPresetAndViewSelection()
 		},
-		[table]
+		[actions, allLeafColumnIds, clearPresetAndViewSelection, state.columnOrder]
 	)
 
-	const columnPresets = COLUMN_PRESETS
+	const toggleColumnVisibility = React.useCallback(
+		(columnKey: string, isVisible: boolean) => {
+			const visibleColumns = Object.entries(currentColumns)
+				.filter(([, visible]) => visible)
+				.map(([columnId]) => columnId)
+
+			const nextVisibleColumnsSet = new Set(visibleColumns)
+			if (isVisible) nextVisibleColumnsSet.add(columnKey)
+			if (!isVisible) nextVisibleColumnsSet.delete(columnKey)
+
+			const nextVisibleColumns = Array.from(nextVisibleColumnsSet)
+			const nextVisibility = buildColumnVisibilityMap(allLeafColumnIds, nextVisibleColumns)
+			const nextColumnOrder = isVisible
+				? [...state.columnOrder.filter((columnId) => columnId !== columnKey), columnKey]
+				: state.columnOrder.filter((columnId) => columnId !== columnKey)
+
+			actions.setColumnVisibilityAndOrder(nextVisibility, nextColumnOrder)
+			clearPresetAndViewSelection()
+		},
+		[actions, allLeafColumnIds, clearPresetAndViewSelection, currentColumns, state.columnOrder]
+	)
+
+	const moveColumnUp = React.useCallback(
+		(columnKey: string) => {
+			const currentIndex = state.columnOrder.indexOf(columnKey)
+			if (currentIndex <= 0) return
+
+			const nextColumnOrder = [...state.columnOrder]
+			const previousColumn = nextColumnOrder[currentIndex - 1]
+			nextColumnOrder[currentIndex - 1] = columnKey
+			nextColumnOrder[currentIndex] = previousColumn
+
+			actions.setColumnOrder(nextColumnOrder)
+			clearPresetAndViewSelection()
+		},
+		[actions, clearPresetAndViewSelection, state.columnOrder]
+	)
+
+	const moveColumnDown = React.useCallback(
+		(columnKey: string) => {
+			const currentIndex = state.columnOrder.indexOf(columnKey)
+			if (currentIndex < 0 || currentIndex >= state.columnOrder.length - 1) return
+
+			const nextColumnOrder = [...state.columnOrder]
+			const nextColumn = nextColumnOrder[currentIndex + 1]
+			nextColumnOrder[currentIndex + 1] = columnKey
+			nextColumnOrder[currentIndex] = nextColumn
+
+			actions.setColumnOrder(nextColumnOrder)
+			clearPresetAndViewSelection()
+		},
+		[actions, clearPresetAndViewSelection, state.columnOrder]
+	)
 
 	const applyPreset = React.useCallback(
 		(presetId: string) => {
-			const preset = columnPresets.find((item) => item.id === presetId)
+			const preset = COLUMN_PRESETS.find((item) => item.id === presetId)
 			if (!preset) return
 
-			addOption(preset.columns)
-			setColumnOrder(preset.columns)
-			setSorting(
-				(preset.sort && preset.sort.length > 0 ? preset.sort : defaultSortingRef.current).map((rule) => ({
-					...rule
-				}))
-			)
-			setShowColumnPanel(false)
-			setSelectedPreset(presetId)
-			setActiveCustomView(null)
+			const presetSorting =
+				preset.sort && preset.sort.length > 0
+					? preset.sort.map((rule) => ({ ...rule }))
+					: DEFAULT_SORTING.map((rule) => ({ ...rule }))
+			const presetVisibility = buildColumnVisibilityMap(allLeafColumnIds, preset.columns)
+			const activeDatasetMetric =
+				preset.group === 'dataset' && preset.sort && preset.sort.length > 0 ? preset.sort[0].id : null
 
-			if (preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
-				setActiveDatasetMetric(preset.sort[0].id)
-			} else {
-				setActiveDatasetMetric(null)
-			}
+			actions.applyPreset(presetId, preset.columns, presetSorting, presetVisibility, activeDatasetMetric)
 		},
-		[addOption, columnPresets]
+		[actions, allLeafColumnIds]
 	)
 
-	React.useEffect(() => {
-		if (!options?.initialColumnVisibility && !options?.initialActivePresetId) {
-			applyPreset('essential')
-		}
-	}, [options?.initialColumnVisibility, options?.initialActivePresetId, applyPreset])
-
-	React.useEffect(() => {
-		if (options?.initialActivePresetId && !activeDatasetMetric) {
-			const preset = columnPresets.find((p) => p.id === options.initialActivePresetId)
-			if (preset && preset.group === 'dataset' && preset.sort && preset.sort.length > 0) {
-				setActiveDatasetMetric(preset.sort[0].id)
-				setSorting(preset.sort.map((rule) => ({ ...rule })))
-			}
-		}
-	}, [options?.initialActivePresetId, columnPresets, activeDatasetMetric])
-
-	const leafVisibilityKey = table
-		? table
-				.getAllLeafColumns()
-				.map((col) => col.getIsVisible())
-				.join(',')
-		: ''
-
-	// Get current column visibility state
-	const currentColumns = React.useMemo(() => {
-		if (!table) return {}
-		void leafVisibilityKey
-		return table.getAllLeafColumns().reduce(
-			(acc, col) => {
-				acc[col.id] = col.getIsVisible()
-				return acc
-			},
-			{} as Record<string, boolean>
-		)
-	}, [table, leafVisibilityKey])
-
-	const toggleColumnVisibility = (columnKey: string, isVisible: boolean) => {
-		const newOptions: string[] = []
-		for (const key in currentColumns) {
-			if (key === columnKey ? isVisible : currentColumns[key]) {
-				newOptions.push(key)
-			}
-		}
-
-		addOption(newOptions)
-		setSelectedPreset(null)
-		setActiveDatasetMetric(null)
-
-		if (isVisible) {
-			setColumnOrder((prev) => [...prev, columnKey])
-		} else {
-			setColumnOrder((prev) => prev.filter((id) => id !== columnKey))
-		}
-	}
-
-	const moveColumnUp = (columnKey: string) => {
-		setColumnOrder((prev) => {
-			const index = prev.indexOf(columnKey)
-			if (index <= 0) return prev
-
-			const newOrder = [...prev]
-			const temp = newOrder[index]
-			newOrder[index] = newOrder[index - 1]
-			newOrder[index - 1] = temp
-			return newOrder
-		})
-	}
-
-	const moveColumnDown = (columnKey: string) => {
-		setColumnOrder((prev) => {
-			const index = prev.indexOf(columnKey)
-			if (index === -1 || index >= prev.length - 1) return prev
-
-			if (index + 1 >= prev.length) return prev
-
-			const newOrder = [...prev]
-			const temp = newOrder[index]
-			newOrder[index] = newOrder[index + 1]
-			newOrder[index + 1] = temp
-			return newOrder
-		})
-	}
-
-	const handleDownloadCSV = () => {
-		if (!table) return
-
-		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible() && col.id !== 'expand')
-
-		const sortedColumns =
-			columnOrder.length > 0
-				? visibleColumns.sort((a, b) => {
-						const indexA = columnOrder.indexOf(a.id)
-						const indexB = columnOrder.indexOf(b.id)
-						if (indexA === -1) return 1
-						if (indexB === -1) return -1
-						return indexA - indexB
+	const handleDownloadCSV = React.useCallback(() => {
+		const visibleColumns = table.getAllLeafColumns().filter((column) => column.getIsVisible() && column.id !== 'expand')
+		const orderedColumns =
+			state.columnOrder.length > 0
+				? [...visibleColumns].sort((left, right) => {
+						const leftIndex = state.columnOrder.indexOf(left.id)
+						const rightIndex = state.columnOrder.indexOf(right.id)
+						if (leftIndex === -1 && rightIndex === -1) return 0
+						if (leftIndex === -1) return 1
+						if (rightIndex === -1) return -1
+						return leftIndex - rightIndex
 					})
 				: visibleColumns
 
-		const headers = sortedColumns.map((col) => {
-			const hdr = col.columnDef.header
-			return typeof hdr === 'string' ? hdr : (col.id ?? '')
+		const headers = orderedColumns.map((column) => {
+			const headerValue = column.columnDef.header
+			return typeof headerValue === 'string' ? headerValue : column.id
 		})
 
 		const rows = table.getSortedRowModel().rows.map((row) => {
-			return sortedColumns.map((col) => {
-				const value = row.getValue(col.id)
-				if (value == null) return ''
+			return orderedColumns.map((column) => {
+				const value = row.getValue(column.id)
+				if (value === null || value === undefined) return ''
 				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value)
 				if (Array.isArray(value)) return value.join(', ')
 				return ''
@@ -1188,58 +403,107 @@ export function useProTable(
 					: `multi_chain_${chains.length}_protocols.csv`
 
 		downloadCSV(filename, [headers, ...rows], { addTimestamp: true })
-	}
+	}, [chains, state.columnOrder, table])
 
-	// Custom column management functions
-	const addCustomColumn = (column: CustomColumn) => {
-		const updatedColumns = [...customColumns, column]
-		setCustomColumns(updatedColumns)
-	}
+	const addCustomColumn = React.useCallback(
+		(column: CustomColumn) => {
+			actions.addCustomColumn(column)
+			clearPresetAndViewSelection()
+		},
+		[actions, clearPresetAndViewSelection]
+	)
 
-	const removeCustomColumn = (columnId: string) => {
-		const updatedColumns = customColumns.filter((col) => col.id !== columnId)
-		setCustomColumns(updatedColumns)
+	const removeCustomColumn = React.useCallback(
+		(columnId: string) => {
+			actions.removeCustomColumn(columnId)
+			clearPresetAndViewSelection()
+		},
+		[actions, clearPresetAndViewSelection]
+	)
 
-		// Also remove from visible columns if it's currently shown
-		setColumnVisibility((prev) => {
-			const newVisibility = { ...prev }
-			delete newVisibility[columnId]
-			return newVisibility
-		})
-	}
+	const updateCustomColumn = React.useCallback(
+		(columnId: string, updates: Partial<CustomColumn>) => {
+			actions.updateCustomColumn(columnId, updates)
+			clearPresetAndViewSelection()
+		},
+		[actions, clearPresetAndViewSelection]
+	)
 
-	const updateCustomColumn = (columnId: string, updates: Partial<CustomColumn>) => {
-		const updatedColumns = customColumns.map((col) => (col.id === columnId ? { ...col, ...updates } : col))
-		setCustomColumns(updatedColumns)
-	}
+	const { userConfig, saveUserConfig } = useUserConfig()
+
+	const customViews = React.useMemo(() => {
+		const tableViews = userConfig && typeof userConfig === 'object' ? Reflect.get(userConfig, 'tableViews') : null
+		if (!Array.isArray(tableViews)) return []
+		return tableViews.filter((view): view is CustomView => isCustomView(view))
+	}, [userConfig])
+	const hydratedCustomViewRef = React.useRef<string | null>(null)
+	const columnOrderLengthRef = React.useRef(state.columnOrder.length)
+	const columnVisibilityRef = React.useRef(state.columnVisibility)
+
+	React.useEffect(() => {
+		columnOrderLengthRef.current = state.columnOrder.length
+	}, [state.columnOrder.length])
+
+	React.useEffect(() => {
+		columnVisibilityRef.current = state.columnVisibility
+	}, [state.columnVisibility])
+
+	React.useEffect(() => {
+		if (!state.activeCustomView) {
+			hydratedCustomViewRef.current = null
+			return
+		}
+
+		if (hydratedCustomViewRef.current === state.activeCustomView) return
+
+		if (columnOrderLengthRef.current > 0 || hasOwnKeys(columnVisibilityRef.current)) {
+			hydratedCustomViewRef.current = state.activeCustomView
+			return
+		}
+
+		const matchingView = customViews.find((view) => view.id === state.activeCustomView)
+		if (!matchingView) return
+
+		actions.loadCustomView(
+			matchingView.id,
+			[...matchingView.columnOrder],
+			{ ...matchingView.columnVisibility },
+			matchingView.customColumns ? [...matchingView.customColumns] : []
+		)
+		hydratedCustomViewRef.current = state.activeCustomView
+	}, [actions, customViews, state.activeCustomView])
 
 	const saveCustomView = React.useCallback(
 		async (name: string) => {
 			const newView: CustomView = {
 				id: `custom_view_${Date.now()}`,
 				name,
-				columnOrder: [...columnOrder],
-				columnVisibility: { ...columnVisibility },
-				customColumns: [...customColumns],
+				columnOrder: [...state.columnOrder],
+				columnVisibility: { ...resolvedColumnVisibility },
+				customColumns: [...state.customColumns],
 				createdAt: Date.now()
 			}
-
 			const updatedViews = [...customViews, newView]
 
 			if (saveUserConfig) {
-				await saveUserConfig({
-					...userConfig,
-					tableViews: updatedViews
-				})
+				const baseConfig = userConfig && typeof userConfig === 'object' ? userConfig : {}
+				await saveUserConfig({ ...baseConfig, tableViews: updatedViews })
 			}
 
-			setActiveCustomView(newView.id)
-			setSelectedPreset(null)
-			setActiveDatasetMetric(null)
-
+			clearPresetAndViewSelection()
+			actions.setActiveCustomView(newView.id)
 			return newView
 		},
-		[columnOrder, columnVisibility, customColumns, customViews, saveUserConfig, userConfig]
+		[
+			actions,
+			clearPresetAndViewSelection,
+			customViews,
+			resolvedColumnVisibility,
+			saveUserConfig,
+			state.columnOrder,
+			state.customColumns,
+			userConfig
+		]
 	)
 
 	const deleteCustomView = React.useCallback(
@@ -1247,75 +511,96 @@ export function useProTable(
 			const updatedViews = customViews.filter((view) => view.id !== viewId)
 
 			if (saveUserConfig) {
-				await saveUserConfig({
-					...userConfig,
-					tableViews: updatedViews
-				})
+				const baseConfig = userConfig && typeof userConfig === 'object' ? userConfig : {}
+				await saveUserConfig({ ...baseConfig, tableViews: updatedViews })
 			}
 
-			if (activeCustomView === viewId) {
-				setActiveCustomView(null)
+			if (state.activeCustomView === viewId) {
+				actions.setActiveCustomView(null)
 			}
 		},
-		[customViews, activeCustomView, saveUserConfig, userConfig]
+		[actions, customViews, saveUserConfig, state.activeCustomView, userConfig]
 	)
 
 	const loadCustomView = React.useCallback(
 		(viewId: string) => {
-			const view = customViews.find((v) => v.id === viewId)
-			if (view) {
-				setColumnOrder(view.columnOrder)
-				setColumnVisibility(view.columnVisibility)
-				setCustomColumns(view.customColumns || [])
-				setActiveCustomView(viewId)
-				setSelectedPreset(null)
-				setActiveDatasetMetric(null)
-			}
+			const view = customViews.find((item) => item.id === viewId)
+			if (!view) return
+			actions.loadCustomView(
+				view.id,
+				[...view.columnOrder],
+				{ ...view.columnVisibility },
+				view.customColumns ? [...view.customColumns] : []
+			)
 		},
-		[customViews]
+		[actions, customViews]
 	)
 
-	// Extract unique categories from all protocols
-	const categories = React.useMemo(() => {
-		if (!fullProtocolsList) return []
-		const uniqueCategories = new Set<string>()
-		for (const protocol of fullProtocolsList as any[]) {
-			if (protocol.category) {
-				uniqueCategories.add(protocol.category)
-			}
-		}
-		return Array.from(uniqueCategories).sort()
-	}, [fullProtocolsList])
+	const previousColumnsSnapshotRef = React.useRef<ColumnsSnapshot | null>(null)
 
-	// Get available protocols for the current chain(s) sorted by TVL
-	const availableProtocols = React.useMemo(() => {
-		if (!fullProtocolsList) return []
-		// Sort protocols by TVL in descending order
-		return [...fullProtocolsList].sort((a, b) => {
-			const aTvl = a.tvl || 0
-			const bTvl = b.tvl || 0
-			return bTvl - aTvl
-		})
-	}, [fullProtocolsList])
+	React.useEffect(() => {
+		if (!onColumnsChange) return
+
+		const snapshot: ColumnsSnapshot = {
+			columnOrder: state.columnOrder,
+			columnVisibility: resolvedColumnVisibility,
+			customColumns: state.customColumns,
+			activeViewId: state.activeCustomView,
+			activePresetId: state.selectedPreset
+		}
+
+		if (previousColumnsSnapshotRef.current === null) {
+			previousColumnsSnapshotRef.current = snapshot
+			return
+		}
+
+		const previous = previousColumnsSnapshotRef.current
+		const hasChanged =
+			!areStringArraysEqual(previous.columnOrder, snapshot.columnOrder) ||
+			!areVisibilityEqual(previous.columnVisibility, snapshot.columnVisibility) ||
+			!areCustomColumnsEqual(previous.customColumns, snapshot.customColumns) ||
+			previous.activeViewId !== snapshot.activeViewId ||
+			previous.activePresetId !== snapshot.activePresetId
+
+		if (!hasChanged) return
+
+		previousColumnsSnapshotRef.current = snapshot
+		onColumnsChange(
+			snapshot.columnOrder,
+			snapshot.columnVisibility,
+			snapshot.customColumns,
+			snapshot.activeViewId ?? undefined,
+			snapshot.activePresetId ?? undefined
+		)
+	}, [
+		onColumnsChange,
+		resolvedColumnVisibility,
+		state.activeCustomView,
+		state.columnOrder,
+		state.customColumns,
+		state.selectedPreset
+	])
 
 	return {
 		table,
 		isLoading,
-		showColumnPanel,
-		setShowColumnPanel,
-		searchTerm,
-		setSearchTerm,
+		isEmptyProtocols,
+		showColumnPanel: state.showColumnPanel,
+		setShowColumnPanel: actions.setShowColumnPanel,
+		searchTerm: state.searchTerm,
+		setSearchTerm: actions.setSearchTerm,
 		currentColumns,
-		columnOrder,
+		columnOrder: state.columnOrder,
 		addOption,
 		toggleColumnVisibility,
 		moveColumnUp,
 		moveColumnDown,
-		columnPresets,
+		columnPresets: COLUMN_PRESETS,
 		applyPreset,
-		activePreset: selectedPreset || activeCustomView,
+		// Used by table controls for either a preset id or active custom view id.
+		activePreset: state.selectedPreset ?? state.activeCustomView,
 		downloadCSV: handleDownloadCSV,
-		customColumns,
+		customColumns: state.customColumns,
 		addCustomColumn,
 		removeCustomColumn,
 		updateCustomColumn,

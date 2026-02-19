@@ -1,9 +1,12 @@
+'use no memo'
+
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { protocolsByChainTableColumns, TABLE_CATEGORIES } from '~/components/Table/Defi/Protocols'
 import { Tooltip } from '~/components/Tooltip'
 import type { CustomView } from '../../types'
 import { CustomColumnPanel } from './CustomColumnPanel'
+import { SHARE_METRIC_DEFINITIONS } from './proTable.constants'
+import { protocolsByChainTableColumns, TABLE_CATEGORIES } from './useProTableColumns'
 
 const EMPTY_CUSTOM_COLUMNS: CustomColumn[] = []
 const EMPTY_CUSTOM_VIEWS: CustomView[] = []
@@ -110,8 +113,26 @@ interface ColumnManagementPanelProps {
 	activeViewId?: string
 }
 
+interface ColumnListItem {
+	key: string
+	name: string
+	category?: string
+}
+
+interface ColumnButtonProps {
+	column: ColumnListItem
+	isActive: boolean
+	isCustom?: boolean
+	currentColumns: Record<string, boolean>
+	columnOrder: string[]
+	moveColumnUp?: (columnKey: string) => void
+	moveColumnDown?: (columnKey: string) => void
+	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
+	customColumns: CustomColumn[]
+}
+
 // Helper component for column buttons
-const ColumnButton = ({
+const ColumnButton = React.memo(function ColumnButton({
 	column,
 	isActive,
 	isCustom,
@@ -121,17 +142,7 @@ const ColumnButton = ({
 	moveColumnDown,
 	toggleColumnVisibility,
 	customColumns
-}: {
-	column: any
-	isActive: boolean
-	isCustom?: boolean
-	currentColumns: Record<string, boolean>
-	columnOrder: string[]
-	moveColumnUp: (columnKey: string) => void
-	moveColumnDown: (columnKey: string) => void
-	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
-	customColumns: CustomColumn[]
-}) => {
+}: ColumnButtonProps) {
 	const description = isCustom
 		? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
 		: metricDescriptions[column.key] || ''
@@ -202,7 +213,7 @@ const ColumnButton = ({
 			</button>
 		</Tooltip>
 	)
-}
+})
 
 export function ColumnManagementPanel({
 	showColumnPanel,
@@ -232,25 +243,7 @@ export function ColumnManagementPanel({
 	}, [searchTerm])
 
 	const percentageShareColumns = React.useMemo(() => {
-		const usdValuedMetrics = [
-			{ key: 'tvl', name: 'TVL % Share', category: TABLE_CATEGORIES.TVL },
-			{ key: 'mcap', name: 'Market Cap % Share', category: TABLE_CATEGORIES.TVL },
-			{ key: 'fees_24h', name: 'Fees 24h % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'fees_7d', name: 'Fees 7d % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'fees_30d', name: 'Fees 30d % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'fees_1y', name: 'Fees 1y % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'average_1y', name: 'Monthly Avg 1Y Fees % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'revenue_24h', name: 'Revenue 24h % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'revenue_7d', name: 'Revenue 7d % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'revenue_30d', name: 'Revenue 30d % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'revenue_1y', name: 'Revenue 1y % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'volume_24h', name: 'Volume 24h % Share', category: TABLE_CATEGORIES.VOLUME },
-			{ key: 'volume_7d', name: 'Volume 7d % Share', category: TABLE_CATEGORIES.VOLUME },
-			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share', category: TABLE_CATEGORIES.VOLUME }
-		]
-
-		return usdValuedMetrics.map((metric) => ({
+		return SHARE_METRIC_DEFINITIONS.map((metric) => ({
 			key: `${metric.key}_share`,
 			name: metric.name,
 			category: 'PERCENTAGE_SHARE' as const
@@ -270,6 +263,20 @@ export function ColumnManagementPanel({
 	const allColumnsForDisplay = React.useMemo(() => {
 		return [...protocolsByChainTableColumns, ...percentageShareColumns, ...customColumnsForStandardView]
 	}, [customColumnsForStandardView, percentageShareColumns])
+
+	const columnsByKey = React.useMemo(() => {
+		return new Map(allColumnsForDisplay.map((column) => [column.key, column]))
+	}, [allColumnsForDisplay])
+
+	const customColumnIdSet = React.useMemo(() => new Set(customColumns.map((column) => column.id)), [customColumns])
+
+	const visibleColumnOrder = React.useMemo(() => {
+		return columnOrder.filter((columnId) => currentColumns[columnId])
+	}, [columnOrder, currentColumns])
+
+	const visibleColumnCount = React.useMemo(() => {
+		return Object.values(currentColumns).filter(Boolean).length
+	}, [currentColumns])
 
 	// Filter percentage share columns by search term
 	const filteredPercentageColumns = React.useMemo(() => {
@@ -395,31 +402,29 @@ export function ColumnManagementPanel({
 						<div>
 							<h5 className="mb-2 flex items-center gap-2 text-xs font-medium tracking-wide pro-text2 uppercase">
 								<Icon name="eye" height={12} width={12} />
-								Active Columns ({Object.values(currentColumns).filter(Boolean).length})
+								Active Columns ({visibleColumnCount})
 							</h5>
 							<p className="mb-3 text-xs pro-text3">Use arrows to reorder • Click × to hide</p>
 							<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
-								{columnOrder
-									.filter((key) => currentColumns[key])
-									.map((columnKey) => {
-										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
-										if (!column) return null
-										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
-										return (
-											<ColumnButton
-												key={columnKey}
-												column={column}
-												isActive={true}
-												isCustom={isCustom}
-												currentColumns={currentColumns}
-												columnOrder={columnOrder}
-												moveColumnUp={moveColumnUp}
-												moveColumnDown={moveColumnDown}
-												toggleColumnVisibility={toggleColumnVisibility}
-												customColumns={customColumns}
-											/>
-										)
-									})}
+								{visibleColumnOrder.map((columnKey) => {
+									const column = columnsByKey.get(columnKey)
+									if (!column) return null
+									const isCustom = customColumnIdSet.has(columnKey)
+									return (
+										<ColumnButton
+											key={columnKey}
+											column={column}
+											isActive={true}
+											isCustom={isCustom}
+											currentColumns={currentColumns}
+											columnOrder={columnOrder}
+											moveColumnUp={moveColumnUp}
+											moveColumnDown={moveColumnDown}
+											toggleColumnVisibility={toggleColumnVisibility}
+											customColumns={customColumns}
+										/>
+									)
+								})}
 							</div>
 						</div>
 
@@ -533,9 +538,7 @@ export function ColumnManagementPanel({
 			<div className="mt-4 flex items-center justify-between border-t pro-divider pt-3 text-xs">
 				<span className="pro-text3">
 					{activeTab === 'columns'
-						? `${Object.values(currentColumns).filter(Boolean).length} of ${
-								protocolsByChainTableColumns.length
-							} columns visible`
+						? `${visibleColumnCount} of ${protocolsByChainTableColumns.length} columns visible`
 						: activeTab === 'custom'
 							? `${customColumns.length} custom columns`
 							: `${customViews.length} saved views`}

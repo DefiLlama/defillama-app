@@ -34,7 +34,7 @@ export const usePriceChart = (geckoId?: string) => {
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
-	let url = geckoId ? `${COINS_PRICES_API}/current/coingecko:${geckoId}` : null
+	const url = geckoId ? `${COINS_PRICES_API}/current/coingecko:${geckoId}` : null
 	const isEnabled = !!url
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['gecko-token-price', url, isEnabled],
@@ -47,24 +47,44 @@ export const useGetTokenPrice = (geckoId?: string) => {
 	return { data: data?.coins?.[`coingecko:${geckoId}`], error, isLoading }
 }
 
-interface IDenominationPriceHistory {
+export interface IDenominationPriceHistory {
 	prices: Array<[number, number]>
 	mcaps: Array<[number, number]>
 	volumes: Array<[number, number]>
 }
 
-// oxlint-disable-next-line no-unused-vars
-const useDenominationPriceHistory = (geckoId?: string) => {
-	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
+const EMPTY_DENOMINATION_PRICE_HISTORY: IDenominationPriceHistory = { prices: [], mcaps: [], volumes: [] }
+
+const normalizeDenominationPriceHistory = (value: unknown): IDenominationPriceHistory => {
+	if (typeof value !== 'object' || value === null) {
+		return EMPTY_DENOMINATION_PRICE_HISTORY
+	}
+
+	const candidate = value as {
+		prices?: Array<[number, number]>
+		mcaps?: Array<[number, number]>
+		volumes?: Array<[number, number]>
+	}
+
+	const prices = Array.isArray(candidate.prices) ? candidate.prices : []
+	const mcaps = Array.isArray(candidate.mcaps) ? candidate.mcaps : []
+	const volumes = Array.isArray(candidate.volumes) ? candidate.volumes : []
+
+	return { prices, mcaps, volumes }
+}
+
+export const useDenominationPriceHistory = (geckoId?: string) => {
+	const url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
 	const isEnabled = !!url
 	return useQuery<IDenominationPriceHistory>({
 		queryKey: ['denom-price-history', url, isEnabled],
 		queryFn: isEnabled
 			? () =>
-					fetchApi(url)
-						.then((r) => r.data)
-						.then((data) => (data.prices.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }))
-			: () => ({ prices: [], mcaps: [], volumes: [] }),
+					fetchApi(url).then((result) => {
+						const normalized = normalizeDenominationPriceHistory(result)
+						return normalized.prices.length > 0 ? normalized : EMPTY_DENOMINATION_PRICE_HISTORY
+					})
+			: () => EMPTY_DENOMINATION_PRICE_HISTORY,
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

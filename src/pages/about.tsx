@@ -1,14 +1,15 @@
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { YIELD_POOLS_API } from '~/constants'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
 import Layout from '~/layout'
 import { fetchApi } from '~/utils/async'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('about', async () => {
 	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
-		getSimpleProtocolsPageData(),
+		fetchProtocols().then(basicProtocolPropertiesToKeepV1List()),
 		fetchApi(YIELD_POOLS_API),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',

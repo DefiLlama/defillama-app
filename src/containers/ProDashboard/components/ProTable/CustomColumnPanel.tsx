@@ -1,7 +1,10 @@
+'use no memo'
+
 import { Parser } from 'expr-eval'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
+import { formatPreviewNumber } from '../UnifiedTable/utils/customColumns'
+import { protocolsByChainTableColumns } from './useProTableColumns'
 
 interface CustomColumn {
 	id: string
@@ -16,20 +19,6 @@ interface CustomColumnPanelProps {
 	onAddCustomColumn: (column: CustomColumn) => void
 	onRemoveCustomColumn: (columnId: string) => void
 	onUpdateCustomColumn: (columnId: string, updates: Partial<CustomColumn>) => void
-}
-
-const formatPreviewNumber = (value: number | null): string => {
-	if (value == null) return '-'
-
-	if (Math.abs(value) >= 1e9) {
-		return `$${(value / 1e9).toFixed(2)}B`
-	} else if (Math.abs(value) >= 1e6) {
-		return `$${(value / 1e6).toFixed(2)}M`
-	} else if (Math.abs(value) >= 1e3) {
-		return `$${(value / 1e3).toFixed(2)}K`
-	} else {
-		return `$${value.toFixed(2)}`
-	}
 }
 
 const handleMouseDown = (e: React.MouseEvent) => {
@@ -49,12 +38,10 @@ export function CustomColumnPanel({
 	onRemoveCustomColumn,
 	onUpdateCustomColumn: _onUpdateCustomColumn
 }: CustomColumnPanelProps) {
+	const parser = React.useMemo(() => new Parser(), [])
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')
 	const [validationError, setValidationError] = React.useState('')
-	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({
-		isValid: true
-	})
 
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
@@ -197,7 +184,7 @@ export function CustomColumnPanel({
 		() =>
 			Object.entries(sampleData)
 				.slice(0, 3)
-				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+				.map(([key, value]) => `${key}=${formatPreviewNumber(value, 'number')}`)
 				.join(', '),
 		[sampleData]
 	)
@@ -208,7 +195,6 @@ export function CustomColumnPanel({
 		}
 
 		try {
-			const parser = new Parser()
 			const expr = parser.parse(expression)
 
 			// Test with dummy data to catch variable issues
@@ -220,10 +206,7 @@ export function CustomColumnPanel({
 			expr.evaluate(testData)
 			return { isValid: true }
 		} catch (error) {
-			let errorMsg = error.message
-			if (!errorMsg) {
-				errorMsg = 'Invalid expression'
-			}
+			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
 			return { isValid: false, error: errorMsg }
 		}
 	}
@@ -372,27 +355,20 @@ export function CustomColumnPanel({
 		}
 	}
 
-	// Live validation effect
-	React.useEffect(() => {
+	const liveValidation = React.useMemo((): { isValid: boolean; isEmpty?: boolean; error?: string; result?: number } => {
 		if (!newColumnExpression.trim()) {
-			setLiveValidation({ isValid: true })
-			return
+			return { isValid: false, isEmpty: true }
 		}
 
 		try {
-			const parser = new Parser()
 			const expr = parser.parse(newColumnExpression)
 			const result = expr.evaluate(sampleData)
-			const validResult: number | undefined = typeof result === 'number' ? result : undefined
-			setLiveValidation({ isValid: true, result: validResult })
+			return typeof result === 'number' ? { isValid: true, result } : { isValid: true }
 		} catch (error) {
-			let errorMsg = error.message
-			if (!errorMsg) {
-				errorMsg = 'Invalid expression'
-			}
-			setLiveValidation({ isValid: false, error: errorMsg })
+			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
+			return { isValid: false, error: errorMsg }
 		}
-	}, [newColumnExpression, sampleData])
+	}, [newColumnExpression, parser, sampleData])
 
 	return (
 		<div
@@ -489,7 +465,7 @@ export function CustomColumnPanel({
 							{/* Live validation indicator */}
 							{newColumnExpression && (
 								<div className="absolute top-1/2 right-2 -translate-y-1/2 transform">
-									{liveValidation.isValid ? (
+									{liveValidation.isEmpty ? null : liveValidation.isValid ? (
 										<Icon name="check" height={16} width={16} className="text-(--success)" />
 									) : (
 										<Icon name="x" height={16} width={16} className="text-(--error)" />
@@ -516,8 +492,10 @@ export function CustomColumnPanel({
 									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
 										<span className="text-green-700 dark:text-green-300">
-											{formatPreviewNumber(liveValidation.result || null)}
+											{formatPreviewNumber(liveValidation.result ?? null, 'number')}
 										</span>
+									) : liveValidation.isEmpty ? (
+										<span className="pro-text3">Enter an expression</span>
 									) : (
 										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>
 									)}
@@ -587,7 +565,7 @@ export function CustomColumnPanel({
 					Sample values:{' '}
 					{Object.entries(sampleData)
 						.slice(0, 4)
-						.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+						.map(([key, value]) => `${key}=${formatPreviewNumber(value, 'number')}`)
 						.join(', ')}
 				</div>
 			</div>

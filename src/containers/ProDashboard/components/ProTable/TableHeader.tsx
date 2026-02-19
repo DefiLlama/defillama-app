@@ -1,3 +1,5 @@
+'use no memo'
+
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
@@ -5,7 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import type { CustomView } from '../../types'
 import { ProTableCSVButton } from './CsvButton'
 import { CustomViewModal } from './CustomViewModal'
-import type { ColumnPresetDefinition } from './useProTable'
+import type { ColumnPresetDefinition } from './proTable.types'
 
 const EMPTY_CUSTOM_VIEWS: CustomView[] = []
 
@@ -22,9 +24,6 @@ interface TableHeaderProps {
 	onSaveView?: (name: string) => void
 	onLoadView?: (viewId: string) => void
 	onDeleteView?: (viewId: string) => void
-	currentColumns?: Record<string, boolean>
-	columnOrder?: string[]
-	customColumns?: any[]
 }
 
 export function TableHeader({
@@ -48,40 +47,27 @@ export function TableHeader({
 		if (chains.length <= 3) return `${chains.join(', ')} Protocols`
 		return `${chains.length} Chains Protocols`
 	}, [chains])
-	const [showCustomViewDropdown, setShowCustomViewDropdown] = React.useState(false)
-	const dropdownRef = React.useRef<HTMLDivElement>(null)
 
 	const activeCustomView = React.useMemo(
-		() => customViews.find((v) => v.id === activePreset),
-		[customViews, activePreset]
+		() => customViews.find((view) => view.id === activePreset) ?? null,
+		[activePreset, customViews]
 	)
-	const existingViewNames = React.useMemo(() => customViews.map((v) => v.name), [customViews])
+	const existingViewNames = React.useMemo(() => customViews.map((view) => view.name), [customViews])
 	const datasetPresets = React.useMemo(
-		() => columnPresets.filter((preset) => preset.group === 'dataset' || preset.group == null),
+		() => columnPresets.filter((preset) => preset.group === 'dataset' || preset.group === undefined),
 		[columnPresets]
 	)
-
-	const datasetPopover = usePopoverStore({ placement: 'bottom-start' })
-
 	const visibleDatasets = React.useMemo(() => datasetPresets.slice(0, 3), [datasetPresets])
 	const moreDatasets = React.useMemo(() => datasetPresets.slice(3), [datasetPresets])
 
-	React.useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-				setShowCustomViewDropdown(false)
-			}
-		}
-
-		document.addEventListener('mousedown', handleClickOutside)
-		return () => document.removeEventListener('mousedown', handleClickOutside)
-	}, [])
+	const datasetPopover = usePopoverStore({ placement: 'bottom-start' })
+	const customViewsPopover = usePopoverStore({ placement: 'bottom-end' })
 
 	return (
 		<div className="mb-2 flex flex-wrap items-center gap-2">
 			<h3 className="mr-auto text-base font-semibold">{displayTitle}</h3>
 
-			{colSpan === 2 && (
+			{colSpan === 2 ? (
 				<div className="flex flex-nowrap items-center gap-2 overflow-x-auto" role="group">
 					<span className="text-[11px] font-semibold tracking-wide pro-text3 uppercase">Datasets</span>
 					{datasetPresets.length === 0 ? (
@@ -107,12 +93,12 @@ export function TableHeader({
 									</button>
 								)
 							})}
-							{moreDatasets.length > 0 && (
+							{moreDatasets.length > 0 ? (
 								<>
 									<PopoverDisclosure
 										store={datasetPopover}
 										className={`flex items-center gap-1 rounded-md border px-3 py-1.5 text-sm whitespace-nowrap transition-colors ${
-											moreDatasets.some((p) => p.id === activePreset)
+											moreDatasets.some((preset) => preset.id === activePreset)
 												? 'border-(--primary) bg-(--primary) text-white'
 												: 'pro-border pro-bg1 pro-hover-bg pro-text1'
 										}`}
@@ -142,7 +128,7 @@ export function TableHeader({
 															isActive ? 'bg-(--primary)/10 ring-1 ring-(--primary)/20' : ''
 														}`}
 													>
-														{preset.icon && <span className="mt-0.5 text-xl leading-none">{preset.icon}</span>}
+														{preset.icon ? <span className="mt-0.5 text-xl leading-none">{preset.icon}</span> : null}
 														<div className="min-w-0 flex-1">
 															<div className="mb-1 flex items-center justify-between gap-2">
 																<span
@@ -150,9 +136,9 @@ export function TableHeader({
 																>
 																	{preset.label}
 																</span>
-																{isActive && (
+																{isActive ? (
 																	<Icon name="check" width={14} height={14} className="shrink-0 text-(--primary)" />
-																)}
+																) : null}
 															</div>
 															<p className="text-xs leading-snug pro-text3 opacity-80">{preset.description}</p>
 														</div>
@@ -162,111 +148,114 @@ export function TableHeader({
 										</div>
 									</Popover>
 								</>
-							)}
+							) : null}
 						</>
 					)}
 				</div>
-			)}
+			) : null}
 
-			<div className="relative" ref={dropdownRef}>
-				<button
-					type="button"
-					onClick={() => setShowCustomViewDropdown(!showCustomViewDropdown)}
-					className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
-						activeCustomView
-							? 'border-(--primary) bg-(--primary) text-white'
-							: 'pro-border pro-bg1 pro-hover-bg pro-text1'
-					}`}
-				>
-					<Icon name="eye" height={14} width={14} />
-					<span>{activeCustomView ? activeCustomView.name : 'Custom Views'}</span>
-					<Icon name={showCustomViewDropdown ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
-					{customViews.length > 0 && !activeCustomView && (
-						<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
-							{customViews.length}
-						</span>
-					)}
-				</button>
+			<PopoverDisclosure
+				store={customViewsPopover}
+				className={`flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
+					activeCustomView
+						? 'border-(--primary) bg-(--primary) text-white'
+						: 'pro-border pro-bg1 pro-hover-bg pro-text1'
+				}`}
+			>
+				<Icon name="eye" height={14} width={14} />
+				<span>{activeCustomView ? activeCustomView.name : 'Custom Views'}</span>
+				<Icon name="chevron-down" height={12} width={12} />
+				{customViews.length > 0 && !activeCustomView ? (
+					<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
+						{customViews.length}
+					</span>
+				) : null}
+			</PopoverDisclosure>
 
-				{showCustomViewDropdown && (
-					<div
-						className="absolute top-full right-0 mt-1 min-w-[200px] rounded-md border pro-divider pro-bg3 shadow-lg"
-						style={{ zIndex: 9999 }}
-					>
-						{customViews.length > 0 ? (
-							<>
-								<div className="border-b border-(--bg-divider) px-3 py-2 text-xs font-medium pro-text3 uppercase">
-									Saved Views
-								</div>
-								{customViews.map((view) => (
-									<div
-										key={view.id}
-										className="flex items-center justify-between pro-hover-bg px-3 py-2 transition-colors"
-									>
-										<button
-											onClick={() => {
-												onLoadView?.(view.id)
-												setShowCustomViewDropdown(false)
-											}}
-											className="flex flex-1 items-center gap-2 text-left text-sm pro-text1"
-										>
-											<span>{view.name}</span>
-											{activeCustomView?.id === view.id && (
-												<Icon name="check" height={12} width={12} className="text-(--success)" />
-											)}
-										</button>
-										<Tooltip content="Delete view">
-											<button
-												onClick={(e) => {
-													e.stopPropagation()
-													if (confirm(`Delete view "${view.name}"?`)) {
-														onDeleteView?.(view.id)
-													}
-												}}
-												className="rounded-md p-1 pro-text3 transition-colors hover:text-(--error)"
-											>
-												<Icon name="trash-2" height={12} width={12} />
-											</button>
-										</Tooltip>
-									</div>
-								))}
-								<div className="border-t border-(--bg-divider) p-2">
-									<button
-										onClick={() => {
-											setShowSaveModal(true)
-											setShowCustomViewDropdown(false)
-										}}
-										className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
-									>
-										<Icon name="plus" height={14} width={14} />
-										<span>Save Current View</span>
-									</button>
-								</div>
-							</>
-						) : (
-							<div className="p-4 text-center">
-								<p className="mb-3 text-sm pro-text3">No custom views yet</p>
-								<button
-									onClick={() => {
-										setShowSaveModal(true)
-										setShowCustomViewDropdown(false)
-									}}
-									className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+			<Popover
+				store={customViewsPopover}
+				modal={false}
+				portal={true}
+				gutter={4}
+				className="z-50 min-w-[220px] rounded-md border pro-divider pro-bg3 shadow-lg"
+			>
+				{customViews.length > 0 ? (
+					<>
+						<div className="border-b border-(--bg-divider) px-3 py-2 text-xs font-medium pro-text3 uppercase">
+							Saved Views
+						</div>
+						{customViews.map((view) => {
+							const isActive = activeCustomView?.id === view.id
+							return (
+								<div
+									key={view.id}
+									className="flex items-center justify-between pro-hover-bg px-3 py-2 transition-colors"
 								>
-									<Icon name="plus" height={14} width={14} />
-									<span>Save Current View</span>
-								</button>
-							</div>
-						)}
+									<button
+										type="button"
+										onClick={() => {
+											onLoadView?.(view.id)
+											customViewsPopover.setOpen(false)
+										}}
+										className="flex flex-1 items-center gap-2 text-left text-sm pro-text1"
+									>
+										<span>{view.name}</span>
+										{isActive ? <Icon name="check" height={12} width={12} className="text-(--success)" /> : null}
+									</button>
+									<Tooltip content="Delete view">
+										<button
+											type="button"
+											onClick={(event) => {
+												event.stopPropagation()
+												if (confirm(`Delete view "${view.name}"?`)) {
+													onDeleteView?.(view.id)
+												}
+											}}
+											className="rounded-md p-1 pro-text3 transition-colors hover:text-(--error)"
+										>
+											<Icon name="trash-2" height={12} width={12} />
+										</button>
+									</Tooltip>
+								</div>
+							)
+						})}
+						<div className="border-t border-(--bg-divider) p-2">
+							<button
+								type="button"
+								onClick={() => {
+									setShowSaveModal(true)
+									customViewsPopover.setOpen(false)
+								}}
+								className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+							>
+								<Icon name="plus" height={14} width={14} />
+								<span>Save Current View</span>
+							</button>
+						</div>
+					</>
+				) : (
+					<div className="p-4 text-center">
+						<p className="mb-3 text-sm pro-text3">No custom views yet</p>
+						<button
+							type="button"
+							onClick={() => {
+								setShowSaveModal(true)
+								customViewsPopover.setOpen(false)
+							}}
+							className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+						>
+							<Icon name="plus" height={14} width={14} />
+							<span>Save Current View</span>
+						</button>
 					</div>
 				)}
-			</div>
+			</Popover>
 
 			<ProTableCSVButton onClick={downloadCSV} smol />
 
 			<Tooltip
 				content="Create custom calculated columns with formulas like 'tvl / mcap' or '(fees_24h + revenue_24h) * 365'"
-				render={<button onClick={() => setShowColumnPanel(!showColumnPanel)} />}
+				render={<button type="button" onClick={() => setShowColumnPanel(!showColumnPanel)} />}
 				className="relative flex items-center gap-2 rounded-md border pro-border pro-bg1 pro-hover-bg px-3 py-1.5 text-sm pro-text1 transition-colors"
 			>
 				<Icon name="settings" height={14} width={14} />
@@ -277,7 +266,7 @@ export function TableHeader({
 				<Icon name={showColumnPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 			</Tooltip>
 
-			{onSaveView && (
+			{onSaveView ? (
 				<CustomViewModal
 					isOpen={showSaveModal}
 					onClose={() => setShowSaveModal(false)}
@@ -287,7 +276,7 @@ export function TableHeader({
 					}}
 					existingViewNames={existingViewNames}
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -1,5 +1,4 @@
 import { fetchLlamaConfig } from '~/api'
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { tvlOptions } from '~/components/Filters/options'
 import {
 	CHART_API,
@@ -26,7 +25,15 @@ import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { formatNum, getNDistinctColors, getPercentChange, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import {
+	formatNum,
+	getNDistinctColors,
+	getPercentChange,
+	lastDayOfWeek,
+	slug,
+	tokenIconUrl,
+	getAnnualizedRatio
+} from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import { fetchRaises } from '../Raises/api'

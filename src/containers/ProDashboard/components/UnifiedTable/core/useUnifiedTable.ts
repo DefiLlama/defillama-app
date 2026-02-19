@@ -1,3 +1,5 @@
+'use no memo'
+
 import { useQuery } from '@tanstack/react-query'
 import {
 	type ColumnOrderState,
@@ -88,17 +90,19 @@ export function useUnifiedTable({
 	onColumnVisibilityChange,
 	onSortingChange
 }: UseUnifiedTableArgs): UseUnifiedTableResult {
-	const [expanded, setExpandedInternal] = useState<Record<string, boolean>>({})
+	const [expanded, setExpandedState] = useState<Record<string, boolean>>({})
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 30 })
 
-	const setExpanded = (
-		updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)
-	) => {
-		setExpandedInternal((prevExpanded) => {
-			const next = typeof updater === 'function' ? updater(prevExpanded) : updater
-			return next === prevExpanded ? { ...next } : next
-		})
-	}
+	// Preserve identity when unchanged so React can skip re-renders.
+	const setExpanded = useCallback(
+		(updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => {
+			setExpandedState((prevExpanded) => {
+				const next = typeof updater === 'function' ? updater(prevExpanded) : updater
+				return next === prevExpanded ? prevExpanded : next
+			})
+		},
+		[]
+	)
 
 	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 

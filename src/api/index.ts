@@ -12,8 +12,7 @@ function getCGMarketsDataURLs() {
 	return urls
 }
 
-// oxlint-disable-next-line no-unused-vars
-const useFetchCoingeckoTokensList = () => {
+export const useFetchCoingeckoTokensList = () => {
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['coingeckotokenslist'],
 		queryFn: () => fetchApi(getCGMarketsDataURLs())
@@ -26,8 +25,7 @@ const useFetchCoingeckoTokensList = () => {
 	}
 }
 
-// oxlint-disable-next-line no-unused-vars
-async function retryCoingeckoRequest(func, retries) {
+export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: number): Promise<T | null> {
 	for (let i = 0; i < retries; i++) {
 		try {
 			const resp = await func()
@@ -39,7 +37,7 @@ async function retryCoingeckoRequest(func, retries) {
 			continue
 		}
 	}
-	return {}
+	return null
 }
 
 export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
@@ -78,8 +76,7 @@ export function maxAgeForNext(minutesForRollover: number[] = [22]) {
 	return maxAge
 }
 
-// oxlint-disable-next-line no-unused-vars
-async function fetchChainMcaps(chains: Array<[string, string]>) {
+export async function fetchChainMcaps(chains: Array<[string, string]>) {
 	if (chains.length === 0) {
 		return {}
 	}
@@ -87,7 +84,7 @@ async function fetchChainMcaps(chains: Array<[string, string]>) {
 	// Filter out chains without gecko_id
 	const validChains = chains
 		.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
-		.map(([chain, geckoId]) => [chain, `coingecko:${geckoId}`])
+		.map(([chain, geckoId]) => [chain, `coingecko:${geckoId}`] as const)
 
 	if (validChains.length === 0) {
 		return {}
@@ -121,14 +118,14 @@ async function fetchChainMcaps(chains: Array<[string, string]>) {
 	const batchResults = await Promise.all(batchPromises)
 
 	// Merge all results into a single object
-	const mergedMcaps = {}
+	const mergedMcaps: Record<string, { mcap?: number | null }> = {}
 	for (const batchResult of batchResults) {
 		Object.assign(mergedMcaps, batchResult)
 	}
 
-	return validChains.reduce((acc, [chain, geckoId]) => {
-		if (mergedMcaps[`coingecko:${geckoId}`]) {
-			acc[chain] = mergedMcaps[`coingecko:${geckoId}`]?.mcap ?? null
+	return validChains.reduce<Record<string, number | null>>((acc, [chain, prefixedGeckoId]) => {
+		if (mergedMcaps[prefixedGeckoId]) {
+			acc[chain] = mergedMcaps[prefixedGeckoId]?.mcap ?? null
 		}
 		return acc
 	}, {})

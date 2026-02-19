@@ -1,14 +1,16 @@
+'use no memo'
+
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useMemo, useRef } from 'react'
 import { PROTOCOLS_API } from '~/constants'
+import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
 import { fetchApi, fetchJson } from '~/utils/async'
 import {
 	getDexVolumeByChain,
 	getFeesAndRevenueProtocolsByChain,
 	getOpenInterestByChain,
 	getPerpsVolumeByChain
-} from '../adaptors'
-import { basicPropertiesToKeep, formatProtocolsData } from '../protocols/utils'
+} from './proTable.api'
 
 type WeightedAccumulator = { numerator: number; denominator: number }
 type WeightedStore = Record<string, WeightedAccumulator>
