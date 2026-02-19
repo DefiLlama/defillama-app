@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: Parameters<T>) => void) & {
 	cancel: () => void
@@ -68,7 +68,7 @@ export function useDebounce<T>(valueOrCallback: T, delay: number) {
 		delayRef.current = normalizedDelay
 	})
 
-	const debounced = useMemo(() => createDebounced(handlerRef, delayRef), [])
+	const [debounced] = useState(() => createDebounced(handlerRef, delayRef))
 
 	useEffect(() => {
 		return () => {

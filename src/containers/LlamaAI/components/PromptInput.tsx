@@ -90,7 +90,9 @@ export function PromptInput({
 		entityCombobox.restoreEntities(entities)
 		entityCombobox.setIsProgrammaticUpdate(true)
 		textarea.value = text
-		setValue(text)
+		queueMicrotask(() => {
+			setValue(text)
+		})
 		setInputSize(promptInputRef, highlightRef)
 
 		if (highlightRef.current) {

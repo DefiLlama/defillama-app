@@ -29,6 +29,8 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 
 const DAY_IN_SECONDS = 86_400
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
+const TOKEN_PNL_MAX_DATE_BUFFER_SECONDS = 60
+const DEFAULT_PNL_END_UNIX = Math.floor(Date.now() / 1000) - TOKEN_PNL_MAX_DATE_BUFFER_SECONDS
 
 type TokenPnlResult = {
 	coinInfo?: IResponseCGMarketsAPI
@@ -484,7 +486,7 @@ const TokenPnlContent = ({
 
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
-	const now = useMemo(() => Math.floor(Date.now() / 1000) - 60, [])
+	const now = DEFAULT_PNL_END_UNIX
 	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])

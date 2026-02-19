@@ -146,8 +146,6 @@ export default function BarChart({
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
-	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
 	const hasNotifiedReadyRef = useRef(false)
 
 	// Stable resize listener - never re-attaches when dependencies change
@@ -155,12 +153,6 @@ export default function BarChart({
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstanceRef = useRef((instance: echarts.ECharts | null) => {
-		if (shouldEnableExport) handleChartReady(instance)
-	})
-	updateExportInstanceRef.current = (instance: echarts.ECharts | null) => {
-		if (shouldEnableExport) handleChartReady(instance)
-	}
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -172,10 +164,12 @@ export default function BarChart({
 			instance = echarts.init(chartDom)
 		}
 		chartRef.current = instance
-		updateExportInstanceRef.current(instance)
+		if (shouldEnableExport) {
+			handleChartReady(instance)
+		}
 
-		if (onReadyRef.current && isNewInstance) {
-			onReadyRef.current(instance)
+		if (onReady && isNewInstance) {
+			onReady(instance)
 			hasNotifiedReadyRef.current = true
 		}
 
@@ -225,15 +219,29 @@ export default function BarChart({
 			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, orientation])
+	}, [
+		defaultChartSettings,
+		series,
+		stackKeys,
+		hideLegend,
+		chartOptions,
+		hideDataZoom,
+		id,
+		orientation,
+		shouldEnableExport,
+		handleChartReady,
+		onReady
+	])
 
 	useChartCleanup(id, () => {
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
-			onReadyRef.current?.(null)
+			onReady?.(null)
 			hasNotifiedReadyRef.current = false
 		}
-		updateExportInstanceRef.current(null)
+		if (shouldEnableExport) {
+			handleChartReady(null)
+		}
 	})
 
 	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)

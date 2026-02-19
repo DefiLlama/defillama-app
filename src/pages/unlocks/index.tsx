@@ -17,6 +17,7 @@ import { UnlocksTable } from '~/containers/Unlocks/Table'
 import { TopUnlocks } from '~/containers/Unlocks/TopUnlocks'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -28,10 +29,10 @@ const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
-const calculateUnlockStatistics = (data) => {
+const calculateUnlockStatistics = (data, nowSec: number) => {
 	let upcomingUnlocks30dValue = 0
 	let upcomingUnlocks7dValue = 0
-	const now = Date.now() / 1000
+	const now = nowSec
 	const thirtyDaysLater = now + 30 * 24 * 60 * 60
 	const sevenDaysLater = now + 7 * 24 * 60 * 60
 
@@ -70,14 +71,14 @@ const calculateUnlockStatistics = (data) => {
 }
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
+	const generatedAtSec = Math.floor(Date.now() / 1000)
 	const data = await getAllProtocolEmissions({
-		endDate: Date.now() / 1000 + 30 * 24 * 60 * 60
+		endDate: generatedAtSec + 30 * 24 * 60 * 60
 	})
-	const unlockStats = calculateUnlockStatistics(data)
 	return {
 		props: {
 			data,
-			unlockStats
+			generatedAtSec
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -111,7 +112,7 @@ const EMPTY_CHART_RESULT = {
 	charts: [] as NonNullable<IMultiSeriesChart2Props['charts']>
 }
 
-function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
+function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: any[]; initialNowSec: number }) {
 	const router = useRouter()
 
 	const updateQueryParam = React.useCallback(
@@ -136,7 +137,7 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	const isFullView = false
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
-	const now = useMemo(() => Date.now() / 1000, [])
+	const now = useNowSeconds(initialNowSec)
 	const { dataset, charts } = useMemo(() => {
 		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
 		const endTs = isFullView ? Infinity : END_TIMESTAMP
@@ -265,14 +266,18 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	)
 }
 
-export default function Protocols({ data, unlockStats }) {
+export default function Protocols({ data, generatedAtSec }: { data: any[]; generatedAtSec: number }) {
 	const [projectName, setProjectName] = React.useState('')
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
 	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
-	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
+	const nowSec = useNowSeconds(generatedAtSec)
+	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = useMemo(
+		() => calculateUnlockStatistics(data, nowSec),
+		[data, nowSec]
+	)
 
 	return (
 		<Layout
@@ -318,7 +323,7 @@ export default function Protocols({ data, unlockStats }) {
 					</BasicLink>
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<UpcomingUnlockVolumeChart protocols={data} />
+					<UpcomingUnlockVolumeChart protocols={data} initialNowSec={generatedAtSec} />
 				</div>
 			</div>
 
@@ -327,6 +332,7 @@ export default function Protocols({ data, unlockStats }) {
 					data={data}
 					period={1}
 					title="24h Top Unlocks"
+					initialNowSec={generatedAtSec}
 					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				/>
 
@@ -334,12 +340,14 @@ export default function Protocols({ data, unlockStats }) {
 					data={data}
 					period={30}
 					title="30d Top Unlocks"
+					initialNowSec={generatedAtSec}
 					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				/>
 
 				<PastUnlockPriceImpact
 					data={data}
 					title="Post Unlock Price Impact"
+					initialNowSec={generatedAtSec}
 					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				/>
 			</div>

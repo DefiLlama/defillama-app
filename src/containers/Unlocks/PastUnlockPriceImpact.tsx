@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
@@ -15,6 +16,7 @@ interface PastUnlockPriceImpactProps {
 	data: ProtocolData[]
 	title?: string
 	className?: string
+	initialNowSec?: number
 }
 
 interface UnlockBreakdown {
@@ -32,8 +34,13 @@ const parseDescription = (description: string): string => {
 	return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 }
 
-export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ data, title, className }) => {
-	const now = React.useMemo(() => Date.now() / 1000, [])
+export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
+	data,
+	title,
+	className,
+	initialNowSec
+}) => {
+	const now = useNowSeconds(initialNowSec)
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,

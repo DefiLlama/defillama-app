@@ -8,7 +8,7 @@ interface PaginationProps {
 
 export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const [visibleItems, setVisibleItems] = useState(1)
-	const [currentPage, setCurrentPage] = useState(0)
+	const [manualPage, setManualPage] = useState<number | null>(null)
 	const paginationRef = useRef<HTMLDivElement>(null)
 	const [touchStart, setTouchStart] = useState<number | null>(null)
 	const [touchEnd, setTouchEnd] = useState<number | null>(null)
@@ -43,16 +43,12 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 		}
 	}, [])
 
-	useEffect(() => {
-		if (visibleItems && startIndex) {
-			setCurrentPage(() => Math.floor(startIndex / visibleItems))
-		}
-	}, [visibleItems, startIndex])
-
 	const totalPages = Math.ceil(items.length / Math.max(1, visibleItems))
+	const startPage = startIndex > 0 ? Math.floor(startIndex / Math.max(1, visibleItems)) : 0
+	const currentPage = Math.min(manualPage ?? startPage, Math.max(0, totalPages - 1))
 
 	const handlePageChange = (pageIndex: number) => {
-		setCurrentPage(pageIndex)
+		setManualPage(pageIndex)
 		setSwipeOffset(0)
 	}
 

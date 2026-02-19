@@ -13,6 +13,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
@@ -513,7 +514,7 @@ const ChartContainer = ({
 
 	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
-	const nowSec = useMemo(() => Date.now() / 1e3, [])
+	const nowSec = useNowSeconds()
 	const sortedEvents = useMemo(() => {
 		const entries = Object.entries(groupedEvents)
 

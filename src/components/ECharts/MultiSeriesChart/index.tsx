@@ -120,13 +120,10 @@ export default function MultiSeriesChart({
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
-
 	const updateChartInstance = useCallback((instance: echarts.ECharts | null) => {
 		chartRef.current = instance
-		onReadyRef.current?.(instance)
-	}, [])
+		onReady?.(instance)
+	}, [onReady])
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)

@@ -97,12 +97,16 @@ function ProContent({
 
 	useEffect(() => {
 		if (createDialogOpen && !dialogWasOpen) {
-			setDialogWasOpen(() => true)
+			queueMicrotask(() => {
+				setDialogWasOpen(true)
+			})
 			return
 		}
 		if (!createDialogOpen && dialogWasOpen) {
-			setComparisonPreset(() => null)
-			setDialogWasOpen(() => false)
+			queueMicrotask(() => {
+				setComparisonPreset(null)
+				setDialogWasOpen(false)
+			})
 		}
 	}, [createDialogOpen, dialogWasOpen])
 
@@ -118,7 +122,9 @@ function ProContent({
 			.filter(Boolean)
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
 		if (parsedItems.length > 0) {
-			setComparisonPreset(() => ({ comparisonType: 'protocols', items: parsedItems }))
+			queueMicrotask(() => {
+				setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			})
 		}
 		createDashboardDialogStore.show()
 		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })

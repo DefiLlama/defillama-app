@@ -1,19 +1,21 @@
-// adadpted from https://github.com/ariakit/ariakit
-import { useEffect, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
 export function useMedia(query: string) {
-	const [matches, setMatches] = useState(false)
+	const subscribe = useCallback(
+		(callback: () => void) => {
+			if (typeof window === 'undefined') return () => {}
 
-	useEffect(() => {
-		const result = matchMedia(query)
-		// Handler is defined inline - no need for useCallback since it's stable within this effect
-		const handleChange = (event: MediaQueryListEvent) => setMatches(event.matches)
+			const mediaQueryList = window.matchMedia(query)
+			mediaQueryList.addEventListener('change', callback)
 
-		result.addEventListener('change', handleChange)
-		setMatches(() => result.matches)
-
-		return () => result.removeEventListener('change', handleChange)
+			return () => mediaQueryList.removeEventListener('change', callback)
+		},
+		[query]
+	)
+	const getSnapshot = useCallback(() => {
+		if (typeof window === 'undefined') return false
+		return window.matchMedia(query).matches
 	}, [query])
 
-	return matches
+	return useSyncExternalStore(subscribe, getSnapshot, () => false)
 }

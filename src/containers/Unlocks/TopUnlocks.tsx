@@ -2,6 +2,7 @@ import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
@@ -10,10 +11,11 @@ interface TopUnlocksProps {
 	period: number
 	title?: string
 	className?: string
+	initialNowSec?: number
 }
 
-export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className }) => {
-	const now = React.useMemo(() => Date.now() / 1000, [])
+export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className, initialNowSec }) => {
+	const now = useNowSeconds(initialNowSec)
 	const { topUnlocks } = React.useMemo(() => {
 		const protocolUnlocks = new Map<
 			string,

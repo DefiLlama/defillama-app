@@ -239,7 +239,15 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 		if (isLoading || coins.length === 0) {
 			return { correlations: {}, alignedPointCounts: {}, returnPointCounts: {} }
 		}
-		const fromTimestamp = Date.now() - PERIOD_MS[period]
+		let latestTimestamp = 0
+		for (const coin of coins) {
+			for (const point of priceChart[coin.id] ?? []) {
+				if (point.timestamp > latestTimestamp) {
+					latestTimestamp = point.timestamp
+				}
+			}
+		}
+		const fromTimestamp = Math.max(0, latestTimestamp - PERIOD_MS[period])
 		const correlationResult: Record<string, Record<string, number | null>> = {}
 		const pointCountResult: Record<string, Record<string, number>> = {}
 		const returnCountResult: Record<string, Record<string, number>> = {}

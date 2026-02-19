@@ -8,26 +8,35 @@ interface TurnstileProps {
 	className?: string
 }
 
+const getCurrentTheme = (): 'light' | 'dark' => {
+	if (typeof document === 'undefined' || typeof window === 'undefined') return 'dark'
+	const hasDarkClass = document.documentElement.classList.contains('dark')
+	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+	return hasDarkClass || prefersDark ? 'dark' : 'light'
+}
+
 export const Turnstile = ({ onVerify, onError, onExpire, className }: TurnstileProps) => {
-	const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+	const [theme, setTheme] = useState<'light' | 'dark'>(() => getCurrentTheme())
 	const siteKey = '0x4AAAAAABjeuAHi7HNPyGmv'
 
 	useEffect(() => {
-		const isDark =
-			document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches
-		setTheme(() => (isDark ? 'dark' : 'light'))
+		const handleThemeChange = () => {
+			setTheme(getCurrentTheme())
+		}
 
-		const observer = new MutationObserver(() => {
-			const isDark = document.documentElement.classList.contains('dark')
-			setTheme(isDark ? 'dark' : 'light')
-		})
+		const observer = new MutationObserver(handleThemeChange)
+		const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)')
 
 		observer.observe(document.documentElement, {
 			attributes: true,
 			attributeFilter: ['class']
 		})
+		mediaQueryList.addEventListener('change', handleThemeChange)
 
-		return () => observer.disconnect()
+		return () => {
+			observer.disconnect()
+			mediaQueryList.removeEventListener('change', handleThemeChange)
+		}
 	}, [])
 
 	if (!siteKey) {

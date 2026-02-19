@@ -45,12 +45,16 @@ function DashboardPageContent({ dashboardId }: { dashboardId: string }) {
 
 	useEffect(() => {
 		if (dashboardId === 'new') {
-			setIsValidating(() => false)
+			queueMicrotask(() => {
+				setIsValidating(false)
+			})
 			return
 		}
 
 		if (!isLoadingDashboard && (currentDashboard || dashboardVisibility)) {
-			setIsValidating(() => false)
+			queueMicrotask(() => {
+				setIsValidating(false)
+			})
 		}
 	}, [dashboardId, isLoadingDashboard, currentDashboard, dashboardVisibility])
 
