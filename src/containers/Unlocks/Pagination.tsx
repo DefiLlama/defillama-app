@@ -9,7 +9,9 @@ interface PaginationProps {
 export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const [visibleItems, setVisibleItems] = useState(1)
 	const [manualPage, setManualPage] = useState<number | null>(null)
+	const [currentPage, setCurrentPage] = useState(0)
 	const paginationRef = useRef<HTMLDivElement>(null)
+	const previousStartIndexRef = useRef(startIndex)
 	const [touchStart, setTouchStart] = useState<number | null>(null)
 	const [touchEnd, setTouchEnd] = useState<number | null>(null)
 	const [isSwiping, setIsSwiping] = useState(false)
@@ -44,8 +46,25 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	}, [])
 
 	const totalPages = Math.ceil(items.length / Math.max(1, visibleItems))
-	const startPage = startIndex > 0 ? Math.floor(startIndex / Math.max(1, visibleItems)) : 0
-	const currentPage = Math.min(manualPage ?? startPage, Math.max(0, totalPages - 1))
+	const startPage = Math.floor(startIndex / Math.max(1, visibleItems))
+
+	useEffect(() => {
+		setManualPage(null)
+	}, [items])
+
+	useEffect(() => {
+		const hasStartIndexChanged = previousStartIndexRef.current !== startIndex
+		if (hasStartIndexChanged && manualPage !== null) {
+			setManualPage(null)
+		}
+		previousStartIndexRef.current = startIndex
+	}, [startIndex, manualPage])
+
+	useEffect(() => {
+		const maxPage = Math.max(0, totalPages - 1)
+		const targetPage = manualPage == null ? startPage : manualPage
+		setCurrentPage(Math.min(targetPage, maxPage))
+	}, [manualPage, startPage, totalPages])
 
 	const handlePageChange = (pageIndex: number) => {
 		setManualPage(pageIndex)

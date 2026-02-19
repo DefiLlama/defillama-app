@@ -32,9 +32,8 @@ const MultiSeriesChart2 = lazy(
 const calculateUnlockStatistics = (data, nowSec: number) => {
 	let upcomingUnlocks30dValue = 0
 	let upcomingUnlocks7dValue = 0
-	const now = nowSec
-	const thirtyDaysLater = now + 30 * 24 * 60 * 60
-	const sevenDaysLater = now + 7 * 24 * 60 * 60
+	const thirtyDaysLater = nowSec + 30 * 24 * 60 * 60
+	const sevenDaysLater = nowSec + 7 * 24 * 60 * 60
 
 	if (data) {
 		for (const protocol of data) {
@@ -53,10 +52,10 @@ const calculateUnlockStatistics = (data, nowSec: number) => {
 				}
 
 				const valueUSD = totalTokens * protocol.tPrice
-				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= thirtyDaysLater) {
 					upcomingUnlocks30dValue += valueUSD
 				}
-				if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= sevenDaysLater) {
 					upcomingUnlocks7dValue += valueUSD
 				}
 			}

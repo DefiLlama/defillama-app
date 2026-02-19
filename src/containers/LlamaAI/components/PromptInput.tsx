@@ -85,12 +85,14 @@ export function PromptInput({
 		if (!textarea) return
 		if (textarea.value.trim().length > 0) return
 
+		let cancelled = false
 		const { text, entities } = restoreRequest
 
 		entityCombobox.restoreEntities(entities)
 		entityCombobox.setIsProgrammaticUpdate(true)
 		textarea.value = text
 		queueMicrotask(() => {
+			if (cancelled) return
 			setValue(text)
 		})
 		setInputSize(promptInputRef, highlightRef)
@@ -101,6 +103,10 @@ export function PromptInput({
 
 		entityCombobox.combobox.setValue('')
 		entityCombobox.combobox.hide()
+
+		return () => {
+			cancelled = true
+		}
 	}, [restoreRequest, entityCombobox, promptInputRef])
 
 	// Focus input after external drop

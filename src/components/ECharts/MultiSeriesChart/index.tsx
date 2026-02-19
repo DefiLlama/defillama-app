@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -116,13 +116,14 @@ export default function MultiSeriesChart({
 	}, [series, isThemeDark, xAxisType])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const hasNotifiedReadyRef = useRef(false)
+	const onReadyRef = useRef(onReady)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const updateChartInstance = useCallback((instance: echarts.ECharts | null) => {
-		chartRef.current = instance
-		onReady?.(instance)
+	useEffect(() => {
+		onReadyRef.current = onReady
 	}, [onReady])
 
 	useEffect(() => {
@@ -134,7 +135,11 @@ export default function MultiSeriesChart({
 			instance = echarts.init(chartDom)
 		}
 
-		updateChartInstance(instance)
+		chartRef.current = instance
+		if (instance && !hasNotifiedReadyRef.current && onReadyRef.current) {
+			onReadyRef.current(instance)
+			hasNotifiedReadyRef.current = true
+		}
 
 		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
@@ -262,13 +267,18 @@ export default function MultiSeriesChart({
 		alwaysShowTooltip,
 		series,
 		id,
-		updateChartInstance,
 		showAggregateInTooltip,
 		valueSymbol,
 		yAxisSymbols
 	])
 
-	useChartCleanup(id, () => updateChartInstance(null))
+	useChartCleanup(id, () => {
+		chartRef.current = null
+		if (hasNotifiedReadyRef.current) {
+			onReadyRef.current?.(null)
+			hasNotifiedReadyRef.current = false
+		}
+	})
 
 	return <ChartContainer id={id} chartClassName="my-auto h-[360px]" chartStyle={height ? { height } : undefined} />
 }

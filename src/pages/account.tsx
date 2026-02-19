@@ -16,13 +16,20 @@ export default function Account() {
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 	const successProcessedRef = useRef(false)
 	const successFlowIdRef = useRef(0)
-	const [dismissedSuccessFlowId, setDismissedSuccessFlowId] = useState(0)
+	const [activeFlowId, setActiveFlowId] = useState<number | null>(null)
+
+	useEffect(() => {
+		if (success !== 'true') {
+			successProcessedRef.current = false
+		}
+	}, [success])
 
 	useEffect(() => {
 		if (success !== 'true' || !isAuthenticated || successProcessedRef.current) return
 
 		successProcessedRef.current = true
 		successFlowIdRef.current += 1
+		setActiveFlowId(successFlowIdRef.current)
 		void queryClient.invalidateQueries({ queryKey: ['subscription'] })
 
 		const { success: _ignoredSuccess, ...nextQuery } = router.query
@@ -36,15 +43,10 @@ export default function Account() {
 		)
 	}, [success, isAuthenticated, queryClient, router])
 
-	const showSuccessModal =
-		successProcessedRef.current &&
-		successFlowIdRef.current > dismissedSuccessFlowId &&
-		!isSubscriptionLoading &&
-		hasActiveSubscription
+	const showSuccessModal = activeFlowId != null && !isSubscriptionLoading && hasActiveSubscription
 
 	const handleCloseSuccessModal = () => {
-		successProcessedRef.current = false
-		setDismissedSuccessFlowId(successFlowIdRef.current)
+		setActiveFlowId(null)
 	}
 
 	return (

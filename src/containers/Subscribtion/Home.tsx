@@ -32,6 +32,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 	const pricingContainer = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
+		let cancelled = false
 		if (isAuthenticated && returnUrl && handledReturnUrlRef.current !== returnUrl && !loaders.userLoading) {
 			const justSignedUp = sessionStorage.getItem('just_signed_up') === 'true'
 			const accountAge = user?.created ? Date.now() - new Date(user.created).getTime() : Infinity
@@ -43,11 +44,16 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 
 			if (!justSignedUp && !isRecentAccount) {
 				queueMicrotask(() => {
+					if (cancelled) return
 					setShowReturnModal(true)
 				})
 			}
 
 			handledReturnUrlRef.current = returnUrl
+		}
+
+		return () => {
+			cancelled = true
 		}
 	}, [isAuthenticated, returnUrl, loaders.userLoading, user?.created])
 

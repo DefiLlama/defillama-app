@@ -122,9 +122,7 @@ function ProContent({
 			.filter(Boolean)
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
 		if (parsedItems.length > 0) {
-			queueMicrotask(() => {
-				setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
-			})
+			setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
 		}
 		createDashboardDialogStore.show()
 		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })

@@ -159,7 +159,6 @@ export default function BarChart({
 		if (!chartDom) return
 
 		let instance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !instance
 		if (!instance) {
 			instance = echarts.init(chartDom)
 		}
@@ -168,7 +167,7 @@ export default function BarChart({
 			handleChartReady(instance)
 		}
 
-		if (onReady && isNewInstance) {
+		if (onReady && instance && !hasNotifiedReadyRef.current) {
 			onReady(instance)
 			hasNotifiedReadyRef.current = true
 		}

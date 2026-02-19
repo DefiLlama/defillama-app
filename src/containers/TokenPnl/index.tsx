@@ -12,6 +12,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { CoinsPicker } from '~/containers/Correlations'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { fetchPriceSeries } from './api'
@@ -30,7 +31,6 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 const DAY_IN_SECONDS = 86_400
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
 const TOKEN_PNL_MAX_DATE_BUFFER_SECONDS = 60
-const DEFAULT_PNL_END_UNIX = Math.floor(Date.now() / 1000) - TOKEN_PNL_MAX_DATE_BUFFER_SECONDS
 
 type TokenPnlResult = {
 	coinInfo?: IResponseCGMarketsAPI
@@ -486,15 +486,16 @@ const TokenPnlContent = ({
 
 export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) {
 	const router = useRouter()
-	const now = DEFAULT_PNL_END_UNIX
+	const nowSeconds = useNowSeconds()
+	const maxSelectableDateUnix = Math.max(0, nowSeconds - TOKEN_PNL_MAX_DATE_BUFFER_SECONDS)
 	const coinParam = router.query?.coin
 
 	const coinInfoMap = useMemo(() => new Map(coinsData.map((coin) => [coin.id, coin])), [coinsData])
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const { startDate, endDate, handleStartDateChange, handleEndDateChange, validateDateRange } = useDateRangeValidation({
-		initialStartDate: unixToDateString(now - 7 * 24 * 60 * 60),
-		initialEndDate: unixToDateString(now)
+		initialStartDate: unixToDateString(maxSelectableDateUnix - 7 * 24 * 60 * 60),
+		initialEndDate: unixToDateString(maxSelectableDateUnix)
 	})
 
 	useEffect(() => {
@@ -705,14 +706,14 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 							value={startDate}
 							onChange={(value) => handleDateChange(value, true)}
 							min={unixToDateString(0)}
-							max={unixToDateString(now)}
+							max={unixToDateString(maxSelectableDateUnix)}
 						/>
 						<DateInput
 							label="End Date"
 							value={endDate}
 							onChange={(value) => handleDateChange(value, false)}
 							min={startDate}
-							max={unixToDateString(now)}
+							max={unixToDateString(maxSelectableDateUnix)}
 						/>
 					</div>
 					<div className="flex flex-col gap-1.5 text-sm">
