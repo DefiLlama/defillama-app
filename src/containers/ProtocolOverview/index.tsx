@@ -1627,12 +1627,13 @@ const MethodologyByAdapter = ({
 function Yields(props: IProtocolOverviewPageData) {
 	const yields = props.yields
 	if (!yields) return null
+	const averageApy = yields.averageAPY == null ? '-' : `${formattedNum(yields.averageAPY, false)}%`
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<SectionHeader id="yields">Yields</SectionHeader>
 			<div>
 				<MetricRow label="Pools Tracked" value={yields.noOfPoolsTracked} />
-				<MetricRow label="Average APY" value={`${formattedNum(yields.averageAPY, false)}%`} />
+				<MetricRow label="Average APY" value={averageApy} />
 			</div>
 			<BasicLink
 				href={`/yields?project=${props.otherProtocols ? props.otherProtocols.slice(1).join('&project=') : props.name}`}

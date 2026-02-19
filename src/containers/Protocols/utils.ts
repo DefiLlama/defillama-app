@@ -1,5 +1,5 @@
 import type { IProtocol } from '~/containers/ChainOverview/types'
-import { formatNum, getPercentChange } from '~/utils'
+import { getPercentChange } from '~/utils'
 import type { IRecentProtocol } from './types'
 
 interface TvlEntry {
@@ -171,7 +171,7 @@ export const applyProtocolTvlSettings = ({
 
 			const mcaptvl =
 				protocol.mcap != null && defaultTvl.tvl
-					? +(formatNum(+protocol.mcap.toFixed(2) / +defaultTvl.tvl.toFixed(2)) ?? 0)
+					? +(protocol.mcap / defaultTvl.tvl).toFixed(2)
 					: null
 
 			if (protocol.childProtocols) {
@@ -196,7 +196,7 @@ export const applyProtocolTvlSettings = ({
 
 					const mcaptvl =
 						child.mcap != null && childDefaultTvl.tvl
-							? +(formatNum(+child.mcap.toFixed(2) / +childDefaultTvl.tvl.toFixed(2)) ?? 0)
+							? +(child.mcap / childDefaultTvl.tvl).toFixed(2)
 							: null
 
 					if (

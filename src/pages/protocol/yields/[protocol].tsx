@@ -48,7 +48,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const protocolSlug = slug(protocolData.name)
+		const protocolSlug = sluggifyProtocol(protocolData.name)
 		const otherProtocolsSet = new Set((protocolData.otherProtocols ?? []).map((op) => sluggifyProtocol(op)))
 
 		let poolsError: string | null = null

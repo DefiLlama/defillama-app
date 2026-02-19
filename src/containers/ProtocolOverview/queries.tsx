@@ -19,6 +19,7 @@ import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
+import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
@@ -372,26 +373,10 @@ export const getProtocolOverviewPageData = async ({
 			return []
 		}),
 		currentProtocolMetadata?.incentives && protocolId
-			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
-					.then((data) => {
-						const protocolEmissionsData = data.protocols.find((item: { name: string; defillamaId: string }) =>
-							protocolId.startsWith('parent#')
-								? item.name === currentProtocolMetadata.displayName
-								: item.defillamaId === protocolId
-						)
-
-						if (!protocolEmissionsData) return null
-
-						return {
-							emissions24h: protocolEmissionsData.emission24h,
-							emissions7d: protocolEmissionsData.emission7d,
-							emissions30d: protocolEmissionsData.emission30d,
-							emissionsAllTime: protocolEmissionsData.emissionsAllTime,
-							emissionsMonthlyAverage1y: protocolEmissionsData.emissionsMonthlyAverage1y,
-							methodology:
-								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
-						}
-					})
+			? getProtocolIncentivesFromAggregatedEmissions({
+					protocolId,
+					protocolDisplayName: currentProtocolMetadata.displayName ?? ''
+				})
 					.catch(() => null)
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
