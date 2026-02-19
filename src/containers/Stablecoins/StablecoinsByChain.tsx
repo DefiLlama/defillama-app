@@ -199,10 +199,11 @@ export function StablecoinsByChain({
 	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
 
 	const router = useRouter()
+	const unreleasedQueryParam = router.query[UNRELEASED_QUERY_KEY]
 
 	const minMcap = React.useMemo(() => parseNumberQueryParam(router.query.minMcap), [router.query.minMcap])
 	const maxMcap = React.useMemo(() => parseNumberQueryParam(router.query.maxMcap), [router.query.maxMcap])
-	const includeUnreleased = React.useMemo(() => isTruthyQueryParam(router.query[UNRELEASED_QUERY_KEY]), [router.query])
+	const includeUnreleased = React.useMemo(() => isTruthyQueryParam(unreleasedQueryParam), [unreleasedQueryParam])
 	const hasActiveStablecoinUrlFilters = React.useMemo(() => {
 		return STABLECOIN_FILTER_QUERY_KEYS.some((key) => {
 			const value = router.query[key]

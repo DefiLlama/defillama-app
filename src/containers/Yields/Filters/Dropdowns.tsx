@@ -71,10 +71,10 @@ export function YieldFilterDropdowns({
 		pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
 	}
 	const toggleExcludeRewardApyFilter = () => {
-		pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy }, effectivePathname)
+		pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
 	}
 	const toggleIncludeLsdApyFilter = () => {
-		pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy }, effectivePathname)
+		pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
 	}
 
 	return (

@@ -100,7 +100,7 @@ export function parseNumberInput(value: string | number | null | undefined): num
  * toNumberParam(['42', '99']) // 42
  * toNumberParam('invalid') // null
  */
-export function toNumberParam(param: QueryParamInput): number | null {
+function toNumberParam(param: QueryParamInput): number | null {
 	if (Array.isArray(param)) {
 		return parseNumberInput(param[0])
 	}
@@ -109,7 +109,6 @@ export function toNumberParam(param: QueryParamInput): number | null {
 
 /**
  * Converts a query parameter to a number or null.
- * Alias for toNumberParam with array handling.
  *
  * @example
  * parseNumberQueryParam('42') // 42
@@ -376,6 +375,10 @@ export function safeInternalPath(raw: unknown): string | undefined {
 	try {
 		const decoded = decodeURIComponent(raw)
 		if (/^\/(?!\/)/.test(decoded)) return decoded
-	} catch {}
+	} catch (e) {
+		if (process.env.NODE_ENV === 'development') {
+			console.warn('[routerQuery] Failed to decode path in safeInternalPath', e)
+		}
+	}
 	return undefined
 }

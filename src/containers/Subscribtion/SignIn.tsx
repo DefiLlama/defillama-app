@@ -10,26 +10,6 @@ import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 
-const getInputValueFromDom = (ids: string[], fallback = '') => {
-	if (typeof window === 'undefined') return fallback
-	for (const id of ids) {
-		const el = document.getElementById(id)
-		if (el instanceof HTMLInputElement && el.value) {
-			return el.value
-		}
-	}
-	return fallback
-}
-
-const getCheckboxCheckedFromDom = (id: string, fallback: boolean) => {
-	if (typeof window === 'undefined') return fallback
-	const el = document.getElementById(id)
-	if (el instanceof HTMLInputElement) {
-		return el.checked
-	}
-	return fallback
-}
-
 export const SignInModal = ({
 	text,
 	className,
@@ -139,18 +119,14 @@ export const SignInForm = ({
 	})
 
 	const [flow, setFlow] = useState<'signin' | 'signup' | 'forgot'>(defaultFlow)
-	const [email, setEmail] = useState(() =>
-		getInputValueFromDom([signInEmailInputId, signUpEmailInputId, forgotEmailInputId])
-	)
-	const [password, setPassword] = useState(() => getInputValueFromDom([signInPasswordInputId, signUpPasswordInputId]))
-	const [confirmPassword, setConfirmPassword] = useState(() => getInputValueFromDom([signUpConfirmInputId]))
+	const [email, setEmail] = useState('')
+	const [password, setPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
 	const [passwordError, setPasswordError] = useState('')
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [emailError, setEmailError] = useState('')
-	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>(() =>
-		getCheckboxCheckedFromDom(promotionalEmailsCheckboxId, true) ? 'on' : 'off'
-	)
+	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('initial')
 
 	const { login, signup, signInWithEthereumMutation, signInWithGithubMutation, resetPasswordMutation, loaders } =
 		useAuthContext()
@@ -615,7 +591,7 @@ export const SignInForm = ({
 							id={promotionalEmailsCheckboxId}
 							type="checkbox"
 							className="mt-0.5 h-4 w-4 shrink-0"
-							checked={promotionalEmails === 'on'}
+							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
 						<span className="text-sm text-[#b4b7bc]">

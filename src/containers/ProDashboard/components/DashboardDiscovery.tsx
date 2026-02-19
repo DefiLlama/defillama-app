@@ -128,6 +128,8 @@ export function DashboardDiscovery() {
 		return pages.filter((page) => page > 0 && page <= totalPages)
 	}, [totalPages, selectedPage])
 
+	const toPageQueryValue = (targetPage: number) => (targetPage === 1 ? undefined : targetPage)
+
 	return (
 		<>
 			<div className="flex flex-col gap-1">
@@ -369,7 +371,8 @@ export function DashboardDiscovery() {
 							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => {
-										pushProQuery({ page: undefined })
+										const targetPage = 1
+										pushProQuery({ page: toPageQueryValue(targetPage) })
 									}}
 									disabled={selectedPage < 3}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
@@ -378,7 +381,8 @@ export function DashboardDiscovery() {
 								</button>
 								<button
 									onClick={() => {
-										pushProQuery({ page: Math.max(1, selectedPage - 1) })
+										const targetPage = Math.max(1, selectedPage - 1)
+										pushProQuery({ page: toPageQueryValue(targetPage) })
 									}}
 									disabled={selectedPage === 1}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
@@ -391,7 +395,8 @@ export function DashboardDiscovery() {
 										<button
 											key={`page-to-navigate-to-${pageNum}`}
 											onClick={() => {
-												pushProQuery({ page: pageNum })
+												const targetPage = pageNum
+												pushProQuery({ page: toPageQueryValue(targetPage) })
 											}}
 											data-active={isActive}
 											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -402,7 +407,8 @@ export function DashboardDiscovery() {
 								})}
 								<button
 									onClick={() => {
-										pushProQuery({ page: Math.min(totalPages, selectedPage + 1) })
+										const targetPage = Math.min(totalPages, selectedPage + 1)
+										pushProQuery({ page: toPageQueryValue(targetPage) })
 									}}
 									disabled={selectedPage === totalPages}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
@@ -411,7 +417,8 @@ export function DashboardDiscovery() {
 								</button>
 								<button
 									onClick={() => {
-										pushProQuery({ page: totalPages })
+										const targetPage = totalPages
+										pushProQuery({ page: toPageQueryValue(targetPage) })
 									}}
 									disabled={selectedPage > totalPages - 2}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"

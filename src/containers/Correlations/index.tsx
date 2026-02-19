@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
@@ -204,6 +204,9 @@ interface CorrelationsProps {
 
 export default function Correlations({ coinsData }: CorrelationsProps) {
 	const router = useRouter()
+	const latestQueryRef = useRef(router.query)
+	latestQueryRef.current = router.query
+	const { isReady, pathname, replace } = router
 	const queryCoins = useMemo<string[]>(() => {
 		const coinQuery = router.query.coin
 		if (!coinQuery) return []
@@ -301,21 +304,21 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 	}, [isLoading, period, coins, priceChart, minReturnPoints])
 
 	useEffect(() => {
-		if (!router.isReady) return
+		if (!isReady) return
 		if (queryCoins.length > 0) return
 
-		void router.replace(
+		void replace(
 			{
-				pathname: router.pathname,
+				pathname,
 				query: {
-					...router.query,
+					...latestQueryRef.current,
 					coin: DEFAULT_QUERY_COINS
 				}
 			},
 			undefined,
 			{ shallow: true }
 		)
-	}, [queryCoins.length, router.isReady, router.pathname, router.query, router])
+	}, [queryCoins.length, isReady, pathname, replace])
 
 	const dialogStore = Ariakit.useDialogStore()
 

@@ -7,15 +7,7 @@ import defillamaPages from '~/public/pages.json'
 
 export default function Tools() {
 	const searchInputId = useId()
-	const [searchValue, setSearchValue] = useState(() => {
-		if (typeof window !== 'undefined') {
-			const input = document.getElementById(searchInputId)
-			if (input instanceof HTMLInputElement) {
-				return input.value
-			}
-		}
-		return ''
-	})
+	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
 	const pages = useMemo(() => {
