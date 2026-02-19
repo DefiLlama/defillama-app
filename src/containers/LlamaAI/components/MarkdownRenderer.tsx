@@ -12,7 +12,7 @@ import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
-const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
+const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 
 interface InlineChartConfig {
