@@ -17,8 +17,8 @@ import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
-import { pushShallowQuery } from '~/utils/routerQuery'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 

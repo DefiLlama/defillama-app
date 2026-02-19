@@ -30,7 +30,8 @@ export function Flag({
 		setLoading(true)
 
 		const form = e.currentTarget
-		const dataTypeValue = (form.elements.namedItem('dataType') as HTMLInputElement | HTMLSelectElement | null)?.value ?? ''
+		const dataTypeValue =
+			(form.elements.namedItem('dataType') as HTMLInputElement | HTMLSelectElement | null)?.value ?? ''
 		const messageValue = (form.elements.namedItem('message') as HTMLTextAreaElement | null)?.value ?? ''
 		const correctSourceValue = (form.elements.namedItem('correctSource') as HTMLTextAreaElement | null)?.value ?? ''
 		const contactValue = (form.elements.namedItem('contact') as HTMLInputElement | null)?.value ?? ''

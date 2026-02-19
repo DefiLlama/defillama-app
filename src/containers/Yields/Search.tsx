@@ -165,11 +165,10 @@ const Row = ({ data, lend, setOpen }) => {
 				pushShallowQuery(router, {
 					[targetParam]: data.symbol,
 					[restParam]: router.query[restParam] || ''
+				}).then(() => {
+					setLoading(false)
+					setOpen(false)
 				})
-					.then(() => {
-						setLoading(false)
-						setOpen(false)
-					})
 			}}
 			focusOnHover
 			disabled={loading}

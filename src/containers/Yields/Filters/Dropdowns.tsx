@@ -171,12 +171,7 @@ export function YieldFilterDropdowns({
 			{excludeBadDebt && selectedAttributes ? (
 				nestedMenu ? (
 					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
-						<input
-							type="checkbox"
-							value="excludeBadDebt"
-							checked={isBadDebtToggled}
-							onChange={toggleBadDebtFilter}
-						/>
+						<input type="checkbox" value="excludeBadDebt" checked={isBadDebtToggled} onChange={toggleBadDebtFilter} />
 						<span>Exclude bad debt</span>
 					</label>
 				) : (

@@ -24,8 +24,7 @@ type VolumeChartEntry = {
 	volume?: number
 }
 
-// oxlint-disable-next-line no-unused-vars
-const getNFTStatistics = (chart: VolumeChartEntry[]) => {
+export const getNFTStatistics = (chart: VolumeChartEntry[]) => {
 	const { totalVolume, totalVolumeUSD } = (chart.length > 0
 		? chart.reduce(
 				(volumes, data) => {

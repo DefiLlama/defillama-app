@@ -49,7 +49,9 @@ export function RWAOverviewBreakdownChart({
 			return toNonEmptyArrayParam(selectedStacksQ).filter((stack) => availableStacks.has(stack))
 		}
 
-		const excludedStacksSet = new Set(toNonEmptyArrayParam(excludeStacksQ).filter((stack) => availableStacks.has(stack)))
+		const excludedStacksSet = new Set(
+			toNonEmptyArrayParam(excludeStacksQ).filter((stack) => availableStacks.has(stack))
+		)
 		if (excludedStacksSet.size === 0) return [...stackOptions]
 		return stackOptions.filter((stack) => !excludedStacksSet.has(stack))
 	}, [excludeStacksQ, selectedStacksQ, stackOptions])

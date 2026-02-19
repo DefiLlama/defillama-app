@@ -20,8 +20,8 @@ import { getInvestorsPageData } from '~/containers/Raises/queries'
 import type { IInvestorsPageData, IInvestorTimespan } from '~/containers/Raises/types'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
-import { pushShallowQuery } from '~/utils/routerQuery'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface INormalizedInvestor extends IInvestorTimespan {
 	name: string

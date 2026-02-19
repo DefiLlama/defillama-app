@@ -2,8 +2,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-// oxlint-disable-next-line no-unused-vars
-import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
+import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
 import type { StablecoinFilterOption } from './Filters'
 

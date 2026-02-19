@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router'
 import { useCallback, useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { pushShallowQuery } from '~/utils/routerQuery'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const EMPTY_ARRAY: string[] = []
 

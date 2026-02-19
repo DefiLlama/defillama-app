@@ -21,8 +21,8 @@ import { fetchAllProtocolEmissions } from '~/containers/Unlocks/api'
 import type { ProtocolEmission } from '~/containers/Unlocks/api.types'
 import Layout from '~/layout'
 import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
-import { pushShallowQuery } from '~/utils/routerQuery'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
 	const res = await fetchAllProtocolEmissions()

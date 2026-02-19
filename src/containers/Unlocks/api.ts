@@ -190,8 +190,7 @@ export async function fetchEmissionSupplyMetrics(): Promise<ProtocolEmissionSupp
 /**
  * Fetch the emissions breakdown payload.
  */
-// oxlint-disable-next-line no-unused-vars
-async function fetchEmissionBreakdown<T = unknown>(): Promise<T | null> {
+export async function fetchEmissionBreakdown<T = unknown>(): Promise<T | null> {
 	try {
 		const res = await fetchJson<T>(EMISSION_BREAKDOWN_API)
 		return res ?? null

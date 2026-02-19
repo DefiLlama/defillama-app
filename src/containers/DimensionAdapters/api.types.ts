@@ -1,8 +1,3 @@
-import { ADAPTER_TYPES } from './constants'
-
-// oxlint-disable-next-line no-unused-vars
-type AdapterType = `${ADAPTER_TYPES}`
-
 // Full type for single protocol metrics response
 export interface IAdapterProtocolMetrics {
 	chain: string | null

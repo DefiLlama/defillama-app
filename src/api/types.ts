@@ -144,36 +144,6 @@ interface IProtocol extends Omit<IProtocolResponse, 'tvl' | 'currentChainTvls' |
 	pool2?: number
 }
 
-// oxlint-disable-next-line no-unused-vars
-interface IChain {
-	tvl: number
-	tvlPrevDay: number
-	tvlPrevWeek: number
-	tvlPrevMonth: number
-	mcap: number
-	name: string
-	protocols: number
-	mcaptvl: number
-	gecko_id?: string | null
-	tokenSymbol?: string | null
-	cmcId?: string | null
-	chainId: number | null
-}
-
-// oxlint-disable-next-line no-unused-vars
-interface IChainData {
-	date: number
-	Deposits: number
-	Withdrawals: number
-}
-
-// oxlint-disable-next-line no-unused-vars
-interface IChainGeckoId {
-	geckoId: string
-	symbol: string
-	cmcId: string
-	categories: string[]
-}
 type LiteProtocol = Pick<
 	IProtocol,
 	| 'category'

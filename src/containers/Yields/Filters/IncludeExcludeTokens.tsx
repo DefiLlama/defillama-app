@@ -36,10 +36,9 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_INCLUDE, { token })
 		}
 
-		pushShallowQuery(router, { token: tokenQueryParams })
-			.then(() => {
-				dialogStore.toggle()
-			})
+		pushShallowQuery(router, { token: tokenQueryParams }).then(() => {
+			dialogStore.toggle()
+		})
 	}
 
 	const handleTokenExclude = (token: string, action?: 'delete') => {
@@ -50,10 +49,9 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXCLUDE, { token })
 		}
 
-		pushShallowQuery(router, { excludeToken: tokenQueryParams })
-			.then(() => {
-				dialogStore.toggle()
-			})
+		pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
+			dialogStore.toggle()
+		})
 	}
 
 	const handleTokenExact = (token: string, action?: 'delete') => {
@@ -64,10 +62,9 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXACT, { token })
 		}
 
-		pushShallowQuery(router, { exactToken: tokenQueryParams })
-			.then(() => {
-				dialogStore.toggle()
-			})
+		pushShallowQuery(router, { exactToken: tokenQueryParams }).then(() => {
+			dialogStore.toggle()
+		})
 	}
 
 	const [searchValue, setSearchValue] = useState('')

@@ -5,11 +5,11 @@ import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import { useIsClient } from '~/hooks/useIsClient'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { FAQ } from './Faq'
 import type { PricePoint } from './hooks'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient, toPairedLogReturns } from './util'
-import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface CoinsPickerProps {
 	coinsData: Array<IResponseCGMarketsAPI>
@@ -446,10 +446,9 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 					dialogStore={dialogStore}
 					selectedCoins={selectedCoins}
 					selectCoin={(coin) => {
-						pushShallowQuery(router, { coin: queryCoins.concat(coin.id) })
-							.then(() => {
-								dialogStore.hide()
-							})
+						pushShallowQuery(router, { coin: queryCoins.concat(coin.id) }).then(() => {
+							dialogStore.hide()
+						})
 					}}
 				/>
 				<div className="w-full border-t border-(--form-control-border) pt-4">

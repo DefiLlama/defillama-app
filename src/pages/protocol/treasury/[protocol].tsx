@@ -21,9 +21,9 @@ import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/usePro
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
-import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const EMPTY_TOGGLE_OPTIONS = []
 

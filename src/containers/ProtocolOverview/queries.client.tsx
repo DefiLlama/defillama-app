@@ -6,13 +6,10 @@ import {
 	PROTOCOL_GAS_USED_API,
 	PROTOCOL_NEW_USERS_API,
 	PROTOCOL_TRANSACTIONS_API,
-	PROTOCOLS_API,
 	TOKEN_LIQUIDITY_API,
-	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
-import { formatProtocolsData } from '~/containers/Protocols/utils.old'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import type {
 	IProtocolChainBreakdownChart,
@@ -181,50 +178,6 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 				.catch(() => {
 					return []
 				}),
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useGetProtocolsList = ({ chain }: { chain: string }) => {
-	const { data, isLoading } = useQuery({
-		queryKey: ['protocol-overview', 'protocols-list', PROTOCOLS_API],
-		queryFn: () => fetchApi(PROTOCOLS_API),
-		staleTime: 60 * 60 * 1000,
-		retry: 0
-	})
-
-	const { fullProtocolsList, parentProtocols } = useMemo(() => {
-		if (data) {
-			const { protocols, parentProtocols } = data
-
-			return {
-				fullProtocolsList: formatProtocolsData({
-					chain: chain === 'All' ? undefined : chain,
-					protocols,
-					removeBridges: true
-				}),
-				parentProtocols
-			}
-		}
-
-		return { fullProtocolsList: [], parentProtocols: [] }
-	}, [chain, data])
-
-	return { fullProtocolsList, parentProtocols, isLoading }
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useFetchProtocolTwitter = (twitter?: string | null) => {
-	const isEnabled = !!twitter
-	return useQuery({
-		queryKey: ['protocol-overview', 'twitter-data', twitter],
-		queryFn: () =>
-			fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
-				res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
-			),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
