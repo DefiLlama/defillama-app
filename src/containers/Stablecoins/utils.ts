@@ -644,10 +644,7 @@ export const formatPeggedAssetsData = ({
 		// and price is `number | null`. The Pick type is wider because
 		// StablecoinFormattedAsset carries the pre-formatting union types.
 		// Runtime values are already narrowed; annotate the return.
-		const serializablePicked = Object.fromEntries(
-			Object.entries(picked).filter(([, value]) => value !== undefined)
-		) as FormattedStablecoinAsset
-		return serializablePicked
+		return picked as FormattedStablecoinAsset
 	})
 
 	if (chain) {
