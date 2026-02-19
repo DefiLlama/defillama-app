@@ -686,8 +686,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 	}
 
 	const updateCoin = (coinId: string) => {
-		const newCoins = [coinId]
-		pushShallowQuery(router, { coin: newCoins })
+		pushShallowQuery(router, { coin: [coinId] })
 		dialogStore.toggle()
 	}
 

@@ -163,24 +163,26 @@ function Support() {
 							onSubmit={onSubmit}
 							className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 						>
-							<label className="flex flex-col gap-1">
+							<label htmlFor="name" className="flex flex-col gap-1">
 								<span className="flex items-center gap-1">
 									<span>Name</span>
 									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
 								</span>
 								<input
+									id="name"
 									type="text"
 									name="name"
 									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 								/>
 							</label>
 
-							<label className="flex flex-col gap-1">
+							<label htmlFor="email" className="flex flex-col gap-1">
 								<span className="flex items-center gap-1">
 									<span>Email</span>
 									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
 								</span>
 								<input
+									id="email"
 									type="email"
 									name="email"
 									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"

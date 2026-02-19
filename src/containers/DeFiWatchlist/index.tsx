@@ -11,8 +11,8 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ICONS_CDN } from '~/constants'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -57,7 +57,7 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const protocolsTableData = useMemo(() => {
-		return formatProtocolsList2({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
 	}, [savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl])
 
 	const handleProtocolSelection = (selectedValues: string[]) => {

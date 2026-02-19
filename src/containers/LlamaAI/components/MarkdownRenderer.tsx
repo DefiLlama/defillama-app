@@ -197,7 +197,7 @@ export function MarkdownRenderer({
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
-				? contentParts.map((part, index) => {
+				? contentParts.map((part, partIndex) => {
 						if (part.type === 'chart' && part.chartId) {
 							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.chartId)
@@ -208,7 +208,7 @@ export function MarkdownRenderer({
 									? chartItem.chartData
 									: chartItem.chartData?.[chartItem.chart.id] || []
 								return (
-									<div key={`chart-${part.chartId}-${index}`} className="my-4">
+									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chartItem.chart]}
 											chartData={normalizedData}
@@ -226,7 +226,7 @@ export function MarkdownRenderer({
 							if (chart && inlineChartConfig) {
 								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
 								return (
-									<div key={`chart-${part.chartId}-${index}`} className="my-4">
+									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chart]}
 											chartData={data}
@@ -241,7 +241,7 @@ export function MarkdownRenderer({
 							if (isStreaming || (!artifactIndex && (!charts || charts.length === 0))) {
 								return (
 									<div
-										key={`chart-loading-${part.chartId}-${index}`}
+										key={`chart-loading-${part.chartId}`}
 										className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
 									>
 										<p className="text-sm text-gray-500">Loading chart...</p>
@@ -257,7 +257,7 @@ export function MarkdownRenderer({
 								const csvItem = artifactItem as CsvItem
 								return (
 									<CSVExportArtifact
-										key={`csv-${part.csvId}-${index}`}
+										key={`csv-${part.csvId}`}
 										csvExport={{
 											id: csvItem.id,
 											title: csvItem.title,
@@ -272,10 +272,10 @@ export function MarkdownRenderer({
 							// Legacy: O(n) lookup via csvExports array (backward compatibility)
 							const csvExport = csvExports?.find((e) => e.id === part.csvId)
 							if (csvExport) {
-								return <CSVExportArtifact key={`csv-${part.csvId}-${index}`} csvExport={csvExport} />
+								return <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} />
 							}
 							if (isStreaming || (!artifactIndex && !csvExports)) {
-								return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
+								return <CSVExportLoading key={`csv-loading-${part.csvId}`} />
 							}
 							return null
 						}
@@ -283,7 +283,7 @@ export function MarkdownRenderer({
 							if (inlineChartConfig?.alertIntent) {
 								return (
 									<AlertArtifact
-										key={`alert-${part.alertId}-${index}`}
+										key={`alert-${part.alertId}`}
 										alertId={part.alertId}
 										alertIntent={inlineChartConfig.alertIntent}
 										messageId={inlineChartConfig.messageId}
@@ -292,12 +292,15 @@ export function MarkdownRenderer({
 								)
 							}
 							if (isStreaming) {
-								return <AlertArtifactLoading key={`alert-loading-${part.alertId}-${index}`} />
+								return <AlertArtifactLoading key={`alert-loading-${part.alertId}`} />
 							}
 							return null
 						}
 						if (part.content.trim()) {
-							return renderMarkdownSection(processCitationMarkers(part.content, citations), `text-${index}`)
+							return renderMarkdownSection(
+								processCitationMarkers(part.content, citations),
+								`text-${partIndex}-${part.content.slice(0, 50)}`
+							)
 						}
 						return null
 					})
@@ -328,7 +331,7 @@ export function MarkdownRenderer({
 							const normalizedUrl = normalizeSourceUrl(url)
 							return (
 								<a
-									key={`citation-${index}-${url}`}
+									key={`citation-${index}-${normalizedUrl}`}
 									href={normalizedUrl}
 									target="_blank"
 									rel="noopener noreferrer"

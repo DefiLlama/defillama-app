@@ -4,9 +4,9 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
-import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
+import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 import { slug } from '~/utils'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -83,7 +83,13 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
-			<StablecoinInfo data={props.stablecoinData} />
+			{props.stablecoinData ? (
+				<PeggedAssetInfo {...props.stablecoinData} />
+			) : (
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p>Failed to fetch</p>
+				</div>
+			)}
 		</ProtocolOverviewLayout>
 	)
 }

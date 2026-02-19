@@ -598,9 +598,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									<span className="font-medium">{attestationFrequency}</span>
 								</p>
 							) : null}
-							{attestationLinks.map((link, idx) => (
+							{attestationLinks.map((link) => (
 								<a
-									key={idx}
+									key={link}
 									href={link}
 									target="_blank"
 									rel="noopener noreferrer"
@@ -626,7 +626,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				<SectionCard title="Notes">
 					<ul className="list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
 						{asset.descriptionNotes.map((note, idx) => (
-							<li key={`${keyBase}-note-${idx}`}>{note}</li>
+							<li key={`${keyBase}-note-${idx}-${note.slice(0, 50)}`}>{note}</li>
 						))}
 					</ul>
 				</SectionCard>

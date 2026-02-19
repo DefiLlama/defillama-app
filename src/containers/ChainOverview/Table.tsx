@@ -26,7 +26,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { formatProtocolsList2 } from '~/hooks/data/defi'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
@@ -57,7 +57,7 @@ export const ChainProtocolsTable = ({
 	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const finalProtocols = useMemo(() => {
-		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
 	const columnsInStorage = useSyncExternalStore(

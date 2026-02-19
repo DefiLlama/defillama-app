@@ -32,8 +32,12 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 			</div>
 			<div className="flex grow flex-col gap-1.5 overflow-y-auto">
 				{hasUnlocks ? (
-					dayData.events.map((event, i) => (
-						<BasicLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
+					dayData.events.map((event, index) => (
+						<BasicLink
+							key={`${event.protocol}-${event.value}-${index}`}
+							href={`/unlocks/${slug(event.protocol)}`}
+							target="_blank"
+						>
 							<div className="rounded-md border border-(--cards-border) p-2 text-xs hover:bg-(--link-hover-bg)">
 								<div className="mb-0.5 flex items-start justify-between gap-1">
 									<div className="flex min-w-0 shrink items-center gap-1.5 font-medium">

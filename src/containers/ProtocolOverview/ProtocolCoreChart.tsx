@@ -538,12 +538,14 @@ export default function ProtocolCoreChart({
 			finalYAxis.push(yAxis)
 		}
 
+		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
+
 		instance.setOption({
 			graphic,
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: (rangeHallmarks?.length ?? 0) > 0 ? 18 : 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -551,7 +553,7 @@ export default function ProtocolCoreChart({
 			},
 			xAxis,
 			yAxis: finalYAxis,
-			...(series.every((s) => s.data.length > 1) ? { dataZoom } : {}),
+			...(shouldHideDataZoom ? {} : { dataZoom }),
 			series
 		})
 

@@ -166,7 +166,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								onChange={handleStartHourChange}
 							>
 								{Array.from({ length: 24 }, (_, i) => (
-									<option key={i} value={i}>
+									<option key={`start-${i}`} value={i}>
 										{i.toString().padStart(2, '0')}:00
 									</option>
 								))}
@@ -193,7 +193,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								onChange={handleEndHourChange}
 							>
 								{Array.from({ length: 24 }, (_, i) => (
-									<option key={i} value={i}>
+									<option key={`end-${i}`} value={i}>
 										{i.toString().padStart(2, '0')}:00
 									</option>
 								))}

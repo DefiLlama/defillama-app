@@ -1,8 +1,8 @@
-import type { IFormattedProtocol } from './protocol-table.types'
 import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { formatNum, getPercentChange, keepNeededProperties } from '~/utils'
 import type { ProtocolsResponse } from './api.types'
+import type { IFormattedProtocol } from './protocol-table.types'
 
 // Legacy v1 protocol formatting helpers. Isolated for future cleanup/removal.
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]

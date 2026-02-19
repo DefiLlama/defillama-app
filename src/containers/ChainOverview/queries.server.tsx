@@ -23,7 +23,12 @@ import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
+import {
+	getChainIncentivesFromAggregatedEmissions,
+	getProtocolEmissionsLookupFromAggregated
+} from '~/containers/Incentives/queries'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
+import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import {
 	formatNum,
@@ -348,16 +353,7 @@ export async function getChainOverviewData({
 				: Promise.resolve(null),
 			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
 			currentChainMetadata.incentives && chain !== 'All'
-				? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
-						.then((data) => {
-							const protocolData = data.protocols.find((item) => item.chain === currentChainMetadata.name)
-							return {
-								emissions24h: protocolData.emission24h,
-								emissions7d: protocolData.emission7d,
-								emissions30d: protocolData.emission30d
-							}
-						})
-						.catch(() => null)
+				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name).catch(() => null)
 				: Promise.resolve(null),
 			chain === 'All' ? getDATInflows() : Promise.resolve(null),
 			chain !== 'All' ? fetchStablecoinAssetsApi().catch(() => null) : Promise.resolve(null),
@@ -750,13 +746,13 @@ export const getProtocolsByChain = async ({
 		return (protocol.oracles ?? []).some((oracleName) => slug(oracleName) === normalizedOracle)
 	}
 
-	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsData]: [
+	const [{ protocols, chains, parentProtocols }, fees, revenue, holdersRevenue, dexs, emissionsProtocols]: [
 		ProtocolsResponse,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainOverview | null,
-		any
+		ProtocolEmissionsLookup
 	] = await Promise.all([
 		fetchProtocols(),
 		currentChainMetadata.fees
@@ -798,9 +794,9 @@ export const getProtocolsByChain = async ({
 					return null
 				})
 			: Promise.resolve(null),
-		fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`).catch((err) => {
+		getProtocolEmissionsLookupFromAggregated().catch((err) => {
 			console.log(err)
-			return null
+			return {}
 		})
 	])
 
@@ -867,30 +863,6 @@ export const getProtocolsByChain = async ({
 			}
 		}
 	}
-	const emissionsProtocols = {}
-	if (emissionsData?.protocols) {
-		for (const emissionProtocol of emissionsData.protocols) {
-			if (
-				emissionProtocol.emission24h != null ||
-				emissionProtocol.emission7d != null ||
-				emissionProtocol.emission30d != null ||
-				emissionProtocol.emissions1y != null ||
-				emissionProtocol.emissionsMonthlyAverage1y != null ||
-				emissionProtocol.emissionsAllTime != null
-			) {
-				emissionsProtocols[emissionProtocol.defillamaId || emissionProtocol.name] = {
-					emissions24h: emissionProtocol.emission24h ?? null,
-					emissions7d: emissionProtocol.emission7d ?? null,
-					emissions30d: emissionProtocol.emission30d ?? null,
-					emissions1y: emissionProtocol.emissions1y ?? null,
-					emissionsMonthlyAverage1y: emissionProtocol.emissionsMonthlyAverage1y ?? null,
-					emissionsAllTime: emissionProtocol.emissionsAllTime ?? null,
-					name: emissionProtocol.name
-				}
-			}
-		}
-	}
-
 	const protocolsStore: Record<string, IProtocol> = {}
 
 	const parentStore: Record<string, Array<IChildProtocol>> = {}
@@ -1243,7 +1215,7 @@ export const getProtocolsByChain = async ({
 		chains,
 		fees,
 		dexs,
-		emissionsData
+		emissionsData: emissionsProtocols
 	}
 }
 
