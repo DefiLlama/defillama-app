@@ -586,7 +586,7 @@ export const SignInForm = ({
 						</span>
 					</label>
 
-					<label className="flex items-start gap-2">
+					<div className="flex items-start gap-2">
 						<input
 							id={promotionalEmailsCheckboxId}
 							type="checkbox"
@@ -594,10 +594,10 @@ export const SignInForm = ({
 							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
-						<span className="text-sm text-[#b4b7bc]">
+						<label htmlFor={promotionalEmailsCheckboxId} className="text-sm text-[#b4b7bc]">
 							Receive emails about upcoming DefiLlama products and new releases
-						</span>
-					</label>
+						</label>
+					</div>
 
 					<div className="mt-4">
 						<Turnstile

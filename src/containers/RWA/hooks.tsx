@@ -364,11 +364,11 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		pushShallowQuery(router, { includeStablecoins: value ? 'true' : undefined })
+		pushShallowQuery(router, { includeStablecoins: value ? 'true' : 'false' })
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		pushShallowQuery(router, { includeGovernance: value ? 'true' : undefined })
+		pushShallowQuery(router, { includeGovernance: value ? 'true' : 'false' })
 	}
 
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>

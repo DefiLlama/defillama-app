@@ -2,7 +2,7 @@ import type { ParsedUrlQuery, ParsedUrlQueryInput } from 'querystring'
 import type { NextRouter } from 'next/router'
 
 type QueryParamInput = string | string[] | undefined | null
-type QueryPrimitive = string | number | boolean | bigint
+type QueryPrimitive = string | number | boolean
 type QueryUpdateValue = QueryPrimitive | QueryPrimitive[] | undefined
 
 // ============================================================================
@@ -255,13 +255,17 @@ export function parseIncludeParam(param: QueryParamInput, allKeys: string[]): st
  * getSelectedChainFilters('eth', ['eth', 'btc']) // ['eth']
  */
 export function getSelectedChainFilters(chainQueryParam: QueryParamInput, allChains: string[]): string[] {
-	if (chainQueryParam) {
-		if (typeof chainQueryParam === 'string') {
-			return chainQueryParam === 'All' ? allChains : chainQueryParam === 'None' ? [] : [chainQueryParam]
-		}
-		return chainQueryParam as string[]
+	if (!chainQueryParam) return allChains
+
+	const validChains = new Set(allChains)
+
+	if (typeof chainQueryParam === 'string') {
+		if (chainQueryParam === 'All') return allChains
+		if (chainQueryParam === 'None') return []
+		return validChains.has(chainQueryParam) ? [chainQueryParam] : []
 	}
-	return allChains
+
+	return toNonEmptyArrayParam(chainQueryParam).filter((chain) => validChains.has(chain))
 }
 
 // ============================================================================
@@ -303,8 +307,8 @@ function buildUpdatedQuery(
 	updates: Record<string, QueryUpdateValue>
 ): ParsedUrlQueryInput {
 	const nextQuery: ParsedUrlQueryInput = {}
-	type AllowedType = 'string' | 'number' | 'boolean' | 'bigint'
-	const allowedPrimitiveTypes = new Set<AllowedType>(['string', 'number', 'boolean', 'bigint'])
+	type AllowedType = 'string' | 'number' | 'boolean'
+	const allowedPrimitiveTypes = new Set<AllowedType>(['string', 'number', 'boolean'])
 	const isAllowedPrimitive = (value: unknown): value is QueryPrimitive =>
 		allowedPrimitiveTypes.has(typeof value as AllowedType)
 
@@ -327,6 +331,7 @@ function buildUpdatedQuery(
 		} else if (Array.isArray(value) && value.length > 0 && value.every((item) => isAllowedPrimitive(item))) {
 			nextQuery[key] = value
 		} else if (Array.isArray(value)) {
+			// Empty array means "remove param" for this key.
 			delete nextQuery[key]
 		}
 	}
@@ -336,7 +341,7 @@ function buildUpdatedQuery(
 
 /**
  * Pushes a shallow, patch-style query update.
- * Merges `updates` into the current query and removes keys set to `undefined`.
+ * Merges `updates` into the current query and removes keys set to `undefined` or an empty array.
  *
  * Intended use:
  * - simple URL filter/state updates
@@ -374,7 +379,12 @@ export function safeInternalPath(raw: unknown): string | undefined {
 	if (typeof raw !== 'string') return undefined
 	try {
 		const decoded = decodeURIComponent(raw)
-		if (/^\/(?!\/)/.test(decoded)) return decoded
+		if (!/^\/(?!\/)/.test(decoded)) return undefined
+
+		const hasPathTraversalSegment = decoded.split('/').some((segment) => segment === '.' || segment === '..')
+		if (hasPathTraversalSegment) return undefined
+
+		return decoded
 	} catch (e) {
 		if (process.env.NODE_ENV === 'development') {
 			console.warn('[routerQuery] Failed to decode path in safeInternalPath', e)
