@@ -164,7 +164,7 @@ function AttributesFilter({
 	nestedMenu?: boolean
 	attributeFilters: RWAAttributeFilterConfig[]
 }) {
-	const useDesktopPortal = !nestedMenu
+	const usePortal = true
 
 	const activeAttributeFiltersCount = attributeFilters.filter(
 		(filter) => filter.selectedStates.length !== ATTRIBUTE_FILTER_STATES.length
@@ -191,7 +191,7 @@ function AttributesFilter({
 				<NestedMenu
 					key={filter.queryKey}
 					label={subMenuLabel}
-					menuPortal={useDesktopPortal}
+					menuPortal={usePortal}
 					className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
 				>
 					{ATTRIBUTE_FILTER_STATES.map((state) => {
@@ -220,14 +220,14 @@ function AttributesFilter({
 
 	if (nestedMenu) {
 		return (
-			<NestedMenu label={trigger} menuPortal={useDesktopPortal}>
+			<NestedMenu label={trigger} menuPortal={usePortal}>
 				{renderAttributeSubmenus()}
 			</NestedMenu>
 		)
 	}
 
 	return (
-		<NestedMenu label={trigger} menuPortal={useDesktopPortal} buttonVariant="filter">
+		<NestedMenu label={trigger} menuPortal={usePortal} buttonVariant="filter">
 			{renderAttributeSubmenus()}
 		</NestedMenu>
 	)
