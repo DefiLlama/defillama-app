@@ -7,11 +7,12 @@ import { ReorderableHeader } from './ReorderableHeader'
 interface TableBodyProps {
 	table: Table<IProtocolRow> | null
 	isLoading?: boolean
+	isEmptyProtocols?: boolean
 	moveColumnUp?: (columnId: string) => void
 	moveColumnDown?: (columnId: string) => void
 }
 
-export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: TableBodyProps) {
+export function TableBody({ table, isLoading, isEmptyProtocols, moveColumnUp, moveColumnDown }: TableBodyProps) {
 	if (!table) {
 		return (
 			<div
@@ -40,46 +41,48 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 		>
 			<table className="w-full min-w-[600px] border-collapse text-xs text-(--text-primary) sm:text-sm">
 				<thead className="sticky top-0 z-10">
-					{table.getHeaderGroups().map((headerGroup) => (
-						<tr key={headerGroup.id}>
-							{headerGroup.headers.map((header, _index) => {
-								const visibleColumns = headerGroup.headers.filter((h) => !h.isPlaceholder)
-								const columnIndex = visibleColumns.indexOf(header)
-								const isFirst = columnIndex === 0
-								const isLast = columnIndex === visibleColumns.length - 1
-								const sortable = getSortableColumn(header)
+					{table.getHeaderGroups().map((headerGroup) => {
+						const visibleColumns = headerGroup.headers.filter((h) => !h.isPlaceholder)
+						return (
+							<tr key={headerGroup.id}>
+								{headerGroup.headers.map((header, _index) => {
+									const columnIndex = visibleColumns.indexOf(header)
+									const isFirst = columnIndex === 0
+									const isLast = columnIndex === visibleColumns.length - 1
+									const sortable = getSortableColumn(header)
 
-								return (
-									<th
-										key={header.id}
-										colSpan={header.colSpan}
-										className={`relative border-r border-b border-(--divider) bg-(--cards-bg) px-1 py-2 font-medium first:rounded-l-md last:rounded-r-md last:border-r-0 sm:px-2 ${
-											header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
-										}`}
-										style={{
-											minWidth: columnIndex === 0 ? '120px' : '60px',
-											width: header.column.columnDef.size
-										}}
-									>
-										{header.isPlaceholder ? null : (
-											<ReorderableHeader
-												columnId={header.column.id}
-												canSort={sortable !== null}
-												isSorted={sortable?.getIsSorted() ?? false}
-												onSort={() => sortable?.toggleSorting()}
-												onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
-												onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
-												canMoveUp={!isFirst}
-												canMoveDown={!isLast}
-											>
-												{flexRender(header.column.columnDef.header, header.getContext())}
-											</ReorderableHeader>
-										)}
-									</th>
-								)
-							})}
-						</tr>
-					))}
+									return (
+										<th
+											key={header.id}
+											colSpan={header.colSpan}
+											className={`relative border-r border-b border-(--divider) bg-(--cards-bg) px-1 py-2 font-medium first:rounded-l-md last:rounded-r-md last:border-r-0 sm:px-2 ${
+												header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
+											}`}
+											style={{
+												minWidth: columnIndex === 0 ? '120px' : '60px',
+												width: header.column.columnDef.size
+											}}
+										>
+											{header.isPlaceholder ? null : (
+												<ReorderableHeader
+													columnId={header.column.id}
+													canSort={sortable !== null}
+													isSorted={sortable?.getIsSorted() ?? false}
+													onSort={() => sortable?.toggleSorting()}
+													onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
+													onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
+													canMoveUp={!isFirst}
+													canMoveDown={!isLast}
+												>
+													{flexRender(header.column.columnDef.header, header.getContext())}
+												</ReorderableHeader>
+											)}
+										</th>
+									)
+								})}
+							</tr>
+						)
+					})}
 				</thead>
 				<tbody>
 					{rows.length === 0 ? (
@@ -91,7 +94,9 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 										<span className="text-(--text-tertiary)">Loading data...</span>
 									</div>
 								) : (
-									<span className="text-(--text-tertiary)">No protocols found</span>
+									<span className="text-(--text-tertiary)">
+										{isEmptyProtocols ? 'No protocols found' : 'No protocols match current filters'}
+									</span>
 								)}
 							</td>
 						</tr>

@@ -232,7 +232,8 @@ function UnifiedTable({
 	} = config
 	const hydratingRef = useRef(false)
 	const canEditFilters = !previewMode && !isReadOnly
-	const resolvedRowHeaders = useMemo(() => sanitizeRowHeaders(getDefaultRowHeaders(config)), [config])
+	const tableRowHeaders = useMemo(() => getDefaultRowHeaders(config), [config])
+	const resolvedRowHeaders = useMemo(() => sanitizeRowHeaders(tableRowHeaders), [tableRowHeaders])
 	const filterChips = useMemo(() => getActiveFilterChips(config.filters), [config.filters])
 	const activeFilterCount = filterChips.length
 	const canEditGrouping = !previewMode && !isReadOnly && PROTOCOL_GROUPING_OPTIONS.length > 0
@@ -252,18 +253,9 @@ function UnifiedTable({
 	const effectiveColumnOrderRef = useRef(effectiveColumnOrder)
 	const effectiveColumnVisibilityRef = useRef(effectiveColumnVisibility)
 	const effectiveSortingRef = useRef(effectiveSorting)
-
-	useEffect(() => {
-		effectiveColumnOrderRef.current = effectiveColumnOrder
-	}, [effectiveColumnOrder])
-
-	useEffect(() => {
-		effectiveColumnVisibilityRef.current = effectiveColumnVisibility
-	}, [effectiveColumnVisibility])
-
-	useEffect(() => {
-		effectiveSortingRef.current = effectiveSorting
-	}, [effectiveSorting])
+	effectiveColumnOrderRef.current = effectiveColumnOrder
+	effectiveColumnVisibilityRef.current = effectiveColumnVisibility
+	effectiveSortingRef.current = effectiveSorting
 
 	useEffect(() => {
 		if (previewMode) return
@@ -363,11 +355,10 @@ function UnifiedTable({
 		[onPreviewSortingChange, previewMode]
 	)
 
+	const memoizedConfig = useMemo(() => ({ ...config, rowHeaders: tableRowHeaders }), [config, tableRowHeaders])
+
 	const unifiedTable = useUnifiedTable({
-		config: {
-			...config,
-			rowHeaders: getDefaultRowHeaders(config)
-		},
+		config: memoizedConfig,
 		searchTerm,
 		columnOrder: effectiveColumnOrder,
 		columnVisibility: effectiveColumnVisibility,

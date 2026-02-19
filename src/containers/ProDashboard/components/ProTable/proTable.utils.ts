@@ -293,9 +293,7 @@ export const groupProtocols = (
 		const list = protocols.filter((p) => p.parentProtocol === item.id)
 
 		if (list.length >= 2) {
-			if (!noSubrows) {
-				data = data.filter((p) => p.parentProtocol !== item.id)
-			}
+			data = data.filter((p) => p.parentProtocol !== item.id)
 
 			data.push(groupData(list, item, noSubrows))
 		}
@@ -525,7 +523,7 @@ export const formatProtocolsList = ({
 		const protocolName = protocol.name?.toLowerCase()
 		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
-			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
 		}
 		const previous = allProtocols[protocolName]
 		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
@@ -548,7 +546,7 @@ export const formatProtocolsList = ({
 		const protocolName = protocol.name?.toLowerCase()
 		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
-			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
 		}
 		const previous = allProtocols[protocolName]
 		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))
@@ -570,7 +568,7 @@ export const formatProtocolsList = ({
 		const protocolName = protocol.name?.toLowerCase()
 		if (!protocolName) continue
 		if (!allProtocols[protocolName]) {
-			allProtocols[protocolName] = { name: protocol.displayName } as IFormattedProtocol
+			allProtocols[protocolName] = { name: protocol.displayName ?? protocol.name } as IFormattedProtocol
 		}
 		const previous = allProtocols[protocolName]
 		const mergedChains = Array.from(new Set([...(previous.chains ?? []), ...(protocol.chains ?? [])]))

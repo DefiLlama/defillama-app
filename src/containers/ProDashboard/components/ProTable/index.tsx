@@ -62,6 +62,7 @@ export function ProtocolsByChainTable({
 	const {
 		table,
 		isLoading,
+		isEmptyProtocols,
 		showColumnPanel,
 		setShowColumnPanel,
 		searchTerm,
@@ -145,7 +146,13 @@ export function ProtocolsByChainTable({
 				activeViewId={activePreset}
 			/>
 
-			<TableBody table={table} isLoading={isLoading} moveColumnUp={moveColumnUp} moveColumnDown={moveColumnDown} />
+			<TableBody
+				table={table}
+				isLoading={isLoading}
+				isEmptyProtocols={isEmptyProtocols}
+				moveColumnUp={moveColumnUp}
+				moveColumnDown={moveColumnDown}
+			/>
 
 			<TablePagination table={table} />
 

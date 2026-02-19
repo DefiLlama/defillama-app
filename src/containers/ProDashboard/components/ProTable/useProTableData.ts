@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import type { IParentProtocol } from '~/api/types'
-import { getPercentChange } from '~/utils'
+import { getAnnualizedRatio, getPercentChange } from '~/utils'
 import type { IProtocolRow } from './proTable.types'
 import type { UseProTableDataParams, UseProTableDataResult, ProtocolWithSubRows } from './proTable.types'
 import { formatProtocolsList } from './proTable.utils'
@@ -191,6 +191,8 @@ const recalculateParentMetrics = (
 	const parentMcap = toNumber(parent.mcap) ?? 0
 	const finalMcap = mcap > 0 ? mcap : parentMcap
 	const mcaptvl = tvl > 0 && finalMcap > 0 ? Number((finalMcap / tvl).toFixed(2)) : null
+	const pf = getAnnualizedRatio(finalMcap, fees30d)
+	const ps = getAnnualizedRatio(finalMcap, revenue30d)
 
 	const oracleSet = new Set<string>()
 	const oraclesByChain = new Map<string, Set<string>>()
@@ -252,6 +254,8 @@ const recalculateParentMetrics = (
 		change_7d: change7d,
 		change_1m: change1m,
 		mcaptvl,
+		pf,
+		ps,
 		subRows: filteredSubRows,
 		oracles: Array.from(oracleSet).toSorted((a, b) => a.localeCompare(b)),
 		oraclesByChain: Object.keys(aggregatedOraclesByChain).length > 0 ? aggregatedOraclesByChain : parent.oraclesByChain
@@ -374,8 +378,8 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 		isLoadingVolumes ||
 		isLoadingFees ||
 		isLoadingPerps ||
-		isLoadingOpenInterest ||
-		fullProtocolsList.length === 0
+		isLoadingOpenInterest
+	const isEmptyProtocols = !isLoading && fullProtocolsList.length === 0
 
 	const finalProtocolsList = React.useMemo(() => {
 		const formatted = formatProtocolsList({
@@ -430,6 +434,7 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 	return {
 		finalProtocolsList,
 		isLoading,
+		isEmptyProtocols,
 		categories,
 		availableProtocols,
 		parentProtocols

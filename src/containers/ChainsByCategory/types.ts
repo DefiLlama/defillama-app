@@ -106,7 +106,7 @@ export interface IChainsByCategoryData {
 }
 
 export interface IFormattedChainAssetsSummary {
-	total: string | number
+	total: string | null
 	ownTokens: string | null
 	canonical: string | null
 	native: string | null

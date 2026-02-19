@@ -157,6 +157,7 @@ export type ProTableAction =
 export interface UseProTableDataResult {
 	finalProtocolsList: IProtocolRow[]
 	isLoading: boolean
+	isEmptyProtocols: boolean
 	categories: string[]
 	availableProtocols: IProtocolRow[]
 	parentProtocols: IParentProtocol[]

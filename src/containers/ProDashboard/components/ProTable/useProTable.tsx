@@ -136,10 +136,11 @@ export function useProTable(
 	onFilterClick?: () => void,
 	options?: UseProTableOptions
 ) {
-	const { finalProtocolsList, isLoading, categories, availableProtocols, parentProtocols } = useProTableData({
+	const { finalProtocolsList, isLoading, isEmptyProtocols, categories, availableProtocols, parentProtocols } = useProTableData({
 		chains,
 		filters
 	})
+	const onColumnsChange = options?.onColumnsChange
 
 	const initialKnownColumnIds = React.useMemo(() => {
 		const baseColumnIds = protocolsByChainTableColumns.map((column) => column.key)
@@ -541,7 +542,7 @@ export function useProTable(
 	const previousColumnsSnapshotRef = React.useRef<ColumnsSnapshot | null>(null)
 
 	React.useEffect(() => {
-		if (!options?.onColumnsChange) return
+		if (!onColumnsChange) return
 
 		const snapshot: ColumnsSnapshot = {
 			columnOrder: state.columnOrder,
@@ -567,7 +568,7 @@ export function useProTable(
 		if (!hasChanged) return
 
 		previousColumnsSnapshotRef.current = snapshot
-		options.onColumnsChange(
+		onColumnsChange(
 			snapshot.columnOrder,
 			snapshot.columnVisibility,
 			snapshot.customColumns,
@@ -575,7 +576,7 @@ export function useProTable(
 			snapshot.activePresetId ?? undefined
 		)
 	}, [
-		options,
+		onColumnsChange,
 		resolvedColumnVisibility,
 		state.activeCustomView,
 		state.columnOrder,
@@ -586,6 +587,7 @@ export function useProTable(
 	return {
 		table,
 		isLoading,
+		isEmptyProtocols,
 		showColumnPanel: state.showColumnPanel,
 		setShowColumnPanel: actions.setShowColumnPanel,
 		searchTerm: state.searchTerm,

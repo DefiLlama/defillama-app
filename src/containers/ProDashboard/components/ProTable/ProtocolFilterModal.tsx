@@ -108,7 +108,7 @@ interface ProtocolFilterModalProps {
 	categories: string[]
 	currentFilters: TableFilters
 	onFiltersChange: (filters: TableFilters) => void
-	portalTarget: HTMLElement
+	portalTarget: HTMLElement | null
 }
 
 interface ProtocolFilterDialogContentProps {
@@ -118,7 +118,7 @@ interface ProtocolFilterDialogContentProps {
 	categories: string[]
 	currentFilters: TableFilters
 	onFiltersChange: (filters: TableFilters) => void
-	portalTarget: HTMLElement
+	portalTarget: HTMLElement | null
 }
 
 function ProtocolFilterDialogContent({
@@ -251,7 +251,7 @@ function ProtocolFilterDialogContent({
 				className="dialog max-h-[80dvh] w-full max-w-xl gap-0 rounded-md border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
 				unmountOnHide
 				portal
-				portalElement={portalTarget}
+				portalElement={portalTarget ?? undefined}
 				hideOnInteractOutside
 			>
 				<div

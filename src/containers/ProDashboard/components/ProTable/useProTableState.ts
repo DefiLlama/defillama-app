@@ -9,11 +9,7 @@ const cloneSorting = (sorting: ProTableState['sorting']): ProTableState['sorting
 }
 
 const hasOwnKeys = (record: Record<string, boolean> | undefined): boolean => {
-	if (!record) return false
-	for (const _ in record) {
-		return true
-	}
-	return false
+	return Boolean(record) && Object.keys(record).length > 0
 }
 
 const createInitialState = ({
