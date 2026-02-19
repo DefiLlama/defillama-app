@@ -1,9 +1,12 @@
+import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/api'
+import { LocalLoader } from '~/components/Loaders'
 import { TokenLogo } from '~/components/TokenLogo'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
+import { getForksByProtocolPageData } from '~/containers/Forks/queries'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
-import { ForksData } from '~/containers/ProtocolOverview/Forks'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
@@ -65,6 +68,14 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['forks', props.name],
+		queryFn: () => getForksByProtocolPageData({ fork: props.name }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
+
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -78,7 +89,17 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 				<h1 className="text-xl font-bold">{props.name} Forks</h1>
 			</div>
-			<ForksData protocolName={props.name} />
+			{isLoading ? (
+				<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<LocalLoader />
+				</div>
+			) : error || !data ? (
+				<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+				</div>
+			) : (
+				<ForksByProtocol {...data} />
+			)}
 		</ProtocolOverviewLayout>
 	)
 }

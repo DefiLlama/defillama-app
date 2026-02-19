@@ -190,9 +190,9 @@ export async function fetchEmissionSupplyMetrics(): Promise<ProtocolEmissionSupp
 /**
  * Fetch the emissions breakdown payload.
  */
-async function fetchEmissionBreakdown(): Promise<unknown | null>
-async function fetchEmissionBreakdown<T>(guard: (value: unknown) => value is T): Promise<T | null>
-async function fetchEmissionBreakdown<T>(guard?: (value: unknown) => value is T): Promise<unknown | T | null> {
+export async function fetchEmissionBreakdown(): Promise<unknown | null>
+export async function fetchEmissionBreakdown<T>(guard: (value: unknown) => value is T): Promise<T | null>
+export async function fetchEmissionBreakdown<T>(guard?: (value: unknown) => value is T): Promise<unknown | T | null> {
 	try {
 		const raw = await fetchJson<unknown>(EMISSION_BREAKDOWN_API)
 		const parsed = unwrapPotentialJsonBody(raw)

@@ -45,8 +45,12 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 						) : null}
 					</h3>
 					<div className="flex flex-col gap-1">
-						{dailyEvents.map((event, i) => (
-							<BasicLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
+						{dailyEvents.map((event) => (
+							<BasicLink
+								key={`${event.protocol}-${event.value}`}
+								href={`/unlocks/${slug(event.protocol)}`}
+								target="_blank"
+							>
 								<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) p-2 hover:bg-(--link-hover-bg)">
 									<span className="flex items-center gap-2 text-sm font-medium">
 										<TokenLogo logo={tokenIconUrl(event.protocol)} size={20} />

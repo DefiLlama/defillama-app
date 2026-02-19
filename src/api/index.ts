@@ -32,9 +32,7 @@ export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>
 	const validTokens = data.filter(isCGMarketsApiItem)
 	const malformedCount = data.length - validTokens.length
 	if (malformedCount > 0) {
-		postRuntimeLogs(
-			`[getAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API}`
-		)
+		postRuntimeLogs(`[getAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API}`)
 	}
 
 	return validTokens

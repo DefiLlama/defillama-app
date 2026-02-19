@@ -1094,14 +1094,10 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											)}
 											{messages.length > 0 && (
 												<div className="flex flex-col gap-2.5">
-													{messages.map((item, index) => {
+													{messages.map((item) => {
 														if (item.role === 'user') {
 															return (
-																<SentPrompt
-																	key={`user-${item.timestamp}-${index}`}
-																	prompt={item.content}
-																	images={item.images}
-																/>
+																<SentPrompt key={`user-${item.timestamp}`} prompt={item.content} images={item.images} />
 															)
 														}
 														if (item.role === 'assistant') {
@@ -1146,7 +1142,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 															return (
 																<div
-																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
+																	key={`assistant-${item.messageId || item.timestamp}`}
 																	className="flex flex-col gap-2.5"
 																>
 																	<PromptResponse

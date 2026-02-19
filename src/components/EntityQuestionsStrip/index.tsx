@@ -59,9 +59,9 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 						</span>
 					</div>
 					<div className="flex min-w-max flex-nowrap gap-2">
-						{questions.slice(0, 5).map((question, i) => (
+						{questions.slice(0, 5).map((question) => (
 							<button
-								key={i}
+								key={`q-string-${question}`}
 								onClick={() => handleClick(question)}
 								className="shrink-0 touch-pan-x rounded-md border border-[#e6e6e6] bg-white px-2.5 py-1.5 text-left text-xs whitespace-nowrap text-[#666] transition-all hover:border-[#C99A4A] hover:bg-[#FDE0A9]/20 hover:text-[#996F1F] dark:border-[#39393E] dark:bg-[#222429] dark:text-[#919296] dark:hover:border-[#FDE0A9]/50 dark:hover:bg-[#FDE0A9]/10 dark:hover:text-[#FDE0A9]"
 							>

@@ -173,7 +173,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					{Array.from({ length: 24 }, (_, i) => (
-						<option key={i} value={i}>
+						<option key={`hour-${i}`} value={i}>
 							{i.toString().padStart(2, '0')}:00
 						</option>
 					))}

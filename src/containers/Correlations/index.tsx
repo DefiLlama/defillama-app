@@ -326,7 +326,8 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 	const showContent = isClient && coins.length > 0
 
 	const removeCoin = (coinId: string) => {
-		pushShallowQuery(router, { coin: queryCoins.filter((c) => c !== coinId) })
+		const updatedCoins = queryCoins.filter((c) => c !== coinId)
+		pushShallowQuery(router, { coin: updatedCoins.length > 0 ? updatedCoins : undefined })
 	}
 
 	return (
@@ -449,7 +450,8 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 					dialogStore={dialogStore}
 					selectedCoins={selectedCoins}
 					selectCoin={(coin) => {
-						pushShallowQuery(router, { coin: queryCoins.concat(coin.id) }).then(() => {
+						const updatedCoins = [...queryCoins, coin.id]
+						pushShallowQuery(router, { coin: updatedCoins }).then(() => {
 							dialogStore.hide()
 						})
 					}}
