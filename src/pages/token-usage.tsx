@@ -23,6 +23,7 @@ import { useDebounce } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
 
@@ -93,16 +94,7 @@ export default function Tokens() {
 									label="Include CEXs"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
-									onChange={() =>
-										router.push(
-											{
-												pathname: router.pathname,
-												query: { ...router.query, includecex: !includeCentraliseExchanges }
-											},
-											undefined,
-											{ shallow: true }
-										)
-									}
+									onChange={() => pushShallowQuery(router, { includecex: !includeCentraliseExchanges })}
 								/>
 								<CSVDownloadButton prepareCsv={prepareCsv} />
 							</div>

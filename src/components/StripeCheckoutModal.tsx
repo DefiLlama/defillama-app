@@ -9,7 +9,7 @@ import {
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { type ComponentProps, useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -51,6 +51,8 @@ interface StripeCheckoutModalProps {
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
 }
+
+type FormSubmitEvent = Parameters<NonNullable<ComponentProps<'form'>['onSubmit']>>[0]
 
 export function StripeCheckoutModal({
 	isOpen,
@@ -308,7 +310,7 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 	const stripe = useStripe()
 	const elements = useElements()
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 
 		if (!stripe || !elements) {

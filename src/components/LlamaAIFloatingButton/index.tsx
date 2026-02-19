@@ -5,6 +5,8 @@ import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestion
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
 
+type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
+
 const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
 const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
 
@@ -117,7 +119,7 @@ export function LlamaAIFloatingButton() {
 	}, [entityContext, entityData, suggestedData])
 
 	const handleSubmit = useCallback(
-		(e?: React.FormEvent) => {
+		(e?: FormSubmitEvent) => {
 			e?.preventDefault()
 			const prompt = value.trim()
 			if (!prompt) return

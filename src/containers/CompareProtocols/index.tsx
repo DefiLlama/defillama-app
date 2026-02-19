@@ -8,7 +8,8 @@ import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { formatProtocolsList2 } from '~/hooks/data/defi'
-import { getNDistinctColors, toNumberOrNullFromQueryParam } from '~/utils'
+import { getNDistinctColors } from '~/utils'
+import { parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import { fetchProtocol } from './api'
 import type { CompareProtocolsProps } from './types'
 
@@ -41,8 +42,8 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 
 	const isLoading = results.some((r) => r.isLoading)
 
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const { dataset, charts } = React.useMemo(() => {
 		const formattedData = results
@@ -138,18 +139,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 					placeholder="Select Protocols..."
 					selectedValues={selectedProtocolsNames}
 					setSelectedValues={(values) => {
-						router.push(
-							{
-								pathname: router.pathname,
-								query: {
-									protocol: values
-								}
-							},
-							undefined,
-							{
-								shallow: true
-							}
-						)
+						pushShallowQuery(router, { protocol: values.length > 0 ? values : undefined })
 					}}
 				/>
 			</div>

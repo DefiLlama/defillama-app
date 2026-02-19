@@ -17,6 +17,7 @@ import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -403,9 +404,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const nextIncludeOwnTokens = event.currentTarget.checked
-		const { includeOwnTokens: _inc, ...restQuery } = router.query
-		const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeOwnTokens: nextIncludeOwnTokens ? 'true' : undefined })
 	}
 	const hasBreakdownMetrics =
 		(chainsDataset && chainsUnique?.length > 1) ||

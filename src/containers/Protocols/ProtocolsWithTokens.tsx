@@ -10,8 +10,8 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, TokenMetricType } from './types'
-import { parseExcludeParam } from './utils'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
 

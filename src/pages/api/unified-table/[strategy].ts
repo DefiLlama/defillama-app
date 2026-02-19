@@ -3,17 +3,13 @@ import type { NormalizedRow } from '~/containers/ProDashboard/components/Unified
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
 import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
+import { toRawArrayParam } from '~/utils/routerQuery'
 
 const MAX_CHAIN_FILTERS = 100
 const MAX_CHAIN_NAME_LENGTH = 200
 
-const toArray = (value: string | string[] | undefined): string[] => {
-	if (!value) return []
-	return Array.isArray(value) ? value : [value]
-}
-
 const parseQueryToConfig = (query: NextApiRequest['query']): UnifiedTableConfig | null => {
-	const chains = toArray(query['chains[]'])
+	const chains = toRawArrayParam(query['chains[]'])
 	if (chains.length > MAX_CHAIN_FILTERS) return null
 	if (chains.some((c) => c.length > MAX_CHAIN_NAME_LENGTH)) return null
 
@@ -41,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(400).json({ error: 'Invalid unified table configuration' })
 	}
 
-	const rowHeadersFromQuery = toArray(req.query['rowHeaders[]']).filter(
+	const rowHeadersFromQuery = toRawArrayParam(req.query['rowHeaders[]']).filter(
 		(value): value is UnifiedRowHeaderType =>
 			value === 'parent-protocol' || value === 'protocol' || value === 'chain' || value === 'category'
 	)

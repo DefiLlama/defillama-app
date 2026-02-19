@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useSearchParams } from 'next/navigation'
-import { useRouter } from 'next/router'
+import { type NextRouter, useRouter } from 'next/router'
 import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
@@ -24,6 +24,7 @@ import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager }
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import type { IChainOverviewData } from './types'
@@ -127,14 +128,7 @@ export function Stats(props: IStatsProps) {
 		props.metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const updateGroupBy = (newGroupBy) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...router.query, groupBy: newGroupBy }
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, { groupBy: newGroupBy })
 	}
 
 	const metricsDialogStore = Ariakit.useDialogStore()
@@ -931,17 +925,8 @@ export function Stats(props: IStatsProps) {
 	)
 }
 
-const updateRoute = (key, val, router) => {
-	router.push(
-		{
-			query: {
-				...router.query,
-				[key]: val
-			}
-		},
-		undefined,
-		{ shallow: true }
-	)
+const updateRoute = (key: string, val: string, router: NextRouter) => {
+	pushShallowQuery(router, { [key]: val })
 }
 
 const chainsNamesMap = {

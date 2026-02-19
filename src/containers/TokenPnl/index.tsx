@@ -13,6 +13,7 @@ import { CoinsPicker } from '~/containers/Correlations'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { fetchPriceSeries } from './api'
 import { ComparisonPanel } from './ComparisonPanel'
 import { DailyPnLGrid } from './DailyPnLGrid'
@@ -679,29 +680,14 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			handleEndDateChange(value)
 		}
 		const unixValue = dateStringToUnix(value)
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					[isStart ? 'start' : 'end']: unixValue
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, {
+			[isStart ? 'start' : 'end']: unixValue ?? undefined
+		})
 	}
 
 	const updateCoin = (coinId: string) => {
 		const newCoins = [coinId]
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...router.query, coin: newCoins }
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, { coin: newCoins })
 		dialogStore.toggle()
 	}
 

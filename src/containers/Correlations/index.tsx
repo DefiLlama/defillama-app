@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
@@ -9,6 +9,7 @@ import { FAQ } from './Faq'
 import type { PricePoint } from './hooks'
 import { usePriceCharts } from './hooks'
 import { pearsonCorrelationCoefficient, toPairedLogReturns } from './util'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface CoinsPickerProps {
 	coinsData: Array<IResponseCGMarketsAPI>
@@ -173,6 +174,7 @@ const MIN_RETURN_POINTS_BY_PERIOD: Record<Period, number> = {
 	'1y': 30
 }
 const DEFAULT_PERIOD: Period = '1y'
+const DEFAULT_QUERY_COINS = ['bitcoin', 'ethereum', 'tether', 'binancecoin']
 const CORRELATION_BUCKET_MS = 20 * 60 * 1000
 
 const isPeriod = (value: string): value is Period => {
@@ -223,17 +225,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 	const setPeriod = (nextPeriod: Period) => {
 		if (nextPeriod === period) return
 
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					period: nextPeriod
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, { period: nextPeriod })
 	}
 	const minReturnPoints = MIN_RETURN_POINTS_BY_PERIOD[period]
 	const coins = useMemo(() => Object.values(selectedCoins).filter(Boolean), [selectedCoins])
@@ -310,20 +302,20 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 
 	useEffect(() => {
 		if (!router.isReady) return
+		if (queryCoins.length > 0) return
 
-		if (!queryCoins.length)
-			Router.replace(
-				{
-					pathname: router.pathname,
-					query: {
-						...router.query,
-						coin: ['bitcoin', 'ethereum', 'tether', 'binancecoin']
-					}
-				},
-				undefined,
-				{ shallow: true }
-			)
-	}, [queryCoins, router.query, router.pathname, router.isReady])
+		void router.replace(
+			{
+				pathname: router.pathname,
+				query: {
+					...router.query,
+					coin: DEFAULT_QUERY_COINS
+				}
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [queryCoins.length, router.isReady, router.pathname, router.query, router])
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -331,17 +323,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 	const showContent = isClient && coins.length > 0
 
 	const removeCoin = (coinId: string) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					coin: queryCoins.filter((c) => c !== coinId)
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, { coin: queryCoins.filter((c) => c !== coinId) })
 	}
 
 	return (
@@ -464,18 +446,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 					dialogStore={dialogStore}
 					selectedCoins={selectedCoins}
 					selectCoin={(coin) => {
-						router
-							.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										coin: queryCoins.concat(coin.id)
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
+						pushShallowQuery(router, { coin: queryCoins.concat(coin.id) })
 							.then(() => {
 								dialogStore.hide()
 							})

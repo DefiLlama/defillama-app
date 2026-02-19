@@ -20,11 +20,7 @@ import {
 	stablecoinPegTypeOptions,
 	type StablecoinFilterOption
 } from '~/containers/Stablecoins/Filters'
-import {
-	parseBooleanQueryParam,
-	useCalcCirculating,
-	useCalcGroupExtraPeggedByDay
-} from '~/containers/Stablecoins/hooks'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay } from '~/containers/Stablecoins/hooks'
 import {
 	buildStablecoinChartData,
 	type FormattedStablecoinAsset,
@@ -34,7 +30,8 @@ import {
 	type StablecoinChartDataPoint
 } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug, toNiceCsvDate, toNumberOrNullFromQueryParam } from '~/utils'
+import { formattedNum, slug, toNiceCsvDate } from '~/utils'
+import { isTruthyQueryParam, parseNumberQueryParam } from '~/utils/routerQuery'
 import { useFormatStablecoinQueryParams } from './hooks'
 import { StablecoinsTable } from './StablecoinsAssetsTable'
 
@@ -203,10 +200,10 @@ export function StablecoinsByChain({
 
 	const router = useRouter()
 
-	const minMcap = toNumberOrNullFromQueryParam(router.query.minMcap)
-	const maxMcap = toNumberOrNullFromQueryParam(router.query.maxMcap)
+	const minMcap = parseNumberQueryParam(router.query.minMcap)
+	const maxMcap = parseNumberQueryParam(router.query.maxMcap)
 	const includeUnreleased = React.useMemo(
-		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
+		() => isTruthyQueryParam(router.query[UNRELEASED_QUERY_KEY]),
 		[router.query]
 	)
 	const hasActiveStablecoinUrlFilters = React.useMemo(() => {

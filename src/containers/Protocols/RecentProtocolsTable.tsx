@@ -27,6 +27,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, renderPercentChange, slug, toNiceDaysAgo, tokenIconUrl } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRecentProtocol } from './types'
 
 /** Row type after applyExtraTvl adds change/mcaptvl fields. */
@@ -538,17 +539,7 @@ function HideForkedProtocols() {
 	const toHide = !(hideForks && typeof hideForks === 'string' && hideForks === 'true')
 
 	const hide = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					hideForks: toHide
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, { hideForks: toHide })
 	}
 	return <Switch label="Hide Forked Protocols" value="hideForks" checked={!toHide} onChange={hide} />
 }

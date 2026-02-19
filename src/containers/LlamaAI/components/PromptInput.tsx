@@ -12,6 +12,8 @@ import { InputTextarea } from './input/InputTextarea'
 import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
 import { SubmitButton } from './input/SubmitButton'
 
+type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
+
 interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
@@ -184,10 +186,10 @@ export function PromptInput({
 		entityCombobox.handleScroll()
 	}
 
-	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleFormSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const promptValue = form.prompt.value
+		const form = e.currentTarget
+		const promptValue = (form.elements.namedItem('prompt') as HTMLTextAreaElement | null)?.value ?? ''
 		submitForm(promptValue)
 	}
 

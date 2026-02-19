@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSkeleton } from '~/components/LoadingSkeleton'
 import { Select } from '~/components/Select/Select'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { useDashboardDiscovery } from '../hooks/useDashboardDiscovery'
 import { DashboardBrowse } from './DashboardBrowse'
 import { DashboardCard } from './DashboardCard'
@@ -36,6 +37,8 @@ type TimeFrameOption = (typeof timeFrameOptions)[number]
 export function DashboardDiscovery() {
 	const router = useRouter()
 	const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
+	const pushProQuery = (updates: Record<string, string | number | string[] | undefined>) =>
+		pushShallowQuery(router, updates, '/pro')
 
 	const {
 		isBrowseMode,
@@ -98,34 +101,19 @@ export function DashboardDiscovery() {
 		}
 
 		// remove page from query
-		const { page: _page, tag: currentTag, ...queryWithoutPage } = router.query
+		const { tag: currentTag } = router.query
 
 		const existingTags = currentTag ? (Array.isArray(currentTag) ? currentTag : [currentTag]) : []
 
-		router.push(
-			{
-				pathname: '/pro',
-				query: {
-					...queryWithoutPage,
-					tag: [...existingTags, tag]
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushProQuery({
+			page: undefined,
+			tag: [...existingTags, tag]
+		})
 	}
 
 	const handleItemsPerPageChange = (value: string) => {
 		const newItemsPerPage = parseInt(value, 10)
-		const { page: _page, ...queryWithoutPage } = router.query
-		router.push(
-			{
-				pathname: '/pro',
-				query: { ...queryWithoutPage, limit: newItemsPerPage }
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushProQuery({ page: undefined, limit: newItemsPerPage })
 	}
 
 	const pagesToShow = useMemo(() => {
@@ -194,19 +182,14 @@ export function DashboardDiscovery() {
 								allValues={sortOptions}
 								selectedValues={selectedSortBy.key}
 								setSelectedValues={(value) => {
-									const { page: _page, ...queryWithoutPage } = router.query
-									const newQuery: Record<string, any> = { ...queryWithoutPage, sortBy: value as SortOption['key'] }
-									if (value === 'trending') {
-										newQuery.timeFrame = '7d'
+									const updates: Record<string, string | number | string[] | undefined> = {
+										page: undefined,
+										sortBy: value as SortOption['key']
 									}
-									router.push(
-										{
-											pathname: '/pro',
-											query: newQuery
-										},
-										undefined,
-										{ shallow: true }
-									)
+									if (value === 'trending') {
+										updates.timeFrame = '7d'
+									}
+									pushProQuery(updates)
 								}}
 								label={
 									<>
@@ -226,15 +209,10 @@ export function DashboardDiscovery() {
 									allValues={timeFrameOptions}
 									selectedValues={selectedTimeFrame.key}
 									setSelectedValues={(value) => {
-										const { page: _page, ...queryWithoutPage } = router.query
-										router.push(
-											{
-												pathname: '/pro',
-												query: { ...queryWithoutPage, timeFrame: value as TimeFrameOption['key'] }
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushProQuery({
+											page: undefined,
+											timeFrame: value as TimeFrameOption['key']
+										})
 									}}
 									label={
 										<>
@@ -254,19 +232,7 @@ export function DashboardDiscovery() {
 							<div className="flex items-center rounded-md border border-(--form-control-border) bg-(--cards-bg)">
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: '/pro',
-												query: {
-													...router.query,
-													view: 'grid'
-												}
-											},
-											undefined,
-											{
-												shallow: true
-											}
-										)
+										pushProQuery({ view: 'grid' })
 									}}
 									data-active={viewMode === 'grid'}
 									className="rounded-l-md border-r border-(--form-control-border) p-2 text-(--text-label) transition-colors duration-150 data-[active=false]:hover:bg-(--bg-hover) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -276,19 +242,7 @@ export function DashboardDiscovery() {
 								</button>
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: '/pro',
-												query: {
-													...router.query,
-													view: 'list'
-												}
-											},
-											undefined,
-											{
-												shallow: true
-											}
-										)
+										pushProQuery({ view: 'list' })
 									}}
 									data-active={viewMode === 'list'}
 									className="rounded-r-md p-2 text-(--text-label) transition-colors duration-150 data-[active=false]:hover:bg-(--bg-hover) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -309,24 +263,15 @@ export function DashboardDiscovery() {
 								<button
 									key={`pro-dashboard-tag-${tag}`}
 									onClick={() => {
-										const { tag: currentTag, ...query } = router.query
-										const newQuery: Record<string, any> = query
+										const { tag: currentTag } = router.query
+										let nextTag: string[] | undefined
 										if (currentTag && currentTag.includes(tag)) {
 											if (Array.isArray(currentTag)) {
-												newQuery.tag = currentTag.filter((t) => t !== tag)
-											} else {
-												delete newQuery.tag
+												const filteredTags = currentTag.filter((t) => t !== tag)
+												nextTag = filteredTags.length > 0 ? filteredTags : undefined
 											}
 										}
-
-										router.push(
-											{
-												pathname: '/pro',
-												query: newQuery
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushProQuery({ tag: nextTag })
 									}}
 									className="flex items-center gap-1.5 rounded-full bg-(--old-blue)/15 px-2.5 py-1 text-xs font-medium text-(--old-blue) transition-all duration-150 hover:scale-105 hover:bg-(--old-blue) hover:text-white"
 								>
@@ -338,18 +283,7 @@ export function DashboardDiscovery() {
 						</div>
 						<button
 							onClick={() => {
-								const { tag: _tag, ...query } = router.query
-
-								router.push(
-									{
-										pathname: '/pro',
-										query
-									},
-									undefined,
-									{
-										shallow: true
-									}
-								)
+								pushProQuery({ tag: undefined })
 							}}
 							className="font-medium text-(--text-label) underline-offset-2 transition-colors hover:text-(--error) hover:underline"
 						>
@@ -433,15 +367,7 @@ export function DashboardDiscovery() {
 							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => {
-										const { page: _page, ...query } = router.query
-										router.push(
-											{
-												pathname: '/pro',
-												query
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushProQuery({ page: undefined })
 									}}
 									disabled={selectedPage < 3}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
@@ -450,14 +376,7 @@ export function DashboardDiscovery() {
 								</button>
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: '/pro',
-												query: { ...router.query, page: Math.max(1, selectedPage - 1) }
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushProQuery({ page: Math.max(1, selectedPage - 1) })
 									}}
 									disabled={selectedPage === 1}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
@@ -470,14 +389,7 @@ export function DashboardDiscovery() {
 										<button
 											key={`page-to-navigate-to-${pageNum}`}
 											onClick={() => {
-												router.push(
-													{
-														pathname: '/pro',
-														query: { ...router.query, page: pageNum }
-													},
-													undefined,
-													{ shallow: true }
-												)
+												pushProQuery({ page: pageNum })
 											}}
 											data-active={isActive}
 											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 transition-colors hover:bg-(--btn-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -488,14 +400,7 @@ export function DashboardDiscovery() {
 								})}
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: '/pro',
-												query: { ...router.query, page: Math.min(totalPages, selectedPage + 1) }
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushProQuery({ page: Math.min(totalPages, selectedPage + 1) })
 									}}
 									disabled={selectedPage === totalPages}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"
@@ -504,14 +409,7 @@ export function DashboardDiscovery() {
 								</button>
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: '/pro',
-												query: { ...router.query, page: totalPages }
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushProQuery({ page: totalPages })
 									}}
 									disabled={selectedPage > totalPages - 2}
 									className="h-[32px] min-w-[32px] rounded-md px-2 py-1.5 text-(--text-label) transition-colors hover:bg-(--btn-bg) disabled:hidden"

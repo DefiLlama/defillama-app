@@ -29,6 +29,8 @@ const UnconstrainedSmolLineChart = lazy(() =>
 
 const optionsKey = 'unlockTable'
 
+type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
+
 const setColumnOptions = (newOptions: string[]) => {
 	const ops: Record<string, boolean> = {}
 	for (const col of columnOptions) {
@@ -103,72 +105,34 @@ export const UnlocksTable = ({
 	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
 	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 
-	const handleUnlockValueSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleUnlockValueSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		const form = e.currentTarget
-		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement)?.value
-		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement)?.value
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minUnlockValue,
-					maxUnlockValue
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
+		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
+		pushShallowQuery(router, {
+			minUnlockValue: minUnlockValue || undefined,
+			maxUnlockValue: maxUnlockValue || undefined
+		})
 	}
 
 	const handleUnlockValueClear = () => {
-		const { minUnlockValue: _minUnlockValue, maxUnlockValue: _maxUnlockValue, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		pushShallowQuery(router, { minUnlockValue: undefined, maxUnlockValue: undefined })
 	}
 
-	const handleUnlockPercSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleUnlockPercSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		const form = e.currentTarget
-		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement)?.value
-		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement)?.value
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minUnlockPerc,
-					maxUnlockPerc
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
+		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
+		pushShallowQuery(router, {
+			minUnlockPerc: minUnlockPerc || undefined,
+			maxUnlockPerc: maxUnlockPerc || undefined
+		})
 	}
 
 	const handleUnlockPercClear = () => {
-		const { minUnlockPerc: _minUnlockPerc, maxUnlockPerc: _maxUnlockPerc, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		pushShallowQuery(router, { minUnlockPerc: undefined, maxUnlockPerc: undefined })
 	}
 
 	const columnsInStorage = useSyncExternalStore(

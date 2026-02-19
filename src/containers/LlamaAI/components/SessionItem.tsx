@@ -12,6 +12,8 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 import { useClickOutside } from '../hooks/useClickOutside'
 
+type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
+
 interface SessionItemProps {
 	session: ChatSession
 	isActive: boolean
@@ -64,10 +66,10 @@ export const SessionItem = memo(function SessionItem({
 	// Use shared hook for click outside detection
 	useClickOutside(formRef, () => setIsEditing(false), isEditing)
 
-	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSave = async (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const title = form.newTitle.value
+		const form = e.currentTarget
+		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
 			updateSessionTitle({ sessionId: session.sessionId, title: title.trim() }).then(() => {
 				setIsEditing(false)

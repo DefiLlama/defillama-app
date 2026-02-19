@@ -9,12 +9,7 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import {
-	parseBooleanQueryParam,
-	useCalcCirculating,
-	useCalcGroupExtraPeggedByDay,
-	useGroupChainsPegged
-} from '~/containers/Stablecoins/hooks'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import {
 	getStablecoinDominance,
 	type IBuildStablecoinChartDataResult,
@@ -22,6 +17,7 @@ import {
 } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, toNiceCsvDate } from '~/utils'
+import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { StablecoinsChainsTable } from './StablecoinsChainsTable'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -84,10 +80,7 @@ export function ChainsWithStablecoins({
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const filteredPeggedAssets = chainCirculatings
-	const includeUnreleased = React.useMemo(
-		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
-		[router.query]
-	)
+	const includeUnreleased = React.useMemo(() => isTruthyQueryParam(router.query[UNRELEASED_QUERY_KEY]), [router.query])
 	const chainTotals = useCalcCirculating<Parameters<typeof useGroupChainsPegged>[0][number]>(
 		filteredPeggedAssets,
 		includeUnreleased

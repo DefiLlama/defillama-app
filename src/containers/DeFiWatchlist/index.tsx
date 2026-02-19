@@ -16,8 +16,9 @@ import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useIsClient } from '~/hooks/useIsClient'
-import { renderPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
+import { renderPercentChange } from '~/utils'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
+import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
 import type { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
@@ -52,8 +53,8 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 
 	const router = useRouter()
 
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const protocolsTableData = useMemo(() => {
 		return formatProtocolsList2({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })

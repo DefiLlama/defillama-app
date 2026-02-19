@@ -5,6 +5,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export function YieldsSearch({
 	lend = false,
@@ -150,8 +151,6 @@ const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
-	const { lend: _lendQuery, borrow: _borrow, ...queryParams } = router.query
-
 	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
 
 	return (
@@ -163,19 +162,10 @@ const Row = ({ data, lend, setOpen }) => {
 					token: data.symbol,
 					type: lend ? 'lend' : 'borrow'
 				})
-				router
-					.push(
-						{
-							pathname: router.pathname,
-							query: {
-								[targetParam]: data.symbol,
-								[restParam]: router.query[restParam] || '',
-								...queryParams
-							}
-						},
-						undefined,
-						{ shallow: true }
-					)
+				pushShallowQuery(router, {
+					[targetParam]: data.symbol,
+					[restParam]: router.query[restParam] || ''
+				})
 					.then(() => {
 						setLoading(false)
 						setOpen(false)

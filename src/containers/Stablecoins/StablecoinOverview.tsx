@@ -13,15 +13,11 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
-import {
-	parseBooleanQueryParam,
-	useCalcCirculating,
-	useCalcGroupExtraPeggedByDay,
-	useGroupBridgeData
-} from '~/containers/Stablecoins/hooks'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
+import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
 
@@ -120,10 +116,7 @@ export const PeggedAssetInfo = ({
 		[chainsData, chainsUnique]
 	)
 
-	const includeUnreleased = React.useMemo(
-		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
-		[router.query]
-	)
+	const includeUnreleased = React.useMemo(() => isTruthyQueryParam(router.query[UNRELEASED_QUERY_KEY]), [router.query])
 	const onUnreleasedToggle = React.useCallback(() => {
 		const nextValue = !includeUnreleased
 		const nextQuery: Record<string, string | string[]> = {}

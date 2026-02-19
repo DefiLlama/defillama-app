@@ -3,14 +3,8 @@ import { useMemo } from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { toYearMonth } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IRaise } from './types'
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
 
 interface UseRaisesDataParams {
 	raises: IRaise[]

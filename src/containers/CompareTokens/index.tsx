@@ -9,6 +9,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { Protocol } from './types'
 
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
@@ -192,17 +193,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 					<button
 						onClick={() => {
 							if (coins.length > 1) {
-								router.push(
-									{
-										pathname: router.pathname,
-										query: {
-											...router.query,
-											coin: [coins[1], coins[0]]
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
+								pushShallowQuery(router, { coin: [coins[1], coins[0]] })
 							}
 						}}
 						className="flex shrink-0 items-center justify-center p-1"
@@ -265,17 +256,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 								<Ariakit.MenuItem
 									key={item.value}
 									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: item.value
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { type: item.value })
 									}}
 									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
@@ -342,17 +323,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 					selectCoin={(coin) => {
 						const newCoins = coins.slice()
 						newCoins[isModalOpen - 1] = coin.id
-						router.push(
-							{
-								pathname: router.pathname,
-								query: {
-									...router.query,
-									coin: newCoins
-								}
-							},
-							undefined,
-							{ shallow: true }
-						)
+						pushShallowQuery(router, { coin: newCoins })
 						setModalOpen(0)
 						dialogStore.toggle()
 					}}
