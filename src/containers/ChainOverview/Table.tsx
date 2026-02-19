@@ -24,9 +24,9 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
@@ -124,8 +124,8 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const mergedColumns = useMemo(() => {
-		return [
+	const { mergedColumns, columnVisibility, selectedColumns } = useMemo(() => {
+		const mergedColumns = [
 			...columnOptions,
 			...customColumns.map((col, idx) => ({
 				name: col.name,
@@ -136,7 +136,18 @@ export const ChainProtocolsTable = ({
 				formatType: col.formatType
 			}))
 		]
-	}, [customColumns])
+		const defaultColumnVisibility = Object.fromEntries(mergedColumns.map((col) => [col.key, true] as const))
+
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedColumns = mergedColumns.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { mergedColumns, columnVisibility, selectedColumns }
+	}, [customColumns, columnsInStorage])
 
 	const setColumnOptions = (newColumns: string[]) => {
 		const allKeys = mergedColumns.map((col) => col.key)
@@ -152,20 +163,14 @@ export const ChainProtocolsTable = ({
 		setColumnOptions(mergedColumns.map((col) => col.key))
 	}
 
-	const columnVisibility = useMemo(() => JSON.parse(columnsInStorage), [columnsInStorage])
-
-	const selectedColumns = useMemo(() => {
-		return mergedColumns.flatMap((c) => (columnVisibility[c.key] ? [c.key] : []))
-	}, [columnVisibility, mergedColumns])
-
 	const [sorting, setSorting] = useState<SortingState>([
 		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
 	])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
-	const customColumnDefs = useMemo(() => {
-		return customColumns.map((col, idx) => {
+	const allColumns = useMemo<ColumnDef<IProtocol>[]>(() => {
+		const customColumnDefs = customColumns.map((col, idx) => {
 			const columnId = `custom_formula_${idx}`
 
 			return columnHelper.accessor(
@@ -245,23 +250,20 @@ export const ChainProtocolsTable = ({
 				}
 			)
 		})
-	}, [customColumns, sorting])
 
-	const allColumns = useMemo(
-		() => [
+		if (customColumnDefs.length === 0) {
+			return columns
+		}
+
+		return [
 			...columns,
-			...(customColumnDefs.length > 0
-				? [
-						{
-							id: 'custom_columns',
-							header: 'Custom Columns',
-							columns: customColumnDefs
-						}
-					]
-				: [])
-		],
-		[customColumnDefs]
-	)
+			{
+				id: 'custom_columns',
+				header: 'Custom Columns',
+				columns: customColumnDefs
+			}
+		]
+	}, [customColumns, sorting])
 
 	const instance = useReactTable({
 		data: finalProtocols,

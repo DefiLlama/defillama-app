@@ -140,9 +140,17 @@ export const UnlocksTable = ({
 		() => defaultColumns
 	)
 
-	const selectedOptions = useMemo(() => {
-		const storage = JSON.parse(columnsInStorage)
-		return columnOptions.flatMap((c) => (storage[c.key] ? [c.key] : []))
+	const { columnVisibility, selectedOptions } = useMemo(() => {
+		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedOptions = columnOptions.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { columnVisibility, selectedOptions }
 	}, [columnsInStorage])
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
@@ -243,7 +251,7 @@ export const UnlocksTable = ({
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -363,16 +371,7 @@ const columnOptions = [
 // { name: 'Value (USD)', key: 'unlockValue' },
 // { name: '% of Supply', key: 'percSupply' },
 
-const defaultColumns = JSON.stringify({
-	name: true,
-	tPrice: true,
-	mcap: true,
-	totalLocked: true,
-	prevUnlock: true,
-	postUnlock: true,
-	nextEvent: true,
-	upcomingEvent: true
-})
+const defaultColumns = JSON.stringify(Object.fromEntries(columnOptions.map((column) => [column.key, true])))
 
 interface IEmission {
 	name: string

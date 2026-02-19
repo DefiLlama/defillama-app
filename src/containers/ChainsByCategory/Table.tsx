@@ -50,6 +50,18 @@ export function ChainsByCategoryTable({
 		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
+	const { columnVisibility, selectedColumns } = React.useMemo(() => {
+		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedColumns = columnOptions.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { columnVisibility, selectedColumns }
+	}, [columnsInStorage])
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
@@ -62,7 +74,7 @@ export function ChainsByCategoryTable({
 			sorting,
 			expanded,
 			columnFilters,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -82,11 +94,6 @@ export function ChainsByCategoryTable({
 		instance,
 		columnOrders: chainsTableColumnOrders
 	})
-
-	const selectedColumns = instance
-		.getAllLeafColumns()
-		.filter((col) => col.getIsVisible())
-		.map((col) => col.id)
 
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
