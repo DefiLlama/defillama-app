@@ -1,7 +1,6 @@
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
-import { getPercentChange } from '~/utils'
+import { getAnnualizedRatio, getPercentChange } from '~/utils'
 import type { ProTableDimensionProtocol } from './proTable.types'
 
 function addElement(

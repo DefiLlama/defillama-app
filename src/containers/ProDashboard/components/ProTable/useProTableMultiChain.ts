@@ -2,7 +2,7 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useMemo, useRef } from 'react'
-import { basicPropertiesToKeep, formatProtocolsData } from '~/api/categories/protocols/utils'
+import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
 import { PROTOCOLS_API } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import {

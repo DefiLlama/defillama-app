@@ -1,9 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
-import { getAirdropDirectoryData } from '~/api/categories/protocols'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { getAirdropDirectoryData } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { withPerformanceLogging } from '~/utils/perf'
 

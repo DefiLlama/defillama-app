@@ -2,7 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -12,7 +13,7 @@ import { tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('directory', async () => {
-	const { protocols } = await getSimpleProtocolsPageData(['name', 'logo', 'url'])
+	const { protocols } = await fetchProtocols().then(basicProtocolPropertiesToKeepV1List(['name', 'logo', 'url']))
 	return {
 		props: {
 			protocols: protocols

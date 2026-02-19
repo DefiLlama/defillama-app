@@ -12,14 +12,6 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
@@ -38,7 +30,7 @@ import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug, getAnnualizedRatio } from '~/utils'
 import { AdapterByChainChart } from './ChainChart'
 import type { IAdapterByChainPageData, IProtocol } from './types'
 
@@ -99,6 +91,14 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Options Notional Volume': definitions.optionsNotional.chain,
 	Earnings: definitions.earnings.chain
 }
+
+// Helper to parse exclude query param to Set
+const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
+	if (!param) return new Set()
+	if (typeof param === 'string') return new Set([param])
+	return new Set(param)
+}
+
 const getProtocolsByCategory = (
 	protocols: IAdapterByChainPageData['protocols'],
 	categoriesToFilter: Array<string>

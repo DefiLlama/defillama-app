@@ -1,7 +1,6 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { formatProtocolsData } from '~/api/categories/protocols/utils'
 import {
 	PROTOCOL_ACTIVE_USERS_API,
 	PROTOCOL_GAS_USED_API,
@@ -12,6 +11,7 @@ import {
 	TWITTER_POSTS_API_V2,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
+import { formatProtocolsData } from '~/containers/Protocols/utils.old'
 import { fetchApi, fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import type {

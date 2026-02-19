@@ -1,9 +1,10 @@
-import { keepNeededProperties } from '~/api/shared'
 import type { IFormattedProtocol } from '~/api/types'
 import type { ILiteProtocol } from '~/containers/ChainOverview/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { formatNum, getPercentChange } from '~/utils'
+import { formatNum, getPercentChange, keepNeededProperties } from '~/utils'
+import type { ProtocolsResponse } from './api.types'
 
+// Legacy v1 protocol formatting helpers. Isolated for future cleanup/removal.
 export type BasicPropsToKeep = (keyof IFormattedProtocol)[]
 
 interface IFormatProtocolsData {
@@ -166,3 +167,14 @@ export const formatProtocolsData = ({
 
 	return data.sort((a, b) => b.tvl - a.tvl)
 }
+
+export const basicProtocolPropertiesToKeepV1List =
+	(propsToKeep?: BasicPropsToKeep) =>
+	({ protocols, chains, parentProtocols }: ProtocolsResponse) => ({
+		protocols: formatProtocolsData({
+			protocols,
+			protocolProps: propsToKeep
+		}),
+		chains,
+		parentProtocols
+	})

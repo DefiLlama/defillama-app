@@ -97,7 +97,7 @@ export async function getRecentProtocols(): Promise<IRecentProtocolsPageData> {
 	}
 }
 
-async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string; title?: string }>> {
+export async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string; title?: string }>> {
 	const airdrops = await fetchAirdropsConfig()
 
 	const now = Date.now()
