@@ -287,7 +287,9 @@ const ProDashboardEditorActionsContext = createContext<ProDashboardEditorActions
 const ProDashboardItemsStateContext = createContext<ProDashboardItemsStateContextType | undefined>(undefined)
 const ProDashboardChartsDataContext = createContext<ProDashboardChartsDataContextType | undefined>(undefined)
 const ProDashboardUIContext = createContext<ProDashboardUIContextType | undefined>(undefined)
-const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerProps['appMetadata'] | undefined>(undefined)
+const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerProps['appMetadata'] | undefined>(
+	undefined
+)
 
 function seedTableDataIntoCache(queryClient: ReturnType<typeof useQueryClient>, tableData: TableServerData) {
 	const now = Date.now()
@@ -401,7 +403,9 @@ export function ProDashboardAPIProvider({
 	}
 
 	const { isAuthenticated, user } = useAuthContext()
-	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(serverData?.protocolsAndChains)
+	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(
+		serverData?.protocolsAndChains
+	)
 
 	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS

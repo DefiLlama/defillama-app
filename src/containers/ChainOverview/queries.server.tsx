@@ -17,18 +17,18 @@ import type { IAdapterChainMetrics, IAdapterProtocolMetrics } from '~/containers
 import { getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterChainOverview } from '~/containers/DimensionAdapters/types'
 import { getETFData } from '~/containers/ETF/queries'
+import {
+	getChainIncentivesFromAggregatedEmissions,
+	getProtocolEmissionsLookupFromAggregated
+} from '~/containers/Incentives/queries'
+import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
-import {
-	getChainIncentivesFromAggregatedEmissions,
-	getProtocolEmissionsLookupFromAggregated
-} from '~/containers/Incentives/queries'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
-import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import {
 	formatNum,

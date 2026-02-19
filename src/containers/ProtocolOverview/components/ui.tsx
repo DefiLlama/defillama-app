@@ -9,7 +9,12 @@ interface SectionHeaderProps {
 export const SectionHeader = ({ id, children }: SectionHeaderProps) => (
 	<h2 className="group relative flex items-center gap-1 text-base font-semibold" id={id}>
 		{children}
-		<a aria-hidden="true" tabIndex={-1} href={`#${id}`} className="absolute top-0 right-0 z-10 flex h-full w-full items-center" />
+		<a
+			aria-hidden="true"
+			tabIndex={-1}
+			href={`#${id}`}
+			className="absolute top-0 right-0 z-10 flex h-full w-full items-center"
+		/>
 		<Icon name="link" className="invisible h-3.5 w-3.5 group-hover:visible group-focus-visible:visible" />
 	</h2>
 )
@@ -21,7 +26,9 @@ interface MetricRowProps {
 }
 
 export const MetricRow = ({ label, value, className = '' }: MetricRowProps) => (
-	<p className={`flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0 ${className}`}>
+	<p
+		className={`flex flex-wrap justify-between gap-4 border-b border-(--cards-border) py-1 first:pt-0 last:border-none last:pb-0 ${className}`}
+	>
 		<span className="text-(--text-label)">{label}</span>
 		<span className="font-jetbrains">{value}</span>
 	</p>

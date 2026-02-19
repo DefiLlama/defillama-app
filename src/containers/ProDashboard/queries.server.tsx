@@ -1,20 +1,41 @@
-import { AUTH_SERVER, CHAINS_API, CONFIG_API, PROTOCOL_API, PROTOCOLS_API, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import {
+	AUTH_SERVER,
+	CHAINS_API,
+	CONFIG_API,
+	PROTOCOL_API,
+	PROTOCOLS_API,
+	YIELD_CHART_API,
+	YIELD_CHART_LEND_BORROW_API
+} from '~/constants'
+import {
+	fetchStablecoinAssetsApi,
+	fetchStablecoinChartApi,
+	fetchStablecoinPricesApi,
+	fetchStablecoinRatesApi
+} from '~/containers/Stablecoins/api'
+import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
+import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
+import type { NormalizedRow } from './components/UnifiedTable/types'
+import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
+import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
+import { filterDataByTimePeriod } from './queries'
 import { createServerAuthorizedFetch } from './server/auth'
 import { fetchPfPsChartData, fetchPfPsProtocols } from './server/pfPsQueries'
 import { fetchTableServerData, type TableServerData } from './server/tableQueries'
 import ChainCharts from './services/ChainCharts'
 import type { Dashboard } from './services/DashboardAPI'
 import ProtocolCharts from './services/ProtocolCharts'
-import type { AdvancedTvlChartConfig, ChartConfig, DashboardItemConfig, MetricConfig, StablecoinsChartConfig, UnifiedTableConfig, YieldsChartConfig } from './types'
-import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
-import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
-import type { NormalizedRow } from './components/UnifiedTable/types'
-import { filterDataByTimePeriod } from './queries'
-import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
-import { fetchStablecoinAssetsApi, fetchStablecoinChartApi, fetchStablecoinPricesApi, fetchStablecoinRatesApi } from '~/containers/Stablecoins/api'
-import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
+import type {
+	AdvancedTvlChartConfig,
+	ChartConfig,
+	DashboardItemConfig,
+	MetricConfig,
+	StablecoinsChartConfig,
+	UnifiedTableConfig,
+	YieldsChartConfig
+} from './types'
 
 export interface ProDashboardServerProps {
 	dashboard: Dashboard | null
@@ -34,10 +55,7 @@ export interface ProDashboardServerProps {
 	stablecoinsChartData: Record<string, any>
 }
 
-async function fetchDashboardConfig(
-	dashboardId: string,
-	authToken: string | null
-): Promise<Dashboard | null> {
+async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
 	try {
 		const url = `${AUTH_SERVER}/dashboards/${dashboardId}`
 		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
@@ -74,7 +92,10 @@ async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: an
 		const parentTotals = new Map<string, number>()
 		for (const p of protocolsData.protocols || []) {
 			if (p.parentProtocol) {
-				parentTotals.set(p.parentProtocol, (parentTotals.get(p.parentProtocol) || 0) + (typeof p.tvl === 'number' ? p.tvl : 0))
+				parentTotals.set(
+					p.parentProtocol,
+					(parentTotals.get(p.parentProtocol) || 0) + (typeof p.tvl === 'number' ? p.tvl : 0)
+				)
 			}
 		}
 
@@ -177,9 +198,7 @@ async function fetchAllYieldsChartData(
 	return yieldsChartData
 }
 
-async function fetchProtocolFullData(
-	items: DashboardItemConfig[]
-): Promise<Record<string, any>> {
+async function fetchProtocolFullData(items: DashboardItemConfig[]): Promise<Record<string, any>> {
 	const protocols = new Set<string>()
 	for (const item of items) {
 		if (item.kind === 'advanced-tvl') protocols.add(item.protocol)
@@ -216,8 +235,7 @@ async function fetchMetricData(
 
 	const results = await Promise.allSettled(
 		metricItems.map(async (metric) => {
-			const item =
-				metric.subject.itemType === 'protocol' ? metric.subject.protocol || '' : metric.subject.chain || ''
+			const item = metric.subject.itemType === 'protocol' ? metric.subject.protocol || '' : metric.subject.chain || ''
 			if (!item) return { key: '', data: [] as [number, number][] }
 
 			const chartConfig: ChartConfig = {
@@ -245,7 +263,10 @@ async function fetchMetricData(
 	return metricData
 }
 
-const protocolChartFetchers: Record<string, (item: string, geckoId?: string | null, dataType?: string) => Promise<[number, number][]>> = {
+const protocolChartFetchers: Record<
+	string,
+	(item: string, geckoId?: string | null, dataType?: string) => Promise<[number, number][]>
+> = {
 	tvl: (item) => ProtocolCharts.tvl(item),
 	volume: (item) => ProtocolCharts.volume(item),
 	fees: (item) => ProtocolCharts.fees(item),
@@ -274,10 +295,7 @@ const protocolChartFetchers: Record<string, (item: string, geckoId?: string | nu
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-	return Promise.race([
-		promise,
-		new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
-	])
+	return Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
 }
 
 async function fetchSingleChartData(
@@ -318,7 +336,9 @@ async function fetchAllChartData(
 	const CHART_FETCH_TIMEOUT = 10_000
 
 	const results = await Promise.allSettled(
-		chartItems.map((chart) => withTimeout(fetchSingleChartData(chart, timePeriod, customTimePeriod), CHART_FETCH_TIMEOUT))
+		chartItems.map((chart) =>
+			withTimeout(fetchSingleChartData(chart, timePeriod, customTimePeriod), CHART_FETCH_TIMEOUT)
+		)
 	)
 
 	const chartData: Record<string, [number, number][]> = {}
@@ -330,9 +350,7 @@ async function fetchAllChartData(
 	return chartData
 }
 
-async function fetchAdvancedTvlBasicData(
-	items: DashboardItemConfig[]
-): Promise<Record<string, [number, number][]>> {
+async function fetchAdvancedTvlBasicData(items: DashboardItemConfig[]): Promise<Record<string, [number, number][]>> {
 	const protocols = new Set<string>()
 	for (const item of items) {
 		if (item.kind === 'advanced-tvl' && (item as AdvancedTvlChartConfig).chartType === 'tvl') {
@@ -384,9 +402,7 @@ async function fetchUnifiedTableServerData(
 	return data
 }
 
-async function fetchStablecoinsChartData(
-	items: DashboardItemConfig[]
-): Promise<Record<string, any>> {
+async function fetchStablecoinsChartData(items: DashboardItemConfig[]): Promise<Record<string, any>> {
 	const stablecoinsItems = items.filter((item): item is StablecoinsChartConfig => item.kind === 'stablecoins')
 	if (stablecoinsItems.length === 0) return {}
 
@@ -518,7 +534,16 @@ export async function getProDashboardServerData({
 	if (dashboard?.data?.items?.length) {
 		const timePeriod = (dashboard.data.timePeriod || '365d') as TimePeriod
 		const customTimePeriod = dashboard.data.customTimePeriod || null
-		const [chartResult, tableResult, yieldsResult, protocolResult, metricResult, advTvlResult, unifiedResult, stablecoinsResult] = await Promise.allSettled([
+		const [
+			chartResult,
+			tableResult,
+			yieldsResult,
+			protocolResult,
+			metricResult,
+			advTvlResult,
+			unifiedResult,
+			stablecoinsResult
+		] = await Promise.allSettled([
 			fetchAllChartData(dashboard.data.items, timePeriod, customTimePeriod),
 			fetchTableServerData(dashboard.data.items),
 			fetchAllYieldsChartData(dashboard.data.items),

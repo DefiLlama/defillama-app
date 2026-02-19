@@ -27,6 +27,8 @@ const FILTER_QUERY_KEYS = [
 	'excludeTypes',
 	'categories',
 	'excludeCategories',
+	'platforms',
+	'excludePlatforms',
 	'assetClasses',
 	'excludeAssetClasses',
 	'rwaClassifications',
@@ -78,6 +80,7 @@ type RWAFilterOptions = {
 	assetNames: IRWAAssetsOverview['assetNames']
 	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
+	platforms: IRWAAssetsOverview['platforms']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
@@ -88,6 +91,7 @@ type RWAFilterSelections = {
 	selectedAssetNames: string[]
 	selectedTypes: string[]
 	selectedCategories: string[]
+	selectedPlatforms: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -299,6 +303,14 @@ function Filters({
 			includeQueryKey: 'categories',
 			excludeQueryKey: 'excludeCategories',
 			label: 'Categories'
+		},
+		{
+			enabled: options.platforms.length > 1,
+			allValues: options.platforms,
+			selectedValues: selections.selectedPlatforms,
+			includeQueryKey: 'platforms',
+			excludeQueryKey: 'excludePlatforms',
+			label: 'Platforms'
 		},
 		{
 			enabled: options.assetClassOptions.length > 1,

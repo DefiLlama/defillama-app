@@ -17,9 +17,9 @@ import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api
 import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
-import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
@@ -376,8 +376,7 @@ export const getProtocolOverviewPageData = async ({
 			? getProtocolIncentivesFromAggregatedEmissions({
 					protocolId,
 					protocolDisplayName: currentProtocolMetadata.displayName ?? ''
-				})
-					.catch(() => null)
+				}).catch(() => null)
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
 			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName))

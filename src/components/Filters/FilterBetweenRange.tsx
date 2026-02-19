@@ -52,7 +52,7 @@ export function FilterBetweenRange({
 
 	if (nestedMenu) {
 		return (
-			<NestedMenu label={name}>
+			<NestedMenu label={name} menuPortal>
 				<Form
 					onSubmit={handleSubmit}
 					onClear={onClear}

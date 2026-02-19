@@ -81,7 +81,10 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 							<div className="-mx-2 border-t border-(--cards-border)"></div>
 							<div className="flex flex-col gap-1.5">
 								{dayData.events.map((event, index) => (
-									<div key={`${event.protocol}-${event.value}-${index}`} className="flex items-center justify-between gap-4">
+									<div
+										key={`${event.protocol}-${event.value}-${index}`}
+										className="flex items-center justify-between gap-4"
+									>
 										<BasicLink
 											href={`/unlocks/${slug(event.protocol)}`}
 											target="_blank"

@@ -124,10 +124,8 @@ export const applyProtocolTvlSettings = ({
 		return acc + value
 	}
 
-	const getTvlEntry = (
-		tvlRecord: Record<string, ProtocolTvlEntry>,
-		key: string
-	): ProtocolTvlEntry | undefined => tvlRecord[key]
+	const getTvlEntry = (tvlRecord: Record<string, ProtocolTvlEntry>, key: string): ProtocolTvlEntry | undefined =>
+		tvlRecord[key]
 
 	const processTvl = (
 		tvlRecord: Record<string, ProtocolTvlEntry>,
@@ -169,10 +167,7 @@ export const applyProtocolTvlSettings = ({
 				change1m: getPercentChange(defaultTvl.tvl, defaultTvl.tvlPrevMonth)
 			}
 
-			const mcaptvl =
-				protocol.mcap != null && defaultTvl.tvl
-					? +(protocol.mcap / defaultTvl.tvl).toFixed(2)
-					: null
+			const mcaptvl = protocol.mcap != null && defaultTvl.tvl ? +(protocol.mcap / defaultTvl.tvl).toFixed(2) : null
 
 			if (protocol.childProtocols) {
 				const childProtocols: IProtocol['childProtocols'] = []
@@ -195,9 +190,7 @@ export const applyProtocolTvlSettings = ({
 					}
 
 					const mcaptvl =
-						child.mcap != null && childDefaultTvl.tvl
-							? +(child.mcap / childDefaultTvl.tvl).toFixed(2)
-							: null
+						child.mcap != null && childDefaultTvl.tvl ? +(child.mcap / childDefaultTvl.tvl).toFixed(2) : null
 
 					if (
 						(minTvl != null ? (childDefaultTvl.tvl ?? 0) >= minTvl : true) &&

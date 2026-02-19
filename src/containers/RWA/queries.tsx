@@ -268,6 +268,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const rwaClassifications = new Map<string, number>()
 		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
+		const platforms = new Map<string, number>()
 		const assetNames = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const issuerSet = new Set<string>()
@@ -427,6 +428,18 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMcap)
 					}
 				}
+				const platformRaw = asset.parentPlatform as unknown
+				const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+				const normalizedPlatforms = Array.from(
+					new Set(
+						platformCandidates
+							.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
+							.filter((platform): platform is string => platform.length > 0)
+					)
+				)
+				for (const platform of normalizedPlatforms) {
+					platforms.set(platform, (platforms.get(platform) ?? 0) + effectiveOnChainMcap)
+				}
 				if (asset.rwaClassification) {
 					rwaClassifications.set(
 						asset.rwaClassification,
@@ -469,6 +482,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			.map(([key]) => key)
 
 		const formattedCategories = Array.from(categories.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
+		const formattedPlatforms = Array.from(platforms.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
 
@@ -532,6 +548,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				name: category,
 				help: definitions.category.values?.[category] ?? null
 			})),
+			platforms: formattedPlatforms,
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
 						.sort((a, b) => b[1] - a[1])

@@ -93,6 +93,7 @@ export const useRWATableQueryParams = ({
 	assetNames,
 	types,
 	categories,
+	platforms,
 	assetClasses,
 	rwaClassifications,
 	accessModels,
@@ -103,6 +104,7 @@ export const useRWATableQueryParams = ({
 	assetNames: string[]
 	types: string[]
 	categories: string[]
+	platforms: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
@@ -118,6 +120,8 @@ export const useRWATableQueryParams = ({
 		excludeTypes: excludeTypesQ,
 		categories: categoriesQ,
 		excludeCategories: excludeCategoriesQ,
+		platforms: platformsQ,
+		excludePlatforms: excludePlatformsQ,
 		assetClasses: assetClassesQ,
 		excludeAssetClasses: excludeAssetClassesQ,
 		rwaClassifications: rwaClassificationsQ,
@@ -147,6 +151,7 @@ export const useRWATableQueryParams = ({
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -182,6 +187,7 @@ export const useRWATableQueryParams = ({
 		const assetNamesValidSet = new Set(assetNames)
 		const typesValidSet = new Set(types)
 		const categoriesValidSet = new Set(categories)
+		const platformsValidSet = new Set(platforms)
 		const assetClassesValidSet = new Set(assetClasses)
 		const rwaClassificationsValidSet = new Set(rwaClassifications)
 		const accessModelsValidSet = new Set(accessModels)
@@ -191,6 +197,7 @@ export const useRWATableQueryParams = ({
 		const excludeAssetNamesSet = parseExcludeParam(excludeAssetNamesQ)
 		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
+		const excludePlatformsSet = parseExcludeParam(excludePlatformsQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
@@ -229,6 +236,15 @@ export const useRWATableQueryParams = ({
 					: categories
 		const selectedCategories =
 			excludeCategoriesSet.size > 0 ? baseCategories.filter((c) => !excludeCategoriesSet.has(c)) : baseCategories
+
+		const basePlatforms =
+			platformsQ != null
+				? parseArrayParam(platformsQ, platforms, platformsValidSet)
+				: excludePlatformsSet.size > 0
+					? platforms
+					: platforms
+		const selectedPlatforms =
+			excludePlatformsSet.size > 0 ? basePlatforms.filter((p) => !excludePlatformsSet.has(p)) : basePlatforms
 
 		const baseAssetClasses =
 			assetClassesQ != null
@@ -283,6 +299,7 @@ export const useRWATableQueryParams = ({
 			selectedAssetNames,
 			selectedTypes,
 			selectedCategories,
+			selectedPlatforms,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -310,6 +327,8 @@ export const useRWATableQueryParams = ({
 		excludeTypesQ,
 		categoriesQ,
 		excludeCategoriesQ,
+		platformsQ,
+		excludePlatformsQ,
 		assetClassesQ,
 		excludeAssetClassesQ,
 		rwaClassificationsQ,
@@ -338,6 +357,7 @@ export const useRWATableQueryParams = ({
 		assetNames,
 		types,
 		categories,
+		platforms,
 		assetClasses,
 		rwaClassifications,
 		accessModels,
@@ -390,6 +410,7 @@ export const useRWATableQueryParams = ({
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -451,6 +472,7 @@ export const useFilteredRwaAssets = ({
 	selectedAssetNames,
 	selectedTypes,
 	selectedCategories,
+	selectedPlatforms,
 	selectedAssetClasses,
 	selectedRwaClassifications,
 	selectedAccessModels,
@@ -476,6 +498,7 @@ export const useFilteredRwaAssets = ({
 	selectedAssetNames: string[]
 	selectedTypes: string[]
 	selectedCategories: string[]
+	selectedPlatforms: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -520,6 +543,7 @@ export const useFilteredRwaAssets = ({
 		const selectedAssetNamesSet = isPlatformMode ? new Set(selectedAssetNames) : null
 		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
+		const selectedPlatformsSet = new Set(selectedPlatforms)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
@@ -586,8 +610,18 @@ export const useFilteredRwaAssets = ({
 			}
 
 			const assetType = asset.type || 'Unknown'
+			const platformRaw = asset.parentPlatform as unknown
+			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+			const normalizedPlatforms = toUniqueNonEmptyValues(
+				platformCandidates
+					.map((platform) => (typeof platform === 'string' ? platform : ''))
+					.filter((platform) => platform.length > 0)
+			)
 			const toFilter =
 				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
+				(normalizedPlatforms.length > 0
+					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
+					: true) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
@@ -621,6 +655,7 @@ export const useFilteredRwaAssets = ({
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
