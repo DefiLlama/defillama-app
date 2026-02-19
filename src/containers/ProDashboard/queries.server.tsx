@@ -7,12 +7,14 @@ import { fetchTableServerData, type TableServerData } from './server/tableQuerie
 import ChainCharts from './services/ChainCharts'
 import type { Dashboard } from './services/DashboardAPI'
 import ProtocolCharts from './services/ProtocolCharts'
-import type { AdvancedTvlChartConfig, ChartConfig, DashboardItemConfig, MetricConfig, UnifiedTableConfig, YieldsChartConfig } from './types'
+import type { AdvancedTvlChartConfig, ChartConfig, DashboardItemConfig, MetricConfig, StablecoinsChartConfig, UnifiedTableConfig, YieldsChartConfig } from './types'
 import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
 import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
 import type { NormalizedRow } from './components/UnifiedTable/types'
 import { filterDataByTimePeriod } from './queries'
 import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
+import { fetchStablecoinAssetsApi, fetchStablecoinChartApi, fetchStablecoinPricesApi, fetchStablecoinRatesApi } from '~/containers/Stablecoins/api'
+import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 
 export interface ProDashboardServerProps {
 	dashboard: Dashboard | null
@@ -29,6 +31,7 @@ export interface ProDashboardServerProps {
 	metricData: Record<string, [number, number][]>
 	advancedTvlBasicData: Record<string, [number, number][]>
 	unifiedTableData: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }>
+	stablecoinsChartData: Record<string, any>
 }
 
 async function fetchDashboardConfig(
@@ -381,6 +384,115 @@ async function fetchUnifiedTableServerData(
 	return data
 }
 
+async function fetchStablecoinsChartData(
+	items: DashboardItemConfig[]
+): Promise<Record<string, any>> {
+	const stablecoinsItems = items.filter((item): item is StablecoinsChartConfig => item.kind === 'stablecoins')
+	if (stablecoinsItems.length === 0) return {}
+
+	const uniqueChains = new Set<string>()
+	for (const item of stablecoinsItems) {
+		uniqueChains.add(item.chain)
+	}
+
+	const FETCH_TIMEOUT = 10_000
+
+	try {
+		const [peggedData, priceData, rateData] = await Promise.all([
+			withTimeout(fetchStablecoinAssetsApi(), FETCH_TIMEOUT),
+			withTimeout(fetchStablecoinPricesApi(), FETCH_TIMEOUT),
+			withTimeout(fetchStablecoinRatesApi(), FETCH_TIMEOUT)
+		])
+
+		const { peggedAssets } = peggedData
+
+		const chainResults = await Promise.allSettled(
+			Array.from(uniqueChains).map(async (chain) => {
+				const chainLabel = chain === 'All' ? 'all-llama-app' : chain
+				const chainData = await withTimeout(fetchStablecoinChartApi(chainLabel), FETCH_TIMEOUT)
+				const breakdown = chainData?.breakdown
+
+				if (!breakdown) return { chain, data: null }
+
+				let chartDataByPeggedAsset: any[] = []
+				let peggedNameToChartDataIndex: Record<string, number> = {}
+				let lastTimestamp = 0
+
+				chartDataByPeggedAsset = peggedAssets.map((elem: any, i: number) => {
+					peggedNameToChartDataIndex[elem.name] = i
+					const charts = breakdown[elem.id] ?? []
+					const formattedCharts = charts
+						.map((chart: any) => ({
+							date: chart.date,
+							mcap: chart.totalCirculatingUSD
+						}))
+						.filter((i: any) => i.mcap !== undefined)
+
+					if (formattedCharts.length > 0) {
+						lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
+					}
+
+					return formattedCharts
+				})
+
+				for (const chart of chartDataByPeggedAsset) {
+					const last = chart[chart.length - 1]
+					if (!last) continue
+
+					let lastDate = Number(last.date)
+					while (lastDate < lastTimestamp) {
+						lastDate += 24 * 3600
+						chart.push({
+							...last,
+							date: lastDate
+						})
+					}
+				}
+
+				const peggedAssetNames = peggedAssets.map((p: any) => p.name)
+
+				const filteredPeggedAssets = formatPeggedAssetsData({
+					peggedAssets,
+					chartDataByPeggedAsset,
+					priceData,
+					rateData,
+					peggedNameToChartDataIndex,
+					chain: chain === 'All' ? null : chain
+				})
+
+				const doublecountedIds: number[] = []
+				for (let idx = 0; idx < peggedAssets.length; idx++) {
+					const asset = peggedAssets[idx]
+					if ((asset as unknown as { doublecounted?: boolean }).doublecounted) {
+						doublecountedIds.push(idx)
+					}
+				}
+
+				return {
+					chain,
+					data: {
+						chartDataByPeggedAsset,
+						peggedAssetNames,
+						peggedNameToChartDataIndex,
+						filteredPeggedAssets,
+						doublecountedIds
+					}
+				}
+			})
+		)
+
+		const result: Record<string, any> = {}
+		for (const r of chainResults) {
+			if (r.status === 'fulfilled' && r.value.data) {
+				result[r.value.chain] = r.value.data
+			}
+		}
+		return result
+	} catch {
+		return {}
+	}
+}
+
 export async function getProDashboardServerData({
 	dashboardId,
 	authToken
@@ -401,18 +513,20 @@ export async function getProDashboardServerData({
 	let metricData: Record<string, [number, number][]> = {}
 	let advancedTvlBasicData: Record<string, [number, number][]> = {}
 	let unifiedTableData: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }> = {}
+	let stablecoinsChartData: Record<string, any> = {}
 
 	if (dashboard?.data?.items?.length) {
 		const timePeriod = (dashboard.data.timePeriod || '365d') as TimePeriod
 		const customTimePeriod = dashboard.data.customTimePeriod || null
-		const [chartResult, tableResult, yieldsResult, protocolResult, metricResult, advTvlResult, unifiedResult] = await Promise.allSettled([
+		const [chartResult, tableResult, yieldsResult, protocolResult, metricResult, advTvlResult, unifiedResult, stablecoinsResult] = await Promise.allSettled([
 			fetchAllChartData(dashboard.data.items, timePeriod, customTimePeriod),
 			fetchTableServerData(dashboard.data.items),
 			fetchAllYieldsChartData(dashboard.data.items),
 			fetchProtocolFullData(dashboard.data.items),
 			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod),
 			fetchAdvancedTvlBasicData(dashboard.data.items),
-			fetchUnifiedTableServerData(dashboard.data.items)
+			fetchUnifiedTableServerData(dashboard.data.items),
+			fetchStablecoinsChartData(dashboard.data.items)
 		])
 		if (chartResult.status === 'fulfilled') chartData = chartResult.value
 		if (tableResult.status === 'fulfilled') tableData = tableResult.value
@@ -421,6 +535,7 @@ export async function getProDashboardServerData({
 		if (metricResult.status === 'fulfilled') metricData = metricResult.value
 		if (advTvlResult.status === 'fulfilled') advancedTvlBasicData = advTvlResult.value
 		if (unifiedResult.status === 'fulfilled') unifiedTableData = unifiedResult.value
+		if (stablecoinsResult.status === 'fulfilled') stablecoinsChartData = stablecoinsResult.value
 	}
 
 	return {
@@ -433,6 +548,7 @@ export async function getProDashboardServerData({
 		protocolFullData,
 		metricData,
 		advancedTvlBasicData,
-		unifiedTableData
+		unifiedTableData,
+		stablecoinsChartData
 	}
 }

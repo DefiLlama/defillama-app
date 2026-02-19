@@ -391,6 +391,15 @@ export function ProDashboardAPIProvider({
 		unifiedTableSeeded.current = true
 	}
 
+	const stablecoinsDataSeeded = useRef(false)
+	if (!stablecoinsDataSeeded.current && serverData?.stablecoinsChartData) {
+		const now = Date.now()
+		for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
+			queryClient.setQueryData(['stablecoins-chart-data', chain], data, { updatedAt: now })
+		}
+		stablecoinsDataSeeded.current = true
+	}
+
 	const { isAuthenticated, user } = useAuthContext()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(serverData?.protocolsAndChains)
 
