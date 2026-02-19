@@ -19,7 +19,7 @@ import {
 import type { RawNftCollection } from './api.types'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
 
-type VolumeChartEntry = {
+export type VolumeChartEntry = {
 	volumeUSD?: number
 	volume?: number
 }

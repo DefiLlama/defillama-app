@@ -1,6 +1,28 @@
 import { useQuery } from '@tanstack/react-query'
-import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
+import { CACHE_SERVER, CG_TOKEN_API, COINS_PRICES_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
+
+function getCGMarketsDataURLs() {
+	const urls: string[] = []
+	const maxPage = 20
+	for (let page = 1; page <= maxPage; page++) {
+		urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
+	}
+	return urls
+}
+
+export const useFetchCoingeckoTokensList = () => {
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['coingeckotokenslist'],
+		queryFn: () => fetchApi(getCGMarketsDataURLs())
+	})
+
+	return {
+		data: data?.flat(),
+		error,
+		isLoading
+	}
+}
 
 export const useGeckoId = (addressData: string | null) => {
 	const [chain, address] = addressData?.split(':') ?? [null, null]

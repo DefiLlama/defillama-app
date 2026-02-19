@@ -1,7 +1,7 @@
 'use no memo'
 
 import * as React from 'react'
-import type { IParentProtocol } from '~/api/types'
+import type { IParentProtocol } from '~/containers/Protocols/protocol-table.types'
 import { getAnnualizedRatio, getPercentChange } from '~/utils'
 import type { IProtocolRow } from './proTable.types'
 import type { UseProTableDataParams, UseProTableDataResult, ProtocolWithSubRows } from './proTable.types'

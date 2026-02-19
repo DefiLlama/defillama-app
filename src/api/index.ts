@@ -1,29 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { CACHE_SERVER, CG_TOKEN_API, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
-import { fetchApi, fetchJson, postRuntimeLogs } from '~/utils/async'
+import { CACHE_SERVER, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
+import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IResponseCGMarketsAPI } from './types'
-
-function getCGMarketsDataURLs() {
-	const urls: string[] = []
-	const maxPage = 20
-	for (let page = 1; page <= maxPage; page++) {
-		urls.push(`${CG_TOKEN_API.replace('<PLACEHOLDER>', `${page}`)}`)
-	}
-	return urls
-}
-
-export const useFetchCoingeckoTokensList = () => {
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['coingeckotokenslist'],
-		queryFn: () => fetchApi(getCGMarketsDataURLs())
-	})
-
-	return {
-		data: data?.flat(),
-		error,
-		isLoading
-	}
-}
 
 export async function retryCoingeckoRequest<T>(func: () => Promise<T>, retries: number): Promise<T | null> {
 	for (let i = 0; i < retries; i++) {

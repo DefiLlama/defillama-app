@@ -1,5 +1,5 @@
 import type { IHackApiItem } from '../Hacks/api.types'
-import type { IProtocolMetricsV2, IRaise } from './api.types'
+import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
@@ -116,7 +116,7 @@ export interface IProtocolOverviewPageData {
 		transactions: number | null
 		gasUsd: number | null
 	} | null
-	raises: Array<IRaise> | null
+	raises: Array<IProtocolRaise> | null
 	expenses: {
 		headcount: number | null
 		total: number | null
