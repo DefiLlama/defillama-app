@@ -1,4 +1,5 @@
 export type PlanKey = 'free' | 'pro' | 'api' | 'enterprise'
+export type BillingCycle = 'monthly' | 'yearly'
 export type Availability = 'check' | 'dash'
 
 export interface FeatureItem {
@@ -35,6 +36,12 @@ export interface ComparisonRow {
 export interface ComparisonSection {
 	title: string
 	rows: ComparisonRow[]
+}
+
+export interface PlanMeta {
+	title: string
+	price: string
+	action: string
 }
 
 export interface FaqItem {
