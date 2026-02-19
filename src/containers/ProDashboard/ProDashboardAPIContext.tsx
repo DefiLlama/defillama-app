@@ -370,6 +370,27 @@ export function ProDashboardAPIProvider({
 		metricDataSeeded.current = true
 	}
 
+	const advTvlBasicSeeded = useRef(false)
+	if (!advTvlBasicSeeded.current && serverData?.advancedTvlBasicData) {
+		const now = Date.now()
+		for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
+			queryClient.setQueryData(['advanced-tvl-basic', protocol], data, { updatedAt: now })
+		}
+		advTvlBasicSeeded.current = true
+	}
+
+	const unifiedTableSeeded = useRef(false)
+	if (!unifiedTableSeeded.current && serverData?.unifiedTableData) {
+		const now = Date.now()
+		for (const [keyJson, data] of Object.entries(serverData.unifiedTableData)) {
+			try {
+				const queryKey = JSON.parse(keyJson)
+				queryClient.setQueryData(queryKey, data, { updatedAt: now })
+			} catch {}
+		}
+		unifiedTableSeeded.current = true
+	}
+
 	const { isAuthenticated, user } = useAuthContext()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(serverData?.protocolsAndChains)
 

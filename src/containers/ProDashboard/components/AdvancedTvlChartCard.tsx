@@ -82,7 +82,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		queryKey: ['advanced-tvl-basic', protocol],
 		queryFn: () => ProtocolCharts.tvl(protocol),
 		enabled: chartType === 'tvl',
-		staleTime: 60 * 60 * 1000
+		staleTime: Infinity
 	})
 
 	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolV1AddlChartsData(protocol)

@@ -7,7 +7,10 @@ import { fetchTableServerData, type TableServerData } from './server/tableQuerie
 import ChainCharts from './services/ChainCharts'
 import type { Dashboard } from './services/DashboardAPI'
 import ProtocolCharts from './services/ProtocolCharts'
-import type { ChartConfig, DashboardItemConfig, MetricConfig, YieldsChartConfig } from './types'
+import type { AdvancedTvlChartConfig, ChartConfig, DashboardItemConfig, MetricConfig, UnifiedTableConfig, YieldsChartConfig } from './types'
+import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
+import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
+import type { NormalizedRow } from './components/UnifiedTable/types'
 import { filterDataByTimePeriod } from './queries'
 import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
 
@@ -24,6 +27,8 @@ export interface ProDashboardServerProps {
 	yieldsChartData: Record<string, { chart: any; lendBorrow: any }>
 	protocolFullData: Record<string, any>
 	metricData: Record<string, [number, number][]>
+	advancedTvlBasicData: Record<string, [number, number][]>
+	unifiedTableData: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }>
 }
 
 async function fetchDashboardConfig(
@@ -316,12 +321,64 @@ async function fetchAllChartData(
 	const chartData: Record<string, [number, number][]> = {}
 	chartItems.forEach((chart, i) => {
 		const result = results[i]
-		if (result.status === 'fulfilled' && result.value && result.value.length > 0) {
-			chartData[chart.id] = result.value
-		}
+		chartData[chart.id] = result.status === 'fulfilled' && Array.isArray(result.value) ? result.value : []
 	})
 
 	return chartData
+}
+
+async function fetchAdvancedTvlBasicData(
+	items: DashboardItemConfig[]
+): Promise<Record<string, [number, number][]>> {
+	const protocols = new Set<string>()
+	for (const item of items) {
+		if (item.kind === 'advanced-tvl' && (item as AdvancedTvlChartConfig).chartType === 'tvl') {
+			protocols.add((item as AdvancedTvlChartConfig).protocol)
+		}
+	}
+	if (protocols.size === 0) return {}
+
+	const results = await Promise.allSettled(
+		Array.from(protocols).map(async (protocol) => ({
+			protocol,
+			data: await withTimeout(ProtocolCharts.tvl(protocol), 10_000)
+		}))
+	)
+
+	const data: Record<string, [number, number][]> = {}
+	for (const result of results) {
+		if (result.status === 'fulfilled') {
+			data[result.value.protocol] = result.value.data ?? []
+		}
+	}
+	return data
+}
+
+async function fetchUnifiedTableServerData(
+	items: DashboardItemConfig[]
+): Promise<Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }>> {
+	const unifiedTableItems = items.filter((item): item is UnifiedTableConfig => item.kind === 'unified-table')
+	if (unifiedTableItems.length === 0) return {}
+
+	const results = await Promise.allSettled(
+		unifiedTableItems.map(async (config) => {
+			const headers = sanitizeRowHeaders(config.rowHeaders)
+			const paramsChains = config.params?.chains ?? []
+			const paramsKey = JSON.stringify({ chains: paramsChains })
+			const headersKey = headers.join('|')
+			const cacheKey = JSON.stringify(['unified-table', paramsKey, headersKey])
+			const data = await withTimeout(fetchProtocolsTable({ config, rowHeaders: headers }), 15_000)
+			return { cacheKey, data }
+		})
+	)
+
+	const data: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }> = {}
+	for (const result of results) {
+		if (result.status === 'fulfilled' && result.value.data) {
+			data[result.value.cacheKey] = result.value.data
+		}
+	}
+	return data
 }
 
 export async function getProDashboardServerData({
@@ -342,22 +399,28 @@ export async function getProDashboardServerData({
 	let yieldsChartData: Record<string, { chart: any; lendBorrow: any }> = {}
 	let protocolFullData: Record<string, any> = {}
 	let metricData: Record<string, [number, number][]> = {}
+	let advancedTvlBasicData: Record<string, [number, number][]> = {}
+	let unifiedTableData: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }> = {}
 
 	if (dashboard?.data?.items?.length) {
 		const timePeriod = (dashboard.data.timePeriod || '365d') as TimePeriod
 		const customTimePeriod = dashboard.data.customTimePeriod || null
-		const [chartResult, tableResult, yieldsResult, protocolResult, metricResult] = await Promise.allSettled([
+		const [chartResult, tableResult, yieldsResult, protocolResult, metricResult, advTvlResult, unifiedResult] = await Promise.allSettled([
 			fetchAllChartData(dashboard.data.items, timePeriod, customTimePeriod),
 			fetchTableServerData(dashboard.data.items),
 			fetchAllYieldsChartData(dashboard.data.items),
 			fetchProtocolFullData(dashboard.data.items),
-			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod)
+			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod),
+			fetchAdvancedTvlBasicData(dashboard.data.items),
+			fetchUnifiedTableServerData(dashboard.data.items)
 		])
 		if (chartResult.status === 'fulfilled') chartData = chartResult.value
 		if (tableResult.status === 'fulfilled') tableData = tableResult.value
 		if (yieldsResult.status === 'fulfilled') yieldsChartData = yieldsResult.value
 		if (protocolResult.status === 'fulfilled') protocolFullData = protocolResult.value
 		if (metricResult.status === 'fulfilled') metricData = metricResult.value
+		if (advTvlResult.status === 'fulfilled') advancedTvlBasicData = advTvlResult.value
+		if (unifiedResult.status === 'fulfilled') unifiedTableData = unifiedResult.value
 	}
 
 	return {
@@ -368,6 +431,8 @@ export async function getProDashboardServerData({
 		tableData,
 		yieldsChartData,
 		protocolFullData,
-		metricData
+		metricData,
+		advancedTvlBasicData,
+		unifiedTableData
 	}
 }
