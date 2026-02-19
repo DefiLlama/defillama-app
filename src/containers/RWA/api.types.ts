@@ -50,6 +50,8 @@ export interface IFetchedRWAProject {
 	dateOfLastAttestation?: string | null
 	attestationFrequency?: string | string[] | null
 	holdersToRemove?: RWAHoldersByChain | null
+	discord?: boolean | string | null
+	telegram?: boolean | string | null
 }
 
 export interface IRWAStatsResponse {

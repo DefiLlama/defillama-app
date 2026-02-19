@@ -173,6 +173,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const oracleProofLink =
 		typeof asset.oracleProofLink === 'string' && asset.oracleProofLink.trim().length > 0 ? asset.oracleProofLink : null
 	const rwaGithub = typeof asset.rwaGithub === 'string' && asset.rwaGithub.trim().length > 0 ? asset.rwaGithub : null
+	const discord = typeof asset.discord === 'string' && asset.discord.trim().length > 0 ? asset.discord : null
+	const telegram = typeof asset.telegram === 'string' && asset.telegram.trim().length > 0 ? asset.telegram : null
+	const hasDiscord = asset.discord === true || discord !== null
+	const hasTelegram = asset.telegram === true || telegram !== null
 	const dateOfLastAttestation =
 		typeof asset.dateOfLastAttestation === 'string' && asset.dateOfLastAttestation.trim().length > 0
 			? asset.dateOfLastAttestation
@@ -251,9 +255,43 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 							rel="noopener noreferrer"
 							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 						>
-							<Icon name="github" className="h-3 w-3" />
+							<Icon name="external-link" className="h-3 w-3" />
 							GitHub
 						</a>
+					) : null}
+					{hasDiscord ? (
+						discord ? (
+							<a
+								href={discord}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Discord
+							</a>
+						) : (
+							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
+								Discord
+							</span>
+						)
+					) : null}
+					{hasTelegram ? (
+						telegram ? (
+							<a
+								href={telegram}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Telegram
+							</a>
+						) : (
+							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
+								Telegram
+							</span>
+						)
 					) : null}
 				</div>
 			</div>
