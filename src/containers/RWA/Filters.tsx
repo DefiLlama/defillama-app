@@ -306,7 +306,7 @@ function Filters({
 			label: 'Categories'
 		},
 		{
-			enabled: (modes.isCategoryMode || modes.isPlatformMode) && options.platforms.length > 1,
+			enabled: (modes.isChainMode || modes.isCategoryMode) && options.platforms.length > 1,
 			allValues: options.platforms,
 			selectedValues: selections.selectedPlatforms,
 			includeQueryKey: 'platforms',
