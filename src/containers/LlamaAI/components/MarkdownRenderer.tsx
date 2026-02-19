@@ -197,7 +197,7 @@ export function MarkdownRenderer({
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
-				? contentParts.map((part) => {
+				? contentParts.map((part, partIndex) => {
 						if (part.type === 'chart' && part.chartId) {
 							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.chartId)
@@ -299,7 +299,7 @@ export function MarkdownRenderer({
 						if (part.content.trim()) {
 							return renderMarkdownSection(
 								processCitationMarkers(part.content, citations),
-								`text-${part.content.slice(0, 50)}`
+								`text-${partIndex}-${part.content.slice(0, 50)}`
 							)
 						}
 						return null
@@ -331,7 +331,7 @@ export function MarkdownRenderer({
 							const normalizedUrl = normalizeSourceUrl(url)
 							return (
 								<a
-									key={`citation-${url}`}
+									key={`citation-${index}-${normalizedUrl}`}
 									href={normalizedUrl}
 									target="_blank"
 									rel="noopener noreferrer"

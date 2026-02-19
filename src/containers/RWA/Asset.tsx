@@ -625,8 +625,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			{asset.descriptionNotes ? (
 				<SectionCard title="Notes">
 					<ul className="list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
-						{asset.descriptionNotes.map((note) => (
-							<li key={`${keyBase}-note-${note.slice(0, 50)}`}>{note}</li>
+						{asset.descriptionNotes.map((note, idx) => (
+							<li key={`${keyBase}-note-${idx}-${note.slice(0, 50)}`}>{note}</li>
 						))}
 					</ul>
 				</SectionCard>

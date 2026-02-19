@@ -1,23 +1,23 @@
-import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
 import { maxAgeForNext } from '~/api'
-import { SKIP_BUILD_STATIC_GENERATION, YIELD_POOLS_API } from '~/constants'
-import { LocalLoader } from '~/components/Loaders'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useVolatility } from '~/containers/Yields/queries/client'
-import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
+type ProtocolYieldPoolRow = {
+	apy: number | null
+	configID: string
+} & Record<string, unknown>
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[protocol]',
@@ -41,28 +41,43 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const [protocolData, yields] = await Promise.all([
-			fetchProtocolOverviewMetrics(protocol),
-			fetchJson(YIELD_POOLS_API).catch((err) => {
-				console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
-				return {}
-			})
-		])
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData) {
 			return { notFound: true, props: null }
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const protocolSlug = slug(protocolData.name)
+		const otherProtocolsSet = new Set((protocolData.otherProtocols ?? []).map((op) => sluggifyProtocol(op)))
 
-		const otherProtocols = protocolData?.otherProtocols?.map((p) => slug(p)) ?? []
+		let poolsError: string | null = null
+		let poolsList: ProtocolYieldPoolRow[] = []
+		try {
+			const { getYieldPageData } = await import('~/containers/Yields/queries/index')
+			const yieldsData = await getYieldPageData()
+			const allPools = yieldsData?.props?.pools ?? []
+			poolsList = allPools
+				.filter(
+					(pool) =>
+						pool.project === protocolSlug ||
+						(protocolData.parentProtocol ? false : otherProtocolsSet.has(pool.project))
+				)
+				.map((pool) => ({
+					...pool,
+					tvl: pool.tvlUsd,
+					pool: pool.symbol,
+					configID: pool.pool,
+					chains: [pool.chain],
+					project: pool.projectName,
+					projectslug: pool.project
+				}))
+		} catch (err) {
+			console.log('[HTTP]:[ERROR]:[PROTOCOL_YIELD]:', protocol, err instanceof Error ? err.message : '')
+			poolsError = 'Failed to fetch'
+		}
 
-		const projectYields = yields?.data?.filter(
-			({ project, apy }) =>
-				(project === slug(metadata[1].displayName) ||
-					(protocolData.parentProtocol ? false : otherProtocols.includes(project))) &&
-				apy != 0
-		)
+		const projectYields = poolsList.filter((pool) => pool.apy != 0)
 
 		return {
 			props: {
@@ -72,12 +87,14 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData.category ?? null,
 				metrics,
 				yields:
-					yields && yields.data && projectYields.length > 0
+					projectYields.length > 0
 						? {
 								noOfPoolsTracked: projectYields.length,
 								averageAPY: projectYields.reduce((acc, { apy }) => acc + apy, 0) / projectYields.length
 							}
 						: null,
+				poolsList,
+				poolsError,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
@@ -100,41 +117,10 @@ export async function getStaticPaths() {
 }
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	const protocolSlug = slug(props.name)
 	const { data: volatility } = useVolatility()
-	const otherProtocolsSet = React.useMemo(
-		() => new Set((props.otherProtocols ?? []).map((op) => sluggifyProtocol(op))),
-		[props.otherProtocols]
-	)
-
-	const {
-		data: poolsList,
-		isLoading,
-		error
-	} = useQuery({
-		queryKey: ['yields-pools-list', protocolSlug],
-		queryFn: () =>
-			getYieldPageData().then(
-				(res) =>
-					res?.props?.pools
-						?.filter((p) => p.project === protocolSlug || (props.parentProtocol ? false : otherProtocolsSet.has(p.project)))
-						.map((i) => ({
-							...i,
-							tvl: i.tvlUsd,
-							pool: i.symbol,
-							configID: i.pool,
-							chains: [i.chain],
-							project: i.projectName,
-							projectslug: i.project
-						})) ?? null
-			),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
+	const poolsList = React.useMemo(() => props.poolsList ?? [], [props.poolsList])
 
 	const poolsWithVolatility = React.useMemo(() => {
-		if (!poolsList) return poolsList
 		return poolsList.map((pool) => ({
 			...pool,
 			apyMedian30d: volatility?.[pool.configID]?.[1] ?? null,
@@ -170,16 +156,16 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 						</span>
 					</p>
 
-					{isLoading ? (
+					{props.poolsError ? (
 						<div className="flex flex-1 flex-col items-center justify-center">
-							<LocalLoader />
+							<p className="p-2">{props.poolsError}</p>
 						</div>
-					) : !poolsList ? (
+					) : poolsList.length === 0 ? (
 						<div className="flex flex-1 flex-col items-center justify-center">
-							<p className="p-2">{error instanceof Error ? error.message : 'Failed to fetch'}</p>
+							<p className="p-2">No yield pools for this protocol</p>
 						</div>
 					) : (
-						<YieldsPoolsTable data={poolsWithVolatility ?? []} />
+						<YieldsPoolsTable data={poolsWithVolatility} />
 					)}
 				</div>
 			</div>

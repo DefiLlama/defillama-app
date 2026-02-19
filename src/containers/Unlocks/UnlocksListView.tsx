@@ -45,9 +45,9 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 						) : null}
 					</h3>
 					<div className="flex flex-col gap-1">
-						{dailyEvents.map((event) => (
+						{dailyEvents.map((event, index) => (
 							<BasicLink
-								key={`${event.protocol}-${event.value}`}
+								key={`${event.protocol}-${event.value}-${index}`}
 								href={`/unlocks/${slug(event.protocol)}`}
 								target="_blank"
 							>

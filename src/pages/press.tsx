@@ -1,4 +1,3 @@
-import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
@@ -149,7 +148,15 @@ function PressPage() {
 					consistent.
 				</p>
 				<p>
-					<BasicLink href="/defillama-press-kit.zip">Download branding assets</BasicLink>
+					<a
+						href="/defillama-press-kit.zip"
+						target="_blank"
+						rel="noopener noreferrer"
+						download
+						className="text-(--blue) hover:underline"
+					>
+						Download branding assets
+					</a>
 				</p>
 				<p>“DefiLlama” is one word, with a capital D and capital L The F is not capitalized.</p>
 				<p>

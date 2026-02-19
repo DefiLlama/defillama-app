@@ -32,9 +32,9 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 			</div>
 			<div className="flex grow flex-col gap-1.5 overflow-y-auto">
 				{hasUnlocks ? (
-					dayData.events.map((event) => (
+					dayData.events.map((event, index) => (
 						<BasicLink
-							key={`${event.protocol}-${event.value}`}
+							key={`${event.protocol}-${event.value}-${index}`}
 							href={`/unlocks/${slug(event.protocol)}`}
 							target="_blank"
 						>

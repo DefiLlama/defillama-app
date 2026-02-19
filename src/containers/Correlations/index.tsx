@@ -450,7 +450,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 					dialogStore={dialogStore}
 					selectedCoins={selectedCoins}
 					selectCoin={(coin) => {
-						const updatedCoins = [...queryCoins, coin.id]
+						const updatedCoins = queryCoins.includes(coin.id) ? queryCoins : [...queryCoins, coin.id]
 						pushShallowQuery(router, { coin: updatedCoins }).then(() => {
 							dialogStore.hide()
 						})

@@ -163,7 +163,7 @@ function Support() {
 							onSubmit={onSubmit}
 							className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 						>
-							<label htmlFor="name" aria-label="Name" className="flex flex-col gap-1">
+							<label htmlFor="name" className="flex flex-col gap-1">
 								<span className="flex items-center gap-1">
 									<span>Name</span>
 									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
@@ -176,7 +176,7 @@ function Support() {
 								/>
 							</label>
 
-							<label htmlFor="email" aria-label="Email" className="flex flex-col gap-1">
+							<label htmlFor="email" className="flex flex-col gap-1">
 								<span className="flex items-center gap-1">
 									<span>Email</span>
 									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>

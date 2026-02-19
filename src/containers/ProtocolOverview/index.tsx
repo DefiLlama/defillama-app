@@ -1363,7 +1363,7 @@ const Raises = (props: IProtocolOverviewPageData) => {
 					{raise.source ? (
 						<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
 							<span className="flex flex-nowrap items-center gap-1">
-								Source:{''}
+								Source:{' '}
 								<a href={raise.source} target="_blank" rel="noopener noreferrer" className="overflow-hidden text-ellipsis whitespace-nowrap underline">
 									{raise.source}
 								</a>

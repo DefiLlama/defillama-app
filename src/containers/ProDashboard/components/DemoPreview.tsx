@@ -499,7 +499,7 @@ export const DemoPreview = () => {
 								</Link>
 							</div>
 
-							<div className="relative flex transform flex-col rounded-sm border-2 border-(--primary) bg-gradient-to-br from-(--primary)/10 to-purple-600/10 px-6 py-8 text-center shadow-(--primary)/10 shadow-xl transition-transform hover:scale-[1.02]">
+							<div className="relative flex transform flex-col rounded-sm border-2 border-(--primary) bg-linear-to-br from-(--primary)/10 to-purple-600/10 px-6 py-8 text-center shadow-(--primary)/10 shadow-xl transition-transform hover:scale-[1.02]">
 								<h3 className="mb-3 bg-gradient-to-r from-(--primary) to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
 									Pro
 								</h3>
