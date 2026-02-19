@@ -19,7 +19,7 @@ export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: string[] 
 						<img
 							src={src}
 							alt=""
-							className="max-h-[28px] max-w-[150px] object-contain opacity-90 dark:opacity-80 md:max-h-[40px] md:max-w-[210px]"
+							className="max-h-[28px] max-w-[150px] object-contain brightness-0 opacity-70 dark:brightness-100 dark:opacity-90 md:max-h-[40px] md:max-w-[210px]"
 						/>
 					</div>
 				))}
@@ -28,7 +28,7 @@ export function SubscriptionTrustedBlock({ trustLogos }: { trustLogos: string[] 
 				<img
 					src="/assets/trusts-llama/cftc.svg"
 					alt=""
-					className="max-h-[30px] object-contain opacity-90 dark:opacity-80 md:max-h-[41px]"
+					className="max-h-[30px] object-contain brightness-0 opacity-70 dark:brightness-100 dark:opacity-90 md:max-h-[41px]"
 				/>
 			</div>
 		</div>

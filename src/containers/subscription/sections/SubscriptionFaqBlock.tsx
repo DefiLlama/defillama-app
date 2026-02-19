@@ -33,7 +33,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 									{item.question}
 								</p>
 								<Icon
-									name={isExpanded ? 'minus' : 'plus'}
+									name={isExpanded ? 'x' : 'plus'}
 									height={16}
 									width={16}
 									className="shrink-0 text-(--sub-c-111f34) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white"

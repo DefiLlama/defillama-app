@@ -4,22 +4,23 @@ import type { Availability, FeatureItem, PlanKey, PricingCardData } from '~/cont
 /* ── Style maps ─────────────────────────────────────────────────────── */
 
 const cardWrapperStyles = {
-	highlighted: 'relative w-full rounded-[24px] bg-(--sub-c-1f67d2) p-[2px] pb-12 md:w-[284px] md:pb-[2px]',
+	highlighted:
+		'relative w-full rounded-[24px] bg-(--sub-c-1f67d2) p-[2px] pb-12 md:flex md:h-[548px] md:w-[284px] md:flex-col md:self-stretch md:pb-10',
 	default:
-		'relative w-full rounded-[24px] border border-(--sub-c-ced8e6) bg-white dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516) md:w-[284px] md:border'
+		'relative w-full rounded-[24px] border border-(--sub-c-ced8e6) bg-white dark:border-(--sub-c-2f3336) dark:bg-(--sub-c-131516) md:flex md:h-[548px] md:w-[284px] md:flex-col md:self-stretch md:border'
 }
 
 const cardInnerStyles = {
 	highlighted:
-		'rounded-[22px] px-5 py-6 bg-white dark:bg-(--sub-c-131516) md:flex md:flex-col md:justify-between md:overflow-hidden md:px-4',
+		'rounded-[22px] px-5 py-6 bg-white dark:bg-(--sub-c-131516) md:flex md:h-full md:flex-col md:justify-between md:overflow-hidden md:px-4',
 	default:
-		'rounded-[24px] px-5 py-6 bg-white dark:bg-(--sub-c-131516) md:flex md:flex-col md:justify-between md:overflow-hidden md:rounded-[24px] md:px-4'
+		'rounded-[24px] px-5 py-6 bg-white dark:bg-(--sub-c-131516) md:flex md:h-full md:flex-col md:justify-between md:overflow-hidden md:rounded-[24px] md:px-4'
 }
 
-export const PRO_COLUMN_HIGHLIGHT = 'border-x border-(--sub-c-1f67d2) bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)'
+export const SELECTED_COLUMN_HIGHLIGHT = 'border-x border-(--sub-c-1f67d2) bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)'
 
-const proColumnStyles = {
-	active: PRO_COLUMN_HIGHLIGHT,
+const selectedColumnStyles = {
+	active: SELECTED_COLUMN_HIGHLIGHT,
 	inactive: ''
 }
 
@@ -78,7 +79,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 						{card.priceMain ? (
 							<div className="flex flex-col gap-1 md:gap-0">
 								<div className="flex items-end gap-0.5">
-									<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) bg-clip-text text-[42px] leading-[42px] font-semibold text-transparent md:to-(--sub-c-5f95e2)">
+									<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) bg-clip-text text-[40px] leading-[40px] font-semibold text-transparent md:text-[32px] md:leading-[42px] md:to-(--sub-c-5f95e2)">
 										{card.priceMain}
 									</p>
 									<p className="text-[16px] leading-6 text-(--sub-c-64758c) dark:text-(--sub-c-c6c6c6) md:text-base md:text-(--sub-c-484848) dark:md:text-(--sub-c-c6c6c6)">
@@ -86,7 +87,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 									</p>
 								</div>
 								{card.priceSecondary ? (
-									<p className="text-[24px] leading-6 text-(--sub-c-8a97aa) dark:text-(--sub-c-878787)">
+									<p className="text-[22px] leading-6 text-(--sub-c-8a97aa) dark:text-(--sub-c-878787) md:text-[16px]">
 										{card.priceSecondary}
 									</p>
 								) : null}
@@ -148,9 +149,9 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 
 /* ── ComparisonCell (responsive) ────────────────────────────────────── */
 
-export function ComparisonCell({ value, plan }: { value: Availability; plan: PlanKey }) {
-	const isPro = plan === 'pro'
-	const proStyle = isPro ? proColumnStyles.active : proColumnStyles.inactive
+export function ComparisonCell({ value, plan, isSelected = false, className = '', hideBorderLeft = false }: { value: Availability; plan: PlanKey; isSelected?: boolean; className?: string; hideBorderLeft?: boolean }) {
+	const selectedStyle = isSelected ? `relative z-10 ${selectedColumnStyles.active}` : selectedColumnStyles.inactive
+	const borderColor = isSelected ? '' : 'border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:border-(--sub-c-eeeeee) dark:md:border-(--sub-c-232628)'
 	const borderEnd = plan === 'enterprise' ? 'border-r' : ''
 	const isIncluded = value === 'check'
 
@@ -158,7 +159,7 @@ export function ComparisonCell({ value, plan }: { value: Availability; plan: Pla
 		<div
 			role="cell"
 			aria-label={isIncluded ? 'Included' : 'Not included'}
-			className={`flex h-full w-[132px] items-center justify-center border-l text-center border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:w-[146px] md:border-(--sub-c-eeeeee) dark:md:border-(--sub-c-232628) ${proStyle} ${borderEnd}`}
+			className={`flex h-full w-[132px] items-center justify-center ${hideBorderLeft ? '' : 'border-l'} text-center md:w-[146px] ${borderColor} ${selectedStyle} ${borderEnd} ${className}`}
 		>
 			{isIncluded ? (
 				<Icon name="check" height={24} width={24} className="text-(--sub-c-4b86db)" aria-hidden="true" />

@@ -21,7 +21,7 @@ export default function Subscription2() {
 				<title>Subscribe v2 - DefiLlama</title>
 			</Head>
 
-			<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-c-f7f7f7) text-(--sub-c-090b0c) dark:bg-(--sub-c-02070b) dark:text-white">
+			<div className="relative col-span-full min-h-screen w-full overflow-x-hidden bg-(--sub-c-f7f7f7) text-(--sub-c-090b0c) dark:bg-(--sub-c-090b0c) dark:text-white">
 				<SubscriptionBackground />
 				<SubscriptionHeader />
 
@@ -35,6 +35,7 @@ export default function Subscription2() {
 						planOrder={PLAN_ORDER}
 						comparisonSections={COMPARISON_SECTIONS}
 						billingCycle={billingCycle}
+						selectedPlan="api"
 					/>
 
 					<section className="mx-auto flex max-w-[393px] flex-col items-center px-4 py-12 md:max-w-[1440px] md:px-[128px] md:py-20">

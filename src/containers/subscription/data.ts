@@ -19,7 +19,7 @@ export const PLAN_META_BY_CYCLE: Record<BillingCycle, Record<PlanKey, PlanMeta>>
 	yearly: {
 		free: { title: 'Free', price: '$0/month', action: 'Get Started' },
 		pro: { title: 'Pro', price: '$490/year', action: 'Get Started' },
-		api: { title: 'API', price: '$3000/year', action: 'Get Started' },
+		api: { title: 'API', price: '$3,000/year', action: 'Get Started' },
 		enterprise: { title: 'Enterprise', price: 'Custom', action: 'Contact us' }
 	}
 }
@@ -128,21 +128,6 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Token unlock schedules', availability: 'check' },
 					{ label: 'Funding rounds & raises', availability: 'check' }
 				]
-			},
-			{
-				title: 'Analysis & AI Tools',
-				items: [
-					{ label: 'LlamaAI: Conversational Analytics', availability: 'dash' },
-					{ label: 'Custom DefiLlama Pro Dashboards', availability: 'dash' },
-					{ label: 'Access to DefiLlama Sheets', availability: 'dash' },
-					{ label: 'CSV data downloads', availability: 'dash' },
-					{ label: 'Full access to LlamaFeed', availability: 'dash' },
-					{ label: 'Upcoming premium products', availability: 'dash' }
-				]
-			},
-			{
-				title: 'API Access',
-				items: [{ label: 'API access not included', availability: 'dash' }]
 			}
 		],
 		primaryCta: 'Get Started for Free'
@@ -153,16 +138,8 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 		priceMain: '$490',
 		priceUnit: '/year',
 		priceSecondary: '$40.83 /month',
+		includedTierText: 'Includes all Free tier features',
 		sections: [
-			{
-				title: 'Core Data & Dashboards',
-				items: [
-					{ label: 'Overview of chains & protocol metrics', availability: 'check' },
-					{ label: 'Yields and stablecoins dashboards', availability: 'check' },
-					{ label: 'Token unlock schedules', availability: 'check' },
-					{ label: 'Funding rounds & raises', availability: 'check' }
-				]
-			},
 			{
 				title: 'Analysis & AI Tools',
 				items: [
@@ -173,13 +150,10 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 					{ label: 'Full access to LlamaFeed', availability: 'check' },
 					{ label: 'Upcoming premium products', availability: 'check' }
 				]
-			},
-			{
-				title: 'API Access',
-				items: [{ label: 'API access not included', availability: 'dash' }]
 			}
 		],
 		primaryCta: 'Pay with Card',
+		secondaryCta: 'Pay with Crypto',
 		highlighted: true,
 		recommendedLabel: 'Recommended'
 	},
@@ -203,7 +177,8 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 				]
 			}
 		],
-		primaryCta: 'Pay with Card'
+		primaryCta: 'Pay with Card',
+		secondaryCta: 'Pay with Crypto'
 	},
 	{
 		key: 'enterprise',
@@ -328,7 +303,7 @@ export const COMPARISON_SECTIONS: ComparisonSection[] = [
 				values: { free: 'dash', pro: 'dash', api: 'dash', enterprise: 'check' }
 			},
 			{
-				label: 'Exclusive data, such as TVL breakdowns by token address',
+				label: 'Access to non-public data, such as TVL breakdowns by token address',
 				values: { free: 'dash', pro: 'dash', api: 'dash', enterprise: 'check' }
 			},
 			{
