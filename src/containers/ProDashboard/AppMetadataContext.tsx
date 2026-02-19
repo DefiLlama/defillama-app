@@ -65,7 +65,13 @@ async function fetchJson<T>(url: string): Promise<T> {
 	return res.json()
 }
 
-export function AppMetadataProvider({ children }: { children: React.ReactNode }) {
+export function AppMetadataProvider({
+	children,
+	initialData
+}: {
+	children: React.ReactNode
+	initialData?: { protocols: Record<string, any>; chains: Record<string, any>; pfPs: { pf: string[]; ps: string[] } } | null
+}) {
 	const {
 		data: rawData,
 		isLoading: loading,
@@ -90,7 +96,10 @@ export function AppMetadataProvider({ children }: { children: React.ReactNode })
 			])
 
 			return { protocols, chains, pfPs }
-		}
+		},
+		initialData: initialData ?? undefined,
+		staleTime: initialData ? Infinity : 0,
+		initialDataUpdatedAt: initialData ? Date.now() : undefined
 	})
 
 	const error = queryError ? String(queryError.message) : undefined

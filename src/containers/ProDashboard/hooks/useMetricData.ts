@@ -201,7 +201,7 @@ export function useMetricData(metric: MetricConfig) {
 	} = useQuery({
 		queryKey: ['metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping),
-		staleTime: 5 * 60 * 1000,
+		staleTime: Infinity,
 		select: (data: [number, number][]) => (Array.isArray(data) ? data : []),
 		enabled:
 			!!item &&

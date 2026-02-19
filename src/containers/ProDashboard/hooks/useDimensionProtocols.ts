@@ -8,19 +8,22 @@ export function useDimensionProtocols() {
 	const { data: perpsData, isLoading: perpsLoading } = useQuery({
 		queryKey: ['dimension-protocols', 'perps'],
 		queryFn: () => fetchJson('/api/datasets/perps'),
-		staleTime: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 
 	const { data: dexsData, isLoading: dexsLoading } = useQuery({
 		queryKey: ['dimension-protocols', 'dexs'],
 		queryFn: () => fetchJson('/api/datasets/dexs'),
-		staleTime: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 
 	const { data: aggregatorsData, isLoading: aggregatorsLoading } = useQuery({
 		queryKey: ['dimension-protocols', 'aggregators'],
 		queryFn: () => fetchJson('/api/datasets/aggregators'),
-		staleTime: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 
 	const dimensionProtocols: DimensionProtocols = {

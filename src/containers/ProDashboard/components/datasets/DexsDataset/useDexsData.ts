@@ -11,8 +11,7 @@ export function useDexsData(chains?: string[]) {
 	return useQuery<DexItem[]>({
 		queryKey: ['dexs-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/dexs${queryParams}`),
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
-		enabled: true
+		staleTime: Infinity,
+		retry: 1
 	})
 }

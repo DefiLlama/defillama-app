@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	createContext,
 	type ReactNode,
@@ -12,10 +12,13 @@ import {
 	useRef
 } from 'react'
 import toast from 'react-hot-toast'
+import { PROTOCOLS_API } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
+import type { ProDashboardServerProps } from './queries.server'
+import type { TableServerData } from './server/tableQueries'
 import type { Dashboard } from './services/DashboardAPI'
 import type {
 	Chain,
@@ -284,16 +287,91 @@ const ProDashboardEditorActionsContext = createContext<ProDashboardEditorActions
 const ProDashboardItemsStateContext = createContext<ProDashboardItemsStateContextType | undefined>(undefined)
 const ProDashboardChartsDataContext = createContext<ProDashboardChartsDataContextType | undefined>(undefined)
 const ProDashboardUIContext = createContext<ProDashboardUIContextType | undefined>(undefined)
+const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerProps['appMetadata'] | undefined>(undefined)
+
+function seedTableDataIntoCache(queryClient: ReturnType<typeof useQueryClient>, tableData: TableServerData) {
+	const now = Date.now()
+	if (tableData.protocolsList) {
+		queryClient.setQueryData([PROTOCOLS_API], tableData.protocolsList, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.volumeByChain)) {
+		queryClient.setQueryData([`protocolsVolumeByChain/${chain}`], data, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.feesByChain)) {
+		queryClient.setQueryData([`protocolsFeesAndRevenueByChain/${chain}`], data, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.perpsByChain)) {
+		queryClient.setQueryData([`protocolsPerpsVolumeByChain/${chain}`], data, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.openInterestByChain)) {
+		queryClient.setQueryData([`protocolsOpenInterestByChain/${chain}`], data, { updatedAt: now })
+	}
+	for (const [keyJson, data] of Object.entries(tableData.datasetsByQueryKey)) {
+		try {
+			const queryKey = JSON.parse(keyJson)
+			queryClient.setQueryData(queryKey, data, { updatedAt: now })
+		} catch {}
+	}
+	for (const [keyJson, data] of Object.entries(tableData.tokenUsageByQueryKey)) {
+		try {
+			const queryKey = JSON.parse(keyJson)
+			queryClient.setQueryData(queryKey, data, { updatedAt: now })
+		} catch {}
+	}
+}
 
 export function ProDashboardAPIProvider({
 	children,
-	initialDashboardId
+	initialDashboardId,
+	serverData
 }: {
 	children: ReactNode
 	initialDashboardId?: string
+	serverData?: ProDashboardServerProps | null
 }) {
+	const queryClient = useQueryClient()
+
+	const tableDataSeeded = useRef(false)
+	if (!tableDataSeeded.current && serverData?.tableData) {
+		seedTableDataIntoCache(queryClient, serverData.tableData)
+		tableDataSeeded.current = true
+	}
+
+	const yieldsDataSeeded = useRef(false)
+	if (!yieldsDataSeeded.current && serverData?.yieldsChartData) {
+		const now = Date.now()
+		for (const [poolConfigId, data] of Object.entries(serverData.yieldsChartData)) {
+			queryClient.setQueryData(['yield-pool-chart-data', poolConfigId], data.chart ?? null, { updatedAt: now })
+			queryClient.setQueryData(['yield-lend-borrow-chart', poolConfigId], data.lendBorrow ?? null, {
+				updatedAt: now
+			})
+		}
+		yieldsDataSeeded.current = true
+	}
+
+	const protocolDataSeeded = useRef(false)
+	if (!protocolDataSeeded.current && serverData?.protocolFullData) {
+		const now = Date.now()
+		for (const [protocol, data] of Object.entries(serverData.protocolFullData)) {
+			queryClient.setQueryData(['protocol-overview-v1', protocol, 'metrics'], data, { updatedAt: now })
+		}
+		protocolDataSeeded.current = true
+	}
+
+	const metricDataSeeded = useRef(false)
+	if (!metricDataSeeded.current && serverData?.metricData) {
+		const now = Date.now()
+		for (const [keyJson, data] of Object.entries(serverData.metricData)) {
+			try {
+				const queryKey = JSON.parse(keyJson)
+				queryClient.setQueryData(queryKey, data, { updatedAt: now })
+			} catch {}
+		}
+		metricDataSeeded.current = true
+	}
+
 	const { isAuthenticated, user } = useAuthContext()
-	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains()
+	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(serverData?.protocolsAndChains)
 
 	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
@@ -435,9 +513,11 @@ export function ProDashboardAPIProvider({
 			}
 			return dashboard
 		},
-		staleTime: 1000 * 60 * 5,
-		refetchOnMount: 'always',
-		enabled: !!initialDashboardId
+		staleTime: serverData?.dashboard ? Infinity : 1000 * 60 * 5,
+		refetchOnMount: !serverData?.dashboard,
+		enabled: !!initialDashboardId,
+		initialData: serverData?.dashboard ?? undefined,
+		initialDataUpdatedAt: serverData?.dashboard ? Date.now() : undefined
 	})
 
 	useEffect(() => {
@@ -872,7 +952,7 @@ export function ProDashboardAPIProvider({
 		return chartItems
 	}, [items])
 
-	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod)
+	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod, serverData?.chartData)
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()
@@ -1267,7 +1347,11 @@ export function ProDashboardAPIProvider({
 						<ProDashboardEditorActionsContext.Provider value={editorActionsContextValue}>
 							<ProDashboardItemsStateContext.Provider value={itemsStateContextValue}>
 								<ProDashboardChartsDataContext.Provider value={chartsDataContextValue}>
-									<ProDashboardUIContext.Provider value={uiContextValue}>{children}</ProDashboardUIContext.Provider>
+									<ProDashboardUIContext.Provider value={uiContextValue}>
+										<ProDashboardServerAppMetadataContext.Provider value={serverData?.appMetadata}>
+											{children}
+										</ProDashboardServerAppMetadataContext.Provider>
+									</ProDashboardUIContext.Provider>
 								</ProDashboardChartsDataContext.Provider>
 							</ProDashboardItemsStateContext.Provider>
 						</ProDashboardEditorActionsContext.Provider>
@@ -1340,4 +1424,8 @@ export function useProDashboardUI() {
 		throw new Error('useProDashboardUI must be used within a ProDashboardAPIProvider')
 	}
 	return context
+}
+
+export function useProDashboardServerAppMetadata() {
+	return useContext(ProDashboardServerAppMetadataContext)
 }

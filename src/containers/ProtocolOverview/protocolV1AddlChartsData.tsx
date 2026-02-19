@@ -652,7 +652,7 @@ export const useFetchProtocolV1AddlChartsData = (
 	const { data: addlProtocolData, isLoading } = useQuery<IProtocolOverviewMetricsV1>({
 		queryKey: ['protocol-overview-v1', protocolName, 'metrics'],
 		queryFn: () => fetchJson(`${PROTOCOL_API}/${protocolName}`),
-		staleTime: 60 * 60 * 1000,
+		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
@@ -676,8 +676,7 @@ export const useFetchProtocolV1AddlChartsData = (
 				isBorrowed,
 				tokenToExclude: normalizedTokenToExclude
 			}),
-		staleTime: 60 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
