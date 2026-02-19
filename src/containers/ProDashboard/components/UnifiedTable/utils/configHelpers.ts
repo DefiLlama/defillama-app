@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { SortingState, VisibilityState } from '@tanstack/react-table'
 import type { CustomColumnDefinition, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'

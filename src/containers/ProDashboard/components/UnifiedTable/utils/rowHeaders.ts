@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { UnifiedRowHeaderType } from '../../../types'
 import { DEFAULT_ROW_HEADERS } from '../constants'
 

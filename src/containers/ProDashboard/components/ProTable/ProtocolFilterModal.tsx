@@ -1,75 +1,109 @@
+'use no memo'
+
 import * as Ariakit from '@ariakit/react'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import * as React from 'react'
-import { createFilter } from 'react-select'
 import { Icon } from '~/components/Icon'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
-import type { Protocol, TableFilters } from '../../types'
+import type { TableFilters } from '../../types'
 import { buildProtocolOptions } from '../../utils/buildProtocolOptions'
 import { reactSelectStyles } from '../../utils/reactSelectStyles'
-import { ProtocolOption } from '../ProtocolOption'
+import type { IProtocolRow } from './proTable.types'
 
-const CustomProtocolOption = ProtocolOption as any
 const EMPTY_FILTERS: string[] = []
 
-function VirtualizedMenuList(props: any) {
-	const { options, children, maxHeight } = props
-	const listRef = React.useRef<HTMLDivElement>(null)
-	const itemCount = options.length
-	const virtualizer = useVirtualizer({
-		count: itemCount,
-		getScrollElement: () => listRef.current,
-		estimateSize: () => 40
-	})
-	return (
-		<div
-			ref={listRef}
-			className="thin-scrollbar"
-			style={{
-				maxHeight,
-				overflowY: 'auto',
-				position: 'relative'
-			}}
-		>
-			<div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
-				{virtualizer.getVirtualItems().map((virtualRow) => (
-					<div
-						key={virtualRow.key}
-						data-index={virtualRow.index}
-						style={{
-							position: 'absolute',
-							top: 0,
-							left: 0,
-							width: '100%',
-							transform: `translateY(${virtualRow.start}px)`
-						}}
-					>
-						{children[virtualRow.index]}
-					</div>
-				))}
-			</div>
-		</div>
-	)
+const extractSelectedValues = (selection: unknown): string[] => {
+	if (!Array.isArray(selection)) return []
+
+	const values: string[] = []
+	for (const option of selection) {
+		if (typeof option !== 'object' || option === null) continue
+		const value = Reflect.get(option, 'value')
+		if (typeof value === 'string') {
+			values.push(value)
+		}
+	}
+	return values
 }
 
-function SimpleMenuList(props: any) {
-	return (
-		<div
-			className="thin-scrollbar"
-			style={{
-				maxHeight: props.maxHeight,
-				overflowY: 'auto'
-			}}
-		>
-			{props.children}
-		</div>
-	)
+type ProtocolSelectionOption = {
+	value: string
+	label: string
+	isChild?: boolean
+}
+
+const isProtocolSelectionOption = (value: unknown): value is ProtocolSelectionOption => {
+	if (typeof value !== 'object' || value === null) return false
+	const optionValue = Reflect.get(value, 'value')
+	const optionLabel = Reflect.get(value, 'label')
+	const optionIsChild = Reflect.get(value, 'isChild')
+	if (typeof optionValue !== 'string' || typeof optionLabel !== 'string') return false
+	return optionIsChild === undefined || typeof optionIsChild === 'boolean'
+}
+
+const expandSelectedProtocols = (selectedProtocols: string[], parentToChildrenMap: Map<string, string[]>): string[] => {
+	const expanded = new Set<string>()
+	for (const selectedProtocol of selectedProtocols) {
+		const children = parentToChildrenMap.get(selectedProtocol)
+		if (children && children.length > 0) {
+			for (const child of children) {
+				expanded.add(child)
+			}
+		} else {
+			expanded.add(selectedProtocol)
+		}
+	}
+	return Array.from(expanded)
+}
+
+const resolveProtocolSelection = ({
+	selection,
+	actionMeta,
+	parentToChildrenMap,
+	currentSelection
+}: {
+	selection: unknown
+	actionMeta: unknown
+	parentToChildrenMap: Map<string, string[]>
+	currentSelection: string[]
+}): string[] => {
+	const selectedValues = extractSelectedValues(selection)
+	const selectedValueSet = new Set(currentSelection)
+
+	if (typeof actionMeta !== 'object' || actionMeta === null) {
+		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
+	}
+
+	const action = Reflect.get(actionMeta, 'action')
+	if (action === 'clear') return []
+
+	const option = Reflect.get(actionMeta, 'option')
+	if (!isProtocolSelectionOption(option) || option.isChild) {
+		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
+	}
+
+	const childProtocols = parentToChildrenMap.get(option.label)
+	if (!childProtocols || childProtocols.length === 0) {
+		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
+	}
+
+	const allChildrenSelected = childProtocols.every((childProtocol) => selectedValueSet.has(childProtocol))
+	if (allChildrenSelected) {
+		for (const childProtocol of childProtocols) {
+			selectedValueSet.delete(childProtocol)
+		}
+	} else {
+		for (const childProtocol of childProtocols) {
+			selectedValueSet.add(childProtocol)
+		}
+	}
+
+	return Array.from(selectedValueSet)
 }
 
 interface ProtocolFilterModalProps {
 	isOpen: boolean
 	onClose: () => void
-	protocols: Protocol[]
+	protocols: IProtocolRow[]
 	parentProtocols: Array<{ id: string; name: string; logo?: string }>
 	categories: string[]
 	currentFilters: TableFilters
@@ -77,85 +111,73 @@ interface ProtocolFilterModalProps {
 	portalTarget: HTMLElement
 }
 
-export function ProtocolFilterModal({
-	isOpen,
+interface ProtocolFilterDialogContentProps {
+	onClose: () => void
+	protocols: IProtocolRow[]
+	parentProtocols: Array<{ id: string; name: string; logo?: string }>
+	categories: string[]
+	currentFilters: TableFilters
+	onFiltersChange: (filters: TableFilters) => void
+}
+
+function ProtocolFilterDialogContent({
 	onClose,
 	protocols,
 	parentProtocols,
 	categories,
 	currentFilters,
-	onFiltersChange,
-	portalTarget: _portalTarget
-}: ProtocolFilterModalProps) {
-	const [selectedProtocols, setSelectedProtocols] = React.useState<string[]>([])
-	const [selectedCategories, setSelectedCategories] = React.useState<string[]>([])
-	const [selectedExcludedCategories, setSelectedExcludedCategories] = React.useState<string[]>([])
-	const [selectedOracles, setSelectedOracles] = React.useState<string[]>([])
-
-	React.useEffect(() => {
-		if (isOpen) {
-			setSelectedProtocols(currentFilters.protocols ?? EMPTY_FILTERS)
-			setSelectedCategories(currentFilters.categories ?? EMPTY_FILTERS)
-			setSelectedExcludedCategories(currentFilters.excludedCategories ?? EMPTY_FILTERS)
-			setSelectedOracles(currentFilters.oracles ?? EMPTY_FILTERS)
-		}
-	}, [isOpen, currentFilters])
-
-	const handleApply = () => {
-		onFiltersChange({
-			protocols: selectedProtocols.length ? selectedProtocols : undefined,
-			categories: selectedCategories.length ? selectedCategories : undefined,
-			excludedCategories: selectedExcludedCategories.length ? selectedExcludedCategories : undefined,
-			oracles: selectedOracles.length ? selectedOracles : undefined
-		})
-		onClose()
-	}
-
-	const handleClear = () => {
-		setSelectedProtocols([])
-		setSelectedCategories([])
-		setSelectedExcludedCategories([])
-		setSelectedOracles([])
-		onFiltersChange({})
-		onClose()
-	}
-
-	const hasActiveFilters =
-		selectedProtocols.length > 0 ||
-		selectedCategories.length > 0 ||
-		selectedExcludedCategories.length > 0 ||
-		selectedOracles.length > 0
+	onFiltersChange
+}: ProtocolFilterDialogContentProps) {
+	const [selectedProtocols, setSelectedProtocols] = React.useState<string[]>(
+		() => currentFilters.protocols ?? EMPTY_FILTERS
+	)
+	const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
+		() => currentFilters.categories ?? EMPTY_FILTERS
+	)
+	const [selectedExcludedCategories, setSelectedExcludedCategories] = React.useState<string[]>(
+		() => currentFilters.excludedCategories ?? EMPTY_FILTERS
+	)
+	const [selectedOracles, setSelectedOracles] = React.useState<string[]>(() => currentFilters.oracles ?? EMPTY_FILTERS)
 
 	const { options: protocolOptions, parentToChildrenMap } = React.useMemo(() => {
-		const list = (protocols as any[]).map((p) => ({
-			name: p.name,
-			tvl: p.tvl ?? 0,
-			parentProtocol: p.parentProtocol ?? null,
-			logo: (p as any).logo,
-			defillamaId: (p as any).defillamaId
+		const protocolList = protocols.map((protocol) => ({
+			name: protocol.name,
+			tvl: typeof protocol.tvl === 'number' ? protocol.tvl : 0,
+			parentProtocol: protocol.parentProtocol ?? null,
+			logo: protocol.logo,
+			defillamaId: protocol.defillamaId
 		}))
-		return buildProtocolOptions(list, parentProtocols, 'name')
-	}, [protocols, parentProtocols])
+		return buildProtocolOptions(protocolList, parentProtocols, 'name')
+	}, [parentProtocols, protocols])
 
 	const oracleOptions = React.useMemo(() => {
-		const tvsByOracle = new Map<string, number>()
-		for (const p of protocols as any[]) {
-			const tvl = Number((p as any).tvl) || 0
-			const add = (o: string) => tvsByOracle.set(o, (tvsByOracle.get(o) || 0) + tvl)
-			if (Array.isArray((p as any).oracles)) {
-				for (const o of (p as any).oracles as string[]) {
-					add(o)
+		const tvlByOracle = new Map<string, number>()
+		const addTvlToOracle = (oracle: string, tvl: number) => {
+			const currentTvl = tvlByOracle.get(oracle) ?? 0
+			tvlByOracle.set(oracle, currentTvl + tvl)
+		}
+
+		for (const protocol of protocols) {
+			const protocolTvl = typeof protocol.tvl === 'number' ? protocol.tvl : 0
+
+			if (Array.isArray(protocol.oracles)) {
+				for (const oracle of protocol.oracles) {
+					addTvlToOracle(oracle, protocolTvl)
 				}
 			}
-			if ((p as any).oraclesByChain) {
-				for (const o of Object.values((p as any).oraclesByChain as Record<string, string[]>).flat()) {
-					add(o)
+
+			if (protocol.oraclesByChain) {
+				for (const chainOracles of Object.values(protocol.oraclesByChain)) {
+					for (const oracle of chainOracles) {
+						addTvlToOracle(oracle, protocolTvl)
+					}
 				}
 			}
 		}
-		return Array.from(tvsByOracle.entries())
-			.sort((a, b) => b[1] - a[1])
-			.map(([o]) => ({ value: o, label: o }))
+
+		return Array.from(tvlByOracle.entries())
+			.sort((left, right) => right[1] - left[1])
+			.map(([oracle]) => ({ value: oracle, label: oracle }))
 	}, [protocols])
 
 	const categoryOptions = React.useMemo(() => {
@@ -173,39 +195,58 @@ export function ProtocolFilterModal({
 	)
 	const selectedOraclesSet = React.useMemo(() => new Set(selectedOracles), [selectedOracles])
 
-	const {
-		oraclesValue,
-		includeCategoryOptions,
-		includeCategoryValue,
-		excludeCategoryOptions,
-		excludeCategoryValue,
-		protocolsValue
-	} = React.useMemo(() => {
-		return {
-			oraclesValue: oracleOptions.filter((opt) => selectedOraclesSet.has(opt.value)),
-			includeCategoryOptions: categoryOptions.filter((opt) => !selectedExcludedCategoriesSet.has(opt.value)),
-			includeCategoryValue: categoryOptions.filter((opt) => selectedCategoriesSet.has(opt.value)),
-			excludeCategoryOptions: categoryOptions.filter((opt) => !selectedCategoriesSet.has(opt.value)),
-			excludeCategoryValue: categoryOptions.filter((opt) => selectedExcludedCategoriesSet.has(opt.value)),
-			protocolsValue: protocolOptions.filter((opt) => selectedProtocolsSet.has(opt.value))
-		}
-	}, [
-		oracleOptions,
-		categoryOptions,
-		protocolOptions,
-		selectedOraclesSet,
-		selectedCategoriesSet,
-		selectedExcludedCategoriesSet,
-		selectedProtocolsSet
-	])
+	const protocolsValue = React.useMemo(() => {
+		return protocolOptions.filter((option) => selectedProtocolsSet.has(option.value))
+	}, [protocolOptions, selectedProtocolsSet])
+
+	const oraclesValue = React.useMemo(() => {
+		return oracleOptions.filter((option) => selectedOraclesSet.has(option.value))
+	}, [oracleOptions, selectedOraclesSet])
+
+	const includeCategoryOptions = React.useMemo(() => {
+		return categoryOptions.filter((option) => !selectedExcludedCategoriesSet.has(option.value))
+	}, [categoryOptions, selectedExcludedCategoriesSet])
+
+	const includeCategoryValue = React.useMemo(() => {
+		return categoryOptions.filter((option) => selectedCategoriesSet.has(option.value))
+	}, [categoryOptions, selectedCategoriesSet])
+
+	const excludeCategoryOptions = React.useMemo(() => {
+		return categoryOptions.filter((option) => !selectedCategoriesSet.has(option.value))
+	}, [categoryOptions, selectedCategoriesSet])
+
+	const excludeCategoryValue = React.useMemo(() => {
+		return categoryOptions.filter((option) => selectedExcludedCategoriesSet.has(option.value))
+	}, [categoryOptions, selectedExcludedCategoriesSet])
+
+	const hasActiveFilters =
+		selectedProtocols.length > 0 ||
+		selectedCategories.length > 0 ||
+		selectedExcludedCategories.length > 0 ||
+		selectedOracles.length > 0
+
+	const handleApply = () => {
+		const expandedProtocols = expandSelectedProtocols(selectedProtocols, parentToChildrenMap)
+		onFiltersChange({
+			protocols: expandedProtocols.length > 0 ? expandedProtocols : undefined,
+			categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+			excludedCategories: selectedExcludedCategories.length > 0 ? selectedExcludedCategories : undefined,
+			oracles: selectedOracles.length > 0 ? selectedOracles : undefined
+		})
+		onClose()
+	}
+
+	const handleClear = () => {
+		setSelectedProtocols([])
+		setSelectedCategories([])
+		setSelectedExcludedCategories([])
+		setSelectedOracles([])
+		onFiltersChange({})
+		onClose()
+	}
 
 	return (
-		<Ariakit.DialogProvider
-			open={isOpen}
-			setOpen={(open) => {
-				if (!open) onClose()
-			}}
-		>
+		<Ariakit.DialogProvider open={true} setOpen={(open) => (open ? undefined : onClose())}>
 			<Ariakit.Dialog
 				className="dialog max-h-[80dvh] w-full max-w-xl gap-0 rounded-md border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
 				unmountOnHide
@@ -230,15 +271,11 @@ export function ProtocolFilterModal({
 							isMulti
 							options={oracleOptions}
 							value={oraclesValue}
-							onChange={(sel: any) => {
-								setSelectedOracles(sel ? sel.map((s: any) => s.value) : [])
+							onChange={(selection) => {
+								setSelectedOracles(extractSelectedValues(selection))
 							}}
 							placeholder="Select oracles..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
-							components={{ MenuList: SimpleMenuList }}
+							styles={reactSelectStyles}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
 							menuPlacement="auto"
@@ -250,42 +287,32 @@ export function ProtocolFilterModal({
 							isMulti
 							options={includeCategoryOptions}
 							value={includeCategoryValue}
-							onChange={(sel: any) => {
-								setSelectedCategories(sel ? sel.map((s: any) => s.value) : [])
+							onChange={(selection) => {
+								setSelectedCategories(extractSelectedValues(selection))
 							}}
 							placeholder="Select categories to include..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
-							components={{ MenuList: SimpleMenuList }}
+							styles={reactSelectStyles}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
 							menuPlacement="auto"
 						/>
 					</div>
-
 					<div>
 						<label className="mb-2 block text-sm font-medium pro-text2">Exclude Categories</label>
 						<ReactSelect
 							isMulti
 							options={excludeCategoryOptions}
 							value={excludeCategoryValue}
-							onChange={(sel: any) => {
-								setSelectedExcludedCategories(sel ? sel.map((s: any) => s.value) : [])
+							onChange={(selection) => {
+								setSelectedExcludedCategories(extractSelectedValues(selection))
 							}}
 							placeholder="Select categories to exclude..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
-							components={{ MenuList: SimpleMenuList }}
+							styles={reactSelectStyles}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
 							menuPlacement="auto"
 						/>
 					</div>
-
 					<div>
 						<label className="mb-2 block text-sm font-medium pro-text2">
 							Protocols ({selectedProtocols.length} selected)
@@ -294,61 +321,18 @@ export function ProtocolFilterModal({
 							isMulti
 							options={protocolOptions}
 							value={protocolsValue}
-							onChange={(sel: any, action: any) => {
-								if (!action) {
-									setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])
-									return
-								}
-
-								const current = new Set(selectedProtocols)
-								const opt = action.option
-								const type = action.action
-
-								if (type === 'clear') {
-									setSelectedProtocols([])
-									return
-								}
-
-								if (!opt) {
-									setSelectedProtocols(sel ? sel.map((s: any) => s.value) : [])
-									return
-								}
-
-								const isChild = !!opt.isChild
-								if (type === 'select-option') {
-									if (isChild) {
-										current.add(opt.value)
-									} else {
-										const parentName = opt.label
-										const children = parentToChildrenMap.get(parentName)
-										if (children && children.length > 0) {
-											const allSelected = children.every((c) => current.has(c))
-											if (allSelected) {
-												for (const c of children) {
-													current.delete(c)
-												}
-											} else {
-												for (const c of children) {
-													current.add(c)
-												}
-											}
-										} else {
-											current.add(opt.value)
-										}
-									}
-								} else if (type === 'deselect-option' || type === 'remove-value') {
-									current.delete(opt.value)
-								}
-
-								setSelectedProtocols(Array.from(current))
+							onChange={(selection, actionMeta) => {
+								setSelectedProtocols((currentSelection) =>
+									resolveProtocolSelection({
+										selection,
+										actionMeta,
+										parentToChildrenMap,
+										currentSelection
+									})
+								)
 							}}
 							placeholder="Search and select protocols..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
-							components={{ Option: CustomProtocolOption, MenuList: VirtualizedMenuList }}
-							filterOption={createFilter({ ignoreAccents: false, ignoreCase: false })}
+							styles={reactSelectStyles}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
 						/>
@@ -360,6 +344,7 @@ export function ProtocolFilterModal({
 					style={{ backgroundColor: 'var(--pro-bg1)' }}
 				>
 					<button
+						type="button"
 						onClick={handleClear}
 						className="pro-text-dimmed px-4 py-2 text-sm transition-colors hover:pro-text1 disabled:opacity-50"
 						disabled={!hasActiveFilters}
@@ -371,6 +356,7 @@ export function ProtocolFilterModal({
 							Cancel
 						</Ariakit.DialogDismiss>
 						<button
+							type="button"
 							onClick={handleApply}
 							className="rounded-md bg-(--primary) px-4 py-2 text-sm text-white transition-colors hover:bg-(--primary-hover)"
 						>
@@ -380,5 +366,40 @@ export function ProtocolFilterModal({
 				</div>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
+	)
+}
+
+export function ProtocolFilterModal({
+	isOpen,
+	onClose,
+	protocols,
+	parentProtocols,
+	categories,
+	currentFilters,
+	onFiltersChange,
+	portalTarget: _portalTarget
+}: ProtocolFilterModalProps) {
+	const modalKey = React.useMemo(() => {
+		const filtersSnapshot = {
+			protocols: currentFilters.protocols ?? [],
+			categories: currentFilters.categories ?? [],
+			excludedCategories: currentFilters.excludedCategories ?? [],
+			oracles: currentFilters.oracles ?? []
+		}
+		return JSON.stringify(filtersSnapshot)
+	}, [currentFilters.categories, currentFilters.excludedCategories, currentFilters.oracles, currentFilters.protocols])
+
+	if (!isOpen) return null
+
+	return (
+		<ProtocolFilterDialogContent
+			key={modalKey}
+			onClose={onClose}
+			protocols={protocols}
+			parentProtocols={parentProtocols}
+			categories={categories}
+			currentFilters={currentFilters}
+			onFiltersChange={onFiltersChange}
+		/>
 	)
 }

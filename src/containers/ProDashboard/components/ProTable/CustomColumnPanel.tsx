@@ -1,7 +1,9 @@
+'use no memo'
+
 import { Parser } from 'expr-eval'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
+import { protocolsByChainTableColumns } from './useProTableColumns'
 
 interface CustomColumn {
 	id: string
@@ -49,12 +51,10 @@ export function CustomColumnPanel({
 	onRemoveCustomColumn,
 	onUpdateCustomColumn: _onUpdateCustomColumn
 }: CustomColumnPanelProps) {
+	const parser = React.useMemo(() => new Parser(), [])
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')
 	const [validationError, setValidationError] = React.useState('')
-	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({
-		isValid: true
-	})
 
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
@@ -208,7 +208,6 @@ export function CustomColumnPanel({
 		}
 
 		try {
-			const parser = new Parser()
 			const expr = parser.parse(expression)
 
 			// Test with dummy data to catch variable issues
@@ -220,10 +219,7 @@ export function CustomColumnPanel({
 			expr.evaluate(testData)
 			return { isValid: true }
 		} catch (error) {
-			let errorMsg = error.message
-			if (!errorMsg) {
-				errorMsg = 'Invalid expression'
-			}
+			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
 			return { isValid: false, error: errorMsg }
 		}
 	}
@@ -372,27 +368,20 @@ export function CustomColumnPanel({
 		}
 	}
 
-	// Live validation effect
-	React.useEffect(() => {
+	const liveValidation = React.useMemo((): { isValid: boolean; error?: string; result?: number } => {
 		if (!newColumnExpression.trim()) {
-			setLiveValidation({ isValid: true })
-			return
+			return { isValid: true }
 		}
 
 		try {
-			const parser = new Parser()
 			const expr = parser.parse(newColumnExpression)
 			const result = expr.evaluate(sampleData)
-			const validResult: number | undefined = typeof result === 'number' ? result : undefined
-			setLiveValidation({ isValid: true, result: validResult })
+			return typeof result === 'number' ? { isValid: true, result } : { isValid: true }
 		} catch (error) {
-			let errorMsg = error.message
-			if (!errorMsg) {
-				errorMsg = 'Invalid expression'
-			}
-			setLiveValidation({ isValid: false, error: errorMsg })
+			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
+			return { isValid: false, error: errorMsg }
 		}
-	}, [newColumnExpression, sampleData])
+	}, [newColumnExpression, parser, sampleData])
 
 	return (
 		<div
@@ -516,7 +505,7 @@ export function CustomColumnPanel({
 									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
 										<span className="text-green-700 dark:text-green-300">
-											{formatPreviewNumber(liveValidation.result || null)}
+											{formatPreviewNumber(liveValidation.result ?? null)}
 										</span>
 									) : (
 										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>

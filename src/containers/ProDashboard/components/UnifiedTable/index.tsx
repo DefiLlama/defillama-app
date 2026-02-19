@@ -1,3 +1,4 @@
+'use no memo'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { downloadCSV } from '~/utils'
@@ -311,6 +312,42 @@ function UnifiedTable({
 		})
 	}, [columnOrderState, columnVisibilityState, config, handleEditItem, isReadOnly, previewMode, sortingState])
 
+	const handleColumnOrderChange = useCallback(
+		(updater: ColumnOrderState | ((prev: ColumnOrderState) => ColumnOrderState)) => {
+			if (previewMode) {
+				const next = typeof updater === 'function' ? updater(effectiveColumnOrder) : updater
+				onPreviewColumnOrderChange?.(next)
+				return
+			}
+			setColumnOrderState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
+		},
+		[effectiveColumnOrder, onPreviewColumnOrderChange, previewMode]
+	)
+
+	const handleColumnVisibilityChange = useCallback(
+		(updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
+			if (previewMode) {
+				const next = typeof updater === 'function' ? updater(effectiveColumnVisibility) : updater
+				onPreviewColumnVisibilityChange?.(next)
+				return
+			}
+			setColumnVisibilityState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
+		},
+		[effectiveColumnVisibility, onPreviewColumnVisibilityChange, previewMode]
+	)
+
+	const handleSortingChange = useCallback(
+		(updater: SortingState | ((prev: SortingState) => SortingState)) => {
+			if (previewMode) {
+				const next = typeof updater === 'function' ? updater(effectiveSorting) : updater
+				onPreviewSortingChange?.(next)
+				return
+			}
+			setSortingState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
+		},
+		[effectiveSorting, onPreviewSortingChange, previewMode]
+	)
+
 	const unifiedTable = useUnifiedTable({
 		config: {
 			...config,
@@ -320,33 +357,9 @@ function UnifiedTable({
 		columnOrder: effectiveColumnOrder,
 		columnVisibility: effectiveColumnVisibility,
 		sorting: effectiveSorting,
-		onColumnOrderChange: (updater) => {
-			if (previewMode) {
-				const next = typeof updater === 'function' ? updater(effectiveColumnOrder) : (updater as ColumnOrderState)
-				onPreviewColumnOrderChange?.(next)
-				return
-			}
-
-			setColumnOrderState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
-		},
-		onColumnVisibilityChange: (updater) => {
-			if (previewMode) {
-				const next = typeof updater === 'function' ? updater(effectiveColumnVisibility) : (updater as VisibilityState)
-				onPreviewColumnVisibilityChange?.(next)
-				return
-			}
-
-			setColumnVisibilityState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
-		},
-		onSortingChange: (updater) => {
-			if (previewMode) {
-				const next = typeof updater === 'function' ? updater(effectiveSorting) : (updater as SortingState)
-				onPreviewSortingChange?.(next)
-				return
-			}
-
-			setSortingState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
-		}
+		onColumnOrderChange: handleColumnOrderChange,
+		onColumnVisibilityChange: handleColumnVisibilityChange,
+		onSortingChange: handleSortingChange
 	})
 	const rowCount = unifiedTable.table.getRowModel().rows.length
 	const expandedCount = Object.keys(unifiedTable.expanded).length
@@ -454,10 +467,10 @@ function UnifiedTable({
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
 	}, [config.customColumns, unifiedTable.table])
 
-	const handleCsvClick = () => {
+	const handleCsvClick = useCallback(() => {
 		if (!unifiedTable.leafRows.length) return
 		handleExportClick()
-	}
+	}, [handleExportClick, unifiedTable.leafRows.length])
 
 	const handleExportAtLevel = useCallback(
 		(level: CsvExportLevel) => {
@@ -513,6 +526,10 @@ function UnifiedTable({
 		onEdit?.('columns')
 	}, [isReadOnly, onEdit, onOpenColumnModal, previewMode])
 
+	const handleFiltersClick = useCallback(() => {
+		onEdit?.('filters')
+	}, [onEdit])
+
 	const canCustomizeColumns = Boolean(!previewMode && !isReadOnly && (onOpenColumnModal || onEdit))
 
 	return (
@@ -534,7 +551,7 @@ function UnifiedTable({
 				onClearFilters={canEditFilters ? handleClearFilters : undefined}
 				filtersEditable={canEditFilters}
 				activeFilterCount={activeFilterCount}
-				onFiltersClick={onEdit ? () => onEdit('filters') : undefined}
+				onFiltersClick={canEditFilters && onEdit ? handleFiltersClick : undefined}
 				groupingOptions={PROTOCOL_GROUPING_HEADERS}
 				selectedGroupingId={selectedGroupingId}
 				onGroupingChange={canEditGrouping ? handleGroupingChange : undefined}

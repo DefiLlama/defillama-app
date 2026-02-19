@@ -1,5 +1,7 @@
-import { flexRender, type Table } from '@tanstack/react-table'
-import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+'use no memo'
+
+import { flexRender, type Header, type Table } from '@tanstack/react-table'
+import type { IProtocolRow } from './proTable.types'
 import { ReorderableHeader } from './ReorderableHeader'
 
 interface TableBodyProps {
@@ -22,6 +24,14 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 			</div>
 		)
 	}
+
+	const getSortableColumn = (header: Header<IProtocolRow, unknown>) => {
+		if (header.column.getCanSort()) return header.column
+		const firstSortableLeaf = header.column.getLeafColumns().find((leafColumn) => leafColumn.getCanSort())
+		return firstSortableLeaf ?? null
+	}
+
+	const rows = table.getRowModel().rows
 
 	return (
 		<div
@@ -53,9 +63,9 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 										{header.isPlaceholder ? null : (
 											<ReorderableHeader
 												columnId={header.column.id}
-												canSort={header.column.getCanSort()}
-												isSorted={header.column.getIsSorted()}
-												onSort={() => header.column.toggleSorting()}
+												canSort={getSortableColumn(header) !== null}
+												isSorted={getSortableColumn(header)?.getIsSorted() ?? false}
+												onSort={() => getSortableColumn(header)?.toggleSorting()}
 												onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
 												onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
 												canMoveUp={!isFirst}
@@ -71,7 +81,7 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 					))}
 				</thead>
 				<tbody>
-					{table.getRowModel().rows.length === 0 ? (
+					{rows.length === 0 ? (
 						<tr>
 							<td colSpan={table.getAllLeafColumns().length} className="py-8 text-center">
 								{isLoading ? (
@@ -85,7 +95,7 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 							</td>
 						</tr>
 					) : (
-						table.getRowModel().rows.map((row) => (
+						rows.map((row) => (
 							<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
 								{row.getVisibleCells().map((cell, cellIndex) => (
 									<td

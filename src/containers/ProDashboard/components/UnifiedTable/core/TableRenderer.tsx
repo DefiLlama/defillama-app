@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { Table } from '@tanstack/react-table'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import type { NormalizedRow } from '../types'

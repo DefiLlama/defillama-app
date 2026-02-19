@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { Column, Row, Table } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType } from '../../../types'
 import { getAggregationContextFromRow, getRowDisplayProps, getRowHeaderFromGroupingColumn } from '../core/groupingUtils'

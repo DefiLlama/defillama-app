@@ -1,4 +1,8 @@
+'use no memo'
+
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
+import { Parser } from 'expr-eval'
+import * as React from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
@@ -10,10 +14,332 @@ import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
-import type { IProtocolRow } from './types'
+import type { TableFilters } from '../../types'
+import { SHARE_METRIC_DEFINITIONS, USD_METRIC_KEYS } from './proTable.constants'
+import type { IProtocolRow, CustomColumn } from './proTable.types'
+
+export enum TABLE_CATEGORIES {
+	FEES = 'Fees',
+	REVENUE = 'Revenue',
+	VOLUME = 'Volume',
+	TVL = 'TVL'
+}
+
+enum TABLE_PERIODS {
+	ONE_DAY = '1d',
+	SEVEN_DAYS = '7d',
+	ONE_MONTH = '1m'
+}
+
+export const protocolsByChainTableColumns = [
+	{ name: 'Name', key: 'name' },
+	{ name: 'Category', key: 'category' },
+	{ name: 'Oracles', key: 'oracles' },
+	{ name: 'Chains', key: 'chains' },
+	{ name: 'TVL', key: 'tvl', category: TABLE_CATEGORIES.TVL },
+	{ name: 'TVL 1d change', key: 'change_1d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'TVL 7d change', key: 'change_7d', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'TVL 1m change', key: 'change_1m', category: TABLE_CATEGORIES.TVL, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Market Cap', key: 'mcap', category: TABLE_CATEGORIES.TVL },
+	{ name: 'Mcap/TVL', key: 'mcaptvl', category: TABLE_CATEGORIES.TVL },
+	{ name: 'Fees 24h', key: 'fees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Fees 7d', key: 'fees_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Fees 30d', key: 'fees_30d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Fees 1y', key: 'fees_1y', category: TABLE_CATEGORIES.FEES },
+	{
+		name: 'Monthly Avg 1Y Fees',
+		key: 'average_1y',
+		category: TABLE_CATEGORIES.FEES
+	},
+	{ name: 'Fees Change 1d', key: 'feesChange_1d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Fees Change 7d', key: 'feesChange_7d', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Fees Change 1m', key: 'feesChange_1m', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Fees Change 7d (vs prev 7d)',
+		key: 'feesChange_7dover7d',
+		category: TABLE_CATEGORIES.FEES,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Fees Change 30d',
+		key: 'feesChange_30dover30d',
+		category: TABLE_CATEGORIES.FEES,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Revenue 24h', key: 'revenue_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Revenue 7d', key: 'revenue_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Revenue 30d', key: 'revenue_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
+	{ name: 'Revenue 1y', key: 'revenue_1y', category: TABLE_CATEGORIES.REVENUE },
+	{
+		name: 'Monthly Avg 1Y Rev',
+		key: 'average_revenue_1y',
+		category: TABLE_CATEGORIES.REVENUE
+	},
+	{
+		name: 'Revenue Change 1d',
+		key: 'revenueChange_1d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Revenue Change 7d',
+		key: 'revenueChange_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Revenue Change 1m',
+		key: 'revenueChange_1m',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Revenue Change 7d (vs prev 7d)',
+		key: 'revenueChange_7dover7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Revenue Change 30d',
+		key: 'revenueChange_30dover30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'User Fees 24h', key: 'userFees_24h', category: TABLE_CATEGORIES.FEES, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Cumulative Fees', key: 'cumulativeFees', category: TABLE_CATEGORIES.FEES },
+	{
+		name: 'Holders Revenue 24h',
+		key: 'holderRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Holders Revenue 30d',
+		key: 'holdersRevenue30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Treasury Revenue 24h',
+		key: 'treasuryRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Supply Side Revenue 24h',
+		key: 'supplySideRevenue_24h',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{ name: 'P/S', key: 'ps', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'P/F', key: 'pf', category: TABLE_CATEGORIES.FEES },
+	{ name: 'Earnings 24h', key: 'earnings_24h', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_DAY },
+	{
+		name: 'Earnings Change 1d',
+		key: 'earningsChange_1d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{ name: 'Earnings 7d', key: 'earnings_7d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.SEVEN_DAYS },
+	{
+		name: 'Earnings Change 7d',
+		key: 'earningsChange_7d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{ name: 'Earnings 30d', key: 'earnings_30d', category: TABLE_CATEGORIES.REVENUE, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Earnings Change 1m',
+		key: 'earningsChange_1m',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Earnings 1y', key: 'earnings_1y', category: TABLE_CATEGORIES.REVENUE },
+	{ name: 'Spot Volume 24h', key: 'volume_24h', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_DAY },
+	{ name: 'Spot Volume 7d', key: 'volume_7d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.SEVEN_DAYS },
+	{ name: 'Spot Volume 30d', key: 'volume_30d', category: TABLE_CATEGORIES.VOLUME, period: TABLE_PERIODS.ONE_MONTH },
+	{
+		name: 'Spot Volume Change 1d',
+		key: 'volumeChange_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Spot Volume Change 7d',
+		key: 'volumeChange_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Spot Volume Change 1m',
+		key: 'volumeChange_1m',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Spot Cumulative Volume', key: 'cumulativeVolume', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Spot Volume % Share 24h', key: 'volumeDominance_24h', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Spot Volume % Share 7d', key: 'volumeMarketShare7d', category: TABLE_CATEGORIES.VOLUME },
+	{
+		name: 'DEX Agg Volume 24h',
+		key: 'aggregators_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume Change 1d',
+		key: 'aggregators_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume 7d',
+		key: 'aggregators_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'DEX Agg Volume Change 7d',
+		key: 'aggregators_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'DEX Agg Volume 30d',
+		key: 'aggregators_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'DEX Agg Volume % 24h',
+		key: 'aggregators_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'DEX Agg Volume % 7d',
+		key: 'aggregators_volume_marketShare7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume 24h',
+		key: 'bridge_aggregators_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Bridge Agg Volume Change 1d',
+		key: 'bridge_aggregators_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Bridge Agg Volume 7d',
+		key: 'bridge_aggregators_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume Change 7d',
+		key: 'bridge_aggregators_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Bridge Agg Volume 30d',
+		key: 'bridge_aggregators_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Bridge Agg Volume % 24h',
+		key: 'bridge_aggregators_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume 24h',
+		key: 'options_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume Change 1d',
+		key: 'options_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Options Volume 7d',
+		key: 'options_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Options Volume Change 7d',
+		key: 'options_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Options Volume 30d',
+		key: 'options_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Options Volume % 24h',
+		key: 'options_volume_dominance_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume 24h',
+		key: 'perps_volume_24h',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume 7d',
+		key: 'perps_volume_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Perp Volume 30d',
+		key: 'perps_volume_30d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{
+		name: 'Perp Volume Change 1d',
+		key: 'perps_volume_change_1d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_DAY
+	},
+	{
+		name: 'Perp Volume Change 7d',
+		key: 'perps_volume_change_7d',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.SEVEN_DAYS
+	},
+	{
+		name: 'Perp Volume Change 1m',
+		key: 'perps_volume_change_1m',
+		category: TABLE_CATEGORIES.VOLUME,
+		period: TABLE_PERIODS.ONE_MONTH
+	},
+	{ name: 'Perp Volume % Share 24h', key: 'perps_volume_dominance_24h', category: TABLE_CATEGORIES.VOLUME },
+	{ name: 'Open Interest', key: 'openInterest', category: TABLE_CATEGORIES.VOLUME },
+	{
+		name: 'Holders Revenue 30d Change',
+		key: 'holdersRevenueChange_30dover30d',
+		category: TABLE_CATEGORIES.REVENUE,
+		period: TABLE_PERIODS.ONE_MONTH
+	}
+]
 
 const whiteLabeledVaultProviders = new Set(['Veda'])
-
 const columnHelper = createColumnHelper<IProtocolRow>()
 
 const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
@@ -27,7 +353,6 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-// TODO move to containers/ProDashboard/components/ProTable/columns.tsx
 export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		id: 'name',
@@ -54,12 +379,12 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 							{row.getIsExpanded() ? (
 								<>
 									<Icon name="chevron-down" height={16} width={16} />
-									<span className="sr-only">View child protocols</span>
+									<span className="sr-only">Hide child protocols</span>
 								</>
 							) : (
 								<>
 									<Icon name="chevron-right" height={16} width={16} />
-									<span className="sr-only">Hide child protocols</span>
+									<span className="sr-only">View child protocols</span>
 								</>
 							)}
 						</button>
@@ -93,11 +418,11 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
-					{value === 'SyncDEX Finance' && (
+					{value === 'SyncDEX Finance' ? (
 						<Tooltip content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip>
-					)}
+					) : null}
 				</span>
 			)
 		},
@@ -219,7 +544,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 140
 			}),
-
 			columnHelper.accessor('mcaptvl', {
 				header: 'Mcap/TVL',
 				cell: (info) => {
@@ -235,7 +559,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		],
 		meta: { headerHelperText: 'Value of all coins held in smart contracts of the protocol' }
 	}),
-
 	columnHelper.group({
 		id: 'earnings',
 		header: 'Earnings',
@@ -508,15 +831,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 				},
 				size: 180
 			}),
-			// columnHelper.accessor('userFees_24h', {
-			// 	header: 'User Fees 24h',
-			// 	cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			// 	meta: {
-			// 		align: 'end',
-			// 		headerHelperText: 'Fees paid by users in the last 24 hours'
-			// 	},
-			// 	size: 140
-			// }),
 			columnHelper.accessor('cumulativeFees', {
 				header: 'Cumulative Fees',
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
@@ -743,7 +1057,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			headerHelperText: definitions.perps.common
 		}
 	}),
-
 	columnHelper.group({
 		id: 'aggregators',
 		header: 'DEX Aggregators',
@@ -802,7 +1115,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			headerHelperText: definitions.dexAggregators.common
 		}
 	}),
-
 	columnHelper.group({
 		id: 'bridge-aggregators',
 		header: 'Bridge Aggregators',
@@ -854,7 +1166,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			headerHelperText: definitions.bridgeAggregators.common
 		}
 	}),
-
 	columnHelper.group({
 		id: 'options-volume',
 		header: 'Options Volume',
@@ -906,7 +1217,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 			headerHelperText: definitions.optionsPremium.common
 		}
 	}),
-
 	columnHelper.accessor('openInterest', {
 		header: 'Open Interest',
 		cell: (info) => {
@@ -920,7 +1230,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 140
 	}) as ColumnDef<IProtocolRow>,
-
 	columnHelper.accessor('holdersRevenueChange_30dover30d', {
 		header: 'Holders Revenue 30d Change',
 		cell: ({ getValue }) => <>{getValue() || getValue() === 0 ? renderPercentChange(getValue()) : null}</>,
@@ -931,7 +1240,6 @@ export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		},
 		size: 200
 	}) as ColumnDef<IProtocolRow>,
-
 	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
 		cell: ({ getValue }) => {
@@ -955,7 +1263,6 @@ type ProtocolTvlRow = IProtocolRow & {
 const ProtocolTvlCell = ({ value, rowValues }: { value: unknown; rowValues: ProtocolTvlRow }) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 	const tvlValue = typeof value === 'number' ? value : null
-
 	let text: string | null = null
 
 	if (rowValues.strikeTvl) {
@@ -963,26 +1270,21 @@ const ProtocolTvlCell = ({ value, rowValues }: { value: unknown; rowValues: Prot
 			text =
 				'This protocol deposits into another protocol and is subtracted from total TVL because "Double Count" toggle is off'
 		}
-
 		if (!extraTvlsEnabled['liquidstaking']) {
 			text =
 				'This protocol is under Liquid Staking category and is subtracted from total TVL because "Liquid Staking" toggle is off'
 		}
-
 		if (!extraTvlsEnabled['doublecounted'] && !extraTvlsEnabled['liquidstaking']) {
 			text =
 				'This protocol deposits into another protocol or is under Liquid Staking category, so it is subtracted from total TVL because both "Liquid Staking" and "Double Count" toggles are off'
 		}
-
 		if (whiteLabeledVaultProviders.has(rowValues.name)) {
 			text =
 				'This protocol issues white-labeled vaults which may result in TVL being counted by another protocol (e.g., double counted).'
 		}
-
 		if (rowValues.category && removedCategoriesFromChainTvlSet.has(rowValues.category)) {
 			text = `${rowValues.category} protocols are not counted into Chain TVL`
 		}
-
 		if (text && rowValues.isParentProtocol) {
 			text = 'Some sub-protocols are excluded from chain tvl'
 		}
@@ -1009,4 +1311,262 @@ const ProtocolTvlCell = ({ value, rowValues }: { value: unknown; rowValues: Prot
 			</span>
 		</span>
 	)
+}
+
+type UseProTableColumnsParams = {
+	customColumns: CustomColumn[]
+	protocols: IProtocolRow[]
+	filters?: TableFilters
+	onFilterClick?: () => void
+}
+
+type UseProTableColumnsResult = {
+	allColumns: ColumnDef<IProtocolRow>[]
+	allLeafColumnIds: string[]
+}
+
+const toNumber = (value: unknown): number | null => {
+	if (typeof value === 'number' && Number.isFinite(value)) return value
+	if (typeof value === 'string') {
+		const parsed = Number.parseFloat(value)
+		if (Number.isFinite(parsed)) return parsed
+	}
+	return null
+}
+
+const formatCurrencyShort = (value: number): string => {
+	const abs = Math.abs(value)
+	if (abs >= 1e9) return `$${(value / 1e9).toFixed(2)}B`
+	if (abs >= 1e6) return `$${(value / 1e6).toFixed(2)}M`
+	if (abs >= 1e3) return `$${(value / 1e3).toFixed(2)}K`
+	return `$${value.toFixed(2)}`
+}
+
+const collectLeafColumnIds = (columns: ColumnDef<IProtocolRow>[]): string[] => {
+	const ids: string[] = []
+	const visit = (nextColumns: ColumnDef<IProtocolRow>[]) => {
+		for (const column of nextColumns) {
+			const nested = Reflect.get(column, 'columns')
+			if (Array.isArray(nested) && nested.length > 0) {
+				visit(nested)
+				continue
+			}
+			const id = Reflect.get(column, 'id')
+			if (typeof id === 'string' && id.length > 0) {
+				ids.push(id)
+				continue
+			}
+			const accessorKey = Reflect.get(column, 'accessorKey')
+			if (typeof accessorKey === 'string' && accessorKey.length > 0) {
+				ids.push(accessorKey)
+			}
+		}
+	}
+	visit(columns)
+	return Array.from(new Set(ids))
+}
+
+const hasAnyActiveFilters = (filters?: TableFilters): boolean => {
+	if (!filters) return false
+	return (
+		(filters.protocols?.length ?? 0) > 0 ||
+		(filters.categories?.length ?? 0) > 0 ||
+		(filters.excludedCategories?.length ?? 0) > 0 ||
+		(filters.oracles?.length ?? 0) > 0
+	)
+}
+
+export function useProTableColumns({
+	customColumns,
+	protocols,
+	filters,
+	onFilterClick
+}: UseProTableColumnsParams): UseProTableColumnsResult {
+	const customColumnDefs = React.useMemo(() => {
+		const parser = new Parser()
+		const compiledColumns = customColumns
+			.filter((column) => column.isValid)
+			.map((column) => {
+				try {
+					return { column, expression: parser.parse(column.expression) }
+				} catch {
+					return null
+				}
+			})
+			.filter((value): value is { column: CustomColumn; expression: ReturnType<Parser['parse']> } => value !== null)
+
+		return compiledColumns.map(
+			(compiled): ColumnDef<IProtocolRow> => ({
+				id: compiled.column.id,
+				header: compiled.column.name,
+				accessorFn: (row) => {
+					const context: Record<string, number> = {}
+					for (const baseColumn of protocolsByChainTableColumns) {
+						const value = Reflect.get(row, baseColumn.key)
+						const numericValue = toNumber(value)
+						if (numericValue !== null) {
+							context[baseColumn.key] = numericValue
+						}
+					}
+					try {
+						const result = compiled.expression.evaluate(context)
+						return typeof result === 'number' && Number.isFinite(result) ? result : null
+					} catch {
+						return null
+					}
+				},
+				cell: ({ getValue }) => {
+					const value = getValue()
+					return typeof value === 'number' ? formatCurrencyShort(value) : '-'
+				},
+				sortingFn: (rowA, rowB, columnId) => {
+					const valueA = rowA.getValue(columnId)
+					const valueB = rowB.getValue(columnId)
+					const numberA = typeof valueA === 'number' ? valueA : null
+					const numberB = typeof valueB === 'number' ? valueB : null
+					if (numberA === null && numberB === null) return 0
+					if (numberA === null) return 1
+					if (numberB === null) return -1
+					return numberA - numberB
+				}
+			})
+		)
+	}, [customColumns])
+
+	const totals = React.useMemo(() => {
+		const nextTotals: Record<string, number> = {}
+		for (const metric of USD_METRIC_KEYS) {
+			nextTotals[metric] = 0
+		}
+		for (const protocol of protocols) {
+			for (const metric of USD_METRIC_KEYS) {
+				const value = Reflect.get(protocol, metric)
+				if (typeof value === 'number' && value > 0) {
+					nextTotals[metric] += value
+				}
+			}
+		}
+		return nextTotals
+	}, [protocols])
+
+	const percentageShareColumns = React.useMemo(() => {
+		return SHARE_METRIC_DEFINITIONS.map(
+			(metric): ColumnDef<IProtocolRow> => ({
+				id: `${metric.key}_share`,
+				header: metric.name,
+				accessorFn: (row) => {
+					const value = Reflect.get(row, metric.key)
+					const total = totals[metric.key]
+					if (typeof value === 'number' && value > 0 && typeof total === 'number' && total > 0) {
+						return (value / total) * 100
+					}
+					return null
+				},
+				cell: ({ getValue }) => {
+					const value = getValue()
+					return typeof value === 'number' ? `${value.toFixed(2)}%` : ''
+				}
+			})
+		)
+	}, [totals])
+
+	const columnsWithFilter = React.useMemo(() => {
+		if (!onFilterClick) {
+			return { name: null, category: null, oracles: null }
+		}
+
+		const activeFilters = hasAnyActiveFilters(filters)
+		const filterButtonClassName = activeFilters
+			? 'rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) text-pro-blue-400 dark:text-pro-blue-200'
+			: 'rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) text-(--text-tertiary)'
+
+		const renderFilterButton = (key: string) => (
+			<button
+				key={key}
+				type="button"
+				onClick={(event) => {
+					event.stopPropagation()
+					onFilterClick()
+				}}
+				className={filterButtonClassName}
+				title="Filter protocols"
+			>
+				<Icon name="settings" height={14} width={14} />
+			</button>
+		)
+
+		const originalNameColumn = protocolsByChainColumns.find((column) => column.id === 'name')
+		const originalCategoryColumn = protocolsByChainColumns.find((column) => column.id === 'category')
+		const originalOraclesColumn = protocolsByChainColumns.find((column) => column.id === 'oracles')
+
+		const nameColumn =
+			originalNameColumn === undefined
+				? null
+				: {
+						...originalNameColumn,
+						id: 'name',
+						header: () => (
+							<div className="flex items-center gap-2">
+								<span>Name</span>
+								{renderFilterButton('name-filter')}
+							</div>
+						)
+					}
+
+		const categoryColumn =
+			originalCategoryColumn === undefined
+				? null
+				: {
+						...originalCategoryColumn,
+						id: 'category',
+						header: () => (
+							<div className="flex items-center justify-end gap-2">
+								<span>Category</span>
+								{renderFilterButton('category-filter')}
+							</div>
+						)
+					}
+
+		const oraclesColumn =
+			originalOraclesColumn === undefined
+				? null
+				: {
+						...originalOraclesColumn,
+						id: 'oracles',
+						header: () => (
+							<div className="flex items-center justify-end gap-2">
+								<span>Oracles</span>
+								{renderFilterButton('oracles-filter')}
+							</div>
+						)
+					}
+
+		return { name: nameColumn, category: categoryColumn, oracles: oraclesColumn }
+	}, [filters, onFilterClick])
+
+	const allColumns = React.useMemo(() => {
+		const baseColumns = [...protocolsByChainColumns]
+		if (columnsWithFilter.name !== null) {
+			const index = baseColumns.findIndex((column) => column.id === 'name')
+			if (index !== -1) {
+				baseColumns[index] = columnsWithFilter.name
+			}
+		}
+		if (columnsWithFilter.category !== null) {
+			const index = baseColumns.findIndex((column) => column.id === 'category')
+			if (index !== -1) {
+				baseColumns[index] = columnsWithFilter.category
+			}
+		}
+		if (columnsWithFilter.oracles !== null) {
+			const index = baseColumns.findIndex((column) => column.id === 'oracles')
+			if (index !== -1) {
+				baseColumns[index] = columnsWithFilter.oracles
+			}
+		}
+		return [...baseColumns, ...customColumnDefs, ...percentageShareColumns]
+	}, [columnsWithFilter, customColumnDefs, percentageShareColumns])
+
+	const allLeafColumnIds = React.useMemo(() => collectLeafColumnIds(allColumns), [allColumns])
+	return { allColumns, allLeafColumnIds }
 }

@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+'use no memo'
+
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { UnifiedRowHeaderType } from '../../../types'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -20,11 +22,19 @@ interface CsvExportDropdownProps {
 	disabled: boolean
 }
 
-export function CsvExportDropdown({ rowHeaders, onExport, isLoading, disabled }: CsvExportDropdownProps) {
+export const CsvExportDropdown = memo(function CsvExportDropdown({
+	rowHeaders,
+	onExport,
+	isLoading,
+	disabled
+}: CsvExportDropdownProps) {
 	const [isOpen, setIsOpen] = useState(false)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 
-	const exportOptions: CsvExportLevel[] = ['all', ...rowHeaders.filter((h) => h !== 'protocol')]
+	const exportOptions = useMemo<CsvExportLevel[]>(
+		() => ['all', ...rowHeaders.filter((header): header is Exclude<UnifiedRowHeaderType, 'protocol'> => header !== 'protocol')],
+		[rowHeaders]
+	)
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -42,15 +52,18 @@ export function CsvExportDropdown({ rowHeaders, onExport, isLoading, disabled }:
 		}
 	}, [isOpen])
 
-	const handleOptionClick = (level: CsvExportLevel) => {
-		setIsOpen(false)
-		onExport(level)
-	}
+	const handleOptionClick = useCallback(
+		(level: CsvExportLevel) => {
+			setIsOpen(false)
+			onExport(level)
+		},
+		[onExport]
+	)
 
-	const handleButtonClick = () => {
+	const handleButtonClick = useCallback(() => {
 		if (disabled) return
 		setIsOpen((prev) => !prev)
-	}
+	}, [disabled])
 
 	return (
 		<div ref={dropdownRef} className="relative">
@@ -78,4 +91,4 @@ export function CsvExportDropdown({ rowHeaders, onExport, isLoading, disabled }:
 			)}
 		</div>
 	)
-}
+})

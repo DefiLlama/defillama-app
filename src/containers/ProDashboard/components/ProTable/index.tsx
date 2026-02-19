@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+'use no memo'
+import { useCallback, useMemo, useState } from 'react'
 import { useProDashboardEditorActions } from '../../ProDashboardAPIContext'
 import type { TableFilters } from '../../types'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
+import type { CustomColumn } from './proTable.types'
 import { ProtocolFilterModal } from './ProtocolFilterModal'
 import { TableBody } from './TableBody'
 import { TableHeader } from './TableHeader'
@@ -25,16 +27,37 @@ export function ProtocolsByChainTable({
 	filters?: TableFilters
 	columnOrder?: string[]
 	columnVisibility?: Record<string, boolean>
-	customColumns?: any[]
+	customColumns?: CustomColumn[]
 	activeViewId?: string
 	activePresetId?: string
 }) {
 	const { handleTableFiltersChange, handleTableColumnsChange } = useProDashboardEditorActions()
 	const [showFilterModal, setShowFilterModal] = useState(false)
-	const chainsKey = chains.join(',')
-	// oxlint-disable-next-line react/exhaustive-deps
-	const memoizedChains = useMemo(() => chains, [chainsKey])
-	const proDashboardElement = typeof window !== 'undefined' ? document.querySelector('.pro-dashboard') : null
+	const portalTarget = useMemo(() => {
+		if (typeof window === 'undefined') return null
+		const proDashboardElement = document.querySelector('.pro-dashboard')
+		return proDashboardElement instanceof HTMLElement ? proDashboardElement : null
+	}, [])
+
+	const handleColumnsChange = useCallback(
+		(
+			newColumnOrder: string[],
+			newColumnVisibility: Record<string, boolean>,
+			newCustomColumns?: CustomColumn[],
+			newActiveViewId?: string,
+			newActivePresetId?: string
+		) => {
+			handleTableColumnsChange(
+				tableId,
+				newColumnOrder,
+				newColumnVisibility,
+				newCustomColumns,
+				newActiveViewId,
+				newActivePresetId
+			)
+		},
+		[handleTableColumnsChange, tableId]
+	)
 
 	const {
 		table,
@@ -64,27 +87,25 @@ export function ProtocolsByChainTable({
 		saveCustomView,
 		deleteCustomView,
 		loadCustomView
-	} = useProTable(memoizedChains, filters, () => setShowFilterModal(true), {
+	} = useProTable(chains, filters, () => setShowFilterModal(true), {
 		initialColumnOrder: columnOrder,
 		initialColumnVisibility: columnVisibility,
 		initialCustomColumns: customColumns,
 		initialActiveViewId: activeViewId,
 		initialActivePresetId: activePresetId,
-		onColumnsChange: (newColumnOrder, newColumnVisibility, newCustomColumns, newActiveViewId, newActivePresetId) => {
-			handleTableColumnsChange(
-				tableId,
-				newColumnOrder,
-				newColumnVisibility,
-				newCustomColumns,
-				newActiveViewId,
-				newActivePresetId
-			)
-		}
+		onColumnsChange: handleColumnsChange
 	})
 
-	const handleFiltersChange = (newFilters: TableFilters) => {
-		handleTableFiltersChange(tableId, newFilters)
-	}
+	const handleFiltersChange = useCallback(
+		(newFilters: TableFilters) => {
+			handleTableFiltersChange(tableId, newFilters)
+		},
+		[handleTableFiltersChange, tableId]
+	)
+
+	const handleCloseFilterModal = useCallback(() => {
+		setShowFilterModal(false)
+	}, [])
 
 	return (
 		<div className="flex h-full w-full flex-col overflow-hidden p-2 sm:p-4">
@@ -101,9 +122,6 @@ export function ProtocolsByChainTable({
 				onSaveView={saveCustomView}
 				onLoadView={loadCustomView}
 				onDeleteView={deleteCustomView}
-				currentColumns={currentColumns}
-				columnOrder={currentColumnOrder}
-				customColumns={currentCustomColumns}
 			/>
 
 			<ColumnManagementPanel
@@ -131,18 +149,18 @@ export function ProtocolsByChainTable({
 
 			<TablePagination table={table} />
 
-			{proDashboardElement && (
+			{portalTarget ? (
 				<ProtocolFilterModal
 					isOpen={showFilterModal}
-					onClose={() => setShowFilterModal(false)}
+					onClose={handleCloseFilterModal}
 					protocols={availableProtocols}
-					parentProtocols={parentProtocols as any}
+					parentProtocols={parentProtocols}
 					categories={categories}
 					currentFilters={filters || {}}
 					onFiltersChange={handleFiltersChange}
-					portalTarget={proDashboardElement as HTMLElement}
+					portalTarget={portalTarget}
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }

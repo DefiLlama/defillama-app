@@ -1,3 +1,5 @@
+'use no memo'
+
 import { getPercentChange } from '~/utils'
 import type { NormalizedRow, NumericMetrics } from '../types'
 

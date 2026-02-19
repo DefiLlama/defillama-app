@@ -1,4 +1,7 @@
+'use no memo'
+
 import type { Table } from '@tanstack/react-table'
+import * as React from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import type { NormalizedRow } from '../types'
 
@@ -10,14 +13,41 @@ const PAGE_SIZES = ['10', '30', '50'] as const
 const PAGINATION_VALUES = ['Previous', 'Next'] as const
 
 export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
-	if (!table.getCanPreviousPage() && !table.getCanNextPage()) {
+	const canPreviousPage = table.getCanPreviousPage()
+	const canNextPage = table.getCanNextPage()
+	const pageSize = String(table.getState().pagination.pageSize)
+
+	const disabledValues = React.useMemo(() => {
+		const values: string[] = []
+		if (!canPreviousPage) values.push('Previous')
+		if (!canNextPage) values.push('Next')
+		return values
+	}, [canNextPage, canPreviousPage])
+
+	const handlePageSizeChange = React.useCallback(
+		(val: string) => {
+			table.setPageSize(Number(val))
+		},
+		[table]
+	)
+
+	const handlePaginationChange = React.useCallback(
+		(val: string) => {
+			if (val === 'Next') {
+				if (canNextPage) table.nextPage()
+				return
+			}
+			if (canPreviousPage) {
+				table.previousPage()
+			}
+		},
+		[canNextPage, canPreviousPage, table]
+	)
+
+	if (!canPreviousPage && !canNextPage) {
 		return (
 			<div className="mt-2 flex w-full items-center justify-end">
-				<TagGroup
-					selectedValue={String(table.getState().pagination.pageSize)}
-					values={PAGE_SIZES}
-					setValue={(val) => table.setPageSize(Number(val))}
-				/>
+				<TagGroup selectedValue={pageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 			</div>
 		)
 	}
@@ -26,16 +56,13 @@ export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 		<div className="mt-2 flex w-full items-center justify-between">
 			<TagGroup
 				selectedValue={null}
-				setValue={(val) => (val === 'Next' ? table.nextPage() : table.previousPage())}
+				setValue={handlePaginationChange}
 				values={PAGINATION_VALUES}
+				disabledValues={disabledValues}
 			/>
 			<div className="flex items-center">
 				<div className="mr-2 text-xs">Per page</div>
-				<TagGroup
-					selectedValue={String(table.getState().pagination.pageSize)}
-					values={PAGE_SIZES}
-					setValue={(val) => table.setPageSize(Number(val))}
-				/>
+				<TagGroup selectedValue={pageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 			</div>
 		</div>
 	)

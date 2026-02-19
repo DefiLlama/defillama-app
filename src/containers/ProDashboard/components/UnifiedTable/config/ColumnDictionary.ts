@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { MetricGroup } from '../types'
 
 type ColumnRenderType =

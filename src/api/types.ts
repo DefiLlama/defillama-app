@@ -1,5 +1,6 @@
 import type { IRaise } from '~/containers/ProtocolOverview/api.types'
-import type { IJSON } from './categories/adaptors/types'
+
+type IJSON<T> = { [key: string]: T }
 
 interface Protocol {
 	id: string

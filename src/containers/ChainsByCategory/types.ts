@@ -104,3 +104,40 @@ export interface IChainsByCategoryData {
 	description: string
 	keywords: string
 }
+
+interface IFormattedChainAssetsSummary {
+	total: string | number
+	ownTokens: string | null
+	canonical: string | null
+	native: string | null
+	thirdParty: string | null
+}
+
+type ChainAssetsField = IFormattedChainAssetsSummary | IChainAsset | null
+
+export interface IFormattedDataWithExtraTvl {
+	chainAssets?: ChainAssetsField
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	mcap: number | null
+	mcaptvl: number | null
+	name: string
+	subRows?: Array<{
+		chainAssets?: ChainAssetsField
+		tvl: number
+		tvlPrevDay: number
+		tvlPrevWeek: number
+		tvlPrevMonth: number
+		change_1d: number | null
+		change_7d: number | null
+		change_1m: number | null
+		mcap: number | null
+		mcaptvl: number | null
+		name: string
+	}>
+}
