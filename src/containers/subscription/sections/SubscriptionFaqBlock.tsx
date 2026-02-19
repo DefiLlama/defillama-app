@@ -3,7 +3,7 @@ import { Icon } from '~/components/Icon'
 import type { FaqItem } from '~/containers/subscription/types'
 
 export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
-	const [expandedQuestion, setExpandedQuestion] = useState<string | null>(faqItems[0]?.question ?? null)
+	const [expandedIndex, setExpandedIndex] = useState<number | null>(0)
 
 	return (
 		<div className="mt-16 w-full md:mt-32 md:w-[384px]">
@@ -14,11 +14,11 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 				{faqItems.map((item, index) => {
 					const questionId = `subscription-faq-question-${index}`
 					const answerId = `subscription-faq-answer-${index}`
-					const isExpanded = expandedQuestion === item.question
+					const isExpanded = expandedIndex === index
 
 					return (
 						<div
-							key={item.question}
+							key={index}
 							className="border-b border-(--sub-mobile-table-border) py-4 md:border-(--sub-desktop-table-border) md:py-0 md:pb-4"
 						>
 							<button
@@ -26,7 +26,7 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 								id={questionId}
 								aria-expanded={isExpanded}
 								aria-controls={answerId}
-								onClick={() => setExpandedQuestion(isExpanded ? null : item.question)}
+								onClick={() => setExpandedIndex(isExpanded ? null : index)}
 								className="flex w-full items-center justify-between gap-4 text-left"
 							>
 								<p className="text-[12px] leading-4 text-(--sub-c-111f34) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white">
@@ -36,16 +36,21 @@ export function SubscriptionFaqBlock({ faqItems }: { faqItems: FaqItem[] }) {
 									name={isExpanded ? 'minus' : 'plus'}
 									height={16}
 									width={16}
-									className="text-(--sub-c-111f34) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white"
+									className="shrink-0 text-(--sub-c-111f34) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white"
 								/>
 							</button>
-							{isExpanded ? (
-								<div id={answerId} role="region" aria-labelledby={questionId}>
-									<p className="mt-2 text-xs leading-4 text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6)">
+							<div
+								id={answerId}
+								role="region"
+								aria-labelledby={questionId}
+								className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+							>
+								<div className="overflow-hidden">
+									<p className="pt-2 text-xs leading-4 text-(--sub-c-484848) dark:text-(--sub-c-c6c6c6)">
 										{item.answer}
 									</p>
 								</div>
-							) : null}
+							</div>
 						</div>
 					)
 				})}

@@ -1,4 +1,11 @@
-import type { BillingCycle, ComparisonSection, FaqItem, PlanKey, PlanMeta, PricingCardData } from '~/containers/subscription/types'
+import type {
+	BillingCycle,
+	ComparisonSection,
+	FaqItem,
+	PlanKey,
+	PlanMeta,
+	PricingCardData
+} from '~/containers/subscription/types'
 
 export const PLAN_ORDER: PlanKey[] = ['free', 'pro', 'api', 'enterprise']
 
@@ -12,7 +19,7 @@ export const PLAN_META_BY_CYCLE: Record<BillingCycle, Record<PlanKey, PlanMeta>>
 	yearly: {
 		free: { title: 'Free', price: '$0/month', action: 'Get Started' },
 		pro: { title: 'Pro', price: '$490/year', action: 'Get Started' },
-		api: { title: 'API', price: '$3,000/month', action: 'Get Started' },
+		api: { title: 'API', price: '$3000/year', action: 'Get Started' },
 		enterprise: { title: 'Enterprise', price: 'Custom', action: 'Contact us' }
 	}
 }
@@ -103,8 +110,8 @@ export const MONTHLY_PRICING_CARDS: PricingCardData[] = [
 			}
 		],
 		primaryCta: 'Contact Us'
-		}
-	]
+	}
+]
 
 export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 	{
@@ -180,8 +187,8 @@ export const YEARLY_PRICING_CARDS: PricingCardData[] = [
 		key: 'api',
 		title: 'API',
 		priceMain: '$3,000',
-		priceUnit: '/month',
-		priceSecondary: '$250 /month',
+		priceUnit: '/year',
+		priceSecondary: '$300 /month',
 		includedTierText: 'Includes all Pro tier features',
 		sections: [
 			{
@@ -224,8 +231,6 @@ export const PRICING_CARDS_BY_CYCLE: Record<BillingCycle, PricingCardData[]> = {
 	monthly: MONTHLY_PRICING_CARDS,
 	yearly: YEARLY_PRICING_CARDS
 }
-
-export const PRICING_CARDS: PricingCardData[] = MONTHLY_PRICING_CARDS
 
 export const COMPARISON_SECTIONS: ComparisonSection[] = [
 	{

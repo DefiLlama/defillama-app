@@ -1,5 +1,4 @@
-import { Icon } from '~/components/Icon'
-import { ComparisonCell } from '~/containers/subscription/components'
+import { ComparisonCell, PRO_COLUMN_HIGHLIGHT } from '~/containers/subscription/components'
 import { PLAN_META_BY_CYCLE } from '~/containers/subscription/data'
 import type { BillingCycle, ComparisonSection, PlanKey } from '~/containers/subscription/types'
 
@@ -20,8 +19,6 @@ const planHeadButtonStyles = {
 	default:
 		'border-(--sub-c-c8d4e4) bg-white text-(--sub-c-1e293b) dark:border-(--sub-c-2f3336) dark:bg-transparent dark:text-white md:border-(--sub-c-dedede) md:text-(--sub-c-090b0c) dark:md:border-(--sub-c-2f3336) dark:md:bg-transparent dark:md:text-white'
 }
-
-const proColumnHighlight = 'border-x border-(--sub-c-1f67d2) bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)'
 
 /* ── ComparisonPlanHead ────────────────────────────────────────────── */
 
@@ -115,7 +112,7 @@ export function SubscriptionComparisonSection({
 											<div
 												key={`${section.title}-header-${plan}`}
 												role="cell"
-												className={`${PLAN_COL} border-l border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) ${plan === 'pro' ? proColumnHighlight : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
+												className={`${PLAN_COL} border-l border-(--sub-mobile-table-border) md:border-(--sub-desktop-table-border) ${plan === 'pro' ? PRO_COLUMN_HIGHLIGHT : ''} ${plan === 'enterprise' ? 'border-r' : ''}`}
 											/>
 										))}
 									</div>

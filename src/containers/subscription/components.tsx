@@ -16,8 +16,10 @@ const cardInnerStyles = {
 		'rounded-[24px] px-5 py-6 bg-white dark:bg-(--sub-c-131516) md:flex md:flex-col md:justify-between md:overflow-hidden md:rounded-[24px] md:px-4'
 }
 
+export const PRO_COLUMN_HIGHLIGHT = 'border-x border-(--sub-c-1f67d2) bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)'
+
 const proColumnStyles = {
-	active: 'border-x border-(--sub-c-1f67d2) bg-(--sub-c-1f67d214) dark:bg-(--sub-c-1f67d20d)',
+	active: PRO_COLUMN_HIGHLIGHT,
 	inactive: ''
 }
 
