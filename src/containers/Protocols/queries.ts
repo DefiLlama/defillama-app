@@ -97,11 +97,11 @@ export async function getRecentProtocols(): Promise<IRecentProtocolsPageData> {
 	}
 }
 
-export async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string; title?: string }>> {
+export async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string }>> {
 	const airdrops = await fetchAirdropsConfig()
 
 	const now = Date.now()
-	const result: Array<{ name: string; page: string; title?: string }> = []
+	const result: Array<{ name: string; page: string }> = []
 	for (const key in airdrops) {
 		const i = airdrops[key]
 		if (i.isActive === false || !i.page) continue

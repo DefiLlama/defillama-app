@@ -90,14 +90,15 @@ export function useUnifiedTable({
 	onColumnVisibilityChange,
 	onSortingChange
 }: UseUnifiedTableArgs): UseUnifiedTableResult {
-	const [expanded, setExpandedInternal] = useState<Record<string, boolean>>({})
+	const [expanded, setExpandedState] = useState<Record<string, boolean>>({})
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 30 })
 
+	// Preserve identity when unchanged so React can skip re-renders.
 	const setExpanded = useCallback(
 		(updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => {
-			setExpandedInternal((prevExpanded) => {
+			setExpandedState((prevExpanded) => {
 				const next = typeof updater === 'function' ? updater(prevExpanded) : updater
-				return next === prevExpanded ? { ...next } : next
+				return next === prevExpanded ? prevExpanded : next
 			})
 		},
 		[]

@@ -222,7 +222,7 @@ const recalculateParentMetrics = (
 
 	const aggregatedOraclesByChain: Record<string, string[]> = {}
 	for (const [chain, chainOracles] of oraclesByChain.entries()) {
-		aggregatedOraclesByChain[chain] = Array.from(chainOracles).toSorted((a, b) => a.localeCompare(b))
+		aggregatedOraclesByChain[chain] = Array.from(chainOracles).sort((a, b) => a.localeCompare(b))
 	}
 
 	return {
@@ -257,7 +257,7 @@ const recalculateParentMetrics = (
 		pf,
 		ps,
 		subRows: filteredSubRows,
-		oracles: Array.from(oracleSet).toSorted((a, b) => a.localeCompare(b)),
+		oracles: Array.from(oracleSet).sort((a, b) => a.localeCompare(b)),
 		oraclesByChain: Object.keys(aggregatedOraclesByChain).length > 0 ? aggregatedOraclesByChain : parent.oraclesByChain
 	}
 }
@@ -365,10 +365,12 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 	const { data: chainProtocolsPerps, isLoading: isLoadingPerps } = useGetProtocolsPerpsVolumeByMultiChain(chains)
 	const { data: chainProtocolsOpenInterest, isLoading: isLoadingOpenInterest } =
 		useGetProtocolsOpenInterestByMultiChain(chains)
-	const { data: chainProtocolsEarnings } = useGetProtocolsEarningsByMultiChain(chains)
-	const { data: chainProtocolsAggregators } = useGetProtocolsAggregatorsByMultiChain(chains)
-	const { data: chainProtocolsBridgeAggregators } = useGetProtocolsBridgeAggregatorsByMultiChain(chains)
-	const { data: chainProtocolsOptions } = useGetProtocolsOptionsVolumeByMultiChain(chains)
+	const { data: chainProtocolsEarnings, isLoading: isLoadingEarnings } = useGetProtocolsEarningsByMultiChain(chains)
+	const { data: chainProtocolsAggregators, isLoading: isLoadingAggregators } =
+		useGetProtocolsAggregatorsByMultiChain(chains)
+	const { data: chainProtocolsBridgeAggregators, isLoading: isLoadingBridgeAggregators } =
+		useGetProtocolsBridgeAggregatorsByMultiChain(chains)
+	const { data: chainProtocolsOptions, isLoading: isLoadingOptions } = useGetProtocolsOptionsVolumeByMultiChain(chains)
 
 	const fullProtocolsList = normalizeProtocolRows(rawProtocols)
 	const parentProtocols = normalizeParentProtocols(rawParentProtocols)
@@ -378,7 +380,11 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 		isLoadingVolumes ||
 		isLoadingFees ||
 		isLoadingPerps ||
-		isLoadingOpenInterest
+		isLoadingOpenInterest ||
+		isLoadingEarnings ||
+		isLoadingAggregators ||
+		isLoadingBridgeAggregators ||
+		isLoadingOptions
 	const isEmptyProtocols = !isLoading && fullProtocolsList.length === 0
 
 	const finalProtocolsList = React.useMemo(() => {
@@ -420,11 +426,11 @@ export function useProTableData({ chains, filters }: UseProTableDataParams): Use
 				uniqueCategories.add(protocol.category)
 			}
 		}
-		return Array.from(uniqueCategories).toSorted((a, b) => a.localeCompare(b))
+		return Array.from(uniqueCategories).sort((a, b) => a.localeCompare(b))
 	}, [fullProtocolsList])
 
 	const availableProtocols = React.useMemo(() => {
-		return fullProtocolsList.toSorted((a, b) => {
+		return [...fullProtocolsList].sort((a, b) => {
 			const aTvl = toNumber(a.tvl) ?? 0
 			const bTvl = toNumber(b.tvl) ?? 0
 			return bTvl - aTvl

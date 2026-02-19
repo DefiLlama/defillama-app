@@ -293,6 +293,8 @@ export const groupProtocols = (
 		const list = protocols.filter((p) => p.parentProtocol === item.id)
 
 		if (list.length >= 2) {
+			// groupProtocols always de-duplicates by removing child rows from top-level data;
+			// noSubrows only controls whether groupData includes those children as subRows on the parent.
 			data = data.filter((p) => p.parentProtocol !== item.id)
 
 			data.push(groupData(list, item, noSubrows))
@@ -660,16 +662,22 @@ export const formatProtocolsList = ({
 		finalProtocols.push(allProtocols[key])
 	}
 
-	const totalSpot24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_24h ?? 0), 0)
-	const totalSpot7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.volume_7d ?? 0), 0)
-	const totalPerps24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.perps_volume_24h ?? 0), 0)
-	const totalAggregators24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.aggregators_volume_24h ?? 0), 0)
-	const totalAggregators7d = finalProtocols.reduce((sum, protocol) => sum + (protocol.aggregators_volume_7d ?? 0), 0)
-	const totalBridgeAggregators24h = finalProtocols.reduce(
-		(sum, protocol) => sum + (protocol.bridge_aggregators_volume_24h ?? 0),
-		0
-	)
-	const totalOptions24h = finalProtocols.reduce((sum, protocol) => sum + (protocol.options_volume_24h ?? 0), 0)
+	let totalSpot24h = 0
+	let totalSpot7d = 0
+	let totalPerps24h = 0
+	let totalAggregators24h = 0
+	let totalAggregators7d = 0
+	let totalBridgeAggregators24h = 0
+	let totalOptions24h = 0
+	for (const protocol of finalProtocols) {
+		totalSpot24h += protocol.volume_24h ?? 0
+		totalSpot7d += protocol.volume_7d ?? 0
+		totalPerps24h += protocol.perps_volume_24h ?? 0
+		totalAggregators24h += protocol.aggregators_volume_24h ?? 0
+		totalAggregators7d += protocol.aggregators_volume_7d ?? 0
+		totalBridgeAggregators24h += protocol.bridge_aggregators_volume_24h ?? 0
+		totalOptions24h += protocol.options_volume_24h ?? 0
+	}
 
 	const protocolsWithShares = finalProtocols.map((protocol) => ({
 		...protocol,

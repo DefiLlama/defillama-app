@@ -115,7 +115,7 @@ export interface IFormattedChainAssetsSummary {
 
 export type ChainAssetsField = IFormattedChainAssetsSummary | IChainAsset | null
 
-type IFormattedDataWithExtraTvlBase = {
+export type IFormattedDataWithExtraTvlBase = {
 	chainAssets?: ChainAssetsField
 	tvl: number
 	tvlPrevDay: number

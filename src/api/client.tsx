@@ -34,7 +34,7 @@ export const usePriceChart = (geckoId?: string) => {
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
-	let url = geckoId ? `${COINS_PRICES_API}/current/coingecko:${geckoId}` : null
+	const url = geckoId ? `${COINS_PRICES_API}/current/coingecko:${geckoId}` : null
 	const isEnabled = !!url
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['gecko-token-price', url, isEnabled],
@@ -47,14 +47,14 @@ export const useGetTokenPrice = (geckoId?: string) => {
 	return { data: data?.coins?.[`coingecko:${geckoId}`], error, isLoading }
 }
 
-interface IDenominationPriceHistory {
+export interface IDenominationPriceHistory {
 	prices: Array<[number, number]>
 	mcaps: Array<[number, number]>
 	volumes: Array<[number, number]>
 }
 
 export const useDenominationPriceHistory = (geckoId?: string) => {
-	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
+	const url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
 	const isEnabled = !!url
 	return useQuery<IDenominationPriceHistory>({
 		queryKey: ['denom-price-history', url, isEnabled],

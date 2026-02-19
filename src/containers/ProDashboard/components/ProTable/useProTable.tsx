@@ -10,6 +10,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
 import { useUserConfig } from '~/hooks/useUserConfig'
 import { downloadCSV } from '~/utils'
 import type { CustomView, TableFilters } from '../../types'
@@ -34,14 +35,6 @@ const resolveUpdater = <T,>(updater: Updater<T>, previousValue: T): T => {
 
 const hasOwnKeys = (record: Record<string, boolean>): boolean => {
 	return Object.keys(record).length > 0
-}
-
-const areStringArraysEqual = (a: string[], b: string[]): boolean => {
-	if (a.length !== b.length) return false
-	for (let index = 0; index < a.length; index += 1) {
-		if (a[index] !== b[index]) return false
-	}
-	return true
 }
 
 const areVisibilityEqual = (a: Record<string, boolean>, b: Record<string, boolean>): boolean => {
@@ -142,26 +135,27 @@ export function useProTable(
 	})
 	const onColumnsChange = options?.onColumnsChange
 
-	const initialKnownColumnIds = React.useMemo(() => {
+	const initialKnownColumnIdsRef = React.useRef<string[] | null>(null)
+	if (initialKnownColumnIdsRef.current === null) {
 		const baseColumnIds = protocolsByChainTableColumns.map((column) => column.key)
 		const shareColumnIds = SHARE_METRIC_DEFINITIONS.map((metric) => `${metric.key}_share`)
 		const initialCustomColumnIds = (options?.initialCustomColumns ?? []).map((column) => column.id)
-		return Array.from(new Set([...baseColumnIds, ...shareColumnIds, ...initialCustomColumnIds]))
-	}, [options?.initialCustomColumns])
+		initialKnownColumnIdsRef.current = Array.from(new Set([...baseColumnIds, ...shareColumnIds, ...initialCustomColumnIds]))
+	}
 
-	const preferredPreset = React.useMemo(() => {
-		if (options?.initialActivePresetId) {
-			const initialPreset = COLUMN_PRESETS.find((preset) => preset.id === options.initialActivePresetId)
-			if (initialPreset) return initialPreset
-		}
-		return COLUMN_PRESETS.find((preset) => preset.id === 'essential')
-	}, [options?.initialActivePresetId])
+	const preferredPresetRef = React.useRef<(typeof COLUMN_PRESETS)[number] | null>(null)
+	if (preferredPresetRef.current === null) {
+		const preferredPreset = options?.initialActivePresetId
+			? COLUMN_PRESETS.find((preset) => preset.id === options.initialActivePresetId)
+			: undefined
+		preferredPresetRef.current = preferredPreset ?? COLUMN_PRESETS.find((preset) => preset.id === 'essential') ?? null
+	}
 
 	const { state, actions } = useProTableState({
 		options,
 		defaultSorting: DEFAULT_SORTING,
-		defaultPreset: preferredPreset,
-		initialKnownColumnIds
+		defaultPreset: preferredPresetRef.current ?? undefined,
+		initialKnownColumnIds: initialKnownColumnIdsRef.current ?? []
 	})
 
 	const filteredProtocolsList = React.useMemo(() => {

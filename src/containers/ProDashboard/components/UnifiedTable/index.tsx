@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions, useProDashboardPermissions } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
-import { DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
+import { DEFAULT_ROW_HEADERS, DEFAULT_UNIFIED_TABLE_SORTING } from './constants'
 import type { CsvExportLevel } from './core/CsvExportDropdown'
 import { isGroupingColumnId } from './core/grouping'
 import { UnifiedTablePagination } from './core/TablePagination'
@@ -16,7 +16,6 @@ import {
 	applyRowHeaderVisibilityRules,
 	getDefaultColumnOrder,
 	getDefaultColumnVisibility,
-	getDefaultRowHeaders,
 	normalizeSorting
 } from './utils/configHelpers'
 import { buildGroupedCsvData, getRowsAtGroupLevel } from './utils/csvExport'
@@ -232,7 +231,10 @@ function UnifiedTable({
 	} = config
 	const hydratingRef = useRef(false)
 	const canEditFilters = !previewMode && !isReadOnly
-	const tableRowHeaders = useMemo(() => getDefaultRowHeaders(config), [config])
+	const tableRowHeaders = useMemo(
+		() => (config.rowHeaders && config.rowHeaders.length ? [...config.rowHeaders] : [...DEFAULT_ROW_HEADERS]),
+		[config.rowHeaders]
+	)
 	const resolvedRowHeaders = useMemo(() => sanitizeRowHeaders(tableRowHeaders), [tableRowHeaders])
 	const filterChips = useMemo(() => getActiveFilterChips(config.filters), [config.filters])
 	const activeFilterCount = filterChips.length
@@ -355,7 +357,17 @@ function UnifiedTable({
 		[onPreviewSortingChange, previewMode]
 	)
 
-	const memoizedConfig = useMemo(() => ({ ...config, rowHeaders: tableRowHeaders }), [config, tableRowHeaders])
+	const memoizedConfig = useMemo<UnifiedTableConfig>(
+		() => ({
+			id: config.id,
+			kind: config.kind,
+			rowHeaders: tableRowHeaders,
+			params: config.params,
+			filters: config.filters,
+			customColumns: config.customColumns
+		}),
+		[config.id, config.kind, config.params, config.filters, config.customColumns, tableRowHeaders]
+	)
 
 	const unifiedTable = useUnifiedTable({
 		config: memoizedConfig,
@@ -367,6 +379,10 @@ function UnifiedTable({
 		onColumnVisibilityChange: handleColumnVisibilityChange,
 		onSortingChange: handleSortingChange
 	})
+	const tableRef = useRef(unifiedTable.table)
+	useEffect(() => {
+		tableRef.current = unifiedTable.table
+	}, [unifiedTable.table])
 	const rowCount = unifiedTable.table.getRowModel().rows.length
 	const expandedCount = Object.keys(unifiedTable.expanded).length
 	const rowStateVersion = `${rowCount}:${expandedCount}`
@@ -441,7 +457,8 @@ function UnifiedTable({
 	)
 
 	const handleExportClick = useCallback(() => {
-		const leafColumns = unifiedTable.table
+		const table = tableRef.current
+		const leafColumns = table
 			.getAllLeafColumns()
 			.filter((column) => column.getIsVisible() && !isGroupingColumnId(column.id))
 
@@ -451,7 +468,7 @@ function UnifiedTable({
 		})
 
 		const sortedLeafRows: NormalizedRow[] = []
-		const collectLeafRows = (rows: ReturnType<typeof unifiedTable.table.getRowModel>['rows']) => {
+		const collectLeafRows = (rows: ReturnType<(typeof table)['getRowModel']>['rows']) => {
 			for (const row of rows) {
 				if (row.getIsGrouped() && row.subRows?.length) {
 					collectLeafRows(row.subRows)
@@ -460,7 +477,7 @@ function UnifiedTable({
 				}
 			}
 		}
-		collectLeafRows(unifiedTable.table.getRowModel().rows)
+		collectLeafRows(table.getRowModel().rows)
 
 		const nameIndex = columnHeaders.findIndex((h) => h === 'Name' || h === 'name')
 		const insertIndex = nameIndex >= 0 ? nameIndex + 1 : 0
@@ -471,7 +488,7 @@ function UnifiedTable({
 		})
 
 		downloadCSV(`unified-table.csv`, [headers, ...csvRows])
-	}, [config.customColumns, unifiedTable.table])
+	}, [config.customColumns])
 
 	const handleCsvClick = useCallback(() => {
 		if (!unifiedTable.leafRows.length) return
@@ -482,7 +499,8 @@ function UnifiedTable({
 		(level: CsvExportLevel) => {
 			if (!unifiedTable.leafRows.length) return
 
-			const leafColumns = unifiedTable.table
+			const table = tableRef.current
+			const leafColumns = table
 				.getAllLeafColumns()
 				.filter((column) => column.getIsVisible() && !isGroupingColumnId(column.id))
 
@@ -491,7 +509,7 @@ function UnifiedTable({
 				return
 			}
 
-			const groupedRows = getRowsAtGroupLevel(unifiedTable.table, level)
+			const groupedRows = getRowsAtGroupLevel(table, level)
 			if (!groupedRows.length) {
 				handleExportClick()
 				return
@@ -500,7 +518,7 @@ function UnifiedTable({
 			const { headers, data } = buildGroupedCsvData(groupedRows, leafColumns, CSV_PERCENT_COLUMNS, level)
 			downloadCSV(`unified-table-${level}.csv`, [headers, ...data])
 		},
-		[handleExportClick, unifiedTable.table, unifiedTable.leafRows.length]
+		[handleExportClick, unifiedTable.leafRows.length]
 	)
 
 	const title = 'Protocols overview'

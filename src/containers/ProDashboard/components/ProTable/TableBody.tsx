@@ -12,6 +12,12 @@ interface TableBodyProps {
 	moveColumnDown?: (columnId: string) => void
 }
 
+const getSortableColumn = (header: Header<IProtocolRow, unknown>) => {
+	if (header.column.getCanSort()) return header.column
+	const firstSortableLeaf = header.column.getLeafColumns().find((leafColumn) => leafColumn.getCanSort())
+	return firstSortableLeaf ?? null
+}
+
 export function TableBody({ table, isLoading, isEmptyProtocols, moveColumnUp, moveColumnDown }: TableBodyProps) {
 	if (!table) {
 		return (
@@ -24,12 +30,6 @@ export function TableBody({ table, isLoading, isEmptyProtocols, moveColumnUp, mo
 				</div>
 			</div>
 		)
-	}
-
-	const getSortableColumn = (header: Header<IProtocolRow, unknown>) => {
-		if (header.column.getCanSort()) return header.column
-		const firstSortableLeaf = header.column.getLeafColumns().find((leafColumn) => leafColumn.getCanSort())
-		return firstSortableLeaf ?? null
 	}
 
 	const rows = table.getRowModel().rows

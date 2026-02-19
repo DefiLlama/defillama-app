@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
-import { IconsRow } from '~/components/IconsRow'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getAirdropDirectoryData } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
@@ -12,9 +11,6 @@ const DEFAULT_SORTING_STATE = [{ id: 'name', desc: true }]
 interface IAirdropRow {
 	name: string
 	page: string
-	twitter: string
-	explorer: string
-	tokens: string
 }
 
 const columns: ColumnDef<IAirdropRow>[] = [
@@ -41,59 +37,6 @@ const columns: ColumnDef<IAirdropRow>[] = [
 					<span className="sr-only">open in new tab</span>
 				</a>
 			) : null
-	},
-	{
-		header: 'Explorer',
-		accessorKey: 'explorer',
-		size: 80,
-		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<a
-					href={getValue() as string}
-					target="_blank"
-					rel="noopener noreferrer"
-					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
-				>
-					<Icon name="arrow-up-right" height={14} width={14} />
-					<span className="sr-only">open in new tab</span>
-				</a>
-			) : null
-	},
-	{
-		header: 'Chains',
-		accessorKey: 'chains',
-		enableSorting: false,
-		cell: ({ getValue, row }) => {
-			return (
-				<IconsRow
-					links={getValue() as Array<string>}
-					url="/oracles"
-					urlPrefix={`/${row.original.name}`}
-					iconType="chain"
-				/>
-			)
-		},
-		size: 80,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Start',
-		accessorKey: 'startTime',
-		meta: {
-			align: 'end'
-		},
-		size: 190
-	},
-	{
-		header: 'End',
-		accessorKey: 'endTime',
-		meta: {
-			align: 'end'
-		},
-		size: 190
 	}
 ]
 

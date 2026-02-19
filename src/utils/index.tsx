@@ -50,9 +50,7 @@ export function keepNeededProperties(protocol: object, propertiesToKeep: readonl
 	const obj = protocol as Record<string, unknown>
 	const result: Record<string, unknown> = {}
 	for (const prop of propertiesToKeep) {
-		if (obj[prop] !== undefined) {
-			result[prop] = obj[prop]
-		}
+		result[prop] = obj[prop]
 	}
 	return result
 }
