@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -25,7 +25,7 @@ interface DashboardSettingsModalProps {
 	onDelete?: (dashboardId: string) => Promise<void>
 }
 
-export function DashboardSettingsModal({
+function DashboardSettingsModalInner({
 	isOpen,
 	onClose,
 	dashboardName,
@@ -47,13 +47,6 @@ export function DashboardSettingsModal({
 	const [tagInput, setTagInput] = useState('')
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-	useEffect(() => {
-		setLocalDashboardName(dashboardName)
-		setLocalVisibility(visibility)
-		setLocalTags(tags)
-		setLocalDescription(description)
-	}, [dashboardName, visibility, tags, description])
 
 	const handleSave = () => {
 		onDashboardNameChange(localDashboardName)
@@ -131,8 +124,11 @@ export function DashboardSettingsModal({
 
 					<div className="space-y-6">
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Dashboard Name</label>
+							<label htmlFor="dashboard-settings-name" className="mb-3 block text-sm font-medium pro-text1">
+								Dashboard Name
+							</label>
 							<input
+								id="dashboard-settings-name"
 								type="text"
 								value={localDashboardName}
 								onChange={(e) => setLocalDashboardName(e.target.value)}
@@ -142,9 +138,12 @@ export function DashboardSettingsModal({
 						</div>
 
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Visibility</label>
-							<div className="flex gap-3">
+							<p id="dashboard-settings-visibility" className="mb-3 block text-sm font-medium pro-text1">
+								Visibility
+							</p>
+							<div className="flex gap-3" aria-labelledby="dashboard-settings-visibility">
 								<button
+									type="button"
 									onClick={() => setLocalVisibility('public')}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
@@ -154,6 +153,7 @@ export function DashboardSettingsModal({
 									Public
 								</button>
 								<button
+									type="button"
 									onClick={() => setLocalVisibility('private')}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
@@ -169,9 +169,12 @@ export function DashboardSettingsModal({
 						</div>
 
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Tags</label>
+							<label htmlFor="dashboard-settings-tag-input" className="mb-3 block text-sm font-medium pro-text1">
+								Tags
+							</label>
 							<div className="flex gap-2">
 								<input
+									id="dashboard-settings-tag-input"
 									type="text"
 									value={tagInput}
 									onChange={(e) => setTagInput(e.target.value)}
@@ -180,6 +183,7 @@ export function DashboardSettingsModal({
 									className="flex-1 rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 								<button
+									type="button"
 									onClick={() => handleAddTag(tagInput)}
 									disabled={!tagInput.trim()}
 									className={`rounded-md border px-4 py-2 transition-colors ${
@@ -200,7 +204,7 @@ export function DashboardSettingsModal({
 											className="flex items-center gap-1 rounded-md border pro-border px-3 py-1 text-sm pro-text2"
 										>
 											{tag}
-											<button onClick={() => handleRemoveTag(tag)} className="hover:text-pro-blue-400">
+											<button type="button" onClick={() => handleRemoveTag(tag)} className="hover:text-pro-blue-400">
 												<Icon name="x" height={12} width={12} />
 											</button>
 										</span>
@@ -210,8 +214,11 @@ export function DashboardSettingsModal({
 						</div>
 
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Description</label>
+							<label htmlFor="dashboard-settings-description" className="mb-3 block text-sm font-medium pro-text1">
+								Description
+							</label>
 							<textarea
+								id="dashboard-settings-description"
 								value={localDescription}
 								onChange={(e) => setLocalDescription(e.target.value)}
 								placeholder="Describe your dashboard..."
@@ -223,9 +230,10 @@ export function DashboardSettingsModal({
 
 						{onDelete && dashboardId && (
 							<div className="border-t border-(--cards-border) pt-6">
-								<label className="mb-3 block text-sm font-medium pro-text1 text-red-500">Danger Zone</label>
+								<p className="mb-3 block text-sm font-medium pro-text1 text-red-500">Danger Zone</p>
 								<p className="mb-4 text-sm pro-text3">Once you delete a dashboard, there is no going back.</p>
 								<button
+									type="button"
 									onClick={handleDeleteClick}
 									disabled={isDeleting}
 									className="flex items-center gap-2 rounded-md bg-red-500/10 px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
@@ -241,7 +249,7 @@ export function DashboardSettingsModal({
 						<Ariakit.DialogDismiss className="flex-1 rounded-md border pro-border pro-hover-bg px-4 py-2 pro-text2 transition-colors hover:pro-text1">
 							Cancel
 						</Ariakit.DialogDismiss>
-						<button onClick={handleSave} className="flex-1 rounded-md pro-btn-blue px-4 py-2 transition-colors">
+						<button type="button" onClick={handleSave} className="flex-1 rounded-md pro-btn-blue px-4 py-2 transition-colors">
 							Save Changes
 						</button>
 					</div>
@@ -259,4 +267,9 @@ export function DashboardSettingsModal({
 			/>
 		</>
 	)
+}
+
+export function DashboardSettingsModal(props: DashboardSettingsModalProps) {
+	const modalKey = `${props.dashboardId ?? 'new'}:${props.isOpen ? 'open' : 'closed'}`
+	return <DashboardSettingsModalInner key={modalKey} {...props} />
 }

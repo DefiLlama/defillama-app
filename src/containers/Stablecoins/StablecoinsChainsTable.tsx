@@ -23,6 +23,10 @@ import { chainIconUrl, formattedNum, renderPercentChange } from '~/utils'
 type StablecoinsByChainRow = ReturnType<typeof useGroupChainsPegged>[number]
 type DominanceCell = NonNullable<StablecoinsByChainRow['dominance']>
 
+const renderStablecoinsChainsPercentChangeCell: ColumnDef<StablecoinsByChainRow>['cell'] = (info) => (
+	<>{renderPercentChange(info.getValue())}</>
+)
+
 const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 	{
 		header: 'Name',
@@ -83,7 +87,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: renderStablecoinsChainsPercentChangeCell,
 		size: 120,
 		meta: {
 			align: 'end'

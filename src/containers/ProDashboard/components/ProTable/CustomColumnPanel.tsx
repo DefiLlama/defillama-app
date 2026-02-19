@@ -21,7 +21,7 @@ interface CustomColumnPanelProps {
 	onUpdateCustomColumn: (columnId: string, updates: Partial<CustomColumn>) => void
 }
 
-const handleMouseDown = (e: React.MouseEvent) => {
+const handlePointerDown = (e: React.PointerEvent) => {
 	// Prevent drag events from bubbling up to dashboard
 	e.stopPropagation()
 }
@@ -373,7 +373,7 @@ export function CustomColumnPanel({
 	return (
 		<div
 			className="space-y-6"
-			onMouseDown={handleMouseDown}
+			onPointerDown={handlePointerDown}
 			onDragStart={handleDragStart}
 			style={{ userSelect: 'none' }}
 		>
@@ -383,8 +383,11 @@ export function CustomColumnPanel({
 
 				<div className="space-y-3">
 					<div>
-						<label className="mb-1 block text-xs font-medium pro-text2">Column Name</label>
+						<label htmlFor="custom-column-name" className="mb-1 block text-xs font-medium pro-text2">
+							Column Name
+						</label>
 						<input
+							id="custom-column-name"
 							type="text"
 							value={newColumnName}
 							onChange={(e) => setNewColumnName(e.target.value)}
@@ -397,9 +400,12 @@ export function CustomColumnPanel({
 					</div>
 
 					<div>
-						<label className="mb-1 block text-xs font-medium pro-text2">Expression</label>
+						<label htmlFor="custom-column-expression" className="mb-1 block text-xs font-medium pro-text2">
+							Expression
+						</label>
 						<div className="relative">
 							<input
+								id="custom-column-expression"
 								ref={inputRef}
 								type="text"
 								value={newColumnExpression}
@@ -431,15 +437,16 @@ export function CustomColumnPanel({
 										minWidth: '280px',
 										maxWidth: '400px'
 									}}
-									onMouseDown={(e) => e.stopPropagation()}
+									onPointerDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
 								>
 									{filteredSuggestions.map((suggestion, index) => (
-										<div
+										<button
 											key={`${suggestion.type}-${suggestion.value}`}
+											type="button"
 											onClick={() => insertSuggestion(suggestion)}
-											className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm ${
+											className={`flex w-full items-center gap-2 border-0 px-3 py-1.5 text-left text-sm ${
 												index === autocompleteIndex ? 'bg-(--primary) text-white' : 'pro-hover-bg pro-text1'
 											}`}
 											onMouseEnter={() => setAutocompleteIndex(index)}
@@ -455,7 +462,7 @@ export function CustomColumnPanel({
 											/>
 											<code className="min-w-0 shrink-0 text-sm">{suggestion.display}</code>
 											<span className="ml-auto truncate text-xs pro-text3">{suggestion.description}</span>
-										</div>
+										</button>
 									))}
 									{filteredSuggestions.length === 0 && autocompleteFilter && (
 										<div className="px-3 py-2 text-sm pro-text3">No suggestions found for "{autocompleteFilter}"</div>

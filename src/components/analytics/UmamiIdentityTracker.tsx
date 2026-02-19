@@ -18,10 +18,13 @@ export function UmamiIdentityTracker() {
 		}
 
 		const identifyCurrentUser = () => {
-			if (!window.umami?.identify) return false
+			const maybeUmami = Reflect.get(window, 'umami')
+			if (typeof maybeUmami !== 'object' || maybeUmami === null) return false
+			const maybeIdentify = Reflect.get(maybeUmami, 'identify')
+			if (typeof maybeIdentify !== 'function') return false
 			if (lastIdentifiedIdRef.current === distinctId) return true
 
-			window.umami.identify(distinctId)
+			maybeIdentify(distinctId)
 			lastIdentifiedIdRef.current = distinctId
 			return true
 		}

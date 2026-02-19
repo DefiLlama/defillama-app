@@ -59,7 +59,6 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 						onChange={(e) => setSearch(e.target.value)}
 						placeholder="Search token..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder:text-[#919296]"
-						autoFocus
 					/>
 				</div>
 
@@ -205,8 +204,11 @@ interface CorrelationsProps {
 export default function Correlations({ coinsData }: CorrelationsProps) {
 	const router = useRouter()
 	const latestQueryRef = useRef(router.query)
-	latestQueryRef.current = router.query
 	const { isReady, pathname, replace } = router
+
+	useEffect(() => {
+		latestQueryRef.current = router.query
+	}, [router.query])
 	const queryCoins = useMemo<string[]>(() => {
 		const coinQuery = router.query.coin
 		if (!coinQuery) return []

@@ -257,8 +257,9 @@ const YieldPage = ({
 				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
 					<Announcement notCancellable>
 						Do you want to see only pools that have a single token? Click{' '}
-						<a
-							className="font-medium text-(--blue) underline"
+						<button
+							type="button"
+							className="bg-transparent p-0 font-medium text-(--blue) underline"
 							onClick={() => {
 								push(
 									{
@@ -274,7 +275,7 @@ const YieldPage = ({
 							}}
 						>
 							here
-						</a>
+						</button>
 					</Announcement>
 				)}
 			<YieldFiltersV2

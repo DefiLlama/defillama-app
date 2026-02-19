@@ -329,20 +329,24 @@ function CreateDashboardModalContent({
 		<div className="p-6">
 			<div className="space-y-6">
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Dashboard Name</label>
+					<label htmlFor="create-dashboard-name" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Dashboard Name
+					</label>
 					<input
+						id="create-dashboard-name"
 						type="text"
 						value={dashboardName}
 						onChange={(e) => setDashboardName(e.target.value)}
 						placeholder="Enter dashboard name"
 						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-						autoFocus
 					/>
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Visibility</label>
-					<div className="flex gap-3">
+					<p id="create-dashboard-visibility" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Visibility
+					</p>
+					<div className="flex gap-3" aria-labelledby="create-dashboard-visibility">
 						<button
 							type="button"
 							onClick={() => setVisibility('public')}
@@ -374,9 +378,12 @@ function CreateDashboardModalContent({
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Tags</label>
+					<label htmlFor="create-dashboard-tag-input" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Tags
+					</label>
 					<div className="flex gap-2">
 						<input
+							id="create-dashboard-tag-input"
 							type="text"
 							value={tagInput}
 							onChange={(e) => setTagInput(e.target.value)}
@@ -407,6 +414,7 @@ function CreateDashboardModalContent({
 								>
 									{tag}
 									<button
+										type="button"
 										onClick={() => handleRemoveTag(tag)}
 										className="text-(--text-tertiary) hover:text-(--primary)"
 									>
@@ -419,8 +427,11 @@ function CreateDashboardModalContent({
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Description</label>
+					<label htmlFor="create-dashboard-description" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Description
+					</label>
 					<textarea
+						id="create-dashboard-description"
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
 						placeholder="Describe your dashboard..."

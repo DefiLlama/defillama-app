@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQueryClient } from '@tanstack/react-query'
+import { type QueryClient, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -14,6 +14,7 @@ import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardBu
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 const EMPTY_UNSUPPORTED_METRICS: string[] = []
+type AddToDashboardSubmitType = 'new-dashboard' | 'existing-dashboard'
 
 interface AddToDashboardModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -54,6 +55,33 @@ function getConfigName(config: DashboardChartConfig | null, llamaAIChart?: Llama
 		return `${config.stablecoin} ${label}`
 	}
 	return config.name || ''
+}
+
+function invalidateDashboardQueries(queryClient: QueryClient) {
+	queryClient.invalidateQueries({ queryKey: ['dashboards'] })
+	queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
+	queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+}
+
+function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
+	if (typeof window === 'undefined') return
+	const maybeUmami = Reflect.get(window, 'umami')
+	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
+	const maybeTrack = Reflect.get(maybeUmami, 'track')
+	if (typeof maybeTrack !== 'function') return
+	maybeTrack('add-to-dashboard-submit', { type })
+}
+
+function showViewToast(message: string, href: string, onNavigate: (href: string) => void) {
+	toast.success(
+		<div>
+			{message}{' '}
+			<button type="button" className="underline" onClick={() => onNavigate(href)}>
+				View →
+			</button>
+		</div>,
+		{ duration: 5000 }
+	)
 }
 
 export function AddToDashboardModal({
@@ -111,7 +139,7 @@ export function AddToDashboardModal({
 	const handleAdd = async () => {
 		if (!isAuthenticated || !hasActiveSubscription) return
 
-		let chartToAdd: any
+		let chartToAdd: DashboardChartConfig | LlamaAIChartConfig | null = null
 
 		if (llamaAIChart) {
 			const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
@@ -132,7 +160,11 @@ export function AddToDashboardModal({
 				title: chartName || llamaAIChart.title
 			} satisfies LlamaAIChartConfig
 		} else if (chartConfig) {
-			chartToAdd = { ...chartConfig, name: chartName || configName }
+			if (chartConfig.kind === 'multi' || chartConfig.kind === 'builder') {
+				chartToAdd = { ...chartConfig, name: chartName || configName }
+			} else {
+				chartToAdd = { ...chartConfig }
+			}
 		} else {
 			return
 		}
@@ -157,35 +189,12 @@ export function AddToDashboardModal({
 					authorizedFetch
 				)
 
-				queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-				queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-				queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
-
-				if (typeof window !== 'undefined') {
-					if ((window as any).umami) {
-						;(window as any).umami.track('add-to-dashboard-submit', { type: 'new-dashboard' })
-					}
-				}
-
-				toast.success(
-					<div>
-						Dashboard created!{' '}
-						<a
-							href={`/pro/${dashboard.id}`}
-							className="underline"
-							onClick={(e) => {
-								e.preventDefault()
-								router.push(`/pro/${dashboard.id}`)
-							}}
-						>
-							View →
-						</a>
-					</div>,
-					{ duration: 5000 }
-				)
+				invalidateDashboardQueries(queryClient)
+				trackAddToDashboardSubmit('new-dashboard')
+				showViewToast('Dashboard created!', `/pro/${dashboard.id}`, router.push)
 				dialogStore.hide()
-			} catch (error: any) {
-				let errorMsg = error.message
+			} catch (error: unknown) {
+				let errorMsg = error instanceof Error ? error.message : ''
 				if (!errorMsg) {
 					errorMsg = 'Failed to create dashboard'
 				}
@@ -203,15 +212,8 @@ export function AddToDashboardModal({
 			try {
 				await addItemToDashboard(selectedDashboardId, chartToAdd, authorizedFetch)
 
-				queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-				queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-				queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
-
-				if (typeof window !== 'undefined') {
-					if ((window as any).umami) {
-						;(window as any).umami.track('add-to-dashboard-submit', { type: 'existing-dashboard' })
-					}
-				}
+				invalidateDashboardQueries(queryClient)
+				trackAddToDashboardSubmit('existing-dashboard')
 
 				const selected = dashboards.find((d: (typeof dashboards)[number]) => d.id === selectedDashboardId)
 				let selectedName = ''
@@ -219,25 +221,10 @@ export function AddToDashboardModal({
 					selectedName = selected.name
 				}
 
-				toast.success(
-					<div>
-						Added to {selectedName}!{' '}
-						<a
-							href={`/pro/${selectedDashboardId}`}
-							className="underline"
-							onClick={(e) => {
-								e.preventDefault()
-								router.push(`/pro/${selectedDashboardId}`)
-							}}
-						>
-							View →
-						</a>
-					</div>,
-					{ duration: 5000 }
-				)
+				showViewToast(`Added to ${selectedName}!`, `/pro/${selectedDashboardId}`, router.push)
 				dialogStore.hide()
-			} catch (error: any) {
-				let errorMsg = error.message
+			} catch (error: unknown) {
+				let errorMsg = error instanceof Error ? error.message : ''
 				if (!errorMsg) {
 					errorMsg = 'Failed to add chart'
 				}
@@ -327,7 +314,6 @@ export function AddToDashboardModal({
 						value={newDashboardName}
 						onChange={(e) => setNewDashboardName(e.target.value)}
 						placeholder="New dashboard name..."
-						autoFocus
 						className="w-full rounded-md border border-(--primary) px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 				) : (

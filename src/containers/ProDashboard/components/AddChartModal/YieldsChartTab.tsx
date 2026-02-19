@@ -494,7 +494,6 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											autoFocus
 											value={chainSearch}
 											onChange={(e) => setChainSearch(e.target.value)}
 											placeholder="Search chains..."
@@ -604,7 +603,6 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											autoFocus
 											value={projectSearch}
 											onChange={(e) => setProjectSearch(e.target.value)}
 											placeholder="Search projects..."
@@ -714,7 +712,6 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											autoFocus
 											value={tokenSearch}
 											onChange={(e) => setTokenSearch(e.target.value)}
 											placeholder="Search tokens..."

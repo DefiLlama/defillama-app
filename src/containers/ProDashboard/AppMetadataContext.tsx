@@ -99,7 +99,7 @@ export function AppMetadataProvider({
 		},
 		initialData: initialData ?? undefined,
 		staleTime: initialData ? Infinity : 0,
-		initialDataUpdatedAt: initialData ? Date.now() : undefined
+		initialDataUpdatedAt: initialData ? 0 : undefined
 	})
 
 	const error = queryError ? String(queryError.message) : undefined

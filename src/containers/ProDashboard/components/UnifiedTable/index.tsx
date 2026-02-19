@@ -255,9 +255,12 @@ function UnifiedTable({
 	const effectiveColumnOrderRef = useRef(effectiveColumnOrder)
 	const effectiveColumnVisibilityRef = useRef(effectiveColumnVisibility)
 	const effectiveSortingRef = useRef(effectiveSorting)
-	effectiveColumnOrderRef.current = effectiveColumnOrder
-	effectiveColumnVisibilityRef.current = effectiveColumnVisibility
-	effectiveSortingRef.current = effectiveSorting
+
+	useEffect(() => {
+		effectiveColumnOrderRef.current = effectiveColumnOrder
+		effectiveColumnVisibilityRef.current = effectiveColumnVisibility
+		effectiveSortingRef.current = effectiveSorting
+	}, [effectiveColumnOrder, effectiveColumnVisibility, effectiveSorting])
 
 	useEffect(() => {
 		if (previewMode) return

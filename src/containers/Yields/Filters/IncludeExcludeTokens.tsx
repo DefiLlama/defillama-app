@@ -255,7 +255,6 @@ export function IncludeExcludeTokens({
 								/>
 								<Ariakit.Combobox
 									autoSelect
-									autoFocus
 									placeholder="Search for a token to filter by..."
 									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
 								/>
@@ -403,7 +402,6 @@ export function IncludeExcludeTokens({
 								/>
 								<Ariakit.Combobox
 									autoSelect
-									autoFocus
 									placeholder="Search for a token to add to current pair..."
 									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
 								/>

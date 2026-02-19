@@ -72,21 +72,26 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 
 			<div className="space-y-6">
 				<div>
-					<label className="mb-3 block text-sm font-medium pro-text1">Dashboard Name</label>
+					<label htmlFor="create-dashboard-modal-name" className="mb-3 block text-sm font-medium pro-text1">
+						Dashboard Name
+					</label>
 					<input
+						id="create-dashboard-modal-name"
 						type="text"
 						value={dashboardName}
 						onChange={(e) => setDashboardName(e.target.value)}
 						placeholder="Enter dashboard name"
 						className="w-full rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-						autoFocus
 					/>
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium pro-text1">Visibility</label>
-					<div className="flex gap-3">
+					<p id="create-dashboard-modal-visibility" className="mb-3 block text-sm font-medium pro-text1">
+						Visibility
+					</p>
+					<div className="flex gap-3" aria-labelledby="create-dashboard-modal-visibility">
 						<button
+							type="button"
 							onClick={() => setVisibility('public')}
 							className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 								visibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
@@ -96,6 +101,7 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 							Public
 						</button>
 						<button
+							type="button"
 							onClick={() => setVisibility('private')}
 							className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 								visibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
@@ -111,9 +117,12 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium pro-text1">Tags</label>
+					<label htmlFor="create-dashboard-modal-tags" className="mb-3 block text-sm font-medium pro-text1">
+						Tags
+					</label>
 					<div className="flex gap-2">
 						<input
+							id="create-dashboard-modal-tags"
 							type="text"
 							value={tagInput}
 							onChange={(e) => setTagInput(e.target.value)}
@@ -122,6 +131,7 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 							className="flex-1 rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>
 						<button
+							type="button"
 							onClick={() => handleAddTag(tagInput)}
 							disabled={!tagInput.trim()}
 							className={`rounded-md border px-4 py-2 transition-colors ${
@@ -142,7 +152,7 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 									className="flex items-center gap-1 rounded-md border pro-border px-3 py-1 text-sm pro-text2"
 								>
 									{tag}
-									<button onClick={() => handleRemoveTag(tag)} className="hover:text-pro-blue-400">
+									<button type="button" onClick={() => handleRemoveTag(tag)} className="hover:text-pro-blue-400">
 										<Icon name="x" height={12} width={12} />
 									</button>
 								</span>
@@ -152,8 +162,11 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium pro-text1">Description</label>
+					<label htmlFor="create-dashboard-modal-description" className="mb-3 block text-sm font-medium pro-text1">
+						Description
+					</label>
 					<textarea
+						id="create-dashboard-modal-description"
 						value={description}
 						onChange={(e) => setDescription(e.target.value)}
 						placeholder="Describe your dashboard..."
@@ -169,6 +182,7 @@ export function CreateDashboardModal({ dialogStore, onCreate }: CreateDashboardM
 					Cancel
 				</Ariakit.DialogDismiss>
 				<button
+					type="button"
 					data-umami-event="dashboard-create"
 					onClick={handleCreate}
 					disabled={!dashboardName.trim()}

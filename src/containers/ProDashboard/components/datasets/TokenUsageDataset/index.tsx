@@ -531,12 +531,13 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							/>
 						</div>
 						<div className="order-1 flex items-center gap-2 sm:order-2 sm:gap-3">
-							<div
+							<button
+								type="button"
+								aria-pressed={localIncludeCex}
 								className="flex h-[38px] cursor-pointer items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
 								onClick={handleIncludeCexChange}
 							>
 								<div className="relative h-4 w-4">
-									<input type="checkbox" checked={localIncludeCex} readOnly className="sr-only" />
 									<div
 										className={`h-4 w-4 border-2 transition-all ${
 											localIncludeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
@@ -554,7 +555,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									</div>
 								</div>
 								<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
-							</div>
+							</button>
 							<ProTableCSVButton
 								onClick={downloadCSV}
 								className="flex h-[38px] items-center gap-2 border pro-border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
@@ -587,13 +588,14 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 										className="border-r border-b border-(--divider) bg-transparent px-2 py-2 font-medium last:border-r-0"
 									>
 										{header.isPlaceholder ? null : (
-											<a
-												style={{ display: 'flex', gap: '4px', cursor: 'pointer' }}
+											<button
+												type="button"
+												className="flex items-center gap-1 bg-transparent p-0 text-left"
 												onClick={() => header.column.toggleSorting()}
 											>
 												{flexRender(header.column.columnDef.header, header.getContext())}
 												{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-											</a>
+											</button>
 										)}
 									</th>
 								))}

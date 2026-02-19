@@ -175,55 +175,54 @@ function AttributesFilter({
 			<span>Attributes</span>
 		)
 
-	const renderAttributeSubmenus = () =>
-		attributeFilters.map((filter) => {
-			const subMenuLabel =
-				filter.selectedStates.length === ATTRIBUTE_FILTER_STATES.length
-					? filter.label
-					: `${filter.label} (${filter.selectedStates.length}/3)`
+	const attributeSubmenus = attributeFilters.map((filter) => {
+		const subMenuLabel =
+			filter.selectedStates.length === ATTRIBUTE_FILTER_STATES.length
+				? filter.label
+				: `${filter.label} (${filter.selectedStates.length}/3)`
 
-			return (
-				<NestedMenu
-					key={filter.queryKey}
-					label={subMenuLabel}
-					menuPortal={useDesktopPortal}
-					className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
-				>
-					{ATTRIBUTE_FILTER_STATES.map((state) => {
-						const isSelected = filter.selectedStates.includes(state)
-						return (
-							<NestedMenuItem
-								key={`${filter.queryKey}-${state}`}
-								hideOnClick={false}
-								onClick={(event) => {
-									event.preventDefault()
-									event.stopPropagation()
-									filter.onUpdateStates(toggleAttributeFilterState(filter.selectedStates, state))
-								}}
-								className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-							>
-								<span>{ATTRIBUTE_FILTER_STATE_LABELS[state]}</span>
-								<span className="flex h-3.5 w-3.5 items-center justify-center">
-									{isSelected ? <Icon name="check" height={12} width={12} className="text-(--link)" /> : null}
-								</span>
-							</NestedMenuItem>
-						)
-					})}
-				</NestedMenu>
-			)
-		})
+		return (
+			<NestedMenu
+				key={filter.queryKey}
+				label={subMenuLabel}
+				menuPortal={useDesktopPortal}
+				className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
+			>
+				{ATTRIBUTE_FILTER_STATES.map((state) => {
+					const isSelected = filter.selectedStates.includes(state)
+					return (
+						<NestedMenuItem
+							key={`${filter.queryKey}-${state}`}
+							hideOnClick={false}
+							onClick={(event) => {
+								event.preventDefault()
+								event.stopPropagation()
+								filter.onUpdateStates(toggleAttributeFilterState(filter.selectedStates, state))
+							}}
+							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+						>
+							<span>{ATTRIBUTE_FILTER_STATE_LABELS[state]}</span>
+							<span className="flex h-3.5 w-3.5 items-center justify-center">
+								{isSelected ? <Icon name="check" height={12} width={12} className="text-(--link)" /> : null}
+							</span>
+						</NestedMenuItem>
+					)
+				})}
+			</NestedMenu>
+		)
+	})
 
 	if (nestedMenu) {
 		return (
 			<NestedMenu label={trigger} menuPortal={useDesktopPortal}>
-				{renderAttributeSubmenus()}
+				{attributeSubmenus}
 			</NestedMenu>
 		)
 	}
 
 	return (
 		<NestedMenu label={trigger} menuPortal={useDesktopPortal} buttonVariant="filter">
-			{renderAttributeSubmenus()}
+			{attributeSubmenus}
 		</NestedMenu>
 	)
 }

@@ -34,9 +34,12 @@ export const YIELDS_EVENTS = {
 type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
 
 export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<string, string | number | boolean>): void {
-	if (typeof window !== 'undefined' && window.umami) {
-		window.umami.track(eventName, data)
-	}
+	if (typeof window === 'undefined') return
+	const maybeUmami = Reflect.get(window, 'umami')
+	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
+	const maybeTrack = Reflect.get(maybeUmami, 'track')
+	if (typeof maybeTrack !== 'function') return
+	maybeTrack(eventName, data)
 }
 
 // Debounced version for range inputs

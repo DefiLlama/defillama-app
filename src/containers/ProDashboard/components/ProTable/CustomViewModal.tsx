@@ -54,15 +54,16 @@ function CustomViewModalContent({ onClose, onSave, existingViewNames }: CustomVi
 	return (
 		<div
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs dark:bg-black/70"
-			onClick={onClose}
+			onPointerDown={(event) => {
+				if (event.target === event.currentTarget) {
+					onClose()
+				}
+			}}
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="save-custom-view-title"
 		>
-			<div
-				className="w-full max-w-lg rounded-md border pro-border pro-bg1 shadow-lg"
-				onClick={(event) => event.stopPropagation()}
-			>
+			<div className="w-full max-w-lg rounded-md border pro-border pro-bg1 shadow-lg">
 				<div className="p-6">
 					<div className="mb-6 flex items-center justify-between">
 						<h2 id="save-custom-view-title" className="text-xl font-semibold pro-text1">
@@ -89,7 +90,6 @@ function CustomViewModalContent({ onClose, onSave, existingViewNames }: CustomVi
 								onKeyDown={handleKeyDown}
 								placeholder="Enter a name for this view..."
 								className="w-full rounded-md border pro-border bg-(--bg-glass)/50 px-3 py-2 pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
-								autoFocus
 							/>
 							{error ? <p className="mt-2 text-sm text-(--error)">{error}</p> : null}
 						</div>

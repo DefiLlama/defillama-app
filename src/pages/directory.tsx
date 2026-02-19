@@ -165,7 +165,6 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 					<Ariakit.Combobox
 						placeholder="Search..."
 						autoSelect
-						autoFocus
 						className="my-8 w-full rounded-t-md border border-[#ececec] bg-white p-3 pl-9 text-base text-black dark:border-[#2d2f36] dark:bg-black dark:text-white"
 					/>
 					<Icon name="search" height={18} width={18} className="absolute top-3.5 left-3 mt-8" />

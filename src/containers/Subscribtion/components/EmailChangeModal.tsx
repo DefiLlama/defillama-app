@@ -54,7 +54,6 @@ export const EmailChangeModal = ({
 							placeholder="your.new.email@example.com"
 							value={email}
 							onChange={(e) => onEmailChange(e.target.value)}
-							autoFocus
 						/>
 					</div>
 

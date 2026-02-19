@@ -249,7 +249,6 @@ export function CustomColumnModal({
 							value={state.name}
 							onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
 							placeholder="Custom Column"
-							autoFocus
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
