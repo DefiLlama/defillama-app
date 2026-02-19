@@ -560,6 +560,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				enabled={showFilters}
 				modes={{
 					isChainMode,
+					isCategoryMode,
 					isPlatformMode
 				}}
 				options={{

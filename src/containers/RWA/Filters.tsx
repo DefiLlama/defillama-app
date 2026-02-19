@@ -73,6 +73,7 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 
 type RWAFilterModes = {
 	isChainMode: boolean
+	isCategoryMode: boolean
 	isPlatformMode: boolean
 }
 
@@ -297,7 +298,7 @@ function Filters({
 			label: 'Asset Names'
 		},
 		{
-			enabled: modes.isChainMode && options.categoriesOptions.length > 1,
+			enabled: (modes.isChainMode || modes.isPlatformMode) && options.categoriesOptions.length > 1,
 			allValues: options.categoriesOptions,
 			selectedValues: selections.selectedCategories,
 			includeQueryKey: 'categories',
@@ -305,7 +306,7 @@ function Filters({
 			label: 'Categories'
 		},
 		{
-			enabled: options.platforms.length > 1,
+			enabled: (modes.isCategoryMode || modes.isPlatformMode) && options.platforms.length > 1,
 			allValues: options.platforms,
 			selectedValues: selections.selectedPlatforms,
 			includeQueryKey: 'platforms',
