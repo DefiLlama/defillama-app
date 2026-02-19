@@ -50,7 +50,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 
 	useEffect(() => {
 		setManualPage(null)
-	}, [items])
+	}, [items.length])
 
 	useEffect(() => {
 		const hasStartIndexChanged = previousStartIndexRef.current !== startIndex
@@ -63,7 +63,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	useEffect(() => {
 		const maxPage = Math.max(0, totalPages - 1)
 		const targetPage = manualPage == null ? startPage : manualPage
-		setCurrentPage(Math.min(targetPage, maxPage))
+		setCurrentPage(Math.max(0, Math.min(targetPage, maxPage)))
 	}, [manualPage, startPage, totalPages])
 
 	const handlePageChange = (pageIndex: number) => {
@@ -72,11 +72,19 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	}
 
 	const handlePrevPage = () => {
+		if (totalPages <= 1) {
+			setSwipeOffset(0)
+			return
+		}
 		const newPage = currentPage === 0 ? totalPages - 1 : currentPage - 1
 		handlePageChange(newPage)
 	}
 
 	const handleNextPage = () => {
+		if (totalPages <= 1) {
+			setSwipeOffset(0)
+			return
+		}
 		const newPage = currentPage === totalPages - 1 ? 0 : currentPage + 1
 		handlePageChange(newPage)
 	}

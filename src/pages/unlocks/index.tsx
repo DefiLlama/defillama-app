@@ -17,7 +17,6 @@ import { UnlocksTable } from '~/containers/Unlocks/Table'
 import { TopUnlocks } from '~/containers/Unlocks/TopUnlocks'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { useNowSeconds } from '~/hooks/useNowSeconds'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -136,7 +135,7 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 	const isFullView = false
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
-	const now = useNowSeconds(initialNowSec)
+	const now = initialNowSec
 	const { dataset, charts } = useMemo(() => {
 		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
 		const endTs = isFullView ? Infinity : END_TIMESTAMP
@@ -272,10 +271,9 @@ export default function Protocols({ data, generatedAtSec }: { data: any[]; gener
 
 	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
-	const nowSec = useNowSeconds(generatedAtSec)
 	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = useMemo(
-		() => calculateUnlockStatistics(data, nowSec),
-		[data, nowSec]
+		() => calculateUnlockStatistics(data, generatedAtSec),
+		[data, generatedAtSec]
 	)
 
 	return (

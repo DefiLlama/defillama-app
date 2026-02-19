@@ -5,7 +5,6 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
@@ -40,7 +39,13 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 	className,
 	initialNowSec
 }) => {
-	const now = useNowSeconds(initialNowSec)
+	const now = React.useMemo(
+		() =>
+			typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
+				? Math.floor(initialNowSec)
+				: Math.floor(Date.now() / 1000),
+		[initialNowSec]
+	)
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,
