@@ -1,5 +1,3 @@
-'use no memo'
-
 import { normalizeChainSlug } from '~/utils/chainNormalizer'
 import type { TableFilters } from '../../../types'
 import type { NormalizedRow } from '../types'

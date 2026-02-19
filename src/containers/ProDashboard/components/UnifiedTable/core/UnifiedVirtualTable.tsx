@@ -1,4 +1,5 @@
 'use no memo'
+// TODO(PRO-2004): Remove this opt-out once React Compiler no longer regresses virtualized column sizing/layout sync.
 
 import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'

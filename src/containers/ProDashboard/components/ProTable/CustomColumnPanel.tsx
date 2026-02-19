@@ -3,6 +3,7 @@
 import { Parser } from 'expr-eval'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
+import { formatPreviewNumber } from '../UnifiedTable/utils/customColumns'
 import { protocolsByChainTableColumns } from './useProTableColumns'
 
 interface CustomColumn {
@@ -18,20 +19,6 @@ interface CustomColumnPanelProps {
 	onAddCustomColumn: (column: CustomColumn) => void
 	onRemoveCustomColumn: (columnId: string) => void
 	onUpdateCustomColumn: (columnId: string, updates: Partial<CustomColumn>) => void
-}
-
-const formatPreviewNumber = (value: number | null): string => {
-	if (value == null) return '-'
-
-	if (Math.abs(value) >= 1e9) {
-		return `$${(value / 1e9).toFixed(2)}B`
-	} else if (Math.abs(value) >= 1e6) {
-		return `$${(value / 1e6).toFixed(2)}M`
-	} else if (Math.abs(value) >= 1e3) {
-		return `$${(value / 1e3).toFixed(2)}K`
-	} else {
-		return `$${value.toFixed(2)}`
-	}
 }
 
 const handleMouseDown = (e: React.MouseEvent) => {
@@ -197,7 +184,7 @@ export function CustomColumnPanel({
 		() =>
 			Object.entries(sampleData)
 				.slice(0, 3)
-				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+				.map(([key, value]) => `${key}=${formatPreviewNumber(value, 'number')}`)
 				.join(', '),
 		[sampleData]
 	)
@@ -368,9 +355,9 @@ export function CustomColumnPanel({
 		}
 	}
 
-	const liveValidation = React.useMemo((): { isValid: boolean; error?: string; result?: number } => {
+	const liveValidation = React.useMemo((): { isValid: boolean; isEmpty?: boolean; error?: string; result?: number } => {
 		if (!newColumnExpression.trim()) {
-			return { isValid: true }
+			return { isValid: false, isEmpty: true }
 		}
 
 		try {
@@ -478,7 +465,7 @@ export function CustomColumnPanel({
 							{/* Live validation indicator */}
 							{newColumnExpression && (
 								<div className="absolute top-1/2 right-2 -translate-y-1/2 transform">
-									{liveValidation.isValid ? (
+									{liveValidation.isEmpty ? null : liveValidation.isValid ? (
 										<Icon name="check" height={16} width={16} className="text-(--success)" />
 									) : (
 										<Icon name="x" height={16} width={16} className="text-(--error)" />
@@ -505,8 +492,10 @@ export function CustomColumnPanel({
 									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
 										<span className="text-green-700 dark:text-green-300">
-											{formatPreviewNumber(liveValidation.result ?? null)}
+											{formatPreviewNumber(liveValidation.result ?? null, 'number')}
 										</span>
+									) : liveValidation.isEmpty ? (
+										<span className="pro-text3">Enter an expression</span>
 									) : (
 										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>
 									)}
@@ -576,7 +565,7 @@ export function CustomColumnPanel({
 					Sample values:{' '}
 					{Object.entries(sampleData)
 						.slice(0, 4)
-						.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+						.map(([key, value]) => `${key}=${formatPreviewNumber(value, 'number')}`)
 						.join(', ')}
 				</div>
 			</div>

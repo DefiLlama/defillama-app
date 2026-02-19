@@ -1,5 +1,3 @@
-'use no memo'
-
 import type { TableFilters } from '~/containers/ProDashboard/types'
 import { formattedNum } from '~/utils'
 

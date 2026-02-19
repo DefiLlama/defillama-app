@@ -1,5 +1,3 @@
-'use no memo'
-
 import type { UnifiedRowHeaderType } from '../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './config/ColumnDictionary'
 

@@ -1,5 +1,3 @@
-'use no memo'
-
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 

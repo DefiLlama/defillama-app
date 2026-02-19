@@ -33,10 +33,7 @@ const resolveUpdater = <T,>(updater: Updater<T>, previousValue: T): T => {
 }
 
 const hasOwnKeys = (record: Record<string, boolean>): boolean => {
-	for (const _ in record) {
-		return true
-	}
-	return false
+	return Object.keys(record).length > 0
 }
 
 const areStringArraysEqual = (a: string[], b: string[]): boolean => {
@@ -78,8 +75,7 @@ const isStringArray = (value: unknown): value is string[] => {
 
 const isBooleanRecord = (value: unknown): value is Record<string, boolean> => {
 	if (typeof value !== 'object' || value === null || Array.isArray(value)) return false
-	for (const [key, entry] of Object.entries(value)) {
-		if (typeof key !== 'string') return false
+	for (const [, entry] of Object.entries(value)) {
 		if (typeof entry !== 'boolean') return false
 	}
 	return true
@@ -442,10 +438,30 @@ export function useProTable(
 		if (!Array.isArray(tableViews)) return []
 		return tableViews.filter((view): view is CustomView => isCustomView(view))
 	}, [userConfig])
+	const hydratedCustomViewRef = React.useRef<string | null>(null)
+	const columnOrderLengthRef = React.useRef(state.columnOrder.length)
+	const columnVisibilityRef = React.useRef(state.columnVisibility)
 
 	React.useEffect(() => {
-		if (!state.activeCustomView) return
-		if (state.columnOrder.length > 0 || hasOwnKeys(state.columnVisibility)) return
+		columnOrderLengthRef.current = state.columnOrder.length
+	}, [state.columnOrder.length])
+
+	React.useEffect(() => {
+		columnVisibilityRef.current = state.columnVisibility
+	}, [state.columnVisibility])
+
+	React.useEffect(() => {
+		if (!state.activeCustomView) {
+			hydratedCustomViewRef.current = null
+			return
+		}
+
+		if (hydratedCustomViewRef.current === state.activeCustomView) return
+
+		if (columnOrderLengthRef.current > 0 || hasOwnKeys(columnVisibilityRef.current)) {
+			hydratedCustomViewRef.current = state.activeCustomView
+			return
+		}
 
 		const matchingView = customViews.find((view) => view.id === state.activeCustomView)
 		if (!matchingView) return
@@ -456,7 +472,8 @@ export function useProTable(
 			{ ...matchingView.columnVisibility },
 			matchingView.customColumns ? [...matchingView.customColumns] : []
 		)
-	}, [actions, customViews, state.activeCustomView, state.columnOrder, state.columnVisibility])
+		hydratedCustomViewRef.current = state.activeCustomView
+	}, [actions, customViews, state.activeCustomView])
 
 	const saveCustomView = React.useCallback(
 		async (name: string) => {
@@ -581,6 +598,7 @@ export function useProTable(
 		moveColumnDown,
 		columnPresets: COLUMN_PRESETS,
 		applyPreset,
+		// Used by table controls for either a preset id or active custom view id.
 		activePreset: state.selectedPreset ?? state.activeCustomView,
 		downloadCSV: handleDownloadCSV,
 		customColumns: state.customColumns,

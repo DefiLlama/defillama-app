@@ -16,12 +16,18 @@ const hasOwnKeys = (record: Record<string, boolean> | undefined): boolean => {
 	return false
 }
 
-const createInitialState = ({ options, defaultSorting, defaultPreset, initialKnownColumnIds }: ProTableStateInit): ProTableState => {
+const createInitialState = ({
+	options,
+	defaultSorting,
+	defaultPreset,
+	initialKnownColumnIds
+}: ProTableStateInit): ProTableState => {
 	const initialCustomColumns = options?.initialCustomColumns ? [...options.initialCustomColumns] : []
 	const hasInitialColumnOrder = (options?.initialColumnOrder?.length ?? 0) > 0
 	const hasInitialColumnVisibility = hasOwnKeys(options?.initialColumnVisibility)
 	const hasInitialView = typeof options?.initialActiveViewId === 'string'
-	const shouldUsePresetAsDefault = !hasInitialColumnOrder && !hasInitialColumnVisibility && !hasInitialView && !!defaultPreset
+	const shouldUsePresetAsDefault =
+		!hasInitialColumnOrder && !hasInitialColumnVisibility && !hasInitialView && !!defaultPreset
 
 	const initialColumnOrder = hasInitialColumnOrder
 		? [...(options?.initialColumnOrder ?? [])]
@@ -40,7 +46,8 @@ const createInitialState = ({ options, defaultSorting, defaultPreset, initialKno
 			? cloneSorting(defaultPreset.sort)
 			: cloneSorting(defaultSorting)
 
-	const initialSelectedPreset = shouldUsePresetAsDefault && defaultPreset ? defaultPreset.id : options?.initialActivePresetId ?? null
+	const initialSelectedPreset =
+		shouldUsePresetAsDefault && defaultPreset ? defaultPreset.id : (options?.initialActivePresetId ?? null)
 	const initialActiveDatasetMetric =
 		shouldUsePresetAsDefault &&
 		defaultPreset?.group === 'dataset' &&
@@ -145,7 +152,9 @@ const reducer = (state: ProTableState, action: ProTableAction): ProTableState =>
 		case 'addCustomColumn':
 			return {
 				...state,
-				customColumns: [...state.customColumns, action.column]
+				customColumns: [...state.customColumns, action.column],
+				columnOrder: [...state.columnOrder, action.column.id],
+				columnVisibility: { ...state.columnVisibility, [action.column.id]: true }
 			}
 		case 'updateCustomColumn':
 			return {
@@ -175,7 +184,8 @@ export function useProTableState(init: ProTableStateInit) {
 			setCustomColumns: (customColumns: ProTableState['customColumns']) =>
 				dispatch({ type: 'setCustomColumns', customColumns }),
 			setSelectedPreset: (selectedPreset: string | null) => dispatch({ type: 'setSelectedPreset', selectedPreset }),
-			setActiveCustomView: (activeCustomView: string | null) => dispatch({ type: 'setActiveCustomView', activeCustomView }),
+			setActiveCustomView: (activeCustomView: string | null) =>
+				dispatch({ type: 'setActiveCustomView', activeCustomView }),
 			setActiveDatasetMetric: (activeDatasetMetric: string | null) =>
 				dispatch({ type: 'setActiveDatasetMetric', activeDatasetMetric }),
 			setColumnVisibilityAndOrder: (columnVisibility: Record<string, boolean>, columnOrder: string[]) =>

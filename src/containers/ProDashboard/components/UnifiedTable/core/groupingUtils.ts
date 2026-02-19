@@ -1,5 +1,3 @@
-'use no memo'
-
 import type { Row } from '@tanstack/react-table'
 import type { UnifiedRowHeaderType } from '../../../types'
 import type { NormalizedRow, NumericMetrics } from '../types'

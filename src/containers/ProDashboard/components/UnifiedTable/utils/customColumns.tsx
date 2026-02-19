@@ -1,5 +1,3 @@
-'use no memo'
-
 import type { ColumnDef, Row } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'

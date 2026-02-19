@@ -1,5 +1,3 @@
-'use no memo'
-
 import type { VisibilityState } from '@tanstack/react-table'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from './ColumnDictionary'
 

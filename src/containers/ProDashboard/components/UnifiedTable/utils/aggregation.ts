@@ -1,5 +1,3 @@
-'use no memo'
-
 import { getPercentChange } from '~/utils'
 import type { NormalizedRow, NumericMetrics } from '../types'
 
@@ -206,13 +204,7 @@ export function aggregateMetrics(rows: NormalizedRow[]): NumericMetrics {
 	aggregated.pf = computeAnnualizedRatioFrom30d(aggregated.mcap, aggregated.fees_30d)
 	aggregated.ps = computeAnnualizedRatioFrom30d(aggregated.mcap, aggregated.revenue_30d)
 
-	aggregated.perpsVolume24h = aggregated.perpsVolume24h ?? null
 	aggregated.protocolCount = protocolIds.size > 0 ? protocolIds.size : null
 
 	return aggregated
-}
-
-// oxlint-disable-next-line no-unused-vars
-function extractLeafRows(nodes: NormalizedRow[] | undefined): NormalizedRow[] {
-	return nodes ? [...nodes] : []
 }

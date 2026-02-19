@@ -1,6 +1,11 @@
 'use no memo'
 
 import * as React from 'react'
+import type { IParentProtocol } from '~/api/types'
+import { getPercentChange } from '~/utils'
+import type { IProtocolRow } from './proTable.types'
+import type { UseProTableDataParams, UseProTableDataResult, ProtocolWithSubRows } from './proTable.types'
+import { formatProtocolsList } from './proTable.utils'
 import {
 	useGetProtocolsAggregatorsByMultiChain,
 	useGetProtocolsBridgeAggregatorsByMultiChain,
@@ -12,11 +17,6 @@ import {
 	useGetProtocolsPerpsVolumeByMultiChain,
 	useGetProtocolsVolumeByMultiChain
 } from './useProTableMultiChain'
-import type { IParentProtocol } from '~/api/types'
-import { getPercentChange } from '~/utils'
-import type { IProtocolRow } from './proTable.types'
-import type { UseProTableDataParams, UseProTableDataResult, ProtocolWithSubRows } from './proTable.types'
-import { formatProtocolsList } from './proTable.utils'
 
 type ProtocolFilterSet = {
 	protocolSet: Set<string> | null
@@ -260,11 +260,10 @@ const recalculateParentMetrics = (
 
 const filterWithParentSupport = (
 	protocols: IProtocolRow[],
-	directMatch: (protocol: IProtocolRow) => boolean,
-	childMatch: (protocol: IProtocolRow) => boolean
+	predicate: (protocol: IProtocolRow) => boolean
 ): IProtocolRow[] => {
 	const filtered = protocols.map((protocol) => {
-		if (directMatch(protocol)) {
+		if (predicate(protocol)) {
 			return protocol
 		}
 
@@ -272,7 +271,7 @@ const filterWithParentSupport = (
 			return null
 		}
 
-		const filteredSubRows = protocol.subRows.filter(childMatch)
+		const filteredSubRows = protocol.subRows.filter(predicate)
 		if (filteredSubRows.length === 0) {
 			return null
 		}
@@ -330,31 +329,19 @@ const applyFilters = (protocols: IProtocolRow[], filterSets: ProtocolFilterSet):
 			(protocol) =>
 				typeof protocol.name === 'string' &&
 				filterSets.protocolSet !== null &&
-				filterSets.protocolSet.has(protocol.name),
-			(protocol) =>
-				typeof protocol.name === 'string' &&
-				filterSets.protocolSet !== null &&
 				filterSets.protocolSet.has(protocol.name)
 		)
 	}
 
 	if (filterSets.oracleSet) {
-		filtered = filterWithParentSupport(
-			filtered,
-			(protocol) =>
-				getProtocolOracles(protocol).some(
-					(oracle) => filterSets.oracleSet !== null && filterSets.oracleSet.has(oracle)
-				),
-			(protocol) =>
-				getProtocolOracles(protocol).some((oracle) => filterSets.oracleSet !== null && filterSets.oracleSet.has(oracle))
+		filtered = filterWithParentSupport(filtered, (protocol) =>
+			getProtocolOracles(protocol).some((oracle) => filterSets.oracleSet !== null && filterSets.oracleSet.has(oracle))
 		)
 	}
 
 	if (filterSets.categorySet) {
 		filtered = filterWithParentSupport(
 			filtered,
-			(protocol) =>
-				!!protocol.category && filterSets.categorySet !== null && filterSets.categorySet.has(protocol.category),
 			(protocol) =>
 				!!protocol.category && filterSets.categorySet !== null && filterSets.categorySet.has(protocol.category)
 		)

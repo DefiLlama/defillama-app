@@ -1,5 +1,3 @@
-'use no memo'
-
 import { DIMENSIONS_OVERVIEW_API } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -25,17 +23,21 @@ const toProtocolMap = (response: OverviewProtocolsResponse): Record<string, ProT
 export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: string }) => {
 	const apiUrl = `${getOverviewApiUrl('fees', chain)}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true`
 
-	const [fees, revenue, holdersRevenue] = await Promise.all([
-		(fetchJson(apiUrl) as Promise<OverviewProtocolsResponse>).catch((err) => {
-			console.log('Error at ', apiUrl, err)
+	const [fees, revenue, holdersRevenue]: [
+		OverviewProtocolsResponse | null,
+		OverviewProtocolsResponse | null,
+		OverviewProtocolsResponse | null
+	] = await Promise.all([
+		fetchJson(apiUrl).catch((err) => {
+			console.error('Error at ', apiUrl, err)
 			return null
 		}),
-		(fetchJson(`${apiUrl}&dataType=dailyRevenue`) as Promise<OverviewProtocolsResponse>).catch((err) => {
-			console.log('Error at ', `${apiUrl}&dataType=dailyRevenue`, err)
+		fetchJson(`${apiUrl}&dataType=dailyRevenue`).catch((err) => {
+			console.error('Error at ', `${apiUrl}&dataType=dailyRevenue`, err)
 			return null
 		}),
-		(fetchJson(`${apiUrl}&dataType=dailyHoldersRevenue`) as Promise<OverviewProtocolsResponse>).catch((err) => {
-			console.log('Error at ', `${apiUrl}&dataType=dailyHoldersRevenue`, err)
+		fetchJson(`${apiUrl}&dataType=dailyHoldersRevenue`).catch((err) => {
+			console.error('Error at ', `${apiUrl}&dataType=dailyHoldersRevenue`, err)
 			return null
 		})
 	])
@@ -80,7 +82,7 @@ export const getFeesAndRevenueProtocolsByChain = async ({ chain }: { chain?: str
 	return mergedProtocols
 }
 
-export const getDexVolumeByChain = async ({
+export const getDexVolumeByChain = ({
 	chain,
 	excludeTotalDataChart,
 	excludeTotalDataChartBreakdown
@@ -89,14 +91,16 @@ export const getDexVolumeByChain = async ({
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 }) =>
-	(fetchJson(
-		`${getOverviewApiUrl('dexs', chain)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
-	) as Promise<OverviewProtocolsResponse>).catch((err) => {
-		console.log(err)
+	(
+		fetchJson(
+			`${getOverviewApiUrl('dexs', chain)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		) as Promise<OverviewProtocolsResponse>
+	).catch((err) => {
+		console.error(err)
 		return null
 	})
 
-export const getPerpsVolumeByChain = async ({
+export const getPerpsVolumeByChain = ({
 	chain,
 	excludeTotalDataChart,
 	excludeTotalDataChartBreakdown
@@ -105,17 +109,21 @@ export const getPerpsVolumeByChain = async ({
 	excludeTotalDataChart: boolean
 	excludeTotalDataChartBreakdown: boolean
 }) =>
-	(fetchJson(
-		`${getOverviewApiUrl('derivatives', chain)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
-	) as Promise<OverviewProtocolsResponse>).catch((err) => {
-		console.log(err)
+	(
+		fetchJson(
+			`${getOverviewApiUrl('derivatives', chain)}?excludeTotalDataChart=${excludeTotalDataChart}&excludeTotalDataChartBreakdown=${excludeTotalDataChartBreakdown}`
+		) as Promise<OverviewProtocolsResponse>
+	).catch((err) => {
+		console.error(err)
 		return null
 	})
 
-export const getOpenInterestByChain = async ({ chain }: { chain?: string }) =>
-	(fetchJson(
-		`${getOverviewApiUrl('open-interest', chain)}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
-	) as Promise<OverviewProtocolsResponse>).catch((err) => {
-		console.log(err)
+export const getOpenInterestByChain = ({ chain }: { chain?: string }) =>
+	(
+		fetchJson(
+			`${getOverviewApiUrl('open-interest', chain)}?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true&dataType=openInterestAtEnd`
+		) as Promise<OverviewProtocolsResponse>
+	).catch((err) => {
+		console.error(err)
 		return null
 	})

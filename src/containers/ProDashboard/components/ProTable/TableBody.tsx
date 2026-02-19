@@ -47,6 +47,7 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 								const columnIndex = visibleColumns.indexOf(header)
 								const isFirst = columnIndex === 0
 								const isLast = columnIndex === visibleColumns.length - 1
+								const sortable = getSortableColumn(header)
 
 								return (
 									<th
@@ -63,9 +64,9 @@ export function TableBody({ table, isLoading, moveColumnUp, moveColumnDown }: Ta
 										{header.isPlaceholder ? null : (
 											<ReorderableHeader
 												columnId={header.column.id}
-												canSort={getSortableColumn(header) !== null}
-												isSorted={getSortableColumn(header)?.getIsSorted() ?? false}
-												onSort={() => getSortableColumn(header)?.toggleSorting()}
+												canSort={sortable !== null}
+												isSorted={sortable?.getIsSorted() ?? false}
+												onSort={() => sortable?.toggleSorting()}
 												onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
 												onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
 												canMoveUp={!isFirst}

@@ -2,8 +2,8 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useMemo, useRef } from 'react'
-import { PROTOCOLS_API } from '~/constants'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/api/categories/protocols/utils'
+import { PROTOCOLS_API } from '~/constants'
 import { fetchApi, fetchJson } from '~/utils/async'
 import {
 	getDexVolumeByChain,

@@ -19,15 +19,19 @@ interface CustomViewModalContentProps {
 function CustomViewModalContent({ onClose, onSave, existingViewNames }: CustomViewModalContentProps) {
 	const [viewName, setViewName] = React.useState('')
 	const [error, setError] = React.useState<string | null>(null)
+	const existingViewNamesLowercased = React.useMemo(() => {
+		return new Set(existingViewNames.map((name) => name.trim().toLowerCase()))
+	}, [existingViewNames])
 
 	const handleSave = () => {
 		const normalizedName = viewName.trim()
+		const normalizedNameLowercased = normalizedName.toLowerCase()
 		if (!normalizedName) {
 			setError('Please enter a view name')
 			return
 		}
 
-		if (existingViewNames.includes(normalizedName)) {
+		if (existingViewNamesLowercased.has(normalizedNameLowercased)) {
 			setError('A view with this name already exists')
 			return
 		}
@@ -51,11 +55,19 @@ function CustomViewModalContent({ onClose, onSave, existingViewNames }: CustomVi
 		<div
 			className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs dark:bg-black/70"
 			onClick={onClose}
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="save-custom-view-title"
 		>
-			<div className="w-full max-w-lg rounded-md border pro-border pro-bg1 shadow-lg" onClick={(event) => event.stopPropagation()}>
+			<div
+				className="w-full max-w-lg rounded-md border pro-border pro-bg1 shadow-lg"
+				onClick={(event) => event.stopPropagation()}
+			>
 				<div className="p-6">
 					<div className="mb-6 flex items-center justify-between">
-						<h2 className="text-xl font-semibold pro-text1">Save Custom View</h2>
+						<h2 id="save-custom-view-title" className="text-xl font-semibold pro-text1">
+							Save Custom View
+						</h2>
 						<button type="button" onClick={onClose} className="pro-hover-bg p-1 transition-colors">
 							<Icon name="x" height={20} width={20} className="pro-text2" />
 						</button>
@@ -114,5 +126,5 @@ function CustomViewModalContent({ onClose, onSave, existingViewNames }: CustomVi
 export function CustomViewModal({ isOpen, onClose, onSave, existingViewNames }: CustomViewModalProps) {
 	if (!isOpen) return null
 
-	return <CustomViewModalContent key="custom-view-modal-content" onClose={onClose} onSave={onSave} existingViewNames={existingViewNames} />
+	return <CustomViewModalContent onClose={onClose} onSave={onSave} existingViewNames={existingViewNames} />
 }

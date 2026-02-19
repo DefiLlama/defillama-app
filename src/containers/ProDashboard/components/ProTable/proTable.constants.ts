@@ -16,7 +16,19 @@ export const COLUMN_PRESETS: ColumnPresetDefinition[] = [
 		id: 'advanced',
 		label: 'Advanced',
 		group: 'core',
-		columns: ['name', 'category', 'chains', 'tvl', 'change_1d', 'fees_24h', 'revenue_24h', 'volume_24h', 'mcaptvl', 'pf', 'ps']
+		columns: [
+			'name',
+			'category',
+			'chains',
+			'tvl',
+			'change_1d',
+			'fees_24h',
+			'revenue_24h',
+			'volume_24h',
+			'mcaptvl',
+			'pf',
+			'ps'
+		]
 	},
 	{
 		id: 'fees',
@@ -152,7 +164,15 @@ export const COLUMN_PRESETS: ColumnPresetDefinition[] = [
 		label: 'Open Interest',
 		group: 'dataset',
 		description: 'Rank protocols by open interest',
-		columns: ['name', 'category', 'chains', 'openInterest', 'perps_volume_24h', 'perps_volume_change_1d', 'perps_volume_change_7d'],
+		columns: [
+			'name',
+			'category',
+			'chains',
+			'openInterest',
+			'perps_volume_24h',
+			'perps_volume_change_1d',
+			'perps_volume_change_7d'
+		],
 		sort: [{ id: 'openInterest', desc: true }]
 	},
 	{
@@ -226,6 +246,7 @@ export const USD_METRIC_KEYS = [
 	'revenue_1y',
 	'volume_24h',
 	'volume_7d',
+	'volume_30d',
 	'cumulativeFees',
 	'cumulativeVolume',
 	'perps_volume_24h',
@@ -278,7 +299,10 @@ export const SHARE_METRIC_DEFINITIONS = [
 	{ key: 'options_volume_30d', name: 'Options Volume 30d % Share' }
 ] as const
 
-export const buildColumnVisibilityMap = (allColumnIds: string[], visibleColumnIds: string[]): Record<string, boolean> => {
+export const buildColumnVisibilityMap = (
+	allColumnIds: string[],
+	visibleColumnIds: string[]
+): Record<string, boolean> => {
 	const visibleSet = new Set(visibleColumnIds)
 	const nextVisibility: Record<string, boolean> = {}
 	for (const columnId of allColumnIds) {

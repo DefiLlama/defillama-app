@@ -1,19 +1,8 @@
-'use no memo'
-
+import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import type { ChainMetricSnapshot, IFormattedProtocol, IParentProtocol } from '~/api/types'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { getPercentChange } from '~/utils'
 import type { ProTableDimensionProtocol } from './proTable.types'
-
-const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
-	if (numerator == null || denominator == null) {
-		return null
-	}
-	if (denominator === 0) {
-		return null
-	}
-	return Number((numerator / (denominator * 12)).toFixed(2))
-}
 
 function addElement(
 	key: string,
@@ -405,6 +394,8 @@ export const formatProtocolsList = ({
 
 	for (const protocol of protocols) {
 		const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth, extraTvl, mcap, name, ...props } = protocol
+		const protocolName = name?.toLowerCase()
+		if (!protocolName) continue
 		let finalTvl: number | null = tvl
 		let finalTvlPrevDay: number | null = tvlPrevDay
 		let finalTvlPrevWeek: number | null = tvlPrevWeek
@@ -467,7 +458,7 @@ export const formatProtocolsList = ({
 			}
 		}
 
-		allProtocols[name?.toLowerCase()] = {
+		allProtocols[protocolName] = {
 			...props,
 			extraTvl,
 			name,

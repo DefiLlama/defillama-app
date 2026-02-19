@@ -249,6 +249,21 @@ function UnifiedTable({
 		? (columnVisibilityOverride ?? getDefaultColumnVisibility(config))
 		: columnVisibilityState
 	const effectiveSorting = previewMode ? (sortingOverride ?? normalizeSorting(config.defaultSorting)) : sortingState
+	const effectiveColumnOrderRef = useRef(effectiveColumnOrder)
+	const effectiveColumnVisibilityRef = useRef(effectiveColumnVisibility)
+	const effectiveSortingRef = useRef(effectiveSorting)
+
+	useEffect(() => {
+		effectiveColumnOrderRef.current = effectiveColumnOrder
+	}, [effectiveColumnOrder])
+
+	useEffect(() => {
+		effectiveColumnVisibilityRef.current = effectiveColumnVisibility
+	}, [effectiveColumnVisibility])
+
+	useEffect(() => {
+		effectiveSortingRef.current = effectiveSorting
+	}, [effectiveSorting])
 
 	useEffect(() => {
 		if (previewMode) return
@@ -315,37 +330,37 @@ function UnifiedTable({
 	const handleColumnOrderChange = useCallback(
 		(updater: ColumnOrderState | ((prev: ColumnOrderState) => ColumnOrderState)) => {
 			if (previewMode) {
-				const next = typeof updater === 'function' ? updater(effectiveColumnOrder) : updater
+				const next = typeof updater === 'function' ? updater(effectiveColumnOrderRef.current) : updater
 				onPreviewColumnOrderChange?.(next)
 				return
 			}
 			setColumnOrderState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
 		},
-		[effectiveColumnOrder, onPreviewColumnOrderChange, previewMode]
+		[onPreviewColumnOrderChange, previewMode]
 	)
 
 	const handleColumnVisibilityChange = useCallback(
 		(updater: VisibilityState | ((prev: VisibilityState) => VisibilityState)) => {
 			if (previewMode) {
-				const next = typeof updater === 'function' ? updater(effectiveColumnVisibility) : updater
+				const next = typeof updater === 'function' ? updater(effectiveColumnVisibilityRef.current) : updater
 				onPreviewColumnVisibilityChange?.(next)
 				return
 			}
 			setColumnVisibilityState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
 		},
-		[effectiveColumnVisibility, onPreviewColumnVisibilityChange, previewMode]
+		[onPreviewColumnVisibilityChange, previewMode]
 	)
 
 	const handleSortingChange = useCallback(
 		(updater: SortingState | ((prev: SortingState) => SortingState)) => {
 			if (previewMode) {
-				const next = typeof updater === 'function' ? updater(effectiveSorting) : updater
+				const next = typeof updater === 'function' ? updater(effectiveSortingRef.current) : updater
 				onPreviewSortingChange?.(next)
 				return
 			}
 			setSortingState((prev) => (typeof updater === 'function' ? updater(prev) : updater))
 		},
-		[effectiveSorting, onPreviewSortingChange, previewMode]
+		[onPreviewSortingChange, previewMode]
 	)
 
 	const unifiedTable = useUnifiedTable({

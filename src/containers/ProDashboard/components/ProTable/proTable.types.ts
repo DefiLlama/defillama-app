@@ -1,11 +1,9 @@
-'use no memo'
-
 import type { ExpandedState, PaginationState, SortingState } from '@tanstack/react-table'
 import type { IParentProtocol, IFormattedProtocol } from '~/api/types'
 import type { TableFilters } from '../../types'
 
 export interface IProtocolRow extends IFormattedProtocol {
-	subRows?: Array<IFormattedProtocol>
+	subRows?: IProtocolRow[]
 }
 
 export interface ProTableDimensionProtocol {
@@ -87,7 +85,6 @@ export interface UseProTableOptions {
 
 export interface ProtocolWithSubRows extends IProtocolRow {
 	isParentProtocol?: boolean
-	subRows?: IProtocolRow[]
 }
 
 export interface ProTableState {

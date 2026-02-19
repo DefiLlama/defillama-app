@@ -31,6 +31,8 @@ enum TABLE_PERIODS {
 	ONE_MONTH = '1m'
 }
 
+const expressionParser = new Parser()
+
 export const protocolsByChainTableColumns = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
@@ -1325,7 +1327,7 @@ type UseProTableColumnsResult = {
 	allLeafColumnIds: string[]
 }
 
-const toNumber = (value: unknown): number | null => {
+const coerceToNumber = (value: unknown): number | null => {
 	if (typeof value === 'number' && Number.isFinite(value)) return value
 	if (typeof value === 'string') {
 		const parsed = Number.parseFloat(value)
@@ -1335,28 +1337,29 @@ const toNumber = (value: unknown): number | null => {
 }
 
 const formatCurrencyShort = (value: number): string => {
+	const sign = value < 0 ? '-' : ''
 	const abs = Math.abs(value)
-	if (abs >= 1e9) return `$${(value / 1e9).toFixed(2)}B`
-	if (abs >= 1e6) return `$${(value / 1e6).toFixed(2)}M`
-	if (abs >= 1e3) return `$${(value / 1e3).toFixed(2)}K`
-	return `$${value.toFixed(2)}`
+	if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(2)}B`
+	if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(2)}M`
+	if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(2)}K`
+	return `${sign}$${abs.toFixed(2)}`
 }
 
 const collectLeafColumnIds = (columns: ColumnDef<IProtocolRow>[]): string[] => {
 	const ids: string[] = []
 	const visit = (nextColumns: ColumnDef<IProtocolRow>[]) => {
 		for (const column of nextColumns) {
-			const nested = Reflect.get(column, 'columns')
+			const nested = 'columns' in column ? column.columns : undefined
 			if (Array.isArray(nested) && nested.length > 0) {
-				visit(nested)
+				visit(nested as ColumnDef<IProtocolRow>[])
 				continue
 			}
-			const id = Reflect.get(column, 'id')
+			const id = 'id' in column ? column.id : undefined
 			if (typeof id === 'string' && id.length > 0) {
 				ids.push(id)
 				continue
 			}
-			const accessorKey = Reflect.get(column, 'accessorKey')
+			const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
 			if (typeof accessorKey === 'string' && accessorKey.length > 0) {
 				ids.push(accessorKey)
 			}
@@ -1383,12 +1386,11 @@ export function useProTableColumns({
 	onFilterClick
 }: UseProTableColumnsParams): UseProTableColumnsResult {
 	const customColumnDefs = React.useMemo(() => {
-		const parser = new Parser()
 		const compiledColumns = customColumns
 			.filter((column) => column.isValid)
 			.map((column) => {
 				try {
-					return { column, expression: parser.parse(column.expression) }
+					return { column, expression: expressionParser.parse(column.expression) }
 				} catch {
 					return null
 				}
@@ -1403,7 +1405,7 @@ export function useProTableColumns({
 					const context: Record<string, number> = {}
 					for (const baseColumn of protocolsByChainTableColumns) {
 						const value = Reflect.get(row, baseColumn.key)
-						const numericValue = toNumber(value)
+						const numericValue = coerceToNumber(value)
 						if (numericValue !== null) {
 							context[baseColumn.key] = numericValue
 						}

@@ -118,6 +118,7 @@ interface ProtocolFilterDialogContentProps {
 	categories: string[]
 	currentFilters: TableFilters
 	onFiltersChange: (filters: TableFilters) => void
+	portalTarget: HTMLElement
 }
 
 function ProtocolFilterDialogContent({
@@ -126,7 +127,8 @@ function ProtocolFilterDialogContent({
 	parentProtocols,
 	categories,
 	currentFilters,
-	onFiltersChange
+	onFiltersChange,
+	portalTarget
 }: ProtocolFilterDialogContentProps) {
 	const [selectedProtocols, setSelectedProtocols] = React.useState<string[]>(
 		() => currentFilters.protocols ?? EMPTY_FILTERS
@@ -164,9 +166,7 @@ function ProtocolFilterDialogContent({
 				for (const oracle of protocol.oracles) {
 					addTvlToOracle(oracle, protocolTvl)
 				}
-			}
-
-			if (protocol.oraclesByChain) {
+			} else if (protocol.oraclesByChain) {
 				for (const chainOracles of Object.values(protocol.oraclesByChain)) {
 					for (const oracle of chainOracles) {
 						addTvlToOracle(oracle, protocolTvl)
@@ -251,6 +251,7 @@ function ProtocolFilterDialogContent({
 				className="dialog max-h-[80dvh] w-full max-w-xl gap-0 rounded-md border pro-dashboard border-(--cards-border) bg-(--cards-bg) p-0 shadow-lg"
 				unmountOnHide
 				portal
+				portalElement={portalTarget}
 				hideOnInteractOutside
 			>
 				<div
@@ -377,7 +378,7 @@ export function ProtocolFilterModal({
 	categories,
 	currentFilters,
 	onFiltersChange,
-	portalTarget: _portalTarget
+	portalTarget
 }: ProtocolFilterModalProps) {
 	const modalKey = React.useMemo(() => {
 		const filtersSnapshot = {
@@ -400,6 +401,7 @@ export function ProtocolFilterModal({
 			categories={categories}
 			currentFilters={currentFilters}
 			onFiltersChange={onFiltersChange}
+			portalTarget={portalTarget}
 		/>
 	)
 }

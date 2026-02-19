@@ -32,7 +32,10 @@ export const CsvExportDropdown = memo(function CsvExportDropdown({
 	const dropdownRef = useRef<HTMLDivElement>(null)
 
 	const exportOptions = useMemo<CsvExportLevel[]>(
-		() => ['all', ...rowHeaders.filter((header): header is Exclude<UnifiedRowHeaderType, 'protocol'> => header !== 'protocol')],
+		() => [
+			'all',
+			...rowHeaders.filter((header): header is Exclude<UnifiedRowHeaderType, 'protocol'> => header !== 'protocol')
+		],
 		[rowHeaders]
 	)
 

@@ -125,8 +125,8 @@ interface ColumnButtonProps {
 	isCustom?: boolean
 	currentColumns: Record<string, boolean>
 	columnOrder: string[]
-	moveColumnUp: (columnKey: string) => void
-	moveColumnDown: (columnKey: string) => void
+	moveColumnUp?: (columnKey: string) => void
+	moveColumnDown?: (columnKey: string) => void
 	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
 	customColumns: CustomColumn[]
 }
@@ -407,24 +407,24 @@ export function ColumnManagementPanel({
 							<p className="mb-3 text-xs pro-text3">Use arrows to reorder • Click × to hide</p>
 							<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
 								{visibleColumnOrder.map((columnKey) => {
-										const column = columnsByKey.get(columnKey)
-										if (!column) return null
-										const isCustom = customColumnIdSet.has(columnKey)
-										return (
-											<ColumnButton
-												key={columnKey}
-												column={column}
-												isActive={true}
-												isCustom={isCustom}
-												currentColumns={currentColumns}
-												columnOrder={columnOrder}
-												moveColumnUp={moveColumnUp}
-												moveColumnDown={moveColumnDown}
-												toggleColumnVisibility={toggleColumnVisibility}
-												customColumns={customColumns}
-											/>
-										)
-									})}
+									const column = columnsByKey.get(columnKey)
+									if (!column) return null
+									const isCustom = customColumnIdSet.has(columnKey)
+									return (
+										<ColumnButton
+											key={columnKey}
+											column={column}
+											isActive={true}
+											isCustom={isCustom}
+											currentColumns={currentColumns}
+											columnOrder={columnOrder}
+											moveColumnUp={moveColumnUp}
+											moveColumnDown={moveColumnDown}
+											toggleColumnVisibility={toggleColumnVisibility}
+											customColumns={customColumns}
+										/>
+									)
+								})}
 							</div>
 						</div>
 

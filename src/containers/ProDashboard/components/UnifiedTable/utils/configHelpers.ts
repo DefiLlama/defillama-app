@@ -1,11 +1,8 @@
-'use no memo'
-
 import type { SortingState, VisibilityState } from '@tanstack/react-table'
 import type { CustomColumnDefinition, UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { sanitizeConfigColumns } from '../config/metricCapabilities'
 import type { UnifiedTablePreset } from '../config/PresetRegistry'
-import { UNIFIED_TABLE_PRESETS_BY_ID } from '../config/PresetRegistry'
 import {
 	DEFAULT_COLUMN_ORDER,
 	DEFAULT_COLUMN_VISIBILITY,
@@ -57,14 +54,8 @@ export function getDefaultColumnVisibility(
 			...(config.columnVisibility ?? {})
 		}
 	} else {
-		let hasColumnVisibility = false
-		if (config.columnVisibility) {
-			for (const _ in config.columnVisibility) {
-				hasColumnVisibility = true
-				break
-			}
-		}
-		if (config.columnVisibility && hasColumnVisibility) {
+		const hasColumnVisibility = Boolean(config.columnVisibility && Object.keys(config.columnVisibility).length > 0)
+		if (hasColumnVisibility) {
 			visibility = {
 				...ALL_COLUMNS_HIDDEN,
 				...config.columnVisibility
@@ -163,63 +154,5 @@ export function applyPresetToConfig(options: ApplyPresetOptions): {
 		columnVisibility: sanitized.visibility,
 		sorting: sanitized.sorting,
 		rowHeaders
-	}
-}
-
-interface InitializeConfigOptions {
-	existingConfig?: Partial<UnifiedTableConfig>
-	presetId?: string
-	includeDefaults?: boolean
-}
-
-// oxlint-disable-next-line no-unused-vars
-function initializeUnifiedTableConfig(options: InitializeConfigOptions): {
-	columnOrder: string[]
-	columnVisibility: VisibilityState
-	sorting: SortingState
-	rowHeaders: UnifiedRowHeaderType[]
-	activePresetId: string
-} {
-	const { existingConfig, presetId, includeDefaults = true } = options
-
-	const fallbackPresetId = 'essential-protocols'
-	const resolvedPresetId = presetId || existingConfig?.activePresetId || fallbackPresetId
-	const preset = UNIFIED_TABLE_PRESETS_BY_ID.get(resolvedPresetId) || UNIFIED_TABLE_PRESETS_BY_ID.get(fallbackPresetId)!
-
-	const config: UnifiedTableConfig = {
-		id: existingConfig?.id || '',
-		kind: 'unified-table',
-		...existingConfig,
-		rowHeaders: existingConfig?.rowHeaders || []
-	}
-
-	const rowHeaders = getDefaultRowHeaders(config, preset)
-	const columnOrder = getDefaultColumnOrder(config, preset)
-
-	const baseVisibility = includeDefaults
-		? {
-				...DEFAULT_COLUMN_VISIBILITY,
-				...(preset.columnVisibility ?? {}),
-				...(existingConfig?.columnVisibility ?? {})
-			}
-		: (existingConfig?.columnVisibility ?? {})
-
-	const sorting = normalizeSorting(existingConfig?.defaultSorting || preset.defaultSorting)
-
-	const sanitized = sanitizeConfigColumns({
-		order: columnOrder,
-		visibility: baseVisibility,
-		sorting,
-		customColumns: existingConfig?.customColumns
-	})
-
-	const columnVisibility = applyRowHeaderVisibilityRules(rowHeaders, sanitized.visibility)
-
-	return {
-		columnOrder: sanitized.order,
-		columnVisibility,
-		sorting: sanitized.sorting,
-		rowHeaders,
-		activePresetId: resolvedPresetId
 	}
 }
