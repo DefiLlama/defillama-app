@@ -20,6 +20,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import type { FormSubmitEvent } from '~/types/forms'
 import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
@@ -28,8 +29,6 @@ const UnconstrainedSmolLineChart = lazy(() =>
 )
 
 const optionsKey = 'unlockTable'
-
-type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
 
 const setColumnOptions = (newOptions: string[]) => {
 	const ops: Record<string, boolean> = {}

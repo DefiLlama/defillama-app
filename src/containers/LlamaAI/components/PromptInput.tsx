@@ -2,6 +2,7 @@ import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef, 
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
+import type { FormSubmitEvent } from '~/types/forms'
 import { useEntityCombobox } from '../hooks/useEntityCombobox'
 import { useImageUpload, fileToBase64 } from '../hooks/useImageUpload'
 import { setInputSize, syncHighlightScroll } from '../utils/scrollUtils'
@@ -11,8 +12,6 @@ import { DragOverlay, ImageUpload, ImageUploadButton } from './input/ImageUpload
 import { InputTextarea } from './input/InputTextarea'
 import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
 import { SubmitButton } from './input/SubmitButton'
-
-type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
 
 interface PromptInputProps {
 	handleSubmit: (

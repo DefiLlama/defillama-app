@@ -229,8 +229,8 @@ export const useFormatYieldQueryParams = ({
 			maxTvl: parseNumberQueryParam(maxTvl),
 			minApy: parseNumberQueryParam(minApy),
 			maxApy: parseNumberQueryParam(maxApy),
-			minAvailable: minAvailable ? parseNumberQueryParam(minAvailable) : null,
-			maxAvailable: maxAvailable ? parseNumberQueryParam(maxAvailable) : null,
+			minAvailable: parseNumberQueryParam(minAvailable),
+			maxAvailable: parseNumberQueryParam(maxAvailable),
 			customLTV: parseNumberQueryParam(customLTV)
 		}
 	}, [

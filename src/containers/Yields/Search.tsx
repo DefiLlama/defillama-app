@@ -151,7 +151,7 @@ const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
-	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
+	const targetParam = lend ? 'lend' : 'borrow'
 
 	return (
 		<Ariakit.ComboboxItem
@@ -163,8 +163,7 @@ const Row = ({ data, lend, setOpen }) => {
 					type: lend ? 'lend' : 'borrow'
 				})
 				pushShallowQuery(router, {
-					[targetParam]: data.symbol,
-					[restParam]: router.query[restParam] || ''
+					[targetParam]: data.symbol
 				}).then(() => {
 					setLoading(false)
 					setOpen(false)

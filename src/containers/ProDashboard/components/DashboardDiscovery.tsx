@@ -265,11 +265,13 @@ export function DashboardDiscovery() {
 									onClick={() => {
 										const { tag: currentTag } = router.query
 										let nextTag: string[] | undefined
-										if (currentTag && currentTag.includes(tag)) {
-											if (Array.isArray(currentTag)) {
-												const filteredTags = currentTag.filter((t) => t !== tag)
-												nextTag = filteredTags.length > 0 ? filteredTags : undefined
-											}
+										if (Array.isArray(currentTag)) {
+											const filteredTags = currentTag.filter((t) => t !== tag)
+											nextTag = filteredTags.length > 0 ? filteredTags : undefined
+										} else if (currentTag === tag) {
+											nextTag = undefined
+										} else {
+											return
 										}
 										pushProQuery({ tag: nextTag })
 									}}

@@ -1,11 +1,9 @@
 import * as Ariakit from '@ariakit/react'
-import * as React from 'react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import type { FormSubmitEvent } from '~/types/forms'
 import { fetchJson } from '~/utils/async'
-
-type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
 
 export function Flag({
 	protocol,

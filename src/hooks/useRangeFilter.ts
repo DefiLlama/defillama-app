@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
+import type { FormSubmitEvent } from '~/types/forms'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-
-type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
 
 export function useRangeFilter(minKey: string, maxKey: string) {
 	const router = useRouter()

@@ -23,19 +23,6 @@ interface ITableProps<T extends RowData = any> {
 	scrollMargin?: number
 }
 
-declare module '@tanstack/react-table' {
-	interface ColumnMeta<TData extends RowData, TValue> {
-		align?: 'start' | 'end' | 'center'
-		headerHelperText?: string
-		hidden?: boolean
-		/**
-		 * Type-only field to satisfy linters about unused generics.
-		 * Not used at runtime.
-		 */
-		__vfType?: [TData, TValue]
-	}
-}
-
 const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 
 export function VirtualTable({

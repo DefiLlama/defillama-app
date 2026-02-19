@@ -126,7 +126,8 @@ export function parseNumberQueryParam(param: QueryParamInput): number | null {
 
 /**
  * Converts a query parameter to a strict boolean.
- * Returns true only if the value is exactly 'true'.
+ * Returns true only if the first value normalizes to 'true'.
+ * String normalization is trim + lowercase.
  * For arrays, only the first value is considered.
  *
  * @example
@@ -135,15 +136,20 @@ export function parseNumberQueryParam(param: QueryParamInput): number | null {
  * isTrueQueryParam('false') // false
  * isTrueQueryParam(undefined) // false
  */
+const normalizeBooleanQueryValue = (param: QueryParamInput): string | undefined => {
+	const value = Array.isArray(param) ? param[0] : param
+	if (typeof value !== 'string') return undefined
+	return value.trim().toLowerCase()
+}
+
 export function isTrueQueryParam(param: QueryParamInput): boolean {
-	if (Array.isArray(param)) return param[0] === 'true'
-	return param === 'true'
+	return normalizeBooleanQueryValue(param) === 'true'
 }
 
 /**
  * Parses a boolean query parameter with multiple truthy values.
  * Accepts 'true', '1', or 'yes' (case-insensitive) as truthy.
- * Handles arrays by checking if any value is truthy.
+ * For arrays, only the first value is considered.
  *
  * @example
  * isTruthyQueryParam('true') // true
@@ -153,9 +159,8 @@ export function isTrueQueryParam(param: QueryParamInput): boolean {
  * isTruthyQueryParam('no') // false
  */
 export function isTruthyQueryParam(param: QueryParamInput): boolean {
-	if (Array.isArray(param)) return param.some((v) => isTruthyQueryParam(v))
-	if (typeof param !== 'string') return false
-	const normalized = param.trim().toLowerCase()
+	const normalized = normalizeBooleanQueryValue(param)
+	if (!normalized) return false
 	return normalized === 'true' || normalized === '1' || normalized === 'yes'
 }
 
@@ -224,7 +229,7 @@ export function parseArrayParam(param: QueryParamInput, allValues: string[], val
 /**
  * Parses an include query parameter with 'None' support.
  * Returns all keys if no param, empty array if 'None',
- * or the param as array otherwise.
+ * or only valid keys otherwise.
  *
  * @example
  * parseIncludeParam('foo', ['foo', 'bar']) // ['foo']
@@ -232,9 +237,13 @@ export function parseArrayParam(param: QueryParamInput, allValues: string[], val
  * parseIncludeParam(undefined, ['foo', 'bar']) // ['foo', 'bar']
  */
 export function parseIncludeParam(param: QueryParamInput, allKeys: string[]): string[] {
+	const validSet = new Set(allKeys)
 	if (!param) return allKeys
-	if (typeof param === 'string') return param === 'None' ? [] : [param]
-	return [...param]
+	if (typeof param === 'string') {
+		if (param === 'None') return []
+		return validSet.has(param) ? [param] : []
+	}
+	return toNonEmptyArrayParam(param).filter((value) => validSet.has(value))
 }
 
 /**
@@ -251,7 +260,7 @@ export function getSelectedChainFilters(chainQueryParam: QueryParamInput, allCha
 		if (typeof chainQueryParam === 'string') {
 			return chainQueryParam === 'All' ? allChains : chainQueryParam === 'None' ? [] : [chainQueryParam]
 		}
-		return Array.isArray(chainQueryParam) ? chainQueryParam : []
+		return chainQueryParam as string[]
 	}
 	return allChains
 }
@@ -306,7 +315,7 @@ function buildUpdatedQuery(
 			continue
 		}
 
-		if (Array.isArray(value) && value.every((item) => isAllowedPrimitive(item))) {
+		if (Array.isArray(value) && value.length > 0 && value.every((item) => isAllowedPrimitive(item))) {
 			nextQuery[key] = value
 		}
 	}
@@ -316,8 +325,10 @@ function buildUpdatedQuery(
 			delete nextQuery[key]
 		} else if (isAllowedPrimitive(value)) {
 			nextQuery[key] = value
-		} else if (Array.isArray(value) && value.every((item) => isAllowedPrimitive(item))) {
+		} else if (Array.isArray(value) && value.length > 0 && value.every((item) => isAllowedPrimitive(item))) {
 			nextQuery[key] = value
+		} else if (Array.isArray(value)) {
+			delete nextQuery[key]
 		}
 	}
 

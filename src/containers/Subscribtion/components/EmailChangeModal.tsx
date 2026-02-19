@@ -1,10 +1,10 @@
-import type { FormEvent } from 'react'
 import { Icon } from '~/components/Icon'
+import type { FormSubmitEvent } from '~/types/forms'
 
 interface EmailChangeModalProps {
 	isOpen: boolean
 	onClose: () => void
-	onSubmit: (e: FormEvent<HTMLFormElement>) => void
+	onSubmit: (e: FormSubmitEvent) => void
 	email: string
 	onEmailChange: (value: string) => void
 	isLoading: boolean

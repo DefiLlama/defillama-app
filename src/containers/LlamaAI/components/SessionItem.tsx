@@ -9,10 +9,9 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import type { FormSubmitEvent } from '~/types/forms'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 import { useClickOutside } from '../hooks/useClickOutside'
-
-type FormSubmitEvent = Parameters<NonNullable<React.ComponentProps<'form'>['onSubmit']>>[0]
 
 interface SessionItemProps {
 	session: ChatSession
