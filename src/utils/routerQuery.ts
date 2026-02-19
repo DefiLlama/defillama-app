@@ -87,7 +87,9 @@ export function getQueryValue(query: ParsedUrlQuery, key: string): string | null
 export function parseNumberInput(value: string | number | null | undefined): number | null {
 	if (value == null) return null
 	if (typeof value === 'number') return Number.isFinite(value) ? value : null
-	const n = Number(value)
+	const trimmedValue = value.trim()
+	if (trimmedValue === '') return null
+	const n = Number(trimmedValue)
 	return Number.isFinite(n) ? n : null
 }
 

@@ -29,14 +29,15 @@ export async function getAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>
 		throw new Error(`[getAllCGTokensList] Expected array response from ${TOKEN_LIST_API}`)
 	}
 
-	const malformedIndex = data.findIndex((item) => !isCGMarketsApiItem(item))
-	if (malformedIndex !== -1) {
-		throw new Error(
-			`[getAllCGTokensList] Invalid token payload at index ${malformedIndex} from ${TOKEN_LIST_API}`
+	const validTokens = data.filter(isCGMarketsApiItem)
+	const malformedCount = data.length - validTokens.length
+	if (malformedCount > 0) {
+		postRuntimeLogs(
+			`[getAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API}`
 		)
 	}
 
-	return data
+	return validTokens
 }
 
 interface LlamaConfigResponse {
