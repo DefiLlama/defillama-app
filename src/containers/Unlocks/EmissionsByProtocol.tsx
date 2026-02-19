@@ -13,6 +13,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
@@ -513,28 +514,29 @@ const ChartContainer = ({
 
 	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
-	const nowSec = useMemo(() => Date.now() / 1e3, [])
+	const nowSec = useNowSeconds()
+	const currentMinuteSec = Math.floor(nowSec / 60) * 60
 	const sortedEvents = useMemo(() => {
 		const entries = Object.entries(groupedEvents)
 
-		const upcomingEvents = entries.filter(([ts]) => +ts > nowSec).sort(([a], [b]) => +a - +b) // near to far
+		const upcomingEvents = entries.filter(([ts]) => +ts > currentMinuteSec).sort(([a], [b]) => +a - +b) // near to far
 
 		const pastEvents =
 			upcomingEvents.length > 0
-				? entries.filter(([ts]) => +ts <= nowSec).sort(([a], [b]) => +a - +b) // oldest to newest
-				: entries.filter(([ts]) => +ts <= nowSec).sort(([a], [b]) => +b - +a) // newest to oldest
+				? entries.filter(([ts]) => +ts <= currentMinuteSec).sort(([a], [b]) => +a - +b) // oldest to newest
+				: entries.filter(([ts]) => +ts <= currentMinuteSec).sort(([a], [b]) => +b - +a) // newest to oldest
 
 		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
-	}, [groupedEvents, nowSec])
+	}, [groupedEvents, currentMinuteSec])
 
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
 			const { timestamp } = event
-			return +timestamp > nowSec
+			return +timestamp > currentMinuteSec
 		})
 		return index === -1 ? 0 : index
-	}, [sortedEvents, nowSec])
+	}, [sortedEvents, currentMinuteSec])
 
 	const paginationItems = useMemo(
 		() =>

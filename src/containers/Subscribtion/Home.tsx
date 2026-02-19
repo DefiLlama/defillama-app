@@ -8,6 +8,7 @@ import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEn
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useIsClient } from '~/hooks/useIsClient'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
@@ -22,25 +23,17 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 		useSubscribe()
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isSubscribed = subscription?.status === 'active'
-	const [isClient, setIsClient] = useState(false)
+	const isClient = useIsClient()
 	// oxlint-disable-next-line no-unused-vars
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [showReturnModal, setShowReturnModal] = useState(false)
-	const [prevReturnUrl, setPrevReturnUrl] = useState(returnUrl)
-	const [hasShownModal, setHasShownModal] = useState(false)
-	if (returnUrl !== prevReturnUrl) {
-		setPrevReturnUrl(returnUrl)
-		setHasShownModal(false)
-	}
+	const handledReturnUrlRef = useRef<string | undefined>(undefined)
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		setIsClient(() => true)
-	}, [])
-
-	useEffect(() => {
-		if (isAuthenticated && returnUrl && !hasShownModal && !loaders.userLoading) {
+		let cancelled = false
+		if (isAuthenticated && returnUrl && handledReturnUrlRef.current !== returnUrl && !loaders.userLoading) {
 			const justSignedUp = sessionStorage.getItem('just_signed_up') === 'true'
 			const accountAge = user?.created ? Date.now() - new Date(user.created).getTime() : Infinity
 			const isRecentAccount = accountAge < 10000
@@ -50,11 +43,19 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 			}
 
 			if (!justSignedUp && !isRecentAccount) {
-				setShowReturnModal(() => true)
-				setHasShownModal(() => true)
+				queueMicrotask(() => {
+					if (cancelled) return
+					setShowReturnModal(true)
+				})
 			}
+
+			handledReturnUrlRef.current = returnUrl
 		}
-	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading, user?.created])
+
+		return () => {
+			cancelled = true
+		}
+	}, [isAuthenticated, returnUrl, loaders.userLoading, user?.created])
 
 	const handleResendVerification = async () => {
 		if (user?.email) {

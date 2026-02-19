@@ -8,8 +8,10 @@ interface PaginationProps {
 
 export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const [visibleItems, setVisibleItems] = useState(1)
+	const [manualPage, setManualPage] = useState<number | null>(null)
 	const [currentPage, setCurrentPage] = useState(0)
 	const paginationRef = useRef<HTMLDivElement>(null)
+	const previousStartIndexRef = useRef(startIndex)
 	const [touchStart, setTouchStart] = useState<number | null>(null)
 	const [touchEnd, setTouchEnd] = useState<number | null>(null)
 	const [isSwiping, setIsSwiping] = useState(false)
@@ -43,25 +45,46 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 		}
 	}, [])
 
-	useEffect(() => {
-		if (visibleItems && startIndex) {
-			setCurrentPage(() => Math.floor(startIndex / visibleItems))
-		}
-	}, [visibleItems, startIndex])
-
 	const totalPages = Math.ceil(items.length / Math.max(1, visibleItems))
+	const startPage = Math.floor(startIndex / Math.max(1, visibleItems))
+
+	useEffect(() => {
+		setManualPage(null)
+	}, [items.length])
+
+	useEffect(() => {
+		const hasStartIndexChanged = previousStartIndexRef.current !== startIndex
+		if (hasStartIndexChanged && manualPage !== null) {
+			setManualPage(null)
+		}
+		previousStartIndexRef.current = startIndex
+	}, [startIndex, manualPage])
+
+	useEffect(() => {
+		const maxPage = Math.max(0, totalPages - 1)
+		const targetPage = manualPage == null ? startPage : manualPage
+		setCurrentPage(Math.max(0, Math.min(targetPage, maxPage)))
+	}, [manualPage, startPage, totalPages])
 
 	const handlePageChange = (pageIndex: number) => {
-		setCurrentPage(pageIndex)
+		setManualPage(pageIndex)
 		setSwipeOffset(0)
 	}
 
 	const handlePrevPage = () => {
+		if (totalPages <= 1) {
+			setSwipeOffset(0)
+			return
+		}
 		const newPage = currentPage === 0 ? totalPages - 1 : currentPage - 1
 		handlePageChange(newPage)
 	}
 
 	const handleNextPage = () => {
+		if (totalPages <= 1) {
+			setSwipeOffset(0)
+			return
+		}
 		const newPage = currentPage === totalPages - 1 ? 0 : currentPage + 1
 		handlePageChange(newPage)
 	}

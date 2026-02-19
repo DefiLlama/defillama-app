@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -14,15 +14,23 @@ export default function Account() {
 	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
-	const [showSuccessModal, setShowSuccessModal] = useState(false)
-	const [hasProcessedSuccess, setHasProcessedSuccess] = useState(false)
-	const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false)
+	const successProcessedRef = useRef(false)
+	const successFlowIdRef = useRef(0)
+	const [activeFlowId, setActiveFlowId] = useState<number | null>(null)
 
 	useEffect(() => {
-		if (success !== 'true' || !isAuthenticated || hasProcessedSuccess) return
+		if (success !== 'true') {
+			successProcessedRef.current = false
+		}
+	}, [success])
 
+	useEffect(() => {
+		if (success !== 'true' || !isAuthenticated || successProcessedRef.current) return
+
+		successProcessedRef.current = true
+		successFlowIdRef.current += 1
+		setActiveFlowId(successFlowIdRef.current)
 		void queryClient.invalidateQueries({ queryKey: ['subscription'] })
-		setHasProcessedSuccess(true)
 
 		const { success: _ignoredSuccess, ...nextQuery } = router.query
 		void router.replace(
@@ -33,18 +41,12 @@ export default function Account() {
 			undefined,
 			{ shallow: true }
 		)
-	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router])
+	}, [success, isAuthenticated, queryClient, router])
 
-	useEffect(() => {
-		if (hasProcessedSuccess && !isSubscriptionLoading && hasActiveSubscription && !hasShownSuccessModal) {
-			setShowSuccessModal(() => true)
-			setHasShownSuccessModal(() => true)
-		}
-	}, [hasProcessedSuccess, isSubscriptionLoading, hasActiveSubscription, hasShownSuccessModal])
+	const showSuccessModal = activeFlowId != null && !isSubscriptionLoading && hasActiveSubscription
 
 	const handleCloseSuccessModal = () => {
-		setShowSuccessModal(false)
-		setHasProcessedSuccess(false)
+		setActiveFlowId(null)
 	}
 
 	return (

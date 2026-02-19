@@ -59,16 +59,18 @@ export function CustomColumnModal({
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
 		if (isOpen) {
-			setState(() => ({
-				name: initialName,
-				formula: initialFormula,
-				formatType: initialFormatType,
-				error: null,
-				showSuggestions: false,
-				suggestions: [],
-				highlighted: 0,
-				fieldWarning: null
-			}))
+			queueMicrotask(() => {
+				setState({
+					name: initialName,
+					formula: initialFormula,
+					formatType: initialFormatType,
+					error: null,
+					showSuggestions: false,
+					suggestions: [],
+					highlighted: 0,
+					fieldWarning: null
+				})
+			})
 		}
 	}, [isOpen, initialName, initialFormula, initialFormatType])
 

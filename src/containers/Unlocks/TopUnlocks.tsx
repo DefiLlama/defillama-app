@@ -10,10 +10,17 @@ interface TopUnlocksProps {
 	period: number
 	title?: string
 	className?: string
+	initialNowSec?: number
 }
 
-export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className }) => {
-	const now = React.useMemo(() => Date.now() / 1000, [])
+export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className, initialNowSec }) => {
+	const now = React.useMemo(
+		() =>
+			typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
+				? Math.floor(initialNowSec)
+				: Math.floor(Date.now() / 1000),
+		[initialNowSec]
+	)
 	const { topUnlocks } = React.useMemo(() => {
 		const protocolUnlocks = new Map<
 			string,

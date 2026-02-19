@@ -237,16 +237,20 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (initialSessionId && !sessionId) {
 			resetScrollState()
-			setSessionId(() => initialSessionId)
-			setHasRestoredSession(() => null)
+			queueMicrotask(() => {
+				setSessionId(initialSessionId)
+				setHasRestoredSession(null)
+			})
 		}
 	}, [initialSessionId, sessionId, resetScrollState])
 
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			setMessages(() => attachClientIds(sharedSession.messages))
-			setSessionId(() => sharedSession.session.sessionId)
+			queueMicrotask(() => {
+				setMessages(attachClientIds(sharedSession.messages))
+				setSessionId(sharedSession.session.sessionId)
+			})
 		}
 	}, [sharedSession, resetScrollState, attachClientIds])
 
@@ -326,7 +330,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			!isStreaming
 		) {
 			resetScrollState()
-			setHasRestoredSession(() => sessionId)
+			queueMicrotask(() => {
+				setHasRestoredSession(sessionId)
+			})
 			restoreSession(sessionId)
 				.then((result: any) => {
 					setMessages(attachClientIds(result.messages))
@@ -771,7 +777,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		const pendingPageContext = consumePendingPageContext()
 		if (pendingPrompt) {
 			pendingPromptConsumedRef.current = true
-			handleSubmit(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
+			queueMicrotask(() => {
+				handleSubmit(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
+			})
 		}
 	}, [isRestoringSession, isPending, isStreaming, initialSessionId, sharedSession, readOnly, handleSubmit])
 

@@ -1,5 +1,5 @@
 import { Turnstile as TurnstileWidget } from '@marsidev/react-turnstile'
-import { useEffect, useState } from 'react'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 interface TurnstileProps {
 	onVerify: (token: string) => void
@@ -9,26 +9,9 @@ interface TurnstileProps {
 }
 
 export const Turnstile = ({ onVerify, onError, onExpire, className }: TurnstileProps) => {
-	const [theme, setTheme] = useState<'light' | 'dark'>('dark')
+	const [isDarkMode] = useDarkModeManager()
+	const theme: 'light' | 'dark' = isDarkMode ? 'dark' : 'light'
 	const siteKey = '0x4AAAAAABjeuAHi7HNPyGmv'
-
-	useEffect(() => {
-		const isDark =
-			document.documentElement.classList.contains('dark') || window.matchMedia('(prefers-color-scheme: dark)').matches
-		setTheme(() => (isDark ? 'dark' : 'light'))
-
-		const observer = new MutationObserver(() => {
-			const isDark = document.documentElement.classList.contains('dark')
-			setTheme(isDark ? 'dark' : 'light')
-		})
-
-		observer.observe(document.documentElement, {
-			attributes: true,
-			attributeFilter: ['class']
-		})
-
-		return () => observer.disconnect()
-	}, [])
 
 	if (!siteKey) {
 		console.log('Turnstile site key is not configured')

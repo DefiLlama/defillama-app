@@ -15,6 +15,7 @@ interface PastUnlockPriceImpactProps {
 	data: ProtocolData[]
 	title?: string
 	className?: string
+	initialNowSec?: number
 }
 
 interface UnlockBreakdown {
@@ -32,8 +33,19 @@ const parseDescription = (description: string): string => {
 	return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 }
 
-export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ data, title, className }) => {
-	const now = React.useMemo(() => Date.now() / 1000, [])
+export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
+	data,
+	title,
+	className,
+	initialNowSec
+}) => {
+	const now = React.useMemo(
+		() =>
+			typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
+				? Math.floor(initialNowSec)
+				: Math.floor(Date.now() / 1000),
+		[initialNowSec]
+	)
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,
