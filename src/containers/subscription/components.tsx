@@ -70,7 +70,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 			<div className={innerClass}>
 				<div className={`mx-auto flex flex-col gap-7 md:gap-5 ${contentWidth}`}>
 					<div className="flex flex-col gap-2 md:min-h-[104px] md:gap-3">
-						<h3 className="text-[18px] leading-[22px] font-semibold text-(--sub-c-0f172a) dark:text-white md:text-(--sub-c-090b0c)">
+						<h3 className="text-[18px] leading-[22px] font-semibold text-(--sub-c-0f172a) dark:text-white md:text-(--sub-c-090b0c) dark:md:text-white">
 							{card.title}
 						</h3>
 						{card.priceMain ? (
@@ -79,7 +79,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 									<p className="bg-linear-to-r from-(--sub-c-1f67d2) to-(--sub-c-6e9ddf) dark:from-(--sub-c-4b86db) dark:to-(--sub-c-a5c3ed) bg-clip-text text-[42px] leading-[42px] font-semibold text-transparent md:to-(--sub-c-5f95e2)">
 										{card.priceMain}
 									</p>
-									<p className="text-[16px] leading-6 text-(--sub-c-64758c) dark:text-(--sub-c-c6c6c6) md:text-base md:text-(--sub-c-484848)">
+									<p className="text-[16px] leading-6 text-(--sub-c-64758c) dark:text-(--sub-c-c6c6c6) md:text-base md:text-(--sub-c-484848) dark:md:text-(--sub-c-c6c6c6)">
 										{card.priceUnit}
 									</p>
 								</div>
@@ -91,7 +91,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 							</div>
 						) : null}
 						{card.description ? (
-							<p className="text-[16px] leading-6 text-(--sub-c-334155) dark:text-(--sub-c-f6f7f9) md:text-[12px] md:leading-4 md:text-(--sub-c-484848)">
+							<p className="text-[16px] leading-6 text-(--sub-c-334155) dark:text-(--sub-c-f6f7f9) md:text-[12px] md:leading-4 md:text-(--sub-c-484848) dark:md:text-(--sub-c-f6f7f9)">
 								{card.description}
 							</p>
 						) : null}
@@ -105,7 +105,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 
 					{card.sections.map((section) => (
 						<div key={`${card.key}-${section.title}`} className="flex flex-col gap-3">
-							<h4 className="text-[20px] leading-7 font-semibold text-(--sub-c-0f172a) dark:text-white md:text-[16px] md:leading-5 md:font-medium md:text-(--sub-c-090b0c)">
+							<h4 className="text-[20px] leading-7 font-semibold text-(--sub-c-0f172a) dark:text-white md:text-[16px] md:leading-5 md:font-medium md:text-(--sub-c-090b0c) dark:md:text-white">
 								{section.title}
 							</h4>
 							<ul className="flex flex-col gap-3 md:gap-2">
@@ -121,7 +121,7 @@ export function PricingCard({ card }: { card: PricingCardData }) {
 					{card.secondaryCta ? (
 						<button
 							type="button"
-							className="h-14 w-full rounded-[12px] border border-(--sub-c-ced8e6) bg-(--sub-c-f8fafd) text-[16px] leading-5 font-medium text-(--sub-c-1e293b) dark:border-(--sub-c-2f3336) dark:text-white md:h-10 md:rounded-lg md:border-(--sub-c-dedede) md:bg-white md:text-sm md:text-(--sub-c-090b0c)"
+							className="h-14 w-full rounded-[12px] border border-(--sub-c-ced8e6) bg-(--sub-c-f8fafd) text-[16px] leading-5 font-medium text-(--sub-c-1e293b) dark:border-(--sub-c-2f3336) dark:text-white md:h-10 md:rounded-lg md:border-(--sub-c-dedede) md:bg-white md:text-sm md:text-(--sub-c-090b0c) dark:md:border-(--sub-c-2f3336) dark:md:bg-transparent dark:md:text-white"
 						>
 							{card.secondaryCta}
 						</button>
@@ -150,15 +150,18 @@ export function ComparisonCell({ value, plan }: { value: Availability; plan: Pla
 	const isPro = plan === 'pro'
 	const proStyle = isPro ? proColumnStyles.active : proColumnStyles.inactive
 	const borderEnd = plan === 'enterprise' ? 'border-r' : ''
+	const isIncluded = value === 'check'
 
 	return (
 		<div
-			className={`flex h-full w-[132px] items-center justify-center border-l text-center border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:w-[146px] md:border-(--sub-c-eeeeee) ${proStyle} ${borderEnd}`}
+			role="cell"
+			aria-label={isIncluded ? 'Included' : 'Not included'}
+			className={`flex h-full w-[132px] items-center justify-center border-l text-center border-(--sub-c-cad6e4) dark:border-(--sub-c-232628) md:w-[146px] md:border-(--sub-c-eeeeee) dark:md:border-(--sub-c-232628) ${proStyle} ${borderEnd}`}
 		>
-			{value === 'check' ? (
-				<Icon name="check" height={24} width={24} className="text-(--sub-c-4b86db)" />
+			{isIncluded ? (
+				<Icon name="check" height={24} width={24} className="text-(--sub-c-4b86db)" aria-hidden="true" />
 			) : (
-				<Icon name="minus" height={24} width={24} className="text-(--sub-c-90a0b6) dark:text-(--sub-c-4d5158) md:text-(--sub-c-dedede)" />
+				<Icon name="minus" height={24} width={24} className="text-(--sub-c-90a0b6) dark:text-(--sub-c-4d5158) md:text-(--sub-c-dedede) dark:md:text-(--sub-c-4d5158)" aria-hidden="true" />
 			)}
 		</div>
 	)
