@@ -1,0 +1,373 @@
+import { AUTH_SERVER, CHAINS_API, CONFIG_API, PROTOCOL_API, PROTOCOLS_API, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
+import { sluggifyProtocol } from '~/utils/cache-client'
+import { toDisplayName } from '~/utils/chainNormalizer'
+import { createServerAuthorizedFetch } from './server/auth'
+import { fetchPfPsChartData, fetchPfPsProtocols } from './server/pfPsQueries'
+import { fetchTableServerData, type TableServerData } from './server/tableQueries'
+import ChainCharts from './services/ChainCharts'
+import type { Dashboard } from './services/DashboardAPI'
+import ProtocolCharts from './services/ProtocolCharts'
+import type { ChartConfig, DashboardItemConfig, MetricConfig, YieldsChartConfig } from './types'
+import { filterDataByTimePeriod } from './queries'
+import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
+
+export interface ProDashboardServerProps {
+	dashboard: Dashboard | null
+	chartData: Record<string, [number, number][]>
+	protocolsAndChains: { protocols: any[]; chains: any[] } | null
+	appMetadata: {
+		protocols: Record<string, any>
+		chains: Record<string, any>
+		pfPs: { pf: string[]; ps: string[] }
+	} | null
+	tableData: TableServerData | null
+	yieldsChartData: Record<string, { chart: any; lendBorrow: any }>
+	protocolFullData: Record<string, any>
+	metricData: Record<string, [number, number][]>
+}
+
+async function fetchDashboardConfig(
+	dashboardId: string,
+	authToken: string | null
+): Promise<Dashboard | null> {
+	try {
+		const url = `${AUTH_SERVER}/dashboards/${dashboardId}`
+		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
+		const response = await fetchFn(url)
+		if (!response.ok) return null
+		return response.json()
+	} catch {
+		return null
+	}
+}
+
+async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: any[] } | null> {
+	try {
+		const [protocolsResponse, chainsResponse] = await Promise.all([fetch(PROTOCOLS_API), fetch(CHAINS_API)])
+		if (!protocolsResponse.ok || !chainsResponse.ok) return null
+
+		const protocolsData = await protocolsResponse.json()
+		const chainsData = await chainsResponse.json()
+
+		const transformedChains = chainsData.map((chain: any) => ({
+			...chain,
+			name: toDisplayName(chain.name)
+		}))
+
+		const parentProtocols = Array.isArray(protocolsData.parentProtocols) ? protocolsData.parentProtocols : []
+
+		const baseProtocols = (protocolsData.protocols || []).map((p: any) => ({
+			...p,
+			slug: sluggifyProtocol(p.name),
+			geckoId: p.geckoId || null,
+			parentProtocol: p.parentProtocol || null
+		}))
+
+		const parentTotals = new Map<string, number>()
+		for (const p of protocolsData.protocols || []) {
+			if (p.parentProtocol) {
+				parentTotals.set(p.parentProtocol, (parentTotals.get(p.parentProtocol) || 0) + (typeof p.tvl === 'number' ? p.tvl : 0))
+			}
+		}
+
+		const syntheticParents = parentProtocols.map((pp: any) => ({
+			id: pp.id,
+			name: pp.name,
+			logo: pp.logo,
+			slug: sluggifyProtocol(pp.name),
+			tvl: parentTotals.get(pp.id) || 0,
+			geckoId: null,
+			parentProtocol: null
+		}))
+
+		const mergedBySlug = new Map<string, any>()
+		for (const p of [...baseProtocols, ...syntheticParents]) {
+			if (!mergedBySlug.has(p.slug)) mergedBySlug.set(p.slug, p)
+		}
+
+		return {
+			protocols: Array.from(mergedBySlug.values()),
+			chains: transformedChains.sort((a: any, b: any) => b.tvl - a.tvl)
+		}
+	} catch {
+		return null
+	}
+}
+
+async function fetchAppMetadata(): Promise<ProDashboardServerProps['appMetadata']> {
+	try {
+		const [protocols, chains, pfPs] = await Promise.all([
+			fetch(`${CONFIG_API}/smol/appMetadata-protocols.json`).then((r) => (r.ok ? r.json() : null)),
+			fetch(`${CONFIG_API}/smol/appMetadata-chains.json`).then((r) => (r.ok ? r.json() : null)),
+			fetchPfPsProtocols().catch(() => ({ pf: [] as string[], ps: [] as string[] }))
+		])
+
+		if (!protocols || !chains) return null
+		return { protocols, chains, pfPs }
+	} catch {
+		return null
+	}
+}
+
+function extractChartItems(items: DashboardItemConfig[]): ChartConfig[] {
+	const chartItems: ChartConfig[] = []
+	for (const item of items) {
+		if (item.kind === 'chart') chartItems.push(item)
+		else if (item.kind === 'multi') chartItems.push(...item.items)
+	}
+	return chartItems
+}
+
+function extractYieldsItems(items: DashboardItemConfig[]): YieldsChartConfig[] {
+	return items.filter((item): item is YieldsChartConfig => item.kind === 'yields')
+}
+
+async function fetchAllYieldsChartData(
+	items: DashboardItemConfig[]
+): Promise<Record<string, { chart: any; lendBorrow: any }>> {
+	const yieldsItems = extractYieldsItems(items)
+	if (yieldsItems.length === 0) return {}
+
+	const CHART_FETCH_TIMEOUT = 10_000
+
+	const uniquePoolIds = new Set<string>()
+	for (const item of yieldsItems) {
+		uniquePoolIds.add(item.poolConfigId)
+	}
+
+	const results = await Promise.allSettled(
+		Array.from(uniquePoolIds).map(async (poolConfigId) => {
+			const [chartResult, lendBorrowResult] = await Promise.allSettled([
+				withTimeout(
+					fetch(`${YIELD_CHART_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+					CHART_FETCH_TIMEOUT
+				),
+				withTimeout(
+					fetch(`${YIELD_CHART_LEND_BORROW_API}/${poolConfigId}`).then((r) => (r.ok ? r.json() : null)),
+					CHART_FETCH_TIMEOUT
+				)
+			])
+
+			return {
+				poolConfigId,
+				chart: chartResult.status === 'fulfilled' ? chartResult.value : null,
+				lendBorrow: lendBorrowResult.status === 'fulfilled' ? lendBorrowResult.value : null
+			}
+		})
+	)
+
+	const yieldsChartData: Record<string, { chart: any; lendBorrow: any }> = {}
+	for (const result of results) {
+		if (result.status === 'fulfilled') {
+			yieldsChartData[result.value.poolConfigId] = {
+				chart: result.value.chart,
+				lendBorrow: result.value.lendBorrow
+			}
+		}
+	}
+
+	return yieldsChartData
+}
+
+async function fetchProtocolFullData(
+	items: DashboardItemConfig[]
+): Promise<Record<string, any>> {
+	const protocols = new Set<string>()
+	for (const item of items) {
+		if (item.kind === 'advanced-tvl') protocols.add(item.protocol)
+		else if (item.kind === 'advanced-borrowed') protocols.add(item.protocol)
+	}
+	if (protocols.size === 0) return {}
+
+	const results = await Promise.allSettled(
+		Array.from(protocols).map(async (protocol) => ({
+			protocol,
+			data: await withTimeout(
+				fetch(`${PROTOCOL_API}/${protocol}`).then((r) => (r.ok ? r.json() : null)),
+				15_000
+			)
+		}))
+	)
+
+	const protocolData: Record<string, any> = {}
+	for (const result of results) {
+		if (result.status === 'fulfilled' && result.value.data) {
+			protocolData[result.value.protocol] = result.value.data
+		}
+	}
+	return protocolData
+}
+
+async function fetchMetricData(
+	items: DashboardItemConfig[],
+	timePeriod: TimePeriod,
+	customTimePeriod: CustomTimePeriod | null
+): Promise<Record<string, [number, number][]>> {
+	const metricItems = items.filter((item): item is MetricConfig => item.kind === 'metric')
+	if (metricItems.length === 0) return {}
+
+	const results = await Promise.allSettled(
+		metricItems.map(async (metric) => {
+			const item =
+				metric.subject.itemType === 'protocol' ? metric.subject.protocol || '' : metric.subject.chain || ''
+			if (!item) return { key: '', data: [] as [number, number][] }
+
+			const chartConfig: ChartConfig = {
+				id: `metric-${metric.id}`,
+				kind: 'chart',
+				type: metric.type,
+				protocol: metric.subject.itemType === 'protocol' ? item : '',
+				chain: metric.subject.itemType === 'chain' ? item : '',
+				geckoId: metric.subject.geckoId || null
+			}
+
+			const data = await withTimeout(fetchSingleChartData(chartConfig, 'all', null), 15_000)
+
+			const keyParts = ['metric', metric.type, undefined, item]
+			return { key: JSON.stringify(keyParts), data }
+		})
+	)
+
+	const metricData: Record<string, [number, number][]> = {}
+	for (const result of results) {
+		if (result.status === 'fulfilled' && result.value.key && result.value.data?.length) {
+			metricData[result.value.key] = result.value.data
+		}
+	}
+	return metricData
+}
+
+const protocolChartFetchers: Record<string, (item: string, geckoId?: string | null, dataType?: string) => Promise<[number, number][]>> = {
+	tvl: (item) => ProtocolCharts.tvl(item),
+	volume: (item) => ProtocolCharts.volume(item),
+	fees: (item) => ProtocolCharts.fees(item),
+	revenue: (item) => ProtocolCharts.revenue(item),
+	holdersRevenue: (item) => ProtocolCharts.holdersRevenue(item),
+	bribes: (item) => ProtocolCharts.bribes(item),
+	tokenTax: (item) => ProtocolCharts.tokenTax(item),
+	perps: (item) => ProtocolCharts.perps(item),
+	openInterest: (item) => ProtocolCharts.openInterest(item),
+	aggregators: (item) => ProtocolCharts.aggregators(item),
+	perpsAggregators: (item) => ProtocolCharts.perpsAggregators(item),
+	bridgeAggregators: (item) => ProtocolCharts.bridgeAggregators(item),
+	optionsPremium: (item) => ProtocolCharts.optionsPremium(item),
+	optionsNotional: (item) => ProtocolCharts.optionsNotional(item),
+	liquidity: (item) => ProtocolCharts.liquidity(item),
+	treasury: (item) => ProtocolCharts.treasury(item),
+	incentives: (item) => ProtocolCharts.incentives(item),
+	unlocks: (item, _, dataType) => ProtocolCharts.unlocks(item, (dataType as 'documented' | 'realtime') || 'documented'),
+	tokenMcap: (item, geckoId) => ProtocolCharts.tokenMcap(item, geckoId!),
+	tokenPrice: (item, geckoId) => ProtocolCharts.tokenPrice(item, geckoId!),
+	tokenVolume: (item, geckoId) => ProtocolCharts.tokenVolume(item, geckoId!),
+	medianApy: (item) => ProtocolCharts.medianApy(item),
+	borrowed: (item) => ProtocolCharts.borrowed(item),
+	pfRatio: (item) => fetchPfPsChartData(item, 'pf'),
+	psRatio: (item) => fetchPfPsChartData(item, 'ps')
+}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+	return Promise.race([
+		promise,
+		new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+	])
+}
+
+async function fetchSingleChartData(
+	chart: ChartConfig,
+	timePeriod: TimePeriod,
+	customTimePeriod: CustomTimePeriod | null
+): Promise<[number, number][]> {
+	const itemType = chart.protocol ? 'protocol' : 'chain'
+	const item = chart.protocol || chart.chain
+
+	if (!item) return []
+
+	let data: [number, number][]
+
+	if (itemType === 'protocol') {
+		const fetcher = protocolChartFetchers[chart.type]
+		if (!fetcher) return []
+
+		const tokenTypes = new Set(['tokenMcap', 'tokenPrice', 'tokenVolume'])
+		if (tokenTypes.has(chart.type) && !chart.geckoId) return []
+
+		data = await fetcher(item, chart.geckoId, chart.dataType)
+	} else {
+		data = await ChainCharts.getData(chart.type, item, chart.geckoId)
+	}
+
+	return filterDataByTimePeriod(data, timePeriod || 'all', customTimePeriod)
+}
+
+async function fetchAllChartData(
+	items: DashboardItemConfig[],
+	timePeriod: TimePeriod,
+	customTimePeriod: CustomTimePeriod | null
+): Promise<Record<string, [number, number][]>> {
+	const chartItems = extractChartItems(items)
+	if (chartItems.length === 0) return {}
+
+	const CHART_FETCH_TIMEOUT = 10_000
+
+	const results = await Promise.allSettled(
+		chartItems.map((chart) => withTimeout(fetchSingleChartData(chart, timePeriod, customTimePeriod), CHART_FETCH_TIMEOUT))
+	)
+
+	const chartData: Record<string, [number, number][]> = {}
+	chartItems.forEach((chart, i) => {
+		const result = results[i]
+		if (result.status === 'fulfilled' && result.value && result.value.length > 0) {
+			chartData[chart.id] = result.value
+		}
+	})
+
+	return chartData
+}
+
+export async function getProDashboardServerData({
+	dashboardId,
+	authToken
+}: {
+	dashboardId: string
+	authToken: string | null
+}): Promise<ProDashboardServerProps> {
+	const [dashboard, protocolsAndChains, appMetadata] = await Promise.all([
+		fetchDashboardConfig(dashboardId, authToken),
+		fetchProtocolsAndChains(),
+		fetchAppMetadata()
+	])
+
+	let chartData: Record<string, [number, number][]> = {}
+	let tableData: TableServerData | null = null
+	let yieldsChartData: Record<string, { chart: any; lendBorrow: any }> = {}
+	let protocolFullData: Record<string, any> = {}
+	let metricData: Record<string, [number, number][]> = {}
+
+	if (dashboard?.data?.items?.length) {
+		const timePeriod = (dashboard.data.timePeriod || '365d') as TimePeriod
+		const customTimePeriod = dashboard.data.customTimePeriod || null
+		const [chartResult, tableResult, yieldsResult, protocolResult, metricResult] = await Promise.allSettled([
+			fetchAllChartData(dashboard.data.items, timePeriod, customTimePeriod),
+			fetchTableServerData(dashboard.data.items),
+			fetchAllYieldsChartData(dashboard.data.items),
+			fetchProtocolFullData(dashboard.data.items),
+			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod)
+		])
+		if (chartResult.status === 'fulfilled') chartData = chartResult.value
+		if (tableResult.status === 'fulfilled') tableData = tableResult.value
+		if (yieldsResult.status === 'fulfilled') yieldsChartData = yieldsResult.value
+		if (protocolResult.status === 'fulfilled') protocolFullData = protocolResult.value
+		if (metricResult.status === 'fulfilled') metricData = metricResult.value
+	}
+
+	return {
+		dashboard,
+		chartData,
+		protocolsAndChains,
+		appMetadata,
+		tableData,
+		yieldsChartData,
+		protocolFullData,
+		metricData
+	}
+}

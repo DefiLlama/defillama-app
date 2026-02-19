@@ -34,7 +34,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
-	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocolName, true)
+	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocol, true)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }

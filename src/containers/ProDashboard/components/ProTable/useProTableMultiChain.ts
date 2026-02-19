@@ -80,7 +80,7 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 	const { data: allProtocolsData, isLoading: isLoadingAll } = useQuery({
 		queryKey: [PROTOCOLS_API],
 		queryFn: () => fetchApi(PROTOCOLS_API),
-		staleTime: 60 * 60 * 1000,
+		staleTime: Infinity,
 		retry: 0
 	})
 
@@ -165,7 +165,8 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 				getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 					(data) => ({ chain, protocols: data?.protocols ?? [] })
 				),
-			staleTime: 60 * 60 * 1000
+			staleTime: Infinity,
+			retry: 1
 		}))
 	})
 
@@ -242,7 +243,8 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 		queries: chainsToFetch.map((chain) => ({
 			queryKey: [`protocolsFeesAndRevenueByChain/${chain}`],
 			queryFn: () => getFeesAndRevenueProtocolsByChain({ chain }).then((data) => ({ chain, protocols: data ?? [] })),
-			staleTime: 60 * 60 * 1000
+			staleTime: Infinity,
+			retry: 1
 		}))
 	})
 
@@ -347,7 +349,8 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 				getPerpsVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 					(data) => ({ chain, protocols: data?.protocols ?? [] })
 				),
-			staleTime: 60 * 60 * 1000
+			staleTime: Infinity,
+			retry: 1
 		}))
 	})
 
@@ -420,7 +423,8 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 		queries: chainsToFetch.map((chain) => ({
 			queryKey: [`protocolsOpenInterestByChain/${chain}`],
 			queryFn: () => getOpenInterestByChain({ chain }).then((data) => ({ chain, protocols: data?.protocols ?? [] })),
-			staleTime: 60 * 60 * 1000
+			staleTime: Infinity,
+			retry: 1
 		}))
 	})
 
@@ -491,8 +495,8 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 	return useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 }
 
@@ -504,8 +508,8 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 	return useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 }
 
@@ -517,8 +521,8 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 	return useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 }
 
@@ -530,7 +534,7 @@ export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 	return useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 }

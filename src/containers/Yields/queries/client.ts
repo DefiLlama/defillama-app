@@ -30,9 +30,9 @@ export const useYieldChartData = (configID: string | null) => {
 	return useQuery({
 		queryKey: ['yield-pool-chart-data', configID],
 		queryFn: () => fetchApi(`${YIELD_CHART_API}/${configID}`),
-		staleTime: 60 * 60 * 1000,
+		staleTime: Infinity,
 		refetchOnWindowFocus: false,
-		retry: 0,
+		retry: 1,
 		enabled: !!configID
 	})
 }
@@ -40,9 +40,9 @@ export const useYieldChartLendBorrow = (configID: string | null) => {
 	return useQuery({
 		queryKey: ['yield-lend-borrow-chart', configID],
 		queryFn: () => fetchApi(`${YIELD_CHART_LEND_BORROW_API}/${configID}`),
-		staleTime: 60 * 60 * 1000,
+		staleTime: Infinity,
 		refetchOnWindowFocus: false,
-		retry: 0,
+		retry: 1,
 		enabled: !!configID
 	})
 }

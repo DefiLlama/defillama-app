@@ -466,7 +466,7 @@ function useChains() {
 	})
 }
 
-export function useProtocolsAndChains() {
+export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
 	return useQuery({
 		queryKey: ['protocols-and-chains'],
 		queryFn: async () => {
@@ -525,11 +525,13 @@ export function useProtocolsAndChains() {
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		},
-		staleTime: 1000 * 60 * 60,
+		staleTime: serverData ? Infinity : 1000 * 60 * 60,
 		gcTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
-		refetchOnReconnect: false
+		refetchOnReconnect: false,
+		initialData: serverData ?? undefined,
+		initialDataUpdatedAt: serverData ? Date.now() : undefined
 	})
 }
 
@@ -546,13 +548,15 @@ function computeGrouped(
 	return result
 }
 
-export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: CustomTimePeriod | null) {
+export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: CustomTimePeriod | null, serverChartData?: Record<string, [number, number][]> | null) {
 	const { data: parentMapping } = useParentChildMapping()
 	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({
 		queries: charts.map((chart) => {
 			const itemType = chart.protocol ? 'protocol' : 'chain'
 			const item = chart.protocol || chart.chain
+
+			const chartServerData = serverChartData?.[chart.id]
 
 			return {
 				queryKey: [
@@ -570,11 +574,13 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 					customPeriod,
 					chart.dataType
 				),
-				staleTime: 1000 * 60 * 5,
+				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,
 				keepPreviousData: true,
 				placeholderData: (prev) => prev,
+				initialData: chartServerData ?? undefined,
+				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {
 					const chartTypeDetails = CHART_TYPES[chart.type]
 					if (chartTypeDetails?.groupable && chart.grouping && chart.grouping !== 'day') {

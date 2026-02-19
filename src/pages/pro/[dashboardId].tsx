@@ -1,3 +1,4 @@
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
@@ -6,14 +7,34 @@ import { BasicLink } from '~/components/Link'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useDashboardEngagement } from '~/containers/ProDashboard/hooks/useDashboardEngagement'
 import { ProDashboardAPIProvider, useProDashboardDashboard } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { getProDashboardServerData } from '~/containers/ProDashboard/queries.server'
+import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 
 const ProDashboard = lazy(() => import('~/containers/ProDashboard'))
 
-export default function DashboardPage() {
-	const router = useRouter()
-	const dashboardId = router.query.dashboardId as string
+export const getServerSideProps: GetServerSideProps = async (context) => {
+	const dashboardId = context.params?.dashboardId as string
+
+	if (dashboardId === 'new') {
+		return { props: { dashboardId, serverData: null } }
+	}
+
+	const authToken = getAuthTokenFromRequest(context.req)
+
+	try {
+		const serverData = await getProDashboardServerData({ dashboardId, authToken })
+		return { props: { dashboardId, serverData } }
+	} catch {
+		return { props: { dashboardId, serverData: null } }
+	}
+}
+
+export default function DashboardPage({
+	dashboardId,
+	serverData
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	const initialId = dashboardId === 'new' ? undefined : dashboardId
 
 	return (
@@ -23,13 +44,13 @@ export default function DashboardPage() {
 			keywords=""
 			canonicalUrl={`/pro/${dashboardId}`}
 		>
-			{router.isReady ? (
-				<ProDashboardAPIProvider initialDashboardId={initialId} key={`dashboard-api-provider-${dashboardId}`}>
-					<DashboardPageContent dashboardId={dashboardId} />
-				</ProDashboardAPIProvider>
-			) : (
-				<ProDashboardLoader />
-			)}
+			<ProDashboardAPIProvider
+				initialDashboardId={initialId}
+				serverData={serverData}
+				key={`dashboard-api-provider-${dashboardId}`}
+			>
+				<DashboardPageContent dashboardId={dashboardId} />
+			</ProDashboardAPIProvider>
 		</Layout>
 	)
 }

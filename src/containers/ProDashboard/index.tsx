@@ -18,6 +18,7 @@ import {
 	useProDashboardDashboard,
 	useProDashboardItemsState,
 	useProDashboardPermissions,
+	useProDashboardServerAppMetadata,
 	useProDashboardTime,
 	useProDashboardUI
 } from './ProDashboardAPIContext'
@@ -407,8 +408,9 @@ function ProDashboardContent() {
 }
 
 export default function ProDashboard() {
+	const serverAppMetadata = useProDashboardServerAppMetadata()
 	return (
-		<AppMetadataProvider>
+		<AppMetadataProvider initialData={serverAppMetadata}>
 			<ProDashboardContent />
 		</AppMetadataProvider>
 	)

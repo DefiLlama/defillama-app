@@ -15,8 +15,7 @@ export function useOptionsData(chains?: string[]) {
 	return useQuery({
 		queryKey: ['options-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/options${queryParams}`),
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
-		enabled: true
+		staleTime: Infinity,
+		retry: 1
 	})
 }

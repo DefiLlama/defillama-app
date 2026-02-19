@@ -15,8 +15,7 @@ export function useFeesData(chains?: string[]) {
 	return useQuery({
 		queryKey: ['fees-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/fees${queryParams}`),
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
-		enabled: true
+		staleTime: Infinity,
+		retry: 1
 	})
 }

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import {
 	CACHE_SERVER,
+	LIQUIDITY_API,
 	PROTOCOL_API,
 	PROTOCOL_API_MINI,
 	PROTOCOL_TREASURY_API,
@@ -202,7 +203,7 @@ export default class ProtocolCharts {
 			const symbol: string | undefined = proto?.symbol
 			if (!symbol) return []
 
-			const listRes = await fetch(`https://defillama-datasets.llama.fi/liquidity.json`)
+			const listRes = await fetch(LIQUIDITY_API)
 			if (!listRes.ok) return []
 			const tokens = await listRes.json()
 			const entry = Array.isArray(tokens)

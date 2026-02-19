@@ -7,6 +7,15 @@ import pb, { type AuthModel } from '~/utils/pocketbase'
 
 export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
 
+function syncAuthTokenToCookie(token: string | null) {
+	if (typeof document === 'undefined') return
+	if (token) {
+		document.cookie = `pb_auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+	} else {
+		document.cookie = `pb_auth_token=; path=/; max-age=0; path=/`
+	}
+}
+
 // Custom event name for auth store changes
 const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
 
@@ -30,9 +39,7 @@ const subscribeToAuthStore = (callback: () => void) => {
 				record: record ? { ...record } : null,
 				isValid: pb.authStore.isValid
 			}
-			// window.dispatchEvent(
-			// 	new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
-			// )
+			syncAuthTokenToCookie(pb.authStore.isValid ? token : null)
 			callback()
 		}
 	})
@@ -72,6 +79,7 @@ const getNonce = async (address: string) => {
 
 const clearUserSession = () => {
 	pb.authStore.clear()
+	syncAuthTokenToCookie(null)
 	localStorage.removeItem('userHash')
 	localStorage.removeItem('lite-dashboards')
 	if (typeof window !== 'undefined') {
