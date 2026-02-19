@@ -10,9 +10,9 @@ export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
 function syncAuthTokenToCookie(token: string | null) {
 	if (typeof document === 'undefined') return
 	if (token) {
-		document.cookie = `pb_auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+		document.cookie = `pb_auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`
 	} else {
-		document.cookie = `pb_auth_token=; path=/; max-age=0; path=/`
+		document.cookie = `pb_auth_token=; path=/; max-age=0; path=/; Secure`
 	}
 }
 
