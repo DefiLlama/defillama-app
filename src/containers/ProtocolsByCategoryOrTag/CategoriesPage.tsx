@@ -4,11 +4,12 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, getPercentChange, renderPercentChange, slug } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import { categoriesPageExcludedExtraTvls } from './constants'
 import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
@@ -99,7 +100,11 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		)
 	},
 	{
 		header: '7d TVL Change',
@@ -109,7 +114,11 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		)
 	},
 	{
 		header: '1m TVL Change',
@@ -119,7 +128,11 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		)
 	},
 	{
 		header: 'Combined 24h Revenue',

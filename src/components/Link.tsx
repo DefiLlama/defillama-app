@@ -1,5 +1,4 @@
 import RouterLink from 'next/link'
-import * as React from 'react'
 
 interface BasicLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
 	href: string

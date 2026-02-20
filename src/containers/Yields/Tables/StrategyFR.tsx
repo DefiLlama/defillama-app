@@ -1,9 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import { PercentChange, formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { FRStrategyRoute, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -60,7 +61,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		cell: ({ getValue }) => {
 			return (
 				<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
-					{renderPercentChange(getValue(), true, 700, true)}
+					{formatPercentChangeText(getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -80,10 +81,14 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<>{renderPercentChange(Number(getValue()), true, 400)}</>
+							<>
+								<PercentChange percent={Number(getValue())} noSign fontWeight={400} />
+							</>
 						</div>
 					) : (
-						<>{renderPercentChange(Number(getValue()), true, 400)}</>
+						<>
+							<PercentChange percent={Number(getValue())} noSign fontWeight={400} />
+						</>
 					)}
 				</>
 			)
@@ -113,7 +118,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 									/>
 								}
 							>
-								{renderPercentChange(getValue(), true, 700)}
+								<PercentChange percent={getValue()} noSign fontWeight={700} />
 							</Tooltip>
 						</div>
 					) : (
@@ -126,7 +131,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 								/>
 							}
 						>
-							{renderPercentChange(getValue(), true, 700)}
+							<PercentChange percent={getValue()} noSign fontWeight={700} />
 						</Tooltip>
 					)}
 				</>

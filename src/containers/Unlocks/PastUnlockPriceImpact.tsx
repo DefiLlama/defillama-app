@@ -3,9 +3,10 @@ import dayjs from 'dayjs'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
 /** Protocols that have confirmed tPrice and tSymbol (caller pre-filters nulls). */
@@ -156,7 +157,9 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 						</div>
 					</div>
 					<div className="flex items-center gap-1">
-						<span className="text-sm font-semibold tabular-nums">{renderPercentChange(impact.impact)}</span>
+						<span className="text-sm font-semibold tabular-nums">
+							<PercentChange percent={impact.impact} />
+						</span>
 						<Ariakit.HovercardProvider>
 							<Ariakit.HovercardAnchor>
 								<Icon name="help-circle" width={16} height={16} className="cursor-help text-(--text-meta)" />

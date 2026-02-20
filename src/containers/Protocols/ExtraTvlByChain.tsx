@@ -3,11 +3,12 @@ import { lazy, Suspense } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { ExtraTvlMetric, IExtraTvlByChainPageData, IExtraTvlProtocolRow } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -226,7 +227,11 @@ function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[]
 		{
 			header: 'Change 30d',
 			accessorKey: 'change_1m',
-			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			size: 110,
 			meta: {
 				align: 'end'

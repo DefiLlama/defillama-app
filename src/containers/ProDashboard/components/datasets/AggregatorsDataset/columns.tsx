@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { PercentChange } from '~/components/PercentChange'
+import { formattedNum } from '~/utils'
 import { percentageSortingFn } from '../../../utils/tableSorting'
 
 export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
@@ -37,7 +37,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
@@ -52,7 +52,7 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
@@ -75,7 +75,11 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		size: 120,
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className="pro-text2">{renderPercentChange(value, true)}</span>
+			return (
+				<span className="pro-text2">
+					<PercentChange percent={value} noSign />
+				</span>
+			)
 		}
 	},
 	{
@@ -91,7 +95,11 @@ export const aggregatorsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ row, table }) => {
 			const total24h = table.getFilteredRowModel().rows.reduce((sum, r) => sum + (r.original.total24h || 0), 0)
 			const percentage = total24h > 0 ? (row.original.total24h / total24h) * 100 : 0
-			return <span className="pro-text2">{renderPercentChange(percentage, true)}</span>
+			return (
+				<span className="pro-text2">
+					<PercentChange percent={percentage} noSign />
+				</span>
+			)
 		}
 	}
 ]

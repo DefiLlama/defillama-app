@@ -4,6 +4,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -11,7 +12,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, renderPercentChange, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -48,7 +49,9 @@ const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
 }
 
 const renderLSTPercentChangeCell: ColumnDef<ILSTTokenRow>['cell'] = ({ getValue }) => (
-	<>{renderPercentChange(getValue<number | null>())}</>
+	<>
+		<PercentChange percent={getValue<number | null>()} />
+	</>
 )
 
 const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
@@ -155,7 +158,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 					}
 					className="justify-end"
 				>
-					{getValue<number | null>() != null ? renderPercentChange(getValue<number | null>()) : null}
+					{getValue<number | null>() != null ? <PercentChange percent={getValue<number | null>()} /> : null}
 				</Tooltip>
 			)
 		},

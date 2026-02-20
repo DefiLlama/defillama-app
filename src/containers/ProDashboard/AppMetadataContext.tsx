@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import * as React from 'react'
 import { createContext, useCallback, useContext, useMemo } from 'react'
 import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'

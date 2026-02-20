@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 

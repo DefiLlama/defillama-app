@@ -11,6 +11,7 @@ import { maxAgeForNext } from '~/api'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -18,7 +19,7 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, getPercentChange, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const GAINERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: true }]
@@ -91,7 +92,11 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue()} />
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'

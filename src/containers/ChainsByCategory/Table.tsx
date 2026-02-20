@@ -15,6 +15,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
@@ -24,7 +25,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { IFormattedDataWithExtraTvl } from './types'
 
 const optionsKey = 'chains-overview-table-columns'
@@ -324,7 +325,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -334,7 +339,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -344,7 +353,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',

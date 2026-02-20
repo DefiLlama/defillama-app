@@ -7,6 +7,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ICONS_CDN } from '~/constants'
@@ -16,7 +17,6 @@ import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contex
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useIsClient } from '~/hooks/useIsClient'
-import { renderPercentChange } from '~/utils'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
@@ -825,7 +825,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 														: 'text-(--text-secondary)'
 											}`}
 										>
-											{renderPercentChange(mover.change, false, 400, true)}
+											{formatPercentChangeText(mover.change)}
 										</span>
 									</div>
 								))}

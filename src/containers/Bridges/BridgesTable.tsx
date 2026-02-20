@@ -12,11 +12,12 @@ import {
 import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 
 type BridgesTableRow = {
 	displayName: string
@@ -74,7 +75,11 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 100,
 		meta: {
 			align: 'end'

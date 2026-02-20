@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { toNiceCsvDate } from '~/utils'
 

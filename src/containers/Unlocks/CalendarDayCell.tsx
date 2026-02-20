@@ -1,5 +1,4 @@
 import dayjs from 'dayjs'
-import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'

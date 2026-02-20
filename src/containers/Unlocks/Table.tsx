@@ -15,13 +15,14 @@ import { Bookmark } from '~/components/Bookmark'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import type { FormSubmitEvent } from '~/types/forms'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 const UnconstrainedSmolLineChart = lazy(() =>
@@ -538,7 +539,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue<number | undefined>()
 			return (
-				<div className="flex h-full items-center justify-end">{value != null ? renderPercentChange(value) : ''}</div>
+				<div className="flex h-full items-center justify-end">
+					{value != null ? <PercentChange percent={value} /> : ''}
+				</div>
 			)
 		},
 		meta: {

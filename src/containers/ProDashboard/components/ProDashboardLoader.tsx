@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { LoadingDots } from '~/components/Loaders'
 
 export function ProDashboardLoader() {

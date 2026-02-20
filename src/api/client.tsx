@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { getAllCGTokensList } from '~/api'
 import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
 import { fetchApi } from '~/utils/async'
-import { getAllCGTokensList } from './index'
 
 export const useFetchCoingeckoTokensList = () => {
 	const { data, isLoading, error } = useQuery({

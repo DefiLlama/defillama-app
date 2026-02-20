@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import * as React from 'react'
 import { Icon } from './Icon'
 
 interface NestedMenuItemProps extends Ariakit.MenuItemProps {

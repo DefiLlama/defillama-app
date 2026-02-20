@@ -8,10 +8,10 @@ import {
 } from '@tanstack/react-table'
 import { useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
-import { renderPercentChange } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 const valueToFilter = {
@@ -173,7 +173,11 @@ const columns = (chain: string) =>
 		{
 			header: 'Tx Growth',
 			accessorKey: 'txns_percentage_growth',
-			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			meta: {
 				align: 'end'
 			}
@@ -188,7 +192,11 @@ const columns = (chain: string) =>
 		{
 			header: 'Account Growth',
 			accessorKey: 'accounts_percentage_growth',
-			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			meta: {
 				align: 'end'
 			}
@@ -204,7 +212,11 @@ const columns = (chain: string) =>
 		{
 			header: 'Gas Growth',
 			accessorKey: 'gas_spend_percentage_growth',
-			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			meta: {
 				align: 'end'
 			}

@@ -1,6 +1,5 @@
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import * as React from 'react'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
