@@ -10,7 +10,7 @@ export async function fetchEntityQuestions(
 		const data = await fetchJson<EntityQuestionsResponse>(
 			`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
 		)
-		return data
+		return { questions: data.questions ?? [], suggestGlobal: data.suggestGlobal ?? false }
 	} catch {
 		return { questions: [], suggestGlobal: false } // Fail silently - no questions is fine
 	}
