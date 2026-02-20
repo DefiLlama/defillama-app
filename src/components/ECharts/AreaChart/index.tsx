@@ -48,13 +48,12 @@ export default function AreaChart({
 	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
-	const [legendOptions, setLegendOptionsRaw] = useState(customLegendOptions)
+	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 	const [prevCustomLegendOptions, setPrevCustomLegendOptions] = useState(customLegendOptions)
 	if (customLegendOptions !== prevCustomLegendOptions) {
 		setPrevCustomLegendOptions(customLegendOptions)
-		setLegendOptionsRaw(customLegendOptions)
+		setLegendOptions(customLegendOptions)
 	}
-	const setLegendOptions = setLegendOptionsRaw
 
 	const chartsStack = stacks || customLegendOptions
 

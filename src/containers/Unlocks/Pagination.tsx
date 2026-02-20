@@ -22,7 +22,6 @@ type PaginationAction =
 	| { type: 'TOUCH_MOVE'; payload: number }
 	| { type: 'TOUCH_END' }
 	| { type: 'RESET_SWIPE' }
-	| { type: 'SET_SWIPING'; payload: boolean }
 
 const initialState: PaginationState = {
 	visibleItems: 1,
@@ -42,7 +41,7 @@ function paginationReducer(state: PaginationState, action: PaginationAction): Pa
 		case 'TOUCH_START':
 			return { ...state, touchStart: action.payload, touchEnd: null, isSwiping: true }
 		case 'TOUCH_MOVE':
-			if (!state.touchStart || !state.isSwiping) return state
+			if (state.touchStart === null || !state.isSwiping) return state
 			return {
 				...state,
 				touchEnd: action.payload,
@@ -52,8 +51,6 @@ function paginationReducer(state: PaginationState, action: PaginationAction): Pa
 			return { ...state, isSwiping: false }
 		case 'RESET_SWIPE':
 			return { ...state, swipeOffset: 0, touchStart: null, touchEnd: null }
-		case 'SET_SWIPING':
-			return { ...state, isSwiping: action.payload }
 		default:
 			return state
 	}
@@ -150,21 +147,21 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	}
 
 	const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-		if (!touchStart || !isSwiping) return
+		if (touchStart === null || !isSwiping) return
 		dispatch({ type: 'TOUCH_MOVE', payload: e.targetTouches[0].clientX })
 	}
 
 	const onTouchEnd = () => {
-		if (!touchStart || !touchEnd || !isSwiping) return
+		if (touchStart === null || touchEnd === null || !isSwiping) return
 		dispatch({ type: 'TOUCH_END' })
 
 		const distance = touchStart - touchEnd
 		const isLeftSwipe = distance > minSwipeDistance
 		const isRightSwipe = distance < -minSwipeDistance
 
-		setTimeout(() => {
+		requestAnimationFrame(() => {
 			dispatch({ type: 'RESET_SWIPE' })
-		}, 10)
+		})
 
 		if (isLeftSwipe) {
 			handleNextPage()

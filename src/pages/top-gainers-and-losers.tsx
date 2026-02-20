@@ -223,7 +223,7 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
 				<TopGainersAndLosersTable
-					key={`gainers-${GAINERS_SORTING_STATE[0]?.id}`}
+					key="gainers-change_1d"
 					data={topGainers}
 					sortingState={GAINERS_SORTING_STATE}
 				/>
@@ -232,7 +232,7 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
 				<TopGainersAndLosersTable
-					key={`losers-${LOSERS_SORTING_STATE[0]?.id}`}
+					key="losers-change_1d"
 					data={topLosers}
 					sortingState={LOSERS_SORTING_STATE}
 				/>

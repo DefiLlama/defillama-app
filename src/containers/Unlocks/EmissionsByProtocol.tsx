@@ -427,16 +427,9 @@ const ChartContainer = ({
 	const setQueryParam = (key: string, value: string | undefined) => pushShallowQuery(router, { [key]: value })
 
 	const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
-		// Initialize with default categories based on initial allocationMode
-		const initialAllocationMode: 'current' | 'standard' =
-			readSingleQueryValue(router.query.groupAllocation) === 'true' ? 'standard' : 'current'
 		const initialCategoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
-		if (initialAllocationMode === 'standard' && data.categoriesBreakdown) {
-			const categories: string[] = []
-			for (const category in data.categoriesBreakdown) {
-				categories.push(category)
-			}
-			return categories
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			return Object.keys(data.categoriesBreakdown)
 		} else if (initialCategoriesFromData.length > 0) {
 			return initialCategoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
 		}
@@ -459,17 +452,22 @@ const ChartContainer = ({
 	const pieChartDataRaw = data.pieChartData?.[dataType]
 	const hallmarks = data.hallmarks?.[dataType] ?? []
 
-	// Sync selectedCategories when categoriesFromData changes (e.g., dataType switch)
-	// Use functional update to avoid cascading renders
+	// Sync selectedCategories when data source changes (e.g., dataType switch or allocation mode toggle)
+	// Mirrors the lazy initializer logic above
 	useEffect(() => {
-		if (categoriesFromData.length > 0) {
-			setSelectedCategories((current) => {
-				const newCategories = categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-				if (current.length !== newCategories.length) return newCategories
-				return areArraysEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
-			})
-		}
-	}, [categoriesFromData])
+		setSelectedCategories((current) => {
+			let newCategories: string[]
+			if (allocationMode === 'standard' && data.categoriesBreakdown) {
+				newCategories = Object.keys(data.categoriesBreakdown)
+			} else if (categoriesFromData.length > 0) {
+				newCategories = categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
+			} else {
+				return current
+			}
+			if (current.length !== newCategories.length) return newCategories
+			return areArraysEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
+		})
+	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 

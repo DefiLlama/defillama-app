@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { type KeyboardEvent, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useDeferredValue, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -242,7 +242,6 @@ export function AddToDashboardModal({
 	const [isCreatingNew, setIsCreatingNew] = useState(false)
 	const [newDashboardNameInput, setNewDashboardNameInput] = useState('')
 	const deferredSearch = useDeferredValue(search)
-	const formRef = useRef<HTMLFormElement>(null)
 
 	const filteredDashboards = useMemo(() => {
 		const query = deferredSearch.trim().toLowerCase()
@@ -347,7 +346,7 @@ export function AddToDashboardModal({
 		>
 			<div className="h-1 w-full bg-linear-to-r from-pro-purple-300/60 via-pro-blue-300/40 to-transparent" />
 
-			<form ref={formRef} onSubmit={handleAdd} className="p-5">
+			<form onSubmit={handleAdd} className="p-5">
 				<div className="mb-5 flex items-center justify-between">
 					<Ariakit.DialogHeading className="text-lg font-semibold tracking-tight pro-text1">
 						Add to Dashboard
