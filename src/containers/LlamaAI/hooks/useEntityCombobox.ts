@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { type RefObject, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
@@ -42,32 +42,38 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		}
 	}, [combobox])
 
-	const updatePlacement = (textarea: HTMLTextAreaElement) => {
-		const nextPlacement = calculateComboboxPlacement(textarea, getAnchorRect)
-		if (combobox.getState().placement !== nextPlacement) {
-			combobox.setState('placement', nextPlacement)
-		}
-	}
+	const updatePlacement = useCallback(
+		(textarea: HTMLTextAreaElement) => {
+			const nextPlacement = calculateComboboxPlacement(textarea, getAnchorRect)
+			if (combobox.getState().placement !== nextPlacement) {
+				combobox.setState('placement', nextPlacement)
+			}
+		},
+		[combobox]
+	)
 
-	const runTriggerDetection = (textarea: HTMLTextAreaElement) => {
-		const triggerState = detectTrigger(textarea)
+	const runTriggerDetection = useCallback(
+		(textarea: HTMLTextAreaElement) => {
+			const triggerState = detectTrigger(textarea)
 
-		updatePlacement(textarea)
+			updatePlacement(textarea)
 
-		if (triggerState.isActive && !triggerState.isTriggerOnly) {
-			setIsTriggerOnly(false)
-			combobox.show()
-			setSearchTerm(triggerState.searchValueWithTrigger)
-		} else if (triggerState.isActive && triggerState.isTriggerOnly) {
-			setIsTriggerOnly(true)
-			combobox.show()
-			setSearchTerm(triggerState.searchValueWithTrigger)
-		} else {
-			setIsTriggerOnly(false)
-			setSearchTerm('')
-			combobox.hide()
-		}
-	}
+			if (triggerState.isActive && !triggerState.isTriggerOnly) {
+				setIsTriggerOnly(false)
+				combobox.show()
+				setSearchTerm(triggerState.searchValueWithTrigger)
+			} else if (triggerState.isActive && triggerState.isTriggerOnly) {
+				setIsTriggerOnly(true)
+				combobox.show()
+				setSearchTerm(triggerState.searchValueWithTrigger)
+			} else {
+				setIsTriggerOnly(false)
+				setSearchTerm('')
+				combobox.hide()
+			}
+		},
+		[updatePlacement, combobox]
+	)
 
 	const handleScroll = () => {
 		const textarea = promptInputRef.current
@@ -171,7 +177,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		entitiesRef.current.add(name)
 		entitiesMapRef.current.set(name, { id, name, type })
 
-		const getNewValue = replaceValue(triggerState.triggerOffset, searchTerm, name)
+		const getNewValue = replaceValue(triggerState.triggerOffset, triggerState.searchValue, name)
 		const newValue = getNewValue(textarea.value)
 
 		setSearchTerm('')
@@ -231,16 +237,13 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		isComposingRef.current = true
 	}
 
-	// useEffectEvent ensures this always has access to latest refs/state
-	// without needing to be a dependency in effects (React 19 best practice)
-	const handleCompositionEnd = useEffectEvent(() => {
+	const handleCompositionEnd = useCallback(() => {
 		isComposingRef.current = false
-		// After composition ends, run trigger detection on the final value
 		const textarea = promptInputRef.current
 		if (textarea) {
 			runTriggerDetection(textarea)
 		}
-	})
+	}, [promptInputRef, runTriggerDetection])
 
 	const hasRenderedItems = combobox.getState().renderedItems.length > 0
 

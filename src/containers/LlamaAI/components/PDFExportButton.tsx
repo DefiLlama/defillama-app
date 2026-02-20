@@ -61,7 +61,9 @@ export function PDFExportButton({
 
 				if (exportType === 'single_message') {
 					if (!messageId) {
-						toast.error('Unable to export this message. Please try again from a specific message.')
+						toast.error('Unable to export this message. Please try again from a specific message.', {
+							id: 'pdf-export'
+						})
 						setIsLoading(false)
 						return
 					}
@@ -107,17 +109,10 @@ export function PDFExportButton({
 
 				const data = await response.json()
 
-				const pdfErrorMsg = formatPdfError(data.error)
-
-				let hasError = false
-				if (!response.ok) {
-					hasError = true
-				}
-				if (!data.success) {
-					hasError = true
-				}
+				const hasError = !response.ok || !data.success
 
 				if (hasError) {
+					const pdfErrorMsg = formatPdfError(data.error)
 					console.error('PDF export error:', pdfErrorMsg)
 					toast.error(pdfErrorMsg, { id: 'pdf-export' })
 					setIsLoading(false)
@@ -143,11 +138,8 @@ export function PDFExportButton({
 				toast.success('PDF downloaded!', { id: 'pdf-export' })
 				setIsLoading(false)
 			} catch (error) {
+				const errorMsg = formatPdfError(error)
 				console.error('PDF export error:', error)
-				let errorMsg = 'Failed to export PDF'
-				if (error instanceof Error) {
-					errorMsg = error.message
-				}
 				toast.error(errorMsg, { id: 'pdf-export' })
 				setIsLoading(false)
 			}

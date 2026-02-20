@@ -125,14 +125,19 @@ export function StripeCheckoutModal({
 		onSuccess: async (result) => {
 			if (result.kind === 'freeUpgrade') {
 				await queryClient.invalidateQueries({ queryKey: ['subscription'] })
-				onClose()
+				handleClose()
 			}
 		}
 	})
 
+	const handleClose = useCallback(() => {
+		subscriptionMutation.reset()
+		onClose()
+	}, [subscriptionMutation, onClose])
+
 	const createSubscription = subscriptionMutation.mutateAsync
 
-	const fetchClientSecret = useCallback(async () => {
+	const fetchClientSecret = useCallback(async (): Promise<string> => {
 		const result = await createSubscription()
 		if (result.kind === 'checkout') return result.clientSecret
 		throw new Error(`Unexpected subscription kind: ${result.kind}`)
@@ -143,7 +148,7 @@ export function StripeCheckoutModal({
 
 	if (!stripeInstance) {
 		return (
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 				<Ariakit.Dialog className="dialog gap-4 md:max-w-[600px]" portal unmountOnHide>
 					<div className="flex items-center justify-between">
 						<h2 className="text-xl font-bold">Checkout</h2>
@@ -165,7 +170,7 @@ export function StripeCheckoutModal({
 		const billingPeriod = billingInterval === 'year' ? 'Annual' : 'Monthly'
 
 		return (
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 				<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
 					<div className="top-0 z-10 flex items-center justify-between border-b bg-(--app-bg) p-4">
 						<h2 className="text-xl font-bold">Complete Your Upgrade</h2>
@@ -237,7 +242,7 @@ export function StripeCheckoutModal({
 	}
 
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+		<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 			<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
 				<div className="top-0 z-10 flex items-center justify-between border-b bg-(--app-bg) p-4">
 					<h2 className="text-xl font-bold">Complete Your Purchase</h2>

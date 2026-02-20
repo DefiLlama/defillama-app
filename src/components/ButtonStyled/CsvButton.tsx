@@ -192,13 +192,16 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 	const handleTrialConfirm = useCallback(async () => {
 		dispatch({ type: 'setTrialLoading', value: true })
+		let downloaded = false
 		try {
-			const downloaded = await runDownload(true)
+			downloaded = await runDownload(true)
 			if (downloaded) {
 				await trackCsvDownload()
 			}
 		} catch (error) {
-			toast.error('Failed to update CSV download status')
+			toast.error(
+				downloaded ? 'CSV downloaded, but failed to record usage. Please refresh the page.' : 'Failed to download CSV'
+			)
 			console.log(error)
 		} finally {
 			dispatch({ type: 'setTrialLoading', value: false })

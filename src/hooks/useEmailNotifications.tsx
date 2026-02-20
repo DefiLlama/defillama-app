@@ -62,14 +62,14 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				method: 'GET'
 			})
 
-			if (!response) return null
+			if (!response) throw new Error('Not authenticated')
 
 			if (!response.ok) {
 				if (response.status === 404) {
 					return null
 				}
 				if (response.status === 401) {
-					return null
+					throw new Error('Unauthorized')
 				}
 
 				let errorMessage = 'Failed to fetch notification preferences'

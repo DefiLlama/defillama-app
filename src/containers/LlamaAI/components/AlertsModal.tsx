@@ -325,6 +325,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ enabled })
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}
@@ -355,6 +356,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				throw new Error('Not authenticated')
 			}
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to delete alert')
 			}
@@ -411,6 +413,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					alertConfig
 				})
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}

@@ -341,12 +341,9 @@ function PortfolioNotifications({
 
 			dialogStore.hide()
 		}
-		try {
-			await buildAndSavePreferences()
-		} catch (error) {
-			console.error('Error saving notification preferences:', error)
-			toast.error('Failed to save notification preferences')
-		}
+		await buildAndSavePreferences().catch(() => {
+			// Error toast handled by mutation's onError
+		})
 	}
 
 	const handleDisableNotifications = async () => {
