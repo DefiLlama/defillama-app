@@ -1,5 +1,5 @@
 import { MCP_SERVER } from '~/constants'
-import type { ChartConfiguration, AlertProposedData } from './types'
+import type { ChartConfiguration, AlertProposedData, ToolExecution } from './types'
 
 export interface CsvExport {
 	id: string
@@ -29,6 +29,7 @@ export interface AgenticSSECallbacks {
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
+	onToolExecution?: (data: ToolExecution) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
 	onError: (content: string) => void
@@ -101,6 +102,9 @@ function parseSSEStream(
 								break
 							case 'spawn_progress':
 								callbacks.onSpawnProgress(data)
+								break
+							case 'tool_execution':
+								callbacks.onToolExecution?.(data)
 								break
 							case 'citations':
 								callbacks.onCitations(data.citations || [])
