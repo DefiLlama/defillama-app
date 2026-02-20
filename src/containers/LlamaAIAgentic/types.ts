@@ -79,6 +79,18 @@ export interface AlertProposedData {
 	next_run_at: string
 }
 
+export interface ToolExecution {
+	name: string
+	executionTimeMs: number
+	success: boolean
+	error?: string
+	resultPreview?: any[]
+	resultCount?: number
+	resultId?: string
+	sqlQuery?: string
+	toolData?: Record<string, any>
+}
+
 export interface Message {
 	role: 'user' | 'assistant'
 	content?: string
@@ -90,4 +102,5 @@ export interface Message {
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	id?: string
 	timestamp?: number
+	toolExecutions?: ToolExecution[]
 }
