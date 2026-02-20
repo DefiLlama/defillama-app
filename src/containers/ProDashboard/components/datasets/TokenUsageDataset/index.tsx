@@ -590,13 +590,16 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									<th
 										key={header.id}
 										colSpan={header.colSpan}
-										aria-sort={
-											header.column.getIsSorted() === 'asc'
-												? 'ascending'
-												: header.column.getIsSorted() === 'desc'
-													? 'descending'
-													: 'none'
-										}
+										{...(header.column.getCanSort()
+											? {
+													'aria-sort':
+														header.column.getIsSorted() === 'asc'
+															? 'ascending'
+															: header.column.getIsSorted() === 'desc'
+																? 'descending'
+																: 'none'
+												}
+											: {})}
 										className="border-r border-b border-(--divider) bg-transparent px-2 py-2 font-medium last:border-r-0"
 									>
 										{header.isPlaceholder ? null : header.column.getCanSort() ? (

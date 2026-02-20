@@ -65,19 +65,38 @@ function invalidateDashboardQueries(queryClient: QueryClient) {
 
 function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
 	if (typeof window === 'undefined') return
-	const maybeTrack = (window as Window & { umami?: { track?: unknown } }).umami?.track
+	const maybeUmami = Reflect.get(window, 'umami')
+	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
+	const maybeTrack = Reflect.get(maybeUmami, 'track')
 	if (typeof maybeTrack !== 'function') return
-	maybeTrack('add-to-dashboard-submit', { type })
+	Reflect.apply(maybeTrack, maybeUmami, ['add-to-dashboard-submit', { type }])
+}
+
+function safeTrackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
+	try {
+		trackAddToDashboardSubmit(type)
+	} catch {
+		// Ignore analytics failures so dashboard operations can still succeed.
+	}
 }
 
 function showViewToast(message: string, href: string, onNavigate: (href: string) => void) {
 	toast.success(
-		<div>
-			{message}{' '}
-			<button type="button" className="underline" onClick={() => onNavigate(href)}>
-				View →
-			</button>
-		</div>,
+		(t) => (
+			<div>
+				{message}{' '}
+				<button
+					type="button"
+					className="underline"
+					onClick={() => {
+						toast.dismiss(t.id)
+						onNavigate(href)
+					}}
+				>
+					View →
+				</button>
+			</div>
+		),
 		{ duration: 5000 }
 	)
 }
@@ -188,7 +207,7 @@ export function AddToDashboardModal({
 				)
 
 				invalidateDashboardQueries(queryClient)
-				trackAddToDashboardSubmit('new-dashboard')
+				safeTrackAddToDashboardSubmit('new-dashboard')
 				showViewToast('Dashboard created!', `/pro/${dashboard.id}`, router.push)
 				dialogStore.hide()
 			} catch (error: unknown) {
@@ -211,7 +230,7 @@ export function AddToDashboardModal({
 				await addItemToDashboard(selectedDashboardId, chartToAdd, authorizedFetch)
 
 				invalidateDashboardQueries(queryClient)
-				trackAddToDashboardSubmit('existing-dashboard')
+				safeTrackAddToDashboardSubmit('existing-dashboard')
 
 				const selected = dashboards.find((d: (typeof dashboards)[number]) => d.id === selectedDashboardId)
 				let selectedName = ''
@@ -326,16 +345,18 @@ export function AddToDashboardModal({
 				)}
 			</div>
 
-			<div className="mb-4 border-t pro-border pt-4">
-				<label className="mb-1.5 block text-xs pro-text3">Chart name (optional)</label>
-				<input
-					type="text"
-					value={chartName}
-					onChange={(e) => setChartName(e.target.value)}
-					placeholder={configName || 'Enter chart name...'}
-					className="w-full rounded-md border pro-border px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-				/>
-			</div>
+			{chartConfig && (chartConfig.kind === 'multi' || chartConfig.kind === 'builder') ? (
+				<div className="mb-4 border-t pro-border pt-4">
+					<label className="mb-1.5 block text-xs pro-text3">Chart name (optional)</label>
+					<input
+						type="text"
+						value={chartName}
+						onChange={(e) => setChartName(e.target.value)}
+						placeholder={configName || 'Enter chart name...'}
+						className="w-full rounded-md border pro-border px-3 py-2 text-sm pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+					/>
+				</div>
+			) : null}
 
 			{unsupportedMetrics.length > 0 && (
 				<div className="mb-4 rounded-md bg-yellow-500/10 px-3 py-2">

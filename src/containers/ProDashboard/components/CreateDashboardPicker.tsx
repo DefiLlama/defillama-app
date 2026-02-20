@@ -156,15 +156,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 					</button>
 					<h2 className="text-lg font-semibold text-(--text-primary)">Create New Dashboard</h2>
 				</div>
-				<Suspense
-					fallback={
-						<div className="flex h-96 items-center justify-center">
-							<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)" />
-						</div>
-					}
-				>
-					<CreateDashboardModalContent onCreate={handleCreateFromScratch} />
-				</Suspense>
+				<CreateDashboardModalContent onCreate={handleCreateFromScratch} />
 			</Ariakit.Dialog>
 		)
 	}
@@ -341,7 +333,7 @@ function CreateDashboardModalContent({
 					<p id="create-dashboard-visibility" className="mb-3 block text-sm font-medium text-(--text-primary)">
 						Visibility
 					</p>
-					<div className="flex gap-3" aria-labelledby="create-dashboard-visibility">
+					<div className="flex gap-3" role="group" aria-labelledby="create-dashboard-visibility">
 						<button
 							type="button"
 							onClick={() => setVisibility('public')}
@@ -411,6 +403,7 @@ function CreateDashboardModalContent({
 									<button
 										type="button"
 										onClick={() => handleRemoveTag(tag)}
+										aria-label={`Remove tag ${tag}`}
 										className="text-(--text-tertiary) hover:text-(--primary)"
 									>
 										<Icon name="x" height={12} width={12} />
@@ -431,8 +424,9 @@ function CreateDashboardModalContent({
 					<textarea
 						id="create-dashboard-description"
 						value={description}
-						onChange={(e) => setDescription(e.target.value)}
+						onChange={(e) => setDescription(e.target.value.slice(0, 200))}
 						placeholder="Describe your dashboard..."
+						maxLength={200}
 						rows={3}
 						className="w-full resize-none rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>

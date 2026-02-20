@@ -219,34 +219,38 @@ export function TableHeader({
 								</div>
 							)
 						})}
-						<div className="border-t border-(--bg-divider) p-2">
+						{onSaveView ? (
+							<div className="border-t border-(--bg-divider) p-2">
+								<button
+									type="button"
+									onClick={() => {
+										saveViewDialogStore.setOpen(true)
+										customViewsPopover.setOpen(false)
+									}}
+									className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+								>
+									<Icon name="plus" height={14} width={14} />
+									<span>Save Current View</span>
+								</button>
+							</div>
+						) : null}
+					</>
+				) : (
+					<div className="p-4 text-center">
+						<p className="mb-3 text-sm pro-text3">No custom views yet</p>
+						{onSaveView ? (
 							<button
 								type="button"
 								onClick={() => {
 									saveViewDialogStore.setOpen(true)
 									customViewsPopover.setOpen(false)
 								}}
-								className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+								className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
 							>
 								<Icon name="plus" height={14} width={14} />
 								<span>Save Current View</span>
 							</button>
-						</div>
-					</>
-				) : (
-					<div className="p-4 text-center">
-						<p className="mb-3 text-sm pro-text3">No custom views yet</p>
-						<button
-							type="button"
-							onClick={() => {
-								saveViewDialogStore.setOpen(true)
-								customViewsPopover.setOpen(false)
-							}}
-							className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
-						>
-							<Icon name="plus" height={14} width={14} />
-							<span>Save Current View</span>
-						</button>
+						) : null}
 					</div>
 				)}
 			</Popover>

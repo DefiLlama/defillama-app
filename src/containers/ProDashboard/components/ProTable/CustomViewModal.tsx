@@ -11,21 +11,16 @@ interface CustomViewModalProps {
 	existingViewNames: string[]
 }
 
-interface CustomViewModalContentProps {
-	dialogStore: Ariakit.DialogStore
-	onSave: (name: string) => void
-	existingViewNames: string[]
-}
-
-function CustomViewModalContent({ dialogStore, onSave, existingViewNames }: CustomViewModalContentProps) {
+export function CustomViewModal({ dialogStore, onSave, existingViewNames }: CustomViewModalProps) {
 	const existingViewNamesLowercased = React.useMemo(() => {
 		return new Set(existingViewNames.map((name) => name.trim().toLowerCase()))
 	}, [existingViewNames])
 
 	const handleSave = (event: FormSubmitEvent) => {
 		event.preventDefault()
-		const form = event.currentTarget as HTMLFormElement & { name: HTMLInputElement }
-		const nameInput = form.name
+		const form = event.currentTarget as HTMLFormElement
+		const nameInput = form.elements.namedItem('name') as HTMLInputElement | null
+		if (!nameInput) return
 		nameInput.setCustomValidity('')
 		const normalizedName = nameInput.value.trim()
 		const normalizedNameLowercased = normalizedName.toLowerCase()
@@ -102,8 +97,4 @@ function CustomViewModalContent({ dialogStore, onSave, existingViewNames }: Cust
 			</form>
 		</Ariakit.Dialog>
 	)
-}
-
-export function CustomViewModal({ dialogStore, onSave, existingViewNames }: CustomViewModalProps) {
-	return <CustomViewModalContent dialogStore={dialogStore} onSave={onSave} existingViewNames={existingViewNames} />
 }

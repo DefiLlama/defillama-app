@@ -446,10 +446,11 @@ export function CustomColumnPanel({
 											key={`${suggestion.type}-${suggestion.value}`}
 											type="button"
 											onClick={() => insertSuggestion(suggestion)}
+											tabIndex={autocompleteIndex === index ? 0 : -1}
 											className={`flex w-full items-center gap-2 border-0 px-3 py-1.5 text-left text-sm ${
 												index === autocompleteIndex ? 'bg-(--primary) text-white' : 'pro-hover-bg pro-text1'
 											}`}
-											onMouseEnter={() => setAutocompleteIndex(index)}
+											onPointerEnter={() => setAutocompleteIndex(index)}
 										>
 											<span
 												className={`h-1 w-1 shrink-0 rounded-full ${
@@ -522,7 +523,7 @@ export function CustomColumnPanel({
 									type="button"
 									onClick={() => insertOperator(operator)}
 									className="rounded-md border pro-border bg-(--bg-glass) pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
-									onMouseDown={(e) => e.stopPropagation()}
+									onPointerDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
 								>
@@ -561,7 +562,7 @@ export function CustomColumnPanel({
 							onClick={() => insertVariable(variable.key)}
 							title={variable.name}
 							className="rounded-md border pro-border bg-(--bg-glass) pro-hover-bg p-1 text-center text-xs transition-colors"
-							onMouseDown={(e) => e.stopPropagation()}
+							onPointerDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						>

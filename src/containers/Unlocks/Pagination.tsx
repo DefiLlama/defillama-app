@@ -36,19 +36,24 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 		calculateVisibleItems()
 		let resizeObserver: ResizeObserver | null = null
 		const handleResize = () => calculateVisibleItems()
+		const hasWindow = typeof window !== 'undefined'
+		let addedResizeListener = false
 
-		if (typeof window !== 'undefined' && 'ResizeObserver' in window && paginationRef.current) {
+		if (hasWindow && 'ResizeObserver' in window && paginationRef.current) {
 			resizeObserver = new ResizeObserver(() => {
 				calculateVisibleItems()
 			})
 			resizeObserver.observe(paginationRef.current)
-		} else {
+		} else if (hasWindow) {
 			window.addEventListener('resize', handleResize)
+			addedResizeListener = true
 		}
 
 		return () => {
 			resizeObserver?.disconnect()
-			window.removeEventListener('resize', handleResize)
+			if (addedResizeListener) {
+				window.removeEventListener('resize', handleResize)
+			}
 		}
 	}, [])
 
@@ -58,6 +63,12 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const activeManualPage = pageOverride.startIndex === startIndex ? pageOverride.page : null
 	const targetPage = activeManualPage == null ? startPage : activeManualPage
 	const currentPage = Math.max(0, Math.min(targetPage, maxPage))
+
+	useEffect(() => {
+		if (pageOverride.page != null && pageOverride.startIndex !== startIndex) {
+			setPageOverride({ startIndex, page: null })
+		}
+	}, [pageOverride.page, pageOverride.startIndex, startIndex])
 
 	const handlePageChange = (pageIndex: number) => {
 		setPageOverride({ startIndex, page: pageIndex })

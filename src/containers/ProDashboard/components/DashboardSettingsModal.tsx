@@ -1,8 +1,10 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
+
+let modalOpenSequence = 0
 
 interface DashboardSettingsModalProps {
 	isOpen: boolean
@@ -49,15 +51,16 @@ function DashboardSettingsModalInner({
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
 	const handleSave = () => {
+		const normalizedDescription = localDescription.slice(0, 200)
 		onDashboardNameChange(localDashboardName)
 		onVisibilityChange(localVisibility)
 		onTagsChange(localTags)
-		onDescriptionChange(localDescription)
+		onDescriptionChange(normalizedDescription)
 		onSave({
 			dashboardName: localDashboardName,
 			visibility: localVisibility,
 			tags: localTags,
-			description: localDescription
+			description: normalizedDescription
 		})
 		onClose()
 	}
@@ -228,8 +231,9 @@ function DashboardSettingsModalInner({
 							<textarea
 								id="dashboard-settings-description"
 								value={localDescription}
-								onChange={(e) => setLocalDescription(e.target.value)}
+								onChange={(e) => setLocalDescription(e.target.value.slice(0, 200))}
 								placeholder="Describe your dashboard..."
+								maxLength={200}
 								rows={3}
 								className="w-full resize-none rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							/>
@@ -282,16 +286,13 @@ function DashboardSettingsModalInner({
 }
 
 export function DashboardSettingsModal(props: DashboardSettingsModalProps) {
-	const [openCount, setOpenCount] = useState(0)
-	const wasOpenRef = useRef(false)
+	const openStateRef = useRef({ wasOpen: false, openCycle: 0 })
+	if (props.isOpen && !openStateRef.current.wasOpen) {
+		modalOpenSequence += 1
+		openStateRef.current.openCycle = modalOpenSequence
+	}
+	openStateRef.current.wasOpen = props.isOpen
 
-	useEffect(() => {
-		if (props.isOpen && !wasOpenRef.current) {
-			setOpenCount((count) => count + 1)
-		}
-		wasOpenRef.current = props.isOpen
-	}, [props.isOpen])
-
-	const modalKey = `${props.dashboardId ?? 'new'}:${openCount}`
+	const modalKey = `${props.dashboardId ?? 'new'}:${openStateRef.current.openCycle}`
 	return <DashboardSettingsModalInner key={modalKey} {...props} />
 }
