@@ -160,15 +160,14 @@ export function PromptInput({
 					)
 				}
 				const images = await Promise.all(imagePromises)
-				handleSubmit(promptValue, finalEntities, images)
+				await handleSubmit(promptValue, finalEntities, images)
 			}
 			try {
 				await processAndSubmitImages()
 			} catch (error) {
 				console.error('Submission failed', error)
-			} finally {
-				revokeImageUrls(imagesToSend)
 			}
+			revokeImageUrls(imagesToSend)
 		} else {
 			handleSubmit(promptValue, finalEntities)
 		}

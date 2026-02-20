@@ -293,7 +293,7 @@ export function KeyMetricsPngExportButton({
 		try {
 			await renderAndDownload()
 		} catch (error) {
-			console.log('Error exporting key metrics:', error)
+			console.error('Error exporting key metrics:', error)
 		}
 		setIsLoading(false)
 	}

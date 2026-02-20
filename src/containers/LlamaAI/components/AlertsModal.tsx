@@ -213,6 +213,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryFn: async () => {
 			if (!authorizedFetch) return []
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to fetch alerts')
 			}

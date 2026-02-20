@@ -15,6 +15,19 @@ import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
 const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
 
+function formatPdfError(error: unknown): string {
+	if (!error) return 'Failed to generate PDF'
+	if (typeof error === 'string') return error
+	if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string') {
+		return (error as any).message
+	}
+	try {
+		return JSON.stringify(error)
+	} catch {
+		return 'Failed to generate PDF'
+	}
+}
+
 interface PDFExportButtonProps {
 	sessionId: string | null
 	messageId?: string | null
@@ -86,24 +99,15 @@ export function PDFExportButton({
 					body: JSON.stringify(requestBody)
 				})
 
+				if (!response) {
+					toast.error('Not authenticated', { id: 'pdf-export' })
+					setIsLoading(false)
+					return
+				}
+
 				const data = await response.json()
 
-				let pdfErrorMsg = 'Failed to generate PDF'
-				if (data.error) {
-					if (typeof data.error === 'string') {
-						pdfErrorMsg = data.error
-					} else {
-						if (typeof data.error.message === 'string') {
-							pdfErrorMsg = data.error.message
-						} else {
-							try {
-								pdfErrorMsg = JSON.stringify(data.error)
-							} catch {
-								pdfErrorMsg = 'Failed to generate PDF'
-							}
-						}
-					}
-				}
+				const pdfErrorMsg = formatPdfError(data.error)
 
 				let hasError = false
 				if (!response.ok) {
@@ -120,9 +124,13 @@ export function PDFExportButton({
 					return
 				}
 
-				toast.success('PDF generated!', { id: 'pdf-export' })
-
 				const pdfResponse = await fetch(data.pdfUrl)
+				if (!pdfResponse.ok) {
+					toast.error(`Failed to download PDF (${pdfResponse.status})`, { id: 'pdf-export' })
+					setIsLoading(false)
+					return
+				}
+
 				const blob = await pdfResponse.blob()
 				const url = window.URL.createObjectURL(blob)
 				const a = document.createElement('a')
@@ -132,6 +140,7 @@ export function PDFExportButton({
 				a.click()
 				document.body.removeChild(a)
 				window.URL.revokeObjectURL(url)
+				toast.success('PDF downloaded!', { id: 'pdf-export' })
 				setIsLoading(false)
 			} catch (error) {
 				console.error('PDF export error:', error)

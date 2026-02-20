@@ -85,7 +85,7 @@ export function useUserConfig() {
 			if (response.ok) {
 				const config: UserConfig = await response.json()
 
-				const hasConfig = Object.keys(config).length > 0
+				const hasConfig = isRecord(config) && Object.keys(config).length > 0
 				if (hasConfig) {
 					isSyncingRef.current = true
 
@@ -147,7 +147,8 @@ export function useUserConfig() {
 		}
 		try {
 			return await processResponse()
-		} catch {
+		} catch (error) {
+			console.error('Failed to fetch/process user config:', error)
 			return null
 		}
 	}, [isAuthenticated, authorizedFetch])

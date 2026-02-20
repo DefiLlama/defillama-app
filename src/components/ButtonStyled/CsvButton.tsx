@@ -188,12 +188,14 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		}
 	})
 
+	const { mutateAsync: trackCsvDownload } = trackCsvDownloadMutation
+
 	const handleTrialConfirm = useCallback(async () => {
 		dispatch({ type: 'setTrialLoading', value: true })
 		try {
 			const downloaded = await runDownload(true)
 			if (downloaded) {
-				await trackCsvDownloadMutation.mutateAsync()
+				await trackCsvDownload()
 			}
 		} catch (error) {
 			toast.error('Failed to update CSV download status')
@@ -201,7 +203,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		} finally {
 			dispatch({ type: 'setTrialLoading', value: false })
 		}
-	}, [runDownload, trackCsvDownloadMutation])
+	}, [runDownload, trackCsvDownload])
 
 	const handleButtonClick = useCallback(async () => {
 		if (isLoading) return

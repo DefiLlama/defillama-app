@@ -3,6 +3,7 @@ import type { RecordAuthResponse, RecordModel } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
 
 export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
@@ -700,14 +701,12 @@ export const useUserHash = () => {
 		queryFn: () =>
 			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
 				.then((res) => {
-					if (!res.ok) {
-						throw new Error('Failed to fetch user hash')
-					}
-					return res.json()
+					if (!res) throw new Error('Not authenticated')
+					return handleSimpleFetchResponse(res)
 				})
+				.then((res) => res.json())
 				.then((data) => {
 					const currentUserHash = localStorage.getItem('userHash')
-					// Avoid redundant localStorage writes (can be surprisingly costly in bursts).
 					if (currentUserHash !== data.userHash) {
 						localStorage.setItem('userHash', data.userHash)
 						window.dispatchEvent(new Event('userHashChange'))

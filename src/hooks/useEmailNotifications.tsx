@@ -62,6 +62,8 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				method: 'GET'
 			})
 
+			if (!response) return null
+
 			if (!response.ok) {
 				if (response.status === 404) {
 					return null
@@ -120,6 +122,8 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
 				let errorMessage = 'Failed to save notification preferences'
 				try {
@@ -127,7 +131,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 					if (errorData != null && errorData.message) {
 						errorMessage = errorData.message
 					}
-				} catch {}
+				} catch { /* Ignore response parsing errors and keep default message. */ }
 				throw new Error(errorMessage)
 			}
 
@@ -162,6 +166,8 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
 				let errorMessage = 'Failed to update notification status'
 				try {
@@ -169,7 +175,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 					if (errorData != null && errorData.message) {
 						errorMessage = errorData.message
 					}
-				} catch {}
+				} catch { /* Ignore response parsing errors and keep default message. */ }
 				throw new Error(errorMessage)
 			}
 		},
@@ -202,6 +208,8 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
 				let errorMessage = 'Failed to delete notification preferences'
 				try {
@@ -209,7 +217,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 					if (errorData != null && errorData.message) {
 						errorMessage = errorData.message
 					}
-				} catch {}
+				} catch { /* Ignore response parsing errors and keep default message. */ }
 				throw new Error(errorMessage)
 			}
 		},

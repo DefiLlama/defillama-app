@@ -74,7 +74,7 @@ export function StripeCheckoutModal({
 	billingInterval = 'month',
 	isTrial = false
 }: StripeCheckoutModalProps) {
-	const { authorizedFetch } = useAuthContext()!
+	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
 
 	const subscriptionMutation = useMutation({
@@ -135,7 +135,7 @@ export function StripeCheckoutModal({
 	const fetchClientSecret = useCallback(async () => {
 		const result = await createSubscription()
 		if (result.kind === 'checkout') return result.clientSecret
-		return null
+		throw new Error(`Unexpected subscription kind: ${result.kind}`)
 	}, [createSubscription])
 
 	const result = subscriptionMutation.data
@@ -266,7 +266,6 @@ export function StripeCheckoutModal({
 }
 
 function UpgradePaymentForm() {
-	const queryClient = useQueryClient()
 	const stripe = useStripe()
 	const elements = useElements()
 
@@ -302,7 +301,6 @@ function UpgradePaymentForm() {
 			return confirmResult.paymentIntent
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['subscription'] })
 			window.location.href = `${window.location.origin}/account?success=true`
 		}
 	})

@@ -297,34 +297,37 @@ function PortfolioNotifications({
 
 			const settings: NotificationSettings = {}
 
-			if (selectedProtocolMetrics) {
-				if (selectedProtocolMetrics.length > 0) {
-					if (filteredProtocols.length > 0) {
-						const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
-						settings.protocols = {}
-						for (let i = 0; i < filteredProtocols.length; i++) {
-							const identifier = filteredProtocols[i].slug
-							if (!identifier) continue
-							settings.protocols[identifier] = mappedProtocolMetrics
-						}
-					}
-				}
+		if (selectedProtocolMetrics.length > 0 && filteredProtocols.length > 0) {
+			const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
+			const protocolsMap: NotificationSettings['protocols'] = {}
+			let protocolCount = 0
+			for (let i = 0; i < filteredProtocols.length; i++) {
+				const identifier = filteredProtocols[i].slug
+				if (!identifier) continue
+				protocolsMap[identifier] = mappedProtocolMetrics
+				protocolCount++
 			}
-
-			if (selectedChainMetrics) {
-				if (selectedChainMetrics.length > 0) {
-					if (filteredChains.length > 0) {
-						const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
-						settings.chains = {}
-						for (let i = 0; i < filteredChains.length; i++) {
-							settings.chains[filteredChains[i].name] = mappedChainMetrics
-						}
-					}
-				}
+			if (protocolCount > 0) {
+				settings.protocols = protocolsMap
 			}
+		}
 
-			const hasProtocols = settings.protocols != null
-			const hasChains = settings.chains != null
+		if (selectedChainMetrics.length > 0 && filteredChains.length > 0) {
+			const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
+			const chainsMap: NotificationSettings['chains'] = {}
+			let chainCount = 0
+			for (let i = 0; i < filteredChains.length; i++) {
+				if (!filteredChains[i].name) continue
+				chainsMap[filteredChains[i].name] = mappedChainMetrics
+				chainCount++
+			}
+			if (chainCount > 0) {
+				settings.chains = chainsMap
+			}
+		}
+
+		const hasProtocols = settings.protocols != null
+		const hasChains = settings.chains != null
 			if (!hasProtocols && !hasChains) {
 				toast.error('Unable to save: no valid settings configured')
 				return
