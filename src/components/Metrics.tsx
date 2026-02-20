@@ -324,10 +324,6 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 						/>
 					</div>
 					<div className="flex h-full flex-wrap items-center justify-center gap-1">
-						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
-							<Icon name="sparkles" height={12} width={12} />
-							<span>New</span>
-						</span>
 						{currentMetric.map((metric, i) => (
 							<Fragment key={`metric-name-${metric}`}>
 								{i === 1 ? (

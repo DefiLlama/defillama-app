@@ -64,6 +64,13 @@
       "oldName": "Top Protocols"
     },
     {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Total Value Locked",
@@ -72,13 +79,6 @@
       "tab": "Chains",
       "oldCategory": "Market Overview",
       "oldName": "Bridged TVL"
-    },
-    {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
     },
     {
       "name": "Forks",
@@ -510,6 +510,22 @@
       "oldName": "ETFs"
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -528,22 +544,6 @@
       "tab": "Chains",
       "oldCategory": "Bridges",
       "oldName": "Chains"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
     },
     {
       "name": "RWA: Overview",

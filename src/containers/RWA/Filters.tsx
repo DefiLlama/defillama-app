@@ -1,12 +1,13 @@
 import { useRouter } from 'next/router'
 import { startTransition } from 'react'
+import { Checkbox } from '~/components/Checkbox'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
-import { Switch } from '~/components/Switch'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { definitions } from './definitions'
@@ -238,7 +239,7 @@ export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
 
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-			<ResponsiveFilterLayout desktopClassName="hidden min-h-[116px] flex-wrap items-center gap-2 min-[1260px]:min-h-[78px] min-[2102px]:min-h-[40px] sm:flex">
+			<ResponsiveFilterLayout desktopClassName="hidden min-h-[106px] flex-wrap content-start items-center gap-2 min-[1260px]:min-h-[68px] min-[2102px]:min-h-[30px] sm:flex">
 				{(nestedMenu) => <Filters {...props} nestedMenu={nestedMenu} />}
 			</ResponsiveFilterLayout>
 		</div>
@@ -262,14 +263,6 @@ function Filters({
 	// Determine active filters/chart controls purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.
 	const hasActiveFilters = RESETTABLE_QUERY_KEYS.some((key) => router.query[key] != null)
-
-	const switchesAndResetClassName = nestedMenu
-		? 'mt-2 flex flex-col gap-3 border-t border-(--form-control-border) px-3 pt-3'
-		: 'flex flex-wrap items-center gap-2 md:ml-auto'
-
-	const resetButtonClassName = nestedMenu
-		? 'relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-3 py-2 text-sm font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
-		: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
 
 	const selectFilters: Array<{
 		enabled: boolean
@@ -472,45 +465,62 @@ function Filters({
 					maxInputProps={ratioPercentInputProps}
 				/>
 			))}
-			<div className={switchesAndResetClassName}>
-				{modes.isChainMode ? (
-					<Switch
-						label="Stablecoins"
-						value="includeStablecoins"
-						checked={selections.includeStablecoins}
-						onChange={() => {
-							const next = !selections.includeStablecoins
-							startTransition(() => actions.setIncludeStablecoins(next))
-						}}
-						className={nestedMenu ? 'text-base' : undefined}
-					/>
-				) : null}
-				{modes.isChainMode ? (
-					<Switch
-						label="Governance Tokens"
-						value="includeGovernance"
-						checked={selections.includeGovernance}
-						onChange={() => {
-							const next = !selections.includeGovernance
-							startTransition(() => actions.setIncludeGovernance(next))
-						}}
-						className={nestedMenu ? 'text-base' : undefined}
-					/>
-				) : null}
-				<button
-					onClick={() => {
-						const resetUpdates: Record<string, undefined> = {}
-						for (const key of RESETTABLE_QUERY_KEYS) {
-							resetUpdates[key] = undefined
-						}
-						pushShallowQuery(router, resetUpdates)
+			{modes.isChainMode ? (
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'filter'}
+					value="includeStablecoins"
+					checked={selections.includeStablecoins}
+					onChange={() => {
+						const next = !selections.includeStablecoins
+						startTransition(() => actions.setIncludeStablecoins(next))
 					}}
-					disabled={!hasActiveFilters}
-					className={resetButtonClassName}
 				>
-					Reset filters
-				</button>
-			</div>
+					Stablecoins
+				</Checkbox>
+			) : null}
+			{modes.isChainMode ? (
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'filter'}
+					value="includeGovernance"
+					checked={selections.includeGovernance}
+					onChange={() => {
+						const next = !selections.includeGovernance
+						startTransition(() => actions.setIncludeGovernance(next))
+					}}
+				>
+					Governance Tokens
+				</Checkbox>
+			) : null}
+			<button
+				onClick={() => {
+					const resetUpdates: Record<string, undefined> = {}
+					for (const key of RESETTABLE_QUERY_KEYS) {
+						resetUpdates[key] = undefined
+					}
+					pushShallowQuery(router, resetUpdates)
+				}}
+				disabled={!hasActiveFilters}
+				className={
+					nestedMenu
+						? 'relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md px-3 py-2 text-(--text-primary) hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-40'
+						: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+				}
+			>
+				Reset filters
+			</button>
+			<BasicLink
+				href="https://docs.llama.fi/real-world-assets/filtering-options"
+				target="_blank"
+				rel="noopener noreferrer"
+				className={
+					nestedMenu
+						? 'relative flex w-full cursor-pointer flex-row-reverse flex-nowrap items-center justify-between gap-2 rounded-md px-3 py-2 text-(--text-primary) hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-40'
+						: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+				}
+			>
+				<Icon name="external-link" height={14} width={14} />
+				<span>Docs</span>
+			</BasicLink>
 		</>
 	)
 }

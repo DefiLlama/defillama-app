@@ -57,7 +57,7 @@ export function NestedMenu({
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
 				}}
-				className={`${menu.parent ? 'z-20' : 'z-10'} flex thin-scrollbar flex-col rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:overflow-auto max-sm:rounded-b-none max-sm:p-2 sm:max-h-[60dvh] sm:overflow-x-hidden sm:overflow-y-auto sm:p-0 dark:border-[hsl(204,3%,32%)] ${
+				className={`${menu.parent ? 'z-20' : 'z-10'} flex thin-scrollbar flex-col gap-1 rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) max-sm:h-[calc(100dvh-80px)] max-sm:overflow-auto max-sm:rounded-b-none max-sm:p-2 sm:max-h-[60dvh] sm:overflow-x-hidden sm:overflow-y-auto sm:p-0 dark:border-[hsl(204,3%,32%)] ${
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>

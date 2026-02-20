@@ -87,7 +87,8 @@
 			"Other environmental unit": "Tokens linked to other environmental or impact units such as renewable energy certificates or biodiversity credits.",
 			"Governance / voting token (RWA protocol)": "Tokens that confer governance rights, voting power or protocol control over an RWA platform or product suite, without being a direct 1:1 claim on the underlying assets.",
 			"Revenue / fee share token (RWA protocol)": "Tokens that entitle holders to a share of protocol revenues or fees from an RWA platform while not being a direct claim on underlying asset pools.",
-			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves."
+			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves.",
+			"Actively-managed strategy vault": "Vault tokens representing deposits into a discretionary, manager-directed strategy that may allocate across RWAs and other onchain yield sources, and that issue a receipt token."
 		}
 	},
 	"onChainMcap": {

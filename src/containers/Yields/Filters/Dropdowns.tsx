@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Checkbox } from '~/components/Checkbox'
 import { AvailableRange } from '~/components/Filters/AvailableRange'
 import { TVLRange } from '~/components/Filters/TVLRange'
-import { Switch } from '~/components/Switch'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { pushShallowQuery } from '~/utils/routerQuery'
@@ -169,67 +169,36 @@ export function YieldFilterDropdowns({
 			) : null}
 
 			{excludeBadDebt && selectedAttributes ? (
-				nestedMenu ? (
-					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
-						<input type="checkbox" value="excludeBadDebt" checked={isBadDebtToggled} onChange={toggleBadDebtFilter} />
-						<span>Exclude bad debt</span>
-					</label>
-				) : (
-					<Switch
-						value="excludeBadDebt"
-						label="Exclude bad debt"
-						checked={isBadDebtToggled}
-						onChange={toggleBadDebtFilter}
-					/>
-				)
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'default'}
+					value="excludeBadDebt"
+					checked={isBadDebtToggled}
+					onChange={toggleBadDebtFilter}
+				>
+					Exclude bad debt
+				</Checkbox>
 			) : null}
 
 			{excludeRewardApy ? (
-				nestedMenu ? (
-					<label
-						className={
-							nestedMenu
-								? 'flex flex-row-reverse items-center justify-between gap-3 px-3 py-2'
-								: 'flex flex-nowrap items-center gap-1'
-						}
-					>
-						<input
-							type="checkbox"
-							value="excludeRewardApy"
-							checked={shouldExlcudeRewardApy}
-							onChange={toggleExcludeRewardApyFilter}
-						/>
-						<span>Exclude reward APY</span>
-					</label>
-				) : (
-					<Switch
-						label="Exclude reward APY"
-						value="excludeRewardApy"
-						checked={shouldExlcudeRewardApy}
-						onChange={toggleExcludeRewardApyFilter}
-					/>
-				)
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'default'}
+					value="excludeRewardApy"
+					checked={shouldExlcudeRewardApy}
+					onChange={toggleExcludeRewardApyFilter}
+				>
+					Exclude reward APY
+				</Checkbox>
 			) : null}
 
 			{includeLsdApy ? (
-				nestedMenu ? (
-					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
-						<input
-							type="checkbox"
-							value="includeLsdApy"
-							checked={shouldIncludeLsdApy}
-							onChange={toggleIncludeLsdApyFilter}
-						/>
-						<span>Include LSD APY</span>
-					</label>
-				) : (
-					<Switch
-						label="LSD APY"
-						value="includeLsdApy"
-						checked={shouldIncludeLsdApy}
-						onChange={toggleIncludeLsdApyFilter}
-					/>
-				)
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'default'}
+					value="includeLsdApy"
+					checked={shouldIncludeLsdApy}
+					onChange={toggleIncludeLsdApyFilter}
+				>
+					Include LSD APY
+				</Checkbox>
 			) : null}
 
 			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} nestedMenu={nestedMenu} /> : null}
