@@ -1,5 +1,5 @@
 import type * as echarts from 'echarts/core'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
@@ -56,7 +56,7 @@ function ChartRenderer({
 	onChartReady
 }: ChartRendererProps) {
 	const chartType = CHART_TYPES[type]
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 
 	if (isLoading) {
 		return (

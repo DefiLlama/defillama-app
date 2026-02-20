@@ -1,10 +1,8 @@
 import * as Ariakit from '@ariakit/react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
-
-let modalOpenSequence = 0
 
 interface DashboardSettingsModalProps {
 	isOpen: boolean
@@ -286,13 +284,16 @@ function DashboardSettingsModalInner({
 }
 
 export function DashboardSettingsModal(props: DashboardSettingsModalProps) {
-	const openStateRef = useRef({ wasOpen: false, openCycle: 0 })
-	if (props.isOpen && !openStateRef.current.wasOpen) {
-		modalOpenSequence += 1
-		openStateRef.current.openCycle = modalOpenSequence
-	}
-	openStateRef.current.wasOpen = props.isOpen
+	const [openCycle, setOpenCycle] = useState(() => (props.isOpen ? 1 : 0))
+	const wasOpenRef = useRef(props.isOpen)
 
-	const modalKey = `${props.dashboardId ?? 'new'}:${openStateRef.current.openCycle}`
+	useEffect(() => {
+		if (props.isOpen && !wasOpenRef.current) {
+			setOpenCycle((prev) => prev + 1)
+		}
+		wasOpenRef.current = props.isOpen
+	}, [props.isOpen])
+
+	const modalKey = `${props.dashboardId ?? 'new'}:${openCycle}`
 	return <DashboardSettingsModalInner key={modalKey} {...props} />
 }

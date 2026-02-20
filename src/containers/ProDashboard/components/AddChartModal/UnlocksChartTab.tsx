@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type {
 	IMultiSeriesChart2Props,
 	IPieChartProps,
@@ -58,8 +58,8 @@ export function UnlocksChartTab({
 	protocolOptions,
 	protocolsLoading
 }: UnlocksChartTabProps) {
-	const unlocksEndDate = useMemo(() => Date.now() / 1000 + 30 * 24 * 60 * 60, [])
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
+	const [unlocksEndDate] = useState(() => Date.now() / 1000 + 30 * 24 * 60 * 60)
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 	const todayHallmarks = useMemo<[number, string][]>(
 		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
 		[todayTimestamp]

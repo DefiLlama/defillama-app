@@ -28,7 +28,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 	const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 	const todayHallmarks = useMemo<[number, string][]>(
 		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
 		[todayTimestamp]

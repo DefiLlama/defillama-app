@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { CACHE_SERVER } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
@@ -27,7 +27,8 @@ const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
  * Returns null for tvlPrevDay if chart data is stale (last update > 24 hours ago).
  */
 const getTvl24hChange = (
-	chart: Array<[number, number]>
+	chart: Array<[number, number]>,
+	now: number
 ): { totalValueUSD: number | null; tvlPrevDay: number | null } => {
 	if (!chart || chart.length === 0) {
 		return { totalValueUSD: null, tvlPrevDay: null }
@@ -39,7 +40,6 @@ const getTvl24hChange = (
 	}
 
 	const [lastTimestamp, lastValue] = lastEntry
-	const now = Date.now()
 
 	// Check if data is stale (last timestamp is more than 24 hours old)
 	if (now - lastTimestamp > TWENTY_FOUR_HOURS_IN_MS) {
@@ -86,6 +86,7 @@ export const useFetchChainChartData = ({
 	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 }) => {
 	const toggledChartsSet = useMemo(() => new Set(toggledCharts), [toggledCharts])
+	const [nowMs] = useState(() => Date.now())
 
 	const denominationGeckoId =
 		denomination !== 'USD' ||
@@ -334,12 +335,12 @@ export const useFetchChainChartData = ({
 		}
 		finalTvlChart.sort((a, b) => a[0] - b[0])
 
-		const { totalValueUSD, tvlPrevDay } = getTvl24hChange(finalTvlChart)
+		const { totalValueUSD, tvlPrevDay } = getTvl24hChange(finalTvlChart, nowMs)
 		const valueChange24hUSD = totalValueUSD != null && tvlPrevDay != null ? totalValueUSD - tvlPrevDay : null
 		const change24h = totalValueUSD != null && tvlPrevDay != null ? getPercentChange(totalValueUSD, tvlPrevDay) : null
 		const isGovTokensEnabled = !!tvlSettings?.govtokens
 		return { finalTvlChart, totalValueUSD, valueChange24hUSD, change24h, isGovTokensEnabled }
-	}, [tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings])
+	}, [tvlChart, tvlChartSummary, extraTvlCharts, tvlSettings, nowMs])
 
 	const chartData = useMemo(() => {
 		const charts: { [key in ChainChartLabels]?: Array<[number, number]> } = {}

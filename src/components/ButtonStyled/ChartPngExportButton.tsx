@@ -18,6 +18,18 @@ const approximateTextWidth = (text: string, fontSize: number) => {
 	return text.length * fontSize * averageCharWidthRatio
 }
 
+const parsePixelValue = (value: unknown) => {
+	if (typeof value === 'number' && Number.isFinite(value)) return value
+	if (typeof value === 'string') {
+		const trimmed = value.trim()
+		if (trimmed.endsWith('px')) {
+			const parsed = Number.parseFloat(trimmed.slice(0, -2))
+			if (Number.isFinite(parsed)) return parsed
+		}
+	}
+	return null
+}
+
 /**
  * Export a treemap chart by capturing directly from the original ECharts instance.
  * This preserves the current zoom/drill-down state which getOption() loses.
@@ -351,8 +363,18 @@ async function renderClonedChartExport(
 						? existingLabelLayout
 						: { ...(existingLabelLayout ?? {}), hideOverlap: true }
 
+				// Runtime pie charts can set `center` in absolute pixels to fit responsive layouts.
+				// Recompute x-center for the fixed export canvas so the pie stays centered in its
+				// drawable area and doesn't get clipped on the left.
+				const left = parsePixelValue(series.left) ?? 0
+				const right = parsePixelValue(series.right) ?? 0
+				const availableWidth = Math.max(1, IMAGE_EXPORT_WIDTH - left - right)
+				const nextCenterX = Math.round(left + availableWidth / 2)
+				const nextCenterY = Array.isArray(series.center) && series.center.length > 1 ? series.center[1] : '50%'
+
 				return {
 					...series,
+					center: [nextCenterX, nextCenterY],
 					avoidLabelOverlap: true,
 					labelLayout: nextLabelLayout,
 					label: { ...(series.label ?? {}), show: false },

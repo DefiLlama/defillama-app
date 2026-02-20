@@ -27,7 +27,7 @@ export function YieldsDataset({
 	const { data, isLoading, error } = useYieldsData(chains)
 	const { handleTableColumnsChange, handleTableFiltersChange } = useProDashboardEditorActions()
 
-	const fallbackTableId = React.useMemo(() => `yields-table-${Date.now()}`, [])
+	const [fallbackTableId] = React.useState(() => `yields-table-${Date.now()}`)
 	const uniqueTableId = tableId || fallbackTableId
 
 	const {

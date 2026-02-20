@@ -109,10 +109,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 const chartTypeList = ['Monthly Sum', 'Total Hacked by Technique']
 
-const getTimeSinceSeconds = (timeQuery: string | undefined): number | null => {
+const getTimeSinceSeconds = (timeQuery: string | undefined, nowSec: number): number | null => {
 	if (typeof timeQuery !== 'string') return null
 
-	const nowSec = Math.floor(Date.now() / 1000)
 	switch (timeQuery) {
 		case '7d':
 			return nowSec - 7 * 24 * 60 * 60
@@ -192,6 +191,7 @@ export const HacksContainer = ({
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
+	const [nowSec] = React.useState(() => Math.floor(Date.now() / 1000))
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const router = useRouter()
 	const {
@@ -250,7 +250,7 @@ export const HacksContainer = ({
 		const chainKeys = chainFilterEnabled ? new Set(selectedChains) : undefined
 		const techKeys = techFilterEnabled ? new Set(selectedTechniques) : undefined
 		const classKeys = classFilterEnabled ? new Set(selectedClassifications) : undefined
-		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined)
+		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined, nowSec)
 
 		return applyFilters(data ?? [], {
 			chainKeys,
@@ -276,7 +276,8 @@ export const HacksContainer = ({
 		selectedClassifications,
 		timeQ,
 		minLostVal,
-		maxLostVal
+		maxLostVal,
+		nowSec
 	])
 
 	const derivedStats = React.useMemo(() => {

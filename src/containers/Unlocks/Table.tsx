@@ -245,9 +245,12 @@ export const UnlocksTable = ({
 		maxPerc
 	])
 
+	const [nowSec] = useState(() => Math.floor(Date.now() / 1000))
+	const columns = useMemo(() => [...emissionsColumns, upcomingEventColumn(nowSec)], [nowSec])
+
 	const instance = useReactTable({
 		data: filteredData,
-		columns: emissionsColumns,
+		columns,
 		state: {
 			sorting,
 			expanded,
@@ -569,38 +572,39 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Next Event',
-		id: 'upcomingEvent',
-		accessorFn: (row) => {
-			const { timestamp } = row.upcomingEvent?.[0] || {}
-			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
-			return timestamp
-		},
-		cell: ({ row }) => {
-			if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
-			const { timestamp } = row.original.upcomingEvent[0]
-			if (!timestamp || timestamp < Date.now() / 1e3) return null
-
-			return (
-				<UpcomingEvent
-					{...{
-						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
-						timestamp,
-						event: row.original.upcomingEvent.map((event) => ({
-							...event,
-							timestamp: event.timestamp ?? timestamp
-						})),
-						price: row.original.tPrice,
-						symbol: row.original.tSymbol,
-						mcap: row.original.mcap,
-						maxSupply: row.original.maxSupply,
-						name: row.original.name
-					}}
-				/>
-			)
-		},
-		size: 400
 	}
 ]
+
+const upcomingEventColumn = (nowSec: number): ColumnDef<IEmission> => ({
+	header: 'Next Event',
+	id: 'upcomingEvent',
+	accessorFn: (row) => {
+		const { timestamp } = row.upcomingEvent?.[0] || {}
+		if (!timestamp || timestamp < nowSec) return undefined
+		return timestamp
+	},
+	cell: ({ row }) => {
+		if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
+		const { timestamp } = row.original.upcomingEvent[0]
+		if (!timestamp || timestamp < nowSec) return null
+
+		return (
+			<UpcomingEvent
+				{...{
+					noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
+					timestamp,
+					event: row.original.upcomingEvent.map((event) => ({
+						...event,
+						timestamp: event.timestamp ?? timestamp
+					})),
+					price: row.original.tPrice,
+					symbol: row.original.tSymbol,
+					mcap: row.original.mcap,
+					maxSupply: row.original.maxSupply,
+					name: row.original.name
+				}}
+			/>
+		)
+	},
+	size: 400
+})

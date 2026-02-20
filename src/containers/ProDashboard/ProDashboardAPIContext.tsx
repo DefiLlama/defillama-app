@@ -9,7 +9,8 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef
+	useRef,
+	useState
 } from 'react'
 import toast from 'react-hot-toast'
 import { PROTOCOLS_API } from '~/constants'
@@ -291,8 +292,11 @@ const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerPro
 	undefined
 )
 
-function seedTableDataIntoCache(queryClient: ReturnType<typeof useQueryClient>, tableData: TableServerData) {
-	const now = Date.now()
+function seedTableDataIntoCache(
+	queryClient: ReturnType<typeof useQueryClient>,
+	tableData: TableServerData,
+	now: number
+) {
 	if (tableData.protocolsList) {
 		queryClient.setQueryData([PROTOCOLS_API], tableData.protocolsList, { updatedAt: now })
 	}
@@ -333,15 +337,17 @@ export function ProDashboardAPIProvider({
 }) {
 	const queryClient = useQueryClient()
 
+	const [seedTimestamp] = useState(Date.now)
+
 	const tableDataSeeded = useRef(false)
 	if (!tableDataSeeded.current && serverData?.tableData) {
-		seedTableDataIntoCache(queryClient, serverData.tableData)
+		seedTableDataIntoCache(queryClient, serverData.tableData, seedTimestamp)
 		tableDataSeeded.current = true
 	}
 
 	const yieldsDataSeeded = useRef(false)
 	if (!yieldsDataSeeded.current && serverData?.yieldsChartData) {
-		const now = Date.now()
+		const now = seedTimestamp
 		for (const [poolConfigId, data] of Object.entries(serverData.yieldsChartData)) {
 			queryClient.setQueryData(['yield-pool-chart-data', poolConfigId], data.chart ?? null, { updatedAt: now })
 			queryClient.setQueryData(['yield-lend-borrow-chart', poolConfigId], data.lendBorrow ?? null, {
@@ -353,7 +359,7 @@ export function ProDashboardAPIProvider({
 
 	const protocolDataSeeded = useRef(false)
 	if (!protocolDataSeeded.current && serverData?.protocolFullData) {
-		const now = Date.now()
+		const now = seedTimestamp
 		for (const [protocol, data] of Object.entries(serverData.protocolFullData)) {
 			queryClient.setQueryData(['protocol-overview-v1', protocol, 'metrics'], data, { updatedAt: now })
 		}
@@ -362,7 +368,7 @@ export function ProDashboardAPIProvider({
 
 	const metricDataSeeded = useRef(false)
 	if (!metricDataSeeded.current && serverData?.metricData) {
-		const now = Date.now()
+		const now = seedTimestamp
 		for (const [keyJson, data] of Object.entries(serverData.metricData)) {
 			try {
 				const queryKey = JSON.parse(keyJson)
@@ -374,7 +380,7 @@ export function ProDashboardAPIProvider({
 
 	const advTvlBasicSeeded = useRef(false)
 	if (!advTvlBasicSeeded.current && serverData?.advancedTvlBasicData) {
-		const now = Date.now()
+		const now = seedTimestamp
 		for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
 			queryClient.setQueryData(['advanced-tvl-basic', protocol], data, { updatedAt: now })
 		}
@@ -383,7 +389,7 @@ export function ProDashboardAPIProvider({
 
 	const unifiedTableSeeded = useRef(false)
 	if (!unifiedTableSeeded.current && serverData?.unifiedTableData) {
-		const now = Date.now()
+		const now = seedTimestamp
 		for (const [keyJson, data] of Object.entries(serverData.unifiedTableData)) {
 			try {
 				const queryKey = JSON.parse(keyJson)
@@ -395,7 +401,7 @@ export function ProDashboardAPIProvider({
 
 	const stablecoinsDataSeeded = useRef(false)
 	if (!stablecoinsDataSeeded.current && serverData?.stablecoinsChartData) {
-		const now = Date.now()
+		const now = seedTimestamp
 		for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
 			queryClient.setQueryData(['stablecoins-chart-data', chain], data, { updatedAt: now })
 		}
@@ -551,7 +557,7 @@ export function ProDashboardAPIProvider({
 		refetchOnMount: !serverData?.dashboard,
 		enabled: !!initialDashboardId,
 		initialData: serverData?.dashboard ?? undefined,
-		initialDataUpdatedAt: serverData?.dashboard ? Date.now() : undefined
+		initialDataUpdatedAt: serverData?.dashboard ? seedTimestamp : undefined
 	})
 
 	useEffect(() => {

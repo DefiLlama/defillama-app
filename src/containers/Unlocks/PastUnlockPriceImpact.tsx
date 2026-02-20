@@ -40,12 +40,10 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 	className,
 	initialNowSec
 }) => {
-	const now = React.useMemo(
-		() =>
-			typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
-				? Math.floor(initialNowSec)
-				: Math.floor(Date.now() / 1000),
-		[initialNowSec]
+	const [now] = React.useState(() =>
+		typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
+			? Math.floor(initialNowSec)
+			: Math.floor(Date.now() / 1000)
 	)
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<

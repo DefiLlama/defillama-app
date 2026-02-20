@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { readAppStorage, readAppStorageRaw, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
-import { useDebounce } from './useDebounce'
+import { useDebouncedCallback } from './useDebounce'
 import { useUserConfig } from './useUserConfig'
 
 const SYNC_DEBOUNCE_MS = 1000
@@ -33,7 +33,7 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	}, [isAuthenticated, saveUserConfig])
 
 	// Debounced sync function to save to server
-	const debouncedSyncToServer = useDebounce(() => {
+	const debouncedSyncToServer = useDebouncedCallback(() => {
 		void syncToServer()
 	}, SYNC_DEBOUNCE_MS)
 

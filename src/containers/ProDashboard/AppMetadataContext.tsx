@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { createContext, useCallback, useContext, useMemo } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
@@ -75,6 +75,7 @@ export function AppMetadataProvider({
 		pfPs: { pf: string[]; ps: string[] }
 	} | null
 }) {
+	const [mountedAt] = useState(Date.now)
 	const {
 		data: rawData,
 		isLoading: loading,
@@ -102,7 +103,7 @@ export function AppMetadataProvider({
 		},
 		initialData: initialData ?? undefined,
 		staleTime: initialData ? Infinity : 0,
-		initialDataUpdatedAt: initialData ? Date.now() : undefined
+		initialDataUpdatedAt: initialData ? mountedAt : undefined
 	})
 
 	const error = queryError ? String(queryError.message) : undefined
