@@ -47,6 +47,10 @@ const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
 	)
 }
 
+const renderLSTPercentChangeCell: ColumnDef<ILSTTokenRow>['cell'] = ({ getValue }) => (
+	<>{renderPercentChange(getValue<number | null>())}</>
+)
+
 const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
 		header: 'Name',
@@ -91,7 +95,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'stakedEthPctChange7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: renderLSTPercentChangeCell,
 		meta: {
 			align: 'end'
 		},
@@ -100,7 +104,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
 		header: '30d Change',
 		accessorKey: 'stakedEthPctChange30d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: renderLSTPercentChangeCell,
 		meta: {
 			align: 'end'
 		},

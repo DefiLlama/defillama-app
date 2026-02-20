@@ -1,6 +1,6 @@
 'use no memo'
 
-import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { Popover, PopoverDisclosure, useDialogStore, usePopoverStore } from '@ariakit/react'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
@@ -40,7 +40,6 @@ export function TableHeader({
 	onLoadView,
 	onDeleteView
 }: TableHeaderProps) {
-	const [showSaveModal, setShowSaveModal] = React.useState(false)
 	const displayTitle = React.useMemo(() => {
 		if (chains.length === 0) return 'All Protocols'
 		if (chains.length === 1) return `${chains[0]} Protocols`
@@ -62,6 +61,7 @@ export function TableHeader({
 
 	const datasetPopover = usePopoverStore({ placement: 'bottom-start' })
 	const customViewsPopover = usePopoverStore({ placement: 'bottom-end' })
+	const saveViewDialogStore = useDialogStore()
 
 	return (
 		<div className="mb-2 flex flex-wrap items-center gap-2">
@@ -177,7 +177,7 @@ export function TableHeader({
 				modal={false}
 				portal={true}
 				gutter={4}
-				className="z-50 min-w-[220px] rounded-md border pro-divider pro-bg3 shadow-lg"
+				className="z-50 min-w-[220px] rounded-md border pro-divider bg-(--cards-bg) pro-bg3 shadow-lg"
 			>
 				{customViews.length > 0 ? (
 					<>
@@ -219,34 +219,38 @@ export function TableHeader({
 								</div>
 							)
 						})}
-						<div className="border-t border-(--bg-divider) p-2">
-							<button
-								type="button"
-								onClick={() => {
-									setShowSaveModal(true)
-									customViewsPopover.setOpen(false)
-								}}
-								className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
-							>
-								<Icon name="plus" height={14} width={14} />
-								<span>Save Current View</span>
-							</button>
-						</div>
+						{onSaveView ? (
+							<div className="border-t border-(--bg-divider) p-2">
+								<button
+									type="button"
+									onClick={() => {
+										saveViewDialogStore.setOpen(true)
+										customViewsPopover.setOpen(false)
+									}}
+									className="flex w-full items-center justify-center gap-2 rounded-md pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+								>
+									<Icon name="plus" height={14} width={14} />
+									<span>Save Current View</span>
+								</button>
+							</div>
+						) : null}
 					</>
 				) : (
 					<div className="p-4 text-center">
 						<p className="mb-3 text-sm pro-text3">No custom views yet</p>
-						<button
-							type="button"
-							onClick={() => {
-								setShowSaveModal(true)
-								customViewsPopover.setOpen(false)
-							}}
-							className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
-						>
-							<Icon name="plus" height={14} width={14} />
-							<span>Save Current View</span>
-						</button>
+						{onSaveView ? (
+							<button
+								type="button"
+								onClick={() => {
+									saveViewDialogStore.setOpen(true)
+									customViewsPopover.setOpen(false)
+								}}
+								className="flex w-full items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg py-2 text-sm font-medium pro-text1 transition-colors"
+							>
+								<Icon name="plus" height={14} width={14} />
+								<span>Save Current View</span>
+							</button>
+						) : null}
 					</div>
 				)}
 			</Popover>
@@ -267,15 +271,7 @@ export function TableHeader({
 			</Tooltip>
 
 			{onSaveView ? (
-				<CustomViewModal
-					isOpen={showSaveModal}
-					onClose={() => setShowSaveModal(false)}
-					onSave={(name) => {
-						onSaveView(name)
-						setShowSaveModal(false)
-					}}
-					existingViewNames={existingViewNames}
-				/>
+				<CustomViewModal dialogStore={saveViewDialogStore} onSave={onSaveView} existingViewNames={existingViewNames} />
 			) : null}
 		</div>
 	)

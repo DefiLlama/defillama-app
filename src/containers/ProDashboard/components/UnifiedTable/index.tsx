@@ -1,6 +1,6 @@
 'use no memo'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { downloadCSV } from '~/utils'
 import { useProDashboardEditorActions, useProDashboardPermissions } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
@@ -255,9 +255,12 @@ function UnifiedTable({
 	const effectiveColumnOrderRef = useRef(effectiveColumnOrder)
 	const effectiveColumnVisibilityRef = useRef(effectiveColumnVisibility)
 	const effectiveSortingRef = useRef(effectiveSorting)
-	effectiveColumnOrderRef.current = effectiveColumnOrder
-	effectiveColumnVisibilityRef.current = effectiveColumnVisibility
-	effectiveSortingRef.current = effectiveSorting
+
+	useLayoutEffect(() => {
+		effectiveColumnOrderRef.current = effectiveColumnOrder
+		effectiveColumnVisibilityRef.current = effectiveColumnVisibility
+		effectiveSortingRef.current = effectiveSorting
+	}, [effectiveColumnOrder, effectiveColumnVisibility, effectiveSorting])
 
 	useEffect(() => {
 		if (previewMode) return

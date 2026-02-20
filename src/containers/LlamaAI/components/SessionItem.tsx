@@ -99,7 +99,6 @@ export const SessionItem = memo(function SessionItem({
 					name="newTitle"
 					defaultValue={session.title}
 					className="flex-1 overflow-hidden p-1.5 text-left text-xs text-ellipsis whitespace-nowrap"
-					autoFocus
 					disabled={isUpdatingTitle}
 				/>
 				<div className="flex items-center justify-center gap-0.5">

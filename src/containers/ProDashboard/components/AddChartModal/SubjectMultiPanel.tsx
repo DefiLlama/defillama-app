@@ -266,7 +266,6 @@ function SubjectMultiPanel({
 							className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 						/>
 						<input
-							autoFocus
 							value={search}
 							onChange={(e) => setSearch(e.target.value)}
 							placeholder={activeTab === 'chain' ? 'Search chains...' : 'Search protocols...'}

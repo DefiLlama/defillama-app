@@ -8,10 +8,11 @@ interface PaginationProps {
 
 export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const [visibleItems, setVisibleItems] = useState(1)
-	const [manualPage, setManualPage] = useState<number | null>(null)
-	const [currentPage, setCurrentPage] = useState(0)
+	const [pageOverride, setPageOverride] = useState<{ startIndex: number; page: number | null }>({
+		startIndex,
+		page: null
+	})
 	const paginationRef = useRef<HTMLDivElement>(null)
-	const previousStartIndexRef = useRef(startIndex)
 	const [touchStart, setTouchStart] = useState<number | null>(null)
 	const [touchEnd, setTouchEnd] = useState<number | null>(null)
 	const [isSwiping, setIsSwiping] = useState(false)
@@ -33,41 +34,44 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 		}
 
 		calculateVisibleItems()
+		let resizeObserver: ResizeObserver | null = null
+		const handleResize = () => calculateVisibleItems()
+		const hasWindow = typeof window !== 'undefined'
+		let addedResizeListener = false
 
-		const handleResize = () => {
-			calculateVisibleItems()
+		if (hasWindow && 'ResizeObserver' in window && paginationRef.current) {
+			resizeObserver = new ResizeObserver(() => {
+				calculateVisibleItems()
+			})
+			resizeObserver.observe(paginationRef.current)
+		} else if (hasWindow) {
+			window.addEventListener('resize', handleResize)
+			addedResizeListener = true
 		}
 
-		window.addEventListener('resize', handleResize)
-
 		return () => {
-			window.removeEventListener('resize', handleResize)
+			resizeObserver?.disconnect()
+			if (addedResizeListener) {
+				window.removeEventListener('resize', handleResize)
+			}
 		}
 	}, [])
 
 	const totalPages = Math.ceil(items.length / Math.max(1, visibleItems))
 	const startPage = Math.floor(startIndex / Math.max(1, visibleItems))
+	const maxPage = Math.max(0, totalPages - 1)
+	const activeManualPage = pageOverride.startIndex === startIndex ? pageOverride.page : null
+	const targetPage = activeManualPage == null ? startPage : activeManualPage
+	const currentPage = Math.max(0, Math.min(targetPage, maxPage))
 
 	useEffect(() => {
-		setManualPage(null)
-	}, [items.length])
-
-	useEffect(() => {
-		const hasStartIndexChanged = previousStartIndexRef.current !== startIndex
-		if (hasStartIndexChanged && manualPage !== null) {
-			setManualPage(null)
+		if (pageOverride.page != null && pageOverride.startIndex !== startIndex) {
+			setPageOverride({ startIndex, page: null })
 		}
-		previousStartIndexRef.current = startIndex
-	}, [startIndex, manualPage])
-
-	useEffect(() => {
-		const maxPage = Math.max(0, totalPages - 1)
-		const targetPage = manualPage == null ? startPage : manualPage
-		setCurrentPage(Math.max(0, Math.min(targetPage, maxPage)))
-	}, [manualPage, startPage, totalPages])
+	}, [pageOverride.page, pageOverride.startIndex, startIndex])
 
 	const handlePageChange = (pageIndex: number) => {
-		setManualPage(pageIndex)
+		setPageOverride({ startIndex, page: pageIndex })
 		setSwipeOffset(0)
 	}
 

@@ -170,7 +170,6 @@ export function SelectWithCombobox({
 					<NestedMenu label={label} render={<Ariakit.Select />}>
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="m-3 mb-0 rounded-md bg-white px-3 py-2 text-base dark:bg-black"
 						/>
 						{showCheckboxes ? (
@@ -292,7 +291,6 @@ export function SelectWithCombobox({
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 					</span>

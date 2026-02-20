@@ -77,7 +77,6 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 					</span>

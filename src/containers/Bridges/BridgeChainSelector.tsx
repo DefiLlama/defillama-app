@@ -75,7 +75,6 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 
 					<Ariakit.Combobox
 						placeholder="Search..."
-						autoFocus
 						className="m-3 mb-0 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 					/>
 

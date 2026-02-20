@@ -432,7 +432,6 @@ export function MetricSentenceBuilder({
 					<div className="thin-scrollbar max-h-[320px] w-full overflow-y-auto" data-metric-token="true">
 						<div className="sticky top-0 border-b border-(--cards-border) bg-(--cards-bg) p-1.5">
 							<input
-								autoFocus
 								value={searchTerm}
 								onChange={(event) => setSearchTerm(event.target.value)}
 								placeholder="Search metrics..."
@@ -525,7 +524,6 @@ export function MetricSentenceBuilder({
 							<div className="space-y-2">
 								<div className="rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-inner">
 									<Combobox
-										autoFocus
 										placeholder={subjectTab === 'chain' ? 'Search chains...' : 'Search protocols...'}
 										className="mb-1.5 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										aria-label="Search"

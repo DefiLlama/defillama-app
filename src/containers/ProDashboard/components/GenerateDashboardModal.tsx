@@ -330,8 +330,11 @@ export function GenerateDashboardModal({
 				<div className="space-y-6">
 					{mode === 'create' && (
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Dashboard Name</label>
+							<label htmlFor="generate-dashboard-name" className="mb-3 block text-sm font-medium pro-text1">
+								Dashboard Name
+							</label>
 							<input
+								id="generate-dashboard-name"
 								type="text"
 								value={dashboardName}
 								onChange={(e) => {
@@ -348,7 +351,6 @@ export function GenerateDashboardModal({
 										: 'pro-border focus:ring-1 focus:ring-(--primary)'
 								} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 								disabled={isLoading}
-								autoFocus
 							/>
 							{touchedFields.dashboardName && errors.dashboardName && (
 								<p className="mt-1 text-sm text-red-500">{errors.dashboardName}</p>
@@ -357,12 +359,13 @@ export function GenerateDashboardModal({
 					)}
 
 					<div>
-						<label className="mb-3 block text-sm font-medium pro-text1">
+						<label htmlFor="generate-dashboard-description" className="mb-3 block text-sm font-medium pro-text1">
 							{mode === 'iterate'
 								? 'Describe what you want to add or change'
 								: 'Describe the dashboard you want to create'}
 						</label>
 						<textarea
+							id="generate-dashboard-description"
 							value={aiDescription}
 							onChange={(e) => {
 								setAiDescription(e.target.value)
@@ -383,7 +386,6 @@ export function GenerateDashboardModal({
 									: 'pro-border focus:ring-1 focus:ring-(--primary)'
 							} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 							disabled={isLoading}
-							autoFocus={mode === 'iterate'}
 						/>
 						{touchedFields.aiDescription && errors.aiDescription && (
 							<p className="mt-1 text-sm text-red-500">{errors.aiDescription}</p>
@@ -398,9 +400,12 @@ export function GenerateDashboardModal({
 
 					{mode === 'create' && (
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Visibility</label>
-							<div className="flex gap-3">
+							<p id="generate-dashboard-visibility" className="mb-3 block text-sm font-medium pro-text1">
+								Visibility
+							</p>
+							<div className="flex gap-3" aria-labelledby="generate-dashboard-visibility">
 								<button
+									type="button"
 									onClick={() => setVisibility('public')}
 									disabled={isLoading}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
@@ -411,6 +416,7 @@ export function GenerateDashboardModal({
 									Public
 								</button>
 								<button
+									type="button"
 									onClick={() => setVisibility('private')}
 									disabled={isLoading}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
@@ -429,9 +435,12 @@ export function GenerateDashboardModal({
 
 					{mode === 'create' && (
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Tags</label>
+							<label htmlFor="generate-dashboard-tag-input" className="mb-3 block text-sm font-medium pro-text1">
+								Tags
+							</label>
 							<div className="flex gap-2">
 								<input
+									id="generate-dashboard-tag-input"
 									type="text"
 									value={tagInput}
 									onChange={(e) => setTagInput(e.target.value)}
@@ -441,6 +450,7 @@ export function GenerateDashboardModal({
 									disabled={isLoading}
 								/>
 								<button
+									type="button"
 									onClick={() => handleAddTag(tagInput)}
 									disabled={!tagInput.trim() || isLoading}
 									className={`rounded-md border px-4 py-2 transition-colors ${
@@ -462,6 +472,7 @@ export function GenerateDashboardModal({
 										>
 											{tag}
 											<button
+												type="button"
 												onClick={() => handleRemoveTag(tag)}
 												className="hover:text-pro-blue-400"
 												disabled={isLoading}
@@ -484,6 +495,7 @@ export function GenerateDashboardModal({
 						Cancel
 					</Ariakit.DialogDismiss>
 					<button
+						type="button"
 						onClick={handleGenerate}
 						disabled={isLoading}
 						className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${
