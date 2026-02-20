@@ -177,6 +177,9 @@ const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	return mapping[displayType] || 'totalMcap'
 }
 
+const ALL_CHAIN_CHARTS = ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
+const CHAIN_CHARTS = ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
+
 export function StablecoinsByChain({
 	selectedChain = 'All',
 	chains = EMPTY_CHAINS,
@@ -192,10 +195,7 @@ export function StablecoinsByChain({
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
 	const chartTypeList = React.useMemo(
-		() =>
-			selectedChain !== 'All'
-				? ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
-				: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows'],
+		() => (selectedChain !== 'All' ? CHAIN_CHARTS : ALL_CHAIN_CHARTS),
 		[selectedChain]
 	)
 
