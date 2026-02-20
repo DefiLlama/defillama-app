@@ -15,6 +15,8 @@ import {
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
+import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
+import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import type { NormalizedRow } from './components/UnifiedTable/types'
@@ -34,6 +36,8 @@ import type {
 	MetricConfig,
 	StablecoinsChartConfig,
 	UnifiedTableConfig,
+	UnlocksPieConfig,
+	UnlocksScheduleConfig,
 	YieldsChartConfig
 } from './types'
 
@@ -53,6 +57,7 @@ export interface ProDashboardServerProps {
 	advancedTvlBasicData: Record<string, [number, number][]>
 	unifiedTableData: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }>
 	stablecoinsChartData: Record<string, any>
+	emissionData: Record<string, any>
 }
 
 async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
@@ -509,6 +514,51 @@ async function fetchStablecoinsChartData(items: DashboardItemConfig[]): Promise<
 	}
 }
 
+async function fetchEmissionData(items: DashboardItemConfig[]): Promise<Record<string, any>> {
+	const FETCH_TIMEOUT = 10_000
+	const tasks: Array<{ key: string; fn: () => Promise<any> }> = []
+
+	const seenPieKeys = new Set<string>()
+	const seenScheduleKeys = new Set<string>()
+
+	for (const item of items) {
+		if (item.kind === 'unlocks-pie') {
+			const config = item as UnlocksPieConfig
+			const cacheKey = JSON.stringify(['unlocks-pie', config.protocol])
+			if (!seenPieKeys.has(cacheKey)) {
+				seenPieKeys.add(cacheKey)
+				tasks.push({
+					key: cacheKey,
+					fn: () => withTimeout(getProtocolEmissionsPieData(slug(config.protocol)), FETCH_TIMEOUT)
+				})
+			}
+		} else if (item.kind === 'unlocks-schedule') {
+			const config = item as UnlocksScheduleConfig
+			const resolvedDataType = config.dataType === 'realtime' ? 'documented' : config.dataType
+			const cacheKey = JSON.stringify(['unlocks-schedule', config.protocol, resolvedDataType])
+			if (!seenScheduleKeys.has(cacheKey)) {
+				seenScheduleKeys.add(cacheKey)
+				tasks.push({
+					key: cacheKey,
+					fn: () => withTimeout(getProtocolEmissionsScheduleData(slug(config.protocol)), FETCH_TIMEOUT)
+				})
+			}
+		}
+	}
+
+	if (tasks.length === 0) return {}
+
+	const results = await Promise.allSettled(tasks.map((t) => t.fn()))
+	const data: Record<string, any> = {}
+	for (let i = 0; i < tasks.length; i++) {
+		const result = results[i]
+		if (result.status === 'fulfilled' && result.value) {
+			data[tasks[i].key] = result.value
+		}
+	}
+	return data
+}
+
 export async function getProDashboardServerData({
 	dashboardId,
 	authToken
@@ -530,6 +580,7 @@ export async function getProDashboardServerData({
 	let advancedTvlBasicData: Record<string, [number, number][]> = {}
 	let unifiedTableData: Record<string, { rows: NormalizedRow[]; chainMetrics?: Record<string, ChainMetrics> }> = {}
 	let stablecoinsChartData: Record<string, any> = {}
+	let emissionData: Record<string, any> = {}
 
 	if (dashboard?.data?.items?.length) {
 		const timePeriod = (dashboard.data.timePeriod || '365d') as TimePeriod
@@ -542,7 +593,8 @@ export async function getProDashboardServerData({
 			metricResult,
 			advTvlResult,
 			unifiedResult,
-			stablecoinsResult
+			stablecoinsResult,
+			emissionResult
 		] = await Promise.allSettled([
 			fetchAllChartData(dashboard.data.items, timePeriod, customTimePeriod),
 			fetchTableServerData(dashboard.data.items),
@@ -551,7 +603,8 @@ export async function getProDashboardServerData({
 			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod),
 			fetchAdvancedTvlBasicData(dashboard.data.items),
 			fetchUnifiedTableServerData(dashboard.data.items),
-			fetchStablecoinsChartData(dashboard.data.items)
+			fetchStablecoinsChartData(dashboard.data.items),
+			fetchEmissionData(dashboard.data.items)
 		])
 		if (chartResult.status === 'fulfilled') chartData = chartResult.value
 		if (tableResult.status === 'fulfilled') tableData = tableResult.value
@@ -561,6 +614,7 @@ export async function getProDashboardServerData({
 		if (advTvlResult.status === 'fulfilled') advancedTvlBasicData = advTvlResult.value
 		if (unifiedResult.status === 'fulfilled') unifiedTableData = unifiedResult.value
 		if (stablecoinsResult.status === 'fulfilled') stablecoinsChartData = stablecoinsResult.value
+		if (emissionResult.status === 'fulfilled') emissionData = emissionResult.value
 	}
 
 	return {
@@ -574,6 +628,7 @@ export async function getProDashboardServerData({
 		metricData,
 		advancedTvlBasicData,
 		unifiedTableData,
-		stablecoinsChartData
+		stablecoinsChartData,
+		emissionData
 	}
 }

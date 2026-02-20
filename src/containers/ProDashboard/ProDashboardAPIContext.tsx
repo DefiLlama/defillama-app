@@ -407,6 +407,18 @@ export function ProDashboardAPIProvider({
 		stablecoinsDataSeeded.current = true
 	}
 
+	const emissionDataSeeded = useRef(false)
+	if (!emissionDataSeeded.current && serverData?.emissionData) {
+		const now = seedTimestamp
+		for (const [keyJson, data] of Object.entries(serverData.emissionData)) {
+			try {
+				const queryKey = JSON.parse(keyJson)
+				queryClient.setQueryData(queryKey, data, { updatedAt: now })
+			} catch {}
+		}
+		emissionDataSeeded.current = true
+	}
+
 	const { isAuthenticated, user } = useAuthContext()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(
 		serverData?.protocolsAndChains
