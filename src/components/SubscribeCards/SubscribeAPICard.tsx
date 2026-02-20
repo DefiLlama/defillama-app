@@ -12,6 +12,7 @@ export function SubscribeAPICard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
+	isCancelPending = false,
 	isLegacyActive = false,
 	billingInterval = 'month',
 	currentBillingInterval
@@ -19,6 +20,7 @@ export function SubscribeAPICard({
 	context?: 'page' | 'account'
 	active?: boolean
 	onCancelSubscription?: () => void
+	isCancelPending?: boolean
 	isLegacyActive?: boolean
 	billingInterval?: 'year' | 'month'
 	currentBillingInterval?: 'year' | 'month'
@@ -100,14 +102,16 @@ export function SubscribeAPICard({
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
 						)}
-						{onCancelSubscription && (
+						{isCancelPending ? (
+							<p className="mt-2 text-center text-sm text-yellow-400">Cancellation scheduled</p>
+						) : onCancelSubscription ? (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#222429] px-4 py-2 text-white transition-colors hover:bg-[#39393E]"
 								onClick={onCancelSubscription}
 							>
 								Cancel Subscription
 							</button>
-						)}
+						) : null}
 					</div>
 				) : context === 'account' || isLegacyActive ? (
 					<div className="mt-2 flex flex-col gap-6">

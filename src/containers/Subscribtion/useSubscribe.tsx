@@ -37,6 +37,7 @@ export interface Subscription {
 	metadata?: {
 		isTrial?: boolean
 		trial_started_at?: string
+		isCanceled?: string
 	}
 }
 
@@ -428,6 +429,59 @@ export const useSubscribe = () => {
 		}
 	})
 
+	const cancelSubscriptionMutation = useMutation({
+		mutationFn: async (message?: string) => {
+			if (!isAuthenticated) {
+				throw new Error('Not authenticated')
+			}
+
+			const response = await authorizedFetch(
+				`${AUTH_SERVER}/subscription/cancel`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ message })
+				},
+				true
+			)
+
+			if (!response.ok) {
+				const error = await response.json()
+				throw new Error(error.message || 'Failed to cancel subscription')
+			}
+
+			return response.json()
+		},
+		onSuccess: () => {
+			toast.success('Subscription scheduled for cancellation')
+			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
+		},
+		onError: (error) => {
+			console.log('Cancel subscription error:', error)
+			toast.error('Failed to cancel subscription. Please try again or contact support.')
+		}
+	})
+
+	const enableOverage = useCallback(async () => {
+		if (!isAuthenticated) {
+			toast.error('Please sign in to enable overage')
+			return
+		}
+
+		if (apiSubscription.status !== 'active') {
+			toast.error('No active API subscription found')
+			return
+		}
+
+		try {
+			await enableOverageMutation.mutateAsync()
+		} catch (error) {
+			console.log('Enable overage error:', error)
+		}
+	}, [isAuthenticated, apiSubscription.status, enableOverageMutation])
+
 	return {
 		handleSubscribe,
 		isLoading: createSubscription.isPending,
@@ -448,7 +502,7 @@ export const useSubscribe = () => {
 		endTrialSubscription: endTrialMutation.mutateAsync,
 		isEndTrialLoading: endTrialMutation.isPending,
 		isPortalSessionLoading,
-		enableOverage: enableOverageMutation.mutate,
+		enableOverage,
 		isEnableOverageLoading: enableOverageMutation.isPending,
 		apiSubscription: apiSubscription,
 		llamafeedSubscription: llamafeedSubscription,
@@ -456,6 +510,8 @@ export const useSubscribe = () => {
 		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false,
 		usageStats: usageStatsQuery.data ?? null,
 		isUsageStatsLoading: usageStatsQuery.isLoading,
-		isUsageStatsError: usageStatsQuery.isError
+		isUsageStatsError: usageStatsQuery.isError,
+		cancelSubscription: cancelSubscriptionMutation.mutateAsync,
+		isCancelSubscriptionLoading: cancelSubscriptionMutation.isPending
 	}
 }

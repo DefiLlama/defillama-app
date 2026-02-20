@@ -2,7 +2,7 @@ import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import Image from 'next/image'
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useReducer, useRef } from 'react'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -38,6 +38,62 @@ interface YieldsChartTabProps {
 	onSelectedYieldTokensChange: (tokens: string[]) => void
 	onMinTvlChange: (tvl: number | null) => void
 	onMaxTvlChange: (tvl: number | null) => void
+}
+
+type SortColumn = 'tvl' | 'apy'
+type SortDirection = 'desc' | 'asc'
+
+interface YieldsChartUiState {
+	chainSearch: string
+	projectSearch: string
+	tokenSearch: string
+	poolSearch: string
+	sortColumn: SortColumn
+	sortDirection: SortDirection
+	showPoolPicker: boolean
+}
+
+type YieldsChartUiAction =
+	| { type: 'set_chain_search'; value: string }
+	| { type: 'set_project_search'; value: string }
+	| { type: 'set_token_search'; value: string }
+	| { type: 'set_pool_search'; value: string }
+	| { type: 'toggle_sort'; column: SortColumn }
+	| { type: 'set_show_pool_picker'; value: boolean }
+
+const getInitialYieldsChartUiState = (selectedYieldPool: YieldsChartTabProps['selectedYieldPool']): YieldsChartUiState => ({
+	chainSearch: '',
+	projectSearch: '',
+	tokenSearch: '',
+	poolSearch: '',
+	sortColumn: 'tvl',
+	sortDirection: 'desc',
+	showPoolPicker: !selectedYieldPool
+})
+
+const yieldsChartUiReducer = (state: YieldsChartUiState, action: YieldsChartUiAction): YieldsChartUiState => {
+	switch (action.type) {
+		case 'set_chain_search':
+			return { ...state, chainSearch: action.value }
+		case 'set_project_search':
+			return { ...state, projectSearch: action.value }
+		case 'set_token_search':
+			return { ...state, tokenSearch: action.value }
+		case 'set_pool_search':
+			return { ...state, poolSearch: action.value }
+		case 'toggle_sort':
+			if (state.sortColumn === action.column) {
+				return {
+					...state,
+					sortDirection: state.sortDirection === 'desc' ? 'asc' : 'desc'
+				}
+			}
+			return { ...state, sortColumn: action.column, sortDirection: 'desc' }
+		case 'set_show_pool_picker':
+			return { ...state, showPoolPicker: action.value }
+		default:
+			return state
+	}
 }
 
 const tvlApyCharts = [
@@ -86,13 +142,8 @@ export function YieldsChartTab({
 }: YieldsChartTabProps) {
 	const { data: yieldsDataResponse, isLoading: yieldsLoading } = useYieldsData()
 	const yieldsData = yieldsDataResponse ?? EMPTY_YIELDS_DATA
-	const [chainSearch, setChainSearch] = useState('')
-	const [projectSearch, setProjectSearch] = useState('')
-	const [tokenSearch, setTokenSearch] = useState('')
-	const [poolSearch, setPoolSearch] = useState('')
-	const [sortColumn, setSortColumn] = useState<'tvl' | 'apy'>('tvl')
-	const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc')
-	const [showPoolPicker, setShowPoolPicker] = useState(!selectedYieldPool)
+	const [uiState, dispatchUi] = useReducer(yieldsChartUiReducer, selectedYieldPool, getInitialYieldsChartUiState)
+	const { chainSearch, projectSearch, tokenSearch, poolSearch, sortColumn, sortDirection, showPoolPicker } = uiState
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const projectListRef = useRef<HTMLDivElement | null>(null)
 	const tokenListRef = useRef<HTMLDivElement | null>(null)
@@ -336,13 +387,8 @@ export function YieldsChartTab({
 		overscan: 8
 	})
 
-	const toggleSort = (column: 'tvl' | 'apy') => {
-		if (sortColumn === column) {
-			setSortDirection((prev) => (prev === 'desc' ? 'asc' : 'desc'))
-		} else {
-			setSortColumn(column)
-			setSortDirection('desc')
-		}
+	const toggleSort = (column: SortColumn) => {
+		dispatchUi({ type: 'toggle_sort', column })
 	}
 
 	const selectedPoolData = useMemo(() => {
@@ -487,7 +533,7 @@ export function YieldsChartTab({
 										/>
 										<input
 											value={chainSearch}
-											onChange={(e) => setChainSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_chain_search', value: e.target.value })}
 											placeholder="Search chains..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -597,7 +643,7 @@ export function YieldsChartTab({
 										/>
 										<input
 											value={projectSearch}
-											onChange={(e) => setProjectSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_project_search', value: e.target.value })}
 											placeholder="Search projects..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -707,7 +753,7 @@ export function YieldsChartTab({
 										/>
 										<input
 											value={tokenSearch}
-											onChange={(e) => setTokenSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_token_search', value: e.target.value })}
 											placeholder="Search tokens..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -762,7 +808,7 @@ export function YieldsChartTab({
 												type="button"
 												onClick={() => {
 													onSelectedYieldTokensChange([])
-													setTokenSearch('')
+														dispatchUi({ type: 'set_token_search', value: '' })
 												}}
 												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
 											>
@@ -841,7 +887,7 @@ export function YieldsChartTab({
 								<div className="flex items-center gap-2">
 									<button
 										type="button"
-										onClick={() => setShowPoolPicker(true)}
+											onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: true })}
 										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
 									>
 										Change pool
@@ -850,7 +896,7 @@ export function YieldsChartTab({
 										type="button"
 										onClick={() => {
 											onSelectedYieldPoolChange(null)
-											setShowPoolPicker(true)
+												dispatchUi({ type: 'set_show_pool_picker', value: true })
 										}}
 										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:text-red-500"
 									>
@@ -872,7 +918,7 @@ export function YieldsChartTab({
 										/>
 										<input
 											value={poolSearch}
-											onChange={(e) => setPoolSearch(e.target.value)}
+												onChange={(e) => dispatchUi({ type: 'set_pool_search', value: e.target.value })}
 											placeholder="Search pools..."
 											className="w-48 rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -884,7 +930,7 @@ export function YieldsChartTab({
 								{selectedYieldPool && (
 									<button
 										type="button"
-										onClick={() => setShowPoolPicker(false)}
+											onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: false })}
 										className="text-xs font-medium text-(--primary) transition-colors hover:text-(--primary)/80"
 									>
 										Cancel
@@ -952,7 +998,7 @@ export function YieldsChartTab({
 															project: pool.project,
 															chain: pool.chains[0]
 														})
-														setShowPoolPicker(false)
+															dispatchUi({ type: 'set_show_pool_picker', value: false })
 													}}
 													className={`grid w-full grid-cols-[1fr_100px_100px_80px] items-center gap-2 px-3 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
 														isSelected ? 'bg-(--primary)/10' : ''

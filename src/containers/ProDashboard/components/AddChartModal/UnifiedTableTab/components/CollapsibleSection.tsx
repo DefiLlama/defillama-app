@@ -3,7 +3,6 @@ import { Icon } from '~/components/Icon'
 
 interface CollapsibleSectionProps {
 	title: string
-	isDefaultExpanded?: boolean
 	badge?: string | number
 	children: React.ReactNode
 	className?: string
@@ -11,12 +10,11 @@ interface CollapsibleSectionProps {
 
 export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 	title,
-	isDefaultExpanded = false,
 	badge,
 	children,
 	className = ''
 }) => {
-	const [isExpanded, setIsExpanded] = useState(isDefaultExpanded)
+	const [isExpanded, setIsExpanded] = useState(true)
 
 	return (
 		<div className={`rounded-lg border border-(--cards-border) bg-(--cards-bg) ${className}`}>

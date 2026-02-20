@@ -497,7 +497,7 @@ function TabContent({
 	const tabContent: Record<TabKey, React.ReactNode> = {
 		setup: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection title="Grouping" isDefaultExpanded badge="Protocols" className="shadow-sm">
+				<CollapsibleSection title="Grouping" badge="Protocols" className="shadow-sm">
 					<div className="flex flex-col gap-3">
 						<div>
 							<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Configure Grouping</h4>
@@ -506,7 +506,7 @@ function TabContent({
 					</div>
 				</CollapsibleSection>
 
-				<CollapsibleSection title="Data Views" isDefaultExpanded badge={activePreset?.name} className="shadow-sm">
+				<CollapsibleSection title="Data Views" badge={activePreset?.name} className="shadow-sm">
 					<div className="flex flex-col gap-3">
 						{recommendedPresets.length > 0 && (
 							<div className="flex flex-col gap-2">
@@ -537,12 +537,7 @@ function TabContent({
 		),
 		columns: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection
-					title="Columns"
-					isDefaultExpanded
-					badge={`${visibleColumnsCount} selected`}
-					className="shadow-sm"
-				>
+				<CollapsibleSection title="Columns" badge={`${visibleColumnsCount} selected`} className="shadow-sm">
 					<div className="flex flex-col gap-2">
 						<div className="flex flex-wrap items-center justify-end gap-2 text-xs">
 							<button
@@ -575,7 +570,7 @@ function TabContent({
 			</div>
 		),
 		filters: (
-			<CollapsibleSection title="Filters" isDefaultExpanded badge={totalFilterCount || undefined} className="shadow-sm">
+			<CollapsibleSection title="Filters" badge={totalFilterCount || undefined} className="shadow-sm">
 				<div className="flex flex-col gap-5">
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
