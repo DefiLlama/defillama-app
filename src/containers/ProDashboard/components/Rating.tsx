@@ -112,7 +112,10 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 				{rating > 0 && (
 					<div className="flex w-full flex-col gap-1">
-						<label htmlFor={bannerFeedbackId} className="text-xs font-semibold tracking-wide text-(--text-label) uppercase">
+						<label
+							htmlFor={bannerFeedbackId}
+							className="text-xs font-semibold tracking-wide text-(--text-label) uppercase"
+						>
 							Your Feedback (Optional)
 						</label>
 						<textarea

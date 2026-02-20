@@ -6,7 +6,7 @@ import { LoadingDots } from '~/components/Loaders'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { useDebounce } from '~/hooks/useDebounce'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import { Icon } from '../Icon'
@@ -68,7 +68,7 @@ export const MobileSearch = () => {
 		useDefaultSearchList()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const handleSelect = () => setDialogOpen(false)
@@ -199,7 +199,7 @@ export const DesktopSearch = () => {
 		useDefaultSearchList()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (

@@ -290,40 +290,47 @@ function PortfolioNotifications({
 	}
 
 	const handleFormSubmit = async () => {
-		try {
+		const buildAndSavePreferences = async () => {
 			const values = formStore.getState().values
-			const { protocolMetrics, chainMetrics } = values
+			const selectedProtocolMetrics = values.protocolMetrics
+			const selectedChainMetrics = values.chainMetrics
 
 			const settings: NotificationSettings = {}
 
-			if (protocolMetrics) {
-				if (protocolMetrics.length > 0) {
-					if (filteredProtocols.length > 0) {
-						settings.protocols = {}
-						for (const protocol of filteredProtocols) {
-							const identifier = protocol.slug
-							settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
-						}
-					}
+			if (selectedProtocolMetrics.length > 0 && filteredProtocols.length > 0) {
+				const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
+				const protocolsMap: NotificationSettings['protocols'] = {}
+				let protocolCount = 0
+				for (let i = 0; i < filteredProtocols.length; i++) {
+					const identifier = filteredProtocols[i].slug
+					if (!identifier) continue
+					protocolsMap[identifier] = mappedProtocolMetrics
+					protocolCount++
+				}
+				if (protocolCount > 0) {
+					settings.protocols = protocolsMap
 				}
 			}
 
-			if (chainMetrics) {
-				if (chainMetrics.length > 0) {
-					if (filteredChains.length > 0) {
-						settings.chains = {}
-						for (const chain of filteredChains) {
-							settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
-						}
-					}
+			if (selectedChainMetrics.length > 0 && filteredChains.length > 0) {
+				const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
+				const chainsMap: NotificationSettings['chains'] = {}
+				let chainCount = 0
+				for (let i = 0; i < filteredChains.length; i++) {
+					if (!filteredChains[i].name) continue
+					chainsMap[filteredChains[i].name] = mappedChainMetrics
+					chainCount++
+				}
+				if (chainCount > 0) {
+					settings.chains = chainsMap
 				}
 			}
 
-			if (!settings.protocols) {
-				if (!settings.chains) {
-					toast.error('Unable to save: no valid settings configured')
-					return
-				}
+			const hasProtocols = settings.protocols != null
+			const hasChains = settings.chains != null
+			if (!hasProtocols && !hasChains) {
+				toast.error('Unable to save: no valid settings configured')
+				return
 			}
 
 			await savePreferences({
@@ -333,10 +340,10 @@ function PortfolioNotifications({
 			})
 
 			dialogStore.hide()
-		} catch (error) {
-			console.log('Error saving notification preferences:', error)
-			toast.error('Failed to save notification preferences')
 		}
+		await buildAndSavePreferences().catch(() => {
+			// Error toast handled by mutation's onError
+		})
 	}
 
 	const handleDisableNotifications = async () => {

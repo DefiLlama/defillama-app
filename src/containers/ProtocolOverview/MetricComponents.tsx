@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { Flag } from '../Flag'
+import { Flag } from './Flag'
 
 interface SectionHeaderProps {
 	id: string

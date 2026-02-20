@@ -76,19 +76,16 @@ export function useUserConfig() {
 	const lastSyncedRawRef = useRef<string | null>(null)
 
 	const fetchConfig = useCallback(async (): Promise<UserConfig | null> => {
-		if (!isAuthenticated || !authorizedFetch) {
-			return null
-		}
-		try {
+		if (!isAuthenticated || !authorizedFetch) return null
+		const processResponse = async (): Promise<UserConfig | null> => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
-			if (response?.ok) {
+			if (response == null) {
+				return null
+			}
+			if (response.ok) {
 				const config: UserConfig = await response.json()
 
-				let hasConfig = false
-				for (const _ in config) {
-					hasConfig = true
-					break
-				}
+				const hasConfig = isRecord(config) && Object.keys(config).length > 0
 				if (hasConfig) {
 					isSyncingRef.current = true
 
@@ -141,13 +138,17 @@ export function useUserConfig() {
 
 				return config as UserConfig
 			}
-			if (response?.status === 404) {
+			if (response.status === 404) {
 				hasInitializedRef.current = true
 				return {}
 			}
 
 			return null
-		} catch {
+		}
+		try {
+			return await processResponse()
+		} catch (error) {
+			console.error('Failed to fetch/process user config:', error)
 			return null
 		}
 	}, [isAuthenticated, authorizedFetch])

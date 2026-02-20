@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { readAppStorage, readAppStorageRaw, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
+import { readAppStorage, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
 import { useDebouncedCallback } from './useDebounce'
 import { useUserConfig } from './useUserConfig'
 
@@ -14,18 +14,21 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const hasInitialized = useRef(false)
 
 	const syncToServer = useCallback(async () => {
-		if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
+		if (!isAuthenticated) return
+		if (!saveUserConfig) return
+		if (isSyncing.current) return
+
+		const parsedData = readAppStorage()
+		if (!Object.keys(parsedData).length) return
 
 		try {
 			isSyncing.current = true
-			// Get current localStorage data
-			const localData = readAppStorageRaw()
-			if (!localData) return
-
-			await saveUserConfig(readAppStorage())
+			await saveUserConfig(parsedData)
+			setTimeout(() => {
+				isSyncing.current = false
+			}, 100)
 		} catch (error) {
 			console.log('Failed to sync watchlist to server:', error)
-		} finally {
 			setTimeout(() => {
 				isSyncing.current = false
 			}, 100)

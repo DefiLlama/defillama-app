@@ -62,16 +62,23 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				method: 'GET'
 			})
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
-				if (response.status === 404 || response.status === 401) {
+				if (response.status === 404) {
 					return null
+				}
+				if (response.status === 401) {
+					throw new Error('Unauthorized')
 				}
 
 				let errorMessage = 'Failed to fetch notification preferences'
 				try {
 					const errorData = await response.json()
-					if (errorData?.message) {
-						errorMessage = errorData.message
+					if (errorData != null) {
+						if (errorData.message) {
+							errorMessage = errorData.message
+						}
 					}
 				} catch {
 					// Ignore response parsing errors and keep default message.
@@ -115,9 +122,19 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to save notification preferences')
+				let errorMessage = 'Failed to save notification preferences'
+				try {
+					const errorData = await response.json()
+					if (errorData != null && errorData.message) {
+						errorMessage = errorData.message
+					}
+				} catch {
+					/* Ignore response parsing errors and keep default message. */
+				}
+				throw new Error(errorMessage)
 			}
 
 			const data = await response.json()
@@ -128,7 +145,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success('Notification preferences saved successfully')
 		},
 		onError: (error) => {
-			console.log('Error saving notification preferences:', error)
+			console.error('Error saving notification preferences:', error)
 			toast.error(error.message || 'Failed to save notification preferences')
 		}
 	})
@@ -151,9 +168,19 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to update notification status')
+				let errorMessage = 'Failed to update notification status'
+				try {
+					const errorData = await response.json()
+					if (errorData != null && errorData.message) {
+						errorMessage = errorData.message
+					}
+				} catch {
+					/* Ignore response parsing errors and keep default message. */
+				}
+				throw new Error(errorMessage)
 			}
 		},
 		onSuccess: (_, variables) => {
@@ -163,7 +190,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
 		},
 		onError: (error) => {
-			console.log('Error updating notification status:', error)
+			console.error('Error updating notification status:', error)
 			toast.error(error.message || 'Failed to update notification status')
 		}
 	})
@@ -185,9 +212,19 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
+			if (!response) throw new Error('Not authenticated')
+
 			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to delete notification preferences')
+				let errorMessage = 'Failed to delete notification preferences'
+				try {
+					const errorData = await response.json()
+					if (errorData != null && errorData.message) {
+						errorMessage = errorData.message
+					}
+				} catch {
+					/* Ignore response parsing errors and keep default message. */
+				}
+				throw new Error(errorMessage)
 			}
 		},
 		onSuccess: (_, variables) => {
@@ -195,7 +232,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success('Notification preferences deleted')
 		},
 		onError: (error) => {
-			console.log('Error deleting notification preferences:', error)
+			console.error('Error deleting notification preferences:', error)
 			toast.error(error.message || 'Failed to delete notifications')
 		}
 	})

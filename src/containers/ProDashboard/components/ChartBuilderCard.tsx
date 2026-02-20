@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
@@ -13,7 +14,6 @@ import {
 } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -693,21 +693,21 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							variant="pro"
 						/>
 					)}
-						{chartSeries.length > 0 && (
-							<button
-								type="button"
-								onClick={() => setShowColors((prev) => !prev)}
-								disabled={isReadOnly}
-								aria-pressed={effectiveShowColors}
-								className={`flex items-center gap-1 rounded-md border px-1.5 py-1 text-xs transition-colors disabled:cursor-not-allowed ${
-									effectiveShowColors
-										? 'border-transparent bg-(--primary) text-white'
-										: 'border-(--form-control-border) hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue'
-								} disabled:border-(--cards-border) disabled:text-(--text-disabled)`}
-							>
-								Colors
-							</button>
-						)}
+					{chartSeries.length > 0 && (
+						<button
+							type="button"
+							onClick={() => setShowColors((prev) => !prev)}
+							disabled={isReadOnly}
+							aria-pressed={effectiveShowColors}
+							className={`flex items-center gap-1 rounded-md border px-1.5 py-1 text-xs transition-colors disabled:cursor-not-allowed ${
+								effectiveShowColors
+									? 'border-transparent bg-(--primary) text-white'
+									: 'border-(--form-control-border) hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue'
+							} disabled:border-(--cards-border) disabled:text-(--text-disabled)`}
+						>
+							Colors
+						</button>
+					)}
 					{!isReadOnly &&
 						(config.mode !== 'protocol' || !(config.chainCategories && config.chainCategories.length > 0)) && (
 							<Select
@@ -748,7 +748,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</>
 					)}
 				</div>
-					{effectiveShowColors && chartSeries.length > 0 && (
+				{effectiveShowColors && chartSeries.length > 0 && (
 					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
 						{chartSeries.map((series: any) => {

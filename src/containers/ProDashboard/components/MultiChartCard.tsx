@@ -1,4 +1,5 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -14,7 +15,6 @@ import { CHART_TYPES, type MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))

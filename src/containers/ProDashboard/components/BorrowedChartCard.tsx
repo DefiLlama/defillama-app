@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo, type ReactElement } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import {
@@ -11,7 +12,6 @@ import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { BorrowedChartConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -259,17 +259,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				)}
 			</div>
 
-			<div className="flex-1">
-				<Suspense
-					fallback={
-						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
-						</div>
-					}
-					>
-						{chartContent}
-					</Suspense>
-				</div>
-			</div>
-		)
+			<div className="flex-1">{chartContent}</div>
+		</div>
+	)
 }

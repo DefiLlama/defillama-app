@@ -374,6 +374,30 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		createClientMessageId
 	])
 
+	const stopSessionMutation = useMutation({
+		mutationFn: async (targetSessionId: string) => {
+			await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ sessionId: targetSessionId })
+			})
+		},
+		onError: (error) => {
+			console.log('Error stopping streaming session:', error)
+		}
+	})
+
+	const deleteSessionMutation = useMutation({
+		mutationFn: async (targetSessionId: string) => {
+			await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${targetSessionId}`, {
+				method: 'DELETE'
+			})
+		},
+		onError: (error) => {
+			console.log('Failed to reset backend session:', error)
+		}
+	})
+
 	const {
 		data: promptResponse,
 		mutate: submitPrompt,
@@ -623,26 +647,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsStreaming(false)
 
 		if (currentSessionId) {
-			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: currentSessionId
-					})
-				})
-
-				if (response.ok) {
-					console.log('Successfully stopped streaming session')
-				} else {
-					const errorData = await response.json()
-					console.log('Failed to stop streaming session:', errorData)
-				}
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
-			}
+			stopSessionMutation.mutate(currentSessionId)
 		}
 
 		if (abortControllerRef.current) {
@@ -705,7 +710,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsResearchMode,
 		resetPrompt,
 		promptInputRef,
-		authorizedFetch,
+		stopSessionMutation,
 		createClientMessageId
 	])
 
@@ -790,19 +795,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (sessionId && isStreaming) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: sessionId
-					})
-				})
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
-			}
+			await stopSessionMutation.mutateAsync(sessionId).catch(() => {})
 
 			if (abortControllerRef.current) {
 				abortControllerRef.current.abort()
@@ -810,13 +803,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (sessionId) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${sessionId}`, {
-					method: 'DELETE'
-				})
-			} catch (error) {
-				console.log('Failed to reset backend session:', error)
-			}
+			deleteSessionMutation.mutate(sessionId)
 		}
 
 		setSessionId(null)
@@ -830,26 +817,23 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setMessages([])
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
+	}, [
+		initialSessionId,
+		sessionId,
+		isStreaming,
+		stopSessionMutation,
+		deleteSessionMutation,
+		abortControllerRef,
+		resetPrompt,
+		router
+	])
 
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
 			resetScrollState()
 
 			if (sessionId && isStreaming) {
-				try {
-					await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							sessionId: sessionId
-						})
-					})
-				} catch (error) {
-					console.log('Error stopping streaming session:', error)
-				}
+				stopSessionMutation.mutate(sessionId)
 
 				if (abortControllerRef.current) {
 					abortControllerRef.current.abort()
@@ -863,16 +847,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setPrompt('')
 			resetPrompt()
 			setStreamingItems([])
-			setCurrentMessageId(null) // Clear message ID when switching sessions
-			setIsResearchMode(false) // Reset research mode when switching sessions
-			setIsStreaming(false) // Ensure streaming state is cleared
+			setCurrentMessageId(null)
+			setIsResearchMode(false)
+			setIsStreaming(false)
 			setStreamingError('')
 			setProgressMessage('')
 			setResizeTrigger((prev) => prev + 1)
 
 			promptInputRef.current?.focus()
 		},
-		[sessionId, isStreaming, authorizedFetch, resetScrollState, resetPrompt, attachClientIds]
+		[sessionId, isStreaming, stopSessionMutation, resetScrollState, resetPrompt, attachClientIds]
 	)
 
 	const handleLoadMoreMessages = useCallback(async () => {

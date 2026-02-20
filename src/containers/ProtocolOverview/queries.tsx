@@ -1127,7 +1127,7 @@ function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
 	}
 }
 
-const protocolsWithFalsyBreakdownMetrics = new Set(['Jupiter'])
+const protocolsWithFalsyBreakdownMetrics = new Set([])
 
 export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }) {
 	try {

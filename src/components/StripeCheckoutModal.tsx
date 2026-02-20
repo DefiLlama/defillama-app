@@ -8,12 +8,13 @@ import {
 	useStripe
 } from '@stripe/react-stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
-import { useQueryClient } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import { Icon } from '~/components/Icon'
 import { AUTH_SERVER, STRIPE_PUBLISHABLE_KEY } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
+import { handleSimpleFetchResponse } from '~/utils/async'
 
 const stripeInstance = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null
 
@@ -44,6 +45,18 @@ const getFriendlyPaymentStatus = (status: string) => {
 	}
 }
 
+interface UpgradePricing {
+	amount: number
+	currency: string
+	prorationCredit: number
+	newSubscriptionPrice: number
+}
+
+type SubscriptionResult =
+	| { kind: 'checkout'; clientSecret: string }
+	| { kind: 'freeUpgrade' }
+	| { kind: 'paidUpgrade'; clientSecret: string; pricing: UpgradePricing | null }
+
 interface StripeCheckoutModalProps {
 	isOpen: boolean
 	onClose: () => void
@@ -61,116 +74,82 @@ export function StripeCheckoutModal({
 	billingInterval = 'month',
 	isTrial = false
 }: StripeCheckoutModalProps) {
-	const { authorizedFetch } = useAuthContext()!
+	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
-	const [error, setError] = useState<string | null>(null)
-	const [isUpgrade, setIsUpgrade] = useState(false)
-	const [requiresPayment, setRequiresPayment] = useState<boolean>(true)
-	const [upgradeClientSecret, setUpgradeClientSecret] = useState<string | null>(null)
-	const [upgradePricing, setUpgradePricing] = useState<{
-		amount: number
-		currency: string
-		prorationCredit: number
-		newSubscriptionPrice: number
-	} | null>(null)
 
-	const fetchClientSecret = useCallback(async () => {
-		const subscriptionType = type || 'api'
-		try {
-			setError(null)
-
-			const subscriptionData = {
-				redirectUrl: `${window.location.origin}/account?success=true`,
-				cancelUrl: `${window.location.origin}/subscription`,
-				provider: paymentMethod,
-				subscriptionType,
-				billingInterval,
-				isTrial
-			}
-
+	const subscriptionMutation = useMutation({
+		mutationFn: async (): Promise<SubscriptionResult> => {
 			const response = await authorizedFetch(
 				`${AUTH_SERVER}/subscription/create`,
 				{
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(subscriptionData)
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						redirectUrl: `${window.location.origin}/account?success=true`,
+						cancelUrl: `${window.location.origin}/subscription`,
+						provider: paymentMethod,
+						subscriptionType: type,
+						billingInterval,
+						isTrial
+					})
 				},
 				true
 			)
 
-			const data = await response.json()
+			if (!response) throw new Error('Not authenticated')
 
-			if (!response.ok) {
-				let errorMessage = 'Failed to create subscription'
-				if (data.message) {
-					errorMessage = data.message
-				}
-				throw new Error(errorMessage)
-			}
+			const data = await handleSimpleFetchResponse(response).then((res) => res.json())
 
 			if (data.isUpgrade) {
-				setIsUpgrade(true)
-				setRequiresPayment(data.requiresPayment !== false)
-
-				// If no payment required, close modal and refresh
 				if (!data.requiresPayment) {
-					await queryClient.invalidateQueries({ queryKey: ['subscription'] })
-					onClose()
-					return null
+					return { kind: 'freeUpgrade' }
 				}
+				if (!data.clientSecret) throw new Error('No client secret returned for upgrade payment')
 
-				if (!data.clientSecret) {
-					throw new Error('No client secret returned for upgrade payment')
-				}
-
-				setUpgradeClientSecret(data.clientSecret)
-
-				if (data.amount !== undefined) {
-					if (data.currency) {
-						let prorationCredit = 0
-						if (data.prorationCredit) {
-							prorationCredit = data.prorationCredit
-						}
-						let newSubscriptionPrice = 0
-						if (data.newSubscriptionPrice) {
-							newSubscriptionPrice = data.newSubscriptionPrice
-						}
-						setUpgradePricing({
-							amount: data.amount,
-							currency: data.currency,
-							prorationCredit,
-							newSubscriptionPrice
-						})
-					} else {
-						console.warn(
-							'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
-							data
-						)
+				let pricing: UpgradePricing | null = null
+				if (data.amount !== undefined && data.currency) {
+					pricing = {
+						amount: data.amount,
+						currency: data.currency,
+						prorationCredit: data.prorationCredit || 0,
+						newSubscriptionPrice: data.newSubscriptionPrice || 0
 					}
 				}
 
-				return null
+				return { kind: 'paidUpgrade', clientSecret: data.clientSecret, pricing }
 			}
 
-			if (!data.clientSecret) {
-				throw new Error('No client secret returned from server')
+			if (!data.clientSecret) throw new Error('No client secret returned from server')
+			return { kind: 'checkout', clientSecret: data.clientSecret }
+		},
+		onSuccess: async (result) => {
+			if (result.kind === 'freeUpgrade') {
+				await queryClient.invalidateQueries({ queryKey: ['subscription'] })
+				handleClose()
 			}
-
-			return data.clientSecret
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'Failed to initialize checkout'
-			setError(errorMessage)
-			throw err
 		}
-	}, [authorizedFetch, paymentMethod, type, billingInterval, isTrial, onClose, queryClient])
+	})
 
-	const options = { fetchClientSecret }
+	const resetMutation = subscriptionMutation.reset
+	const handleClose = useCallback(() => {
+		resetMutation()
+		onClose()
+	}, [resetMutation, onClose])
+
+	const createSubscription = subscriptionMutation.mutateAsync
+
+	const fetchClientSecret = useCallback(async (): Promise<string> => {
+		const result = await createSubscription()
+		if (result.kind === 'checkout') return result.clientSecret
+		throw new Error(`Unexpected subscription kind: ${result.kind}`)
+	}, [createSubscription])
+
+	const result = subscriptionMutation.data
+	const errorMessage = subscriptionMutation.error?.message ?? null
 
 	if (!stripeInstance) {
 		return (
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 				<Ariakit.Dialog className="dialog gap-4 md:max-w-[600px]" portal unmountOnHide>
 					<div className="flex items-center justify-between">
 						<h2 className="text-xl font-bold">Checkout</h2>
@@ -187,13 +166,12 @@ export function StripeCheckoutModal({
 		)
 	}
 
-	// Render upgrade payment form
-	if (isUpgrade && upgradeClientSecret && requiresPayment) {
+	if (result?.kind === 'paidUpgrade') {
 		const planName = type === 'api' ? 'API' : type === 'llamafeed' ? 'Pro' : type
 		const billingPeriod = billingInterval === 'year' ? 'Annual' : 'Monthly'
 
 		return (
-			<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 				<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
 					<div className="top-0 z-10 flex items-center justify-between border-b bg-(--app-bg) p-4">
 						<h2 className="text-xl font-bold">Complete Your Upgrade</h2>
@@ -201,15 +179,6 @@ export function StripeCheckoutModal({
 							<Icon name="x" className="h-6 w-6" />
 						</Ariakit.DialogDismiss>
 					</div>
-
-					{error && (
-						<div className="border-b border-[#39393E] bg-red-500/10 p-4">
-							<div className="flex items-center gap-2 text-red-400">
-								<Icon name="alert-triangle" height={20} width={20} />
-								<p className="text-sm">{error}</p>
-							</div>
-						</div>
-					)}
 
 					<div className="border-b border-[#39393E] bg-(--app-bg) p-4">
 						<div className="space-y-3">
@@ -220,30 +189,30 @@ export function StripeCheckoutModal({
 								</p>
 							</div>
 
-							{upgradePricing ? (
+							{result.pricing ? (
 								<div className="space-y-2 pt-2">
 									<div className="flex justify-between text-sm">
 										<span className="text-[#8a8c90]">New subscription price</span>
 										<span className="font-medium">
-											{formatAmount(upgradePricing.newSubscriptionPrice, upgradePricing.currency)}
+											{formatAmount(result.pricing.newSubscriptionPrice, result.pricing.currency)}
 											<span className="text-[#8a8c90]">/{billingInterval === 'year' ? 'year' : 'month'}</span>
 										</span>
 									</div>
 
-									{upgradePricing.prorationCredit > 0 && (
+									{result.pricing.prorationCredit > 0 ? (
 										<div className="flex justify-between text-sm">
 											<span className="text-[#8a8c90]">Proration credit</span>
 											<span className="font-medium text-green-400">
-												-{formatAmount(upgradePricing.prorationCredit, upgradePricing.currency)}
+												-{formatAmount(result.pricing.prorationCredit, result.pricing.currency)}
 											</span>
 										</div>
-									)}
+									) : null}
 
 									<div className="border-t border-[#39393E] pt-2">
 										<div className="flex justify-between">
 											<span className="font-semibold">Amount due today</span>
 											<span className="text-lg font-bold text-[#5C5CF9]">
-												{formatAmount(upgradePricing.amount, upgradePricing.currency)}
+												{formatAmount(result.pricing.amount, result.pricing.currency)}
 											</span>
 										</div>
 									</div>
@@ -262,10 +231,10 @@ export function StripeCheckoutModal({
 						<Elements
 							stripe={stripeInstance}
 							options={{
-								clientSecret: upgradeClientSecret
+								clientSecret: result.clientSecret
 							}}
 						>
-							<UpgradePaymentForm onError={setError} />
+							<UpgradePaymentForm />
 						</Elements>
 					</div>
 				</Ariakit.Dialog>
@@ -274,7 +243,7 @@ export function StripeCheckoutModal({
 	}
 
 	return (
-		<Ariakit.DialogProvider open={isOpen} setOpen={() => onClose()}>
+		<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 			<Ariakit.Dialog className="dialog gap-0 md:max-w-[600px]" portal unmountOnHide>
 				<div className="top-0 z-10 flex items-center justify-between border-b bg-(--app-bg) p-4">
 					<h2 className="text-xl font-bold">Complete Your Purchase</h2>
@@ -283,49 +252,39 @@ export function StripeCheckoutModal({
 					</Ariakit.DialogDismiss>
 				</div>
 
-				{error && (
+				{errorMessage ? (
 					<div className="border-b border-[#39393E] bg-red-500/10 p-4">
 						<div className="flex items-center gap-2 text-red-400">
 							<Icon name="alert-triangle" height={20} width={20} />
-							<p className="text-sm">{error}</p>
+							<p className="text-sm">{errorMessage}</p>
 						</div>
 					</div>
+				) : (
+					<div className="min-h-[400px] p-4">
+						<EmbeddedCheckoutProvider stripe={stripeInstance} options={{ fetchClientSecret }}>
+							<EmbeddedCheckout />
+						</EmbeddedCheckoutProvider>
+					</div>
 				)}
-
-				<div className="min-h-[400px] p-4">
-					<EmbeddedCheckoutProvider stripe={stripeInstance} options={options}>
-						<EmbeddedCheckout />
-					</EmbeddedCheckoutProvider>
-				</div>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)
 }
 
-// Payment form component for upgrades
-function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
-	const queryClient = useQueryClient()
-	const [isProcessing, setIsProcessing] = useState(false)
+function UpgradePaymentForm() {
 	const stripe = useStripe()
 	const elements = useElements()
 
-	const handleSubmit = async (e: FormSubmitEvent) => {
-		e.preventDefault()
+	const paymentMutation = useMutation({
+		mutationFn: async () => {
+			if (!stripe || !elements) throw new Error('Stripe not loaded')
 
-		if (!stripe || !elements) {
-			return
-		}
-
-		setIsProcessing(true)
-		onError('')
-
-		try {
-			const { error: submitError } = await elements.submit()
-			if (submitError) {
-				throw new Error(submitError.message)
+			const submitResult = await elements.submit()
+			if (submitResult.error) {
+				throw new Error(submitResult.error.message || 'Payment failed')
 			}
 
-			const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+			const confirmResult = await stripe.confirmPayment({
 				elements,
 				confirmParams: {
 					return_url: `${window.location.origin}/account?success=true`
@@ -333,34 +292,47 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 				redirect: 'if_required'
 			})
 
-			if (confirmError) {
-				throw new Error(confirmError.message)
+			if (confirmResult.error) {
+				throw new Error(confirmResult.error.message || 'Payment failed')
 			}
 
-			if (paymentIntent) {
-				if (paymentIntent.status === 'succeeded') {
-					queryClient.invalidateQueries({ queryKey: ['subscription'] })
-					window.location.href = `${window.location.origin}/account?success=true`
-				} else {
-					onError(getFriendlyPaymentStatus(paymentIntent.status))
-				}
+			if (!confirmResult.paymentIntent) {
+				throw new Error('Unexpected payment response. Please check your account or try again.')
 			}
-		} catch (err) {
-			onError(err instanceof Error ? err.message : 'Payment failed')
-		} finally {
-			setIsProcessing(false)
+
+			if (confirmResult.paymentIntent.status !== 'succeeded') {
+				throw new Error(getFriendlyPaymentStatus(confirmResult.paymentIntent.status))
+			}
+
+			return confirmResult.paymentIntent
+		},
+		onSuccess: () => {
+			window.location.href = `${window.location.origin}/account?success=true`
 		}
+	})
+
+	const handleSubmit = (e: FormSubmitEvent) => {
+		e.preventDefault()
+		paymentMutation.mutate()
 	}
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
+			{paymentMutation.error ? (
+				<div className="rounded-lg bg-red-500/10 p-3">
+					<div className="flex items-center gap-2 text-red-400">
+						<Icon name="alert-triangle" height={16} width={16} />
+						<p className="text-sm">{paymentMutation.error.message}</p>
+					</div>
+				</div>
+			) : null}
 			<PaymentElement />
 			<button
 				type="submit"
-				disabled={!stripe || isProcessing}
+				disabled={!stripe || paymentMutation.isPending}
 				className="w-full rounded-lg bg-[#5C5CF9] px-6 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-50"
 			>
-				{isProcessing ? 'Processing...' : 'Complete Upgrade'}
+				{paymentMutation.isPending ? 'Processing...' : 'Complete Upgrade'}
 			</button>
 		</form>
 	)

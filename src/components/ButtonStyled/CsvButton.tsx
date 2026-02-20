@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, type ReactNode, Suspense, useCallback, useReducer } from 'react'
 import { toast } from 'react-hot-toast'
@@ -149,6 +149,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 			try {
 				if (onClickHandler) {
 					await Promise.resolve(onClickHandler())
+					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}
 
@@ -156,40 +157,51 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 					const { filename, rows } = prepareCsv()
 
 					download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}
 
 				toast.error('CSV download is not configured')
+				if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 				return false
 			} catch (error) {
 				if (prepareCsv) {
 					toast.error('Failed to download CSV')
 				}
 				console.log(error)
-				return false
-			} finally {
 				if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
+				return false
 			}
 		},
 		[onClickHandler, prepareCsv]
 	)
 
-	const trackCsvDownload = useCallback(async () => {
-		const response = await authorizedFetch(`${AUTH_SERVER}/user/track-csv-download`, { method: 'POST' })
-		if (!response?.ok) {
-			throw new Error('Failed to track CSV download')
+	const trackCsvDownloadMutation = useMutation({
+		mutationFn: async () => {
+			const response = await authorizedFetch(`${AUTH_SERVER}/user/track-csv-download`, { method: 'POST' })
+			if (!response?.ok) {
+				throw new Error('Failed to track CSV download')
+			}
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
 		}
-		await queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-	}, [authorizedFetch, queryClient])
+	})
+
+	const { mutateAsync: trackCsvDownload } = trackCsvDownloadMutation
 
 	const handleTrialConfirm = useCallback(async () => {
 		dispatch({ type: 'setTrialLoading', value: true })
+		let downloaded = false
 		try {
-			const downloaded = await runDownload(true)
-			if (!downloaded) return
-			await trackCsvDownload()
+			downloaded = await runDownload(true)
+			if (downloaded) {
+				await trackCsvDownload()
+			}
 		} catch (error) {
-			toast.error('Failed to update CSV download status')
+			toast.error(
+				downloaded ? 'CSV downloaded, but failed to record usage. Please refresh the page.' : 'Failed to download CSV'
+			)
 			console.log(error)
 		} finally {
 			dispatch({ type: 'setTrialLoading', value: false })

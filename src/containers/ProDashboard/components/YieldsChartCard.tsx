@@ -1,4 +1,5 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
@@ -8,7 +9,6 @@ import { download, formattedNum } from '~/utils'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { YieldsChartConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { useYieldChartTransformations } from './useYieldChartTransformations'
 

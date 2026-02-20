@@ -177,6 +177,9 @@ const mapChartTypeToConfig = (displayType: string): StablecoinChartType => {
 	return mapping[displayType] || 'totalMcap'
 }
 
+const ALL_CHAIN_CHARTS = ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
+const CHAIN_CHARTS = ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
+
 export function StablecoinsByChain({
 	selectedChain = 'All',
 	chains = EMPTY_CHAINS,
@@ -191,10 +194,10 @@ export function StablecoinsByChain({
 }: StablecoinsByChainProps) {
 	const [chartType, setChartType] = React.useState('Total Market Cap')
 
-	const chartTypeList =
-		selectedChain !== 'All'
-			? ['Total Market Cap', 'USD Inflows', 'Token Market Caps', 'Token Inflows', 'Pie', 'Dominance']
-			: ['Total Market Cap', 'Token Market Caps', 'Pie', 'Dominance', 'USD Inflows', 'Token Inflows']
+	const chartTypeList = React.useMemo(
+		() => (selectedChain !== 'All' ? CHAIN_CHARTS : ALL_CHAIN_CHARTS),
+		[selectedChain]
+	)
 
 	const { chartInstance: exportChartInstance, handleChartReady: handleExportChartReady } = useGetChartInstance()
 
@@ -270,7 +273,10 @@ export function StablecoinsByChain({
 			})
 		}, [chartDataByPeggedAsset, peggedAssetNames, filteredIndexes, selectedChain, doublecountedIds])
 
-	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) }))
+	const chainOptions = React.useMemo(
+		() => ['All', ...chains].map((label) => ({ label, to: handleRouting(label, router.query) })),
+		[chains, router.query]
+	)
 
 	const peggedTotals = useCalcCirculating<FormattedStablecoinAsset>(peggedAssets, includeUnreleased)
 
@@ -283,7 +289,20 @@ export function StablecoinsByChain({
 		includeUnreleased
 	)
 
-	const prepareCsv = () => {
+	// Keep chart dimensions in sync with the filtered indexes & remove doublecounted series.
+	// This prevents NaN/undefined values from crashing ECharts (especially stacked % charts like Dominance).
+	const filteredPeggedNames = React.useMemo(() => {
+		const doublecountedSet = new Set(doublecountedIds)
+		const names: string[] = []
+		for (const i of filteredIndexes) {
+			if (doublecountedSet.has(i)) continue
+			const name = peggedAssetNames[i]
+			if (typeof name === 'string' && name) names.push(name)
+		}
+		return names
+	}, [doublecountedIds, filteredIndexes, peggedAssetNames])
+
+	const prepareCsv = React.useCallback(() => {
 		const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', ...filteredPeggedNames, 'Total']]
 		const sortedData = [...stackedData].sort((a, b) => a.date - b.date)
 		for (const day of sortedData) {
@@ -291,13 +310,11 @@ export function StablecoinsByChain({
 				day.date,
 				toNiceCsvDate(day.date),
 				...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-				filteredPeggedNames.reduce((acc, curr) => {
-					return (acc += day[curr] ?? 0)
-				}, 0)
+				filteredPeggedNames.reduce((acc, curr) => acc + (day[curr] ?? 0), 0)
 			])
 		}
 		return { filename: 'stablecoins.csv', rows }
-	}
+	}, [filteredPeggedNames, stackedData])
 
 	let title = `Stablecoins Market Cap`
 	if (selectedChain !== 'All') {
@@ -351,19 +368,6 @@ export function StablecoinsByChain({
 		}),
 		[peggedAreaTotalData]
 	)
-
-	// Keep chart dimensions in sync with the filtered indexes & remove doublecounted series.
-	// This prevents NaN/undefined values from crashing ECharts (especially stacked % charts like Dominance).
-	const filteredPeggedNames = (() => {
-		const doublecountedSet = new Set(doublecountedIds)
-		const names: string[] = []
-		for (const i of filteredIndexes) {
-			if (doublecountedSet.has(i)) continue
-			const name = peggedAssetNames[i]
-			if (typeof name === 'string' && name) names.push(name)
-		}
-		return names
-	})()
 
 	const { tokenMcapsDataset, tokenMcapsCharts } = React.useMemo(
 		() => ({

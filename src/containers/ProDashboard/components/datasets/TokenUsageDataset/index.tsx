@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -9,6 +8,7 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
+import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
@@ -527,20 +527,20 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							/>
 						</div>
 						<div className="order-1 flex items-center gap-2 sm:order-2 sm:gap-3">
-								<button
-									type="button"
-									className="flex h-[38px] items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
-									onClick={handleIncludeCexChange}
-								>
-									<div className="relative h-4 w-4">
-										<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
-										<div
-											className={`h-4 w-4 border-2 transition-all ${
-												includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
-											}`}
-										>
-											{includeCex && (
-												<svg
+							<button
+								type="button"
+								className="flex h-[38px] items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
+								onClick={handleIncludeCexChange}
+							>
+								<div className="relative h-4 w-4">
+									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
+									<div
+										className={`h-4 w-4 border-2 transition-all ${
+											includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
+										}`}
+									>
+										{includeCex && (
+											<svg
 												className="h-3 w-3 text-white"
 												fill="currentColor"
 												viewBox="0 0 20 20"
@@ -555,9 +555,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 											</svg>
 										)}
 									</div>
-									</div>
-									<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
-								</button>
+								</div>
+								<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
+							</button>
 							<ProTableCSVButton
 								onClick={downloadCSV}
 								className="flex h-[38px] items-center gap-2 border pro-border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"

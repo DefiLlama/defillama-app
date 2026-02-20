@@ -171,23 +171,19 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
 	}
 
-	const useInvestorsQuery = (filters, hasSelectedFilters) => {
-		return useQuery({
-			queryKey: ['investors', filters],
-			queryFn: () => fetchInvestors(filters),
-			enabled: hasSelectedFilters,
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0
-		})
-	}
-
-	const { isLoading } = useInvestorsQuery(filters, hasSelectedFilters)
+	const { isLoading } = useQuery({
+		queryKey: ['investors', filters],
+		queryFn: () => fetchInvestors(filters),
+		enabled: hasSelectedFilters,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()
 		setIsSubmitting(true)
-		try {
+		const submitPayment = async () => {
 			const filtersData: Record<string, any> = {}
 			for (const key in filters) {
 				const v = filters[key]
@@ -197,19 +193,33 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 					}
 				}
 			}
+			const payload = { ...projectInfo, filters: filtersData }
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ ...projectInfo, filters: filtersData })
+				body: JSON.stringify(payload)
 			})
+			if (!response.ok) {
+				let message = `Payment request failed (${response.status})`
+				try {
+					const errorData = await response.json()
+					if (errorData.message) message = errorData.message
+				} catch {}
+				throw new Error(message)
+			}
 			const data = await response.json()
+			if (!data.link) {
+				throw new Error('No payment link returned')
+			}
 			window.location.href = data.link
 			setPaymentLink(data.link)
-		} catch (error) {
-			console.log('Error creating payment:', error)
-		} finally {
-			setIsSubmitting(false)
 		}
+		try {
+			await submitPayment()
+		} catch (error) {
+			console.error('Error creating payment:', error)
+		}
+		setIsSubmitting(false)
 	}
 
 	return (

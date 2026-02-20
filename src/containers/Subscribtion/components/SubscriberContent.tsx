@@ -301,20 +301,25 @@ export const SubscriberContent = ({
 											</div>
 
 											<div className="mb-2 h-3 overflow-hidden rounded-full bg-[#39393E]/20">
-												{credits && (
+												{credits && creditsLimit > 0 ? (
 													<div
-														className={`w-[ relative h-full${((credits / creditsLimit) * 100).toFixed(
-															1
-														)}%] bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]`}
+														className="relative h-full bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]"
+														style={{
+															width: `${Math.min(100, (credits / creditsLimit) * 100).toFixed(1)}%`
+														}}
 													>
 														<div className="absolute inset-0 animate-shimmer bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 													</div>
-												)}
+												) : null}
 											</div>
 
 											<div className="flex items-center justify-between text-xs text-[#8a8c90]">
 												<span>{credits ? `${credits.toLocaleString()} remaining` : 'No calls available'}</span>
-												<span>{credits ? `${((credits / creditsLimit) * 100).toFixed(1)}% remaining` : '-'}</span>
+												<span>
+													{credits && creditsLimit > 0
+														? `${((credits / creditsLimit) * 100).toFixed(1)}% remaining`
+														: '-'}
+												</span>
 											</div>
 										</div>
 
@@ -426,17 +431,17 @@ export const SubscriberContent = ({
 												<span className="text-xs font-medium text-white sm:text-sm">Active</span>
 											</div>
 										)}
-											<button
-												onClick={
-													hasProSubscription
-														? () => handleManageSubscription('llamafeed')
+										<button
+											onClick={
+												hasProSubscription
+													? () => handleManageSubscription('llamafeed')
 													: hasApiSubscription
 														? () => handleManageSubscription('api')
 														: undefined
-												}
-												disabled={isPortalSessionLoading}
-												className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
-											>
+											}
+											disabled={isPortalSessionLoading}
+											className="flex items-center gap-1.5 rounded-lg bg-[#5C5CF9]/10 px-3 py-1.5 text-xs font-medium text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/20 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+										>
 											{isPortalSessionLoading ? (
 												<>
 													<span className="h-3 w-3 animate-spin rounded-full border-2 border-[#5C5CF9]/30 border-t-[#5C5CF9]"></span>

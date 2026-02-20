@@ -315,19 +315,19 @@ export function SimpleTableConfig({
 							{selectedTokens.map((token) => {
 								const option = tokenOptionMap.get(token)
 								return (
-										<div key={token} className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1">
-											{option?.logo ? (
-												<Image
-													src={option.logo}
-													alt=""
-													width={16}
-													height={16}
-													unoptimized
-													className="h-4 w-4 rounded-full"
-													onError={(e) => {
-														e.currentTarget.style.display = 'none'
-													}}
-												/>
+									<div key={token} className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1">
+										{option?.logo ? (
+											<Image
+												src={option.logo}
+												alt=""
+												width={16}
+												height={16}
+												unoptimized
+												className="h-4 w-4 rounded-full"
+												onError={(e) => {
+													e.currentTarget.style.display = 'none'
+												}}
+											/>
 										) : (
 											<div className="h-4 w-4 rounded-full bg-(--bg-tertiary)" />
 										)}

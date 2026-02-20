@@ -312,6 +312,32 @@ function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 	}
 }
 
+function computeSettingsSnapshot<T extends TSETTINGTYPE>(keys: KeysFor<T>[], isClient: boolean): string {
+	let urlParams: URLSearchParams | null = null
+	if (isClient) {
+		urlParams = new URLSearchParams(window.location.search)
+	}
+	const ps = readAppStorage()
+	const obj = {} as Record<KeysFor<T>, boolean>
+	for (const s of keys) {
+		const storedValue = (ps as SettingsStore)[s as SettingKey]
+		let param: string | null = null
+		if (urlParams != null) {
+			param = urlParams.get(s)
+		}
+		let value: boolean
+		if (param) {
+			value = param === 'true'
+		} else if (typeof storedValue === 'boolean') {
+			value = storedValue
+		} else {
+			value = false
+		}
+		obj[s] = value
+	}
+	return JSON.stringify(obj)
+}
+
 export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 	type: T
 ): [Record<KeysFor<T>, boolean>, (key: KeysFor<T>) => void] {
@@ -321,31 +347,8 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => {
-			let urlParams: URLSearchParams | null = null
-			if (isClient) {
-				urlParams = new URLSearchParams(window.location.search)
-			}
 			try {
-				const ps = readAppStorage()
-				const obj = {} as Record<KeysFor<T>, boolean>
-				for (const s of keys) {
-					const storedValue = (ps as SettingsStore)[s as SettingKey]
-					let param: string | null = null
-					if (urlParams) {
-						param = urlParams.get(s)
-					}
-					let value: boolean
-					if (param) {
-						value = param === 'true'
-					} else if (typeof storedValue === 'boolean') {
-						value = storedValue
-					} else {
-						value = false
-					}
-					obj[s] = value
-				}
-
-				return JSON.stringify(obj)
+				return computeSettingsSnapshot(keys, isClient)
 			} catch {
 				return '{}'
 			}

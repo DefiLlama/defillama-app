@@ -113,9 +113,11 @@ function fillRoundedRect(
 	radius: number
 ) {
 	ctx.beginPath()
-	const anyCtx = ctx as unknown as { roundRect?: (...args: any[]) => void }
-	if (typeof anyCtx.roundRect === 'function') {
-		anyCtx.roundRect(x, y, width, height, radius)
+	const roundRectCtx = ctx as CanvasRenderingContext2D & {
+		roundRect?: (x: number, y: number, width: number, height: number, radius: number) => void
+	}
+	if (typeof roundRectCtx.roundRect === 'function') {
+		roundRectCtx.roundRect(x, y, width, height, radius)
 	} else {
 		const r = Math.min(radius, width / 2, height / 2)
 		ctx.moveTo(x + r, y)
@@ -155,12 +157,19 @@ export function KeyMetricsPngExportButton({
 		const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
 		const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'
 
-		try {
-			const hasPrimaryValue = hasTvlData && primaryValue != null
-			const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
+		const renderAndDownload = async () => {
+			let formattedPrimaryValue = ''
+			if (hasTvlData && primaryValue != null) {
+				const formatted = formatPrice(primaryValue)
+				if (formatted != null) {
+					formattedPrimaryValue = String(formatted)
+				}
+			}
+			const hasPrimaryValue = formattedPrimaryValue !== ''
 			const dpr = window.devicePixelRatio || 1
 			const primaryValueHeight = hasPrimaryValue ? 72 : 0
 			const container = containerRef.current
+			if (!container) return
 			const rows = extractRows(container)
 
 			if (!hasPrimaryValue) {
@@ -273,11 +282,13 @@ export function KeyMetricsPngExportButton({
 			const dataUrl = canvas.toDataURL('image/png')
 			const filename = `${chainName.toLowerCase().replace(/\s+/g, '-')}-key-metrics.png`
 			downloadDataURL(filename, dataUrl)
-		} catch (error) {
-			console.log('Error exporting key metrics:', error)
-		} finally {
-			setIsLoading(false)
 		}
+		try {
+			await renderAndDownload()
+		} catch (error) {
+			console.error('Error exporting key metrics:', error)
+		}
+		setIsLoading(false)
 	}
 
 	return (

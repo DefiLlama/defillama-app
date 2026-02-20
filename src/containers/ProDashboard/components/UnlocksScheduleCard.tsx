@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -9,7 +10,6 @@ import { download, slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { UnlocksScheduleConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart2 = lazy(
