@@ -1,11 +1,18 @@
 import { fetchLlamaConfig } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import {
+	fetchChainUsers,
+	fetchChainTransactions,
+	fetchChainNewUsers
+} from '~/containers/OnchainUsersAndTxs/api'
+import type {
+	IUserDataResponse,
+	ITxDataResponse,
+	INewAddressesResponse
+} from '~/containers/OnchainUsersAndTxs/api.types'
+import {
 	CHART_API,
 	COINGECKO_KEY,
-	PROTOCOL_ACTIVE_USERS_API,
-	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_TRANSACTIONS_API,
 	REV_PROTOCOLS,
 	TRADFI_API
 } from '~/constants'
@@ -232,18 +239,18 @@ export async function getChainOverviewData({
 						.catch(() => null),
 			!currentChainMetadata.activeUsers
 				? Promise.resolve(null)
-				: fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/chain$${currentChainMetadata.name}`)
-						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
+				: fetchChainUsers({ chainName: currentChainMetadata.name })
+						.then((data: IUserDataResponse | null) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			!currentChainMetadata.activeUsers
 				? Promise.resolve(null)
-				: fetchJson(`${PROTOCOL_TRANSACTIONS_API}/chain$${currentChainMetadata.name}`)
-						.then((data: Array<[number, string]>) => data?.[data?.length - 1]?.[1] ?? null)
+				: fetchChainTransactions({ chainName: currentChainMetadata.name })
+						.then((data: ITxDataResponse | null) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			!currentChainMetadata.activeUsers
 				? Promise.resolve(null)
-				: fetchJson(`${PROTOCOL_NEW_USERS_API}/chain$${currentChainMetadata.name}`)
-						.then((data: Array<[number, number]>) => data?.[data?.length - 1]?.[1] ?? null)
+				: fetchChainNewUsers({ chainName: currentChainMetadata.name })
+						.then((data: INewAddressesResponse | null) => data?.[data?.length - 1]?.[1] ?? null)
 						.catch(() => null),
 			fetchRaises(),
 			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),

@@ -2,10 +2,17 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import {
-	PROTOCOL_ACTIVE_USERS_API,
-	PROTOCOL_GAS_USED_API,
-	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_TRANSACTIONS_API,
+	fetchProtocolUsers,
+	fetchProtocolNewUsers,
+	fetchProtocolTransactions,
+	fetchProtocolGas
+} from '~/containers/OnchainUsersAndTxs/api'
+import type {
+	IUserDataResponse,
+	ITxDataResponse,
+	IGasDataResponse
+} from '~/containers/OnchainUsersAndTxs/api.types'
+import {
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
@@ -80,11 +87,11 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 	return useQuery({
 		queryKey: ['protocol-overview', 'active-users', protocolId],
 		queryFn: () =>
-			fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values: Array<[string | number, string | number]> | null) => {
+			fetchProtocolUsers({ protocolId: protocolId! })
+				.then((values: IUserDataResponse | null) => {
 					return values && values.length > 0
 						? values
-								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, val])
 								.sort((a, b) => a[0] - b[0])
 						: null
 				})
@@ -99,11 +106,11 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 	return useQuery({
 		queryKey: ['protocol-overview', 'new-users', protocolId],
 		queryFn: () =>
-			fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values: Array<[string | number, string | number]> | null) => {
+			fetchProtocolNewUsers({ protocolId: protocolId! })
+				.then((values: IUserDataResponse | null) => {
 					return values && values.length > 0
 						? values
-								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, val])
 								.sort((a, b) => a[0] - b[0])
 						: null
 				})
@@ -119,11 +126,11 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 	return useQuery({
 		queryKey: ['protocol-overview', 'transactions', protocolId],
 		queryFn: () =>
-			fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values: Array<[string | number, string | number]> | null) => {
+			fetchProtocolTransactions({ protocolId: protocolId! })
+				.then((values: ITxDataResponse | null) => {
 					return values && values.length > 0
 						? values
-								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
+								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, val])
 								.sort((a, b) => a[0] - b[0])
 						: null
 				})
@@ -140,8 +147,8 @@ const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 	return useQuery({
 		queryKey: ['protocol-overview', 'gas-used', protocolId],
 		queryFn: () =>
-			fetchJson(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values) => {
+			fetchProtocolGas({ protocolId: protocolId! })
+				.then((values: IGasDataResponse | null) => {
 					return values && values.length > 0 ? values : null
 				})
 				.catch(() => []),

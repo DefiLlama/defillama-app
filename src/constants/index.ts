@@ -12,20 +12,12 @@ export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 export const PROTOCOL_API = `${SERVER_URL}/updatedProtocol`
 export const PROTOCOL_API_MINI = `${SERVER_URL}/_fe/updatedProtocol-mini`
 export const CONFIG_API = `${SERVER_URL}/config`
-export const ORACLE_API = `${SERVER_URL}/oracles`
 export const CATEGORY_API = `${SERVER_URL}/categories`
 export const CATEGORY_CHART_API = `${SERVER_URL}/charts/categories`
 export const TAGS_CHART_API = `${SERVER_URL}/charts/tags`
 export const PROTOCOLS_BY_TOKEN_API = `${SERVER_URL}/tokenProtocols`
-export const PROTOCOL_TREASURY_API = `${SERVER_URL}/treasury`
 
 export const INFLOWS_API = `${SERVER_URL}/inflows`
-
-export const ACTIVE_USERS_API = `${SERVER_URL}/activeUsers`
-export const PROTOCOL_ACTIVE_USERS_API = `${SERVER_URL}/userData/users`
-export const PROTOCOL_TRANSACTIONS_API = `${SERVER_URL}/userData/txs`
-export const PROTOCOL_GAS_USED_API = `${SERVER_URL}/userData/gas`
-export const PROTOCOL_NEW_USERS_API = `${SERVER_URL}/userData/newusers`
 
 export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 
@@ -42,7 +34,6 @@ export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
 export const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
 export const BRIDGELARGETX_API = `${BRIDGES_SERVER_URL}/largetransactions`
 export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
-
 export const NETFLOWS_API = `${BRIDGES_SERVER_URL}/netflows`
 
 export const YIELDS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/yields` : 'https://yields.llama.fi'

@@ -4,12 +4,12 @@ import {
 	LIQUIDITY_API,
 	PROTOCOL_API,
 	PROTOCOL_API_MINI,
-	PROTOCOL_TREASURY_API,
 	TOKEN_LIQUIDITY_API,
 	YIELD_PROJECT_MEDIAN_API
 } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { fetchProtocolTreasuryChart } from '~/containers/ProtocolOverview/api'
 import { fetchProtocolEmission } from '~/containers/Unlocks/api'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
@@ -229,26 +229,9 @@ export default class ProtocolCharts {
 	static async treasury(protocol: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		try {
-			const res = await fetch(`${PROTOCOL_TREASURY_API}/${protocol}`)
-			if (!res.ok) return []
-			const data = await res.json()
-			const chainTvls = data?.chainTvls || {}
-			const store: Record<number, number> = {}
-			for (const key in chainTvls) {
-				const arr = chainTvls[key]?.tvl || []
-				for (const item of arr) {
-					const d = Number(item?.date)
-					const v = Number(item?.totalLiquidityUSD ?? 0)
-					if (!Number.isFinite(d) || !Number.isFinite(v)) continue
-					store[d] = (store[d] ?? 0) + v
-				}
-			}
-			const result: [number, number][] = []
-			for (const d in store) {
-				result.push([Number(d), store[d]])
-			}
-			result.sort((a, b) => a[0] - b[0])
-			return result
+			const data = await fetchProtocolTreasuryChart({ protocol: slug(protocol) })
+			if (!data) return []
+			return data.map(([timestampMs, value]) => [Math.floor(timestampMs / 1e3), value] as [number, number])
 		} catch (e) {
 			console.log('Error fetching protocol treasury', e)
 			return []

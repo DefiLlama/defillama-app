@@ -1,8 +1,6 @@
 import {
-	ACTIVE_USERS_API,
 	BRIDGEVOLUME_API_SLUG,
 	LIQUIDITY_API,
-	ORACLE_API,
 	oracleProtocols,
 	PROTOCOLS_API,
 	V2_SERVER_URL,
@@ -18,6 +16,9 @@ import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
+import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
+import type { IActiveAddressMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
+import { fetchOracleMetrics } from '~/containers/Oracles/api'
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
@@ -113,6 +114,11 @@ export const getProtocolOverviewPageData = async ({
 	isCEX?: boolean
 	chainMetadata: Record<string, IChainMetadata>
 }): Promise<IProtocolOverviewPageData> => {
+	const isOracleProtocol = !!(
+		currentProtocolMetadata.displayName &&
+		(oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName]
+	)
+
 	type IAdapterResult = ReturnType<typeof formatAdapterData>
 	type ITreasuryResult = {
 		majors: number | null
@@ -123,15 +129,20 @@ export const getProtocolOverviewPageData = async ({
 	} | null
 	type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
 	type IIncentivesResult = IProtocolOverviewPageData['incentives']
+	type IProtocolTvlChartResult = Array<[string, number]>
+	type IAdjustedSupplyResult = number | null
 	type IUsersResult = {
 		activeUsers: number | null
 		newUsers: number | null
 		transactions: number | null
 		gasUsd: number | null
 	} | null
+	type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
 	type ILiquidityInfoItem = { id: string; tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }> }
 	type ILiteProtocolItem = { category?: string; name: string; chains: Array<string>; tvl: number }
+	type ILiteProtocolsResult = { protocols: Array<ILiteProtocolItem> }
 	type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
+	type IOracleTvsResult = Record<string, number> | null
 
 	const [
 		protocolData,
@@ -165,7 +176,7 @@ export const getProtocolOverviewPageData = async ({
 		oracleTvs
 	]: [
 		IProtocolDataExtended | null,
-		Array<[string, number]>,
+		IProtocolTvlChartResult,
 		IAdapterResult,
 		IAdapterResult,
 		IAdapterResult,
@@ -183,16 +194,16 @@ export const getProtocolOverviewPageData = async ({
 		IYieldsDataResult,
 		IArticle[],
 		IIncentivesResult,
-		number | null,
+		IAdjustedSupplyResult,
 		IUsersResult,
 		IProtocolExpenses | null,
-		{ protocols?: Record<string, { name?: string }> } | null,
+		IYieldsConfigResult,
 		Array<ILiquidityInfoItem>,
-		{ protocols: Array<ILiteProtocolItem> },
+		ILiteProtocolsResult,
 		Array<IHackApiItem>,
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
-		Record<string, number> | null
+		IOracleTvsResult
 	] = await Promise.all([
 		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
 			async (data): Promise<IProtocolDataExtended | null> => {
@@ -215,7 +226,7 @@ export const getProtocolOverviewPageData = async ({
 				}
 			}
 		),
-		currentProtocolMetadata.tvl
+		currentProtocolMetadata.tvl && !isOracleProtocol
 			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName ?? '') })
 					.then(
 						(chart) => chart?.map(([date, value]): [string, number] => [String(Math.floor(date / 1e3)), value]) ?? []
@@ -384,9 +395,9 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		currentProtocolMetadata.activeUsers && protocolId
-			? fetchJson(ACTIVE_USERS_API, { timeout: 10_000 })
+			? fetchActiveAddresses()
 					.then((data) => data?.[protocolId] ?? null)
-					.then((data) => {
+					.then((data: IActiveAddressMetrics | null) => {
 						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
 							? {
 									activeUsers: data.users?.value ?? null,
@@ -425,20 +436,37 @@ export const getProtocolOverviewPageData = async ({
 		getProtocolIncomeStatement({ metadata: currentProtocolMetadata }),
 		currentProtocolMetadata.displayName &&
 		(oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName]
-			? fetchJson(ORACLE_API).then((data): Record<string, number> | null => {
-					const oracleName = (oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName ?? '']
-					let tvs: Record<string, number> = {}
-					for (const date in data.chainChart) {
-						tvs = data.chainChart[date]?.[oracleName] ?? {}
-					}
-					let hasTvs = false
-					for (const _ in tvs) {
-						hasTvs = true
-						break
-					}
-					if (!hasTvs) return null
-					return tvs
-				})
+			? fetchOracleMetrics()
+					.then((data): Record<string, number> | null => {
+						const displayName = currentProtocolMetadata.displayName ?? ''
+						const oracleName = (oracleProtocols as Record<string, string>)[displayName]
+						const protocolTvsByOracle = data?.oraclesTVS?.[oracleName]
+						if (!protocolTvsByOracle) return null
+						const tvs: Record<string, number> = {}
+
+						const displayNameTvs = protocolTvsByOracle[displayName]
+						const slugNameTvs = protocolTvsByOracle[slug(displayName)]
+						const selectedProtocolTvs: Record<string, Record<string, number>> = displayNameTvs
+							? { [displayName]: displayNameTvs }
+							: slugNameTvs
+								? { [slug(displayName)]: slugNameTvs }
+								: (protocolTvsByOracle as unknown as Record<string, Record<string, number>>)
+						for (const protocolKey in selectedProtocolTvs) {
+							const chainTvs = selectedProtocolTvs[protocolKey]
+							for (const chain in chainTvs) {
+								const nestedValue = Number(chainTvs[chain])
+								if (!Number.isFinite(nestedValue)) continue
+								tvs[chain] = (tvs[chain] ?? 0) + nestedValue
+							}
+						}
+						let hasTvs = false
+						for (const _ in tvs) {
+							hasTvs = true
+							break
+						}
+						return hasTvs ? tvs : null
+					})
+					.catch(() => null)
 			: null
 	])
 

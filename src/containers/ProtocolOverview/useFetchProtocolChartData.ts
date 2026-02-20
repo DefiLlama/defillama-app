@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, PROTOCOL_TREASURY_API, TOKEN_LIQUIDITY_API } from '~/constants'
+import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, TOKEN_LIQUIDITY_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
@@ -17,6 +17,7 @@ import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { fetchProtocolTreasuryChart } from './api'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
 
@@ -686,22 +687,7 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		queryFn: () =>
 			isTreasuryEnabled
-				? fetchJson(`${PROTOCOL_TREASURY_API}/${slug(name)}`).then(
-						(data: { chainTvls: Record<string, { tvl?: Array<{ date: string; totalLiquidityUSD?: number }> }> }) => {
-							const store: Record<string, number> = {}
-							for (const chain in data.chainTvls) {
-								if (chain.includes('-')) continue
-								for (const item of data.chainTvls[chain].tvl ?? []) {
-									store[item.date] = (store[item.date] ?? 0) + (item.totalLiquidityUSD ?? 0)
-								}
-							}
-							const finalChart: Array<[number, number]> = []
-							for (const date in store) {
-								finalChart.push([+date * 1e3, store[date]])
-							}
-							return finalChart
-						}
-					)
+				? fetchProtocolTreasuryChart({ protocol: protocolSlug })
 				: Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

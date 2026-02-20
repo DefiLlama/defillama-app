@@ -2,12 +2,14 @@ import {
 	CACHE_SERVER,
 	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
-	DIMENSIONS_SUMMARY_API,
-	PROTOCOL_ACTIVE_USERS_API,
-	PROTOCOL_GAS_USED_API,
-	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_TRANSACTIONS_API
+	DIMENSIONS_SUMMARY_API
 } from '~/constants'
+import {
+	ONCHAIN_ADDRESSES_API,
+	ONCHAIN_GAS_API,
+	ONCHAIN_NEW_ADDRESSES_API,
+	ONCHAIN_TXS_API
+} from '~/containers/OnchainUsersAndTxs/api'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
@@ -31,11 +33,11 @@ const CHART_METADATA = {
 	chainFees: { type: 'protocol', endpoint: 'fees' },
 	chainRevenue: { type: 'protocol', endpoint: 'fees', dataType: 'dailyRevenue' },
 
-	users: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
-	activeUsers: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
-	newUsers: { type: 'userMetrics', api: PROTOCOL_NEW_USERS_API },
-	txs: { type: 'userMetrics', api: PROTOCOL_TRANSACTIONS_API },
-	gasUsed: { type: 'userMetrics', api: PROTOCOL_GAS_USED_API },
+	users: { type: 'userMetrics', api: ONCHAIN_ADDRESSES_API },
+	activeUsers: { type: 'userMetrics', api: ONCHAIN_ADDRESSES_API },
+	newUsers: { type: 'userMetrics', api: ONCHAIN_NEW_ADDRESSES_API },
+	txs: { type: 'userMetrics', api: ONCHAIN_TXS_API },
+	gasUsed: { type: 'userMetrics', api: ONCHAIN_GAS_API },
 
 	stablecoins: { type: 'stablecoins' },
 	stablecoinInflows: { type: 'stablecoins', dataType: 'inflows' },

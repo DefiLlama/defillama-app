@@ -1526,24 +1526,31 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<SectionHeader id="methodology">Methodology</SectionHeader>
-			{props.methodologyURL ? (
+			{!props.oracleTvs && props.methodologyURL ? (
 				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
 					<span>{props.methodology ?? ''}</span>
-					{props.methodologyURL ? (
-						<span className="relative top-0.5 left-1 inline-block">
-							<Icon name="external-link" className="h-3.5 w-3.5" />
-							<span className="sr-only">View code on GitHub</span>
-						</span>
-					) : null}
+					<span className="relative top-0.5 left-1 inline-block">
+						<Icon name="external-link" className="h-3.5 w-3.5" />
+						<span className="sr-only">View code on GitHub</span>
+					</span>
 				</a>
-			) : props.methodology ? (
+			) : !props.oracleTvs && props.methodology ? (
 				<p>
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
 					<span>{props.methodology ?? ''}</span>
 				</p>
 			) : null}
-			{props.oracleTvs ? (
+			{props.oracleTvs && props.methodologyURL ? (
+				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
+					<span className="font-medium">TVS:</span>{' '}
+					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
+					<span className="relative top-0.5 left-1 inline-block">
+						<Icon name="external-link" className="h-3.5 w-3.5" />
+						<span className="sr-only">View code on GitHub</span>
+					</span>
+				</a>
+			) : props.oracleTvs ? (
 				<p>
 					<span className="font-medium">TVS:</span>{' '}
 					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
