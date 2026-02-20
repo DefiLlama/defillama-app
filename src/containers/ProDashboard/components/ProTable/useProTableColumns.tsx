@@ -1499,21 +1499,6 @@ export function useProTableColumns({
 			? 'rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) text-pro-blue-400 dark:text-pro-blue-200'
 			: 'rounded-md p-1 transition-colors hover:bg-(--bg-tertiary) text-(--text-tertiary)'
 
-		const renderFilterButton = (key: string) => (
-			<button
-				key={key}
-				type="button"
-				onClick={(event) => {
-					event.stopPropagation()
-					onFilterClick()
-				}}
-				className={filterButtonClassName}
-				title="Filter protocols"
-			>
-				<Icon name="settings" height={14} width={14} />
-			</button>
-		)
-
 		const originalNameColumn = protocolsByChainColumns.find((column) => column.id === 'name')
 		const originalCategoryColumn = protocolsByChainColumns.find((column) => column.id === 'category')
 		const originalOraclesColumn = protocolsByChainColumns.find((column) => column.id === 'oracles')
@@ -1527,7 +1512,17 @@ export function useProTableColumns({
 						header: () => (
 							<div className="flex items-center gap-2">
 								<span>Name</span>
-								{renderFilterButton('name-filter')}
+								<button
+									type="button"
+									onClick={(event) => {
+										event.stopPropagation()
+										onFilterClick()
+									}}
+									className={filterButtonClassName}
+									title="Filter protocols"
+								>
+									<Icon name="settings" height={14} width={14} />
+								</button>
 							</div>
 						)
 					}
@@ -1541,7 +1536,17 @@ export function useProTableColumns({
 						header: () => (
 							<div className="flex items-center justify-end gap-2">
 								<span>Category</span>
-								{renderFilterButton('category-filter')}
+								<button
+									type="button"
+									onClick={(event) => {
+										event.stopPropagation()
+										onFilterClick()
+									}}
+									className={filterButtonClassName}
+									title="Filter protocols"
+								>
+									<Icon name="settings" height={14} width={14} />
+								</button>
 							</div>
 						)
 					}
@@ -1555,7 +1560,17 @@ export function useProTableColumns({
 						header: () => (
 							<div className="flex items-center justify-end gap-2">
 								<span>Oracles</span>
-								{renderFilterButton('oracles-filter')}
+								<button
+									type="button"
+									onClick={(event) => {
+										event.stopPropagation()
+										onFilterClick()
+									}}
+									className={filterButtonClassName}
+									title="Filter protocols"
+								>
+									<Icon name="settings" height={14} width={14} />
+								</button>
 							</div>
 						)
 					}
