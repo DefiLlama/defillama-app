@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { MultiSelectOption } from '~/components/Select/types'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -36,6 +36,7 @@ export function AriakitVirtualizedMultiSelect({
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
 	const isPopoverOpen = useStoreState(popover, 'open')
+	const disclosureId = useId()
 
 	const filteredOptions = useMemo(() => {
 		if (!search) return options
@@ -92,7 +93,7 @@ export function AriakitVirtualizedMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="mb-1 block text-[11px] font-medium pro-text2">
+			<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
 					<span className="ml-1 text-xs pro-text3">
@@ -108,6 +109,7 @@ export function AriakitVirtualizedMultiSelect({
 			) : (
 				<>
 					<PopoverDisclosure
+						id={disclosureId}
 						store={popover}
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
