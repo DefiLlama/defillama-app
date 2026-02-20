@@ -75,11 +75,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 
 	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts } =
 		useMemo(() => {
-			const defaultEnabledChartSet = new Set<ProtocolChartsLabels>([
-				...props.defaultToggledCharts,
-				...(props.availableCharts.includes('TVL') ? (['TVL'] as const) : []),
-				...(props.availableCharts.includes('Total Assets') ? (['Total Assets'] as const) : [])
-			])
+			const defaultEnabledChartSet = new Set<ProtocolChartsLabels>(props.defaultToggledCharts)
 			const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
 			const chartsByVisibility: Record<string, 'true' | 'false'> = {}
 			for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {

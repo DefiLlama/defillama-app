@@ -44,15 +44,20 @@ export function normalizeBridgeVolumeToChartMs(
 ): IProtocolNumericSeries | null {
 	if (!bridgeVolumeData?.length) return null
 
-	const byDate: Record<string, number> = {}
+	// Match BridgeVolume in index.tsx: sum per-item midpoint volumes for the same date.
+	const sumByDate: Record<string, number> = {}
 	for (const item of bridgeVolumeData) {
-		byDate[item.date] = (byDate[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
+		sumByDate[item.date] = (sumByDate[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
 	}
 
-	const chart = Object.entries(byDate)
-		.map(([date, value]): [number, number] => [Number(date) * 1e3, value])
-		.filter(([timestampMs, value]) => Number.isFinite(timestampMs) && Number.isFinite(value))
-		.sort((a, b) => a[0] - b[0])
+	const chart: IProtocolNumericSeries = []
+	for (const date in sumByDate) {
+		const timestampMs = Number(date) * 1e3
+		const value = sumByDate[date]
+		if (!Number.isFinite(timestampMs) || !Number.isFinite(value)) continue
+		chart.push([timestampMs, value])
+	}
+	chart.sort((a, b) => a[0] - b[0])
 
 	return chart.length > 0 ? chart : null
 }

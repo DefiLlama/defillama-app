@@ -22,7 +22,7 @@ export function usePrefetchedProtocolChartQuery({
 
 	const { data: fetchedData = null, isLoading } = useQuery<Array<[number, number]> | null>({
 		queryKey,
-		queryFn: () => (shouldFetch ? queryFn() : Promise.resolve(null)),
+		queryFn,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

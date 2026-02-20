@@ -237,6 +237,18 @@ export const useFetchProtocolChartData = ({
 		}
 		return normalized
 	}, [initialMultiSeriesChartData])
+	const prefetchedChartsForMsRender = useMemo(() => {
+		const normalized: Partial<Record<ProtocolChartsLabels, Array<[number, number]>>> = { ...prefetchedChartsInSeconds }
+		const treasurySeries = prefetchedChartsInSeconds['Treasury']
+		if (treasurySeries?.length) {
+			normalized['Treasury'] = normalizeSeriesToMilliseconds(treasurySeries)
+		}
+		const bridgeVolumeSeries = prefetchedChartsInSeconds['Bridge Volume']
+		if (bridgeVolumeSeries?.length) {
+			normalized['Bridge Volume'] = normalizeSeriesToMilliseconds(bridgeVolumeSeries)
+		}
+		return normalized
+	}, [prefetchedChartsInSeconds])
 
 	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<Record<
@@ -627,7 +639,7 @@ export const useFetchProtocolChartData = ({
 	const isTreasuryEnabled = !!(toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady)
 	const { data: treasuryData, isLoading: fetchingTreasury } = usePrefetchedProtocolChartQuery({
 		label: 'Treasury',
-		prefetchedCharts: prefetchedChartsInSeconds,
+		prefetchedCharts: prefetchedChartsForMsRender,
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		enabled: isTreasuryEnabled,
 		queryFn: () => fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((chart) => normalizeSeriesToMilliseconds(chart))
@@ -652,7 +664,7 @@ export const useFetchProtocolChartData = ({
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
 	const { data: bridgeVolumeData, isLoading: fetchingBridgeVolume } = usePrefetchedProtocolChartQuery({
 		label: 'Bridge Volume',
-		prefetchedCharts: prefetchedChartsInSeconds,
+		prefetchedCharts: prefetchedChartsForMsRender,
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-volume'],
 		enabled: isBridgeVolumeEnabled,
 		queryFn: () =>

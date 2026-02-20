@@ -4,7 +4,7 @@ import type { ProtocolChartsLabels } from './constants'
 type AdapterChartRequest = Omit<Parameters<typeof fetchAdapterProtocolChartData>[0], 'protocol'>
 type AdapterMetricsRequest = Omit<Parameters<typeof fetchAdapterProtocolMetrics>[0], 'protocol'>
 
-interface IAdapterChartDescriptor {
+export interface IAdapterChartDescriptor {
 	label: ProtocolChartsLabels
 	chartRequest: AdapterChartRequest
 	metricsRequest: AdapterMetricsRequest
