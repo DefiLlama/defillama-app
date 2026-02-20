@@ -107,8 +107,7 @@ export function PromptInput({
 			highlightRef.current.innerHTML = highlightWord(text, Array.from(entityCombobox.entitiesRef.current))
 		}
 
-		entityCombobox.combobox.setValue('')
-		entityCombobox.combobox.hide()
+		entityCombobox.clearSearch()
 
 		return () => {
 			cancelled = true

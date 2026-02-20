@@ -20,16 +20,15 @@ interface UseEntityComboboxOptions {
 
 export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: UseEntityComboboxOptions) {
 	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
+	const [searchTerm, setSearchTerm] = useState('')
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, EntityData>>(new Map())
 	const isProgrammaticUpdateRef = useRef(false)
-	// Track IME composition state to avoid interfering with Japanese/Chinese/Korean input
 	const isComposingRef = useRef(false)
 
 	const combobox = Ariakit.useComboboxStore()
-	const searchValue = Ariakit.useStoreState(combobox, 'value')
 
-	const { data: matches, isFetching, isLoading } = useGetEntities(searchValue)
+	const { data: matches, isFetching, isLoading } = useGetEntities(searchTerm)
 
 	const hasMatches = matches && matches.length > 0
 
@@ -58,14 +57,14 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		if (triggerState.isActive && !triggerState.isTriggerOnly) {
 			setIsTriggerOnly(false)
 			combobox.show()
-			combobox.setValue(triggerState.searchValueWithTrigger)
+			setSearchTerm(triggerState.searchValueWithTrigger)
 		} else if (triggerState.isActive && triggerState.isTriggerOnly) {
 			setIsTriggerOnly(true)
 			combobox.show()
-			combobox.setValue(triggerState.searchValueWithTrigger)
+			setSearchTerm(triggerState.searchValueWithTrigger)
 		} else {
 			setIsTriggerOnly(false)
-			combobox.setValue('')
+			setSearchTerm('')
 			combobox.hide()
 		}
 	}
@@ -132,7 +131,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 					textarea.value = newValue
 					setValue(newValue)
 					setInputSize(promptInputRef, highlightRef)
-					combobox.setValue('')
+					setSearchTerm('')
 					combobox.hide()
 
 					entitiesRef.current.delete(entityName)
@@ -172,10 +171,10 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		entitiesRef.current.add(name)
 		entitiesMapRef.current.set(name, { id, name, type })
 
-		const getNewValue = replaceValue(triggerState.triggerOffset, searchValue, name)
+		const getNewValue = replaceValue(triggerState.triggerOffset, searchTerm, name)
 		const newValue = getNewValue(textarea.value)
 
-		combobox.setValue('')
+		setSearchTerm('')
 		combobox.hide()
 
 		isProgrammaticUpdateRef.current = true
@@ -221,7 +220,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 	}
 
 	const resetCombobox = () => {
-		combobox.setValue('')
+		setSearchTerm('')
 		combobox.hide()
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
@@ -249,9 +248,14 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		isProgrammaticUpdateRef.current = value
 	}, [])
 
+	const clearSearch = useCallback(() => {
+		setSearchTerm('')
+		combobox.hide()
+	}, [combobox])
+
 	return {
 		combobox,
-		searchValue,
+		searchTerm,
 		matches,
 		hasMatches,
 		isFetching,
@@ -268,6 +272,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		selectEntity,
 		getFinalEntities,
 		restoreEntities,
-		resetCombobox
+		resetCombobox,
+		clearSearch
 	}
 }
