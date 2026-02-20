@@ -176,7 +176,7 @@ export function ColumnManager({
 	const [autocompleteIndex, setAutocompleteIndex] = useState(-1)
 	const [autocompleteFilter, setAutocompleteFilter] = useState('')
 	const expressionInputRef = useRef<HTMLInputElement>(null)
-	const aggregationTouchedRef = useRef(false)
+	const [aggregationTouched, setAggregationTouched] = useState(false)
 
 	const allColumns = useMemo(() => buildAllColumns(customColumns), [customColumns])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((c) => c.id)), [allColumns])
@@ -337,14 +337,12 @@ export function ColumnManager({
 					value,
 					formatted: formatPreviewNumber(value, meta?.format ?? 'number')
 				}
-			})
+				})
 	}, [customExpression, expressionValidation.isValid, availableVariables])
-
-	useEffect(() => {
-		if (customExpression && expressionValidation.isValid && !editingId && !aggregationTouchedRef.current) {
-			setCustomAggregation(getDefaultAggregation(customExpression))
-		}
-	}, [customExpression, expressionValidation.isValid, editingId])
+	const resolvedCustomAggregation =
+		customExpression && expressionValidation.isValid && !editingId && !aggregationTouched
+			? getDefaultAggregation(customExpression)
+			: customAggregation
 
 	const insertSuggestion = (suggestion: AutocompleteSuggestion) => {
 		if (!expressionInputRef.current) return
@@ -354,7 +352,7 @@ export function ColumnManager({
 		const value = input.value
 
 		let wordStart = start
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) wordStart--
+		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) wordStart -= 1
 
 		const newValue = value.slice(0, wordStart) + suggestion.value + value.slice(end)
 		setCustomExpression(newValue)
@@ -376,7 +374,7 @@ export function ColumnManager({
 		setCustomExpression(newValue)
 
 		let wordStart = cursorPos
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) wordStart--
+		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) wordStart -= 1
 		const currentWord = newValue.slice(wordStart, cursorPos)
 
 		if (currentWord.length >= 1) {
@@ -430,7 +428,7 @@ export function ColumnManager({
 			name: customName.trim(),
 			expression: customExpression.trim(),
 			format: customFormat,
-			aggregation: customAggregation
+			aggregation: resolvedCustomAggregation
 		}
 		if (editingId && onUpdateCustomColumn) {
 			onUpdateCustomColumn(editingId, {
@@ -443,7 +441,7 @@ export function ColumnManager({
 		} else if (onAddCustomColumn) {
 			onAddCustomColumn(column)
 		}
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName('')
 		setCustomExpression('')
 		setCustomFormat('number')
@@ -452,7 +450,7 @@ export function ColumnManager({
 	}
 
 	const handleApplyPreset = (preset: (typeof EXAMPLE_PRESETS)[0]) => {
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName(preset.name)
 		setCustomExpression(preset.expression)
 		setCustomFormat(preset.format)
@@ -470,7 +468,7 @@ export function ColumnManager({
 	}
 
 	const handleCancelEdit = () => {
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName('')
 		setCustomExpression('')
 		setCustomFormat('number')
@@ -650,7 +648,7 @@ export function ColumnManager({
 							/>
 						</div>
 
-						<div className="relative" onClick={(e) => e.stopPropagation()}>
+							<div className="relative" role="presentation" onClick={(e) => e.stopPropagation()}>
 							<input
 								ref={expressionInputRef}
 								type="text"
@@ -677,18 +675,19 @@ export function ColumnManager({
 								</div>
 							)}
 							{showAutocomplete && filteredSuggestions.length > 0 && (
-								<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
-									{filteredSuggestions.map((suggestion, index) => (
-										<div
-											key={`${suggestion.type}-${suggestion.value}`}
-											onClick={() => insertSuggestion(suggestion)}
-											onMouseEnter={() => setAutocompleteIndex(index)}
-											className={`flex cursor-pointer items-center gap-2 px-2 py-1 text-xs ${
-												index === autocompleteIndex
-													? 'bg-(--primary) text-white'
-													: 'text-(--text-primary) hover:bg-(--cards-bg-alt)'
-											}`}
-										>
+									<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
+										{filteredSuggestions.map((suggestion, index) => (
+											<button
+												key={`${suggestion.type}-${suggestion.value}`}
+												type="button"
+												onClick={() => insertSuggestion(suggestion)}
+												onMouseEnter={() => setAutocompleteIndex(index)}
+												className={`flex cursor-pointer items-center gap-2 px-2 py-1 text-xs ${
+													index === autocompleteIndex
+														? 'bg-(--primary) text-white'
+														: 'text-(--text-primary) hover:bg-(--cards-bg-alt)'
+												}`}
+											>
 											<span
 												className={`h-1.5 w-1.5 shrink-0 rounded-full ${
 													suggestion.type === 'variable'
@@ -698,19 +697,19 @@ export function ColumnManager({
 															: 'bg-gray-400'
 												}`}
 											/>
-											<code className="shrink-0">{suggestion.display}</code>
-											<span className="ml-auto truncate text-(--text-tertiary)">{suggestion.description}</span>
-										</div>
-									))}
-								</div>
-							)}
-						</div>
+												<code className="shrink-0">{suggestion.display}</code>
+												<span className="ml-auto truncate text-(--text-tertiary)">{suggestion.description}</span>
+											</button>
+										))}
+									</div>
+								)}
+							</div>
 						<p className="text-[9px] text-(--text-tertiary)">Ctrl+Space to show all · ↑↓ navigate · Enter select</p>
 
 						<div className="flex flex-wrap gap-2">
-							<div className="flex-1">
-								<label className="mb-1 block text-[10px] font-medium text-(--text-secondary)">Format</label>
-								<div className="flex gap-1">
+								<div className="flex-1">
+									<p className="mb-1 text-[10px] font-medium text-(--text-secondary)">Format</p>
+									<div className="flex gap-1">
 									{FORMAT_OPTIONS.map((opt) => (
 										<Tooltip key={opt.id} content={opt.description} placement="bottom">
 											<button
@@ -727,23 +726,23 @@ export function ColumnManager({
 										</Tooltip>
 									))}
 								</div>
-							</div>
-							<div className="flex-1">
-								<label className="mb-1 block text-[10px] font-medium text-(--text-secondary)">Aggregation</label>
-								<div className="flex gap-1">
+								</div>
+								<div className="flex-1">
+									<p className="mb-1 text-[10px] font-medium text-(--text-secondary)">Aggregation</p>
+									<div className="flex gap-1">
 									{AGGREGATION_OPTIONS.map((opt) => (
 										<Tooltip key={opt.id} content={opt.description} placement="bottom">
-											<button
-												type="button"
-												onClick={() => {
-													aggregationTouchedRef.current = true
-													setCustomAggregation(opt.id)
-												}}
-												className={`flex-1 rounded-md border px-1 py-1 text-[10px] font-medium transition-colors ${
-													customAggregation === opt.id
-														? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
-														: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
-												}`}
+												<button
+													type="button"
+													onClick={() => {
+														setAggregationTouched(true)
+														setCustomAggregation(opt.id)
+													}}
+													className={`flex-1 rounded-md border px-1 py-1 text-[10px] font-medium transition-colors ${
+														resolvedCustomAggregation === opt.id
+															? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
+															: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
+													}`}
 											>
 												{opt.label}
 											</button>

@@ -47,6 +47,8 @@ const LOCKED_UNLOCKED_COLORS = {
 	Unlocked: '#0c5dff',
 	Locked: '#ff4e21'
 }
+const TODAY_TIMESTAMP_SECONDS = Math.floor(Date.now() / 1000)
+const UNLOCKS_END_DATE_SECONDS = TODAY_TIMESTAMP_SECONDS + 30 * 24 * 60 * 60
 
 export function UnlocksChartTab({
 	selectedUnlocksProtocol,
@@ -58,12 +60,8 @@ export function UnlocksChartTab({
 	protocolOptions,
 	protocolsLoading
 }: UnlocksChartTabProps) {
-	const unlocksEndDate = useMemo(() => Date.now() / 1000 + 30 * 24 * 60 * 60, [])
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
-	const todayHallmarks = useMemo<[number, string][]>(
-		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
-		[todayTimestamp]
-	)
+	const unlocksEndDate = UNLOCKS_END_DATE_SECONDS
+	const todayHallmarks = useMemo<[number, string][]>(() => [[TODAY_TIMESTAMP_SECONDS, toNiceDayMonthYear(TODAY_TIMESTAMP_SECONDS)]], [])
 	const { data: unlocksProtocols, isLoading: unlocksProtocolsLoading } = useQuery({
 		queryKey: ['unlocks-protocols', unlocksEndDate],
 		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate, getHistoricalPrices: false }),

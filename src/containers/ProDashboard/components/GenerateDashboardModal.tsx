@@ -195,78 +195,90 @@ export function GenerateDashboardModal({
 		}
 
 		setIsLoading(true)
-
+		let response: Response | null | undefined
 		try {
-			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
+			response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(requestBody)
 			})
-
-			if (!response) {
-				throw new Error('Authentication failed')
-			}
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`)
-			}
-
-			const data = await response.json()
-
-			if (!data.dashboardConfig) {
-				throw new Error('Invalid response format from AI service')
-			}
-			if (!Array.isArray(data.dashboardConfig.items)) {
-				throw new Error('Invalid response format from AI service')
-			}
-
-			const items = data.dashboardConfig.items as DashboardItemConfig[]
-			let sessionId: string | undefined
-			if (data.metadata && typeof data.metadata.sessionId === 'string') {
-				sessionId = data.metadata.sessionId
-			}
-			let generationMode: 'create' | 'iterate' = mode
-			if (data.metadata && (data.metadata.mode === 'create' || data.metadata.mode === 'iterate')) {
-				generationMode = data.metadata.mode
-			}
-
-			let aiGenerationContext:
-				| { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string }
-				| undefined
-			if (sessionId) {
-				aiGenerationContext = {
-					sessionId,
-					mode: generationMode,
-					timestamp: new Date().toISOString(),
-					prompt: aiDescription.trim()
-				}
-			}
-
-			onGenerate({
-				dashboardName: dashboardNameForGenerate,
-				visibility: visibilityForGenerate,
-				tags: tagsForGenerate,
-				description: descriptionForGenerate,
-				items,
-				aiGenerationContext
-			})
-
-			setDashboardName('')
-			setAiDescription('')
-			setVisibility('public')
-			setTags([])
-			setTagInput('')
-			setErrors({})
-			setTouchedFields({})
-			onClose()
 		} catch (error) {
 			console.error('Failed to generate dashboard:', error)
 			toast.error('Failed to generate dashboard. Please try again.')
-		} finally {
 			setIsLoading(false)
+			return
 		}
+
+		if (!response) {
+			toast.error('Authentication failed. Please sign in again.')
+			setIsLoading(false)
+			return
+		}
+
+		if (!response.ok) {
+			toast.error('Failed to generate dashboard. Please try again.')
+			setIsLoading(false)
+			return
+		}
+
+		let data: any
+		try {
+			data = await response.json()
+		} catch (error) {
+			console.error('Failed to parse dashboard response:', error)
+			toast.error('Invalid response format from AI service')
+			setIsLoading(false)
+			return
+		}
+
+		if (!data.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
+			toast.error('Invalid response format from AI service')
+			setIsLoading(false)
+			return
+		}
+
+		const items = data.dashboardConfig.items as DashboardItemConfig[]
+		let sessionId: string | undefined
+		if (data.metadata && typeof data.metadata.sessionId === 'string') {
+			sessionId = data.metadata.sessionId
+		}
+		let generationMode: 'create' | 'iterate' = mode
+		if (data.metadata && (data.metadata.mode === 'create' || data.metadata.mode === 'iterate')) {
+			generationMode = data.metadata.mode
+		}
+
+		let aiGenerationContext:
+			| { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string }
+			| undefined
+		if (sessionId) {
+			aiGenerationContext = {
+				sessionId,
+				mode: generationMode,
+				timestamp: new Date().toISOString(),
+				prompt: aiDescription.trim()
+			}
+		}
+
+		onGenerate({
+			dashboardName: dashboardNameForGenerate,
+			visibility: visibilityForGenerate,
+			tags: tagsForGenerate,
+			description: descriptionForGenerate,
+			items,
+			aiGenerationContext
+		})
+
+		setDashboardName('')
+		setAiDescription('')
+		setVisibility('public')
+		setTags([])
+		setTagInput('')
+		setErrors({})
+		setTouchedFields({})
+		onClose()
+		setIsLoading(false)
 	}
 
 	const handleClose = () => {

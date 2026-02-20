@@ -9,6 +9,8 @@ import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
 import { type YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { YieldsTableHeader } from './YieldsTableHeader'
 
+const FALLBACK_YIELDS_TABLE_ID = `yields-table-${Date.now()}`
+
 interface YieldsDatasetProps {
 	chains?: string[]
 	tableId?: string
@@ -27,8 +29,7 @@ export function YieldsDataset({
 	const { data, isLoading, error } = useYieldsData(chains)
 	const { handleTableColumnsChange, handleTableFiltersChange } = useProDashboardEditorActions()
 
-	const fallbackTableId = React.useMemo(() => `yields-table-${Date.now()}`, [])
-	const uniqueTableId = tableId || fallbackTableId
+	const uniqueTableId = tableId || FALLBACK_YIELDS_TABLE_ID
 
 	const {
 		table,

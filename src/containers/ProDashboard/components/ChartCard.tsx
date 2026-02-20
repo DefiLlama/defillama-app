@@ -40,6 +40,7 @@ interface ChartRendererProps {
 const userMetricTypes = ['users', 'activeUsers', 'newUsers', 'txs', 'gasUsed']
 const percentMetricTypes = ['medianApy']
 const ratioMetricTypes = ['pfRatio', 'psRatio']
+const TODAY_TIMESTAMP_SECONDS = Math.floor(Date.now() / 1000)
 const CUMULATIVE_DISPLAY_OPTIONS = [
 	{ name: 'Show individual values', key: 'Individual' },
 	{ name: 'Show cumulative values', key: 'Cumulative' }
@@ -56,7 +57,6 @@ function ChartRenderer({
 	onChartReady
 }: ChartRendererProps) {
 	const chartType = CHART_TYPES[type]
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
 
 	if (isLoading) {
 		return (
@@ -86,10 +86,10 @@ function ChartRenderer({
 		userMetricTypes.includes(type) || ratioMetricTypes.includes(type)
 			? ''
 			: percentMetricTypes.includes(type)
-				? '%'
-				: '$'
+					? '%'
+					: '$'
 	const todayHallmarks: [number, string][] | null =
-		type === 'unlocks' ? [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]] : null
+		type === 'unlocks' ? [[TODAY_TIMESTAMP_SECONDS, toNiceDayMonthYear(TODAY_TIMESTAMP_SECONDS)]] : null
 
 	return (
 		<Suspense fallback={<div className="h-[300px]" />}>

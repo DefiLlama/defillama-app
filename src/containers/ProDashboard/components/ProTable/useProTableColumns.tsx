@@ -355,7 +355,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
+const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		id: 'name',
 		header: 'Name',
@@ -1401,22 +1401,25 @@ export function useProTableColumns({
 			(compiled): ColumnDef<IProtocolRow> => ({
 				id: compiled.column.id,
 				header: compiled.column.name,
-				accessorFn: (row) => {
-					const context: Record<string, number> = {}
-					for (const baseColumn of protocolsByChainTableColumns) {
-						const value = Reflect.get(row, baseColumn.key)
-						const numericValue = coerceToNumber(value)
+					accessorFn: (row) => {
+						const context: Record<string, number> = {}
+						for (const baseColumn of protocolsByChainTableColumns) {
+							const value = Reflect.get(row, baseColumn.key)
+							const numericValue = coerceToNumber(value)
 						if (numericValue !== null) {
 							context[baseColumn.key] = numericValue
 						}
-					}
-					try {
-						const result = compiled.expression.evaluate(context)
-						return typeof result === 'number' && Number.isFinite(result) ? result : null
-					} catch {
-						return null
-					}
-				},
+						}
+						let result: unknown
+						try {
+							result = compiled.expression.evaluate(context)
+						} catch {
+							return null
+						}
+						if (typeof result !== 'number') return null
+						if (!Number.isFinite(result)) return null
+						return result
+					},
 				cell: ({ getValue }) => {
 					const value = getValue()
 					return typeof value === 'number' ? formatCurrencyShort(value) : '-'

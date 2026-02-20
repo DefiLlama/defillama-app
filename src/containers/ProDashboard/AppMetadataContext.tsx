@@ -37,6 +37,7 @@ type AppMetadataContextType = {
 }
 
 const AppMetadataContext = createContext<AppMetadataContextType | undefined>(undefined)
+const INITIAL_METADATA_TIMESTAMP = Date.now()
 
 const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags> = {
 	tvl: 'tvl',
@@ -100,11 +101,11 @@ export function AppMetadataProvider({
 			])
 
 			return { protocols, chains, pfPs }
-		},
-		initialData: initialData ?? undefined,
-		staleTime: initialData ? Infinity : 0,
-		initialDataUpdatedAt: initialData ? Date.now() : undefined
-	})
+			},
+			initialData: initialData ?? undefined,
+			staleTime: initialData ? Infinity : 0,
+			initialDataUpdatedAt: initialData ? INITIAL_METADATA_TIMESTAMP : undefined
+		})
 
 	const error = queryError ? String(queryError.message) : undefined
 	const protocolsRaw = rawData?.protocols ?? null

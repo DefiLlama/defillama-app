@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
@@ -32,33 +32,27 @@ interface CreateDashboardPickerProps {
 	comparisonPreset?: ComparisonPreset | null
 }
 
+async function fetchChainsByCategory(category: string): Promise<{ category: string; chains: string[] }> {
+	return fetch(`${CHAINS_API_V2}/${encodeURIComponent(category)}`)
+		.then((res) => (res.ok ? res.json() : null))
+		.then((data) => {
+			const chains = Array.isArray(data?.chainsUnique) ? (data.chainsUnique as string[]) : []
+			return { category, chains }
+		})
+		.catch(() => ({ category, chains: [] }))
+}
+
 export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
-	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
+	const [comparisonPresetHandled, setComparisonPresetHandled] = useState(false)
 	const { protocols, chains } = useProDashboardCatalog()
 	const { protocolsBySlug } = useAppMetadata()
-	const appliedPresetRef = useRef(false)
 
 	const { data: chainCategoriesData } = useQuery({
 		queryKey: ['chain-categories-for-templates'],
 		queryFn: async () => {
 			const categoriesToFetch = ['Rollup']
-			const results = await Promise.all(
-				categoriesToFetch.map(async (cat) => {
-					try {
-						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
-						if (!res.ok) return { category: cat, chains: [] as string[] }
-						const data = await res.json()
-						let chains: string[] = []
-						if (data && data.chainsUnique) {
-							chains = data.chainsUnique as string[]
-						}
-						return { category: cat, chains }
-					} catch {
-						return { category: cat, chains: [] as string[] }
-					}
-				})
-			)
+			const results = await Promise.all(categoriesToFetch.map((category) => fetchChainsByCategory(category)))
 			return results
 		},
 		staleTime: 60 * 60 * 1000
@@ -75,21 +69,11 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	}, [chainCategoriesData])
 
 	const { dimensionProtocols } = useDimensionProtocols()
-
-	useEffect(() => {
-		if (!isOpen) {
-			setMode(() => 'picker')
-			appliedPresetRef.current = false
-			return
-		}
-		if (comparisonPreset && !appliedPresetRef.current) {
-			setMode(() => 'comparison')
-			appliedPresetRef.current = true
-		}
-	}, [comparisonPreset, isOpen])
+	const effectiveMode: PickerMode = comparisonPreset && !comparisonPresetHandled ? 'comparison' : mode
 
 	const handleClose = () => {
 		setMode('picker')
+		setComparisonPresetHandled(false)
 		dialogStore.toggle()
 	}
 
@@ -101,6 +85,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	}) => {
 		onCreate(data)
 		setMode('picker')
+		setComparisonPresetHandled(false)
 	}
 
 	const handleCreateComparison = (data: {
@@ -112,10 +97,12 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	}) => {
 		onCreate(data)
 		setMode('picker')
+		setComparisonPresetHandled(false)
 		dialogStore.toggle()
 	}
 
 	const handleBackToPicker = () => {
+		setComparisonPresetHandled(true)
 		setMode('picker')
 	}
 
@@ -137,10 +124,11 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 			description: template.description,
 			items
 		})
+		setComparisonPresetHandled(false)
 		dialogStore.toggle()
 	}
 
-	if (mode === 'scratch') {
+	if (effectiveMode === 'scratch') {
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
@@ -161,7 +149,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 		)
 	}
 
-	if (mode === 'comparison') {
+	if (effectiveMode === 'comparison') {
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
@@ -205,7 +193,10 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 		>
 			<div className="mb-6 flex items-center justify-between">
 				<h2 className="text-xl font-semibold text-(--text-primary)">Create New Dashboard</h2>
-				<Ariakit.DialogDismiss className="rounded-md p-1 text-(--text-tertiary) transition-colors hover:bg-(--cards-bg-alt) hover:text-(--text-primary)">
+				<Ariakit.DialogDismiss
+					onClick={handleClose}
+					className="rounded-md p-1 text-(--text-tertiary) transition-colors hover:bg-(--cards-bg-alt) hover:text-(--text-primary)"
+				>
 					<Icon name="x" height={20} width={20} />
 					<span className="sr-only">Close dialog</span>
 				</Ariakit.DialogDismiss>
@@ -216,7 +207,10 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<button
 					type="button"
-					onClick={() => setMode('scratch')}
+					onClick={() => {
+						setComparisonPresetHandled(true)
+						setMode('scratch')
+					}}
 					className="flex flex-col items-center gap-4 rounded-xl border-2 border-(--cards-border) bg-(--cards-bg) p-6 text-center transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 				>
 					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--cards-bg-alt) text-(--text-secondary)">
@@ -230,7 +224,10 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 
 				<button
 					type="button"
-					onClick={() => setMode('comparison')}
+					onClick={() => {
+						setComparisonPresetHandled(true)
+						setMode('comparison')
+					}}
 					className="flex flex-col items-center gap-4 rounded-xl border-2 border-(--cards-border) bg-(--cards-bg) p-6 text-center transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 				>
 					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--primary)/10 text-(--primary)">

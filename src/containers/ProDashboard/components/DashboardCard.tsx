@@ -34,9 +34,8 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			setShowDeleteConfirm(false)
 		} catch (error) {
 			console.error('Failed to delete dashboard:', error)
-		} finally {
-			setIsDeleting(false)
 		}
+		setIsDeleting(false)
 	}
 
 	const itemTypes = useMemo(() => {
