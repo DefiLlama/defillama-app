@@ -168,7 +168,7 @@ export function AdvancedTvlChartTab({
 
 	const chartTypeLabel = ADVANCED_TVL_CHART_TYPES.find((t) => t.value === selectedAdvancedTvlChartType)?.label || ''
 
-	const renderChart = () => {
+	const chartContent = (() => {
 		if (isLoading) {
 			return (
 				<div className="flex h-[320px] items-center justify-center">
@@ -311,7 +311,7 @@ export function AdvancedTvlChartTab({
 			default:
 				return null
 		}
-	}
+	})()
 
 	const hasProtocolSelection = selectedAdvancedTvlProtocol && selectedAdvancedTvlProtocolName
 
@@ -364,7 +364,7 @@ export function AdvancedTvlChartTab({
 							<p className="text-xs pro-text2">Advanced TVL Chart</p>
 						</div>
 
-						<div className="h-[320px]">{renderChart()}</div>
+						<div className="h-[320px]">{chartContent}</div>
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

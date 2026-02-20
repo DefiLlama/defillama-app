@@ -726,7 +726,7 @@ export function ChartBuilderTab({
 
 								<div className="mb-1">
 									<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
-										<label className="flex cursor-pointer items-center gap-1.5">
+										<div className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) =>
 													onChartBuilderChange({
@@ -736,7 +736,7 @@ export function ChartBuilderTab({
 												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Group by parent protocol</span>
-										</label>
+										</div>
 									</Ariakit.CheckboxProvider>
 								</div>
 							</>

@@ -158,20 +158,29 @@ export function CustomColumnPanel({
 			change_7d: -12.8
 		}
 
-		// Pattern-based sample value generation for unknown keys
-		const SAMPLE_PATTERNS: Array<{ test: RegExp; getValue: () => number }> = [
-			{ test: /tvl|mcap/, getValue: () => Math.floor(Math.random() * 5000000000) },
-			{ test: /volume/, getValue: () => Math.floor(Math.random() * 100000000) },
-			{ test: /fees|revenue/, getValue: () => Math.floor(Math.random() * 2000000) },
-			{ test: /change/, getValue: () => (Math.random() - 0.5) * 40 }
-		]
+			const seededFraction = (key: string) => {
+				let hash = 0
+				for (let i = 0; i < key.length; i += 1) {
+					hash = (hash * 31 + key.charCodeAt(i)) >>> 0
+				}
+				return (hash % 10000) / 10000
+			}
+			const seededRange = (key: string, min: number, max: number) => min + seededFraction(key) * (max - min)
 
-		const getSampleValue = (key: string): number => {
-			if (key in FIXED_SAMPLE_VALUES) return FIXED_SAMPLE_VALUES[key]
-			const pattern = SAMPLE_PATTERNS.find((p) => p.test.test(key))
-			if (pattern) return pattern.getValue()
-			return Math.floor(Math.random() * 1000000) // Default up to 1M
-		}
+			// Pattern-based sample value generation for unknown keys
+			const SAMPLE_PATTERNS: Array<{ test: RegExp; getValue: (key: string) => number }> = [
+				{ test: /tvl|mcap/, getValue: (key) => Math.floor(seededRange(key, 0, 5000000000)) },
+				{ test: /volume/, getValue: (key) => Math.floor(seededRange(key, 0, 100000000)) },
+				{ test: /fees|revenue/, getValue: (key) => Math.floor(seededRange(key, 0, 2000000)) },
+				{ test: /change/, getValue: (key) => seededRange(key, -20, 20) }
+			]
+
+			const getSampleValue = (key: string): number => {
+				if (key in FIXED_SAMPLE_VALUES) return FIXED_SAMPLE_VALUES[key]
+				const pattern = SAMPLE_PATTERNS.find((p) => p.test.test(key))
+				if (pattern) return pattern.getValue(key)
+				return Math.floor(seededRange(key, 0, 1000000)) // Default up to 1M
+			}
 
 		const sample: Record<string, number> = {}
 		for (const variable of availableVariables) {
@@ -194,15 +203,13 @@ export function CustomColumnPanel({
 			return { isValid: false, error: 'Expression cannot be empty' }
 		}
 
+		const testData: Record<string, number> = {}
+		for (const variable of availableVariables) {
+			testData[variable.key] = 100
+		}
+
 		try {
 			const expr = parser.parse(expression)
-
-			// Test with dummy data to catch variable issues
-			const testData: Record<string, number> = {}
-			for (const variable of availableVariables) {
-				testData[variable.key] = 100
-			}
-
 			expr.evaluate(testData)
 			return { isValid: true }
 		} catch (error) {
@@ -270,11 +277,11 @@ export function CustomColumnPanel({
 		const end = input.selectionEnd || 0
 		const value = input.value
 
-		// Find the start of the current word being typed
-		let wordStart = start
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) {
-			wordStart--
-		}
+			// Find the start of the current word being typed
+			let wordStart = start
+			while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) {
+				wordStart -= 1
+			}
 
 		const newValue = value.slice(0, wordStart) + suggestion.value + value.slice(end)
 		setNewColumnExpression(newValue)
@@ -299,11 +306,11 @@ export function CustomColumnPanel({
 		setNewColumnExpression(newValue)
 		setCursorPosition(cursorPos)
 
-		// Extract current word being typed for autocomplete
-		let wordStart = cursorPos
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) {
-			wordStart--
-		}
+			// Extract current word being typed for autocomplete
+			let wordStart = cursorPos
+			while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) {
+				wordStart -= 1
+			}
 
 		const currentWord = newValue.slice(wordStart, cursorPos)
 
@@ -360,14 +367,18 @@ export function CustomColumnPanel({
 			return { isValid: false, isEmpty: true }
 		}
 
+		let result: unknown
 		try {
 			const expr = parser.parse(newColumnExpression)
-			const result = expr.evaluate(sampleData)
-			return typeof result === 'number' ? { isValid: true, result } : { isValid: true }
+			result = expr.evaluate(sampleData)
 		} catch (error) {
 			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
 			return { isValid: false, error: errorMsg }
 		}
+		if (typeof result === 'number') {
+			return { isValid: true, result }
+		}
+		return { isValid: true }
 	}, [newColumnExpression, parser, sampleData])
 
 	return (

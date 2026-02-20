@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import {
 	flexRender,
 	getCoreRowModel,
@@ -8,7 +9,7 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -47,13 +48,13 @@ interface TokenUsageDatasetProps {
 const TokenOptionComponent = ({ innerProps, label, data }: any) => (
 	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
-			<img
+			<Image
 				src={data.logo?.replace('/0/', '')}
 				alt=""
+				width={20}
+				height={20}
+				unoptimized
 				className="h-5 w-5 rounded-full"
-				onError={(e) => {
-					e.currentTarget.style.display = 'none'
-				}}
 			/>
 		) : (
 			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
@@ -90,7 +91,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
-	const [localIncludeCex, setLocalIncludeCex] = useState(config.includeCex ?? false)
+	const includeCex = config.includeCex ?? false
 
 	const tokenSymbols = config.tokenSymbols ?? EMPTY_TOKEN_SYMBOLS
 
@@ -99,11 +100,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		[tokenSymbols]
 	)
 
-	useEffect(() => {
-		setLocalIncludeCex(config.includeCex ?? false)
-	}, [config.includeCex])
-
-	const { data: rawDataResponse, isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
+	const { data: rawDataResponse, isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, includeCex)
 	const { data: tokenOptionsResponse, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 	const { data: defaultTokensResponse } = useTokenSearch('')
 
@@ -151,10 +148,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}
 
 	const handleIncludeCexChange = () => {
-		setLocalIncludeCex(!localIncludeCex)
 		onConfigChange({
 			...config,
-			includeCex: !localIncludeCex
+			includeCex: !includeCex
 		})
 	}
 
@@ -531,19 +527,20 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							/>
 						</div>
 						<div className="order-1 flex items-center gap-2 sm:order-2 sm:gap-3">
-							<div
-								className="flex h-[38px] cursor-pointer items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
-								onClick={handleIncludeCexChange}
-							>
-								<div className="relative h-4 w-4">
-									<input type="checkbox" checked={localIncludeCex} readOnly className="sr-only" />
-									<div
-										className={`h-4 w-4 border-2 transition-all ${
-											localIncludeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
-										}`}
-									>
-										{localIncludeCex && (
-											<svg
+								<button
+									type="button"
+									className="flex h-[38px] items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
+									onClick={handleIncludeCexChange}
+								>
+									<div className="relative h-4 w-4">
+										<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
+										<div
+											className={`h-4 w-4 border-2 transition-all ${
+												includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
+											}`}
+										>
+											{includeCex && (
+												<svg
 												className="h-3 w-3 text-white"
 												fill="currentColor"
 												viewBox="0 0 20 20"
@@ -558,9 +555,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 											</svg>
 										)}
 									</div>
-								</div>
-								<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
-							</div>
+									</div>
+									<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
+								</button>
 							<ProTableCSVButton
 								onClick={downloadCSV}
 								className="flex h-[38px] items-center gap-2 border pro-border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"

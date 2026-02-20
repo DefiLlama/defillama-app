@@ -119,6 +119,17 @@ const PROTOCOL_GROUPING_HEADERS = PROTOCOL_GROUPING_OPTIONS.map(({ id, label }) 
 const EMPTY_COLUMN_ORDER: string[] = []
 const EMPTY_CHAINS: string[] = []
 
+const buildTableStateKey = (config: UnifiedTableConfig) => {
+	const customColumnIds = (config.customColumns ?? []).map((column) => column.id)
+	return JSON.stringify({
+		id: config.id,
+		columnOrder: config.columnOrder ?? EMPTY_COLUMN_ORDER,
+		columnVisibility: config.columnVisibility ?? {},
+		sorting: normalizeSorting(config.defaultSorting),
+		customColumnIds
+	})
+}
+
 const rowHeadersMatch = (a: UnifiedRowHeaderType[], b: UnifiedRowHeaderType[]) => {
 	if (a.length !== b.length) return false
 	for (let i = 0; i < a.length; i++) {
@@ -205,7 +216,7 @@ const toCsvValue = (columnId: string, row: NormalizedRow, customColumns?: Custom
 	return typeof value === 'number' ? String(value) : ''
 }
 
-function UnifiedTable({
+function UnifiedTableInner({
 	config,
 	previewMode = false,
 	columnOrderOverride,
@@ -225,11 +236,6 @@ function UnifiedTable({
 		getDefaultColumnVisibility(config)
 	)
 	const [sortingState, setSortingState] = useState<SortingState>(() => normalizeSorting(config.defaultSorting))
-	const {
-		columnOrder: configColumnOrder,
-		columnVisibility: configColumnVisibility,
-		customColumns: configCustomColumns
-	} = config
 	const hydratingRef = useRef(false)
 	const canEditFilters = !previewMode && !isReadOnly
 	const tableRowHeaders = useMemo(
@@ -271,37 +277,6 @@ function UnifiedTable({
 		}, 0)
 		return () => clearTimeout(timer)
 	}, [config.columnOrder, config.columnVisibility, config.defaultSorting, previewMode])
-
-	useEffect(() => {
-		if (!previewMode) {
-			setColumnOrderState(() =>
-				getDefaultColumnOrder({
-					columnOrder: configColumnOrder,
-					customColumns: configCustomColumns
-				} as UnifiedTableConfig)
-			)
-		}
-	}, [configColumnOrder, configCustomColumns, previewMode])
-
-	useEffect(() => {
-		if (!previewMode) {
-			setColumnVisibilityState(() =>
-				getDefaultColumnVisibility({
-					columnVisibility: configColumnVisibility,
-					customColumns: configCustomColumns
-				} as UnifiedTableConfig)
-			)
-		}
-	}, [configColumnVisibility, configCustomColumns, previewMode])
-
-	useEffect(() => {
-		if (!previewMode) {
-			const nextSorting = normalizeSorting(config.defaultSorting)
-			if (!sortingEquals(sortingState, nextSorting)) {
-				setSortingState(() => nextSorting)
-			}
-		}
-	}, [config.defaultSorting, previewMode, sortingState])
 
 	useEffect(() => {
 		if (previewMode || isReadOnly) return
@@ -594,6 +569,11 @@ function UnifiedTable({
 			<UnifiedTablePagination table={unifiedTable.table} />
 		</div>
 	)
+}
+
+function UnifiedTable(props: UnifiedTableProps) {
+	const stateResetKey = buildTableStateKey(props.config)
+	return <UnifiedTableInner key={stateResetKey} {...props} />
 }
 
 export default UnifiedTable

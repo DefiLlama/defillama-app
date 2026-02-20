@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, type ReactElement } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
@@ -141,94 +141,95 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 		)
 	}
 
-	const renderChart = () => {
-		switch (chartType) {
-			case 'chainsBorrowed':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							chartData={filteredChartData.chainsSplit ?? EMPTY_CHART_DATA}
-							stacks={chainsUnique}
-							valueSymbol="$"
-							customLegendName="Chain"
-							customLegendOptions={chainsUnique}
-							hideDownloadButton={true}
-							hideGradient={true}
-							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				)
-			case 'tokenBorrowedUsd':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
-							stacks={resolvedTokensUnique}
-							valueSymbol="$"
-							customLegendName="Token"
-							customLegendOptions={resolvedTokensUnique}
-							hideDownloadButton={true}
-							hideGradient={true}
-							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				)
-			case 'tokensBorrowedPie':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<PieChart
-							chartData={resolvedTokenBreakdownPieChart}
-							exportButtons={{ png: true, csv: false, filename: imageFilename, pngTitle: imageTitle }}
-						/>
-					</Suspense>
-				)
-			case 'tokenBorrowedRaw':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							chartData={filteredChartData.tokenBreakdown ?? EMPTY_CHART_DATA}
-							stacks={resolvedTokensUnique}
-							customLegendName="Token"
-							customLegendOptions={resolvedTokensUnique}
-							hideDownloadButton={true}
-							hideGradient={true}
-							chartOptions={BORROWED_CHART_OPTIONS}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				)
-			default:
-				return null
-		}
+	let chartContent: ReactElement | null = null
+	switch (chartType) {
+		case 'chainsBorrowed':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						chartData={filteredChartData.chainsSplit ?? EMPTY_CHART_DATA}
+						stacks={chainsUnique}
+						valueSymbol="$"
+						customLegendName="Chain"
+						customLegendOptions={chainsUnique}
+						hideDownloadButton={true}
+						hideGradient={true}
+						chartOptions={BORROWED_CHART_OPTIONS}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			)
+			break
+		case 'tokenBorrowedUsd':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						chartData={filteredChartData.tokenBreakdownUSD ?? EMPTY_CHART_DATA}
+						stacks={resolvedTokensUnique}
+						valueSymbol="$"
+						customLegendName="Token"
+						customLegendOptions={resolvedTokensUnique}
+						hideDownloadButton={true}
+						hideGradient={true}
+						chartOptions={BORROWED_CHART_OPTIONS}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			)
+			break
+		case 'tokensBorrowedPie':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<PieChart
+						chartData={resolvedTokenBreakdownPieChart}
+						exportButtons={{ png: true, csv: false, filename: imageFilename, pngTitle: imageTitle }}
+					/>
+				</Suspense>
+			)
+			break
+		case 'tokenBorrowedRaw':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						chartData={filteredChartData.tokenBreakdown ?? EMPTY_CHART_DATA}
+						stacks={resolvedTokensUnique}
+						customLegendName="Token"
+						customLegendOptions={resolvedTokensUnique}
+						hideDownloadButton={true}
+						hideGradient={true}
+						chartOptions={BORROWED_CHART_OPTIONS}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			)
+			break
 	}
 
 	const hasChartData =
@@ -265,10 +266,10 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 							<LocalLoader />
 						</div>
 					}
-				>
-					{renderChart()}
-				</Suspense>
+					>
+						{chartContent}
+					</Suspense>
+				</div>
 			</div>
-		</div>
-	)
+		)
 }

@@ -156,13 +156,14 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 				<p className="py-8 text-center text-sm pro-text3">No charts match your search</p>
 			)}
 
-			{deleteConfirmId && (
-				<div
-					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-					onClick={() => setDeleteConfirmId(null)}
-				>
-					<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
-						<h3 className="font-medium pro-text1">Delete chart?</h3>
+				{deleteConfirmId && (
+					<div
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+						role="presentation"
+						onClick={() => setDeleteConfirmId(null)}
+					>
+						<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" role="presentation" onClick={(e) => e.stopPropagation()}>
+							<h3 className="font-medium pro-text1">Delete chart?</h3>
 						<p className="mt-2 text-sm pro-text3">
 							This will permanently delete the chart. Dashboards using it will show an error.
 						</p>

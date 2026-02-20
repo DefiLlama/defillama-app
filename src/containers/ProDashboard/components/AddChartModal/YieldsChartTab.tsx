@@ -1,6 +1,7 @@
-import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
+import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import Image from 'next/image'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -181,10 +182,6 @@ export function YieldsChartTab({
 		return matchSorter(tokenOptions, tokenSearch, { keys: ['label'] })
 	}, [tokenOptions, tokenSearch])
 
-	const chainOpen = useStoreState(chainPopover, 'open')
-	const projectOpen = useStoreState(projectPopover, 'open')
-	const tokenOpen = useStoreState(tokenPopover, 'open')
-
 	const chainVirtualizer = useVirtualizer({
 		count: filteredChainOptions.length,
 		getScrollElement: () => chainListRef.current,
@@ -206,23 +203,17 @@ export function YieldsChartTab({
 		overscan: 8
 	})
 
-	useEffect(() => {
-		if (chainOpen) {
-			setTimeout(() => chainVirtualizer.measure(), 0)
-		}
-	}, [chainOpen, chainVirtualizer])
+	const handleChainPopoverToggle = () => {
+		setTimeout(() => chainVirtualizer.measure(), 0)
+	}
 
-	useEffect(() => {
-		if (projectOpen) {
-			setTimeout(() => projectVirtualizer.measure(), 0)
-		}
-	}, [projectOpen, projectVirtualizer])
+	const handleProjectPopoverToggle = () => {
+		setTimeout(() => projectVirtualizer.measure(), 0)
+	}
 
-	useEffect(() => {
-		if (tokenOpen) {
-			setTimeout(() => tokenVirtualizer.measure(), 0)
-		}
-	}, [tokenOpen, tokenVirtualizer])
+	const handleTokenPopoverToggle = () => {
+		setTimeout(() => tokenVirtualizer.measure(), 0)
+	}
 
 	const toggleChain = (value: string) => {
 		if (selectedYieldChains.includes(value)) {
@@ -462,16 +453,17 @@ export function YieldsChartTab({
 				</div>
 			) : (
 				<div className="flex flex-col gap-4">
-					<div className="grid grid-cols-5 gap-2">
-						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">Chains</label>
-							<PopoverDisclosure
-								store={chainPopover}
-								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-							>
-								<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
-									{selectedYieldChains.length > 0
-										? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
+						<div className="grid grid-cols-5 gap-2">
+							<div className="flex flex-col">
+								<span className="mb-1 block text-[11px] font-medium pro-text2">Chains</span>
+								<PopoverDisclosure
+									store={chainPopover}
+									onClick={handleChainPopoverToggle}
+									className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+								>
+									<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
+										{selectedYieldChains.length > 0
+											? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
 										: 'All chains'}
 								</span>
 								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -535,13 +527,13 @@ export function YieldsChartTab({
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
 															{iconUrl && (
-																<img
+																<Image
 																	src={iconUrl}
 																	alt={option.label}
+																	width={20}
+																	height={20}
+																	unoptimized
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
-																	onError={(e) => {
-																		e.currentTarget.style.display = 'none'
-																	}}
 																/>
 															)}
 															<span className="truncate">{option.label}</span>
@@ -573,14 +565,15 @@ export function YieldsChartTab({
 						</div>
 
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">Projects</label>
-							<PopoverDisclosure
-								store={projectPopover}
-								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-							>
-								<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
-									{selectedYieldProjects.length > 0
-										? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
+							<span className="mb-1 block text-[11px] font-medium pro-text2">Projects</span>
+								<PopoverDisclosure
+									store={projectPopover}
+									onClick={handleProjectPopoverToggle}
+									className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+								>
+									<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
+										{selectedYieldProjects.length > 0
+											? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
 										: 'All projects'}
 								</span>
 								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -644,13 +637,13 @@ export function YieldsChartTab({
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
 															{iconUrl && (
-																<img
+																<Image
 																	src={iconUrl}
 																	alt={option.label}
+																	width={20}
+																	height={20}
+																	unoptimized
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
-																	onError={(e) => {
-																		e.currentTarget.style.display = 'none'
-																	}}
 																/>
 															)}
 															<span className="truncate">{option.label}</span>
@@ -682,14 +675,15 @@ export function YieldsChartTab({
 						</div>
 
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">Tokens</label>
-							<PopoverDisclosure
-								store={tokenPopover}
-								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-							>
-								<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
-									{selectedYieldTokens.length > 0
-										? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
+							<span className="mb-1 block text-[11px] font-medium pro-text2">Tokens</span>
+								<PopoverDisclosure
+									store={tokenPopover}
+									onClick={handleTokenPopoverToggle}
+									className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+								>
+									<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
+										{selectedYieldTokens.length > 0
+											? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
 										: 'All tokens'}
 								</span>
 								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -789,7 +783,7 @@ export function YieldsChartTab({
 						/>
 
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">TVL Range</label>
+							<span className="mb-1 block text-[11px] font-medium pro-text2">TVL Range</span>
 							<div className="flex gap-1">
 								<input
 									type="number"
@@ -814,13 +808,13 @@ export function YieldsChartTab({
 							<div className="flex items-center justify-between px-3 py-2.5">
 								<div className="flex items-center gap-3">
 									{selectedPoolData && (
-										<img
+										<Image
 											src={getItemIconUrl('protocol', null, selectedPoolData.project)}
 											alt={selectedPoolData.project}
+											width={32}
+											height={32}
+											unoptimized
 											className="h-8 w-8 rounded-full object-cover ring-1 ring-(--cards-border)"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
 									)}
 									<div className="min-w-0">
@@ -973,13 +967,13 @@ export function YieldsChartTab({
 												>
 													<div className="flex min-w-0 items-center gap-2">
 														{iconUrl && (
-															<img
+															<Image
 																src={iconUrl}
 																alt={pool.project}
+																width={24}
+																height={24}
+																unoptimized
 																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none'
-																}}
 															/>
 														)}
 														<div className="min-w-0">

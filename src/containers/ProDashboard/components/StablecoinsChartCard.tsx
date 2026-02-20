@@ -201,7 +201,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		)
 	}
 
-	const renderChart = () => {
+	const chartContent = (() => {
 		switch (chartType) {
 			case 'totalMcap':
 				return (
@@ -328,7 +328,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			default:
 				return null
 		}
-	}
+	})()
 
 	const hasChartData =
 		filteredChartData.peggedAreaTotalData.length > 0 ||
@@ -375,7 +375,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						</div>
 					}
 				>
-					{renderChart()}
+					{chartContent}
 				</Suspense>
 			</div>
 		</div>

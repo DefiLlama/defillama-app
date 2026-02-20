@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo, type ReactElement } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -136,18 +136,17 @@ export function BorrowedChartTab({
 		? `${selectedBorrowedProtocolName} - ${chartTypeLabel}`
 		: selectedBorrowedProtocolName || ''
 
-	const renderChart = () => {
-		if (isAddlLoading) {
-			return (
-				<div className="flex h-[320px] items-center justify-center">
-					<LocalLoader />
-				</div>
-			)
-		}
-
+	let chartContent: ReactElement | null = null
+	if (isAddlLoading) {
+		chartContent = (
+			<div className="flex h-[320px] items-center justify-center">
+				<LocalLoader />
+			</div>
+		)
+	} else {
 		switch (selectedBorrowedChartType) {
 			case 'chainsBorrowed':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -166,8 +165,9 @@ export function BorrowedChartTab({
 						/>
 					</Suspense>
 				)
+				break
 			case 'tokenBorrowedUsd':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -186,8 +186,9 @@ export function BorrowedChartTab({
 						/>
 					</Suspense>
 				)
+				break
 			case 'tokensBorrowedPie':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -198,8 +199,9 @@ export function BorrowedChartTab({
 						<PieChart chartData={resolvedTokenBreakdownPieChart} />
 					</Suspense>
 				)
+				break
 			case 'tokenBorrowedRaw':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -217,8 +219,7 @@ export function BorrowedChartTab({
 						/>
 					</Suspense>
 				)
-			default:
-				return null
+				break
 		}
 	}
 
@@ -277,9 +278,9 @@ export function BorrowedChartTab({
 							<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 								No borrowed data available.
 							</div>
-						) : (
-							<div className="h-[320px]">{renderChart()}</div>
-						)}
+							) : (
+								<div className="h-[320px]">{chartContent}</div>
+							)}
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

@@ -67,15 +67,15 @@ export const CopyDashboardLinkButton = ({
 
 			<Ariakit.Popover
 				gutter={8}
-				className="z-50 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3 shadow-lg"
-				style={{ minWidth: '280px' }}
-			>
-				<div className="flex flex-col gap-3">
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-(--text-label)">Share Link</label>
-						<div className="flex gap-2">
-							<input
-								type="text"
+					className="z-50 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3 shadow-lg"
+					style={{ minWidth: '280px' }}
+				>
+					<div className="flex flex-col gap-3">
+						<div className="flex flex-col gap-1.5">
+							<p className="text-xs font-medium text-(--text-label)">Share Link</p>
+							<div className="flex gap-2">
+								<input
+									type="text"
 								value={shareUrl}
 								readOnly
 								className="flex-1 rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs"
@@ -92,12 +92,12 @@ export const CopyDashboardLinkButton = ({
 								)}
 							</button>
 						</div>
-					</div>
+						</div>
 
-					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-(--text-label)">Share on</label>
-						<div className="flex gap-2">
-							<button
+						<div className="flex flex-col gap-1.5">
+							<p className="text-xs font-medium text-(--text-label)">Share on</p>
+							<div className="flex gap-2">
+								<button
 								onClick={() => handleShareTo('twitter')}
 								className="flex flex-1 items-center justify-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-2 text-xs pro-text2 transition-colors hover:pro-text1"
 								title="Share on Twitter/X"

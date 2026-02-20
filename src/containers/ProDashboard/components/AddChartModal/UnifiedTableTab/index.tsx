@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -210,10 +210,6 @@ function TabContent({
 		return 'setup'
 	}, [focusedSectionOnly, initialFocusSection])
 	const [activeTab, setActiveTab] = useState<TabKey>(initialTab)
-
-	useEffect(() => {
-		setActiveTab((current) => (current === initialTab ? current : initialTab))
-	}, [initialTab])
 
 	const activePreset = UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId)
 
@@ -492,12 +488,11 @@ function TabContent({
 		return tabOptions
 	}, [tabOptions, focusedSectionOnly])
 
-	useEffect(() => {
-		if (availableTabs.length === 0) return
-		if (!availableTabs.some((tab) => tab.key === activeTab)) {
-			setActiveTab(availableTabs[0].key)
-		}
-	}, [availableTabs, activeTab])
+	const effectiveActiveTab = useMemo<TabKey>(() => {
+		if (!availableTabs.length) return activeTab
+		if (availableTabs.some((tab) => tab.key === activeTab)) return activeTab
+		return availableTabs[0].key
+	}, [activeTab, availableTabs])
 
 	const tabContent: Record<TabKey, React.ReactNode> = {
 		setup: (
@@ -742,10 +737,10 @@ function TabContent({
 				)}
 			</header>
 
-			{availableTabs.length > 0 && (
-				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
-					{availableTabs.map((tab) => {
-						const isActive = tab.key === activeTab
+				{availableTabs.length > 0 && (
+					<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
+						{availableTabs.map((tab) => {
+							const isActive = tab.key === effectiveActiveTab
 						return (
 							<button
 								key={tab.key}
@@ -776,13 +771,13 @@ function TabContent({
 				</div>
 			)}
 
-			<div
-				className="thin-scrollbar flex-1 overflow-y-auto pr-1"
-				style={{ height: 'clamp(420px, 65vh, 720px)' }}
-				data-unified-table-scroll="true"
-			>
-				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
-			</div>
+				<div
+					className="thin-scrollbar flex-1 overflow-y-auto pr-1"
+					style={{ height: 'clamp(420px, 65vh, 720px)' }}
+					data-unified-table-scroll="true"
+				>
+					<div className="flex h-full flex-col gap-3">{tabContent[effectiveActiveTab]}</div>
+				</div>
 
 			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
 				<button
@@ -806,10 +801,17 @@ function TabContent({
 }
 
 export function UnifiedTableTab(props: UnifiedTableTabProps) {
-	const { editItem, focusedSectionOnly, ...rest } = props
+	const { editItem, focusedSectionOnly, initialFocusSection, ...rest } = props
+	const tabResetKey = `${editItem?.id ?? 'new'}-${focusedSectionOnly ?? 'all'}-${initialFocusSection ?? 'default'}`
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
-			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
+			<TabContent
+				key={tabResetKey}
+				{...rest}
+				editItem={editItem}
+				focusedSectionOnly={focusedSectionOnly}
+				initialFocusSection={initialFocusSection}
+			/>
 		</UnifiedTableWizardProvider>
 	)
 }

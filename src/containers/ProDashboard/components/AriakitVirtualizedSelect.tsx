@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -170,15 +171,15 @@ export function AriakitVirtualizedSelect({
 															</span>
 														)}
 														{iconUrl && (
-															<img
+															<Image
 																src={iconUrl}
 																alt={option.label}
+																width={20}
+																height={20}
+																unoptimized
 																className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none'
-																}}
 															/>
 														)}
 														<div className="flex min-w-0 flex-col">

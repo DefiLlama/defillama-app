@@ -18,6 +18,8 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 	const [hoveredRating, setHoveredRating] = useState(0)
 	const [feedback, setFeedback] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const bannerFeedbackId = `${sessionId}-rating-feedback-banner`
+	const inlineFeedbackId = `${sessionId}-rating-feedback-inline`
 
 	const handleStarClick = (star: number) => {
 		setRating(star)
@@ -35,9 +37,10 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 		const feedbackValue = feedback.trim() || undefined
 		try {
 			await onRate(sessionId, rating, feedbackValue)
-		} finally {
-			setIsSubmitting(false)
+		} catch (error) {
+			console.error('Failed to submit rating:', error)
 		}
+		setIsSubmitting(false)
 	}
 
 	const handleSkip = async () => {
@@ -109,10 +112,11 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 				{rating > 0 && (
 					<div className="flex w-full flex-col gap-1">
-						<label className="text-xs font-semibold tracking-wide text-(--text-label) uppercase">
+						<label htmlFor={bannerFeedbackId} className="text-xs font-semibold tracking-wide text-(--text-label) uppercase">
 							Your Feedback (Optional)
 						</label>
 						<textarea
+							id={bannerFeedbackId}
 							value={feedback}
 							onChange={(e) => setFeedback(e.target.value)}
 							placeholder="Share your thoughts about the AI-generated dashboard..."
@@ -182,10 +186,14 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 			{rating > 0 ? (
 				<div className="flex w-full max-w-xl flex-col items-center gap-6">
 					<div className="flex w-full flex-col items-center gap-1">
-						<label className="text-center text-xs font-semibold tracking-wide text-(--text-label) uppercase">
+						<label
+							htmlFor={inlineFeedbackId}
+							className="text-center text-xs font-semibold tracking-wide text-(--text-label) uppercase"
+						>
 							Your Feedback (Optional)
 						</label>
 						<textarea
+							id={inlineFeedbackId}
 							value={feedback}
 							onChange={(e) => setFeedback(e.target.value)}
 							placeholder="Share your thoughts about the AI-generated dashboard..."

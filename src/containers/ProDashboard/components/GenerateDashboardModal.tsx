@@ -57,20 +57,90 @@ export function GenerateDashboardModal({
 	onGenerate
 }: GenerateDashboardModalProps) {
 	const { user, isAuthenticated, authorizedFetch } = useAuthContext()
-	const [dashboardName, setDashboardName] = useState('')
-	const [aiDescription, setAiDescription] = useState('')
-	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
-	const [tags, setTags] = useState<string[]>([])
-	const [tagInput, setTagInput] = useState('')
-	const [isLoading, setIsLoading] = useState(false)
-	const [errors, setErrors] = useState<{
+	type FormState = {
+		dashboardName: string
+		aiDescription: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		tagInput: string
+	}
+	type ValidationErrors = {
 		dashboardName?: string
 		aiDescription?: string
-	}>({})
-	const [touchedFields, setTouchedFields] = useState<{
+	}
+	type TouchedFields = {
 		dashboardName?: boolean
 		aiDescription?: boolean
-	}>({})
+	}
+
+	const [formState, setFormState] = useState<FormState>({
+		dashboardName: '',
+		aiDescription: '',
+		visibility: 'public',
+		tags: [],
+		tagInput: ''
+	})
+	const { dashboardName, aiDescription, visibility, tags, tagInput } = formState
+	const [isLoading, setIsLoading] = useState(false)
+	const [validationState, setValidationState] = useState<{
+		errors: ValidationErrors
+		touchedFields: TouchedFields
+	}>({
+		errors: {},
+		touchedFields: {}
+	})
+	const { errors, touchedFields } = validationState
+
+	const setDashboardName = (value: string) => {
+		setFormState((prev) => ({ ...prev, dashboardName: value }))
+	}
+
+	const setAiDescription = (value: string) => {
+		setFormState((prev) => ({ ...prev, aiDescription: value }))
+	}
+
+	const setVisibility = (value: 'private' | 'public') => {
+		setFormState((prev) => ({ ...prev, visibility: value }))
+	}
+
+	const setTags = (updater: string[] | ((prev: string[]) => string[])) => {
+		setFormState((prev) => ({
+			...prev,
+			tags: typeof updater === 'function' ? updater(prev.tags) : updater
+		}))
+	}
+
+	const setTagInput = (value: string) => {
+		setFormState((prev) => ({ ...prev, tagInput: value }))
+	}
+
+	const setErrors = (updater: ValidationErrors | ((prev: ValidationErrors) => ValidationErrors)) => {
+		setValidationState((prev) => ({
+			...prev,
+			errors: typeof updater === 'function' ? updater(prev.errors) : updater
+		}))
+	}
+
+	const setTouchedFields = (updater: TouchedFields | ((prev: TouchedFields) => TouchedFields)) => {
+		setValidationState((prev) => ({
+			...prev,
+			touchedFields: typeof updater === 'function' ? updater(prev.touchedFields) : updater
+		}))
+	}
+
+	const resetModalState = () => {
+		setFormState({
+			dashboardName: '',
+			aiDescription: '',
+			visibility: 'public',
+			tags: [],
+			tagInput: ''
+		})
+		setValidationState({
+			errors: {},
+			touchedFields: {}
+		})
+	}
 
 	const validateDashboardName = (value: string): string | undefined => {
 		if (mode === 'create' && !value.trim()) {
@@ -195,89 +265,89 @@ export function GenerateDashboardModal({
 		}
 
 		setIsLoading(true)
-
+		let response: Response | null | undefined
 		try {
-			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
+			response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(requestBody)
 			})
-
-			if (!response) {
-				throw new Error('Authentication failed')
-			}
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`)
-			}
-
-			const data = await response.json()
-
-			if (!data.dashboardConfig) {
-				throw new Error('Invalid response format from AI service')
-			}
-			if (!Array.isArray(data.dashboardConfig.items)) {
-				throw new Error('Invalid response format from AI service')
-			}
-
-			const items = data.dashboardConfig.items as DashboardItemConfig[]
-			let sessionId: string | undefined
-			if (data.metadata && typeof data.metadata.sessionId === 'string') {
-				sessionId = data.metadata.sessionId
-			}
-			let generationMode: 'create' | 'iterate' = mode
-			if (data.metadata && (data.metadata.mode === 'create' || data.metadata.mode === 'iterate')) {
-				generationMode = data.metadata.mode
-			}
-
-			let aiGenerationContext:
-				| { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string }
-				| undefined
-			if (sessionId) {
-				aiGenerationContext = {
-					sessionId,
-					mode: generationMode,
-					timestamp: new Date().toISOString(),
-					prompt: aiDescription.trim()
-				}
-			}
-
-			onGenerate({
-				dashboardName: dashboardNameForGenerate,
-				visibility: visibilityForGenerate,
-				tags: tagsForGenerate,
-				description: descriptionForGenerate,
-				items,
-				aiGenerationContext
-			})
-
-			setDashboardName('')
-			setAiDescription('')
-			setVisibility('public')
-			setTags([])
-			setTagInput('')
-			setErrors({})
-			setTouchedFields({})
-			onClose()
 		} catch (error) {
 			console.error('Failed to generate dashboard:', error)
 			toast.error('Failed to generate dashboard. Please try again.')
-		} finally {
 			setIsLoading(false)
+			return
 		}
+
+		if (!response) {
+			toast.error('Authentication failed. Please sign in again.')
+			setIsLoading(false)
+			return
+		}
+
+		if (!response.ok) {
+			toast.error('Failed to generate dashboard. Please try again.')
+			setIsLoading(false)
+			return
+		}
+
+		let data: any
+		try {
+			data = await response.json()
+		} catch (error) {
+			console.error('Failed to parse dashboard response:', error)
+			toast.error('Invalid response format from AI service')
+			setIsLoading(false)
+			return
+		}
+
+		if (!data.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
+			toast.error('Invalid response format from AI service')
+			setIsLoading(false)
+			return
+		}
+
+		const items = data.dashboardConfig.items as DashboardItemConfig[]
+		let sessionId: string | undefined
+		if (data.metadata && typeof data.metadata.sessionId === 'string') {
+			sessionId = data.metadata.sessionId
+		}
+		let generationMode: 'create' | 'iterate' = mode
+		if (data.metadata && (data.metadata.mode === 'create' || data.metadata.mode === 'iterate')) {
+			generationMode = data.metadata.mode
+		}
+
+		let aiGenerationContext:
+			| { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string }
+			| undefined
+		if (sessionId) {
+			aiGenerationContext = {
+				sessionId,
+				mode: generationMode,
+				timestamp: new Date().toISOString(),
+				prompt: aiDescription.trim()
+			}
+		}
+
+		onGenerate({
+			dashboardName: dashboardNameForGenerate,
+			visibility: visibilityForGenerate,
+			tags: tagsForGenerate,
+			description: descriptionForGenerate,
+			items,
+			aiGenerationContext
+		})
+
+		resetModalState()
+		onClose()
+		setIsLoading(false)
 	}
 
 	const handleClose = () => {
 		if (!isLoading) {
-			setDashboardName('')
-			setAiDescription('')
-			setVisibility('public')
-			setTags([])
-			setTagInput('')
-			setErrors({})
-			setTouchedFields({})
+			resetModalState()
 			onClose()
 		}
 	}
