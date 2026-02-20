@@ -156,7 +156,7 @@ export function UnifiedVirtualTable({
 									return (
 										<div
 											key={cell.id}
-											data-ligther={stripedBg && i % 2 === 0}
+											data-lighter={stripedBg && i % 2 === 0}
 											className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
 												compact
 													? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'

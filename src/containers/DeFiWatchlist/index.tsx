@@ -292,28 +292,29 @@ function PortfolioNotifications({
 	const handleFormSubmit = async () => {
 		const buildAndSavePreferences = async () => {
 			const values = formStore.getState().values
-			const protocolMetrics = values.protocolMetrics
-			const chainMetrics = values.chainMetrics
+			const selectedProtocolMetrics = values.protocolMetrics
+			const selectedChainMetrics = values.chainMetrics
 
 			const settings: NotificationSettings = {}
 
-			if (protocolMetrics) {
-				if (protocolMetrics.length > 0) {
+			if (selectedProtocolMetrics) {
+				if (selectedProtocolMetrics.length > 0) {
 					if (filteredProtocols.length > 0) {
-						const mappedProtocolMetrics = protocolMetrics.map(mapUIMetricToAPI)
+						const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
 						settings.protocols = {}
 						for (let i = 0; i < filteredProtocols.length; i++) {
 							const identifier = filteredProtocols[i].slug
+							if (!identifier) continue
 							settings.protocols[identifier] = mappedProtocolMetrics
 						}
 					}
 				}
 			}
 
-			if (chainMetrics) {
-				if (chainMetrics.length > 0) {
+			if (selectedChainMetrics) {
+				if (selectedChainMetrics.length > 0) {
 					if (filteredChains.length > 0) {
-						const mappedChainMetrics = chainMetrics.map(mapUIMetricToAPI)
+						const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
 						settings.chains = {}
 						for (let i = 0; i < filteredChains.length; i++) {
 							settings.chains[filteredChains[i].name] = mappedChainMetrics
@@ -324,11 +325,9 @@ function PortfolioNotifications({
 
 			const hasProtocols = settings.protocols != null
 			const hasChains = settings.chains != null
-			if (!hasProtocols) {
-				if (!hasChains) {
-					toast.error('Unable to save: no valid settings configured')
-					return
-				}
+			if (!hasProtocols && !hasChains) {
+				toast.error('Unable to save: no valid settings configured')
+				return
 			}
 
 			await savePreferences({
@@ -342,7 +341,7 @@ function PortfolioNotifications({
 		try {
 			await buildAndSavePreferences()
 		} catch (error) {
-			console.log('Error saving notification preferences:', error)
+			console.error('Error saving notification preferences:', error)
 			toast.error('Failed to save notification preferences')
 		}
 	}

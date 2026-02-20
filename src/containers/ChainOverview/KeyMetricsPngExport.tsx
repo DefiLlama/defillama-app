@@ -178,6 +178,7 @@ export function KeyMetricsPngExportButton({
 				primaryValueHeight = 72
 			}
 			const container = containerRef.current
+			if (!container) return
 			const rows = extractRows(container)
 
 			if (!hasPrimaryValue) {

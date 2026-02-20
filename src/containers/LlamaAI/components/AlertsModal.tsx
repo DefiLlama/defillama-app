@@ -217,10 +217,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 				throw new Error('Failed to fetch alerts')
 			}
 			const data = await res.json()
-			if (data.alerts) {
-				return data.alerts
-			}
-			return []
+			return Array.isArray(data.alerts) ? data.alerts : []
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})

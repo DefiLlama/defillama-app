@@ -2,8 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-const dashboardBlue = '#326abd'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+
+const dashboardBlue = '#326abd'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData

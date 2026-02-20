@@ -69,24 +69,9 @@ const YIELD_PRESETS = {
 
 type PresetKey = keyof typeof YIELD_PRESETS
 
-const PRESET_KEYS: PresetKey[] = (() => {
-	const keys: PresetKey[] = []
-	for (const presetKey in YIELD_PRESETS) {
-		keys.push(presetKey as PresetKey)
-	}
-	return keys
-})()
+const PRESET_KEYS = Object.keys(YIELD_PRESETS) as PresetKey[]
 
-const ALL_PRESET_FILTER_KEYS = (() => {
-	const keys = new Set<string>()
-	for (const presetKey of PRESET_KEYS) {
-		const preset = YIELD_PRESETS[presetKey]
-		for (const filterKey in preset.filters) {
-			keys.add(filterKey)
-		}
-	}
-	return keys
-})()
+const ALL_PRESET_FILTER_KEYS = new Set(Object.values(YIELD_PRESETS).flatMap((p) => Object.keys(p.filters)))
 
 interface PresetFiltersProps {
 	className?: string
@@ -141,25 +126,27 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 
 	return (
 		<div className={`flex flex-col gap-2 ${className ?? ''}`}>
-			<span className="text-xs text-(--text-secondary)">Curated Presets</span>
+			<h2 className="text-xs text-(--text-secondary)">Curated Presets</h2>
 			<div className="flex flex-wrap items-center gap-2">
 				{PRESET_KEYS.map((key) => {
 					const preset = YIELD_PRESETS[key]
 					const isActive = activePresets.has(key)
 
 					return (
-						<Tooltip key={key} content={preset.description} placement="bottom">
-							<button
-								onClick={() => handlePresetClick(key)}
-								className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium ${
-									isActive
-										? 'bg-(--old-blue) text-white'
-										: 'border border-(--form-control-border) bg-(--btn-bg) text-(--text-primary) hover:bg-(--btn-hover-bg)'
-								}`}
-							>
-								<Icon name={preset.icon} height={14} width={14} />
-								{preset.label}
-							</button>
+					<Tooltip
+						key={key}
+						content={preset.description}
+						placement="bottom"
+						render={<button />}
+						onClick={() => handlePresetClick(key)}
+						className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium ${
+							isActive
+								? 'bg-(--old-blue) text-white'
+								: 'border border-(--form-control-border) bg-(--btn-bg) text-(--text-primary) hover:bg-(--btn-hover-bg)'
+						}`}
+					>
+							<Icon name={preset.icon} height={14} width={14} />
+							{preset.label}
 						</Tooltip>
 					)
 				})}

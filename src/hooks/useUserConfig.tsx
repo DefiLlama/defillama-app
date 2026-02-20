@@ -76,8 +76,7 @@ export function useUserConfig() {
 	const lastSyncedRawRef = useRef<string | null>(null)
 
 	const fetchConfig = useCallback(async (): Promise<UserConfig | null> => {
-		if (!isAuthenticated) return null
-		if (!authorizedFetch) return null
+		if (!isAuthenticated || !authorizedFetch) return null
 		const processResponse = async (): Promise<UserConfig | null> => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
 			if (response == null) {

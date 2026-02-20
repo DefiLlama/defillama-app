@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { lazy, type ReactNode, Suspense, useCallback, useReducer } from 'react'
 import { toast } from 'react-hot-toast'
@@ -135,18 +135,12 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 	const runDownload = useCallback(
 		async (forceLoading = false) => {
-			let shouldSetLoading = forceLoading
-			if (!shouldSetLoading) {
-				shouldSetLoading = !!prepareCsv
-			}
+			const shouldSetLoading = forceLoading || !!prepareCsv
 			if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: true })
 			const escapeCell = (value: string | number | boolean | null | undefined) => {
 				if (value == null) return ''
 				const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
-				if (str.includes(',')) {
-					return `"${str.replace(/"/g, '""')}"`
-				}
-				if (str.includes('"')) {
+				if (str.includes(',') || str.includes('"')) {
 					return `"${str.replace(/"/g, '""')}"`
 				}
 				return str
@@ -182,28 +176,32 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		[onClickHandler, prepareCsv]
 	)
 
-	const trackCsvDownload = useCallback(async () => {
-		const response = await authorizedFetch(`${AUTH_SERVER}/user/track-csv-download`, { method: 'POST' })
-		if (!response?.ok) {
-			throw new Error('Failed to track CSV download')
+	const trackCsvDownloadMutation = useMutation({
+		mutationFn: async () => {
+			const response = await authorizedFetch(`${AUTH_SERVER}/user/track-csv-download`, { method: 'POST' })
+			if (!response?.ok) {
+				throw new Error('Failed to track CSV download')
+			}
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
 		}
-		await queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-	}, [authorizedFetch, queryClient])
+	})
 
 	const handleTrialConfirm = useCallback(async () => {
 		dispatch({ type: 'setTrialLoading', value: true })
 		try {
 			const downloaded = await runDownload(true)
 			if (downloaded) {
-				await trackCsvDownload()
+				await trackCsvDownloadMutation.mutateAsync()
 			}
-			dispatch({ type: 'setTrialLoading', value: false })
 		} catch (error) {
 			toast.error('Failed to update CSV download status')
 			console.log(error)
+		} finally {
 			dispatch({ type: 'setTrialLoading', value: false })
 		}
-	}, [runDownload, trackCsvDownload])
+	}, [runDownload, trackCsvDownloadMutation])
 
 	const handleButtonClick = useCallback(async () => {
 		if (isLoading) return

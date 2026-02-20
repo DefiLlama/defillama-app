@@ -310,9 +310,7 @@ export function StablecoinsByChain({
 				day.date,
 				toNiceCsvDate(day.date),
 				...filteredPeggedNames.map((peggedAsset) => day[peggedAsset] ?? ''),
-				filteredPeggedNames.reduce((acc, curr) => {
-					return (acc += day[curr] ?? 0)
-				}, 0)
+				filteredPeggedNames.reduce((acc, curr) => acc + (day[curr] ?? 0), 0)
 			])
 		}
 		return { filename: 'stablecoins.csv', rows }

@@ -42,7 +42,7 @@ export function PDFExportButton({
 		if (loading) return
 		if (!sessionId) return
 
-		if (!loaders.userLoading && hasActiveSubscription) {
+		if (hasActiveSubscription) {
 			try {
 				setIsLoading(true)
 
@@ -142,7 +142,7 @@ export function PDFExportButton({
 				toast.error(errorMsg, { id: 'pdf-export' })
 				setIsLoading(false)
 			}
-		} else if (!loading) {
+		} else {
 			subscribeModalStore.show()
 		}
 	}

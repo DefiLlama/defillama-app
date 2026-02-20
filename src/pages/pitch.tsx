@@ -199,14 +199,25 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			})
+			if (!response.ok) {
+				let message = `Payment request failed (${response.status})`
+				try {
+					const errorData = await response.json()
+					if (errorData.message) message = errorData.message
+				} catch {}
+				throw new Error(message)
+			}
 			const data = await response.json()
+			if (!data.link) {
+				throw new Error('No payment link returned')
+			}
 			window.location.href = data.link
 			setPaymentLink(data.link)
 		}
 		try {
 			await submitPayment()
 		} catch (error) {
-			console.log('Error creating payment:', error)
+			console.error('Error creating payment:', error)
 		}
 		setIsSubmitting(false)
 	}

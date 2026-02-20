@@ -526,7 +526,7 @@ export function ChartPngExportButton({
 			const _chartInstance = chartInstance()
 
 			if (!_chartInstance) {
-				toast.error('Failed to get chart instnce')
+				toast.error('Failed to get chart instance')
 				return
 			}
 			setIsLoading(true)
@@ -534,19 +534,9 @@ export function ChartPngExportButton({
 			const earlyOptions = _chartInstance.getOption()
 			let isTreemapExport = false
 			if (Array.isArray(earlyOptions.series)) {
-				for (let si = 0; si < earlyOptions.series.length; si++) {
-					const series = earlyOptions.series[si]
-					if (typeof series === 'object') {
-						if (series != null) {
-							if ('type' in series) {
-								if (series.type === 'treemap') {
-									isTreemapExport = true
-									break
-								}
-							}
-						}
-					}
-				}
+				isTreemapExport = earlyOptions.series.some(
+					(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
+				)
 			}
 
 			let dataURL: string | null
@@ -556,7 +546,7 @@ export function ChartPngExportButton({
 			} else {
 				const tempContainer = document.createElement('div')
 				tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
-				tempContainer.style.height = '720px'
+				tempContainer.style.height = `${IMAGE_EXPORT_HEIGHT}px`
 				tempContainer.style.position = 'absolute'
 				tempContainer.style.left = '-99999px'
 				tempContainer.style.top = '0'

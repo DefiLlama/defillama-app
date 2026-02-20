@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { readAppStorage, readAppStorageRaw, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
+import { readAppStorage, useWatchlistManager, writeAppStorage } from '~/contexts/LocalStorage'
 import { useDebouncedCallback } from './useDebounce'
 import { useUserConfig } from './useUserConfig'
 
@@ -18,12 +18,12 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 		if (!saveUserConfig) return
 		if (isSyncing.current) return
 
+		const parsedData = readAppStorage()
+		if (!Object.keys(parsedData).length) return
+
 		try {
 			isSyncing.current = true
-			const localData = readAppStorageRaw()
-			if (localData) {
-				await saveUserConfig(readAppStorage())
-			}
+			await saveUserConfig(parsedData)
 			setTimeout(() => {
 				isSyncing.current = false
 			}, 100)

@@ -122,9 +122,9 @@ export function PromptInput({
 		}
 	}, [droppedFiles, promptInputRef])
 
-	const resetInput = (revokeImageUrls = true) => {
+	const resetInput = (shouldRevoke = true) => {
 		setValue('')
-		imageUpload.clearImages(revokeImageUrls)
+		imageUpload.clearImages(shouldRevoke)
 		entityCombobox.resetCombobox()
 		const textarea = promptInputRef.current
 		if (textarea) {
@@ -160,13 +160,13 @@ export function PromptInput({
 					)
 				}
 				const images = await Promise.all(imagePromises)
-				revokeImageUrls(imagesToSend)
 				handleSubmit(promptValue, finalEntities, images)
 			}
 			try {
 				await processAndSubmitImages()
 			} catch (error) {
-				console.error('Image upload failed', error)
+				console.error('Submission failed', error)
+			} finally {
 				revokeImageUrls(imagesToSend)
 			}
 		} else {

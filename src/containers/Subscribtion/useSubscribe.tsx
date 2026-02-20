@@ -356,10 +356,6 @@ export const useSubscribe = () => {
 	})
 
 	const createPortalSession = useCallback(async () => {
-		if (!isAuthenticated) {
-			return null
-		}
-
 		try {
 			const url = await createPortalSessionAsync()
 			if (url) {
@@ -369,7 +365,7 @@ export const useSubscribe = () => {
 		} catch {
 			return null
 		}
-	}, [isAuthenticated, createPortalSessionAsync])
+	}, [createPortalSessionAsync])
 
 	const endTrialMutation = useMutation({
 		mutationFn: async () => {
@@ -397,19 +393,14 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const getPortalSessionUrl = useCallback(async () => {
-		if (!isAuthenticated) {
-			throw new Error('Not authenticated')
-		}
-
-		const url = await createPortalSessionAsync()
-		return url
-	}, [isAuthenticated, createPortalSessionAsync])
-
 	const enableOverageMutation = useMutation({
 		mutationFn: async () => {
 			if (!isAuthenticated) {
-				throw new Error('Not authenticated')
+				throw new Error('Please sign in to enable overage')
+			}
+
+			if (apiSubscription.status !== 'active') {
+				throw new Error('No active API subscription found')
 			}
 
 			const data = await authorizedFetch(
@@ -433,27 +424,9 @@ export const useSubscribe = () => {
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
-			toast.error('Failed to enable overage. Please try again.')
+			toast.error(error.message || 'Failed to enable overage. Please try again.')
 		}
 	})
-
-	const enableOverage = useCallback(async () => {
-		if (!isAuthenticated) {
-			toast.error('Please sign in to enable overage')
-			return
-		}
-
-		if (apiSubscription.status !== 'active') {
-			toast.error('No active API subscription found')
-			return
-		}
-
-		try {
-			await enableOverageMutation.mutateAsync()
-		} catch (error) {
-			console.log('Enable overage error:', error)
-		}
-	}, [isAuthenticated, apiSubscription.status, enableOverageMutation])
 
 	return {
 		handleSubscribe,
@@ -470,12 +443,12 @@ export const useSubscribe = () => {
 		credits: credits?.credits,
 		isCreditsLoading,
 		refetchCredits,
-		getPortalSessionUrl,
+		getPortalSessionUrl: createPortalSessionAsync,
 		createPortalSession,
 		endTrialSubscription: endTrialMutation.mutateAsync,
 		isEndTrialLoading: endTrialMutation.isPending,
 		isPortalSessionLoading,
-		enableOverage,
+		enableOverage: enableOverageMutation.mutate,
 		isEnableOverageLoading: enableOverageMutation.isPending,
 		apiSubscription: apiSubscription,
 		llamafeedSubscription: llamafeedSubscription,

@@ -101,7 +101,7 @@ interface AuthContextType {
 		onSuccess?: () => void
 	) => Promise<void>
 	logout: () => void
-	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
+	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response | null>
 	signInWithEthereumMutation: UseMutationResult<
 		{
 			address: string

@@ -41,7 +41,7 @@ interface TableRowProps {
 }
 
 function TableRow({
-	row: rowTorender,
+	row: rowToRender,
 	index: i,
 	virtualRow,
 	gridTemplateColumns,
@@ -67,7 +67,7 @@ function TableRow({
 					left: 0,
 					width: '100%',
 					height: `${virtualRow.size}px`,
-					opacity: rowTorender.original.disabled ? 0.3 : 1,
+					opacity: rowToRender.original.disabled ? 0.3 : 1,
 					transform: `translateY(${virtualRow.start - scrollMargin}px)`
 				})
 	}
@@ -77,16 +77,16 @@ function TableRow({
 			<div
 				style={{
 					...trStyle,
-					...(rowTorender.depth > 0
+					...(rowToRender.depth > 0
 						? {
-								['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowTorender.id) ?? rowTorender.index + 1}"`
+								['--vf-subrow-index' as string]: `"${subRowOrdinalById.get(rowToRender.id) ?? rowToRender.index + 1}"`
 							}
 						: null)
 				}}
-				data-depth={rowTorender.depth}
+				data-depth={rowToRender.depth}
 				className="vf-row"
 			>
-				{rowTorender
+				{rowToRender
 					.getVisibleCells()
 					.filter((cell) => !cell.column.columnDef.meta?.hidden)
 					.map((cell) => {
@@ -95,7 +95,7 @@ function TableRow({
 						return (
 							<div
 								key={cell.id}
-								data-ligther={stripedBg && i % 2 === 0}
+								data-lighter={stripedBg && i % 2 === 0}
 								data-chainpage={isChainPage}
 								className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
 									compact ? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10' : ''
@@ -120,7 +120,7 @@ function TableRow({
 						)
 					})}
 			</div>
-			{renderSubComponent && rowTorender.getIsExpanded() ? <>{renderSubComponent({ row: rowTorender })}</> : null}
+			{renderSubComponent && rowToRender.getIsExpanded() ? renderSubComponent({ row: rowToRender }) : null}
 		</React.Fragment>
 	)
 }
@@ -515,7 +515,6 @@ export function VirtualTable({
 								virtualRow={virtualRow}
 								gridTemplateColumns={gridTemplateColumns}
 								totalTableWidth={totalTableWidth}
-								skipVirtualization={skipVirtualization}
 								scrollMargin={rowScrollMargin}
 								subRowOrdinalById={subRowOrdinalById}
 								firstColumnId={firstColumnId}

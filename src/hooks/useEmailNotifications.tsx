@@ -121,8 +121,14 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			)
 
 			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to save notification preferences')
+				let errorMessage = 'Failed to save notification preferences'
+				try {
+					const errorData = await response.json()
+					if (errorData != null && errorData.message) {
+						errorMessage = errorData.message
+					}
+				} catch {}
+				throw new Error(errorMessage)
 			}
 
 			const data = await response.json()
@@ -157,8 +163,14 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			)
 
 			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to update notification status')
+				let errorMessage = 'Failed to update notification status'
+				try {
+					const errorData = await response.json()
+					if (errorData != null && errorData.message) {
+						errorMessage = errorData.message
+					}
+				} catch {}
+				throw new Error(errorMessage)
 			}
 		},
 		onSuccess: (_, variables) => {
@@ -191,8 +203,14 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			)
 
 			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to delete notification preferences')
+				let errorMessage = 'Failed to delete notification preferences'
+				try {
+					const errorData = await response.json()
+					if (errorData != null && errorData.message) {
+						errorMessage = errorData.message
+					}
+				} catch {}
+				throw new Error(errorMessage)
 			}
 		},
 		onSuccess: (_, variables) => {
