@@ -89,6 +89,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -124,6 +125,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetNames: props.assetNames,
 		types: props.types,
 		categories: props.categories,
+		platforms: props.platforms,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
@@ -138,6 +140,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			isPlatformMode,
 			selectedAssetNames,
 			selectedCategories,
+			selectedPlatforms,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -557,12 +560,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				enabled={showFilters}
 				modes={{
 					isChainMode,
+					isCategoryMode,
 					isPlatformMode
 				}}
 				options={{
 					assetNames: props.assetNames,
 					typeOptions: props.typeOptions,
 					categoriesOptions: props.categoriesOptions,
+					platforms: props.platforms,
 					assetClassOptions: props.assetClassOptions,
 					rwaClassificationOptions: props.rwaClassificationOptions,
 					accessModelOptions: props.accessModelOptions,
@@ -572,6 +577,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					selectedAssetNames,
 					selectedTypes,
 					selectedCategories,
+					selectedPlatforms,
 					selectedAssetClasses,
 					selectedRwaClassifications,
 					selectedAccessModels,

@@ -16,12 +16,12 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { SectionHeader, MetricRow, MetricSection } from './components/ui'
 import { Flag } from './Flag'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { ProtocolChart } from './ProtocolChart'
 import type { IProtocolOverviewPageData } from './types'
-import { SectionHeader, MetricRow, MetricSection } from './components/ui'
 
 const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
 
@@ -1086,7 +1086,9 @@ function Users(props: IProtocolOverviewPageData) {
 					{users.activeUsers != null && (
 						<MetricRow label="Active Addresses (24h)" value={formattedNum(users.activeUsers, false)} />
 					)}
-					{users.newUsers != null && <MetricRow label="New Addresses (24h)" value={formattedNum(users.newUsers, false)} />}
+					{users.newUsers != null && (
+						<MetricRow label="New Addresses (24h)" value={formattedNum(users.newUsers, false)} />
+					)}
 					{users.transactions != null && (
 						<MetricRow label="Transactions (24h)" value={formattedNum(users.transactions, false)} />
 					)}
@@ -1117,8 +1119,12 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 					value={formattedNum(props.treasury.majors, true)}
 				/>
 			)}
-			{props.treasury.stablecoins && <MetricRow label="Stablecoins" value={formattedNum(props.treasury.stablecoins, true)} />}
-			{props.treasury.ownTokens && <MetricRow label="Own Tokens" value={formattedNum(props.treasury.ownTokens, true)} />}
+			{props.treasury.stablecoins && (
+				<MetricRow label="Stablecoins" value={formattedNum(props.treasury.stablecoins, true)} />
+			)}
+			{props.treasury.ownTokens && (
+				<MetricRow label="Own Tokens" value={formattedNum(props.treasury.ownTokens, true)} />
+			)}
 			{props.treasury.others && <MetricRow label="Others" value={formattedNum(props.treasury.others, true)} />}
 		</MetricSection>
 	)
@@ -1325,8 +1331,11 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
 								</span>
 								<span className="text-xs text-(--text-label)">
-									({formattedNum(((props.tokenCGData.volume24h.dex ?? 0) / (props.tokenCGData.volume24h.total ?? 1)) * 100)}%
-									of total)
+									(
+									{formattedNum(
+										((props.tokenCGData.volume24h.dex ?? 0) / (props.tokenCGData.volume24h.total ?? 1)) * 100
+									)}
+									% of total)
 								</span>
 							</span>
 						</p>
@@ -1354,7 +1363,9 @@ const Raises = (props: IProtocolOverviewPageData) => {
 				>
 					<span className="flex flex-wrap justify-between">
 						<span className="text-(--text-label)">{dayjs.utc(raise.date * 1000).format('MMM D, YYYY')}</span>
-						{raise.amount ? <span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span> : null}
+						{raise.amount ? (
+							<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
+						) : null}
 					</span>
 					<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
 						<span>Round: {raise.round}</span>
@@ -1364,7 +1375,12 @@ const Raises = (props: IProtocolOverviewPageData) => {
 						<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
 							<span className="flex flex-nowrap items-center gap-1">
 								Source:{' '}
-								<a href={raise.source} target="_blank" rel="noopener noreferrer" className="overflow-hidden text-ellipsis whitespace-nowrap underline">
+								<a
+									href={raise.source}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="overflow-hidden text-ellipsis whitespace-nowrap underline"
+								>
 									{raise.source}
 								</a>
 							</span>
@@ -1474,7 +1490,7 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 								<Icon name="github" className="h-3 w-3" />
 								<span>{props.github?.length === 1 ? 'GitHub' : github}</span>
 							</a>
-					  ))
+						))
 					: null}
 				{props.twitter ? (
 					<a
@@ -1662,7 +1678,7 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 								<span>Date: </span>
 								<span>{dayjs.utc(hack.date * 1e3).format('MMM D, YYYY')}</span>
 							</p>
-							) : null}
+						) : null}
 						{props.id.startsWith('parent#') ? (
 							<p>
 								<span>Protocol: </span>
@@ -1698,7 +1714,12 @@ const Hacks = (props: IProtocolOverviewPageData) => {
 							</p>
 						) : null}
 						{hack.source ? (
-							<a href={hack.source} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 underline">
+							<a
+								href={hack.source}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 underline"
+							>
 								<span>Source</span>
 								<Icon name="external-link" className="h-3.5 w-3.5" />
 							</a>

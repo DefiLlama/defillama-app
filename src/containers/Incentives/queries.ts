@@ -169,7 +169,10 @@ export async function getDimensionAdapterChainEarningsOverview({
 	overviewData: DimensionEarningsOverviewBase
 	totalDataChart: Array<[number, number]>
 }): Promise<DimensionEarningsOverview> {
-	const [emissionsData, chainNameMap] = await Promise.all([fetchEmissionsBreakdownAggregated(), getEmissionsChainNameMap()])
+	const [emissionsData, chainNameMap] = await Promise.all([
+		fetchEmissionsBreakdownAggregated(),
+		getEmissionsChainNameMap()
+	])
 
 	const earningsData = buildDimensionEarningsProtocols(
 		{
@@ -210,13 +213,19 @@ export async function getDimensionAdapterChainEarningsOverview({
 				const totalRevenue24h: number = (Object.values(protocol.breakdown24h || {}) as Record<string, number>[]).reduce(
 					(sum: number, chainData) =>
 						sum +
-						(Object.values(chainData as Record<string, number>) as number[]).reduce((s: number, v: number) => s + (v || 0), 0),
+						(Object.values(chainData as Record<string, number>) as number[]).reduce(
+							(s: number, v: number) => s + (v || 0),
+							0
+						),
 					0
 				)
 				const totalRevenue30d: number = (Object.values(protocol.breakdown30d || {}) as Record<string, number>[]).reduce(
 					(sum: number, chainData) =>
 						sum +
-						(Object.values(chainData as Record<string, number>) as number[]).reduce((s: number, v: number) => s + (v || 0), 0),
+						(Object.values(chainData as Record<string, number>) as number[]).reduce(
+							(s: number, v: number) => s + (v || 0),
+							0
+						),
 					0
 				)
 
@@ -277,7 +286,9 @@ export function extractChainIncentivesFromAggregatedEmissions({
 	}
 }
 
-export async function getChainIncentivesFromAggregatedEmissions(chainName: string): Promise<ChainIncentivesSummary | null> {
+export async function getChainIncentivesFromAggregatedEmissions(
+	chainName: string
+): Promise<ChainIncentivesSummary | null> {
 	const emissionsData = await fetchEmissionsBreakdownAggregated()
 	return extractChainIncentivesFromAggregatedEmissions({ emissionsData, chainName })
 }

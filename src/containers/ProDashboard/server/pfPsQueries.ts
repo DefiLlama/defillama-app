@@ -11,10 +11,7 @@ interface ProtocolAvailability {
 	has_ps: boolean
 }
 
-export async function fetchPfPsChartData(
-	protocol: string,
-	type: 'pf' | 'ps'
-): Promise<[number, number][]> {
+export async function fetchPfPsChartData(protocol: string, type: 'pf' | 'ps'): Promise<[number, number][]> {
 	const rows = await llamaDb.any<ChartDataPoint>(
 		`
 		WITH base AS (
@@ -52,9 +49,7 @@ export async function fetchPfPsChartData(
 		[protocol, type]
 	)
 
-	return rows
-		.filter((row) => row.ratio !== null)
-		.map((row) => [row.timestamp, row.ratio as number] as [number, number])
+	return rows.filter((row) => row.ratio !== null).map((row) => [row.timestamp, row.ratio as number] as [number, number])
 }
 
 export async function fetchPfPsProtocols(): Promise<{ pf: string[]; ps: string[] }> {

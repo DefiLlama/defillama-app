@@ -31,7 +31,7 @@ const variantClasses = {
 } as const
 
 export function FilterBetweenRange({
-	name,
+	name: _name,
 	trigger,
 	onSubmit: handleSubmit,
 	onClear,
@@ -52,7 +52,7 @@ export function FilterBetweenRange({
 
 	if (nestedMenu) {
 		return (
-			<NestedMenu label={name}>
+			<NestedMenu label={trigger} render={<button type="button" />} menuPortal>
 				<Form
 					onSubmit={handleSubmit}
 					onClear={onClear}

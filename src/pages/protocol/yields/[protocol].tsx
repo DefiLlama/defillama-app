@@ -60,8 +60,7 @@ export const getStaticProps = withPerformanceLogging(
 			poolsList = allPools
 				.filter(
 					(pool) =>
-						pool.project === protocolSlug ||
-						(protocolData.parentProtocol ? false : otherProtocolsSet.has(pool.project))
+						pool.project === protocolSlug || (protocolData.parentProtocol ? false : otherProtocolsSet.has(pool.project))
 				)
 				.map((pool) => ({
 					...pool,

@@ -128,7 +128,12 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 	}, [selectedProtocols, protocols])
 
 	const protocolsTableData = React.useMemo(() => {
-		return applyProtocolTvlSettings({ protocols: selectedProtocolsData, extraTvlsEnabled: extraTvlEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({
+			protocols: selectedProtocolsData,
+			extraTvlsEnabled: extraTvlEnabled,
+			minTvl,
+			maxTvl
+		})
 	}, [selectedProtocolsData, extraTvlEnabled, minTvl, maxTvl])
 
 	return (

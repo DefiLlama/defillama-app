@@ -52,7 +52,7 @@ const FETCH_TIMEOUT = 10_000
 
 interface DatasetConfig {
 	queryKeyPrefix: string
-	adapterType: `${typeof ADAPTER_TYPES[keyof typeof ADAPTER_TYPES]}`
+	adapterType: `${(typeof ADAPTER_TYPES)[keyof typeof ADAPTER_TYPES]}`
 	dataType?: string
 	route: string
 	metricName: string

@@ -548,7 +548,12 @@ function computeGrouped(
 	return result
 }
 
-export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: CustomTimePeriod | null, serverChartData?: Record<string, [number, number][]> | null) {
+export function useChartsData(
+	charts,
+	timePeriod?: TimePeriod,
+	customPeriod?: CustomTimePeriod | null,
+	serverChartData?: Record<string, [number, number][]> | null
+) {
 	const { data: parentMapping } = useParentChildMapping()
 	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({

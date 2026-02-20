@@ -70,7 +70,11 @@ export function AppMetadataProvider({
 	initialData
 }: {
 	children: React.ReactNode
-	initialData?: { protocols: Record<string, any>; chains: Record<string, any>; pfPs: { pf: string[]; ps: string[] } } | null
+	initialData?: {
+		protocols: Record<string, any>
+		chains: Record<string, any>
+		pfPs: { pf: string[]; ps: string[] }
+	} | null
 }) {
 	const {
 		data: rawData,

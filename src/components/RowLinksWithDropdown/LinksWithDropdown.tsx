@@ -59,9 +59,8 @@ export function LinksWithDropdown({
 			const wrapper = priorityNav.getBoundingClientRect()
 
 			// Batch read all bounding rects at once (single layout calculation)
-			const linkRects = Array.from(
-				priorityNav.querySelectorAll<HTMLElement>('[data-priority-nav-item]'),
-				(link) => link.getBoundingClientRect()
+			const linkRects = Array.from(priorityNav.querySelectorAll<HTMLElement>('[data-priority-nav-item]'), (link) =>
+				link.getBoundingClientRect()
 			)
 
 			const firstRowTop = linkRects[0]?.top ?? wrapper.top

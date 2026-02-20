@@ -903,7 +903,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			console.log('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 		}
-	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages, attachClientIds])
+	}, [
+		sessionId,
+		paginationState.hasMore,
+		paginationState.isLoadingMore,
+		paginationState.cursor,
+		loadMoreMessages,
+		attachClientIds
+	])
 
 	const handleSuggestionClick = useCallback(
 		(suggestion: any) => {
@@ -1222,10 +1229,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															const msgMetadata = messageItems.find((i): i is MetadataItem => i.type === 'metadata')
 
 															return (
-																<div
-																	key={`assistant-${messageKey}`}
-																	className="flex flex-col gap-2.5"
-																>
+																<div key={`assistant-${messageKey}`} className="flex flex-col gap-2.5">
 																	<PromptResponse
 																		items={messageItems}
 																		isPending={false}

@@ -108,8 +108,8 @@ export function HacksFilters({
 	}
 
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-			<ResponsiveFilterLayout desktopClassName="hidden min-h-8 flex-wrap items-center gap-2 sm:flex">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+			<ResponsiveFilterLayout desktopClassName="hidden min-h-[68px] flex-wrap content-start items-center gap-2 min-[1400px]:min-h-[30px] sm:flex">
 				{(nestedMenu) => (
 					<Filters
 						chainOptions={chainOptions}
@@ -220,7 +220,11 @@ const Filters = ({
 			<button
 				onClick={onClearAll}
 				disabled={!hasActiveFilters}
-				className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"
+				className={
+					isMobile
+						? 'relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md px-3 py-2 text-(--text-primary) hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-40'
+						: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+				}
 			>
 				Reset filters
 			</button>

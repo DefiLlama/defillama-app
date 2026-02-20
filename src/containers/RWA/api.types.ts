@@ -147,6 +147,7 @@ export interface IRWAAssetsOverview {
 	accessModelOptions: Array<{ key: string; name: string; help?: string }>
 	categories: Array<string>
 	categoriesOptions: Array<{ key: string; name: string; help?: string }>
+	platforms: Array<string>
 	assetNames: Array<string>
 	categoryValues: Array<{ name: string; value: number }>
 	issuers: Array<string>

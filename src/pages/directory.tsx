@@ -89,9 +89,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 					route: protocol.route,
 					count: protocol.count ?? 1,
 					lastVisited:
-						typeof protocol.lastVisited === 'number' && Number.isFinite(protocol.lastVisited)
-							? protocol.lastVisited
-							: 0
+						typeof protocol.lastVisited === 'number' && Number.isFinite(protocol.lastVisited) ? protocol.lastVisited : 0
 				}))
 				.sort((a, b) => {
 					if (b.count !== a.count) return b.count - a.count
