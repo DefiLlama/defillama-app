@@ -214,7 +214,8 @@ interface FilterItemEditorProps {
 function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, onEndEdit }: FilterItemEditorProps) {
 	const { config } = filter
 	const getInitialInputs = (currentFilter: ActiveFilter) => ({
-		value: currentFilter.value?.toString() || currentFilter.minValue?.toString() || currentFilter.maxValue?.toString() || '',
+		value:
+			currentFilter.value?.toString() || currentFilter.minValue?.toString() || currentFilter.maxValue?.toString() || '',
 		minValue: currentFilter.minValue?.toString() || '',
 		maxValue: currentFilter.maxValue?.toString() || ''
 	})

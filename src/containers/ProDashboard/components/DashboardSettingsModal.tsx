@@ -249,7 +249,11 @@ function DashboardSettingsModalInner({
 						<Ariakit.DialogDismiss className="flex-1 rounded-md border pro-border pro-hover-bg px-4 py-2 pro-text2 transition-colors hover:pro-text1">
 							Cancel
 						</Ariakit.DialogDismiss>
-						<button type="button" onClick={handleSave} className="flex-1 rounded-md pro-btn-blue px-4 py-2 transition-colors">
+						<button
+							type="button"
+							onClick={handleSave}
+							className="flex-1 rounded-md pro-btn-blue px-4 py-2 transition-colors"
+						>
 							Save Changes
 						</button>
 					</div>

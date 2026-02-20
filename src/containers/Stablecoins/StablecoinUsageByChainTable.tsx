@@ -24,10 +24,6 @@ import { chainIconUrl, formattedNum, renderPercentChange } from '~/utils'
 type StablecoinByChainRow = ReturnType<typeof useGroupBridgeData>[number]
 type BridgeInfoCell = StablecoinByChainRow['bridgeInfo']
 
-const renderStablecoinUsagePercentChangeCell: ColumnDef<StablecoinByChainRow>['cell'] = (info) => (
-	<>{renderPercentChange(info.getValue())}</>
-)
-
 const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 	{
 		header: 'Name',
@@ -120,7 +116,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: renderStablecoinUsagePercentChangeCell,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'
@@ -129,7 +125,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: renderStablecoinUsagePercentChangeCell,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'
@@ -138,7 +134,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 	{
 		header: '1m Change',
 		accessorKey: 'change_1m',
-		cell: renderStablecoinUsagePercentChangeCell,
+		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
 		size: 110,
 		meta: {
 			align: 'end'

@@ -87,7 +87,7 @@ export function DATByAsset({
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<Tooltip
-						render={<h1 className="sr-only">{metadata.name} Treasury Holdings</h1>}
+						render={<h1 />}
 						content={`Institutions that own ${metadata.name} as part of their corporate treasury`}
 						className="text-xl font-semibold"
 					>

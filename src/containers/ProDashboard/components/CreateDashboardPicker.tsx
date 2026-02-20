@@ -427,7 +427,10 @@ function CreateDashboardModalContent({
 				</div>
 
 				<div>
-					<label htmlFor="create-dashboard-description" className="mb-3 block text-sm font-medium text-(--text-primary)">
+					<label
+						htmlFor="create-dashboard-description"
+						className="mb-3 block text-sm font-medium text-(--text-primary)"
+					>
 						Description
 					</label>
 					<textarea
