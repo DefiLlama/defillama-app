@@ -81,94 +81,103 @@ export function StripeCheckoutModal({
 		}
 		setError(null)
 
-		const subscriptionData = {
-			redirectUrl: `${window.location.origin}/account?success=true`,
-			cancelUrl: `${window.location.origin}/subscription`,
-			provider: paymentMethod,
-			subscriptionType,
-			billingInterval,
-			isTrial
-		}
+		const doFetch = async () => {
+			const subscriptionData = {
+				redirectUrl: `${window.location.origin}/account?success=true`,
+				cancelUrl: `${window.location.origin}/subscription`,
+				provider: paymentMethod,
+				subscriptionType,
+				billingInterval,
+				isTrial
+			}
 
-		const response = await authorizedFetch(
-			`${AUTH_SERVER}/subscription/create`,
-			{
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
+			const response = await authorizedFetch(
+				`${AUTH_SERVER}/subscription/create`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(subscriptionData)
 				},
-				body: JSON.stringify(subscriptionData)
-			},
-			true
-		)
+				true
+			)
 
-		const data = await response.json()
+			const data = await response.json()
 
-		if (!response.ok) {
-			let errorMessage = 'Failed to create subscription'
-			if (data.message) {
-				errorMessage = data.message
+			if (!response.ok) {
+				let errorMessage = 'Failed to create subscription'
+				if (data.message) {
+					errorMessage = data.message
+				}
+				setError(errorMessage)
+				return Promise.reject(new Error(errorMessage))
 			}
-			setError(errorMessage)
-			return Promise.reject(new Error(errorMessage))
-		}
 
-		if (data.isUpgrade) {
-			setIsUpgrade(true)
-			let needsPayment = true
-			if (data.requiresPayment === false) {
-				needsPayment = false
-			}
-			setRequiresPayment(needsPayment)
+			if (data.isUpgrade) {
+				setIsUpgrade(true)
+				let needsPayment = true
+				if (data.requiresPayment === false) {
+					needsPayment = false
+				}
+				setRequiresPayment(needsPayment)
 
-			if (!data.requiresPayment) {
-				await queryClient.invalidateQueries({ queryKey: ['subscription'] })
-				onClose()
+				if (!data.requiresPayment) {
+					await queryClient.invalidateQueries({ queryKey: ['subscription'] })
+					onClose()
+					return null
+				}
+
+				if (!data.clientSecret) {
+					const msg = 'No client secret returned for upgrade payment'
+					setError(msg)
+					return Promise.reject(new Error(msg))
+				}
+
+				setUpgradeClientSecret(data.clientSecret)
+
+				if (data.amount !== undefined) {
+					if (data.currency) {
+						let prorationCredit = 0
+						if (data.prorationCredit) {
+							prorationCredit = data.prorationCredit
+						}
+						let newSubscriptionPrice = 0
+						if (data.newSubscriptionPrice) {
+							newSubscriptionPrice = data.newSubscriptionPrice
+						}
+						setUpgradePricing({
+							amount: data.amount,
+							currency: data.currency,
+							prorationCredit,
+							newSubscriptionPrice
+						})
+					} else {
+						console.warn(
+							'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
+							data
+						)
+					}
+				}
+
 				return null
 			}
 
 			if (!data.clientSecret) {
-				const msg = 'No client secret returned for upgrade payment'
+				const msg = 'No client secret returned from server'
 				setError(msg)
 				return Promise.reject(new Error(msg))
 			}
 
-			setUpgradeClientSecret(data.clientSecret)
-
-			if (data.amount !== undefined) {
-				if (data.currency) {
-					let prorationCredit = 0
-					if (data.prorationCredit) {
-						prorationCredit = data.prorationCredit
-					}
-					let newSubscriptionPrice = 0
-					if (data.newSubscriptionPrice) {
-						newSubscriptionPrice = data.newSubscriptionPrice
-					}
-					setUpgradePricing({
-						amount: data.amount,
-						currency: data.currency,
-						prorationCredit,
-						newSubscriptionPrice
-					})
-				} else {
-					console.warn(
-						'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
-						data
-					)
-				}
-			}
-
-			return null
+			return data.clientSecret
 		}
-
-		if (!data.clientSecret) {
-			const msg = 'No client secret returned from server'
-			setError(msg)
-			return Promise.reject(new Error(msg))
+		try {
+			return await doFetch()
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : 'Failed to initialize checkout'
+			setError(errorMessage)
+			throw err
 		}
-
-		return data.clientSecret
 	}, [authorizedFetch, paymentMethod, type, billingInterval, isTrial, onClose, queryClient])
 
 	const options = { fetchClientSecret }
