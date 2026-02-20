@@ -284,17 +284,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 				</div>
 			)}
 
-			<div className="flex-1">
-				<Suspense
-					fallback={
-						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
-						</div>
-					}
-				>
-					{chartContent}
-				</Suspense>
-			</div>
+			<div className="flex-1">{chartContent}</div>
 		</div>
 	)
 }

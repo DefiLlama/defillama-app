@@ -130,10 +130,11 @@ export function StripeCheckoutModal({
 		}
 	})
 
+	const resetMutation = subscriptionMutation.reset
 	const handleClose = useCallback(() => {
-		subscriptionMutation.reset()
+		resetMutation()
 		onClose()
-	}, [subscriptionMutation, onClose])
+	}, [resetMutation, onClose])
 
 	const createSubscription = subscriptionMutation.mutateAsync
 
@@ -258,13 +259,13 @@ export function StripeCheckoutModal({
 							<p className="text-sm">{errorMessage}</p>
 						</div>
 					</div>
-				) : null}
-
-				<div className="min-h-[400px] p-4">
-					<EmbeddedCheckoutProvider stripe={stripeInstance} options={{ fetchClientSecret }}>
-						<EmbeddedCheckout />
-					</EmbeddedCheckoutProvider>
-				</div>
+				) : (
+					<div className="min-h-[400px] p-4">
+						<EmbeddedCheckoutProvider stripe={stripeInstance} options={{ fetchClientSecret }}>
+							<EmbeddedCheckout />
+						</EmbeddedCheckoutProvider>
+					</div>
+				)}
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

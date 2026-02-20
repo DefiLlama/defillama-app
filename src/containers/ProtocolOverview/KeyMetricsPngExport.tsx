@@ -156,27 +156,16 @@ export function KeyMetricsPngExportButton({
 		const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'
 
 		const renderAndDownload = async () => {
-			let hasPrimaryValue = false
-			if (hasTvlData) {
-				if (primaryValue != null) {
-					hasPrimaryValue = true
-				}
-			}
 			let formattedPrimaryValue = ''
-			if (hasPrimaryValue) {
+			if (hasTvlData && primaryValue != null) {
 				const formatted = formatPrice(primaryValue)
 				if (formatted != null) {
 					formattedPrimaryValue = String(formatted)
 				}
 			}
-			let dpr = window.devicePixelRatio
-			if (!dpr) {
-				dpr = 1
-			}
-			let primaryValueHeight = 0
-			if (hasPrimaryValue) {
-				primaryValueHeight = 72
-			}
+			const hasPrimaryValue = formattedPrimaryValue !== ''
+			const dpr = window.devicePixelRatio || 1
+			const primaryValueHeight = hasPrimaryValue ? 72 : 0
 			const container = containerRef.current
 			if (!container) return
 			const rows = extractRows(container)

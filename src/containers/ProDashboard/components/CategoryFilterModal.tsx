@@ -108,10 +108,7 @@ export function CategoryFilterModal({
 								setSelectedInclude(selection ? selection.map((item: any) => item.value) : [])
 							}}
 							placeholder="Select categories to include..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
+							styles={reactSelectStyles}
 							components={{ MenuList: SimpleMenuList }}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
@@ -131,10 +128,7 @@ export function CategoryFilterModal({
 								setSelectedExclude(selection ? selection.map((item: any) => item.value) : [])
 							}}
 							placeholder="Select categories to exclude..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
+							styles={reactSelectStyles}
 							components={{ MenuList: SimpleMenuList }}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"

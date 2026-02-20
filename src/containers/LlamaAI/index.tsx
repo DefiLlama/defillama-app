@@ -795,7 +795,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (sessionId && isStreaming) {
-			stopSessionMutation.mutate(sessionId)
+			await stopSessionMutation.mutateAsync(sessionId).catch(() => {})
 
 			if (abortControllerRef.current) {
 				abortControllerRef.current.abort()

@@ -145,7 +145,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success('Notification preferences saved successfully')
 		},
 		onError: (error) => {
-			console.log('Error saving notification preferences:', error)
+			console.error('Error saving notification preferences:', error)
 			toast.error(error.message || 'Failed to save notification preferences')
 		}
 	})
@@ -190,7 +190,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
 		},
 		onError: (error) => {
-			console.log('Error updating notification status:', error)
+			console.error('Error updating notification status:', error)
 			toast.error(error.message || 'Failed to update notification status')
 		}
 	})
@@ -232,7 +232,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			toast.success('Notification preferences deleted')
 		},
 		onError: (error) => {
-			console.log('Error deleting notification preferences:', error)
+			console.error('Error deleting notification preferences:', error)
 			toast.error(error.message || 'Failed to delete notifications')
 		}
 	})
