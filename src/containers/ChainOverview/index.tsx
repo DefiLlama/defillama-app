@@ -24,14 +24,8 @@ export function ChainOverview(props: IChainOverviewData) {
 			)}
 			{props.isDataAvailable ? (
 				<>
-					<Suspense
-						fallback={<div className="min-h-[400px] rounded-md border border-(--cards-border) bg-(--cards-bg)" />}
-					>
-						<Stats {...props} />
-					</Suspense>
-					<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-						<SmolStats {...props} />
-					</Suspense>
+					<Stats {...props} />
+					<SmolStats {...props} />
 				</>
 			) : (
 				<>
