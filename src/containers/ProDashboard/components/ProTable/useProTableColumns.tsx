@@ -1423,12 +1423,16 @@ export function useProTableColumns({
 							context[baseColumn.key] = numericValue
 						}
 					}
+					let result: unknown
 					try {
-						const result = compiled.expression.evaluate(context)
-						return typeof result === 'number' && Number.isFinite(result) ? result : null
+						result = compiled.expression.evaluate(context)
 					} catch {
 						return null
 					}
+					if (typeof result === 'number' && Number.isFinite(result)) {
+						return result
+					}
+					return null
 				},
 				cell: ({ getValue }) => {
 					const value = getValue()
