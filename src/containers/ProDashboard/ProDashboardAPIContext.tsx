@@ -336,8 +336,6 @@ export function ProDashboardAPIProvider({
 	serverData?: ProDashboardServerProps | null
 }) {
 	const queryClient = useQueryClient()
-	const seedTimestamp = Date.now()
-
 	const [seedTimestamp] = useState(Date.now)
 
 	const tableDataSeeded = useRef(false)

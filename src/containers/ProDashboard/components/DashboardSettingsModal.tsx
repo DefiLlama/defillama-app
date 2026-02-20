@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -96,9 +96,8 @@ function DashboardSettingsModalInner({
 			onClose()
 		} catch (error) {
 			console.error('Failed to delete dashboard:', error)
-		} finally {
-			setIsDeleting(false)
 		}
+		setIsDeleting(false)
 	}
 
 	return (
@@ -284,16 +283,6 @@ function DashboardSettingsModalInner({
 }
 
 export function DashboardSettingsModal(props: DashboardSettingsModalProps) {
-	const [openCycle, setOpenCycle] = useState(() => (props.isOpen ? 1 : 0))
-	const wasOpenRef = useRef(props.isOpen)
-
-	useEffect(() => {
-		if (props.isOpen && !wasOpenRef.current) {
-			setOpenCycle((prev) => prev + 1)
-		}
-		wasOpenRef.current = props.isOpen
-	}, [props.isOpen])
-
-	const modalKey = `${props.dashboardId ?? 'new'}:${openCycle}`
+	const modalKey = `${props.dashboardId ?? 'new'}:${props.isOpen ? 'open' : 'closed'}`
 	return <DashboardSettingsModalInner key={modalKey} {...props} />
 }
