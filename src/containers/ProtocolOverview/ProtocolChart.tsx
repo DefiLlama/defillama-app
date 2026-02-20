@@ -38,6 +38,20 @@ const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: s
 	return url.pathname + url.search
 }
 
+const resolveVisibility = ({
+	queryValue,
+	defaultEnabled
+}: {
+	queryValue: string | null
+	defaultEnabled: boolean
+}): 'true' | 'false' => {
+	if (queryValue === 'true') return 'true'
+	if (queryValue === 'false') return 'false'
+	return defaultEnabled ? 'true' : 'false'
+}
+
+const getQueryValueOnRemove = (isDefaultEnabled: boolean): 'false' | null => (isDefaultEnabled ? 'false' : null)
+
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 type ChartInterval = (typeof INTERVALS_LIST)[number]
 const isChartInterval = (value: string | null): value is ChartInterval =>
@@ -59,64 +73,63 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 		[props.chartDenominations]
 	)
 
-	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
-		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
-		for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
-			const chartKey = protocolCharts[chartLabel]
-			chartsByVisibility[chartKey] = searchParams.get(chartKey) === 'true' ? 'true' : 'false'
-		}
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts } =
+		useMemo(() => {
+			const defaultEnabledChartSet = new Set<ProtocolChartsLabels>([
+				...props.defaultToggledCharts,
+				...(props.availableCharts.includes('TVL') ? (['TVL'] as const) : []),
+				...(props.availableCharts.includes('Total Assets') ? (['Total Assets'] as const) : [])
+			])
+			const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
+			const chartsByVisibility: Record<string, 'true' | 'false'> = {}
+			for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
+				const chartKey = protocolCharts[chartLabel]
+				const defaultEnabled = defaultEnabledChartSet.has(chartLabel)
+				defaultEnabledCharts[chartLabel] = defaultEnabled
+				chartsByVisibility[chartKey] = resolveVisibility({
+					queryValue: searchParams.get(chartKey),
+					defaultEnabled
+				})
+			}
 
-		const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
+			const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
+			const hasEvents = (props.hallmarks?.length ?? 0) > 0 || (props.rangeHallmarks?.length ?? 0) > 0
 
-		const toggledMetrics = {
-			...chartsByVisibility,
-			denomination: denominationInSearchParams
-				? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
-				: null,
-			events:
-				(props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) && searchParams.get('events') !== 'false'
-					? 'true'
+			const toggledMetrics = {
+				...chartsByVisibility,
+				denomination: denominationInSearchParams
+					? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
+					: null,
+				events: hasEvents
+					? resolveVisibility({ queryValue: searchParams.get('events'), defaultEnabled: true })
 					: 'false'
-		} as IToggledMetrics
+			} as IToggledMetrics
 
-		for (const chartLabel of props.defaultToggledCharts) {
-			const chartKey = protocolCharts[chartLabel]
-			toggledMetrics[chartKey] = searchParams.get(chartKey) === 'false' ? 'false' : 'true'
-		}
+			const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
-		// TVL/Total Assets are special: if chart is available, keep enabled by default unless explicitly disabled via query.
-		toggledMetrics.tvl =
-			props.availableCharts.includes('TVL') && searchParams.get(protocolCharts['TVL']) !== 'false' ? 'true' : 'false'
-		toggledMetrics.totalAssets =
-			props.availableCharts.includes('Total Assets') && searchParams.get(protocolCharts['Total Assets']) !== 'false'
-				? 'true'
-				: 'false'
+			const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
-		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
-
-		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
-
-		return {
-			toggledMetrics,
-			toggledCharts,
-			hasAtleasOneBarChart,
-			groupBy: (() => {
-				if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
-				const groupByParam = searchParams.get('groupBy')
-				if (isChartInterval(groupByParam)) return groupByParam
-				return (props.defaultChartView ?? 'daily') as ChartInterval
-			})(),
-			defaultToggledCharts: props.defaultToggledCharts
-		}
-	}, [
-		searchParams,
-		chartDenominationByLowerSymbol,
-		props.hallmarks,
-		props.rangeHallmarks,
-		props.defaultToggledCharts,
-		props.availableCharts,
-		props.defaultChartView
-	])
+			return {
+				toggledMetrics,
+				toggledCharts,
+				hasAtleasOneBarChart,
+				groupBy: (() => {
+					if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
+					const groupByParam = searchParams.get('groupBy')
+					if (isChartInterval(groupByParam)) return groupByParam
+					return (props.defaultChartView ?? 'daily') as ChartInterval
+					})(),
+				defaultEnabledCharts
+			}
+		}, [
+			searchParams,
+			chartDenominationByLowerSymbol,
+			props.hallmarks,
+			props.rangeHallmarks,
+			props.defaultToggledCharts,
+			props.availableCharts,
+			props.defaultChartView
+		])
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
@@ -175,9 +188,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 														router.asPath,
 														protocolCharts[chart],
 														toggledMetrics[protocolCharts[chart]] === 'true'
-															? defaultToggledCharts.includes(chart)
-																? 'false'
-																: null
+															? getQueryValueOnRemove(defaultEnabledCharts[chart] === true)
 															: 'true'
 													),
 													undefined,
@@ -208,7 +219,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 													updateQueryParamInUrl(
 														router.asPath,
 														'events',
-														toggledMetrics.events === 'true' ? 'false' : 'true'
+														toggledMetrics.events === 'true' ? getQueryValueOnRemove(true) : 'true'
 													),
 													undefined,
 													{
@@ -248,7 +259,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									updateQueryParamInUrl(
 										router.asPath,
 										protocolCharts[tchart],
-										defaultToggledCharts.includes(tchart) ? 'false' : null
+										getQueryValueOnRemove(defaultEnabledCharts[tchart] === true)
 									),
 									undefined,
 									{
@@ -277,7 +288,11 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							checked={true}
 							onChange={() => {
 								router.push(
-									updateQueryParamInUrl(router.asPath, 'events', toggledMetrics.events === 'true' ? 'false' : 'true'),
+									updateQueryParamInUrl(
+										router.asPath,
+										'events',
+										toggledMetrics.events === 'true' ? getQueryValueOnRemove(true) : 'true'
+									),
 									undefined,
 									{
 										shallow: true

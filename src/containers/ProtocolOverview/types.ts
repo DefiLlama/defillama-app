@@ -45,8 +45,13 @@ interface IAdapterOverview {
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
+export type IProtocolOverviewChartSeries = Array<[number, number]>
+export type IProtocolOverviewInitialMultiSeriesChartData = Partial<
+	Record<ProtocolChartsLabels, IProtocolOverviewChartSeries>
+>
+
 export interface IProtocolOverviewPageData {
-	tvlChartData: Array<[string, number]>
+	initialMultiSeriesChartData: IProtocolOverviewInitialMultiSeriesChartData
 	id: string
 	name: string
 	token: {
