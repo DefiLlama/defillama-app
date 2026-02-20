@@ -3,11 +3,12 @@ import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { TimeSeriesEntry } from './api.types'
 import type { CategoryPerformanceProps, IPctChangeRow } from './types'
 
@@ -440,7 +441,11 @@ const CoinPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 	{
 		header: 'Δ%',
 		accessorKey: 'change',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
@@ -503,7 +508,11 @@ const CategoryPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 	{
 		header: 'Δ%',
 		accessorKey: 'change',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`

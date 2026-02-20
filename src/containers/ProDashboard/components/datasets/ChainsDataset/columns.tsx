@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, renderPercentChange } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 
 export const chainsDatasetColumns: ColumnDef<any>[] = [
 	{
@@ -44,7 +44,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
@@ -57,7 +57,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
@@ -70,7 +70,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}

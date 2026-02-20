@@ -10,10 +10,11 @@ import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { renderPercentChange, slug } from '~/utils'
+import { slug } from '~/utils'
 
 interface INftCollection {
 	name: string
@@ -79,7 +80,7 @@ const columns: ColumnDef<INftCollection>[] = [
 		header: '1d Change',
 		accessorKey: 'floorPricePctChange1Day',
 		size: 120,
-		cell: (info) => renderPercentChange(info.getValue()),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
@@ -88,7 +89,7 @@ const columns: ColumnDef<INftCollection>[] = [
 		header: '7d Change',
 		accessorKey: 'floorPricePctChange7Day',
 		size: 120,
-		cell: (info) => renderPercentChange(info.getValue()),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}

@@ -17,6 +17,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -26,7 +27,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, toNiceDaysAgo, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, slug, toNiceDaysAgo, tokenIconUrl } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRecentProtocol } from './types'
 
@@ -344,7 +345,11 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue()} />
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
@@ -354,7 +359,11 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue()} />
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 7 days'
@@ -364,7 +373,11 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue()} />
+			</>
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 30 days'

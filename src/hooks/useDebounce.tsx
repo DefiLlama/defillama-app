@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 
 type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: Parameters<T>) => void) & {
 	cancel: () => void
@@ -7,68 +7,37 @@ type DebouncedFunction<T extends (...args: any[]) => void> = ((...args: Paramete
 
 const normalizeDelay = (delay: number) => (Number.isFinite(delay) && delay > 0 ? delay : 0)
 
-const createDebounced = <T extends (...args: any[]) => void>(
-	fnRef: { current: (...args: any[]) => void },
-	delayRef: { current: number }
-): DebouncedFunction<T> => {
-	let timeoutId: ReturnType<typeof setTimeout> | null = null
-	let lastArgs: Parameters<T> | null = null
-
-	const debounced = ((...args: Parameters<T>) => {
-		lastArgs = args
-		if (timeoutId !== null) {
-			clearTimeout(timeoutId)
-		}
-		const wait = delayRef.current
-		timeoutId = setTimeout(() => {
-			timeoutId = null
-			if (lastArgs) {
-				fnRef.current(...lastArgs)
-				lastArgs = null
-			}
-		}, wait)
-	}) as DebouncedFunction<T>
-
-	debounced.cancel = () => {
-		if (timeoutId !== null) {
-			clearTimeout(timeoutId)
-		}
-		timeoutId = null
-		lastArgs = null
-	}
-
-	debounced.flush = () => {
-		if (timeoutId === null) return
-		clearTimeout(timeoutId)
-		timeoutId = null
-		if (lastArgs) {
-			fnRef.current(...lastArgs)
-			lastArgs = null
-		}
-	}
-
-	return debounced
-}
-
-export function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: number): DebouncedFunction<T>
-export function useDebounce<T>(value: T, delay: number): T
-export function useDebounce<T>(valueOrCallback: T, delay: number) {
-	const isCallback = typeof valueOrCallback === 'function'
-	const [debouncedValue, setDebouncedValue] = useState(() => valueOrCallback)
-	const handlerRef = useRef<(...args: any[]) => void>(() => {})
-	const delayRef = useRef(0)
+export function useDebouncedCallback<T extends (...args: any[]) => void>(
+	callback: T,
+	delay: number
+): DebouncedFunction<T> {
+	const [pendingArgs, setPendingArgs] = useState<Parameters<T> | null>(null)
 	const normalizedDelay = normalizeDelay(delay)
 
-	useEffect(() => {
-		handlerRef.current = isCallback
-			? (valueOrCallback as (...args: any[]) => void)
-			: (nextValue: T) => {
-					setDebouncedValue(nextValue)
-				}
-		delayRef.current = normalizedDelay
+	const onInvoke = useEffectEvent((args: Parameters<T>) => {
+		callback(...args)
 	})
 
-	const [debounced] = useState(() => createDebounced(handlerRef, delayRef))
+	const debounced = useMemo(() => {
+		const fn = ((...args: Parameters<T>) => {
+			setPendingArgs(args)
+		}) as DebouncedFunction<T>
+
+		fn.cancel = () => {
+			setPendingArgs(null)
+		}
+
+		fn.flush = () => {
+			setPendingArgs((current) => {
+				if (current) {
+					onInvoke(current)
+				}
+				return null
+			})
+		}
+
+		return fn
+	}, [])
 
 	useEffect(() => {
 		return () => {
@@ -77,14 +46,47 @@ export function useDebounce<T>(valueOrCallback: T, delay: number) {
 	}, [debounced])
 
 	useEffect(() => {
-		debounced.cancel()
-	}, [debounced, normalizedDelay])
+		if (pendingArgs === null) return
+		const timeoutId = setTimeout(() => {
+			onInvoke(pendingArgs)
+			setPendingArgs(null)
+		}, normalizedDelay)
+
+		return () => {
+			clearTimeout(timeoutId)
+		}
+	}, [normalizedDelay, pendingArgs])
 
 	useEffect(() => {
-		if (!isCallback) {
-			debounced(valueOrCallback)
+		setPendingArgs(null)
+	}, [normalizedDelay])
+
+	return debounced
+}
+
+export function useDebouncedValue<T>(value: T, delay: number): T {
+	const [debouncedValue, setDebouncedValue] = useState(() => value)
+	const normalizedDelay = normalizeDelay(delay)
+
+	useEffect(() => {
+		const timeoutId = setTimeout(() => {
+			setDebouncedValue(value)
+		}, normalizedDelay)
+
+		return () => {
+			clearTimeout(timeoutId)
 		}
-	}, [valueOrCallback, isCallback, debounced, normalizedDelay])
+	}, [value, normalizedDelay])
+
+	return debouncedValue
+}
+
+export function useDebounce<T extends (...args: any[]) => void>(callback: T, delay: number): DebouncedFunction<T>
+export function useDebounce<T>(value: T, delay: number): T
+export function useDebounce<T>(valueOrCallback: T, delay: number) {
+	const isCallback = typeof valueOrCallback === 'function'
+	const debounced = useDebouncedCallback(valueOrCallback as unknown as (...args: any[]) => void, delay)
+	const debouncedValue = useDebouncedValue(valueOrCallback, delay)
 
 	return (isCallback ? debounced : debouncedValue) as typeof valueOrCallback
 }

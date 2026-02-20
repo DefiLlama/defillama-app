@@ -1,9 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, renderPercentChange as formatPercentChange, peggedAssetIconUrl } from '~/utils'
+import { formattedNum, peggedAssetIconUrl } from '~/utils'
 
 interface IPeggedAssetRow {
 	name: string
@@ -90,7 +91,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formatPercentChange(value)}</span>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
 			)
 		},
 		size: 100,
@@ -104,7 +107,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formatPercentChange(value)}</span>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
 			)
 		},
 		size: 100,
@@ -118,7 +123,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formatPercentChange(value)}</span>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
 			)
 		},
 		size: 100,

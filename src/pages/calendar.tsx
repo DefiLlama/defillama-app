@@ -82,6 +82,7 @@ export default function Protocols({ emissions }) {
 		return selectedOptions
 	}, [type])
 	const selectedOptionsSet = React.useMemo(() => new Set(selectedOptions), [selectedOptions])
+	const [mountedAtMs] = React.useState(() => Date.now())
 
 	const allEvents = React.useMemo(() => {
 		const events: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
@@ -108,16 +109,15 @@ export default function Protocols({ emissions }) {
 			}
 		}
 
-		const now = Date.now()
 		const filteredEvents: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
 		for (const event of events) {
-			if (event.timestamp >= now && selectedOptionsSet.has(event.type)) {
+			if (event.timestamp >= mountedAtMs && selectedOptionsSet.has(event.type)) {
 				filteredEvents.push(event)
 			}
 		}
 		filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
 		return filteredEvents
-	}, [emissions, selectedOptionsSet])
+	}, [emissions, selectedOptionsSet, mountedAtMs])
 
 	const instance = useReactTable({
 		data: allEvents,

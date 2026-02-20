@@ -1,5 +1,4 @@
 import * as React from 'react'
-
 interface TokenLogoProps {
 	logo?: string | null
 	fallbackLogo?: string | null

@@ -17,6 +17,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
@@ -28,7 +29,7 @@ import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
@@ -672,7 +673,11 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
 				id: 'change_1d',
 				header: '1d Change',
-				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				cell: ({ getValue }) => (
+					<>
+						<PercentChange percent={getValue()} />
+					</>
+				),
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
@@ -682,7 +687,11 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
 				id: 'change_7d',
 				header: '7d Change',
-				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				cell: ({ getValue }) => (
+					<>
+						<PercentChange percent={getValue()} />
+					</>
+				),
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
@@ -692,7 +701,11 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
 				id: 'change_1m',
 				header: '1m Change',
-				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				cell: ({ getValue }) => (
+					<>
+						<PercentChange percent={getValue()} />
+					</>
+				),
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
@@ -1119,7 +1132,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
-				cell: ({ getValue }) => <>{getValue() != 0 ? renderPercentChange(getValue()) : null}</>,
+				cell: ({ getValue }) => <>{getValue() != 0 ? <PercentChange percent={getValue()} /> : null}</>,
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']

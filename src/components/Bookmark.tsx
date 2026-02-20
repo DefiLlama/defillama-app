@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import * as React from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useBookmarks } from '~/hooks/useBookmarks'

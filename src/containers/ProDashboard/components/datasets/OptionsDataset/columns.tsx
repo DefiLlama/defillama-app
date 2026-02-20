@@ -1,7 +1,6 @@
-import Image from 'next/image'
 import type { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
-import { formattedNum, renderPercentChange as formatPercentChange } from '~/utils'
+import { PercentChange } from '~/components/PercentChange'
+import { formattedNum } from '~/utils'
 
 export const optionsDatasetColumns: ColumnDef<any>[] = [
 	{
@@ -13,13 +12,13 @@ export const optionsDatasetColumns: ColumnDef<any>[] = [
 			return (
 				<div className="flex items-center gap-3">
 					{row.original.logo && (
-						<Image
+						<img
 							src={row.original.logo}
 							alt={row.original.name}
-							width={28}
-							height={28}
-							unoptimized
 							className="h-7 w-7 rounded-full object-cover"
+							onError={(e) => {
+								e.currentTarget.style.display = 'none'
+							}}
 						/>
 					)}
 					<span className="font-medium pro-text1">{row.original.name}</span>
@@ -36,7 +35,7 @@ export const optionsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={`${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formatPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
@@ -49,7 +48,7 @@ export const optionsDatasetColumns: ColumnDef<any>[] = [
 			const value = getValue() as number
 			return (
 				<span className={`${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formatPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
@@ -80,7 +79,11 @@ export const optionsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ row, table }) => {
 			const total24h = table.getFilteredRowModel().rows.reduce((sum, r) => sum + (r.original.total24h || 0), 0)
 			const percentage = total24h > 0 ? (row.original.total24h / total24h) * 100 : 0
-			return <span className="pro-text2">{formatPercentChange(percentage, true)}</span>
+			return (
+				<span className="pro-text2">
+					<PercentChange percent={percentage} noSign />
+				</span>
+			)
 		}
 	}
 ]

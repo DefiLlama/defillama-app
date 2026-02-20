@@ -9,7 +9,8 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef
+	useRef,
+	useState
 } from 'react'
 import toast from 'react-hot-toast'
 import { PROTOCOLS_API } from '~/constants'
@@ -291,8 +292,11 @@ const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerPro
 	undefined
 )
 
-function seedTableDataIntoCache(queryClient: ReturnType<typeof useQueryClient>, tableData: TableServerData) {
-	const now = Date.now()
+function seedTableDataIntoCache(
+	queryClient: ReturnType<typeof useQueryClient>,
+	tableData: TableServerData,
+	now: number
+) {
 	if (tableData.protocolsList) {
 		queryClient.setQueryData([PROTOCOLS_API], tableData.protocolsList, { updatedAt: now })
 	}
@@ -334,9 +338,11 @@ export function ProDashboardAPIProvider({
 	const queryClient = useQueryClient()
 	const seedTimestamp = Date.now()
 
+	const [seedTimestamp] = useState(Date.now)
+
 	const tableDataSeeded = useRef(false)
 	if (!tableDataSeeded.current && serverData?.tableData) {
-		seedTableDataIntoCache(queryClient, serverData.tableData)
+		seedTableDataIntoCache(queryClient, serverData.tableData, seedTimestamp)
 		tableDataSeeded.current = true
 	}
 

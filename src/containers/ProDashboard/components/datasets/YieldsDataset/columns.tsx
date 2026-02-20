@@ -1,8 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, renderPercentChange as formatPercentChange, tokenIconUrl } from '~/utils'
+import { formattedNum, tokenIconUrl } from '~/utils'
 
 interface IYieldsRow {
 	pool: string
@@ -100,7 +101,11 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{formatPercentChange(value, true, 700)}</>
+			return (
+				<>
+					<PercentChange percent={value} noSign fontWeight={700} />
+				</>
+			)
 		},
 		size: 100,
 		meta: {
@@ -112,7 +117,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyBase',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -127,7 +132,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			const symbols = row.original.rewardTokensSymbols
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{value ? formatPercentChange(value, true) : '-'}
+					{value ? <PercentChange percent={value} noSign /> : '-'}
 					{symbols && symbols.length > 0 && (
 						<span className="text-xs text-(--text-secondary)">({symbols.join(', ')})</span>
 					)}
@@ -144,7 +149,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value) : '-'}</>
+			return <>{value ? <PercentChange percent={value} /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -156,7 +161,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value) : '-'}</>
+			return <>{value ? <PercentChange percent={value} /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -168,7 +173,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'il7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -180,7 +185,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyBase7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 120,
 		meta: {
@@ -192,7 +197,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyNet7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 120,
 		meta: {
@@ -204,7 +209,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyMean30d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? formatPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 130,
 		meta: {
@@ -241,7 +246,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? formatPercentChange(value, true) : '-'}</>
+			return <>{value !== null ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -294,7 +299,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? formatPercentChange(value * 100, true) : '-'}</>
+			return <>{value !== null ? <PercentChange percent={value * 100} noSign /> : '-'}</>
 		},
 		size: 80,
 		meta: {

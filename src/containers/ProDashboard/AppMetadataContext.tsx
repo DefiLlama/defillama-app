@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import * as React from 'react'
-import { createContext, useCallback, useContext, useMemo } from 'react'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
@@ -37,7 +36,6 @@ type AppMetadataContextType = {
 }
 
 const AppMetadataContext = createContext<AppMetadataContextType | undefined>(undefined)
-const INITIAL_METADATA_TIMESTAMP = Date.now()
 
 const PROTOCOL_FLAG_BY_BUILDER_METRIC: Record<BuilderMetric, keyof ProtocolFlags> = {
 	tvl: 'tvl',
@@ -77,6 +75,7 @@ export function AppMetadataProvider({
 		pfPs: { pf: string[]; ps: string[] }
 	} | null
 }) {
+	const [mountedAt] = useState(Date.now)
 	const {
 		data: rawData,
 		isLoading: loading,
@@ -101,11 +100,11 @@ export function AppMetadataProvider({
 			])
 
 			return { protocols, chains, pfPs }
-			},
-			initialData: initialData ?? undefined,
-			staleTime: initialData ? Infinity : 0,
-			initialDataUpdatedAt: initialData ? INITIAL_METADATA_TIMESTAMP : undefined
-		})
+		},
+		initialData: initialData ?? undefined,
+		staleTime: initialData ? Infinity : 0,
+		initialDataUpdatedAt: initialData ? mountedAt : undefined
+	})
 
 	const error = queryError ? String(queryError.message) : undefined
 	const protocolsRaw = rawData?.protocols ?? null

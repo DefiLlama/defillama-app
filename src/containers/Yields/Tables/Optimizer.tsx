@@ -1,10 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { IconsRow } from '~/components/IconsRow'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -120,7 +121,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{renderPercentChange(info.getValue(), true, 400, true)}
+					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -136,7 +137,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: ({ getValue }) => {
 			return (
 				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-					{renderPercentChange(getValue(), true, 700, true)}
+					{formatPercentChangeText(getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -150,7 +151,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		accessorKey: 'lendingBase',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -168,12 +169,12 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-								{renderPercentChange(getValue(), true, 700, true)}
+								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</span>
 					) : (
 						<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-							{renderPercentChange(getValue(), true, 700, true)}
+							{formatPercentChangeText(getValue(), true)}
 						</ColoredAPY>
 					)}
 				</>
@@ -201,7 +202,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</span>
 			)
 		},
@@ -218,7 +219,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{renderPercentChange(info.getValue(), true, 400, true)}
+					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},

@@ -1,7 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 
 interface IHoldersRevenueRow {
 	name: string
@@ -96,7 +97,7 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		},
@@ -112,7 +113,7 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		},

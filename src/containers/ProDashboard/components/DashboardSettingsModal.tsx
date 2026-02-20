@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useReducer, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -25,44 +25,6 @@ interface DashboardSettingsModalProps {
 	onDelete?: (dashboardId: string) => Promise<void>
 }
 
-interface DashboardSettingsFormState {
-	dashboardName: string
-	visibility: 'private' | 'public'
-	tags: string[]
-	description: string
-	tagInput: string
-}
-
-type DashboardSettingsFormAction =
-	| { type: 'set_name'; value: string }
-	| { type: 'set_visibility'; value: 'private' | 'public' }
-	| { type: 'add_tag'; value: string }
-	| { type: 'remove_tag'; value: string }
-	| { type: 'set_tag_input'; value: string }
-	| { type: 'set_description'; value: string }
-
-function dashboardSettingsFormReducer(
-	state: DashboardSettingsFormState,
-	action: DashboardSettingsFormAction
-): DashboardSettingsFormState {
-	switch (action.type) {
-		case 'set_name':
-			return { ...state, dashboardName: action.value }
-		case 'set_visibility':
-			return { ...state, visibility: action.value }
-		case 'add_tag':
-			return state.tags.includes(action.value) ? state : { ...state, tags: [...state.tags, action.value] }
-		case 'remove_tag':
-			return { ...state, tags: state.tags.filter((tag) => tag !== action.value) }
-		case 'set_tag_input':
-			return { ...state, tagInput: action.value }
-		case 'set_description':
-			return { ...state, description: action.value.slice(0, 200) }
-		default:
-			return state
-	}
-}
-
 function DashboardSettingsModalInner({
 	isOpen,
 	onClose,
@@ -78,18 +40,13 @@ function DashboardSettingsModalInner({
 	onSave,
 	onDelete
 }: DashboardSettingsModalProps) {
-	const [formState, dispatchForm] = useReducer(dashboardSettingsFormReducer, {
-		dashboardName,
-		visibility,
-		tags,
-		description,
-		tagInput: ''
-	})
+	const [localDashboardName, setLocalDashboardName] = useState(dashboardName)
+	const [localVisibility, setLocalVisibility] = useState(visibility)
+	const [localTags, setLocalTags] = useState(tags)
+	const [localDescription, setLocalDescription] = useState(description)
+	const [tagInput, setTagInput] = useState('')
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-	const { dashboardName: localDashboardName, visibility: localVisibility, tags: localTags, description: localDescription, tagInput } =
-		formState
 
 	const handleSave = () => {
 		const normalizedDescription = localDescription.slice(0, 200)
@@ -109,13 +66,13 @@ function DashboardSettingsModalInner({
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
 		if (trimmedTag) {
-			dispatchForm({ type: 'add_tag', value: trimmedTag })
+			setLocalTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
-		dispatchForm({ type: 'set_tag_input', value: '' })
+		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		dispatchForm({ type: 'remove_tag', value: tag })
+		setLocalTags((prev) => prev.filter((t) => t !== tag))
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
@@ -139,8 +96,9 @@ function DashboardSettingsModalInner({
 			onClose()
 		} catch (error) {
 			console.error('Failed to delete dashboard:', error)
+		} finally {
+			setIsDeleting(false)
 		}
-		setIsDeleting(false)
 	}
 
 	return (
@@ -170,14 +128,14 @@ function DashboardSettingsModalInner({
 							<label htmlFor="dashboard-settings-name" className="mb-3 block text-sm font-medium pro-text1">
 								Dashboard Name
 							</label>
-								<input
-									id="dashboard-settings-name"
-									type="text"
-									value={localDashboardName}
-									onChange={(e) => dispatchForm({ type: 'set_name', value: e.target.value })}
-									placeholder="Enter dashboard name"
-									className="w-full rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-								/>
+							<input
+								id="dashboard-settings-name"
+								type="text"
+								value={localDashboardName}
+								onChange={(e) => setLocalDashboardName(e.target.value)}
+								placeholder="Enter dashboard name"
+								className="w-full rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							/>
 						</div>
 
 						<div>
@@ -185,10 +143,10 @@ function DashboardSettingsModalInner({
 								Visibility
 							</p>
 							<div className="flex gap-3" aria-labelledby="dashboard-settings-visibility">
-									<button
-										type="button"
-										onClick={() => dispatchForm({ type: 'set_visibility', value: 'public' })}
-										aria-pressed={localVisibility === 'public'}
+								<button
+									type="button"
+									onClick={() => setLocalVisibility('public')}
+									aria-pressed={localVisibility === 'public'}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
 									}`}
@@ -196,10 +154,10 @@ function DashboardSettingsModalInner({
 									<Icon name="earth" height={16} width={16} className="mr-2 inline" />
 									Public
 								</button>
-									<button
-										type="button"
-										onClick={() => dispatchForm({ type: 'set_visibility', value: 'private' })}
-										aria-pressed={localVisibility === 'private'}
+								<button
+									type="button"
+									onClick={() => setLocalVisibility('private')}
+									aria-pressed={localVisibility === 'private'}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
 									}`}
@@ -218,12 +176,12 @@ function DashboardSettingsModalInner({
 								Tags
 							</label>
 							<div className="flex gap-2">
-									<input
-										id="dashboard-settings-tag-input"
-										type="text"
-										value={tagInput}
-										onChange={(e) => dispatchForm({ type: 'set_tag_input', value: e.target.value })}
-										onKeyDown={handleTagInputKeyDown}
+								<input
+									id="dashboard-settings-tag-input"
+									type="text"
+									value={tagInput}
+									onChange={(e) => setTagInput(e.target.value)}
+									onKeyDown={handleTagInputKeyDown}
 									placeholder="Enter tag name"
 									className="flex-1 rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
@@ -268,11 +226,11 @@ function DashboardSettingsModalInner({
 							<label htmlFor="dashboard-settings-description" className="mb-3 block text-sm font-medium pro-text1">
 								Description
 							</label>
-								<textarea
-									id="dashboard-settings-description"
-									value={localDescription}
-									onChange={(e) => dispatchForm({ type: 'set_description', value: e.target.value })}
-									placeholder="Describe your dashboard..."
+							<textarea
+								id="dashboard-settings-description"
+								value={localDescription}
+								onChange={(e) => setLocalDescription(e.target.value.slice(0, 200))}
+								placeholder="Describe your dashboard..."
 								maxLength={200}
 								rows={3}
 								className="w-full resize-none rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
@@ -326,5 +284,16 @@ function DashboardSettingsModalInner({
 }
 
 export function DashboardSettingsModal(props: DashboardSettingsModalProps) {
-	return <DashboardSettingsModalInner key={props.dashboardId ?? 'new'} {...props} />
+	const [openCycle, setOpenCycle] = useState(() => (props.isOpen ? 1 : 0))
+	const wasOpenRef = useRef(props.isOpen)
+
+	useEffect(() => {
+		if (props.isOpen && !wasOpenRef.current) {
+			setOpenCycle((prev) => prev + 1)
+		}
+		wasOpenRef.current = props.isOpen
+	}, [props.isOpen])
+
+	const modalKey = `${props.dashboardId ?? 'new'}:${openCycle}`
+	return <DashboardSettingsModalInner key={modalKey} {...props} />
 }

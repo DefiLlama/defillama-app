@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { lazy, type ReactNode, Suspense, useState } from 'react'
+import { lazy, type ReactNode, Suspense, useCallback, useReducer } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -46,75 +46,144 @@ const hasPrepareCsv = (props: CSVDownloadButtonPropsUnion): props is CSVDownload
 
 const hasOnClick = (props: CSVDownloadButtonPropsUnion): props is CSVDownloadButtonWithOnClick => 'onClick' in props
 
+interface CSVDownloadButtonState {
+	staticLoading: boolean
+	shouldRenderModal: boolean
+	trialConfirmOpen: boolean
+	trialCsvLimitOpen: boolean
+	trialLoading: boolean
+}
+
+type CSVDownloadButtonAction =
+	| { type: 'setStaticLoading'; value: boolean }
+	| { type: 'setShouldRenderModal'; value: boolean }
+	| { type: 'setTrialConfirmOpen'; value: boolean }
+	| { type: 'setTrialCsvLimitOpen'; value: boolean }
+	| { type: 'setTrialLoading'; value: boolean }
+
+const initialCSVDownloadButtonState: CSVDownloadButtonState = {
+	staticLoading: false,
+	shouldRenderModal: false,
+	trialConfirmOpen: false,
+	trialCsvLimitOpen: false,
+	trialLoading: false
+}
+
+function csvDownloadButtonReducer(
+	state: CSVDownloadButtonState,
+	action: CSVDownloadButtonAction
+): CSVDownloadButtonState {
+	switch (action.type) {
+		case 'setStaticLoading':
+			return { ...state, staticLoading: action.value }
+		case 'setShouldRenderModal':
+			return { ...state, shouldRenderModal: action.value }
+		case 'setTrialConfirmOpen':
+			return { ...state, trialConfirmOpen: action.value }
+		case 'setTrialCsvLimitOpen':
+			return { ...state, trialCsvLimitOpen: action.value }
+		case 'setTrialLoading':
+			return { ...state, trialLoading: action.value }
+		default:
+			return state
+	}
+}
+
+interface TrialCsvLimitModalState {
+	upgraded: boolean
+}
+
+type TrialCsvLimitModalAction = { type: 'setUpgraded'; value: boolean } | { type: 'reset' }
+
+const initialTrialCsvLimitModalState: TrialCsvLimitModalState = {
+	upgraded: false
+}
+
+function trialCsvLimitModalReducer(
+	state: TrialCsvLimitModalState,
+	action: TrialCsvLimitModalAction
+): TrialCsvLimitModalState {
+	switch (action.type) {
+		case 'setUpgraded':
+			return { upgraded: action.value }
+		case 'reset':
+			return initialTrialCsvLimitModalState
+		default:
+			return state
+	}
+}
+
 // use children to pass in the text
 export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	const { className, replaceClassName, smol, children } = props
-	const [staticLoading, setStaticLoading] = useState(false)
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const [trialConfirmOpen, setTrialConfirmOpen] = useState(false)
-	const [trialCsvLimitOpen, setTrialCsvLimitOpen] = useState(false)
-	const [trialLoading, setTrialLoading] = useState(false)
+	const [state, dispatch] = useReducer(csvDownloadButtonReducer, initialCSVDownloadButtonState)
+	const { staticLoading, shouldRenderModal, trialConfirmOpen, trialCsvLimitOpen, trialLoading } = state
 	const { isAuthenticated, loaders, hasActiveSubscription, isTrial, user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
-	const isLoading = !!(
-		loaders.userLoading ||
-		(hasOnClick(props) ? props.isLoading : undefined) ||
-		staticLoading ||
-		trialLoading
-	)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const isOnClickMode = hasOnClick(props)
+	const onClickLoading = isOnClickMode ? props.isLoading : false
+	const onClickHandler = isOnClickMode ? props.onClick : undefined
+	const prepareCsv = hasPrepareCsv(props) ? props.prepareCsv : undefined
+	const isLoading = !!(loaders.userLoading || onClickLoading || staticLoading || trialLoading)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderModal,
+		setOpen: (value) => dispatch({ type: 'setShouldRenderModal', value })
+	})
 	const isClient = useIsClient()
 	const router = useRouter()
 	const csvDownloadCount = typeof user?.flags?.csvDownload === 'number' ? user.flags.csvDownload : 0
 
-	const runDownload = async (forceLoading = false) => {
-		const shouldSetLoading = forceLoading || hasPrepareCsv(props)
-		if (shouldSetLoading) setStaticLoading(true)
-		const escapeCell = (value: string | number | boolean | null | undefined) => {
-			if (value == null) return ''
-			const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
-			if (str.includes(',') || str.includes('"')) {
-				return `"${str.replace(/"/g, '""')}"`
-			}
-			return str
-		}
-
-		try {
-			if (hasOnClick(props)) {
-				await Promise.resolve(props.onClick())
-				return true
+	const runDownload = useCallback(
+		async (forceLoading = false) => {
+			const shouldSetLoading = forceLoading || !!prepareCsv
+			if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: true })
+			const escapeCell = (value: string | number | boolean | null | undefined) => {
+				if (value == null) return ''
+				const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
+				if (str.includes(',') || str.includes('"')) {
+					return `"${str.replace(/"/g, '""')}"`
+				}
+				return str
 			}
 
-			if (hasPrepareCsv(props)) {
-				const { filename, rows } = props.prepareCsv()
+			try {
+				if (onClickHandler) {
+					await Promise.resolve(onClickHandler())
+					return true
+				}
 
-				download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
-				return true
+				if (prepareCsv) {
+					const { filename, rows } = prepareCsv()
+
+					download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+					return true
+				}
+
+				toast.error('CSV download is not configured')
+				return false
+			} catch (error) {
+				if (prepareCsv) {
+					toast.error('Failed to download CSV')
+				}
+				console.log(error)
+				return false
+			} finally {
+				if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 			}
+		},
+		[onClickHandler, prepareCsv]
+	)
 
-			toast.error('CSV download is not configured')
-			return false
-		} catch (error) {
-			if (hasPrepareCsv(props)) {
-				toast.error('Failed to download CSV')
-			}
-			console.log(error)
-			return false
-		} finally {
-			if (shouldSetLoading) setStaticLoading(false)
-		}
-	}
-
-	const trackCsvDownload = async () => {
+	const trackCsvDownload = useCallback(async () => {
 		const response = await authorizedFetch(`${AUTH_SERVER}/user/track-csv-download`, { method: 'POST' })
 		if (!response?.ok) {
 			throw new Error('Failed to track CSV download')
 		}
 		await queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-	}
+	}, [authorizedFetch, queryClient])
 
-	const handleTrialConfirm = async () => {
-		setTrialLoading(true)
+	const handleTrialConfirm = useCallback(async () => {
+		dispatch({ type: 'setTrialLoading', value: true })
 		try {
 			const downloaded = await runDownload(true)
 			if (!downloaded) return
@@ -123,9 +192,38 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 			toast.error('Failed to update CSV download status')
 			console.log(error)
 		} finally {
-			setTrialLoading(false)
+			dispatch({ type: 'setTrialLoading', value: false })
 		}
-	}
+	}, [runDownload, trackCsvDownload])
+
+	const handleButtonClick = useCallback(async () => {
+		if (isLoading) return
+
+		if (isTrial) {
+			if (csvDownloadCount >= 1) {
+				dispatch({ type: 'setTrialCsvLimitOpen', value: true })
+				return
+			}
+			dispatch({ type: 'setTrialConfirmOpen', value: true })
+			return
+		}
+
+		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
+			await runDownload()
+			return
+		}
+
+		subscribeModalStore.show()
+	}, [
+		csvDownloadCount,
+		hasActiveSubscription,
+		isAuthenticated,
+		isLoading,
+		isTrial,
+		loaders.userLoading,
+		runDownload,
+		subscribeModalStore
+	])
 
 	return (
 		<>
@@ -139,23 +237,8 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 								className ?? ''
 							}`
 				}
-				onClick={async () => {
-					if (isLoading) return
-
-					if (isTrial) {
-						if (csvDownloadCount >= 1) {
-							setTrialCsvLimitOpen(true)
-							return
-						}
-						setTrialConfirmOpen(true)
-						return
-					}
-
-					if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
-						await runDownload()
-					} else if (!isLoading) {
-						subscribeModalStore.show()
-					}
+				onClick={() => {
+					void handleButtonClick()
 				}}
 				disabled={isClient ? isLoading : true}
 			>
@@ -175,12 +258,15 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 				</Suspense>
 			) : null}
 			{trialCsvLimitOpen ? (
-				<TrialCsvLimitModal isOpen={trialCsvLimitOpen} onClose={() => setTrialCsvLimitOpen(false)} />
+				<TrialCsvLimitModal
+					isOpen={trialCsvLimitOpen}
+					onClose={() => dispatch({ type: 'setTrialCsvLimitOpen', value: false })}
+				/>
 			) : null}
 			{trialConfirmOpen ? (
 				<ConfirmationModal
 					isOpen={trialConfirmOpen}
-					onClose={() => setTrialConfirmOpen(false)}
+					onClose={() => dispatch({ type: 'setTrialConfirmOpen', value: false })}
 					onConfirm={() => {
 						void handleTrialConfirm()
 					}}
@@ -197,24 +283,27 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
 	const { endTrialSubscription, isEndTrialLoading } = useSubscribe()
-	const [upgraded, setUpgraded] = useState(false)
+	const [state, dispatch] = useReducer(trialCsvLimitModalReducer, initialTrialCsvLimitModalState)
+	const { upgraded } = state
 
-	const handleUpgrade = async () => {
+	const handleUpgrade = useCallback(async () => {
 		try {
 			await endTrialSubscription()
-			setUpgraded(true)
+			dispatch({ type: 'setUpgraded', value: true })
 		} catch (error) {
 			console.error('Failed to upgrade:', error)
 		}
-	}
+	}, [endTrialSubscription])
+
+	const handleClose = useCallback(() => {
+		dispatch({ type: 'reset' })
+		onClose()
+	}, [onClose])
 
 	return (
 		<Ariakit.Dialog
 			open={isOpen}
-			onClose={() => {
-				setUpgraded(false)
-				onClose()
-			}}
+			onClose={handleClose}
 			className="dialog flex max-h-[90dvh] max-w-md flex-col gap-4 overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none"
 			portal
 			unmountOnHide
@@ -222,10 +311,7 @@ function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 			<div className="flex items-center justify-between">
 				<h3 className="text-xl font-bold">{upgraded ? 'Upgrade Successful' : 'Upgrade to Full Access'}</h3>
 				<button
-					onClick={() => {
-						setUpgraded(false)
-						onClose()
-					}}
+					onClick={handleClose}
 					className="rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white"
 				>
 					<Icon name="x" height={18} width={18} />
@@ -243,10 +329,7 @@ function TrialCsvLimitModal({ isOpen, onClose }: { isOpen: boolean; onClose: () 
 						</div>
 					</div>
 					<button
-						onClick={() => {
-							setUpgraded(false)
-							onClose()
-						}}
+						onClick={handleClose}
 						className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 					>
 						Close

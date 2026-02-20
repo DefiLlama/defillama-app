@@ -13,7 +13,7 @@ import {
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
 import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
-import { useDebounce } from './useDebounce'
+import { useDebouncedCallback } from './useDebounce'
 
 const USER_CONFIG_QUERY_KEY = ['userConfig']
 const SYNC_DEBOUNCE_MS = 2000
@@ -206,7 +206,7 @@ export function useUserConfig() {
 		saveConfigAsyncRef.current = saveConfigAsync
 	})
 
-	const syncSettings = useDebounce(async () => {
+	const syncSettings = useDebouncedCallback(async () => {
 		try {
 			const currentSettings = readAppStorageRaw()
 			if (!currentSettings) return

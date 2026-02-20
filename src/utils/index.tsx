@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
+import { renderPercentChange } from '~/components/PercentChange'
 import { ICONS_CDN } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
@@ -354,79 +355,6 @@ export function liquidationsIconUrl(symbol: unknown, hd: boolean = false): strin
 
 export function peggedAssetIconUrl(name: unknown): string {
 	return `${ICONS_CDN}/pegged/${encodeURIComponent(String(name).toLowerCase().split(' ').join('-'))}?w=48&h=48`
-}
-
-export function renderPercentChange(
-	percent: unknown,
-	noSign: boolean | undefined,
-	fontWeight: number | undefined,
-	returnTextOnly: true
-): string | null
-export function renderPercentChange(
-	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: false
-): React.JSX.Element | null
-export function renderPercentChange(
-	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: boolean
-): string | null | React.JSX.Element
-export function renderPercentChange(
-	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: boolean
-): string | null | React.JSX.Element {
-	if (!percent && percent !== 0) {
-		return null
-	}
-
-	const parsedPercent = parseFloat(String(percent))
-	let isPositive = false
-	let isNegative = false
-	let finalValue = ''
-
-	if (!parsedPercent || parsedPercent === 0) {
-		finalValue = '0%'
-	} else if (parsedPercent > 0 && parsedPercent < 0.0001) {
-		isPositive = true
-		finalValue = '< 0.0001%'
-	} else if (parsedPercent < 0 && parsedPercent > -0.0001) {
-		isNegative = true
-		finalValue = '< 0.0001%'
-	} else {
-		const fixedPercent = parsedPercent.toFixed(2)
-		const fixedNum = Number(fixedPercent)
-
-		if (fixedNum === 0) {
-			finalValue = '0%'
-		} else if (fixedNum > 0) {
-			isPositive = true
-			const prefix = noSign ? '' : '+'
-			finalValue = fixedNum > 100 ? `${prefix}${parsedPercent.toFixed(0)}%` : `${prefix}${fixedPercent}%`
-		} else {
-			isNegative = true
-			finalValue = `${fixedPercent}%`
-		}
-	}
-
-	if (returnTextOnly) {
-		return finalValue
-	}
-
-	const colorClass = noSign ? '' : isPositive ? 'text-(--success)' : isNegative ? 'text-(--error)' : ''
-	const weight = fontWeight ?? 400
-
-	return weight > 400 ? (
-		<span className={colorClass} style={{ fontWeight: weight }}>
-			{finalValue}
-		</span>
-	) : (
-		<span className={colorClass}>{finalValue}</span>
-	)
 }
 
 /**

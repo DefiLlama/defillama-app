@@ -15,13 +15,14 @@ import { Bookmark } from '~/components/Bookmark'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import type { FormSubmitEvent } from '~/types/forms'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 const UnconstrainedSmolLineChart = lazy(() =>
@@ -244,9 +245,12 @@ export const UnlocksTable = ({
 		maxPerc
 	])
 
+	const [nowSec] = useState(() => Math.floor(Date.now() / 1000))
+	const columns = useMemo(() => [...emissionsColumns, upcomingEventColumn(nowSec)], [nowSec])
+
 	const instance = useReactTable({
 		data: filteredData,
-		columns: emissionsColumns,
+		columns,
 		state: {
 			sorting,
 			expanded,
@@ -538,7 +542,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue<number | undefined>()
 			return (
-				<div className="flex h-full items-center justify-end">{value != null ? renderPercentChange(value) : ''}</div>
+				<div className="flex h-full items-center justify-end">
+					{value != null ? <PercentChange percent={value} /> : ''}
+				</div>
 			)
 		},
 		meta: {
@@ -566,38 +572,39 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Next Event',
-		id: 'upcomingEvent',
-		accessorFn: (row) => {
-			const { timestamp } = row.upcomingEvent?.[0] || {}
-			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
-			return timestamp
-		},
-		cell: ({ row }) => {
-			if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
-			const { timestamp } = row.original.upcomingEvent[0]
-			if (!timestamp || timestamp < Date.now() / 1e3) return null
-
-			return (
-				<UpcomingEvent
-					{...{
-						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
-						timestamp,
-						event: row.original.upcomingEvent.map((event) => ({
-							...event,
-							timestamp: event.timestamp ?? timestamp
-						})),
-						price: row.original.tPrice,
-						symbol: row.original.tSymbol,
-						mcap: row.original.mcap,
-						maxSupply: row.original.maxSupply,
-						name: row.original.name
-					}}
-				/>
-			)
-		},
-		size: 400
 	}
 ]
+
+const upcomingEventColumn = (nowSec: number): ColumnDef<IEmission> => ({
+	header: 'Next Event',
+	id: 'upcomingEvent',
+	accessorFn: (row) => {
+		const { timestamp } = row.upcomingEvent?.[0] || {}
+		if (!timestamp || timestamp < nowSec) return undefined
+		return timestamp
+	},
+	cell: ({ row }) => {
+		if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
+		const { timestamp } = row.original.upcomingEvent[0]
+		if (!timestamp || timestamp < nowSec) return null
+
+		return (
+			<UpcomingEvent
+				{...{
+					noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
+					timestamp,
+					event: row.original.upcomingEvent.map((event) => ({
+						...event,
+						timestamp: event.timestamp ?? timestamp
+					})),
+					price: row.original.tPrice,
+					symbol: row.original.tSymbol,
+					mcap: row.original.mcap,
+					maxSupply: row.original.maxSupply,
+					name: row.original.name
+				}}
+			/>
+		)
+	},
+	size: 400
+})

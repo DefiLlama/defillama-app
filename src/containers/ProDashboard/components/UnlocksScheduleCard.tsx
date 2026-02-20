@@ -18,7 +18,6 @@ const MultiSeriesChart2 = lazy(
 
 const EMPTY_STACKS: string[] = []
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
-const TODAY_TIMESTAMP_SECONDS = Math.floor(Date.now() / 1000)
 
 interface UnlocksScheduleCardProps {
 	config: UnlocksScheduleConfig
@@ -29,9 +28,10 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 	const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 	const todayHallmarks = useMemo<[number, string][]>(
-		() => [[TODAY_TIMESTAMP_SECONDS, toNiceDayMonthYear(TODAY_TIMESTAMP_SECONDS)]],
-		[]
+		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
+		[todayTimestamp]
 	)
 
 	const { data, isLoading } = useQuery({
