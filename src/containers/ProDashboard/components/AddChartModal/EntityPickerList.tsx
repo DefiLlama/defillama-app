@@ -1,6 +1,6 @@
-import Image from 'next/image'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import Image from 'next/image'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'

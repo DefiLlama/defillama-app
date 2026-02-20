@@ -223,7 +223,9 @@ export function UnlocksChartTab({
 		)
 	} else if (selectedUnlocksChartType === 'total') {
 		if (totalSeries.length === 0) {
-			chartContent = <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
 		} else {
 			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -239,7 +241,9 @@ export function UnlocksChartTab({
 		}
 	} else if (selectedUnlocksChartType === 'schedule') {
 		if (scheduleDataset.source.length === 0 || stacks.length === 0) {
-			chartContent = <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
 		} else {
 			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -255,7 +259,9 @@ export function UnlocksChartTab({
 		}
 	} else if (selectedUnlocksChartType === 'allocation') {
 		if (allocationPieChartData.length === 0) {
-			chartContent = <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
 		} else {
 			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -265,7 +271,9 @@ export function UnlocksChartTab({
 		}
 	} else if (selectedUnlocksChartType === 'locked-unlocked') {
 		if (lockedUnlockedPieChartData.length === 0) {
-			chartContent = <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
 		} else {
 			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
@@ -274,7 +282,9 @@ export function UnlocksChartTab({
 			)
 		}
 	} else {
-		chartContent = <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+		chartContent = (
+			<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+		)
 	}
 
 	return (

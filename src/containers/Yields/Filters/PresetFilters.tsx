@@ -133,18 +133,18 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 					const isActive = activePresets.has(key)
 
 					return (
-					<Tooltip
-						key={key}
-						content={preset.description}
-						placement="bottom"
-						render={<button />}
-						onClick={() => handlePresetClick(key)}
-						className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium ${
-							isActive
-								? 'bg-(--old-blue) text-white'
-								: 'border border-(--form-control-border) bg-(--btn-bg) text-(--text-primary) hover:bg-(--btn-hover-bg)'
-						}`}
-					>
+						<Tooltip
+							key={key}
+							content={preset.description}
+							placement="bottom"
+							render={<button />}
+							onClick={() => handlePresetClick(key)}
+							className={`flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-medium ${
+								isActive
+									? 'bg-(--old-blue) text-white'
+									: 'border border-(--form-control-border) bg-(--btn-bg) text-(--text-primary) hover:bg-(--btn-hover-bg)'
+							}`}
+						>
 							<Icon name={preset.icon} height={14} width={14} />
 							{preset.label}
 						</Tooltip>

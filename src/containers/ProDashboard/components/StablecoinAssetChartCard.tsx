@@ -292,9 +292,9 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						</div>
 					}
 				>
-						{chartContent}
-					</Suspense>
-				</div>
+					{chartContent}
+				</Suspense>
 			</div>
-		)
+		</div>
+	)
 }

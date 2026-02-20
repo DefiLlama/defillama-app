@@ -131,7 +131,9 @@ export const useEmailNotifications = (portfolioName?: string) => {
 					if (errorData != null && errorData.message) {
 						errorMessage = errorData.message
 					}
-				} catch { /* Ignore response parsing errors and keep default message. */ }
+				} catch {
+					/* Ignore response parsing errors and keep default message. */
+				}
 				throw new Error(errorMessage)
 			}
 
@@ -175,7 +177,9 @@ export const useEmailNotifications = (portfolioName?: string) => {
 					if (errorData != null && errorData.message) {
 						errorMessage = errorData.message
 					}
-				} catch { /* Ignore response parsing errors and keep default message. */ }
+				} catch {
+					/* Ignore response parsing errors and keep default message. */
+				}
 				throw new Error(errorMessage)
 			}
 		},
@@ -217,7 +221,9 @@ export const useEmailNotifications = (portfolioName?: string) => {
 					if (errorData != null && errorData.message) {
 						errorMessage = errorData.message
 					}
-				} catch { /* Ignore response parsing errors and keep default message. */ }
+				} catch {
+					/* Ignore response parsing errors and keep default message. */
+				}
 				throw new Error(errorMessage)
 			}
 		},

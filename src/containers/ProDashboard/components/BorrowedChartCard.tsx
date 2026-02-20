@@ -266,10 +266,10 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 							<LocalLoader />
 						</div>
 					}
-					>
-						{chartContent}
-					</Suspense>
-				</div>
+				>
+					{chartContent}
+				</Suspense>
 			</div>
-		)
+		</div>
+	)
 }

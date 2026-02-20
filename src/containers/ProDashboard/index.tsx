@@ -331,17 +331,17 @@ function ProDashboardContent() {
 
 			{items.length > 0 && <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} />}
 
-				<Suspense fallback={<></>}>
-					<AddChartModal
-						isOpen={showAddModal}
-						onClose={() => {
-							setShowAddModal(false)
-							setEditModalState({ item: null, focusSection: undefined })
-						}}
-						editItem={editModalState.item}
-						initialUnifiedFocusSection={editModalState.focusSection}
-					/>
-				</Suspense>
+			<Suspense fallback={<></>}>
+				<AddChartModal
+					isOpen={showAddModal}
+					onClose={() => {
+						setShowAddModal(false)
+						setEditModalState({ item: null, focusSection: undefined })
+					}}
+					editItem={editModalState.item}
+					initialUnifiedFocusSection={editModalState.focusSection}
+				/>
+			</Suspense>
 
 			{!protocolsLoading && items.length === 0 && (
 				<EmptyState

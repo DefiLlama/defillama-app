@@ -9,7 +9,8 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef
+	useRef,
+	useState
 } from 'react'
 import toast from 'react-hot-toast'
 import { PROTOCOLS_API } from '~/constants'
@@ -335,7 +336,7 @@ export function ProDashboardAPIProvider({
 	serverData?: ProDashboardServerProps | null
 }) {
 	const queryClient = useQueryClient()
-	const seedTimestamp = Date.now()
+	const [seedTimestamp] = useState(() => Date.now())
 
 	const tableDataSeeded = useRef(false)
 	if (!tableDataSeeded.current && serverData?.tableData) {

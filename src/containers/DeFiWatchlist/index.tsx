@@ -297,37 +297,37 @@ function PortfolioNotifications({
 
 			const settings: NotificationSettings = {}
 
-		if (selectedProtocolMetrics.length > 0 && filteredProtocols.length > 0) {
-			const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
-			const protocolsMap: NotificationSettings['protocols'] = {}
-			let protocolCount = 0
-			for (let i = 0; i < filteredProtocols.length; i++) {
-				const identifier = filteredProtocols[i].slug
-				if (!identifier) continue
-				protocolsMap[identifier] = mappedProtocolMetrics
-				protocolCount++
+			if (selectedProtocolMetrics.length > 0 && filteredProtocols.length > 0) {
+				const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
+				const protocolsMap: NotificationSettings['protocols'] = {}
+				let protocolCount = 0
+				for (let i = 0; i < filteredProtocols.length; i++) {
+					const identifier = filteredProtocols[i].slug
+					if (!identifier) continue
+					protocolsMap[identifier] = mappedProtocolMetrics
+					protocolCount++
+				}
+				if (protocolCount > 0) {
+					settings.protocols = protocolsMap
+				}
 			}
-			if (protocolCount > 0) {
-				settings.protocols = protocolsMap
-			}
-		}
 
-		if (selectedChainMetrics.length > 0 && filteredChains.length > 0) {
-			const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
-			const chainsMap: NotificationSettings['chains'] = {}
-			let chainCount = 0
-			for (let i = 0; i < filteredChains.length; i++) {
-				if (!filteredChains[i].name) continue
-				chainsMap[filteredChains[i].name] = mappedChainMetrics
-				chainCount++
+			if (selectedChainMetrics.length > 0 && filteredChains.length > 0) {
+				const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
+				const chainsMap: NotificationSettings['chains'] = {}
+				let chainCount = 0
+				for (let i = 0; i < filteredChains.length; i++) {
+					if (!filteredChains[i].name) continue
+					chainsMap[filteredChains[i].name] = mappedChainMetrics
+					chainCount++
+				}
+				if (chainCount > 0) {
+					settings.chains = chainsMap
+				}
 			}
-			if (chainCount > 0) {
-				settings.chains = chainsMap
-			}
-		}
 
-		const hasProtocols = settings.protocols != null
-		const hasChains = settings.chains != null
+			const hasProtocols = settings.protocols != null
+			const hasChains = settings.chains != null
 			if (!hasProtocols && !hasChains) {
 				toast.error('Unable to save: no valid settings configured')
 				return

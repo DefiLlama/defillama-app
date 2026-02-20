@@ -94,15 +94,15 @@ export function CategoryFilterModal({
 					</Ariakit.DialogDismiss>
 				</div>
 
-					<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
-						<div>
-							<label htmlFor="category-filter-include" className="mb-2 block text-sm font-medium pro-text2">
-								Include Categories
-							</label>
-							<ReactSelect
-								inputId="category-filter-include"
-								isMulti
-								options={includeOptions}
+				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
+					<div>
+						<label htmlFor="category-filter-include" className="mb-2 block text-sm font-medium pro-text2">
+							Include Categories
+						</label>
+						<ReactSelect
+							inputId="category-filter-include"
+							isMulti
+							options={includeOptions}
 							value={includeValue}
 							onChange={(selection: any) => {
 								setSelectedInclude(selection ? selection.map((item: any) => item.value) : [])
@@ -116,16 +116,16 @@ export function CategoryFilterModal({
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
 						/>
-						</div>
+					</div>
 
-						<div>
-							<label htmlFor="category-filter-exclude" className="mb-2 block text-sm font-medium pro-text2">
-								Exclude Categories
-							</label>
-							<ReactSelect
-								inputId="category-filter-exclude"
-								isMulti
-								options={excludeOptions}
+					<div>
+						<label htmlFor="category-filter-exclude" className="mb-2 block text-sm font-medium pro-text2">
+							Exclude Categories
+						</label>
+						<ReactSelect
+							inputId="category-filter-exclude"
+							isMulti
+							options={excludeOptions}
 							value={excludeValue}
 							onChange={(selection: any) => {
 								setSelectedExclude(selection ? selection.map((item: any) => item.value) : [])

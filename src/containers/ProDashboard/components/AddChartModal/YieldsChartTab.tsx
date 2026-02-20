@@ -61,7 +61,9 @@ type YieldsChartUiAction =
 	| { type: 'toggle_sort'; column: SortColumn }
 	| { type: 'set_show_pool_picker'; value: boolean }
 
-const getInitialYieldsChartUiState = (selectedYieldPool: YieldsChartTabProps['selectedYieldPool']): YieldsChartUiState => ({
+const getInitialYieldsChartUiState = (
+	selectedYieldPool: YieldsChartTabProps['selectedYieldPool']
+): YieldsChartUiState => ({
 	chainSearch: '',
 	projectSearch: '',
 	tokenSearch: '',
@@ -499,17 +501,17 @@ export function YieldsChartTab({
 				</div>
 			) : (
 				<div className="flex flex-col gap-4">
-						<div className="grid grid-cols-5 gap-2">
-							<div className="flex flex-col">
-								<span className="mb-1 block text-[11px] font-medium pro-text2">Chains</span>
-								<PopoverDisclosure
-									store={chainPopover}
-									onClick={handleChainPopoverToggle}
-									className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-								>
-									<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
-										{selectedYieldChains.length > 0
-											? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
+					<div className="grid grid-cols-5 gap-2">
+						<div className="flex flex-col">
+							<span className="mb-1 block text-[11px] font-medium pro-text2">Chains</span>
+							<PopoverDisclosure
+								store={chainPopover}
+								onClick={handleChainPopoverToggle}
+								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							>
+								<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
+									{selectedYieldChains.length > 0
+										? `${selectedYieldChains.length} chain${selectedYieldChains.length > 1 ? 's' : ''} selected`
 										: 'All chains'}
 								</span>
 								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -612,14 +614,14 @@ export function YieldsChartTab({
 
 						<div className="flex flex-col">
 							<span className="mb-1 block text-[11px] font-medium pro-text2">Projects</span>
-								<PopoverDisclosure
-									store={projectPopover}
-									onClick={handleProjectPopoverToggle}
-									className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-								>
-									<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
-										{selectedYieldProjects.length > 0
-											? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
+							<PopoverDisclosure
+								store={projectPopover}
+								onClick={handleProjectPopoverToggle}
+								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							>
+								<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
+									{selectedYieldProjects.length > 0
+										? `${selectedYieldProjects.length} project${selectedYieldProjects.length > 1 ? 's' : ''} selected`
 										: 'All projects'}
 								</span>
 								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -722,14 +724,14 @@ export function YieldsChartTab({
 
 						<div className="flex flex-col">
 							<span className="mb-1 block text-[11px] font-medium pro-text2">Tokens</span>
-								<PopoverDisclosure
-									store={tokenPopover}
-									onClick={handleTokenPopoverToggle}
-									className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-								>
-									<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
-										{selectedYieldTokens.length > 0
-											? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
+							<PopoverDisclosure
+								store={tokenPopover}
+								onClick={handleTokenPopoverToggle}
+								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
+							>
+								<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
+									{selectedYieldTokens.length > 0
+										? `${selectedYieldTokens.length} token${selectedYieldTokens.length > 1 ? 's' : ''} selected`
 										: 'All tokens'}
 								</span>
 								<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -808,7 +810,7 @@ export function YieldsChartTab({
 												type="button"
 												onClick={() => {
 													onSelectedYieldTokensChange([])
-														dispatchUi({ type: 'set_token_search', value: '' })
+													dispatchUi({ type: 'set_token_search', value: '' })
 												}}
 												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
 											>
@@ -887,7 +889,7 @@ export function YieldsChartTab({
 								<div className="flex items-center gap-2">
 									<button
 										type="button"
-											onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: true })}
+										onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: true })}
 										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
 									>
 										Change pool
@@ -896,7 +898,7 @@ export function YieldsChartTab({
 										type="button"
 										onClick={() => {
 											onSelectedYieldPoolChange(null)
-												dispatchUi({ type: 'set_show_pool_picker', value: true })
+											dispatchUi({ type: 'set_show_pool_picker', value: true })
 										}}
 										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:text-red-500"
 									>
@@ -918,7 +920,7 @@ export function YieldsChartTab({
 										/>
 										<input
 											value={poolSearch}
-												onChange={(e) => dispatchUi({ type: 'set_pool_search', value: e.target.value })}
+											onChange={(e) => dispatchUi({ type: 'set_pool_search', value: e.target.value })}
 											placeholder="Search pools..."
 											className="w-48 rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -930,7 +932,7 @@ export function YieldsChartTab({
 								{selectedYieldPool && (
 									<button
 										type="button"
-											onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: false })}
+										onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: false })}
 										className="text-xs font-medium text-(--primary) transition-colors hover:text-(--primary)/80"
 									>
 										Cancel
@@ -998,7 +1000,7 @@ export function YieldsChartTab({
 															project: pool.project,
 															chain: pool.chains[0]
 														})
-															dispatchUi({ type: 'set_show_pool_picker', value: false })
+														dispatchUi({ type: 'set_show_pool_picker', value: false })
 													}}
 													className={`grid w-full grid-cols-[1fr_100px_100px_80px] items-center gap-2 px-3 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
 														isSelected ? 'bg-(--primary)/10' : ''

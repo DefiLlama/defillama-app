@@ -182,7 +182,10 @@ export function PreviewStep() {
 				</div>
 
 				<div>
-					<label htmlFor="comparison-dashboard-description" className="mb-1 block text-sm font-medium text-(--text-primary)">
+					<label
+						htmlFor="comparison-dashboard-description"
+						className="mb-1 block text-sm font-medium text-(--text-primary)"
+					>
 						Description <span className="text-xs font-normal text-(--text-tertiary)">(optional)</span>
 					</label>
 					<input

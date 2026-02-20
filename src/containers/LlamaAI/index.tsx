@@ -817,7 +817,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setMessages([])
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, stopSessionMutation, deleteSessionMutation, abortControllerRef, resetPrompt, router])
+	}, [
+		initialSessionId,
+		sessionId,
+		isStreaming,
+		stopSessionMutation,
+		deleteSessionMutation,
+		abortControllerRef,
+		resetPrompt,
+		router
+	])
 
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {

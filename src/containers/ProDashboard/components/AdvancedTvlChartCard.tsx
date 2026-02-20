@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 
 const dashboardBlue = '#326abd'
 import {

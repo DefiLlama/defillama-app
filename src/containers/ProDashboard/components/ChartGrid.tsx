@@ -482,14 +482,14 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						})}
 						{currentRatingSession && !isReadOnly && (
 							<div className="col-span-full flex animate-ai-glow flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-									<Rating
-										sessionId={currentRatingSession.sessionId}
-										mode={currentRatingSession.mode}
-										variant="inline"
-										prompt={currentRatingSession.prompt}
-										onRate={handleRatingSubmit}
-										onSkip={handleRatingSkip}
-									/>
+								<Rating
+									sessionId={currentRatingSession.sessionId}
+									mode={currentRatingSession.mode}
+									variant="inline"
+									prompt={currentRatingSession.prompt}
+									onRate={handleRatingSubmit}
+									onSkip={handleRatingSkip}
+								/>
 							</div>
 						)}
 						<button

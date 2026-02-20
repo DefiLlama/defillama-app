@@ -732,10 +732,10 @@ function TabContent({
 				)}
 			</header>
 
-				{availableTabs.length > 0 && (
-					<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
-						{availableTabs.map((tab) => {
-							const isActive = tab.key === effectiveActiveTab
+			{availableTabs.length > 0 && (
+				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
+					{availableTabs.map((tab) => {
+						const isActive = tab.key === effectiveActiveTab
 						return (
 							<button
 								key={tab.key}
@@ -766,13 +766,13 @@ function TabContent({
 				</div>
 			)}
 
-				<div
-					className="thin-scrollbar flex-1 overflow-y-auto pr-1"
-					style={{ height: 'clamp(420px, 65vh, 720px)' }}
-					data-unified-table-scroll="true"
-				>
-					<div className="flex h-full flex-col gap-3">{tabContent[effectiveActiveTab]}</div>
-				</div>
+			<div
+				className="thin-scrollbar flex-1 overflow-y-auto pr-1"
+				style={{ height: 'clamp(420px, 65vh, 720px)' }}
+				data-unified-table-scroll="true"
+			>
+				<div className="flex h-full flex-col gap-3">{tabContent[effectiveActiveTab]}</div>
+			</div>
 
 			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
 				<button

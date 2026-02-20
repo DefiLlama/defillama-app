@@ -278,9 +278,9 @@ export function BorrowedChartTab({
 							<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 								No borrowed data available.
 							</div>
-							) : (
-								<div className="h-[320px]">{chartContent}</div>
-							)}
+						) : (
+							<div className="h-[320px]">{chartContent}</div>
+						)}
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
