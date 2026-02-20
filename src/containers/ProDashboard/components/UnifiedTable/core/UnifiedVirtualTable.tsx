@@ -102,7 +102,8 @@ export function UnifiedVirtualTable({
 												: ''
 										}`}
 									>
-										<span
+										<button
+											type="button"
 											className={`relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
 											data-align={
 												meta?.align ??
@@ -114,7 +115,7 @@ export function UnifiedVirtualTable({
 												<HeaderWithTooltip content={meta?.headerHelperText}>{value}</HeaderWithTooltip>
 											)}
 											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-										</span>
+										</button>
 									</div>
 								)
 							})}

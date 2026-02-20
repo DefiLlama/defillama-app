@@ -286,7 +286,7 @@ const groupData = (protocols: IFormattedProtocol[], parent: IParentProtocol, noS
 	} as IFormattedProtocol
 }
 
-export const groupProtocols = (
+const groupProtocols = (
 	protocols: Readonly<IFormattedProtocol[]>,
 	parentProtocols: Readonly<IParentProtocol[]>,
 	noSubrows?: boolean

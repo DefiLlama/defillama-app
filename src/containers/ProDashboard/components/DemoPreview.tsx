@@ -440,9 +440,9 @@ export const DemoPreview = () => {
 
 					<div className="flex items-center justify-center">
 						<div className="grid gap-2 pro-dashboard sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
-							{features.map((feature, index) => (
+							{features.map((feature) => (
 								<div
-									key={index}
+									key={feature.title}
 									className="flex flex-wrap items-center justify-center gap-2 pro-info-card px-8 py-15 text-sm text-(--text-secondary)"
 								>
 									<div className="align-center flex gap-2">

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
@@ -54,15 +55,6 @@ export function AriakitVirtualizedMultiSelect({
 		}
 	}, [isPopoverOpen])
 
-	useEffect(() => {
-		if (isPopoverOpen) {
-			virtualizer.measure()
-			if (search) {
-				virtualizer.scrollToIndex(0, { align: 'start' })
-			}
-		}
-	}, [search, filteredOptions.length, isPopoverOpen, virtualizer])
-
 	const buttonLabel =
 		selectedValues.length === 0
 			? placeholder
@@ -82,6 +74,12 @@ export function AriakitVirtualizedMultiSelect({
 
 	const handleSearchChange = (value: string) => {
 		setSearch(value)
+		if (isPopoverOpen) {
+			virtualizer.measure()
+			if (value) {
+				virtualizer.scrollToIndex(0, { align: 'start' })
+			}
+		}
 		onSearchChange?.(value)
 	}
 
@@ -188,15 +186,15 @@ export function AriakitVirtualizedMultiSelect({
 												>
 													<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
 														{iconUrl && (
-															<img
+															<Image
 																src={iconUrl}
 																alt={option.label}
+																width={20}
+																height={20}
+																unoptimized
 																className={`h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none'
-																}}
 															/>
 														)}
 														<div className="flex min-w-0 flex-col gap-0.5">

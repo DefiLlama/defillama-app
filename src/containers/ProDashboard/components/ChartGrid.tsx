@@ -1,6 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -339,13 +339,16 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const sortableItemIds = chartsWithData.map((c) => c.id)
 
 	const currentRatingSession = getCurrentRatingSession()
-	const currentSessionId = currentRatingSession?.sessionId
 
-	useEffect(() => {
-		if (currentSessionId) {
-			autoSkipOlderSessionsForRating()
-		}
-	}, [currentSessionId, autoSkipOlderSessionsForRating])
+	const handleRatingSubmit = async (sessionId: string, rating: number, feedback?: string) => {
+		await submitRating(sessionId, rating, feedback)
+		await autoSkipOlderSessionsForRating()
+	}
+
+	const handleRatingSkip = async (sessionId: string) => {
+		await skipRating(sessionId)
+		await autoSkipOlderSessionsForRating()
+	}
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -479,14 +482,14 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 						})}
 						{currentRatingSession && !isReadOnly && (
 							<div className="col-span-full flex animate-ai-glow flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
-								<Rating
-									sessionId={currentRatingSession.sessionId}
-									mode={currentRatingSession.mode}
-									variant="inline"
-									prompt={currentRatingSession.prompt}
-									onRate={submitRating}
-									onSkip={skipRating}
-								/>
+									<Rating
+										sessionId={currentRatingSession.sessionId}
+										mode={currentRatingSession.mode}
+										variant="inline"
+										prompt={currentRatingSession.prompt}
+										onRate={handleRatingSubmit}
+										onSkip={handleRatingSkip}
+									/>
 							</div>
 						)}
 						<button

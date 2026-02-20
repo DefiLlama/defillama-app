@@ -267,8 +267,11 @@ function ProtocolFilterDialogContent({
 
 				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
 					<div>
-						<label className="mb-2 block text-sm font-medium pro-text2">Oracles</label>
+						<label htmlFor="protocol-filter-oracles" className="mb-2 block text-sm font-medium pro-text2">
+							Oracles
+						</label>
 						<ReactSelect
+							inputId="protocol-filter-oracles"
 							isMulti
 							options={oracleOptions}
 							value={oraclesValue}
@@ -283,8 +286,11 @@ function ProtocolFilterDialogContent({
 						/>
 					</div>
 					<div>
-						<label className="mb-2 block text-sm font-medium pro-text2">Include Categories</label>
+						<label htmlFor="protocol-filter-include-categories" className="mb-2 block text-sm font-medium pro-text2">
+							Include Categories
+						</label>
 						<ReactSelect
+							inputId="protocol-filter-include-categories"
 							isMulti
 							options={includeCategoryOptions}
 							value={includeCategoryValue}
@@ -299,8 +305,11 @@ function ProtocolFilterDialogContent({
 						/>
 					</div>
 					<div>
-						<label className="mb-2 block text-sm font-medium pro-text2">Exclude Categories</label>
+						<label htmlFor="protocol-filter-exclude-categories" className="mb-2 block text-sm font-medium pro-text2">
+							Exclude Categories
+						</label>
 						<ReactSelect
+							inputId="protocol-filter-exclude-categories"
 							isMulti
 							options={excludeCategoryOptions}
 							value={excludeCategoryValue}
@@ -315,10 +324,11 @@ function ProtocolFilterDialogContent({
 						/>
 					</div>
 					<div>
-						<label className="mb-2 block text-sm font-medium pro-text2">
+						<label htmlFor="protocol-filter-protocols" className="mb-2 block text-sm font-medium pro-text2">
 							Protocols ({selectedProtocols.length} selected)
 						</label>
 						<ReactSelect
+							inputId="protocol-filter-protocols"
 							isMulti
 							options={protocolOptions}
 							value={protocolsValue}

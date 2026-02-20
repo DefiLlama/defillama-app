@@ -71,7 +71,6 @@ export function CustomViewModal({ dialogStore, onSave, existingViewNames }: Cust
 							onInput={(event) => event.currentTarget.setCustomValidity('')}
 							placeholder="Enter a name for this view..."
 							className="w-full rounded-md border pro-border bg-(--bg-glass)/50 px-3 py-2 pro-text1 placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
-							autoFocus
 							required
 						/>
 					</div>
