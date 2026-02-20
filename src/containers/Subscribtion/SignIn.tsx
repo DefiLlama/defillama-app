@@ -72,6 +72,7 @@ export const SignInModal = ({
 				unmountOnHide
 			>
 				<SignInForm
+					key={`signin-${defaultFlow}`}
 					text={text}
 					showOnlyAuthDialog={showOnlyAuthDialog}
 					pendingActionMessage={pendingActionMessage}

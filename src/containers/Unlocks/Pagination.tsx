@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 
 interface PaginationProps {
@@ -6,18 +6,76 @@ interface PaginationProps {
 	startIndex?: number
 }
 
+type PaginationState = {
+	visibleItems: number
+	pageOverride: { startIndex: number; page: number | null }
+	touchStart: number | null
+	touchEnd: number | null
+	isSwiping: boolean
+	swipeOffset: number
+}
+
+type PaginationAction =
+	| { type: 'SET_VISIBLE_ITEMS'; payload: number }
+	| { type: 'SET_PAGE_OVERRIDE'; payload: { startIndex: number; page: number | null } }
+	| { type: 'TOUCH_START'; payload: number }
+	| { type: 'TOUCH_MOVE'; payload: number }
+	| { type: 'TOUCH_END' }
+	| { type: 'RESET_SWIPE' }
+	| { type: 'SET_SWIPING'; payload: boolean }
+
+const initialState: PaginationState = {
+	visibleItems: 1,
+	pageOverride: { startIndex: 0, page: null },
+	touchStart: null,
+	touchEnd: null,
+	isSwiping: false,
+	swipeOffset: 0
+}
+
+function paginationReducer(state: PaginationState, action: PaginationAction): PaginationState {
+	switch (action.type) {
+		case 'SET_VISIBLE_ITEMS':
+			return { ...state, visibleItems: action.payload }
+		case 'SET_PAGE_OVERRIDE':
+			return { ...state, pageOverride: action.payload }
+		case 'TOUCH_START':
+			return { ...state, touchStart: action.payload, touchEnd: null, isSwiping: true }
+		case 'TOUCH_MOVE':
+			if (!state.touchStart || !state.isSwiping) return state
+			return {
+				...state,
+				touchEnd: action.payload,
+				swipeOffset: action.payload - state.touchStart
+			}
+		case 'TOUCH_END':
+			return { ...state, isSwiping: false }
+		case 'RESET_SWIPE':
+			return { ...state, swipeOffset: 0, touchStart: null, touchEnd: null }
+		case 'SET_SWIPING':
+			return { ...state, isSwiping: action.payload }
+		default:
+			return state
+	}
+}
+
 export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
-	const [visibleItems, setVisibleItems] = useState(1)
-	const [pageOverride, setPageOverride] = useState<{ startIndex: number; page: number | null }>({
-		startIndex,
-		page: null
+	const [state, dispatch] = useReducer(paginationReducer, {
+		...initialState,
+		pageOverride: { startIndex, page: null }
 	})
 	const paginationRef = useRef<HTMLDivElement>(null)
-	const [touchStart, setTouchStart] = useState<number | null>(null)
-	const [touchEnd, setTouchEnd] = useState<number | null>(null)
-	const [isSwiping, setIsSwiping] = useState(false)
-	const [swipeOffset, setSwipeOffset] = useState(0)
 
+	// Reset page override when startIndex prop changes (derived state computed during render)
+	const [prevStartIndex, setPrevStartIndex] = useState(startIndex)
+	if (startIndex !== prevStartIndex) {
+		setPrevStartIndex(startIndex)
+		if (state.pageOverride.page != null && state.pageOverride.startIndex !== startIndex) {
+			dispatch({ type: 'SET_PAGE_OVERRIDE', payload: { startIndex, page: null } })
+		}
+	}
+
+	const { visibleItems, pageOverride, touchStart, touchEnd, isSwiping, swipeOffset } = state
 	const minSwipeDistance = 50
 
 	useEffect(() => {
@@ -25,10 +83,10 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 			if (typeof document !== 'undefined' && paginationRef.current) {
 				const paginationWidth = paginationRef.current.offsetWidth
 				if (paginationWidth < 768) {
-					setVisibleItems(1)
+					dispatch({ type: 'SET_VISIBLE_ITEMS', payload: 1 })
 				} else {
 					const itemsPerPage = Math.max(1, Math.floor((paginationWidth - 100) / 390))
-					setVisibleItems(itemsPerPage)
+					dispatch({ type: 'SET_VISIBLE_ITEMS', payload: itemsPerPage })
 				}
 			}
 		}
@@ -64,20 +122,14 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	const targetPage = activeManualPage == null ? startPage : activeManualPage
 	const currentPage = Math.max(0, Math.min(targetPage, maxPage))
 
-	useEffect(() => {
-		if (pageOverride.page != null && pageOverride.startIndex !== startIndex) {
-			setPageOverride({ startIndex, page: null })
-		}
-	}, [pageOverride.page, pageOverride.startIndex, startIndex])
-
 	const handlePageChange = (pageIndex: number) => {
-		setPageOverride({ startIndex, page: pageIndex })
-		setSwipeOffset(0)
+		dispatch({ type: 'SET_PAGE_OVERRIDE', payload: { startIndex, page: pageIndex } })
+		dispatch({ type: 'RESET_SWIPE' })
 	}
 
 	const handlePrevPage = () => {
 		if (totalPages <= 1) {
-			setSwipeOffset(0)
+			dispatch({ type: 'RESET_SWIPE' })
 			return
 		}
 		const newPage = currentPage === 0 ? totalPages - 1 : currentPage - 1
@@ -86,7 +138,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 
 	const handleNextPage = () => {
 		if (totalPages <= 1) {
-			setSwipeOffset(0)
+			dispatch({ type: 'RESET_SWIPE' })
 			return
 		}
 		const newPage = currentPage === totalPages - 1 ? 0 : currentPage + 1
@@ -94,31 +146,24 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 	}
 
 	const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-		setTouchEnd(null)
-		setTouchStart(e.targetTouches[0].clientX)
-		setIsSwiping(true)
+		dispatch({ type: 'TOUCH_START', payload: e.targetTouches[0].clientX })
 	}
 
 	const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
 		if (!touchStart || !isSwiping) return
-
-		const currentTouch = e.targetTouches[0].clientX
-		setTouchEnd(currentTouch)
-
-		const offset = currentTouch - touchStart
-		setSwipeOffset(offset)
+		dispatch({ type: 'TOUCH_MOVE', payload: e.targetTouches[0].clientX })
 	}
 
 	const onTouchEnd = () => {
 		if (!touchStart || !touchEnd || !isSwiping) return
-		setIsSwiping(false)
+		dispatch({ type: 'TOUCH_END' })
 
 		const distance = touchStart - touchEnd
 		const isLeftSwipe = distance > minSwipeDistance
 		const isRightSwipe = distance < -minSwipeDistance
 
 		setTimeout(() => {
-			setSwipeOffset(0)
+			dispatch({ type: 'RESET_SWIPE' })
 		}, 10)
 
 		if (isLeftSwipe) {

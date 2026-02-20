@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { type KeyboardEvent, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -250,23 +250,9 @@ export function AddToDashboardModal({
 		return dashboards.filter((dashboard) => dashboard.name.toLowerCase().includes(query))
 	}, [dashboards, deferredSearch])
 
-	const prevOpenRef = useRef(false)
 	const dashboardNameById = useMemo(() => {
 		return new Map<string, string>(dashboards.map((dashboard) => [dashboard.id, dashboard.name]))
 	}, [dashboards])
-
-	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
-
-	useEffect(() => {
-		if (isOpen && !prevOpenRef.current) {
-			setSearch('')
-			setSelectedDashboardId(null)
-			setIsCreatingNew(false)
-			setNewDashboardNameInput('')
-			formRef.current?.reset()
-		}
-		prevOpenRef.current = isOpen
-	}, [isOpen])
 
 	const handleSelectDashboard = useCallback((id: string) => {
 		setSelectedDashboardId(id)

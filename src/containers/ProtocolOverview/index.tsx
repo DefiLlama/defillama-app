@@ -106,7 +106,11 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								h1ClassName="flex flex-wrap items-center gap-2 text-xl"
 							/>
 						</div>
-						<ProtocolChart {...props} />
+						<Suspense
+							fallback={<div className="min-h-[400px] rounded-md border border-(--cards-border) bg-(--cards-bg)" />}
+						>
+							<ProtocolChart {...props} />
+						</Suspense>
 					</div>
 					{props.hasKeyMetrics ? (
 						<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:hidden">

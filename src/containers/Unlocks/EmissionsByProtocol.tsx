@@ -426,7 +426,22 @@ const ChartContainer = ({
 
 	const setQueryParam = (key: string, value: string | undefined) => pushShallowQuery(router, { [key]: value })
 
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+	const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+		// Initialize with default categories based on initial allocationMode
+		const initialAllocationMode: 'current' | 'standard' =
+			readSingleQueryValue(router.query.groupAllocation) === 'true' ? 'standard' : 'current'
+		const initialCategoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
+		if (initialAllocationMode === 'standard' && data.categoriesBreakdown) {
+			const categories: string[] = []
+			for (const category in data.categoriesBreakdown) {
+				categories.push(category)
+			}
+			return categories
+		} else if (initialCategoriesFromData.length > 0) {
+			return initialCategoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
+		}
+		return []
+	})
 
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
@@ -444,6 +459,8 @@ const ChartContainer = ({
 	const pieChartDataRaw = data.pieChartData?.[dataType]
 	const hallmarks = data.hallmarks?.[dataType] ?? []
 
+	// Sync selectedCategories when categoriesFromData changes (e.g., dataType switch)
+	// Use functional update to avoid cascading renders
 	useEffect(() => {
 		if (categoriesFromData.length > 0) {
 			setSelectedCategories((current) => {
@@ -453,6 +470,7 @@ const ChartContainer = ({
 			})
 		}
 	}, [categoriesFromData])
+
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
 	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
@@ -608,21 +626,6 @@ const ChartContainer = ({
 		}
 		return groupChartDataByTime(result || [], timeGrouping)
 	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
-
-	useEffect(() => {
-		setSelectedCategories(() => {
-			if (allocationMode === 'standard' && data.categoriesBreakdown) {
-				const categories: string[] = []
-				for (const category in data.categoriesBreakdown) {
-					categories.push(category)
-				}
-				return categories
-			} else if (categoriesFromData.length > 0) {
-				return categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
-			}
-			return []
-		})
-	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const groupAllocation = useMemo(() => {
 		const finalAllocation = tokenAllocation?.final

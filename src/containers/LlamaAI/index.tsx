@@ -237,20 +237,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	useEffect(() => {
 		if (initialSessionId && !sessionId) {
 			resetScrollState()
-			queueMicrotask(() => {
-				setSessionId(initialSessionId)
-				setHasRestoredSession(null)
-			})
+			setSessionId(initialSessionId)
+			setHasRestoredSession(null)
 		}
 	}, [initialSessionId, sessionId, resetScrollState])
 
 	useEffect(() => {
 		if (sharedSession) {
 			resetScrollState()
-			queueMicrotask(() => {
-				setMessages(attachClientIds(sharedSession.messages))
-				setSessionId(sharedSession.session.sessionId)
-			})
+			setMessages(attachClientIds(sharedSession.messages))
+			setSessionId(sharedSession.session.sessionId)
 		}
 	}, [sharedSession, resetScrollState, attachClientIds])
 
@@ -330,9 +326,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			!isStreaming
 		) {
 			resetScrollState()
-			queueMicrotask(() => {
-				setHasRestoredSession(sessionId)
-			})
+			setHasRestoredSession(sessionId)
 			restoreSession(sessionId)
 				.then((result: any) => {
 					setMessages(attachClientIds(result.messages))

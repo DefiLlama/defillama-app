@@ -222,12 +222,20 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
-				<TopGainersAndLosersTable data={topGainers} sortingState={GAINERS_SORTING_STATE} />
+				<TopGainersAndLosersTable
+					key={`gainers-${GAINERS_SORTING_STATE[0]?.id}`}
+					data={topGainers}
+					sortingState={GAINERS_SORTING_STATE}
+				/>
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
-				<TopGainersAndLosersTable data={topLosers} sortingState={LOSERS_SORTING_STATE} />
+				<TopGainersAndLosersTable
+					key={`losers-${LOSERS_SORTING_STATE[0]?.id}`}
+					data={topLosers}
+					sortingState={LOSERS_SORTING_STATE}
+				/>
 			</div>
 		</Layout>
 	)
