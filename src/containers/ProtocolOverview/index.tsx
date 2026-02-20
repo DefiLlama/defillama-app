@@ -1747,8 +1747,15 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const baseChartForComparison = useMemo(
+		() =>
+			props.isCEX
+				? (props.initialMultiSeriesChartData['Total Assets'] ?? props.initialMultiSeriesChartData['TVL'] ?? [])
+				: (props.initialMultiSeriesChartData['TVL'] ?? []),
+		[props.initialMultiSeriesChartData, props.isCEX]
+	)
 	const comparisonHref = useMemo(() => {
-		const latestTvl = props.tvlChartData?.[props.tvlChartData.length - 1]?.[1]
+		const latestTvl = baseChartForComparison[baseChartForComparison.length - 1]?.[1]
 		const entries = [
 			{
 				slug: slug(props.name),
@@ -1777,7 +1784,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 			step: 'select-metrics'
 		})
 		return `/pro?${params.toString()}`
-	}, [competitors, props.name, props.tvlChartData])
+	}, [baseChartForComparison, competitors, props.name])
 	const canOpenComparison = !loaders.userLoading && isAuthenticated && hasActiveSubscription
 	if (competitors.length === 0) return null
 	return (

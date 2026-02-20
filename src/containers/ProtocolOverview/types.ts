@@ -1,5 +1,6 @@
 import type { IHackApiItem } from '../Hacks/api.types'
 import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
+import type { IProtocolNumericSeries } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
@@ -45,8 +46,13 @@ interface IAdapterOverview {
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
+export type IProtocolOverviewChartSeries = IProtocolNumericSeries
+export type IProtocolOverviewInitialMultiSeriesChartData = Partial<
+	Record<ProtocolChartsLabels, IProtocolOverviewChartSeries>
+>
+
 export interface IProtocolOverviewPageData {
-	tvlChartData: Array<[string, number]>
+	initialMultiSeriesChartData: IProtocolOverviewInitialMultiSeriesChartData
 	id: string
 	name: string
 	token: {

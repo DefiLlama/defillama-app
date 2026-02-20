@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, TOKEN_LIQUIDITY_API } from '~/constants'
+import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, oracleProtocols, TOKEN_LIQUIDITY_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
+import { fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import {
 	useFetchProtocolActiveUsers,
 	useFetchProtocolMedianAPY,
@@ -18,8 +19,11 @@ import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart } from './api'
+import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL } from './chartDescriptors'
+import { normalizeBridgeVolumeToChartMs, normalizeSeriesToMilliseconds, normalizeSeriesToSeconds } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
+import { usePrefetchedProtocolChartQuery } from './usePrefetchedProtocolChartQuery'
 
 type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
 type V2ChartPoint = [string | number, number]
@@ -82,7 +86,7 @@ const buildTvlChart = ({
 	groupBy,
 	denominationPriceHistory
 }: {
-	tvlChartData: Array<[string, number]>
+	tvlChartData: Array<[number, number]>
 	extraTvlCharts: ExtraTvlChartsResult
 	tvlSettings: Record<string, boolean>
 	currentTvlByChain: Record<string, number> | null
@@ -196,10 +200,11 @@ export const useFetchProtocolChartData = ({
 	id: protocolId,
 	geckoId,
 	currentTvlByChain,
-	tvlChartData,
+	initialMultiSeriesChartData,
 	metrics,
 	toggledMetrics,
 	groupBy,
+	availableCharts,
 	chartDenominations,
 	governanceApis,
 	tvlSettings,
@@ -221,6 +226,29 @@ export const useFetchProtocolChartData = ({
 	const selectedDenomination = toggledMetrics.denomination
 		? chartDenominationBySymbol.get(toggledMetrics.denomination)
 		: null
+	const oracleProtocolName = (oracleProtocols as Record<string, string>)[name] ?? name
+	const prefetchedChartsInSeconds = useMemo(() => {
+		const normalized: Partial<Record<ProtocolChartsLabels, Array<[number, number]>>> = {}
+		for (const chartLabel in initialMultiSeriesChartData) {
+			const typedLabel = chartLabel as ProtocolChartsLabels
+			const series = initialMultiSeriesChartData[typedLabel]
+			if (!series?.length) continue
+			normalized[typedLabel] = normalizeSeriesToSeconds(series)
+		}
+		return normalized
+	}, [initialMultiSeriesChartData])
+	const prefetchedChartsForMsRender = useMemo(() => {
+		const normalized: Partial<Record<ProtocolChartsLabels, Array<[number, number]>>> = { ...prefetchedChartsInSeconds }
+		const treasurySeries = prefetchedChartsInSeconds['Treasury']
+		if (treasurySeries?.length) {
+			normalized['Treasury'] = normalizeSeriesToMilliseconds(treasurySeries)
+		}
+		const bridgeVolumeSeries = prefetchedChartsInSeconds['Bridge Volume']
+		if (bridgeVolumeSeries?.length) {
+			normalized['Bridge Volume'] = normalizeSeriesToMilliseconds(bridgeVolumeSeries)
+		}
+		return normalized
+	}, [prefetchedChartsInSeconds])
 
 	const denominationGeckoId = isRouterReady ? (selectedDenomination?.geckoId ?? null) : null
 	const { data: denominationPriceHistory = null, isLoading: fetchingDenominationPriceHistory } = useQuery<Record<
@@ -311,6 +339,12 @@ export const useFetchProtocolChartData = ({
 	)
 	const shouldFetchVestingTvl = !!(isRouterReady && currentTvlByChain?.vesting != null && tvlSettings?.vesting)
 	const shouldFetchGovTokensTvl = !!(isRouterReady && currentTvlByChain?.govtokens != null && tvlSettings?.govtokens)
+	const baseTvlChartData = useMemo((): Array<[number, number]> => {
+		if (isCEX) {
+			return prefetchedChartsInSeconds['Total Assets'] ?? prefetchedChartsInSeconds['TVL'] ?? []
+		}
+		return prefetchedChartsInSeconds['TVL'] ?? []
+	}, [prefetchedChartsInSeconds, isCEX])
 
 	const { data: pool2TvlChart = null, isLoading: fetchingPool2TvlChart } = useFetchProtocolTVLChart({
 		protocol: protocolSlug,
@@ -373,47 +407,52 @@ export const useFetchProtocolChartData = ({
 	const tvlChart = useMemo(
 		() =>
 			buildTvlChart({
-				tvlChartData,
+				tvlChartData: baseTvlChartData,
 				extraTvlCharts,
 				tvlSettings,
 				currentTvlByChain,
 				groupBy,
 				denominationPriceHistory
 			}),
-		[tvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain]
+		[baseTvlChartData, extraTvlCharts, tvlSettings, groupBy, denominationPriceHistory, currentTvlByChain]
 	)
 
+	const feesDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Fees']
+	const revenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Revenue']
+	const holdersRevenueDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Holders Revenue']
+	const dexVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Volume']
+	const perpVolumeDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Volume']
+	const openInterestDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Open Interest']
+	const optionsPremiumDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Premium Volume']
+	const optionsNotionalDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Options Notional Volume']
+	const dexAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['DEX Aggregator Volume']
+	const perpsAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Perp Aggregator Volume']
+	const bridgeAggregatorsDescriptor = ADAPTER_CHART_DESCRIPTORS_BY_LABEL['Bridge Aggregator Volume']
+
 	const isFeesEnabled = !!(toggledMetrics.fees === 'true' && metrics.fees && isRouterReady)
-	const { data: feesDataChart = null, isLoading: fetchingFees } = useQuery<Array<[number, number]> | null>({
+	const { data: feesDataChart, isLoading: fetchingFees } = usePrefetchedProtocolChartQuery({
+		label: 'Fees',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'fees'],
+		enabled: isFeesEnabled,
 		queryFn: () =>
-			isFeesEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'fees',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isFeesEnabled
+			fetchAdapterProtocolChartData({
+				...feesDescriptor!.chartRequest,
+				protocol: name
+			})
 	})
 
 	const isRevenueEnabled = !!(toggledMetrics.revenue === 'true' && metrics.revenue && isRouterReady)
-	const { data: revenueDataChart = null, isLoading: fetchingRevenue } = useQuery<Array<[number, number]> | null>({
+	const { data: revenueDataChart, isLoading: fetchingRevenue } = usePrefetchedProtocolChartQuery({
+		label: 'Revenue',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'revenue'],
+		enabled: isRevenueEnabled,
 		queryFn: () =>
-			isRevenueEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'fees',
-						dataType: 'dailyRevenue',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isRevenueEnabled
+			fetchAdapterProtocolChartData({
+				...revenueDescriptor!.chartRequest,
+				protocol: name
+			})
 	})
 
 	const isHoldersRevenueEnabled = !!(
@@ -421,22 +460,16 @@ export const useFetchProtocolChartData = ({
 		(metrics.fees || metrics.revenue) &&
 		isRouterReady
 	)
-	const { data: holdersRevenueDataChart = null, isLoading: fetchingHoldersRevenue } = useQuery<Array<
-		[number, number]
-	> | null>({
+	const { data: holdersRevenueDataChart, isLoading: fetchingHoldersRevenue } = usePrefetchedProtocolChartQuery({
+		label: 'Holders Revenue',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'holders-revenue'],
+		enabled: isHoldersRevenueEnabled,
 		queryFn: () =>
-			isHoldersRevenueEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'fees',
-						dataType: 'dailyHoldersRevenue',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isHoldersRevenueEnabled
+			fetchAdapterProtocolChartData({
+				...holdersRevenueDescriptor!.chartRequest,
+				protocol: name
+			})
 	})
 
 	const isBribesEnabled = !!(
@@ -484,169 +517,90 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isDexVolumeEnabled = !!(toggledMetrics.dexVolume === 'true' && metrics.dexs && isRouterReady)
-	const { data: dexVolumeDataChart = null, isLoading: fetchingDexVolume } = useQuery<Array<[number, number]> | null>({
+	const { data: dexVolumeDataChart, isLoading: fetchingDexVolume } = usePrefetchedProtocolChartQuery({
+		label: 'DEX Volume',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-volume'],
-		queryFn: () =>
-			isDexVolumeEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'dexs',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isDexVolumeEnabled
+		enabled: isDexVolumeEnabled,
+		queryFn: () => fetchAdapterProtocolChartData({ ...dexVolumeDescriptor!.chartRequest, protocol: name })
 	})
 
 	const isPerpsVolumeEnabled = !!(toggledMetrics.perpVolume === 'true' && metrics.perps && isRouterReady)
-	const { data: perpsVolumeDataChart = null, isLoading: fetchingPerpVolume } = useQuery<Array<[number, number]> | null>(
-		{
-			queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
-			queryFn: () =>
-				isPerpsVolumeEnabled
-					? fetchAdapterProtocolChartData({
-							adapterType: 'derivatives',
-							protocol: name
-						})
-					: Promise.resolve(null),
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0,
-			enabled: isPerpsVolumeEnabled
-		}
-	)
+	const { data: perpsVolumeDataChart, isLoading: fetchingPerpVolume } = usePrefetchedProtocolChartQuery({
+		label: 'Perp Volume',
+		prefetchedCharts: prefetchedChartsInSeconds,
+		queryKey: ['protocol-overview', protocolSlug, 'perp-volume'],
+		enabled: isPerpsVolumeEnabled,
+		queryFn: () => fetchAdapterProtocolChartData({ ...perpVolumeDescriptor!.chartRequest, protocol: name })
+	})
 
 	const isOpenInterestEnabled = !!(toggledMetrics.openInterest === 'true' && metrics.openInterest && isRouterReady)
-	const { data: openInterestDataChart = null, isLoading: fetchingOpenInterest } = useQuery<Array<
-		[number, number]
-	> | null>({
+	const { data: openInterestDataChart, isLoading: fetchingOpenInterest } = usePrefetchedProtocolChartQuery({
+		label: 'Open Interest',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'open-interest'],
-		queryFn: () =>
-			isOpenInterestEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'open-interest',
-						protocol: name,
-						dataType: 'openInterestAtEnd'
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isOpenInterestEnabled
+		enabled: isOpenInterestEnabled,
+		queryFn: () => fetchAdapterProtocolChartData({ ...openInterestDescriptor!.chartRequest, protocol: name })
 	})
 
 	const isOptionsPremiumVolumeEnabled = !!(
-		toggledMetrics.optionsPremiumVolume === 'true' &&
-		metrics.optionsPremiumVolume &&
-		isRouterReady
+		toggledMetrics.optionsPremiumVolume === 'true' && metrics.optionsPremiumVolume && isRouterReady
 	)
-	const { data: optionsPremiumVolumeDataChart = null, isLoading: fetchingOptionsPremiumVolume } = useQuery<Array<
-		[number, number]
-	> | null>({
+	const { data: optionsPremiumVolumeDataChart, isLoading: fetchingOptionsPremiumVolume } = usePrefetchedProtocolChartQuery({
+		label: 'Options Premium Volume',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
-		queryFn: () =>
-			isOptionsPremiumVolumeEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'options',
-						dataType: 'dailyPremiumVolume',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isOptionsPremiumVolumeEnabled
+		enabled: isOptionsPremiumVolumeEnabled,
+		queryFn: () => fetchAdapterProtocolChartData({ ...optionsPremiumDescriptor!.chartRequest, protocol: name })
 	})
 
 	const isOptionsNotionalVolumeEnabled = !!(
-		toggledMetrics.optionsNotionalVolume === 'true' &&
-		metrics.optionsNotionalVolume &&
-		isRouterReady
+		toggledMetrics.optionsNotionalVolume === 'true' && metrics.optionsNotionalVolume && isRouterReady
 	)
-	const { data: optionsNotionalVolumeDataChart = null, isLoading: fetchingOptionsNotionalVolume } = useQuery<Array<
-		[number, number]
-	> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
-		queryFn: () =>
-			isOptionsNotionalVolumeEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'options',
-						dataType: 'dailyNotionalVolume',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isOptionsNotionalVolumeEnabled
-	})
+	const { data: optionsNotionalVolumeDataChart, isLoading: fetchingOptionsNotionalVolume } = usePrefetchedProtocolChartQuery(
+		{
+			label: 'Options Notional Volume',
+			prefetchedCharts: prefetchedChartsInSeconds,
+			queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
+			enabled: isOptionsNotionalVolumeEnabled,
+			queryFn: () => fetchAdapterProtocolChartData({ ...optionsNotionalDescriptor!.chartRequest, protocol: name })
+		}
+	)
 
 	const isDexAggregatorsVolumeEnabled = !!(
-		toggledMetrics.dexAggregatorVolume === 'true' &&
-		metrics.dexAggregators &&
-		isRouterReady
+		toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady
 	)
-	const { data: dexAggregatorsVolumeDataChart = null, isLoading: fetchingDexAggregatorVolume } = useQuery<Array<
-		[number, number]
-	> | null>({
+	const { data: dexAggregatorsVolumeDataChart, isLoading: fetchingDexAggregatorVolume } = usePrefetchedProtocolChartQuery({
+		label: 'DEX Aggregator Volume',
+		prefetchedCharts: prefetchedChartsInSeconds,
 		queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
-		queryFn: () =>
-			isDexAggregatorsVolumeEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'aggregators',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isDexAggregatorsVolumeEnabled
+		enabled: isDexAggregatorsVolumeEnabled,
+		queryFn: () => fetchAdapterProtocolChartData({ ...dexAggregatorsDescriptor!.chartRequest, protocol: name })
 	})
 
 	const isPerpsAggregatorsVolumeEnabled = !!(
-		toggledMetrics.perpAggregatorVolume === 'true' &&
-		metrics.perpsAggregators &&
-		isRouterReady
+		toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady
 	)
-	const { data: perpsAggregatorsVolumeDataChart = null, isLoading: fetchingPerpAggregatorVolume } = useQuery<Array<
-		[number, number]
-	> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
-		queryFn: () =>
-			isPerpsAggregatorsVolumeEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'aggregator-derivatives',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isPerpsAggregatorsVolumeEnabled
-	})
+	const { data: perpsAggregatorsVolumeDataChart, isLoading: fetchingPerpAggregatorVolume } =
+		usePrefetchedProtocolChartQuery({
+			label: 'Perp Aggregator Volume',
+			prefetchedCharts: prefetchedChartsInSeconds,
+			queryKey: ['protocol-overview', protocolSlug, 'perp-aggregator-volume'],
+			enabled: isPerpsAggregatorsVolumeEnabled,
+			queryFn: () => fetchAdapterProtocolChartData({ ...perpsAggregatorsDescriptor!.chartRequest, protocol: name })
+		})
 
 	const isBridgeAggregatorsVolumeEnabled = !!(
-		toggledMetrics.bridgeAggregatorVolume === 'true' &&
-		metrics.bridgeAggregators &&
-		isRouterReady
+		toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady
 	)
-	const { data: bridgeAggregatorsVolumeDataChart = null, isLoading: fetchingBridgeAggregatorVolume } = useQuery<Array<
-		[number, number]
-	> | null>({
-		queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
-		queryFn: () =>
-			isBridgeAggregatorsVolumeEnabled
-				? fetchAdapterProtocolChartData({
-						adapterType: 'bridge-aggregators',
-						protocol: name
-					})
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isBridgeAggregatorsVolumeEnabled
-	})
+	const { data: bridgeAggregatorsVolumeDataChart, isLoading: fetchingBridgeAggregatorVolume } =
+		usePrefetchedProtocolChartQuery({
+			label: 'Bridge Aggregator Volume',
+			prefetchedCharts: prefetchedChartsInSeconds,
+			queryKey: ['protocol-overview', protocolSlug, 'bridge-aggregator-volume'],
+			enabled: isBridgeAggregatorsVolumeEnabled,
+			queryFn: () => fetchAdapterProtocolChartData({ ...bridgeAggregatorsDescriptor!.chartRequest, protocol: name })
+		})
 
 	const isUnlocksEnabled = !!(
 		(toggledMetrics.unlocks === 'true' || toggledMetrics.incentives === 'true') &&
@@ -683,16 +637,12 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isTreasuryEnabled = !!(toggledMetrics.treasury === 'true' && metrics.treasury && isRouterReady)
-	const { data: treasuryData = null, isLoading: fetchingTreasury } = useQuery<Array<[number, number]> | null>({
+	const { data: treasuryData, isLoading: fetchingTreasury } = usePrefetchedProtocolChartQuery({
+		label: 'Treasury',
+		prefetchedCharts: prefetchedChartsForMsRender,
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
-		queryFn: () =>
-			isTreasuryEnabled
-				? fetchProtocolTreasuryChart({ protocol: protocolSlug })
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isTreasuryEnabled
+		enabled: isTreasuryEnabled,
+		queryFn: () => fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((chart) => normalizeSeriesToMilliseconds(chart))
 	})
 
 	const isUsdInflowsEnabled = !!(toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady)
@@ -700,7 +650,7 @@ export const useFetchProtocolChartData = ({
 		if (!isUsdInflowsEnabled) return null
 
 		const tvlChartInUsd = buildTvlChart({
-			tvlChartData,
+			tvlChartData: baseTvlChartData,
 			extraTvlCharts,
 			tvlSettings,
 			currentTvlByChain,
@@ -708,32 +658,33 @@ export const useFetchProtocolChartData = ({
 			denominationPriceHistory: null
 		})
 		return buildUsdInflowsFromTvlChart(tvlChartInUsd)
-	}, [isUsdInflowsEnabled, tvlChartData, extraTvlCharts, tvlSettings, currentTvlByChain])
+	}, [isUsdInflowsEnabled, baseTvlChartData, extraTvlCharts, tvlSettings, currentTvlByChain])
 	const fetchingUsdInflows = false
 
 	const isBridgeVolumeEnabled = !!(toggledMetrics.bridgeVolume === 'true' && isRouterReady)
-	const { data: bridgeVolumeData = null, isLoading: fetchingBridgeVolume } = useQuery<Array<[number, number]> | null>({
+	const { data: bridgeVolumeData, isLoading: fetchingBridgeVolume } = usePrefetchedProtocolChartQuery({
+		label: 'Bridge Volume',
+		prefetchedCharts: prefetchedChartsForMsRender,
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-volume'],
+		enabled: isBridgeVolumeEnabled,
 		queryFn: () =>
-			isBridgeVolumeEnabled
-				? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
-						.then((data: { dailyVolumes: Array<{ date: string; depositUSD: number; withdrawUSD: number }> }) => {
-							const store: Record<string, number> = {}
-							for (const item of data.dailyVolumes) {
-								store[item.date] = (store[item.date] ?? 0) + (item.depositUSD + item.withdrawUSD) / 2
-							}
-							const finalChart: Array<[number, number]> = []
-							for (const date in store) {
-								finalChart.push([+date * 1e3, store[date]])
-							}
-							return finalChart
-						})
-						.catch(() => null)
-				: Promise.resolve(null),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isBridgeVolumeEnabled
+			fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
+				.then((data: { dailyVolumes: Array<{ date: string; depositUSD: number; withdrawUSD: number }> }) =>
+					normalizeBridgeVolumeToChartMs(data.dailyVolumes)
+				)
+				.catch(() => null)
+	})
+
+	const isTvsEnabled = !!(toggledMetrics.tvs === 'true' && isRouterReady && availableCharts.includes('TVS'))
+	const { data: tvsData, isLoading: fetchingTvs } = usePrefetchedProtocolChartQuery({
+		label: 'TVS',
+		prefetchedCharts: prefetchedChartsInSeconds,
+		queryKey: ['protocol-overview', protocolSlug, 'tvs'],
+		enabled: isTvsEnabled,
+		queryFn: () =>
+			fetchOracleProtocolChart({ protocol: oracleProtocolName })
+				.then((chart) => normalizeSeriesToSeconds(chart))
+				.catch(() => null)
 	})
 
 	const { data: medianAPYData = null, isLoading: fetchingMedianAPY } = useFetchProtocolMedianAPY(
@@ -784,6 +735,7 @@ export const useFetchProtocolChartData = ({
 
 	const isTvlToggled = toggledMetrics.tvl === 'true'
 	const isTotalAssetsToggled = toggledMetrics.totalAssets === 'true'
+	const isTvsToggled = toggledMetrics.tvs === 'true'
 	const isMcapToggled = toggledMetrics.mcap === 'true'
 	const isTokenPriceToggled = toggledMetrics.tokenPrice === 'true'
 	const isTokenVolumeToggled = toggledMetrics.tokenVolume === 'true'
@@ -808,44 +760,48 @@ export const useFetchProtocolChartData = ({
 	const valueSymbol = showNonUsdDenomination ? (selectedDenomination?.symbol ?? '') : '$'
 
 	const chartData = useMemo(() => {
-		const loadingCharts: string[] = []
-		if (fetchingDenominationPriceHistory) loadingCharts.push('Denomination Price History')
-		if (fetchingProtocolTokenData) loadingCharts.push('Mcap, Token price, Token volume')
-		if (fetchingTokenTotalSupply) loadingCharts.push('Token Supply')
-		if (fetchingTokenLiquidity) loadingCharts.push('Token Liquidity')
-		if (
-			fetchingPool2TvlChart ||
-			fetchingStakingTvlChart ||
-			fetchingBorrowedTvlChart ||
-			fetchingDoubleCountedTvlChart ||
-			fetchingLiquidStakingTvlChart ||
-			fetchingVestingTvlChart ||
-			fetchingGovTokensTvlChart
-		)
-			loadingCharts.push('TVL Breakdown')
-		if (fetchingFees) loadingCharts.push('Fees')
-		if (fetchingRevenue) loadingCharts.push('Revenue')
-		if (fetchingHoldersRevenue) loadingCharts.push('Holders Revenue')
-		if (fetchingBribes) loadingCharts.push('Bribes')
-		if (fetchingTokenTaxes) loadingCharts.push('Token Taxes')
-		if (fetchingDexVolume) loadingCharts.push('DEX Volume')
-		if (fetchingPerpVolume) loadingCharts.push('Perp Volume')
-		if (fetchingOpenInterest) loadingCharts.push('Open Interest')
-		if (fetchingOptionsPremiumVolume) loadingCharts.push('Options Premium Volume')
-		if (fetchingOptionsNotionalVolume) loadingCharts.push('Options Notional Volume')
-		if (fetchingDexAggregatorVolume) loadingCharts.push('DEX Aggregator Volume')
-		if (fetchingPerpAggregatorVolume) loadingCharts.push('Perp Aggregator Volume')
-		if (fetchingBridgeAggregatorVolume) loadingCharts.push('Bridge Aggregator Volume')
-		if (fetchingUnlocksAndIncentives) loadingCharts.push('Emissions')
-		if (fetchingTreasury) loadingCharts.push('Treasury')
-		if (fetchingUsdInflows) loadingCharts.push('USD Inflows')
-		if (fetchingMedianAPY) loadingCharts.push('Median APY')
-		if (fetchingGovernanceData) loadingCharts.push('Governance')
-		if (fetchingNftVolume) loadingCharts.push('NFT Volume')
-		if (fetchingActiveAddresses) loadingCharts.push('Active Addresses')
-		if (fetchingNewAddresses) loadingCharts.push('New Addresses')
-		if (fetchingTransactions) loadingCharts.push('Transactions')
-		if (fetchingBridgeVolume) loadingCharts.push('Bridge Volume')
+		const loadingStates: ReadonlyArray<{ isLoading: boolean; label: string }> = [
+			{ isLoading: fetchingDenominationPriceHistory, label: 'Denomination Price History' },
+			{ isLoading: fetchingProtocolTokenData, label: 'Mcap, Token price, Token volume' },
+			{ isLoading: fetchingTokenTotalSupply, label: 'Token Supply' },
+			{ isLoading: fetchingTokenLiquidity, label: 'Token Liquidity' },
+			{
+				isLoading:
+					fetchingPool2TvlChart ||
+					fetchingStakingTvlChart ||
+					fetchingBorrowedTvlChart ||
+					fetchingDoubleCountedTvlChart ||
+					fetchingLiquidStakingTvlChart ||
+					fetchingVestingTvlChart ||
+					fetchingGovTokensTvlChart,
+				label: 'TVL Breakdown'
+			},
+			{ isLoading: fetchingTvs, label: 'TVS' },
+			{ isLoading: fetchingFees, label: 'Fees' },
+			{ isLoading: fetchingRevenue, label: 'Revenue' },
+			{ isLoading: fetchingHoldersRevenue, label: 'Holders Revenue' },
+			{ isLoading: fetchingBribes, label: 'Bribes' },
+			{ isLoading: fetchingTokenTaxes, label: 'Token Taxes' },
+			{ isLoading: fetchingDexVolume, label: 'DEX Volume' },
+			{ isLoading: fetchingPerpVolume, label: 'Perp Volume' },
+			{ isLoading: fetchingOpenInterest, label: 'Open Interest' },
+			{ isLoading: fetchingOptionsPremiumVolume, label: 'Options Premium Volume' },
+			{ isLoading: fetchingOptionsNotionalVolume, label: 'Options Notional Volume' },
+			{ isLoading: fetchingDexAggregatorVolume, label: 'DEX Aggregator Volume' },
+			{ isLoading: fetchingPerpAggregatorVolume, label: 'Perp Aggregator Volume' },
+			{ isLoading: fetchingBridgeAggregatorVolume, label: 'Bridge Aggregator Volume' },
+			{ isLoading: fetchingUnlocksAndIncentives, label: 'Emissions' },
+			{ isLoading: fetchingTreasury, label: 'Treasury' },
+			{ isLoading: fetchingUsdInflows, label: 'USD Inflows' },
+			{ isLoading: fetchingMedianAPY, label: 'Median APY' },
+			{ isLoading: fetchingGovernanceData, label: 'Governance' },
+			{ isLoading: fetchingNftVolume, label: 'NFT Volume' },
+			{ isLoading: fetchingActiveAddresses, label: 'Active Addresses' },
+			{ isLoading: fetchingNewAddresses, label: 'New Addresses' },
+			{ isLoading: fetchingTransactions, label: 'Transactions' },
+			{ isLoading: fetchingBridgeVolume, label: 'Bridge Volume' }
+		]
+		const loadingCharts = loadingStates.filter((state) => state.isLoading).map((state) => state.label)
 		if (loadingCharts.length > 0) {
 			return {
 				finalCharts: {} as Record<string, Array<[string | number, number | null]>>,
@@ -859,6 +815,9 @@ export const useFetchProtocolChartData = ({
 		if (tvlChart?.length > 0 && (isTvlToggled || isTotalAssetsToggled)) {
 			const chartName: ProtocolChartsLabels = isCEX ? 'Total Assets' : ('TVL' as const)
 			charts[chartName] = tvlChart
+		}
+		if (tvsData?.length > 0 && isTvsToggled) {
+			charts['TVS'] = formatLineChart({ data: tvsData, groupBy, denominationPriceHistory })
 		}
 		if (protocolTokenData) {
 			if (isMcapToggled)
@@ -1203,6 +1162,8 @@ export const useFetchProtocolChartData = ({
 		perpsAggregatorsVolumeDataChart,
 		fetchingBridgeAggregatorVolume,
 		bridgeAggregatorsVolumeDataChart,
+		fetchingTvs,
+		tvsData,
 		fetchingUnlocksAndIncentives,
 		unlocksAndIncentivesData,
 		fetchingTreasury,
@@ -1225,6 +1186,7 @@ export const useFetchProtocolChartData = ({
 		bridgeVolumeData,
 		isTvlToggled,
 		isTotalAssetsToggled,
+		isTvsToggled,
 		isMcapToggled,
 		isTokenPriceToggled,
 		isTokenVolumeToggled,
