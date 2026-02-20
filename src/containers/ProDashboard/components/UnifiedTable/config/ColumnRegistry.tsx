@@ -8,7 +8,7 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { chainIconUrl, formattedNum, renderPercentChange as formatPercentChange, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
@@ -44,14 +44,14 @@ const renderPercent = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{renderPercentChange(value, true)}</span>
+	return <span className="pro-text2">{formatPercentChange(value, true)}</span>
 }
 
 const renderPercentChangeCell = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{renderPercentChange(value, false)}</span>
+	return <span className="pro-text2">{formatPercentChange(value, false)}</span>
 }
 
 const renderRatio = (value: number | null | undefined) => {

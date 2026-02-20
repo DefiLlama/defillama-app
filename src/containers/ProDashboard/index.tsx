@@ -46,8 +46,10 @@ const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: 
 
 function ProDashboardContent() {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
-	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
-	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
+	const [editModalState, setEditModalState] = useState<{
+		item: DashboardItemConfig | null
+		focusSection?: UnifiedTableFocusSection
+	}>({ item: null, focusSection: undefined })
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
@@ -119,8 +121,7 @@ function ProDashboardContent() {
 	}
 
 	const handleEditItemModal = (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => {
-		setEditItem(item)
-		setInitialUnifiedFocusSection(focusSection)
+		setEditModalState({ item, focusSection })
 		setShowAddModal(true)
 	}
 
@@ -330,18 +331,17 @@ function ProDashboardContent() {
 
 			{items.length > 0 && <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} />}
 
-			<Suspense fallback={<></>}>
-				<AddChartModal
-					isOpen={showAddModal}
-					onClose={() => {
-						setShowAddModal(false)
-						setEditItem(null)
-						setInitialUnifiedFocusSection(undefined)
-					}}
-					editItem={editItem}
-					initialUnifiedFocusSection={initialUnifiedFocusSection}
-				/>
-			</Suspense>
+				<Suspense fallback={<></>}>
+					<AddChartModal
+						isOpen={showAddModal}
+						onClose={() => {
+							setShowAddModal(false)
+							setEditModalState({ item: null, focusSection: undefined })
+						}}
+						editItem={editModalState.item}
+						initialUnifiedFocusSection={editModalState.focusSection}
+					/>
+				</Suspense>
 
 			{!protocolsLoading && items.length === 0 && (
 				<EmptyState

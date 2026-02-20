@@ -57,20 +57,90 @@ export function GenerateDashboardModal({
 	onGenerate
 }: GenerateDashboardModalProps) {
 	const { user, isAuthenticated, authorizedFetch } = useAuthContext()
-	const [dashboardName, setDashboardName] = useState('')
-	const [aiDescription, setAiDescription] = useState('')
-	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
-	const [tags, setTags] = useState<string[]>([])
-	const [tagInput, setTagInput] = useState('')
-	const [isLoading, setIsLoading] = useState(false)
-	const [errors, setErrors] = useState<{
+	type FormState = {
+		dashboardName: string
+		aiDescription: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		tagInput: string
+	}
+	type ValidationErrors = {
 		dashboardName?: string
 		aiDescription?: string
-	}>({})
-	const [touchedFields, setTouchedFields] = useState<{
+	}
+	type TouchedFields = {
 		dashboardName?: boolean
 		aiDescription?: boolean
-	}>({})
+	}
+
+	const [formState, setFormState] = useState<FormState>({
+		dashboardName: '',
+		aiDescription: '',
+		visibility: 'public',
+		tags: [],
+		tagInput: ''
+	})
+	const { dashboardName, aiDescription, visibility, tags, tagInput } = formState
+	const [isLoading, setIsLoading] = useState(false)
+	const [validationState, setValidationState] = useState<{
+		errors: ValidationErrors
+		touchedFields: TouchedFields
+	}>({
+		errors: {},
+		touchedFields: {}
+	})
+	const { errors, touchedFields } = validationState
+
+	const setDashboardName = (value: string) => {
+		setFormState((prev) => ({ ...prev, dashboardName: value }))
+	}
+
+	const setAiDescription = (value: string) => {
+		setFormState((prev) => ({ ...prev, aiDescription: value }))
+	}
+
+	const setVisibility = (value: 'private' | 'public') => {
+		setFormState((prev) => ({ ...prev, visibility: value }))
+	}
+
+	const setTags = (updater: string[] | ((prev: string[]) => string[])) => {
+		setFormState((prev) => ({
+			...prev,
+			tags: typeof updater === 'function' ? updater(prev.tags) : updater
+		}))
+	}
+
+	const setTagInput = (value: string) => {
+		setFormState((prev) => ({ ...prev, tagInput: value }))
+	}
+
+	const setErrors = (updater: ValidationErrors | ((prev: ValidationErrors) => ValidationErrors)) => {
+		setValidationState((prev) => ({
+			...prev,
+			errors: typeof updater === 'function' ? updater(prev.errors) : updater
+		}))
+	}
+
+	const setTouchedFields = (updater: TouchedFields | ((prev: TouchedFields) => TouchedFields)) => {
+		setValidationState((prev) => ({
+			...prev,
+			touchedFields: typeof updater === 'function' ? updater(prev.touchedFields) : updater
+		}))
+	}
+
+	const resetModalState = () => {
+		setFormState({
+			dashboardName: '',
+			aiDescription: '',
+			visibility: 'public',
+			tags: [],
+			tagInput: ''
+		})
+		setValidationState({
+			errors: {},
+			touchedFields: {}
+		})
+	}
 
 	const validateDashboardName = (value: string): string | undefined => {
 		if (mode === 'create' && !value.trim()) {
@@ -270,26 +340,14 @@ export function GenerateDashboardModal({
 			aiGenerationContext
 		})
 
-		setDashboardName('')
-		setAiDescription('')
-		setVisibility('public')
-		setTags([])
-		setTagInput('')
-		setErrors({})
-		setTouchedFields({})
+		resetModalState()
 		onClose()
 		setIsLoading(false)
 	}
 
 	const handleClose = () => {
 		if (!isLoading) {
-			setDashboardName('')
-			setAiDescription('')
-			setVisibility('public')
-			setTags([])
-			setTagInput('')
-			setErrors({})
-			setTouchedFields({})
+			resetModalState()
 			onClose()
 		}
 	}

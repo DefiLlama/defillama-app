@@ -1,4 +1,5 @@
 import type * as echarts from 'echarts/core'
+import Image from 'next/image'
 import { lazy, Suspense, useMemo } from 'react'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -180,10 +181,17 @@ export function ChartCard({ chart }: ChartCardProps) {
 		<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-1">
-					{chart.chain !== 'All' &&
-						(itemIconUrl ? (
-							<img src={itemIconUrl} alt={itemName} className="h-5 w-5 shrink-0 rounded-full" />
-						) : (
+						{chart.chain !== 'All' &&
+							(itemIconUrl ? (
+								<Image
+									src={itemIconUrl}
+									alt={itemName}
+									width={20}
+									height={20}
+									unoptimized
+									className="h-5 w-5 shrink-0 rounded-full"
+								/>
+							) : (
 							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 								{itemName?.charAt(0)?.toUpperCase()}
 							</div>

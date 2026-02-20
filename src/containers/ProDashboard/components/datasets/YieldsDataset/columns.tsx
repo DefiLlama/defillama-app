@@ -2,7 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, renderPercentChange, tokenIconUrl } from '~/utils'
+import { formattedNum, renderPercentChange as formatPercentChange, tokenIconUrl } from '~/utils'
 
 interface IYieldsRow {
 	pool: string
@@ -100,7 +100,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{renderPercentChange(value, true, 700)}</>
+			return <>{formatPercentChange(value, true, 700)}</>
 		},
 		size: 100,
 		meta: {
@@ -112,7 +112,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyBase',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? formatPercentChange(value, true) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -127,7 +127,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			const symbols = row.original.rewardTokensSymbols
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{value ? renderPercentChange(value, true) : '-'}
+					{value ? formatPercentChange(value, true) : '-'}
 					{symbols && symbols.length > 0 && (
 						<span className="text-xs text-(--text-secondary)">({symbols.join(', ')})</span>
 					)}
@@ -144,7 +144,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value) : '-'}</>
+			return <>{value ? formatPercentChange(value) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -156,7 +156,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value) : '-'}</>
+			return <>{value ? formatPercentChange(value) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -168,7 +168,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'il7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? formatPercentChange(value, true) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -180,7 +180,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyBase7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? formatPercentChange(value, true) : '-'}</>
 		},
 		size: 120,
 		meta: {
@@ -192,7 +192,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyNet7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? formatPercentChange(value, true) : '-'}</>
 		},
 		size: 120,
 		meta: {
@@ -204,7 +204,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyMean30d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? formatPercentChange(value, true) : '-'}</>
 		},
 		size: 130,
 		meta: {
@@ -241,7 +241,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? renderPercentChange(value, true) : '-'}</>
+			return <>{value !== null ? formatPercentChange(value, true) : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -294,7 +294,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? renderPercentChange(value * 100, true) : '-'}</>
+			return <>{value !== null ? formatPercentChange(value * 100, true) : '-'}</>
 		},
 		size: 80,
 		meta: {

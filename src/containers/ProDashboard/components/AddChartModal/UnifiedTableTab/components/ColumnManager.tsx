@@ -162,21 +162,102 @@ export function ColumnManager({
 	onSortingChange,
 	onSortingReset
 }: ColumnManagerProps) {
-	const [search, setSearch] = useState('')
-	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
-	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
-	const [customColumnExpanded, setCustomColumnExpanded] = useState(false)
+	const [uiState, setUIState] = useState<{
+		search: string
+		groupFilter: ColumnGroupId | 'all'
+		activeId: UniqueIdentifier | null
+		customColumnExpanded: boolean
+	}>({
+		search: '',
+		groupFilter: 'all',
+		activeId: null,
+		customColumnExpanded: false
+	})
+	const { search, groupFilter, activeId, customColumnExpanded } = uiState
 
-	const [customName, setCustomName] = useState('')
-	const [customExpression, setCustomExpression] = useState('')
-	const [customFormat, setCustomFormat] = useState<ColumnFormat>('number')
-	const [customAggregation, setCustomAggregation] = useState<ColumnAggregation>('recalculate')
-	const [editingId, setEditingId] = useState<string | null>(null)
-	const [showAutocomplete, setShowAutocomplete] = useState(false)
-	const [autocompleteIndex, setAutocompleteIndex] = useState(-1)
-	const [autocompleteFilter, setAutocompleteFilter] = useState('')
+	const [customColumnState, setCustomColumnState] = useState<{
+		customName: string
+		customExpression: string
+		customFormat: ColumnFormat
+		customAggregation: ColumnAggregation
+		editingId: string | null
+		aggregationTouched: boolean
+	}>({
+		customName: '',
+		customExpression: '',
+		customFormat: 'number',
+		customAggregation: 'recalculate',
+		editingId: null,
+		aggregationTouched: false
+	})
+	const { customName, customExpression, customFormat, customAggregation, editingId, aggregationTouched } = customColumnState
+
+	const [autocompleteState, setAutocompleteState] = useState<{
+		showAutocomplete: boolean
+		autocompleteIndex: number
+		autocompleteFilter: string
+	}>({
+		showAutocomplete: false,
+		autocompleteIndex: -1,
+		autocompleteFilter: ''
+	})
+	const { showAutocomplete, autocompleteIndex, autocompleteFilter } = autocompleteState
+
+	const setSearch = (value: string) => {
+		setUIState((prev) => ({ ...prev, search: value }))
+	}
+
+	const setGroupFilter = (value: ColumnGroupId | 'all') => {
+		setUIState((prev) => ({ ...prev, groupFilter: value }))
+	}
+
+	const setActiveId = (value: UniqueIdentifier | null) => {
+		setUIState((prev) => ({ ...prev, activeId: value }))
+	}
+
+	const setCustomColumnExpanded = (value: boolean) => {
+		setUIState((prev) => ({ ...prev, customColumnExpanded: value }))
+	}
+
+	const setCustomName = (value: string) => {
+		setCustomColumnState((prev) => ({ ...prev, customName: value }))
+	}
+
+	const setCustomExpression = (value: string) => {
+		setCustomColumnState((prev) => ({ ...prev, customExpression: value }))
+	}
+
+	const setCustomFormat = (value: ColumnFormat) => {
+		setCustomColumnState((prev) => ({ ...prev, customFormat: value }))
+	}
+
+	const setCustomAggregation = (value: ColumnAggregation) => {
+		setCustomColumnState((prev) => ({ ...prev, customAggregation: value }))
+	}
+
+	const setEditingId = (value: string | null) => {
+		setCustomColumnState((prev) => ({ ...prev, editingId: value }))
+	}
+
+	const setAggregationTouched = (value: boolean) => {
+		setCustomColumnState((prev) => ({ ...prev, aggregationTouched: value }))
+	}
+
+	const setShowAutocomplete = (value: boolean) => {
+		setAutocompleteState((prev) => ({ ...prev, showAutocomplete: value }))
+	}
+
+	const setAutocompleteIndex = (value: number | ((prev: number) => number)) => {
+		setAutocompleteState((prev) => ({
+			...prev,
+			autocompleteIndex: typeof value === 'function' ? value(prev.autocompleteIndex) : value
+		}))
+	}
+
+	const setAutocompleteFilter = (value: string) => {
+		setAutocompleteState((prev) => ({ ...prev, autocompleteFilter: value }))
+	}
 	const expressionInputRef = useRef<HTMLInputElement>(null)
-	const [aggregationTouched, setAggregationTouched] = useState(false)
 
 	const allColumns = useMemo(() => buildAllColumns(customColumns), [customColumns])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((c) => c.id)), [allColumns])

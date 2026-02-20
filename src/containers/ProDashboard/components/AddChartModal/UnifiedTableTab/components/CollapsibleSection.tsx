@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useReducer } from 'react'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 
@@ -17,13 +17,13 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 	children,
 	className = ''
 }) => {
-	const [isExpanded, setIsExpanded] = useState(isDefaultExpanded)
+	const [isExpanded, toggleExpanded] = useReducer((expanded: boolean) => !expanded, isDefaultExpanded)
 
 	return (
 		<div className={`rounded-lg border border-(--cards-border) bg-(--cards-bg) ${className}`}>
 			<button
 				type="button"
-				onClick={() => setIsExpanded(!isExpanded)}
+					onClick={toggleExpanded}
 				className="flex w-full items-center justify-between rounded-t-lg px-3 py-2.5 transition-colors hover:bg-(--cards-bg-alt)"
 			>
 				<div className="flex items-center gap-2">

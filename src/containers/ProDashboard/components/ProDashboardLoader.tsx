@@ -1,4 +1,5 @@
 import * as React from 'react'
+import Image from 'next/image'
 import { LoadingDots } from '~/components/Loaders'
 
 export function ProDashboardLoader() {
@@ -32,11 +33,13 @@ export function ProDashboardLoader() {
 
 				<div className="absolute inset-0 flex items-center justify-center">
 					<div className="relative">
-						<img
-							src="/assets/llama.webp"
-							alt="Loading"
-							className="z-10 h-16 w-16 object-contain [animation-duration:1.5s]"
-						/>
+							<Image
+								src="/assets/llama.webp"
+								alt="Loading"
+								width={64}
+								height={64}
+								className="z-10 h-16 w-16 object-contain [animation-duration:1.5s]"
+							/>
 						<div
 							className="absolute inset-0 -z-10 animate-ping rounded-full opacity-30 [animation-duration:2s]"
 							style={{

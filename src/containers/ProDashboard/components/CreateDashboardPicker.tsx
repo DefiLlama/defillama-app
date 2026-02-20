@@ -270,11 +270,43 @@ function CreateDashboardModalContent({
 		description: string
 	}) => void
 }) {
-	const [dashboardName, setDashboardName] = useState('')
-	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
-	const [tags, setTags] = useState<string[]>([])
-	const [description, setDescription] = useState('')
-	const [tagInput, setTagInput] = useState('')
+	const [formState, setFormState] = useState<{
+		dashboardName: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		description: string
+		tagInput: string
+	}>({
+		dashboardName: '',
+		visibility: 'public',
+		tags: [],
+		description: '',
+		tagInput: ''
+	})
+	const { dashboardName, visibility, tags, description, tagInput } = formState
+
+	const setDashboardName = (value: string) => {
+		setFormState((prev) => ({ ...prev, dashboardName: value }))
+	}
+
+	const setVisibility = (value: 'private' | 'public') => {
+		setFormState((prev) => ({ ...prev, visibility: value }))
+	}
+
+	const setTags = (updater: string[] | ((prev: string[]) => string[])) => {
+		setFormState((prev) => ({
+			...prev,
+			tags: typeof updater === 'function' ? updater(prev.tags) : updater
+		}))
+	}
+
+	const setDescription = (value: string) => {
+		setFormState((prev) => ({ ...prev, description: value }))
+	}
+
+	const setTagInput = (value: string) => {
+		setFormState((prev) => ({ ...prev, tagInput: value }))
+	}
 
 	const handleCreate = () => {
 		if (!dashboardName.trim()) return
@@ -284,10 +316,13 @@ function CreateDashboardModalContent({
 			tags,
 			description
 		})
-		setDashboardName('')
-		setVisibility('public')
-		setTags([])
-		setDescription('')
+		setFormState({
+			dashboardName: '',
+			visibility: 'public',
+			tags: [],
+			description: '',
+			tagInput: ''
+		})
 	}
 
 	const handleAddTag = (tag: string) => {

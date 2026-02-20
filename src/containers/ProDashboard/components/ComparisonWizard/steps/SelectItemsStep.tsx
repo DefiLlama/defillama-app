@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -219,15 +220,13 @@ export function SelectItemsStep() {
 									className="flex shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
 								>
 									{item.logo && (
-										<img
+										<Image
 											src={item.logo}
-											loading="lazy"
-											decoding="async"
 											alt={item.label}
+											width={20}
+											height={20}
+											unoptimized
 											className="h-5 w-5 rounded-full object-cover"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
 									)}
 									<span className="whitespace-nowrap text-(--text-primary)">{item.label}</span>
@@ -338,17 +337,15 @@ export function SelectItemsStep() {
 											{isSelected && <Icon name="check" height={10} width={10} className="text-white" />}
 										</div>
 
-										<img
+										<Image
 											src={option.logo}
-											loading="lazy"
-											decoding="async"
 											alt={option.label}
+											width={24}
+											height={24}
+											unoptimized
 											className={`h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 												option.isChild ? 'opacity-70' : ''
 											}`}
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
 
 										<div className="min-w-0 flex-1">

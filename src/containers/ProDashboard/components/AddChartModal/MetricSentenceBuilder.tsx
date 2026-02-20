@@ -10,6 +10,7 @@ import {
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import Image from 'next/image'
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useMedia } from '~/hooks/useMedia'
@@ -132,7 +133,7 @@ export function MetricSentenceBuilder({
 }: MetricSentenceBuilderProps) {
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
-	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>(metricSubjectType)
+	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>('chain')
 	const isMobile = useMedia('(max-width: 639px)')
 	const popover = usePopoverStore({
 		placement: isMobile ? 'bottom' : 'right-start'
@@ -155,21 +156,33 @@ export function MetricSentenceBuilder({
 		if (!isPopoverOpen) {
 			setActiveToken(null)
 		}
+	}, [isPopoverOpen])
+
+	useEffect(() => {
 		if (!activeToken) {
 			setSearchTerm('')
+		}
+	}, [activeToken])
+
+	useEffect(() => {
+		if (!activeToken) {
 			setSubjectTab(metricSubjectType)
 		}
+	}, [activeToken, metricSubjectType])
+
+	useEffect(() => {
 		if (activeToken === 'subject') {
 			subjectCombobox.setOpen(true)
 			setTimeout(() => {
 				const portal = document.querySelector('[data-metric-token] input') as HTMLInputElement | null
 				portal?.focus()
 			}, 10)
-		} else {
-			subjectCombobox.setValue('')
-			subjectCombobox.setOpen(false)
+			return
 		}
-	}, [isPopoverOpen, activeToken, metricSubjectType, subjectCombobox])
+
+		subjectCombobox.setValue('')
+		subjectCombobox.setOpen(false)
+	}, [activeToken, subjectCombobox])
 
 	const closePopover = () => {
 		popover.setOpen(false)
@@ -385,7 +398,7 @@ export function MetricSentenceBuilder({
 		closePopover()
 	}
 
-	const renderPopoverContent = () => {
+	const popoverContent = (() => {
 		switch (activeToken) {
 			case 'aggregator':
 				return (
@@ -560,17 +573,16 @@ export function MetricSentenceBuilder({
 																}}
 															>
 																<div className="flex min-w-0 items-center gap-2">
-																	{iconUrl ? (
-																		<img
-																			src={iconUrl}
-																			alt={option.label}
-																			className="h-5 w-5 rounded-full object-cover"
-																			onError={(event) => {
-																				const target = event.currentTarget
-																				target.style.display = 'none'
-																			}}
-																		/>
-																	) : null}
+																		{iconUrl ? (
+																			<Image
+																				src={iconUrl}
+																				alt={option.label}
+																				width={20}
+																				height={20}
+																				unoptimized
+																				className="h-5 w-5 rounded-full object-cover"
+																			/>
+																		) : null}
 																	<span className="truncate">{option.label}</span>
 																</div>
 																{isActive && <Icon name="check" width={14} height={14} />}
@@ -613,17 +625,16 @@ export function MetricSentenceBuilder({
 															}}
 														>
 															<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
-																{iconUrl ? (
-																	<img
-																		src={option.logo || iconUrl}
-																		alt={option.label}
-																		className={`h-5 w-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
-																		onError={(event) => {
-																			const target = event.currentTarget
-																			target.style.display = 'none'
-																		}}
-																	/>
-																) : null}
+																	{iconUrl ? (
+																		<Image
+																			src={option.logo || iconUrl}
+																			alt={option.label}
+																			width={20}
+																			height={20}
+																			unoptimized
+																			className={`h-5 w-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
+																		/>
+																	) : null}
 																<div className="flex min-w-0 flex-col">
 																	<span
 																		className={`truncate ${option.isChild ? 'text-(--text-secondary)' : 'text-(--text-primary)'}`}
@@ -652,7 +663,7 @@ export function MetricSentenceBuilder({
 			default:
 				return null
 		}
-	}
+	})()
 
 	const handleTokenPress = (token: Exclude<ActiveToken, null>) => () => {
 		handleTokenClick(token)
@@ -769,8 +780,8 @@ export function MetricSentenceBuilder({
 					overflow: 'hidden auto'
 				}}
 			>
-				{renderPopoverContent()}
-			</Popover>
+					{popoverContent}
+				</Popover>
 		</div>
 	)
 }

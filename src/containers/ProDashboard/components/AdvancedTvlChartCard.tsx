@@ -257,7 +257,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		)
 	}
 
-	const renderChart = () => {
+	const chartContent = (() => {
 		switch (chartType) {
 			case 'tvl': {
 				return (
@@ -385,7 +385,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			default:
 				return null
 		}
-	}
+	})()
 
 	const hasChartData =
 		(chartType === 'tvl' && filteredTvlData.length > 0) ||
@@ -418,7 +418,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			</div>
 
 			<div className="flex-1">
-				<Suspense fallback={<div className="min-h-[360px]" />}>{renderChart()}</Suspense>
+				<Suspense fallback={<div className="min-h-[360px]" />}>{chartContent}</Suspense>
 			</div>
 		</div>
 	)

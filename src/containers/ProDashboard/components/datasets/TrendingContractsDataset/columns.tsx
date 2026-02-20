@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
-import { renderPercentChange } from '~/utils'
+import { renderPercentChange as formatPercentChange } from '~/utils'
 
 interface ITrendingContracts {
 	accounts_percentage_growth: number
@@ -60,7 +60,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{renderPercentChange(value)}
+					{formatPercentChange(value)}
 				</span>
 			)
 		}
@@ -79,7 +79,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{renderPercentChange(value)}
+					{formatPercentChange(value)}
 				</span>
 			)
 		}
@@ -98,7 +98,7 @@ export const trendingContractsColumns = (chain: string): ColumnDef<ITrendingCont
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{renderPercentChange(value)}
+					{formatPercentChange(value)}
 				</span>
 			)
 		}

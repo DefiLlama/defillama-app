@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo, type ReactElement } from 'react'
 import type {
 	IMultiSeriesChart2Props,
 	IPieChartProps,
@@ -213,20 +213,18 @@ export function UnlocksChartTab({
 	const previewTitle = selectedUnlocksProtocolName || selectedUnlocksProtocol || ''
 	const selectedChartLabel = UNLOCKS_CHART_TYPES.find((t) => t.value === selectedUnlocksChartType)?.label || ''
 
-	const renderChart = () => {
-		if (isLoading) {
-			return (
-				<div className="flex h-[320px] items-center justify-center">
-					<LocalLoader />
-				</div>
-			)
-		}
-
-		if (selectedUnlocksChartType === 'total') {
-			if (totalSeries.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-			return (
+	let chartContent: ReactElement = <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+	if (isLoading) {
+		chartContent = (
+			<div className="flex h-[320px] items-center justify-center">
+				<LocalLoader />
+			</div>
+		)
+	} else if (selectedUnlocksChartType === 'total') {
+		chartContent =
+			totalSeries.length === 0 ? (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			) : (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<SingleSeriesChart
 						chartType="line"
@@ -237,14 +235,11 @@ export function UnlocksChartTab({
 					/>
 				</Suspense>
 			)
-		}
-
-		if (selectedUnlocksChartType === 'schedule') {
-			if (scheduleDataset.source.length === 0 || stacks.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-
-			return (
+	} else if (selectedUnlocksChartType === 'schedule') {
+		chartContent =
+			scheduleDataset.source.length === 0 || stacks.length === 0 ? (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			) : (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<MultiSeriesChart2
 						dataset={scheduleDataset}
@@ -255,31 +250,24 @@ export function UnlocksChartTab({
 					/>
 				</Suspense>
 			)
-		}
-
-		if (selectedUnlocksChartType === 'allocation') {
-			if (allocationPieChartData.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-			return (
+	} else if (selectedUnlocksChartType === 'allocation') {
+		chartContent =
+			allocationPieChartData.length === 0 ? (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			) : (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<PieChart chartData={allocationPieChartData} stackColors={allocationPieChartColors} />
 				</Suspense>
 			)
-		}
-
-		if (selectedUnlocksChartType === 'locked-unlocked') {
-			if (lockedUnlockedPieChartData.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-			return (
+	} else if (selectedUnlocksChartType === 'locked-unlocked') {
+		chartContent =
+			lockedUnlockedPieChartData.length === 0 ? (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			) : (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<PieChart chartData={lockedUnlockedPieChartData} stackColors={LOCKED_UNLOCKED_COLORS} valueSymbol="%" />
 				</Suspense>
 			)
-		}
-
-		return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 	}
 
 	return (
@@ -321,7 +309,7 @@ export function UnlocksChartTab({
 							</h3>
 							<p className="text-xs pro-text2">Unlocks</p>
 						</div>
-						{renderChart()}
+							{chartContent}
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

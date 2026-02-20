@@ -34,7 +34,7 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { chainsByName } = useAppMetadata()
 	const [isGenerating, setIsGenerating] = useState(false)
-	const { setComparisonType, setSelectedItems, setStep } = actions
+	const { applyPreset } = actions
 	const appliedPresetRef = useRef(false)
 
 	useEffect(() => {
@@ -43,15 +43,10 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 			.map((item) => item.trim())
 			.filter(Boolean)
 			.slice(0, 10)
-		setComparisonType(comparisonPreset.comparisonType)
-		if (items.length > 0) {
-			setSelectedItems(items)
-			setStep('select-metrics')
-		} else {
-			setStep('select-items')
-		}
+		const step = items.length > 0 ? 'select-metrics' : 'select-items'
+		applyPreset(comparisonPreset.comparisonType, items, step)
 		appliedPresetRef.current = true
-	}, [comparisonPreset, setComparisonType, setSelectedItems, setStep])
+	}, [comparisonPreset, applyPreset])
 
 	const generateComparisonCharts = (): MultiChartConfig[] => {
 		const { selectedItems, selectedMetrics, comparisonType } = state
@@ -213,7 +208,7 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 		setIsGenerating(false)
 	}
 
-	const renderStep = () => {
+	const stepContent = (() => {
 		switch (state.step) {
 			case 'select-type':
 				return <SelectTypeStep />
@@ -226,11 +221,11 @@ function ComparisonWizardContent({ onComplete, comparisonPreset }: ComparisonWiz
 			default:
 				return null
 		}
-	}
+	})()
 
 	return (
 		<div className="flex min-h-[480px] flex-col">
-			<div className="flex-1 overflow-y-auto p-6">{renderStep()}</div>
+			<div className="flex-1 overflow-y-auto p-6">{stepContent}</div>
 			<div className="border-t border-(--cards-border) bg-(--cards-bg) px-6 py-4">
 				<WizardNavigation
 					currentStep={state.step}
