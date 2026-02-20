@@ -212,20 +212,15 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
-				if (!res.ok) {
-					throw new Error('Failed to fetch alerts')
-				}
-				const data = await res.json()
-				if (data.alerts) {
-					return data.alerts
-				}
-				return []
-			} catch (error) {
-				console.log('Failed to fetch alerts:', error)
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
+			if (!res.ok) {
 				throw new Error('Failed to fetch alerts')
 			}
+			const data = await res.json()
+			if (data.alerts) {
+				return data.alerts
+			}
+			return []
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})

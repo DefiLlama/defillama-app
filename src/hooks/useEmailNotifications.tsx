@@ -63,15 +63,20 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			})
 
 			if (!response.ok) {
-				if (response.status === 404 || response.status === 401) {
+				if (response.status === 404) {
+					return null
+				}
+				if (response.status === 401) {
 					return null
 				}
 
 				let errorMessage = 'Failed to fetch notification preferences'
 				try {
 					const errorData = await response.json()
-					if (errorData?.message) {
-						errorMessage = errorData.message
+					if (errorData != null) {
+						if (errorData.message) {
+							errorMessage = errorData.message
+						}
 					}
 				} catch {
 					// Ignore response parsing errors and keep default message.

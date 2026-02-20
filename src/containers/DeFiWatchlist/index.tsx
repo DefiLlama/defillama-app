@@ -290,19 +290,21 @@ function PortfolioNotifications({
 	}
 
 	const handleFormSubmit = async () => {
-		try {
+		const buildAndSavePreferences = async () => {
 			const values = formStore.getState().values
-			const { protocolMetrics, chainMetrics } = values
+			const protocolMetrics = values.protocolMetrics
+			const chainMetrics = values.chainMetrics
 
 			const settings: NotificationSettings = {}
 
 			if (protocolMetrics) {
 				if (protocolMetrics.length > 0) {
 					if (filteredProtocols.length > 0) {
+						const mappedProtocolMetrics = protocolMetrics.map(mapUIMetricToAPI)
 						settings.protocols = {}
-						for (const protocol of filteredProtocols) {
-							const identifier = protocol.slug
-							settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
+						for (let i = 0; i < filteredProtocols.length; i++) {
+							const identifier = filteredProtocols[i].slug
+							settings.protocols[identifier] = mappedProtocolMetrics
 						}
 					}
 				}
@@ -311,16 +313,19 @@ function PortfolioNotifications({
 			if (chainMetrics) {
 				if (chainMetrics.length > 0) {
 					if (filteredChains.length > 0) {
+						const mappedChainMetrics = chainMetrics.map(mapUIMetricToAPI)
 						settings.chains = {}
-						for (const chain of filteredChains) {
-							settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
+						for (let i = 0; i < filteredChains.length; i++) {
+							settings.chains[filteredChains[i].name] = mappedChainMetrics
 						}
 					}
 				}
 			}
 
-			if (!settings.protocols) {
-				if (!settings.chains) {
+			const hasProtocols = settings.protocols != null
+			const hasChains = settings.chains != null
+			if (!hasProtocols) {
+				if (!hasChains) {
 					toast.error('Unable to save: no valid settings configured')
 					return
 				}
@@ -333,6 +338,9 @@ function PortfolioNotifications({
 			})
 
 			dialogStore.hide()
+		}
+		try {
+			await buildAndSavePreferences()
 		} catch (error) {
 			console.log('Error saving notification preferences:', error)
 			toast.error('Failed to save notification preferences')

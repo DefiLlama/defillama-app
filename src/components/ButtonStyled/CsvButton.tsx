@@ -135,12 +135,18 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 	const runDownload = useCallback(
 		async (forceLoading = false) => {
-			const shouldSetLoading = forceLoading || !!prepareCsv
+			let shouldSetLoading = forceLoading
+			if (!shouldSetLoading) {
+				shouldSetLoading = !!prepareCsv
+			}
 			if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: true })
 			const escapeCell = (value: string | number | boolean | null | undefined) => {
 				if (value == null) return ''
 				const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
-				if (str.includes(',') || str.includes('"')) {
+				if (str.includes(',')) {
+					return `"${str.replace(/"/g, '""')}"`
+				}
+				if (str.includes('"')) {
 					return `"${str.replace(/"/g, '""')}"`
 				}
 				return str
@@ -149,6 +155,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 			try {
 				if (onClickHandler) {
 					await Promise.resolve(onClickHandler())
+					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}
 
@@ -156,19 +163,20 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 					const { filename, rows } = prepareCsv()
 
 					download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}
 
 				toast.error('CSV download is not configured')
+				if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 				return false
 			} catch (error) {
 				if (prepareCsv) {
 					toast.error('Failed to download CSV')
 				}
 				console.log(error)
-				return false
-			} finally {
 				if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
+				return false
 			}
 		},
 		[onClickHandler, prepareCsv]
@@ -186,12 +194,13 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		dispatch({ type: 'setTrialLoading', value: true })
 		try {
 			const downloaded = await runDownload(true)
-			if (!downloaded) return
-			await trackCsvDownload()
+			if (downloaded) {
+				await trackCsvDownload()
+			}
+			dispatch({ type: 'setTrialLoading', value: false })
 		} catch (error) {
 			toast.error('Failed to update CSV download status')
 			console.log(error)
-		} finally {
 			dispatch({ type: 'setTrialLoading', value: false })
 		}
 	}, [runDownload, trackCsvDownload])

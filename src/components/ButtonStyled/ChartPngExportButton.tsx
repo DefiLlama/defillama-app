@@ -517,9 +517,12 @@ export function ChartPngExportButton({
 	const handleImageExport = async () => {
 		if (isLoading) return
 
-		const safeFilename = filename || 'chart'
+		let safeFilename = filename
+		if (!safeFilename) {
+			safeFilename = 'chart'
+		}
 
-		try {
+		const doExport = async () => {
 			const _chartInstance = chartInstance()
 
 			if (!_chartInstance) {
@@ -528,14 +531,22 @@ export function ChartPngExportButton({
 			}
 			setIsLoading(true)
 
-			// Detect treemap early — treemaps need a direct capture from the original
-			// chart to preserve the current zoom state (getOption() loses zoom info).
 			const earlyOptions = _chartInstance.getOption()
 			let isTreemapExport = false
 			if (Array.isArray(earlyOptions.series)) {
-				isTreemapExport = earlyOptions.series.some(
-					(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
-				)
+				for (let si = 0; si < earlyOptions.series.length; si++) {
+					const series = earlyOptions.series[si]
+					if (typeof series === 'object') {
+						if (series != null) {
+							if ('type' in series) {
+								if (series.type === 'treemap') {
+									isTreemapExport = true
+									break
+								}
+							}
+						}
+					}
+				}
 			}
 
 			let dataURL: string | null
@@ -543,7 +554,6 @@ export function ChartPngExportButton({
 			if (isTreemapExport) {
 				dataURL = await exportTreemapWithZoom(_chartInstance, title, isDark)
 			} else {
-				// Create a temporary container for the cloned chart
 				const tempContainer = document.createElement('div')
 				tempContainer.style.width = `${IMAGE_EXPORT_WIDTH}px`
 				tempContainer.style.height = '720px'
@@ -554,22 +564,28 @@ export function ChartPngExportButton({
 
 				try {
 					dataURL = await renderClonedChartExport(tempContainer, _chartInstance, isDark, title, iconUrl, expandLegend)
+					document.body.removeChild(tempContainer)
 				} catch (error) {
 					console.log('Error exporting chart image:', error)
 					toast.error('Failed to export chart image')
 					dataURL = null
-				} finally {
 					document.body.removeChild(tempContainer)
 				}
-			} // end else (non-treemap path)
+			}
 
-			if (!dataURL) return
+			if (!dataURL) {
+				setIsLoading(false)
+				return
+			}
 			const imageFilename = `${safeFilename}_${new Date().toISOString().split('T')[0]}.png`
 			downloadDataURL(imageFilename, dataURL)
+			setIsLoading(false)
+		}
+		try {
+			await doExport()
 		} catch (error) {
 			console.log('Error exporting chart image:', error)
 			toast.error('Failed to export chart image')
-		} finally {
 			setIsLoading(false)
 		}
 	}

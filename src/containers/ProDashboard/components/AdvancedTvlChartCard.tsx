@@ -3,6 +3,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 const dashboardBlue = '#326abd'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
@@ -15,7 +16,6 @@ import { filterDataByTimePeriod } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
 import { generateConsistentChartColor } from '../utils/colorManager'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>

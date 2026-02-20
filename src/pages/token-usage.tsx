@@ -19,7 +19,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
-import { useDebounce } from '~/hooks/useDebounce'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -194,7 +194,7 @@ const Search = () => {
 	const router = useRouter()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['search-tokens', debouncedSearchValue],
 		queryFn: () => fetchCoins(debouncedSearchValue, 20),

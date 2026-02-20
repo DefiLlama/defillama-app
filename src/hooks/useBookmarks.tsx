@@ -14,18 +14,21 @@ export function useBookmarks(type: 'defi' | 'yields' | 'chains') {
 	const hasInitialized = useRef(false)
 
 	const syncToServer = useCallback(async () => {
-		if (!isAuthenticated || !saveUserConfig || isSyncing.current) return
+		if (!isAuthenticated) return
+		if (!saveUserConfig) return
+		if (isSyncing.current) return
 
 		try {
 			isSyncing.current = true
-			// Get current localStorage data
 			const localData = readAppStorageRaw()
-			if (!localData) return
-
-			await saveUserConfig(readAppStorage())
+			if (localData) {
+				await saveUserConfig(readAppStorage())
+			}
+			setTimeout(() => {
+				isSyncing.current = false
+			}, 100)
 		} catch (error) {
 			console.log('Failed to sync watchlist to server:', error)
-		} finally {
 			setTimeout(() => {
 				isSyncing.current = false
 			}, 100)

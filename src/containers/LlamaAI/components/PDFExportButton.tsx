@@ -39,89 +39,112 @@ export function PDFExportButton({
 	const loading = loaders.userLoading || isLoading
 
 	const handlePDFExport = async () => {
-		if (loading || !sessionId) return
+		if (loading) return
+		if (!sessionId) return
 
-		if (!loaders.userLoading && hasActiveSubscription) {
-			try {
-				setIsLoading(true)
+		if (!loaders.userLoading) {
+			if (hasActiveSubscription) {
+				try {
+					setIsLoading(true)
 
-				if (exportType === 'single_message' && !messageId) {
-					toast.error('Unable to export this message. Please try again from a specific message.')
-					return
-				}
-
-				let chartImages: CapturedChart[] = []
-				if (charts.length > 0) {
-					toast.loading('Capturing charts...', { id: 'pdf-export' })
-					chartImages = await captureAllCharts(charts, isDark)
-				}
-
-				toast.loading('Generating PDF...', { id: 'pdf-export' })
-
-				const requestBody: any = {
-					sessionId,
-					exportType,
-					chartImages,
-					options: {
-						includeTimestamps: true,
-						includeCitations: true,
-						paperSize: 'A4',
-						isDark
-					}
-				}
-
-				if (exportType === 'single_message') {
-					requestBody.messageId = messageId
-				}
-
-				const response = await authorizedFetch(`${MCP_SERVER}/export/pdf`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(requestBody)
-				})
-
-				const data = await response.json()
-
-				let pdfErrorMsg = 'Failed to generate PDF'
-				if (data.error) {
-					if (typeof data.error === 'string') {
-						pdfErrorMsg = data.error
-					} else if (data.error && typeof data.error.message === 'string') {
-						pdfErrorMsg = data.error.message
-					} else {
-						try {
-							pdfErrorMsg = JSON.stringify(data.error)
-						} catch {
-							pdfErrorMsg = 'Failed to generate PDF'
+					if (exportType === 'single_message') {
+						if (!messageId) {
+							toast.error('Unable to export this message. Please try again from a specific message.')
+							setIsLoading(false)
+							return
 						}
 					}
-				}
-				if (!response.ok) {
-					throw new Error(pdfErrorMsg)
-				}
-				if (!data.success) {
-					throw new Error(pdfErrorMsg)
-				}
 
-				toast.success('PDF generated!', { id: 'pdf-export' })
+					let chartImages: CapturedChart[] = []
+					if (charts.length > 0) {
+						toast.loading('Capturing charts...', { id: 'pdf-export' })
+						chartImages = await captureAllCharts(charts, isDark)
+					}
 
-				const pdfResponse = await fetch(data.pdfUrl)
-				const blob = await pdfResponse.blob()
-				const url = window.URL.createObjectURL(blob)
-				const a = document.createElement('a')
-				a.href = url
-				a.download = `llama-ai-export-${Date.now()}.pdf`
-				document.body.appendChild(a)
-				a.click()
-				document.body.removeChild(a)
-				window.URL.revokeObjectURL(url)
-			} catch (error) {
-				console.error('PDF export error:', error)
-				toast.error(error instanceof Error ? error.message : 'Failed to export PDF', { id: 'pdf-export' })
-			} finally {
-				setIsLoading(false)
+					toast.loading('Generating PDF...', { id: 'pdf-export' })
+
+					const requestBody: any = {
+						sessionId,
+						exportType,
+						chartImages,
+						options: {
+							includeTimestamps: true,
+							includeCitations: true,
+							paperSize: 'A4',
+							isDark
+						}
+					}
+
+					if (exportType === 'single_message') {
+						requestBody.messageId = messageId
+					}
+
+					const response = await authorizedFetch(`${MCP_SERVER}/export/pdf`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(requestBody)
+					})
+
+					const data = await response.json()
+
+					let pdfErrorMsg = 'Failed to generate PDF'
+					if (data.error) {
+						if (typeof data.error === 'string') {
+							pdfErrorMsg = data.error
+						} else if (data.error) {
+							if (typeof data.error.message === 'string') {
+								pdfErrorMsg = data.error.message
+							} else {
+								try {
+									pdfErrorMsg = JSON.stringify(data.error)
+								} catch {
+									pdfErrorMsg = 'Failed to generate PDF'
+								}
+							}
+						}
+					}
+
+					let hasError = false
+					if (!response.ok) {
+						hasError = true
+					}
+					if (!data.success) {
+						hasError = true
+					}
+
+					if (hasError) {
+						console.error('PDF export error:', pdfErrorMsg)
+						toast.error(pdfErrorMsg, { id: 'pdf-export' })
+						setIsLoading(false)
+						return
+					}
+
+					toast.success('PDF generated!', { id: 'pdf-export' })
+
+					const pdfResponse = await fetch(data.pdfUrl)
+					const blob = await pdfResponse.blob()
+					const url = window.URL.createObjectURL(blob)
+					const a = document.createElement('a')
+					a.href = url
+					a.download = `llama-ai-export-${Date.now()}.pdf`
+					document.body.appendChild(a)
+					a.click()
+					document.body.removeChild(a)
+					window.URL.revokeObjectURL(url)
+					setIsLoading(false)
+				} catch (error) {
+					console.error('PDF export error:', error)
+					let errorMsg = 'Failed to export PDF'
+					if (error instanceof Error) {
+						errorMsg = error.message
+					}
+					toast.error(errorMsg, { id: 'pdf-export' })
+					setIsLoading(false)
+				}
+			} else if (!loading) {
+				subscribeModalStore.show()
 			}
 		} else if (!loading) {
 			subscribeModalStore.show()

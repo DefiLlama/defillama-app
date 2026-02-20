@@ -171,23 +171,19 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
 	}
 
-	const useInvestorsQuery = (filters, hasSelectedFilters) => {
-		return useQuery({
-			queryKey: ['investors', filters],
-			queryFn: () => fetchInvestors(filters),
-			enabled: hasSelectedFilters,
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0
-		})
-	}
-
-	const { isLoading } = useInvestorsQuery(filters, hasSelectedFilters)
+	const { isLoading } = useQuery({
+		queryKey: ['investors', filters],
+		queryFn: () => fetchInvestors(filters),
+		enabled: hasSelectedFilters,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()
 		setIsSubmitting(true)
-		try {
+		const submitPayment = async () => {
 			const filtersData: Record<string, any> = {}
 			for (const key in filters) {
 				const v = filters[key]
@@ -197,19 +193,22 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 					}
 				}
 			}
+			const payload = { ...projectInfo, filters: filtersData }
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ ...projectInfo, filters: filtersData })
+				body: JSON.stringify(payload)
 			})
 			const data = await response.json()
 			window.location.href = data.link
 			setPaymentLink(data.link)
+		}
+		try {
+			await submitPayment()
 		} catch (error) {
 			console.log('Error creating payment:', error)
-		} finally {
-			setIsSubmitting(false)
 		}
+		setIsSubmitting(false)
 	}
 
 	return (

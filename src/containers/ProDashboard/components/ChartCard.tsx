@@ -1,5 +1,6 @@
 import type * as echarts from 'echarts/core'
 import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
@@ -14,7 +15,6 @@ import {
 import { type Chain, CHART_TYPES, type ChartConfig, type Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const SingleSeriesChart = lazy(

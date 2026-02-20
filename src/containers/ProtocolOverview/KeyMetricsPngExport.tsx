@@ -155,11 +155,28 @@ export function KeyMetricsPngExportButton({
 		const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'
 		const watermarkSrc = isDark ? '/assets/defillama-light-neutral.webp' : '/assets/defillama-dark-neutral.webp'
 
-		try {
-			const hasPrimaryValue = hasTvlData && primaryValue != null
-			const formattedPrimaryValue = hasPrimaryValue ? String(formatPrice(primaryValue) ?? '') : ''
-			const dpr = window.devicePixelRatio || 1
-			const primaryValueHeight = hasPrimaryValue ? 72 : 0
+		const renderAndDownload = async () => {
+			let hasPrimaryValue = false
+			if (hasTvlData) {
+				if (primaryValue != null) {
+					hasPrimaryValue = true
+				}
+			}
+			let formattedPrimaryValue = ''
+			if (hasPrimaryValue) {
+				const formatted = formatPrice(primaryValue)
+				if (formatted != null) {
+					formattedPrimaryValue = String(formatted)
+				}
+			}
+			let dpr = window.devicePixelRatio
+			if (!dpr) {
+				dpr = 1
+			}
+			let primaryValueHeight = 0
+			if (hasPrimaryValue) {
+				primaryValueHeight = 72
+			}
 			const container = containerRef.current
 			const rows = extractRows(container)
 
@@ -271,11 +288,13 @@ export function KeyMetricsPngExportButton({
 			const dataUrl = canvas.toDataURL('image/png')
 			const filename = `${protocolName.toLowerCase().replace(/\s+/g, '-')}-key-metrics.png`
 			downloadDataURL(filename, dataUrl)
+		}
+		try {
+			await renderAndDownload()
 		} catch (error) {
 			console.log('Error exporting key metrics:', error)
-		} finally {
-			setIsLoading(false)
 		}
+		setIsLoading(false)
 	}
 
 	return (

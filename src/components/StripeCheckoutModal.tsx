@@ -75,95 +75,100 @@ export function StripeCheckoutModal({
 	} | null>(null)
 
 	const fetchClientSecret = useCallback(async () => {
-		const subscriptionType = type || 'api'
-		try {
-			setError(null)
+		let subscriptionType = type
+		if (!subscriptionType) {
+			subscriptionType = 'api'
+		}
+		setError(null)
 
-			const subscriptionData = {
-				redirectUrl: `${window.location.origin}/account?success=true`,
-				cancelUrl: `${window.location.origin}/subscription`,
-				provider: paymentMethod,
-				subscriptionType,
-				billingInterval,
-				isTrial
-			}
+		const subscriptionData = {
+			redirectUrl: `${window.location.origin}/account?success=true`,
+			cancelUrl: `${window.location.origin}/subscription`,
+			provider: paymentMethod,
+			subscriptionType,
+			billingInterval,
+			isTrial
+		}
 
-			const response = await authorizedFetch(
-				`${AUTH_SERVER}/subscription/create`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(subscriptionData)
+		const response = await authorizedFetch(
+			`${AUTH_SERVER}/subscription/create`,
+			{
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
 				},
-				true
-			)
+				body: JSON.stringify(subscriptionData)
+			},
+			true
+		)
 
-			const data = await response.json()
+		const data = await response.json()
 
-			if (!response.ok) {
-				let errorMessage = 'Failed to create subscription'
-				if (data.message) {
-					errorMessage = data.message
-				}
-				throw new Error(errorMessage)
+		if (!response.ok) {
+			let errorMessage = 'Failed to create subscription'
+			if (data.message) {
+				errorMessage = data.message
 			}
+			setError(errorMessage)
+			return Promise.reject(new Error(errorMessage))
+		}
 
-			if (data.isUpgrade) {
-				setIsUpgrade(true)
-				setRequiresPayment(data.requiresPayment !== false)
+		if (data.isUpgrade) {
+			setIsUpgrade(true)
+			let needsPayment = true
+			if (data.requiresPayment === false) {
+				needsPayment = false
+			}
+			setRequiresPayment(needsPayment)
 
-				// If no payment required, close modal and refresh
-				if (!data.requiresPayment) {
-					await queryClient.invalidateQueries({ queryKey: ['subscription'] })
-					onClose()
-					return null
-				}
-
-				if (!data.clientSecret) {
-					throw new Error('No client secret returned for upgrade payment')
-				}
-
-				setUpgradeClientSecret(data.clientSecret)
-
-				if (data.amount !== undefined) {
-					if (data.currency) {
-						let prorationCredit = 0
-						if (data.prorationCredit) {
-							prorationCredit = data.prorationCredit
-						}
-						let newSubscriptionPrice = 0
-						if (data.newSubscriptionPrice) {
-							newSubscriptionPrice = data.newSubscriptionPrice
-						}
-						setUpgradePricing({
-							amount: data.amount,
-							currency: data.currency,
-							prorationCredit,
-							newSubscriptionPrice
-						})
-					} else {
-						console.warn(
-							'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
-							data
-						)
-					}
-				}
-
+			if (!data.requiresPayment) {
+				await queryClient.invalidateQueries({ queryKey: ['subscription'] })
+				onClose()
 				return null
 			}
 
 			if (!data.clientSecret) {
-				throw new Error('No client secret returned from server')
+				const msg = 'No client secret returned for upgrade payment'
+				setError(msg)
+				return Promise.reject(new Error(msg))
 			}
 
-			return data.clientSecret
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : 'Failed to initialize checkout'
-			setError(errorMessage)
-			throw err
+			setUpgradeClientSecret(data.clientSecret)
+
+			if (data.amount !== undefined) {
+				if (data.currency) {
+					let prorationCredit = 0
+					if (data.prorationCredit) {
+						prorationCredit = data.prorationCredit
+					}
+					let newSubscriptionPrice = 0
+					if (data.newSubscriptionPrice) {
+						newSubscriptionPrice = data.newSubscriptionPrice
+					}
+					setUpgradePricing({
+						amount: data.amount,
+						currency: data.currency,
+						prorationCredit,
+						newSubscriptionPrice
+					})
+				} else {
+					console.warn(
+						'Upgrade pricing payload inconsistency: data.amount is present but data.currency is missing.',
+						data
+					)
+				}
+			}
+
+			return null
 		}
+
+		if (!data.clientSecret) {
+			const msg = 'No client secret returned from server'
+			setError(msg)
+			return Promise.reject(new Error(msg))
+		}
+
+		return data.clientSecret
 	}, [authorizedFetch, paymentMethod, type, billingInterval, isTrial, onClose, queryClient])
 
 	const options = { fetchClientSecret }
@@ -312,20 +317,25 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 	const handleSubmit = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 
-		if (!stripe || !elements) {
-			return
-		}
+		if (!stripe) return
+		if (!elements) return
 
 		setIsProcessing(true)
 		onError('')
 
 		try {
-			const { error: submitError } = await elements.submit()
-			if (submitError) {
-				throw new Error(submitError.message)
+			const submitResult = await elements.submit()
+			if (submitResult.error) {
+				let submitMsg = 'Payment failed'
+				if (submitResult.error.message) {
+					submitMsg = submitResult.error.message
+				}
+				onError(submitMsg)
+				setIsProcessing(false)
+				return
 			}
 
-			const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+			const confirmResult = await stripe.confirmPayment({
 				elements,
 				confirmParams: {
 					return_url: `${window.location.origin}/account?success=true`
@@ -333,21 +343,31 @@ function UpgradePaymentForm({ onError }: { onError: (error: string) => void }) {
 				redirect: 'if_required'
 			})
 
-			if (confirmError) {
-				throw new Error(confirmError.message)
+			if (confirmResult.error) {
+				let confirmMsg = 'Payment failed'
+				if (confirmResult.error.message) {
+					confirmMsg = confirmResult.error.message
+				}
+				onError(confirmMsg)
+				setIsProcessing(false)
+				return
 			}
 
-			if (paymentIntent) {
-				if (paymentIntent.status === 'succeeded') {
+			if (confirmResult.paymentIntent) {
+				if (confirmResult.paymentIntent.status === 'succeeded') {
 					queryClient.invalidateQueries({ queryKey: ['subscription'] })
 					window.location.href = `${window.location.origin}/account?success=true`
 				} else {
-					onError(getFriendlyPaymentStatus(paymentIntent.status))
+					onError(getFriendlyPaymentStatus(confirmResult.paymentIntent.status))
 				}
 			}
+			setIsProcessing(false)
 		} catch (err) {
-			onError(err instanceof Error ? err.message : 'Payment failed')
-		} finally {
+			let errorMessage = 'Payment failed'
+			if (err instanceof Error) {
+				errorMessage = err.message
+			}
+			onError(errorMessage)
 			setIsProcessing(false)
 		}
 	}
