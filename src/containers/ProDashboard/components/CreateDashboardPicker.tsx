@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { CHAINS_API_V2 } from '~/constants'
 import { useAppMetadata } from '../AppMetadataContext'
@@ -15,11 +15,6 @@ import {
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 import type { ComparisonPreset } from './ComparisonWizard/types'
-
-// oxlint-disable-next-line no-unused-vars
-const CreateDashboardModal = lazy(() =>
-	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
-)
 
 const ComparisonWizard = lazy(() => import('./ComparisonWizard').then((m) => ({ default: m.ComparisonWizard })))
 

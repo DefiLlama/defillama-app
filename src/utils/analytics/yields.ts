@@ -39,7 +39,7 @@ export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<strin
 	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
 	const maybeTrack = Reflect.get(maybeUmami, 'track')
 	if (typeof maybeTrack !== 'function') return
-	maybeTrack(eventName, data)
+	Reflect.apply(maybeTrack, maybeUmami, [eventName, data])
 }
 
 // Debounced version for range inputs

@@ -24,7 +24,7 @@ export function UmamiIdentityTracker() {
 			if (typeof maybeIdentify !== 'function') return false
 			if (lastIdentifiedIdRef.current === distinctId) return true
 
-			maybeIdentify(distinctId)
+			Reflect.apply(maybeIdentify, maybeUmami, [distinctId])
 			lastIdentifiedIdRef.current = distinctId
 			return true
 		}

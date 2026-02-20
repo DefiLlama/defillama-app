@@ -34,14 +34,20 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 		}
 
 		calculateVisibleItems()
+		let resizeObserver: ResizeObserver | null = null
+		const handleResize = () => calculateVisibleItems()
 
-		const handleResize = () => {
-			calculateVisibleItems()
+		if (typeof window !== 'undefined' && 'ResizeObserver' in window && paginationRef.current) {
+			resizeObserver = new ResizeObserver(() => {
+				calculateVisibleItems()
+			})
+			resizeObserver.observe(paginationRef.current)
+		} else {
+			window.addEventListener('resize', handleResize)
 		}
 
-		window.addEventListener('resize', handleResize)
-
 		return () => {
+			resizeObserver?.disconnect()
 			window.removeEventListener('resize', handleResize)
 		}
 	}, [])

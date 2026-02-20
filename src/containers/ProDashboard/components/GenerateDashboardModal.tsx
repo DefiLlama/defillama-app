@@ -495,6 +495,7 @@ export function GenerateDashboardModal({
 						Cancel
 					</Ariakit.DialogDismiss>
 					<button
+						type="button"
 						onClick={handleGenerate}
 						disabled={isLoading}
 						className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${

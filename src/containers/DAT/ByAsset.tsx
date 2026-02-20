@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
@@ -74,7 +74,10 @@ export function DATByAsset({
 	mNAVMaxChart,
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
-	const handlePrepareAssetBreakdownCsv = () => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)
+	const handlePrepareAssetBreakdownCsv = useCallback(
+		() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker),
+		[institutions, metadata.name, metadata.ticker]
+	)
 	const inflowsTooltipFormatter = useMemo(
 		() => createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: metadata.ticker }),
 		[metadata.ticker]

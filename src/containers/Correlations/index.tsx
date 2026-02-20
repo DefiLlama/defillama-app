@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
@@ -203,12 +203,8 @@ interface CorrelationsProps {
 
 export default function Correlations({ coinsData }: CorrelationsProps) {
 	const router = useRouter()
-	const latestQueryRef = useRef(router.query)
 	const { isReady, pathname, replace } = router
-
-	useEffect(() => {
-		latestQueryRef.current = router.query
-	}, [router.query])
+	const getLatestQuery = useEffectEvent(() => router.query)
 	const queryCoins = useMemo<string[]>(() => {
 		const coinQuery = router.query.coin
 		if (!coinQuery) return []
@@ -321,7 +317,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 			{
 				pathname,
 				query: {
-					...latestQueryRef.current,
+					...getLatestQuery(),
 					coin: DEFAULT_QUERY_COINS
 				}
 			},

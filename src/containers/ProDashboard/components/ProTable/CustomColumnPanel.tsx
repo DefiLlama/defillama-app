@@ -393,7 +393,7 @@ export function CustomColumnPanel({
 							onChange={(e) => setNewColumnName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Custom Metric"
 							className="w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-2 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
-							onMouseDown={(e) => e.stopPropagation()}
+							onPointerDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						/>
@@ -423,7 +423,7 @@ export function CustomColumnPanel({
 											? 'border-green-500 focus:border-green-500'
 											: 'pro-divider focus:border-(--primary)'
 								}`}
-								onMouseDown={(e) => e.stopPropagation()}
+								onPointerDown={(e) => e.stopPropagation()}
 								onDragStart={(e) => e.preventDefault()}
 								draggable={false}
 							/>
@@ -539,6 +539,7 @@ export function CustomColumnPanel({
 					)}
 
 					<button
+						type="button"
 						onClick={handleAddColumn}
 						disabled={!newColumnName.trim() || !newColumnExpression.trim()}
 						className="rounded-md bg-(--primary) px-3 py-1 text-sm text-white transition-colors hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
@@ -601,7 +602,9 @@ export function CustomColumnPanel({
 									)}
 								</div>
 								<button
+									type="button"
 									onClick={() => onRemoveCustomColumn(column.id)}
+									aria-label={`Delete column ${column.name}`}
 									className="ml-3 rounded-md pro-text3 transition-colors hover:text-(--error)"
 									title="Delete custom column"
 								>

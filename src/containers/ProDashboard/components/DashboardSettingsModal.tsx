@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -145,6 +145,7 @@ function DashboardSettingsModalInner({
 								<button
 									type="button"
 									onClick={() => setLocalVisibility('public')}
+									aria-pressed={localVisibility === 'public'}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
 									}`}
@@ -155,6 +156,7 @@ function DashboardSettingsModalInner({
 								<button
 									type="button"
 									onClick={() => setLocalVisibility('private')}
+									aria-pressed={localVisibility === 'private'}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
 									}`}
@@ -204,7 +206,13 @@ function DashboardSettingsModalInner({
 											className="flex items-center gap-1 rounded-md border pro-border px-3 py-1 text-sm pro-text2"
 										>
 											{tag}
-											<button type="button" onClick={() => handleRemoveTag(tag)} className="hover:text-pro-blue-400">
+											<button
+												type="button"
+												onClick={() => handleRemoveTag(tag)}
+												aria-label={`Remove tag ${tag}`}
+												title={`Remove tag ${tag}`}
+												className="hover:text-pro-blue-400"
+											>
 												<Icon name="x" height={12} width={12} />
 											</button>
 										</span>
@@ -274,6 +282,16 @@ function DashboardSettingsModalInner({
 }
 
 export function DashboardSettingsModal(props: DashboardSettingsModalProps) {
-	const modalKey = `${props.dashboardId ?? 'new'}:${props.isOpen ? 'open' : 'closed'}`
+	const [openCount, setOpenCount] = useState(0)
+	const wasOpenRef = useRef(false)
+
+	useEffect(() => {
+		if (props.isOpen && !wasOpenRef.current) {
+			setOpenCount((count) => count + 1)
+		}
+		wasOpenRef.current = props.isOpen
+	}, [props.isOpen])
+
+	const modalKey = `${props.dashboardId ?? 'new'}:${openCount}`
 	return <DashboardSettingsModalInner key={modalKey} {...props} />
 }

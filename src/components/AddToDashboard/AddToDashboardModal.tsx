@@ -65,9 +65,7 @@ function invalidateDashboardQueries(queryClient: QueryClient) {
 
 function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
 	if (typeof window === 'undefined') return
-	const maybeUmami = Reflect.get(window, 'umami')
-	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
-	const maybeTrack = Reflect.get(maybeUmami, 'track')
+	const maybeTrack = (window as Window & { umami?: { track?: unknown } }).umami?.track
 	if (typeof maybeTrack !== 'function') return
 	maybeTrack('add-to-dashboard-submit', { type })
 }

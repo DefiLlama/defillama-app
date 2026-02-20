@@ -202,6 +202,15 @@ function buildDisplayValue(filter: ActiveFilter): string {
 	return 'Not set'
 }
 
+function getInitialInputs(currentFilter: ActiveFilter) {
+	return {
+		value:
+			currentFilter.value?.toString() || currentFilter.minValue?.toString() || currentFilter.maxValue?.toString() || '',
+		minValue: currentFilter.minValue?.toString() || '',
+		maxValue: currentFilter.maxValue?.toString() || ''
+	}
+}
+
 interface FilterItemEditorProps {
 	filter: ActiveFilter
 	onUpdate: (filter: ActiveFilter) => void
@@ -213,12 +222,6 @@ interface FilterItemEditorProps {
 
 function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, onEndEdit }: FilterItemEditorProps) {
 	const { config } = filter
-	const getInitialInputs = (currentFilter: ActiveFilter) => ({
-		value:
-			currentFilter.value?.toString() || currentFilter.minValue?.toString() || currentFilter.maxValue?.toString() || '',
-		minValue: currentFilter.minValue?.toString() || '',
-		maxValue: currentFilter.maxValue?.toString() || ''
-	})
 	const [localInputs, setLocalInputs] = useState(() => getInitialInputs(filter))
 	const localValue = localInputs.value
 	const localMinValue = localInputs.minValue

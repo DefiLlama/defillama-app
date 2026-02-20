@@ -67,12 +67,14 @@ function ProPageContent() {
 const tabs = ['my-dashboards', 'discover', 'favorites'] as const
 
 function getDashboardPagesToShow(selectedPage: number, totalPages: number): number[] {
+	if (totalPages < 1) return []
+	const clampedSelectedPage = Math.max(1, Math.min(selectedPage, totalPages))
 	const pagesToShow =
-		selectedPage === 1
+		clampedSelectedPage === 1
 			? [1, 2, Math.min(3, totalPages)]
-			: selectedPage === totalPages
+			: clampedSelectedPage === totalPages
 				? [Math.max(1, totalPages - 2), Math.max(1, totalPages - 1), totalPages]
-				: [selectedPage - 1, selectedPage, selectedPage + 1]
+				: [clampedSelectedPage - 1, clampedSelectedPage, clampedSelectedPage + 1]
 
 	return pagesToShow.filter((n, i, arr) => n >= 1 && n <= totalPages && arr.indexOf(n) === i)
 }
@@ -92,7 +94,7 @@ function ProContent({
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
-	const comparisonPresetRef = useRef<ComparisonPreset | null>(null)
+	const [comparisonPreset, setComparisonPreset] = useState<ComparisonPreset | null>(null)
 	const createDialogOpen = Ariakit.useStoreState(createDashboardDialogStore, 'open')
 	const dialogWasOpenRef = useRef(false)
 
@@ -112,7 +114,7 @@ function ProContent({
 			return
 		}
 		if (!createDialogOpen && dialogWasOpenRef.current) {
-			comparisonPresetRef.current = null
+			setComparisonPreset(null)
 			dialogWasOpenRef.current = false
 		}
 	}, [createDialogOpen])
@@ -122,18 +124,18 @@ function ProContent({
 		const comparison = router.query.comparison
 		const items = router.query.items
 		if (comparison !== 'protocols' || typeof items !== 'string') return
-		if (comparisonPresetRef.current) return
+		if (comparisonPreset) return
 		const parsedItems = items
 			.split(',')
 			.map((item) => item.trim())
 			.filter(Boolean)
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
 		if (parsedItems.length > 0) {
-			comparisonPresetRef.current = { comparisonType: 'protocols', items: parsedItems }
+			setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
 		}
 		createDashboardDialogStore.show()
 		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
-	}, [createDashboardDialogStore, router, router.isReady, router.query])
+	}, [comparisonPreset, createDashboardDialogStore, router, router.isReady, router.query])
 
 	const handleDeleteDashboard = async (dashboardId: string) => {
 		await deleteDashboard(dashboardId)
@@ -285,7 +287,7 @@ function ProContent({
 				<CreateDashboardPicker
 					dialogStore={createDashboardDialogStore}
 					onCreate={handleCreateDashboard}
-					comparisonPreset={comparisonPresetRef.current}
+					comparisonPreset={comparisonPreset}
 				/>
 			</Suspense>
 
