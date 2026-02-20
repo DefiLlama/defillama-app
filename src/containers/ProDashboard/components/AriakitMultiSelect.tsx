@@ -1,5 +1,5 @@
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import type { MultiSelectOption } from '~/components/Select/types'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -26,6 +26,7 @@ export function AriakitMultiSelect({
 	maxSelections = 100
 }: AriakitMultiSelectProps) {
 	const popover = usePopoverStore({ placement: 'bottom-start' })
+	const disclosureId = useId()
 
 	const buttonLabel = useMemo(() => {
 		if (selectedValues.length === 0) return placeholder
@@ -54,7 +55,7 @@ export function AriakitMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="mb-1 block text-[11px] font-medium pro-text2">
+			<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
 					<span className="ml-1 text-xs pro-text3">
@@ -70,6 +71,7 @@ export function AriakitMultiSelect({
 			) : (
 				<>
 					<PopoverDisclosure
+						id={disclosureId}
 						store={popover}
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
