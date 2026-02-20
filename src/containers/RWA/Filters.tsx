@@ -191,7 +191,8 @@ function AttributesFilter({
 			return (
 				<NestedMenu
 					key={filter.queryKey}
-					label={subMenuLabel}
+					label={<span className="block text-left">{subMenuLabel}</span>}
+					render={<button type="button" />}
 					menuPortal={usePortal}
 					className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
 				>
@@ -221,7 +222,7 @@ function AttributesFilter({
 
 	if (nestedMenu) {
 		return (
-			<NestedMenu label={trigger} menuPortal={usePortal}>
+			<NestedMenu label={trigger} render={<button type="button" />} menuPortal={usePortal}>
 				{renderAttributeSubmenus()}
 			</NestedMenu>
 		)
