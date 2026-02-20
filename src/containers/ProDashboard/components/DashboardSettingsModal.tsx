@@ -25,6 +25,13 @@ interface DashboardSettingsModalProps {
 	onDelete?: (dashboardId: string) => Promise<void>
 }
 
+interface DashboardSettingsDraft {
+	dashboardName?: string
+	visibility?: 'private' | 'public'
+	tags?: string[]
+	description?: string
+}
+
 function DashboardSettingsModalInner({
 	isOpen,
 	onClose,
@@ -40,13 +47,14 @@ function DashboardSettingsModalInner({
 	onSave,
 	onDelete
 }: DashboardSettingsModalProps) {
-	const [localDashboardName, setLocalDashboardName] = useState(dashboardName)
-	const [localVisibility, setLocalVisibility] = useState(visibility)
-	const [localTags, setLocalTags] = useState(tags)
-	const [localDescription, setLocalDescription] = useState(description)
+	const [draft, setDraft] = useState<DashboardSettingsDraft>({})
 	const [tagInput, setTagInput] = useState('')
 	const [isDeleting, setIsDeleting] = useState(false)
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+	const localDashboardName = draft.dashboardName ?? dashboardName
+	const localVisibility = draft.visibility ?? visibility
+	const localTags = draft.tags ?? tags
+	const localDescription = draft.description ?? description
 
 	const handleSave = () => {
 		const normalizedDescription = localDescription.slice(0, 200)
@@ -66,13 +74,20 @@ function DashboardSettingsModalInner({
 	const handleAddTag = (tag: string) => {
 		const trimmedTag = tag.trim().toLowerCase()
 		if (trimmedTag) {
-			setLocalTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
+			setDraft((prev) => {
+				const currentTags = prev.tags ?? tags
+				if (currentTags.includes(trimmedTag)) return prev
+				return { ...prev, tags: [...currentTags, trimmedTag] }
+			})
 		}
 		setTagInput('')
 	}
 
 	const handleRemoveTag = (tag: string) => {
-		setLocalTags((prev) => prev.filter((t) => t !== tag))
+		setDraft((prev) => {
+			const currentTags = prev.tags ?? tags
+			return { ...prev, tags: currentTags.filter((t) => t !== tag) }
+		})
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
@@ -131,7 +146,9 @@ function DashboardSettingsModalInner({
 								id="dashboard-settings-name"
 								type="text"
 								value={localDashboardName}
-								onChange={(e) => setLocalDashboardName(e.target.value)}
+								onChange={(e) => {
+									setDraft((prev) => ({ ...prev, dashboardName: e.target.value }))
+								}}
 								placeholder="Enter dashboard name"
 								className="w-full rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							/>
@@ -144,7 +161,9 @@ function DashboardSettingsModalInner({
 							<div className="flex gap-3" aria-labelledby="dashboard-settings-visibility">
 								<button
 									type="button"
-									onClick={() => setLocalVisibility('public')}
+									onClick={() => {
+										setDraft((prev) => ({ ...prev, visibility: 'public' }))
+									}}
 									aria-pressed={localVisibility === 'public'}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
@@ -155,7 +174,9 @@ function DashboardSettingsModalInner({
 								</button>
 								<button
 									type="button"
-									onClick={() => setLocalVisibility('private')}
+									onClick={() => {
+										setDraft((prev) => ({ ...prev, visibility: 'private' }))
+									}}
 									aria-pressed={localVisibility === 'private'}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
 										localVisibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
@@ -228,7 +249,9 @@ function DashboardSettingsModalInner({
 							<textarea
 								id="dashboard-settings-description"
 								value={localDescription}
-								onChange={(e) => setLocalDescription(e.target.value.slice(0, 200))}
+								onChange={(e) => {
+									setDraft((prev) => ({ ...prev, description: e.target.value.slice(0, 200) }))
+								}}
 								placeholder="Describe your dashboard..."
 								maxLength={200}
 								rows={3}

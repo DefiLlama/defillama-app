@@ -356,7 +356,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-export const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
+const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 	{
 		id: 'name',
 		header: 'Name',
