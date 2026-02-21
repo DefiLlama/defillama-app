@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { PROTOCOL_API } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { fetchJson } from '~/utils/async'
+import { fetchProtocolBySlug } from './api'
 import type { IProtocolChainTvlEntry, IProtocolOverviewMetricsV1 } from './api.types'
 
 type ChainTvlEntry = IProtocolChainTvlEntry
@@ -651,7 +650,7 @@ export const useFetchProtocolV1AddlChartsData = (
 ) => {
 	const { data: addlProtocolData, isLoading } = useQuery<IProtocolOverviewMetricsV1>({
 		queryKey: ['protocol-overview-v1', protocolName, 'metrics'],
-		queryFn: () => fetchJson(`${PROTOCOL_API}/${protocolName}`),
+		queryFn: () => fetchProtocolBySlug<IProtocolOverviewMetricsV1>(protocolName),
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 0

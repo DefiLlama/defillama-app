@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { Suspense, lazy, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2 } from '~/constants'
+import { fetchChainsByCategory as fetchChainsByCategoryApi } from '~/containers/Chains/api'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useDimensionProtocols } from '../hooks/useDimensionProtocols'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
@@ -33,8 +33,7 @@ interface CreateDashboardPickerProps {
 }
 
 async function fetchChainsByCategory(category: string): Promise<{ category: string; chains: string[] }> {
-	return fetch(`${CHAINS_API_V2}/${encodeURIComponent(category)}`)
-		.then((res) => (res.ok ? res.json() : null))
+	return fetchChainsByCategoryApi(category)
 		.then((data) => {
 			const chains = Array.isArray(data?.chainsUnique) ? (data.chainsUnique as string[]) : []
 			return { category, chains }

@@ -1,5 +1,6 @@
-import { CACHE_SERVER, CHART_API, DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
+import { CACHE_SERVER, DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
+import { fetchChainChart } from '~/containers/Chains/api'
 import {
 	ONCHAIN_ADDRESSES_API,
 	ONCHAIN_GAS_API,
@@ -46,25 +47,20 @@ const CHART_METADATA = {
 export default class ChainCharts {
 	private static async fetchAndMergeChains(
 		chains: string[],
-		fetchUrl: (chainName: string) => string,
+		fetchData: (chainName: string) => Promise<any>,
 		extractData: (data: any) => [number, number][]
 	): Promise<[number, number][]> {
 		if (chains.length === 0) return []
 
 		try {
-			const responses = await Promise.all(
-				chains.map((chain) => fetch(fetchUrl(chain.includes(' ') ? encodeURIComponent(chain) : chain)))
-			)
+			const responses = await Promise.all(chains.map((chain) => fetchData(chain)))
 
 			const mergedMap = new Map<number, number>()
 
-			for (const response of responses) {
-				if (response.ok) {
-					const data = await response.json()
-					const extracted = extractData(data)
-					for (const [timestamp, value] of extracted) {
-						mergedMap.set(timestamp, value)
-					}
+			for (const data of responses) {
+				const extracted = extractData(data)
+				for (const [timestamp, value] of extracted) {
+					mergedMap.set(timestamp, value)
 				}
 			}
 
@@ -113,15 +109,14 @@ export default class ChainCharts {
 		const chainNames = this.getChainNames(chain)
 
 		if (chainNames.length === 1) {
-			const response = await fetch(`${CHART_API}/${chain}`)
-			const data = await response.json()
+			const data = await fetchChainChart<any>(chain)
 			const adjustedTvl = processAdjustedTvl(data)
 			return convertToNumberFormat(adjustedTvl)
 		}
 
 		return this.fetchAndMergeChains(
 			chainNames,
-			(chainName) => `${CHART_API}/${chainName}`,
+			(chainName) => fetchChainChart<any>(chainName),
 			(data) => {
 				const adjustedTvl = processAdjustedTvl(data)
 				return convertToNumberFormat(adjustedTvl)

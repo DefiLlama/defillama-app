@@ -1,15 +1,10 @@
 import dayjs from 'dayjs'
-import {
-	CACHE_SERVER,
-	LIQUIDITY_API,
-	PROTOCOL_API,
-	PROTOCOL_API_MINI,
-	TOKEN_LIQUIDITY_API,
-	YIELD_PROJECT_MEDIAN_API
-} from '~/constants'
+import { fetchProtocolLiquidityTokens, fetchProtocolTokenLiquidityChart } from '~/api'
+import { CACHE_SERVER, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { fetchProtocolTreasuryChart } from '~/containers/ProtocolOverview/api'
+import { fetchProtocolBySlug, fetchProtocolMiniBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocolEmission } from '~/containers/Unlocks/api'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
@@ -41,12 +36,7 @@ export default class ProtocolCharts {
 			return []
 		}
 		try {
-			const response = await fetch(`${PROTOCOL_API_MINI}/${protocolId}`)
-			if (!response.ok) {
-				console.log(`Failed to fetch protocol TVL for ${protocolId}: ${response.status}`)
-				return []
-			}
-			const data: ProtocolApiMiniResponse = await response.json()
+			const data: ProtocolApiMiniResponse = await fetchProtocolMiniBySlug(protocolId)
 
 			if (Array.isArray(data?.tvl) && data.tvl.length > 0 && Array.isArray(data.tvl[0])) {
 				return data.tvl as [number, number][]
@@ -197,24 +187,18 @@ export default class ProtocolCharts {
 	static async liquidity(protocol: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		try {
-			const protoRes = await fetch(`${PROTOCOL_API}/${protocol}`)
-			if (!protoRes.ok) return []
-			const proto = await protoRes.json()
+			const proto = await fetchProtocolBySlug<{ symbol?: string }>(protocol)
 			const symbol: string | undefined = proto?.symbol
 			if (!symbol) return []
 
-			const listRes = await fetch(LIQUIDITY_API)
-			if (!listRes.ok) return []
-			const tokens = await listRes.json()
+			const tokens = await fetchProtocolLiquidityTokens()
 			const entry = Array.isArray(tokens)
 				? tokens.find((t: any) => String(t?.symbol).toUpperCase() === String(symbol).toUpperCase())
 				: null
 			const tokenId = entry?.id
 			if (!tokenId) return []
 
-			const histRes = await fetch(`${TOKEN_LIQUIDITY_API}/${encodeURIComponent(tokenId)}`)
-			if (!histRes.ok) return []
-			const hist = await histRes.json()
+			const hist = await fetchProtocolTokenLiquidityChart(String(tokenId))
 			if (!Array.isArray(hist)) return []
 			return hist
 				.filter((x) => Array.isArray(x) && x.length >= 2)
@@ -251,17 +235,15 @@ export default class ProtocolCharts {
 	static async borrowed(protocol: string): Promise<[number, number][]> {
 		if (!protocol) return []
 		try {
-			const res = await fetch(`${PROTOCOL_API}/${protocol}`)
-			if (!res.ok) return []
-			const data = await res.json()
+			const data = await fetchProtocolBySlug<ProtocolApiResponse>(protocol)
 			const chainTvls = data?.chainTvls || {}
 			const store: Record<number, number> = {}
 			for (const key in chainTvls) {
 				if (!key.endsWith('-borrowed')) continue
 				const arr = chainTvls[key]?.tvl || []
 				for (const item of arr) {
-					const d = Number(item?.date)
-					const v = Number(item?.totalLiquidityUSD ?? 0)
+					const d = Array.isArray(item) ? Number(item[0]) : Number(item?.date)
+					const v = Array.isArray(item) ? Number(item[1]) : Number(item?.totalLiquidityUSD ?? 0)
 					if (!Number.isFinite(d) || !Number.isFinite(v)) continue
 					store[d] = (store[d] ?? 0) + v
 				}

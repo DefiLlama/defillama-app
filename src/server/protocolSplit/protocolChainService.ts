@@ -1,12 +1,10 @@
 import {
-	CHAIN_TVL_API,
-	CHAINS_API_V2,
-	CHART_API,
 	DIMENSIONS_OVERVIEW_API,
 	DIMENSIONS_SUMMARY_API,
-	PROTOCOL_API,
 	PROTOCOLS_API
 } from '~/constants'
+import { fetchChainChart, fetchChainsByCategory, fetchChainsTvlOverview } from '~/containers/Chains/api'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
 import {
@@ -209,12 +207,7 @@ async function getTvlProtocolChainData(
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
-		const response = await fetch(`${PROTOCOL_API}/${protocol}`)
-		if (!response.ok) {
-			throw new Error(`Failed to fetch TVL data: ${response.statusText}`)
-		}
-
-		const data = await response.json()
+		const data = await fetchProtocolBySlug<{ name?: string; chainTvls?: Record<string, unknown> }>(protocol)
 		const chainTvls = data?.chainTvls || {}
 
 		const series: ChartSeries[] = []
@@ -481,8 +474,7 @@ async function getAllProtocolsTopChainsTvlData(
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
-		const resp = await fetch(CHAIN_TVL_API)
-		const allChains = (await resp.json()) as Array<{ name: string; tvl: number }>
+		const allChains = await fetchChainsTvlOverview()
 		const includeSet = new Set<string>((chains || []).map((c) => toDisplayName(c)))
 		let allowNamesFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
@@ -506,21 +498,17 @@ async function getAllProtocolsTopChainsTvlData(
 		const picked = ranked.slice(0, Math.min(topN, ranked.length))
 		const pickedNames = picked.map((c) => c.name)
 
-		const [globalResp, ...chainResponses] = await Promise.all([
-			fetch(CHART_API),
-			...pickedNames.map((name) => fetch(`${CHART_API}/${encodeURIComponent(name)}`))
+		const [globalJson, ...chainResponses] = await Promise.all([
+			fetchChainChart<any>(),
+			...pickedNames.map((name) => fetchChainChart<any>(name))
 		])
-
-		const globalJson = await globalResp.json()
 		const adjustedGlobalTvl = processAdjustedTvl(globalJson)
 		const totalSeries = filterOutToday(normalizeDailyPairs(adjustedGlobalTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 
 		const topSeriesRaw: ChartSeries[] = []
 		let colorIndex = 0
 		for (let i = 0; i < chainResponses.length; i++) {
-			const r = chainResponses[i]
-			if (!r.ok) continue
-			const j = await r.json()
+			const j = chainResponses[i]
 			const adjustedTvl = processAdjustedTvl(j)
 			const normalized = filterOutToday(normalizeDailyPairs(adjustedTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 			topSeriesRaw.push({
@@ -1143,16 +1131,12 @@ export const getProtocolChainSplitData = async ({
 
 async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {
 	if (!categories || categories.length === 0) return new Set()
-	const requests = categories.map((cat) => fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`))
-	const responses = await Promise.allSettled(requests)
+	const responses = await Promise.allSettled(categories.map((cat) => fetchChainsByCategory(cat)))
 	const out = new Set<string>()
 	for (const res of responses) {
-		if (res.status === 'fulfilled' && res.value.ok) {
-			try {
-				const j = await res.value.json()
-				const arr: string[] = Array.isArray(j?.chainsUnique) ? j.chainsUnique : []
-				for (const name of arr) out.add(name)
-			} catch {}
+		if (res.status === 'fulfilled') {
+			const arr: string[] = Array.isArray(res.value?.chainsUnique) ? res.value.chainsUnique : []
+			for (const name of arr) out.add(name)
 		}
 	}
 	return out

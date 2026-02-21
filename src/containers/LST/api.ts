@@ -1,4 +1,5 @@
-import { COINS_PRICES_API, PROTOCOL_API, PROTOCOLS_API, YIELD_POOLS_API, YIELDS_SERVER_URL } from '~/constants'
+import { COINS_PRICES_API, PROTOCOLS_API, YIELD_POOLS_API, YIELDS_SERVER_URL } from '~/constants'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
 import type {
 	ICoinPriceApiResponse,
@@ -44,5 +45,5 @@ export async function fetchEthPrice(): Promise<number | null> {
  * Fetch protocol details for a selected LST protocol slug.
  */
 export async function fetchProtocolDetail(protocolSlug: string): Promise<IProtocolDetailApiItem> {
-	return fetchJson<IProtocolDetailApiItem>(`${PROTOCOL_API}/${protocolSlug}`)
+	return fetchProtocolBySlug<IProtocolDetailApiItem>(protocolSlug)
 }

@@ -1,6 +1,5 @@
 import {
 	BRIDGEVOLUME_API_SLUG,
-	LIQUIDITY_API,
 	oracleProtocols,
 	PROTOCOLS_API,
 	V2_SERVER_URL,
@@ -9,6 +8,7 @@ import {
 } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchProtocolLiquidityTokens } from '~/api'
 import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
@@ -427,7 +427,7 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.liquidity
-			? fetchJson(LIQUIDITY_API).catch(() => {
+			? fetchProtocolLiquidityTokens().catch(() => {
 					return []
 				})
 			: [],

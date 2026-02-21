@@ -1,8 +1,9 @@
-import { V2_SERVER_URL } from '~/constants'
+import { SERVER_URL, V2_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	IProtocolChainBreakdownChart,
 	IProtocolChainBreakdownValue,
+	IProtocolMiniResponse,
 	IProtocolTokenBreakdownChart,
 	IProtocolTokenBreakdownValue,
 	IProtocolValueChart,
@@ -10,6 +11,9 @@ import type {
 	IProtocolTvlMetrics
 } from './api.types'
 import type { IProtocolExpenses } from './api.types'
+
+const PROTOCOL_API_URL = `${SERVER_URL}/updatedProtocol`
+const PROTOCOL_API_MINI_URL = `${SERVER_URL}/_fe/updatedProtocol-mini`
 
 const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
 	const parsedUrl = new URL(url, 'http://placeholder')
@@ -370,4 +374,12 @@ export async function fetchProtocolExpenses(): Promise<IProtocolExpenses[]> {
 	return fetchJson<IProtocolExpenses[]>(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 	)
+}
+
+export async function fetchProtocolBySlug<TProtocolResponse = unknown>(protocolSlug: string): Promise<TProtocolResponse> {
+	return fetchJson<TProtocolResponse>(`${PROTOCOL_API_URL}/${protocolSlug}`)
+}
+
+export async function fetchProtocolMiniBySlug(protocolSlug: string): Promise<IProtocolMiniResponse> {
+	return fetchJson<IProtocolMiniResponse>(`${PROTOCOL_API_MINI_URL}/${protocolSlug}`)
 }

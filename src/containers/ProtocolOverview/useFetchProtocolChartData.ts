@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
+import { fetchProtocolTokenLiquidityChart } from '~/api'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, oracleProtocols, TOKEN_LIQUIDITY_API } from '~/constants'
+import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, oracleProtocols } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
@@ -313,7 +314,7 @@ export const useFetchProtocolChartData = ({
 		[string | number, number]
 	> | null>({
 		queryKey: ['protocol-overview', protocolSlug, 'token-liquidity', protocolId],
-		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${protocolId.replaceAll('#', '$')}`).catch(() => null),
+		queryFn: () => fetchProtocolTokenLiquidityChart(protocolId),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

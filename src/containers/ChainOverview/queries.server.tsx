@@ -1,7 +1,8 @@
 import { fetchLlamaConfig } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
-import { CHART_API, COINGECKO_KEY, REV_PROTOCOLS, TRADFI_API } from '~/constants'
+import { COINGECKO_KEY, REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
+import { fetchChainChart } from '~/containers/Chains/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
 import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
@@ -188,9 +189,7 @@ export async function getChainOverviewData({
 			{ peggedAssets: Array<{ name: string; gecko_id: string; symbol: string }> } | null,
 			Array<string> | null
 		] = await Promise.all([
-			fetchJson(`${CHART_API}${chain === 'All' ? '' : `/${currentChainMetadata.name}`}`, {
-				timeout: 2 * 60 * 1000
-			}).catch((err) => {
+			fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {
 				console.log(err)
 				return {
 					tvl: [],

@@ -1,5 +1,5 @@
-import { CHAINS_API_V2 } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
+import { fetchChainsByCategory } from '~/containers/Chains/api'
 import type { IChainAssets } from '~/containers/ChainOverview/types'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
@@ -8,7 +8,6 @@ import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
 import type { IActiveAddressesResponse } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { fetchNftsVolumeByChain } from '../Nft/api'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
@@ -33,7 +32,7 @@ export const getChainsByCategory = async ({
 		chainNftsVolume,
 		appRevenue
 	] = await Promise.all([
-		fetchJson(`${CHAINS_API_V2}/${encodeURIComponent(category)}`) as Promise<IChainsByCategory>,
+		fetchChainsByCategory<IChainsByCategory>(category),
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume', chainMetadata }),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',

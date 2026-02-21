@@ -1,6 +1,5 @@
-import { PROTOCOL_API } from '~/constants'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import type { RawProtocolResponse } from './api.types'
 
 /**
@@ -11,7 +10,7 @@ export async function fetchProtocol(
 ): Promise<{ protocolData: RawProtocolResponse; protocolName: string } | null> {
 	if (!selectedProtocol) return null
 
-	const protocolData = await fetchJson<RawProtocolResponse>(`${PROTOCOL_API}/${slug(selectedProtocol)}`)
+	const protocolData = await fetchProtocolBySlug<RawProtocolResponse>(slug(selectedProtocol))
 	return {
 		protocolData,
 		protocolName: protocolData.name

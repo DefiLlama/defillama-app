@@ -13,7 +13,8 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CHAINS_API, CONFIG_API } from '~/constants'
+import { CONFIG_API } from '~/constants'
+import { fetchChainsList } from '~/containers/Chains/api'
 import type { ChartData } from '~/containers/Liquidations/utils'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -165,9 +166,9 @@ const ProtocolName = ({ value }: { value: string }) => {
 
 const ChainName = ({ value }: { value: string }) => {
 	const { data } = useQuery<ChainListItem[] | null>({
-		queryKey: [`${CHAINS_API}`],
+		queryKey: ['chains'],
 		queryFn: async () => {
-			const res = await fetchApi(`${CHAINS_API}`)
+			const res = await fetchChainsList()
 			return isChainList(res) ? res : null
 		},
 		staleTime: 60 * 60 * 1000,

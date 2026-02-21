@@ -1,7 +1,8 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { TOKEN_LIQUIDITY_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { fetchProtocolTokenLiquidityChart } from '~/api'
+import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import {
 	fetchProtocolUsers,
 	fetchProtocolNewUsers,
@@ -155,7 +156,7 @@ const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
 		queryKey: ['protocol-overview', 'token-liquidity', token],
-		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token!.replaceAll('#', '$')}`).catch(() => null),
+		queryFn: () => fetchProtocolTokenLiquidityChart(token!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

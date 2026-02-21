@@ -1,7 +1,16 @@
-import { CACHE_SERVER, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
+import {
+	CACHE_SERVER,
+	COINS_MCAPS_API,
+	COINS_PRICES_API,
+	CONFIG_API,
+	DATASETS_SERVER_URL,
+	SERVER_URL,
+	TOKEN_LIST_API
+} from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import type {
+	CgMarketsQueryParams,
 	CgChartResponse,
 	ChainGeckoPair,
 	CoinMcapsResponse,
@@ -11,8 +20,17 @@ import type {
 	IResponseCGMarketsAPI,
 	LlamaConfigResponse,
 	PriceObject,
+	ProtocolLiquidityToken,
+	ProtocolTokenLiquidityChart,
+	TwitterPostsResponse,
 	TokenMarketData
 } from './types'
+
+const COINGECKO_MARKETS_API_BASE =
+	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=<VS_CURRENCY>&order=<ORDER>&per_page=<PER_PAGE>&page=<PAGE>'
+const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
+const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
+const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 
 function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
 	if (typeof value !== 'object' || value === null) return false
@@ -33,6 +51,47 @@ export async function fetchAllCGTokensList(): Promise<Array<IResponseCGMarketsAP
 	}
 
 	return validTokens
+}
+
+export async function fetchCGMarketsPage({
+	page,
+	vsCurrency = 'usd',
+	order = 'market_cap_desc',
+	perPage = 100
+}: CgMarketsQueryParams): Promise<Array<IResponseCGMarketsAPI>> {
+	const url = COINGECKO_MARKETS_API_BASE.replace('<VS_CURRENCY>', encodeURIComponent(vsCurrency))
+		.replace('<ORDER>', encodeURIComponent(order))
+		.replace('<PER_PAGE>', String(perPage))
+		.replace('<PAGE>', String(page))
+
+	const data = await fetchJson<unknown>(url)
+	if (!Array.isArray(data)) {
+		throw new Error(`[fetchCGMarketsPage] Expected array response from ${url}`)
+	}
+
+	const validTokens = data.filter(isCGMarketsApiItem)
+	const malformedCount = data.length - validTokens.length
+	if (malformedCount > 0) {
+		postRuntimeLogs(`[fetchCGMarketsPage] Skipped ${malformedCount} malformed token entries from ${url}`)
+	}
+
+	return validTokens
+}
+
+export async function fetchTwitterPostsByUsername(username: string): Promise<TwitterPostsResponse | null> {
+	if (!username) return null
+	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(() => null)
+}
+
+export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
+	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
+}
+
+export async function fetchProtocolTokenLiquidityChart(tokenId: string): Promise<ProtocolTokenLiquidityChart | null> {
+	if (!tokenId) return null
+	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${tokenId.replaceAll('#', '$')}`).catch(
+		() => null
+	)
 }
 
 export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {

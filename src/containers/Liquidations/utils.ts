@@ -1,5 +1,4 @@
-import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { buildLiquidationsDataUrl, fetchLiquidationsDataAtTimestamp } from './api'
 import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
 
 /**
@@ -10,8 +9,7 @@ import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
  * @returns The URL to the liquidations data payload
  */
 export const getDataUrl = (symbol: string, timestamp: number) => {
-	const hourId = Math.floor(timestamp / 3600 / 6) * 6
-	return `${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/${hourId}.json`
+	return buildLiquidationsDataUrl(symbol, timestamp)
 }
 
 // making aliases so the hints are more readable
@@ -114,10 +112,7 @@ export interface LiquidationsData {
 
 export const getLiquidationsCsvData = async (symbol: string) => {
 	const now = Math.round(Date.now() / 1000) // in seconds
-	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now)
-
-	const res = await fetchJson(LIQUIDATIONS_DATA_URL)
-	const data = res as LiquidationsData
+	const data = (await fetchLiquidationsDataAtTimestamp(symbol, now)) as LiquidationsData
 
 	const timestamp = data.time
 	const positions = data.positions

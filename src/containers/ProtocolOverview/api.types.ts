@@ -180,3 +180,8 @@ export interface IProtocolExpenses {
 	notes?: Array<string> | null
 	lastUpdate?: string | null
 }
+
+export interface IProtocolMiniResponse {
+	chainTvls: Record<string, { tvl: [number, number][] }>
+	tvl: [number, number][]
+}

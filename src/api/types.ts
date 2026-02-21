@@ -107,3 +107,24 @@ export interface DenominationPriceHistory {
 	mcaps: Array<[number, number]>
 	volumes: Array<[number, number]>
 }
+
+export interface CgMarketsQueryParams {
+	vsCurrency?: string
+	order?: string
+	perPage?: number
+	page: number
+}
+
+export interface TwitterPostsResponse {
+	data?: unknown[]
+	[key: string]: unknown
+}
+
+export interface ProtocolLiquidityToken {
+	id: string
+	symbol?: string
+	tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }>
+	[key: string]: unknown
+}
+
+export type ProtocolTokenLiquidityChart = Array<[string | number, number]>

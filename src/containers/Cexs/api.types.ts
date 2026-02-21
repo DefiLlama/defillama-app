@@ -27,3 +27,7 @@ export interface RawCexsResponse {
 	cexs: RawCex[]
 	cg_volume_cexs: string[]
 }
+
+export interface RawCexInflowsResponse {
+	outflows?: number
+}

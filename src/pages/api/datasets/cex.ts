@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import type { IChainTvl } from '~/api/types'
-import { COINGECKO_KEY, COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
-import { fetchCexs } from '~/containers/Cexs/api'
+import { COINGECKO_KEY, COINS_PRICES_API } from '~/constants'
+import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
 
 const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 const hour1mms = ((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
+const nowSec = Math.floor(Date.now() / 1000)
 
 export interface ICexItem {
 	name: string
@@ -68,10 +70,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 
 			try {
 				const [protocolData, inflows24h, inflows7d, inflows1m] = await Promise.all([
-					fetchJson(`${PROTOCOL_API}/${c.slug}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`)
+					fetchProtocolBySlug<{ chainTvls?: IChainTvl }>(c.slug),
+					fetchCexInflows(c.slug, Number(hour24ms), nowSec, c.coin ?? ''),
+					fetchCexInflows(c.slug, Number(hour7dms), nowSec, c.coin ?? ''),
+					fetchCexInflows(c.slug, Number(hour1mms), nowSec, c.coin ?? '')
 				])
 
 				const { chainTvls = {} } = protocolData

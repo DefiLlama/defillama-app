@@ -1,12 +1,12 @@
 import {
 	AUTH_SERVER,
-	CHAINS_API,
 	CONFIG_API,
-	PROTOCOL_API,
 	PROTOCOLS_API,
 	YIELD_CHART_API,
 	YIELD_CHART_LEND_BORROW_API
 } from '~/constants'
+import { fetchChainsList } from '~/containers/Chains/api'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -74,11 +74,10 @@ async function fetchDashboardConfig(dashboardId: string, authToken: string | nul
 
 async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: any[] } | null> {
 	try {
-		const [protocolsResponse, chainsResponse] = await Promise.all([fetch(PROTOCOLS_API), fetch(CHAINS_API)])
-		if (!protocolsResponse.ok || !chainsResponse.ok) return null
+		const [protocolsResponse, chainsData] = await Promise.all([fetch(PROTOCOLS_API), fetchChainsList()])
+		if (!protocolsResponse.ok) return null
 
 		const protocolsData = await protocolsResponse.json()
-		const chainsData = await chainsResponse.json()
 
 		const transformedChains = chainsData.map((chain: any) => ({
 			...chain,
@@ -214,10 +213,7 @@ async function fetchProtocolFullData(items: DashboardItemConfig[]): Promise<Reco
 	const results = await Promise.allSettled(
 		Array.from(protocols).map(async (protocol) => ({
 			protocol,
-			data: await withTimeout(
-				fetch(`${PROTOCOL_API}/${protocol}`).then((r) => (r.ok ? r.json() : null)),
-				15_000
-			)
+			data: await withTimeout(fetchProtocolBySlug(protocol).catch(() => null), 15_000)
 		}))
 	)
 

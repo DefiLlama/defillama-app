@@ -2,7 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { PROTOCOLS_API } from '~/constants'
+import { fetchChainsCategories } from '~/containers/Chains/api'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
@@ -152,8 +153,7 @@ export function ChartBuilderTab({
 	const { data: chainCategoriesList } = useQuery({
 		queryKey: ['chains2-categories'],
 		queryFn: async () => {
-			const res = await fetch(CHAINS_API_V2)
-			const data = await res.json()
+			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) ?? EMPTY_CATEGORIES
 		},
 		staleTime: 60 * 60 * 1000

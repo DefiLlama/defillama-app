@@ -17,12 +17,11 @@ import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
@@ -122,7 +121,7 @@ export default function Tokens() {
 const fetchProtocols = async (tokenSymbol) => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`)
+		const data = await fetchProtocolsByToken(tokenSymbol)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]

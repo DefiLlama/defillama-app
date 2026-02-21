@@ -1,9 +1,10 @@
-import { PROTOCOLS_API, PROTOCOLS_BY_TOKEN_API } from '~/constants'
+import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchApi } from '~/utils/async'
 import {
 	getDexVolumeByChain,
 	getFeesAndRevenueProtocolsByChain,
@@ -175,7 +176,7 @@ function extractTokenUsageConfigs(items: DashboardItemConfig[]): TokenUsageConfi
 
 async function fetchTokenUsageData(tokenSymbols: string[], includeCex: boolean): Promise<any[]> {
 	const promises = tokenSymbols.map(async (symbol) => {
-		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${symbol.toUpperCase()}`)
+		const data = await fetchProtocolsByToken(symbol)
 		return { symbol, data }
 	})
 

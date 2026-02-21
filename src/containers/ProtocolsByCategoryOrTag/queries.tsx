@@ -1,9 +1,6 @@
 import {
-	CATEGORY_API,
-	CATEGORY_CHART_API,
 	PROTOCOLS_API,
 	RWA_STATS_API_OLD,
-	TAGS_CHART_API,
 	ZERO_FEE_PERPS
 } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
@@ -14,6 +11,7 @@ import type { IChainMetadata } from '~/utils/metadata/types'
 import type { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
 import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '../DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
+import { fetchCategoriesSummary, fetchCategoryChart, fetchTagChart } from './api'
 import {
 	categoriesPageExcludedExtraTvls,
 	getProtocolCategoryChartMetrics,
@@ -326,8 +324,8 @@ export async function getProtocolsByCategoryOrTag(
 				})
 			: null,
 		tag
-			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${slug(chain)}` : ''}`)
-			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${slug(chain)}` : ''}`),
+			? fetchTagChart({ tag, chain })
+			: fetchCategoryChart({ category: category ?? '', chain }),
 		currentChainMetadata?.dexs && shouldFetchDexVolumeChart
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
@@ -854,7 +852,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			chain: 'All',
 			dataType: 'dailyRevenue'
 		}).catch(() => null),
-		fetchJson<CategoriesApiResponse>(CATEGORY_API)
+		fetchCategoriesSummary()
 	])
 
 	const categoryDescriptions = new Map<string, string>()

@@ -1,4 +1,7 @@
-import { CATEGORY_CHART_API, CHART_API, PROTOCOL_API, PROTOCOLS_API } from '~/constants'
+import { PROTOCOLS_API } from '~/constants'
+import { fetchChainChart } from '~/containers/Chains/api'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { fetchCategoryChart } from '~/containers/ProtocolsByCategoryOrTag/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { alignSeries, filterOutToday, normalizeDailyPairs, sumSeriesByTimestamp, toSlug } from '~/utils/protocolSplit'
@@ -21,17 +24,15 @@ const isIgnoredChainKey = (key: string): boolean => {
 const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]> => {
 	const isAll = chains.length === 0 || chains.some((c) => c.toLowerCase() === 'all')
 	if (isAll) {
-		const r = await fetch(`${CHART_API}`)
-		const j = await r.json()
+		const j = await fetchChainChart<any>()
 		const adjustedTvl = processAdjustedTvl(j)
 		return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 	}
 
 	const perChain = await Promise.all(
 		chains.map(async (chain) => {
-			const r = await fetch(`${CHART_API}/${chain}`)
-			if (!r.ok) return []
-			const j = await r.json()
+			const j = await fetchChainChart<any>(chain).catch(() => null)
+			if (!j) return []
 			const adjustedTvl = processAdjustedTvl(j)
 			return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 		})
@@ -49,25 +50,21 @@ const subtractSeries = (a: [number, number][], b: [number, number][]): [number, 
 }
 
 const fetchAllChainTotalTvl = async (): Promise<[number, number][]> => {
-	const r = await fetch(`${CHART_API}`)
-	const j = await r.json()
+	const j = await fetchChainChart<any>()
 	const adjustedTvl = processAdjustedTvl(j)
 	return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 }
 
 const fetchChainTvlSingle = async (chain: string): Promise<[number, number][]> => {
-	const r = await fetch(`${CHART_API}/${chain}`)
-	if (!r.ok) return []
-	const j = await r.json()
+	const j = await fetchChainChart<any>(chain).catch(() => null)
+	if (!j) return []
 	const adjustedTvl = processAdjustedTvl(j)
 	return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 }
 
 const fetchCategorySeriesAll = async (category: string, logArgs?: unknown[]): Promise<[number, number][]> => {
 	try {
-		const r = await fetch(`${CATEGORY_CHART_API}/${toSlug(category)}`)
-		if (!r.ok) return []
-		const j = await r.json()
+		const j = await fetchCategoryChart({ category })
 		const tvl = j?.tvl || {}
 		const mapped = Object.entries(tvl).map(
 			([ts, v]: [string, any]) => [parseInt(ts, 10), Number(v) || 0] as [number, number]
@@ -87,9 +84,7 @@ const fetchCategorySeriesPerChain = async (
 	logArgs?: unknown[]
 ): Promise<[number, number][]> => {
 	try {
-		const r = await fetch(`${CATEGORY_CHART_API}/${toSlug(category)}/${toSlug(chain)}`)
-		if (!r.ok) return []
-		const j = await r.json()
+		const j = await fetchCategoryChart({ category, chain })
 		const tvl = j?.tvl || {}
 		const mapped = Object.entries(tvl).map(
 			([ts, v]: [string, any]) => [parseInt(ts, 10), Number(v) || 0] as [number, number]
@@ -271,9 +266,7 @@ export const getTvlSplitData = async (
 				const useChildrenOnly = groupByParent && !!t.parentId && categoriesFilter.length > 0
 
 				const buildSeriesForSlug = async (slug: string): Promise<[number, number][]> => {
-					const resp = await fetch(`${PROTOCOL_API}/${slug}`)
-					if (!resp.ok) return []
-					const json = await resp.json()
+					const json = await fetchProtocolBySlug<{ chainTvls?: Record<string, unknown> }>(slug)
 					const chainTvls = json?.chainTvls || {}
 
 					const opts: any = {}
