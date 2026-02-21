@@ -465,13 +465,13 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 						/>
 					</div>
 					<div className="flex flex-col gap-1.5 text-sm">
-						<span className="text-(--text-label)">Token</span>
+						<span className="font-light text-(--text-secondary)">Token</span>
 						<button
 							onClick={() => dialogStore.toggle()}
-							className="flex items-center gap-2 rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary)"
+							className="cursor-pointer rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2.5 text-base text-black outline-0 transition-colors duration-200 focus:border-white/30 focus:ring-0 dark:text-white dark:scheme-dark"
 						>
 							{selectedCoinInfo != null ? (
-								<>
+								<div className="flex items-center gap-2">
 									<img
 										src={selectedCoinInfo.image}
 										alt={selectedCoinInfo.name}
@@ -479,13 +479,13 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 										height={24}
 										className="rounded-full"
 									/>
-									<span className="text-sm font-medium">{selectedCoinInfo.name}</span>
-								</>
+									<span className="text-base font-medium">{selectedCoinInfo.name}</span>
+								</div>
 							) : (
-								<>
+								<div className="flex items-center gap-2">
 									<Icon name="search" width={16} height={16} />
 									<span>Select token</span>
-								</>
+								</div>
 							)}
 						</button>
 						<CoinsPicker
@@ -498,7 +498,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					</div>
 					<div className="flex flex-col gap-1.5 text-sm">
 						<label className="flex flex-col gap-1">
-							<span className="text-(--text-label)">Quantity (optional)</span>
+							<span className="font-light text-(--text-secondary)">Quantity (optional)</span>
 							<input
 								type="number"
 								min="0"
@@ -506,7 +506,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 								placeholder="Tokens held"
 								value={quantityInput}
 								onChange={(event) => setQuantityInput(event.target.value)}
-								className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 text-sm text-(--text-primary)"
+								className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2.5 text-base text-black outline-0 transition-colors duration-200 focus:border-white/30 focus:ring-0 dark:text-white dark:scheme-dark"
 							/>
 						</label>
 					</div>
