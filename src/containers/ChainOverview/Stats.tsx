@@ -1,7 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { useSearchParams } from 'next/navigation'
 import { type NextRouter, useRouter } from 'next/router'
 import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
@@ -47,7 +46,10 @@ interface IStatsProps extends IChainOverviewData {
 export function Stats(props: IStatsProps) {
 	const router = useRouter()
 
-	const searchParams = useSearchParams()
+	const searchParams = useMemo(() => {
+		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
+		return new URLSearchParams(queryString)
+	}, [router.asPath])
 
 	const [darkMode] = useDarkModeManager()
 

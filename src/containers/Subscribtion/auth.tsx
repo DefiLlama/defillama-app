@@ -71,11 +71,25 @@ interface FetchOptions extends RequestInit {
 }
 
 const getNonce = async (address: string) => {
-	const response = await fetch(`${AUTH_SERVER}/nonce?address=${address}`)
-	if (!response.ok) {
-		throw new Error('Failed to get nonce')
+	return fetch(`${AUTH_SERVER}/nonce?address=${address}`)
+		.then(handleSimpleFetchResponse)
+		.then((response) => response.json())
+		.catch((error) => {
+			if (error instanceof Error && error.message) {
+				throw error
+			}
+			throw new Error('Failed to get nonce')
+		})
+}
+
+type CreateSiweMessage = typeof import('viem/siwe')['createSiweMessage']
+let createSiweMessagePromise: Promise<CreateSiweMessage> | null = null
+
+const loadCreateSiweMessage = async (): Promise<CreateSiweMessage> => {
+	if (!createSiweMessagePromise) {
+		createSiweMessagePromise = import('viem/siwe').then((module) => module.createSiweMessage)
 	}
-	return response.json()
+	return createSiweMessagePromise
 }
 
 const clearUserSession = () => {
@@ -89,6 +103,41 @@ const clearUserSession = () => {
 	if (typeof window !== 'undefined' && (window as any).FrontChat) {
 		;(window as any).FrontChat('shutdown', { clearSession: true })
 	}
+}
+
+const getAuthErrorMessageFromResponse = async (response: Response, fallbackMessage: string): Promise<string> => {
+	let parsed: unknown = null
+	try {
+		parsed = await response.json()
+	} catch {
+		return fallbackMessage
+	}
+
+	if (parsed == null || typeof parsed !== 'object') {
+		return fallbackMessage
+	}
+
+	const messageValue = (parsed as { message?: unknown }).message
+	if (typeof messageValue === 'string' && messageValue.length > 0) {
+		return messageValue
+	}
+
+	const errorValue = (parsed as { error?: unknown }).error
+	if (typeof errorValue === 'string' && errorValue.length > 0) {
+		return errorValue
+	}
+
+	return fallbackMessage
+}
+
+const getUserFacingErrorMessage = (error: unknown, fallbackMessage: string): string => {
+	if (!(error instanceof Error)) return fallbackMessage
+	const rawMessage = error.message || ''
+	if (!rawMessage.startsWith('[HTTP] [error]')) return rawMessage || fallbackMessage
+	const colonIndex = rawMessage.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = rawMessage.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
 }
 
 interface AuthContextType {
@@ -207,12 +256,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {
-			try {
-				await loginMutation.mutateAsync({ email, password })
-				onSuccess?.()
-			} catch (e) {
-				console.log('Login error:', e)
-				throw e
+			await loginMutation.mutateAsync({ email, password }).catch((error) => {
+				console.log('Login error:', error)
+				throw error
+			})
+			if (onSuccess) {
+				onSuccess()
 			}
 		},
 		[loginMutation]
@@ -346,7 +395,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
-			const { createSiweMessage } = await import('viem/siwe')
+			const createSiweMessage = await loadCreateSiweMessage()
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -365,38 +414,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				account: address as `0x${string}`
 			})
 
-			try {
-				const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
-				})
+			const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
+			})
 
-				if (!response.ok) {
-					const errorData = await response.json()
-					let errorMessage = 'Failed to sign in with Ethereum'
-					if (errorData.error) {
-						errorMessage = errorData.error
-					}
-					throw new Error(errorMessage)
-				}
-
-				const { password, identity, impersonate } = await response.json()
-
-				if (impersonate) {
-					await pb.authStore.save(impersonate.authStore.baseToken, impersonate.authStore.baseModel)
-				} else {
-					await pb.collection('users').authWithPassword(identity, password)
-				}
-
-				toast.success('Successfully signed in with Web3 wallet')
-
-				return { address }
-			} catch (error) {
-				console.log('Ethereum sign-in error:', error)
-				const message = error instanceof Error ? error.message : 'Failed to sign in with Ethereum'
-				throw new Error(message)
+			if (!response.ok) {
+				const errorMessage = await getAuthErrorMessageFromResponse(response, 'Failed to sign in with Ethereum')
+				throw new Error(errorMessage)
 			}
+
+			const { password, identity, impersonate } = await response.json()
+
+			if (impersonate) {
+				await pb.authStore.save(impersonate.authStore.baseToken, impersonate.authStore.baseModel)
+			} else {
+				await pb.collection('users').authWithPassword(identity, password)
+			}
+
+			toast.success('Successfully signed in with Web3 wallet')
+
+			return { address }
 		}
 	})
 
@@ -422,7 +461,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
-			const { createSiweMessage } = await import('viem/siwe')
+			const createSiweMessage = await loadCreateSiweMessage()
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -451,17 +490,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			})
 
 			if (!response.ok) {
-				let reason = 'Failed to link wallet'
-				try {
-					const data = await response.json()
-					if (data) {
-						if (data.message) {
-							reason = data.message
-						} else if (data.error) {
-							reason = data.error
-						}
-					}
-				} catch {}
+				const reason = await getAuthErrorMessageFromResponse(response, 'Failed to link wallet')
 				throw new Error(reason)
 			}
 
@@ -517,19 +546,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const resendVerification = useMutation({
 		mutationFn: async (email: string) => {
-			try {
-				if (!pb.authStore.isValid) {
-					throw new Error('User not authenticated')
-				}
-
-				await pb.collection('users').requestVerification(email)
-
-				toast.success('Verification email sent')
-				return true
-			} catch (error) {
-				console.log('Error sending verification email:', error)
-				throw error
+			if (!pb.authStore.isValid) {
+				throw new Error('User not authenticated')
 			}
+
+			await pb.collection('users').requestVerification(email)
+
+			toast.success('Verification email sent')
+			return true
 		},
 		onError: () => {
 			toast.error('Failed to send verification email. Please try again.')
@@ -546,29 +570,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				},
 				body: JSON.stringify({ email })
 			})
-			if (!response.ok) {
-				let errorMessage = 'Failed to add email'
-				try {
-					const text = await response.text()
-					if (text) {
-						const data = JSON.parse(text)
-						if (data?.message) {
-							errorMessage = data.message
-						} else if (data?.error) {
-							errorMessage = data.error
-						}
-					}
-				} catch {
-					// Ignore parsing failures and use fallback message.
-				}
-				throw new Error(errorMessage)
-			}
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to add email'))
+			})
 		},
 		onSuccess: () => {
 			toast.success('Email added successfully')
 		},
 		onError: (error: any) => {
-			toast.error(error.message || 'Failed to add email')
+			toast.error(getUserFacingErrorMessage(error, 'Failed to add email'))
 		}
 	})
 
@@ -582,10 +592,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				},
 				body: JSON.stringify({ value })
 			})
-			if (!response.ok) {
-				const data = await response.json()
-				throw new Error(data?.message || 'Failed to update promotional emails preference')
-			}
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to update promotional emails preference'))
+			})
 
 			return { value }
 		},
@@ -605,7 +614,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			toast.success('Email preferences updated successfully')
 		},
 		onError: (error: any) => {
-			toast.error(error.message || 'Failed to update email preferences')
+			toast.error(getUserFacingErrorMessage(error, 'Failed to update email preferences'))
 		}
 	})
 

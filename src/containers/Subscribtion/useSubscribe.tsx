@@ -63,6 +63,42 @@ const defaultInactiveSubscription: Subscription = {
 
 const API_KEY_LOCAL_STORAGE_KEY = 'pro_apikey'
 
+const normalizeHttpErrorMessage = (message: string | undefined, fallbackMessage: string): string => {
+	if (!message) return fallbackMessage
+	if (!message.startsWith('[HTTP] [error]')) return message
+	const colonIndex = message.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = message.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
+}
+
+const getErrorMessage = (error: unknown, fallbackMessage: string): string =>
+	error instanceof Error ? normalizeHttpErrorMessage(error.message, fallbackMessage) : fallbackMessage
+
+const syncApiKeyStorage = (apiKey: string | null) => {
+	const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
+	if (apiKey === currentApiKey) return
+	if (apiKey === null) {
+		removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
+		return
+	}
+	setStorageItem(API_KEY_LOCAL_STORAGE_KEY, apiKey)
+}
+
+const parseFetchedApiKey = (payload: unknown): string | null => {
+	if (payload == null || typeof payload !== 'object') return null
+	const apiKeyPayload = (payload as { apiKey?: unknown }).apiKey
+	if (apiKeyPayload == null || typeof apiKeyPayload !== 'object') return null
+	const value = (apiKeyPayload as { api_key?: unknown }).api_key
+	return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+const parseGeneratedApiKey = (payload: unknown): string | null => {
+	if (payload == null || typeof payload !== 'object') return null
+	const value = (payload as { apiKey?: unknown }).apiKey
+	return typeof value === 'string' && value.length > 0 ? value : null
+}
+
 async function fetchSubscription({ isAuthenticated }: { isAuthenticated: boolean }): Promise<Subscription> {
 	if (!isAuthenticated) {
 		return defaultInactiveSubscription
@@ -115,12 +151,15 @@ export const useSubscribe = () => {
 				true
 			)
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to create subscription')
+			if (!response) {
+				throw new Error('Not authenticated')
 			}
 
-			return response.json()
+			const normalizedResponse = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to create subscription'))
+			})
+
+			return normalizedResponse.json()
 		}
 	})
 
@@ -140,45 +179,46 @@ export const useSubscribe = () => {
 
 			const subscriptionType = type || 'api'
 			const userId = user?.id
-			try {
-				if (paymentMethod === 'stripe') {
-					setIsPayingWithStripe(true)
-				} else {
-					setIsPayingWithLlamapay(true)
+			if (paymentMethod === 'stripe') {
+				setIsPayingWithStripe(true)
+			} else {
+				setIsPayingWithLlamapay(true)
+			}
+
+			const subscriptionData: SubscriptionRequest = {
+				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
+				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
+				provider: paymentMethod,
+				subscriptionType,
+				billingInterval,
+				isTrial
+			}
+
+			queryClient.setQueryData(['subscription', userId], defaultInactiveSubscription)
+			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+
+			const result = await createSubscription
+				.mutateAsync(subscriptionData)
+				.catch((error) => {
+					console.log('Subscription error:', error)
+					throw error
+				})
+				.finally(() => {
+					setIsPayingWithStripe(false)
+					setIsPayingWithLlamapay(false)
+				})
+
+			// For embedded mode, return the result instead of redirecting
+			if (useEmbedded) {
+				return result
+			}
+
+			// Navigate to checkout URL in same window
+			if (result.checkoutUrl) {
+				if (onSuccess) {
+					onSuccess(result.checkoutUrl)
 				}
-
-				const subscriptionData: SubscriptionRequest = {
-					redirectUrl: `${window.location.origin}/subscription?subscription=success`,
-					cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
-					provider: paymentMethod,
-					subscriptionType,
-					billingInterval,
-					isTrial
-				}
-
-				queryClient.setQueryData(['subscription', userId], defaultInactiveSubscription)
-				queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
-
-				const result = await createSubscription.mutateAsync(subscriptionData)
-
-				// For embedded mode, return the result instead of redirecting
-				if (useEmbedded) {
-					return result
-				}
-
-				// Navigate to checkout URL in same window
-				if (result.checkoutUrl) {
-					if (onSuccess) {
-						onSuccess(result.checkoutUrl)
-					}
-					window.location.href = result.checkoutUrl
-				}
-			} catch (error) {
-				console.log('Subscription error:', error)
-				throw error
-			} finally {
-				setIsPayingWithStripe(false)
-				setIsPayingWithLlamapay(false)
+				window.location.href = result.checkoutUrl
 			}
 		},
 		[isAuthenticated, queryClient, user?.id, createSubscription]
@@ -228,23 +268,16 @@ export const useSubscribe = () => {
 	const apiKeyQuery = useQuery({
 		queryKey: ['subscription', 'api-key', user?.id],
 		queryFn: async () => {
-			try {
-				const data: { apiKey: { api_key: string } } = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-				const newApiKey = data.apiKey?.api_key ?? null
-				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
-				if (newApiKey !== currentApiKey) {
-					if (newApiKey === null) {
-						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
-					} else {
-						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
-					}
-				}
-				return newApiKey
-			} catch (error) {
-				throw new Error(error instanceof Error ? error.message : 'Failed to fetch API key')
-			}
+			const newApiKey = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+				.then(parseFetchedApiKey)
+				.catch((error) => {
+					throw new Error(getErrorMessage(error, 'Failed to fetch API key'))
+				})
+
+			syncApiKeyStorage(newApiKey)
+			return newApiKey
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours
 		refetchOnWindowFocus: false,
@@ -253,25 +286,18 @@ export const useSubscribe = () => {
 
 	const generateNewKeyMutation = useMutation({
 		mutationFn: async () => {
-			try {
-				const data: { apiKey: string } = await authorizedFetch(`${AUTH_SERVER}/auth/generate-api-key`, {
-					method: 'POST'
+			const newApiKey = await authorizedFetch(`${AUTH_SERVER}/auth/generate-api-key`, {
+				method: 'POST'
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+				.then(parseGeneratedApiKey)
+				.catch((error) => {
+					throw new Error(getErrorMessage(error, 'Failed to generate API key'))
 				})
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-				const newApiKey = data.apiKey ?? null
-				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
-				if (newApiKey !== currentApiKey) {
-					if (newApiKey === null) {
-						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
-					} else {
-						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
-					}
-				}
-				return newApiKey
-			} catch (error) {
-				throw new Error(error instanceof Error ? error.message : 'Failed to generate API key')
-			}
+
+			syncApiKeyStorage(newApiKey)
+			return newApiKey
 		}
 	})
 
@@ -378,11 +404,15 @@ export const useSubscribe = () => {
 				method: 'POST'
 			})
 
-			if (!response.ok) {
-				throw new Error('Failed to end trial subscription')
+			if (!response) {
+				throw new Error('Not authenticated')
 			}
 
-			return response.json()
+			const normalizedResponse = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to end trial subscription'))
+			})
+
+			return normalizedResponse.json()
 		},
 		onSuccess: async () => {
 			toast.success('Trial upgrade successful')
@@ -447,12 +477,15 @@ export const useSubscribe = () => {
 				true
 			)
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to cancel subscription')
+			if (!response) {
+				throw new Error('Not authenticated')
 			}
 
-			return response.json()
+			const normalizedResponse = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to cancel subscription'))
+			})
+
+			return normalizedResponse.json()
 		},
 		onSuccess: () => {
 			toast.success('Subscription scheduled for cancellation')

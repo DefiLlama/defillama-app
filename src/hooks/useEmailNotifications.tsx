@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 import { AUTH_SERVER } from '../constants'
 
@@ -38,6 +39,20 @@ interface SaveNotificationPreferencesRequest {
 	frequency: 'daily' | 'weekly'
 }
 
+const parseJsonSafely = async <T = unknown>(response: Response): Promise<T | null> => {
+	const parsed = await response.json().catch(() => null)
+	return parsed as T | null
+}
+
+const getUserFacingErrorMessage = (error: unknown, fallbackMessage: string): string => {
+	if (!(error instanceof Error)) return fallbackMessage
+	if (!error.message.startsWith('[HTTP] [error]')) return error.message || fallbackMessage
+	const colonIndex = error.message.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = error.message.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
+}
+
 export const useEmailNotifications = (portfolioName?: string) => {
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
@@ -71,31 +86,13 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				if (response.status === 401) {
 					throw new Error('Unauthorized')
 				}
-
-				let errorMessage = 'Failed to fetch notification preferences'
-				try {
-					const errorData = await response.json()
-					if (errorData != null) {
-						if (errorData.message) {
-							errorMessage = errorData.message
-						}
-					}
-				} catch {
-					// Ignore response parsing errors and keep default message.
-				}
-				throw new Error(errorMessage)
 			}
+			await handleSimpleFetchResponse(response)
 
-			let data: any = null
-			try {
-				data = await response.json()
-			} catch {
-				return null
-			}
+			const data = await parseJsonSafely<{ preferences?: NotificationPreference | null }>(response)
 			if (!data || data.preferences == null) {
 				return null
 			}
-
 			return data.preferences
 		},
 		enabled: isAuthenticated && !!portfolioName,
@@ -124,18 +121,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 
 			if (!response) throw new Error('Not authenticated')
 
-			if (!response.ok) {
-				let errorMessage = 'Failed to save notification preferences'
-				try {
-					const errorData = await response.json()
-					if (errorData != null && errorData.message) {
-						errorMessage = errorData.message
-					}
-				} catch {
-					/* Ignore response parsing errors and keep default message. */
-				}
-				throw new Error(errorMessage)
-			}
+			await handleSimpleFetchResponse(response)
 
 			const data = await response.json()
 			return data.preferences
@@ -146,7 +132,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		},
 		onError: (error) => {
 			console.error('Error saving notification preferences:', error)
-			toast.error(error.message || 'Failed to save notification preferences')
+			toast.error(getUserFacingErrorMessage(error, 'Failed to save notification preferences'))
 		}
 	})
 
@@ -170,18 +156,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 
 			if (!response) throw new Error('Not authenticated')
 
-			if (!response.ok) {
-				let errorMessage = 'Failed to update notification status'
-				try {
-					const errorData = await response.json()
-					if (errorData != null && errorData.message) {
-						errorMessage = errorData.message
-					}
-				} catch {
-					/* Ignore response parsing errors and keep default message. */
-				}
-				throw new Error(errorMessage)
-			}
+			await handleSimpleFetchResponse(response)
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
@@ -191,7 +166,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		},
 		onError: (error) => {
 			console.error('Error updating notification status:', error)
-			toast.error(error.message || 'Failed to update notification status')
+			toast.error(getUserFacingErrorMessage(error, 'Failed to update notification status'))
 		}
 	})
 
@@ -214,18 +189,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 
 			if (!response) throw new Error('Not authenticated')
 
-			if (!response.ok) {
-				let errorMessage = 'Failed to delete notification preferences'
-				try {
-					const errorData = await response.json()
-					if (errorData != null && errorData.message) {
-						errorMessage = errorData.message
-					}
-				} catch {
-					/* Ignore response parsing errors and keep default message. */
-				}
-				throw new Error(errorMessage)
-			}
+			await handleSimpleFetchResponse(response)
 		},
 		onSuccess: (_, variables) => {
 			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], null)
@@ -233,7 +197,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		},
 		onError: (error) => {
 			console.error('Error deleting notification preferences:', error)
-			toast.error(error.message || 'Failed to delete notifications')
+			toast.error(getUserFacingErrorMessage(error, 'Failed to delete notifications'))
 		}
 	})
 

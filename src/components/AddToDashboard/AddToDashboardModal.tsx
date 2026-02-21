@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { type KeyboardEvent, useCallback, useDeferredValue, useMemo, useState } from 'react'
+import { type KeyboardEvent, useCallback, useDeferredValue, useId, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -241,6 +241,7 @@ export function AddToDashboardModal({
 	const [selectedDashboardId, setSelectedDashboardId] = useState<string | null>(null)
 	const [isCreatingNew, setIsCreatingNew] = useState(false)
 	const [newDashboardNameInput, setNewDashboardNameInput] = useState('')
+	const chartNameInputId = useId()
 	const deferredSearch = useDeferredValue(search)
 
 	const filteredDashboards = useMemo(() => {
@@ -413,7 +414,6 @@ export function AddToDashboardModal({
 							type="text"
 							name="newDashboardName"
 							required={isCreatingNew}
-							autoFocus
 							onChange={(e) => setNewDashboardNameInput(e.target.value)}
 							placeholder="New dashboard name..."
 							className="w-full rounded-md border border-pro-blue-300/40 pro-bg2 px-3 py-2 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:ring-1 focus:ring-pro-blue-300/30 focus:outline-hidden"
@@ -432,8 +432,11 @@ export function AddToDashboardModal({
 
 				{chartConfig && (chartConfig.kind === 'multi' || chartConfig.kind === 'builder') ? (
 					<div className="mb-4 border-t pro-divider pt-4">
-						<label className="mb-1.5 block text-xs font-medium pro-text3">Chart name</label>
+						<label htmlFor={chartNameInputId} className="mb-1.5 block text-xs font-medium pro-text3">
+							Chart name
+						</label>
 						<input
+							id={chartNameInputId}
 							type="text"
 							name="chartName"
 							defaultValue={configName}

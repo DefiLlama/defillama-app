@@ -163,40 +163,41 @@ function Support() {
 							onSubmit={onSubmit}
 							className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 						>
-							<label htmlFor="name" className="flex flex-col gap-1">
-								<span className="flex items-center gap-1">
+							<div className="flex flex-col gap-1">
+								<label htmlFor="support-name" className="flex items-center gap-1">
 									<span>Name</span>
 									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
-								</span>
+								</label>
 								<input
-									id="name"
+									id="support-name"
 									type="text"
 									name="name"
 									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 								/>
-							</label>
+							</div>
 
-							<label htmlFor="email" className="flex flex-col gap-1">
-								<span className="flex items-center gap-1">
+							<div className="flex flex-col gap-1">
+								<label htmlFor="support-email" className="flex items-center gap-1">
 									<span>Email</span>
 									<span className="mt-[2px] text-xs text-gray-500">(Optional)</span>
-								</span>
+								</label>
 								<input
-									id="email"
+									id="support-email"
 									type="email"
 									name="email"
 									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 								/>
-							</label>
+							</div>
 
-							<label className="flex flex-col gap-1">
-								<span>Description</span>
+							<div className="flex flex-col gap-1">
+								<label htmlFor="support-description">Description</label>
 								<textarea
+									id="support-description"
 									name="body"
 									required
 									className="rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 								></textarea>
-							</label>
+							</div>
 
 							<button
 								name="submit-btn"

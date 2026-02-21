@@ -109,7 +109,13 @@ export function PDFExportButton({
 
 				const data = await response.json()
 
-				const hasError = !response.ok || !data.success
+				let hasError = false
+				if (!response.ok) {
+					hasError = true
+				}
+				if (!data.success) {
+					hasError = true
+				}
 
 				if (hasError) {
 					const pdfErrorMsg = formatPdfError(data.error)

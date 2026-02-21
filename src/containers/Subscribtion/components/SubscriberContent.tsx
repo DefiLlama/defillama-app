@@ -669,8 +669,12 @@ const CancelSubscriptionModal = ({
 	}
 
 	async function handleConfirmCancel() {
+		let cancellationMessage: string | undefined = undefined
+		if (message) {
+			cancellationMessage = message
+		}
 		try {
-			await cancelSubscription(message || undefined)
+			await cancelSubscription(cancellationMessage)
 			handleClose()
 		} catch {
 			// error handled by mutation
