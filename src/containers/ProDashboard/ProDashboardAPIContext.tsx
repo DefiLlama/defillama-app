@@ -42,31 +42,6 @@ const EMPTY_CHART_DATA: ChartConfig['data'] = []
 const NOOP = () => {}
 const PROTOCOLS_LIST_QUERY_KEY = ['protocols-lite']
 
-type ChartCacheEntry = {
-	itemRef: ChartConfig
-	data: ChartConfig['data']
-	isLoading: boolean
-	hasError: boolean
-	refetch: () => void
-	derived: ChartConfig
-}
-
-type MultiCacheEntry = {
-	itemRef: MultiChartConfig
-	itemsRef: ChartConfig[]
-	derived: MultiChartConfig
-}
-
-const shallowArrayEqual = <T,>(a: T[] | null | undefined, b: T[] | null | undefined) => {
-	if (a === b) return true
-	if (!a || !b) return false
-	if (a.length !== b.length) return false
-	for (let index = 0; index < a.length; index++) {
-		if (a[index] !== b[index]) return false
-	}
-	return true
-}
-
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
 interface AISessionData {
@@ -338,86 +313,75 @@ export function ProDashboardAPIProvider({
 	const queryClient = useQueryClient()
 	const [seedTimestamp] = useState(() => Date.now())
 
-	const tableDataSeeded = useRef(false)
-	if (!tableDataSeeded.current && serverData?.tableData) {
-		seedTableDataIntoCache(queryClient, serverData.tableData, seedTimestamp)
-		tableDataSeeded.current = true
-	}
+	const hasSeededServerDataRef = useRef(false)
 
-	const yieldsDataSeeded = useRef(false)
-	if (!yieldsDataSeeded.current && serverData?.yieldsChartData) {
-		const now = seedTimestamp
-		for (const [poolConfigId, data] of Object.entries(serverData.yieldsChartData)) {
-			queryClient.setQueryData(['yield-pool-chart-data', poolConfigId], data.chart ?? null, { updatedAt: now })
-			queryClient.setQueryData(['yield-lend-borrow-chart', poolConfigId], data.lendBorrow ?? null, {
-				updatedAt: now
-			})
+	useIsomorphicLayoutEffect(() => {
+		if (hasSeededServerDataRef.current || !serverData) {
+			return
 		}
-		yieldsDataSeeded.current = true
-	}
 
-	const protocolDataSeeded = useRef(false)
-	if (!protocolDataSeeded.current && serverData?.protocolFullData) {
 		const now = seedTimestamp
-		for (const [protocol, data] of Object.entries(serverData.protocolFullData)) {
-			queryClient.setQueryData(['protocol-overview-v1', protocol, 'metrics'], data, { updatedAt: now })
-		}
-		protocolDataSeeded.current = true
-	}
 
-	const metricDataSeeded = useRef(false)
-	if (!metricDataSeeded.current && serverData?.metricData) {
-		const now = seedTimestamp
-		for (const [keyJson, data] of Object.entries(serverData.metricData)) {
-			try {
-				const queryKey = JSON.parse(keyJson)
-				queryClient.setQueryData(queryKey, data, { updatedAt: now })
-			} catch {}
+		if (serverData.tableData) {
+			seedTableDataIntoCache(queryClient, serverData.tableData, now)
 		}
-		metricDataSeeded.current = true
-	}
 
-	const advTvlBasicSeeded = useRef(false)
-	if (!advTvlBasicSeeded.current && serverData?.advancedTvlBasicData) {
-		const now = seedTimestamp
-		for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
-			queryClient.setQueryData(['pro-dashboard', 'advanced-tvl-basic', protocol], data, { updatedAt: now })
+		if (serverData.yieldsChartData) {
+			for (const [poolConfigId, data] of Object.entries(serverData.yieldsChartData)) {
+				queryClient.setQueryData(['yield-pool-chart-data', poolConfigId], data.chart ?? null, { updatedAt: now })
+				queryClient.setQueryData(['yield-lend-borrow-chart', poolConfigId], data.lendBorrow ?? null, {
+					updatedAt: now
+				})
+			}
 		}
-		advTvlBasicSeeded.current = true
-	}
 
-	const unifiedTableSeeded = useRef(false)
-	if (!unifiedTableSeeded.current && serverData?.unifiedTableData) {
-		const now = seedTimestamp
-		for (const [keyJson, data] of Object.entries(serverData.unifiedTableData)) {
-			try {
-				const queryKey = JSON.parse(keyJson)
-				queryClient.setQueryData(queryKey, data, { updatedAt: now })
-			} catch {}
+		if (serverData.protocolFullData) {
+			for (const [protocol, data] of Object.entries(serverData.protocolFullData)) {
+				queryClient.setQueryData(['protocol-overview-v1', protocol, 'metrics'], data, { updatedAt: now })
+			}
 		}
-		unifiedTableSeeded.current = true
-	}
 
-	const stablecoinsDataSeeded = useRef(false)
-	if (!stablecoinsDataSeeded.current && serverData?.stablecoinsChartData) {
-		const now = seedTimestamp
-		for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
-			queryClient.setQueryData(['pro-dashboard', 'stablecoins-chart-data', chain], data, { updatedAt: now })
+		if (serverData.metricData) {
+			for (const [keyJson, data] of Object.entries(serverData.metricData)) {
+				try {
+					const queryKey = JSON.parse(keyJson)
+					queryClient.setQueryData(queryKey, data, { updatedAt: now })
+				} catch {}
+			}
 		}
-		stablecoinsDataSeeded.current = true
-	}
 
-	const emissionDataSeeded = useRef(false)
-	if (!emissionDataSeeded.current && serverData?.emissionData) {
-		const now = seedTimestamp
-		for (const [keyJson, data] of Object.entries(serverData.emissionData)) {
-			try {
-				const queryKey = JSON.parse(keyJson)
-				queryClient.setQueryData(queryKey, data, { updatedAt: now })
-			} catch {}
+		if (serverData.advancedTvlBasicData) {
+			for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
+				queryClient.setQueryData(['advanced-tvl-basic', protocol], data, { updatedAt: now })
+			}
 		}
-		emissionDataSeeded.current = true
-	}
+
+		if (serverData.unifiedTableData) {
+			for (const [keyJson, data] of Object.entries(serverData.unifiedTableData)) {
+				try {
+					const queryKey = JSON.parse(keyJson)
+					queryClient.setQueryData(queryKey, data, { updatedAt: now })
+				} catch {}
+			}
+		}
+
+		if (serverData.stablecoinsChartData) {
+			for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
+				queryClient.setQueryData(['stablecoins-chart-data', chain], data, { updatedAt: now })
+			}
+		}
+
+		if (serverData.emissionData) {
+			for (const [keyJson, data] of Object.entries(serverData.emissionData)) {
+				try {
+					const queryKey = JSON.parse(keyJson)
+					queryClient.setQueryData(queryKey, data, { updatedAt: now })
+				} catch {}
+			}
+		}
+
+		hasSeededServerDataRef.current = true
+	}, [queryClient, seedTimestamp, serverData])
 
 	const { isAuthenticated, user } = useAuthContext()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(
@@ -546,7 +510,7 @@ export function ProDashboardAPIProvider({
 			...unratedSessions[0],
 			rated: false
 		}
-	}, [isAuthenticated, currentDashboard?.aiGenerated, user?.id])
+	}, [isAuthenticated, currentDashboard, user])
 
 	// Load initial dashboard
 	const { data: currentDashboard2 = null, isLoading: isLoadingDashboard } = useQuery({
@@ -676,18 +640,20 @@ export function ProDashboardAPIProvider({
 
 		try {
 			await saveDashboard({ aiGenerated: updatedAiGenerated })
-			setCurrentDashboard((prev) =>
-				prev
-					? {
-							...prev,
-							aiGenerated: updatedAiGenerated
-						}
-					: null
-			)
 		} catch (error) {
 			console.log('Failed to auto-skip older sessions:', error)
+			return
 		}
-	}, [isAuthenticated, currentDashboard?.aiGenerated, user?.id, dashboardId, saveDashboard, setCurrentDashboard])
+
+		setCurrentDashboard((prev) =>
+			prev
+				? {
+						...prev,
+						aiGenerated: updatedAiGenerated
+					}
+				: null
+		)
+	}, [isAuthenticated, currentDashboard, user, dashboardId, saveDashboard, setCurrentDashboard])
 
 	// Save dashboard name
 	// Copy dashboard
@@ -721,17 +687,17 @@ export function ProDashboardAPIProvider({
 			items?: DashboardItemConfig[]
 			aiGenerated?: AIGeneratedData | null
 		}) => {
-			try {
-				const dashboardData = {
-					items: data.items || [],
-					dashboardName: data.dashboardName,
-					timePeriod: '365d' as TimePeriod,
-					visibility: data.visibility,
-					tags: data.tags,
-					description: data.description,
-					aiGenerated: data.aiGenerated || null
-				}
+			const dashboardData = {
+				items: data.items ?? [],
+				dashboardName: data.dashboardName,
+				timePeriod: '365d' as TimePeriod,
+				visibility: data.visibility,
+				tags: data.tags,
+				description: data.description,
+				aiGenerated: data.aiGenerated ?? null
+			}
 
+			try {
 				await createDashboard(dashboardData)
 			} catch (error) {
 				console.log('Failed to create new dashboard:', error)
@@ -775,7 +741,7 @@ export function ProDashboardAPIProvider({
 				aiGenerated: aiGeneratedData
 			})
 		},
-		[handleCreateDashboard, user?.id]
+		[handleCreateDashboard, user]
 	)
 
 	const handleIterateDashboard = useCallback(
@@ -846,7 +812,7 @@ export function ProDashboardAPIProvider({
 				setItems(data.items)
 			}
 		},
-		[dashboardId, saveDashboard, user?.id, currentDashboard?.aiGenerated, items, setItems, setCurrentDashboard]
+		[dashboardId, saveDashboard, user, currentDashboard, items, setItems, setCurrentDashboard]
 	)
 
 	const submitRating = useCallback(
@@ -856,42 +822,43 @@ export function ProDashboardAPIProvider({
 				return
 			}
 
-			try {
-				const currentAiGenerated = currentDashboard?.aiGenerated || {}
-				const existingSession = currentAiGenerated[sessionId]
-				const updatedAiGenerated = {
-					...currentAiGenerated,
-					[sessionId]: {
-						...existingSession,
-						rating,
-						feedback,
-						mode: existingSession?.mode || 'create',
-						timestamp: existingSession?.timestamp || new Date().toISOString(),
-						userId: user.id,
-						rated: true
-					}
+			const currentAiGenerated = currentDashboard?.aiGenerated ?? {}
+			const existingSession = currentAiGenerated[sessionId]
+			const updatedAiGenerated = {
+				...currentAiGenerated,
+				[sessionId]: {
+					...existingSession,
+					rating,
+					feedback,
+					mode: existingSession?.mode ?? 'create',
+					timestamp: existingSession?.timestamp ?? new Date().toISOString(),
+					userId: user.id,
+					rated: true
 				}
+			}
 
+			try {
 				await saveDashboard({
 					aiGenerated: updatedAiGenerated
 				})
-
-				setCurrentDashboard((prev) =>
-					prev
-						? {
-								...prev,
-								aiGenerated: updatedAiGenerated
-							}
-						: null
-				)
-
-				toast.success('Thank you for your feedback!')
 			} catch (error) {
 				console.log('Failed to submit rating:', error)
 				toast.error('Failed to submit rating. Please try again.')
+				return
 			}
+
+			setCurrentDashboard((prev) =>
+				prev
+					? {
+							...prev,
+							aiGenerated: updatedAiGenerated
+						}
+					: null
+			)
+
+			toast.success('Thank you for your feedback!')
 		},
-		[isAuthenticated, user?.id, dashboardId, currentDashboard?.aiGenerated, saveDashboard, setCurrentDashboard]
+		[isAuthenticated, user, dashboardId, currentDashboard, saveDashboard, setCurrentDashboard]
 	)
 
 	const skipRating = useCallback(
@@ -900,38 +867,39 @@ export function ProDashboardAPIProvider({
 				return
 			}
 
-			try {
-				const currentAiGenerated = currentDashboard?.aiGenerated || {}
-				const existingSession = currentAiGenerated[sessionId]
-				const updatedAiGenerated = {
-					...currentAiGenerated,
-					[sessionId]: {
-						...existingSession,
-						mode: existingSession?.mode || 'create',
-						timestamp: existingSession?.timestamp || new Date().toISOString(),
-						userId: user.id,
-						rated: false,
-						skipped: true
-					}
+			const currentAiGenerated = currentDashboard?.aiGenerated ?? {}
+			const existingSession = currentAiGenerated[sessionId]
+			const updatedAiGenerated = {
+				...currentAiGenerated,
+				[sessionId]: {
+					...existingSession,
+					mode: existingSession?.mode ?? 'create',
+					timestamp: existingSession?.timestamp ?? new Date().toISOString(),
+					userId: user.id,
+					rated: false,
+					skipped: true
 				}
+			}
 
+			try {
 				await saveDashboard({
 					aiGenerated: updatedAiGenerated
 				})
-
-				setCurrentDashboard((prev) =>
-					prev
-						? {
-								...prev,
-								aiGenerated: updatedAiGenerated
-							}
-						: null
-				)
 			} catch (error) {
 				console.log('Failed to skip rating:', error)
+				return
 			}
+
+			setCurrentDashboard((prev) =>
+				prev
+					? {
+							...prev,
+							aiGenerated: updatedAiGenerated
+						}
+					: null
+			)
 		},
-		[isAuthenticated, user?.id, dashboardId, currentDashboard?.aiGenerated, saveDashboard, setCurrentDashboard]
+		[isAuthenticated, user, dashboardId, currentDashboard, saveDashboard, setCurrentDashboard]
 	)
 
 	const dismissRating = useCallback(
@@ -979,14 +947,7 @@ export function ProDashboardAPIProvider({
 					}
 				: null
 		)
-	}, [
-		currentDashboard?.data?.aiUndoState,
-		currentDashboard?.aiGenerated,
-		dashboardId,
-		saveDashboard,
-		setItems,
-		setCurrentDashboard
-	])
+	}, [currentDashboard, dashboardId, saveDashboard, setItems, setCurrentDashboard])
 
 	const canUndo = !!currentDashboard?.data?.aiUndoState?.items
 
@@ -1016,101 +977,36 @@ export function ProDashboardAPIProvider({
 		return map
 	}, [allChartItems, chartQueries])
 
-	const chartItemCacheRef = useRef<Map<string, ChartCacheEntry>>(new Map())
-	const multiItemCacheRef = useRef<Map<string, MultiCacheEntry>>(new Map())
-	const chartsWithDataRef = useRef<DashboardItemConfig[] | null>(null)
-
 	const chartsWithData: DashboardItemConfig[] = useMemo(() => {
-		const chartCache = chartItemCacheRef.current
-		const multiCache = multiItemCacheRef.current
-		const nextChartsWithData: DashboardItemConfig[] = []
-		const nextChartIds = new Set<string>()
-		const nextMultiIds = new Set<string>()
-
-		const resolveChartItem = (chartItem: ChartConfig, query: any) => {
+		const resolveChartItem = (chartItem: ChartConfig) => {
+			const query = queryById.get(chartItem.id)
 			const data = query?.data ?? EMPTY_CHART_DATA
 			const isLoading = query?.isLoading ?? false
 			const hasError = query?.isError ?? false
 			const refetch = query?.refetch ?? NOOP
-			const cached = chartCache.get(chartItem.id)
-
-			if (
-				cached &&
-				cached.itemRef === chartItem &&
-				cached.data === data &&
-				cached.isLoading === isLoading &&
-				cached.hasError === hasError &&
-				cached.refetch === refetch
-			) {
-				return cached.derived
-			}
-
-			const derived = {
+			return {
 				...chartItem,
 				data,
 				isLoading,
 				hasError,
 				refetch
 			}
-			chartCache.set(chartItem.id, { itemRef: chartItem, data, isLoading, hasError, refetch, derived })
-			return derived
 		}
 
-		for (const item of items) {
+		return items.map((item) => {
 			if (item.kind === 'chart') {
-				nextChartIds.add(item.id)
-				const query = queryById.get(item.id)
-				nextChartsWithData.push(resolveChartItem(item, query))
-				continue
+				return resolveChartItem(item)
 			}
 
 			if (item.kind === 'multi') {
-				nextMultiIds.add(item.id)
-				const processedItems = item.items.map((nestedChart) => {
-					nextChartIds.add(nestedChart.id)
-					const query = queryById.get(nestedChart.id)
-					return resolveChartItem(nestedChart, query)
-				})
-
-				const cachedMulti = multiCache.get(item.id)
-				const itemsRef =
-					cachedMulti && shallowArrayEqual(cachedMulti.itemsRef, processedItems) ? cachedMulti.itemsRef : processedItems
-
-				if (cachedMulti && cachedMulti.itemRef === item && cachedMulti.itemsRef === itemsRef) {
-					nextChartsWithData.push(cachedMulti.derived)
-				} else {
-					const derivedMulti = {
-						...item,
-						items: itemsRef
-					}
-					multiCache.set(item.id, { itemRef: item, itemsRef, derived: derivedMulti })
-					nextChartsWithData.push(derivedMulti)
+				return {
+					...item,
+					items: item.items.map(resolveChartItem)
 				}
-				continue
 			}
 
-			nextChartsWithData.push(item)
-		}
-
-		for (const id of chartCache.keys()) {
-			if (!nextChartIds.has(id)) {
-				chartCache.delete(id)
-			}
-		}
-
-		for (const id of multiCache.keys()) {
-			if (!nextMultiIds.has(id)) {
-				multiCache.delete(id)
-			}
-		}
-
-		const previousChartsWithData = chartsWithDataRef.current
-		if (previousChartsWithData && shallowArrayEqual(previousChartsWithData, nextChartsWithData)) {
-			return previousChartsWithData
-		}
-
-		chartsWithDataRef.current = nextChartsWithData
-		return nextChartsWithData
+			return item
+		})
 	}, [items, queryById])
 
 	const handlersRef = useRef<{
