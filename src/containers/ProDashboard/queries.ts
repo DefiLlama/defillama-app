@@ -450,7 +450,7 @@ export { getChartQueryKey, getChartQueryFn }
 // oxlint-disable-next-line no-unused-vars
 function useChains() {
 	return useQuery({
-		queryKey: ['chains'],
+		queryKey: ['pro-dashboard', 'chains'],
 		queryFn: async () => {
 			const data = await fetchChainsList()
 			const transformedData = data.map((chain) => ({

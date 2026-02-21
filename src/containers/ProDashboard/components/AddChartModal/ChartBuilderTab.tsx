@@ -141,7 +141,7 @@ export function ChartBuilderTab({
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { data: protocols } = useQuery({
-		queryKey: ['protocols'],
+		queryKey: ['pro-dashboard', 'protocols'],
 		queryFn: async () => {
 			const data = await fetchProtocols()
 			return data.protocols ?? EMPTY_PROTOCOLS
@@ -150,7 +150,7 @@ export function ChartBuilderTab({
 	})
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
 			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) ?? EMPTY_CATEGORIES

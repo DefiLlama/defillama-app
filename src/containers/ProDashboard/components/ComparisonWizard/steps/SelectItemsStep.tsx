@@ -24,7 +24,7 @@ export function SelectItemsStep() {
 	const listRef = useRef<HTMLDivElement>(null)
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
 			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) || []

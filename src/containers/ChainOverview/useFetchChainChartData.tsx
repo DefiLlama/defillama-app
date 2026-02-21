@@ -245,7 +245,7 @@ export const useFetchChainChartData = ({
 
 	const isBridgedTvlEnabled = toggledChartsSet.has('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
-		queryKey: ['Bridged TVL', selectedChain, isBridgedTvlEnabled],
+		queryKey: ['chain-overview', 'bridged-tvl', selectedChain, isBridgedTvlEnabled],
 		queryFn: isBridgedTvlEnabled ? () => fetchChainAssetsChart(selectedChain) : () => null,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
