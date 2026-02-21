@@ -498,21 +498,26 @@ async function getAllProtocolsTopChainsTvlData(
 		const picked = ranked.slice(0, Math.min(topN, ranked.length))
 		const pickedNames = picked.map((c) => c.name)
 
-		const [globalJson, ...chainResponses] = await Promise.all([
-			fetchChainChart<any>(),
-			...pickedNames.map((name) => fetchChainChart<any>(name))
-		])
+		const globalJson = await fetchChainChart<any>()
+		const chainResponses = await Promise.all(
+			pickedNames.map((name) =>
+				fetchChainChart<any>(name)
+					.then((data) => ({ name, data }))
+					.catch(() => null)
+			)
+		)
 		const adjustedGlobalTvl = processAdjustedTvl(globalJson)
 		const totalSeries = filterOutToday(normalizeDailyPairs(adjustedGlobalTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 
 		const topSeriesRaw: ChartSeries[] = []
 		let colorIndex = 0
-		for (let i = 0; i < chainResponses.length; i++) {
-			const j = chainResponses[i]
+		for (const chainResponse of chainResponses) {
+			if (!chainResponse) continue
+			const { name, data: j } = chainResponse
 			const adjustedTvl = processAdjustedTvl(j)
 			const normalized = filterOutToday(normalizeDailyPairs(adjustedTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 			topSeriesRaw.push({
-				name: pickedNames[i],
+				name,
 				data: normalized,
 				color: EXTENDED_COLOR_PALETTE[colorIndex++ % EXTENDED_COLOR_PALETTE.length]
 			})

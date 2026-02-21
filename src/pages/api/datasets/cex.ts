@@ -5,11 +5,6 @@ import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
 
-const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
-const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
-const hour1mms = ((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
-const nowSec = Math.floor(Date.now() / 1000)
-
 export interface ICexItem {
 	name: string
 	slug?: string
@@ -33,6 +28,11 @@ export interface ICexItem {
 }
 
 export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
+	const nowSec = Math.floor(Date.now() / 1000)
+	const hour24ms = nowSec - 24 * 60 * 60
+	const hour7dms = nowSec - 7 * 24 * 60 * 60
+	const hour1mms = nowSec - 30 * 24 * 60 * 60
+
 	let spot = null
 	let derivs = null
 	let btcPrice = 0
