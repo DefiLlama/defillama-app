@@ -6,8 +6,7 @@ import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { downloadDataURL } from '~/utils'
-
+import { downloadDataURL } from '~/utils/download'
 const IMAGE_EXPORT_WIDTH = 1280
 const IMAGE_EXPORT_HEIGHT = 720
 const TREEMAP_EXPORT_PORTRAIT_WIDTH = 720

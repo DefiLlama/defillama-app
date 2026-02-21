@@ -10,7 +10,8 @@ import {
 	useFetchProtocolV1AddlChartsData
 } from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, toNiceCsvDate } from '~/utils'
+import { toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'

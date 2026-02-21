@@ -10,8 +10,8 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
-import { downloadCSV } from '~/utils'
 import { slug } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))

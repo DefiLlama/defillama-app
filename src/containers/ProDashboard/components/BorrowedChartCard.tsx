@@ -6,7 +6,8 @@ import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
 } from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
-import { download, toNiceCsvDate } from '~/utils'
+import { toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'

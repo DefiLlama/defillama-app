@@ -2,7 +2,7 @@
 
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { useProDashboardEditorActions, useProDashboardPermissions } from '../../ProDashboardAPIContext'
 import type { CustomColumnDefinition, TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '../../types'
 import { DEFAULT_ROW_HEADERS, DEFAULT_UNIFIED_TABLE_SORTING } from './constants'

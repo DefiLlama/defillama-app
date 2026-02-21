@@ -4,7 +4,7 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
-import { download } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,

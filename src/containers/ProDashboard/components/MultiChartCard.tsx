@@ -3,7 +3,8 @@ import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportBu
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { capitalizeFirstLetter } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,

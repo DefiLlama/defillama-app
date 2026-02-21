@@ -372,9 +372,7 @@ export const ChainProtocolsTable = ({
 				/>
 				<TVLRange triggerClassName="w-full sm:w-auto" />
 				<CSVDownloadButton
-					prepareCsv={() =>
-						prepareTableCsv({ instance, filename: `defillama-${activeChain ?? 'all'}-protocols` })
-					}
+					prepareCsv={() => prepareTableCsv({ instance, filename: `defillama-${activeChain ?? 'all'}-protocols` })}
 					smol
 				/>
 			</div>
