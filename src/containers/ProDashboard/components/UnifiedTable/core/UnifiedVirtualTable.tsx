@@ -113,10 +113,7 @@ export function UnifiedVirtualTable({
 										<button
 											type="button"
 											className={`relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
-											data-align={
-												meta?.align ??
-												(isGroupRow ? 'center' : 'start')
-											}
+											data-align={meta?.align ?? (isGroupRow ? 'center' : 'start')}
 											onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 										>
 											{header.isPlaceholder ? null : (

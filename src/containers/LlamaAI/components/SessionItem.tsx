@@ -10,8 +10,8 @@ import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
-import { SESSIONS_QUERY_KEY } from '../hooks/useSessionList'
 import { useClickOutside } from '../hooks/useClickOutside'
+import { SESSIONS_QUERY_KEY } from '../hooks/useSessionList'
 
 interface SessionItemProps {
 	session: ChatSession

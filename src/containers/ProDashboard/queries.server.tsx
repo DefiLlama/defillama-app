@@ -17,7 +17,7 @@ import { toDisplayName } from '~/utils/chainNormalizer'
 import type { NormalizedRow } from './components/UnifiedTable/types'
 import { sanitizeRowHeaders } from './components/UnifiedTable/utils/rowHeaders'
 import type { CustomTimePeriod, TimePeriod } from './dashboardReducer'
-import { filterDataByTimePeriod } from './queries'
+import { filterDataByTimePeriod, getChartQueryKey } from './queries'
 import { createServerAuthorizedFetch } from './server/auth'
 import { fetchPfPsChartData, fetchPfPsProtocols } from './server/pfPsQueries'
 import { fetchTableServerData, type TableServerData } from './server/tableQueries'
@@ -245,7 +245,12 @@ async function fetchMetricData(
 
 			const data = await withTimeout(fetchSingleChartData(chartConfig, 'all', null), 15_000)
 
-			const keyParts = ['pro-dashboard', 'metric', metric.type, undefined, item]
+			const geckoId = metric.subject.geckoId || null
+			const keyParts = [
+				'pro-dashboard',
+				'metric',
+				...getChartQueryKey(metric.type, metric.subject.itemType, item, geckoId)
+			]
 			return { key: JSON.stringify(keyParts), data }
 		})
 	)

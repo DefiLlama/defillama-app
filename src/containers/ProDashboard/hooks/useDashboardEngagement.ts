@@ -13,10 +13,7 @@ export function useDashboardEngagement(dashboardId: string | null) {
 			return await dashboardAPI.viewDashboard(dashboardId, isAuthenticated ? authorizedFetch : undefined)
 		},
 		onSuccess: (data) => {
-			queryClient.setQueriesData(
-				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
-				data
-			)
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false }, data)
 		}
 	})
 
