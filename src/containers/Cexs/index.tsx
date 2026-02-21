@@ -79,7 +79,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	const cexsWithCustomRange = useMemo(() => {
 		return cexs.map((cex) => ({
 			...cex,
-			customRange: cex.slug != null ? customRangeInflows[cex.slug]?.outflows : undefined
+			customRange: cex.slug != null ? (customRangeInflows[cex.slug]?.outflows ?? undefined) : undefined
 		}))
 	}, [cexs, customRangeInflows])
 

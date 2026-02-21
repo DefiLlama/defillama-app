@@ -198,7 +198,8 @@ export async function computeTokenPnl(params: {
 	const isPositive = endPrice >= startPrice
 	const primaryColor = isPositive ? '#10b981' : '#ef4444'
 	const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
-	const annualizedReturn = (Math.pow(1 + percentChange / 100, 365 / holdingPeriodDays) - 1) * 100
+	const annualizedBase = Math.max(Number.EPSILON, 1 + percentChange / 100)
+	const annualizedReturn = (Math.pow(annualizedBase, 365 / holdingPeriodDays) - 1) * 100
 
 	const timeline: TimelinePoint[] = []
 	const dataPoints: Array<[number, number]> = []

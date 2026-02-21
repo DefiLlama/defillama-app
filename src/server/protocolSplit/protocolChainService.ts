@@ -803,7 +803,8 @@ async function getAllProtocolsTopChainsChainFeesData(
 
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(seriesRaw, totalNormalized)
 
-		const othersCount = Math.max(0, rankedEntries.length - picked.length)
+		const includedTopCount = alignedTopSeries.length
+		const othersCount = Math.max(0, seriesRaw.length - includedTopCount)
 		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
 		const finalSeries = [...alignedTopSeries]
 		if (hasOthers) {
@@ -819,9 +820,9 @@ async function getAllProtocolsTopChainsChainFeesData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: CHAIN_ONLY_METRIC_LABELS[metric],
-				chains: picked.map((entry) => entry.name),
-				totalChains: rankedEntries.length,
-				topN: picked.length,
+				chains: alignedTopSeries.map((entry) => entry.name),
+				totalChains: seriesRaw.length,
+				topN: includedTopCount,
 				othersCount
 			}
 		}
@@ -1012,7 +1013,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(seriesRaw, totalNormalized)
 
-		const othersCount = Math.max(0, ranked.length - Math.min(topN, ranked.length))
+		const includedTopCount = alignedTopSeries.length
+		const othersCount = Math.max(0, seriesRaw.length - includedTopCount)
 		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
 		const finalSeries = [...alignedTopSeries]
 		if (hasOthers) finalSeries.push({ name: `Others (${othersCount} chains)`, data: othersData, color: '#999999' })
@@ -1022,9 +1024,9 @@ async function getAllProtocolsTopChainsDimensionsData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: config.metricName,
-				chains: picked.map(displayChainName),
-				totalChains: ranked.length,
-				topN: Math.min(topN, ranked.length),
+				chains: alignedTopSeries.map((entry) => entry.name),
+				totalChains: seriesRaw.length,
+				topN: includedTopCount,
 				othersCount
 			}
 		}

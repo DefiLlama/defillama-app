@@ -233,9 +233,14 @@ export async function getExtraTvlByChain({
 			}),
 		fetchChainsByCategoryAll<{
 			chainTvls: Array<{ name: string; extraTvl?: Record<string, { tvl: number }> }>
-		}>().then((data) =>
-			(data.chainTvls ?? []).flatMap((chain) => (chain.extraTvl?.[config.chartKey]?.tvl ? [chain.name] : []))
-		)
+		}>()
+			.then((data) =>
+				(data?.chainTvls ?? []).flatMap((chain) => (chain.extraTvl?.[config.chartKey]?.tvl ? [chain.name] : []))
+			)
+			.catch((err) => {
+				postRuntimeLogs(`${config.label} chains list: ${chain}: ${err instanceof Error ? err.message : err}`)
+				return []
+			})
 	])
 
 	if (!chart || chart.length === 0) return null

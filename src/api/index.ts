@@ -180,7 +180,9 @@ export async function fetchCoinPrices(
 			return response.coins ?? {}
 		},
 		(batch, err) => {
-			postRuntimeLogs(`Failed to fetch prices for batch: ${batch.join(', ')}`)
+			postRuntimeLogs(
+				`Failed to fetch prices for batch: ${batch.join(', ')} (searchWidth=${options?.searchWidth ?? 'default'})`
+			)
 			postRuntimeLogs(err instanceof Error ? err.message : String(err))
 			return {}
 		}

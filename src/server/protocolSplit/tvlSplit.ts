@@ -24,7 +24,8 @@ const isIgnoredChainKey = (key: string): boolean => {
 const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]> => {
 	const isAll = chains.length === 0 || chains.some((c) => c.toLowerCase() === 'all')
 	if (isAll) {
-		const j = await fetchChainChart<TvlChartData>()
+		const j = await fetchChainChart<TvlChartData>().catch(() => null)
+		if (!j) return []
 		const adjustedTvl = processAdjustedTvl(j)
 		return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 	}
@@ -50,9 +51,7 @@ const subtractSeries = (a: [number, number][], b: [number, number][]): [number, 
 }
 
 const fetchAllChainTotalTvl = async (): Promise<[number, number][]> => {
-	const j = await fetchChainChart<TvlChartData>()
-	const adjustedTvl = processAdjustedTvl(j)
-	return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
+	return fetchChainTotalTvl(['all'])
 }
 
 const fetchChainTvlSingle = async (chain: string): Promise<[number, number][]> => {

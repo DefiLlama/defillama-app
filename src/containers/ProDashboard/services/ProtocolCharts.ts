@@ -35,14 +35,24 @@ interface ProtocolApiMiniResponse {
 
 const LIQUIDITY_TOKENS_TTL_MS = 10 * 60 * 1000
 let liquidityTokensCache: { data: Awaited<ReturnType<typeof fetchProtocolLiquidityTokens>>; ts: number } | null = null
+let liquidityTokensPromise: Promise<Awaited<ReturnType<typeof fetchProtocolLiquidityTokens>>> | null = null
 
 async function getCachedLiquidityTokens() {
 	if (liquidityTokensCache && Date.now() - liquidityTokensCache.ts < LIQUIDITY_TOKENS_TTL_MS) {
 		return liquidityTokensCache.data
 	}
-	const data = await fetchProtocolLiquidityTokens()
-	liquidityTokensCache = { data, ts: Date.now() }
-	return data
+	if (liquidityTokensPromise) {
+		return liquidityTokensPromise
+	}
+	liquidityTokensPromise = fetchProtocolLiquidityTokens()
+		.then((data) => {
+			liquidityTokensCache = { data, ts: Date.now() }
+			return data
+		})
+		.finally(() => {
+			liquidityTokensPromise = null
+		})
+	return liquidityTokensPromise
 }
 
 export default class ProtocolCharts {
