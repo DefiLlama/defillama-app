@@ -1,10 +1,4 @@
-import {
-	CACHE_SERVER,
-	COINS_SERVER_URL,
-	CONFIG_API,
-	DATASETS_SERVER_URL,
-	SERVER_URL
-} from '~/constants'
+import { CACHE_SERVER, COINS_SERVER_URL, CONFIG_API, DATASETS_SERVER_URL, SERVER_URL } from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import type {
@@ -85,7 +79,9 @@ export async function fetchCGMarketsPage({
 
 export async function fetchTwitterPostsByUsername(username: string): Promise<TwitterPostsResponse | null> {
 	if (!username) return null
-	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(() => null)
+	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(
+		() => null
+	)
 }
 
 export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {

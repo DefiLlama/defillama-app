@@ -1,6 +1,6 @@
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
-import { fetchChainsByCategory } from '~/containers/Chains/api'
 import type { IChainAssets } from '~/containers/ChainOverview/types'
+import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'

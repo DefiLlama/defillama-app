@@ -1,9 +1,4 @@
-import {
-	AUTH_SERVER,
-	CONFIG_API,
-	YIELD_CHART_API,
-	YIELD_CHART_LEND_BORROW_API
-} from '~/constants'
+import { AUTH_SERVER, CONFIG_API, YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -210,7 +205,10 @@ async function fetchProtocolFullData(items: DashboardItemConfig[]): Promise<Reco
 	const results = await Promise.allSettled(
 		Array.from(protocols).map(async (protocol) => ({
 			protocol,
-			data: await withTimeout(fetchProtocolBySlug(protocol).catch(() => null), 15_000)
+			data: await withTimeout(
+				fetchProtocolBySlug(protocol).catch(() => null),
+				15_000
+			)
 		}))
 	)
 

@@ -1,11 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import {
-	YIELD_CHAIN_API,
-	YIELD_CONFIG_API,
-	YIELD_LEND_BORROW_API,
-	YIELD_POOLS_API,
-	YIELD_URL_API
-} from '~/constants'
+import { YIELD_CHAIN_API, YIELD_CONFIG_API, YIELD_LEND_BORROW_API, YIELD_POOLS_API, YIELD_URL_API } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
 import { fetchApi, fetchJson } from '~/utils/async'

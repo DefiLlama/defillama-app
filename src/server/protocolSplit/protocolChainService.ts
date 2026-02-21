@@ -1,8 +1,8 @@
 import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchChainChart, fetchChainsByCategory, fetchChainsTvlOverview } from '~/containers/Chains/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
 import {
 	buildChainMatchSet as buildChainMatchSetFromNormalizer,

@@ -31,4 +31,3 @@ export interface ILsdRateApiItem {
 	expectedRate: number | null
 	fee: number | null
 }
-

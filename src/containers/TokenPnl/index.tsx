@@ -45,7 +45,6 @@ const dateStringToUnix = (dateString: string | null | undefined): number | null 
 	return Math.floor(timestamp / 1000)
 }
 
-
 const isValidDate = (dateString: string | string[] | undefined): boolean => {
 	if (!dateString || typeof dateString !== 'string') return false
 	const date = new Date(+dateString * 1000)

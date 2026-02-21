@@ -1,14 +1,10 @@
 import { fetchCoinPrices } from '~/api'
 import { YIELD_POOLS_API, YIELDS_SERVER_URL } from '~/constants'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols as fetchLiteProtocols } from '~/containers/Protocols/api'
 import type { ProtocolLite } from '~/containers/Protocols/api.types'
-import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
-import type {
-	ILsdRateApiItem,
-	IProtocolDetailApiItem,
-	IYieldPoolApiItem
-} from './api.types'
+import type { ILsdRateApiItem, IProtocolDetailApiItem, IYieldPoolApiItem } from './api.types'
 
 /**
  * Fetch protocols used by the LST dashboard.

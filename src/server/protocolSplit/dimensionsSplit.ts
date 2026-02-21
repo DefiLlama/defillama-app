@@ -1,6 +1,6 @@
 import { DIMENSIONS_OVERVIEW_API } from '~/constants'
-import { fetchProtocols } from '~/containers/Protocols/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { METRIC_CONFIG_BASE, toSlug } from '~/utils/protocolSplit'
 import type { ChartSeries, ProtocolSplitData } from './types'

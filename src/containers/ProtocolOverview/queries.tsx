@@ -1,13 +1,7 @@
-import {
-	BRIDGEVOLUME_API_SLUG,
-	oracleProtocols,
-	V2_SERVER_URL,
-	YIELD_CONFIG_API,
-	YIELD_POOLS_API
-} from '~/constants'
+import { fetchProtocolLiquidityTokens } from '~/api'
+import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
-import { fetchProtocolLiquidityTokens } from '~/api'
 import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'

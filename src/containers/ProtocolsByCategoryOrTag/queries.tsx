@@ -1,8 +1,8 @@
 import { RWA_STATS_API_OLD, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
@@ -320,9 +320,7 @@ export async function getProtocolsByCategoryOrTag(
 					dataType: 'dailyNotionalVolume'
 				})
 			: null,
-		tag
-			? fetchTagChart({ tag, chain })
-			: fetchCategoryChart({ category: category ?? '', chain }),
+		tag ? fetchTagChart({ tag, chain }) : fetchCategoryChart({ category: category ?? '', chain }),
 		currentChainMetadata?.dexs && shouldFetchDexVolumeChart
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',

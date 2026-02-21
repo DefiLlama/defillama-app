@@ -1,8 +1,8 @@
-import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { slug } from '~/utils'
 import {
 	getDexVolumeByChain,

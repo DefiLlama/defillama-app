@@ -103,8 +103,7 @@ export function CompareTokens({
 		[coinsData]
 	)
 	const protocolsByGeckoId = useMemo(
-		() =>
-			new Map<string, CompareTokenProtocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
+		() => new Map<string, CompareTokenProtocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
 		[protocols]
 	)
 	const protocolsByName = useMemo(

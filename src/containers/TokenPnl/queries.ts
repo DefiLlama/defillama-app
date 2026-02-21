@@ -50,7 +50,11 @@ export function formatPriceSeriesFromCoinsChart(
 		.sort((a, b) => a.timestamp - b.timestamp)
 }
 
-export async function fetchPriceSeries(tokenId: string, start: number | null, end: number | null): Promise<PricePoint[]> {
+export async function fetchPriceSeries(
+	tokenId: string,
+	start: number | null,
+	end: number | null
+): Promise<PricePoint[]> {
 	if (!tokenId || start == null || end == null || end <= start) return []
 	const key = `coingecko:${tokenId}`
 	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS))
