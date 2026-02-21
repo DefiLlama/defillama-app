@@ -23,7 +23,15 @@ export function useDashboardDiscovery(params: SearchParams) {
 	const isSearchMode = !!(params.query || params.tags?.length)
 
 	const discoverQuery = useQuery({
-		queryKey: ['pro-dashboard', 'dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy, params.timeFrame],
+		queryKey: [
+			'pro-dashboard',
+			'dashboard-discover',
+			isSearchMode,
+			params.page,
+			params.limit,
+			params.sortBy,
+			params.timeFrame
+		],
 		queryFn: async () => {
 			if (isSearchMode) return null
 
