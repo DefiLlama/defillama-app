@@ -95,15 +95,18 @@ async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: an
 			}
 		}
 
-		const syntheticParents = parentProtocols.map((pp: any) => ({
-			id: pp.id ?? null,
-			name: pp.name ?? null,
-			logo: pp.logo ?? null,
-			slug: sluggifyProtocol(pp.name ?? ''),
-			tvl: parentTotals.get(pp.id) || 0,
-			geckoId: null,
-			parentProtocol: null
-		}))
+		const syntheticParents = parentProtocols.map((pp: any) => {
+			const nameSlug = sluggifyProtocol(pp.name ?? '')
+			return {
+				id: pp.id ?? null,
+				name: pp.name ?? null,
+				logo: pp.logo ?? null,
+				slug: nameSlug || `id-${pp.id}`,
+				tvl: parentTotals.get(pp.id) || 0,
+				geckoId: null,
+				parentProtocol: null
+			}
+		})
 
 		const mergedBySlug = new Map<string, any>()
 		for (const p of [...baseProtocols, ...syntheticParents]) {

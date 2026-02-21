@@ -23,15 +23,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 	const isSearchMode = !!(params.query || params.tags?.length)
 
 	const discoverQuery = useQuery({
-		queryKey: [
-			'pro-dashboard',
-			'dashboard-discover',
-			isSearchMode,
-			params.page,
-			params.limit,
-			params.sortBy,
-			params.timeFrame
-		],
+		queryKey: ['pro-dashboard', 'dashboard-discover', params.page, params.limit, params.sortBy, params.timeFrame],
 		queryFn: async () => {
 			if (isSearchMode) return null
 
@@ -60,7 +52,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 	})
 
 	const searchQuery = useQuery({
-		queryKey: ['pro-dashboard', 'dashboard-search', isSearchMode, params],
+		queryKey: ['pro-dashboard', 'dashboard-search', params],
 		queryFn: async () => {
 			if (!isSearchMode) return null
 			return await dashboardAPI.searchDashboards(params, isAuthenticated ? authorizedFetch : undefined)
@@ -110,7 +102,9 @@ export function useDashboardDiscovery(params: SearchParams) {
 				if (!oldData) return oldData
 				return {
 					...oldData,
-					items: oldData.items.map((d: Dashboard) => (d.id === dashboardId ? { ...d, likeCount: data.likeCount } : d))
+					items: oldData.items.map((d: Dashboard) =>
+						d.id === dashboardId ? { ...d, likeCount: data.likeCount, liked: data.liked } : d
+					)
 				}
 			}
 			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard-discover'] }, updateLikeCount)

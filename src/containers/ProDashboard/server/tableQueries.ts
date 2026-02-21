@@ -2,6 +2,7 @@ import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { slug } from '~/utils'
 import {
@@ -13,7 +14,7 @@ import {
 import type { DashboardItemConfig, ProtocolsTableConfig, UnifiedTableConfig } from '../types'
 
 export interface TableServerData {
-	protocolsList: any | null
+	protocolsList: ProtocolsResponse | null
 	volumeByChain: Record<string, any>
 	feesByChain: Record<string, any>
 	perpsByChain: Record<string, any>
@@ -217,7 +218,15 @@ async function fetchTokenUsageData(tokenSymbols: string[], includeCex: boolean):
 }
 
 function buildTokenUsageCacheKey(tokenSymbols: string[], includeCex: boolean): string {
-	return JSON.stringify(['pro-dashboard', 'token-usage', tokenSymbols.map((t) => t?.toUpperCase()).sort(), includeCex])
+	return JSON.stringify([
+		'pro-dashboard',
+		'token-usage',
+		tokenSymbols
+			.filter((t) => t != null)
+			.map((t) => t.toUpperCase())
+			.sort(),
+		includeCex
+	])
 }
 
 function buildDatasetCacheKey(prefix: string, chains: string[]): string {

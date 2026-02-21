@@ -46,6 +46,7 @@ export function UnifiedVirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
+	const headerGroups = table.getHeaderGroups()
 	const expandedCount = Object.keys(table.getState().expanded ?? {}).length
 
 	useLayoutEffect(() => {
@@ -69,13 +70,13 @@ export function UnifiedVirtualTable({
 					background: 'var(--cards-bg)'
 				}}
 			>
-				{table.getHeaderGroups().map((headerGroup) => {
-					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
-					if (!headers.length) {
-						return null
-					}
+			{headerGroups.map((headerGroup) => {
+				const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
+				if (!headers.length) {
+					return null
+				}
 
-					const isGroupRow = headerGroup.depth === 0 && table.getHeaderGroups().length > 1
+				const isGroupRow = headerGroup.depth === 0 && headerGroups.length > 1
 					if (isGroupRow) {
 						const distinctGroups = headers.filter((h) => !h.isPlaceholder)
 						if (distinctGroups.length <= 1) {
@@ -96,7 +97,6 @@ export function UnifiedVirtualTable({
 								return (
 									<div
 										key={header.id}
-										data-align={meta?.align ?? 'start'}
 										style={{
 											gridColumn: `span ${header.colSpan}`,
 											position: isSticky ? 'sticky' : undefined,
