@@ -70,13 +70,13 @@ export function UnifiedVirtualTable({
 					background: 'var(--cards-bg)'
 				}}
 			>
-			{headerGroups.map((headerGroup) => {
-				const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
-				if (!headers.length) {
-					return null
-				}
+				{headerGroups.map((headerGroup) => {
+					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
+					if (!headers.length) {
+						return null
+					}
 
-				const isGroupRow = headerGroup.depth === 0 && headerGroups.length > 1
+					const isGroupRow = headerGroup.depth === 0 && headerGroups.length > 1
 					if (isGroupRow) {
 						const distinctGroups = headers.filter((h) => !h.isPlaceholder)
 						if (distinctGroups.length <= 1) {

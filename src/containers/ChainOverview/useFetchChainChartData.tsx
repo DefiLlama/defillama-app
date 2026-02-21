@@ -246,19 +246,19 @@ export const useFetchChainChartData = ({
 		queryKey: ['chain-overview', 'raises'],
 		queryFn: () =>
 			fetchRaises().then((data) => {
-						const store = (data?.raises ?? []).reduce(
-							(acc, curr) => {
-								acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
-								return acc
-							},
-							{} as Record<string, number>
-						)
-						const chart = []
-						for (const date in store) {
-							chart.push([+date * 1e3, store[date] * 1e6])
-						}
-						return chart
-					}),
+				const store = (data?.raises ?? []).reduce(
+					(acc, curr) => {
+						acc[curr.date] = (acc[curr.date] ?? 0) + +(curr.amount ?? 0)
+						return acc
+					},
+					{} as Record<string, number>
+				)
+				const chart = []
+				for (const date in store) {
+					chart.push([+date * 1e3, store[date] * 1e6])
+				}
+				return chart
+			}),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
