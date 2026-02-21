@@ -216,11 +216,16 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
 
 	const [transactions, setTransactions] = useState<BridgeTransaction[]>([])
+	const [fetchedDateRange, setFetchedDateRange] = useState<{ startDate: string; endDate: string } | null>(null)
 
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: fetchTransactions,
-		onSuccess: (data) => {
+		onSuccess: (data, variables) => {
 			setTransactions(data)
+			setFetchedDateRange({
+				startDate: variables.startDate,
+				endDate: variables.endDate
+			})
 		}
 	})
 
@@ -251,6 +256,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	}
 
 	const maxDate = new Date().toISOString().split('T')[0]
+	const csvDateRange = fetchedDateRange ?? { startDate, endDate }
 
 	const tableData = useMemo(() => transactions.map(transformTransactionForTable), [transactions])
 
@@ -328,7 +334,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 							<span>({transactions.length.toLocaleString()}) transactions</span>
 						</div>
 					)}
-					csvFileName={`bridge-transactions_${startDate}_${endDate}.csv`}
+					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}.csv`}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
 			)}

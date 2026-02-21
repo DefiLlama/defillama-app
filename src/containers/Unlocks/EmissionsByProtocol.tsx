@@ -804,7 +804,7 @@ const ChartContainer = ({
 		() => ({
 			png: true,
 			csv: true,
-			filename: `${slug(data.name)}-allocation`,
+			filename: `${data.name}-allocation`,
 			pngTitle: `${data.name} Allocation`
 		}),
 		[data.name]
@@ -814,7 +814,7 @@ const ChartContainer = ({
 		() => ({
 			png: true,
 			csv: true,
-			filename: `${slug(data.name)}-unlocked`,
+			filename: `${data.name}-unlocked`,
 			pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
 		}),
 		[data.name, unlockedPercent]
@@ -946,7 +946,7 @@ const ChartContainer = ({
 							/>
 							<ChartExportButtons
 								chartInstance={exportChartInstance}
-								filename={`${slug(data.name)}-unlock-schedule`}
+								filename={`${data.name}-unlock-schedule`}
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>

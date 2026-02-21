@@ -11,6 +11,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
 import { download } from '~/utils'
+import { slug } from '~/utils'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -45,6 +46,13 @@ const hasPrepareCsv = (props: CSVDownloadButtonPropsUnion): props is CSVDownload
 	'prepareCsv' in props
 
 const hasOnClick = (props: CSVDownloadButtonPropsUnion): props is CSVDownloadButtonWithOnClick => 'onClick' in props
+
+function normalizeCsvFilename(filename: string): string {
+	const trimmed = filename.trim()
+	const baseName = trimmed.toLowerCase().endsWith('.csv') ? trimmed.slice(0, -4) : trimmed
+	const normalizedBaseName = slug(baseName)
+	return `${normalizedBaseName || 'data'}.csv`
+}
 
 interface CSVDownloadButtonState {
 	staticLoading: boolean
@@ -155,8 +163,9 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 				if (prepareCsv) {
 					const { filename, rows } = prepareCsv()
+					const normalizedFilename = normalizeCsvFilename(filename)
 
-					download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+					download(normalizedFilename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
 					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}

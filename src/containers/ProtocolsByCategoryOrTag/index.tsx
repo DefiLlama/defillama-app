@@ -42,6 +42,7 @@ const defaultSortingState: Partial<Record<string, { id: string; desc: boolean }[
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
+	const namePrefix = name ? `${name}-` : ''
 	const [groupBy, setGroupBy] = useState<ChartInterval>('daily')
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const categoryPresentation = useMemo(
@@ -359,7 +360,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`protocols-${slug(name)}-${slug(props.chain || 'all')}`}
+							filename={`protocols-${namePrefix}${props.chain || 'all'}`}
 							title={
 								props.chain === 'All'
 									? categoryPresentation.headingLabel
@@ -386,7 +387,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header={categoryPresentation.tableHeader}
 				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
-				csvFileName={`defillama-${slug(name)}-${slug(props.chain || 'all')}-protocols.csv`}
+				csvFileName={`defillama-${namePrefix}${props.chain || 'all'}-protocols.csv`}
 			/>
 		</>
 	)

@@ -189,7 +189,7 @@ export const InvestorContainer = ({
 							exportButtons={{
 								png: true,
 								csv: true,
-								filename: `${slug(investorName)}-funding-rounds`,
+								filename: `${investorName}-funding-rounds`,
 								pngTitle: `${investorName} Funding Rounds`
 							}}
 						/>
@@ -207,7 +207,7 @@ export const InvestorContainer = ({
 							exportButtons={{
 								png: true,
 								csv: true,
-								filename: `${slug(investorName)}-investment-by-rounds`,
+								filename: `${investorName}-investment-by-rounds`,
 								pngTitle: `${investorName} Investment by Rounds`
 							}}
 						/>
@@ -222,7 +222,7 @@ export const InvestorContainer = ({
 							exportButtons={{
 								png: true,
 								csv: true,
-								filename: `${slug(investorName)}-investments-by-category`,
+								filename: `${investorName}-investments-by-category`,
 								pngTitle: `${investorName} Investments by Category`
 							}}
 						/>

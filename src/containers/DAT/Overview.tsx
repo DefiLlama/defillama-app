@@ -194,7 +194,10 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 	{
 		header: 'Assets',
 		id: 'holdings',
-		accessorFn: (row) => row.holdings.map((asset) => `${asset.name} (${asset.dominance}%)`).join(', '),
+		accessorFn: (row) =>
+			row.holdings
+				.map((asset) => `${asset.name} (${(Number(asset.dominance) || 0).toFixed(2)}%)`)
+				.join(', '),
 		enableSorting: false,
 		cell: (info) => {
 			const assetBreakdown = info.row.original.holdings

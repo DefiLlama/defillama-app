@@ -192,7 +192,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 						</div>
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-dex-aggregator-volume`}
+							filename={`${props.name}-dex-aggregator-volume`}
 							title="DEX Aggregator Volume"
 						/>
 					</div>

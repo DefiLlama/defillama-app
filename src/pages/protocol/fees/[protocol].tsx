@@ -405,7 +405,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-fees-revenue`}
+							filename={`${props.name}-fees-revenue`}
 							title="Fees & Revenue"
 						/>
 					</div>

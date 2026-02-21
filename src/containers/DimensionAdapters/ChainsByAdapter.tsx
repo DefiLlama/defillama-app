@@ -577,7 +577,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['24h']
+				headerHelperText: definitions.perpsAggregators.chain['24h'],
+				csvHeader: 'Perp Aggregator Volume 24h'
 			},
 			size: 160
 		},
@@ -604,7 +605,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['30d']
+				headerHelperText: definitions.perpsAggregators.chain['30d'],
+				csvHeader: 'Perp Aggregator Volume 30d'
 			},
 			size: 160
 		}
@@ -623,7 +625,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['24h']
+				headerHelperText: definitions.bridgeAggregators.chain['24h'],
+				csvHeader: 'Bridge Aggregator Volume 24h'
 			},
 			size: 160
 		},
@@ -650,7 +653,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['30d']
+				headerHelperText: definitions.bridgeAggregators.chain['30d'],
+				csvHeader: 'Bridge Aggregator Volume 30d'
 			},
 			size: 160
 		}
@@ -669,7 +673,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['24h']
+				headerHelperText: definitions.dexAggregators.chain['24h'],
+				csvHeader: 'DEX Aggregator Volume 24h'
 			},
 			size: 160
 		},
@@ -696,7 +701,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['30d']
+				headerHelperText: definitions.dexAggregators.chain['30d'],
+				csvHeader: 'DEX Aggregator Volume 30d'
 			},
 			size: 160
 		}

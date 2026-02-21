@@ -187,6 +187,12 @@ export function RWAChainsTable({
 		: includeGovernance
 			? chartDatasets.includeGovernance
 			: chartDatasets.base
+	const csvFileName = (() => {
+		const parts = ['rwa-chains']
+		if (includeStablecoins) parts.push('stablecoins')
+		if (includeGovernance) parts.push('governance')
+		return `${parts.join('-')}.csv`
+	})()
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -214,7 +220,7 @@ export function RWAChainsTable({
 				columnToSearch="chain"
 				header="Chains"
 				columnSizes={columnSizes}
-				csvFileName={`${['rwa-chains', ...(includeStablecoins ? ['stablecoins'] : []), ...(includeGovernance ? ['governance'] : [])].join('-')}.csv`}
+				csvFileName={csvFileName}
 				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 			/>
 		</div>

@@ -196,7 +196,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 						</div>
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-bridge-aggregator-volume`}
+							filename={`${props.name}-bridge-aggregator-volume`}
 							title="Bridge Aggregator Volume"
 						/>
 					</div>

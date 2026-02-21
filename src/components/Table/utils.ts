@@ -181,10 +181,12 @@ export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>;
 	if (columns.length === 0) return { filename, rows: [] }
 
 	const headers = columns.map((column) => {
+		const csvHeader = (column.columnDef.meta as { csvHeader?: unknown } | undefined)?.csvHeader
+		if (typeof csvHeader === 'string' && csvHeader.length > 0) return csvHeader
 		const header = column.columnDef.header
 		if (typeof header === 'string') return header
 		if (typeof header === 'number') return String(header)
-		return ''
+		return column.columnDef.id ?? column.id
 	})
 
 	const rows: Array<Array<string | number | boolean>> = tableRows.map((row) =>

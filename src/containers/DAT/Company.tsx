@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { IDATCompanyPageProps } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'report_date', desc: true }]
@@ -215,7 +215,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-holdings`}
+							filename={`${props.name}-holdings`}
 							title="Cumulative Holdings Over Time"
 						/>
 					</div>
@@ -248,7 +248,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-mnav`,
+									filename: `${props.name}-mnav`,
 									pngTitle: 'mNAV'
 								}}
 							/>
@@ -267,7 +267,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-fully-diluted-shares`,
+									filename: `${props.name}-fully-diluted-shares`,
 									pngTitle: 'Fully Diluted Shares'
 								}}
 							/>
@@ -294,7 +294,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-total-asset-value`,
+									filename: `${props.name}-total-asset-value`,
 									pngTitle: 'Total Asset Value'
 								}}
 							/>
@@ -307,7 +307,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 				columns={columns}
 				placeholder="Search assets"
 				columnToSearch="assetName"
-				csvFileName="dat-company-transactions.csv"
+				csvFileName={`${props.name}-transactions.csv`}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

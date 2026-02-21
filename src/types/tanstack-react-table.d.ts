@@ -5,6 +5,7 @@ declare module '@tanstack/react-table' {
 		align?: 'start' | 'end' | 'center'
 		headerHelperText?: string
 		hidden?: boolean
+		csvHeader?: string
 		/**
 		 * Type-only field to satisfy linters about unused generics.
 		 * Not used at runtime.

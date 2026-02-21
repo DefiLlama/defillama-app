@@ -117,7 +117,7 @@ export function DATByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				csvFileName={`${slug(metadata.name)}-treasury-holdings.csv`}
+				csvFileName={`${metadata.name}-treasury-holdings.csv`}
 			/>
 		</>
 	)
@@ -342,7 +342,7 @@ function MNAVChart({
 				/>
 				<ChartExportButtons
 					chartInstance={chartInstance}
-					filename={`${slug(metadata.name)}-${slug(title)}`}
+					filename={`${metadata.name}-${title}`}
 					title={`${metadata.name} ${title}`}
 				/>
 			</div>

@@ -106,7 +106,7 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 	},
 	{
 		header: '7d Deposits',
-		accessorKey: 'prevWeekUsdWithdrawals',
+		accessorKey: 'prevWeekUsdDeposits',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
@@ -115,7 +115,7 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 	},
 	{
 		header: '7d Withdrawals',
-		accessorKey: 'prevWeekUsdDeposits',
+		accessorKey: 'prevWeekUsdWithdrawals',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {

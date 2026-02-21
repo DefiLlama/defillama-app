@@ -79,7 +79,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 						) : null}
 					</>
 				)}
-				csvFileName={`protocols-with-tokens-${props.type}-${slug(props.chain)}.csv`}
+				csvFileName={`protocols-with-tokens-${props.type}-${props.chain}.csv`}
 				sortingState={sortingState}
 			/>
 		</>

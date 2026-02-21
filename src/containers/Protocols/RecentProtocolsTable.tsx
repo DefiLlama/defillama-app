@@ -86,6 +86,7 @@ export function RecentlyListedProtocolsTable({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
+	const csvFileName = router.pathname === '/airdrops' ? 'airdrops.csv' : 'protocols.csv'
 
 	const columns = router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
 
@@ -180,7 +181,7 @@ export function RecentlyListedProtocolsTable({
 						<TVLRange triggerClassName="w-full sm:w-auto" />
 					</div>
 
-					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'protocols.csv' })} smol />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: csvFileName })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

@@ -326,6 +326,8 @@ export const ChainProtocolsTable = ({
 			// window.dispatchEvent(new Event('storage'))
 		}
 	}
+	const chainQuery = router.query.chain
+	const activeChain = Array.isArray(chainQuery) ? chainQuery[0] : chainQuery
 
 	return (
 		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
@@ -371,7 +373,7 @@ export const ChainProtocolsTable = ({
 				<TVLRange triggerClassName="w-full sm:w-auto" />
 				<CSVDownloadButton
 					prepareCsv={() =>
-						prepareTableCsv({ instance, filename: `defillama-${String(router.query.chain || 'all')}-protocols.csv` })
+						prepareTableCsv({ instance, filename: `defillama-${activeChain ?? 'all'}-protocols.csv` })
 					}
 					smol
 				/>

@@ -104,16 +104,14 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 			header="Total Value Lost in Hacks"
 			compact
 			customFilters={() => (
-				<>
-					<Select
-						allValues={columnIds}
-						selectedValues={selectedColumns}
-						setSelectedValues={setSelectedColumns}
-						label="Columns"
-						labelType="smol"
-						variant="filter-responsive"
-					/>
-				</>
+				<Select
+					allValues={columnIds}
+					selectedValues={selectedColumns}
+					setSelectedValues={setSelectedColumns}
+					label="Columns"
+					labelType="smol"
+					variant="filter-responsive"
+				/>
 			)}
 			csvFileName="total-value-lost-in-hacks.csv"
 			sortingState={DEFAULT_SORTING_STATE}
