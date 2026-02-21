@@ -114,8 +114,16 @@ function ProContent({
 			return
 		}
 		if (!createDialogOpen && dialogWasOpenRef.current) {
-			setComparisonPreset(null)
+			let cancelled = false
+			queueMicrotask(() => {
+				if (cancelled) return
+				setComparisonPreset(null)
+			})
 			dialogWasOpenRef.current = false
+
+			return () => {
+				cancelled = true
+			}
 		}
 	}, [createDialogOpen])
 
@@ -130,11 +138,19 @@ function ProContent({
 			.map((item) => item.trim())
 			.filter(Boolean)
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
+		let cancelled = false
 		if (parsedItems.length > 0) {
-			setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			queueMicrotask(() => {
+				if (cancelled) return
+				setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			})
 		}
 		createDashboardDialogStore.show()
 		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+
+		return () => {
+			cancelled = true
+		}
 	}, [comparisonPreset, createDashboardDialogStore, router, router.isReady, router.query])
 
 	const handleDeleteDashboard = async (dashboardId: string) => {
