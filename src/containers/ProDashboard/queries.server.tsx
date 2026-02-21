@@ -227,15 +227,26 @@ async function fetchProtocolFullData(items: DashboardItemConfig[]): Promise<Reco
 async function fetchMetricData(
 	items: DashboardItemConfig[],
 	timePeriod: TimePeriod,
-	customTimePeriod: CustomTimePeriod | null
+	customTimePeriod: CustomTimePeriod | null,
+	protocolsAndChains: { protocols: any[]; chains: any[] } | null
 ): Promise<Record<string, [number, number][]>> {
 	const metricItems = items.filter((item): item is MetricConfig => item.kind === 'metric')
 	if (metricItems.length === 0) return {}
+
+	const protocols = protocolsAndChains?.protocols ?? []
+	const chains = protocolsAndChains?.chains ?? []
 
 	const results = await Promise.allSettled(
 		metricItems.map(async (metric) => {
 			const item = metric.subject.itemType === 'protocol' ? metric.subject.protocol || '' : metric.subject.chain || ''
 			if (!item) return { key: '', data: [] as [number, number][] }
+
+			const geckoId =
+				metric.subject.geckoId ??
+				(metric.subject.itemType === 'protocol'
+					? (protocols.find((p: any) => p.slug === item)?.geckoId as string | undefined)
+					: (chains.find((c: any) => c.name === item)?.gecko_id as string | undefined)) ??
+				null
 
 			const chartConfig: ChartConfig = {
 				id: `metric-${metric.id}`,
@@ -243,12 +254,11 @@ async function fetchMetricData(
 				type: metric.type,
 				protocol: metric.subject.itemType === 'protocol' ? item : '',
 				chain: metric.subject.itemType === 'chain' ? item : '',
-				geckoId: metric.subject.geckoId || null
+				geckoId
 			}
 
 			const data = await withTimeout(fetchSingleChartData(chartConfig, 'all', null), 15_000)
 
-			const geckoId = metric.subject.geckoId || null
 			const keyParts = [
 				'pro-dashboard',
 				'metric',
@@ -599,7 +609,7 @@ export async function getProDashboardServerData({
 			fetchTableServerData(dashboard.data.items),
 			fetchAllYieldsChartData(dashboard.data.items),
 			fetchProtocolFullData(dashboard.data.items),
-			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod),
+			fetchMetricData(dashboard.data.items, timePeriod, customTimePeriod, protocolsAndChains),
 			fetchAdvancedTvlBasicData(dashboard.data.items),
 			fetchUnifiedTableServerData(dashboard.data.items),
 			fetchStablecoinsChartData(dashboard.data.items),
