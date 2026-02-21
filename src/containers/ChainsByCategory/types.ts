@@ -1,4 +1,4 @@
-import type { IChainAsset } from '~/containers/ChainOverview/types'
+import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
 
 interface IChainTvl {
 	tvl: number
@@ -86,7 +86,7 @@ interface IChain extends IChainTvl {
 	users: number | null
 	totalAppRevenue24h: number | null
 	totalAppRevenue30d?: number | null
-	chainAssets: IChainAsset | null
+	chainAssets: RawChainAsset | null
 	bridgedTvl?: number | null
 	childGroups: Record<string, Array<string>> | null
 }
@@ -105,18 +105,8 @@ export interface IChainsByCategoryData {
 	keywords: string
 }
 
-export interface IFormattedChainAssetsSummary {
-	total: string | null
-	ownTokens: string | null
-	canonical: string | null
-	native: string | null
-	thirdParty: string | null
-}
-
-export type ChainAssetsField = IFormattedChainAssetsSummary | IChainAsset | null
-
 export type IFormattedDataWithExtraTvlBase = {
-	chainAssets?: ChainAssetsField
+	chainAssets?: RawChainAsset | null
 	tvl: number
 	tvlPrevDay: number
 	tvlPrevWeek: number

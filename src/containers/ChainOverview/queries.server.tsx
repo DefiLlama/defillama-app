@@ -2,6 +2,7 @@ import { fetchLlamaConfig } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { COINGECKO_KEY, REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
+import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { fetchChainChart } from '~/containers/Chains/api'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
@@ -14,7 +15,7 @@ import {
 	getChainIncentivesFromAggregatedEmissions,
 	getProtocolEmissionsLookupFromAggregated
 } from '~/containers/Incentives/queries'
-import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
+import type { ChainIncentivesSummary, ProtocolEmissionsLookup } from '~/containers/Incentives/types'
 import { fetchChainUsers, fetchChainTransactions, fetchChainNewUsers } from '~/containers/OnchainUsersAndTxs/api'
 import type {
 	IUserDataResponse,
@@ -23,11 +24,15 @@ import type {
 } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
+import { fetchRaises } from '~/containers/Raises/api'
+import type { RawRaisesResponse } from '~/containers/Raises/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
+import type { StablecoinsListResponse } from '~/containers/Stablecoins/api.types'
 import { getStablecoinChainMcapSummary } from '~/containers/Stablecoins/queries.server'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
+import type { ProtocolEmissionWithHistory } from '~/containers/Unlocks/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import {
 	formatNum,
@@ -40,18 +45,8 @@ import {
 } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { fetchRaises } from '../Raises/api'
-import type { RawRaisesResponse } from '../Raises/api.types'
 import type { ChainChartLabels } from './constants'
-import type {
-	IChainAsset,
-	IChainOverviewData,
-	IChildProtocol,
-	ILiteChart,
-	ILiteProtocol,
-	IProtocol,
-	TVL_TYPES
-} from './types'
+import type { IChainOverviewData, IChildProtocol, ILiteChart, ILiteProtocol, IProtocol, TVL_TYPES } from './types'
 import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
@@ -145,23 +140,11 @@ export async function getChainOverviewData({
 			chainStablecoins
 		]: [
 			ILiteChart,
-			{
-				protocols: Array<IProtocol>
-				chains: Array<string>
-				fees: IAdapterChainMetrics | null
-				dexs: IAdapterChainOverview | null
-			},
-			{
-				mcap: number | null
-				change7dUsd: number | null
-				change7d: string | null
-				topToken: { symbol: string; mcap: number }
-				dominance: string | null
-				mcapChartData: Array<[number, number]> | null
-			} | null,
-			any,
+			Awaited<ReturnType<typeof getProtocolsByChain>>,
+			Awaited<ReturnType<typeof getStablecoinChainMcapSummary>>,
+			{ netInflows: number | null } | null,
 			number | null,
-			number | string,
+			number | string | null,
 			number | null,
 			RawRaisesResponse,
 			RawTreasuriesResponse | null,
@@ -171,9 +154,9 @@ export async function getChainOverviewData({
 					market_cap?: { usd?: string | null }
 					fully_diluted_valuation?: { usd?: string | null }
 				}
-			} | null,
-			Record<string, number>,
-			IChainAsset | null,
+			},
+			Record<string, number> | null,
+			RawChainAsset | null,
 			IAdapterChainMetrics | null,
 			IAdapterChainMetrics | null,
 			IAdapterProtocolMetrics | null,
@@ -182,11 +165,11 @@ export async function getChainOverviewData({
 			number | null,
 			Array<[number, number]> | null,
 			Array<[number, number]> | null,
-			Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null,
-			any,
-			any,
+			Array<[number, number]> | null,
+			ProtocolEmissionWithHistory[] | null,
+			ChainIncentivesSummary | null,
 			{ chart: Array<[number, number]>; total30d: number } | null,
-			{ peggedAssets: Array<{ name: string; gecko_id: string; symbol: string }> } | null,
+			StablecoinsListResponse | null,
 			Array<string> | null
 		] = await Promise.all([
 			fetchChainChart<ILiteChart>(chain === 'All' ? undefined : currentChainMetadata.name).catch((err) => {

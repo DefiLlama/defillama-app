@@ -1,5 +1,5 @@
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
-import type { IChainAssets } from '~/containers/ChainOverview/types'
+import type { RawChainsAssetsResponse } from '~/containers/BridgedTVL/api.types'
 import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
@@ -51,7 +51,7 @@ export const getChainsByCategory = async ({
 		}) as Promise<IAdapterChainMetrics | null>,
 		fetchStablecoinAssetsApi(),
 		fetchActiveAddresses().catch(() => ({}) as IActiveAddressesResponse),
-		fetchChainsAssets() as Promise<IChainAssets>,
+		fetchChainsAssets() as Promise<RawChainsAssetsResponse>,
 		fetchNftsVolumeByChain(),
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue', chainMetadata })
 	])

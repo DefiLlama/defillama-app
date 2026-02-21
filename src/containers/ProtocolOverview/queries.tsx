@@ -1,4 +1,5 @@
 import { fetchProtocolLiquidityTokens } from '~/api'
+import type { ProtocolLiquidityToken } from '~/api/types'
 import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
@@ -10,10 +11,11 @@ import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
 import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
-import type { IActiveAddressMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
+import type { IActiveAddressMetrics, IProtocolOnchainMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchOracleMetrics, fetchOracleProtocolChart } from '~/containers/Oracles/api'
+import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ProtocolLite } from '~/containers/Protocols/api.types'
+import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
@@ -27,7 +29,7 @@ import {
 	fetchProtocolTreasuryChart,
 	fetchProtocolTvlChart
 } from './api'
-import type { IProtocolMetricsV2, IProtocolExpenses } from './api.types'
+import type { IProtocolValueChart, IProtocolMetricsV2, IProtocolExpenses } from './api.types'
 import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
 import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
 import type { ProtocolChartsLabels } from './constants'
@@ -103,6 +105,10 @@ export const getProtocolMetricFlags = ({
 	}
 }
 
+type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
+type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
+type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
+
 export const getProtocolOverviewPageData = async ({
 	protocolId,
 	currentProtocolMetadata,
@@ -117,31 +123,6 @@ export const getProtocolOverviewPageData = async ({
 	const displayName = currentProtocolMetadata.displayName ?? ''
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
 	const isOracleProtocol = Boolean(oracleProtocolName)
-
-	type IAdapterResult = ReturnType<typeof formatAdapterData>
-	type ITreasuryResult = {
-		majors: number | null
-		stablecoins: number | null
-		ownTokens: number | null
-		others: number | null
-		total: number | null
-	} | null
-	type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
-	type IIncentivesResult = IProtocolOverviewPageData['incentives']
-	type IProtocolTvlChartResult = Array<[number, number]>
-	type IAdjustedSupplyResult = number | null
-	type IUsersResult = {
-		activeUsers: number | null
-		newUsers: number | null
-		transactions: number | null
-		gasUsd: number | null
-	} | null
-	type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
-	type ILiquidityInfoItem = { id: string; tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }> }
-	type ILiteProtocolsResult = { protocols: Array<ProtocolLite> }
-	type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
-	type IOracleTvsResult = Record<string, number> | null
-	type IOracleChartResult = Array<[number, number]> | null
 
 	const [
 		protocolData,
@@ -176,35 +157,35 @@ export const getProtocolOverviewPageData = async ({
 		oracleTvs
 	]: [
 		IProtocolDataExtended | null,
-		IProtocolTvlChartResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		ITreasuryResult,
+		IProtocolValueChart,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		IProtocolOverviewPageData['treasury'],
 		IYieldsDataResult,
 		IArticle[],
-		IIncentivesResult,
-		IAdjustedSupplyResult,
-		IUsersResult,
+		IProtocolOverviewPageData['incentives'],
+		number | null,
+		IProtocolOnchainMetrics | null,
 		IProtocolExpenses | null,
 		IYieldsConfigResult,
-		Array<ILiquidityInfoItem>,
-		ILiteProtocolsResult,
-		Array<IHackApiItem>,
+		ProtocolLiquidityToken[],
+		ProtocolsResponse,
+		IHackApiItem[],
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
-		IOracleChartResult,
-		IOracleTvsResult
+		IOracleProtocolChart | null,
+		IProtocolOverviewPageData['oracleTvs']
 	] = await Promise.all([
 		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
 			async (data): Promise<IProtocolDataExtended | null> => {
@@ -349,7 +330,7 @@ export const getProtocolOverviewPageData = async ({
 						(res: Array<{ id: string; tokenBreakdowns?: Record<string, number | null> }>) =>
 							res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null
 					)
-					.then((res): ITreasuryResult => {
+					.then((res): IProtocolOverviewPageData['treasury'] => {
 						if (!res) return null
 						return {
 							majors: res.majors ?? null,
@@ -396,12 +377,12 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.activeUsers && protocolId
 			? fetchActiveAddresses()
 					.then((data) => data?.[protocolId] ?? null)
-					.then((data: IActiveAddressMetrics | null) => {
+					.then((data: IActiveAddressMetrics | null): IProtocolOnchainMetrics | null => {
 						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
 							? {
 									activeUsers: data.users?.value ?? null,
 									newUsers: data.newUsers?.value ?? null,
-									transactions: data.txs?.value ?? null,
+									transactions: data.txs?.value ? Number(data.txs.value) : null,
 									gasUsd: data.gasUsd?.value ?? null
 								}
 							: null
@@ -425,7 +406,7 @@ export const getProtocolOverviewPageData = async ({
 					return []
 				})
 			: [],
-		fetchProtocols().catch(() => ({ protocols: [] })),
+		fetchProtocols().catch((): ProtocolsResponse => ({ protocols: [], chains: [], parentProtocols: [] })),
 		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)
@@ -492,7 +473,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const tokenPools =
 		yieldsData?.data && yieldsConfig
-			? (liquidityInfo?.find((p: ILiquidityInfoItem) => p.id === protocolData.id)?.tokenPools ?? [])
+			? (liquidityInfo?.find((p: ProtocolLiquidityToken) => p.id === protocolData.id)?.tokenPools ?? [])
 			: []
 
 	const liquidityAggregated = tokenPools.reduce(

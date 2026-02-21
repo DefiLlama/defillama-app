@@ -4,7 +4,7 @@ interface RawChainAssetCategory {
 }
 
 export interface RawChainAsset {
-	canonical?: RawChainAssetCategory
+	canonical: RawChainAssetCategory
 	ownTokens?: RawChainAssetCategory
 	native?: RawChainAssetCategory
 	thirdParty?: RawChainAssetCategory

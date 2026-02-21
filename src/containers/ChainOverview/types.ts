@@ -74,7 +74,7 @@ export interface IChainOverviewData {
 		chart: Array<[number, number]> | null
 		change7d: string | null
 	} | null
-	rwaTvlChartData: Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null
+	rwaTvlChartData: Array<[number, number]> | null
 	allChains: Array<{ label: string; to: string }>
 	unlocks: {
 		chart: Array<[number, Record<string, number>]>
@@ -216,31 +216,8 @@ export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
 }
 
-export interface IChainAsset {
-	canonical: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	ownTokens?: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	native?: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	thirdParty?: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	total: {
-		total: string
-		breakdown: Record<string, string>
-	}
-}
-
 export interface IFormattedChainAsset {
-	canonical: {
+	canonical?: {
 		total: number
 		breakdown: Record<string, number>
 	}
@@ -260,8 +237,4 @@ export interface IFormattedChainAsset {
 		total: number
 		breakdown: Record<string, number>
 	}
-}
-
-export interface IChainAssets {
-	[chain: string]: IChainAsset
 }
