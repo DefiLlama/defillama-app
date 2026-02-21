@@ -113,7 +113,7 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 					variant="filter-responsive"
 				/>
 			)}
-			csvFileName="total-value-lost-in-hacks.csv"
+			csvFileName="total-value-lost-in-hacks"
 			sortingState={DEFAULT_SORTING_STATE}
 		/>
 	)

@@ -250,7 +250,7 @@ export const OracleOverview = ({
 					placeholder="Search protocols..."
 					header="Protocols"
 					sortingState={DEFAULT_PROTOCOL_TABLE_SORTING_STATE}
-					csvFileName="oracle-protocols.csv"
+					csvFileName="oracle-protocols"
 					compact
 				/>
 			</Suspense>

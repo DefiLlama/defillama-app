@@ -35,7 +35,7 @@ const NetProjectTreasuries = (props) => {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				header="Protocol Rankings"
-				csvFileName="net-project-treasury.csv"
+				csvFileName="net-project-treasury"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

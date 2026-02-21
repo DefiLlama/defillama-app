@@ -245,7 +245,7 @@ export const ForksOverview = ({
 							placeholder="Search protocols..."
 							columnToSearch="name"
 							header="Protocol Rankings"
-							csvFileName="forks-overview.csv"
+							csvFileName="forks-overview"
 							sortingState={DEFAULT_SORTING_STATE}
 						/>
 					</React.Suspense>

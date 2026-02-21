@@ -251,7 +251,7 @@ export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'bridge-chains.csv' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'bridge-chains' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

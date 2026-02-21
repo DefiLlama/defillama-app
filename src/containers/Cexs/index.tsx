@@ -94,7 +94,7 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 				customFilters={() => (
 					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
 				)}
-				csvFileName="cex-transparency.csv"
+				csvFileName="cex-transparency"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

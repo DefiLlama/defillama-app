@@ -170,7 +170,7 @@ const bridgesColumnSizes: ColumnSizesByBreakpoint = {
 }
 
 export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTableProps>(function BridgesTable(
-	{ data, searchValue = '', csvFileName = 'bridges.csv' },
+	{ data, searchValue = '', csvFileName = 'bridges' },
 	ref
 ) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])

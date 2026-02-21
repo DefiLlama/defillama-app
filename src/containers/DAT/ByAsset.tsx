@@ -117,7 +117,7 @@ export function DATByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				csvFileName={`${metadata.name}-treasury-holdings.csv`}
+				csvFileName={`${metadata.name}-treasury-holdings`}
 			/>
 		</>
 	)

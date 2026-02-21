@@ -268,7 +268,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 					columns={categoriesColumns}
 					columnToSearch="name"
 					placeholder="Search category..."
-					csvFileName="protocol-categories.csv"
+					csvFileName="protocol-categories"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>

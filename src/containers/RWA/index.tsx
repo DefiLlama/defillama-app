@@ -697,7 +697,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								) : null}
 								<ChartPngExportButton
 									chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
-									filename={chartView === 'treemap' ? treemapChartFilename : `${pieChartFilename}.png`}
+									filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
 									title={exportChartTitle}
 								/>
 							</div>

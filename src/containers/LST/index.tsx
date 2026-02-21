@@ -438,7 +438,7 @@ export const LSTOverview = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 				header="Liquid Staking Protocols"
-				csvFileName="liquid-staking.csv"
+				csvFileName="liquid-staking"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

@@ -138,7 +138,7 @@ export function RWAAssetsTable({
 					prepareCsv={() =>
 						prepareTableCsv({
 							instance,
-							filename: `rwa-assets${selectedChain !== 'All' ? `-${selectedChain.toLowerCase()}` : ''}.csv`
+							filename: `rwa-assets${selectedChain !== 'All' ? `-${selectedChain.toLowerCase()}` : ''}`
 						})
 					}
 					smol

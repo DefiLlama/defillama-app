@@ -137,7 +137,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					['Date', 'Market Cap'],
 					...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Mcap ?? ''])
 				]
-				filename = `stablecoins-${chainSlug}-total-mcap.csv`
+				filename = `stablecoins-${chainSlug}-total-mcap`
 				break
 			case 'tokenMcaps':
 				rows = [
@@ -147,7 +147,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						...peggedAssetNames.map((name) => el[name] ?? '')
 					])
 				]
-				filename = `stablecoins-${chainSlug}-token-mcaps.csv`
+				filename = `stablecoins-${chainSlug}-token-mcaps`
 				break
 			case 'dominance':
 				rows = [
@@ -157,14 +157,14 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						...peggedAssetNames.map((name) => el[name] ?? '')
 					])
 				]
-				filename = `stablecoins-${chainSlug}-dominance.csv`
+				filename = `stablecoins-${chainSlug}-dominance`
 				break
 			case 'usdInflows':
 				rows = [
 					['Date', 'USD Inflows'],
 					...filteredChartData.usdInflows.map((el: any) => [toNiceCsvDate(el.date), el.Inflows ?? ''])
 				]
-				filename = `stablecoins-${chainSlug}-usd-inflows.csv`
+				filename = `stablecoins-${chainSlug}-usd-inflows`
 				break
 			case 'tokenInflows':
 				rows = [
@@ -174,11 +174,11 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						...tokenInflowNames.map((name) => el[name] ?? '')
 					])
 				]
-				filename = `stablecoins-${chainSlug}-token-inflows.csv`
+				filename = `stablecoins-${chainSlug}-token-inflows`
 				break
 			case 'pie':
 				rows = [['Token', 'Market Cap'], ...chainsCirculatingValues.map((el: any) => [el.name, el.value])]
-				filename = `stablecoins-${chainSlug}-pie.csv`
+				filename = `stablecoins-${chainSlug}-pie`
 				break
 		}
 

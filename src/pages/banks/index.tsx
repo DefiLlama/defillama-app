@@ -95,7 +95,7 @@ const Banks = () => {
 				columns={banksTableColumns}
 				placeholder="Search banks..."
 				columnToSearch={'1'}
-				csvFileName="banks.csv"
+				csvFileName="banks"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

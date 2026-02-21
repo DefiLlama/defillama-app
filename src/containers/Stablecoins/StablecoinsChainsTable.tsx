@@ -239,7 +239,7 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 					labelType="smol"
 					variant="filter-responsive"
 				/>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-chains.csv' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-chains' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

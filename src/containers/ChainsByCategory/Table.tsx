@@ -159,7 +159,7 @@ export function ChainsByCategoryTable({
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
-					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'defillama-chains.csv' })} smol />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'defillama-chains' })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />

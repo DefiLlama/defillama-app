@@ -81,7 +81,7 @@ function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises.csv' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises' })} smol />
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>

@@ -79,7 +79,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 					/>
 				</label>
 
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks.csv' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>

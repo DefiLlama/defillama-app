@@ -86,7 +86,7 @@ export function RecentlyListedProtocolsTable({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
-	const csvFileName = router.pathname === '/airdrops' ? 'airdrops.csv' : 'protocols.csv'
+	const csvFileName = router.pathname === '/airdrops' ? 'airdrops' : 'protocols'
 
 	const columns = router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
 

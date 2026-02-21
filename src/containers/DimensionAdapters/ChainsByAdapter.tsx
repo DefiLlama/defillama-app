@@ -140,7 +140,7 @@ export function ChainsByAdapter(props: IProps) {
 						/>
 					</label>
 					<CSVDownloadButton
-						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-chains-protocols.csv` })}
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-chains-protocols` })}
 						smol
 					/>
 				</div>

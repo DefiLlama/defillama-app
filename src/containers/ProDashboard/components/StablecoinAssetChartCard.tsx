@@ -108,7 +108,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 					['Date', 'Circulating'],
 					...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Circulating ?? ''])
 				]
-				filename = `${assetSlug}-total-circulating.csv`
+				filename = `${assetSlug}-total-circulating`
 				break
 			case 'chainMcaps':
 				rows = [
@@ -118,7 +118,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						...chainsUnique.map((chain) => el[chain] ?? '')
 					])
 				]
-				filename = `${assetSlug}-by-chain.csv`
+				filename = `${assetSlug}-by-chain`
 				break
 			case 'chainDominance':
 				rows = [
@@ -128,11 +128,11 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						...chainsUnique.map((chain) => el[chain] ?? '')
 					])
 				]
-				filename = `${assetSlug}-chain-dominance.csv`
+				filename = `${assetSlug}-chain-dominance`
 				break
 			case 'chainPie':
 				rows = [['Chain', 'Circulating'], ...chainsCirculatingValues.map((el: any) => [el.name, el.value])]
-				filename = `${assetSlug}-chain-pie.csv`
+				filename = `${assetSlug}-chain-pie`
 				break
 		}
 

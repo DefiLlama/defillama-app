@@ -102,7 +102,7 @@ export default function Tokens() {
 									prepareCsv={() =>
 										prepareTableCsv({
 											instance: tableInstance,
-											filename: `protocols-by-token-${tokenSymbol}.csv`
+											filename: `protocols-by-token-${tokenSymbol}`
 										})
 									}
 									smol

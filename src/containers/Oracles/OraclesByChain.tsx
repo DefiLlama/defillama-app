@@ -202,7 +202,7 @@ export const OraclesByChain = ({
 					columnToSearch="name"
 					placeholder="Search oracles..."
 					header="Oracle Rankings"
-					csvFileName="oracle-rankings.csv"
+					csvFileName="oracle-rankings"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>

@@ -83,7 +83,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 			return [toNiceCsvDate(Math.floor((item.timestamp as number) / 1e3)), ...stacks.map((stack) => item[stack] ?? '')]
 		})
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		const filename = `${protocolName || protocol}-unlock-schedule-${resolvedDataType}.csv`
+		const filename = `${protocolName || protocol}-unlock-schedule-${resolvedDataType}`
 		download(filename, csvContent)
 	}, [hasChartData, dataset.source, stacks, protocolName, protocol, resolvedDataType])
 

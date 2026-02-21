@@ -334,7 +334,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 							<span>({transactions.length.toLocaleString()}) transactions</span>
 						</div>
 					)}
-					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}.csv`}
+					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}`}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
 			)}

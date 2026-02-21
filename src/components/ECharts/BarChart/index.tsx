@@ -260,7 +260,7 @@ export default function BarChart({
 			}
 		}
 		const Mytitle = title ? slug(title) : 'data'
-		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}`
 		return { filename, rows }
 	}
 

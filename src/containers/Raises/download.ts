@@ -38,5 +38,5 @@ export const prepareRaisesCsv = ({ raises }: { raises: IRaise[] }) => {
 		])
 	}
 
-	return { filename: `raises.csv`, rows }
+	return { filename: `raises`, rows }
 }

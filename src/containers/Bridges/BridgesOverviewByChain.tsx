@@ -230,12 +230,12 @@ export function BridgesOverviewByChain({
 
 	const prepareActiveTabCsv = React.useCallback(() => {
 		if (activeTab === 'largeTxs') {
-			return largeTxsTableRef.current?.prepareCsv() ?? { filename: 'bridge-transactions.csv', rows: [] }
+			return largeTxsTableRef.current?.prepareCsv() ?? { filename: 'bridge-transactions', rows: [] }
 		}
 
 		return (
 			bridgesTableRef.current?.prepareCsv() ?? {
-				filename: activeTab === 'messaging' ? 'messaging-protocols.csv' : 'bridges.csv',
+				filename: activeTab === 'messaging' ? 'messaging-protocols' : 'bridges',
 				rows: []
 			}
 		)
@@ -427,7 +427,7 @@ export function BridgesOverviewByChain({
 						ref={bridgesTableRef}
 						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
 						searchValue={deferredSearchValue}
-						csvFileName={activeTab === 'messaging' ? 'messaging-protocols.csv' : 'bridges.csv'}
+						csvFileName={activeTab === 'messaging' ? 'messaging-protocols' : 'bridges'}
 					/>
 				)}
 			</div>

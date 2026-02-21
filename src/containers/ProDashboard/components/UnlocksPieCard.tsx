@@ -66,7 +66,7 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const chartTitle = chartType === 'allocation' ? 'Allocation' : 'Locked/Unlocked %'
 	const valueSymbol = chartType === 'locked-unlocked' ? '%' : '$'
 	const hasChartData = chartData.length > 0
-	const csvFileName = `${protocolName || protocol}-unlocks-${chartType}.csv`
+	const csvFileName = `${protocolName || protocol}-unlocks-${chartType}`
 
 	const handleCsvExport = useCallback(() => {
 		if (!hasChartData) return

@@ -403,7 +403,7 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-assets.csv' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-assets' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

@@ -521,6 +521,9 @@ export function ChartPngExportButton({
 		if (!safeFilename) {
 			safeFilename = 'chart'
 		}
+		if (safeFilename.toLowerCase().endsWith('.png')) {
+			safeFilename = safeFilename.slice(0, -4)
+		}
 
 		const doExport = async () => {
 			const _chartInstance = chartInstance()

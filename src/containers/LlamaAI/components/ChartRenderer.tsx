@@ -317,7 +317,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				: adaptedChart.data.length > 0
 
 		const prepareCsv = () => {
-			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}`
 			const isTimeSeries = config.axes.x.type === 'time'
 			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
 			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'

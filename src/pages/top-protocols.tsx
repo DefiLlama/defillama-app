@@ -234,7 +234,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							variant="filter-responsive"
 						/>
 						<CSVDownloadButton
-							prepareCsv={() => prepareTableCsv({ instance: table, filename: 'top-protocols.csv' })}
+							prepareCsv={() => prepareTableCsv({ instance: table, filename: 'top-protocols' })}
 							smol
 						/>
 					</div>

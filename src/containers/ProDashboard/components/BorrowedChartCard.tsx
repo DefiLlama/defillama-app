@@ -95,7 +95,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						...chainsUnique.map((c) => el[c] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-borrowed-by-chain.csv`
+				filename = `${protocolSlug}-borrowed-by-chain`
 				break
 			case 'tokenBorrowedUsd':
 				rows = [
@@ -105,11 +105,11 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-borrowed-by-token-usd.csv`
+				filename = `${protocolSlug}-borrowed-by-token-usd`
 				break
 			case 'tokensBorrowedPie':
 				rows = [['Token', 'Value'], ...(resolvedTokenBreakdownPieChart.map((el: any) => [el.name, el.value]) ?? [])]
-				filename = `${protocolSlug}-borrowed-tokens-breakdown.csv`
+				filename = `${protocolSlug}-borrowed-tokens-breakdown`
 				break
 			case 'tokenBorrowedRaw':
 				rows = [
@@ -119,7 +119,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-borrowed-by-token-raw.csv`
+				filename = `${protocolSlug}-borrowed-by-token-raw`
 				break
 		}
 

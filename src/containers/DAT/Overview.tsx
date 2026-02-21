@@ -157,7 +157,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				csvFileName="digital-asset-treasuries.csv"
+				csvFileName="digital-asset-treasuries"
 			/>
 		</>
 	)

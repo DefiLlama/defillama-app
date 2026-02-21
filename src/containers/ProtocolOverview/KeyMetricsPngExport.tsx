@@ -276,7 +276,7 @@ export function KeyMetricsPngExportButton({
 			} catch {}
 
 			const dataUrl = canvas.toDataURL('image/png')
-			const filename = `${protocolName.toLowerCase().replace(/\s+/g, '-')}-key-metrics.png`
+			const filename = `${protocolName.toLowerCase().replace(/\s+/g, '-')}-key-metrics`
 			downloadDataURL(filename, dataUrl)
 		}
 		try {

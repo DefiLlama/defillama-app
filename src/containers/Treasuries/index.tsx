@@ -30,7 +30,7 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 			placeholder={'Search projects...'}
 			header={'Treasuries'}
 			sortingState={sortingState}
-			csvFileName="treasuries.csv"
+			csvFileName="treasuries"
 		/>
 	)
 }

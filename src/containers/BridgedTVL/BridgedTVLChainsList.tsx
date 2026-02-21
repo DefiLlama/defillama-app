@@ -42,7 +42,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 				columns={bridgedColumns}
 				placeholder={'Search chains...'}
 				columnToSearch={'name'}
-				csvFileName="bridged-chains.csv"
+				csvFileName="bridged-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

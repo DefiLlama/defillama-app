@@ -60,7 +60,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 
 	const prepareCsv = () => {
 		const table = tableRef.current?.querySelector('table')
-		if (!table) return { filename: 'table.csv', rows: [] }
+		if (!table) return { filename: 'table', rows: [] }
 
 		const rows: Array<Array<string>> = []
 		const tableRows = Array.from(table.querySelectorAll('tr'))
@@ -71,7 +71,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 		}
 
 		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-		return { filename: `table-${timestamp}.csv`, rows }
+		return { filename: `table-${timestamp}`, rows }
 	}
 
 	return (

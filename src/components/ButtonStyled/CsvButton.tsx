@@ -10,7 +10,7 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
-import { download } from '~/utils'
+import { downloadCSV } from '~/utils'
 import { slug } from '~/utils'
 
 const SubscribeProModal = lazy(() =>
@@ -145,14 +145,6 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		async (forceLoading = false) => {
 			const shouldSetLoading = forceLoading || !!prepareCsv
 			if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: true })
-			const escapeCell = (value: string | number | boolean | null | undefined) => {
-				if (value == null) return ''
-				const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
-				if (str.includes(',') || str.includes('"')) {
-					return `"${str.replace(/"/g, '""')}"`
-				}
-				return str
-			}
 
 			try {
 				if (onClickHandler) {
@@ -165,7 +157,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 					const { filename, rows } = prepareCsv()
 					const normalizedFilename = normalizeCsvFilename(filename)
 
-					download(normalizedFilename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+					downloadCSV(normalizedFilename, rows, { addTimestamp: false })
 					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}

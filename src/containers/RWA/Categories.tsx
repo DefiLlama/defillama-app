@@ -94,7 +94,7 @@ export function RWACategoriesTable({
 				columnToSearch="category"
 				header="Categories"
 				columnSizes={columnSizes}
-				csvFileName="rwa-categories.csv"
+				csvFileName="rwa-categories"
 				sortingState={[{ id: 'onChainMcap', desc: true }]}
 			/>
 		</div>

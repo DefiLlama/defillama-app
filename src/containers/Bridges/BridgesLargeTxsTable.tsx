@@ -168,7 +168,7 @@ const largeTxsColumnSizes: ColumnSizesByBreakpoint = {
 }
 
 export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle, BridgesLargeTxsTableProps>(
-	function BridgesLargeTxsTable({ data, csvFileName = 'bridge-transactions.csv' }, ref) {
+	function BridgesLargeTxsTable({ data, csvFileName = 'bridge-transactions' }, ref) {
 		const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
 		const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 		const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})

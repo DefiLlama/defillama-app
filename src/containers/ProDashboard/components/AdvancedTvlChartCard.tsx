@@ -182,7 +182,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		switch (chartType) {
 			case 'tvl':
 				rows = [['Date', 'TVL'], ...(filteredTvlData.map((el) => [toNiceCsvDate(el.date), el.TVL]) ?? [])]
-				filename = `${protocolSlug}-tvl.csv`
+				filename = `${protocolSlug}-tvl`
 				break
 			case 'chainsTvl':
 				rows = [
@@ -192,7 +192,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...chainsUnique.map((c) => el[c] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-tvl-by-chains.csv`
+				filename = `${protocolSlug}-tvl-by-chains`
 				break
 			case 'tokenValuesUsd':
 				rows = [
@@ -202,11 +202,11 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-token-values-usd.csv`
+				filename = `${protocolSlug}-token-values-usd`
 				break
 			case 'tokensPie':
 				rows = [['Token', 'Value'], ...(resolvedTokenBreakdownPieChart.map((el: any) => [el.name, el.value]) ?? [])]
-				filename = `${protocolSlug}-tokens-breakdown.csv`
+				filename = `${protocolSlug}-tokens-breakdown`
 				break
 			case 'tokenBalances':
 				rows = [
@@ -216,7 +216,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-token-balances.csv`
+				filename = `${protocolSlug}-token-balances`
 				break
 			case 'usdInflows':
 				rows = [
@@ -226,7 +226,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						val ?? ''
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-usd-inflows.csv`
+				filename = `${protocolSlug}-usd-inflows`
 				break
 			case 'tokenInflows':
 				rows = [
@@ -236,7 +236,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-token-inflows.csv`
+				filename = `${protocolSlug}-token-inflows`
 				break
 		}
 

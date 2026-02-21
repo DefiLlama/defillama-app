@@ -460,7 +460,7 @@ export function AdapterByChain(props: IProps) {
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
 					<CSVDownloadButton
-						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols.csv` })}
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols` })}
 						smol
 					/>
 				</div>

@@ -383,7 +383,7 @@ function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }
 		<div>
 			<div className="flex justify-end p-3">
 				<CSVDownloadButton
-					prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-protocols.csv' })}
+					prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-protocols' })}
 					smol
 				/>
 			</div>
@@ -414,7 +414,7 @@ function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] 
 		<div>
 			<div className="flex justify-end p-3">
 				<CSVDownloadButton
-					prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-positions.csv' })}
+					prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-positions' })}
 					smol
 				/>
 			</div>

@@ -223,7 +223,7 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises.csv' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises' })} smol />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

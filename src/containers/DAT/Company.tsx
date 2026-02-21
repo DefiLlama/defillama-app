@@ -307,7 +307,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 				columns={columns}
 				placeholder="Search assets"
 				columnToSearch="assetName"
-				csvFileName={`${props.name}-transactions.csv`}
+				csvFileName={`${props.name}-transactions`}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
