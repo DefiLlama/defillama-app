@@ -82,7 +82,7 @@ const getNonce = async (address: string) => {
 		})
 }
 
-type CreateSiweMessage = typeof import('viem/siwe')['createSiweMessage']
+type CreateSiweMessage = (typeof import('viem/siwe'))['createSiweMessage']
 let createSiweMessagePromise: Promise<CreateSiweMessage> | null = null
 
 const loadCreateSiweMessage = async (): Promise<CreateSiweMessage> => {
@@ -428,7 +428,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			const { password, identity, impersonate } = await response.json()
 
 			if (impersonate) {
-				await pb.authStore.save(impersonate.authStore.baseToken, impersonate.authStore.baseModel)
+				await pb.authStore.save(impersonate.token, impersonate.record)
 			} else {
 				await pb.collection('users').authWithPassword(identity, password)
 			}
