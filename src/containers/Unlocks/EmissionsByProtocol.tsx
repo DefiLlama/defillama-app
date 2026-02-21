@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -138,10 +138,14 @@ export function EmissionsByProtocol({
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 }) {
+	const router = useRouter()
+	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
+
 	return (
 		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer
+				key={chartKey}
 				data={data}
 				isEmissionsPage={isEmissionsPage}
 				initialTokenMarketData={initialTokenMarketData}
@@ -378,9 +382,6 @@ const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K
 	return grouped
 }
 
-const areArraysEqual = (left: string[], right: string[]) =>
-	left.length === right.length && left.every((value, index) => value === right[index])
-
 const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string) => {
 	let total = 0
 	for (const [key, value] of Object.entries(data)) {
@@ -451,23 +452,6 @@ const ChartContainer = ({
 	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
 	const pieChartDataRaw = data.pieChartData?.[dataType]
 	const hallmarks = data.hallmarks?.[dataType] ?? []
-
-	// Sync selectedCategories when data source changes (e.g., dataType switch or allocation mode toggle)
-	// Mirrors the lazy initializer logic above
-	useEffect(() => {
-		setSelectedCategories((current) => {
-			let newCategories: string[]
-			if (allocationMode === 'standard' && data.categoriesBreakdown) {
-				newCategories = Object.keys(data.categoriesBreakdown)
-			} else if (categoriesFromData.length > 0) {
-				newCategories = categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
-			} else {
-				return current
-			}
-			if (current.length !== newCategories.length) return newCategories
-			return areArraysEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
-		})
-	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
@@ -1115,6 +1099,8 @@ export const UnlocksCharts = ({
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
 }) => {
+	const router = useRouter()
+	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
 	const shouldFetch = !initialData
 	const { data = null, isLoading, error } = useGetProtocolEmissions(shouldFetch ? slug(protocolName) : null)
 
@@ -1137,6 +1123,7 @@ export const UnlocksCharts = ({
 
 	return (
 		<ChartContainer
+			key={chartKey}
 			data={resolvedData}
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}

@@ -126,7 +126,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		totalMessages?: number
 	}>({ hasMore: false, isLoadingMore: false })
 
-	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
+	const hasRestoredSessionRef = useRef<string | null>(null)
 	// New: Items-based streaming state (replaces 15+ streaming-related states)
 	const [streamingItems, setStreamingItems] = useState<StreamItem[]>([])
 	const [streamingError, setStreamingError] = useState('')
@@ -232,23 +232,25 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 	useEffect(() => {
 		sessionIdRef.current = sessionId
+		shouldAutoScrollRef.current = true
+		isAutoScrollingRef.current = true
 	}, [sessionId])
 
-	useEffect(() => {
-		if (initialSessionId && !sessionId) {
-			resetScrollState()
-			setSessionId(initialSessionId)
-			setHasRestoredSession(null)
-		}
-	}, [initialSessionId, sessionId, resetScrollState])
+	const [prevSharedSession, setPrevSharedSession] = useState<SharedSession | undefined>(undefined)
 
-	useEffect(() => {
+	if (initialSessionId && !sessionId) {
+		setShowScrollToBottom(false)
+		setSessionId(initialSessionId)
+	}
+
+	if (sharedSession !== prevSharedSession) {
+		setPrevSharedSession(sharedSession)
 		if (sharedSession) {
-			resetScrollState()
+			setShowScrollToBottom(false)
 			setMessages(attachClientIds(sharedSession.messages))
 			setSessionId(sharedSession.session.sessionId)
 		}
-	}, [sharedSession, resetScrollState, attachClientIds])
+	}
 
 	const reconnectToStream = useCallback(
 		(sid: string, initialContent: string) => {
@@ -321,14 +323,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			user &&
 			!sharedSession &&
 			!readOnly &&
-			hasRestoredSession !== sessionId &&
+			hasRestoredSessionRef.current !== sessionId &&
 			!newlyCreatedSessionsRef.current.has(sessionId) &&
 			!isStreaming
 		) {
-			resetScrollState()
-			setHasRestoredSession(sessionId)
+			hasRestoredSessionRef.current = sessionId
+			shouldAutoScrollRef.current = true
+			isAutoScrollingRef.current = true
 			restoreSession(sessionId)
 				.then((result: any) => {
+					setShowScrollToBottom(false)
 					setMessages(attachClientIds(result.messages))
 					setPaginationState(result.pagination)
 
@@ -359,9 +363,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		user,
 		sharedSession,
 		readOnly,
-		hasRestoredSession,
 		restoreSession,
-		resetScrollState,
 		isStreaming,
 		reconnectToStream,
 		attachClientIds,
@@ -464,8 +466,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					newlyCreatedSessionsRef.current.add(newSessionId)
 					setSessionId(newSessionId)
 					sessionIdRef.current = newSessionId
-					// Mark as restored to prevent restoration after streaming completes
-					setHasRestoredSession(newSessionId)
+				// Mark as restored to prevent restoration after streaming completes
+				hasRestoredSessionRef.current = newSessionId
 				},
 				onTitle: (title) => {
 					updateSessionTitle({ sessionId: currentSessionId, title })
@@ -801,7 +803,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		setSessionId(null)
-		setHasRestoredSession(null)
+		hasRestoredSessionRef.current = null
 		newlyCreatedSessionsRef.current.clear()
 		setPrompt('')
 		resetPrompt()
@@ -835,7 +837,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			setSessionId(selectedSessionId)
-			setHasRestoredSession(selectedSessionId)
+			hasRestoredSessionRef.current = selectedSessionId
 			setMessages(attachClientIds(data.messages))
 			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 			setPrompt('')
