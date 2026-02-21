@@ -1,16 +1,5 @@
-import { buildLiquidationsDataUrl, fetchLiquidationsDataAtTimestamp } from './api'
+import { fetchLiquidationsDataAtTimestamp } from './api'
 import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
-
-/**
- * Format the URL to the liquidations data payload
- *
- * @param symbol The symbol of the asset to fetch liquidations for
- * @param timestamp UNIX timestamp in **seconds**
- * @returns The URL to the liquidations data payload
- */
-export const getDataUrl = (symbol: string, timestamp: number) => {
-	return buildLiquidationsDataUrl(symbol, timestamp)
-}
 
 // making aliases so the hints are more readable
 type Address = string
@@ -112,7 +101,7 @@ export interface LiquidationsData {
 
 export const getLiquidationsCsvData = async (symbol: string) => {
 	const now = Math.round(Date.now() / 1000) // in seconds
-	const data = (await fetchLiquidationsDataAtTimestamp(symbol, now)) as LiquidationsData
+	const data = await fetchLiquidationsDataAtTimestamp(symbol, now)
 
 	const timestamp = data.time
 	const positions = data.positions

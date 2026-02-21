@@ -6,11 +6,12 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { getNDistinctColors } from '~/utils'
+import { getNDistinctColors, slug } from '~/utils'
 import { parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
-import { fetchProtocol } from './api'
+import type { RawProtocolResponse } from './api.types'
 import type { CompareProtocolsProps } from './types'
 
 const MultiSeriesChart2 = React.lazy(
@@ -33,7 +34,13 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 	const results = useQueries({
 		queries: selectedProtocols.map((protocol) => ({
 			queryKey: ['protocol-to-compare', protocol],
-			queryFn: () => fetchProtocol(protocol),
+			queryFn: async () => {
+				const protocolData = await fetchProtocolBySlug<RawProtocolResponse>(slug(protocol))
+				return {
+					protocolData,
+					protocolName: protocolData.name
+				}
+			},
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
 			retry: 0

@@ -1,6 +1,6 @@
 import { toStrikeTvl } from '~/containers/ChainOverview/utils'
 import { fetchProtocols } from '~/containers/Protocols/api'
-import type { ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
+import type { ProtocolLite } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
 import {
@@ -229,7 +229,7 @@ export async function getOracleDetailPageData({
 	if (canonicalChain) {
 		const [fetchedOracleChainBreakdown, { protocols: fetchedProtocols }] = await Promise.all([
 			fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
-			fetchProtocols() as Promise<ProtocolsResponse>
+			fetchProtocols()
 		])
 		protocols = fetchedProtocols
 		chartData = fetchedOracleChainBreakdown.reduce<OracleChartData>((acc, dayData) => {
@@ -244,7 +244,7 @@ export async function getOracleDetailPageData({
 	} else {
 		const [oracleChart, { protocols: fetchedProtocols }] = await Promise.all([
 			fetchOracleProtocolChart({ protocol: canonicalOracle }),
-			fetchProtocols() as Promise<ProtocolsResponse>
+			fetchProtocols()
 		])
 		protocols = fetchedProtocols
 		chartData =

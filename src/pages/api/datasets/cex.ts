@@ -30,17 +30,17 @@ export interface ICexItem {
 
 export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 	const nowSec = Math.floor(Date.now() / 1000)
-	const hour24ms = nowSec - 24 * 60 * 60
-	const hour7dms = nowSec - 7 * 24 * 60 * 60
-	const hour1mms = nowSec - 30 * 24 * 60 * 60
+	const hour24Sec = nowSec - 24 * 60 * 60
+	const hour7dSec = nowSec - 7 * 24 * 60 * 60
+	const hour30dSec = nowSec - 30 * 24 * 60 * 60
 
 	let spot = null
 	let derivs = null
 	let btcPrice = 0
-	let cexList = null
+	let cexList: ICexItem[] = []
 
 	try {
-		const [spotData, derivsData, priceData, cexData] = await Promise.all([
+		const [spotData, derivsData, priceData] = await Promise.all([
 			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
 				headers: {
 					'x-cg-pro-api-key': COINGECKO_KEY
@@ -51,16 +51,19 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
-			fetchCoinPrices(['coingecko:bitcoin']),
-			fetchCexs()
+			fetchCoinPrices(['coingecko:bitcoin'])
 		])
-
 		spot = spotData
 		derivs = derivsData
 		btcPrice = priceData['coingecko:bitcoin']?.price || 0
-		cexList = cexData.cexs
 	} catch (error) {
 		console.log('Error fetching CoinGecko data:', error)
+	}
+	try {
+		const cexData = await fetchCexs()
+		cexList = cexData.cexs || []
+	} catch (error) {
+		console.log('Error fetching CEX list:', error)
 	}
 
 	const cexsWithData = await Promise.all(
@@ -72,9 +75,9 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 			try {
 				const [protocolData, inflows24h, inflows7d, inflows1m] = await Promise.all([
 					fetchProtocolBySlug<{ chainTvls?: IChainTvl }>(c.slug),
-					fetchCexInflows(c.slug, Number(hour24ms), nowSec, c.coin ?? ''),
-					fetchCexInflows(c.slug, Number(hour7dms), nowSec, c.coin ?? ''),
-					fetchCexInflows(c.slug, Number(hour1mms), nowSec, c.coin ?? '')
+					fetchCexInflows(c.slug, hour24Sec, nowSec, c.coin ?? ''),
+					fetchCexInflows(c.slug, hour7dSec, nowSec, c.coin ?? ''),
+					fetchCexInflows(c.slug, hour30dSec, nowSec, c.coin ?? '')
 				])
 
 				const { chainTvls = {} } = protocolData
@@ -108,10 +111,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 				}
 
 				// Special handling for Binance historical data
-				if (c.slug === 'Binance-CEX' && Number(hour7dms) < 1681609999) {
+				if (c.slug === 'Binance-CEX' && hour7dSec < 1681609999) {
 					inflows7d.outflows = null
 				}
-				if (c.slug === 'Binance-CEX' && Number(hour1mms) < 1681609999) {
+				if (c.slug === 'Binance-CEX' && hour30dSec < 1681609999) {
 					inflows1m.outflows = null
 				}
 

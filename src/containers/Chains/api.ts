@@ -20,7 +20,7 @@ export async function fetchChainsByCategory<T = ChainsByCategoryResponse>(catego
 }
 
 export async function fetchChainsByCategoryAll<T = ChainsByCategoryResponse>(): Promise<T> {
-	return fetchChainsByCategory('All') as Promise<T>
+	return fetchChainsByCategory<T>('All')
 }
 
 export async function fetchChainsTvlOverview(): Promise<Array<{ name: string; tvl: number }>> {

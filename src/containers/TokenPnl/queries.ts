@@ -57,11 +57,14 @@ export async function fetchPriceSeries(
 ): Promise<PricePoint[]> {
 	if (!tokenId || start == null || end == null || end <= start) return []
 	const key = `coingecko:${tokenId}`
-	const spanInDays = Math.max(1, Math.ceil((end - start) / DAY_IN_SECONDS))
+	const rangeSeconds = end - start
+	const intervalSeconds =
+		rangeSeconds <= 7 * DAY_IN_SECONDS ? 3600 : rangeSeconds <= 90 * DAY_IN_SECONDS ? 14_400 : DAY_IN_SECONDS
+	const span = Math.max(1, Math.min(5_000, Math.ceil(rangeSeconds / intervalSeconds)))
 	const response = await fetchCoinsChart({
 		coin: key,
 		start,
-		span: spanInDays,
+		span,
 		searchWidth: '600'
 	})
 	return formatPriceSeriesFromCoinsChart(response?.coins?.[key]?.prices)
@@ -99,11 +102,14 @@ const calculateAnnualizedVolatility = (series: PricePoint[]): number => {
 	return dailyVol * Math.sqrt(365) * 100
 }
 
-const calculateYAxisConfigFromPrices = (prices: number[]): { min: number; max: number; interval: number } => {
-	if (prices.length === 0) return { min: 0, max: 0, interval: 1000 }
+const calculateYAxisConfigFromPrices = (
+	rangeLow: number,
+	rangeHigh: number
+): { min: number; max: number; interval: number } => {
+	if (!Number.isFinite(rangeLow) || !Number.isFinite(rangeHigh)) return { min: 0, max: 0, interval: 1000 }
 
-	const min = Math.min(...prices)
-	const max = Math.max(...prices)
+	const min = rangeLow
+	const max = rangeHigh
 	const range = max - min
 
 	if (range === 0) {
@@ -184,15 +190,17 @@ export async function computeTokenPnl(params: {
 	const annualizedReturn =
 		holdingPeriodDays > 0 ? (Math.pow(1 + percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
 
-	const prices: number[] = []
 	const timeline: TimelinePoint[] = []
 	const dataPoints: Array<[number, number]> = []
+	let rangeHigh = Number.NEGATIVE_INFINITY
+	let rangeLow = Number.POSITIVE_INFINITY
 	const firstPoint = series[0]
 	if (firstPoint.timestamp !== start) dataPoints.push([start * 1000, firstPoint.price])
 
 	for (let index = 0; index < series.length; index++) {
 		const point = series[index]
-		prices.push(point.price)
+		if (point.price > rangeHigh) rangeHigh = point.price
+		if (point.price < rangeLow) rangeLow = point.price
 		if (index === 0) {
 			timeline.push({ ...point, change: 0, percentChange: 0 })
 		} else {
@@ -208,8 +216,6 @@ export async function computeTokenPnl(params: {
 	if (lastPoint.timestamp !== end) dataPoints.push([end * 1000, lastPoint.price])
 	dataPoints.sort((a, b) => a[0] - b[0])
 
-	const rangeHigh = Math.max(...prices)
-	const rangeLow = Math.min(...prices)
 	const chartData = {
 		dataset: {
 			source: dataPoints.map(([timestamp, value]) => ({ timestamp, 'Token Price': value })),
@@ -245,7 +251,7 @@ export async function computeTokenPnl(params: {
 		},
 		currentPrice: coinInfo?.current_price ?? endPrice,
 		chartData,
-		yAxisConfig: calculateYAxisConfigFromPrices(prices),
+		yAxisConfig: calculateYAxisConfigFromPrices(rangeLow, rangeHigh),
 		primaryColor
 	}
 }

@@ -1,6 +1,6 @@
 export type CategoryOrTagChartMetrics = Record<string, number | null | undefined>
 
-export type CategoryOrTagChartResponse = Record<string, Record<string, number | null>>
+export type CategoryOrTagChartResponse = Record<string, CategoryOrTagChartMetrics>
 
 export type CategoriesSummaryResponse = {
 	chart: Record<string, Record<string, CategoryOrTagChartMetrics>> | null

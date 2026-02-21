@@ -53,11 +53,12 @@ export default class ChainCharts {
 		if (chains.length === 0) return []
 
 		try {
-			const responses = await Promise.all(chains.map((chain) => fetchData(chain)))
+			const responses = await Promise.all(chains.map((chain) => fetchData(chain).catch(() => null)))
 
 			const mergedMap = new Map<number, number>()
 
 			for (const data of responses) {
+				if (data == null) continue
 				const extracted = extractData(data)
 				for (const [timestamp, value] of extracted) {
 					mergedMap.set(timestamp, value)

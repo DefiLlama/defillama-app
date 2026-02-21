@@ -5,7 +5,7 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchCategoryChart } from '~/containers/ProtocolsByCategoryOrTag/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { alignSeries, filterOutToday, normalizeDailyPairs, sumSeriesByTimestamp, toSlug } from '~/utils/protocolSplit'
-import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
+import { processAdjustedProtocolTvl, processAdjustedTvl, type TvlChartData } from '~/utils/tvl'
 import type { ChartSeries, ProtocolSplitData } from './types'
 
 // Some protocol responses include synthetic keys that shouldn't be counted in TVL totals
@@ -24,14 +24,14 @@ const isIgnoredChainKey = (key: string): boolean => {
 const fetchChainTotalTvl = async (chains: string[]): Promise<[number, number][]> => {
 	const isAll = chains.length === 0 || chains.some((c) => c.toLowerCase() === 'all')
 	if (isAll) {
-		const j = await fetchChainChart<any>()
+		const j = await fetchChainChart<TvlChartData>()
 		const adjustedTvl = processAdjustedTvl(j)
 		return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 	}
 
 	const perChain = await Promise.all(
 		chains.map(async (chain) => {
-			const j = await fetchChainChart<any>(chain).catch(() => null)
+			const j = await fetchChainChart<TvlChartData>(chain).catch(() => null)
 			if (!j) return []
 			const adjustedTvl = processAdjustedTvl(j)
 			return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
@@ -50,13 +50,13 @@ const subtractSeries = (a: [number, number][], b: [number, number][]): [number, 
 }
 
 const fetchAllChainTotalTvl = async (): Promise<[number, number][]> => {
-	const j = await fetchChainChart<any>()
+	const j = await fetchChainChart<TvlChartData>()
 	const adjustedTvl = processAdjustedTvl(j)
 	return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
 }
 
 const fetchChainTvlSingle = async (chain: string): Promise<[number, number][]> => {
-	const j = await fetchChainChart<any>(chain).catch(() => null)
+	const j = await fetchChainChart<TvlChartData>(chain).catch(() => null)
 	if (!j) return []
 	const adjustedTvl = processAdjustedTvl(j)
 	return filterOutToday(normalizeDailyPairs(adjustedTvl, 'last'))
@@ -310,9 +310,9 @@ export const getTvlSplitData = async (
 		})
 	)
 
-	const failedProtocols = protocolSeries.filter((s: any) => s.failed)
-	if (failedProtocols.length > 0) {
-		console.log(`Failed to fetch data for ${failedProtocols.length} protocols, returning empty chart`)
+	const succeededSeries = protocolSeries.filter((s) => !s.failed)
+	if (succeededSeries.length === 0) {
+		console.log('Failed to fetch data for all selected protocols, returning empty chart')
 		const displayChains = isAll ? ['All'] : selectedChains
 		return {
 			series: [],
@@ -393,14 +393,14 @@ export const getTvlSplitData = async (
 	for (const [t] of totalSeries) {
 		timestampSet.add(t)
 	}
-	for (const s of protocolSeries) {
+	for (const s of succeededSeries) {
 		for (const [t] of s.data) {
 			timestampSet.add(t)
 		}
 	}
 	const allTimestamps = Array.from(timestampSet).sort((a, b) => a - b)
 
-	const alignedProtocolSeries: ChartSeries[] = protocolSeries.map((s, idx) => ({
+	const alignedProtocolSeries: ChartSeries[] = succeededSeries.map((s, idx) => ({
 		name: s.name,
 		data: alignSeries(allTimestamps, s.data),
 		color: EXTENDED_COLOR_PALETTE[idx % EXTENDED_COLOR_PALETTE.length]
@@ -422,7 +422,7 @@ export const getTvlSplitData = async (
 	})
 
 	const hasOthers = othersData.some(([, v]) => v > 0)
-	const othersCount = Math.max(0, uniqueTotal - top.length)
+	const othersCount = Math.max(0, uniqueTotal - succeededSeries.length)
 
 	const series: ChartSeries[] = [...alignedProtocolSeries]
 	if (hasOthers) {

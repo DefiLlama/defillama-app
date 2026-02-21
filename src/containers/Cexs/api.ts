@@ -1,8 +1,7 @@
+import { SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type { RawCexInflowsResponse, RawCexsResponse } from './api.types'
 
-const API_KEY = process.env.API_KEY
-const SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
 const INFLOWS_API_URL = `${SERVER_URL}/inflows`
 const CEXS_API_URL = `${SERVER_URL}/cexs`
 

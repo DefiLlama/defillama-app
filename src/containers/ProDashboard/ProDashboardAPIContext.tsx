@@ -13,7 +13,6 @@ import {
 	useState
 } from 'react'
 import toast from 'react-hot-toast'
-import { PROTOCOLS_LITE_API_URL } from '~/containers/Protocols/api'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
@@ -41,6 +40,7 @@ const EMPTY_PROTOCOLS: Protocol[] = []
 const EMPTY_CHAINS: Chain[] = []
 const EMPTY_CHART_DATA: ChartConfig['data'] = []
 const NOOP = () => {}
+const PROTOCOLS_LIST_QUERY_KEY = ['protocols-lite']
 
 type ChartCacheEntry = {
 	itemRef: ChartConfig
@@ -298,7 +298,7 @@ function seedTableDataIntoCache(
 	now: number
 ) {
 	if (tableData.protocolsList) {
-		queryClient.setQueryData([PROTOCOLS_LITE_API_URL], tableData.protocolsList, { updatedAt: now })
+		queryClient.setQueryData(PROTOCOLS_LIST_QUERY_KEY, tableData.protocolsList, { updatedAt: now })
 	}
 	for (const [chain, data] of Object.entries(tableData.volumeByChain)) {
 		queryClient.setQueryData([`protocolsVolumeByChain/${chain}`], data, { updatedAt: now })

@@ -2,7 +2,7 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useMemo, useRef } from 'react'
-import { PROTOCOLS_LITE_API_URL, fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
 import { fetchJson } from '~/utils/async'
 import {
@@ -78,7 +78,7 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
 	const { data: allProtocolsData, isLoading: isLoadingAll } = useQuery({
-		queryKey: [PROTOCOLS_LITE_API_URL],
+		queryKey: ['protocols-lite'],
 		queryFn: () => fetchProtocols(),
 		staleTime: Infinity,
 		retry: 0

@@ -3,8 +3,11 @@ import { fetchProtocolLiquidityTokens, fetchProtocolTokenLiquidityChart } from '
 import { CACHE_SERVER, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { fetchProtocolTreasuryChart } from '~/containers/ProtocolOverview/api'
-import { fetchProtocolBySlug, fetchProtocolMiniBySlug } from '~/containers/ProtocolOverview/api'
+import {
+	fetchProtocolBySlug,
+	fetchProtocolMiniBySlug,
+	fetchProtocolTreasuryChart
+} from '~/containers/ProtocolOverview/api'
 import { fetchProtocolEmission } from '~/containers/Unlocks/api'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'

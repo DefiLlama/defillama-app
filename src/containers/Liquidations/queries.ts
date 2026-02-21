@@ -2,12 +2,8 @@ import { fetchLatestLiquidationsData, fetchLiquidationsAvailability, fetchLiquid
 import { DEFAULT_ASSETS_LIST, LIQUIDATIONS_TOTAL_BINS } from './constants'
 import type { ChartData, ChartDataBins, LiquidationsData, Position, PositionSmol } from './utils'
 
-const getAvailability = async () => {
-	return fetchLiquidationsAvailability()
-}
-
 export async function getLiquidationsAssetsList() {
-	const { availability, time } = await getAvailability()
+	const { availability, time } = await fetchLiquidationsAvailability()
 	const assets = DEFAULT_ASSETS_LIST.filter((asset) => !!availability[asset.symbol.toLowerCase()])
 	// Keep the order from `constants.ts` (you can periodically refresh it with the updater script).
 	return { assets, time }

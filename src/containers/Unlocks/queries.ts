@@ -565,7 +565,6 @@ export const getAllProtocolEmissions = async ({
 			if (p.gecko_id) coinIds.push(`coingecko:${p.gecko_id}`)
 		}
 		const coinPrices = await fetchCoinPricesBatched(coinIds)
-		const coins = { coins: coinPrices }
 
 		const priceReqs: Record<string, number[]> = {}
 		const lastPastTimestampByCoinKey = new Map<string, number>()
@@ -669,7 +668,7 @@ export const getAllProtocolEmissions = async ({
 				if (startDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp >= startDate)
 				if (endDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp <= endDate)
 
-				const coin = coinKey ? coins.coins[coinKey] : null
+				const coin = coinKey ? coinPrices[coinKey] : null
 				const tSymbol = coin?.symbol ?? null
 				const historicalPrice = coinKey ? historicalPrices[coinKey] : null
 
@@ -791,15 +790,15 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const prices =
-			typeof tokenKey === 'string' && tokenKey
-				? await fetchCoinPricesBatched([tokenKey], { searchWidth: '4h' }).catch((err) => {
-						console.log(err)
-						return {}
-					})
-				: {}
+		const cgKey = typeof tokenKey === 'string' && tokenKey ? `coingecko:${tokenKey}` : null
+		const prices = cgKey
+			? await fetchCoinPricesBatched([cgKey], { searchWidth: '4h' }).catch((err) => {
+					console.log(err)
+					return {}
+				})
+			: {}
 
-		const tokenPriceData = tokenKey ? prices[tokenKey] : undefined
+		const tokenPriceData = cgKey ? prices[cgKey] : undefined
 		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
 
 		let upcomingEvent: EmissionEvent[] = []

@@ -15,6 +15,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CONFIG_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
+import type { ChainListItem } from '~/containers/Chains/api.types'
 import type { ChartData } from '~/containers/Liquidations/utils'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -101,7 +102,6 @@ type ProtocolConfig = { logo: string; name: string }
 const isProtocolConfig = (value: unknown): value is ProtocolConfig =>
 	isRecord(value) && typeof value.logo === 'string' && typeof value.name === 'string'
 
-type ChainListItem = { name: string }
 const isChainList = (value: unknown): value is ChainListItem[] =>
 	Array.isArray(value) && value.every((x) => isRecord(x) && typeof x.name === 'string')
 

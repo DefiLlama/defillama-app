@@ -19,8 +19,7 @@ import type {
 	TokenMarketData
 } from './types'
 
-const COINGECKO_MARKETS_API_BASE =
-	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=<VS_CURRENCY>&order=<ORDER>&per_page=<PER_PAGE>&page=<PAGE>'
+const COINGECKO_MARKETS_API_BASE = 'https://api.coingecko.com/api/v3/coins/markets'
 const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 const COINS_MCAPS_API_URL = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
 const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
@@ -58,20 +57,22 @@ export async function fetchCGMarketsPage({
 	order = 'market_cap_desc',
 	perPage = 100
 }: CgMarketsQueryParams): Promise<Array<IResponseCGMarketsAPI>> {
-	const url = COINGECKO_MARKETS_API_BASE.replace('<VS_CURRENCY>', encodeURIComponent(vsCurrency))
-		.replace('<ORDER>', encodeURIComponent(order))
-		.replace('<PER_PAGE>', String(perPage))
-		.replace('<PAGE>', String(page))
+	const url = new URL(COINGECKO_MARKETS_API_BASE)
+	url.searchParams.set('vs_currency', vsCurrency)
+	url.searchParams.set('order', order)
+	url.searchParams.set('per_page', String(perPage))
+	url.searchParams.set('page', String(page))
 
-	const data = await fetchJson<unknown>(url)
+	const requestUrl = url.toString()
+	const data = await fetchJson<unknown>(requestUrl)
 	if (!Array.isArray(data)) {
-		throw new Error(`[fetchCGMarketsPage] Expected array response from ${url}`)
+		throw new Error(`[fetchCGMarketsPage] Expected array response from ${requestUrl}`)
 	}
 
 	const validTokens = data.filter(isCGMarketsApiItem)
 	const malformedCount = data.length - validTokens.length
 	if (malformedCount > 0) {
-		postRuntimeLogs(`[fetchCGMarketsPage] Skipped ${malformedCount} malformed token entries from ${url}`)
+		postRuntimeLogs(`[fetchCGMarketsPage] Skipped ${malformedCount} malformed token entries from ${requestUrl}`)
 	}
 
 	return validTokens
@@ -90,9 +91,8 @@ export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityT
 
 export async function fetchProtocolTokenLiquidityChart(tokenId: string): Promise<ProtocolTokenLiquidityChart | null> {
 	if (!tokenId) return null
-	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${tokenId.replaceAll('#', '$')}`).catch(
-		() => null
-	)
+	const encodedTokenId = encodeURIComponent(tokenId.replaceAll('#', '$'))
+	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${encodedTokenId}`).catch(() => null)
 }
 
 export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
@@ -214,7 +214,7 @@ export async function fetchCoinsChart(params: {
 	})
 	if (searchWidth) searchParams.set('searchWidth', searchWidth)
 
-	return fetchJson<CoinsChartResponse>(`${COINS_CHART_API_URL}/${coin}?${searchParams.toString()}`)
+	return fetchJson<CoinsChartResponse>(`${COINS_CHART_API_URL}/${encodeURIComponent(coin)}?${searchParams.toString()}`)
 }
 
 export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoIdResponse | null> {

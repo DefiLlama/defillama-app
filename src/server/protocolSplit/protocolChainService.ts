@@ -4,6 +4,7 @@ import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorMan
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
+import { fetchJson } from '~/utils/async'
 import {
 	buildChainMatchSet as buildChainMatchSetFromNormalizer,
 	toDimensionsSlug,
@@ -325,12 +326,7 @@ async function getDimensionsProtocolChainData(
 			apiUrl += `?dataType=${config.dataType}`
 		}
 
-		const response = await fetch(apiUrl)
-		if (!response.ok) {
-			throw new Error(`Failed to fetch ${metric} data: ${response.statusText}`)
-		}
-
-		const data = await response.json()
+		const data = await fetchJson<any>(apiUrl)
 
 		const breakdown = data?.totalDataChartBreakdown || []
 		if (!Array.isArray(breakdown) || breakdown.length === 0) {
@@ -727,9 +723,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true`
 		if (config?.dataType) overviewUrl += `&dataType=${config.dataType}`
 
-		const overviewResp = await fetch(overviewUrl)
-		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
-		const overview = await overviewResp.json()
+		const overview = await fetchJson<any>(overviewUrl)
 
 		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
 		let allowSlugsFromCategories: Set<string> | null = null
@@ -787,9 +781,8 @@ async function getAllProtocolsTopChainsChainFeesData(
 		const chainSeriesPromises = picked.map(async (entry, idx) => {
 			let summaryUrl = `${DIMENSIONS_SUMMARY_API}/fees/${entry.slug}`
 			if (config?.dataType) summaryUrl += `?dataType=${config.dataType}`
-			const resp = await fetch(summaryUrl)
-			if (!resp.ok) return null
-			const json = await resp.json()
+			const json = await fetchJson<any>(summaryUrl).catch(() => null)
+			if (!json) return null
 			const chart: Array<[number | string, number]> = Array.isArray(json?.totalDataChart) ? json.totalDataChart : []
 			const normalized = filterOutToday(normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)])))
 			return {
@@ -864,9 +857,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	try {
 		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) overviewUrl += `&dataType=${config.dataType}`
-		const overviewResp = await fetch(overviewUrl)
-		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
-		const overview = await overviewResp.json()
+		const overview = await fetchJson<any>(overviewUrl)
 
 		const protocolCategoryFilterSet = new Set<string>()
 		for (const cat of protocolCategories || []) {
@@ -977,9 +968,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 			const endpointSlug = toDisplayName(slug)
 			let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
-			const r = await fetch(url)
-			if (!r.ok) return null
-			const j = await r.json()
+			const j = await fetchJson<any>(url).catch(() => null)
+			if (!j) return null
 			const tdc: Array<[number, number]> = Array.isArray(j?.totalDataChart) ? j.totalDataChart : []
 			let normalized = filterOutToday(
 				normalizeDailyPairs((tdc as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))

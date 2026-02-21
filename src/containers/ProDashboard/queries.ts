@@ -468,7 +468,7 @@ function useChains() {
 
 export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
 	return useQuery({
-		queryKey: ['protocols-and-chains'],
+		queryKey: ['protocols-lite'],
 		queryFn: async () => {
 			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 

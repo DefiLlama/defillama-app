@@ -62,7 +62,7 @@ export async function getServerSideProps({ res }) {
 	const sitemap = generateSiteMap(
 		protocols.map(({ name }) => slug(name)),
 		chains.map((c) => slug(c)),
-		protocolCategories.map((c) => slug(c)),
+		(protocolCategories ?? []).map((c) => slug(c)),
 		parentProtocols.map(({ name }) => slug(name)),
 		stablecoins.map(({ name }) => slug(name)),
 		(() => {

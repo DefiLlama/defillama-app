@@ -5,6 +5,7 @@ import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ParentProtocolLite, ProtocolLite } from '~/containers/Protocols/api.types'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -23,10 +24,11 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 		props: {
 			expenses: expenses
 				.map((e) => {
-					const protocol =
-						protocols
-							.concat(parentProtocols.map((p) => ({ ...p, defillamaId: p.id })) as any[])
-							.find((p) => p.defillamaId === e.protocolId) ?? null
+					const combinedProtocols: Array<ProtocolLite | (ParentProtocolLite & { defillamaId: string })> = [
+						...protocols,
+						...parentProtocols.map((p) => ({ ...p, defillamaId: p.id }))
+					]
+					const protocol = combinedProtocols.find((p) => p.defillamaId === e.protocolId) ?? null
 					const sumAnnualUsdExpenses = Object.values(e.annualUsdCost).reduce(
 						(sum: number, x: number) => sum + x
 					) as number
