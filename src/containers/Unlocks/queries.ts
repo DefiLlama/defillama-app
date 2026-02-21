@@ -758,7 +758,10 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const list = await fetchEmissionsProtocolsList()
 		if (!list.includes(protocolName)) return emptyResult
 
-		const [res, allEmissions] = await Promise.all([fetchProtocolEmission(protocolName), fetchAllProtocolEmissions()])
+		const [res, allEmissions] = await Promise.all([
+			fetchProtocolEmission(protocolName),
+			fetchAllProtocolEmissions().catch(() => [])
+		])
 
 		if (!res) return emptyResult
 

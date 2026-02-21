@@ -208,9 +208,9 @@ const buildGovernanceOverviewData = (datasets: RawGovernanceOverview[]): Governa
 
 export async function getGovernancePageData(): Promise<{ data: GovernanceOverviewItem[] }> {
 	const [snapshot, compound, tally] = await Promise.all([
-		fetchJson<RawGovernanceOverview>(GOVERNANCE_SNAPSHOT_API),
-		fetchJson<RawGovernanceOverview>(GOVERNANCE_COMPOUND_API),
-		fetchJson<RawGovernanceOverview>(GOVERNANCE_TALLY_API)
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_SNAPSHOT_API).catch(() => ({}) as RawGovernanceOverview),
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_COMPOUND_API).catch(() => ({}) as RawGovernanceOverview),
+		fetchJson<RawGovernanceOverview>(GOVERNANCE_TALLY_API).catch(() => ({}) as RawGovernanceOverview)
 	])
 
 	const data = buildGovernanceOverviewData([snapshot, compound, tally])
@@ -246,9 +246,9 @@ export async function getGovernanceDetailsPageData(
 		{ [key: string]: GovernanceOverviewProject },
 		{ [key: string]: GovernanceOverviewProject }
 	] = await Promise.all([
-		fetchJson(GOVERNANCE_SNAPSHOT_API),
-		fetchJson(GOVERNANCE_COMPOUND_API),
-		fetchJson(GOVERNANCE_TALLY_API)
+		fetchJson(GOVERNANCE_SNAPSHOT_API).catch(() => ({})),
+		fetchJson(GOVERNANCE_COMPOUND_API).catch(() => ({})),
+		fetchJson(GOVERNANCE_TALLY_API).catch(() => ({}))
 	])
 
 	const normalizedProject = slug(project)

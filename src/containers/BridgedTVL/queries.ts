@@ -15,8 +15,8 @@ interface BridgedTVLData {
 export async function getBridgedTVLByChain(chain?: string): Promise<BridgedTVLData> {
 	const [assets, flows1d, inflows] = await Promise.all([
 		fetchChainsAssets(),
-		fetchChainAssetsFlows1d(),
-		chain ? fetchChainAssetsHistoricalFlows(sluggify(chain)) : []
+		fetchChainAssetsFlows1d().catch(() => null),
+		chain ? fetchChainAssetsHistoricalFlows(sluggify(chain)).catch(() => []) : []
 	])
 
 	let chainData: RawChainAsset | null = null

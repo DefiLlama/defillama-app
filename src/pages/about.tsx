@@ -10,17 +10,17 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('about', async () => {
 	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
 		fetchProtocols().then(basicProtocolPropertiesToKeepV1List()),
-		fetchJson(YIELD_POOLS_API),
+		fetchJson(YIELD_POOLS_API).catch(() => ({ data: [] })),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue'
-		}),
+		}).catch(() => ({ protocols: [] })),
 		fetchAdapterChainMetrics({
 			adapterType: 'dexs',
 			chain: 'All',
 			dataType: 'dailyVolume'
-		})
+		}).catch(() => ({ protocols: [] }))
 	])
 
 	return {

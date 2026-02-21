@@ -117,8 +117,8 @@ export async function getAirdropDirectoryData(): Promise<Array<{ name: string; p
 export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> {
 	const [{ protocols, chains, parentProtocols }, { raises }, claimableAirdrops] = await Promise.all([
 		fetchProtocols(),
-		fetchRaises(),
-		getAirdropDirectoryData()
+		fetchRaises().catch(() => ({ raises: [] })),
+		getAirdropDirectoryData().catch(() => [])
 	])
 
 	const parents: Record<string, boolean> = {}

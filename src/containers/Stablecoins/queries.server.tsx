@@ -291,8 +291,8 @@ export async function getStablecoinsByChainPageData(chain: string | null): Promi
 		const [{ peggedAssets, chains }, chainData, priceData, rateData] = await Promise.all([
 			getStablecoinAssets(),
 			fetchStablecoinChartApi(chainLabel),
-			getStablecoinPrices(),
-			getStablecoinRates()
+			getStablecoinPrices().catch(() => null),
+			getStablecoinRates().catch(() => null)
 		])
 		const breakdown = chainData.breakdown
 		if (!breakdown) {
@@ -430,9 +430,9 @@ export const getStablecoinAssetPageData = async (
 	return withStablecoinsCache(`asset:${peggedID}`, async () => {
 		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo] = await Promise.all([
 			fetchStablecoinAssetApi(peggedID),
-			getStablecoinConfigData(),
-			fetchStablecoinRecentCoinsDataApi(),
-			getStablecoinBridgeInfo()
+			getStablecoinConfigData().catch(() => ({ chainCoingeckoIds: {} })),
+			fetchStablecoinRecentCoinsDataApi().catch(() => ({})),
+			getStablecoinBridgeInfo().catch(() => null)
 		])
 		if (!res) return null
 

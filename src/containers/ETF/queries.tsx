@@ -6,7 +6,7 @@ function capitalize(s: string): string {
 }
 
 export async function getETFData(): Promise<ETFOverviewProps> {
-	const [snapshot, flows] = await Promise.all([fetchETFSnapshot(), fetchETFFlows()])
+	const [snapshot, flows] = await Promise.all([fetchETFSnapshot(), fetchETFFlows().catch(() => [])])
 
 	const maxDate = flows.length > 0 ? Math.max(...flows.map((item) => new Date(item.day).getTime())) : null
 

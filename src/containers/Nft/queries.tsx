@@ -68,7 +68,7 @@ type ExtendedNftCollection = RawNftCollection & {
 
 export const getNFTData = async (): Promise<NftDataResult> => {
 	try {
-		const [collections, volumes] = await Promise.all([fetchNftCollections(), fetchNftVolumes()])
+		const [collections, volumes] = await Promise.all([fetchNftCollections(), fetchNftVolumes().catch(() => [])])
 		const volumeByCollection = new Map(volumes.map((volume) => [volume.collection, volume] as const))
 
 		const data = collections.map((collection) => {
@@ -183,7 +183,7 @@ export const getNFTMarketplacesData = async () => {
 export const getNFTCollectionEarnings = async () => {
 	try {
 		const [parentCompanies, royalties, collections] = await Promise.all([
-			fetchParentCompanies(),
+			fetchParentCompanies().catch(() => []),
 			fetchNftRoyalties(),
 			fetchNftCollections()
 		])
@@ -287,7 +287,7 @@ export const getNFTCollectionEarnings = async () => {
 export const getNFTRoyaltyHistory = async (slug: string) => {
 	try {
 		const [royaltyChart, collection, royalty] = await Promise.all([
-			fetchNftRoyaltyHistory(slug),
+			fetchNftRoyaltyHistory(slug).catch(() => []),
 			fetchNftCollection(slug),
 			fetchNftRoyalty(slug)
 		])
@@ -380,10 +380,10 @@ export const getNFTCollection = async (slug: string) => {
 	try {
 		const [data, sales, stats, floorHistory, orderbook] = await Promise.all([
 			fetchNftCollection(slug),
-			fetchNftCollectionSales(slug),
-			fetchNftCollectionStats(slug),
-			fetchNftCollectionFloorHistory(slug),
-			fetchNftCollectionOrderbook(slug)
+			fetchNftCollectionSales(slug).catch(() => []),
+			fetchNftCollectionStats(slug).catch(() => []),
+			fetchNftCollectionFloorHistory(slug).catch(() => []),
+			fetchNftCollectionOrderbook(slug).catch(() => null)
 		])
 
 		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)
