@@ -1,10 +1,9 @@
-import { PROTOCOLS_API } from '~/constants'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { slug } from '~/utils'
-import { fetchApi } from '~/utils/async'
 import {
 	getDexVolumeByChain,
 	getFeesAndRevenueProtocolsByChain,
@@ -245,7 +244,7 @@ export async function fetchTableServerData(items: DashboardItemConfig[]): Promis
 		const chainsToFetch = chains.includes('All') ? ['All'] : chains
 
 		const results = await Promise.allSettled([
-			withTimeout(fetchApi(PROTOCOLS_API), FETCH_TIMEOUT),
+			withTimeout(fetchProtocols(), FETCH_TIMEOUT),
 			...chainsToFetch.flatMap((chain) => [
 				withTimeout(
 					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(

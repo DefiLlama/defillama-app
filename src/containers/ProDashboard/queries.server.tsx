@@ -1,12 +1,12 @@
 import {
 	AUTH_SERVER,
 	CONFIG_API,
-	PROTOCOLS_API,
 	YIELD_CHART_API,
 	YIELD_CHART_LEND_BORROW_API
 } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -74,10 +74,7 @@ async function fetchDashboardConfig(dashboardId: string, authToken: string | nul
 
 async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: any[] } | null> {
 	try {
-		const [protocolsResponse, chainsData] = await Promise.all([fetch(PROTOCOLS_API), fetchChainsList()])
-		if (!protocolsResponse.ok) return null
-
-		const protocolsData = await protocolsResponse.json()
+		const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
 		const transformedChains = chainsData.map((chain: any) => ({
 			...chain,

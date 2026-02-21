@@ -1,9 +1,7 @@
 import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
-import { COINS_PRICES_API } from '~/constants'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { fetchProtocolEmission, fetchAllProtocolEmissions, fetchEmissionsProtocolsList } from './api'
 import type {
 	EmissionsDataset,
@@ -15,10 +13,6 @@ import type {
 } from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
 import type { ProtocolEmissionResult } from './types'
-
-interface CoinPricesResponse {
-	coins?: Record<string, { price?: number; symbol?: string }>
-}
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	const source: Array<Record<string, number | null>> = chartData.map((row) => ({ ...row }))
@@ -797,15 +791,15 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const prices: CoinPricesResponse =
+		const prices =
 			typeof tokenKey === 'string' && tokenKey
-				? await fetchJson<CoinPricesResponse>(`${COINS_PRICES_API}/current/${tokenKey}?searchWidth=4h`).catch((err) => {
+				? await fetchCoinPricesBatched([tokenKey], { searchWidth: '4h' }).catch((err) => {
 						console.log(err)
 						return {}
 					})
 				: {}
 
-		const tokenPriceData = tokenKey ? prices.coins?.[tokenKey] : undefined
+		const tokenPriceData = tokenKey ? prices[tokenKey] : undefined
 		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
 
 		let upcomingEvent: EmissionEvent[] = []

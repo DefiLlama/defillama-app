@@ -72,6 +72,19 @@ export interface CoinsPricesResponse {
 	coins?: Record<string, PriceObject | undefined>
 }
 
+export interface CoinChartPricePoint {
+	timestamp?: number
+	price?: number
+}
+
+export interface CoinChartEntry {
+	prices?: CoinChartPricePoint[]
+}
+
+export interface CoinsChartResponse {
+	coins?: Record<string, CoinChartEntry | undefined>
+}
+
 export interface TokenMarketData {
 	price: number | null
 	prevPrice: number | null

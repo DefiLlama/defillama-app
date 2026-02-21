@@ -1,9 +1,8 @@
-import { PROTOCOLS_API } from '~/constants'
-import type { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import {
 	fetchOracleMetrics,
 	fetchOracleProtocolBreakdownChart,
@@ -19,12 +18,6 @@ import type {
 	OracleProtocolWithBreakdown,
 	OracleTableDataRow
 } from './types'
-
-type TProtocolsApiResponse = {
-	protocols: Array<ILiteProtocol>
-	chains: Array<string>
-	parentProtocols: Array<ILiteParentProtocol>
-}
 
 function isExtraTvlKey(value: string): boolean {
 	return TVL_SETTINGS_KEYS_SET.has(value) || value === 'dcAndLsOverlap'
@@ -231,12 +224,12 @@ export async function getOracleDetailPageData({
 	}
 
 	let chartData: OracleChartData = []
-	let protocols: Array<ILiteProtocol> = []
+	let protocols: Array<ProtocolLite> = []
 
 	if (canonicalChain) {
 		const [fetchedOracleChainBreakdown, { protocols: fetchedProtocols }] = await Promise.all([
 			fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
-			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+			fetchProtocols() as Promise<ProtocolsResponse>
 		])
 		protocols = fetchedProtocols
 		chartData = fetchedOracleChainBreakdown.reduce<OracleChartData>((acc, dayData) => {
@@ -251,7 +244,7 @@ export async function getOracleDetailPageData({
 	} else {
 		const [oracleChart, { protocols: fetchedProtocols }] = await Promise.all([
 			fetchOracleProtocolChart({ protocol: canonicalOracle }),
-			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+			fetchProtocols() as Promise<ProtocolsResponse>
 		])
 		protocols = fetchedProtocols
 		chartData =

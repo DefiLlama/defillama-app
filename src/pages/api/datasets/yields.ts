@@ -1,14 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import {
-	PROTOCOLS_API,
 	YIELD_CHAIN_API,
 	YIELD_CONFIG_API,
 	YIELD_LEND_BORROW_API,
 	YIELD_POOLS_API,
 	YIELD_URL_API
 } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
-import { fetchApi } from '~/utils/async'
+import { fetchApi, fetchJson } from '~/utils/async'
 
 const formatChain = (chain: string) => {
 	if (chain.toLowerCase().includes('hyperliquid')) return 'Hyperliquid'
@@ -20,12 +20,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const { chains } = req.query
 		let chainList = typeof chains === 'string' ? [chains] : chains || []
 		chainList = chainList.map(formatChain)
-		const poolsAndConfig = await fetchApi([
-			YIELD_POOLS_API,
-			YIELD_CONFIG_API,
-			YIELD_URL_API,
-			YIELD_CHAIN_API,
-			PROTOCOLS_API
+		const poolsAndConfig = await Promise.all([
+			fetchJson(YIELD_POOLS_API),
+			fetchJson(YIELD_CONFIG_API),
+			fetchJson(YIELD_URL_API),
+			fetchJson(YIELD_CHAIN_API),
+			fetchProtocols()
 		])
 
 		const lendBorrowData: any[] = await fetchApi(YIELD_LEND_BORROW_API)

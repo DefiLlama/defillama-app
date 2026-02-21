@@ -1,9 +1,6 @@
-import {
-	DIMENSIONS_OVERVIEW_API,
-	DIMENSIONS_SUMMARY_API,
-	PROTOCOLS_API
-} from '~/constants'
+import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
 import { fetchChainChart, fetchChainsByCategory, fetchChainsTvlOverview } from '~/containers/Chains/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
 import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
@@ -112,11 +109,7 @@ const getProtocolCategoryLookup = async (): Promise<ProtocolCategoryLookup | nul
 		return protocolCategoryCache.data
 	}
 	try {
-		const response = await fetch(PROTOCOLS_API)
-		if (!response.ok) {
-			throw new Error(`Failed to fetch protocols for category lookup: ${response.status}`)
-		}
-		const json = await response.json()
+		const json = await fetchProtocols()
 		const lookup = createEmptyCategoryLookup()
 		const protocols = Array.isArray(json?.protocols) ? json.protocols : []
 		for (const proto of protocols) {

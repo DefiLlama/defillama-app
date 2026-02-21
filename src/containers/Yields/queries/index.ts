@@ -1,6 +1,5 @@
 import { fetchCoinPrices } from '~/api'
 import {
-	PROTOCOLS_API,
 	YIELD_TOKEN_CATEGORIES_API,
 	YIELD_CHAIN_API,
 	YIELD_CONFIG_API,
@@ -10,17 +9,18 @@ import {
 	YIELD_POOLS_API,
 	YIELD_URL_API
 } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
-import { fetchApi } from '~/utils/async'
+import { fetchApi, fetchJson } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await fetchApi([
-		YIELD_POOLS_API,
-		YIELD_CONFIG_API,
-		YIELD_URL_API,
-		YIELD_CHAIN_API,
-		PROTOCOLS_API
+	let poolsAndConfig = await Promise.all([
+		fetchJson(YIELD_POOLS_API),
+		fetchJson(YIELD_CONFIG_API),
+		fetchJson(YIELD_URL_API),
+		fetchJson(YIELD_CHAIN_API),
+		fetchProtocols()
 	])
 
 	let data = formatYieldsPageData(poolsAndConfig)

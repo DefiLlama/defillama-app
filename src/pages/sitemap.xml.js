@@ -1,9 +1,8 @@
-import { PROTOCOLS_API } from '~/constants/index'
 import { fetchCexs } from '~/containers/Cexs/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 const baseUrl = `https://defillama.com`
 
@@ -55,7 +54,7 @@ function SiteMap() {
 
 export async function getServerSideProps({ res }) {
 	const [{ protocols, chains, protocolCategories, parentProtocols }, stablecoins, cexs] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
+		fetchProtocols(),
 		fetchStablecoinAssetsApi().then(({ peggedAssets }) => peggedAssets),
 		fetchCexs().then(({ cexs }) => cexs)
 	])

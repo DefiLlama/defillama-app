@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchCoinPrices } from '~/api'
 import type { IChainTvl } from '~/api/types'
-import { COINGECKO_KEY, COINS_PRICES_API } from '~/constants'
+import { COINGECKO_KEY } from '~/constants'
 import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
@@ -50,13 +51,13 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
-			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`),
+			fetchCoinPrices(['coingecko:bitcoin']),
 			fetchCexs()
 		])
 
 		spot = spotData
 		derivs = derivsData
-		btcPrice = priceData.coins['coingecko:bitcoin']?.price || 0
+		btcPrice = priceData['coingecko:bitcoin']?.price || 0
 		cexList = cexData.cexs
 	} catch (error) {
 		console.log('Error fetching CoinGecko data:', error)

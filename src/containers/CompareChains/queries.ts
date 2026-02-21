@@ -1,10 +1,5 @@
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { chainIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
-
-type RawProtocolsResponse = {
-	chains?: string[]
-}
 
 type ChainOption = {
 	value: string
@@ -13,7 +8,7 @@ type ChainOption = {
 }
 
 export async function getCompareChainsPageData(): Promise<{ chains: ChainOption[] }> {
-	const pData = await fetchJson<RawProtocolsResponse>(PROTOCOLS_API)
+	const pData = await fetchProtocols()
 	const chains: ChainOption[] = (pData?.chains ?? []).map((val) => ({
 		value: val,
 		label: val,

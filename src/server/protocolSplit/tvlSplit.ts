@@ -1,5 +1,5 @@
-import { PROTOCOLS_API } from '~/constants'
 import { fetchChainChart } from '~/containers/Chains/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchCategoryChart } from '~/containers/ProtocolsByCategoryOrTag/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
@@ -133,8 +133,7 @@ export const getTvlSplitData = async (
 	const isAll = selectedChains.some((c) => c.toLowerCase() === 'all')
 	const categoriesFilter = (categories || []).map((c) => c.toLowerCase())
 
-	const protocolsResp = await fetch(PROTOCOLS_API)
-	const protocolsJson = await protocolsResp.json()
+	const protocolsJson = await fetchProtocols()
 	const protocols: any[] = Array.isArray(protocolsJson?.protocols) ? protocolsJson.protocols : []
 	const parentProtocols: any[] = Array.isArray(protocolsJson?.parentProtocols) ? protocolsJson.parentProtocols : []
 	const parentIdToName = new Map<string, string>()

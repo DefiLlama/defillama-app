@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -13,7 +13,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const [{ protocols, parentProtocols }, expenses] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
+		fetchProtocols(),
 		fetchJson(
 			'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 		)
@@ -25,7 +25,7 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 				.map((e) => {
 					const protocol =
 						protocols
-							.concat(parentProtocols.map((p) => ({ ...p, defillamaId: p.id })))
+							.concat(parentProtocols.map((p) => ({ ...p, defillamaId: p.id })) as any[])
 							.find((p) => p.defillamaId === e.protocolId) ?? null
 					const sumAnnualUsdExpenses = Object.values(e.annualUsdCost).reduce(
 						(sum: number, x: number) => sum + x

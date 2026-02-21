@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { PROTOCOLS_API } from '~/constants'
 import { fetchChainsCategories } from '~/containers/Chains/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
@@ -143,8 +143,7 @@ export function ChartBuilderTab({
 	const { data: protocols } = useQuery({
 		queryKey: ['protocols'],
 		queryFn: async () => {
-			const response = await fetch(PROTOCOLS_API)
-			const data = await response.json()
+			const data = await fetchProtocols()
 			return data.protocols ?? EMPTY_PROTOCOLS
 		},
 		staleTime: 60 * 60 * 1000

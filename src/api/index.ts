@@ -1,11 +1,9 @@
 import {
 	CACHE_SERVER,
-	COINS_MCAPS_API,
-	COINS_PRICES_API,
+	COINS_SERVER_URL,
 	CONFIG_API,
 	DATASETS_SERVER_URL,
-	SERVER_URL,
-	TOKEN_LIST_API
+	SERVER_URL
 } from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
@@ -13,6 +11,7 @@ import type {
 	CgMarketsQueryParams,
 	CgChartResponse,
 	ChainGeckoPair,
+	CoinsChartResponse,
 	CoinMcapsResponse,
 	CoinsPricesResponse,
 	DenominationPriceHistory,
@@ -28,6 +27,10 @@ import type {
 
 const COINGECKO_MARKETS_API_BASE =
 	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=<VS_CURRENCY>&order=<ORDER>&per_page=<PER_PAGE>&page=<PAGE>'
+const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
+const COINS_MCAPS_API_URL = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
+const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
+const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
 const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
@@ -39,15 +42,17 @@ function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
 }
 
 export async function fetchAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
-	const data = await fetchJson<unknown>(TOKEN_LIST_API)
+	const data = await fetchJson<unknown>(TOKEN_LIST_API_URL)
 	if (!Array.isArray(data)) {
-		throw new Error(`[fetchAllCGTokensList] Expected array response from ${TOKEN_LIST_API}`)
+		throw new Error(`[fetchAllCGTokensList] Expected array response from ${TOKEN_LIST_API_URL}`)
 	}
 
 	const validTokens = data.filter(isCGMarketsApiItem)
 	const malformedCount = data.length - validTokens.length
 	if (malformedCount > 0) {
-		postRuntimeLogs(`[fetchAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API}`)
+		postRuntimeLogs(
+			`[fetchAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API_URL}`
+		)
 	}
 
 	return validTokens
@@ -122,7 +127,7 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 	const batchResults = await runBatchPromises(
 		batches,
 		(batch) =>
-			fetchJson<CoinMcapsResponse>(COINS_MCAPS_API, {
+			fetchJson<CoinMcapsResponse>(COINS_MCAPS_API_URL, {
 				method: 'POST',
 				body: JSON.stringify({
 					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
@@ -153,7 +158,10 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 	}, {})
 }
 
-export async function fetchCoinPrices(coins: Array<string>): Promise<Record<string, PriceObject>> {
+export async function fetchCoinPrices(
+	coins: Array<string>,
+	options?: { searchWidth?: string }
+): Promise<Record<string, PriceObject>> {
 	if (coins.length === 0) {
 		return {}
 	}
@@ -168,7 +176,11 @@ export async function fetchCoinPrices(coins: Array<string>): Promise<Record<stri
 	const batchResults = await runBatchPromises(
 		batches,
 		async (batch) => {
-			const response = await fetchJson<CoinsPricesResponse>(`${COINS_PRICES_API}/current/${batch.join(',')}`)
+			const searchParams = new URLSearchParams()
+			if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
+			const queryString = searchParams.toString()
+			const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
+			const response = await fetchJson<CoinsPricesResponse>(url)
 			return response.coins ?? {}
 		},
 		(batch, err) => {
@@ -189,6 +201,24 @@ export async function fetchCoinPrices(coins: Array<string>): Promise<Record<stri
 		if (val !== undefined) acc[coin] = val
 		return acc
 	}, {})
+}
+
+export async function fetchCoinsChart(params: {
+	coin: string
+	start: number
+	span: number
+	searchWidth?: string
+}): Promise<CoinsChartResponse> {
+	const { coin, start, span, searchWidth } = params
+	if (!coin || !Number.isFinite(start) || !Number.isFinite(span) || span <= 0) return { coins: {} }
+
+	const searchParams = new URLSearchParams({
+		start: String(start),
+		span: String(span)
+	})
+	if (searchWidth) searchParams.set('searchWidth', searchWidth)
+
+	return fetchJson<CoinsChartResponse>(`${COINS_CHART_API_URL}/${coin}?${searchParams.toString()}`)
 }
 
 export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoIdResponse | null> {

@@ -1,11 +1,13 @@
-import { PROTOCOLS_API } from '~/constants'
+import { SERVER_URL } from '~/constants'
 import { fetchChainChart, fetchChainsByCategoryAll } from '~/containers/Chains/api'
 import { fetchJson } from '~/utils/async'
 import type { ChartResponse, ExtraTvlChartKey, ProtocolsResponse } from './api.types'
 
+export const PROTOCOLS_LITE_API_URL = `${SERVER_URL}/lite/protocols2?b=2`
+
 /** Fetch all protocols from lite/protocols2. */
 export async function fetchProtocols(): Promise<ProtocolsResponse> {
-	return fetchJson<ProtocolsResponse>(PROTOCOLS_API)
+	return fetchJson<ProtocolsResponse>(PROTOCOLS_LITE_API_URL)
 }
 
 /** Fetch chart data (optionally scoped to a chain). */

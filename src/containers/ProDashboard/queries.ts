@@ -1,8 +1,8 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useMemo, useRef } from 'react'
-import { PROTOCOLS_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import type { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
@@ -470,13 +470,7 @@ export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: a
 	return useQuery({
 		queryKey: ['protocols-and-chains'],
 		queryFn: async () => {
-			const [protocolsResponse, chainsData] = await Promise.all([fetch(PROTOCOLS_API), fetchChainsList()])
-
-			if (!protocolsResponse.ok) {
-				throw new Error('Network response was not ok')
-			}
-
-			const protocolsData = await protocolsResponse.json()
+			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
 			const transformedChains = chainsData.map((chain) => ({
 				...chain,

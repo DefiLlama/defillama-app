@@ -13,7 +13,7 @@ import {
 	useState
 } from 'react'
 import toast from 'react-hot-toast'
-import { PROTOCOLS_API } from '~/constants'
+import { PROTOCOLS_LITE_API_URL } from '~/containers/Protocols/api'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
@@ -298,7 +298,7 @@ function seedTableDataIntoCache(
 	now: number
 ) {
 	if (tableData.protocolsList) {
-		queryClient.setQueryData([PROTOCOLS_API], tableData.protocolsList, { updatedAt: now })
+		queryClient.setQueryData([PROTOCOLS_LITE_API_URL], tableData.protocolsList, { updatedAt: now })
 	}
 	for (const [chain, data] of Object.entries(tableData.volumeByChain)) {
 		queryClient.setQueryData([`protocolsVolumeByChain/${chain}`], data, { updatedAt: now })

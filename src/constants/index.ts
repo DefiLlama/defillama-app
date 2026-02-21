@@ -16,7 +16,7 @@ export const V2_SERVER_URL = `${SERVER_URL}/v2`
 
 // Product/domain server roots
 const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
-const COINS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/coins` : 'https://coins.llama.fi'
+export const COINS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/coins` : 'https://coins.llama.fi'
 export const ETF_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/etfs` : 'https://etfs.llama.fi'
 export const FDV_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
@@ -31,7 +31,6 @@ export const YIELDS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/
 export const CONFIG_API = `${SERVER_URL}/config`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
-export const PROTOCOLS_API = `${SERVER_URL}/lite/protocols2?b=2`
 
 // Bridges APIs
 export const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`
@@ -41,11 +40,6 @@ export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
 export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
 export const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
 export const NETFLOWS_API = `${BRIDGES_SERVER_URL}/netflows`
-
-// Coins APIs
-export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`
-export const COINS_MCAPS_API = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
-export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
 
 // Yields APIs
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
@@ -66,7 +60,6 @@ export const YIELD_VOLATILITY_API = '/api/datasets/volatility'
 // Dataset/static assets
 export const ICONS_CDN = 'https://icons.llamao.fi/icons'
 export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
-export const TOKEN_LIST_API = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
 // External services

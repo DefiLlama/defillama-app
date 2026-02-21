@@ -1,10 +1,14 @@
 /** Raw protocol from the lite/protocols2 API. */
 export interface ProtocolLite {
 	name: string
+	slug?: string
+	id?: string
 	symbol: string
 	logo: string
 	url: string
 	category: string
+	tags?: string[]
+	referralUrl?: string | null
 	chains: string[]
 	chainTvls: Record<string, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }>
 	tvl: number
@@ -29,6 +33,8 @@ export interface ParentProtocolLite {
 	chains: string[]
 	gecko_id?: string
 	mcap?: number
+	referralUrl?: string | null
+	logo?: string
 }
 
 /** Full response from lite/protocols2. */
@@ -36,6 +42,7 @@ export interface ProtocolsResponse {
 	protocols: ProtocolLite[]
 	chains: string[]
 	parentProtocols: ParentProtocolLite[]
+	protocolCategories?: string[]
 }
 
 export type ExtraTvlChartKey = 'borrowed' | 'staking' | 'pool2'
