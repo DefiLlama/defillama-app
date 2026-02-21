@@ -106,20 +106,15 @@ export function useDashboardDiscovery(params: SearchParams) {
 			return await dashboardAPI.likeDashboard(dashboardId, authorizedFetch)
 		},
 		onSuccess: (data, dashboardId) => {
-			queryClient.setQueryData(['pro-dashboard', 'dashboard-discover'], (oldData: any) => {
+			const updateLikeCount = (oldData: any) => {
 				if (!oldData) return oldData
 				return {
 					...oldData,
 					items: oldData.items.map((d: Dashboard) => (d.id === dashboardId ? { ...d, likeCount: data.likeCount } : d))
 				}
-			})
-			queryClient.setQueryData(['pro-dashboard', 'dashboard-search'], (oldData: any) => {
-				if (!oldData) return oldData
-				return {
-					...oldData,
-					items: oldData.items.map((d: Dashboard) => (d.id === dashboardId ? { ...d, likeCount: data.likeCount } : d))
-				}
-			})
+			}
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard-discover'] }, updateLikeCount)
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard-search'] }, updateLikeCount)
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
 		onError: (error: any) => {

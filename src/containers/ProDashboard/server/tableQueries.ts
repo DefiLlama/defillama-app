@@ -13,7 +13,7 @@ import {
 import type { DashboardItemConfig, ProtocolsTableConfig, UnifiedTableConfig } from '../types'
 
 export interface TableServerData {
-	protocolsList?: any
+	protocolsList: any | null
 	volumeByChain: Record<string, any>
 	feesByChain: Record<string, any>
 	perpsByChain: Record<string, any>
@@ -217,12 +217,12 @@ async function fetchTokenUsageData(tokenSymbols: string[], includeCex: boolean):
 }
 
 function buildTokenUsageCacheKey(tokenSymbols: string[], includeCex: boolean): string {
-	return JSON.stringify(['token-usage', tokenSymbols.map((t) => t?.toUpperCase()).sort(), includeCex])
+	return JSON.stringify(['pro-dashboard', 'token-usage', tokenSymbols.map((t) => t?.toUpperCase()).sort(), includeCex])
 }
 
 function buildDatasetCacheKey(prefix: string, chains: string[]): string {
 	const sortedChains = chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort()
-	return JSON.stringify([prefix, ...sortedChains])
+	return JSON.stringify(['pro-dashboard', prefix, ...sortedChains])
 }
 
 export async function fetchTableServerData(items: DashboardItemConfig[]): Promise<TableServerData | null> {
@@ -231,7 +231,7 @@ export async function fetchTableServerData(items: DashboardItemConfig[]): Promis
 	if (chains.length === 0 && tokenUsageConfigs.length === 0) return null
 
 	const tableData: TableServerData = {
-		protocolsList: undefined,
+		protocolsList: null,
 		volumeByChain: {},
 		feesByChain: {},
 		perpsByChain: {},

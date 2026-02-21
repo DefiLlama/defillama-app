@@ -433,7 +433,7 @@ function useChartData(
 ) {
 	const { data: parentMapping } = useParentChildMapping()
 	return useQuery({
-		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType),
+		queryKey: ['pro-dashboard', ...getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping, undefined, dataType),
 		staleTime: 1000 * 60 * 5,
 		gcTime: 1000 * 60 * 30,
@@ -576,8 +576,6 @@ export function useChartsData(
 				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,
-				keepPreviousData: true,
-				placeholderData: (prev) => prev,
 				initialData: chartServerData ?? undefined,
 				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {

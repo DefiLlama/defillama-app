@@ -10,6 +10,7 @@ import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
+import { SESSIONS_QUERY_KEY } from '../hooks/useSessionList'
 import { useClickOutside } from '../hooks/useClickOutside'
 
 interface SessionItemProps {
@@ -57,7 +58,7 @@ export const SessionItem = memo(function SessionItem({
 			return response.json()
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['llamaai-sessions'] })
+			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
 

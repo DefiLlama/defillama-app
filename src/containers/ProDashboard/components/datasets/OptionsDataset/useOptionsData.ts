@@ -10,7 +10,7 @@ export function useOptionsData(chains?: string[]) {
 			? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}`
 			: ''
 
-	const sortedChains = chains?.length ? [...chains].sort() : []
+	const sortedChains = filteredChains?.length ? [...filteredChains].sort() : []
 
 	return useQuery({
 		queryKey: ['pro-dashboard', 'options-overview', sortedChains.join(',')],

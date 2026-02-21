@@ -96,10 +96,10 @@ async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: an
 		}
 
 		const syntheticParents = parentProtocols.map((pp: any) => ({
-			id: pp.id,
-			name: pp.name,
-			logo: pp.logo,
-			slug: sluggifyProtocol(pp.name),
+			id: pp.id ?? null,
+			name: pp.name ?? null,
+			logo: pp.logo ?? null,
+			slug: sluggifyProtocol(pp.name ?? ''),
 			tvl: parentTotals.get(pp.id) || 0,
 			geckoId: null,
 			parentProtocol: null
@@ -245,7 +245,7 @@ async function fetchMetricData(
 
 			const data = await withTimeout(fetchSingleChartData(chartConfig, 'all', null), 15_000)
 
-			const keyParts = ['metric', metric.type, undefined, item]
+			const keyParts = ['pro-dashboard', 'metric', metric.type, undefined, item]
 			return { key: JSON.stringify(keyParts), data }
 		})
 	)
@@ -383,7 +383,7 @@ async function fetchUnifiedTableServerData(
 			const paramsChains = config.params?.chains ?? []
 			const paramsKey = JSON.stringify({ chains: paramsChains })
 			const headersKey = headers.join('|')
-			const cacheKey = JSON.stringify(['unified-table', paramsKey, headersKey])
+			const cacheKey = JSON.stringify(['pro-dashboard', 'unified-table', paramsKey, headersKey])
 			const data = await withTimeout(fetchProtocolsTable({ config, rowHeaders: headers }), 15_000)
 			return { cacheKey, data }
 		})
@@ -515,7 +515,7 @@ async function fetchEmissionData(items: DashboardItemConfig[]): Promise<Record<s
 	for (const item of items) {
 		if (item.kind === 'unlocks-pie') {
 			const config = item as UnlocksPieConfig
-			const cacheKey = JSON.stringify(['unlocks-pie', config.protocol])
+			const cacheKey = JSON.stringify(['pro-dashboard', 'unlocks-pie', config.protocol])
 			if (!seenPieKeys.has(cacheKey)) {
 				seenPieKeys.add(cacheKey)
 				tasks.push({
@@ -526,7 +526,7 @@ async function fetchEmissionData(items: DashboardItemConfig[]): Promise<Record<s
 		} else if (item.kind === 'unlocks-schedule') {
 			const config = item as UnlocksScheduleConfig
 			const resolvedDataType = config.dataType === 'realtime' ? 'documented' : config.dataType
-			const cacheKey = JSON.stringify(['unlocks-schedule', config.protocol, resolvedDataType])
+			const cacheKey = JSON.stringify(['pro-dashboard', 'unlocks-schedule', config.protocol, resolvedDataType])
 			if (!seenScheduleKeys.has(cacheKey)) {
 				seenScheduleKeys.add(cacheKey)
 				tasks.push({

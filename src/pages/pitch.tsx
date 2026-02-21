@@ -138,8 +138,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		minLastRoundTime: ''
 	})
 
-	const [matchedInvestors, _setMatchedInvestors] = useState(null)
-	const [totalCost, _setTotalCost] = useState(null)
 	const [projectInfo, setProjectInfo] = useState({
 		projectName: '',
 		link: '',
@@ -171,7 +169,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
 	}
 
-	const { isLoading } = useQuery({
+	const { data: investorResult, isLoading } = useQuery({
 		queryKey: ['pitch', 'investors', filters],
 		queryFn: () => fetchInvestors(filters),
 		enabled: hasSelectedFilters,
@@ -179,6 +177,9 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
+
+	const matchedInvestors = investorResult?.count ?? null
+	const totalCost = investorResult?.totalCost ?? null
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()

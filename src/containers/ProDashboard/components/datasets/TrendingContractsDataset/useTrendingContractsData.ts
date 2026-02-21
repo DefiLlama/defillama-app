@@ -62,7 +62,6 @@ export function useTrendingContractsData(chain: string = 'ethereum', timeframe: 
 		queryKey: ['pro-dashboard', 'trending-contracts', timeframe, activeChain],
 		queryFn: () => getContracts(activeChain, timeframe),
 		staleTime: 60 * 60 * 1000,
-		refetchInterval: 60 * 60 * 1000,
-		enabled: true
+		refetchInterval: 60 * 60 * 1000
 	})
 }

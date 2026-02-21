@@ -13,7 +13,10 @@ export function useDashboardEngagement(dashboardId: string | null) {
 			return await dashboardAPI.viewDashboard(dashboardId, isAuthenticated ? authorizedFetch : undefined)
 		},
 		onSuccess: (data) => {
-			queryClient.setQueryData(['pro-dashboard', 'dashboard', dashboardId], data)
+			queryClient.setQueriesData(
+				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
+				data
+			)
 		}
 	})
 
@@ -28,14 +31,17 @@ export function useDashboardEngagement(dashboardId: string | null) {
 		},
 		onSuccess: (data) => {
 			if (!data) return
-			queryClient.setQueryData(['pro-dashboard', 'dashboard', dashboardId], (oldData: any) => {
-				if (!oldData) return oldData
-				return {
-					...oldData,
-					likeCount: data.likeCount,
-					liked: data.liked
+			queryClient.setQueriesData(
+				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
+				(oldData: any) => {
+					if (!oldData) return oldData
+					return {
+						...oldData,
+						likeCount: data.likeCount,
+						liked: data.liked
+					}
 				}
-			})
+			)
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
 		onError: (error: any) => {

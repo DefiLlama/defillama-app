@@ -255,7 +255,7 @@ export const useFetchChainChartData = ({
 
 	const isRaisesEnabled = toggledChartsSet.has('Raises')
 	const { data: raisesData = null, isLoading: fetchingRaises } = useQuery<Array<[number, number]>>({
-		queryKey: ['chain-overview', 'raises', selectedChain, isRaisesEnabled],
+		queryKey: ['chain-overview', 'raises', isRaisesEnabled],
 		queryFn: () =>
 			isRaisesEnabled
 				? fetchRaises().then((data) => {
