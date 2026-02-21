@@ -367,14 +367,14 @@ export const getAdapterByChainPageData = async ({
 					adapterType,
 					chain,
 					dataType: 'dailyBribesRevenue'
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		adapterType === 'fees'
 			? fetchAdapterChainMetrics({
 					adapterType,
 					chain,
 					dataType: 'dailyTokenTaxes'
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		hasOpenInterest
 			? getAdapterChainOverview({
@@ -382,7 +382,7 @@ export const getAdapterByChainPageData = async ({
 					chain,
 					dataType: 'openInterestAtEnd',
 					excludeTotalDataChart: false
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		adapterType === 'normalized-volume'
 			? getAdapterChainOverview({
@@ -390,13 +390,13 @@ export const getAdapterByChainPageData = async ({
 					chain,
 					dataType: 'dailyActiveLiquidity',
 					excludeTotalDataChart: false
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		adapterType === 'derivatives'
 			? fetchAdapterChainMetrics({
 					adapterType: 'normalized-volume',
 					chain
-				})
+				}).catch(() => null)
 			: Promise.resolve(null)
 	])
 
