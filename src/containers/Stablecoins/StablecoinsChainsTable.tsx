@@ -10,12 +10,13 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -105,10 +106,15 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 	},
 	{
 		header: 'Dominant Stablecoin',
-		accessorKey: 'dominance',
+		id: 'dominance',
+		accessorFn: (row) => {
+			const value = row.dominance
+			if (!value) return ''
+			return `${value.name}${value.value != null ? `: ${value.value}%` : ''}`
+		},
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as DominanceCell | null
+		cell: ({ row }) => {
+			const value = row.original.dominance as DominanceCell | null
 
 			if (!value) {
 				return null
@@ -233,6 +239,7 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 					labelType="smol"
 					variant="filter-responsive"
 				/>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-chains.csv' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

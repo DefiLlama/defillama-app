@@ -22,6 +22,7 @@ export function NftsByChain({ chains }: INftsByChainProps) {
 			placeholder={'Search protocols...'}
 			columnToSearch={'name'}
 			header="Protocol Rankings"
+			csvFileName="nft-chains.csv"
 			sortingState={DEFAULT_SORTING_STATE}
 		/>
 	)

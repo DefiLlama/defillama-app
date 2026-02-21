@@ -10,10 +10,11 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -250,6 +251,7 @@ export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'bridge-chains.csv' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

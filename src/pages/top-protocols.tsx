@@ -12,7 +12,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
@@ -180,28 +180,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
 
-	const prepareCsv = () => {
-		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible())
-		const headers = visibleColumns.map((col) => {
-			if (typeof col.columnDef.header === 'string') {
-				return col.columnDef.header
-			}
-			return col.id ?? ''
-		})
-
-		const dataRows = table.getFilteredRowModel().rows.map((row) =>
-			visibleColumns.map((col) => {
-				const value = row.getValue(col.id)
-				if (value == null) return ''
-				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-				if (Array.isArray(value)) return value.join(', ')
-				return ''
-			})
-		)
-
-		return { filename: 'top-protocols.csv', rows: [headers, ...dataRows] as (string | number | boolean)[][] }
-	}
-
 	return (
 		<Layout
 			title="Top Protocols by chain on each category - DefiLlama"
@@ -255,7 +233,10 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							labelType="smol"
 							variant="filter-responsive"
 						/>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<CSVDownloadButton
+							prepareCsv={() => prepareTableCsv({ instance: table, filename: 'top-protocols.csv' })}
+							smol
+						/>
 					</div>
 				</div>
 				{table.getFilteredRowModel().rows.length > 0 ? (

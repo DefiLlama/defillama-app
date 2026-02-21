@@ -16,7 +16,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -104,27 +104,6 @@ export function ChainsByAdapter(props: IProps) {
 		columnSizes
 	})
 
-	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
-		const visibleColumns = instance.getVisibleLeafColumns()
-		const headers: Array<string | number | boolean> = visibleColumns.map((col) =>
-			typeof col.columnDef.header === 'string' ? col.columnDef.header : (col.id ?? '')
-		)
-
-		const rows: Array<Array<string | number | boolean>> = [headers]
-		for (const row of instance.getFilteredRowModel().rows) {
-			const cells = visibleColumns.map((col) => {
-				const value = row.getValue(col.id)
-				if (value == null) return ''
-				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-				if (Array.isArray(value)) return value.join(', ')
-				return ''
-			})
-			rows.push(cells)
-		}
-
-		return { filename: `${props.type}-chains-protocols.csv`, rows }
-	}
-
 	return (
 		<>
 			{props.type === 'Fees' && (
@@ -160,7 +139,10 @@ export function ChainsByAdapter(props: IProps) {
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-chains-protocols.csv` })}
+						smol
+					/>
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>

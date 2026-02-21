@@ -66,14 +66,14 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const chartTitle = chartType === 'allocation' ? 'Allocation' : 'Locked/Unlocked %'
 	const valueSymbol = chartType === 'locked-unlocked' ? '%' : '$'
 	const hasChartData = chartData.length > 0
-	const csvFilename = `${slug(protocolName || protocol)}-unlocks-${chartType}.csv`
+	const csvFileName = `${slug(protocolName || protocol)}-unlocks-${chartType}.csv`
 
 	const handleCsvExport = useCallback(() => {
 		if (!hasChartData) return
 		const rows = [['Category', 'Value'], ...chartData.map((item) => [item.name, String(item.value)])]
 		const csvContent = rows.map((row) => row.join(',')).join('\n')
-		download(csvFilename, csvContent)
-	}, [chartData, csvFilename, hasChartData])
+		download(csvFileName, csvContent)
+	}, [chartData, csvFileName, hasChartData])
 
 	if (isLoading) {
 		return (

@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
@@ -16,18 +15,6 @@ import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	return columnId
-}
-
-function getCsvCellValue(value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-	if (Array.isArray(value)) return value.join(', ')
-	return ''
-}
 
 const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	{
@@ -281,23 +268,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 					columns={categoriesColumns}
 					columnToSearch="name"
 					placeholder="Search category..."
-					customFilters={({ instance }) => (
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const visibleColumns = instance.getAllLeafColumns().filter((column) => column.getIsVisible())
-								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
-
-								return {
-									filename: 'protocol-categories.csv',
-									rows: [headers, ...rows]
-								}
-							}}
-							smol
-						/>
-					)}
+					csvFileName="protocol-categories.csv"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>

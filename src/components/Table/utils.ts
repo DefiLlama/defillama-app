@@ -167,3 +167,35 @@ export function useSortColumnSizesAndOrders({
 		sortColumnSizesAndOrders({ instance, columnSizes, columnOrders, width })
 	}, [instance, columnSizes, columnOrders, width])
 }
+
+function isCsvPrimitive(value: unknown): value is string | number | boolean {
+	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+}
+
+export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {
+	filename: string
+	rows: Array<Array<string | number | boolean>>
+} {
+	const columns = instance.getVisibleLeafColumns().filter((column) => !column.columnDef.meta?.hidden)
+	const tableRows = instance.getSortedRowModel().rows
+	if (columns.length === 0 || tableRows.length === 0) return { filename, rows: [] }
+
+	const headers = columns.map((column) => {
+		const header = column.columnDef.header
+		if (typeof header === 'string') return header
+		if (typeof header === 'number') return String(header)
+		return ''
+	})
+
+	const rows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
+		columns.map((column) => {
+			const value = row.getValue(column.id)
+			if (value == null) return ''
+			if (isCsvPrimitive(value)) return value
+			if (Array.isArray(value)) return value.filter(isCsvPrimitive).join(', ')
+			return ''
+		})
+	)
+
+	return { filename, rows: [headers, ...rows] }
+}

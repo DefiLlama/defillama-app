@@ -411,6 +411,7 @@ export const CategoryPerformanceContainer = ({
 				columnToSearch={'name'}
 				placeholder={'Search...'}
 				header="Categories"
+				csvFileName="narrative-tracker.csv"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

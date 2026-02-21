@@ -16,7 +16,7 @@ import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/EChar
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
@@ -57,27 +57,6 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	const prepareCsv = () => {
-		const rows: Array<Array<string | number | boolean>> = [
-			['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
-		]
-		for (const { name, date, amount, chains, classification, target, technique, bridge, language, link } of data) {
-			rows.push([
-				name,
-				date,
-				amount,
-				chains?.join(',') ?? '',
-				classification,
-				target,
-				technique,
-				bridge,
-				language,
-				link
-			])
-		}
-		return { filename: 'hacks.csv', rows }
-	}
-
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
@@ -100,7 +79,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 					/>
 				</label>
 
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks.csv' })} smol />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>

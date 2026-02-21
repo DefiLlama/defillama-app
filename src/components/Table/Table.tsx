@@ -14,7 +14,6 @@ interface ITableProps<T extends RowData = any> {
 	skipVirtualization?: boolean
 	rowSize?: number
 	columnResizeMode?: 'onChange' | 'onEnd'
-	renderSubComponent?: ({ row }: { row: Row<T> }) => React.ReactNode
 	stripedBg?: boolean
 	style?: React.CSSProperties
 	compact?: boolean
@@ -37,7 +36,6 @@ interface TableRowProps {
 	stripedBg: boolean
 	isChainPage: boolean
 	compact: boolean
-	renderSubComponent?: ({ row }: { row: Row<any> }) => React.ReactNode
 }
 
 function TableRow({
@@ -52,8 +50,7 @@ function TableRow({
 	firstColumnId,
 	stripedBg,
 	isChainPage,
-	compact,
-	renderSubComponent
+	compact
 }: TableRowProps) {
 	const trStyle: React.CSSProperties = {
 		display: 'grid',
@@ -120,7 +117,6 @@ function TableRow({
 						)
 					})}
 			</div>
-			{renderSubComponent && rowToRender.getIsExpanded() ? renderSubComponent({ row: rowToRender }) : null}
 		</React.Fragment>
 	)
 }
@@ -130,7 +126,6 @@ export function VirtualTable({
 	skipVirtualization,
 	columnResizeMode: _columnResizeMode,
 	rowSize,
-	renderSubComponent,
 	stripedBg = false,
 	compact = false,
 	useStickyHeader = true,
@@ -504,7 +499,6 @@ export function VirtualTable({
 								stripedBg={stripedBg}
 								isChainPage={isChainPage}
 								compact={compact}
-								renderSubComponent={renderSubComponent}
 							/>
 						))
 					: virtualItems.map((virtualRow) => (
@@ -521,7 +515,6 @@ export function VirtualTable({
 								stripedBg={stripedBg}
 								isChainPage={isChainPage}
 								compact={compact}
-								renderSubComponent={renderSubComponent}
 							/>
 						))}
 			</div>

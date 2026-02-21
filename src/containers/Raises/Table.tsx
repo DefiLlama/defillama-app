@@ -14,7 +14,7 @@ import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { toNiceDayMonthYear } from '~/utils'
 import type { IRaise } from './types'
@@ -159,13 +159,7 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
-export function RaisesTable({
-	raises,
-	prepareCsv
-}: {
-	raises: IRaise[]
-	prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] }
-}) {
+export function RaisesTable({ raises }: { raises: IRaise[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -229,7 +223,7 @@ export function RaisesTable({
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises.csv' })} smol />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

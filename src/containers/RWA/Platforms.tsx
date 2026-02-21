@@ -1,11 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
 import type { IRWABreakdownDatasetsByMetric, IRWAPlatformsOverviewRow } from './api.types'
-import { formatCsvRowValues } from './csvUtils'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
@@ -88,21 +86,7 @@ export function RWAPlatformsTable({
 				columnToSearch="platform"
 				header="Platforms"
 				columnSizes={columnSizes}
-				customFilters={({ instance }) => (
-					<CSVDownloadButton
-						prepareCsv={() => {
-							const filename = 'rwa-platforms.csv'
-
-							const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-							const columnIds = columns.map((c) => c.id as string)
-
-							const rows = instance.getRowModel().rows.map((row) => formatCsvRowValues(row, columnIds))
-
-							return { filename, rows: [headers, ...rows] }
-						}}
-						smol
-					/>
-				)}
+				csvFileName="rwa-platforms.csv"
 				sortingState={[{ id: 'onChainMcap', desc: true }]}
 			/>
 		</div>

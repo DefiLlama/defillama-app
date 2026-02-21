@@ -11,7 +11,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { getBlockExplorerForTx } from '~/containers/Bridges/utils'
 import { formattedNum, getBlockExplorer, slug, toNiceDayAndHour } from '~/utils'
@@ -23,6 +23,15 @@ type LargeTxsData = {
 	isDeposit: boolean
 	symbol: string
 	usdValue: string | number
+}
+
+export type BridgesLargeTxsTableHandle = {
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+}
+
+type BridgesLargeTxsTableProps = {
+	data: LargeTxsData[]
+	csvFileName?: string
 }
 
 const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
@@ -158,34 +167,44 @@ const largeTxsColumnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export function BridgesLargeTxsTable({ data }: { data: LargeTxsData[] }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle, BridgesLargeTxsTableProps>(
+	function BridgesLargeTxsTable({ data, csvFileName = 'bridge-transactions.csv' }, ref) {
+		const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
+		const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+		const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 
-	const instance = useReactTable({
-		data,
-		columns: largeTxsColumn,
-		state: {
-			sorting,
-			columnOrder,
-			columnSizing
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
+		const instance = useReactTable({
+			data,
+			columns: largeTxsColumn,
+			state: {
+				sorting,
+				columnOrder,
+				columnSizing
+			},
+			defaultColumn: {
+				sortUndefined: 'last'
+			},
+			onSortingChange: setSorting,
+			onColumnOrderChange: setColumnOrder,
+			onColumnSizingChange: setColumnSizing,
+			getCoreRowModel: getCoreRowModel(),
+			getSortedRowModel: getSortedRowModel()
+		})
 
-	useSortColumnSizesAndOrders({
-		instance,
-		columnSizes: largeTxsColumnSizes,
-		columnOrders: largeTxsColumnOrders
-	})
+		useSortColumnSizesAndOrders({
+			instance,
+			columnSizes: largeTxsColumnSizes,
+			columnOrders: largeTxsColumnOrders
+		})
 
-	return <VirtualTable instance={instance} />
-}
+		React.useImperativeHandle(
+			ref,
+			() => ({
+				prepareCsv: () => prepareTableCsv({ instance, filename: csvFileName })
+			}),
+			[csvFileName, instance]
+		)
+
+		return <VirtualTable instance={instance} />
+	}
+)

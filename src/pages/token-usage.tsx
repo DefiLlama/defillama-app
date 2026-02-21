@@ -16,6 +16,7 @@ import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
@@ -47,20 +48,20 @@ export default function Tokens() {
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
-
-	const prepareCsv = () => {
-		const data = filteredProtocols.map((p) => {
-			return {
-				Protocol: p.name,
-				'Amount (USD)': p.amountUsd,
-				Category: p.category
-			}
-		})
-		const headers = ['Protocol', 'Category', 'Amount (USD)']
-		const rows = [headers, ...data.map((row) => headers.map((header) => row[header]))]
-
-		return { filename: `protocols-by-token-${tokenSymbol}.csv`, rows: rows as (string | number | boolean)[][] }
-	}
+	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
+	const tableInstance = useReactTable({
+		data: filteredProtocols,
+		columns,
+		state: {
+			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
 
 	return (
 		<Layout
@@ -97,7 +98,15 @@ export default function Tokens() {
 										pushShallowQuery(router, { includecex: !includeCentraliseExchanges ? 'true' : undefined })
 									}
 								/>
-								<CSVDownloadButton prepareCsv={prepareCsv} />
+								<CSVDownloadButton
+									prepareCsv={() =>
+										prepareTableCsv({
+											instance: tableInstance,
+											filename: `protocols-by-token-${tokenSymbol}.csv`
+										})
+									}
+									smol
+								/>
 							</div>
 						</div>
 
@@ -109,7 +118,7 @@ export default function Tokens() {
 								/>
 							}
 						>
-							<Table data={filteredProtocols} />
+							<VirtualTable instance={tableInstance} />
 						</Suspense>
 					</>
 				)}
@@ -129,26 +138,6 @@ const fetchProtocols = async (tokenSymbol) => {
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
-}
-
-function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
-	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
-
-	const instance = useReactTable({
-		data,
-		columns: columns,
-		state: {
-			sorting
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
-
-	return <VirtualTable instance={instance} />
 }
 
 const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
@@ -172,7 +161,7 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		}
 	},
 	{
-		header: () => 'Category',
+		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
 		meta: {
@@ -180,7 +169,7 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		}
 	},
 	{
-		header: () => 'Amount',
+		header: 'Amount',
 		accessorKey: 'amountUsd',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {

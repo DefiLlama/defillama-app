@@ -64,6 +64,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
+				csvFileName="protocol-expenses.csv"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
