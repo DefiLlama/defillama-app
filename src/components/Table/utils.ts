@@ -177,8 +177,8 @@ export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>;
 	rows: Array<Array<string | number | boolean>>
 } {
 	const columns = instance.getVisibleLeafColumns().filter((column) => !column.columnDef.meta?.hidden)
-	const tableRows = instance.getSortedRowModel().rows
-	if (columns.length === 0 || tableRows.length === 0) return { filename, rows: [] }
+	const tableRows = instance.getRowModel().rows
+	if (columns.length === 0) return { filename, rows: [] }
 
 	const headers = columns.map((column) => {
 		const header = column.columnDef.header

@@ -104,7 +104,7 @@ export function BridgesOverviewByChain({
 	const largeTxsTableRef = React.useRef<BridgesLargeTxsTableHandle | null>(null)
 
 	const chainOptions = React.useMemo(() => {
-		const uniqueChains = Array.from(new Set(chains))
+		const uniqueChains = Array.from(new Set(chains)).filter((chain) => chain !== 'All')
 		return ['All', ...uniqueChains].map((label) => ({ label, to: handleRouting(label) }))
 	}, [chains])
 
