@@ -88,6 +88,6 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 
 	return {
 		coinsData: coinsData.map((coin) => ({ ...coin, label: coin.symbol.toUpperCase(), value: coin.id })),
-		protocols: [...Object.values(parentProtocols), ...llamaProtocols]
+		protocols: [...llamaProtocols, ...Object.values(parentProtocols)]
 	}
 }

@@ -33,6 +33,18 @@ interface ProtocolApiMiniResponse {
 	tvl: [number, number][]
 }
 
+const LIQUIDITY_TOKENS_TTL_MS = 10 * 60 * 1000
+let liquidityTokensCache: { data: Awaited<ReturnType<typeof fetchProtocolLiquidityTokens>>; ts: number } | null = null
+
+async function getCachedLiquidityTokens() {
+	if (liquidityTokensCache && Date.now() - liquidityTokensCache.ts < LIQUIDITY_TOKENS_TTL_MS) {
+		return liquidityTokensCache.data
+	}
+	const data = await fetchProtocolLiquidityTokens()
+	liquidityTokensCache = { data, ts: Date.now() }
+	return data
+}
+
 export default class ProtocolCharts {
 	static async tvl(protocolId: string): Promise<[number, number][]> {
 		if (!protocolId) {
@@ -194,7 +206,7 @@ export default class ProtocolCharts {
 			const symbol: string | undefined = proto?.symbol
 			if (!symbol) return []
 
-			const tokens = await fetchProtocolLiquidityTokens()
+			const tokens = await getCachedLiquidityTokens()
 			const entry = Array.isArray(tokens)
 				? tokens.find((t: any) => String(t?.symbol).toUpperCase() === String(symbol).toUpperCase())
 				: null

@@ -36,10 +36,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 			queryKey: ['protocol-to-compare', protocol],
 			queryFn: async () => {
 				const protocolData = await fetchProtocolBySlug<RawProtocolResponse>(slug(protocol))
-				return {
-					protocolData,
-					protocolName: protocolData.name
-				}
+				return { protocolData }
 			},
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,

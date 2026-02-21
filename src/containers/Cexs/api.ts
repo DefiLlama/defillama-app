@@ -22,6 +22,6 @@ export async function fetchCexInflows(
 	tokensToExclude: string
 ): Promise<RawCexInflowsResponse> {
 	return fetchJson<RawCexInflowsResponse>(
-		`${INFLOWS_API_URL}/${cexSlug}/${startTime}?end=${endTime}&tokensToExclude=${tokensToExclude}`
+		`${INFLOWS_API_URL}/${encodeURIComponent(cexSlug)}/${startTime}?end=${endTime}&tokensToExclude=${encodeURIComponent(tokensToExclude)}`
 	)
 }

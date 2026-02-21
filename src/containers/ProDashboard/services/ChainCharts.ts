@@ -110,7 +110,8 @@ export default class ChainCharts {
 		const chainNames = this.getChainNames(chain)
 
 		if (chainNames.length === 1) {
-			const data = await fetchChainChart<any>(chain)
+			const data = await fetchChainChart<any>(chain).catch(() => null)
+			if (data == null) return []
 			const adjustedTvl = processAdjustedTvl(data)
 			return convertToNumberFormat(adjustedTvl)
 		}

@@ -166,7 +166,7 @@ const ProtocolName = ({ value }: { value: string }) => {
 
 const ChainName = ({ value }: { value: string }) => {
 	const { data } = useQuery<ChainListItem[] | null>({
-		queryKey: ['chains'],
+		queryKey: ['chains-list'],
 		queryFn: async () => {
 			const res = await fetchChainsList()
 			return isChainList(res) ? res : null

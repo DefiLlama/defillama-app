@@ -379,9 +379,9 @@ export async function fetchProtocolExpenses(): Promise<IProtocolExpenses[]> {
 export async function fetchProtocolBySlug<TProtocolResponse = unknown>(
 	protocolSlug: string
 ): Promise<TProtocolResponse> {
-	return fetchJson<TProtocolResponse>(`${PROTOCOL_API_URL}/${protocolSlug}`)
+	return fetchJson<TProtocolResponse>(`${PROTOCOL_API_URL}/${encodeURIComponent(protocolSlug)}`)
 }
 
 export async function fetchProtocolMiniBySlug(protocolSlug: string): Promise<IProtocolMiniResponse> {
-	return fetchJson<IProtocolMiniResponse>(`${PROTOCOL_API_MINI_URL}/${protocolSlug}`)
+	return fetchJson<IProtocolMiniResponse>(`${PROTOCOL_API_MINI_URL}/${encodeURIComponent(protocolSlug)}`)
 }

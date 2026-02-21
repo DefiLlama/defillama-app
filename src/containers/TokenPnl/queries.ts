@@ -86,20 +86,31 @@ const calculateMaxDrawdown = (series: PricePoint[]): number => {
 	return Math.abs(maxDrawdown)
 }
 
+const SECONDS_PER_YEAR = 365 * DAY_IN_SECONDS
+
 const calculateAnnualizedVolatility = (series: PricePoint[]): number => {
 	if (series.length < 2) return 0
 	const returns: number[] = []
+	let totalDeltaSec = 0
+	let deltaCount = 0
 	for (let i = 1; i < series.length; i++) {
-		const prev = series[i - 1].price
-		const curr = series[i].price
-		if (prev === 0 || !Number.isFinite(prev) || !Number.isFinite(curr)) continue
-		returns.push((curr - prev) / prev)
+		const prev = series[i - 1]
+		const curr = series[i]
+		if (prev.price === 0 || !Number.isFinite(prev.price) || !Number.isFinite(curr.price)) continue
+		returns.push((curr.price - prev.price) / prev.price)
+		const dt = curr.timestamp - prev.timestamp
+		if (Number.isFinite(dt) && dt > 0) {
+			totalDeltaSec += dt
+			deltaCount++
+		}
 	}
 	if (returns.length < 2) return 0
+	const avgIntervalSec = deltaCount > 0 ? totalDeltaSec / deltaCount : DAY_IN_SECONDS
+	const periodsPerYear = SECONDS_PER_YEAR / avgIntervalSec
 	const mean = returns.reduce((acc, value) => acc + value, 0) / returns.length
 	const variance = returns.reduce((acc, value) => acc + Math.pow(value - mean, 2), 0) / (returns.length - 1 || 1)
-	const dailyVol = Math.sqrt(variance)
-	return dailyVol * Math.sqrt(365) * 100
+	const periodVol = Math.sqrt(variance)
+	return periodVol * Math.sqrt(periodsPerYear) * 100
 }
 
 const calculateYAxisConfigFromPrices = (
@@ -187,8 +198,7 @@ export async function computeTokenPnl(params: {
 	const isPositive = endPrice >= startPrice
 	const primaryColor = isPositive ? '#10b981' : '#ef4444'
 	const holdingPeriodDays = Math.max(1, Math.round((end - start) / DAY_IN_SECONDS))
-	const annualizedReturn =
-		holdingPeriodDays > 0 ? (Math.pow(1 + percentChange / 100, 365 / holdingPeriodDays) - 1) * 100 : 0
+	const annualizedReturn = (Math.pow(1 + percentChange / 100, 365 / holdingPeriodDays) - 1) * 100
 
 	const timeline: TimelinePoint[] = []
 	const dataPoints: Array<[number, number]> = []
@@ -266,19 +276,8 @@ export async function buildComparisonEntry(params: {
 	const series = await fetchPriceSeries(tokenId, start, end)
 	if (series.length === 0) return null
 
-	const firstPoint = series[0]
-	const lastPoint = series[series.length - 1]
-	if (
-		firstPoint == null ||
-		lastPoint == null ||
-		!Number.isFinite(firstPoint.price) ||
-		!Number.isFinite(lastPoint.price)
-	) {
-		return null
-	}
-
-	const startPrice = firstPoint.price
-	const endPrice = lastPoint.price
+	const startPrice = series[0].price
+	const endPrice = series[series.length - 1].price
 	const percentChange = startPrice !== 0 ? ((endPrice - startPrice) / startPrice) * 100 : 0
 	const absoluteChange = endPrice - startPrice
 	const coin = coinInfoMap.get(tokenId)

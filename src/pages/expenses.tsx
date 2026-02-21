@@ -20,15 +20,15 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 		)
 	])
 
+	const protocolById = new Map<string, ProtocolLite | (ParentProtocolLite & { defillamaId: string })>()
+	for (const p of protocols) protocolById.set(p.defillamaId, p)
+	for (const p of parentProtocols) protocolById.set(p.id, { ...p, defillamaId: p.id })
+
 	return {
 		props: {
 			expenses: expenses
 				.map((e) => {
-					const combinedProtocols: Array<ProtocolLite | (ParentProtocolLite & { defillamaId: string })> = [
-						...protocols,
-						...parentProtocols.map((p) => ({ ...p, defillamaId: p.id }))
-					]
-					const protocol = combinedProtocols.find((p) => p.defillamaId === e.protocolId) ?? null
+					const protocol = protocolById.get(e.protocolId) ?? null
 					const sumAnnualUsdExpenses = Object.values(e.annualUsdCost).reduce(
 						(sum: number, x: number) => sum + x
 					) as number

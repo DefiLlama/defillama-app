@@ -298,11 +298,11 @@ export const getTvlSplitData = async (
 					const childSeries = await Promise.all(childSlugs.map((slug) => buildSeriesForSlug(slug)))
 					const summed = sumSeriesByTimestamp(childSeries)
 					const data = Array.from(summed.entries()).sort((a, b) => a[0] - b[0]) as [number, number][]
-					return { name: t.name, data }
+					return { name: t.name, data, failed: false }
 				}
 
 				const data = await buildSeriesForSlug(t.slug)
-				return { name: t.name, data }
+				return { name: t.name, data, failed: false }
 			} catch (e) {
 				console.log('Error fetching protocol tvl', t.slug, e)
 				return { name: t.name, data: [] as [number, number][], failed: true }

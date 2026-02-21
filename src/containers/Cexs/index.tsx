@@ -17,7 +17,7 @@ const getOutflowsByTimerange = async (
 	startTime: number | null,
 	endTime: number | null,
 	cexData: ICex[]
-): Promise<Record<string, { outflows?: number }>> => {
+): Promise<Record<string, { outflows?: number | null }>> => {
 	let loadingToastId: string | undefined
 	try {
 		if (startTime && endTime) {
@@ -42,7 +42,7 @@ const getOutflowsByTimerange = async (
 					}
 					return undefined
 				})
-				.filter((item): item is readonly [string, { outflows?: number }] => item != null && item[0] != null)
+				.filter((item): item is readonly [string, { outflows?: number | null }] => item != null && item[0] != null)
 
 			toast.dismiss(loadingToastId)
 

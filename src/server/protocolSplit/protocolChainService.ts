@@ -487,14 +487,14 @@ async function getAllProtocolsTopChainsTvlData(
 		const picked = ranked.slice(0, Math.min(topN, ranked.length))
 		const pickedNames = picked.map((c) => c.name)
 
-		const globalJson = await fetchChainChart<any>()
-		const chainResponses = await Promise.all(
-			pickedNames.map((name) =>
+		const [globalJson, ...chainResponses] = await Promise.all([
+			fetchChainChart<any>(),
+			...pickedNames.map((name) =>
 				fetchChainChart<any>(name)
 					.then((data) => ({ name, data }))
 					.catch(() => null)
 			)
-		)
+		])
 		const adjustedGlobalTvl = processAdjustedTvl(globalJson)
 		const totalSeries = filterOutToday(normalizeDailyPairs(adjustedGlobalTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 

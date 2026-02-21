@@ -162,7 +162,7 @@ export async function fetchCoinPrices(
 		return {}
 	}
 
-	// Split chains into batches of 10
+	// Split coins into batches of 10
 	const batchSize = 10
 	const batches: Array<Array<string>> = []
 	for (let i = 0; i < coins.length; i += batchSize) {

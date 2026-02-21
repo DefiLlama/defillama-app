@@ -25,8 +25,6 @@ import { StatsCard } from './StatsCard'
 import type { ComparisonEntry } from './types'
 
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
-const EMPTY_COMPARISON_ENTRIES: ComparisonEntry[] = []
-
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const DEFAULT_COMPARISON_IDS = ['bitcoin', 'ethereum', 'solana'] as const
@@ -525,7 +523,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 					chartOptions={chartOptions}
 					exportChartInstance={exportChartInstance}
 					handleChartReady={handleChartReady}
-					comparisonData={comparisonData ?? EMPTY_COMPARISON_ENTRIES}
+					comparisonData={comparisonData}
 					selectedCoinId={selectedCoinId}
 				/>
 			</div>
