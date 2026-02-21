@@ -43,6 +43,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
+				csvFileName="revenue-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -16,54 +15,6 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 
 const DEFAULT_SORTING_STATE = [{ id: 'totalAssetAmount', desc: true }]
 
-function prepareAssetBreakdownCsv(
-	institutions: IDATOverviewDataByAssetProps['institutions'],
-	name: string,
-	symbol: string
-) {
-	const headers = [
-		'Institution',
-		'Ticker',
-		'Type',
-		`Holdings (${symbol})`,
-		"Today's Holdings Value",
-		'Stock Price',
-		'24h Price Change (%)',
-		`% of ${symbol} Circulating Supply`,
-		'Realized mNAV',
-		'Realistic mNAV',
-		'Max mNAV',
-		`Average Purchase Price (${symbol})`,
-		'Last Updated'
-	]
-
-	const rows = institutions.map((institution) => {
-		return [
-			institution.name,
-			institution.ticker,
-			institution.type,
-			institution.holdings.amount ?? '',
-			institution.holdings.usdValue ?? '',
-			institution.price ?? '',
-			institution.priceChange24h ?? '',
-			institution.holdings.supplyPercentage ?? '',
-			institution.realized_mNAV ?? '',
-			institution.realistic_mNAV ?? '',
-			institution.max_mNAV ?? '',
-			institution.holdings.avgPrice ?? '',
-			institution.holdings.lastAnnouncementDate
-				? new Date(institution.holdings.lastAnnouncementDate).toLocaleDateString()
-				: ''
-		]
-	})
-
-	const date = new Date().toISOString().split('T')[0]
-	return {
-		filename: `${name.toLowerCase().replace(/\s+/g, '-')}-treasury-holdings-${date}.csv`,
-		rows: [headers, ...rows]
-	}
-}
-
 export function DATByAsset({
 	allAssets,
 	metadata,
@@ -74,10 +25,6 @@ export function DATByAsset({
 	mNAVMaxChart,
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
-	const handlePrepareAssetBreakdownCsv = useCallback(
-		() => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker),
-		[institutions, metadata.name, metadata.ticker]
-	)
 	const inflowsTooltipFormatter = useMemo(
 		() => createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: metadata.ticker }),
 		[metadata.ticker]
@@ -170,7 +117,7 @@ export function DATByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />}
+				csvFileName={`${metadata.name}-treasury-holdings`}
 			/>
 		</>
 	)
@@ -395,7 +342,7 @@ function MNAVChart({
 				/>
 				<ChartExportButtons
 					chartInstance={chartInstance}
-					filename={`${slug(metadata.name)}-${slug(title)}`}
+					filename={`${metadata.name}-${title}`}
 					title={`${metadata.name} ${title}`}
 				/>
 			</div>

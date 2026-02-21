@@ -10,7 +10,7 @@ import type { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek } from '~/utils'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 
@@ -191,7 +191,7 @@ export const AdapterByChainChart = ({
 				{chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
-					filename={`${slug(chain)}-${adapterType}-${chartName}`}
+					filename={`${chain}-${adapterType}-${chartName}`}
 					title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
 				/>
 			</div>

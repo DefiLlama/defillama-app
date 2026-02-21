@@ -1,6 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
@@ -96,19 +95,6 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 		return columns.filter((c) => c.id != null && selected.includes(c.id))
 	}, [selectedColumns])
 
-	const prepareCsv = () => {
-		const rows: Array<Array<string | number>> = [['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']]
-		for (const protocol of protocols) {
-			rows.push([
-				protocol.name,
-				protocol.totalHacked,
-				protocol.returnedFunds,
-				protocol.totalHacked - protocol.returnedFunds
-			])
-		}
-		return { filename: 'total-value-lost-in-hacks.csv', rows }
-	}
-
 	return (
 		<TableWithSearch
 			data={protocols}
@@ -117,19 +103,17 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 			columnToSearch="Name"
 			header="Total Value Lost in Hacks"
 			compact
-			customFilters={
-				<>
-					<Select
-						allValues={columnIds}
-						selectedValues={selectedColumns}
-						setSelectedValues={setSelectedColumns}
-						label="Columns"
-						labelType="smol"
-						variant="filter-responsive"
-					/>
-					<CSVDownloadButton prepareCsv={prepareCsv} smol />
-				</>
-			}
+			customFilters={() => (
+				<Select
+					allValues={columnIds}
+					selectedValues={selectedColumns}
+					setSelectedValues={setSelectedColumns}
+					label="Columns"
+					labelType="smol"
+					variant="filter-responsive"
+				/>
+			)}
+			csvFileName="total-value-lost-in-hacks"
 			sortingState={DEFAULT_SORTING_STATE}
 		/>
 	)

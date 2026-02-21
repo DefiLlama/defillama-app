@@ -1,6 +1,5 @@
-import type { ColumnDef, Table } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -35,31 +34,6 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 		return rows
 	}, [assets, flows1d])
 
-	const prepareCsv = (instance: Table<any>) => {
-		const columns = instance.getVisibleLeafColumns()
-		const tableRows = instance.getRowModel().rows
-		if (columns.length === 0 || tableRows.length === 0) return { filename: 'bridged-chains.csv', rows: [] }
-
-		const headers = columns.map((column) => {
-			const header = column.columnDef.header
-			if (typeof header === 'string') {
-				return header
-			}
-			return column.id ?? ''
-		})
-		const dataRows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
-			columns.map((column) => {
-				const value = row.getValue(column.id)
-				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-				if (Array.isArray(value)) return value.join(', ')
-				return ''
-			})
-		)
-		const rows: Array<Array<string | number | boolean>> = [headers, ...dataRows]
-
-		return { filename: 'bridged-chains.csv', rows }
-	}
-
 	return (
 		<>
 			<RowLinksWithDropdown links={chains} activeLink="All" />
@@ -68,7 +42,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 				columns={bridgedColumns}
 				placeholder={'Search chains...'}
 				columnToSearch={'name'}
-				customFilters={({ instance }) => <CSVDownloadButton prepareCsv={() => prepareCsv(instance)} smol />}
+				csvFileName="bridged-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

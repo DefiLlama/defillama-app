@@ -2,8 +2,7 @@ import { useState, type RefObject } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { downloadDataURL } from '~/utils'
-
+import { downloadDataURL } from '~/utils/download'
 interface KeyMetricsPngExportButtonProps {
 	containerRef: RefObject<HTMLDivElement | null>
 	protocolName: string
@@ -276,7 +275,7 @@ export function KeyMetricsPngExportButton({
 			} catch {}
 
 			const dataUrl = canvas.toDataURL('image/png')
-			const filename = `${protocolName.toLowerCase().replace(/\s+/g, '-')}-key-metrics.png`
+			const filename = `${protocolName.toLowerCase().replace(/\s+/g, '-')}-key-metrics`
 			downloadDataURL(filename, dataUrl)
 		}
 		try {

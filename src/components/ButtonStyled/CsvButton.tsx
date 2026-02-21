@@ -10,7 +10,8 @@ import { ConfirmationModal } from '~/containers/ProDashboard/components/Confirma
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useIsClient } from '~/hooks/useIsClient'
-import { download } from '~/utils'
+import { slug } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -45,6 +46,13 @@ const hasPrepareCsv = (props: CSVDownloadButtonPropsUnion): props is CSVDownload
 	'prepareCsv' in props
 
 const hasOnClick = (props: CSVDownloadButtonPropsUnion): props is CSVDownloadButtonWithOnClick => 'onClick' in props
+
+function normalizeCsvFilename(filename: string): string {
+	const trimmed = filename.trim()
+	const baseName = trimmed.toLowerCase().endsWith('.csv') ? trimmed.slice(0, -4) : trimmed
+	const normalizedBaseName = slug(baseName)
+	return `${normalizedBaseName || 'data'}.csv`
+}
 
 interface CSVDownloadButtonState {
 	staticLoading: boolean
@@ -137,14 +145,6 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 		async (forceLoading = false) => {
 			const shouldSetLoading = forceLoading || !!prepareCsv
 			if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: true })
-			const escapeCell = (value: string | number | boolean | null | undefined) => {
-				if (value == null) return ''
-				const str = String(value).replaceAll('\n', ' ').replaceAll('\r', ' ')
-				if (str.includes(',') || str.includes('"')) {
-					return `"${str.replace(/"/g, '""')}"`
-				}
-				return str
-			}
 
 			try {
 				if (onClickHandler) {
@@ -155,8 +155,9 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 
 				if (prepareCsv) {
 					const { filename, rows } = prepareCsv()
+					const normalizedFilename = normalizeCsvFilename(filename)
 
-					download(filename, rows.map((row) => row.map((cell) => escapeCell(cell)).join(',')).join('\n'))
+					downloadCSV(normalizedFilename, rows, { addTimestamp: false })
 					if (shouldSetLoading) dispatch({ type: 'setStaticLoading', value: false })
 					return true
 				}

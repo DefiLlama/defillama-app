@@ -10,10 +10,11 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
@@ -105,7 +106,7 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 	},
 	{
 		header: '7d Deposits',
-		accessorKey: 'prevWeekUsdWithdrawals',
+		accessorKey: 'prevWeekUsdDeposits',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
@@ -114,7 +115,7 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 	},
 	{
 		header: '7d Withdrawals',
-		accessorKey: 'prevWeekUsdDeposits',
+		accessorKey: 'prevWeekUsdWithdrawals',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
@@ -250,6 +251,7 @@ export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'bridge-chains' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

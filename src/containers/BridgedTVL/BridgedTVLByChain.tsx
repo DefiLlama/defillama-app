@@ -16,7 +16,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 import type { RawChainAsset } from './api.types'
 
 interface BridgedChainRow {
@@ -209,7 +209,7 @@ export function BridgedTVLByChain({
 						) : null}
 						<ChartExportButtons
 							chartInstance={exportChartInstance}
-							filename={`${slug(chainName)}-bridged-tvl`}
+							filename={`${chainName}-bridged-tvl`}
 							title={`${chainName} Bridged TVL`}
 						/>
 					</div>

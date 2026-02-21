@@ -1,7 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
-import type { ColumnDef, Table } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { BRIDGETX_API } from '~/constants'
@@ -217,11 +216,16 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
 
 	const [transactions, setTransactions] = useState<BridgeTransaction[]>([])
+	const [fetchedDateRange, setFetchedDateRange] = useState<{ startDate: string; endDate: string } | null>(null)
 
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: fetchTransactions,
-		onSuccess: (data) => {
+		onSuccess: (data, variables) => {
 			setTransactions(data)
+			setFetchedDateRange({
+				startDate: variables.startDate,
+				endDate: variables.endDate
+			})
 		}
 	})
 
@@ -252,33 +256,9 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	}
 
 	const maxDate = new Date().toISOString().split('T')[0]
+	const csvDateRange = fetchedDateRange ?? { startDate, endDate }
 
 	const tableData = useMemo(() => transactions.map(transformTransactionForTable), [transactions])
-
-	const prepareCsv = useCallback(
-		(instance: Table<any>) => {
-			const filename = `bridge-transactions_${startDate}_${endDate}.csv`
-			const columns = instance.getVisibleLeafColumns()
-			const tableRows = instance.getRowModel().rows
-			if (columns.length === 0 || tableRows.length === 0) return { filename, rows: [] }
-
-			const headers = columns.map((column) =>
-				typeof column.columnDef.header === 'string' ? column.columnDef.header : (column.id ?? '')
-			)
-			const dataRows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
-				columns.map((column) => {
-					const value = row.getValue(column.id)
-					if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-					if (Array.isArray(value)) return value.join(', ')
-					return ''
-				})
-			)
-			const rows: Array<Array<string | number | boolean>> = [headers, ...dataRows]
-
-			return { filename, rows }
-		},
-		[startDate, endDate]
-	)
 
 	return (
 		<div className="mt-4 flex flex-col gap-4 lg:mt-10">
@@ -349,12 +329,12 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 					data={tableData}
 					columns={bridgeTransactionsColumns}
 					header="Bridge Transactions"
-					customFilters={({ instance }) => (
+					customFilters={() => (
 						<div className="flex items-center justify-between gap-3">
 							<span>({transactions.length.toLocaleString()}) transactions</span>
-							<CSVDownloadButton prepareCsv={() => prepareCsv(instance)} />
 						</div>
 					)}
+					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}`}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
 			)}

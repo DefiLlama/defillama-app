@@ -104,7 +104,7 @@ export function ChainsWithStablecoins({
 				}, 0)
 			])
 		}
-		return { filename: 'stablecoinsChainTotals.csv', rows }
+		return { filename: 'stablecoinsChainTotals', rows }
 	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)

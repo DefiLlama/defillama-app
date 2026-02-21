@@ -4,14 +4,13 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { BridgesTable } from '~/containers/Bridges/BridgesTable'
+import { BridgesTable, type BridgesTableHandle } from '~/containers/Bridges/BridgesTable'
 import { BridgeVolumeChart } from '~/containers/Bridges/BridgeVolumeChart'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
-import { BridgesLargeTxsTable } from './BridgesLargeTxsTable'
-import { LargeTxDownloadButton } from './DownloadButton'
+import { BridgesLargeTxsTable, type BridgesLargeTxsTableHandle } from './BridgesLargeTxsTable'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -101,8 +100,13 @@ export function BridgesOverviewByChain({
 	const [searchValue, setSearchValue] = React.useState('')
 	const deferredSearchValue = React.useDeferredValue(searchValue)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
+	const bridgesTableRef = React.useRef<BridgesTableHandle | null>(null)
+	const largeTxsTableRef = React.useRef<BridgesLargeTxsTableHandle | null>(null)
 
-	const chainOptions = ['All', ...chains].map((label) => ({ label, to: handleRouting(label) }))
+	const chainOptions = React.useMemo(() => {
+		const uniqueChains = Array.from(new Set(chains)).filter((chain) => chain !== 'All')
+		return ['All', ...uniqueChains].map((label) => ({ label, to: handleRouting(label) }))
+	}, [chains])
 
 	const { tokenDeposits, tokenWithdrawals } = useBuildBridgeChartData(bridgeStatsCurrentDay)
 
@@ -223,6 +227,19 @@ export function BridgesOverviewByChain({
 		}
 		return { dayTotalVolume, weekTotalVolume, monthTotalVolume }
 	}, [chainVolumeData, selectedChain, filteredBridges, messagingProtocols, activeTab])
+
+	const prepareActiveTabCsv = React.useCallback(() => {
+		if (activeTab === 'largeTxs') {
+			return largeTxsTableRef.current?.prepareCsv() ?? { filename: 'bridge-transactions', rows: [] }
+		}
+
+		return (
+			bridgesTableRef.current?.prepareCsv() ?? {
+				filename: activeTab === 'messaging' ? 'messaging-protocols' : 'bridges',
+				rows: []
+			}
+		)
+	}, [activeTab])
 
 	return (
 		<>
@@ -353,8 +370,8 @@ export function BridgesOverviewByChain({
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex w-full flex-wrap items-center justify-between gap-3 p-3">
-					<div className="flex items-center overflow-x-auto">
+				<div className="flex w-full flex-wrap items-center justify-end gap-3 p-3">
+					<div className="mr-auto flex items-center overflow-x-auto">
 						<button
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'bridges'}
@@ -393,22 +410,24 @@ export function BridgesOverviewByChain({
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
+					<CSVDownloadButton prepareCsv={prepareActiveTabCsv} smol />
 				</div>
 
 				{activeTab === 'largeTxs' ? (
 					<>
 						<div className="flex flex-wrap items-center justify-end gap-2">
-							<p className="text-right italic opacity-60">
+							<p className="px-4 text-right italic opacity-60">
 								Displaying {largeTxsData.length} transactions from the past {selectedChain === 'All' ? '1d' : '7d'}
 							</p>
-							<LargeTxDownloadButton data={largeTxsData} />
 						</div>
-						<BridgesLargeTxsTable data={largeTxsData} />
+						<BridgesLargeTxsTable ref={largeTxsTableRef} data={largeTxsData} />
 					</>
 				) : (
 					<BridgesTable
+						ref={bridgesTableRef}
 						data={activeTab === 'bridges' ? filteredBridges : messagingProtocols}
 						searchValue={deferredSearchValue}
+						csvFileName={activeTab === 'messaging' ? 'messaging-protocols' : 'bridges'}
 					/>
 				)}
 			</div>

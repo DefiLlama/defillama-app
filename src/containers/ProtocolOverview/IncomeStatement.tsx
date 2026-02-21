@@ -495,7 +495,7 @@ export const IncomeStatement = ({
 			.replace(/(^-|-$)/g, '')
 
 		return {
-			filename: `income-statement-${safeProtocolName || 'protocol'}-${groupBy.toLowerCase()}.csv`,
+			filename: `income-statement-${safeProtocolName || 'protocol'}-${groupBy.toLowerCase()}`,
 			rows
 		}
 	}

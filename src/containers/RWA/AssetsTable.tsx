@@ -19,7 +19,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, slug } from '~/utils'
@@ -104,64 +104,6 @@ export function RWAAssetsTable({
 		instance.setColumnVisibility(ops)
 	}
 
-	const prepareCsv = () => {
-		const tableRows = instance.getSortedRowModel().rows
-		const headers: Array<string | number | boolean> = [
-			// Keep in sync with `columns` below (virtual table columns)
-			'Name',
-			definitions.type.label,
-			definitions.rwaClassification.label,
-			definitions.accessModel.label,
-			definitions.category.label,
-			definitions.assetClass.label,
-			definitions.defiActiveTvl.label,
-			definitions.activeMcap.label,
-			definitions.onChainMcap.label,
-			'Token Price',
-			definitions.issuer.label,
-			definitions.redeemable.label,
-			definitions.attestations.label,
-			definitions.cexListed.label,
-			definitions.kycForMintRedeem.label,
-			definitions.kycAllowlistedWhitelistedToTransferHold.label,
-			definitions.transferable.label,
-			definitions.selfCustody.label
-		]
-
-		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
-			const asset = row.original
-			return [
-				asset.assetName ?? asset.ticker ?? '',
-				asset.type ?? '',
-				asset.rwaClassification ?? '',
-				asset.accessModel ?? '',
-				asset.category?.join(', ') ?? '',
-				asset.assetClass?.join(', ') ?? '',
-				asset.defiActiveTvl?.total ?? '',
-				asset.activeMcap?.total ?? '',
-				asset.onChainMcap?.total ?? '',
-				asset.price != null ? formattedNum(asset.price, true) : '',
-				asset.issuer ?? '',
-				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
-				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
-				asset.cexListed != null ? (asset.cexListed ? 'Yes' : 'No') : '',
-				asset.kycForMintRedeem != null ? (asset.kycForMintRedeem ? 'Yes' : 'No') : '',
-				asset.kycAllowlistedWhitelistedToTransferHold != null
-					? asset.kycAllowlistedWhitelistedToTransferHold
-						? 'Yes'
-						: 'No'
-					: '',
-				asset.transferable != null ? (asset.transferable ? 'Yes' : 'No') : '',
-				asset.selfCustody != null ? (asset.selfCustody ? 'Yes' : 'No') : ''
-			]
-		})
-
-		return {
-			filename: `rwa-assets${selectedChain !== 'All' ? `-${selectedChain.toLowerCase()}` : ''}.csv`,
-			rows: [headers, ...csvData]
-		}
-	}
-
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<h1 className="mr-auto p-3 text-lg font-semibold">Assets Rankings</h1>
@@ -192,7 +134,15 @@ export function RWAAssetsTable({
 					labelType="smol"
 					variant="filter-responsive"
 				/>
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+				<CSVDownloadButton
+					prepareCsv={() =>
+						prepareTableCsv({
+							instance,
+							filename: `rwa-assets${selectedChain !== 'All' ? `-${selectedChain.toLowerCase()}` : ''}`
+						})
+					}
+					smol
+				/>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

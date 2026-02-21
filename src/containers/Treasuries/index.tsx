@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -21,43 +20,6 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 		[entity]
 	)
 
-	const prepareCsv = () => {
-		const headers = [
-			'Name',
-			'Category',
-			'Own Tokens',
-			'Stablecoins',
-			'Major Tokens',
-			'Other Tokens',
-			'Total excl. own tokens',
-			'Total Treasury',
-			'Mcap',
-			'Change 1d',
-			'Change 7d',
-			'Change 1m'
-		]
-		const dataToDownload = data.map((row) => {
-			const csvRow: Record<string, string | number> = {
-				Name: row.name,
-				Category: row.category,
-				'Own Tokens': row.ownTokens,
-				Stablecoins: row.stablecoins,
-				'Major Tokens': row.majors,
-				'Other Tokens': row.others,
-				'Total excl. own tokens': row.coreTvl,
-				'Total Treasury': row.tvl,
-				Mcap: row.mcap ?? '',
-				'Change 1d': row.change_1d ?? '',
-				'Change 7d': row.change_7d ?? '',
-				'Change 1m': row.change_1m ?? ''
-			}
-			return csvRow
-		})
-		const dataRows: (string | number)[][] = dataToDownload.map((row) => headers.map((header) => row[header]))
-		const rows: (string | number)[][] = [headers, ...dataRows]
-		return { filename: 'treasuries.csv', rows }
-	}
-
 	const sortingState = entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]
 
 	return (
@@ -68,11 +30,7 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 			placeholder={'Search projects...'}
 			header={'Treasuries'}
 			sortingState={sortingState}
-			customFilters={
-				<>
-					<CSVDownloadButton prepareCsv={prepareCsv} />
-				</>
-			}
+			csvFileName="treasuries"
 		/>
 	)
 }

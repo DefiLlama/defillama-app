@@ -6,7 +6,8 @@ import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
 } from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
-import { download, toNiceCsvDate } from '~/utils'
+import { toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
@@ -95,7 +96,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						...chainsUnique.map((c) => el[c] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-borrowed-by-chain.csv`
+				filename = `${protocolSlug}-borrowed-by-chain`
 				break
 			case 'tokenBorrowedUsd':
 				rows = [
@@ -105,11 +106,11 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-borrowed-by-token-usd.csv`
+				filename = `${protocolSlug}-borrowed-by-token-usd`
 				break
 			case 'tokensBorrowedPie':
 				rows = [['Token', 'Value'], ...(resolvedTokenBreakdownPieChart.map((el: any) => [el.name, el.value]) ?? [])]
-				filename = `${protocolSlug}-borrowed-tokens-breakdown.csv`
+				filename = `${protocolSlug}-borrowed-tokens-breakdown`
 				break
 			case 'tokenBorrowedRaw':
 				rows = [
@@ -119,7 +120,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-borrowed-by-token-raw.csv`
+				filename = `${protocolSlug}-borrowed-by-token-raw`
 				break
 		}
 

@@ -59,7 +59,7 @@ const pageName = ['Yields: All Projects']
 
 export default function Protocols({ projects }) {
 	const prepareCsv = () => ({
-		filename: 'yields-projects.csv',
+		filename: 'yields-projects',
 		rows: [
 			['Project', 'Airdrop', 'Category', 'Pools', 'Combined TVL', 'Audits', 'Median APY'],
 			...projects.map((p) => [

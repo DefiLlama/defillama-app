@@ -214,7 +214,7 @@ function buildCsvFromChart({
 
 	const base = filenameBase || 'chart'
 	const date = new Date().toISOString().split('T')[0]
-	return { filename: `${base}-${date}.csv`, rows: rowsSafe }
+	return { filename: `${base}-${date}`, rows: rowsSafe }
 }
 
 interface ChartCsvExportButtonProps {

@@ -9,9 +9,11 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CONFIG_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
@@ -298,24 +300,25 @@ const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
 	},
 	{
 		header: 'Owner',
-		accessorKey: 'owner',
+		id: 'owner',
+		accessorFn: (row) => row.owner?.displayName ?? '',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as ILiquidablePositionsRow['owner']
+		cell: ({ row }) => {
+			const owner = row.original.owner
 
-			if (typeof value !== 'object') {
-				return <span>{value}</span>
+			if (typeof owner !== 'object' || owner == null) {
+				return <span />
 			}
 			return (
 				<a
-					href={value.url}
+					href={owner.url}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center justify-end gap-2 hover:underline"
 				>
-					{value.displayName.length > 13
-						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
-						: value.displayName}
+					{owner.displayName.length > 13
+						? `${owner.displayName.substring(0, 6)}...${owner.displayName.substring(owner.displayName.length - 4)}`
+						: owner.displayName}
 					<Icon name="external-link" height={12} width={12} />
 				</a>
 			)
@@ -376,7 +379,14 @@ function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return (
+		<div>
+			<div className="flex justify-end p-3">
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-protocols' })} smol />
+			</div>
+			<VirtualTable instance={instance} />
+		</div>
+	)
 }
 
 function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] }) {
@@ -397,5 +407,12 @@ function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] 
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return (
+		<div>
+			<div className="flex justify-end p-3">
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-positions' })} smol />
+			</div>
+			<VirtualTable instance={instance} />
+		</div>
+	)
 }

@@ -13,10 +13,9 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import { slug } from '~/utils'
-import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { raisesColumnOrders, raisesColumns } from './Table'
 import type { IRaise } from './types'
@@ -33,13 +32,7 @@ const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
-function RaisesByInvestorTable({
-	raises,
-	prepareCsv
-}: {
-	raises: IRaise[]
-	prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] }
-}) {
+function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -88,7 +81,7 @@ function RaisesByInvestorTable({
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises' })} smol />
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
@@ -131,10 +124,6 @@ export const InvestorContainer = ({
 		sectors,
 		chains
 	})
-
-	const prepareCsv = () => {
-		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}
 
 	return (
 		<>
@@ -200,7 +189,7 @@ export const InvestorContainer = ({
 							exportButtons={{
 								png: true,
 								csv: true,
-								filename: `${slug(investorName)}-funding-rounds`,
+								filename: `${investorName}-funding-rounds`,
 								pngTitle: `${investorName} Funding Rounds`
 							}}
 						/>
@@ -218,7 +207,7 @@ export const InvestorContainer = ({
 							exportButtons={{
 								png: true,
 								csv: true,
-								filename: `${slug(investorName)}-investment-by-rounds`,
+								filename: `${investorName}-investment-by-rounds`,
 								pngTitle: `${investorName} Investment by Rounds`
 							}}
 						/>
@@ -233,14 +222,14 @@ export const InvestorContainer = ({
 							exportButtons={{
 								png: true,
 								csv: true,
-								filename: `${slug(investorName)}-investments-by-category`,
+								filename: `${investorName}-investments-by-category`,
 								pngTitle: `${investorName} Investments by Category`
 							}}
 						/>
 					</React.Suspense>
 				</div>
 			</div>
-			<RaisesByInvestorTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
+			<RaisesByInvestorTable raises={filteredRaisesList} />
 		</>
 	)
 }

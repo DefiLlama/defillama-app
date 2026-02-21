@@ -14,7 +14,8 @@ import {
 	getLiquidationsCsvData
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, formattedNum, liquidationsIconUrl } from '~/utils'
+import { formattedNum, liquidationsIconUrl } from '~/utils'
+import { download } from '~/utils/download'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = React.lazy(

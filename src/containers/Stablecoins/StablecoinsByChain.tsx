@@ -313,7 +313,7 @@ export function StablecoinsByChain({
 				filteredPeggedNames.reduce((acc, curr) => acc + (day[curr] ?? 0), 0)
 			])
 		}
-		return { filename: 'stablecoins.csv', rows }
+		return { filename: 'stablecoins', rows }
 	}, [filteredPeggedNames, stackedData])
 
 	let title = `Stablecoins Market Cap`

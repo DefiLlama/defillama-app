@@ -18,7 +18,7 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -113,31 +113,6 @@ export function ChainsByCategoryTable({
 		return CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
 	}, [groupTvls])
 
-	const prepareCsv = () => {
-		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
-		const headers = visibleColumns.map((col) => {
-			if (typeof col.columnDef.header === 'string') {
-				return col.columnDef.header
-			}
-			return col.id ?? ''
-		})
-
-		const rows = instance.getSortedRowModel().rows.map((row) => {
-			return visibleColumns.map((col) => {
-				const cell = row.getAllCells().find((c) => c.column.id === col.id)
-				if (!cell) return ''
-
-				const value = cell.getValue()
-				if (value == null) return ''
-				if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-				if (Array.isArray(value)) return value.join(', ')
-				return ''
-			})
-		})
-
-		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}
-
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
@@ -184,7 +159,7 @@ export function ChainsByCategoryTable({
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'defillama-chains' })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />

@@ -22,7 +22,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { removedCategoriesFromChainTvlSet } from '~/constants'
@@ -65,23 +65,6 @@ function areCategoryFiltersEqual(current: unknown, next: string[] | undefined): 
 	return true
 }
 
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	return columnId
-}
-
-function getCsvCellValue(columnId: string, value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-		if (columnId === 'listedAt' && typeof value === 'number') {
-			return new Date(value * 1000).toLocaleDateString()
-		}
-		return value
-	}
-	if (Array.isArray(value)) return value.join(', ')
-	return ''
-}
-
 export function RecentlyListedProtocolsTable({
 	data,
 	selectedChains,
@@ -103,6 +86,7 @@ export function RecentlyListedProtocolsTable({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
+	const csvFileName = router.pathname === '/airdrops' ? 'airdrops' : 'protocols'
 
 	const columns = router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
 
@@ -148,19 +132,6 @@ export function RecentlyListedProtocolsTable({
 			categoryColumn.setFilterValue(nextFilterValue)
 		})
 	}, [instance, categories, selectedCategories])
-
-	const prepareCsv = () => {
-		const visibleColumns = instance
-			.getAllLeafColumns()
-			.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
-
-		const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-		const rows = instance
-			.getRowModel()
-			.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(column.id, row.getValue(column.id))))
-
-		return { filename: 'protocols.csv', rows: [headers, ...rows] }
-	}
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -210,7 +181,7 @@ export function RecentlyListedProtocolsTable({
 						<TVLRange triggerClassName="w-full sm:w-auto" />
 					</div>
 
-					<CSVDownloadButton prepareCsv={prepareCsv} smol />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: csvFileName })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />

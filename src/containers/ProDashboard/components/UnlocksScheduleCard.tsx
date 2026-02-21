@@ -6,7 +6,8 @@ import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { download, slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
+import { slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
+import { download } from '~/utils/download'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { UnlocksScheduleConfig } from '../types'
@@ -74,7 +75,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 
 	const hasChartData = dataset.source.length > 0 && stacks.length > 0
 	const imageTitle = `${protocolName} Unlocks Schedule`
-	const imageFilename = `${slug(protocolName || protocol)}-unlock-schedule-${resolvedDataType}`
+	const imageFilename = `${protocolName || protocol}-unlock-schedule-${resolvedDataType}`
 
 	const handleCsvExport = useCallback(() => {
 		if (!hasChartData) return
@@ -83,7 +84,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 			return [toNiceCsvDate(Math.floor((item.timestamp as number) / 1e3)), ...stacks.map((stack) => item[stack] ?? '')]
 		})
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		const filename = `${slug(protocolName || protocol)}-unlock-schedule-${resolvedDataType}.csv`
+		const filename = `${protocolName || protocol}-unlock-schedule-${resolvedDataType}`
 		download(filename, csvContent)
 	}, [hasChartData, dataset.source, stacks, protocolName, protocol, resolvedDataType])
 

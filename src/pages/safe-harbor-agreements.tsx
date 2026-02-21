@@ -79,6 +79,7 @@ export default function SafeHarborAgreements({ protocols }) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
+				csvFileName="safe-harbor-agreements"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

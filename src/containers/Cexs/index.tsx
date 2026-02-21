@@ -91,9 +91,10 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 				columnToSearch={'name'}
 				placeholder={'Search exchange...'}
 				header={'CEX Transparency'}
-				customFilters={
+				customFilters={() => (
 					<DateFilter startDate={startDate} endDate={endDate} key={`cexs-date-filter-${startDate}-${endDate}`} />
-				}
+				)}
+				csvFileName="cex-transparency"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

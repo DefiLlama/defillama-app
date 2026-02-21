@@ -12,7 +12,7 @@ import {
 import * as React from 'react'
 import { areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
 import { useUserConfig } from '~/hooks/useUserConfig'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import type { CustomView, TableFilters } from '../../types'
 import {
 	buildColumnVisibilityMap,

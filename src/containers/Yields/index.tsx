@@ -246,7 +246,7 @@ const YieldPage = ({
 		})
 
 		return {
-			filename: 'yields.csv',
+			filename: 'yields',
 			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 		}
 	}

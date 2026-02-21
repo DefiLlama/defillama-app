@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -10,7 +9,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
-import { formatCsvRowValues } from './csvUtils'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
@@ -189,6 +187,12 @@ export function RWAChainsTable({
 		: includeGovernance
 			? chartDatasets.includeGovernance
 			: chartDatasets.base
+	const csvFileName = (() => {
+		const parts = ['rwa-chains']
+		if (includeStablecoins) parts.push('stablecoins')
+		if (includeGovernance) parts.push('governance')
+		return `${parts.join('-')}.csv`
+	})()
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -216,26 +220,7 @@ export function RWAChainsTable({
 				columnToSearch="chain"
 				header="Chains"
 				columnSizes={columnSizes}
-				customFilters={({ instance }) => (
-					<>
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const filenameParts = ['rwa-chains']
-								if (includeStablecoins) filenameParts.push('stablecoins')
-								if (includeGovernance) filenameParts.push('governance')
-								const filename = `${filenameParts.join('-')}.csv`
-
-								const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-								const columnIds = columns.map((c) => c.id as string)
-
-								const rows = instance.getRowModel().rows.map((row) => formatCsvRowValues(row, columnIds))
-
-								return { filename, rows: [headers, ...rows] }
-							}}
-							smol
-						/>
-					</>
-				)}
+				csvFileName={csvFileName}
 				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 			/>
 		</div>

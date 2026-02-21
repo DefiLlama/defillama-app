@@ -4,7 +4,8 @@ import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinAssetChartData } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
-import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import { formattedNum, toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
@@ -108,7 +109,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 					['Date', 'Circulating'],
 					...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Circulating ?? ''])
 				]
-				filename = `${assetSlug}-total-circulating.csv`
+				filename = `${assetSlug}-total-circulating`
 				break
 			case 'chainMcaps':
 				rows = [
@@ -118,7 +119,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						...chainsUnique.map((chain) => el[chain] ?? '')
 					])
 				]
-				filename = `${assetSlug}-by-chain.csv`
+				filename = `${assetSlug}-by-chain`
 				break
 			case 'chainDominance':
 				rows = [
@@ -128,11 +129,11 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						...chainsUnique.map((chain) => el[chain] ?? '')
 					])
 				]
-				filename = `${assetSlug}-chain-dominance.csv`
+				filename = `${assetSlug}-chain-dominance`
 				break
 			case 'chainPie':
 				rows = [['Chain', 'Circulating'], ...chainsCirculatingValues.map((el: any) => [el.name, el.value])]
-				filename = `${assetSlug}-chain-pie.csv`
+				filename = `${assetSlug}-chain-pie`
 				break
 		}
 
