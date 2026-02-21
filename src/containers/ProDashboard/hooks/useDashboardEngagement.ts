@@ -13,7 +13,7 @@ export function useDashboardEngagement(dashboardId: string | null) {
 			return await dashboardAPI.viewDashboard(dashboardId, isAuthenticated ? authorizedFetch : undefined)
 		},
 		onSuccess: (data) => {
-			queryClient.setQueryData(['dashboard', dashboardId], data)
+			queryClient.setQueryData(['pro-dashboard', 'dashboard', dashboardId], data)
 		}
 	})
 
@@ -28,7 +28,7 @@ export function useDashboardEngagement(dashboardId: string | null) {
 		},
 		onSuccess: (data) => {
 			if (!data) return
-			queryClient.setQueryData(['dashboard', dashboardId], (oldData: any) => {
+			queryClient.setQueryData(['pro-dashboard', 'dashboard', dashboardId], (oldData: any) => {
 				if (!oldData) return oldData
 				return {
 					...oldData,

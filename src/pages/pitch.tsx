@@ -172,7 +172,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	}
 
 	const { isLoading } = useQuery({
-		queryKey: ['investors', filters],
+		queryKey: ['pitch', 'investors', filters],
 		queryFn: () => fetchInvestors(filters),
 		enabled: hasSelectedFilters,
 		staleTime: 60 * 60 * 1000,

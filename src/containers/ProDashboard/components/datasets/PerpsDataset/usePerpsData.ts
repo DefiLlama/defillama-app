@@ -8,7 +8,7 @@ export function usePerpsData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['perps-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'perps-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/perps${queryParams}`),
 		staleTime: Infinity,
 		retry: 1

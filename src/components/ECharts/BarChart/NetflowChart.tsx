@@ -33,7 +33,7 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 	useChartResize(chartRef)
 
 	const { data = [] } = useQuery<Array<{ chain: string; net_flow: string }>>({
-		queryKey: ['netflowData', period],
+		queryKey: ['netflow', 'data', period],
 		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => [])
 	})
 

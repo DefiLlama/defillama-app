@@ -160,7 +160,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 
 	const queries = useQueries({
 		queries: chainsToFetch.map((chain) => ({
-			queryKey: [`protocolsVolumeByChain/${chain}`],
+			queryKey: ['pro-dashboard', 'protocols-volume-by-chain', chain],
 			queryFn: () =>
 				getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 					(data) => ({ chain, protocols: data?.protocols ?? [] })
@@ -241,7 +241,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 
 	const queries = useQueries({
 		queries: chainsToFetch.map((chain) => ({
-			queryKey: [`protocolsFeesAndRevenueByChain/${chain}`],
+			queryKey: ['pro-dashboard', 'protocols-fees-revenue-by-chain', chain],
 			queryFn: () => getFeesAndRevenueProtocolsByChain({ chain }).then((data) => ({ chain, protocols: data ?? [] })),
 			staleTime: Infinity,
 			retry: 1
@@ -344,7 +344,7 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 
 	const queries = useQueries({
 		queries: chainsToFetch.map((chain) => ({
-			queryKey: [`protocolsPerpsVolumeByChain/${chain}`],
+			queryKey: ['pro-dashboard', 'protocols-perps-volume-by-chain', chain],
 			queryFn: () =>
 				getPerpsVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(
 					(data) => ({ chain, protocols: data?.protocols ?? [] })
@@ -421,7 +421,7 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 
 	const queries = useQueries({
 		queries: chainsToFetch.map((chain) => ({
-			queryKey: [`protocolsOpenInterestByChain/${chain}`],
+			queryKey: ['pro-dashboard', 'protocols-open-interest-by-chain', chain],
 			queryFn: () => getOpenInterestByChain({ chain }).then((data) => ({ chain, protocols: data?.protocols ?? [] })),
 			staleTime: Infinity,
 			retry: 1
@@ -489,6 +489,7 @@ const buildChainsQuery = (chains: string[]) => {
 
 export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 	const queryKey = [
+		'pro-dashboard',
 		'protocols-earnings-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
@@ -502,6 +503,7 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 
 export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 	const queryKey = [
+		'pro-dashboard',
 		'protocols-aggregators-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
@@ -515,6 +517,7 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 
 export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 	const queryKey = [
+		'pro-dashboard',
 		'protocols-bridge-aggregators-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
@@ -528,6 +531,7 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 
 export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 	const queryKey = [
+		'pro-dashboard',
 		'protocols-options-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]

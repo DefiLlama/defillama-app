@@ -9,7 +9,7 @@ export function useHoldersRevenueData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['holders-revenue-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'holders-revenue-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/holders-revenue${queryParams}`),
 		staleTime: Infinity,
 		retry: 1

@@ -276,7 +276,7 @@ export default function Protocols(props: TreasuryPageProps) {
 	})
 
 	const { data: ownTokensBreakdown } = useQuery({
-		queryKey: ['protocolTreasuryOwnTokensAvailable', protocol],
+		queryKey: ['protocol-overview', 'treasury-own-tokens', protocol],
 		queryFn: () => fetchProtocolTreasuryTokenBreakdownChart({ protocol, key: 'OwnTokens' }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

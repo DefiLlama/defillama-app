@@ -195,6 +195,7 @@ export function ChartBuilderTab({
 
 	const { data: previewData, isLoading: previewLoading } = useQuery({
 		queryKey: [
+			'pro-dashboard',
 			'chartBuilder',
 			chartBuilder.mode,
 			chartBuilder.metric,

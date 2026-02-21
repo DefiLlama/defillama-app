@@ -82,7 +82,7 @@ export default function TrendingContracts() {
 	const activeChain = typeof chain === 'string' ? chain.toLowerCase() : 'ethereum'
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: [`trending-contracts-${time}${activeChain}`],
+		queryKey: ['trending-contracts', time, activeChain],
 		queryFn: () => getContracts(activeChain, time),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

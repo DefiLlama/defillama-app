@@ -3,7 +3,7 @@ import { fetchJson } from '~/utils/async'
 
 export function useCexData() {
 	return useQuery({
-		queryKey: ['cex-overview'],
+		queryKey: ['pro-dashboard', 'cex-overview'],
 		queryFn: () => fetchJson('/api/datasets/cex'),
 		staleTime: Infinity,
 		retry: 1

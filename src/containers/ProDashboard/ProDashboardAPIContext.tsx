@@ -301,16 +301,16 @@ function seedTableDataIntoCache(
 		queryClient.setQueryData(PROTOCOLS_LIST_QUERY_KEY, tableData.protocolsList, { updatedAt: now })
 	}
 	for (const [chain, data] of Object.entries(tableData.volumeByChain)) {
-		queryClient.setQueryData([`protocolsVolumeByChain/${chain}`], data, { updatedAt: now })
+		queryClient.setQueryData(['pro-dashboard', 'protocols-volume-by-chain', chain], data, { updatedAt: now })
 	}
 	for (const [chain, data] of Object.entries(tableData.feesByChain)) {
-		queryClient.setQueryData([`protocolsFeesAndRevenueByChain/${chain}`], data, { updatedAt: now })
+		queryClient.setQueryData(['pro-dashboard', 'protocols-fees-revenue-by-chain', chain], data, { updatedAt: now })
 	}
 	for (const [chain, data] of Object.entries(tableData.perpsByChain)) {
-		queryClient.setQueryData([`protocolsPerpsVolumeByChain/${chain}`], data, { updatedAt: now })
+		queryClient.setQueryData(['pro-dashboard', 'protocols-perps-volume-by-chain', chain], data, { updatedAt: now })
 	}
 	for (const [chain, data] of Object.entries(tableData.openInterestByChain)) {
-		queryClient.setQueryData([`protocolsOpenInterestByChain/${chain}`], data, { updatedAt: now })
+		queryClient.setQueryData(['pro-dashboard', 'protocols-open-interest-by-chain', chain], data, { updatedAt: now })
 	}
 	for (const [keyJson, data] of Object.entries(tableData.datasetsByQueryKey)) {
 		try {
@@ -381,7 +381,7 @@ export function ProDashboardAPIProvider({
 	if (!advTvlBasicSeeded.current && serverData?.advancedTvlBasicData) {
 		const now = seedTimestamp
 		for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
-			queryClient.setQueryData(['advanced-tvl-basic', protocol], data, { updatedAt: now })
+			queryClient.setQueryData(['pro-dashboard', 'advanced-tvl-basic', protocol], data, { updatedAt: now })
 		}
 		advTvlBasicSeeded.current = true
 	}
@@ -402,7 +402,7 @@ export function ProDashboardAPIProvider({
 	if (!stablecoinsDataSeeded.current && serverData?.stablecoinsChartData) {
 		const now = seedTimestamp
 		for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
-			queryClient.setQueryData(['stablecoins-chart-data', chain], data, { updatedAt: now })
+			queryClient.setQueryData(['pro-dashboard', 'stablecoins-chart-data', chain], data, { updatedAt: now })
 		}
 		stablecoinsDataSeeded.current = true
 	}
@@ -550,7 +550,7 @@ export function ProDashboardAPIProvider({
 
 	// Load initial dashboard
 	const { data: currentDashboard2 = null, isLoading: isLoadingDashboard } = useQuery({
-		queryKey: ['dashboard', initialDashboardId, isAuthenticated, user?.id],
+		queryKey: ['pro-dashboard', 'dashboard', initialDashboardId, isAuthenticated, user?.id],
 		queryFn: async () => {
 			if (!initialDashboardId) {
 				return null

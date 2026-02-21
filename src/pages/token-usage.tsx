@@ -34,7 +34,7 @@ export default function Tokens() {
 	const includeCentraliseExchanges = includecex === 'true'
 
 	const { data: protocols, isLoading } = useQuery({
-		queryKey: ['protocols-by-token', tokenSymbol],
+		queryKey: ['token-usage', 'protocols-by-token', tokenSymbol],
 		queryFn: () => fetchProtocols(tokenSymbol),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
@@ -195,7 +195,7 @@ const Search = () => {
 	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['search-tokens', debouncedSearchValue],
+		queryKey: ['token-usage', 'search-tokens', debouncedSearchValue],
 		queryFn: () => fetchCoins(debouncedSearchValue, 20),
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false

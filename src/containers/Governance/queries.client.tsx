@@ -119,7 +119,7 @@ export function getGovernanceTypeFromApi(apiUrl: string): GovernanceType {
 export const useFetchProtocolGovernanceData = (governanceApis: Array<string> | null) => {
 	const isEnabled = governanceApis != null && governanceApis.length > 0
 	return useQuery({
-		queryKey: ['protocol-governance', JSON.stringify(governanceApis)],
+		queryKey: ['governance', 'protocol', JSON.stringify(governanceApis)],
 		queryFn: isEnabled ? () => fetchAndFormatGovernanceData(governanceApis) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,

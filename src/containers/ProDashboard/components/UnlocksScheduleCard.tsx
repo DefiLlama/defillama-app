@@ -35,7 +35,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 	)
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unlocks-schedule', protocol, resolvedDataType],
+		queryKey: ['pro-dashboard', 'unlocks-schedule', protocol, resolvedDataType],
 		queryFn: () => getProtocolEmissionsScheduleData(slug(protocol)),
 		enabled: Boolean(protocol),
 		staleTime: 60 * 60 * 1000

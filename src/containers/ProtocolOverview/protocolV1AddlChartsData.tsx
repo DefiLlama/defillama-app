@@ -662,7 +662,8 @@ export const useFetchProtocolV1AddlChartsData = (
 
 	const data = useQuery({
 		queryKey: [
-			'protocols-addl-chart-data',
+			'protocol-overview',
+			'addl-chart-data',
 			protocolName,
 			Boolean(addlProtocolData),
 			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled),

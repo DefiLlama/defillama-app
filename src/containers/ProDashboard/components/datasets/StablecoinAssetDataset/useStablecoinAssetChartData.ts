@@ -28,7 +28,7 @@ export function useStablecoinAssetChartData(stablecoinSlug: string): UseStableco
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['stablecoin-asset-chart-data', stablecoinSlug],
+		queryKey: ['pro-dashboard', 'stablecoin-asset-chart-data', stablecoinSlug],
 		queryFn: async () => {
 			if (!stablecoinSlug) return null
 
@@ -174,7 +174,7 @@ export interface StablecoinAssetInfo {
 
 export function useStablecoinAssetsList() {
 	return useQuery({
-		queryKey: ['stablecoin-assets-list'],
+		queryKey: ['pro-dashboard', 'stablecoin-assets-list'],
 		queryFn: async () => {
 			const data = await fetchStablecoinAssetsApi()
 			const peggedAssets = data?.peggedAssets || []

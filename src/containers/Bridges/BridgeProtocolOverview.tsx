@@ -289,7 +289,7 @@ export function BridgeProtocolOverview(props) {
 
 export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['bridged-data', protocol],
+		queryKey: ['bridges', 'protocol-data', protocol],
 		queryFn: () => getBridgePageDatanew(protocol),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -322,7 +322,7 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 // oxlint-disable-next-line no-unused-vars
 const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 	return useQuery({
-		queryKey: ['bridged-volume-on-all-chains', protocol],
+		queryKey: ['bridges', 'volume-all-chains', protocol],
 		queryFn: protocol
 			? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains'])
 			: () => null,

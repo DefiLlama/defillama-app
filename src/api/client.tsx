@@ -16,7 +16,7 @@ import type {
 
 export const useFetchCoingeckoTokensList = () => {
 	return useQuery<Array<IResponseCGMarketsAPI>, Error>({
-		queryKey: ['coingecko-tokens-list'],
+		queryKey: ['coingecko', 'tokens-list'],
 		queryFn: fetchAllCGTokensList,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -28,7 +28,7 @@ export const useFetchCoingeckoTokensList = () => {
 export const useGeckoId = (addressData: string | null) => {
 	const isEnabled = !!addressData
 	const { data, error, isLoading } = useQuery<GeckoIdResponse | null, Error>({
-		queryKey: ['geckoId', addressData, isEnabled],
+		queryKey: ['coingecko', 'gecko-id', addressData, isEnabled],
 		queryFn: isEnabled && addressData ? () => fetchGeckoIdByAddress(addressData) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -41,7 +41,7 @@ export const useGeckoId = (addressData: string | null) => {
 export const usePriceChart = (geckoId?: string) => {
 	const isEnabled = Boolean(geckoId)
 	return useQuery<CgChartResponse | null, Error>({
-		queryKey: ['price-chart', geckoId, isEnabled],
+		queryKey: ['coingecko', 'price-chart', geckoId, isEnabled],
 		queryFn: isEnabled && geckoId ? () => fetchCgChartByGeckoId(geckoId) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -52,7 +52,7 @@ export const usePriceChart = (geckoId?: string) => {
 export const useGetTokenPrice = (geckoId?: string) => {
 	const isEnabled = Boolean(geckoId)
 	return useQuery<PriceObject | null, Error>({
-		queryKey: ['gecko-token-price', geckoId, isEnabled],
+		queryKey: ['coingecko', 'token-price', geckoId, isEnabled],
 		queryFn: isEnabled && geckoId ? () => fetchTokenPriceByGeckoId(geckoId) : () => Promise.resolve(null),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
@@ -63,7 +63,7 @@ export const useGetTokenPrice = (geckoId?: string) => {
 export const useDenominationPriceHistory = (geckoId?: string) => {
 	const isEnabled = Boolean(geckoId)
 	return useQuery<DenominationPriceHistory, Error>({
-		queryKey: ['denom-price-history', geckoId, isEnabled],
+		queryKey: ['coingecko', 'denom-price-history', geckoId, isEnabled],
 		queryFn:
 			isEnabled && geckoId
 				? () => fetchDenominationPriceHistory(geckoId)

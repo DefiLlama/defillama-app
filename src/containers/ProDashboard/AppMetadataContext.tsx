@@ -81,7 +81,7 @@ export function AppMetadataProvider({
 		isLoading: loading,
 		error: queryError
 	} = useQuery({
-		queryKey: ['app-metadata'],
+		queryKey: ['pro-dashboard', 'app-metadata'],
 		queryFn: async () => {
 			const fetchPfPs = async (): Promise<{ pf: string[]; ps: string[] }> => {
 				try {

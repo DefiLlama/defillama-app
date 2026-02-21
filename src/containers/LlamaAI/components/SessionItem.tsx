@@ -57,7 +57,7 @@ export const SessionItem = memo(function SessionItem({
 			return response.json()
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
+			queryClient.invalidateQueries({ queryKey: ['llamaai-sessions'] })
 		}
 	})
 

@@ -83,7 +83,7 @@ export function AdvancedTvlChartTab({
 	const filteredProtocolOptions = protocolOptions
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
-		queryKey: ['advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
+		queryKey: ['pro-dashboard', 'advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
 		queryFn: () => ProtocolCharts.tvl(selectedAdvancedTvlProtocol!),
 		enabled: !!selectedAdvancedTvlProtocol && selectedAdvancedTvlChartType === 'tvl',
 		staleTime: 60 * 60 * 1000

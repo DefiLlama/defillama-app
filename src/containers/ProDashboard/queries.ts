@@ -468,7 +468,7 @@ function useChains() {
 
 export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
 	return useQuery({
-		queryKey: ['protocols-and-chains'],
+		queryKey: ['pro-dashboard', 'protocols-and-chains'],
 		queryFn: async () => {
 			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
@@ -557,11 +557,12 @@ export function useChartsData(
 			const chartServerData = serverChartData?.[chart.id]
 
 			return {
-				queryKey: [
-					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
-					chart.grouping,
-					chart.id
-				],
+			queryKey: [
+				'pro-dashboard',
+				...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
+				chart.grouping,
+				chart.id
+			],
 				queryFn: getChartQueryFn(
 					chart.type,
 					itemType,

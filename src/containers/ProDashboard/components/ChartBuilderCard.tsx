@@ -157,6 +157,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
+			'pro-dashboard',
 			'chartBuilder',
 			config.mode,
 			config.metric,

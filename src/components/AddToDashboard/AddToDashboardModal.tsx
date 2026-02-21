@@ -59,9 +59,9 @@ function getConfigName(config: DashboardChartConfig | null, llamaAIChart?: Llama
 }
 
 function invalidateDashboardQueries(queryClient: QueryClient) {
-	queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-	queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-	queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+	queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+	queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+	queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 }
 
 function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {

@@ -5,7 +5,7 @@ export const UNBOUNDED_DEBT_CEILING_PROJECTS = ['liquity-v1', 'liquity-v2'] as c
 
 export const useGetPrice = (tokens: Array<string>) => {
 	const prices = useQuery({
-		queryKey: ['prices', tokens],
+		queryKey: ['yields', 'prices', tokens],
 		queryFn: async () => {
 			const result = await fetchCoinPrices(tokens)
 

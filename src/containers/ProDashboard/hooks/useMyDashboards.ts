@@ -18,7 +18,7 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 	const router = useRouter()
 
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ['my-dashboards', user?.id, page, limit],
+		queryKey: ['pro-dashboard', 'my-dashboards', user?.id, page, limit],
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				return {

@@ -13,7 +13,7 @@ export function useOptionsData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['options-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'options-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/options${queryParams}`),
 		staleTime: Infinity,
 		retry: 1

@@ -27,7 +27,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['saved-charts-list', user?.id],
+		queryKey: ['pro-dashboard', 'saved-charts-list', user?.id],
 		queryFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/charts`)
 			if (!res.ok) throw new Error('Failed to load charts')
@@ -44,7 +44,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			if (!res.ok) throw new Error('Failed to delete chart')
 		},
 		onSuccess: (_, chartId) => {
-			queryClient.invalidateQueries({ queryKey: ['saved-charts-list'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'saved-charts-list'] })
 			if (selectedChart?.id === chartId) onChartSelect(null)
 			setDeleteConfirmId(null)
 		}

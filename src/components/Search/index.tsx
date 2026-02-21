@@ -363,7 +363,7 @@ const setRecentSearch = (route: ISearchItem) => {
 
 const useDefaultSearchList = () => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['defaultsearchlist'],
+		queryKey: ['search', 'default-list'],
 		queryFn: getDefaultSearchList,
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: false,
@@ -399,7 +399,7 @@ const useDefaultSearchList = () => {
 
 function useSearch(searchValue: string) {
 	return useQuery({
-		queryKey: ['search-list', searchValue],
+		queryKey: ['search', 'results', searchValue],
 		queryFn: () => fetchSearchList(searchValue),
 		enabled: searchValue.length > 0,
 		staleTime: 5 * 60 * 1000,

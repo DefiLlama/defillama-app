@@ -24,7 +24,7 @@ export default function Collection() {
 		isLoading: fetchingData,
 		error
 	} = useQuery({
-		queryKey: ['collection-data', collection],
+		queryKey: ['nft', 'collection', collection],
 		queryFn: () => (collection ? getNFTRoyaltyHistory(collection) : null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
