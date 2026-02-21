@@ -369,22 +369,6 @@ export async function fetchJson<T = any>(
 }
 
 // ─────────────────────────────────────────────────────────────
-// Simple fetch wrapper for API calls
-// ─────────────────────────────────────────────────────────────
-export const fetchApi = async (url: string | Array<string>) => {
-	if (!url) return null
-	try {
-		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
-		return data
-	} catch (error) {
-		if (error instanceof Error) {
-			throw error
-		}
-		throw new Error(`Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`)
-	}
-}
-
-// ─────────────────────────────────────────────────────────────
 // Response handlers (kept for backward compatibility)
 // ─────────────────────────────────────────────────────────────
 export async function handleFetchResponse(res: Response): Promise<unknown> {

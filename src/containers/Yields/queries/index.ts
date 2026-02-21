@@ -11,7 +11,7 @@ import {
 } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
@@ -134,7 +134,7 @@ export async function getYieldPageData() {
 
 	// fetch token categories for yields filtering (tokenized assets, meme tokens, etc.)
 	try {
-		const tokenCategories = await fetchApi(YIELD_TOKEN_CATEGORIES_API)
+		const tokenCategories = await fetchJson(YIELD_TOKEN_CATEGORIES_API)
 		data['tokenCategories'] = tokenCategories && typeof tokenCategories === 'object' ? tokenCategories : {}
 
 		// Dynamically add token filter options for non-meme categories
@@ -202,7 +202,7 @@ export async function getYieldPageData() {
 }
 
 export async function getYieldMedianData() {
-	let data = (await fetchApi([YIELD_MEDIAN_API]))[0]
+	let data = await fetchJson(YIELD_MEDIAN_API)
 	// for the 4th of june we have low nb of datapoints which is skewing the median/
 	// hence why we remove it from the plot
 	data = data.filter((p) => p.timestamp !== '2022-06-04T00:00:00.000Z')
@@ -253,7 +253,7 @@ export async function getLendBorrowData() {
 	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
 	// get new borrow fields
-	let dataBorrow = (await fetchApi([YIELD_LEND_BORROW_API]))[0]
+	let dataBorrow = await fetchJson(YIELD_LEND_BORROW_API)
 	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
@@ -434,6 +434,6 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 }
 
 export async function getPerpData() {
-	const perps = (await fetchApi([YIELD_PERPS_API]))[0]
+	const perps = await fetchJson(YIELD_PERPS_API)
 	return perps.data.map((m) => ({ ...m, symbol: m.baseAsset }))
 }

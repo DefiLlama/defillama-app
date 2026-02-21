@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHAIN_API, YIELD_CONFIG_API, YIELD_LEND_BORROW_API, YIELD_POOLS_API, YIELD_URL_API } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatYieldsPageData } from '~/containers/Yields/queries/utils'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 
 const formatChain = (chain: string) => {
 	if (chain.toLowerCase().includes('hyperliquid')) return 'Hyperliquid'
@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			fetchProtocols()
 		])
 
-		const lendBorrowData: any[] = await fetchApi(YIELD_LEND_BORROW_API)
+		const lendBorrowData: any[] = await fetchJson(YIELD_LEND_BORROW_API)
 
 		const data = formatYieldsPageData(poolsAndConfig)
 		let pools = data.pools || []
