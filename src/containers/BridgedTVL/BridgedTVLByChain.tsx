@@ -170,7 +170,7 @@ export function BridgedTVLByChain({
 									<button
 										className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === type}
-										onClick={() => React.startTransition(() => setChartType(type))}
+										onClick={() => setChartType(type)}
 										key={'bridged-' + name}
 									>
 										{name}
@@ -181,7 +181,7 @@ export function BridgedTVLByChain({
 								<button
 									className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									data-active={chartType === 'inflows'}
-									onClick={() => React.startTransition(() => setChartType('inflows'))}
+									onClick={() => setChartType('inflows')}
 								>
 									Inflows
 								</button>
@@ -190,7 +190,7 @@ export function BridgedTVLByChain({
 								<button
 									className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									data-active={chartType === 'ownTokens'}
-									onClick={() => React.startTransition(() => setChartType('ownTokens'))}
+									onClick={() => setChartType('ownTokens')}
 								>
 									Own Tokens
 								</button>

@@ -37,7 +37,7 @@ export const TagGroup = ({
 						disabled={disabledValuesSet?.has(value)}
 						data-active={value === selectedValue}
 						key={value}
-						onClick={() => React.startTransition(() => setValue(value))}
+						onClick={() => setValue(value)}
 					>
 						{`${value.slice(0, 1).toUpperCase()}${value.slice(1)}`}
 					</button>

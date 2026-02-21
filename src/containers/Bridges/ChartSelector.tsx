@@ -11,7 +11,7 @@ interface IProps {
 
 export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 	const onItemClick = (chartType: string) => {
-		React.startTransition(() => onClick(chartType))
+		onClick(chartType)
 	}
 
 	return (

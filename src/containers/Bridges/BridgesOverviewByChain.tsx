@@ -270,14 +270,14 @@ export function BridgesOverviewByChain({
 									<button
 										className="flex items-center justify-center border-b-2 border-transparent px-4 py-2.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:text-(--old-blue)"
 										data-active={chartView === 'netflow'}
-										onClick={() => React.startTransition(() => setChartView('netflow'))}
+										onClick={() => setChartView('netflow')}
 									>
 										Net Flows By Chain
 									</button>
 
 									<button
 										className="flex items-center justify-center border-b-2 border-transparent px-4 py-2.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:border-(--old-blue) data-[active=true]:text-(--old-blue)"
-										onClick={() => React.startTransition(() => setChartView('volume'))}
+										onClick={() => setChartView('volume')}
 										data-active={chartView === 'volume'}
 									>
 										Bridge Volume
@@ -375,21 +375,21 @@ export function BridgesOverviewByChain({
 						<button
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'bridges'}
-							onClick={() => React.startTransition(() => setActiveTab('bridges'))}
+							onClick={() => setActiveTab('bridges')}
 						>
 							Bridges
 						</button>
 						<button
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'messaging'}
-							onClick={() => React.startTransition(() => setActiveTab('messaging'))}
+							onClick={() => setActiveTab('messaging')}
 						>
 							Messaging Protocols
 						</button>
 						<button
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							data-active={activeTab === 'largeTxs'}
-							onClick={() => React.startTransition(() => setActiveTab('largeTxs'))}
+							onClick={() => setActiveTab('largeTxs')}
 						>
 							Large Txs
 						</button>

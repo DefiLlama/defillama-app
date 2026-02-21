@@ -472,7 +472,7 @@ function Filters({
 					checked={selections.includeStablecoins}
 					onChange={() => {
 						const next = !selections.includeStablecoins
-						startTransition(() => actions.setIncludeStablecoins(next))
+						actions.setIncludeStablecoins(next)
 					}}
 				>
 					Stablecoins
@@ -485,7 +485,7 @@ function Filters({
 					checked={selections.includeGovernance}
 					onChange={() => {
 						const next = !selections.includeGovernance
-						startTransition(() => actions.setIncludeGovernance(next))
+						actions.setIncludeGovernance(next)
 					}}
 				>
 					Governance Tokens

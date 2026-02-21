@@ -315,21 +315,21 @@ export const CategoryPerformanceContainer = ({
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
 						className="border-b border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('linechart'))}
+						onClick={() => setTab('linechart')}
 						data-selected={tab === 'linechart'}
 					>
 						Linechart
 					</button>
 					<button
 						className="border-b border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('barchart'))}
+						onClick={() => setTab('barchart')}
 						data-selected={tab === 'barchart'}
 					>
 						Barchart
 					</button>
 					<button
 						className="border-b border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('heatmap'))}
+						onClick={() => setTab('heatmap')}
 						data-selected={tab === 'heatmap'}
 					>
 						Heatmap
