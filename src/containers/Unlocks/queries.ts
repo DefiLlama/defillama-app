@@ -790,15 +790,15 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const cgKey = typeof tokenKey === 'string' && tokenKey ? `coingecko:${tokenKey}` : null
-		const prices = cgKey
-			? await fetchCoinPricesBatched([cgKey], { searchWidth: '4h' }).catch((err) => {
+		const coinKey = typeof tokenKey === 'string' && tokenKey ? tokenKey : null
+		const prices = coinKey
+			? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
 					console.log(err)
 					return {}
 				})
 			: {}
 
-		const tokenPriceData = cgKey ? prices[cgKey] : undefined
+		const tokenPriceData = coinKey ? prices[coinKey] : undefined
 		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
 
 		let upcomingEvent: EmissionEvent[] = []

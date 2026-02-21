@@ -29,5 +29,5 @@ export interface RawCexsResponse {
 }
 
 export interface RawCexInflowsResponse {
-	outflows?: number
+	outflows?: number | null
 }
