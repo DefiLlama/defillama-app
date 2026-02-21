@@ -557,12 +557,12 @@ export function useChartsData(
 			const chartServerData = serverChartData?.[chart.id]
 
 			return {
-			queryKey: [
-				'pro-dashboard',
-				...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
-				chart.grouping,
-				chart.id
-			],
+				queryKey: [
+					'pro-dashboard',
+					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
+					chart.grouping,
+					chart.id
+				],
 				queryFn: getChartQueryFn(
 					chart.type,
 					itemType,
