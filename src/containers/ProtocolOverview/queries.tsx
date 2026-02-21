@@ -1,12 +1,5 @@
-import {
-	BRIDGEVOLUME_API_SLUG,
-	LIQUIDITY_API,
-	oracleProtocols,
-	PROTOCOLS_API,
-	V2_SERVER_URL,
-	YIELD_CONFIG_API,
-	YIELD_POOLS_API
-} from '~/constants'
+import { fetchProtocolLiquidityTokens } from '~/api'
+import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchCexs } from '~/containers/Cexs/api'
@@ -19,6 +12,8 @@ import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incen
 import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
 import type { IActiveAddressMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchOracleMetrics, fetchOracleProtocolChart } from '~/containers/Oracles/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolLite } from '~/containers/Protocols/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
@@ -143,8 +138,7 @@ export const getProtocolOverviewPageData = async ({
 	} | null
 	type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
 	type ILiquidityInfoItem = { id: string; tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }> }
-	type ILiteProtocolItem = { category?: string; name: string; chains: Array<string>; tvl: number }
-	type ILiteProtocolsResult = { protocols: Array<ILiteProtocolItem> }
+	type ILiteProtocolsResult = { protocols: Array<ProtocolLite> }
 	type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
 	type IOracleTvsResult = Record<string, number> | null
 	type IOracleChartResult = Array<[number, number]> | null
@@ -427,11 +421,11 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.liquidity
-			? fetchJson(LIQUIDITY_API).catch(() => {
+			? fetchProtocolLiquidityTokens().catch(() => {
 					return []
 				})
 			: [],
-		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
+		fetchProtocols().catch(() => ({ protocols: [] })),
 		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)

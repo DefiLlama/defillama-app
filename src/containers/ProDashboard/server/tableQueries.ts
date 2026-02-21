@@ -1,9 +1,9 @@
-import { PROTOCOLS_API, PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { slug } from '~/utils'
-import { fetchApi, fetchJson } from '~/utils/async'
 import {
 	getDexVolumeByChain,
 	getFeesAndRevenueProtocolsByChain,
@@ -175,7 +175,7 @@ function extractTokenUsageConfigs(items: DashboardItemConfig[]): TokenUsageConfi
 
 async function fetchTokenUsageData(tokenSymbols: string[], includeCex: boolean): Promise<any[]> {
 	const promises = tokenSymbols.map(async (symbol) => {
-		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${symbol.toUpperCase()}`)
+		const data = await fetchProtocolsByToken(symbol)
 		return { symbol, data }
 	})
 
@@ -244,7 +244,7 @@ export async function fetchTableServerData(items: DashboardItemConfig[]): Promis
 		const chainsToFetch = chains.includes('All') ? ['All'] : chains
 
 		const results = await Promise.allSettled([
-			withTimeout(fetchApi(PROTOCOLS_API), FETCH_TIMEOUT),
+			withTimeout(fetchProtocols(), FETCH_TIMEOUT),
 			...chainsToFetch.flatMap((chain) => [
 				withTimeout(
 					getDexVolumeByChain({ chain, excludeTotalDataChart: false, excludeTotalDataChartBreakdown: true }).then(

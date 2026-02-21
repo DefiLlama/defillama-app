@@ -1,11 +1,3 @@
-/** Lite protocol from PROTOCOLS_API */
-export interface ILiteProtocolApiItem {
-	name: string
-	category: string | null
-	chains: string[]
-	[key: string]: unknown
-}
-
 /** Full protocol data from PROTOCOL_API/:slug */
 export interface IProtocolDetailApiItem {
 	name: string
@@ -38,15 +30,4 @@ export interface ILsdRateApiItem {
 	marketRate: number | null
 	expectedRate: number | null
 	fee: number | null
-}
-
-/** Coin price entry from COINS_PRICES_API */
-export interface ICoinPriceApiResponse {
-	coins: Record<
-		string,
-		{
-			price: number
-			[key: string]: unknown
-		}
-	>
 }

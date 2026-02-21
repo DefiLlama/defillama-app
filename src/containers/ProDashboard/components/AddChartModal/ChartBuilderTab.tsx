@@ -2,9 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { fetchChainsCategories } from '~/containers/Chains/api'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
@@ -140,20 +141,18 @@ export function ChartBuilderTab({
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { data: protocols } = useQuery({
-		queryKey: ['protocols'],
+		queryKey: ['pro-dashboard', 'protocols'],
 		queryFn: async () => {
-			const response = await fetch(PROTOCOLS_API)
-			const data = await response.json()
+			const data = await fetchProtocols()
 			return data.protocols ?? EMPTY_PROTOCOLS
 		},
 		staleTime: 60 * 60 * 1000
 	})
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
-			const res = await fetch(CHAINS_API_V2)
-			const data = await res.json()
+			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) ?? EMPTY_CATEGORIES
 		},
 		staleTime: 60 * 60 * 1000

@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 
 export interface TokenUsageData {
 	name: string
@@ -22,7 +21,7 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 
 			try {
 				const promises = tokenSymbols.map(async (symbol) => {
-					const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${symbol.toUpperCase()}`)
+					const data = await fetchProtocolsByToken(symbol)
 					return { symbol, data }
 				})
 

@@ -1,13 +1,12 @@
 import type { InferGetStaticPropsType } from 'next'
 import Link from 'next/link'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { PROTOCOLS_API } from '~/constants/index'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -62,7 +61,7 @@ export async function getStaticPaths() {
 		}
 	}
 
-	const res = await fetchJson(PROTOCOLS_API)
+	const res = await fetchProtocols()
 
 	const paths = res.chains.map((chain) => ({
 		params: { chain: slug(chain) }

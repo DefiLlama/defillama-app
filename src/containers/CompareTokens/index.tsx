@@ -10,7 +10,7 @@ import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
 import { pushShallowQuery } from '~/utils/routerQuery'
-import type { Protocol } from './types'
+import type { CompareTokenProtocol } from './types'
 
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 
@@ -32,8 +32,8 @@ function getCompareValues(
 	coin0: IResponseCGMarketsAPI,
 	coin1: IResponseCGMarketsAPI,
 	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
-	protocolsByGeckoId: Map<string, Protocol>,
-	protocolsByName: Map<string, Protocol>
+	protocolsByGeckoId: Map<string, CompareTokenProtocol>,
+	protocolsByName: Map<string, CompareTokenProtocol>
 ): [number | null, number | null] {
 	const p0 = protocolsByGeckoId.get(coin0.id) ?? protocolsByName.get(coin0.name)
 	const p1 = protocolsByGeckoId.get(coin1.id) ?? protocolsByName.get(coin1.name)
@@ -64,8 +64,8 @@ function computeComparison(
 	selectedCoins: Array<IResponseCGMarketsAPI | undefined>,
 	coinPrices: number[],
 	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
-	protocolsByGeckoId: Map<string, Protocol>,
-	protocolsByName: Map<string, Protocol>
+	protocolsByGeckoId: Map<string, CompareTokenProtocol>,
+	protocolsByName: Map<string, CompareTokenProtocol>
 ): { newPrice: number; increase: number } | null {
 	const coin0 = selectedCoins[0]
 	const coin1 = selectedCoins[1]
@@ -86,7 +86,13 @@ function computeComparison(
 	return { newPrice, increase }
 }
 
-export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCGMarketsAPI[]; protocols: Protocol[] }) {
+export function CompareTokens({
+	coinsData,
+	protocols
+}: {
+	coinsData: IResponseCGMarketsAPI[]
+	protocols: CompareTokenProtocol[]
+}) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
 	const coinParam = router.query?.coin
@@ -97,10 +103,13 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 		[coinsData]
 	)
 	const protocolsByGeckoId = useMemo(
-		() => new Map<string, Protocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
+		() => new Map<string, CompareTokenProtocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
 		[protocols]
 	)
-	const protocolsByName = useMemo(() => new Map<string, Protocol>(protocols.map((p) => [p.name, p])), [protocols])
+	const protocolsByName = useMemo(
+		() => new Map<string, CompareTokenProtocol>(protocols.map((p) => [p.name, p])),
+		[protocols]
+	)
 
 	const { selectedCoins, coins, compareType } = useMemo(() => {
 		const queryCoins = coinParam ?? ([] as string[])

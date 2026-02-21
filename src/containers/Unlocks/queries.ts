@@ -1,9 +1,7 @@
 import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
-import { COINS_PRICES_API } from '~/constants'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { fetchProtocolEmission, fetchAllProtocolEmissions, fetchEmissionsProtocolsList } from './api'
 import type {
 	EmissionsDataset,
@@ -15,10 +13,6 @@ import type {
 } from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
 import type { ProtocolEmissionResult } from './types'
-
-interface CoinPricesResponse {
-	coins?: Record<string, { price?: number; symbol?: string }>
-}
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	const source: Array<Record<string, number | null>> = chartData.map((row) => ({ ...row }))
@@ -571,7 +565,6 @@ export const getAllProtocolEmissions = async ({
 			if (p.gecko_id) coinIds.push(`coingecko:${p.gecko_id}`)
 		}
 		const coinPrices = await fetchCoinPricesBatched(coinIds)
-		const coins = { coins: coinPrices }
 
 		const priceReqs: Record<string, number[]> = {}
 		const lastPastTimestampByCoinKey = new Map<string, number>()
@@ -675,7 +668,7 @@ export const getAllProtocolEmissions = async ({
 				if (startDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp >= startDate)
 				if (endDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp <= endDate)
 
-				const coin = coinKey ? coins.coins[coinKey] : null
+				const coin = coinKey ? coinPrices[coinKey] : null
 				const tSymbol = coin?.symbol ?? null
 				const historicalPrice = coinKey ? historicalPrices[coinKey] : null
 
@@ -797,15 +790,15 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const prices: CoinPricesResponse =
-			typeof tokenKey === 'string' && tokenKey
-				? await fetchJson<CoinPricesResponse>(`${COINS_PRICES_API}/current/${tokenKey}?searchWidth=4h`).catch((err) => {
-						console.log(err)
-						return {}
-					})
-				: {}
+		const coinKey = typeof tokenKey === 'string' && tokenKey ? tokenKey : null
+		const prices = coinKey
+			? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
+					console.log(err)
+					return {}
+				})
+			: {}
 
-		const tokenPriceData = tokenKey ? prices.coins?.[tokenKey] : undefined
+		const tokenPriceData = coinKey ? prices[coinKey] : undefined
 		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
 
 		let upcomingEvent: EmissionEvent[] = []

@@ -1,14 +1,13 @@
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const hideProtocols = ['Mycelium', 'Hubble Exchange', 'NEX']
 
 export const getStaticProps = withPerformanceLogging('donations', async () => {
-	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
+	const { protocols, parentProtocols } = await fetchProtocols()
 
 	const protocolsWithReferralurl: Record<string, { name: string; logo: string; url: string; tvl: number }> = {}
 

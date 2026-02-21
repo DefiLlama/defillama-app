@@ -2,9 +2,9 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useMemo, useRef } from 'react'
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 import {
 	getDexVolumeByChain,
 	getFeesAndRevenueProtocolsByChain,
@@ -78,8 +78,8 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
 	const { data: allProtocolsData, isLoading: isLoadingAll } = useQuery({
-		queryKey: [PROTOCOLS_API],
-		queryFn: () => fetchApi(PROTOCOLS_API),
+		queryKey: ['protocols-lite'],
+		queryFn: () => fetchProtocols(),
 		staleTime: Infinity,
 		retry: 0
 	})

@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2 } from '~/constants'
+import { fetchChainsByCategory, fetchChainsCategories } from '~/containers/Chains/api'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { AriakitMultiSelect } from '../../AriakitMultiSelect'
 import { useComparisonWizardContext } from '../ComparisonWizardContext'
@@ -24,10 +24,9 @@ export function SelectItemsStep() {
 	const listRef = useRef<HTMLDivElement>(null)
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
-			const res = await fetch(CHAINS_API_V2)
-			const data = await res.json()
+			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) || []
 		},
 		staleTime: 60 * 60 * 1000,
@@ -41,9 +40,7 @@ export function SelectItemsStep() {
 			const results = await Promise.all(
 				chainCategoriesList.map(async (cat) => {
 					try {
-						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
-						if (!res.ok) return { category: cat, chains: [] as string[] }
-						const data = await res.json()
+						const data = await fetchChainsByCategory(cat)
 						return { category: cat, chains: (data?.chainsUnique as string[]) || [] }
 					} catch {
 						return { category: cat, chains: [] as string[] }

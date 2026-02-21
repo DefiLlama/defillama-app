@@ -1,16 +1,9 @@
-import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchLatestLiquidationsData, fetchLiquidationsAvailability, fetchLiquidationsDataAtTimestamp } from './api'
 import { DEFAULT_ASSETS_LIST, LIQUIDATIONS_TOTAL_BINS } from './constants'
-import { getDataUrl } from './utils'
 import type { ChartData, ChartDataBins, LiquidationsData, Position, PositionSmol } from './utils'
 
-const getAvailability = async () => {
-	const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/availability.json`)
-	return res as { availability: Record<string, number>; time: number }
-}
-
 export async function getLiquidationsAssetsList() {
-	const { availability, time } = await getAvailability()
+	const { availability, time } = await fetchLiquidationsAvailability()
 	const assets = DEFAULT_ASSETS_LIST.filter((asset) => !!availability[asset.symbol.toLowerCase()])
 	// Keep the order from `constants.ts` (you can periodically refresh it with the updater script).
 	return { assets, time }
@@ -77,15 +70,12 @@ export async function getPrevLiquidationsChartData(
 	timePassed = 0
 ) {
 	const now = Math.round(Date.now() / 1000) // in seconds
-	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now - timePassed)
 
 	let data: LiquidationsData
 	try {
-		const res = await fetchJson(LIQUIDATIONS_DATA_URL)
-		data = res
+		data = await fetchLiquidationsDataAtTimestamp(symbol, now - timePassed)
 	} catch {
-		const res = await fetchJson(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/latest.json`)
-		data = res
+		data = await fetchLatestLiquidationsData(symbol)
 	}
 
 	const currentPrice = data.currentPrice

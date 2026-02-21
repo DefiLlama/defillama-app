@@ -1,12 +1,15 @@
-import { INFLOWS_API, SERVER_URL } from '~/constants'
+import { SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import type { RawCexsResponse } from './api.types'
+import type { RawCexInflowsResponse, RawCexsResponse } from './api.types'
+
+const INFLOWS_API_URL = `${SERVER_URL}/inflows`
+const CEXS_API_URL = `${SERVER_URL}/cexs`
 
 /**
  * Fetch centralized exchange summary data.
  */
 export async function fetchCexs(): Promise<RawCexsResponse> {
-	return fetchJson<RawCexsResponse>(`${SERVER_URL}/cexs`)
+	return fetchJson<RawCexsResponse>(CEXS_API_URL)
 }
 
 /**
@@ -17,8 +20,8 @@ export async function fetchCexInflows(
 	startTime: number,
 	endTime: number,
 	tokensToExclude: string
-): Promise<{ outflows?: number }> {
-	return fetchJson<{ outflows?: number }>(
-		`${INFLOWS_API}/${cexSlug}/${startTime}?end=${endTime}&tokensToExclude=${tokensToExclude}`
+): Promise<RawCexInflowsResponse> {
+	return fetchJson<RawCexInflowsResponse>(
+		`${INFLOWS_API_URL}/${encodeURIComponent(cexSlug)}/${startTime}?end=${endTime}&tokensToExclude=${encodeURIComponent(tokensToExclude)}`
 	)
 }

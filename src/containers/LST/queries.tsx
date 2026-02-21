@@ -1,6 +1,8 @@
 import { preparePieChartData } from '~/components/ECharts/formatters'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { formatNum, formattedNum, getNDistinctColors, slug } from '~/utils'
-import { fetchEthPrice, fetchLsdRates, fetchProtocolDetail, fetchProtocols, fetchYieldPools } from './api'
+import { fetchEthPrice, fetchLsdRates, fetchYieldPools } from './api'
 import type { ILsdRateApiItem, IProtocolDetailApiItem, IYieldPoolApiItem } from './api.types'
 import type { ILSTTokenRow, InflowsChartData, LSTOverviewProps } from './types'
 
@@ -59,7 +61,9 @@ export async function getLSDPageData(): Promise<LSTOverviewProps> {
 	// get historical data
 	const lsdProtocolsSlug = lsdProtocols.map((p) => slug(p))
 	const lsdProtocolsSlugSet = new Set(lsdProtocolsSlug)
-	const chartData: IProtocolDetailApiItem[] = await Promise.all(lsdProtocolsSlug.map((p) => fetchProtocolDetail(p)))
+	const chartData: IProtocolDetailApiItem[] = await Promise.all(
+		lsdProtocolsSlug.map((p) => fetchProtocolBySlug<IProtocolDetailApiItem>(p))
+	)
 
 	const cryptoComPool = pools.find((i) => i.project === 'crypto.com-staked-eth')
 	const lsdApy: PoolWithName[] = pools

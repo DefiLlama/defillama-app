@@ -1,9 +1,11 @@
-import { CACHE_SERVER, COINS_MCAPS_API, COINS_PRICES_API, CONFIG_API, TOKEN_LIST_API } from '~/constants'
+import { CACHE_SERVER, COINS_SERVER_URL, CONFIG_API, DATASETS_SERVER_URL, SERVER_URL } from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import type {
+	CgMarketsQueryParams,
 	CgChartResponse,
 	ChainGeckoPair,
+	CoinsChartResponse,
 	CoinMcapsResponse,
 	CoinsPricesResponse,
 	DenominationPriceHistory,
@@ -11,8 +13,20 @@ import type {
 	IResponseCGMarketsAPI,
 	LlamaConfigResponse,
 	PriceObject,
+	ProtocolLiquidityToken,
+	ProtocolTokenLiquidityChart,
+	TwitterPostsResponse,
 	TokenMarketData
 } from './types'
+
+const COINGECKO_MARKETS_API_BASE = 'https://api.coingecko.com/api/v3/coins/markets'
+const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
+const COINS_MCAPS_API_URL = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
+const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
+const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
+const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
+const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
+const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 
 function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
 	if (typeof value !== 'object' || value === null) return false
@@ -21,18 +35,64 @@ function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
 }
 
 export async function fetchAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
-	const data = await fetchJson<unknown>(TOKEN_LIST_API)
+	const data = await fetchJson<unknown>(TOKEN_LIST_API_URL)
 	if (!Array.isArray(data)) {
-		throw new Error(`[fetchAllCGTokensList] Expected array response from ${TOKEN_LIST_API}`)
+		throw new Error(`[fetchAllCGTokensList] Expected array response from ${TOKEN_LIST_API_URL}`)
 	}
 
 	const validTokens = data.filter(isCGMarketsApiItem)
 	const malformedCount = data.length - validTokens.length
 	if (malformedCount > 0) {
-		postRuntimeLogs(`[fetchAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API}`)
+		postRuntimeLogs(
+			`[fetchAllCGTokensList] Skipped ${malformedCount} malformed token entries from ${TOKEN_LIST_API_URL}`
+		)
 	}
 
 	return validTokens
+}
+
+export async function fetchCGMarketsPage({
+	page,
+	vsCurrency = 'usd',
+	order = 'market_cap_desc',
+	perPage = 100
+}: CgMarketsQueryParams): Promise<Array<IResponseCGMarketsAPI>> {
+	const url = new URL(COINGECKO_MARKETS_API_BASE)
+	url.searchParams.set('vs_currency', vsCurrency)
+	url.searchParams.set('order', order)
+	url.searchParams.set('per_page', String(perPage))
+	url.searchParams.set('page', String(page))
+
+	const requestUrl = url.toString()
+	const data = await fetchJson<unknown>(requestUrl)
+	if (!Array.isArray(data)) {
+		throw new Error(`[fetchCGMarketsPage] Expected array response from ${requestUrl}`)
+	}
+
+	const validTokens = data.filter(isCGMarketsApiItem)
+	const malformedCount = data.length - validTokens.length
+	if (malformedCount > 0) {
+		postRuntimeLogs(`[fetchCGMarketsPage] Skipped ${malformedCount} malformed token entries from ${requestUrl}`)
+	}
+
+	return validTokens
+}
+
+export async function fetchTwitterPostsByUsername(username: string): Promise<TwitterPostsResponse | null> {
+	if (!username) return null
+	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(
+		() => null
+	)
+}
+
+export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
+	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
+}
+
+export async function fetchProtocolTokenLiquidityChart(tokenId: string): Promise<ProtocolTokenLiquidityChart | null> {
+	if (!tokenId) return null
+	const encodedTokenId = encodeURIComponent(tokenId.replaceAll('#', '$'))
+	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${encodedTokenId}`).catch(() => null)
 }
 
 export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
@@ -63,7 +123,7 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 	const batchResults = await runBatchPromises(
 		batches,
 		(batch) =>
-			fetchJson<CoinMcapsResponse>(COINS_MCAPS_API, {
+			fetchJson<CoinMcapsResponse>(COINS_MCAPS_API_URL, {
 				method: 'POST',
 				body: JSON.stringify({
 					coins: batch.map(([_, geckoId]) => `coingecko:${geckoId}`)
@@ -94,12 +154,15 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 	}, {})
 }
 
-export async function fetchCoinPrices(coins: Array<string>): Promise<Record<string, PriceObject>> {
+export async function fetchCoinPrices(
+	coins: Array<string>,
+	options?: { searchWidth?: string }
+): Promise<Record<string, PriceObject>> {
 	if (coins.length === 0) {
 		return {}
 	}
 
-	// Split chains into batches of 10
+	// Split coins into batches of 10
 	const batchSize = 10
 	const batches: Array<Array<string>> = []
 	for (let i = 0; i < coins.length; i += batchSize) {
@@ -109,11 +172,17 @@ export async function fetchCoinPrices(coins: Array<string>): Promise<Record<stri
 	const batchResults = await runBatchPromises(
 		batches,
 		async (batch) => {
-			const response = await fetchJson<CoinsPricesResponse>(`${COINS_PRICES_API}/current/${batch.join(',')}`)
+			const searchParams = new URLSearchParams()
+			if (options?.searchWidth) searchParams.set('searchWidth', options.searchWidth)
+			const queryString = searchParams.toString()
+			const url = `${COINS_PRICES_API_URL}/current/${batch.join(',')}${queryString ? `?${queryString}` : ''}`
+			const response = await fetchJson<CoinsPricesResponse>(url)
 			return response.coins ?? {}
 		},
 		(batch, err) => {
-			postRuntimeLogs(`Failed to fetch prices for batch: ${batch.join(', ')}`)
+			postRuntimeLogs(
+				`Failed to fetch prices for batch: ${batch.join(', ')} (searchWidth=${options?.searchWidth ?? 'default'})`
+			)
 			postRuntimeLogs(err instanceof Error ? err.message : String(err))
 			return {}
 		}
@@ -130,6 +199,24 @@ export async function fetchCoinPrices(coins: Array<string>): Promise<Record<stri
 		if (val !== undefined) acc[coin] = val
 		return acc
 	}, {})
+}
+
+export async function fetchCoinsChart(params: {
+	coin: string
+	start: number
+	span: number
+	searchWidth?: string
+}): Promise<CoinsChartResponse> {
+	const { coin, start, span, searchWidth } = params
+	if (!coin || !Number.isFinite(start) || !Number.isFinite(span) || span <= 0) return { coins: {} }
+
+	const searchParams = new URLSearchParams({
+		start: String(start),
+		span: String(span)
+	})
+	if (searchWidth) searchParams.set('searchWidth', searchWidth)
+
+	return fetchJson<CoinsChartResponse>(`${COINS_CHART_API_URL}/${encodeURIComponent(coin)}?${searchParams.toString()}`)
 }
 
 export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoIdResponse | null> {
