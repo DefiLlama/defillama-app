@@ -6,21 +6,21 @@ const EMPTY_PROTOCOLS: NonNullable<DimensionProtocols['perps']> = []
 
 export function useDimensionProtocols() {
 	const { data: perpsData, isLoading: perpsLoading } = useQuery({
-		queryKey: ['dimension-protocols', 'perps'],
+		queryKey: ['pro-dashboard', 'dimension-protocols', 'perps'],
 		queryFn: () => fetchJson('/api/datasets/perps'),
 		staleTime: Infinity,
 		retry: 1
 	})
 
 	const { data: dexsData, isLoading: dexsLoading } = useQuery({
-		queryKey: ['dimension-protocols', 'dexs'],
+		queryKey: ['pro-dashboard', 'dimension-protocols', 'dexs'],
 		queryFn: () => fetchJson('/api/datasets/dexs'),
 		staleTime: Infinity,
 		retry: 1
 	})
 
 	const { data: aggregatorsData, isLoading: aggregatorsLoading } = useQuery({
-		queryKey: ['dimension-protocols', 'aggregators'],
+		queryKey: ['pro-dashboard', 'dimension-protocols', 'aggregators'],
 		queryFn: () => fetchJson('/api/datasets/aggregators'),
 		staleTime: Infinity,
 		retry: 1

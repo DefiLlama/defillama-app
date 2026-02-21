@@ -14,7 +14,7 @@ export function useRevenueData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['revenue-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'revenue-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/revenue${queryParams}`),
 		staleTime: Infinity,
 		retry: 1

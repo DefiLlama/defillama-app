@@ -9,7 +9,7 @@ export function useDexsData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery<DexItem[]>({
-		queryKey: ['dexs-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'dexs-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/dexs${queryParams}`),
 		staleTime: Infinity,
 		retry: 1

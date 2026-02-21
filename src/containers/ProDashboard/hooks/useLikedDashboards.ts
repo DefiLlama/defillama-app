@@ -11,7 +11,7 @@ export function useLikedDashboards() {
 	const [limit] = useState(20)
 
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ['liked-dashboards', page, limit],
+		queryKey: ['pro-dashboard', 'liked-dashboards', page, limit],
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				return {

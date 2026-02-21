@@ -48,7 +48,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	const { protocolsBySlug } = useAppMetadata()
 
 	const { data: chainCategoriesData } = useQuery({
-		queryKey: ['chain-categories-for-templates'],
+		queryKey: ['pro-dashboard', 'chain-categories-for-templates'],
 		queryFn: async () => {
 			const categoriesToFetch = ['Rollup']
 			const results = await Promise.all(categoriesToFetch.map((category) => fetchChainsByCategory(category)))

@@ -157,7 +157,7 @@ export const useSubscribe = () => {
 				}
 
 				queryClient.setQueryData(['subscription', userId], defaultInactiveSubscription)
-				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+				queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 
 				const result = await createSubscription.mutateAsync(subscriptionData)
 
@@ -203,7 +203,7 @@ export const useSubscribe = () => {
 
 	useEffect(() => {
 		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
-			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
@@ -211,7 +211,7 @@ export const useSubscribe = () => {
 	const isSubscriptionError = subscriptionQuery.isError && !subscriptionData
 
 	const trialAvailabilityQuery = useQuery({
-		queryKey: ['trialAvailable', user?.id],
+		queryKey: ['subscription', 'trial-available', user?.id],
 		queryFn: async () => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/subscription/trial-available`)
 
@@ -226,7 +226,7 @@ export const useSubscribe = () => {
 	})
 
 	const apiKeyQuery = useQuery({
-		queryKey: ['apiKey', user?.id],
+		queryKey: ['subscription', 'api-key', user?.id],
 		queryFn: async () => {
 			try {
 				const data: { apiKey: { api_key: string } } = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
@@ -286,7 +286,7 @@ export const useSubscribe = () => {
 		isLoading: isCreditsLoading,
 		refetch: refetchCredits
 	} = useQuery<Credits>({
-		queryKey: ['credits', user?.id, apiKey],
+		queryKey: ['subscription', 'credits', user?.id, apiKey],
 		queryFn: async () => {
 			const data = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
 				method: 'GET'
@@ -303,7 +303,7 @@ export const useSubscribe = () => {
 	})
 
 	const usageStatsQuery = useQuery({
-		queryKey: ['usageStats', user?.id],
+		queryKey: ['subscription', 'usage-stats', user?.id],
 		queryFn: async () => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/usage-stats`, {
 				method: 'GET'
@@ -386,7 +386,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: async () => {
 			toast.success('Trial upgrade successful')
-			await queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+			await queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 			await queryClient.invalidateQueries({ queryKey: ['subscription'] })
 		},
 		onError: (error) => {

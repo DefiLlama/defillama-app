@@ -433,7 +433,7 @@ function useChartData(
 ) {
 	const { data: parentMapping } = useParentChildMapping()
 	return useQuery({
-		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType),
+		queryKey: ['pro-dashboard', ...getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping, undefined, dataType),
 		staleTime: 1000 * 60 * 5,
 		gcTime: 1000 * 60 * 30,
@@ -468,7 +468,7 @@ function useChains() {
 
 export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
 	return useQuery({
-		queryKey: ['protocols-and-chains'],
+		queryKey: ['pro-dashboard', 'protocols-and-chains'],
 		queryFn: async () => {
 			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
@@ -558,6 +558,7 @@ export function useChartsData(
 
 			return {
 				queryKey: [
+					'pro-dashboard',
 					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
 					chart.grouping,
 					chart.id
@@ -575,8 +576,6 @@ export function useChartsData(
 				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,
-				keepPreviousData: true,
-				placeholderData: (prev) => prev,
 				initialData: chartServerData ?? undefined,
 				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {

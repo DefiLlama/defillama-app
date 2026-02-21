@@ -46,7 +46,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 		isLoading,
 		isError
 	} = useQuery({
-		queryKey: ['income-statement', config.protocol],
+		queryKey: ['pro-dashboard', 'income-statement', config.protocol],
 		queryFn: () => getProtocolIncomeStatement({ metadata }),
 		enabled: Boolean(config.protocol && displayName && metadata.fees && metadata.revenue),
 		staleTime: 60 * 60 * 1000

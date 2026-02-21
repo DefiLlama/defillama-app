@@ -36,7 +36,8 @@ type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenB
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
 type ProtocolChartSource = 'tvl' | 'treasury'
 type IProtocolChartQueryKey = [
-	'protocol-overview-tvl-chart' | 'protocol-overview-treasury-chart',
+	'protocol-overview',
+	'tvl-chart' | 'treasury-chart',
 	string | null,
 	string | undefined,
 	string | undefined,
@@ -57,9 +58,9 @@ const getProtocolChartQueryOptions = ({
 	IProtocolChartQueryKey
 > => {
 	const isEnabled = !!protocol && enabled
-	const queryKeyPrefix = source === 'tvl' ? 'protocol-overview-tvl-chart' : 'protocol-overview-treasury-chart'
+	const chartKey = source === 'tvl' ? 'tvl-chart' : 'treasury-chart'
 	return {
-		queryKey: [queryKeyPrefix, protocol, key, currency, breakdownType],
+		queryKey: ['protocol-overview', chartKey, protocol, key, currency, breakdownType],
 		queryFn: () =>
 			source === 'tvl'
 				? fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType })

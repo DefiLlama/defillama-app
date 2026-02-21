@@ -68,7 +68,7 @@ const getChainData = async (chain: string): Promise<ChainDataResult> => {
 const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 	const data = useQueries({
 		queries: chains.map((chain) => ({
-			queryKey: ['compare', chain],
+			queryKey: ['compare-chains', chain],
 			queryFn: () => getChainData(chain),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,

@@ -16,7 +16,7 @@ import type {
 
 export const useFetchCoingeckoTokensList = () => {
 	return useQuery<Array<IResponseCGMarketsAPI>, Error>({
-		queryKey: ['coingecko-tokens-list'],
+		queryKey: ['coingecko', 'tokens-list'],
 		queryFn: fetchAllCGTokensList,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -28,8 +28,8 @@ export const useFetchCoingeckoTokensList = () => {
 export const useGeckoId = (addressData: string | null) => {
 	const isEnabled = !!addressData
 	const { data, error, isLoading } = useQuery<GeckoIdResponse | null, Error>({
-		queryKey: ['geckoId', addressData, isEnabled],
-		queryFn: isEnabled && addressData ? () => fetchGeckoIdByAddress(addressData) : () => Promise.resolve(null),
+		queryKey: ['coingecko', 'gecko-id', addressData],
+		queryFn: () => fetchGeckoIdByAddress(addressData!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -41,8 +41,8 @@ export const useGeckoId = (addressData: string | null) => {
 export const usePriceChart = (geckoId?: string) => {
 	const isEnabled = Boolean(geckoId)
 	return useQuery<CgChartResponse | null, Error>({
-		queryKey: ['price-chart', geckoId, isEnabled],
-		queryFn: isEnabled && geckoId ? () => fetchCgChartByGeckoId(geckoId) : () => Promise.resolve(null),
+		queryKey: ['coingecko', 'price-chart', geckoId ?? null],
+		queryFn: () => fetchCgChartByGeckoId(geckoId!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -52,8 +52,8 @@ export const usePriceChart = (geckoId?: string) => {
 export const useGetTokenPrice = (geckoId?: string) => {
 	const isEnabled = Boolean(geckoId)
 	return useQuery<PriceObject | null, Error>({
-		queryKey: ['gecko-token-price', geckoId, isEnabled],
-		queryFn: isEnabled && geckoId ? () => fetchTokenPriceByGeckoId(geckoId) : () => Promise.resolve(null),
+		queryKey: ['coingecko', 'token-price', geckoId ?? null],
+		queryFn: () => fetchTokenPriceByGeckoId(geckoId!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -63,11 +63,8 @@ export const useGetTokenPrice = (geckoId?: string) => {
 export const useDenominationPriceHistory = (geckoId?: string) => {
 	const isEnabled = Boolean(geckoId)
 	return useQuery<DenominationPriceHistory, Error>({
-		queryKey: ['denom-price-history', geckoId, isEnabled],
-		queryFn:
-			isEnabled && geckoId
-				? () => fetchDenominationPriceHistory(geckoId)
-				: () => Promise.resolve({ prices: [], mcaps: [], volumes: [] }),
+		queryKey: ['coingecko', 'denom-price-history', geckoId ?? null],
+		queryFn: () => fetchDenominationPriceHistory(geckoId!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

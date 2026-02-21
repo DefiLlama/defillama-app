@@ -9,7 +9,7 @@ export function useEarningsData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['earnings-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'earnings-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/earnings${queryParams}`),
 		staleTime: Infinity,
 		retry: 1

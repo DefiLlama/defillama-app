@@ -128,7 +128,7 @@ export function CompareTokens({
 	}, [coinParam, typeParam, coinsDataById])
 
 	const { data: fdvData = null } = useQuery({
-		queryKey: [`fdv-${coins.join('-')}`],
+		queryKey: ['compare-tokens', 'fdv', ...coins],
 		queryFn:
 			coins.length === 2
 				? () =>

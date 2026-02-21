@@ -30,7 +30,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['stablecoins-chart-data', chain],
+		queryKey: ['pro-dashboard', 'stablecoins-chart-data', chain],
 		queryFn: async () => {
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
 				fetchStablecoinAssetsApi(),
@@ -213,7 +213,7 @@ export interface StablecoinChainInfo {
 
 export function useStablecoinChainsList() {
 	return useQuery({
-		queryKey: ['stablecoin-chains-list'],
+		queryKey: ['pro-dashboard', 'stablecoin-chains-list'],
 		queryFn: async () => {
 			const data = await fetchStablecoinAssetsApi()
 			const chains = data?.chains || []

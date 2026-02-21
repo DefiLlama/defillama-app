@@ -65,7 +65,7 @@ export function UnlocksChartTab({
 		[todayTimestamp]
 	)
 	const { data: unlocksProtocols, isLoading: unlocksProtocolsLoading } = useQuery({
-		queryKey: ['unlocks-protocols', unlocksEndDate],
+		queryKey: ['pro-dashboard', 'unlocks-protocols', unlocksEndDate],
 		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate, getHistoricalPrices: false }),
 		staleTime: 60 * 60 * 1000
 	})
@@ -104,7 +104,7 @@ export function UnlocksChartTab({
 	}, [unlocksProtocols, protocolLogoBySlug, selectedUnlocksProtocol, selectedUnlocksProtocolName])
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unlocks-preview', selectedUnlocksProtocol],
+		queryKey: ['pro-dashboard', 'unlocks-preview', selectedUnlocksProtocol],
 		queryFn: () => getProtocolEmissons(slug(selectedUnlocksProtocol || '')),
 		enabled: Boolean(selectedUnlocksProtocol),
 		staleTime: 60 * 60 * 1000

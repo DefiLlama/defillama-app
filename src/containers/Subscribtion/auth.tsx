@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const queryClient = useQueryClient()
 
 	const { isLoading: userQueryIsLoading } = useQuery({
-		queryKey: ['currentUserAuthStatus', authStoreState?.record?.id ?? null],
+		queryKey: ['auth', 'status', authStoreState?.record?.id ?? null],
 		queryFn: async () => {
 			if (!authStoreState.token) {
 				clearUserSession()
@@ -590,7 +590,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			return { value }
 		},
 		onSuccess: async (data) => {
-			queryClient.setQueryData(['currentUserAuthStatus'], (oldData: any) => {
+			queryClient.setQueryData(['auth', 'status', authStoreState?.record?.id ?? null], (oldData: any) => {
 				if (!oldData) return oldData
 				return {
 					...oldData,
@@ -697,7 +697,7 @@ export const useUserHash = () => {
 	)
 
 	useQuery({
-		queryKey: ['user-hash-front', email, hasActiveSubscription],
+		queryKey: ['auth', 'user-hash', email, hasActiveSubscription],
 		queryFn: () =>
 			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
 				.then((res) => {

@@ -134,7 +134,7 @@ export function Metrics({
 	}, [deferredSearchValue, tabPages])
 
 	const { data: totalTrackedByMetric } = useQuery({
-		queryKey: ['totalTrackedByMetric'],
+		queryKey: ['metrics', 'total-tracked'],
 		queryFn: () => fetchJson(TOTAL_TRACKED_BY_METRIC_API),
 		staleTime: 60 * 60 * 1000
 	})

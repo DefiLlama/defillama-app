@@ -60,6 +60,13 @@ export function getDefaultColumnVisibility(
 				...ALL_COLUMNS_HIDDEN,
 				...config.columnVisibility
 			}
+			if (config.columnOrder?.length) {
+				for (const colId of config.columnOrder) {
+					if (!(colId in (config.columnVisibility ?? {}))) {
+						visibility[colId] = true
+					}
+				}
+			}
 		} else {
 			visibility = {}
 		}

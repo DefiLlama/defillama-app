@@ -49,7 +49,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		isFetching,
 		error
 	} = useQuery<NotificationPreference | null>({
-		queryKey: ['notification-preferences', pb.authStore.record?.id, portfolioName],
+		queryKey: ['notifications', 'preferences', pb.authStore.record?.id, portfolioName],
 		queryFn: async () => {
 			if (!isAuthenticated || !portfolioName) {
 				return null
@@ -141,7 +141,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			return data.preferences
 		},
 		onSuccess: (data, variables) => {
-			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id, variables.portfolioName], data)
+			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], data)
 			toast.success('Notification preferences saved successfully')
 		},
 		onError: (error) => {
@@ -185,7 +185,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
-				queryKey: ['notification-preferences', pb.authStore.record?.id, variables.portfolioName]
+				queryKey: ['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName]
 			})
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
 		},
@@ -228,7 +228,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			}
 		},
 		onSuccess: (_, variables) => {
-			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id, variables.portfolioName], null)
+			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], null)
 			toast.success('Notification preferences deleted')
 		},
 		onError: (error) => {

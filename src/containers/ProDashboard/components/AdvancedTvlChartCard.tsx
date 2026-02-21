@@ -80,7 +80,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
-		queryKey: ['advanced-tvl-basic', protocol],
+		queryKey: ['pro-dashboard', 'advanced-tvl-basic', protocol],
 		queryFn: () => ProtocolCharts.tvl(protocol),
 		enabled: chartType === 'tvl',
 		staleTime: Infinity

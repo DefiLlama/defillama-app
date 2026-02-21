@@ -13,7 +13,15 @@ export interface TokenUsageData {
 
 export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = false) {
 	return useQuery<TokenUsageData[]>({
-		queryKey: ['token-usage', tokenSymbols.map((t) => t?.toUpperCase()).sort(), includeCex],
+		queryKey: [
+			'pro-dashboard',
+			'token-usage',
+			tokenSymbols
+				.filter((t) => t != null)
+				.map((t) => t.toUpperCase())
+				.sort(),
+			includeCex
+		],
 		queryFn: async () => {
 			if (!tokenSymbols || tokenSymbols.length === 0) {
 				return []

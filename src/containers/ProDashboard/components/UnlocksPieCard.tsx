@@ -24,7 +24,7 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const { protocol, protocolName, chartType } = config
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unlocks-pie', protocol],
+		queryKey: ['pro-dashboard', 'unlocks-pie', protocol],
 		queryFn: () => getProtocolEmissionsPieData(slug(protocol)),
 		enabled: Boolean(protocol),
 		staleTime: 60 * 60 * 1000

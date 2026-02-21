@@ -79,7 +79,7 @@ export default function SharedConversationPage() {
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['shared-session', shareToken],
+		queryKey: ['llamaai', 'shared-session', shareToken],
 		queryFn: () => getSharedSession(shareToken as string),
 		enabled: !!shareToken && typeof shareToken === 'string',
 		staleTime: Infinity,

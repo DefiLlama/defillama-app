@@ -33,7 +33,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 
 	const results = useQueries({
 		queries: selectedProtocols.map((protocol) => ({
-			queryKey: ['protocol-to-compare', protocol],
+			queryKey: ['compare-protocols', protocol],
 			queryFn: async () => {
 				const protocolData = await fetchProtocolBySlug<RawProtocolResponse>(slug(protocol))
 				return { protocolData }

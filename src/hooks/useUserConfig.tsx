@@ -15,7 +15,7 @@ import { AUTH_SERVER } from '../constants'
 import { useAuthContext } from '../containers/Subscribtion/auth'
 import { useDebouncedCallback } from './useDebounce'
 
-const USER_CONFIG_QUERY_KEY = ['userConfig']
+const USER_CONFIG_QUERY_KEY = ['user-config']
 const SYNC_DEBOUNCE_MS = 2000
 type UserConfig = Partial<AppStorage>
 

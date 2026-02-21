@@ -46,6 +46,7 @@ export function UnifiedVirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
+	const headerGroups = table.getHeaderGroups()
 	const expandedCount = Object.keys(table.getState().expanded ?? {}).length
 
 	useLayoutEffect(() => {
@@ -69,10 +70,18 @@ export function UnifiedVirtualTable({
 					background: 'var(--cards-bg)'
 				}}
 			>
-				{table.getHeaderGroups().map((headerGroup) => {
+				{headerGroups.map((headerGroup) => {
 					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
 					if (!headers.length) {
 						return null
+					}
+
+					const isGroupRow = headerGroup.depth === 0 && headerGroups.length > 1
+					if (isGroupRow) {
+						const distinctGroups = headers.filter((h) => !h.isPlaceholder)
+						if (distinctGroups.length <= 1) {
+							return null
+						}
 					}
 
 					return (
@@ -88,7 +97,6 @@ export function UnifiedVirtualTable({
 								return (
 									<div
 										key={header.id}
-										data-align={meta?.align ?? 'start'}
 										style={{
 											gridColumn: `span ${header.colSpan}`,
 											position: isSticky ? 'sticky' : undefined,
@@ -105,16 +113,15 @@ export function UnifiedVirtualTable({
 										<button
 											type="button"
 											className={`relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
-											data-align={
-												meta?.align ??
-												(headerGroup.depth === 0 && table.getHeaderGroups().length > 1 ? 'center' : 'start')
-											}
+											data-align={meta?.align ?? (isGroupRow ? 'center' : 'start')}
 											onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 										>
 											{header.isPlaceholder ? null : (
 												<HeaderWithTooltip content={meta?.headerHelperText}>{value}</HeaderWithTooltip>
 											)}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+											{!header.isPlaceholder && header.column.getCanSort() && (
+												<SortIcon dir={header.column.getIsSorted()} />
+											)}
 										</button>
 									</div>
 								)

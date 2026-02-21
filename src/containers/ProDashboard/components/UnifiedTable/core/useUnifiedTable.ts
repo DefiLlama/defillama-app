@@ -111,7 +111,7 @@ export function useUnifiedTable({
 	const headersKey = sanitizedHeaders.join('|')
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unified-table', paramsKey, headersKey],
+		queryKey: ['pro-dashboard', 'unified-table', paramsKey, headersKey],
 		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
 		staleTime: Infinity,
 		retry: 1

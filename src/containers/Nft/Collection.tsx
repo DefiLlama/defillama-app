@@ -31,7 +31,7 @@ export function NFTCollectionContainer() {
 				: null
 
 	const { data: collectionData, isLoading: fetchingData } = useQuery({
-		queryKey: ['collection-data', collectionSlug],
+		queryKey: ['nft', 'collection', collectionSlug],
 		queryFn: () => (collectionSlug != null ? getNFTCollection(collectionSlug) : Promise.resolve(undefined)),
 		enabled: collectionSlug != null,
 		staleTime: 60 * 60 * 1000,

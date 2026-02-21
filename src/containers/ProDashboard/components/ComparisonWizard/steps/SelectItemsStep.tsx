@@ -34,7 +34,7 @@ export function SelectItemsStep() {
 	})
 
 	const { data: chainCategoryData } = useQuery({
-		queryKey: ['chains-by-category', chainCategoriesList],
+		queryKey: ['pro-dashboard', 'chains-by-category', chainCategoriesList],
 		queryFn: async () => {
 			if (!chainCategoriesList) return new Map<string, Set<string>>()
 			const results = await Promise.all(

@@ -184,7 +184,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 			}
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 		}
 	})
 

@@ -11,6 +11,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
 import { useClickOutside } from '../hooks/useClickOutside'
+import { SESSIONS_QUERY_KEY } from '../hooks/useSessionList'
 
 interface SessionItemProps {
 	session: ChatSession
@@ -57,7 +58,7 @@ export const SessionItem = memo(function SessionItem({
 			return response.json()
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['chat-sessions'] })
+			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
 
