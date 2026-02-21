@@ -1,8 +1,8 @@
-import { maxAgeForNext } from '~/api'
 import { getTotalValueLostInHacksByProtocol } from '~/containers/Hacks/queries'
 import { TotalValueLostContainer } from '~/containers/Hacks/TotalValueLost'
 import type { IProtocolTotalValueLostInHacksByProtocol } from '~/containers/Hacks/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Lost in Hacks']

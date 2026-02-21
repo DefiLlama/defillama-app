@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { BridgeChainsOverview } from '~/containers/Bridges/BridgeChainsOverview'
 import { getBridgeChainsPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridges/chains', async () => {

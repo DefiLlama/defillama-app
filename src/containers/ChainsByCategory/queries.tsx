@@ -4,14 +4,14 @@ import type { IChainAssets } from '~/containers/ChainOverview/types'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'
+import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
+import type { IActiveAddressesResponse } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { fetchNftsVolumeByChain } from '../Nft/api'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
-import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
-import type { IActiveAddressesResponse } from '~/containers/OnchainUsersAndTxs/api.types'
 
 export const getChainsByCategory = async ({
 	chainMetadata,

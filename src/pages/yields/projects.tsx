@@ -1,10 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsProjectsTable } from '~/containers/Yields/Tables/Projects'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const noAirdropProjects = new Set(['fraxlend', 'origin-dollar', 'origin-ether'])

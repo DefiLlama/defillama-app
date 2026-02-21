@@ -1,16 +1,11 @@
-import {
-	CACHE_SERVER,
-	CHART_API,
-	DIMENSIONS_OVERVIEW_API,
-	DIMENSIONS_SUMMARY_API
-} from '~/constants'
+import { CACHE_SERVER, CHART_API, DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
+import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import {
 	ONCHAIN_ADDRESSES_API,
 	ONCHAIN_GAS_API,
 	ONCHAIN_NEW_ADDRESSES_API,
 	ONCHAIN_TXS_API
 } from '~/containers/OnchainUsersAndTxs/api'
-import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { processAdjustedTvl } from '~/utils/tvl'

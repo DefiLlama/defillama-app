@@ -1,5 +1,4 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
@@ -7,6 +6,7 @@ import StablecoinAssetOverview from '~/containers/Stablecoins/StablecoinOverview
 import type { PeggedAssetPageProps } from '~/containers/Stablecoins/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type StablecoinAssetRouteParams = {

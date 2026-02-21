@@ -1,11 +1,11 @@
 import type { GetStaticProps, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
 import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import type { PeggedOverviewPageData } from '~/containers/Stablecoins/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type StablecoinsPageProps = PeggedOverviewPageData & {

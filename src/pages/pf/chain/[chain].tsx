@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
@@ -8,6 +7,7 @@ import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/querie
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES

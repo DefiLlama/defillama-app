@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import type { InferGetStaticPropsType } from 'next/types'
-import { maxAgeForNext } from '~/api'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']

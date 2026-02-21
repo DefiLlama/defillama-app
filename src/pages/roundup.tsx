@@ -1,7 +1,7 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import Layout from '~/layout'
 import { postRuntimeLogs } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export default function Roundup({ messages, date }: { messages: Array<string | Array<string>>; date: string }) {

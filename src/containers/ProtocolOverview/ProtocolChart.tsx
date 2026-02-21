@@ -73,59 +73,56 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 		[props.chartDenominations]
 	)
 
-	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts } =
-		useMemo(() => {
-			const defaultEnabledChartSet = new Set<ProtocolChartsLabels>(props.defaultToggledCharts)
-			const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
-			const chartsByVisibility: Record<string, 'true' | 'false'> = {}
-			for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
-				const chartKey = protocolCharts[chartLabel]
-				const defaultEnabled = defaultEnabledChartSet.has(chartLabel)
-				defaultEnabledCharts[chartLabel] = defaultEnabled
-				chartsByVisibility[chartKey] = resolveVisibility({
-					queryValue: searchParams.get(chartKey),
-					defaultEnabled
-				})
-			}
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts } = useMemo(() => {
+		const defaultEnabledChartSet = new Set<ProtocolChartsLabels>(props.defaultToggledCharts)
+		const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
+		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
+		for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
+			const chartKey = protocolCharts[chartLabel]
+			const defaultEnabled = defaultEnabledChartSet.has(chartLabel)
+			defaultEnabledCharts[chartLabel] = defaultEnabled
+			chartsByVisibility[chartKey] = resolveVisibility({
+				queryValue: searchParams.get(chartKey),
+				defaultEnabled
+			})
+		}
 
-			const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
-			const hasEvents = (props.hallmarks?.length ?? 0) > 0 || (props.rangeHallmarks?.length ?? 0) > 0
+		const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
+		const hasEvents = (props.hallmarks?.length ?? 0) > 0 || (props.rangeHallmarks?.length ?? 0) > 0
 
-			const toggledMetrics = {
-				...chartsByVisibility,
-				denomination: denominationInSearchParams
-					? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
-					: null,
-				events: hasEvents
-					? resolveVisibility({ queryValue: searchParams.get('events'), defaultEnabled: true })
-					: 'false'
-			} as IToggledMetrics
+		const toggledMetrics = {
+			...chartsByVisibility,
+			denomination: denominationInSearchParams
+				? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
+				: null,
+			events: hasEvents ? resolveVisibility({ queryValue: searchParams.get('events'), defaultEnabled: true }) : 'false'
+		} as IToggledMetrics
 
-			const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
+		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
-			const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
-			return {
-				toggledMetrics,
-				toggledCharts,
-				hasAtleasOneBarChart,
-				groupBy: (() => {
-					if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
-					const groupByParam = searchParams.get('groupBy')
-					if (isChartInterval(groupByParam)) return groupByParam
-					return (props.defaultChartView ?? 'daily') as ChartInterval
-					})(),
-				defaultEnabledCharts
-			}
-		}, [
-			searchParams,
-			chartDenominationByLowerSymbol,
-			props.hallmarks,
-			props.rangeHallmarks,
-			props.defaultToggledCharts,
-			props.availableCharts,
-			props.defaultChartView
-		])
+		return {
+			toggledMetrics,
+			toggledCharts,
+			hasAtleasOneBarChart,
+			groupBy: (() => {
+				if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
+				const groupByParam = searchParams.get('groupBy')
+				if (isChartInterval(groupByParam)) return groupByParam
+				return (props.defaultChartView ?? 'daily') as ChartInterval
+			})(),
+			defaultEnabledCharts
+		}
+	}, [
+		searchParams,
+		chartDenominationByLowerSymbol,
+		props.hallmarks,
+		props.rangeHallmarks,
+		props.defaultToggledCharts,
+		props.availableCharts,
+		props.defaultChartView
+	])
 
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')

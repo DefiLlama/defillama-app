@@ -1,4 +1,4 @@
-import { getAllCGTokensList } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { fetchAdapterChainMetrics } from '../DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
@@ -17,7 +17,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 	const emptyAdapterProtocols: IAdapterChainMetrics['protocols'] = []
 
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols] = await Promise.all([
-		getAllCGTokensList().catch((error) => {
+		fetchAllCGTokensList().catch((error) => {
 			console.log(`Couldn't fetch CoinGecko tokens at path: compare-tokens`, 'Error:', error)
 			return [] as IResponseCGMarketsAPI[]
 		}),

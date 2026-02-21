@@ -2,6 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -9,8 +11,6 @@ import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/context
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
-import { Icon } from '../Icon'
-import { BasicLink } from '../Link'
 
 async function getDefaultSearchList() {
 	try {

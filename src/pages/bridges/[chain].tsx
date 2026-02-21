@@ -1,9 +1,9 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 // todo check name in metadata

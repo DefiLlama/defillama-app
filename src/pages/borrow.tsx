@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -10,6 +10,7 @@ import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getQueryValue, pushShallowQuery } from '~/utils/routerQuery'
 
@@ -18,7 +19,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let cgList = await getAllCGTokensList()
+	let cgList = await fetchAllCGTokensList()
 	// const cgTokens = cgList.filter((x) => x.symbol)
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = {

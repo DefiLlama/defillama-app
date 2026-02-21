@@ -1,9 +1,9 @@
 import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
 import type { InputHTMLAttributes, ReactNode } from 'react'
+import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
 import type { FormSubmitHandler } from '~/types/forms'
-import { Icon } from '../Icon'
 
 interface IFilterBetweenRange {
 	name: string

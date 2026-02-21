@@ -7,7 +7,6 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -21,6 +20,7 @@ import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/consta
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { parseExcludeParam } from '~/utils/routerQuery'
 

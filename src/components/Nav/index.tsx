@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { BasicLink } from '~/components/Link'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
-import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
 import type { TNavLinks, TOldNavLink } from './types'
 

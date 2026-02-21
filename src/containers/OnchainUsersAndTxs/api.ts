@@ -36,11 +36,7 @@ export async function fetchProtocolUsers({
 /**
  * Fetch user data (active users) for a specific chain.
  */
-export async function fetchChainUsers({
-	chainName
-}: {
-	chainName: string
-}): Promise<IUserDataResponse | null> {
+export async function fetchChainUsers({ chainName }: { chainName: string }): Promise<IUserDataResponse | null> {
 	const url = `${ONCHAIN_ADDRESSES_API}/chain$${chainName}`
 	return fetchJson<IUserDataResponse | null>(url, { timeout: 30_000 })
 }
@@ -60,11 +56,7 @@ export async function fetchProtocolTransactions({
 /**
  * Fetch transaction data for a specific chain.
  */
-export async function fetchChainTransactions({
-	chainName
-}: {
-	chainName: string
-}): Promise<ITxDataResponse | null> {
+export async function fetchChainTransactions({ chainName }: { chainName: string }): Promise<ITxDataResponse | null> {
 	const url = `${ONCHAIN_TXS_API}/chain$${chainName}`
 	return fetchJson<ITxDataResponse | null>(url, { timeout: 30_000 })
 }
@@ -96,11 +88,7 @@ export async function fetchProtocolNewUsers({
 /**
  * Fetch new users data for a specific chain.
  */
-export async function fetchChainNewUsers({
-	chainName
-}: {
-	chainName: string
-}): Promise<INewAddressesResponse | null> {
+export async function fetchChainNewUsers({ chainName }: { chainName: string }): Promise<INewAddressesResponse | null> {
 	const url = `${ONCHAIN_NEW_ADDRESSES_API}/chain$${chainName}`
 	return fetchJson<INewAddressesResponse | null>(url, { timeout: 30_000 })
 }

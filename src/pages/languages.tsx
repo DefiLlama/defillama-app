@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import type {
 	IMultiSeriesChart2Props,
 	MultiSeriesChart2Dataset,
@@ -9,6 +8,7 @@ import { SERVER_URL } from '~/constants'
 import Layout from '~/layout'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(

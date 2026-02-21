@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { LinkPreviewCard } from '~/components/SEO'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { EmissionsByProtocol } from '~/containers/Unlocks/EmissionsByProtocol'
@@ -10,6 +9,7 @@ import {
 } from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(

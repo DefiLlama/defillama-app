@@ -1,10 +1,10 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgedTVLByChain } from '~/containers/BridgedTVL/BridgedTVLByChain'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(

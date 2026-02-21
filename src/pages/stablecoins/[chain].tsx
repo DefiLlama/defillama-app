@@ -1,5 +1,4 @@
 import type { GetStaticPaths, GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
@@ -9,6 +8,7 @@ import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import type { PeggedOverviewPageData } from '~/containers/Stablecoins/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type StablecoinsByChainRouteParams = {

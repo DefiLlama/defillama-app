@@ -83,7 +83,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 		<div
 			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow,background-color] duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-lg hover:shadow-pro-blue-300/10 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
 		>
-			<div className="h-1.5 w-full bg-gradient-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
+			<div className="h-1.5 w-full bg-linear-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
 
 			<div className="flex flex-1 flex-col gap-1.5 p-3">
 				<div className="flex flex-wrap items-center justify-end gap-2">

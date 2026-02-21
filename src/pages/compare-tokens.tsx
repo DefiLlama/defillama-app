@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { CompareTokens } from '~/containers/CompareTokens'
 import { getCompareTokensPageData } from '~/containers/CompareTokens/queries'
 import type { Protocol } from '~/containers/CompareTokens/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {

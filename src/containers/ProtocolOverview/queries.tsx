@@ -26,12 +26,17 @@ import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { fetchProtocolExpenses, fetchProtocolOverviewMetrics, fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
+import {
+	fetchProtocolExpenses,
+	fetchProtocolOverviewMetrics,
+	fetchProtocolTreasuryChart,
+	fetchProtocolTvlChart
+} from './api'
 import type { IProtocolMetricsV2, IProtocolExpenses } from './api.types'
 import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
 import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
-import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
 import type { ProtocolChartsLabels } from './constants'
+import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
 import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
 

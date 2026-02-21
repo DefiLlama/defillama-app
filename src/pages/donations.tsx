@@ -1,8 +1,8 @@
-import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API } from '~/constants'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const hideProtocols = ['Mycelium', 'Hubble Exchange', 'NEX']

@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { CompareProtocols } from '~/containers/CompareProtocols'
 import { getCompareProtocolsPageData } from '~/containers/CompareProtocols/queries'
 import type { CompareProtocolsProps } from '~/containers/CompareProtocols/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {

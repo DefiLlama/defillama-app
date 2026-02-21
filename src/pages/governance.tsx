@@ -1,7 +1,7 @@
-import { maxAgeForNext } from '~/api'
 import Governance from '~/containers/Governance'
 import { getGovernancePageData } from '~/containers/Governance/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('governance', async () => {

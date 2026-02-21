@@ -20,7 +20,11 @@ import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart } from './api'
 import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL } from './chartDescriptors'
-import { normalizeBridgeVolumeToChartMs, normalizeSeriesToMilliseconds, normalizeSeriesToSeconds } from './chartSeries.utils'
+import {
+	normalizeBridgeVolumeToChartMs,
+	normalizeSeriesToMilliseconds,
+	normalizeSeriesToSeconds
+} from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { usePrefetchedProtocolChartQuery } from './usePrefetchedProtocolChartQuery'
@@ -544,42 +548,51 @@ export const useFetchProtocolChartData = ({
 	})
 
 	const isOptionsPremiumVolumeEnabled = !!(
-		toggledMetrics.optionsPremiumVolume === 'true' && metrics.optionsPremiumVolume && isRouterReady
+		toggledMetrics.optionsPremiumVolume === 'true' &&
+		metrics.optionsPremiumVolume &&
+		isRouterReady
 	)
-	const { data: optionsPremiumVolumeDataChart, isLoading: fetchingOptionsPremiumVolume } = usePrefetchedProtocolChartQuery({
-		label: 'Options Premium Volume',
-		prefetchedCharts: prefetchedChartsInSeconds,
-		queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
-		enabled: isOptionsPremiumVolumeEnabled,
-		queryFn: () => fetchAdapterProtocolChartData({ ...optionsPremiumDescriptor!.chartRequest, protocol: name })
-	})
+	const { data: optionsPremiumVolumeDataChart, isLoading: fetchingOptionsPremiumVolume } =
+		usePrefetchedProtocolChartQuery({
+			label: 'Options Premium Volume',
+			prefetchedCharts: prefetchedChartsInSeconds,
+			queryKey: ['protocol-overview', protocolSlug, 'options-premium-volume'],
+			enabled: isOptionsPremiumVolumeEnabled,
+			queryFn: () => fetchAdapterProtocolChartData({ ...optionsPremiumDescriptor!.chartRequest, protocol: name })
+		})
 
 	const isOptionsNotionalVolumeEnabled = !!(
-		toggledMetrics.optionsNotionalVolume === 'true' && metrics.optionsNotionalVolume && isRouterReady
+		toggledMetrics.optionsNotionalVolume === 'true' &&
+		metrics.optionsNotionalVolume &&
+		isRouterReady
 	)
-	const { data: optionsNotionalVolumeDataChart, isLoading: fetchingOptionsNotionalVolume } = usePrefetchedProtocolChartQuery(
-		{
+	const { data: optionsNotionalVolumeDataChart, isLoading: fetchingOptionsNotionalVolume } =
+		usePrefetchedProtocolChartQuery({
 			label: 'Options Notional Volume',
 			prefetchedCharts: prefetchedChartsInSeconds,
 			queryKey: ['protocol-overview', protocolSlug, 'options-notional-volume'],
 			enabled: isOptionsNotionalVolumeEnabled,
 			queryFn: () => fetchAdapterProtocolChartData({ ...optionsNotionalDescriptor!.chartRequest, protocol: name })
-		}
-	)
+		})
 
 	const isDexAggregatorsVolumeEnabled = !!(
-		toggledMetrics.dexAggregatorVolume === 'true' && metrics.dexAggregators && isRouterReady
+		toggledMetrics.dexAggregatorVolume === 'true' &&
+		metrics.dexAggregators &&
+		isRouterReady
 	)
-	const { data: dexAggregatorsVolumeDataChart, isLoading: fetchingDexAggregatorVolume } = usePrefetchedProtocolChartQuery({
-		label: 'DEX Aggregator Volume',
-		prefetchedCharts: prefetchedChartsInSeconds,
-		queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
-		enabled: isDexAggregatorsVolumeEnabled,
-		queryFn: () => fetchAdapterProtocolChartData({ ...dexAggregatorsDescriptor!.chartRequest, protocol: name })
-	})
+	const { data: dexAggregatorsVolumeDataChart, isLoading: fetchingDexAggregatorVolume } =
+		usePrefetchedProtocolChartQuery({
+			label: 'DEX Aggregator Volume',
+			prefetchedCharts: prefetchedChartsInSeconds,
+			queryKey: ['protocol-overview', protocolSlug, 'dex-aggregator-volume'],
+			enabled: isDexAggregatorsVolumeEnabled,
+			queryFn: () => fetchAdapterProtocolChartData({ ...dexAggregatorsDescriptor!.chartRequest, protocol: name })
+		})
 
 	const isPerpsAggregatorsVolumeEnabled = !!(
-		toggledMetrics.perpAggregatorVolume === 'true' && metrics.perpsAggregators && isRouterReady
+		toggledMetrics.perpAggregatorVolume === 'true' &&
+		metrics.perpsAggregators &&
+		isRouterReady
 	)
 	const { data: perpsAggregatorsVolumeDataChart, isLoading: fetchingPerpAggregatorVolume } =
 		usePrefetchedProtocolChartQuery({
@@ -591,7 +604,9 @@ export const useFetchProtocolChartData = ({
 		})
 
 	const isBridgeAggregatorsVolumeEnabled = !!(
-		toggledMetrics.bridgeAggregatorVolume === 'true' && metrics.bridgeAggregators && isRouterReady
+		toggledMetrics.bridgeAggregatorVolume === 'true' &&
+		metrics.bridgeAggregators &&
+		isRouterReady
 	)
 	const { data: bridgeAggregatorsVolumeDataChart, isLoading: fetchingBridgeAggregatorVolume } =
 		usePrefetchedProtocolChartQuery({
@@ -642,7 +657,8 @@ export const useFetchProtocolChartData = ({
 		prefetchedCharts: prefetchedChartsForMsRender,
 		queryKey: ['protocol-overview', protocolSlug, 'treasury'],
 		enabled: isTreasuryEnabled,
-		queryFn: () => fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((chart) => normalizeSeriesToMilliseconds(chart))
+		queryFn: () =>
+			fetchProtocolTreasuryChart({ protocol: protocolSlug }).then((chart) => normalizeSeriesToMilliseconds(chart))
 	})
 
 	const isUsdInflowsEnabled = !!(toggledMetrics.usdInflows === 'true' && metrics.tvl && isRouterReady)

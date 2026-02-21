@@ -1,9 +1,9 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { ForksOverview } from '~/containers/Forks/ForksOverview'
 import { getForksListPageData } from '~/containers/Forks/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Protocols', 'ranked by', 'TVL in Forks']

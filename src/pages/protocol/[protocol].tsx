@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { PROTOCOLS_API, SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
@@ -7,6 +6,7 @@ import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queri
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 

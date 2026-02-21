@@ -1,5 +1,4 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -7,6 +6,7 @@ import { getNetProjectTreasuryData } from '~/containers/Treasuries/queries'
 import type { INetProjectTreasury } from '~/containers/Treasuries/types'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`net-project-treasury/index`, async () => {

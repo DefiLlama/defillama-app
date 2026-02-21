@@ -35,3 +35,75 @@ export interface IResponseCGMarketsAPI {
 	total_volume: number
 	image2: string
 }
+
+export type ChainGeckoPair = [chain: string, geckoId: string]
+
+export interface LlamaConfigResponse {
+	chainCoingeckoIds: Record<string, LlamaChainConfig>
+}
+
+export interface LlamaChainConfig {
+	geckoId?: string
+	symbol?: string
+	stablecoins?: string[]
+	parent?: {
+		chain: string
+		types: string[]
+	}
+	[key: string]: unknown
+}
+
+export interface CoinMcapEntry {
+	mcap?: number | null
+	timestamp?: number
+}
+
+export type CoinMcapsResponse = Record<string, CoinMcapEntry>
+
+export interface PriceObject {
+	confidence: number
+	decimals?: number
+	price: number
+	symbol: string
+	timestamp: number
+}
+
+export interface CoinsPricesResponse {
+	coins?: Record<string, PriceObject | undefined>
+}
+
+export interface TokenMarketData {
+	price: number | null
+	prevPrice: number | null
+	priceChangePercent: number | null
+	mcap: number | null
+	volume24h: number | null
+	circSupply: number | null
+	maxSupply: number | null
+	maxSupplyInfinite: boolean | null
+}
+
+export interface CgChartResponse {
+	data?: {
+		coinData?: {
+			market_data?: {
+				circulating_supply?: number
+				max_supply?: number
+				max_supply_infinite?: boolean
+			}
+		}
+		prices?: Array<[number, number]>
+		mcaps?: Array<[number, number]>
+		volumes?: Array<[number, number]>
+	}
+}
+
+export interface GeckoIdResponse {
+	id: string
+}
+
+export interface DenominationPriceHistory {
+	prices: Array<[number, number]>
+	mcaps: Array<[number, number]>
+	volumes: Array<[number, number]>
+}

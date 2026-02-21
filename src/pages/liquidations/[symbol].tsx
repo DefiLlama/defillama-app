@@ -1,5 +1,4 @@
 import type { GetStaticPaths, GetStaticProps, NextPage } from 'next'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { LinkPreviewCard } from '~/components/SEO'
@@ -15,6 +14,7 @@ import { type ChartData, buildLiquidationsChartSeries } from '~/containers/Liqui
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, liquidationsIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type LiquidationsNavLink = { label: string; to: string; symbol: string }

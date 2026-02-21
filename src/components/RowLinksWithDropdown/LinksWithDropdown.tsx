@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BasicLink } from '../Link'
+import { BasicLink } from '~/components/Link'
 import { OtherLinks } from './OtherLinks'
 
 interface ILink {

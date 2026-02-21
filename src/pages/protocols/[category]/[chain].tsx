@@ -1,5 +1,4 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
@@ -7,6 +6,7 @@ import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategor
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import Layout from '~/layout'
 import { capitalizeFirstLetter, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(

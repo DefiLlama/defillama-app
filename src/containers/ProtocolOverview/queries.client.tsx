@@ -1,21 +1,14 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
+import { TOKEN_LIQUIDITY_API, YIELD_PROJECT_MEDIAN_API } from '~/constants'
 import {
 	fetchProtocolUsers,
 	fetchProtocolNewUsers,
 	fetchProtocolTransactions,
 	fetchProtocolGas
 } from '~/containers/OnchainUsersAndTxs/api'
-import type {
-	IUserDataResponse,
-	ITxDataResponse,
-	IGasDataResponse
-} from '~/containers/OnchainUsersAndTxs/api.types'
-import {
-	TOKEN_LIQUIDITY_API,
-	YIELD_PROJECT_MEDIAN_API
-} from '~/constants'
+import type { IUserDataResponse, ITxDataResponse, IGasDataResponse } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import type {

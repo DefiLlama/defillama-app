@@ -1,10 +1,9 @@
 import { useRouter } from 'next/router'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
-import { formatEthAddress } from '~/utils'
-import { Icon } from '../Icon'
-import { BasicLink } from '../Link'
 
 interface AuthUser {
 	authMethod?: string

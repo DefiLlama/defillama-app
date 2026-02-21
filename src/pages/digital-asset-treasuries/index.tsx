@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { DATOverview } from '~/containers/DAT/Overview'
 import { getDATOverviewData } from '~/containers/DAT/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']

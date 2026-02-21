@@ -1,11 +1,11 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { OracleOverview } from '~/containers/Oracles/OracleOverview'
 import { getOracleDetailPageData } from '~/containers/Oracles/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Protocols TVS', 'by', 'Oracle']

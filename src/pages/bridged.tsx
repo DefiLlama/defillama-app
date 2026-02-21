@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridged', async () => {

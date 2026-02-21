@@ -1,10 +1,11 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { TokenPnl } from '~/containers/TokenPnl'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('token-pnl', async () => {
-	const coinsData = await getAllCGTokensList()
+	const coinsData = await fetchAllCGTokensList()
 	return {
 		props: {
 			coinsData

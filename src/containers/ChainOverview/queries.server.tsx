@@ -1,21 +1,6 @@
 import { fetchLlamaConfig } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
-import {
-	fetchChainUsers,
-	fetchChainTransactions,
-	fetchChainNewUsers
-} from '~/containers/OnchainUsersAndTxs/api'
-import type {
-	IUserDataResponse,
-	ITxDataResponse,
-	INewAddressesResponse
-} from '~/containers/OnchainUsersAndTxs/api.types'
-import {
-	CHART_API,
-	COINGECKO_KEY,
-	REV_PROTOCOLS,
-	TRADFI_API
-} from '~/constants'
+import { CHART_API, COINGECKO_KEY, REV_PROTOCOLS, TRADFI_API } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import { fetchCexVolume } from '~/containers/DimensionAdapters/api'
@@ -29,6 +14,12 @@ import {
 	getProtocolEmissionsLookupFromAggregated
 } from '~/containers/Incentives/queries'
 import type { ProtocolEmissionsLookup } from '~/containers/Incentives/types'
+import { fetchChainUsers, fetchChainTransactions, fetchChainNewUsers } from '~/containers/OnchainUsersAndTxs/api'
+import type {
+	IUserDataResponse,
+	ITxDataResponse,
+	INewAddressesResponse
+} from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'

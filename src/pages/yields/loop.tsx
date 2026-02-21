@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldPageLoop from '~/containers/Yields/indexLoop'
 import { calculateLoopAPY, getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
@@ -12,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 		props: { ...data }
 	} = await getLendBorrowData()
 
-	const cgTokens = await getAllCGTokensList()
+	const cgTokens = await fetchAllCGTokensList()
 
 	const tokens = []
 

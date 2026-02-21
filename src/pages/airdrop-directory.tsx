@@ -1,9 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getAirdropDirectoryData } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const DEFAULT_SORTING_STATE = [{ id: 'name', desc: true }]

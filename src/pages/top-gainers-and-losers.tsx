@@ -7,7 +7,6 @@ import {
 } from '@tanstack/react-table'
 import type { InferGetStaticPropsType } from 'next'
 import { useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -20,6 +19,7 @@ import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { formattedNum, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const GAINERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: true }]
@@ -222,20 +222,12 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
-				<TopGainersAndLosersTable
-					key="gainers-change_1d"
-					data={topGainers}
-					sortingState={GAINERS_SORTING_STATE}
-				/>
+				<TopGainersAndLosersTable key="gainers-change_1d" data={topGainers} sortingState={GAINERS_SORTING_STATE} />
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
-				<TopGainersAndLosersTable
-					key="losers-change_1d"
-					data={topLosers}
-					sortingState={LOSERS_SORTING_STATE}
-				/>
+				<TopGainersAndLosersTable key="losers-change_1d" data={topLosers} sortingState={LOSERS_SORTING_STATE} />
 			</div>
 		</Layout>
 	)

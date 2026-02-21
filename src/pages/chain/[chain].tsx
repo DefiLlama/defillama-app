@@ -1,6 +1,5 @@
 import type { InferGetStaticPropsType } from 'next'
 import Link from 'next/link'
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { PROTOCOLS_API } from '~/constants/index'
 import { ChainOverview } from '~/containers/ChainOverview'
@@ -9,6 +8,7 @@ import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']

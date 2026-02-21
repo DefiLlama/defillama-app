@@ -14,8 +14,8 @@ import {
 	fetchStablecoinRatesApi
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
-import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
 import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
+import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'

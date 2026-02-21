@@ -142,27 +142,27 @@ export function DATByAsset({
 				</div>
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-			<MNAVChart
-				key={`realized-${stableInstitutionsKey}`}
-				metadata={metadata}
-				title="mNAV Realized"
-				data={mNAVRealizedChart}
-				institutionsNames={institutionsNames}
-			/>
-			<MNAVChart
-				key={`realistic-${stableInstitutionsKey}`}
-				metadata={metadata}
-				title="mNAV Realistic"
-				data={mNAVRealisticChart}
-				institutionsNames={institutionsNames}
-			/>
-			<MNAVChart
-				key={`max-${stableInstitutionsKey}`}
-				metadata={metadata}
-				title="mNAV Max"
-				data={mNAVMaxChart}
-				institutionsNames={institutionsNames}
-			/>
+				<MNAVChart
+					key={`realized-${stableInstitutionsKey}`}
+					metadata={metadata}
+					title="mNAV Realized"
+					data={mNAVRealizedChart}
+					institutionsNames={institutionsNames}
+				/>
+				<MNAVChart
+					key={`realistic-${stableInstitutionsKey}`}
+					metadata={metadata}
+					title="mNAV Realistic"
+					data={mNAVRealisticChart}
+					institutionsNames={institutionsNames}
+				/>
+				<MNAVChart
+					key={`max-${stableInstitutionsKey}`}
+					metadata={metadata}
+					title="mNAV Max"
+					data={mNAVMaxChart}
+					institutionsNames={institutionsNames}
+				/>
 			</div>
 			<TableWithSearch
 				data={institutions}

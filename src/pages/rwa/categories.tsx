@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWACategoriesTable } from '~/containers/RWA/Categories'
 import { getRWACategoriesOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () => {

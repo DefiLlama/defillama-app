@@ -1,10 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { ProtocolsCategoriesPage } from '~/containers/ProtocolsByCategoryOrTag/CategoriesPage'
 import { categoriesPageExcludedExtraTvls } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { getProtocolsCategoriesPageData } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import type { IProtocolsCategoriesPageData } from '~/containers/ProtocolsByCategoryOrTag/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Protocol Categories']

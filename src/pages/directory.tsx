@@ -1,7 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -10,6 +9,7 @@ import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/util
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('directory', async () => {

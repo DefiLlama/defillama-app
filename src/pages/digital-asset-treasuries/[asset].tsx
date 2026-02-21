@@ -1,10 +1,10 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { DATByAsset } from '~/containers/DAT/ByAsset'
 import { getDATOverviewDataByAsset, getDATAssetPaths } from '~/containers/DAT/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']

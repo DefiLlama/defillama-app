@@ -1,10 +1,10 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { DefiWatchlistContainer } from '~/containers/DeFiWatchlist'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('watchlist', async () => {

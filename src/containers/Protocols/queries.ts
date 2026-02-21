@@ -1,4 +1,4 @@
-import { fetchCoinPrices, getAllCGTokensList } from '~/api'
+import { fetchCoinPrices, fetchAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchRaises } from '~/containers/Raises/api'
@@ -450,7 +450,7 @@ export async function getProtocolsFDVsByChain({
 	const [{ protocols, chains, parentProtocols }, tokenList]: [
 		{ protocols: ProtocolLite[]; chains: string[]; parentProtocols: ParentProtocolLite[] },
 		IResponseCGMarketsAPI[]
-	] = await Promise.all([fetchProtocols(), getAllCGTokensList()])
+	] = await Promise.all([fetchProtocols(), fetchAllCGTokensList()])
 
 	const tokenListMap = new Map(tokenList.map((t) => [t.id, t]))
 

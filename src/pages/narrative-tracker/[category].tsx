@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
 import { getCategoryInfo, getCoinPerformance } from '~/containers/NarrativeTracker/queries'
 import type { CategoryPerformanceProps } from '~/containers/NarrativeTracker/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {

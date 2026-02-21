@@ -1,9 +1,9 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { fetchNftsVolumeByChain } from '~/containers/Nft/api'
 import { NftsByChain, type INftChainRow } from '~/containers/Nft/NftsByChain'
 import Layout from '~/layout'
 import { chainIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const getMetadataChainKey = (chain: string): string => {
