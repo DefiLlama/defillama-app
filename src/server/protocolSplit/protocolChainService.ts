@@ -518,7 +518,9 @@ async function getAllProtocolsTopChainsTvlData(
 
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(topSeriesRaw, totalSeries)
 
-		const othersCount = Math.max(0, ranked.length - Math.min(topN, ranked.length))
+		const includedTopCount = topSeriesRaw.length
+		const includedTopNames = topSeriesRaw.map((series) => series.name)
+		const othersCount = Math.max(0, ranked.length - includedTopCount)
 		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
 		const finalSeries = [...alignedTopSeries]
 		if (hasOthers) finalSeries.push({ name: `Others (${othersCount} chains)`, data: othersData, color: '#999999' })
@@ -528,9 +530,9 @@ async function getAllProtocolsTopChainsTvlData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: 'TVL',
-				chains: pickedNames,
+				chains: includedTopNames,
 				totalChains: ranked.length,
-				topN: Math.min(topN, ranked.length),
+				topN: includedTopCount,
 				othersCount
 			}
 		}
