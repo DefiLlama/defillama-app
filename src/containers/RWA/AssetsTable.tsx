@@ -37,7 +37,7 @@ export function RWAAssetsTable({
 	selectedChain: string
 }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMcap.total', desc: true }])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'activeMcap.total', desc: true }])
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
@@ -188,111 +188,6 @@ const columns: ColumnDef<AssetRow>[] = [
 		size: 240
 	},
 	{
-		id: 'type',
-		header: definitions.type.label,
-		accessorFn: (asset) => asset.type,
-		cell: (info) => {
-			const value = info.getValue() as string
-			const tooltipContent = definitions.type.values?.[value]
-			if (tooltipContent) {
-				return (
-					<Tooltip
-						content={tooltipContent}
-						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
-					>
-						{value}
-					</Tooltip>
-				)
-			}
-			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
-		},
-		size: 120,
-		enableSorting: false,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.type.description
-		}
-	},
-	{
-		id: 'rwaClassification',
-		header: definitions.rwaClassification.label,
-		accessorFn: (asset) => asset.rwaClassification,
-		cell: (info) => {
-			const value = info.getValue() as string
-			const isTrueRWA = info.row.original.trueRWA
-			// If trueRWA flag, show green color with True RWA definition but display "RWA"
-			const tooltipContent = isTrueRWA
-				? definitions.rwaClassification.values?.['True RWA']
-				: definitions.rwaClassification.values?.[value]
-			if (tooltipContent) {
-				return (
-					<Tooltip
-						content={tooltipContent}
-						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap ${isTrueRWA ? 'text-(--success)' : ''}`}
-					>
-						{value}
-					</Tooltip>
-				)
-			}
-			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
-		},
-		size: 180,
-		enableSorting: false,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.rwaClassification.description
-		}
-	},
-	{
-		id: 'accessModel',
-		header: definitions.accessModel.label,
-		accessorFn: (asset) => asset.accessModel,
-		cell: (info) => {
-			const value = info.getValue() as
-				| 'Permissioned'
-				| 'Permissionless'
-				| 'Non-transferable'
-				| 'Custodial Only'
-				| 'Unknown'
-			const valueDescription = definitions.accessModel.values?.[value]
-			if (valueDescription) {
-				return (
-					<Tooltip
-						content={valueDescription}
-						className={clsx(
-							'justify-end',
-							value === 'Permissioned' && 'text-(--warning)',
-							value === 'Permissionless' && 'text-(--success)',
-							value === 'Non-transferable' && 'text-(--error)',
-							value === 'Custodial Only' && 'text-(--error)'
-						)}
-					>
-						{value}
-					</Tooltip>
-				)
-			}
-			return (
-				<span
-					className={clsx(
-						'inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
-						value === 'Permissioned' && 'text-(--warning)',
-						value === 'Permissionless' && 'text-(--success)',
-						value === 'Non-transferable' && 'text-(--error)',
-						value === 'Custodial Only' && 'text-(--error)'
-					)}
-				>
-					{value}
-				</span>
-			)
-		},
-		size: 180,
-		enableSorting: false,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.accessModel.description
-		}
-	},
-	{
 		id: 'category',
 		header: definitions.category.label,
 		accessorFn: (asset) => asset.category,
@@ -325,6 +220,55 @@ const columns: ColumnDef<AssetRow>[] = [
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.category.description
+		}
+	},
+	{
+		id: 'activeMcap.total',
+		header: definitions.activeMcap.label,
+		accessorFn: (asset) => asset.activeMcap?.total,
+		cell: (info) => (
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.activeMcap?.breakdown}
+				description={definitions.activeMcap.description}
+			/>
+		),
+		meta: {
+			headerHelperText: definitions.activeMcap.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'onChainMcap.total',
+		header: definitions.onChainMcap.label,
+		accessorFn: (asset) => asset.onChainMcap?.total,
+		cell: (info) => (
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.onChainMcap?.breakdown}
+				description={definitions.onChainMcap.description}
+			/>
+		),
+		size: 168,
+		meta: {
+			headerHelperText: definitions.onChainMcap.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'defiActiveTvl.total',
+		header: definitions.defiActiveTvl.label,
+		accessorFn: (asset) => asset.defiActiveTvl?.total,
+		cell: (info) => (
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.defiActiveTvl?.breakdown}
+				description={definitions.defiActiveTvl.description}
+			/>
+		),
+		meta: {
+			headerHelperText: definitions.defiActiveTvl.description,
+			align: 'end'
 		}
 	},
 	{
@@ -380,52 +324,108 @@ const columns: ColumnDef<AssetRow>[] = [
 		}
 	},
 	{
-		id: 'defiActiveTvl.total',
-		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl?.total,
-		cell: (info) => (
-			<TVLBreakdownCell
-				value={info.getValue() as number | null | undefined}
-				breakdown={info.row.original.defiActiveTvl?.breakdown}
-				description={definitions.defiActiveTvl.description}
-			/>
-		),
+		id: 'accessModel',
+		header: definitions.accessModel.label,
+		accessorFn: (asset) => asset.accessModel,
+		cell: (info) => {
+			const value = info.getValue() as
+				| 'Permissioned'
+				| 'Permissionless'
+				| 'Non-transferable'
+				| 'Custodial Only'
+				| 'Unknown'
+			const valueDescription = definitions.accessModel.values?.[value]
+			if (valueDescription) {
+				return (
+					<Tooltip
+						content={valueDescription}
+						className={clsx(
+							'justify-end',
+							value === 'Permissioned' && 'text-(--warning)',
+							value === 'Permissionless' && 'text-(--success)',
+							value === 'Non-transferable' && 'text-(--error)',
+							value === 'Custodial Only' && 'text-(--error)'
+						)}
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return (
+				<span
+					className={clsx(
+						'inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap',
+						value === 'Permissioned' && 'text-(--warning)',
+						value === 'Permissionless' && 'text-(--success)',
+						value === 'Non-transferable' && 'text-(--error)',
+						value === 'Custodial Only' && 'text-(--error)'
+					)}
+				>
+					{value}
+				</span>
+			)
+		},
+		size: 180,
+		enableSorting: false,
 		meta: {
-			headerHelperText: definitions.defiActiveTvl.description,
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.accessModel.description
 		}
 	},
 	{
-		id: 'activeMcap.total',
-		header: definitions.activeMcap.label,
-		accessorFn: (asset) => asset.activeMcap?.total,
-		cell: (info) => (
-			<TVLBreakdownCell
-				value={info.getValue() as number | null | undefined}
-				breakdown={info.row.original.activeMcap?.breakdown}
-				description={definitions.activeMcap.description}
-			/>
-		),
+		id: 'type',
+		header: definitions.type.label,
+		accessorFn: (asset) => asset.type,
+		cell: (info) => {
+			const value = info.getValue() as string
+			const tooltipContent = definitions.type.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
+		},
+		size: 120,
+		enableSorting: false,
 		meta: {
-			headerHelperText: definitions.activeMcap.description,
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.type.description
 		}
 	},
 	{
-		id: 'onChainMcap.total',
-		header: definitions.onChainMcap.label,
-		accessorFn: (asset) => asset.onChainMcap?.total,
-		cell: (info) => (
-			<TVLBreakdownCell
-				value={info.getValue() as number | null | undefined}
-				breakdown={info.row.original.onChainMcap?.breakdown}
-				description={definitions.onChainMcap.description}
-			/>
-		),
-		size: 168,
+		id: 'rwaClassification',
+		header: definitions.rwaClassification.label,
+		accessorFn: (asset) => asset.rwaClassification,
+		cell: (info) => {
+			const value = info.getValue() as string
+			const isTrueRWA = info.row.original.trueRWA
+			// If trueRWA flag, show green color with True RWA definition but display "RWA"
+			const tooltipContent = isTrueRWA
+				? definitions.rwaClassification.values?.['True RWA']
+				: definitions.rwaClassification.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap ${isTrueRWA ? 'text-(--success)' : ''}`}
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
+		},
+		size: 180,
+		enableSorting: false,
 		meta: {
-			headerHelperText: definitions.onChainMcap.description,
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.rwaClassification.description
 		}
 	},
 	{
