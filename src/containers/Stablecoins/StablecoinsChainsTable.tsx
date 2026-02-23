@@ -182,11 +182,11 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
-		getSubRows: (row: StablecoinsByChainRow) => row.subRows,
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
+		getSubRows: (row: StablecoinsByChainRow) => row.subRows,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),

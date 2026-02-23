@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo, useState, useSyncExternalStore } from 'react'
+import { startTransition, useMemo, useState, useSyncExternalStore } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -279,12 +279,12 @@ export const ChainProtocolsTable = ({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		filterFromLeafRows: true,
-		onExpandedChange: setExpanded,
-		getSubRows: (row: IProtocol) => row.childProtocols,
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnSizingChange: setColumnSizing,
+		filterFromLeafRows: true,
+		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
+		getSubRows: (row: IProtocol) => row.childProtocols,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()

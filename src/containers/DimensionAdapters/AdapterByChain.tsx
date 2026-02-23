@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
@@ -279,13 +279,13 @@ export function AdapterByChain(props: IProps) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
-		onSortingChange: setSorting,
-		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),

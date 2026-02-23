@@ -260,10 +260,10 @@ export const UnlocksTable = ({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnSizingChange: setColumnSizing,
-		onExpandedChange: setExpanded,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()

@@ -176,10 +176,10 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnOrderChange: setColumnOrder,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()

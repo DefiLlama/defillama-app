@@ -52,16 +52,19 @@ export const YieldsTableWrapper = ({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		onSortingChange: (updater) => {
 			const newSorting = typeof updater === 'function' ? updater(sorting) : updater
-			setSorting(newSorting)
+			React.startTransition(() => {
+				setSorting(newSorting)
+			})
 			if (newSorting.length > 0) {
 				trackYieldsEvent(YIELDS_EVENTS.TABLE_SORT, { column: newSorting[0].id })
 			}
 		},
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		onColumnVisibilityChange: setColumnVisibility,
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnVisibilityChange: (updater) => React.startTransition(() => setColumnVisibility(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

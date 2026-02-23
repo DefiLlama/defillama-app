@@ -173,7 +173,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})

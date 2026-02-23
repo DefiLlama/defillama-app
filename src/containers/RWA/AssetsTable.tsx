@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { matchSorter } from 'match-sorter'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -67,14 +67,14 @@ export function RWAAssetsTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		filterFromLeafRows: true,
-		onExpandedChange: setExpanded,
-		getSubRows: (row: any) => row.subRows,
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		filterFromLeafRows: true,
+		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
+		getSubRows: (row: any) => row.subRows,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

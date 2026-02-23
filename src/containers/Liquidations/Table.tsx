@@ -373,8 +373,8 @@ function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -402,8 +402,8 @@ function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] 
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()

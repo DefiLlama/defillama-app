@@ -48,9 +48,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()

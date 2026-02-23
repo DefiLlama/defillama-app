@@ -6,7 +6,7 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import type { InferGetStaticPropsType } from 'next'
-import { useMemo, useState } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
@@ -126,8 +126,8 @@ function TopGainersAndLosersTable({ data, sortingState }: { data: Array<Protocol
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

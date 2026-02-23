@@ -142,9 +142,9 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()

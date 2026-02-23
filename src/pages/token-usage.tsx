@@ -58,8 +58,8 @@ export default function Tokens() {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

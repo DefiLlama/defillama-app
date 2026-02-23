@@ -371,11 +371,11 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()

@@ -10,7 +10,7 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -87,12 +87,12 @@ export function ChainsByAdapter(props: IProps) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		filterFromLeafRows: true,
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		filterFromLeafRows: true,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),

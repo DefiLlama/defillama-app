@@ -6,7 +6,7 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useDeferredValue, useState } from 'react'
+import { startTransition, useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
@@ -99,10 +99,10 @@ export default function TrendingContracts() {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		columns: columns(activeChain),
 		getCoreRowModel: getCoreRowModel(),
-		onSortingChange: setSorting,
-		enableSortingRemoval: false,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		getSortedRowModel: getSortedRowModel()
 	})
 

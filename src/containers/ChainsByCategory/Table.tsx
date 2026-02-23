@@ -80,11 +80,11 @@ export function ChainsByCategoryTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
-		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
+		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),

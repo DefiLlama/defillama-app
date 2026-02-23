@@ -102,11 +102,11 @@ export function RecentlyListedProtocolsTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

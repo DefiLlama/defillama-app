@@ -190,11 +190,11 @@ export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTablePro
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel()

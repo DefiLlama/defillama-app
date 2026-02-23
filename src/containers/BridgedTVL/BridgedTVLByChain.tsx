@@ -114,8 +114,8 @@ export function BridgedTVLByChain({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
 		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
