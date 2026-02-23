@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useDeferredValue, useEffect, useMemo, useSyncExternalStore } from 'react'
 import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
@@ -195,6 +195,8 @@ export function subscribeToPinnedMetrics(callback: () => void) {
 	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
 }
 
+const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
+
 const toggleDarkMode = () => {
 	const isDarkMode = getThemeCookie() === 'dark'
 	setThemeCookie(!isDarkMode)
@@ -203,7 +205,7 @@ const toggleDarkMode = () => {
 
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(THEME_SYNC_KEY, callback),
+		subscribeToTheme,
 		() => getThemeCookie() ?? 'dark',
 		() => 'dark'
 	)
@@ -356,43 +358,40 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 		() => '{}'
 	)
 
+	const deferredSnapshot = useDeferredValue(snapshot)
+
 	const settings = useMemo(() => {
 		try {
-			return JSON.parse(snapshot) as Record<KeysFor<T>, boolean>
+			return JSON.parse(deferredSnapshot) as Record<KeysFor<T>, boolean>
 		} catch {
 			return {} as Record<KeysFor<T>, boolean>
 		}
-	}, [snapshot])
+	}, [deferredSnapshot])
 
-	return [settings, (key: KeysFor<T>) => updateSetting(key)]
-}
+	const toggle = useMemo(() => (key: KeysFor<T>) => updateSetting(key), [])
 
-const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
-	const current = readAppStorage()
-	writeAppStorage({ ...(current as AppStorage), ...keys })
-}
-
-export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<SettingKey, boolean>>) => void] {
-	const store = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
-	)
-	const toggledSettings = useMemo(() => JSON.parse(store) as SettingsStore, [store])
-
-	return [toggledSettings, updateAllSettings]
+	return [settings, toggle]
 }
 
 // YIELDS SAVED FILTERS HOOK
 export function useYieldFilters() {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
+		() => {
+			const store = readAppStorage()
+			const filters = store[YIELDS_SAVED_FILTERS]
+			return filters ? JSON.stringify(filters) : '{}'
+		},
 		() => '{}'
 	)
 
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const savedFilters: YieldSavedFilters = parsedStore?.[YIELDS_SAVED_FILTERS] ?? {}
+	const savedFilters: YieldSavedFilters = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as YieldSavedFilters
+		} catch {
+			return {}
+		}
+	}, [snapshot])
 
 	return {
 		savedFilters,
@@ -414,31 +413,34 @@ export function useYieldFilters() {
 }
 
 export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
-	const store = useSyncExternalStore(
+	const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
+	const selectedPortfolioKey =
+		type === 'defi'
+			? DEFI_SELECTED_PORTFOLIO
+			: type === 'yields'
+				? YIELDS_SELECTED_PORTFOLIO
+				: CHAINS_SELECTED_PORTFOLIO
+
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const store = readAppStorage()
+			const wl = store[watchlistKey as keyof AppStorage]
+			const sp = store[selectedPortfolioKey as keyof AppStorage]
+			return JSON.stringify({ wl, sp })
+		},
+		() => JSON.stringify({ wl: undefined, sp: undefined })
 	)
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
 
 	return useMemo(() => {
-		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
-		const selectedPortfolioKey =
-			type === 'defi'
-				? DEFI_SELECTED_PORTFOLIO
-				: type === 'yields'
-					? YIELDS_SELECTED_PORTFOLIO
-					: CHAINS_SELECTED_PORTFOLIO
+		const { wl, sp } = JSON.parse(snapshot) as { wl: WatchlistStore | undefined; sp: string | undefined }
+		const watchlist = wl ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+		const selectedPortfolio = sp ?? DEFAULT_PORTFOLIO_NAME
 
-		const watchlist = (parsedStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
-			[DEFAULT_PORTFOLIO_NAME]: {}
-		}
 		const portfolios: string[] = []
 		for (const portfolioName in watchlist) {
 			portfolios.push(portfolioName)
 		}
-		const selectedPortfolio =
-			(parsedStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 		return {
 			portfolios,
@@ -527,29 +529,30 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				})
 			}
 		}
-	}, [parsedStore, type])
+	}, [snapshot, watchlistKey, selectedPortfolioKey])
 }
 
 export function useCustomColumns() {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const store = readAppStorage()
+			const cols = store[CUSTOM_COLUMNS]
+			return cols ? JSON.stringify(cols) : '[]'
+		},
+		() => '[]'
 	)
-	const parsedStore = useMemo(() => {
-		try {
-			return JSON.parse(store) as AppStorage
-		} catch {
-			return {} as AppStorage
-		}
-	}, [store])
 
 	const customColumns = useMemo(() => {
-		return (parsedStore?.[CUSTOM_COLUMNS] as CustomColumnDef[] | undefined) ?? []
-	}, [parsedStore])
+		try {
+			return JSON.parse(snapshot) as CustomColumnDef[]
+		} catch {
+			return [] as CustomColumnDef[]
+		}
+	}, [snapshot])
 
 	function setCustomColumns(cols: CustomColumnDef[]) {
-		writeAppStorage({ ...parsedStore, [CUSTOM_COLUMNS]: cols })
+		writeAppStorage({ ...readAppStorage(), [CUSTOM_COLUMNS]: cols })
 	}
 
 	function addCustomColumn(col: CustomColumnDef) {
@@ -574,18 +577,15 @@ export function useCustomColumns() {
 }
 
 export function useLlamaAIWelcome(): [boolean, () => void] {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => (readAppStorage()[LLAMA_AI_WELCOME_SHOWN] ? '1' : '0'),
+		() => '0'
 	)
 
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const shown = parsedStore?.[LLAMA_AI_WELCOME_SHOWN] ?? false
+	const shown = snapshot === '1'
 
-	const setShown = () => {
-		writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true })
-	}
+	const setShown = useMemo(() => () => writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true }), [])
 
 	return [shown, setShown]
 }

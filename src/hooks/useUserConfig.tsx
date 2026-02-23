@@ -86,7 +86,7 @@ export function useUserConfig() {
 				const config: UserConfig = await response.json()
 
 				const hasConfig = isRecord(config) && Object.keys(config).length > 0
-				if (hasConfig) {
+				if (hasConfig && !hasInitializedRef.current) {
 					isSyncingRef.current = true
 
 					const localSettings = readAppStorage()
@@ -127,12 +127,12 @@ export function useUserConfig() {
 						writeAppStorage(mergedSettings)
 					}
 					lastSyncedRawRef.current = mergedRaw
+					hasInitializedRef.current = true
 
 					setTimeout(() => {
 						isSyncingRef.current = false
-						hasInitializedRef.current = true
 					}, 100)
-				} else {
+				} else if (!hasConfig) {
 					hasInitializedRef.current = true
 				}
 
