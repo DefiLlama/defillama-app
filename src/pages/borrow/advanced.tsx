@@ -47,7 +47,7 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout
 			title={`Lend/Borrow optimizer - DefiLlama Yield`}
-			description={`Lend/Borrow optimizer on DefiLlama. Advanced view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Find the cheapest way to borrow. Calculate the best lending routes. Compare supply APR, borrow APR, incentives and LTV across all protocols.`}
 			keywords={`lend/borrow optimizer, defi lend/borrow optimizer, advanced view of optimal lending routes by collateral to borrow assets`}
 			canonicalUrl={`/borrow/advanced`}
 			pageName={pageName}
