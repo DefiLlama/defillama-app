@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { TimePeriod } from '../ProDashboardAPIContext'
 import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
@@ -13,11 +13,7 @@ const EMPTY_DASHBOARDS: Dashboard[] = []
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
-	const liteDashboardsInStorage = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('lite-dashboards', callback),
-		() => getStorageItem('lite-dashboards', '[]') ?? '[]',
-		() => '[]'
-	)
+	const liteDashboardsInStorage = useStorageItem('lite-dashboards', '[]')
 
 	const liteDashboards = JSON.parse(liteDashboardsInStorage)
 

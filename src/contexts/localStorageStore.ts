@@ -1,3 +1,5 @@
+import { useSyncExternalStore } from 'react'
+
 type StorageListener = () => void
 
 const keyListeners = new Map<string, Set<StorageListener>>()
@@ -220,4 +222,28 @@ export const getStorageJSON = <T>(key: string, fallback: T) => {
 
 export const setStorageJSON = (key: string, value: unknown) => {
 	setStorageItem(key, JSON.stringify(value))
+}
+
+// Stable subscribe-function cache keyed by storage key.
+// Avoids creating a new closure on every render, which would cause
+// useSyncExternalStore to unsubscribe + resubscribe each render.
+const subscribeCache = new Map<string, (cb: () => void) => () => void>()
+
+function getOrCreateSubscriber(key: string) {
+	let sub = subscribeCache.get(key)
+	if (!sub) {
+		sub = (cb: () => void) => subscribeToStorageKey(key, cb)
+		subscribeCache.set(key, sub)
+	}
+	return sub
+}
+
+export function useStorageItem(key: string, fallback: string): string
+export function useStorageItem(key: string, fallback: null): string | null
+export function useStorageItem(key: string, fallback: string | null): string | null {
+	return useSyncExternalStore(
+		getOrCreateSubscriber(key),
+		() => getStorageItem(key, fallback as string) ?? fallback,
+		() => fallback
+	)
 }

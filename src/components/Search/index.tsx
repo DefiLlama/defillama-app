@@ -1,13 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
@@ -370,11 +370,7 @@ const useDefaultSearchList = () => {
 		refetchOnWindowFocus: false
 	})
 
-	const recentSearch = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('recentSearch', callback),
-		() => getStorageItem('recentSearch', '[]') ?? '[]',
-		() => '[]'
-	)
+	const recentSearch = useStorageItem('recentSearch', '[]')
 
 	const { defaultSearchList, recentSearchList } = useMemo(() => {
 		if (!data || data.length === 0) return { defaultSearchList: [], recentSearchList: [] }

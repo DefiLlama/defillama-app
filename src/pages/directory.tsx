@@ -1,12 +1,12 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
-import { startTransition, useDeferredValue, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -74,11 +74,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 
 	const comboboxRef = useRef<HTMLDivElement>(null)
 
-	const recentProtocolsInStorage = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(RECENTS_KEY, callback),
-		() => getStorageItem(RECENTS_KEY, '[]') ?? '[]',
-		() => '[]'
-	)
+	const recentProtocolsInStorage = useStorageItem(RECENTS_KEY, '[]')
 
 	const recentProtocols: Array<{ name: string; logo?: string; route: string; count: number; lastVisited: number }> =
 		useMemo(() => {

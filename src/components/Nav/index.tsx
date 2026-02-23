@@ -1,8 +1,8 @@
-import { lazy, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import { DesktopNav } from './Desktop'
 import type { TNavLinks, TOldNavLink } from './types'
@@ -83,11 +83,7 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			})) ?? [],
 		[liteDashboards]
 	)
-	const pinnedMetrics = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('pinned-metrics', callback),
-		() => getStorageItem('pinned-metrics', '[]') ?? '[]',
-		() => '[]'
-	)
+	const pinnedMetrics = useStorageItem('pinned-metrics', '[]')
 
 	const pinnedPages = useMemo(() => {
 		if (!pinnedMetrics) return []

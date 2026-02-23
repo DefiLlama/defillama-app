@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, removeStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { getStorageItem, removeStorageItem, setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 
@@ -301,11 +301,7 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const apiKey = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(API_KEY_LOCAL_STORAGE_KEY, callback),
-		() => getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null),
-		() => null
-	)
+	const apiKey = useStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
 
 	const {
 		data: credits,

@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 
 // change 'value' for new announcements
 const ANNOUNCEMENT = {
@@ -56,11 +56,7 @@ export function Announcement({
 		setStorageItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
 	}
 
-	const store = React.useSyncExternalStore(
-		(callback) => subscribeToStorageKey(routeAnnouncementKey, callback),
-		() => getStorageItem(routeAnnouncementKey, null),
-		() => null
-	)
+	const store = useStorageItem(routeAnnouncementKey, null)
 
 	let announcementValue: string | undefined
 	if (typeof store === 'string') {

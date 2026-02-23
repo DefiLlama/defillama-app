@@ -11,7 +11,7 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useMemo, useState, useSyncExternalStore } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { lazy, Suspense } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
@@ -23,7 +23,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { FormSubmitEvent } from '~/types/forms'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
@@ -130,11 +130,8 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 		pushShallowQuery(router, { minUnlockPerc: undefined, maxUnlockPerc: undefined })
 	}
 
-	const columnsInStorage = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(optionsKey, callback),
-		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
-		() => defaultColumns
-	)
+	const rawColumnsInStorage = useStorageItem(optionsKey, defaultColumns)
+	const columnsInStorage = useDeferredValue(rawColumnsInStorage)
 
 	const { columnVisibility, selectedOptions } = useMemo(() => {
 		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))

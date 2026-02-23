@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useMemo, useState, useSyncExternalStore } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -28,7 +28,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
@@ -62,17 +62,10 @@ export const ChainProtocolsTable = ({
 		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
-	const columnsInStorage = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(tableColumnOptionsKey, callback),
-		() => getStorageItem(tableColumnOptionsKey, defaultColumns) ?? defaultColumns,
-		() => defaultColumns
-	)
+	const rawColumnsInStorage = useStorageItem(tableColumnOptionsKey, defaultColumns)
+	const columnsInStorage = useDeferredValue(rawColumnsInStorage)
 
-	const filterState = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(tableFilterStateKey, callback),
-		() => getStorageItem(tableFilterStateKey, null),
-		() => null
-	)
+	const filterState = useStorageItem(tableFilterStateKey, null)
 
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
 	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<

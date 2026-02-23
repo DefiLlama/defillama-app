@@ -1,7 +1,7 @@
 import { matchSorter } from 'match-sorter'
 import { useDeferredValue, useId, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LinkToMetricOrToolPage } from '~/components/Metrics'
+import { LinkToMetricOrToolPage, usePinnedRoutes } from '~/components/Metrics'
 import Layout from '~/layout'
 import defillamaPages from '~/public/pages.json'
 
@@ -17,6 +17,8 @@ export default function Tools() {
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [deferredSearchValue])
+
+	const pinnedRoutes = usePinnedRoutes()
 
 	return (
 		<Layout
@@ -45,7 +47,12 @@ export default function Tools() {
 			</div>
 			<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{pages.map((tool: any) => (
-					<LinkToMetricOrToolPage key={`tool-${tool.name}-${tool.route}`} page={tool} totalTrackedByMetric={null} />
+					<LinkToMetricOrToolPage
+						key={`tool-${tool.name}-${tool.route}`}
+						page={tool}
+						totalTrackedByMetric={null}
+						pinnedRoutes={pinnedRoutes}
+					/>
 				))}
 			</div>
 		</Layout>

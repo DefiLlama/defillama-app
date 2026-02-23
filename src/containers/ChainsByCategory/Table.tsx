@@ -23,7 +23,7 @@ import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { IFormattedDataWithExtraTvl } from './types'
@@ -46,11 +46,8 @@ export function ChainsByCategoryTable({
 	borderless?: boolean
 	showByGroup: boolean
 }) {
-	const columnsInStorage = React.useSyncExternalStore(
-		(callback) => subscribeToStorageKey(optionsKey, callback),
-		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
-		() => defaultColumns
-	)
+	const rawColumnsInStorage = useStorageItem(optionsKey, defaultColumns)
+	const columnsInStorage = React.useDeferredValue(rawColumnsInStorage)
 	const { columnVisibility, selectedColumns } = React.useMemo(() => {
 		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))
 		let parsedColumnVisibility: Record<string, boolean> = {}

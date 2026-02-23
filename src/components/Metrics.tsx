@@ -2,20 +2,11 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import {
-	Fragment,
-	startTransition,
-	useDeferredValue,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-	useSyncExternalStore
-} from 'react'
+import { Fragment, startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
@@ -148,6 +139,8 @@ export function Metrics({
 		staleTime: 60 * 60 * 1000
 	})
 
+	const pinnedRoutes = usePinnedRoutes()
+
 	return (
 		<>
 			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -217,6 +210,7 @@ export function Metrics({
 									key={`metric-${metric.name}-${metric.route}`}
 									page={metric}
 									totalTrackedByMetric={totalTrackedByMetric}
+									pinnedRoutes={pinnedRoutes}
 								/>
 							))}
 						</div>
@@ -227,15 +221,16 @@ export function Metrics({
 	)
 }
 
-export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) {
-	const pinnedMetrics = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('pinned-metrics', callback),
-		() => getStorageItem('pinned-metrics', '[]') ?? '[]',
-		() => '[]'
-	)
-
-	const pinnedPages = useMemo(() => JSON.parse(pinnedMetrics), [pinnedMetrics])
-	const isPinned = pinnedPages.includes(page.route)
+export function LinkToMetricOrToolPage({
+	page,
+	totalTrackedByMetric,
+	pinnedRoutes
+}: {
+	page: IPage
+	totalTrackedByMetric: any
+	pinnedRoutes: Set<string>
+}) {
+	const isPinned = pinnedRoutes.has(page.route)
 
 	const isExternalLink = page.route.startsWith('http')
 
@@ -304,6 +299,18 @@ export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: I
 			</Tooltip>
 		</div>
 	)
+}
+
+export function usePinnedRoutes(): Set<string> {
+	const raw = useStorageItem('pinned-metrics', '[]')
+	return useMemo(() => {
+		try {
+			const arr = JSON.parse(raw)
+			return new Set<string>(Array.isArray(arr) ? arr : [])
+		} catch {
+			return new Set<string>()
+		}
+	}, [raw])
 }
 
 const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {

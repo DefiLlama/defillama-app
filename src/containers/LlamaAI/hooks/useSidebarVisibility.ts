@@ -1,5 +1,5 @@
-import { useCallback, useState, useSyncExternalStore } from 'react'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { useCallback, useState } from 'react'
+import { getStorageItem, setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useMedia } from '~/hooks/useMedia'
 
 const SIDEBAR_STORAGE_KEY = 'llamaai-sidebar-hidden'
@@ -7,12 +7,7 @@ const SIDEBAR_STORAGE_KEY = 'llamaai-sidebar-hidden'
 export function useSidebarVisibility() {
 	const isMobile = useMedia('(max-width: 640px)')
 
-	// Desktop: uses localStorage with sync across tabs
-	const sidebarHiddenDesktop = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(SIDEBAR_STORAGE_KEY, callback),
-		() => getStorageItem(SIDEBAR_STORAGE_KEY, 'true') ?? 'true',
-		() => 'true'
-	)
+	const sidebarHiddenDesktop = useStorageItem(SIDEBAR_STORAGE_KEY, 'true')
 
 	const toggleSidebarDesktop = useCallback(() => {
 		// Use getStorageItem to read consistently, treat missing/null as default 'true' (sidebar hidden by default)
