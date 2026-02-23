@@ -7,6 +7,7 @@ const MAX_UMAMI_READY_RETRIES = 10
 export function UmamiIdentityTracker() {
 	const { user } = useAuthContext()
 	const lastIdentifiedIdRef = useRef<string | null>(null)
+	const shouldSkipIdentify = user?.flags?.is_llama === true
 	const distinctId = user?.id ?? null
 
 	useEffect(() => {
@@ -18,6 +19,10 @@ export function UmamiIdentityTracker() {
 		}
 
 		const identifyCurrentUser = () => {
+			if (shouldSkipIdentify) {
+				return true
+			}
+
 			const maybeUmami = Reflect.get(window, 'umami')
 			if (typeof maybeUmami !== 'object' || maybeUmami === null) return false
 			const maybeIdentify = Reflect.get(maybeUmami, 'identify')
@@ -49,7 +54,7 @@ export function UmamiIdentityTracker() {
 		return () => {
 			window.clearInterval(intervalId)
 		}
-	}, [distinctId])
+	}, [distinctId, shouldSkipIdentify])
 
 	return null
 }
