@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { startTransition, useState } from 'react'
+import { useState } from 'react'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -161,12 +161,12 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 	}
 
 	const handleFilterChange = (name, value) => {
-		startTransition(() => setFilters((prevFilters) => ({ ...prevFilters, [name]: value })))
+		setFilters((prevFilters) => ({ ...prevFilters, [name]: value }))
 	}
 
 	const handleProjectInfoChange = (e) => {
 		const { name, value } = e.target
-		startTransition(() => setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value })))
+		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
 	}
 
 	const { data: investorResult, isLoading } = useQuery({

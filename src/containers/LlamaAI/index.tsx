@@ -862,7 +862,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		if (!scrollContainer) return
 
 		const previousScrollHeight = scrollContainer.scrollHeight
-		startTransition(() => setPaginationState((prev) => ({ ...prev, isLoadingMore: true })))
+		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)

@@ -30,7 +30,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 		e.preventDefault()
 		e.stopPropagation()
 		const previousCount = viewableMatches
-		startTransition(() => setViewableMatches((prev) => prev + 20))
+		setViewableMatches((prev) => prev + 20)
 
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {

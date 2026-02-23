@@ -689,8 +689,10 @@ export const IncomeStatement = ({
 											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 											data-active={groupOption === sankeyGroupBy}
 											onClick={() => {
-												startTransition(() => setSankeyGroupBy(groupOption))
-												startTransition(() => setSelectedSankeyPeriod(null))
+												startTransition(() => {
+													setSankeyGroupBy(groupOption)
+													setSelectedSankeyPeriod(null)
+												})
 											}}
 										>
 											{groupOption}

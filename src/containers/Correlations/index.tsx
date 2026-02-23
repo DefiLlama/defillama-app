@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { startTransition, useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
@@ -22,13 +22,14 @@ interface CoinsPickerProps {
 
 export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins }: CoinsPickerProps) {
 	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
 	const filteredCoins =
-		search === ''
+		deferredSearch === ''
 			? coinsData
 			: coinsData.filter(
 					(coin: IResponseCGMarketsAPI) =>
-						(coin.symbol?.toLowerCase().includes(search.toLowerCase()) ||
-							coin.name?.toLowerCase().includes(search.toLowerCase())) &&
+						(coin.symbol?.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+							coin.name?.toLowerCase().includes(deferredSearch.toLowerCase())) &&
 						!selectedCoins[coin.id]
 				)
 
@@ -56,7 +57,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 					/>
 					<input
 						value={search}
-						onChange={(e) => startTransition(() => setSearch(e.target.value))}
+						onChange={(e) => setSearch(e.target.value)}
 						placeholder="Search token..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder:text-[#919296]"
 					/>

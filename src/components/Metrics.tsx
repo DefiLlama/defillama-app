@@ -169,7 +169,7 @@ export function Metrics({
 						placeholder="Search..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 						value={searchValue}
-						onChange={(e) => startTransition(() => setSearchValue(e.target.value))}
+						onChange={(e) => setSearchValue(e.target.value)}
 					/>
 				</label>
 				<div className="flex flex-wrap gap-2">

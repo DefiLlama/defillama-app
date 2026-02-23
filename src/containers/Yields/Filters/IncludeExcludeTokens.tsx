@@ -141,7 +141,7 @@ export function IncludeExcludeTokens({
 		e.preventDefault()
 		e.stopPropagation()
 		const previousCount = pairsViewableMatches
-		startTransition(() => setPairsViewableMatches((prev) => prev + 20))
+		setPairsViewableMatches((prev) => prev + 20)
 
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {
@@ -396,9 +396,7 @@ export function IncludeExcludeTokens({
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
-								startTransition(() => {
-									startTransition(() => setSearchValue(value))
-								})
+								startTransition(() => setSearchValue(value))
 							}}
 						>
 							<div className="relative">

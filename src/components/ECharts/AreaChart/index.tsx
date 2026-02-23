@@ -51,8 +51,10 @@ export default function AreaChart({
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 	const [prevCustomLegendOptions, setPrevCustomLegendOptions] = useState(customLegendOptions)
 	if (customLegendOptions !== prevCustomLegendOptions) {
-		startTransition(() => setPrevCustomLegendOptions(customLegendOptions))
-		startTransition(() => setLegendOptions(customLegendOptions))
+		startTransition(() => {
+			setPrevCustomLegendOptions(customLegendOptions)
+			setLegendOptions(customLegendOptions)
+		})
 	}
 
 	const chartsStack = stacks || customLegendOptions

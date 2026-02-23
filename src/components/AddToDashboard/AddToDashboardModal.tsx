@@ -255,8 +255,10 @@ export function AddToDashboardModal({
 	}, [dashboards])
 
 	const handleSelectDashboard = useCallback((id: string) => {
-		startTransition(() => setSelectedDashboardId(id))
-		setIsCreatingNew(false)
+		startTransition(() => {
+			setSelectedDashboardId(id)
+			setIsCreatingNew(false)
+		})
 	}, [])
 
 	const handleCreateNew = useCallback(() => {

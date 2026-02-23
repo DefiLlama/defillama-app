@@ -119,9 +119,7 @@ export function RWAAssetsTable({
 					/>
 					<input
 						value={searchValue}
-						onChange={(e) => {
-							startTransition(() => setSearchValue(e.target.value))
-						}}
+						onChange={(e) => setSearchValue(e.target.value)}
 						placeholder="Search assets..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
