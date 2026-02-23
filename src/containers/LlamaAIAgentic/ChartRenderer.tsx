@@ -104,7 +104,7 @@ function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChart
 	}
 
 	try {
-		const isMultiSeries = config.series && config.series.length > 1
+		const isMultiSeries = (config.series && config.series.length > 1 && config.type !== 'scatter' && config.type !== 'pie') || config.type === 'combo'
 		let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
 
 		if (config.type === 'pie' && chartState.percentage) {
