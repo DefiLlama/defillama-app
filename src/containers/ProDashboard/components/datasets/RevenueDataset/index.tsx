@@ -173,6 +173,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

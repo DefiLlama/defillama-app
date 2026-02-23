@@ -52,6 +52,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

@@ -172,6 +172,7 @@ export function HoldersRevenueDataset({ chains, tableId, filters }: HoldersReven
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

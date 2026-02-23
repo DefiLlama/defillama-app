@@ -130,6 +130,7 @@ export default function Protocols({ emissions }) {
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),

@@ -261,6 +261,7 @@ export const UnlocksTable = ({
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnSizingChange: setColumnSizing,
 		onExpandedChange: setExpanded,
 		getCoreRowModel: getCoreRowModel(),

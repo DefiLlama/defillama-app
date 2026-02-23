@@ -44,6 +44,7 @@ export function GovernanceTable({
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

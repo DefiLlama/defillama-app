@@ -50,6 +50,7 @@ function RaisesByInvestorTable({ raises }: { raises: IRaise[] }) {
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),

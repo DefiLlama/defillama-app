@@ -128,6 +128,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			globalFilter: search
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onPaginationChange: setPagination,
 		onGlobalFilterChange: setSearch,
 		getCoreRowModel: getCoreRowModel(),

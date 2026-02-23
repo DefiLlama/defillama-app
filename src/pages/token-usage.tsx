@@ -59,6 +59,7 @@ export default function Tokens() {
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

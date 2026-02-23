@@ -83,6 +83,7 @@ export function ChainsByCategoryTable({
 		onExpandedChange: setExpanded,
 		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

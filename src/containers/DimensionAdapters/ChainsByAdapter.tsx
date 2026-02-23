@@ -89,6 +89,7 @@ export function ChainsByAdapter(props: IProps) {
 		},
 		filterFromLeafRows: true,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnSizingChange: setColumnSizing,
 		onColumnOrderChange: setColumnOrder,

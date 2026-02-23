@@ -143,6 +143,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

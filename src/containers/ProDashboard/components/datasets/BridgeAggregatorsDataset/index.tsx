@@ -48,6 +48,7 @@ export function BridgeAggregatorsDataset({ chains }: { chains?: string[] }) {
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

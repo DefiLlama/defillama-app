@@ -102,6 +102,7 @@ export default function TrendingContracts() {
 		columns: columns(activeChain),
 		getCoreRowModel: getCoreRowModel(),
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getSortedRowModel: getSortedRowModel()
 	})
 

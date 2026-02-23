@@ -282,6 +282,7 @@ export function AdapterByChain(props: IProps) {
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnSizingChange: setColumnSizing,
 		onColumnOrderChange: setColumnOrder,

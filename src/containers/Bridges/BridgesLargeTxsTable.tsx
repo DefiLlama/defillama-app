@@ -185,6 +185,7 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 				sortUndefined: 'last'
 			},
 			onSortingChange: setSorting,
+			enableSortingRemoval: false,
 			onColumnOrderChange: setColumnOrder,
 			onColumnSizingChange: setColumnSizing,
 			getCoreRowModel: getCoreRowModel(),

@@ -93,6 +93,7 @@ export function BridgeAddressesTable({ data }: { data: BridgeAddressesTableRow[]
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

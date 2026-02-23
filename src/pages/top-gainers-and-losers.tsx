@@ -127,6 +127,7 @@ function TopGainersAndLosersTable({ data, sortingState }: { data: Array<Protocol
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

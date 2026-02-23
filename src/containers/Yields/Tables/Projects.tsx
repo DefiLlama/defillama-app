@@ -105,6 +105,7 @@ export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTable
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

@@ -104,6 +104,7 @@ export function RecentlyListedProtocolsTable({
 		},
 		onExpandedChange: setExpanded,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),

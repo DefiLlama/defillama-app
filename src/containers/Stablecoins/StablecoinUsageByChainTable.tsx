@@ -214,6 +214,7 @@ export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainR
 		onExpandedChange: setExpanded,
 		getSubRows: (row: StablecoinByChainRow) => row.subRows,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

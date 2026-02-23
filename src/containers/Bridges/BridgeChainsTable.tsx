@@ -213,6 +213,7 @@ export function BridgeChainsTable({ data }: { data: BridgeChainsTableRow[] }) {
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

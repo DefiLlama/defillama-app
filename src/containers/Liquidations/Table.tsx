@@ -374,6 +374,7 @@ function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
@@ -402,6 +403,7 @@ function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] 
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()

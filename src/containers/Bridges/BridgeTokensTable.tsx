@@ -95,6 +95,7 @@ export function BridgeTokensTable({ data }: { data: BridgeTokensTableRow[] }) {
 			sortUndefined: 'last'
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

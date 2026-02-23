@@ -185,6 +185,7 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 		onExpandedChange: setExpanded,
 		getSubRows: (row: StablecoinsByChainRow) => row.subRows,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),

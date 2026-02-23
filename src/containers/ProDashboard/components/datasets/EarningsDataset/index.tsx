@@ -173,6 +173,7 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

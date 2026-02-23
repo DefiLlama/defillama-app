@@ -71,6 +71,7 @@ export function RWAAssetsTable({
 		onExpandedChange: setExpanded,
 		getSubRows: (row: any) => row.subRows,
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnFiltersChange: setColumnFilters,
 		onColumnSizingChange: setColumnSizing,
 		onColumnOrderChange: setColumnOrder,
