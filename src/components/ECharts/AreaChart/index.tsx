@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { startTransition, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -51,10 +51,8 @@ export default function AreaChart({
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
 	const [prevCustomLegendOptions, setPrevCustomLegendOptions] = useState(customLegendOptions)
 	if (customLegendOptions !== prevCustomLegendOptions) {
-		startTransition(() => {
-			setPrevCustomLegendOptions(customLegendOptions)
-			setLegendOptions(customLegendOptions)
-		})
+		setPrevCustomLegendOptions(customLegendOptions)
+		setLegendOptions(customLegendOptions)
 	}
 
 	const chartsStack = stacks || customLegendOptions
