@@ -213,7 +213,7 @@ const YieldPage = ({
 			return {
 				Pool: row.pool,
 				Project: row.project,
-				Chain: row.chains,
+				Chain: row.chains?.join(', '),
 				TVL: row.tvl,
 				APY: row.apy,
 				'APY Base': row.apyBase,
