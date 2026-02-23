@@ -88,7 +88,7 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 		instance.setColumnVisibility(defaultVisibility)
 	}, [width, chains, instance])
 
-	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
@@ -173,8 +173,7 @@ export function PerpsDataset({ chains }: { chains?: string[] }) {
 						<input
 							type="text"
 							placeholder="Search protocols..."
-							value={protocolName}
-							onChange={(e) => setProtocolName(e.target.value)}
+							onInput={(e) => setProtocolName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

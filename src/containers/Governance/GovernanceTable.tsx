@@ -51,7 +51,7 @@ export function GovernanceTable({
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [proposalname, setProposalName] = useTableSearch({ instance, columnToSearch: 'title' })
+	const [_proposalname, setProposalName] = useTableSearch({ instance, columnToSearch: 'title' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -66,10 +66,7 @@ export function GovernanceTable({
 					/>
 					<input
 						name="search"
-						value={proposalname}
-						onChange={(e) => {
-							setProposalName(e.target.value)
-						}}
+						onInput={(e) => setProposalName(e.currentTarget.value)}
 						placeholder="Search proposals..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

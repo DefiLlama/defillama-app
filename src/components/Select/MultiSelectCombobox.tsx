@@ -106,11 +106,7 @@ export const MultiSelectCombobox = ({
 					<input
 						placeholder="Search..."
 						className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
-						onChange={(e) => {
-							startTransition(() => {
-								setSearchValue(e.target.value)
-							})
-						}}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 					/>
 				</span>
 

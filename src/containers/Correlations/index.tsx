@@ -56,8 +56,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onInput={(e) => setSearch(e.currentTarget.value)}
 						placeholder="Search token..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder:text-[#919296]"
 					/>

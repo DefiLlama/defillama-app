@@ -221,8 +221,8 @@ export function IncludeExcludeTokens({
 						{['Tokens', 'Pairs'].map((dataType) => (
 							<button
 								onClick={() => {
-									startTransition(() => setTab(dataType as 'Tokens' | 'Pairs'))
-									startTransition(() => setSearchValue(''))
+									setTab(dataType as 'Tokens' | 'Pairs')
+									setSearchValue('')
 								}}
 								className="shrink-0 rounded-md px-2.5 py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={tab === dataType}
@@ -249,9 +249,7 @@ export function IncludeExcludeTokens({
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
-								startTransition(() => {
-									setSearchValue(value)
-								})
+								startTransition(() => setSearchValue(value))
 							}}
 						>
 							<div className="relative">

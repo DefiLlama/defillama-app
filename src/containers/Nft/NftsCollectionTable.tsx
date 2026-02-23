@@ -161,7 +161,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -177,10 +177,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 					/>
 					<input
 						name="search"
-						value={collectionName}
-						onChange={(e) => {
-							setCollectionName(e.target.value)
-						}}
+						onInput={(e) => setCollectionName(e.currentTarget.value)}
 						placeholder="Search collections..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

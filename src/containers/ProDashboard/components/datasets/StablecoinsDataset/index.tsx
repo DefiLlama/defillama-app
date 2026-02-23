@@ -80,7 +80,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		instance.setColumnOrder(defaultOrder)
 	}, [instance, width])
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
@@ -146,8 +146,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 						<input
 							type="text"
 							placeholder="Search stablecoins..."
-							value={projectName}
-							onChange={(e) => setProjectName(e.target.value)}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

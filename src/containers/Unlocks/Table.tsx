@@ -1,8 +1,10 @@
 import {
+	type ColumnFiltersState,
 	type ColumnSizingState,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
+	getFilteredRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
@@ -18,6 +20,7 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
@@ -42,8 +45,6 @@ const setColumnOptions = (newOptions: string[]) => {
 interface IUnlocksTableProps {
 	protocols: IEmission[]
 	showOnlyWatchlist: boolean
-	projectName: string
-	setProjectName: (value: string) => void
 	savedProtocols: Set<string>
 }
 
@@ -72,13 +73,7 @@ const UNLOCK_TYPE_OPTIONS = UNLOCK_TYPES.map((type) => ({
 	key: type
 }))
 
-export const UnlocksTable = ({
-	protocols,
-	showOnlyWatchlist,
-	projectName,
-	setProjectName,
-	savedProtocols
-}: IUnlocksTableProps) => {
+export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: IUnlocksTableProps) => {
 	const router = useRouter()
 
 	const setQueryParam = (key: string, value: string | undefined) => {
@@ -155,13 +150,12 @@ export const UnlocksTable = ({
 	}, [columnsInStorage])
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
+	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const filteredData = useMemo(() => {
-		const searchTerm = projectName.toLowerCase().trim()
 		const isAnyFilterActive =
-			searchTerm ||
 			showOnlyWatchlist ||
 			selectedUnlockTypes.length !== UNLOCK_TYPES.length ||
 			minUnlockValue !== null ||
@@ -189,14 +183,6 @@ export const UnlocksTable = ({
 			})
 			.filter((protocol) => {
 				let shouldInclude = true
-
-				if (searchTerm) {
-					const nameMatch = protocol.name.toLowerCase().includes(searchTerm)
-					const symbolMatch = protocol.tSymbol && protocol.tSymbol.toLowerCase().includes(searchTerm)
-					if (!nameMatch && !symbolMatch) {
-						shouldInclude = false
-					}
-				}
 
 				if (shouldInclude && showOnlyWatchlist) {
 					if (!savedProtocols.has(protocol.name)) {
@@ -235,7 +221,6 @@ export const UnlocksTable = ({
 			})
 	}, [
 		protocols,
-		projectName,
 		savedProtocols,
 		showOnlyWatchlist,
 		selectedUnlockTypes,
@@ -253,6 +238,7 @@ export const UnlocksTable = ({
 		columns,
 		state: {
 			sorting,
+			columnFilters,
 			expanded,
 			columnSizing,
 			columnVisibility
@@ -261,13 +247,17 @@ export const UnlocksTable = ({
 			sortUndefined: 'last'
 		},
 		enableSortingRemoval: false,
+		filterFromLeafRows: true,
 		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
 		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
 		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
+		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel()
 	})
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -344,10 +334,7 @@ export const UnlocksTable = ({
 					/>
 					<input
 						name="search"
-						value={projectName}
-						onChange={(e) => {
-							startTransition(() => setProjectName(e.target.value))
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
@@ -411,6 +398,15 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 	{
 		header: 'Name',
 		accessorKey: 'name',
+		filterFn: (row, _columnId, filterValue) => {
+			const searchValue = String(filterValue ?? '')
+				.toLowerCase()
+				.trim()
+			if (!searchValue) return true
+			const nameMatch = row.original.name.toLowerCase().includes(searchValue)
+			const symbolMatch = row.original.tSymbol?.toLowerCase().includes(searchValue) ?? false
+			return nameMatch || symbolMatch
+		},
 		enableSorting: false,
 		cell: ({ row }) => {
 			const protocolName = row.original.name

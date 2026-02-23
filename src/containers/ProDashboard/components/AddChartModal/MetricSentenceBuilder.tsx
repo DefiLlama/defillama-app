@@ -11,7 +11,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import Image from 'next/image'
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useMedia } from '~/hooks/useMedia'
 import { useAppMetadata } from '../../AppMetadataContext'
@@ -148,6 +148,7 @@ export function MetricSentenceBuilder({
 	const [popoverWidth, setPopoverWidth] = useState(260)
 	const isPopoverOpen = useStoreState(popover, 'open')
 	const subjectSearchValue = useStoreState(subjectCombobox, 'value') ?? ''
+	const deferredSubjectSearchValue = useDeferredValue(subjectSearchValue)
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const protocolListRef = useRef<HTMLDivElement | null>(null)
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
@@ -279,9 +280,9 @@ export function MetricSentenceBuilder({
 	}, [chainOptions, allowedChainNamesForMetric])
 
 	const filteredChainOptions = useMemo(() => {
-		if (!subjectSearchValue) return chainOptionsByMetric
-		return matchSorter(chainOptionsByMetric, subjectSearchValue, { keys: ['label'] })
-	}, [chainOptionsByMetric, subjectSearchValue])
+		if (!deferredSubjectSearchValue) return chainOptionsByMetric
+		return matchSorter(chainOptionsByMetric, deferredSubjectSearchValue, { keys: ['label'] })
+	}, [chainOptionsByMetric, deferredSubjectSearchValue])
 
 	const allowedProtocolSlugsForMetric = useMemo(() => {
 		if (!metricType) return null as Set<string> | null
@@ -301,9 +302,9 @@ export function MetricSentenceBuilder({
 	}, [protocolOptions, allowedProtocolSlugsForMetric])
 
 	const filteredProtocolOptions = useMemo(() => {
-		if (!subjectSearchValue) return protocolOptionsByMetric
-		return matchSorter(protocolOptionsByMetric, subjectSearchValue, { keys: ['label'] })
-	}, [protocolOptionsByMetric, subjectSearchValue])
+		if (!deferredSubjectSearchValue) return protocolOptionsByMetric
+		return matchSorter(protocolOptionsByMetric, deferredSubjectSearchValue, { keys: ['label'] })
+	}, [protocolOptionsByMetric, deferredSubjectSearchValue])
 
 	const chainVirtualizer = useVirtualizer({
 		count: subjectTab === 'chain' ? filteredChainOptions.length : 0,

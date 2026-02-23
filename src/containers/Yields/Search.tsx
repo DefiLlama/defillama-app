@@ -78,8 +78,8 @@ export function YieldsSearch({
 
 					<input
 						placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
-						onChange={(e) => {
-							setSearchValue?.(e.target.value)
+						onInput={(e) => {
+							setSearchValue(e.currentTarget.value)
 						}}
 						className="mb-4 rounded-md border border-(--form-control-border) bg-white p-4 text-base text-black sm:hidden dark:bg-[#22242a] dark:text-white"
 					/>

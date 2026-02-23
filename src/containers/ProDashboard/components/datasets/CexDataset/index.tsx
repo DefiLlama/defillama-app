@@ -82,7 +82,7 @@ export function CexDataset() {
 		instance.setColumnOrder(defaultOrder)
 	}, [instance, width])
 
-	const [exchangeName, setExchangeName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_exchangeName, setExchangeName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
@@ -160,8 +160,7 @@ export function CexDataset() {
 						<input
 							type="text"
 							placeholder="Search exchanges..."
-							value={exchangeName}
-							onChange={(e) => setExchangeName(e.target.value)}
+							onInput={(e) => setExchangeName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

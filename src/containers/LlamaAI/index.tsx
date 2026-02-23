@@ -466,8 +466,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					newlyCreatedSessionsRef.current.add(newSessionId)
 					setSessionId(newSessionId)
 					sessionIdRef.current = newSessionId
-				// Mark as restored to prevent restoration after streaming completes
-				hasRestoredSessionRef.current = newSessionId
+					// Mark as restored to prevent restoration after streaming completes
+					hasRestoredSessionRef.current = newSessionId
 				},
 				onTitle: (title) => {
 					updateSessionTitle({ sessionId: currentSessionId, title })
@@ -839,12 +839,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setSessionId(selectedSessionId)
 			hasRestoredSessionRef.current = selectedSessionId
 			setMessages(attachClientIds(data.messages))
-			startTransition(() => setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false }))
+			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 			setPrompt('')
 			resetPrompt()
 			setStreamingItems([])
 			setCurrentMessageId(null)
-			startTransition(() => setIsResearchMode(false))
+			setIsResearchMode(false)
 			setIsStreaming(false)
 			setStreamingError('')
 			setProgressMessage('')
@@ -881,7 +881,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			})
 		} catch (error) {
 			console.log('Failed to load more messages:', error)
-			startTransition(() => setPaginationState((prev) => ({ ...prev, isLoadingMore: false })))
+			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 		}
 	}, [
 		sessionId,

@@ -169,7 +169,7 @@ const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [investorName, setInvestorName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_investorName, setInvestorName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<Layout
@@ -192,10 +192,7 @@ const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 						/>
 						<input
 							name="search"
-							value={investorName}
-							onChange={(e) => {
-								setInvestorName(e.target.value)
-							}}
+							onInput={(e) => setInvestorName(e.currentTarget.value)}
 							placeholder="Search investors..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>

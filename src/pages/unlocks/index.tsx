@@ -265,7 +265,6 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 }
 
 export default function Protocols({ data, generatedAtSec }: { data: any[]; generatedAtSec: number }) {
-	const [projectName, setProjectName] = React.useState('')
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
@@ -349,13 +348,7 @@ export default function Protocols({ data, generatedAtSec }: { data: any[]; gener
 				/>
 			</div>
 
-			<UnlocksTable
-				protocols={data}
-				showOnlyWatchlist={showOnlyWatchlist}
-				projectName={projectName}
-				setProjectName={setProjectName}
-				savedProtocols={savedProtocols}
-			/>
+			<UnlocksTable protocols={data} showOnlyWatchlist={showOnlyWatchlist} savedProtocols={savedProtocols} />
 		</Layout>
 	)
 }

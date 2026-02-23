@@ -118,8 +118,7 @@ export function RWAAssetsTable({
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 						placeholder="Search assets..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
