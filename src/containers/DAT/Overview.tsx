@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
@@ -130,7 +130,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 					<TagGroup
 						selectedValue={groupBy}
 						setValue={(period) => {
-							if (isGroupByType(period)) setGroupBy(period)
+							if (isGroupByType(period)) startTransition(() => setGroupBy(period))
 						}}
 						values={GROUP_BY}
 						className="ml-auto"

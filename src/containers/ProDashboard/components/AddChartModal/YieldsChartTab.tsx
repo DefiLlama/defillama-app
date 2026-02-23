@@ -2,7 +2,7 @@ import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import Image from 'next/image'
-import { lazy, Suspense, useEffect, useMemo, useReducer, useRef } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useReducer, useRef } from 'react'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -146,6 +146,10 @@ export function YieldsChartTab({
 	const yieldsData = yieldsDataResponse ?? EMPTY_YIELDS_DATA
 	const [uiState, dispatchUi] = useReducer(yieldsChartUiReducer, selectedYieldPool, getInitialYieldsChartUiState)
 	const { chainSearch, projectSearch, tokenSearch, poolSearch, sortColumn, sortDirection, showPoolPicker } = uiState
+	const deferredChainSearch = useDeferredValue(chainSearch)
+	const deferredProjectSearch = useDeferredValue(projectSearch)
+	const deferredTokenSearch = useDeferredValue(tokenSearch)
+	const deferredPoolSearch = useDeferredValue(poolSearch)
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const projectListRef = useRef<HTMLDivElement | null>(null)
 	const tokenListRef = useRef<HTMLDivElement | null>(null)
@@ -221,19 +225,19 @@ export function YieldsChartTab({
 	}, [yieldsData])
 
 	const filteredChainOptions = useMemo(() => {
-		if (!chainSearch) return chainOptions
-		return matchSorter(chainOptions, chainSearch, { keys: ['label'] })
-	}, [chainOptions, chainSearch])
+		if (!deferredChainSearch) return chainOptions
+		return matchSorter(chainOptions, deferredChainSearch, { keys: ['label'] })
+	}, [chainOptions, deferredChainSearch])
 
 	const filteredProjectOptions = useMemo(() => {
-		if (!projectSearch) return projectOptions
-		return matchSorter(projectOptions, projectSearch, { keys: ['label'] })
-	}, [projectOptions, projectSearch])
+		if (!deferredProjectSearch) return projectOptions
+		return matchSorter(projectOptions, deferredProjectSearch, { keys: ['label'] })
+	}, [projectOptions, deferredProjectSearch])
 
 	const filteredTokenOptions = useMemo(() => {
-		if (!tokenSearch) return tokenOptions
-		return matchSorter(tokenOptions, tokenSearch, { keys: ['label'] })
-	}, [tokenOptions, tokenSearch])
+		if (!deferredTokenSearch) return tokenOptions
+		return matchSorter(tokenOptions, deferredTokenSearch, { keys: ['label'] })
+	}, [tokenOptions, deferredTokenSearch])
 
 	const chainVirtualizer = useVirtualizer({
 		count: filteredChainOptions.length,
@@ -369,8 +373,8 @@ export function YieldsChartTab({
 	const searchedAndSortedPools = useMemo(() => {
 		let result = filteredPools
 
-		if (poolSearch) {
-			result = matchSorter(result, poolSearch, {
+		if (deferredPoolSearch) {
+			result = matchSorter(result, deferredPoolSearch, {
 				keys: ['pool', 'project', (item: any) => item.chains?.[0] || '']
 			})
 		}
@@ -380,7 +384,7 @@ export function YieldsChartTab({
 			const bVal = sortColumn === 'tvl' ? b.tvl || 0 : b.apy || 0
 			return sortDirection === 'desc' ? bVal - aVal : aVal - bVal
 		})
-	}, [filteredPools, poolSearch, sortColumn, sortDirection])
+	}, [filteredPools, deferredPoolSearch, sortColumn, sortDirection])
 
 	const poolListVirtualizer = useVirtualizer({
 		count: searchedAndSortedPools.length,

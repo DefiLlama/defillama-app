@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
@@ -22,20 +22,21 @@ interface CoinsPickerProps {
 
 export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins }: CoinsPickerProps) {
 	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
 	const filteredCoins =
-		search === ''
+		deferredSearch === ''
 			? coinsData
 			: coinsData.filter(
 					(coin: IResponseCGMarketsAPI) =>
-						(coin.symbol?.toLowerCase().includes(search.toLowerCase()) ||
-							coin.name?.toLowerCase().includes(search.toLowerCase())) &&
+						(coin.symbol?.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+							coin.name?.toLowerCase().includes(deferredSearch.toLowerCase())) &&
 						!selectedCoins[coin.id]
 				)
 
 	const [resultsLength, setResultsLength] = useState(10)
 
 	const showMoreResults = () => {
-		setResultsLength((prev) => prev + 10)
+		startTransition(() => setResultsLength((prev) => prev + 10))
 	}
 
 	return (

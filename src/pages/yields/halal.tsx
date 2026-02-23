@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { startTransition, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import YieldPage from '~/containers/Yields'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
@@ -147,7 +147,7 @@ export default function YieldPlots(data) {
 				We're not islamic scholars, this is just meant as a useful tool.
 				<br />
 				<button
-					onClick={() => setMethodologyActivated((prev) => !prev)}
+					onClick={() => startTransition(() => setMethodologyActivated((prev) => !prev))}
 					className="mx-auto block font-medium text-(--blue) hover:underline"
 				>
 					Full explanation of methodology

@@ -150,7 +150,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [marketplaceName, setMarketplaceName] = useTableSearch({ instance, columnToSearch: 'exchangeName' })
+	const [_marketplaceName, setMarketplaceName] = useTableSearch({ instance, columnToSearch: 'exchangeName' })
 
 	return (
 		<>
@@ -164,10 +164,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={marketplaceName}
-						onChange={(e) => {
-							setMarketplaceName(e.target.value)
-						}}
+						onInput={(e) => setMarketplaceName(e.currentTarget.value)}
 						placeholder="Search marketplace..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

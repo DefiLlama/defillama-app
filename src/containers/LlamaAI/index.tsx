@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { memo, startTransition, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { LoadingDots } from '~/components/Loaders'
@@ -334,7 +334,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				.then((result: any) => {
 					setShowScrollToBottom(false)
 					setMessages(attachClientIds(result.messages))
-					setPaginationState(result.pagination)
+					startTransition(() => setPaginationState(result.pagination))
 
 					if (result.streaming?.status === 'streaming') {
 						reconnectToStream(sessionId, result.streaming.content || '')
@@ -466,8 +466,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					newlyCreatedSessionsRef.current.add(newSessionId)
 					setSessionId(newSessionId)
 					sessionIdRef.current = newSessionId
-				// Mark as restored to prevent restoration after streaming completes
-				hasRestoredSessionRef.current = newSessionId
+					// Mark as restored to prevent restoration after streaming completes
+					hasRestoredSessionRef.current = newSessionId
 				},
 				onTitle: (title) => {
 					updateSessionTitle({ sessionId: currentSessionId, title })
@@ -688,7 +688,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		setStreamingItems([])
 		setCurrentMessageId(null)
-		setIsResearchMode(false) // Reset research mode on stop to prevent state leak
+		startTransition(() => setIsResearchMode(false)) // Reset research mode on stop to prevent state leak
 		resetPrompt()
 		setTimeout(() => {
 			promptInputRef.current?.focus()
@@ -867,7 +867,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
 			setMessages((prev) => [...attachClientIds(result.messages, prev), ...prev])
-			setPaginationState(result.pagination)
+			startTransition(() => setPaginationState(result.pagination))
 
 			// Use RAF to batch layout reads/writes with browser paint cycle
 			requestAnimationFrame(() => {

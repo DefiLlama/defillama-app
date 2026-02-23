@@ -2,7 +2,7 @@ import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ari
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import Image from 'next/image'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { MultiSelectOption } from '~/components/Select/types'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -33,15 +33,16 @@ export function AriakitVirtualizedMultiSelect({
 	onSearchChange
 }: AriakitVirtualizedMultiSelectProps) {
 	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
 	const isPopoverOpen = useStoreState(popover, 'open')
 	const disclosureId = useId()
 
 	const filteredOptions = useMemo(() => {
-		if (!search) return options
-		return matchSorter(options, search, { keys: ['label', 'value'] })
-	}, [options, search])
+		if (!deferredSearch) return options
+		return matchSorter(options, deferredSearch, { keys: ['label', 'value'] })
+	}, [options, deferredSearch])
 
 	const virtualizer = useVirtualizer({
 		count: filteredOptions.length,

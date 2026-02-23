@@ -237,8 +237,8 @@ export function IncludeExcludeTokens({
 						aria-label="Close modal"
 						onClick={() => {
 							setNewPairTokens([])
-							setTab('Tokens')
-							setSearchValue('')
+							startTransition(() => setTab('Tokens'))
+							startTransition(() => setSearchValue(''))
 						}}
 					>
 						<Icon name="x" height={20} width={20} />
@@ -249,9 +249,7 @@ export function IncludeExcludeTokens({
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
-								startTransition(() => {
-									setSearchValue(value)
-								})
+								startTransition(() => setSearchValue(value))
 							}}
 						>
 							<div className="relative">
@@ -272,7 +270,7 @@ export function IncludeExcludeTokens({
 									onClick={() => {
 										handlePairTokens(pairHint.pair!)
 										dialogStore.toggle()
-										setSearchValue('')
+										startTransition(() => setSearchValue(''))
 									}}
 									className="flex items-center gap-2 rounded-md bg-[#fff7ed] px-3 py-2 text-sm text-[#ea580c] hover:bg-[#fed7aa]/40 dark:bg-[#1f1b1b] dark:text-[#fb923c] dark:hover:bg-[#2a2020]"
 								>
@@ -382,8 +380,8 @@ export function IncludeExcludeTokens({
 												handlePairTokens(pair)
 												dialogStore.toggle()
 												setNewPairTokens([])
-												setTab('Tokens')
-												setSearchValue('')
+												startTransition(() => setTab('Tokens'))
+												startTransition(() => setSearchValue(''))
 											}}
 											className="rounded-md border border-(--form-control-border) px-2.5 py-1 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg)"
 										>
@@ -396,9 +394,7 @@ export function IncludeExcludeTokens({
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
-								startTransition(() => {
-									setSearchValue(value)
-								})
+								startTransition(() => setSearchValue(value))
 							}}
 						>
 							<div className="relative">
@@ -421,7 +417,7 @@ export function IncludeExcludeTokens({
 											key={token.name}
 											onClick={() => {
 												setNewPairTokens((prev) => [...prev, token.symbol])
-												setSearchValue('')
+												startTransition(() => setSearchValue(''))
 												// scroll to top of dialog
 												const dialogElement = dialogStore.getState().contentElement
 												if (dialogElement) {
@@ -453,8 +449,8 @@ export function IncludeExcludeTokens({
 											handlePairTokens(newPairTokens.join('-'))
 											dialogStore.toggle()
 											setNewPairTokens([])
-											setTab('Tokens')
-											setSearchValue('')
+											startTransition(() => setTab('Tokens'))
+											startTransition(() => setSearchValue(''))
 										}}
 										disabled={newPairTokens.length < 2}
 									>

@@ -1,7 +1,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
 import Image from 'next/image'
-import { useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { getItemIconUrl } from '../../utils'
@@ -31,12 +31,13 @@ export function EntityPickerList({
 	isLoading = false
 }: EntityPickerListProps) {
 	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
 	const listRef = useRef<HTMLDivElement | null>(null)
 
 	const filteredEntities = useMemo(() => {
-		if (!search) return entities
-		return matchSorter(entities, search, { keys: ['label'] })
-	}, [entities, search])
+		if (!deferredSearch) return entities
+		return matchSorter(entities, deferredSearch, { keys: ['label'] })
+	}, [entities, deferredSearch])
 
 	const virtualizer = useVirtualizer({
 		count: filteredEntities.length,

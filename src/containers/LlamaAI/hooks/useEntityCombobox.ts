@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { startTransition, type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
 import { setInputSize } from '../utils/scrollUtils'
 import { highlightWord } from '../utils/textUtils'
@@ -61,14 +61,14 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 			if (triggerState.isActive && !triggerState.isTriggerOnly) {
 				setIsTriggerOnly(false)
 				combobox.show()
-				setSearchTerm(triggerState.searchValueWithTrigger)
+				startTransition(() => setSearchTerm(triggerState.searchValueWithTrigger))
 			} else if (triggerState.isActive && triggerState.isTriggerOnly) {
 				setIsTriggerOnly(true)
 				combobox.show()
-				setSearchTerm(triggerState.searchValueWithTrigger)
+				startTransition(() => setSearchTerm(triggerState.searchValueWithTrigger))
 			} else {
 				setIsTriggerOnly(false)
-				setSearchTerm('')
+				startTransition(() => setSearchTerm(''))
 				combobox.hide()
 			}
 		},
@@ -137,7 +137,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 					textarea.value = newValue
 					setValue(newValue)
 					setInputSize(promptInputRef, highlightRef)
-					setSearchTerm('')
+					startTransition(() => setSearchTerm(''))
 					combobox.hide()
 
 					entitiesRef.current.delete(entityName)
@@ -180,7 +180,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		const getNewValue = replaceValue(triggerState.triggerOffset, triggerState.searchValue, name)
 		const newValue = getNewValue(textarea.value)
 
-		setSearchTerm('')
+		startTransition(() => setSearchTerm(''))
 		combobox.hide()
 
 		isProgrammaticUpdateRef.current = true
@@ -226,7 +226,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 	}
 
 	const resetCombobox = () => {
-		setSearchTerm('')
+		startTransition(() => setSearchTerm(''))
 		combobox.hide()
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
@@ -252,7 +252,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 	}, [])
 
 	const clearSearch = useCallback(() => {
-		setSearchTerm('')
+		startTransition(() => setSearchTerm(''))
 		combobox.hide()
 	}, [combobox])
 

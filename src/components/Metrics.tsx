@@ -2,7 +2,16 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import {
+	Fragment,
+	startTransition,
+	useDeferredValue,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
@@ -144,7 +153,11 @@ export function Metrics({
 			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
 					<h1 className="text-2xl font-bold">Metrics</h1>
-					<TagGroup selectedValue={tab} setValue={(value) => setTab(value as (typeof TABS)[number])} values={TABS} />
+					<TagGroup
+						selectedValue={tab}
+						setValue={(value) => startTransition(() => setTab(value as (typeof TABS)[number]))}
+						values={TABS}
+					/>
 					{canDismiss ? (
 						<Ariakit.DialogDismiss
 							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
@@ -168,8 +181,7 @@ export function Metrics({
 						inputMode="search"
 						placeholder="Search..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
-						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 					/>
 				</label>
 				<div className="flex flex-wrap gap-2">

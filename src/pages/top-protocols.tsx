@@ -179,7 +179,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
+	const [_searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
 
 	return (
 		<Layout
@@ -203,10 +203,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={searchValue}
-							onChange={(e) => {
-								setSearchValue(e.target.value)
-							}}
+							onInput={(e) => setSearchValue(e.currentTarget.value)}
 							placeholder="Search chains..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>

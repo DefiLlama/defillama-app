@@ -185,7 +185,7 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnOrders: raisesColumnOrders
@@ -204,10 +204,7 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 					/>
 					<input
 						name="search"
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

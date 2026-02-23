@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
@@ -528,7 +528,7 @@ export const IncomeStatement = ({
 									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupOption === groupBy}
 									onClick={() => {
-										setGroupBy(groupOption)
+										startTransition(() => setGroupBy(groupOption))
 									}}
 								>
 									{groupOption}
@@ -689,8 +689,10 @@ export const IncomeStatement = ({
 											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 											data-active={groupOption === sankeyGroupBy}
 											onClick={() => {
-												setSankeyGroupBy(groupOption)
-												setSelectedSankeyPeriod(null)
+												startTransition(() => {
+													setSankeyGroupBy(groupOption)
+													setSelectedSankeyPeriod(null)
+												})
 											}}
 										>
 											{groupOption}
@@ -701,7 +703,7 @@ export const IncomeStatement = ({
 									<Select
 										allValues={sankeyPeriodSelectOptions}
 										selectedValues={validSankeyPeriod ?? ''}
-										setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
+										setSelectedValues={(value) => startTransition(() => setSelectedSankeyPeriod(value as string))}
 										label={sankeyPeriodLabel}
 										labelType="none"
 										triggerProps={{

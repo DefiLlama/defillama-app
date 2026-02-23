@@ -113,7 +113,7 @@ export function TrendingContractsDataset({
 		instance.setColumnOrder(defaultOrder)
 	}, [width, instance])
 
-	const [contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
+	const [_contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
 
 	if (isLoading) {
 		return (
@@ -211,8 +211,7 @@ export function TrendingContractsDataset({
 						<input
 							type="text"
 							placeholder="Search contracts..."
-							value={contractSearch}
-							onChange={(e) => setContractSearch(e.target.value)}
+							onInput={(e) => setContractSearch(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

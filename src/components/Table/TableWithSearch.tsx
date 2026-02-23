@@ -94,7 +94,7 @@ export function TableWithSearch({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
 
 	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
@@ -112,10 +112,7 @@ export function TableWithSearch({
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={projectName}
-							onChange={(e) => {
-								setProjectName(e.target.value)
-							}}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							placeholder={placeholder}
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
