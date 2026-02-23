@@ -70,7 +70,7 @@ export function DesktopNav({
 							<span>Old Menu</span>
 							<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 						</summary>
-						<div className="border-l border-black/20 pl-2 dark:border-white/20">
+						<div className="hidden border-l border-black/20 pl-2 group-open:block dark:border-white/20">
 							{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
 								<React.Fragment key={`old-nav-desktop-${name}-${route ?? ''}`}>
 									{pages ? (
@@ -150,7 +150,7 @@ function NavDetailsSection({ category, pages, asPath }: { category: string; page
 				<span>{category}</span>
 				<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 			</summary>
-			<div className="border-l border-black/20 pl-2 dark:border-white/20">
+			<div className="hidden border-l border-black/20 pl-2 group-open:block dark:border-white/20">
 				{pages.map(({ name, route, icon, attention }, index) => (
 					<div key={`desktop-nav-${name}-${route}`} ref={index === pages.length - 1 ? lastItemRef : null}>
 						<LinkToPage route={route} name={name} icon={icon} attention={attention} asPath={asPath} />

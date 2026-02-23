@@ -71,7 +71,7 @@ export function Menu({
 							<span>Old Menu</span>
 							<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 						</summary>
-						<div className="border-l border-black/20 pl-2 dark:border-white/20">
+						<div className="hidden border-l border-black/20 pl-2 group-open:block group-open:border-l dark:border-white/20">
 							{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
 								<React.Fragment key={`mobile-nav-old-${name}-${route}`}>
 									{pages ? (

@@ -168,7 +168,7 @@ function LinkItem({ option, isActive, ...props }: { option: ILink; isActive: boo
 	return (
 		<BasicLink
 			href={option.to}
-			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) contain-[layout_style_paint] [content-visibility:auto] hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
+			className="rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--link-active-bg) data-[active=true]:text-white"
 			data-active={isActive}
 			{...props}
 		>
