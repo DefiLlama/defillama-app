@@ -1,16 +1,46 @@
+import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
-import { useRouter } from 'next/router'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
 import { Logo } from '~/containers/SuperLuminal/Logo'
-import { isSuperLuminalEnabled, SUPERLUMINAL_PROTOCOL_IDS } from '~/containers/SuperLuminal/config'
+import { isSuperLuminalEnabled, SUPERLUMINAL_PROJECTS, SUPERLUMINAL_PROTOCOL_IDS } from '~/containers/SuperLuminal/config'
+import { getProDashboardServerData } from '~/containers/ProDashboard/queries.server'
+import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 
 const SuperLuminalDashboard = lazy(() => import('~/containers/SuperLuminal'))
 
-export default function SuperLuminalProtocolPage() {
-	const router = useRouter()
-	const protocol = router.query.protocol as string
+export const getServerSideProps: GetServerSideProps = async (context) => {
+	const protocol = context.params?.protocol as string
 
+	if (!isSuperLuminalEnabled() || !protocol || !SUPERLUMINAL_PROTOCOL_IDS.includes(protocol)) {
+		return { props: { protocol: protocol || '', serverDataByDashboardId: {} } }
+	}
+
+	const project = SUPERLUMINAL_PROJECTS.find((p) => p.id === protocol)
+	if (!project?.dashboardId) {
+		return { props: { protocol, serverDataByDashboardId: {} } }
+	}
+
+	const authToken = getAuthTokenFromRequest(context.req)
+
+	if (authToken) {
+		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+	} else {
+		context.res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
+	}
+
+	try {
+		const serverData = await getProDashboardServerData({ dashboardId: project.dashboardId, authToken })
+		return { props: { protocol, serverDataByDashboardId: { [project.dashboardId]: serverData } } }
+	} catch {
+		return { props: { protocol, serverDataByDashboardId: {} } }
+	}
+}
+
+export default function SuperLuminalProtocolPage({
+	protocol,
+	serverDataByDashboardId
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	if (!isSuperLuminalEnabled() || !protocol) {
 		return null
 	}
@@ -34,7 +64,7 @@ export default function SuperLuminalProtocolPage() {
 					</div>
 				}
 			>
-				<SuperLuminalDashboard protocol={protocol} />
+				<SuperLuminalDashboard protocol={protocol} serverDataByDashboardId={serverDataByDashboardId} />
 			</Suspense>
 			<Toast />
 		</>
