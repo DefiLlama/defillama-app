@@ -20,7 +20,7 @@ export default function DigitalAssetTreasuriesPage(props: InferGetStaticPropsTyp
 	return (
 		<Layout
 			title="Digital Asset Treasuries - DefiLlama"
-			description="Track institutions that own digital assets as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
+			description="Track institutional digital asset holdings. See which public companies own Bitcoin, ETH and other crypto in their corporate treasuries."
 			keywords="digital asset treasury, digital asset treasuries, digital asset treasury by institution, digital asset treasury by company, digital asset treasury by asset"
 			canonicalUrl="/digital-asset-treasuries"
 			pageName={pageName}
