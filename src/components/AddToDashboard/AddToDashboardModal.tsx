@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { type QueryClient, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { type KeyboardEvent, useCallback, useDeferredValue, useId, useMemo, useState } from 'react'
+import { startTransition, type KeyboardEvent, useCallback, useDeferredValue, useId, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
@@ -255,13 +255,13 @@ export function AddToDashboardModal({
 	}, [dashboards])
 
 	const handleSelectDashboard = useCallback((id: string) => {
-		setSelectedDashboardId(id)
+		startTransition(() => setSelectedDashboardId(id))
 		setIsCreatingNew(false)
 	}, [])
 
 	const handleCreateNew = useCallback(() => {
 		setIsCreatingNew(true)
-		setSelectedDashboardId(null)
+		startTransition(() => setSelectedDashboardId(null))
 		setNewDashboardNameInput('')
 	}, [])
 
@@ -362,7 +362,7 @@ export function AddToDashboardModal({
 					<input
 						type="text"
 						defaultValue=""
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e) => startTransition(() => setSearch(e.target.value))}
 						onKeyDown={handleSearchKeyDown}
 						placeholder="Search dashboards..."
 						className="w-full rounded-md border pro-border pro-bg2 py-2 pr-3 pl-9 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-pro-blue-300/40 focus:ring-1 focus:ring-pro-blue-300/30 focus:outline-hidden"

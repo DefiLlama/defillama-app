@@ -37,7 +37,7 @@ export const MultiSelectCombobox = ({
 		e.preventDefault()
 		e.stopPropagation()
 		const previousCount = viewableMatches
-		setViewableMatches((prev) => prev + 20)
+		startTransition(() => setViewableMatches((prev) => prev + 20))
 
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {

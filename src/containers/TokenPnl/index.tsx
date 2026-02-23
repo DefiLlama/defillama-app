@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useEffect, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
@@ -503,7 +503,7 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 								step="any"
 								placeholder="Tokens held"
 								value={quantityInput}
-								onChange={(event) => setQuantityInput(event.target.value)}
+								onChange={(event) => startTransition(() => setQuantityInput(event.target.value))}
 								className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2.5 text-base text-black outline-0 transition-colors duration-200 focus:border-white/30 focus:ring-0 dark:text-white dark:scheme-dark"
 							/>
 						</label>

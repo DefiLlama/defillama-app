@@ -141,7 +141,7 @@ export function IncludeExcludeTokens({
 		e.preventDefault()
 		e.stopPropagation()
 		const previousCount = pairsViewableMatches
-		setPairsViewableMatches((prev) => prev + 20)
+		startTransition(() => setPairsViewableMatches((prev) => prev + 20))
 
 		// Focus on the first newly loaded item after a brief delay
 		setTimeout(() => {
@@ -221,8 +221,8 @@ export function IncludeExcludeTokens({
 						{['Tokens', 'Pairs'].map((dataType) => (
 							<button
 								onClick={() => {
-									setTab(dataType as 'Tokens' | 'Pairs')
-									setSearchValue('')
+									startTransition(() => setTab(dataType as 'Tokens' | 'Pairs'))
+									startTransition(() => setSearchValue(''))
 								}}
 								className="shrink-0 rounded-md px-2.5 py-1 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={tab === dataType}
@@ -237,8 +237,8 @@ export function IncludeExcludeTokens({
 						aria-label="Close modal"
 						onClick={() => {
 							setNewPairTokens([])
-							setTab('Tokens')
-							setSearchValue('')
+							startTransition(() => setTab('Tokens'))
+							startTransition(() => setSearchValue(''))
 						}}
 					>
 						<Icon name="x" height={20} width={20} />
@@ -272,7 +272,7 @@ export function IncludeExcludeTokens({
 									onClick={() => {
 										handlePairTokens(pairHint.pair!)
 										dialogStore.toggle()
-										setSearchValue('')
+										startTransition(() => setSearchValue(''))
 									}}
 									className="flex items-center gap-2 rounded-md bg-[#fff7ed] px-3 py-2 text-sm text-[#ea580c] hover:bg-[#fed7aa]/40 dark:bg-[#1f1b1b] dark:text-[#fb923c] dark:hover:bg-[#2a2020]"
 								>
@@ -382,8 +382,8 @@ export function IncludeExcludeTokens({
 												handlePairTokens(pair)
 												dialogStore.toggle()
 												setNewPairTokens([])
-												setTab('Tokens')
-												setSearchValue('')
+												startTransition(() => setTab('Tokens'))
+												startTransition(() => setSearchValue(''))
 											}}
 											className="rounded-md border border-(--form-control-border) px-2.5 py-1 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg)"
 										>
@@ -397,7 +397,7 @@ export function IncludeExcludeTokens({
 							value={searchValue}
 							setValue={(value) => {
 								startTransition(() => {
-									setSearchValue(value)
+									startTransition(() => setSearchValue(value))
 								})
 							}}
 						>
@@ -421,7 +421,7 @@ export function IncludeExcludeTokens({
 											key={token.name}
 											onClick={() => {
 												setNewPairTokens((prev) => [...prev, token.symbol])
-												setSearchValue('')
+												startTransition(() => setSearchValue(''))
 												// scroll to top of dialog
 												const dialogElement = dialogStore.getState().contentElement
 												if (dialogElement) {
@@ -453,8 +453,8 @@ export function IncludeExcludeTokens({
 											handlePairTokens(newPairTokens.join('-'))
 											dialogStore.toggle()
 											setNewPairTokens([])
-											setTab('Tokens')
-											setSearchValue('')
+											startTransition(() => setTab('Tokens'))
+											startTransition(() => setSearchValue(''))
 										}}
 										disabled={newPairTokens.length < 2}
 									>

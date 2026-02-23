@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { memo, startTransition, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { LoadingDots } from '~/components/Loaders'
@@ -334,7 +334,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				.then((result: any) => {
 					setShowScrollToBottom(false)
 					setMessages(attachClientIds(result.messages))
-					setPaginationState(result.pagination)
+					startTransition(() => setPaginationState(result.pagination))
 
 					if (result.streaming?.status === 'streaming') {
 						reconnectToStream(sessionId, result.streaming.content || '')
@@ -688,7 +688,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		setStreamingItems([])
 		setCurrentMessageId(null)
-		setIsResearchMode(false) // Reset research mode on stop to prevent state leak
+		startTransition(() => setIsResearchMode(false)) // Reset research mode on stop to prevent state leak
 		resetPrompt()
 		setTimeout(() => {
 			promptInputRef.current?.focus()
@@ -839,12 +839,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			setSessionId(selectedSessionId)
 			hasRestoredSessionRef.current = selectedSessionId
 			setMessages(attachClientIds(data.messages))
-			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
+			startTransition(() => setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false }))
 			setPrompt('')
 			resetPrompt()
 			setStreamingItems([])
 			setCurrentMessageId(null)
-			setIsResearchMode(false)
+			startTransition(() => setIsResearchMode(false))
 			setIsStreaming(false)
 			setStreamingError('')
 			setProgressMessage('')
@@ -862,12 +862,12 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		if (!scrollContainer) return
 
 		const previousScrollHeight = scrollContainer.scrollHeight
-		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
+		startTransition(() => setPaginationState((prev) => ({ ...prev, isLoadingMore: true })))
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
 			setMessages((prev) => [...attachClientIds(result.messages, prev), ...prev])
-			setPaginationState(result.pagination)
+			startTransition(() => setPaginationState(result.pagination))
 
 			// Use RAF to batch layout reads/writes with browser paint cycle
 			requestAnimationFrame(() => {
@@ -881,7 +881,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			})
 		} catch (error) {
 			console.log('Failed to load more messages:', error)
-			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
+			startTransition(() => setPaginationState((prev) => ({ ...prev, isLoadingMore: false })))
 		}
 	}, [
 		sessionId,

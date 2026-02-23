@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { useEffect, useEffectEvent, useMemo, useState } from 'react'
+import { startTransition, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
@@ -35,7 +35,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 	const [resultsLength, setResultsLength] = useState(10)
 
 	const showMoreResults = () => {
-		setResultsLength((prev) => prev + 10)
+		startTransition(() => setResultsLength((prev) => prev + 10))
 	}
 
 	return (
@@ -56,7 +56,7 @@ export function CoinsPicker({ coinsData, selectCoin, dialogStore, selectedCoins 
 					/>
 					<input
 						value={search}
-						onChange={(e) => setSearch(e.target.value)}
+						onChange={(e) => startTransition(() => setSearch(e.target.value))}
 						placeholder="Search token..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white dark:placeholder:text-[#919296]"
 					/>

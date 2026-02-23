@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { startTransition, useState } from 'react'
 import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldPageLoop from '~/containers/Yields/indexLoop'
@@ -80,7 +80,7 @@ export default function YieldBorrow(data) {
 				<br />
 				3. deposit the borrowed amount M into pool X
 				<button
-					onClick={() => setMethodologyActivated((prev) => !prev)}
+					onClick={() => startTransition(() => setMethodologyActivated((prev) => !prev))}
 					className="mx-auto block font-medium text-(--blue) hover:underline"
 				>
 					Example

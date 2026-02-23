@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { TagGroup } from '~/components/TagGroup'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
@@ -137,7 +137,7 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 					<h2 className="text-xs font-medium text-(--text-secondary)">Time Period:</h2>
 					<TagGroup
 						selectedValue={timePeriod}
-						setValue={(period) => setTimePeriod(period as TimePeriod)}
+						setValue={(period) => startTransition(() => setTimePeriod(period as TimePeriod))}
 						values={TIME_PERIODS}
 						className="w-full *:flex-1"
 					/>
@@ -147,7 +147,7 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 					<h2 className="text-xs font-medium text-(--text-secondary)">View:</h2>
 					<TagGroup
 						selectedValue={viewType}
-						setValue={(viewType) => setViewType(viewType as ViewType)}
+						setValue={(viewType) => startTransition(() => setViewType(viewType as ViewType))}
 						values={VIEW_TYPES}
 						className="w-full *:flex-1"
 					/>
@@ -157,7 +157,7 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 					<h2 className="text-xs font-medium text-(--text-secondary)">Metric:</h2>
 					<TagGroup
 						selectedValue={metricType}
-						setValue={(metricType) => setMetricType(metricType as MetricType)}
+						setValue={(metricType) => startTransition(() => setMetricType(metricType as MetricType))}
 						values={METRIC_TYPES}
 						className="w-full *:flex-1"
 					/>

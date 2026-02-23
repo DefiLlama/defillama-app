@@ -1,5 +1,5 @@
 import { matchSorter } from 'match-sorter'
-import { useDeferredValue, useId, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useId, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LinkToMetricOrToolPage } from '~/components/Metrics'
 import Layout from '~/layout'
@@ -40,7 +40,7 @@ export default function Tools() {
 						placeholder="Search..."
 						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
 						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
+						onChange={(e) => startTransition(() => setSearchValue(e.target.value))}
 					/>
 				</div>
 			</div>

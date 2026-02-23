@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
@@ -349,7 +349,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 										data-active={groupBy === dataInterval}
 										onClick={() => {
-											setGroupBy(dataInterval)
+											startTransition(() => setGroupBy(dataInterval))
 										}}
 										key={`${name}-category-groupBy-${dataInterval}`}
 									>
