@@ -17,12 +17,13 @@ export function IncludeExcludeTokens({
 }) {
 	const router = useRouter()
 
-	const { token, excludeToken, exactToken, token_pair } = router.query
+	const { token, excludeToken, exactToken, token_pair, attribute } = router.query
 
 	const tokensToInclude = token ? (typeof token === 'string' ? [token] : [...token]) : []
 	const tokensToExclude = excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : [...excludeToken]) : []
 	const tokensThatMatchExactly = exactToken ? (typeof exactToken === 'string' ? [exactToken] : [...exactToken]) : []
 	const pairTokens = token_pair ? (typeof token_pair === 'string' ? [token_pair] : [...token_pair]) : []
+	const currentAttributes = attribute ? (typeof attribute === 'string' ? [attribute] : [...attribute]) : []
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -36,7 +37,14 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_INCLUDE, { token })
 		}
 
-		pushShallowQuery(router, { token: tokenQueryParams }).then(() => {
+		const updates: Record<string, string | string[]> = { token: tokenQueryParams }
+		if (action !== 'delete') {
+			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
+		} else if (tokenQueryParams.length === 0) {
+			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+		}
+
+		pushShallowQuery(router, updates).then(() => {
 			dialogStore.toggle()
 		})
 	}

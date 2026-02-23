@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/Loaders'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
@@ -253,31 +252,6 @@ const YieldPage = ({
 
 	return (
 		<>
-			{includeTokens.length > 0 &&
-				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
-					<Announcement notCancellable>
-						Do you want to see only pools that have a single token? Click{' '}
-						<button
-							type="button"
-							className="bg-transparent p-0 font-medium text-(--blue) underline"
-							onClick={() => {
-								push(
-									{
-										pathname,
-										query: {
-											...query,
-											attribute: ['no_il', 'single_exposure']
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						>
-							here
-						</button>
-					</Announcement>
-				)}
 			<YieldFiltersV2
 				header="Yield Rankings"
 				poolsNumber={poolsData.length}
