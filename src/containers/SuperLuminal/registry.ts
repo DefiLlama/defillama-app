@@ -10,7 +10,7 @@ export interface DashboardTabConfig {
 const DASHBOARD_REGISTRY: Record<string, () => Promise<{ tabs: DashboardTabConfig[] }>> = {
 	eobgdbgg0d0hake: () => import('./dashboards/hyperliquid'),
 	'73x90j3b28pfhgx': () => import('./dashboards/etherfi'),
-	lvp2u48lc11kdy1: () => import('./dashboards/spark'),
+	roxh2oxb1b7fhjz: () => import('./dashboards/spark'),
 	l5accmh9zooc32q: () => import('./dashboards/maple')
 }
 
