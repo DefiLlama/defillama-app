@@ -74,6 +74,12 @@ export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nested
 		) {
 			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
 		} else if (
+			values.length === tokensList.length &&
+			(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
+		) {
+			const filtered = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+			updates.attribute = filtered.length > 0 ? filtered : undefined
+		} else if (
 			values.length === 0 &&
 			(currentAttributes.includes('no_il') || currentAttributes.includes('single_exposure'))
 		) {
