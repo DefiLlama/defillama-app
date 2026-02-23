@@ -39,7 +39,7 @@ const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Arr
 }
 
 interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
+	chartType: 'area' | 'bar' | 'combo' | 'line' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
