@@ -24,7 +24,7 @@ export default function BridgeChains(props: InferGetStaticPropsType<typeof getSt
 	return (
 		<Layout
 			title={`Bridges Inflows by Chain - DefiLlama`}
-			description={`Track bridges inflows by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Which chains are seeing the most bridge activity? Net flow rankings with deposit and withdrawal data, top tokens and multi-timeframe comparisons.`}
 			keywords={`bridges inflows by chain, bridge inflows`}
 			canonicalUrl={`/bridges/chains`}
 			pageName={pageName}

@@ -26,7 +26,7 @@ const DexAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Live ${type} by chain. Compare volumes across networks with multi-timeframe data, historical volume trends and chain dominance tracking.`}
 			keywords={`${type} by chain`}
 			canonicalUrl={`/dex-aggregators/chains`}
 			pageName={pageName}

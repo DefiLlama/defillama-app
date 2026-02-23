@@ -69,7 +69,7 @@ export default function Bridges({
 	return (
 		<Layout
 			title={`Bridges Volume on ${chain} - DefiLlama`}
-			description={`Track Bridge Volume deployed on ${chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Live bridge volume analytics for ${chain}. Track deposits, withdrawals, large transactions and net flows across bridges and protocols.`}
 			keywords={`${chain} bridge volume`}
 			canonicalUrl={`/bridges/${chain}`}
 			pageName={pageName}
