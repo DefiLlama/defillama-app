@@ -2,7 +2,7 @@ export class ChartDataTransformer {
 	static groupByInterval(
 		series: any[],
 		interval: 'day' | 'week' | 'month' | 'quarter',
-		_chartType: 'line' | 'area' | 'bar' | 'pie' | 'scatter' | 'hbar'
+		_chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar'
 	): any[] {
 		return series.map((s) => {
 			const isFlowMetric = s.metricClass === 'flow'
@@ -46,7 +46,7 @@ export class ChartDataTransformer {
 		})
 	}
 
-	static toStacked(series: any[], chartType: 'line' | 'area' | 'bar' | 'pie' | 'scatter' | 'hbar'): any[] {
+	static toStacked(series: any[], chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar'): any[] {
 		const allTimestamps = new Set<number>()
 		for (const s of series) {
 			for (const [timestamp] of s.data as [number, number][]) {
