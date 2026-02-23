@@ -29,25 +29,53 @@ export function UmamiIdentityTracker() {
 			return true
 		}
 
-		if (identifyCurrentUser()) return
+		let intervalId: number | null = null
+		const runIdentifyWorkflow = () => {
+			if (identifyCurrentUser()) return
 
-		// For the case when userId is already resolved, but window.umami isn't ready yet,
-		// we'll keep trying to identify until succeed/retry limit
-		let retryCount = 0
-		const intervalId = window.setInterval(() => {
-			if (identifyCurrentUser()) {
-				window.clearInterval(intervalId)
-				return
-			}
+			// For the case when userId is already resolved, but window.umami isn't ready yet,
+			// we'll keep trying to identify until succeed/retry limit
+			let retryCount = 0
+			intervalId = window.setInterval(() => {
+				if (identifyCurrentUser()) {
+					if (intervalId !== null) {
+						window.clearInterval(intervalId)
+						intervalId = null
+					}
+					return
+				}
 
-			retryCount += 1
-			if (retryCount >= MAX_UMAMI_READY_RETRIES) {
-				window.clearInterval(intervalId)
-			}
-		}, UMAMI_READY_RETRY_INTERVAL_MS)
+				retryCount += 1
+				if (retryCount >= MAX_UMAMI_READY_RETRIES && intervalId !== null) {
+					window.clearInterval(intervalId)
+					intervalId = null
+				}
+			}, UMAMI_READY_RETRY_INTERVAL_MS)
+		}
+
+		let idleCallbackId: number | null = null
+		let timeoutId: number | null = null
+
+		if (typeof window.requestIdleCallback === 'function') {
+			idleCallbackId = window.requestIdleCallback(() => {
+				runIdentifyWorkflow()
+			})
+		} else {
+			timeoutId = window.setTimeout(() => {
+				runIdentifyWorkflow()
+			}, 0)
+		}
 
 		return () => {
-			window.clearInterval(intervalId)
+			if (idleCallbackId !== null && typeof window.cancelIdleCallback === 'function') {
+				window.cancelIdleCallback(idleCallbackId)
+			}
+			if (timeoutId !== null) {
+				window.clearTimeout(timeoutId)
+			}
+			if (intervalId !== null) {
+				window.clearInterval(intervalId)
+			}
 		}
 	}, [distinctId])
 

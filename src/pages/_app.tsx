@@ -136,7 +136,7 @@ function App({ Component, pageProps }: AppProps) {
 			</Head>
 			<Script
 				src="/script2.js"
-				strategy="afterInteractive"
+				strategy="lazyOnload"
 				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
 				data-host-url="https://tasty.defillama.com"
 			/>
