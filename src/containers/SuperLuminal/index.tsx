@@ -8,6 +8,7 @@ import {
 	useProDashboardDashboard,
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import type { ProDashboardServerProps } from '~/containers/ProDashboard/queries.server'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SUPERLUMINAL_PROJECTS } from './config'
 import { Logo } from './Logo'
@@ -184,7 +185,13 @@ function SuperLuminalContent({
 	)
 }
 
-function SuperLuminalShell({ protocol }: { protocol?: string }) {
+function SuperLuminalShell({
+	protocol,
+	serverDataByDashboardId
+}: {
+	protocol?: string
+	serverDataByDashboardId?: Record<string, ProDashboardServerProps>
+}) {
 	const [isDark, toggleTheme] = useDarkModeManager()
 
 	const visibleProjects = protocol ? ALL_PROJECTS.filter((p) => p.id === protocol) : ALL_PROJECTS
@@ -337,7 +344,11 @@ function SuperLuminalShell({ protocol }: { protocol?: string }) {
 				{activeProjectConfig?.comingSoon ? (
 					<ProjectComingSoon />
 				) : (
-					<ProDashboardAPIProvider key={dashboardId} initialDashboardId={dashboardId}>
+					<ProDashboardAPIProvider
+						key={dashboardId}
+						initialDashboardId={dashboardId}
+						serverData={serverDataByDashboardId?.[dashboardId]}
+					>
 						<SuperLuminalContent tabs={tabs} activeTab={activeTab} displayName={displayName} />
 					</ProDashboardAPIProvider>
 				)}
@@ -346,10 +357,16 @@ function SuperLuminalShell({ protocol }: { protocol?: string }) {
 	)
 }
 
-export default function SuperLuminalDashboard({ protocol }: { protocol?: string }) {
+export default function SuperLuminalDashboard({
+	protocol,
+	serverDataByDashboardId
+}: {
+	protocol?: string
+	serverDataByDashboardId?: Record<string, ProDashboardServerProps>
+}) {
 	return (
 		<AppMetadataProvider>
-			<SuperLuminalShell protocol={protocol} />
+			<SuperLuminalShell protocol={protocol} serverDataByDashboardId={serverDataByDashboardId} />
 		</AppMetadataProvider>
 	)
 }

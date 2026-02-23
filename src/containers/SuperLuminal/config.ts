@@ -1,6 +1,6 @@
 export const SUPERLUMINAL_PROJECTS = [
 	{ id: 'etherfi', name: 'Ether.fi', dashboardId: '73x90j3b28pfhgx' },
-	{ id: 'spark', name: 'Spark', dashboardId: 'lvp2u48lc11kdy1' },
+	{ id: 'spark', name: 'Spark', dashboardId: 'roxh2oxb1b7fhjz' },
 	{ id: 'maple', name: 'Maple', dashboardId: 'l5accmh9zooc32q' }
 ] as const
 
