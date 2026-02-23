@@ -245,8 +245,8 @@ export function Stats(props: IStatsProps) {
 						{props.stablecoins?.mcap ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<Tooltip
-										content={
+									<span
+										title={
 											props.metadata.name === 'All'
 												? 'Sum of market cap of all stablecoins circulating on all chains'
 												: 'Sum of market cap of all stablecoins circulating on the chain'
@@ -254,7 +254,7 @@ export function Stats(props: IStatsProps) {
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Stablecoins Mcap
-									</Tooltip>
+									</span>
 									<Icon
 										name="chevron-down"
 										height={16}
@@ -369,12 +369,12 @@ export function Stats(props: IStatsProps) {
 						{props.dexs?.total24h != null ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<Tooltip
-										content={definitions.dexs.chain['24h']}
+									<span
+										title={definitions.dexs.chain['24h']}
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										DEXs Volume (24h)
-									</Tooltip>
+									</span>
 									<Icon
 										name="chevron-down"
 										height={16}
@@ -424,12 +424,12 @@ export function Stats(props: IStatsProps) {
 						{props.perps?.total24h != null ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<Tooltip
-										content={definitions.perps.chain['24h']}
+									<span
+										title={definitions.perps.chain['24h']}
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Perps Volume (24h)
-									</Tooltip>
+									</span>
 									<Icon
 										name="chevron-down"
 										height={16}
@@ -485,27 +485,12 @@ export function Stats(props: IStatsProps) {
 							props.users.newUsers != null || props.users.transactions != null ? (
 								<details className="group">
 									<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-										<Tooltip
-											content={
-												<p>
-													Number of unique addresses that have interacted with the protocol directly in the last 24
-													hours. Interactions are counted as transactions sent directly against the protocol, thus
-													transactions that go through an aggregator or some other middleman contract are not counted
-													here.
-													<br />
-													<br />
-													The reasoning for this is that this is meant to help measure stickiness/loyalty of users, and
-													users that are interacting with the protocol through another product aren't likely to be
-													sticky.
-													<br />
-													<br />
-													Updates daily at 00:00 UTC
-												</p>
-											}
+										<span
+											title="Number of unique addresses that have interacted with the protocol directly in the last 24 hours. Interactions are counted as transactions sent directly against the protocol, thus transactions that go through an aggregator or some other middleman contract are not counted here. The reasoning for this is that this is meant to help measure stickiness/loyalty of users, and users that are interacting with the protocol through another product aren't likely to be sticky. Updates daily at 00:00 UTC"
 											className="text-(--text-label) underline decoration-dotted"
 										>
 											Active Addresses (24h)
-										</Tooltip>
+										</span>
 										<Icon
 											name="chevron-down"
 											height={16}
@@ -605,12 +590,12 @@ export function Stats(props: IStatsProps) {
 						{props.chainRaises && props.chainRaises.length > 0 && (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<Tooltip
-										content="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
+									<span
+										title="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Total Raised
-									</Tooltip>
+									</span>
 									<Icon
 										name="chevron-down"
 										height={16}
@@ -657,12 +642,12 @@ export function Stats(props: IStatsProps) {
 						{props.chainAssets ? (
 							<details className="group">
 								<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-									<Tooltip
-										content="Value of all tokens held on the chain"
+									<span
+										title="Value of all tokens held on the chain"
 										className="text-(--text-label) underline decoration-dotted"
 									>
 										Bridged TVL
-									</Tooltip>
+									</span>
 									<Icon
 										name="chevron-down"
 										height={16}

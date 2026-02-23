@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
-import { Tooltip } from '~/components/Tooltip'
 import type { StreamItem, ChartItem, CsvItem, MarkdownItem } from '../types'
 import { StreamItemRenderer } from './StreamItemRenderer'
 
@@ -92,23 +91,33 @@ export function QueryMetadata({ metadata }: { metadata: any }) {
 		<details className="group rounded-lg border border-[#e6e6e6] dark:border-[#222324]">
 			<summary className="flex flex-wrap items-center justify-end gap-2 p-2 text-[#666] group-open:text-black group-hover:bg-[#f7f7f7] group-hover:text-black dark:text-[#919296] dark:group-open:text-white dark:group-hover:bg-[#222324] dark:group-hover:text-white">
 				<span className="mr-auto">Query Metadata</span>
-				<Tooltip content="Copy" render={<button onClick={handleCopy} />} className="hidden group-open:block">
-					{copied ? (
-						<Icon name="check-circle" height={14} width={14} />
-					) : (
-						<Icon name="clipboard" height={14} width={14} />
-					)}
-					<span className="sr-only">Copy</span>
-				</Tooltip>
 				<span className="flex items-center gap-1">
 					<Icon name="chevron-down" height={14} width={14} className="transition-transform group-open:rotate-180" />
 					<span className="group-open:hidden">Show</span>
 					<span className="hidden group-open:block">Hide</span>
 				</span>
 			</summary>
-			<pre className="overflow-auto border-t border-[#e6e6e6] p-2 text-xs select-text dark:border-[#222324]">
-				{JSON.stringify(metadata, null, 2)}
-			</pre>
+			<span>
+				<span className="flex items-center justify-end p-2">
+					<button
+						title="Copy"
+						onClick={(e) => {
+							e.stopPropagation()
+							handleCopy()
+						}}
+					>
+						{copied ? (
+							<Icon name="check-circle" height={14} width={14} />
+						) : (
+							<Icon name="clipboard" height={14} width={14} />
+						)}
+						<span className="sr-only">Copy</span>
+					</button>
+				</span>
+				<pre className="overflow-auto border-t border-[#e6e6e6] p-2 text-xs select-text dark:border-[#222324]">
+					{JSON.stringify(metadata, null, 2)}
+				</pre>
+			</span>
 		</details>
 	)
 }

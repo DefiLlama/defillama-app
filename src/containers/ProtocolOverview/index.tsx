@@ -1025,13 +1025,12 @@ const SmolStats = ({
 	return (
 		<details className="group" open={openSmolStatsSummaryByDefault}>
 			<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
-				{data[0].tooltipContent ? (
-					<Tooltip content={data[0].tooltipContent} className="text-(--text-label) underline decoration-dotted">
-						{data[0].name}
-					</Tooltip>
-				) : (
-					<span className="text-(--text-label)">{data[0].name}</span>
-				)}
+				<span
+					title={data[0].tooltipContent ?? undefined}
+					className={`text-(--text-label)${data[0].tooltipContent ? ' underline decoration-dotted' : ''}`}
+				>
+					{data[0].name}
+				</span>
 				<Icon
 					name="chevron-down"
 					height={16}
