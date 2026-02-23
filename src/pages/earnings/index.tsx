@@ -34,7 +34,7 @@ const EarningsOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`${type} by Protocol. Compare net earnings rankings for thousands of protocols across all chains. Revenue minus incentives, ranked.`}
 			keywords={`${type} by protocol`}
 			canonicalUrl={`/earnings`}
 			metricFilters={feesOptions}
