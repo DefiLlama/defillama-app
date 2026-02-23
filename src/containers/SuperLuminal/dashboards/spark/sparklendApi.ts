@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { PROTOCOL_API, YIELD_POOLS_API } from '~/constants'
+import { V2_SERVER_URL, YIELD_POOLS_API } from '~/constants'
 import {
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolChartDataByBreakdownType,
@@ -86,7 +86,7 @@ export function useSparklendBorrowedChart() {
 	const query = useQuery({
 		queryKey: ['sparklend-borrowed-chart'],
 		queryFn: async () => {
-			const res = await fetch(`${PROTOCOL_API}/${PROTOCOL_SLUG}`)
+			const res = await fetch(`${V2_SERVER_URL}/metrics/tvl/protocol/${PROTOCOL_SLUG}`)
 			if (!res.ok) return { chart: [], current: null }
 			const data = await res.json()
 			const chainTvls = data?.chainTvls || {}
