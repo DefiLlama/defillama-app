@@ -44,7 +44,7 @@ export default function DigitalAssetTreasuryPage(props: InferGetStaticPropsType<
 	return (
 		<Layout
 			title={`${props.name} Digital Asset Treasury - DefiLlama`}
-			description={`Track ${props.name}'s digital asset treasury holdings. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Track ${props.name}'s live digital asset treasury holdings, cost basis, average purchase price, mNAV, share price and acquisition timeline.`}
 			keywords={`${props.name} digital asset treasury holdings, ${props.name} DATs`}
 			canonicalUrl={`/digital-asset-treasury/${slug(props.ticker)}`}
 		>
