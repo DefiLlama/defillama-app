@@ -1,16 +1,15 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum } from '~/utils'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
 import { definitions } from './definitions'
-import { toBooleanParam } from './hooks'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
 
@@ -102,27 +101,15 @@ export function RWAChainsTable({
 	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
 	const governanceQ = router.query.includeGovernance as string | string[] | undefined
 
-	const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : false
-	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
+	const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : false
+	const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (!includeStablecoins) {
-			nextQuery.includeStablecoins = 'true'
-		} else {
-			delete nextQuery.includeStablecoins
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
 	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (!includeGovernance) {
-			nextQuery.includeGovernance = 'true'
-		} else {
-			delete nextQuery.includeGovernance
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
 	}, [includeGovernance, router])
 
 	const data = useMemo(() => {
@@ -200,6 +187,12 @@ export function RWAChainsTable({
 		: includeGovernance
 			? chartDatasets.includeGovernance
 			: chartDatasets.base
+	const csvFileName = (() => {
+		const parts = ['rwa-chains']
+		if (includeStablecoins) parts.push('stablecoins')
+		if (includeGovernance) parts.push('governance')
+		return `${parts.join('-')}.csv`
+	})()
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -227,30 +220,7 @@ export function RWAChainsTable({
 				columnToSearch="chain"
 				header="Chains"
 				columnSizes={columnSizes}
-				customFilters={({ instance }) => (
-					<>
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const filenameParts = ['rwa-chains']
-								if (includeStablecoins) filenameParts.push('stablecoins')
-								if (includeGovernance) filenameParts.push('governance')
-								const filename = `${filenameParts.join('-')}.csv`
-
-								const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-								const columnIds = columns.map((c) => c.id as string)
-
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) =>
-										columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
-									)
-
-								return { filename, rows: [headers, ...rows] }
-							}}
-							smol
-						/>
-					</>
-				)}
+				csvFileName={csvFileName}
 				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 			/>
 		</div>

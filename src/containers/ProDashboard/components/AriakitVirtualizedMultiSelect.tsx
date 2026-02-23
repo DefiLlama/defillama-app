@@ -1,7 +1,8 @@
-import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { MultiSelectOption } from '~/components/Select/types'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -34,7 +35,8 @@ export function AriakitVirtualizedMultiSelect({
 	const [search, setSearch] = useState('')
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement: 'bottom-start' })
-	const isPopoverOpen = popover.useState('open')
+	const isPopoverOpen = useStoreState(popover, 'open')
+	const disclosureId = useId()
 
 	const filteredOptions = useMemo(() => {
 		if (!search) return options
@@ -53,15 +55,6 @@ export function AriakitVirtualizedMultiSelect({
 			setSearch('')
 		}
 	}, [isPopoverOpen])
-
-	useEffect(() => {
-		if (isPopoverOpen) {
-			virtualizer.measure()
-			if (search) {
-				virtualizer.scrollToIndex(0, { align: 'start' })
-			}
-		}
-	}, [search, filteredOptions.length, isPopoverOpen, virtualizer])
 
 	const buttonLabel =
 		selectedValues.length === 0
@@ -82,6 +75,12 @@ export function AriakitVirtualizedMultiSelect({
 
 	const handleSearchChange = (value: string) => {
 		setSearch(value)
+		if (isPopoverOpen) {
+			virtualizer.measure()
+			if (value) {
+				virtualizer.scrollToIndex(0, { align: 'start' })
+			}
+		}
 		onSearchChange?.(value)
 	}
 
@@ -94,7 +93,7 @@ export function AriakitVirtualizedMultiSelect({
 
 	return (
 		<div className={className}>
-			<label className="mb-1 block text-[11px] font-medium pro-text2">
+			<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
 				{selectedValues.length > 0 && (
 					<span className="ml-1 text-xs pro-text3">
@@ -110,6 +109,7 @@ export function AriakitVirtualizedMultiSelect({
 			) : (
 				<>
 					<PopoverDisclosure
+						id={disclosureId}
 						store={popover}
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
@@ -134,7 +134,6 @@ export function AriakitVirtualizedMultiSelect({
 									className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 								/>
 								<input
-									autoFocus
 									value={search}
 									onChange={(e) => handleSearchChange(e.target.value)}
 									placeholder="Search..."
@@ -189,15 +188,15 @@ export function AriakitVirtualizedMultiSelect({
 												>
 													<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
 														{iconUrl && (
-															<img
+															<Image
 																src={iconUrl}
 																alt={option.label}
+																width={20}
+																height={20}
+																unoptimized
 																className={`h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none'
-																}}
 															/>
 														)}
 														<div className="flex min-w-0 flex-col gap-0.5">

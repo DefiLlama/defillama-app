@@ -139,9 +139,12 @@ export function CustomTimePeriodPicker({
 
 					{mode === 'relative' ? (
 						<div className="flex flex-col gap-2">
-							<label className="text-sm font-medium text-(--text-label)">Days ago</label>
+							<label htmlFor="custom-period-relative-days" className="text-sm font-medium text-(--text-label)">
+								Days ago
+							</label>
 							<div className="flex items-center gap-2">
 								<input
+									id="custom-period-relative-days"
 									type="text"
 									inputMode="numeric"
 									value={relativeDays}
@@ -165,8 +168,11 @@ export function CustomTimePeriodPicker({
 					) : (
 						<div className="flex flex-col gap-3">
 							<div className="flex flex-col gap-2">
-								<label className="text-sm font-medium text-(--text-label)">From</label>
+								<label htmlFor="custom-period-start-date" className="text-sm font-medium text-(--text-label)">
+									From
+								</label>
 								<input
+									id="custom-period-start-date"
 									type="date"
 									value={startDate}
 									max={today}
@@ -175,8 +181,11 @@ export function CustomTimePeriodPicker({
 								/>
 							</div>
 							<div className="flex flex-col gap-2">
-								<label className="text-sm font-medium text-(--text-label)">To</label>
+								<label htmlFor="custom-period-end-date" className="text-sm font-medium text-(--text-label)">
+									To
+								</label>
 								<input
+									id="custom-period-end-date"
 									type="date"
 									value={endDate}
 									max={today}

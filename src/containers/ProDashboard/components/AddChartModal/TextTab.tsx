@@ -6,11 +6,17 @@ interface TextTabProps {
 }
 
 export function TextTab({ textTitle, textContent, onTextTitleChange, onTextContentChange }: TextTabProps) {
+	const titleInputId = 'add-chart-text-tab-title'
+	const contentInputId = 'add-chart-text-tab-content'
+
 	return (
 		<div className="space-y-3 md:space-y-4">
 			<div>
-				<label className="mb-1.5 block text-sm font-medium pro-text2 md:mb-2">Title (Optional)</label>
+				<label htmlFor={titleInputId} className="mb-1.5 block text-sm font-medium pro-text2 md:mb-2">
+					Title (Optional)
+				</label>
 				<input
+					id={titleInputId}
 					type="text"
 					value={textTitle}
 					onChange={(e) => onTextTitleChange(e.target.value)}
@@ -19,8 +25,11 @@ export function TextTab({ textTitle, textContent, onTextTitleChange, onTextConte
 				/>
 			</div>
 			<div>
-				<label className="mb-1.5 block text-sm font-medium pro-text2 md:mb-2">Content (Markdown)</label>
+				<label htmlFor={contentInputId} className="mb-1.5 block text-sm font-medium pro-text2 md:mb-2">
+					Content (Markdown)
+				</label>
 				<textarea
+					id={contentInputId}
 					value={textContent}
 					onChange={(e) => onTextContentChange(e.target.value)}
 					placeholder="Enter markdown content..."

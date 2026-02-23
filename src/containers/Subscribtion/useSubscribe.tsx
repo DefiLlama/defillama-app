@@ -37,6 +37,7 @@ export interface Subscription {
 	metadata?: {
 		isTrial?: boolean
 		trial_started_at?: string
+		isCanceled?: string
 	}
 }
 
@@ -61,6 +62,42 @@ const defaultInactiveSubscription: Subscription = {
 }
 
 const API_KEY_LOCAL_STORAGE_KEY = 'pro_apikey'
+
+const normalizeHttpErrorMessage = (message: string | undefined, fallbackMessage: string): string => {
+	if (!message) return fallbackMessage
+	if (!message.startsWith('[HTTP] [error]')) return message
+	const colonIndex = message.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = message.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
+}
+
+const getErrorMessage = (error: unknown, fallbackMessage: string): string =>
+	error instanceof Error ? normalizeHttpErrorMessage(error.message, fallbackMessage) : fallbackMessage
+
+const syncApiKeyStorage = (apiKey: string | null) => {
+	const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
+	if (apiKey === currentApiKey) return
+	if (apiKey === null) {
+		removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
+		return
+	}
+	setStorageItem(API_KEY_LOCAL_STORAGE_KEY, apiKey)
+}
+
+const parseFetchedApiKey = (payload: unknown): string | null => {
+	if (payload == null || typeof payload !== 'object') return null
+	const apiKeyPayload = (payload as { apiKey?: unknown }).apiKey
+	if (apiKeyPayload == null || typeof apiKeyPayload !== 'object') return null
+	const value = (apiKeyPayload as { api_key?: unknown }).api_key
+	return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+const parseGeneratedApiKey = (payload: unknown): string | null => {
+	if (payload == null || typeof payload !== 'object') return null
+	const value = (payload as { apiKey?: unknown }).apiKey
+	return typeof value === 'string' && value.length > 0 ? value : null
+}
 
 async function fetchSubscription({ isAuthenticated }: { isAuthenticated: boolean }): Promise<Subscription> {
 	if (!isAuthenticated) {
@@ -114,12 +151,15 @@ export const useSubscribe = () => {
 				true
 			)
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to create subscription')
+			if (!response) {
+				throw new Error('Not authenticated')
 			}
 
-			return response.json()
+			const normalizedResponse = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to create subscription'))
+			})
+
+			return normalizedResponse.json()
 		}
 	})
 
@@ -137,43 +177,48 @@ export const useSubscribe = () => {
 				return
 			}
 
-			try {
-				if (paymentMethod === 'stripe') {
-					setIsPayingWithStripe(true)
-				} else {
-					setIsPayingWithLlamapay(true)
+			const subscriptionType = type || 'api'
+			const userId = user?.id
+			if (paymentMethod === 'stripe') {
+				setIsPayingWithStripe(true)
+			} else {
+				setIsPayingWithLlamapay(true)
+			}
+
+			const subscriptionData: SubscriptionRequest = {
+				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
+				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
+				provider: paymentMethod,
+				subscriptionType,
+				billingInterval,
+				isTrial
+			}
+
+			queryClient.setQueryData(['subscription', userId], defaultInactiveSubscription)
+			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+
+			const result = await createSubscription
+				.mutateAsync(subscriptionData)
+				.catch((error) => {
+					console.log('Subscription error:', error)
+					throw error
+				})
+				.finally(() => {
+					setIsPayingWithStripe(false)
+					setIsPayingWithLlamapay(false)
+				})
+
+			// For embedded mode, return the result instead of redirecting
+			if (useEmbedded) {
+				return result
+			}
+
+			// Navigate to checkout URL in same window
+			if (result.checkoutUrl) {
+				if (onSuccess) {
+					onSuccess(result.checkoutUrl)
 				}
-
-				const subscriptionData: SubscriptionRequest = {
-					redirectUrl: `${window.location.origin}/subscription?subscription=success`,
-					cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
-					provider: paymentMethod,
-					subscriptionType: type || 'api',
-					billingInterval,
-					isTrial
-				}
-
-				queryClient.setQueryData(['subscription', user?.id], defaultInactiveSubscription)
-				queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
-
-				const result = await createSubscription.mutateAsync(subscriptionData)
-
-				// For embedded mode, return the result instead of redirecting
-				if (useEmbedded) {
-					return result
-				}
-
-				// Navigate to checkout URL in same window
-				if (result.checkoutUrl) {
-					onSuccess?.(result.checkoutUrl)
-					window.location.href = result.checkoutUrl
-				}
-			} catch (error) {
-				console.log('Subscription error:', error)
-				throw error
-			} finally {
-				setIsPayingWithStripe(false)
-				setIsPayingWithLlamapay(false)
+				window.location.href = result.checkoutUrl
 			}
 		},
 		[isAuthenticated, queryClient, user?.id, createSubscription]
@@ -198,7 +243,7 @@ export const useSubscribe = () => {
 
 	useEffect(() => {
 		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
-			queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
@@ -206,7 +251,7 @@ export const useSubscribe = () => {
 	const isSubscriptionError = subscriptionQuery.isError && !subscriptionData
 
 	const trialAvailabilityQuery = useQuery({
-		queryKey: ['trialAvailable', user?.id],
+		queryKey: ['subscription', 'trial-available', user?.id],
 		queryFn: async () => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/subscription/trial-available`)
 
@@ -221,25 +266,18 @@ export const useSubscribe = () => {
 	})
 
 	const apiKeyQuery = useQuery({
-		queryKey: ['apiKey', user?.id],
+		queryKey: ['subscription', 'api-key', user?.id],
 		queryFn: async () => {
-			try {
-				const data: { apiKey: { api_key: string } } = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-				const newApiKey = data.apiKey?.api_key ?? null
-				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
-				if (newApiKey !== currentApiKey) {
-					if (newApiKey === null) {
-						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
-					} else {
-						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
-					}
-				}
-				return newApiKey
-			} catch (error) {
-				throw new Error(error instanceof Error ? error.message : 'Failed to fetch API key')
-			}
+			const newApiKey = await authorizedFetch(`${AUTH_SERVER}/auth/get-api-key`)
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+				.then(parseFetchedApiKey)
+				.catch((error) => {
+					throw new Error(getErrorMessage(error, 'Failed to fetch API key'))
+				})
+
+			syncApiKeyStorage(newApiKey)
+			return newApiKey
 		},
 		staleTime: 24 * 60 * 60 * 1000, // 24 hours
 		refetchOnWindowFocus: false,
@@ -248,25 +286,18 @@ export const useSubscribe = () => {
 
 	const generateNewKeyMutation = useMutation({
 		mutationFn: async () => {
-			try {
-				const data: { apiKey: string } = await authorizedFetch(`${AUTH_SERVER}/auth/generate-api-key`, {
-					method: 'POST'
+			const newApiKey = await authorizedFetch(`${AUTH_SERVER}/auth/generate-api-key`, {
+				method: 'POST'
+			})
+				.then(handleSimpleFetchResponse)
+				.then((res) => res.json())
+				.then(parseGeneratedApiKey)
+				.catch((error) => {
+					throw new Error(getErrorMessage(error, 'Failed to generate API key'))
 				})
-					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-				const newApiKey = data.apiKey ?? null
-				const currentApiKey = getStorageItem(API_KEY_LOCAL_STORAGE_KEY, null)
-				if (newApiKey !== currentApiKey) {
-					if (newApiKey === null) {
-						removeStorageItem(API_KEY_LOCAL_STORAGE_KEY)
-					} else {
-						setStorageItem(API_KEY_LOCAL_STORAGE_KEY, newApiKey)
-					}
-				}
-				return newApiKey
-			} catch (error) {
-				throw new Error(error instanceof Error ? error.message : 'Failed to generate API key')
-			}
+
+			syncApiKeyStorage(newApiKey)
+			return newApiKey
 		}
 	})
 
@@ -281,7 +312,7 @@ export const useSubscribe = () => {
 		isLoading: isCreditsLoading,
 		refetch: refetchCredits
 	} = useQuery<Credits>({
-		queryKey: ['credits', user?.id, apiKey],
+		queryKey: ['subscription', 'credits', user?.id, apiKey],
 		queryFn: async () => {
 			const data = await authorizedFetch(`${AUTH_SERVER}/user/credits`, {
 				method: 'GET'
@@ -298,7 +329,7 @@ export const useSubscribe = () => {
 	})
 
 	const usageStatsQuery = useQuery({
-		queryKey: ['usageStats', user?.id],
+		queryKey: ['subscription', 'usage-stats', user?.id],
 		queryFn: async () => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/usage-stats`, {
 				method: 'GET'
@@ -352,10 +383,6 @@ export const useSubscribe = () => {
 	})
 
 	const createPortalSession = useCallback(async () => {
-		if (!isAuthenticated) {
-			return null
-		}
-
 		try {
 			const url = await createPortalSessionAsync()
 			if (url) {
@@ -365,7 +392,7 @@ export const useSubscribe = () => {
 		} catch {
 			return null
 		}
-	}, [isAuthenticated, createPortalSessionAsync])
+	}, [createPortalSessionAsync])
 
 	const endTrialMutation = useMutation({
 		mutationFn: async () => {
@@ -377,15 +404,19 @@ export const useSubscribe = () => {
 				method: 'POST'
 			})
 
-			if (!response.ok) {
-				throw new Error('Failed to end trial subscription')
+			if (!response) {
+				throw new Error('Not authenticated')
 			}
 
-			return response.json()
+			const normalizedResponse = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to end trial subscription'))
+			})
+
+			return normalizedResponse.json()
 		},
 		onSuccess: async () => {
 			toast.success('Trial upgrade successful')
-			await queryClient.invalidateQueries({ queryKey: ['currentUserAuthStatus'] })
+			await queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 			await queryClient.invalidateQueries({ queryKey: ['subscription'] })
 		},
 		onError: (error) => {
@@ -393,19 +424,14 @@ export const useSubscribe = () => {
 		}
 	})
 
-	const getPortalSessionUrl = useCallback(async () => {
-		if (!isAuthenticated) {
-			throw new Error('Not authenticated')
-		}
-
-		const url = await createPortalSessionAsync()
-		return url
-	}, [isAuthenticated, createPortalSessionAsync])
-
 	const enableOverageMutation = useMutation({
 		mutationFn: async () => {
 			if (!isAuthenticated) {
-				throw new Error('Not authenticated')
+				throw new Error('Please sign in to enable overage')
+			}
+
+			if (apiSubscription.status !== 'active') {
+				throw new Error('No active API subscription found')
 			}
 
 			const data = await authorizedFetch(
@@ -429,7 +455,45 @@ export const useSubscribe = () => {
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
-			toast.error('Failed to enable overage. Please try again.')
+			toast.error(error.message || 'Failed to enable overage. Please try again.')
+		}
+	})
+
+	const cancelSubscriptionMutation = useMutation({
+		mutationFn: async (message?: string) => {
+			if (!isAuthenticated) {
+				throw new Error('Not authenticated')
+			}
+
+			const response = await authorizedFetch(
+				`${AUTH_SERVER}/subscription/cancel`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ message })
+				},
+				true
+			)
+
+			if (!response) {
+				throw new Error('Not authenticated')
+			}
+
+			const normalizedResponse = await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getErrorMessage(error, 'Failed to cancel subscription'))
+			})
+
+			return normalizedResponse.json()
+		},
+		onSuccess: () => {
+			toast.success('Subscription scheduled for cancellation')
+			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
+		},
+		onError: (error) => {
+			console.log('Cancel subscription error:', error)
+			toast.error('Failed to cancel subscription. Please try again or contact support.')
 		}
 	})
 
@@ -466,7 +530,7 @@ export const useSubscribe = () => {
 		credits: credits?.credits,
 		isCreditsLoading,
 		refetchCredits,
-		getPortalSessionUrl,
+		getPortalSessionUrl: createPortalSessionAsync,
 		createPortalSession,
 		endTrialSubscription: endTrialMutation.mutateAsync,
 		isEndTrialLoading: endTrialMutation.isPending,
@@ -479,6 +543,8 @@ export const useSubscribe = () => {
 		isTrialAvailable: trialAvailabilityQuery.data?.trialAvailable ?? false,
 		usageStats: usageStatsQuery.data ?? null,
 		isUsageStatsLoading: usageStatsQuery.isLoading,
-		isUsageStatsError: usageStatsQuery.isError
+		isUsageStatsError: usageStatsQuery.isError,
+		cancelSubscription: cancelSubscriptionMutation.mutateAsync,
+		isCancelSubscriptionLoading: cancelSubscriptionMutation.isPending
 	}
 }

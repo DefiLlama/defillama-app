@@ -5,10 +5,12 @@ import {
 	ComboboxProvider,
 	Popover,
 	useComboboxStore,
-	usePopoverStore
+	usePopoverStore,
+	useStoreState
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import Image from 'next/image'
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useMedia } from '~/hooks/useMedia'
@@ -131,7 +133,7 @@ export function MetricSentenceBuilder({
 }: MetricSentenceBuilderProps) {
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
-	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>(metricSubjectType)
+	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>('chain')
 	const isMobile = useMedia('(max-width: 639px)')
 	const popover = usePopoverStore({
 		placement: isMobile ? 'bottom' : 'right-start'
@@ -144,8 +146,8 @@ export function MetricSentenceBuilder({
 		window: null
 	})
 	const [popoverWidth, setPopoverWidth] = useState(260)
-	const isPopoverOpen = popover.useState('open')
-	const subjectSearchValue = subjectCombobox.useState('value') ?? ''
+	const isPopoverOpen = useStoreState(popover, 'open')
+	const subjectSearchValue = useStoreState(subjectCombobox, 'value') ?? ''
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const protocolListRef = useRef<HTMLDivElement | null>(null)
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
@@ -154,21 +156,33 @@ export function MetricSentenceBuilder({
 		if (!isPopoverOpen) {
 			setActiveToken(null)
 		}
+	}, [isPopoverOpen])
+
+	useEffect(() => {
 		if (!activeToken) {
 			setSearchTerm('')
+		}
+	}, [activeToken])
+
+	useEffect(() => {
+		if (!activeToken) {
 			setSubjectTab(metricSubjectType)
 		}
+	}, [activeToken, metricSubjectType])
+
+	useEffect(() => {
 		if (activeToken === 'subject') {
 			subjectCombobox.setOpen(true)
 			setTimeout(() => {
 				const portal = document.querySelector('[data-metric-token] input') as HTMLInputElement | null
 				portal?.focus()
 			}, 10)
-		} else {
-			subjectCombobox.setValue('')
-			subjectCombobox.setOpen(false)
+			return
 		}
-	}, [isPopoverOpen, activeToken, metricSubjectType, subjectCombobox])
+
+		subjectCombobox.setValue('')
+		subjectCombobox.setOpen(false)
+	}, [activeToken, subjectCombobox])
 
 	const closePopover = () => {
 		popover.setOpen(false)
@@ -241,9 +255,7 @@ export function MetricSentenceBuilder({
 		return Array.from(set)
 	}, [chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
 
-	const baseMetricTypes = useMemo(() => {
-		return availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
-	}, [availableMetricTypes, globalAvailableMetricTypes])
+	const baseMetricTypes = availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
 
 	const _selectedProtocolOption = useMemo(
 		() => protocolOptions.find((option) => option.value === metricProtocol) || null,
@@ -386,7 +398,7 @@ export function MetricSentenceBuilder({
 		closePopover()
 	}
 
-	const renderPopoverContent = () => {
+	const popoverContent = (() => {
 		switch (activeToken) {
 			case 'aggregator':
 				return (
@@ -433,7 +445,6 @@ export function MetricSentenceBuilder({
 					<div className="thin-scrollbar max-h-[320px] w-full overflow-y-auto" data-metric-token="true">
 						<div className="sticky top-0 border-b border-(--cards-border) bg-(--cards-bg) p-1.5">
 							<input
-								autoFocus
 								value={searchTerm}
 								onChange={(event) => setSearchTerm(event.target.value)}
 								placeholder="Search metrics..."
@@ -526,7 +537,6 @@ export function MetricSentenceBuilder({
 							<div className="space-y-2">
 								<div className="rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-inner">
 									<Combobox
-										autoFocus
 										placeholder={subjectTab === 'chain' ? 'Search chains...' : 'Search protocols...'}
 										className="mb-1.5 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										aria-label="Search"
@@ -564,14 +574,13 @@ export function MetricSentenceBuilder({
 															>
 																<div className="flex min-w-0 items-center gap-2">
 																	{iconUrl ? (
-																		<img
+																		<Image
 																			src={iconUrl}
 																			alt={option.label}
+																			width={20}
+																			height={20}
+																			unoptimized
 																			className="h-5 w-5 rounded-full object-cover"
-																			onError={(event) => {
-																				const target = event.currentTarget
-																				target.style.display = 'none'
-																			}}
 																		/>
 																	) : null}
 																	<span className="truncate">{option.label}</span>
@@ -617,14 +626,13 @@ export function MetricSentenceBuilder({
 														>
 															<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
 																{iconUrl ? (
-																	<img
+																	<Image
 																		src={option.logo || iconUrl}
 																		alt={option.label}
+																		width={20}
+																		height={20}
+																		unoptimized
 																		className={`h-5 w-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
-																		onError={(event) => {
-																			const target = event.currentTarget
-																			target.style.display = 'none'
-																		}}
 																	/>
 																) : null}
 																<div className="flex min-w-0 flex-col">
@@ -655,7 +663,7 @@ export function MetricSentenceBuilder({
 			default:
 				return null
 		}
-	}
+	})()
 
 	const handleTokenPress = (token: Exclude<ActiveToken, null>) => () => {
 		handleTokenClick(token)
@@ -772,7 +780,7 @@ export function MetricSentenceBuilder({
 					overflow: 'hidden auto'
 				}}
 			>
-				{renderPopoverContent()}
+				{popoverContent}
 			</Popover>
 		</div>
 	)

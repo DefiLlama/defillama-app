@@ -1,5 +1,6 @@
-import { DIMENSIONS_OVERVIEW_API, PROTOCOLS_API } from '~/constants'
+import { DIMENSIONS_OVERVIEW_API } from '~/constants'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { METRIC_CONFIG_BASE, toSlug } from '~/utils/protocolSplit'
 import type { ChartSeries, ProtocolSplitData } from './types'
@@ -219,8 +220,7 @@ export const getDimensionsSplitData = async ({
 	let parentIdToName: Map<string, string> = new Map()
 	let parentIdToSlug: Map<string, string> = new Map()
 
-	const protocolsResponse = await fetch(PROTOCOLS_API)
-	const protocolsData = await protocolsResponse.json()
+	const protocolsData = await fetchProtocols()
 	const protocols = protocolsData.protocols || []
 	const parentProtocols = protocolsData.parentProtocols || []
 

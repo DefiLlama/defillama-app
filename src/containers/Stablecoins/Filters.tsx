@@ -6,6 +6,7 @@ import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Select } from '~/components/Select/Select'
 import { useRangeFilter } from '~/hooks/useRangeFilter'
+import { parseExcludeParam, parseIncludeParam } from '~/utils/routerQuery'
 import type { FormattedStablecoinAsset } from './utils'
 
 type StablecoinFilterableItem = Pick<
@@ -186,20 +187,6 @@ export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 ]
 
 type StablecoinFilterKey = string
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
-// Helper to parse include param ("None" sentinel supported) to array
-const parseIncludeParam = (param: string | string[] | undefined, allKeys: string[]): string[] => {
-	if (!param) return allKeys
-	if (typeof param === 'string') return param === 'None' ? [] : [param]
-	return [...param]
-}
 
 function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 	const router = useRouter()

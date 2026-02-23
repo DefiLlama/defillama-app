@@ -175,9 +175,11 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			{} as Record<string, number>
 		)
 
-		const pieData = Object.entries(aggregatedData)
-			.map(([name, value]: [string, number]) => ({ name, value }))
-			.sort((a, b) => b.value - a.value)
+		const pieData: Array<{ name: string; value: number }> = []
+		for (const name in aggregatedData) {
+			pieData.push({ name, value: aggregatedData[name] })
+		}
+		pieData.sort((a, b) => b.value - a.value)
 
 		const stackColors: Record<string, string> = {}
 		for (let index = 0; index < pieData.length; index++) {
@@ -459,22 +461,28 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 			if (seriesConfig.dataMapping.entityFilter) {
 				const { field, value } = seriesConfig.dataMapping.entityFilter
 				entityValue = value
-				filteredData = rawData.filter((row) => {
+				const nextFilteredData: any[] = []
+				for (const row of rawData) {
 					const rowValue = row[field]
 					if (typeof rowValue === 'string' && typeof value === 'string') {
-						return rowValue.toLowerCase() === value.toLowerCase()
+						if (rowValue.toLowerCase() === value.toLowerCase()) {
+							nextFilteredData.push(row)
+						}
+					} else if (rowValue === value) {
+						nextFilteredData.push(row)
 					}
-					return rowValue === value
-				})
+				}
+				filteredData = nextFilteredData
 			}
 
 			if (config.axes.x.type === 'time') {
-				seriesData = filteredData.map((row) => {
+				seriesData = []
+				for (const row of filteredData) {
 					const timestamp = row[seriesConfig.dataMapping.xField]
 					const value = row[seriesConfig.dataMapping.yField]
 					const unixTimestamp = convertToUnixTimestamp(timestamp)
-					return [unixTimestamp, value == null ? null : parseStringNumber(value)]
-				})
+					seriesData.push([unixTimestamp, value == null ? null : parseStringNumber(value)])
+				}
 
 				seriesData.sort((a, b) => a[0] - b[0])
 			} else {
@@ -585,19 +593,24 @@ export function adaptCandlestickData(
 
 	if (rawData?.ohlcv) {
 		data = rawData.ohlcv.map((row: any[]) => [row[0], row[1], row[2], row[3], row[4], row[5]])
-		indicators = Object.entries(rawData.indicators || {}).map(([name, ind]: [string, any]) => {
+		indicators = []
+		for (const name in rawData.indicators || {}) {
+			const ind = (rawData.indicators || {})[name]
 			const isOverlay = OVERLAY_INDICATORS.some((o) => name.toLowerCase().startsWith(o))
 			const hasMultiValues = ind.data?.[0]?.values
-			return {
+			indicators.push({
 				name,
 				category: isOverlay ? 'overlay' : 'panel',
 				data: ind.data?.map((d: any) => [d.date, d.value]) || [],
 				values: hasMultiValues ? ind.data.map((d: any) => [d.date, d.values]) : undefined
-			}
-		})
+			})
+		}
 	} else if (Array.isArray(rawData)) {
 		const sample = rawData[0] || {}
-		const keys = Object.keys(sample)
+		const keys: string[] = []
+		for (const key in sample) {
+			keys.push(key)
+		}
 		const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) : new Date(r.date).getTime())
 
 		data = rawData.map((r: any) => [

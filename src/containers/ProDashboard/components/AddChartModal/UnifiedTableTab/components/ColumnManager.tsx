@@ -162,21 +162,103 @@ export function ColumnManager({
 	onSortingChange,
 	onSortingReset
 }: ColumnManagerProps) {
-	const [search, setSearch] = useState('')
-	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
-	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
-	const [customColumnExpanded, setCustomColumnExpanded] = useState(false)
+	const [uiState, setUIState] = useState<{
+		search: string
+		groupFilter: ColumnGroupId | 'all'
+		activeId: UniqueIdentifier | null
+		customColumnExpanded: boolean
+	}>({
+		search: '',
+		groupFilter: 'all',
+		activeId: null,
+		customColumnExpanded: false
+	})
+	const { search, groupFilter, activeId, customColumnExpanded } = uiState
 
-	const [customName, setCustomName] = useState('')
-	const [customExpression, setCustomExpression] = useState('')
-	const [customFormat, setCustomFormat] = useState<ColumnFormat>('number')
-	const [customAggregation, setCustomAggregation] = useState<ColumnAggregation>('recalculate')
-	const [editingId, setEditingId] = useState<string | null>(null)
-	const [showAutocomplete, setShowAutocomplete] = useState(false)
-	const [autocompleteIndex, setAutocompleteIndex] = useState(-1)
-	const [autocompleteFilter, setAutocompleteFilter] = useState('')
+	const [customColumnState, setCustomColumnState] = useState<{
+		customName: string
+		customExpression: string
+		customFormat: ColumnFormat
+		customAggregation: ColumnAggregation
+		editingId: string | null
+		aggregationTouched: boolean
+	}>({
+		customName: '',
+		customExpression: '',
+		customFormat: 'number',
+		customAggregation: 'recalculate',
+		editingId: null,
+		aggregationTouched: false
+	})
+	const { customName, customExpression, customFormat, customAggregation, editingId, aggregationTouched } =
+		customColumnState
+
+	const [autocompleteState, setAutocompleteState] = useState<{
+		showAutocomplete: boolean
+		autocompleteIndex: number
+		autocompleteFilter: string
+	}>({
+		showAutocomplete: false,
+		autocompleteIndex: -1,
+		autocompleteFilter: ''
+	})
+	const { showAutocomplete, autocompleteIndex, autocompleteFilter } = autocompleteState
+
+	const setSearch = (value: string) => {
+		setUIState((prev) => ({ ...prev, search: value }))
+	}
+
+	const setGroupFilter = (value: ColumnGroupId | 'all') => {
+		setUIState((prev) => ({ ...prev, groupFilter: value }))
+	}
+
+	const setActiveId = (value: UniqueIdentifier | null) => {
+		setUIState((prev) => ({ ...prev, activeId: value }))
+	}
+
+	const setCustomColumnExpanded = (value: boolean) => {
+		setUIState((prev) => ({ ...prev, customColumnExpanded: value }))
+	}
+
+	const setCustomName = (value: string) => {
+		setCustomColumnState((prev) => ({ ...prev, customName: value }))
+	}
+
+	const setCustomExpression = (value: string) => {
+		setCustomColumnState((prev) => ({ ...prev, customExpression: value }))
+	}
+
+	const setCustomFormat = (value: ColumnFormat) => {
+		setCustomColumnState((prev) => ({ ...prev, customFormat: value }))
+	}
+
+	const setCustomAggregation = (value: ColumnAggregation) => {
+		setCustomColumnState((prev) => ({ ...prev, customAggregation: value }))
+	}
+
+	const setEditingId = (value: string | null) => {
+		setCustomColumnState((prev) => ({ ...prev, editingId: value }))
+	}
+
+	const setAggregationTouched = (value: boolean) => {
+		setCustomColumnState((prev) => ({ ...prev, aggregationTouched: value }))
+	}
+
+	const setShowAutocomplete = (value: boolean) => {
+		setAutocompleteState((prev) => ({ ...prev, showAutocomplete: value }))
+	}
+
+	const setAutocompleteIndex = (value: number | ((prev: number) => number)) => {
+		setAutocompleteState((prev) => ({
+			...prev,
+			autocompleteIndex: typeof value === 'function' ? value(prev.autocompleteIndex) : value
+		}))
+	}
+
+	const setAutocompleteFilter = (value: string) => {
+		setAutocompleteState((prev) => ({ ...prev, autocompleteFilter: value }))
+	}
 	const expressionInputRef = useRef<HTMLInputElement>(null)
-	const aggregationTouchedRef = useRef(false)
 
 	const allColumns = useMemo(() => buildAllColumns(customColumns), [customColumns])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((c) => c.id)), [allColumns])
@@ -339,12 +421,10 @@ export function ColumnManager({
 				}
 			})
 	}, [customExpression, expressionValidation.isValid, availableVariables])
-
-	useEffect(() => {
-		if (customExpression && expressionValidation.isValid && !editingId && !aggregationTouchedRef.current) {
-			setCustomAggregation(getDefaultAggregation(customExpression))
-		}
-	}, [customExpression, expressionValidation.isValid, editingId])
+	const resolvedCustomAggregation =
+		customExpression && expressionValidation.isValid && !editingId && !aggregationTouched
+			? getDefaultAggregation(customExpression)
+			: customAggregation
 
 	const insertSuggestion = (suggestion: AutocompleteSuggestion) => {
 		if (!expressionInputRef.current) return
@@ -354,7 +434,7 @@ export function ColumnManager({
 		const value = input.value
 
 		let wordStart = start
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) wordStart--
+		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) wordStart -= 1
 
 		const newValue = value.slice(0, wordStart) + suggestion.value + value.slice(end)
 		setCustomExpression(newValue)
@@ -376,7 +456,7 @@ export function ColumnManager({
 		setCustomExpression(newValue)
 
 		let wordStart = cursorPos
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) wordStart--
+		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) wordStart -= 1
 		const currentWord = newValue.slice(wordStart, cursorPos)
 
 		if (currentWord.length >= 1) {
@@ -430,7 +510,7 @@ export function ColumnManager({
 			name: customName.trim(),
 			expression: customExpression.trim(),
 			format: customFormat,
-			aggregation: customAggregation
+			aggregation: resolvedCustomAggregation
 		}
 		if (editingId && onUpdateCustomColumn) {
 			onUpdateCustomColumn(editingId, {
@@ -443,7 +523,7 @@ export function ColumnManager({
 		} else if (onAddCustomColumn) {
 			onAddCustomColumn(column)
 		}
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName('')
 		setCustomExpression('')
 		setCustomFormat('number')
@@ -452,7 +532,7 @@ export function ColumnManager({
 	}
 
 	const handleApplyPreset = (preset: (typeof EXAMPLE_PRESETS)[0]) => {
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName(preset.name)
 		setCustomExpression(preset.expression)
 		setCustomFormat(preset.format)
@@ -470,7 +550,7 @@ export function ColumnManager({
 	}
 
 	const handleCancelEdit = () => {
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName('')
 		setCustomExpression('')
 		setCustomFormat('number')
@@ -650,7 +730,7 @@ export function ColumnManager({
 							/>
 						</div>
 
-						<div className="relative" onClick={(e) => e.stopPropagation()}>
+						<div className="relative" role="presentation" onClick={(e) => e.stopPropagation()}>
 							<input
 								ref={expressionInputRef}
 								type="text"
@@ -679,8 +759,9 @@ export function ColumnManager({
 							{showAutocomplete && filteredSuggestions.length > 0 && (
 								<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
 									{filteredSuggestions.map((suggestion, index) => (
-										<div
+										<button
 											key={`${suggestion.type}-${suggestion.value}`}
+											type="button"
 											onClick={() => insertSuggestion(suggestion)}
 											onMouseEnter={() => setAutocompleteIndex(index)}
 											className={`flex cursor-pointer items-center gap-2 px-2 py-1 text-xs ${
@@ -700,7 +781,7 @@ export function ColumnManager({
 											/>
 											<code className="shrink-0">{suggestion.display}</code>
 											<span className="ml-auto truncate text-(--text-tertiary)">{suggestion.description}</span>
-										</div>
+										</button>
 									))}
 								</div>
 							)}
@@ -709,7 +790,7 @@ export function ColumnManager({
 
 						<div className="flex flex-wrap gap-2">
 							<div className="flex-1">
-								<label className="mb-1 block text-[10px] font-medium text-(--text-secondary)">Format</label>
+								<p className="mb-1 text-[10px] font-medium text-(--text-secondary)">Format</p>
 								<div className="flex gap-1">
 									{FORMAT_OPTIONS.map((opt) => (
 										<Tooltip key={opt.id} content={opt.description} placement="bottom">
@@ -729,18 +810,18 @@ export function ColumnManager({
 								</div>
 							</div>
 							<div className="flex-1">
-								<label className="mb-1 block text-[10px] font-medium text-(--text-secondary)">Aggregation</label>
+								<p className="mb-1 text-[10px] font-medium text-(--text-secondary)">Aggregation</p>
 								<div className="flex gap-1">
 									{AGGREGATION_OPTIONS.map((opt) => (
 										<Tooltip key={opt.id} content={opt.description} placement="bottom">
 											<button
 												type="button"
 												onClick={() => {
-													aggregationTouchedRef.current = true
+													setAggregationTouched(true)
 													setCustomAggregation(opt.id)
 												}}
 												className={`flex-1 rounded-md border px-1 py-1 text-[10px] font-medium transition-colors ${
-													customAggregation === opt.id
+													resolvedCustomAggregation === opt.id
 														? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
 														: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
 												}`}

@@ -1,9 +1,7 @@
 import { fetchCoinPrices as fetchCoinPricesBatched } from '~/api'
-import { COINS_PRICES_API } from '~/constants'
 import { buildUnlocksMultiSeriesChartForDateRange } from '~/containers/Unlocks/buildUnlocksMultiSeriesChart'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { batchFetchHistoricalPrices, capitalizeFirstLetter, getNDistinctColors, roundToNearestHalfHour } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import { fetchProtocolEmission, fetchAllProtocolEmissions, fetchEmissionsProtocolsList } from './api'
 import type {
 	EmissionsDataset,
@@ -15,10 +13,6 @@ import type {
 } from './api.types'
 import type { CalendarUnlockEvent } from './calendarTypes'
 import type { ProtocolEmissionResult } from './types'
-
-interface CoinPricesResponse {
-	coins?: Record<string, { price?: number; symbol?: string }>
-}
 
 function buildEmissionsDataset(chartData: Array<EmissionsChartRow>, stacks: string[]): EmissionsDataset {
 	const source: Array<Record<string, number | null>> = chartData.map((row) => ({ ...row }))
@@ -64,7 +58,9 @@ function isStringKeyedObject(value: unknown): value is Record<string, unknown> {
 
 function toNumberRecord(obj: Record<string, unknown>): Record<string, number> {
 	const result: Record<string, number> = {}
-	for (const [key, val] of Object.entries(obj)) {
+	for (const key in obj) {
+		if (!Object.prototype.hasOwnProperty.call(obj, key)) continue
+		const val = obj[key]
 		if (typeof val === 'number' && Number.isFinite(val)) {
 			result[key] = val
 		}
@@ -165,7 +161,7 @@ function buildPieFromChart(chart: EmissionsChartRow[]): Array<{ name: string; va
 	const last = chart[chart.length - 1]
 	if (!last) return []
 	const pie: Array<{ name: string; value: number | string }> = []
-	for (const key of Object.keys(last)) {
+	for (const key in last) {
 		if (key !== 'timestamp') {
 			const value = last[key]
 			if (typeof value === 'number') {
@@ -539,6 +535,17 @@ const getAllProtocolEmissionsWithHistory = async ({
 	}
 }
 
+type EnrichedProtocolEmission = ProtocolEmission & {
+	unlockEvents: null
+	sources: null
+	upcomingEvent: EmissionEvent[]
+	events: EmissionEvent[]
+	tPrice: number | null
+	historicalPrice: Array<[number, number]>
+	lastEvent: EmissionEvent[]
+	tSymbol: string | null
+}
+
 export const getAllProtocolEmissions = async ({
 	startDate,
 	endDate,
@@ -558,7 +565,6 @@ export const getAllProtocolEmissions = async ({
 			if (p.gecko_id) coinIds.push(`coingecko:${p.gecko_id}`)
 		}
 		const coinPrices = await fetchCoinPricesBatched(coinIds)
-		const coins = { coins: coinPrices }
 
 		const priceReqs: Record<string, number[]> = {}
 		const lastPastTimestampByCoinKey = new Map<string, number>()
@@ -603,94 +609,112 @@ export const getAllProtocolEmissions = async ({
 			}
 		}
 
+		let hasPriceRequests = false
+		for (const coinKey in priceReqs) {
+			if (Object.prototype.hasOwnProperty.call(priceReqs, coinKey)) {
+				hasPriceRequests = true
+				break
+			}
+		}
 		const historicalPrices =
-			getHistoricalPrices && Object.keys(priceReqs).length > 0
-				? (await batchFetchHistoricalPrices(priceReqs)).results
-				: {}
+			getHistoricalPrices && hasPriceRequests ? (await batchFetchHistoricalPrices(priceReqs)).results : {}
 
-		return protocols
-			.map((protocol: ProtocolEmission) => {
-				try {
-					const geckoId = protocol?.gecko_id
-					const coinKey = geckoId ? `coingecko:${geckoId}` : null
+		const rows: EnrichedProtocolEmission[] = []
+		for (const protocol of protocols) {
+			try {
+				const geckoId = protocol?.gecko_id
+				const coinKey = geckoId ? `coingecko:${geckoId}` : null
 
-					const eventsRaw = Array.isArray(protocol?.events) ? protocol.events : []
-					const events = eventsRaw.map((event: EmissionEvent) => ({
-						...event,
-						timestamp: typeof event?.timestamp === 'number' ? roundToNearestHalfHour(event.timestamp) : event?.timestamp
-					}))
+				const eventsRaw = Array.isArray(protocol?.events) ? protocol.events : []
+				const events = eventsRaw.map((event: EmissionEvent) => ({
+					...event,
+					timestamp: typeof event?.timestamp === 'number' ? roundToNearestHalfHour(event.timestamp) : event?.timestamp
+				}))
 
-					// Upcoming event: choose the earliest upcoming event with non-zero tokens.
-					let upcomingTimestamp: number | null = null
-					for (const e of events) {
-						const ts = e?.timestamp
-						if (typeof ts !== 'number' || !Number.isFinite(ts)) continue
-						if (ts < nowSec) continue
-						if (e?.noOfTokens?.length === 1 && e.noOfTokens[0] === 0) continue
-						if (upcomingTimestamp === null || ts < upcomingTimestamp) upcomingTimestamp = ts
+				// Upcoming event: choose the earliest upcoming event with non-zero tokens.
+				let upcomingTimestamp: number | null = null
+				for (const e of events) {
+					const ts = e?.timestamp
+					if (typeof ts !== 'number' || !Number.isFinite(ts)) continue
+					if (ts < nowSec) continue
+					if (e?.noOfTokens?.length === 1 && e.noOfTokens[0] === 0) continue
+					if (upcomingTimestamp === null || ts < upcomingTimestamp) upcomingTimestamp = ts
+				}
+
+				const upcomingEvent: EmissionEvent[] = []
+				if (upcomingTimestamp !== null) {
+					for (const event of events) {
+						if (event.timestamp === upcomingTimestamp) {
+							upcomingEvent.push(event)
+						}
 					}
+				}
 
-					const upcomingEvent: EmissionEvent[] =
-						upcomingTimestamp === null ? [] : events.filter((e: EmissionEvent) => e.timestamp === upcomingTimestamp)
-
-					const lastPastTimestamp = coinKey ? lastPastTimestampByCoinKey.get(coinKey) : undefined
-					const lastEvent =
-						typeof lastPastTimestamp === 'number'
-							? events.filter(
-									(e: EmissionEvent) =>
-										e.timestamp === lastPastTimestamp && e.category !== 'noncirculating' && e.category !== 'farming'
-								)
-							: []
-
-					let filteredEvents = events
-					if (startDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp >= startDate)
-					if (endDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp <= endDate)
-
-					const coin = coinKey ? coins.coins[coinKey] : null
-					const tSymbol = coin?.symbol ?? null
-					const historicalPrice = coinKey ? historicalPrices[coinKey] : null
-
-					return {
-						...protocol,
-						// Reduce payload without mutating original object
-						unlockEvents: null,
-						sources: null,
-						upcomingEvent,
-						events: filteredEvents,
-						tPrice: coin?.price ?? null,
-						historicalPrice:
-							lastEvent.length > 0 && historicalPrice?.prices
-								? historicalPrice.prices
-										.sort((a, b) => a.timestamp - b.timestamp)
-										.map((price) => [price.timestamp * 1000, price.price])
-								: [],
-						lastEvent,
-						tSymbol
+				const lastPastTimestamp = coinKey ? lastPastTimestampByCoinKey.get(coinKey) : undefined
+				const lastEvent: EmissionEvent[] = []
+				if (typeof lastPastTimestamp === 'number') {
+					for (const event of events) {
+						if (
+							event.timestamp === lastPastTimestamp &&
+							event.category !== 'noncirculating' &&
+							event.category !== 'farming'
+						) {
+							lastEvent.push(event)
+						}
 					}
-				} catch (e) {
-					console.log('error', protocol.name, e)
-					return null
-				}
-			})
-			.filter(<T>(x: T | null): x is T => x !== null)
-			.sort((a, b) => {
-				const x = a.upcomingEvent?.[0]?.timestamp
-				const y = b.upcomingEvent?.[0]?.timestamp
-				// equal items sort equally
-				if (x === y) {
-					return 0
 				}
 
-				// nulls sort after anything else
-				if (x === null || x === undefined) {
-					return 1
-				}
-				if (y === null || y === undefined) {
-					return -1
+				let filteredEvents = events
+				if (startDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp >= startDate)
+				if (endDate) filteredEvents = filteredEvents.filter((e: EmissionEvent) => e.timestamp <= endDate)
+
+				const coin = coinKey ? coinPrices[coinKey] : null
+				const tSymbol = coin?.symbol ?? null
+				const historicalPrice = coinKey ? historicalPrices[coinKey] : null
+
+				const formattedHistoricalPrice: Array<[number, number]> = []
+				if (lastEvent.length > 0 && historicalPrice?.prices) {
+					historicalPrice.prices.sort((a, b) => a.timestamp - b.timestamp)
+					for (const price of historicalPrice.prices) {
+						formattedHistoricalPrice.push([price.timestamp * 1000, price.price])
+					}
 				}
 
-				return x < y ? -1 : 1
-			})
+				rows.push({
+					...protocol,
+					// Reduce payload without mutating original object
+					unlockEvents: null,
+					sources: null,
+					upcomingEvent,
+					events: filteredEvents,
+					tPrice: coin?.price ?? null,
+					historicalPrice: formattedHistoricalPrice,
+					lastEvent,
+					tSymbol
+				})
+			} catch (e) {
+				console.log('error', protocol.name, e)
+			}
+		}
+		rows.sort((a, b) => {
+			const x = a.upcomingEvent?.[0]?.timestamp
+			const y = b.upcomingEvent?.[0]?.timestamp
+			// equal items sort equally
+			if (x === y) {
+				return 0
+			}
+
+			// nulls sort after anything else
+			if (x === null || x === undefined) {
+				return 1
+			}
+			if (y === null || y === undefined) {
+				return -1
+			}
+
+			return x < y ? -1 : 1
+		})
+		return rows
 	} catch (e) {
 		console.log(e)
 		return []
@@ -734,7 +758,10 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const list = await fetchEmissionsProtocolsList()
 		if (!list.includes(protocolName)) return emptyResult
 
-		const [res, allEmissions] = await Promise.all([fetchProtocolEmission(protocolName), fetchAllProtocolEmissions()])
+		const [res, allEmissions] = await Promise.all([
+			fetchProtocolEmission(protocolName),
+			fetchAllProtocolEmissions().catch(() => [])
+		])
 
 		if (!res) return emptyResult
 
@@ -766,15 +793,15 @@ export const getProtocolEmissons = async (protocolName: string): Promise<Protoco
 		const nowSec = Date.now() / 1000
 
 		const tokenKey = metadata?.token
-		const prices: CoinPricesResponse =
-			typeof tokenKey === 'string' && tokenKey
-				? await fetchJson<CoinPricesResponse>(`${COINS_PRICES_API}/current/${tokenKey}?searchWidth=4h`).catch((err) => {
-						console.log(err)
-						return {}
-					})
-				: {}
+		const coinKey = typeof tokenKey === 'string' && tokenKey ? tokenKey : null
+		const prices = coinKey
+			? await fetchCoinPricesBatched([coinKey], { searchWidth: '4h' }).catch((err) => {
+					console.log(err)
+					return {}
+				})
+			: {}
 
-		const tokenPriceData = tokenKey ? prices.coins?.[tokenKey] : undefined
+		const tokenPriceData = coinKey ? prices[coinKey] : undefined
 		const tokenPrice: { price?: number; symbol?: string } = tokenPriceData ? { ...tokenPriceData } : {}
 
 		let upcomingEvent: EmissionEvent[] = []

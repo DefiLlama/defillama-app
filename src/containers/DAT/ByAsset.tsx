@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -9,65 +8,14 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
 import type { IDATOverviewDataByAssetProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 const DEFAULT_SORTING_STATE = [{ id: 'totalAssetAmount', desc: true }]
 
-function prepareAssetBreakdownCsv(
-	institutions: IDATOverviewDataByAssetProps['institutions'],
-	name: string,
-	symbol: string
-) {
-	const headers = [
-		'Institution',
-		'Ticker',
-		'Type',
-		`Holdings (${symbol})`,
-		"Today's Holdings Value",
-		'Stock Price',
-		'24h Price Change (%)',
-		`% of ${symbol} Circulating Supply`,
-		'Realized mNAV',
-		'Realistic mNAV',
-		'Max mNAV',
-		`Average Purchase Price (${symbol})`,
-		'Last Updated'
-	]
-
-	const rows = institutions.map((institution) => {
-		return [
-			institution.name,
-			institution.ticker,
-			institution.type,
-			institution.holdings.amount ?? '',
-			institution.holdings.usdValue ?? '',
-			institution.price ?? '',
-			institution.priceChange24h ?? '',
-			institution.holdings.supplyPercentage ?? '',
-			institution.realized_mNAV ?? '',
-			institution.realistic_mNAV ?? '',
-			institution.max_mNAV ?? '',
-			institution.holdings.avgPrice ?? '',
-			institution.holdings.lastAnnouncementDate
-				? new Date(institution.holdings.lastAnnouncementDate).toLocaleDateString()
-				: ''
-		]
-	})
-
-	const date = new Date().toISOString().split('T')[0]
-	return {
-		filename: `${name.toLowerCase().replace(/\s+/g, '-')}-treasury-holdings-${date}.csv`,
-		rows: [headers, ...rows]
-	}
-}
-
 export function DATByAsset({
-	asset,
 	allAssets,
 	metadata,
 	dailyFlowsChart,
@@ -77,21 +25,15 @@ export function DATByAsset({
 	mNAVMaxChart,
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
-	const handlePrepareAssetBreakdownCsv = () => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)
 	const inflowsTooltipFormatter = useMemo(
 		() => createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: metadata.ticker }),
 		[metadata.ticker]
 	)
 	const columns = useMemo(() => byAssetColumns({ symbol: metadata.ticker }), [metadata.ticker])
+	const stableInstitutionsKey = useMemo(() => JSON.stringify([...institutionsNames].sort()), [institutionsNames])
 
 	return (
-		<Layout
-			title={`${metadata.name} Treasury Holdings - DefiLlama`}
-			description={`Track institutions that own ${metadata.name} (${metadata.ticker}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${metadata.name} (${metadata.ticker}) treasury holdings, ${metadata.name} (${metadata.ticker}) corporate treasury, ${metadata.name} (${metadata.ticker}) treasury holdings by institution, ${metadata.name} (${metadata.ticker}) treasury holdings by company, ${metadata.name} (${metadata.ticker}) DATs, ${metadata.name} (${metadata.ticker}) digital asset treasury`}
-			canonicalUrl={`/digital-asset-treasuries/${asset}`}
-			pageName={pageName}
-		>
+		<>
 			<RowLinksWithDropdown links={allAssets} activeLink={metadata.name} />
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
@@ -148,18 +90,26 @@ export function DATByAsset({
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 				<MNAVChart
+					key={`realized-${stableInstitutionsKey}`}
 					metadata={metadata}
 					title="mNAV Realized"
 					data={mNAVRealizedChart}
 					institutionsNames={institutionsNames}
 				/>
 				<MNAVChart
+					key={`realistic-${stableInstitutionsKey}`}
 					metadata={metadata}
 					title="mNAV Realistic"
 					data={mNAVRealisticChart}
 					institutionsNames={institutionsNames}
 				/>
-				<MNAVChart metadata={metadata} title="mNAV Max" data={mNAVMaxChart} institutionsNames={institutionsNames} />
+				<MNAVChart
+					key={`max-${stableInstitutionsKey}`}
+					metadata={metadata}
+					title="mNAV Max"
+					data={mNAVMaxChart}
+					institutionsNames={institutionsNames}
+				/>
 			</div>
 			<TableWithSearch
 				data={institutions}
@@ -167,9 +117,9 @@ export function DATByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />}
+				csvFileName={`${metadata.name}-treasury-holdings`}
 			/>
-		</Layout>
+		</>
 	)
 }
 
@@ -392,7 +342,7 @@ function MNAVChart({
 				/>
 				<ChartExportButtons
 					chartInstance={chartInstance}
-					filename={`${slug(metadata.name)}-${slug(title)}`}
+					filename={`${metadata.name}-${title}`}
 					title={`${metadata.name} ${title}`}
 				/>
 			</div>

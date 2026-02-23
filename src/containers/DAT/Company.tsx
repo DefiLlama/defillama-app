@@ -9,8 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { IDATCompanyPageProps } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'report_date', desc: true }]
@@ -60,12 +59,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 	}, [selectedAsset, props.chartByAsset])
 
 	return (
-		<Layout
-			title={`${props.name} Digital Asset Treasury - DefiLlama`}
-			description={`Track ${props.name}'s digital asset treasury holdings. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.name} digital asset treasury holdings, ${props.name} DATs`}
-			canonicalUrl={`/digital-asset-treasury/${slug(props.ticker)}`}
-		>
+		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<h1 className="text-xl font-semibold">{props.name}</h1>
@@ -221,7 +215,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-holdings`}
+							filename={`${props.name}-holdings`}
 							title="Cumulative Holdings Over Time"
 						/>
 					</div>
@@ -254,7 +248,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-mnav`,
+									filename: `${props.name}-mnav`,
 									pngTitle: 'mNAV'
 								}}
 							/>
@@ -273,7 +267,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-fully-diluted-shares`,
+									filename: `${props.name}-fully-diluted-shares`,
 									pngTitle: 'Fully Diluted Shares'
 								}}
 							/>
@@ -300,7 +294,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-total-asset-value`,
+									filename: `${props.name}-total-asset-value`,
 									pngTitle: 'Total Asset Value'
 								}}
 							/>
@@ -313,9 +307,10 @@ export function DATCompany(props: IDATCompanyPageProps) {
 				columns={columns}
 				placeholder="Search assets"
 				columnToSearch="assetName"
+				csvFileName={`${props.name}-transactions`}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
-		</Layout>
+		</>
 	)
 }
 

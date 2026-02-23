@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	createContext,
 	type ReactNode,
@@ -9,13 +9,16 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef
+	useRef,
+	useState
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
+import type { ProDashboardServerProps } from './queries.server'
+import type { TableServerData } from './server/tableQueries'
 import type { Dashboard } from './services/DashboardAPI'
 import type {
 	Chain,
@@ -37,31 +40,7 @@ const EMPTY_PROTOCOLS: Protocol[] = []
 const EMPTY_CHAINS: Chain[] = []
 const EMPTY_CHART_DATA: ChartConfig['data'] = []
 const NOOP = () => {}
-
-type ChartCacheEntry = {
-	itemRef: ChartConfig
-	data: ChartConfig['data']
-	isLoading: boolean
-	hasError: boolean
-	refetch: () => void
-	derived: ChartConfig
-}
-
-type MultiCacheEntry = {
-	itemRef: MultiChartConfig
-	itemsRef: ChartConfig[]
-	derived: MultiChartConfig
-}
-
-const shallowArrayEqual = <T,>(a: T[] | null | undefined, b: T[] | null | undefined) => {
-	if (a === b) return true
-	if (!a || !b) return false
-	if (a.length !== b.length) return false
-	for (let index = 0; index < a.length; index++) {
-		if (a[index] !== b[index]) return false
-	}
-	return true
-}
+const PROTOCOLS_LIST_QUERY_KEY = ['protocols-lite']
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
@@ -284,16 +263,130 @@ const ProDashboardEditorActionsContext = createContext<ProDashboardEditorActions
 const ProDashboardItemsStateContext = createContext<ProDashboardItemsStateContextType | undefined>(undefined)
 const ProDashboardChartsDataContext = createContext<ProDashboardChartsDataContextType | undefined>(undefined)
 const ProDashboardUIContext = createContext<ProDashboardUIContextType | undefined>(undefined)
+const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerProps['appMetadata'] | undefined>(
+	undefined
+)
+
+function seedTableDataIntoCache(
+	queryClient: ReturnType<typeof useQueryClient>,
+	tableData: TableServerData,
+	now: number
+) {
+	if (tableData.protocolsList) {
+		queryClient.setQueryData(PROTOCOLS_LIST_QUERY_KEY, tableData.protocolsList, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.volumeByChain)) {
+		queryClient.setQueryData(['pro-dashboard', 'protocols-volume-by-chain', chain], data, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.feesByChain)) {
+		queryClient.setQueryData(['pro-dashboard', 'protocols-fees-revenue-by-chain', chain], data, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.perpsByChain)) {
+		queryClient.setQueryData(['pro-dashboard', 'protocols-perps-volume-by-chain', chain], data, { updatedAt: now })
+	}
+	for (const [chain, data] of Object.entries(tableData.openInterestByChain)) {
+		queryClient.setQueryData(['pro-dashboard', 'protocols-open-interest-by-chain', chain], data, { updatedAt: now })
+	}
+	for (const [keyJson, data] of Object.entries(tableData.datasetsByQueryKey)) {
+		try {
+			const queryKey = JSON.parse(keyJson)
+			queryClient.setQueryData(queryKey, data, { updatedAt: now })
+		} catch {}
+	}
+	for (const [keyJson, data] of Object.entries(tableData.tokenUsageByQueryKey)) {
+		try {
+			const queryKey = JSON.parse(keyJson)
+			queryClient.setQueryData(queryKey, data, { updatedAt: now })
+		} catch {}
+	}
+}
 
 export function ProDashboardAPIProvider({
 	children,
-	initialDashboardId
+	initialDashboardId,
+	serverData
 }: {
 	children: ReactNode
 	initialDashboardId?: string
+	serverData?: ProDashboardServerProps | null
 }) {
+	const queryClient = useQueryClient()
+	const [seedTimestamp] = useState(() => Date.now())
+
+	const hasSeededServerDataRef = useRef(false)
+
+	useIsomorphicLayoutEffect(() => {
+		if (hasSeededServerDataRef.current || !serverData) {
+			return
+		}
+
+		const now = seedTimestamp
+
+		if (serverData.tableData) {
+			seedTableDataIntoCache(queryClient, serverData.tableData, now)
+		}
+
+		if (serverData.yieldsChartData) {
+			for (const [poolConfigId, data] of Object.entries(serverData.yieldsChartData)) {
+				queryClient.setQueryData(['yield-pool-chart-data', poolConfigId], data.chart ?? null, { updatedAt: now })
+				queryClient.setQueryData(['yield-lend-borrow-chart', poolConfigId], data.lendBorrow ?? null, {
+					updatedAt: now
+				})
+			}
+		}
+
+		if (serverData.protocolFullData) {
+			for (const [protocol, data] of Object.entries(serverData.protocolFullData)) {
+				queryClient.setQueryData(['protocol-overview-v1', protocol, 'metrics'], data, { updatedAt: now })
+			}
+		}
+
+		if (serverData.metricData) {
+			for (const [keyJson, data] of Object.entries(serverData.metricData)) {
+				try {
+					const queryKey = JSON.parse(keyJson)
+					queryClient.setQueryData(queryKey, data, { updatedAt: now })
+				} catch {}
+			}
+		}
+
+		if (serverData.advancedTvlBasicData) {
+			for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
+				queryClient.setQueryData(['advanced-tvl-basic', protocol], data, { updatedAt: now })
+			}
+		}
+
+		if (serverData.unifiedTableData) {
+			for (const [keyJson, data] of Object.entries(serverData.unifiedTableData)) {
+				try {
+					const queryKey = JSON.parse(keyJson)
+					queryClient.setQueryData(queryKey, data, { updatedAt: now })
+				} catch {}
+			}
+		}
+
+		if (serverData.stablecoinsChartData) {
+			for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
+				queryClient.setQueryData(['stablecoins-chart-data', chain], data, { updatedAt: now })
+			}
+		}
+
+		if (serverData.emissionData) {
+			for (const [keyJson, data] of Object.entries(serverData.emissionData)) {
+				try {
+					const queryKey = JSON.parse(keyJson)
+					queryClient.setQueryData(queryKey, data, { updatedAt: now })
+				} catch {}
+			}
+		}
+
+		hasSeededServerDataRef.current = true
+	}, [queryClient, seedTimestamp, serverData])
+
 	const { isAuthenticated, user } = useAuthContext()
-	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains()
+	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(
+		serverData?.protocolsAndChains
+	)
 
 	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
@@ -417,11 +510,11 @@ export function ProDashboardAPIProvider({
 			...unratedSessions[0],
 			rated: false
 		}
-	}, [isAuthenticated, currentDashboard?.aiGenerated, user?.id])
+	}, [isAuthenticated, currentDashboard, user])
 
 	// Load initial dashboard
 	const { data: currentDashboard2 = null, isLoading: isLoadingDashboard } = useQuery({
-		queryKey: ['dashboard', initialDashboardId, isAuthenticated, user?.id],
+		queryKey: ['pro-dashboard', 'dashboard', initialDashboardId, isAuthenticated, user?.id],
 		queryFn: async () => {
 			if (!initialDashboardId) {
 				return null
@@ -435,9 +528,11 @@ export function ProDashboardAPIProvider({
 			}
 			return dashboard
 		},
-		staleTime: 1000 * 60 * 5,
-		refetchOnMount: 'always',
-		enabled: !!initialDashboardId
+		staleTime: serverData?.dashboard ? Infinity : 1000 * 60 * 5,
+		refetchOnMount: !serverData?.dashboard,
+		enabled: !!initialDashboardId,
+		initialData: serverData?.dashboard ?? undefined,
+		initialDataUpdatedAt: serverData?.dashboard ? seedTimestamp : undefined
 	})
 
 	useEffect(() => {
@@ -545,18 +640,20 @@ export function ProDashboardAPIProvider({
 
 		try {
 			await saveDashboard({ aiGenerated: updatedAiGenerated })
-			setCurrentDashboard((prev) =>
-				prev
-					? {
-							...prev,
-							aiGenerated: updatedAiGenerated
-						}
-					: null
-			)
 		} catch (error) {
 			console.log('Failed to auto-skip older sessions:', error)
+			return
 		}
-	}, [isAuthenticated, currentDashboard?.aiGenerated, user?.id, dashboardId, saveDashboard, setCurrentDashboard])
+
+		setCurrentDashboard((prev) =>
+			prev
+				? {
+						...prev,
+						aiGenerated: updatedAiGenerated
+					}
+				: null
+		)
+	}, [isAuthenticated, currentDashboard, user, dashboardId, saveDashboard, setCurrentDashboard])
 
 	// Save dashboard name
 	// Copy dashboard
@@ -590,17 +687,17 @@ export function ProDashboardAPIProvider({
 			items?: DashboardItemConfig[]
 			aiGenerated?: AIGeneratedData | null
 		}) => {
-			try {
-				const dashboardData = {
-					items: data.items || [],
-					dashboardName: data.dashboardName,
-					timePeriod: '365d' as TimePeriod,
-					visibility: data.visibility,
-					tags: data.tags,
-					description: data.description,
-					aiGenerated: data.aiGenerated || null
-				}
+			const dashboardData = {
+				items: data.items ?? [],
+				dashboardName: data.dashboardName,
+				timePeriod: '365d' as TimePeriod,
+				visibility: data.visibility,
+				tags: data.tags,
+				description: data.description,
+				aiGenerated: data.aiGenerated ?? null
+			}
 
+			try {
 				await createDashboard(dashboardData)
 			} catch (error) {
 				console.log('Failed to create new dashboard:', error)
@@ -644,7 +741,7 @@ export function ProDashboardAPIProvider({
 				aiGenerated: aiGeneratedData
 			})
 		},
-		[handleCreateDashboard, user?.id]
+		[handleCreateDashboard, user]
 	)
 
 	const handleIterateDashboard = useCallback(
@@ -715,7 +812,7 @@ export function ProDashboardAPIProvider({
 				setItems(data.items)
 			}
 		},
-		[dashboardId, saveDashboard, user?.id, currentDashboard?.aiGenerated, items, setItems, setCurrentDashboard]
+		[dashboardId, saveDashboard, user, currentDashboard, items, setItems, setCurrentDashboard]
 	)
 
 	const submitRating = useCallback(
@@ -725,42 +822,43 @@ export function ProDashboardAPIProvider({
 				return
 			}
 
-			try {
-				const currentAiGenerated = currentDashboard?.aiGenerated || {}
-				const existingSession = currentAiGenerated[sessionId]
-				const updatedAiGenerated = {
-					...currentAiGenerated,
-					[sessionId]: {
-						...existingSession,
-						rating,
-						feedback,
-						mode: existingSession?.mode || 'create',
-						timestamp: existingSession?.timestamp || new Date().toISOString(),
-						userId: user.id,
-						rated: true
-					}
+			const currentAiGenerated = currentDashboard?.aiGenerated ?? {}
+			const existingSession = currentAiGenerated[sessionId]
+			const updatedAiGenerated = {
+				...currentAiGenerated,
+				[sessionId]: {
+					...existingSession,
+					rating,
+					feedback,
+					mode: existingSession?.mode ?? 'create',
+					timestamp: existingSession?.timestamp ?? new Date().toISOString(),
+					userId: user.id,
+					rated: true
 				}
+			}
 
+			try {
 				await saveDashboard({
 					aiGenerated: updatedAiGenerated
 				})
-
-				setCurrentDashboard((prev) =>
-					prev
-						? {
-								...prev,
-								aiGenerated: updatedAiGenerated
-							}
-						: null
-				)
-
-				toast.success('Thank you for your feedback!')
 			} catch (error) {
 				console.log('Failed to submit rating:', error)
 				toast.error('Failed to submit rating. Please try again.')
+				return
 			}
+
+			setCurrentDashboard((prev) =>
+				prev
+					? {
+							...prev,
+							aiGenerated: updatedAiGenerated
+						}
+					: null
+			)
+
+			toast.success('Thank you for your feedback!')
 		},
-		[isAuthenticated, user?.id, dashboardId, currentDashboard?.aiGenerated, saveDashboard, setCurrentDashboard]
+		[isAuthenticated, user, dashboardId, currentDashboard, saveDashboard, setCurrentDashboard]
 	)
 
 	const skipRating = useCallback(
@@ -769,38 +867,39 @@ export function ProDashboardAPIProvider({
 				return
 			}
 
-			try {
-				const currentAiGenerated = currentDashboard?.aiGenerated || {}
-				const existingSession = currentAiGenerated[sessionId]
-				const updatedAiGenerated = {
-					...currentAiGenerated,
-					[sessionId]: {
-						...existingSession,
-						mode: existingSession?.mode || 'create',
-						timestamp: existingSession?.timestamp || new Date().toISOString(),
-						userId: user.id,
-						rated: false,
-						skipped: true
-					}
+			const currentAiGenerated = currentDashboard?.aiGenerated ?? {}
+			const existingSession = currentAiGenerated[sessionId]
+			const updatedAiGenerated = {
+				...currentAiGenerated,
+				[sessionId]: {
+					...existingSession,
+					mode: existingSession?.mode ?? 'create',
+					timestamp: existingSession?.timestamp ?? new Date().toISOString(),
+					userId: user.id,
+					rated: false,
+					skipped: true
 				}
+			}
 
+			try {
 				await saveDashboard({
 					aiGenerated: updatedAiGenerated
 				})
-
-				setCurrentDashboard((prev) =>
-					prev
-						? {
-								...prev,
-								aiGenerated: updatedAiGenerated
-							}
-						: null
-				)
 			} catch (error) {
 				console.log('Failed to skip rating:', error)
+				return
 			}
+
+			setCurrentDashboard((prev) =>
+				prev
+					? {
+							...prev,
+							aiGenerated: updatedAiGenerated
+						}
+					: null
+			)
 		},
-		[isAuthenticated, user?.id, dashboardId, currentDashboard?.aiGenerated, saveDashboard, setCurrentDashboard]
+		[isAuthenticated, user, dashboardId, currentDashboard, saveDashboard, setCurrentDashboard]
 	)
 
 	const dismissRating = useCallback(
@@ -848,14 +947,7 @@ export function ProDashboardAPIProvider({
 					}
 				: null
 		)
-	}, [
-		currentDashboard?.data?.aiUndoState,
-		currentDashboard?.aiGenerated,
-		dashboardId,
-		saveDashboard,
-		setItems,
-		setCurrentDashboard
-	])
+	}, [currentDashboard, dashboardId, saveDashboard, setItems, setCurrentDashboard])
 
 	const canUndo = !!currentDashboard?.data?.aiUndoState?.items
 
@@ -872,7 +964,7 @@ export function ProDashboardAPIProvider({
 		return chartItems
 	}, [items])
 
-	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod)
+	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod, serverData?.chartData)
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()
@@ -885,101 +977,36 @@ export function ProDashboardAPIProvider({
 		return map
 	}, [allChartItems, chartQueries])
 
-	const chartItemCacheRef = useRef<Map<string, ChartCacheEntry>>(new Map())
-	const multiItemCacheRef = useRef<Map<string, MultiCacheEntry>>(new Map())
-	const chartsWithDataRef = useRef<DashboardItemConfig[] | null>(null)
-
 	const chartsWithData: DashboardItemConfig[] = useMemo(() => {
-		const chartCache = chartItemCacheRef.current
-		const multiCache = multiItemCacheRef.current
-		const nextChartsWithData: DashboardItemConfig[] = []
-		const nextChartIds = new Set<string>()
-		const nextMultiIds = new Set<string>()
-
-		const resolveChartItem = (chartItem: ChartConfig, query: any) => {
+		const resolveChartItem = (chartItem: ChartConfig) => {
+			const query = queryById.get(chartItem.id)
 			const data = query?.data ?? EMPTY_CHART_DATA
 			const isLoading = query?.isLoading ?? false
 			const hasError = query?.isError ?? false
 			const refetch = query?.refetch ?? NOOP
-			const cached = chartCache.get(chartItem.id)
-
-			if (
-				cached &&
-				cached.itemRef === chartItem &&
-				cached.data === data &&
-				cached.isLoading === isLoading &&
-				cached.hasError === hasError &&
-				cached.refetch === refetch
-			) {
-				return cached.derived
-			}
-
-			const derived = {
+			return {
 				...chartItem,
 				data,
 				isLoading,
 				hasError,
 				refetch
 			}
-			chartCache.set(chartItem.id, { itemRef: chartItem, data, isLoading, hasError, refetch, derived })
-			return derived
 		}
 
-		for (const item of items) {
+		return items.map((item) => {
 			if (item.kind === 'chart') {
-				nextChartIds.add(item.id)
-				const query = queryById.get(item.id)
-				nextChartsWithData.push(resolveChartItem(item, query))
-				continue
+				return resolveChartItem(item)
 			}
 
 			if (item.kind === 'multi') {
-				nextMultiIds.add(item.id)
-				const processedItems = item.items.map((nestedChart) => {
-					nextChartIds.add(nestedChart.id)
-					const query = queryById.get(nestedChart.id)
-					return resolveChartItem(nestedChart, query)
-				})
-
-				const cachedMulti = multiCache.get(item.id)
-				const itemsRef =
-					cachedMulti && shallowArrayEqual(cachedMulti.itemsRef, processedItems) ? cachedMulti.itemsRef : processedItems
-
-				if (cachedMulti && cachedMulti.itemRef === item && cachedMulti.itemsRef === itemsRef) {
-					nextChartsWithData.push(cachedMulti.derived)
-				} else {
-					const derivedMulti = {
-						...item,
-						items: itemsRef
-					}
-					multiCache.set(item.id, { itemRef: item, itemsRef, derived: derivedMulti })
-					nextChartsWithData.push(derivedMulti)
+				return {
+					...item,
+					items: item.items.map(resolveChartItem)
 				}
-				continue
 			}
 
-			nextChartsWithData.push(item)
-		}
-
-		for (const id of chartCache.keys()) {
-			if (!nextChartIds.has(id)) {
-				chartCache.delete(id)
-			}
-		}
-
-		for (const id of multiCache.keys()) {
-			if (!nextMultiIds.has(id)) {
-				multiCache.delete(id)
-			}
-		}
-
-		const previousChartsWithData = chartsWithDataRef.current
-		if (previousChartsWithData && shallowArrayEqual(previousChartsWithData, nextChartsWithData)) {
-			return previousChartsWithData
-		}
-
-		chartsWithDataRef.current = nextChartsWithData
-		return nextChartsWithData
+			return item
+		})
 	}, [items, queryById])
 
 	const handlersRef = useRef<{
@@ -1267,7 +1294,11 @@ export function ProDashboardAPIProvider({
 						<ProDashboardEditorActionsContext.Provider value={editorActionsContextValue}>
 							<ProDashboardItemsStateContext.Provider value={itemsStateContextValue}>
 								<ProDashboardChartsDataContext.Provider value={chartsDataContextValue}>
-									<ProDashboardUIContext.Provider value={uiContextValue}>{children}</ProDashboardUIContext.Provider>
+									<ProDashboardUIContext.Provider value={uiContextValue}>
+										<ProDashboardServerAppMetadataContext.Provider value={serverData?.appMetadata}>
+											{children}
+										</ProDashboardServerAppMetadataContext.Provider>
+									</ProDashboardUIContext.Provider>
 								</ProDashboardChartsDataContext.Provider>
 							</ProDashboardItemsStateContext.Provider>
 						</ProDashboardEditorActionsContext.Provider>
@@ -1340,4 +1371,8 @@ export function useProDashboardUI() {
 		throw new Error('useProDashboardUI must be used within a ProDashboardAPIProvider')
 	}
 	return context
+}
+
+export function useProDashboardServerAppMetadata() {
+	return useContext(ProDashboardServerAppMetadataContext)
 }

@@ -10,7 +10,6 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -21,7 +20,9 @@ import { fetchAllProtocolEmissions } from '~/containers/Unlocks/api'
 import type { ProtocolEmission } from '~/containers/Unlocks/api.types'
 import Layout from '~/layout'
 import { formatPercentage, slug, toNiceDayMonthYear, toNiceHour } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export const getStaticProps = withPerformanceLogging('calendar', async () => {
 	const res = await fetchAllProtocolEmissions()
@@ -80,34 +81,43 @@ export default function Protocols({ emissions }) {
 
 		return selectedOptions
 	}, [type])
+	const selectedOptionsSet = React.useMemo(() => new Set(selectedOptions), [selectedOptions])
+	const [mountedAtMs] = React.useState(() => Date.now())
 
-	const allEvents = emissions
-		.map((e) => {
-			const tokens = e.unlock[1]
-			const tokenValue = e.tPrice ? tokens * e.tPrice : null
-			const unlockPercent = tokenValue && e.mcap ? (tokenValue / e.mcap) * 100 : null
-			if (unlockPercent === null || unlockPercent <= 4) return null
-			return {
-				name: `${e.tSymbol} ${formatPercentage(unlockPercent)}% unlock`,
-				timestamp: new Date(e.unlock[0] * 1e3),
+	const allEvents = React.useMemo(() => {
+		const events: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
+		for (const emission of emissions) {
+			const tokens = emission.unlock[1]
+			const tokenValue = emission.tPrice ? tokens * emission.tPrice : null
+			const unlockPercent = tokenValue && emission.mcap ? (tokenValue / emission.mcap) * 100 : null
+			if (unlockPercent === null || unlockPercent <= 4) continue
+			events.push({
+				name: `${emission.tSymbol} ${formatPercentage(unlockPercent)}% unlock`,
+				timestamp: emission.unlock[0] * 1e3,
 				type: 'Unlock',
-				link: e.name
+				link: emission.name
+			})
+		}
+
+		for (const [eventType, items] of calendarEvents) {
+			for (const [ts, name] of items) {
+				events.push({
+					name,
+					timestamp: new Date(ts).getTime(),
+					type: eventType
+				})
 			}
-		})
-		.filter((e) => e !== null)
-		.concat(
-			calendarEvents
-				.map((type) =>
-					type[1].map((e) => ({
-						name: e[1],
-						timestamp: new Date(e[0]),
-						type: type[0]
-					}))
-				)
-				.flat()
-		)
-		.filter((e) => e.timestamp >= new Date() && selectedOptions.includes(e.type))
-		.sort((a, b) => a.timestamp - b.timestamp)
+		}
+
+		const filteredEvents: Array<{ name: string; timestamp: number; type: string; link?: string }> = []
+		for (const event of events) {
+			if (event.timestamp >= mountedAtMs && selectedOptionsSet.has(event.type)) {
+				filteredEvents.push(event)
+			}
+		}
+		filteredEvents.sort((a, b) => a.timestamp - b.timestamp)
+		return filteredEvents
+	}, [emissions, selectedOptionsSet, mountedAtMs])
 
 	const instance = useReactTable({
 		data: allEvents,
@@ -143,17 +153,7 @@ export default function Protocols({ emissions }) {
 					<Ariakit.SelectProvider
 						value={selectedOptions}
 						setValue={(newOptions) => {
-							router.push(
-								{
-									pathname: router.pathname,
-									query: {
-										...router.query,
-										type: newOptions
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
+							pushShallowQuery(router, { type: newOptions })
 						}}
 					>
 						<Ariakit.Select className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
@@ -187,17 +187,7 @@ export default function Protocols({ emissions }) {
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: 'None'
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { type: 'None' })
 									}}
 									className="p-3"
 								>
@@ -205,17 +195,7 @@ export default function Protocols({ emissions }) {
 								</button>
 								<button
 									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: 'All'
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { type: 'All' })
 									}}
 									className="p-3"
 								>
@@ -302,16 +282,15 @@ export const calendarColumns: ColumnDef<any>[] = [
 ]
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {
-	const timeLeft = timestamp - Date.now() / 1e3
+	const [nowMs, setNowMs] = React.useState(() => Date.now())
+	const timeLeft = Math.max(0, timestamp - nowMs / 1e3)
 	const days = Math.floor(timeLeft / 86400)
 	const hours = Math.floor((timeLeft - 86400 * days) / 3600)
 	const minutes = Math.floor((timeLeft - 86400 * days - 3600 * hours) / 60)
 	const seconds = Math.floor(timeLeft - 86400 * days - 3600 * hours - minutes * 60)
 
-	const [_, rerender] = React.useState(1)
-
 	React.useEffect(() => {
-		const id = setInterval(() => rerender((value) => value + 1), 1000)
+		const id = setInterval(() => setNowMs(Date.now()), 1000)
 
 		return () => clearInterval(id)
 	}, [])

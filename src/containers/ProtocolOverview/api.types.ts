@@ -65,7 +65,7 @@ export interface ITokenRights {
 	resources?: IProtocolResource[]
 }
 
-export interface IRaise {
+export interface IProtocolRaise {
 	round: string
 	amount: number
 	valuation: string
@@ -120,7 +120,7 @@ export interface IProtocolMetricsV2 {
 	isParentProtocol?: boolean
 	mcap: number | null
 	methodology?: string
-	raises?: Array<IRaise>
+	raises?: Array<IProtocolRaise>
 	otherProtocols?: Array<string>
 	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
 	stablecoins?: Array<string>
@@ -179,4 +179,9 @@ export interface IProtocolExpenses {
 	sources?: Array<string> | null
 	notes?: Array<string> | null
 	lastUpdate?: string | null
+}
+
+export interface IProtocolMiniResponse {
+	chainTvls: Record<string, { tvl: [number, number][] }>
+	tvl: [number, number][]
 }

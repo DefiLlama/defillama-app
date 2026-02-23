@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { TableFilters } from '~/containers/ProDashboard/types'
@@ -202,6 +202,15 @@ function buildDisplayValue(filter: ActiveFilter): string {
 	return 'Not set'
 }
 
+function getInitialInputs(currentFilter: ActiveFilter) {
+	return {
+		value:
+			currentFilter.value?.toString() || currentFilter.minValue?.toString() || currentFilter.maxValue?.toString() || '',
+		minValue: currentFilter.minValue?.toString() || '',
+		maxValue: currentFilter.maxValue?.toString() || ''
+	}
+}
+
 interface FilterItemEditorProps {
 	filter: ActiveFilter
 	onUpdate: (filter: ActiveFilter) => void
@@ -213,24 +222,17 @@ interface FilterItemEditorProps {
 
 function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, onEndEdit }: FilterItemEditorProps) {
 	const { config } = filter
-	const [localValue, setLocalValue] = useState(
-		filter.value?.toString() || filter.minValue?.toString() || filter.maxValue?.toString() || ''
-	)
-	const [localMinValue, setLocalMinValue] = useState(filter.minValue?.toString() || '')
-	const [localMaxValue, setLocalMaxValue] = useState(filter.maxValue?.toString() || '')
-
-	useEffect(() => {
-		setLocalValue(filter.value?.toString() || filter.minValue?.toString() || filter.maxValue?.toString() || '')
-		setLocalMinValue(filter.minValue?.toString() || '')
-		setLocalMaxValue(filter.maxValue?.toString() || '')
-	}, [filter.value, filter.minValue, filter.maxValue])
+	const [localInputs, setLocalInputs] = useState(() => getInitialInputs(filter))
+	const localValue = localInputs.value
+	const localMinValue = localInputs.minValue
+	const localMaxValue = localInputs.maxValue
 
 	const minAllowed = config.min ?? 0
 	const prefix = config.format === 'currency' ? '$' : ''
 	const suffix = config.format === 'percent' ? '%' : ''
 
 	const handleValueChange = (input: string) => {
-		setLocalValue(input)
+		setLocalInputs((prev) => ({ ...prev, value: input }))
 		const parsed = parseNumberWithAbbreviation(input)
 		if (parsed !== undefined && parsed >= minAllowed) {
 			if (filter.operator === '>' || filter.operator === '>=' || !filter.operator) {
@@ -244,13 +246,12 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	}
 
 	const handleMinValueChange = (input: string) => {
-		setLocalMinValue(input)
+		setLocalInputs((prev) => ({ ...prev, minValue: input }))
 		const parsed = parseNumberWithAbbreviation(input)
 		if (parsed !== undefined && parsed >= minAllowed) {
 			if (filter.maxValue !== undefined && parsed > filter.maxValue) {
 				onUpdate({ ...filter, minValue: filter.maxValue, maxValue: parsed })
-				setLocalMinValue(filter.maxValue.toString())
-				setLocalMaxValue(parsed.toString())
+				setLocalInputs((prev) => ({ ...prev, minValue: filter.maxValue.toString(), maxValue: parsed.toString() }))
 			} else {
 				onUpdate({ ...filter, minValue: parsed })
 			}
@@ -260,13 +261,12 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 	}
 
 	const handleMaxValueChange = (input: string) => {
-		setLocalMaxValue(input)
+		setLocalInputs((prev) => ({ ...prev, maxValue: input }))
 		const parsed = parseNumberWithAbbreviation(input)
 		if (parsed !== undefined && parsed >= minAllowed) {
 			if (filter.minValue !== undefined && parsed < filter.minValue) {
 				onUpdate({ ...filter, minValue: parsed, maxValue: filter.minValue })
-				setLocalMinValue(parsed.toString())
-				setLocalMaxValue(filter.minValue.toString())
+				setLocalInputs((prev) => ({ ...prev, minValue: parsed.toString(), maxValue: filter.minValue.toString() }))
 			} else {
 				onUpdate({ ...filter, maxValue: parsed })
 			}
@@ -314,6 +314,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 		}
 	}
 
+	const handleStartEdit = () => {
+		setLocalInputs(getInitialInputs(filter))
+		onStartEdit()
+	}
+
 	const isBetween = filter.operator === 'between'
 	const displayValue = buildDisplayValue(filter)
 	const hasValue = filter.value !== undefined || filter.minValue !== undefined || filter.maxValue !== undefined
@@ -358,7 +363,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 			<div
 				className={`group flex items-start justify-between rounded-md border px-2.5 py-2 ${CATEGORY_COLORS[config.category]} ${isEditing ? 'shadow-sm ring-1 ring-(--primary)/60' : ''}`}
 			>
-				<button type="button" onClick={onStartEdit} className="flex min-w-0 flex-1 items-start gap-1.5 text-left">
+				<button type="button" onClick={handleStartEdit} className="flex min-w-0 flex-1 items-start gap-1.5 text-left">
 					<div className="flex min-w-0 flex-col gap-0.5">
 						<div className="flex items-center gap-1.5">
 							<span className="truncate text-xs font-semibold">{config.label}</span>
@@ -411,7 +416,6 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onChange={(e) => handleValueChange(e.target.value)}
 						onKeyDown={handleKeyDown}
 						placeholder="e.g. 10, 1k, 1m"
-						autoFocus
 						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
@@ -475,7 +479,6 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onChange={(e) => handleMinValueChange(e.target.value)}
 						onKeyDown={handleKeyDown}
 						placeholder="Min"
-						autoFocus
 						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					<span className="text-[10px] opacity-70">-</span>
@@ -500,7 +503,6 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						onChange={(e) => handleValueChange(e.target.value)}
 						onKeyDown={handleKeyDown}
 						placeholder="e.g. 10, 1k, 1m"
-						autoFocus
 						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
 					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}

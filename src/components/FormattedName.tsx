@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { Tooltip } from '~/components/Tooltip'
 
 interface WrapperProps {
@@ -17,7 +16,7 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 		return null
 	}
 
-	if (text.length > maxCharacters) {
+	if (typeof maxCharacters === 'number' && text.length > maxCharacters) {
 		return (
 			<Tooltip content={text}>
 				<span

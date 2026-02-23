@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics, fetchProtocolTvlTokenBreakdownChart } from '~/containers/ProtocolOverview/api'
 import type { IProtocolTokenBreakdownChart } from '~/containers/ProtocolOverview/api.types'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -20,6 +20,7 @@ import {
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -95,7 +96,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -288,8 +289,12 @@ function useStablecoinData(protocolName: string) {
 			for (const [rawDate, tokens] of tokenBreakdownData) {
 				const date = rawDate > 1e12 ? Math.floor(rawDate / 1e3) : rawDate
 				const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
-
-				if (Object.keys(stablecoinsOnly).length === 0) continue
+				let hasStablecoins = false
+				for (const _token in stablecoinsOnly) {
+					hasStablecoins = true
+					break
+				}
+				if (!hasStablecoins) continue
 
 				for (const token in stablecoinsOnly) {
 					stablecoinTokensUniqueSet.add(token)
@@ -402,26 +407,28 @@ export default function CEXStablecoins(props: {
 	const pegTypesUnique = React.useMemo(() => data?.pegTypesUnique ?? [], [data?.pegTypesUnique])
 	const stablecoinTokensUnique = React.useMemo(() => data?.stablecoinTokensUnique ?? [], [data?.stablecoinTokensUnique])
 
+	const totalStablecoins = data?.totalStablecoins
 	const totalStablecoinsDataset = React.useMemo(() => {
-		if (!data?.totalStablecoins?.length || data.totalStablecoins.length <= 1) return null
+		if (!totalStablecoins?.length || totalStablecoins.length <= 1) return null
 		return {
-			source: data.totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
+			source: totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
 			dimensions: ['timestamp', 'Total']
 		}
-	}, [data?.totalStablecoins])
+	}, [totalStablecoins])
 	const totalStablecoinsCharts = React.useMemo<MultiSeriesCharts>(
 		() => [{ type: 'line' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' } }],
 		[]
 	)
 
+	const stablecoinsByPegMechanism = data?.stablecoinsByPegMechanism
 	const { stablecoinsByPegMechanismDataset, stablecoinsByPegMechanismCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByPegMechanism?.length || data.stablecoinsByPegMechanism.length <= 1) {
+		if (!stablecoinsByPegMechanism?.length || stablecoinsByPegMechanism.length <= 1) {
 			return { stablecoinsByPegMechanismDataset: null, stablecoinsByPegMechanismCharts: [] }
 		}
 
 		return {
 			stablecoinsByPegMechanismDataset: {
-				source: data.stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...pegMechanismsUnique]
 			},
 			stablecoinsByPegMechanismCharts: pegMechanismsUnique.map((name) => ({
@@ -430,16 +437,17 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByPegMechanism, pegMechanismsUnique])
+	}, [stablecoinsByPegMechanism, pegMechanismsUnique])
 
+	const stablecoinsByPegType = data?.stablecoinsByPegType
 	const { stablecoinsByPegTypeDataset, stablecoinsByPegTypeCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByPegType?.length || data.stablecoinsByPegType.length <= 1) {
+		if (!stablecoinsByPegType?.length || stablecoinsByPegType.length <= 1) {
 			return { stablecoinsByPegTypeDataset: null, stablecoinsByPegTypeCharts: [] }
 		}
 
 		return {
 			stablecoinsByPegTypeDataset: {
-				source: data.stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...pegTypesUnique]
 			},
 			stablecoinsByPegTypeCharts: pegTypesUnique.map((name) => ({
@@ -448,16 +456,17 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByPegType, pegTypesUnique])
+	}, [stablecoinsByPegType, pegTypesUnique])
 
+	const stablecoinsByToken = data?.stablecoinsByToken
 	const { stablecoinsByTokenDataset, stablecoinsByTokenCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByToken?.length || data.stablecoinsByToken.length <= 1) {
+		if (!stablecoinsByToken?.length || stablecoinsByToken.length <= 1) {
 			return { stablecoinsByTokenDataset: null, stablecoinsByTokenCharts: [] }
 		}
 
 		return {
 			stablecoinsByTokenDataset: {
-				source: data.stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...stablecoinTokensUnique]
 			},
 			stablecoinsByTokenCharts: stablecoinTokensUnique.map((name) => ({
@@ -466,9 +475,10 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByToken, stablecoinTokensUnique])
+	}, [stablecoinsByToken, stablecoinTokensUnique])
 
-	const pegMechanismPieChartData = React.useMemo(() => data?.pegMechanismPieChart ?? [], [data?.pegMechanismPieChart])
+	const pegMechanismPieChart = data?.pegMechanismPieChart
+	const pegMechanismPieChartData = React.useMemo(() => pegMechanismPieChart ?? [], [pegMechanismPieChart])
 
 	return (
 		<ProtocolOverviewLayout

@@ -200,7 +200,13 @@ const buildTokenInflowsFromBreakdowns = (
 		const point: { timestamp: number } & Record<string, number> = { timestamp }
 		let hasTokenInflows = false
 
-		const allTokens = new Set([...Object.keys(currentRaw), ...Object.keys(previousRaw)])
+		const allTokens = new Set<string>()
+		for (const token in currentRaw) {
+			allTokens.add(token)
+		}
+		for (const token in previousRaw) {
+			allTokens.add(token)
+		}
 		for (const token of allTokens) {
 			if (!tokensSet.has(token)) continue
 

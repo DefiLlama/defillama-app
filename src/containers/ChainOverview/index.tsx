@@ -1,10 +1,8 @@
-import Link from 'next/link'
 import { lazy, Suspense } from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
-import Layout from '~/layout'
 import { chainIconUrl, slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
@@ -12,29 +10,9 @@ import type { IChainOverviewData } from './types'
 
 const Table = lazy(() => import('./Table').then((m) => ({ default: m.ChainProtocolsTable })))
 
-const pageName = ['Overview']
-
-const Announcement = () => (
-	<>
-		NEW!{' '}
-		<Link href="/rwa" className="underline">
-			RWA dashboard
-		</Link>
-	</>
-)
-
 export function ChainOverview(props: IChainOverviewData) {
 	return (
-		<Layout
-			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
-			description={props.description}
-			keywords={props.keywords}
-			canonicalUrl={props.metadata.name === 'All' ? '' : `/chain/${props.metadata.name}`}
-			metricFilters={props.tvlAndFeesOptions}
-			metricFiltersLabel="Include in TVL"
-			pageName={pageName}
-			annonuncement={<Announcement />}
-		>
+		<>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
 			{props.metadata.name !== 'All' && (
 				<EntityQuestionsStrip
@@ -47,9 +25,7 @@ export function ChainOverview(props: IChainOverviewData) {
 			{props.isDataAvailable ? (
 				<>
 					<Stats {...props} />
-					<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-						<SmolStats {...props} />
-					</Suspense>
+					<SmolStats {...props} />
 				</>
 			) : (
 				<>
@@ -103,7 +79,7 @@ export function ChainOverview(props: IChainOverviewData) {
 					<Table protocols={props.protocols} />
 				</Suspense>
 			) : null}
-		</Layout>
+		</>
 	)
 }
 
@@ -114,7 +90,7 @@ const linksToOtherLlamaApps = [
 		href: 'https://search.defillama.com',
 		icon: (
 			<img
-				src="/assets/logo_white.webp"
+				src="/assets/llamasearch.svg"
 				loading="lazy"
 				alt=""
 				height={44}

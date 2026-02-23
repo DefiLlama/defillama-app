@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -10,15 +10,16 @@ import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
-import { getQueryValue } from '~/utils/url'
+import { getQueryValue, pushShallowQuery } from '~/utils/routerQuery'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
 	const {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let cgList = await getAllCGTokensList()
+	let cgList = await fetchAllCGTokensList()
 	// const cgTokens = cgList.filter((x) => x.symbol)
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = {
@@ -71,13 +72,10 @@ export default function YieldBorrow(data) {
 		const newBorrow = collateralToken ?? ''
 		const newCollateral = borrowToken ?? ''
 
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (newBorrow) nextQuery['borrow'] = newBorrow
-		else delete nextQuery['borrow']
-		if (newCollateral) nextQuery['collateral'] = newCollateral
-		else delete nextQuery['collateral']
-
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, {
+			borrow: newBorrow || undefined,
+			collateral: newCollateral || undefined
+		})
 	}
 
 	const filteredPools = findOptimizerPools({
@@ -133,13 +131,7 @@ export default function YieldBorrow(data) {
 							<input
 								type="checkbox"
 								checked={includeIncentives}
-								onChange={() =>
-									router.push(
-										{ pathname: router.pathname, query: { ...router.query, incentives: !includeIncentives } },
-										undefined,
-										{ shallow: true }
-									)
-								}
+								onChange={() => pushShallowQuery(router, { incentives: includeIncentives ? undefined : 'true' })}
 							/>
 							<span className="text-base">Include Incentives</span>
 						</label>
@@ -165,7 +157,7 @@ const TokensSelect = ({
 	const router = useRouter()
 
 	const onChange = (value) => {
-		router.push({ pathname: '/borrow', query: { ...router.query, [queryParam]: value } }, undefined, { shallow: true })
+		pushShallowQuery(router, { [queryParam]: value || undefined }, '/borrow')
 	}
 
 	const selectedValue: string = getQueryValue(router.query, queryParam) ?? ''
@@ -244,7 +236,6 @@ const TokensSelect = ({
 
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="m-3 rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 

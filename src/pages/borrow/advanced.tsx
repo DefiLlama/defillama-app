@@ -1,10 +1,11 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { BorrowAggregatorAdvanced } from '~/containers/Yields/indexOptimizer'
 import { UNBOUNDED_DEBT_CEILING_PROJECTS } from '~/containers/Yields/queries'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
@@ -12,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let cgList = await getAllCGTokensList()
+	let cgList = await fetchAllCGTokensList()
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = data.symbols
 		.sort((a, b) => cgPositions[a] - cgPositions[b])

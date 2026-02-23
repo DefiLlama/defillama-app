@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
+import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2 } from '~/constants'
+import { fetchChainsByCategory, fetchChainsCategories } from '~/containers/Chains/api'
 import { useProDashboardCatalog } from '../../../ProDashboardAPIContext'
 import { AriakitMultiSelect } from '../../AriakitMultiSelect'
 import { useComparisonWizardContext } from '../ComparisonWizardContext'
@@ -23,10 +24,9 @@ export function SelectItemsStep() {
 	const listRef = useRef<HTMLDivElement>(null)
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
-			const res = await fetch(CHAINS_API_V2)
-			const data = await res.json()
+			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) || []
 		},
 		staleTime: 60 * 60 * 1000,
@@ -34,15 +34,13 @@ export function SelectItemsStep() {
 	})
 
 	const { data: chainCategoryData } = useQuery({
-		queryKey: ['chains-by-category', chainCategoriesList],
+		queryKey: ['pro-dashboard', 'chains-by-category', chainCategoriesList],
 		queryFn: async () => {
 			if (!chainCategoriesList) return new Map<string, Set<string>>()
 			const results = await Promise.all(
 				chainCategoriesList.map(async (cat) => {
 					try {
-						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
-						if (!res.ok) return { category: cat, chains: [] as string[] }
-						const data = await res.json()
+						const data = await fetchChainsByCategory(cat)
 						return { category: cat, chains: (data?.chainsUnique as string[]) || [] }
 					} catch {
 						return { category: cat, chains: [] as string[] }
@@ -219,15 +217,13 @@ export function SelectItemsStep() {
 									className="flex shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
 								>
 									{item.logo && (
-										<img
+										<Image
 											src={item.logo}
-											loading="lazy"
-											decoding="async"
 											alt={item.label}
+											width={20}
+											height={20}
+											unoptimized
 											className="h-5 w-5 rounded-full object-cover"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
 									)}
 									<span className="whitespace-nowrap text-(--text-primary)">{item.label}</span>
@@ -338,17 +334,15 @@ export function SelectItemsStep() {
 											{isSelected && <Icon name="check" height={10} width={10} className="text-white" />}
 										</div>
 
-										<img
+										<Image
 											src={option.logo}
-											loading="lazy"
-											decoding="async"
 											alt={option.label}
+											width={24}
+											height={24}
+											unoptimized
 											className={`h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 												option.isChild ? 'opacity-70' : ''
 											}`}
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
 
 										<div className="min-w-0 flex-1">

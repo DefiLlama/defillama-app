@@ -8,10 +8,9 @@ export function useBridgeAggregatorsData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['bridge-aggregators-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'bridge-aggregators-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${queryParams}`),
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
-		enabled: true
+		staleTime: Infinity,
+		retry: 1
 	})
 }

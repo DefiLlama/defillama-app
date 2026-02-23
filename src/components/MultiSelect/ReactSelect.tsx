@@ -1,6 +1,6 @@
 import Select, { type Props } from 'react-select'
 
-const customStyles = {
+const customStyles: NonNullable<Props['styles']> = {
 	control: (provided) => ({
 		...provided,
 		background: 'var(--cards-bg)',
@@ -23,7 +23,7 @@ const customStyles = {
 	}),
 	option: (provided, state) => ({
 		...provided,
-		color: state.isActive ? 'black' : 'var(--text-primary)'
+		color: state.isFocused ? 'black' : 'var(--text-primary)'
 	}),
 	multiValue: (provided) => ({
 		...provided,

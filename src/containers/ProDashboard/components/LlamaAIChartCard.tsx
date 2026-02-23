@@ -11,7 +11,7 @@ interface LlamaAIChartCardProps {
 
 export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ['saved-chart', config.savedChartId],
+		queryKey: ['pro-dashboard', 'saved-chart', config.savedChartId],
 		queryFn: async () => {
 			const res = await fetch(`${MCP_SERVER}/charts/${config.savedChartId}`)
 			if (!res.ok) throw new Error('Failed to load chart')

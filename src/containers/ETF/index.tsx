@@ -198,6 +198,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				columnToSearch={'ticker'}
 				placeholder={'Search ETF...'}
 				header="Exchange Traded Funds"
+				csvFileName="etf-overview"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

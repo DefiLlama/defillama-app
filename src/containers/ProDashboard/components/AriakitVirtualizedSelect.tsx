@@ -1,7 +1,8 @@
-import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
+import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import Image from 'next/image'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
 
@@ -42,7 +43,8 @@ export function AriakitVirtualizedSelect({
 	const [search, setSearch] = useState('')
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const popover = usePopoverStore({ placement })
-	const isPopoverOpen = popover.useState('open')
+	const isPopoverOpen = useStoreState(popover, 'open')
+	const disclosureId = useId()
 
 	const filteredOptions = useMemo(() => {
 		if (!search) return options
@@ -79,7 +81,9 @@ export function AriakitVirtualizedSelect({
 
 	return (
 		<div className={className}>
-			<label className="mb-1 block text-[11px] font-medium pro-text2">{label}</label>
+			<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
+				{label}
+			</label>
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
 					<LoadingSpinner size="sm" />
@@ -87,6 +91,7 @@ export function AriakitVirtualizedSelect({
 			) : (
 				<>
 					<PopoverDisclosure
+						id={disclosureId}
 						store={popover}
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
@@ -118,7 +123,6 @@ export function AriakitVirtualizedSelect({
 									className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 								/>
 								<input
-									autoFocus
 									value={search}
 									onChange={(e) => setSearch(e.target.value)}
 									placeholder="Search..."
@@ -171,15 +175,15 @@ export function AriakitVirtualizedSelect({
 															</span>
 														)}
 														{iconUrl && (
-															<img
+															<Image
 																src={iconUrl}
 																alt={option.label}
+																width={20}
+																height={20}
+																unoptimized
 																className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none'
-																}}
 															/>
 														)}
 														<div className="flex min-w-0 flex-col">

@@ -2,13 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import {
 	fetchProtocolOverviewMetrics,
 	fetchProtocolTreasuryTokenBreakdownChart
@@ -20,8 +20,10 @@ import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/usePro
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const EMPTY_TOGGLE_OPTIONS = []
 
@@ -235,7 +237,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -274,7 +276,7 @@ export default function Protocols(props: TreasuryPageProps) {
 	})
 
 	const { data: ownTokensBreakdown } = useQuery({
-		queryKey: ['protocolTreasuryOwnTokensAvailable', protocol],
+		queryKey: ['protocol-overview', 'treasury-own-tokens', protocol],
 		queryFn: () => fetchProtocolTreasuryTokenBreakdownChart({ protocol, key: 'OwnTokens' }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -292,9 +294,7 @@ export default function Protocols(props: TreasuryPageProps) {
 	const toggleIncludeOwnTokens = React.useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const nextIncludeOwnTokens = event.currentTarget.checked
-			const { includeOwnTokens: _inc, ...restQuery } = router.query
-			const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+			pushShallowQuery(router, { includeOwnTokens: nextIncludeOwnTokens ? 'true' : undefined })
 		},
 		[router]
 	)

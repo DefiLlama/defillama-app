@@ -3,9 +3,10 @@ import dayjs from 'dayjs'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
 /** Protocols that have confirmed tPrice and tSymbol (caller pre-filters nulls). */
@@ -15,6 +16,7 @@ interface PastUnlockPriceImpactProps {
 	data: ProtocolData[]
 	title?: string
 	className?: string
+	initialNowSec?: number
 }
 
 interface UnlockBreakdown {
@@ -32,7 +34,17 @@ const parseDescription = (description: string): string => {
 	return matches?.[1] || matches?.[2] || matches?.[3] || matches?.[4] || ''
 }
 
-export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ data, title, className }) => {
+export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
+	data,
+	title,
+	className,
+	initialNowSec
+}) => {
+	const [now] = React.useState(() =>
+		typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
+			? Math.floor(initialNowSec)
+			: Math.floor(Date.now() / 1000)
+	)
 	const { topImpacts } = React.useMemo(() => {
 		const protocolImpacts = new Map<
 			string,
@@ -52,8 +64,6 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 		for (const protocol of data ?? []) {
 			if (!protocol.historicalPrice?.length || protocol.historicalPrice.length < 8 || !protocol.lastEvent?.length)
 				continue
-
-			const now = Date.now() / 1000
 			const thirtyDaysAgo = now - 30 * 24 * 60 * 60
 
 			const lastEvents = protocol.lastEvent?.filter((event) => event.timestamp >= thirtyDaysAgo) || []
@@ -77,7 +87,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			)
 
 			let latestTimestamp = -Infinity
-			for (const ts of Object.keys(eventsByTimestamp)) {
+			for (const ts in eventsByTimestamp) {
 				const num = Number(ts)
 				if (num > latestTimestamp) latestTimestamp = num
 			}
@@ -89,17 +99,18 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 			const priceAfter7d = protocol.historicalPrice[protocol.historicalPrice.length - 1][1]
 			const impact = ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 
-			const breakdown: UnlockBreakdown[] = latestEvent.events
-				.flatMap((event: (typeof lastEvents)[0]) =>
-					event.noOfTokens?.map((amount: number) => ({
+			const breakdown: UnlockBreakdown[] = []
+			for (const event of latestEvent.events) {
+				for (const amount of event.noOfTokens ?? []) {
+					breakdown.push({
 						name: parseDescription(event.description || ''),
 						amount,
 						timestamp: event.timestamp,
 						unlockType: event.unlockType || 'cliff'
-					}))
-				)
-				.filter((item): item is UnlockBreakdown => item != null)
-				.sort((a, b) => b.amount - a.amount)
+					})
+				}
+			}
+			breakdown.sort((a, b) => b.amount - a.amount)
 
 			protocolImpacts.set(protocol.name, {
 				name: protocol.name,
@@ -119,7 +130,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 				.sort((a, b) => b.value - a.value)
 				.slice(0, 3)
 		}
-	}, [data])
+	}, [data, now])
 
 	return (
 		<div className={`text-(--text-primary) ${className ?? ''}`}>
@@ -144,7 +155,9 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({ da
 						</div>
 					</div>
 					<div className="flex items-center gap-1">
-						<span className="text-sm font-semibold tabular-nums">{renderPercentChange(impact.impact)}</span>
+						<span className="text-sm font-semibold tabular-nums">
+							<PercentChange percent={impact.impact} />
+						</span>
 						<Ariakit.HovercardProvider>
 							<Ariakit.HovercardAnchor>
 								<Icon name="help-circle" width={16} height={16} className="cursor-help text-(--text-meta)" />

@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import * as React from 'react'
 import { useMemo } from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'

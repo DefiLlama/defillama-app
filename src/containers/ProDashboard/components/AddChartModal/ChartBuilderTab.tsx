@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { fetchChainsCategories } from '~/containers/Chains/api'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
@@ -22,7 +23,7 @@ const EMPTY_PROTOCOLS: any[] = []
 const EMPTY_CATEGORIES: string[] = []
 const EMPTY_SELECT_OPTIONS: Array<{ value: string; label: string }> = []
 
-const DEFAULT_SERIES_COLOR = '#3366ff'
+const DEFAULT_SERIES_COLOR = '#3e61cc'
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
 
 interface ChartBuilderTabProps {
@@ -140,20 +141,18 @@ export function ChartBuilderTab({
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { data: protocols } = useQuery({
-		queryKey: ['protocols'],
+		queryKey: ['pro-dashboard', 'protocols'],
 		queryFn: async () => {
-			const response = await fetch(PROTOCOLS_API)
-			const data = await response.json()
+			const data = await fetchProtocols()
 			return data.protocols ?? EMPTY_PROTOCOLS
 		},
 		staleTime: 60 * 60 * 1000
 	})
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
-			const res = await fetch(CHAINS_API_V2)
-			const data = await res.json()
+			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) ?? EMPTY_CATEGORIES
 		},
 		staleTime: 60 * 60 * 1000
@@ -196,6 +195,7 @@ export function ChartBuilderTab({
 
 	const { data: previewData, isLoading: previewLoading } = useQuery({
 		queryKey: [
+			'pro-dashboard',
 			'chartBuilder',
 			chartBuilder.mode,
 			chartBuilder.metric,
@@ -281,11 +281,13 @@ export function ChartBuilderTab({
 		refetchOnWindowFocus: false
 	})
 
-	const seriesColors = useRef<Record<string, string>>(chartBuilder.seriesColors || {})
+	const seriesColors = chartBuilder.seriesColors
 	let hasCustomSeriesColors = false
-	for (const _ in seriesColors.current) {
-		hasCustomSeriesColors = true
-		break
+	if (seriesColors) {
+		for (const _ in seriesColors) {
+			hasCustomSeriesColors = true
+			break
+		}
 	}
 
 	const visibleSeries = useMemo(() => {
@@ -310,7 +312,7 @@ export function ChartBuilderTab({
 
 	const resolveSeriesColor = useCallback(
 		(seriesName: string, fallback?: string) => {
-			const override = seriesColors[seriesName]
+			const override = seriesColors?.[seriesName]
 			if (override) {
 				return override
 			}
@@ -724,7 +726,7 @@ export function ChartBuilderTab({
 
 								<div className="mb-1">
 									<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
-										<label className="flex cursor-pointer items-center gap-1.5">
+										<div className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) =>
 													onChartBuilderChange({
@@ -734,7 +736,7 @@ export function ChartBuilderTab({
 												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Group by parent protocol</span>
-										</label>
+										</div>
 									</Ariakit.CheckboxProvider>
 								</div>
 							</>
@@ -1043,7 +1045,7 @@ export function ChartBuilderTab({
 							<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 								{visibleSeries.map((series) => {
 									const activeColor = resolveSeriesColor(series.name, series.color)
-									const hasOverride = !!seriesColors[series.name]
+									const hasOverride = !!seriesColors?.[series.name]
 									return (
 										<div
 											key={series.name}

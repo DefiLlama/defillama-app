@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { Icon } from '../Icon'
 
 interface IProps {
 	options: { label: string; to: string }[]
@@ -77,7 +77,6 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 					</span>

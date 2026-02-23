@@ -14,7 +14,7 @@ import {
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -33,9 +33,9 @@ export function FeesDataset({ chains }: { chains?: string[] }) {
 		pageIndex: 0,
 		pageSize: 10
 	})
+	const width = useBreakpointWidth()
 
 	const { data, isLoading, error } = useFeesData(chains)
-	const width = useBreakpointWidth()
 
 	const instance = useReactTable({
 		data: data ?? EMPTY_DATA,

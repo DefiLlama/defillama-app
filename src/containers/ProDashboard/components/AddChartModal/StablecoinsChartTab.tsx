@@ -208,7 +208,7 @@ export function StablecoinsChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
+							color="#3e79cc"
 							chartOptions={chartOptions}
 						/>
 					</Suspense>
@@ -277,7 +277,7 @@ export function StablecoinsChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={usdInflows} color="#4f8fea" title="" />
+						<BarChart chartData={usdInflows} color="#3e79cc" title="" />
 					</Suspense>
 				)
 			case 'tokenInflows':
@@ -331,7 +331,7 @@ export function StablecoinsChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
+							color="#3e79cc"
 							chartOptions={chartOptions}
 						/>
 					</Suspense>

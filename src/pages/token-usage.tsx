@@ -16,13 +16,14 @@ import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
-import { useDebounce } from '~/hooks/useDebounce'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
 
@@ -34,7 +35,7 @@ export default function Tokens() {
 	const includeCentraliseExchanges = includecex === 'true'
 
 	const { data: protocols, isLoading } = useQuery({
-		queryKey: ['protocols-by-token', tokenSymbol],
+		queryKey: ['token-usage', 'protocols-by-token', tokenSymbol],
 		queryFn: () => fetchProtocols(tokenSymbol),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
@@ -47,20 +48,20 @@ export default function Tokens() {
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
-
-	const prepareCsv = () => {
-		const data = filteredProtocols.map((p) => {
-			return {
-				Protocol: p.name,
-				'Amount (USD)': p.amountUsd,
-				Category: p.category
-			}
-		})
-		const headers = ['Protocol', 'Category', 'Amount (USD)']
-		const rows = [headers, ...data.map((row) => headers.map((header) => row[header]))]
-
-		return { filename: `protocols-by-token-${tokenSymbol}.csv`, rows: rows as (string | number | boolean)[][] }
-	}
+	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
+	const tableInstance = useReactTable({
+		data: filteredProtocols,
+		columns,
+		state: {
+			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		onSortingChange: setSorting,
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
 
 	return (
 		<Layout
@@ -94,17 +95,18 @@ export default function Tokens() {
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
 									onChange={() =>
-										router.push(
-											{
-												pathname: router.pathname,
-												query: { ...router.query, includecex: !includeCentraliseExchanges }
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { includecex: !includeCentraliseExchanges ? 'true' : undefined })
 									}
 								/>
-								<CSVDownloadButton prepareCsv={prepareCsv} />
+								<CSVDownloadButton
+									prepareCsv={() =>
+										prepareTableCsv({
+											instance: tableInstance,
+											filename: `protocols-by-token-${tokenSymbol}`
+										})
+									}
+									smol
+								/>
 							</div>
 						</div>
 
@@ -116,7 +118,7 @@ export default function Tokens() {
 								/>
 							}
 						>
-							<Table data={filteredProtocols} />
+							<VirtualTable instance={tableInstance} />
 						</Suspense>
 					</>
 				)}
@@ -128,7 +130,7 @@ export default function Tokens() {
 const fetchProtocols = async (tokenSymbol) => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`)
+		const data = await fetchProtocolsByToken(tokenSymbol)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]
@@ -136,26 +138,6 @@ const fetchProtocols = async (tokenSymbol) => {
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch')
 	}
-}
-
-function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
-	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
-
-	const instance = useReactTable({
-		data,
-		columns: columns,
-		state: {
-			sorting
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
-
-	return <VirtualTable instance={instance} />
 }
 
 const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
@@ -179,7 +161,7 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		}
 	},
 	{
-		header: () => 'Category',
+		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
 		meta: {
@@ -187,7 +169,7 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 		}
 	},
 	{
-		header: () => 'Amount',
+		header: 'Amount',
 		accessorKey: 'amountUsd',
 		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
 		meta: {
@@ -200,9 +182,9 @@ const Search = () => {
 	const router = useRouter()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['search-tokens', debouncedSearchValue],
+		queryKey: ['token-usage', 'search-tokens', debouncedSearchValue],
 		queryFn: () => fetchCoins(debouncedSearchValue, 20),
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
@@ -265,7 +247,7 @@ const Search = () => {
 								key={`token-usage-${data.name}`}
 								value={data.name}
 								onClick={() => {
-									router.push(`/token-usage?token=${data.name}`, undefined, { shallow: true }).then(() => {
+									pushShallowQuery(router, { token: data.name }).then(() => {
 										setOpen(false)
 									})
 								}}

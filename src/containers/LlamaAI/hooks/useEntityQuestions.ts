@@ -4,7 +4,7 @@ import type { EntityQuestionsResponse } from '../types'
 
 /** Query key for entity-specific questions */
 const getEntityQuestionsQueryKey = (entitySlug: string, entityType: 'protocol' | 'chain' | 'page') =>
-	['entity-questions', entitySlug, entityType] as const
+	['llamaai', 'entity-questions', entitySlug, entityType] as const
 
 export function useEntityQuestions(
 	entitySlug: string | null,

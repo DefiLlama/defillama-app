@@ -1,5 +1,6 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
+import Image from 'next/image'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -129,13 +130,13 @@ export function EntityPickerList({
 									</div>
 
 									{iconUrl && (
-										<img
+										<Image
 											src={iconUrl}
 											alt={entity.label}
+											width={20}
+											height={20}
+											unoptimized
 											className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
 									)}
 

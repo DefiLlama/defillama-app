@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { getRecentProtocols } from '~/containers/Protocols/queries'
 import { RecentProtocols } from '~/containers/Protocols/RecentProtocols'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('recent', async () => {
@@ -15,7 +16,7 @@ export const getStaticProps = withPerformanceLogging('recent', async () => {
 
 const pageName = ['Recently Listed Protocols']
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Recently Listed Protocols - DefiLlama"

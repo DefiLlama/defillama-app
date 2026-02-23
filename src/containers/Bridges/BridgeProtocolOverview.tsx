@@ -15,7 +15,6 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -25,7 +24,7 @@ type ChartType = (typeof CHART_TYPES)[number]
 
 const GROUP_BY_VALUES = ['daily', 'weekly', 'monthly'] as const
 
-const BridgeInfo = ({
+export const BridgeInfo = ({
 	displayName,
 	logo,
 	chains,
@@ -281,21 +280,16 @@ const BridgeInfo = ({
 
 export function BridgeProtocolOverview(props) {
 	return (
-		<Layout
-			title={`${props.displayName}: Bridge Volume - DefiLlama`}
-			description={`Track bridge volume and cross-chain transfers on ${props.displayName}. View bridged assets, transfer volumes, and DeFi bridge analytics from DefiLlama.`}
-			keywords={`bridge volume ${props.displayName}, cross-chain transfers ${props.displayName}, DeFi bridges ${props.displayName}, bridged assets ${props.displayName}, bridge protocol ${props.displayName}`}
-			canonicalUrl={`/bridges/${props.displayName}`}
-		>
+		<>
 			<LinkPreviewCard cardName={props.displayName} token={props.displayName} />
 			<BridgeInfo {...props} />
-		</Layout>
+		</>
 	)
 }
 
 export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['bridged-data', protocol],
+		queryKey: ['bridges', 'protocol-data', protocol],
 		queryFn: () => getBridgePageDatanew(protocol),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -328,7 +322,7 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 // oxlint-disable-next-line no-unused-vars
 const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
 	return useQuery({
-		queryKey: ['bridged-volume-on-all-chains', protocol],
+		queryKey: ['bridges', 'volume-all-chains', protocol],
 		queryFn: protocol
 			? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains'])
 			: () => null,

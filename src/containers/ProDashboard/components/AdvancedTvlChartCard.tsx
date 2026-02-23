@@ -1,21 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { oldBlue } from '~/constants/colors'
+
+const dashboardBlue = '#326abd'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
 } from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, toNiceCsvDate } from '~/utils'
+import { toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import ProtocolCharts from '../services/ProtocolCharts'
 import type { AdvancedTvlChartConfig } from '../types'
 import { generateConsistentChartColor } from '../utils/colorManager'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -79,10 +81,10 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
-		queryKey: ['advanced-tvl-basic', protocol],
+		queryKey: ['pro-dashboard', 'advanced-tvl-basic', protocol],
 		queryFn: () => ProtocolCharts.tvl(protocol),
 		enabled: chartType === 'tvl',
-		staleTime: 60 * 60 * 1000
+		staleTime: Infinity
 	})
 
 	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolV1AddlChartsData(protocol)
@@ -181,7 +183,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		switch (chartType) {
 			case 'tvl':
 				rows = [['Date', 'TVL'], ...(filteredTvlData.map((el) => [toNiceCsvDate(el.date), el.TVL]) ?? [])]
-				filename = `${protocolSlug}-tvl.csv`
+				filename = `${protocolSlug}-tvl`
 				break
 			case 'chainsTvl':
 				rows = [
@@ -191,7 +193,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...chainsUnique.map((c) => el[c] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-tvl-by-chains.csv`
+				filename = `${protocolSlug}-tvl-by-chains`
 				break
 			case 'tokenValuesUsd':
 				rows = [
@@ -201,11 +203,11 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-token-values-usd.csv`
+				filename = `${protocolSlug}-token-values-usd`
 				break
 			case 'tokensPie':
 				rows = [['Token', 'Value'], ...(resolvedTokenBreakdownPieChart.map((el: any) => [el.name, el.value]) ?? [])]
-				filename = `${protocolSlug}-tokens-breakdown.csv`
+				filename = `${protocolSlug}-tokens-breakdown`
 				break
 			case 'tokenBalances':
 				rows = [
@@ -215,7 +217,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-token-balances.csv`
+				filename = `${protocolSlug}-token-balances`
 				break
 			case 'usdInflows':
 				rows = [
@@ -225,7 +227,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						val ?? ''
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-usd-inflows.csv`
+				filename = `${protocolSlug}-usd-inflows`
 				break
 			case 'tokenInflows':
 				rows = [
@@ -235,7 +237,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 						...resolvedTokensUnique.map((t) => el[t] ?? '')
 					]) ?? [])
 				]
-				filename = `${protocolSlug}-token-inflows.csv`
+				filename = `${protocolSlug}-token-inflows`
 				break
 		}
 
@@ -257,7 +259,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		)
 	}
 
-	const renderChart = () => {
+	const chartContent = (() => {
 		switch (chartType) {
 			case 'tvl': {
 				return (
@@ -271,7 +273,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 							hideDownloadButton={true}
 							hideDataZoom={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color={oldBlue}
+							color={dashboardBlue}
 							chartOptions={chartOptions}
 							height="360px"
 							onReady={handleChartReady}
@@ -354,7 +356,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<BarChart
 							chartData={filteredChartData.usdInflows ?? EMPTY_CHART_DATA}
-							color={oldBlue}
+							color={dashboardBlue}
 							title=""
 							valueSymbol="$"
 							hideDownloadButton={true}
@@ -385,7 +387,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			default:
 				return null
 		}
-	}
+	})()
 
 	const hasChartData =
 		(chartType === 'tvl' && filteredTvlData.length > 0) ||
@@ -418,7 +420,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 			</div>
 
 			<div className="flex-1">
-				<Suspense fallback={<div className="min-h-[360px]" />}>{renderChart()}</Suspense>
+				<Suspense fallback={<div className="min-h-[360px]" />}>{chartContent}</Suspense>
 			</div>
 		</div>
 	)

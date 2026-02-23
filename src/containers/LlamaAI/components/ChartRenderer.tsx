@@ -317,7 +317,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				: adaptedChart.data.length > 0
 
 		const prepareCsv = () => {
-			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}`
 			const isTimeSeries = config.axes.x.type === 'time'
 			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
 			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
@@ -334,7 +334,12 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 						valuesByKey[key][s.name] = val
 					}
 				}
-				for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
+				const sortedKeys: string[] = []
+				for (const key in valuesByKey) {
+					sortedKeys.push(key)
+				}
+				sortedKeys.sort((a, b) => +a - +b)
+				for (const key of sortedKeys) {
 					const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
 					rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
 				}

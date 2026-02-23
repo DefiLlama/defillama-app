@@ -1,3 +1,6 @@
+'use no memo'
+
+import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import type { UnifiedRowHeaderType } from '../../../types'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -32,7 +35,7 @@ interface UnifiedTableHeaderProps {
 	onGroupingChange?: (optionId: string) => void
 }
 
-export function UnifiedTableHeader({
+export const UnifiedTableHeader = React.memo(function UnifiedTableHeader({
 	title,
 	scopeDescription,
 	rowHeadersSummary,
@@ -60,9 +63,36 @@ export function UnifiedTableHeader({
 	const hasFilters = filterChips.length > 0
 	const canMutateFilters = filtersEditable && Boolean(onFilterRemove)
 	const isGroupingInteractive = Boolean(onGroupingChange)
-	const groupingSelectValue = groupingOptions
-		? groupingOptions.find((option) => option.id === selectedGroupingId)?.id || groupingOptions[0]?.id || ''
-		: ''
+	const groupingSelectValue = React.useMemo(
+		() =>
+			groupingOptions
+				? groupingOptions.find((option) => option.id === selectedGroupingId)?.id || groupingOptions[0]?.id || ''
+				: '',
+		[groupingOptions, selectedGroupingId]
+	)
+
+	const handleGroupingSelectChange = React.useCallback(
+		(event: React.ChangeEvent<HTMLSelectElement>) => {
+			onGroupingChange?.(event.target.value)
+		},
+		[onGroupingChange]
+	)
+
+	const handleCustomizeColumnsClick = React.useCallback(() => {
+		onCustomizeColumns?.()
+	}, [onCustomizeColumns])
+
+	const handleCsvExportClick = React.useCallback(() => {
+		if (csvDisabled) return
+		onCsvExport?.()
+	}, [csvDisabled, onCsvExport])
+
+	const handleSearchChange = React.useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			onSearchChange(event.target.value)
+		},
+		[onSearchChange]
+	)
 
 	return (
 		<div className="mb-3 flex flex-col gap-2">
@@ -84,7 +114,7 @@ export function UnifiedTableHeader({
 						<div className="relative">
 							<select
 								value={groupingSelectValue}
-								onChange={(event) => onGroupingChange?.(event.target.value)}
+								onChange={handleGroupingSelectChange}
 								disabled={!isGroupingInteractive}
 								className={`appearance-none rounded-md border pro-border pro-bg1 px-3 py-1.5 pr-8 text-sm pro-text1 transition-colors ${
 									isGroupingInteractive ? 'pro-hover-bg' : 'cursor-not-allowed opacity-60'
@@ -122,7 +152,7 @@ export function UnifiedTableHeader({
 					) : null}
 					<button
 						type="button"
-						onClick={() => onCustomizeColumns?.()}
+						onClick={handleCustomizeColumnsClick}
 						disabled={customizeDisabled}
 						className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm transition-colors ${
 							customizeDisabled
@@ -142,10 +172,7 @@ export function UnifiedTableHeader({
 						/>
 					) : (
 						<ProTableCSVButton
-							onClick={() => {
-								if (csvDisabled) return
-								onCsvExport?.()
-							}}
+							onClick={handleCsvExportClick}
 							isLoading={isLoading}
 							className={`flex items-center gap-2 rounded-md border pro-border pro-bg1 pro-hover-bg px-3 py-1.5 text-sm pro-text1 transition-colors ${
 								csvDisabled ? 'cursor-not-allowed opacity-60' : ''
@@ -166,7 +193,7 @@ export function UnifiedTableHeader({
 					<input
 						type="search"
 						value={searchTerm}
-						onChange={(event) => onSearchChange(event.target.value)}
+						onChange={handleSearchChange}
 						placeholder="Search protocols, chains, categories..."
 						className="w-full rounded-md border border-(--divider) bg-(--cards-bg) py-2 pr-3 pl-9 text-sm text-(--text-primary) focus:border-(--primary) focus:ring-2 focus:ring-(--primary)/30 focus:outline-hidden"
 					/>
@@ -206,4 +233,4 @@ export function UnifiedTableHeader({
 			</div>
 		</div>
 	)
-}
+})

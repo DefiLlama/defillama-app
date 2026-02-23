@@ -1,7 +1,8 @@
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
-import { PROTOCOLS_API, REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
-import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
+import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
+import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { chainIconUrl, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import {
@@ -38,33 +39,6 @@ type OpenInterestData = { total24h: number | null; doublecounted: boolean }
 type ActiveLiquidityData = { total24h: number | null; doublecounted: boolean }
 type NormalizedVolumeData = { total24h: number | null }
 
-//breakdown is using chain internal name so we need to map it
-let chainMappingCache: Record<string, string> | null = null
-
-async function getChainMapping() {
-	if (chainMappingCache) {
-		return chainMappingCache
-	}
-
-	try {
-		const mapping = await fetchJson('https://api.llama.fi/overview/_internal/chain-name-id-map')
-		chainMappingCache = mapping
-		return mapping
-	} catch {
-		console.log('Failed to fetch chain mapping, falling back to toLowerCase conversion')
-		return {}
-	}
-}
-
-function getInternalChainName(displayChain: string, chainMapping: Record<string, string>) {
-	for (const display in chainMapping) {
-		if (display === displayChain) {
-			return chainMapping[display]
-		}
-	}
-	return slug(displayChain)
-}
-
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -84,107 +58,18 @@ export async function getAdapterChainOverview({
 
 		return { ...overviewData, totalDataChart } as IAdapterChainOverview
 	} else {
-		//earnings we don't need to filter by chain, instead we filter it later on
-		const [overviewData, totalDataChart, emissionsData, chainMapping] = await Promise.all([
+		const [overviewData, totalDataChart] = await Promise.all([
 			fetchAdapterChainMetrics({ adapterType, chain: 'All', dataType: 'dailyRevenue' }),
 			excludeTotalDataChart
 				? Promise.resolve([])
-				: fetchAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' }),
-			getEmissionsData(),
-			getChainMapping()
+				: fetchAdapterChainChartData({ adapterType, chain, dataType: 'dailyRevenue' })
 		])
 
-		const earningsData = processEarningsData({ ...overviewData, totalDataChart }, emissionsData)
-
-		let filteredEarningsData = earningsData
-		let chainSpecificTotal24h = 0
-		let chainSpecificTotal7d = 0
-		let chainSpecificTotal30d = 0
-		let chainSpecificTotal1y = 0
-
-		if (chain && chain !== 'All') {
-			const internalChainName = getInternalChainName(chain, chainMapping)
-
-			filteredEarningsData = earningsData
-				.filter((protocol) => {
-					return protocol.breakdown24h && protocol.breakdown24h[internalChainName]
-				})
-				.map((protocol) => {
-					const chainRevenue24h: number = protocol.breakdown24h?.[internalChainName]
-						? (Object.values(protocol.breakdown24h[internalChainName]) as number[]).reduce(
-								(sum: number, val: number) => sum + (val || 0),
-								0
-							)
-						: 0
-					const chainRevenue30d: number = protocol.breakdown30d?.[internalChainName]
-						? (Object.values(protocol.breakdown30d[internalChainName]) as number[]).reduce(
-								(sum: number, val: number) => sum + (val || 0),
-								0
-							)
-						: 0
-
-					const totalRevenue24h: number = (
-						Object.values(protocol.breakdown24h || {}) as Record<string, number>[]
-					).reduce(
-						(sum: number, chainData) =>
-							sum +
-							(Object.values(chainData as Record<string, number>) as number[]).reduce(
-								(s: number, v: number) => s + (v || 0),
-								0
-							),
-						0
-					)
-					const totalRevenue30d: number = (
-						Object.values(protocol.breakdown30d || {}) as Record<string, number>[]
-					).reduce(
-						(sum: number, chainData) =>
-							sum +
-							(Object.values(chainData as Record<string, number>) as number[]).reduce(
-								(s: number, v: number) => s + (v || 0),
-								0
-							),
-						0
-					)
-
-					const chainRevenueRatio24h = totalRevenue24h > 0 ? chainRevenue24h / totalRevenue24h : 0
-					const chainRevenueRatio30d = totalRevenue30d > 0 ? chainRevenue30d / totalRevenue30d : 0
-
-					const emissions = protocol._emissions
-
-					const chainEmissions24h = (emissions?.emission24h || 0) * chainRevenueRatio24h
-					const chainEmissions30d = (emissions?.emission30d || 0) * chainRevenueRatio30d
-
-					const chainEarnings24h = chainRevenue24h - chainEmissions24h
-					const chainEarnings30d = chainRevenue30d - chainEmissions30d
-
-					chainSpecificTotal24h += chainEarnings24h
-					chainSpecificTotal30d += chainEarnings30d
-
-					return {
-						...protocol,
-						//use chain earnings (revenue - emissions)
-						total24h: chainEarnings24h,
-						total30d: chainEarnings30d
-					}
-				})
-		} else {
-			chainSpecificTotal24h = earningsData.reduce((sum, p) => sum + (p.total24h ?? 0), 0)
-			chainSpecificTotal7d = earningsData.reduce((sum, p) => sum + (p.total7d ?? 0), 0)
-			chainSpecificTotal30d = earningsData.reduce((sum, p) => sum + (p.total30d ?? 0), 0)
-			chainSpecificTotal1y = earningsData.reduce((sum, p) => sum + (p.total1y ?? 0), 0)
-			filteredEarningsData = earningsData
-		}
-
-		return {
-			...overviewData,
-			totalDataChart,
+		return (await getDimensionAdapterChainEarningsOverview({
 			chain,
-			total24h: chainSpecificTotal24h,
-			total7d: chainSpecificTotal7d,
-			total30d: chainSpecificTotal30d,
-			total1y: chainSpecificTotal1y,
-			protocols: filteredEarningsData
-		} as IAdapterChainOverview
+			overviewData,
+			totalDataChart
+		})) as IAdapterChainOverview
 	}
 }
 
@@ -207,74 +92,6 @@ export async function getAdapterProtocolOverview({
 	])
 
 	return { ...overviewData, totalDataChart } as IAdapterProtocolMetrics & { totalDataChart: Array<[number, number]> }
-}
-
-async function getEmissionsData() {
-	const data = await fetchJson('https://api.llama.fi/emissionsBreakdownAggregated')
-	return data
-}
-
-type EmissionsProtocol = {
-	defillamaId: string
-	name: string
-	linked?: string[]
-	emission24h?: number
-	emission7d?: number
-	emission30d?: number
-	emission1y?: number
-	emissionAllTime?: number
-}
-
-type ProtocolVersion = {
-	defillamaId: string
-	parentProtocol?: string
-	name: string
-	displayName: string
-	category?: string
-}
-
-function findEmissionsForProtocol(
-	protocolVersions: ProtocolVersion[],
-	emissionsData: { protocols: EmissionsProtocol[] }
-): EmissionsProtocol | undefined {
-	const parentKey = protocolVersions[0].parentProtocol || protocolVersions[0].defillamaId
-
-	let emissions = emissionsData.protocols.find((p: { defillamaId: string; linked?: string[] }) => {
-		if (p.defillamaId === parentKey) return true
-		if (protocolVersions.some((pv: { defillamaId: string }) => p.defillamaId === pv.defillamaId)) return true
-		if (p.linked && protocolVersions.some((pv: { defillamaId: string }) => p.linked!.includes(pv.defillamaId)))
-			return true
-		return false
-	})
-
-	// Special case for Chain category protocols
-	if (!emissions && protocolVersions.length === 1 && protocolVersions[0].category === 'Chain') {
-		const protocol = protocolVersions[0]
-		emissions = emissionsData.protocols.find(
-			(p: { name: string }) => p.name === protocol.name || p.name === protocol.displayName
-		)
-	}
-
-	return emissions
-}
-
-type ProtocolWithEarnings = IAdapterChainMetrics['protocols'][0] & {
-	_emissions?: EmissionsProtocol
-}
-
-function calculateEarnings(
-	protocolData: IAdapterChainMetrics['protocols'][0],
-	emissions?: EmissionsProtocol
-): ProtocolWithEarnings {
-	return {
-		...protocolData,
-		total24h: (protocolData.total24h ?? 0) - (emissions?.emission24h ?? 0),
-		total7d: (protocolData.total7d ?? 0) - (emissions?.emission7d ?? 0),
-		total30d: (protocolData.total30d ?? 0) - (emissions?.emission30d ?? 0),
-		total1y: (protocolData.total1y ?? 0) - (emissions?.emission1y ?? 0),
-		totalAllTime: (protocolData.totalAllTime ?? 0) - (emissions?.emissionAllTime ?? 0),
-		_emissions: emissions
-	}
 }
 
 type AggregatedProtocol = Omit<
@@ -362,21 +179,6 @@ function processGroupedProtocols<T, R>(
 		processedData.push(processor(protocolVersions, parentKey))
 	}
 	return processedData
-}
-
-function processEarningsData(data: IAdapterChainOverview, emissionsData: { protocols: EmissionsProtocol[] }) {
-	const protocolGroups = groupProtocolsByParent(data.protocols)
-
-	return processGroupedProtocols(protocolGroups, (protocolVersions, _parentKey) => {
-		const emissions = findEmissionsForProtocol(protocolVersions, emissionsData)
-
-		if (protocolVersions.length === 1) {
-			return calculateEarnings(protocolVersions[0], emissions)
-		} else {
-			const aggregatedProtocol = aggregateProtocolVersions(protocolVersions)
-			return calculateEarnings(aggregatedProtocol, emissions)
-		}
-	})
 }
 
 function processRevenueDataForMatching(protocols: IAdapterChainMetrics['protocols']) {
@@ -545,7 +347,7 @@ export const getAdapterByChainPageData = async ({
 		IAdapterChainOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>
-			parentProtocols: Array<{ name: string; mcap: number | null }>
+			parentProtocols: Array<{ name: string; mcap?: number | null }>
 		},
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
@@ -559,20 +361,20 @@ export const getAdapterByChainPageData = async ({
 			dataType,
 			excludeTotalDataChart: adapterType === 'fees'
 		}),
-		fetchJson(PROTOCOLS_API),
+		fetchProtocols().catch(() => ({ protocols: [], parentProtocols: [] })),
 		adapterType === 'fees'
 			? fetchAdapterChainMetrics({
 					adapterType,
 					chain,
 					dataType: 'dailyBribesRevenue'
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		adapterType === 'fees'
 			? fetchAdapterChainMetrics({
 					adapterType,
 					chain,
 					dataType: 'dailyTokenTaxes'
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		hasOpenInterest
 			? getAdapterChainOverview({
@@ -580,7 +382,7 @@ export const getAdapterByChainPageData = async ({
 					chain,
 					dataType: 'openInterestAtEnd',
 					excludeTotalDataChart: false
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		adapterType === 'normalized-volume'
 			? getAdapterChainOverview({
@@ -588,13 +390,13 @@ export const getAdapterByChainPageData = async ({
 					chain,
 					dataType: 'dailyActiveLiquidity',
 					excludeTotalDataChart: false
-				})
+				}).catch(() => null)
 			: Promise.resolve(null),
 		adapterType === 'derivatives'
 			? fetchAdapterChainMetrics({
 					adapterType: 'normalized-volume',
 					chain
-				})
+				}).catch(() => null)
 			: Promise.resolve(null)
 	])
 
@@ -607,6 +409,12 @@ export const getAdapterByChainPageData = async ({
 	}
 
 	const allProtocols: IAdapterChainOverview['protocols'] = [...data.protocols]
+
+	// Build protocol lookup Set for O(1) membership testing instead of O(n) .find()
+	const allProtocolsByName = new Set<string>()
+	for (const protocol of allProtocols) {
+		allProtocolsByName.add(protocol.name)
+	}
 
 	let bribesProtocols: Record<string, BribesData> = {}
 	let tokenTaxesProtocols: Record<string, BribesData> = {}
@@ -655,8 +463,9 @@ export const getAdapterByChainPageData = async ({
 						totalAllTime: p.totalAllTime ?? null
 					}
 
-					const protocolExists = allProtocols.find((ap: { name: string }) => ap.name === p.name)
-					if (!protocolExists) {
+					// O(1) Map lookup instead of O(n) .find()
+					if (!allProtocolsByName.has(p.name)) {
+						allProtocolsByName.add(p.name)
 						allProtocols.push({
 							...p,
 							total24h: null,
@@ -702,8 +511,9 @@ export const getAdapterByChainPageData = async ({
 						totalAllTime: p.totalAllTime ?? null
 					}
 
-					const protocolExists = allProtocols.find((ap: { name: string }) => ap.name === p.name)
-					if (!protocolExists) {
+					// O(1) Map lookup instead of O(n) .find()
+					if (!allProtocolsByName.has(p.name)) {
+						allProtocolsByName.add(p.name)
 						allProtocols.push({
 							...p,
 							total24h: null,
@@ -1066,12 +876,16 @@ export const getChainsByFeesAdapterPageData = async ({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
 				chain: 'All'
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
+			})
+				.then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
+				.catch(() => []),
 			fetchAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyTokenTaxes',
 				chain: 'All'
-			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
+			})
+				.then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name)))
+				.catch(() => [])
 		])
 
 		const bribesByChain: Record<string, { total24h: number | null; total7d: number | null; total30d: number | null }> =
@@ -1183,7 +997,9 @@ export const getChainsByAdapterPageData = async ({
 				dataType,
 				chainMetadata
 			}),
-			adapterType === 'fees' ? Promise.resolve([]) : fetchJson(`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown`),
+			adapterType === 'fees'
+				? Promise.resolve([])
+				: fetchJson(`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown`).catch(() => []),
 			getOptionalOverview({
 				enabled: adapterType === 'fees',
 				adapterType,

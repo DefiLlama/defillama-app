@@ -1,13 +1,14 @@
 import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
-import type { FormEventHandler, InputHTMLAttributes, ReactNode } from 'react'
+import type { InputHTMLAttributes, ReactNode } from 'react'
+import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
-import { Icon } from '../Icon'
+import type { FormSubmitHandler } from '~/types/forms'
 
 interface IFilterBetweenRange {
 	name: string
 	trigger: ReactNode
-	onSubmit: FormEventHandler<HTMLFormElement>
+	onSubmit: FormSubmitHandler
 	onClear: () => void
 	nestedMenu?: boolean
 	min: number | string | null
@@ -30,9 +31,9 @@ const variantClasses = {
 } as const
 
 export function FilterBetweenRange({
-	name,
+	name: _name,
 	trigger,
-	onSubmit,
+	onSubmit: handleSubmit,
 	onClear,
 	nestedMenu,
 	min,
@@ -51,9 +52,9 @@ export function FilterBetweenRange({
 
 	if (nestedMenu) {
 		return (
-			<NestedMenu label={name}>
+			<NestedMenu label={trigger} render={<button type="button" />} menuPortal>
 				<Form
-					onSubmit={onSubmit}
+					onSubmit={handleSubmit}
 					onClear={onClear}
 					min={min}
 					max={max}
@@ -92,7 +93,7 @@ export function FilterBetweenRange({
 						min={min}
 						max={max}
 						onSubmit={(e) => {
-							onSubmit(e)
+							handleSubmit(e)
 							popover.hide()
 						}}
 						onClear={() => {
@@ -120,7 +121,7 @@ function Form({
 	minInputProps,
 	maxInputProps
 }: {
-	onSubmit: FormEventHandler<HTMLFormElement>
+	onSubmit: FormSubmitHandler
 	onClear: () => void
 	min: number | string | null
 	max: number | string | null

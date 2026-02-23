@@ -73,7 +73,8 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 		process.env.SERVER_URL,
 		process.env.server_url,
 		process.env.V2_SERVER_URL,
-		process.env.v2_server_url
+		process.env.v2_server_url,
+		process.env.API_KEY
 	].filter((url): url is string => typeof url === 'string' && url.length > 0)
 
 	for (const candidate of serverUrlCandidates) {
@@ -365,22 +366,6 @@ export async function fetchJson<T = any>(
 	// Avoid spamming console when webhook logging is configured.
 	postRuntimeLogs(finalLog, { level: 'error', forceConsole: !webhookEnabled() })
 	throw lastErr
-}
-
-// ─────────────────────────────────────────────────────────────
-// Simple fetch wrapper for API calls
-// ─────────────────────────────────────────────────────────────
-export const fetchApi = async (url: string | Array<string>) => {
-	if (!url) return null
-	try {
-		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
-		return data
-	} catch (error) {
-		if (error instanceof Error) {
-			throw error
-		}
-		throw new Error(`Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`)
-	}
 }
 
 // ─────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { LinkPreviewCard } from '~/components/SEO'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { EmissionsByProtocol } from '~/containers/Unlocks/EmissionsByProtocol'
 import {
 	calculateTotalUnlockValue,
@@ -9,6 +9,7 @@ import {
 } from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -49,6 +50,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 

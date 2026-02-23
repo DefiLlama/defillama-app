@@ -1,11 +1,12 @@
 import { matchSorter } from 'match-sorter'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useId, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LinkToMetricOrToolPage } from '~/components/Metrics'
 import Layout from '~/layout'
 import defillamaPages from '~/public/pages.json'
 
 export default function Tools() {
+	const searchInputId = useId()
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -34,6 +35,7 @@ export default function Tools() {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
+						id={searchInputId}
 						type="text"
 						placeholder="Search..."
 						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"

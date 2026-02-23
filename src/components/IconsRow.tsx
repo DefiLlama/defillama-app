@@ -60,21 +60,23 @@ interface IIconsRowProps {
 	iconsAlignment?: 'start' | 'end'
 }
 
-const isChain = (chain) => {
+const EMPTY_ARRAY: string[] = []
+
+const isChain = (chain: string) => {
 	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
 // todo update links prop to {name: string, iconType: string}
 export const IconsRow = ({
-	links = [],
+	links = EMPTY_ARRAY,
 	url,
 	iconType,
-	yieldRewardsSymbols = [],
+	yieldRewardsSymbols = EMPTY_ARRAY,
 	disableLinks = false,
 	urlPrefix = '',
 	iconsAlignment = 'end'
 }: IIconsRowProps) => {
-	const mainWrapEl = useRef(null)
+	const mainWrapEl = useRef<HTMLDivElement>(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
 
 	const { visibleChains, hoverChains } = useMemo(() => {

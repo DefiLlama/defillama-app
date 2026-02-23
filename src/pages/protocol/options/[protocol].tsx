@@ -1,12 +1,12 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { lazy, Suspense, useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
@@ -18,6 +18,7 @@ import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/ty
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -107,7 +108,10 @@ export const getStaticProps = withPerformanceLogging(
 			charts['Notional Volume'] = notionalVolumeData.totalDataChart
 		}
 
-		const defaultCharts = Object.keys(charts)
+		const defaultCharts: string[] = []
+		for (const chartName in charts) {
+			defaultCharts.push(chartName)
+		}
 
 		return {
 			props: {
@@ -135,7 +139,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -147,7 +151,7 @@ export async function getStaticPaths() {
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
 	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
@@ -189,7 +193,10 @@ export default function Protocols(props) {
 		}
 
 		const rowMap = new Map<number, Record<string, number>>()
-		const seriesNames = Object.keys(seriesData)
+		const seriesNames: string[] = []
+		for (const seriesName in seriesData) {
+			seriesNames.push(seriesName)
+		}
 		for (const name of seriesNames) {
 			for (const [timestamp, value] of seriesData[name]) {
 				const row = rowMap.get(timestamp) ?? { timestamp }
@@ -260,7 +267,7 @@ export default function Protocols(props) {
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-options-volume`}
+							filename={`${props.name}-options-volume`}
 							title="Options Volume"
 						/>
 					</div>

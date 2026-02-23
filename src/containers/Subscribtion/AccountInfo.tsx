@@ -1,9 +1,10 @@
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import type { FormSubmitEvent } from '~/types/forms'
 import { AccountHeader } from './components/AccountHeader'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailChangeModal } from './components/EmailChangeModal'
@@ -29,14 +30,16 @@ export const AccountInfo = () => {
 		isEnableOverageLoading,
 		usageStats,
 		isUsageStatsLoading,
-		isUsageStatsError
+		isUsageStatsError,
+		cancelSubscription,
+		isCancelSubscriptionLoading
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 	const isLegacyApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	const isVerified = user?.verified
-	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
+	const handleEmailChange = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 		if (isWalletUser) {
 			await addEmail(newEmail)
@@ -162,6 +165,8 @@ export const AccountInfo = () => {
 					usageStats={usageStats}
 					isUsageStatsLoading={isUsageStatsLoading}
 					isUsageStatsError={isUsageStatsError}
+					cancelSubscription={cancelSubscription}
+					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
 				/>
 			</div>
 

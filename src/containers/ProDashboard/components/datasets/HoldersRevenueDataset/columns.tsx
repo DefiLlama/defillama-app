@@ -1,7 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 
 interface IHoldersRevenueRow {
 	name: string
@@ -26,10 +27,11 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 		accessorFn: (row) => row.displayName || row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
+			const index = row.index
 			const name = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<span className="shrink-0">{index + 1}</span>
 					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
 					<BasicLink
 						href={`/holders-revenue/${row.original.slug}`}
@@ -95,7 +97,7 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		},
@@ -111,7 +113,7 @@ export const holdersRevenueDatasetColumns: ColumnDef<IHoldersRevenueRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? renderPercentChange(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		},

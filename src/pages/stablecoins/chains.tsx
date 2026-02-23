@@ -1,12 +1,12 @@
 import type { GetStaticProps, InferGetStaticPropsType } from 'next'
 import type { ComponentProps } from 'react'
-import { maxAgeForNext } from '~/api'
 import { CHART_COLORS } from '~/constants/colors'
 import { ChainsWithStablecoins } from '~/containers/Stablecoins/ChainsWithStablecoins'
 import { getStablecoinChainsPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
 import Layout from '~/layout'
 import { formattedNum, getPercentChange } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type StablecoinChainsPageProps = ComponentProps<typeof ChainsWithStablecoins>

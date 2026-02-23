@@ -1,3 +1,5 @@
+'use no memo'
+
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -14,7 +16,7 @@ interface ReorderableHeaderProps {
 	canMoveDown?: boolean
 }
 
-export function ReorderableHeader({
+export const ReorderableHeader = React.memo(function ReorderableHeader({
 	children,
 	// oxlint-disable-next-line no-unused-vars
 	columnId,
@@ -27,7 +29,20 @@ export function ReorderableHeader({
 	canMoveDown = true
 }: ReorderableHeaderProps) {
 	return (
-		<div className="group relative flex w-full cursor-pointer items-center gap-1" onClick={onSort}>
+		<div
+			className={`group relative flex w-full items-center gap-1 ${canSort ? 'cursor-pointer' : 'cursor-default'}`}
+			onClick={canSort ? onSort : undefined}
+			role="button"
+			tabIndex={canSort ? 0 : -1}
+			aria-disabled={!canSort}
+			onKeyDown={(event) => {
+				if (!canSort) return
+				if (event.key === 'Enter' || event.key === ' ') {
+					event.preventDefault()
+					onSort()
+				}
+			}}
+		>
 			{onMoveUp && (
 				<div
 					className={`absolute top-0 bottom-0 left-0 flex items-center justify-start ${
@@ -78,4 +93,4 @@ export function ReorderableHeader({
 			)}
 		</div>
 	)
-}
+})

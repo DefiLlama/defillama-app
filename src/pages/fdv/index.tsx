@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsFDVsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-fdv/index`, async () => {
@@ -18,7 +19,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-fdv/index`, asyn
 
 const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
 
-export default function ProtocolsFdv(props) {
+export default function ProtocolsFdv(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Fully Diluted Valuations - DefiLlama"

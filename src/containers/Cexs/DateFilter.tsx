@@ -29,10 +29,10 @@ const isAtMidnight = (timestamp: number | null) => {
 
 export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
 	const router = useRouter()
-	const [localStartDate, setLocalStartDate] = useState(formatDateForInput(startDate))
-	const [localEndDate, setLocalEndDate] = useState(formatDateForInput(endDate))
-	const [localStartHour, setLocalStartHour] = useState(getHourFromTimestamp(startDate))
-	const [localEndHour, setLocalEndHour] = useState(getHourFromTimestamp(endDate))
+	const [localStartDate, setLocalStartDate] = useState(() => formatDateForInput(startDate))
+	const [localEndDate, setLocalEndDate] = useState(() => formatDateForInput(endDate))
+	const [localStartHour, setLocalStartHour] = useState(() => getHourFromTimestamp(startDate))
+	const [localEndHour, setLocalEndHour] = useState(() => getHourFromTimestamp(endDate))
 	const maxDate = getTodayString()
 
 	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,7 +166,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								onChange={handleStartHourChange}
 							>
 								{Array.from({ length: 24 }, (_, i) => (
-									<option key={i} value={i}>
+									<option key={`start-${i}`} value={i}>
 										{i.toString().padStart(2, '0')}:00
 									</option>
 								))}
@@ -193,7 +193,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								onChange={handleEndHourChange}
 							>
 								{Array.from({ length: 24 }, (_, i) => (
-									<option key={i} value={i}>
+									<option key={`end-${i}`} value={i}>
 										{i.toString().padStart(2, '0')}:00
 									</option>
 								))}

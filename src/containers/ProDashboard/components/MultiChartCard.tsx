@@ -1,8 +1,10 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { capitalizeFirstLetter } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
@@ -14,7 +16,6 @@ import { CHART_TYPES, type MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -296,21 +297,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 
 		const percentageColors = [
-			'#FF6B6B',
-			'#4ECDC4',
-			'#45B7D1',
-			'#96CEB4',
-			'#FFEAA7',
-			'#DDA0DD',
-			'#98D8C8',
-			'#F7DC6F',
-			'#BB8FCE',
-			'#85C1E9',
-			'#F8C471',
-			'#82E0AA',
-			'#F1948A',
-			'#85929E',
-			'#D7BDE2'
+			'#cc3e3e',
+			'#4ccdc4',
+			'#4ab6cf',
+			'#59b188',
+			'#ccaa3e',
+			'#be4bbe',
+			'#4ebca0',
+			'#ccaf3e',
+			'#9855b4',
+			'#3e93cc',
+			'#cc953e',
+			'#3ecc7b',
+			'#cc4c3e',
+			'#778592',
+			'#a56abe'
 		]
 
 		const seriesWithAverages = processedSeries.map((serie) => {

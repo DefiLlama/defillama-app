@@ -11,6 +11,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
+import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
 import { definitions } from './definitions'
@@ -57,11 +58,8 @@ type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
-	const pushShallowQuery = (query: Record<string, any>) => {
-		router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-	}
-	const pushShallowMergedQuery = (patch: Record<string, any>) => {
-		pushShallowQuery({ ...router.query, ...patch })
+	const pushShallowMergedQuery = (patch: Record<string, string | string[] | undefined>) => {
+		pushShallowQuery(router, patch)
 	}
 	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
@@ -91,6 +89,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -126,6 +125,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetNames: props.assetNames,
 		types: props.types,
 		categories: props.categories,
+		platforms: props.platforms,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
@@ -140,6 +140,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			isPlatformMode,
 			selectedAssetNames,
 			selectedCategories,
+			selectedPlatforms,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -409,13 +410,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					return
 				}
 
-				const {
-					chartView: _chartView,
-					nonTimeSeriesChartBreakdown: _nonTimeSeriesChartBreakdown,
-					pieChartBreakdown: _pieChartBreakdown,
-					...restQuery
-				} = router.query
-				pushShallowQuery({ ...restQuery })
+				pushShallowQuery(router, {
+					chartView: undefined,
+					nonTimeSeriesChartBreakdown: undefined,
+					pieChartBreakdown: undefined
+				})
 			}}
 			label={chartView === 'pie' ? 'Pie Chart' : chartView === 'treemap' ? 'Treemap Chart' : 'Time Series'}
 			labelType="none"
@@ -484,14 +483,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						nextParentGrouping: nextTreemapParentGrouping,
 						currentNestedBy: treemapNestedBy
 					})
-
-					const nextQuery: Record<string, any> = { ...router.query, treemapNestedBy: nextTreemapNestedBy }
-					if (nextNonTimeSeriesChartBreakdown) {
-						nextQuery.nonTimeSeriesChartBreakdown = nextNonTimeSeriesChartBreakdown
-					} else {
-						delete nextQuery.nonTimeSeriesChartBreakdown
-					}
-					pushShallowQuery(nextQuery)
+					pushShallowQuery(router, {
+						treemapNestedBy: nextTreemapNestedBy,
+						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown ?? undefined
+					})
 				}
 
 				if (selectedBreakdown === 'chain' && canBreakdownByChain) {
@@ -565,12 +560,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				enabled={showFilters}
 				modes={{
 					isChainMode,
+					isCategoryMode,
 					isPlatformMode
 				}}
 				options={{
 					assetNames: props.assetNames,
 					typeOptions: props.typeOptions,
 					categoriesOptions: props.categoriesOptions,
+					platforms: props.platforms,
 					assetClassOptions: props.assetClassOptions,
 					rwaClassificationOptions: props.rwaClassificationOptions,
 					accessModelOptions: props.accessModelOptions,
@@ -580,6 +577,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					selectedAssetNames,
 					selectedTypes,
 					selectedCategories,
+					selectedPlatforms,
 					selectedAssetClasses,
 					selectedRwaClassifications,
 					selectedAccessModels,
@@ -699,7 +697,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								) : null}
 								<ChartPngExportButton
 									chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
-									filename={chartView === 'treemap' ? treemapChartFilename : `${pieChartFilename}.png`}
+									filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
 									title={exportChartTitle}
 								/>
 							</div>
@@ -730,23 +728,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			<RWAAssetsTable assets={filteredAssets} selectedChain={props.selectedChain} />
 		</>
 	)
-}
-
-const toQueryString = (query: Record<string, string | string[] | undefined>): string => {
-	const params = new URLSearchParams()
-	for (const [key, value] of Object.entries(query)) {
-		if (value == null) continue
-		if (Array.isArray(value)) {
-			for (const v of value) {
-				if (!v) continue
-				params.append(key, String(v))
-			}
-		} else if (value) {
-			params.set(key, String(value))
-		}
-	}
-	const qs = params.toString()
-	return qs ? `?${qs}` : ''
 }
 
 const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {

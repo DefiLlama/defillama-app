@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import pb from '~/utils/pocketbase'
 import { AUTH_SERVER } from '../constants'
 
@@ -38,6 +39,20 @@ interface SaveNotificationPreferencesRequest {
 	frequency: 'daily' | 'weekly'
 }
 
+const parseJsonSafely = async <T = unknown>(response: Response): Promise<T | null> => {
+	const parsed = await response.json().catch(() => null)
+	return parsed as T | null
+}
+
+const getUserFacingErrorMessage = (error: unknown, fallbackMessage: string): string => {
+	if (!(error instanceof Error)) return fallbackMessage
+	if (!error.message.startsWith('[HTTP] [error]')) return error.message || fallbackMessage
+	const colonIndex = error.message.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = error.message.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
+}
+
 export const useEmailNotifications = (portfolioName?: string) => {
 	const { authorizedFetch } = useAuthContext()!
 	const queryClient = useQueryClient()
@@ -49,35 +64,36 @@ export const useEmailNotifications = (portfolioName?: string) => {
 		isFetching,
 		error
 	} = useQuery<NotificationPreference | null>({
-		queryKey: ['notification-preferences', pb.authStore.record?.id, portfolioName],
+		queryKey: ['notifications', 'preferences', pb.authStore.record?.id, portfolioName],
 		queryFn: async () => {
 			if (!isAuthenticated || !portfolioName) {
 				return null
 			}
 
-			try {
-				const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
-				url.searchParams.append('portfolioName', portfolioName)
+			const url = new URL(`${AUTH_SERVER}/watchlist/preferences`)
+			url.searchParams.append('portfolioName', portfolioName)
 
-				const response = await authorizedFetch(url.toString(), {
-					method: 'GET'
-				})
+			const response = await authorizedFetch(url.toString(), {
+				method: 'GET'
+			})
 
-				if (!response.ok) {
-					if (response.status === 404 || response.status === 401) {
-						return null
-					}
-					throw new Error('Failed to fetch notification preferences')
+			if (!response) throw new Error('Not authenticated')
+
+			if (!response.ok) {
+				if (response.status === 404) {
+					return null
 				}
+				if (response.status === 401) {
+					throw new Error('Unauthorized')
+				}
+			}
+			await handleSimpleFetchResponse(response)
 
-				const data = await response.json()
-
-				console.log('API response:', data)
-				return data.preferences || null
-			} catch (error) {
-				console.log('Error fetching notification preferences:', error)
+			const data = await parseJsonSafely<{ preferences?: NotificationPreference | null }>(response)
+			if (!data || data.preferences == null) {
 				return null
 			}
+			return data.preferences
 		},
 		enabled: isAuthenticated && !!portfolioName,
 		staleTime: 1000 * 60 * 5, // 5 minutes
@@ -103,21 +119,20 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to save notification preferences')
-			}
+			if (!response) throw new Error('Not authenticated')
+
+			await handleSimpleFetchResponse(response)
 
 			const data = await response.json()
 			return data.preferences
 		},
 		onSuccess: (data, variables) => {
-			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id, variables.portfolioName], data)
+			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], data)
 			toast.success('Notification preferences saved successfully')
 		},
 		onError: (error) => {
-			console.log('Error saving notification preferences:', error)
-			toast.error(error.message || 'Failed to save notification preferences')
+			console.error('Error saving notification preferences:', error)
+			toast.error(getUserFacingErrorMessage(error, 'Failed to save notification preferences'))
 		}
 	})
 
@@ -139,20 +154,19 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to update notification status')
-			}
+			if (!response) throw new Error('Not authenticated')
+
+			await handleSimpleFetchResponse(response)
 		},
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({
-				queryKey: ['notification-preferences', pb.authStore.record?.id, variables.portfolioName]
+				queryKey: ['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName]
 			})
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
 		},
 		onError: (error) => {
-			console.log('Error updating notification status:', error)
-			toast.error(error.message || 'Failed to update notification status')
+			console.error('Error updating notification status:', error)
+			toast.error(getUserFacingErrorMessage(error, 'Failed to update notification status'))
 		}
 	})
 
@@ -173,18 +187,17 @@ export const useEmailNotifications = (portfolioName?: string) => {
 				true
 			)
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to delete notification preferences')
-			}
+			if (!response) throw new Error('Not authenticated')
+
+			await handleSimpleFetchResponse(response)
 		},
 		onSuccess: (_, variables) => {
-			queryClient.setQueryData(['notification-preferences', pb.authStore.record?.id, variables.portfolioName], null)
+			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], null)
 			toast.success('Notification preferences deleted')
 		},
 		onError: (error) => {
-			console.log('Error deleting notification preferences:', error)
-			toast.error(error.message || 'Failed to delete notifications')
+			console.error('Error deleting notification preferences:', error)
+			toast.error(getUserFacingErrorMessage(error, 'Failed to delete notifications'))
 		}
 	})
 

@@ -15,17 +15,18 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import type { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
+import type { IFormattedDataWithExtraTvl } from './types'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -50,6 +51,18 @@ export function ChainsByCategoryTable({
 		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
 		() => defaultColumns
 	)
+	const { columnVisibility, selectedColumns } = React.useMemo(() => {
+		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedColumns = columnOptions.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { columnVisibility, selectedColumns }
+	}, [columnsInStorage])
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
@@ -62,7 +75,7 @@ export function ChainsByCategoryTable({
 			sorting,
 			expanded,
 			columnFilters,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -83,11 +96,6 @@ export function ChainsByCategoryTable({
 		columnOrders: chainsTableColumnOrders
 	})
 
-	const selectedColumns = instance
-		.getAllLeafColumns()
-		.filter((col) => col.getIsVisible())
-		.map((col) => col.id)
-
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const setAggrOptions: React.Dispatch<React.SetStateAction<Array<string>>> = (selectedKeys) => {
@@ -104,30 +112,6 @@ export function ChainsByCategoryTable({
 	const selectedAggregateTypes = React.useMemo(() => {
 		return CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
 	}, [groupTvls])
-
-	const prepareCsv = () => {
-		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
-		const headers = visibleColumns.map((col) => {
-			if (typeof col.columnDef.header === 'string') {
-				return col.columnDef.header
-			}
-			return col.id
-		})
-
-		const rows = instance.getSortedRowModel().rows.map((row) => {
-			return visibleColumns.map((col) => {
-				const cell = row.getAllCells().find((c) => c.column.id === col.id)
-				if (!cell) return ''
-
-				const value = cell.getValue()
-				if (value == null) return ''
-
-				return value
-			})
-		})
-
-		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}
 
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
@@ -175,7 +159,7 @@ export function ChainsByCategoryTable({
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'defillama-chains' })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
@@ -316,7 +300,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -326,7 +314,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -336,7 +328,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',

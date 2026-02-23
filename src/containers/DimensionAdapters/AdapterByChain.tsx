@@ -12,14 +12,6 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
@@ -29,7 +21,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
@@ -38,7 +30,8 @@ import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug, getAnnualizedRatio } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import { AdapterByChainChart } from './ChainChart'
 import type { IAdapterByChainPageData, IProtocol } from './types'
 
@@ -99,6 +92,7 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Options Notional Volume': definitions.optionsNotional.chain,
 	Earnings: definitions.earnings.chain
 }
+
 const getProtocolsByCategory = (
 	protocols: IAdapterByChainPageData['protocols'],
 	categoriesToFilter: Array<string>
@@ -303,24 +297,6 @@ export function AdapterByChain(props: IProps) {
 		columnSizes,
 		columnOrders
 	})
-	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
-		const visibleColumns = instance.getVisibleLeafColumns()
-		const headers = visibleColumns.map((col) =>
-			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
-		)
-
-		const rows = [headers]
-		instance.getFilteredRowModel().rows.forEach((row) => {
-			const cells = visibleColumns.map((col) => {
-				const value = row.getValue(col.id)
-				return value === null || value === undefined ? '' : String(value)
-			})
-			rows.push(cells)
-		})
-
-		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows }
-	}
-
 	const metricName = props.type
 	const columnsKey = `columns-${props.type}`
 
@@ -483,7 +459,10 @@ export function AdapterByChain(props: IProps) {
 						/>
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols` })}
+						smol
+					/>
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
@@ -1342,7 +1321,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['24h']
+					headerHelperText: definitions.perpsAggregators.protocol['24h'],
+					csvHeader: 'Perp Aggregator Volume 24h'
 				},
 				size: 160
 			},
@@ -1369,7 +1349,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['30d']
+					headerHelperText: definitions.perpsAggregators.protocol['30d'],
+					csvHeader: 'Perp Aggregator Volume 30d'
 				},
 				size: 160
 			}
@@ -1388,7 +1369,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['24h']
+					headerHelperText: definitions.bridgeAggregators.chain['24h'],
+					csvHeader: 'Bridge Aggregator Volume 24h'
 				},
 				size: 160
 			},
@@ -1415,7 +1397,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['30d']
+					headerHelperText: definitions.bridgeAggregators.chain['30d'],
+					csvHeader: 'Bridge Aggregator Volume 30d'
 				},
 				size: 160
 			}
@@ -1434,7 +1417,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['24h']
+					headerHelperText: definitions.dexAggregators.protocol['24h'],
+					csvHeader: 'DEX Aggregator Volume 24h'
 				},
 				size: 160
 			},
@@ -1461,7 +1445,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['30d']
+					headerHelperText: definitions.dexAggregators.protocol['30d'],
+					csvHeader: 'DEX Aggregator Volume 30d'
 				},
 				size: 160
 			}

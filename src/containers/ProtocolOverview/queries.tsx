@@ -1,25 +1,21 @@
-import {
-	ACTIVE_USERS_API,
-	BRIDGEVOLUME_API_SLUG,
-	LIQUIDITY_API,
-	ORACLE_API,
-	oracleProtocols,
-	PROTOCOL_GOVERNANCE_COMPOUND_API,
-	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
-	PROTOCOL_GOVERNANCE_TALLY_API,
-	PROTOCOLS_API,
-	V2_SERVER_URL,
-	YIELD_CONFIG_API,
-	YIELD_POOLS_API
-} from '~/constants'
+import { fetchProtocolLiquidityTokens } from '~/api'
+import type { ProtocolLiquidityToken } from '~/api/types'
+import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchCexs } from '~/containers/Cexs/api'
-import { fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
+import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
-import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
+import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
+import type { IActiveAddressMetrics, IProtocolOnchainMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
+import { fetchOracleMetrics, fetchOracleProtocolChart } from '~/containers/Oracles/api'
+import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
@@ -27,13 +23,19 @@ import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
-import { fetchProtocolExpenses, fetchProtocolOverviewMetrics, fetchProtocolTvlChart } from './api'
-import type { IProtocolMetricsV2, IProtocolExpenses } from './api.types'
-import { protocolCharts, type ProtocolChartsLabels } from './constants'
+import {
+	fetchProtocolExpenses,
+	fetchProtocolOverviewMetrics,
+	fetchProtocolTreasuryChart,
+	fetchProtocolTvlChart
+} from './api'
+import type { IProtocolValueChart, IProtocolMetricsV2, IProtocolExpenses } from './api.types'
+import { ADAPTER_CHART_DESCRIPTORS } from './chartDescriptors'
+import { normalizeBridgeVolumeToChartMs, normalizeChartPointsToMs } from './chartSeries.utils'
+import type { ProtocolChartsLabels } from './constants'
+import { buildAvailableCharts, buildDefaultToggledCharts } from './defaultCharts'
 import type { IArticle, IArticlesResponse, IProtocolOverviewPageData, IProtocolPageMetrics } from './types'
 import { getProtocolWarningBanners } from './utils'
-
-const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts
 
 interface IProtocolDataExtended extends IProtocolMetricsV2 {
 	tokenCGData?: {
@@ -103,6 +105,10 @@ export const getProtocolMetricFlags = ({
 	}
 }
 
+type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
+type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
+type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
+
 export const getProtocolOverviewPageData = async ({
 	protocolId,
 	currentProtocolMetadata,
@@ -114,25 +120,9 @@ export const getProtocolOverviewPageData = async ({
 	isCEX?: boolean
 	chainMetadata: Record<string, IChainMetadata>
 }): Promise<IProtocolOverviewPageData> => {
-	type IAdapterResult = ReturnType<typeof formatAdapterData>
-	type ITreasuryResult = {
-		majors: number | null
-		stablecoins: number | null
-		ownTokens: number | null
-		others: number | null
-		total: number | null
-	} | null
-	type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
-	type IIncentivesResult = IProtocolOverviewPageData['incentives']
-	type IUsersResult = {
-		activeUsers: number | null
-		newUsers: number | null
-		transactions: number | null
-		gasUsd: number | null
-	} | null
-	type ILiquidityInfoItem = { id: string; tokenPools?: Array<{ project: string; chain: string; tvlUsd: number }> }
-	type ILiteProtocolItem = { category?: string; name: string; chains: Array<string>; tvl: number }
-	type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
+	const displayName = currentProtocolMetadata.displayName ?? ''
+	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
+	const isOracleProtocol = Boolean(oracleProtocolName)
 
 	const [
 		protocolData,
@@ -163,37 +153,39 @@ export const getProtocolOverviewPageData = async ({
 		hacksData,
 		bridgeVolumeData,
 		incomeStatement,
+		oracleChartData,
 		oracleTvs
 	]: [
 		IProtocolDataExtended | null,
-		Array<[string, number]>,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		IAdapterResult,
-		ITreasuryResult,
+		IProtocolValueChart,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		Awaited<ReturnType<typeof formatAdapterData>>,
+		IProtocolOverviewPageData['treasury'],
 		IYieldsDataResult,
 		IArticle[],
-		IIncentivesResult,
+		IProtocolOverviewPageData['incentives'],
 		number | null,
-		IUsersResult,
+		IProtocolOnchainMetrics | null,
 		IProtocolExpenses | null,
-		{ protocols?: Record<string, { name?: string }> } | null,
-		Array<ILiquidityInfoItem>,
-		{ protocols: Array<ILiteProtocolItem> },
-		Array<IHackApiItem>,
+		IYieldsConfigResult,
+		ProtocolLiquidityToken[],
+		ProtocolsResponse,
+		IHackApiItem[],
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
-		Record<string, number> | null
+		IOracleProtocolChart | null,
+		IProtocolOverviewPageData['oracleTvs']
 	] = await Promise.all([
 		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
 			async (data): Promise<IProtocolDataExtended | null> => {
@@ -216,13 +208,11 @@ export const getProtocolOverviewPageData = async ({
 				}
 			}
 		),
-		currentProtocolMetadata.tvl
+		currentProtocolMetadata.tvl && !isOracleProtocol
 			? fetchProtocolTvlChart({ protocol: slug(currentProtocolMetadata.displayName ?? '') })
-					.then(
-						(chart) => chart?.map(([date, value]): [string, number] => [String(Math.floor(date / 1e3)), value]) ?? []
-					)
-					.catch((): Array<[string, number]> => [])
-			: Promise.resolve([] as Array<[string, number]>),
+					.then((chart) => chart ?? [])
+					.catch((): Array<[number, number]> => [])
+			: Promise.resolve([] as Array<[number, number]>),
 		currentProtocolMetadata.fees
 			? fetchAdapterProtocolMetrics({
 					adapterType: 'fees',
@@ -340,7 +330,7 @@ export const getProtocolOverviewPageData = async ({
 						(res: Array<{ id: string; tokenBreakdowns?: Record<string, number | null> }>) =>
 							res.find((item) => item.id === `${protocolId}-treasury`)?.tokenBreakdowns ?? null
 					)
-					.then((res): ITreasuryResult => {
+					.then((res): IProtocolOverviewPageData['treasury'] => {
 						if (!res) return null
 						return {
 							majors: res.majors ?? null,
@@ -374,27 +364,10 @@ export const getProtocolOverviewPageData = async ({
 			return []
 		}),
 		currentProtocolMetadata?.incentives && protocolId
-			? fetchJson(`https://api.llama.fi/emissionsBreakdownAggregated`)
-					.then((data) => {
-						const protocolEmissionsData = data.protocols.find((item: { name: string; defillamaId: string }) =>
-							protocolId.startsWith('parent#')
-								? item.name === currentProtocolMetadata.displayName
-								: item.defillamaId === protocolId
-						)
-
-						if (!protocolEmissionsData) return null
-
-						return {
-							emissions24h: protocolEmissionsData.emission24h,
-							emissions7d: protocolEmissionsData.emission7d,
-							emissions30d: protocolEmissionsData.emission30d,
-							emissionsAllTime: protocolEmissionsData.emissionsAllTime,
-							emissionsMonthlyAverage1y: protocolEmissionsData.emissionsMonthlyAverage1y,
-							methodology:
-								'Tokens allocated to users through liquidity mining or incentive schemes, typically as part of governance or reward mechanisms.'
-						}
-					})
-					.catch(() => null)
+			? getProtocolIncentivesFromAggregatedEmissions({
+					protocolId,
+					protocolDisplayName: currentProtocolMetadata.displayName ?? ''
+				}).catch(() => null)
 			: null,
 		currentProtocolMetadata?.emissions && protocolId
 			? fetchProtocolEmissionFromDatasets(slug(currentProtocolMetadata.displayName))
@@ -402,14 +375,14 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		currentProtocolMetadata.activeUsers && protocolId
-			? fetchJson(ACTIVE_USERS_API, { timeout: 10_000 })
+			? fetchActiveAddresses()
 					.then((data) => data?.[protocolId] ?? null)
-					.then((data) => {
+					.then((data: IActiveAddressMetrics | null): IProtocolOnchainMetrics | null => {
 						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
 							? {
 									activeUsers: data.users?.value ?? null,
 									newUsers: data.newUsers?.value ?? null,
-									transactions: data.txs?.value ?? null,
+									transactions: data.txs?.value ? Number(data.txs.value) : null,
 									gasUsd: data.gasUsd?.value ?? null
 								}
 							: null
@@ -429,11 +402,11 @@ export const getProtocolOverviewPageData = async ({
 				})
 			: null,
 		currentProtocolMetadata?.liquidity
-			? fetchJson(LIQUIDITY_API).catch(() => {
+			? fetchProtocolLiquidityTokens().catch(() => {
 					return []
 				})
 			: [],
-		fetchJson(PROTOCOLS_API).catch(() => ({ protocols: [] })),
+		fetchProtocols().catch((): ProtocolsResponse => ({ protocols: [], chains: [], parentProtocols: [] })),
 		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
 			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)
@@ -441,22 +414,41 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: null,
 		getProtocolIncomeStatement({ metadata: currentProtocolMetadata }),
-		currentProtocolMetadata.displayName &&
-		(oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName]
-			? fetchJson(ORACLE_API).then((data): Record<string, number> | null => {
-					const oracleName = (oracleProtocols as Record<string, string>)[currentProtocolMetadata.displayName ?? '']
-					let tvs: Record<string, number> = {}
-					for (const date in data.chainChart) {
-						tvs = data.chainChart[date]?.[oracleName] ?? {}
-					}
-					let hasTvs = false
-					for (const _ in tvs) {
-						hasTvs = true
-						break
-					}
-					if (!hasTvs) return null
-					return tvs
-				})
+		oracleProtocolName
+			? fetchOracleProtocolChart({ protocol: oracleProtocolName })
+					.then((data): Array<[number, number]> | null => normalizeChartPointsToMs(data))
+					.catch(() => null)
+			: null,
+		oracleProtocolName
+			? fetchOracleMetrics()
+					.then((data): Record<string, number> | null => {
+						const protocolTvsByOracle = data?.oraclesTVS?.[oracleProtocolName]
+						if (!protocolTvsByOracle) return null
+						const tvs: Record<string, number> = {}
+
+						const displayNameTvs = protocolTvsByOracle[displayName]
+						const slugNameTvs = protocolTvsByOracle[slug(displayName)]
+						const selectedProtocolTvs: Record<string, Record<string, number>> = displayNameTvs
+							? { [displayName]: displayNameTvs }
+							: slugNameTvs
+								? { [slug(displayName)]: slugNameTvs }
+								: (protocolTvsByOracle as unknown as Record<string, Record<string, number>>)
+						for (const protocolKey in selectedProtocolTvs) {
+							const chainTvs = selectedProtocolTvs[protocolKey]
+							for (const chain in chainTvs) {
+								const nestedValue = Number(chainTvs[chain])
+								if (!Number.isFinite(nestedValue)) continue
+								tvs[chain] = (tvs[chain] ?? 0) + nestedValue
+							}
+						}
+						let hasTvs = false
+						for (const _ in tvs) {
+							hasTvs = true
+							break
+						}
+						return hasTvs ? tvs : null
+					})
+					.catch(() => null)
 			: null
 	])
 
@@ -481,7 +473,7 @@ export const getProtocolOverviewPageData = async ({
 
 	const tokenPools =
 		yieldsData?.data && yieldsConfig
-			? (liquidityInfo?.find((p: ILiquidityInfoItem) => p.id === protocolData.id)?.tokenPools ?? [])
+			? (liquidityInfo?.find((p: ProtocolLiquidityToken) => p.id === protocolData.id)?.tokenPools ?? [])
 			: []
 
 	const liquidityAggregated = tokenPools.reduce(
@@ -494,17 +486,19 @@ export const getProtocolOverviewPageData = async ({
 	)
 
 	const tokenLiquidity = yieldsConfig?.protocols
-		? Object.entries(liquidityAggregated)
-				.filter((x: [string, Record<string, number>]) => !!yieldsConfig.protocols?.[x[0]]?.name)
-				.map((p: [string, Record<string, number>]) =>
-					Object.entries(p[1]).map((c: [string, number]): [string, string, number] => [
-						yieldsConfig.protocols?.[p[0]]?.name ?? '',
-						c[0],
-						Number(c[1])
-					])
-				)
-				.flat()
-				.sort((a: [string, string, number], b: [string, string, number]) => b[2] - a[2])
+		? (() => {
+				const rows: Array<[string, string, number]> = []
+				for (const protocolSlug in liquidityAggregated) {
+					const protocolName = yieldsConfig.protocols?.[protocolSlug]?.name
+					if (!protocolName) continue
+					const chainValues = liquidityAggregated[protocolSlug]
+					for (const chainName in chainValues) {
+						rows.push([protocolName, chainName, Number(chainValues[chainName])])
+					}
+				}
+				rows.sort((a: [string, string, number], b: [string, string, number]) => b[2] - a[2])
+				return rows
+			})()
 		: ([] as Array<[string, string, number]>)
 
 	const raises =
@@ -540,28 +534,36 @@ export const getProtocolOverviewPageData = async ({
 
 	const competitors =
 		liteProtocolsData && protocolData.category
-			? liteProtocolsData.protocols
-					.filter((p) => {
-						if (p.category) {
-							return (
-								p.category.toLowerCase() === protocolData.category.toLowerCase() &&
-								p.name.toLowerCase() !== protocolData.name?.toLowerCase() &&
-								p.chains.some((c) => protocolChainsSet.has(c))
-							)
-						} else return false
-					})
-					.map((p) => {
-						let commonChains = 0
+			? (() => {
+					const rows: Array<{ name: string; tvl: number; commonChains: number }> = []
+					const currentCategory = protocolData.category.toLowerCase()
+					const currentName = protocolData.name?.toLowerCase()
+					for (const protocol of liteProtocolsData.protocols) {
+						if (!protocol.category) continue
+						if (protocol.category.toLowerCase() !== currentCategory) continue
+						if (protocol.name.toLowerCase() === currentName) continue
+						const candidateChainsSet = new Set(protocol.chains)
+						let hasCommonChain = false
+						for (const chain of candidateChainsSet) {
+							if (protocolChainsSet.has(chain)) {
+								hasCommonChain = true
+								break
+							}
+						}
+						if (!hasCommonChain) continue
 
+						let commonChains = 0
 						for (const chain of protocolData?.chains ?? []) {
-							if (p.chains.includes(chain)) {
+							if (candidateChainsSet.has(chain)) {
 								commonChains += 1
 							}
 						}
 
-						return { name: p.name, tvl: p.tvl, commonChains }
-					})
-					.sort((a, b) => b.tvl - a.tvl)
+						rows.push({ name: protocol.name, tvl: protocol.tvl, commonChains })
+					}
+					rows.sort((a, b) => b.tvl - a.tvl)
+					return rows
+				})()
 			: []
 
 	const competitorsSet = new Set<string>()
@@ -581,10 +583,12 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
-	const competitorsList = Array.from(competitorsSet)
-		.map((protocolName) => competitorsMap.get(protocolName))
-		.filter((competitor): competitor is (typeof competitors)[number] => Boolean(competitor))
-		.map(({ name, tvl }) => ({ name, tvl }))
+	const competitorsList: Array<{ name: string; tvl: number }> = []
+	for (const protocolName of competitorsSet) {
+		const competitor = competitorsMap.get(protocolName)
+		if (!competitor) continue
+		competitorsList.push({ name: competitor.name, tvl: competitor.tvl })
+	}
 
 	const hacks =
 		(protocolData.id
@@ -633,111 +637,34 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 
-	const availableCharts: ProtocolChartsLabels[] = []
-
-	if (currentProtocolMetadata.tvl && protocolTvlChartData.length > 0) {
-		availableCharts.push(isCEX ? 'Total Assets' : 'TVL')
-	}
-
-	if (oracleTvs) {
-		// availableCharts.push('TVS')
-	}
-
-	if (protocolData.gecko_id) {
-		availableCharts.push('Mcap')
-		availableCharts.push('Token Price')
-		availableCharts.push('Token Volume')
-		if (currentProtocolMetadata.liquidity) {
-			availableCharts.push('Token Liquidity')
-		}
-		availableCharts.push('FDV')
-	}
-
-	if (feesData) {
-		availableCharts.push('Fees')
-	}
-
-	if (revenueData) {
-		availableCharts.push('Revenue')
-	}
-
-	if (holdersRevenueData) {
-		availableCharts.push('Holders Revenue')
-	}
-
-	if (dexVolumeData) {
-		availableCharts.push('DEX Volume')
-	}
-
-	if (perpVolumeData) {
-		availableCharts.push('Perp Volume')
-	}
-
-	if (openInterestData) {
-		availableCharts.push('Open Interest')
-	}
-
-	if (optionsPremiumVolumeData) {
-		availableCharts.push('Options Premium Volume')
-	}
-
-	if (optionsNotionalVolumeData) {
-		availableCharts.push('Options Notional Volume')
-	}
-
-	if (dexAggregatorVolumeData) {
-		availableCharts.push('DEX Aggregator Volume')
-	}
-
-	if (perpAggregatorVolumeData) {
-		availableCharts.push('Perp Aggregator Volume')
-	}
-
-	if (bridgeAggregatorVolumeData) {
-		availableCharts.push('Bridge Aggregator Volume')
-	}
-
-	if (bridgeVolumeData) {
-		availableCharts.push('Bridge Volume')
-	}
-
-	if (currentProtocolMetadata.emissions) {
-		availableCharts.push('Unlocks')
-	}
-
-	if (incentives) {
-		availableCharts.push('Incentives')
-	}
-
-	if (protocolData.currentChainTvls?.staking != null) {
-		availableCharts.push('Staking')
-	}
-
-	if (protocolData.currentChainTvls?.borrowed != null) {
-		availableCharts.push('Borrowed')
-	}
-
-	if (protocolMetrics.inflows) {
-		availableCharts.push('USD Inflows')
-	}
-
-	if (treasury) {
-		availableCharts.push('Treasury')
-	}
-
-	if (yields && !protocolData.isParentProtocol) {
-		availableCharts.push('Median APY')
-	}
-
-	if (protocolData.governanceID) {
-		availableCharts.push('Total Proposals')
-		availableCharts.push('Successful Proposals')
-		availableCharts.push('Max Votes')
-	}
-
-	if (currentProtocolMetadata.nfts) {
-		availableCharts.push('NFT Volume')
-	}
+	const availableCharts = buildAvailableCharts({
+		isCEX,
+		hasTvlChart: Boolean(currentProtocolMetadata.tvl && protocolTvlChartData.length > 0),
+		hasTvsChart: Boolean(oracleChartData?.length),
+		hasGeckoId: Boolean(protocolData.gecko_id),
+		hasLiquidity: Boolean(currentProtocolMetadata.liquidity),
+		hasFees: Boolean(feesData),
+		hasRevenue: Boolean(revenueData),
+		hasHoldersRevenue: Boolean(holdersRevenueData),
+		hasDexVolume: Boolean(dexVolumeData),
+		hasPerpVolume: Boolean(perpVolumeData),
+		hasOpenInterest: Boolean(openInterestData),
+		hasOptionsPremiumVolume: Boolean(optionsPremiumVolumeData),
+		hasOptionsNotionalVolume: Boolean(optionsNotionalVolumeData),
+		hasDexAggregatorVolume: Boolean(dexAggregatorVolumeData),
+		hasPerpAggregatorVolume: Boolean(perpAggregatorVolumeData),
+		hasBridgeAggregatorVolume: Boolean(bridgeAggregatorVolumeData),
+		hasBridgeVolume: Boolean(bridgeVolumeData),
+		hasUnlocks: Boolean(currentProtocolMetadata.emissions),
+		hasIncentives: Boolean(incentives),
+		hasStaking: protocolData.currentChainTvls?.staking != null,
+		hasBorrowed: protocolData.currentChainTvls?.borrowed != null,
+		hasUsdInflows: Boolean(protocolMetrics.inflows),
+		hasTreasury: Boolean(treasury),
+		hasMedianApy: Boolean(yields && !protocolData.isParentProtocol),
+		hasGovernance: Boolean(protocolData.governanceID),
+		hasNfts: Boolean(currentProtocolMetadata.nfts)
+	})
 
 	const chartColors: Record<string, string> = {}
 	for (let i = 0; i < availableCharts.length; i++) {
@@ -781,62 +708,70 @@ export const getProtocolOverviewPageData = async ({
 	seoDescription += ' and their methodologies'
 	seoKeywords += `, ${name.toLowerCase()} methodologies`
 
-	const defaultToggledCharts: ProtocolChartsLabels[] = []
-	if (protocolMetrics.tvl) {
-		if (protocolTvlChartData.length === 0 || protocolTvlChartData.every(([, value]) => value === 0)) {
-			const hasStaking = (protocolData.currentChainTvls?.staking ?? 0) > 0
-			if (hasStaking) {
-				defaultToggledCharts.push('Staking')
-			}
+	const defaultToggledCharts = buildDefaultToggledCharts({
+		isCEX,
+		isOracleProtocol,
+		protocolMetricsTvl: protocolMetrics.tvl,
+		protocolTvlChartData,
+		currentChainTvls: protocolData.currentChainTvls,
+		availableCharts,
+		category: protocolData.category
+	})
 
-			const hasBorrowed = (protocolData.currentChainTvls?.borrowed ?? 0) > 0
-			if (!hasStaking && hasBorrowed) {
-				defaultToggledCharts.push('Borrowed')
-			}
-		} else {
-			defaultToggledCharts.push(isCEX ? 'Total Assets' : 'TVL')
-		}
+	const protocolSlug = slug(currentProtocolMetadata.displayName ?? '')
+	const initialMultiSeriesChartData: IProtocolOverviewPageData['initialMultiSeriesChartData'] = {}
+	if (protocolTvlChartData.length > 0) {
+		initialMultiSeriesChartData[isCEX ? 'Total Assets' : 'TVL'] = protocolTvlChartData
+	}
+	if (oracleChartData?.length) {
+		initialMultiSeriesChartData['TVS'] = oracleChartData
 	}
 
-	const protocolCategoriesMap = protocolCategories as Record<string, { description: string; defaultChart?: string }>
-	const protocolChartsMap = protocolCharts as Record<string, string>
-	const categoryDefaultChart = protocolData.category ? protocolCategoriesMap[protocolData.category]?.defaultChart : null
-	const isCategoryDefaultChartValue =
-		typeof categoryDefaultChart === 'string' &&
-		(Object.values(protocolCharts) as Array<string>).includes(categoryDefaultChart)
-	if (
-		categoryDefaultChart &&
-		isCategoryDefaultChartValue &&
-		availableCharts.some((chartLabel) => protocolChartsMap[chartLabel] === categoryDefaultChart)
-	) {
-		let defaultChartLabel = null
-		for (const chartLabel in protocolCharts) {
-			if (protocolChartsMap[chartLabel] === categoryDefaultChart) {
-				defaultChartLabel = chartLabel
-				break
-			}
-		}
-		if (defaultChartLabel && isProtocolChartsLabel(defaultChartLabel) && availableCharts.includes(defaultChartLabel)) {
-			defaultToggledCharts.push(defaultChartLabel)
-		}
-	} else if (!isCEX) {
-		const cannotShowAsDefault = new Set<ProtocolChartsLabels>([
-			'TVL',
-			'Total Assets',
-			'TVS',
-			'Mcap',
-			'Token Price',
-			'Token Volume',
-			'Token Liquidity',
-			'FDV',
-			'Total Proposals',
-			'Successful Proposals',
-			'Max Votes'
-		])
+	type ChartSeries = Array<[number, number]>
+	type ChartPrefetcher = () => Promise<ChartSeries | null>
+	const chartPrefetchers: Partial<Record<ProtocolChartsLabels, ChartPrefetcher>> = {
+		...Object.fromEntries(
+			ADAPTER_CHART_DESCRIPTORS.map((descriptor) => [
+				descriptor.label,
+				() =>
+					fetchAdapterProtocolChartData({
+						...descriptor.chartRequest,
+						protocol: currentProtocolMetadata.displayName ?? ''
+					})
+						.then((data) => normalizeChartPointsToMs(data))
+						.catch(() => null)
+			])
+		),
+		'Bridge Volume': () => Promise.resolve(normalizeBridgeVolumeToChartMs(bridgeVolumeData)),
+		Treasury: () =>
+			fetchProtocolTreasuryChart({ protocol: protocolSlug })
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		Staking: () =>
+			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'staking' })
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		Borrowed: () =>
+			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' })
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null)
+	}
 
-		const fallbackLabel = availableCharts.find((chart) => !cannotShowAsDefault.has(chart))
-		if (fallbackLabel) {
-			defaultToggledCharts.push(fallbackLabel)
+	const missingDefaultCharts = defaultToggledCharts.filter(
+		(chartLabel) => !initialMultiSeriesChartData[chartLabel] && chartPrefetchers[chartLabel]
+	)
+	if (missingDefaultCharts.length > 0) {
+		const prefetchedDefaults = await Promise.all(
+			missingDefaultCharts.map(async (chartLabel) => {
+				const fetcher = chartPrefetchers[chartLabel]
+				if (!fetcher) return [chartLabel, null] as const
+				return [chartLabel, await fetcher()] as const
+			})
+		)
+		for (const [chartLabel, series] of prefetchedDefaults) {
+			if (series?.length) {
+				initialMultiSeriesChartData[chartLabel] = series
+			}
 		}
 	}
 
@@ -936,7 +871,7 @@ export const getProtocolOverviewPageData = async ({
 		chartDenominations,
 		availableCharts,
 		chartColors,
-		tvlChartData: protocolTvlChartData,
+		initialMultiSeriesChartData,
 		hallmarks: Object.entries(hallmarks)
 			.sort(([a], [b]) => Number(a) - Number(b))
 			.map(([date, event]): [number, string] => [+date * 1e3, event]),
@@ -945,7 +880,7 @@ export const getProtocolOverviewPageData = async ({
 			event
 		]),
 		geckoId: protocolData.gecko_id ?? null,
-		governanceApis: governanceApis(protocolData.governanceID) ?? null,
+		governanceApis: governanceIdsToApis(protocolData.governanceID ?? []),
 		incomeStatement,
 		warningBanners: getProtocolWarningBanners(protocolData),
 		defaultChartView:
@@ -1133,27 +1068,7 @@ function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
 	}
 }
 
-const governanceApis = (governanceID: Array<string> | undefined) =>
-	(
-		governanceID?.map((gid: string) =>
-			gid.startsWith('snapshot:')
-				? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|' |')/g, '/')}.json`
-				: gid.startsWith('compound:')
-					? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|' |')/g, '/')}.json`
-					: gid.startsWith('tally:')
-						? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|' |')/g, '/')}.json`
-						: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|' |')/g, '/')}.json`
-		) ?? []
-	)
-		.map((g: string) =>
-			g.replace(
-				process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
-				'https://defillama-datasets.llama.fi'
-			)
-		)
-		.map((g: string) => g.toLowerCase())
-
-const protocolsWithFalsyBreakdownMetrics = new Set(['Jupiter'])
+const protocolsWithFalsyBreakdownMetrics = new Set([])
 
 export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }) {
 	try {

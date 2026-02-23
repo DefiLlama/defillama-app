@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -43,6 +42,7 @@ const defaultSortingState: Partial<Record<string, { id: string; desc: boolean }[
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
+	const namePrefix = name ? `${name}-` : ''
 	const [groupBy, setGroupBy] = useState<ChartInterval>('daily')
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const categoryPresentation = useMemo(
@@ -200,45 +200,6 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	}, [charts, chartSeries, groupBy, hasBarCharts])
 
 	const chartGroupBy = groupBy === 'cumulative' ? 'daily' : groupBy
-
-	const prepareCsv = () => {
-		const getHeaderLabel = (column: Column): string => {
-			if (typeof column.header === 'string') return column.header
-			return typeof column.id === 'string' ? column.id : ''
-		}
-
-		const getProtocolValue = (column: Column, protocol: (typeof finalProtocols)[number]): unknown => {
-			if ('accessorFn' in column && typeof column.accessorFn === 'function') {
-				return column.accessorFn(protocol, 0)
-			}
-
-			if (typeof protocol === 'object' && protocol !== null && typeof column.id === 'string' && column.id in protocol) {
-				const protocolKey = column.id as keyof typeof protocol
-				return protocol[protocolKey]
-			}
-
-			return null
-		}
-
-		const toCsvCellValue = (value: unknown): string | number | boolean => {
-			if (value == null) return ''
-			if (typeof value === 'number' || typeof value === 'boolean') return value
-			const normalizedValue = String(value)
-			const escapedValue = normalizedValue.replace(/"/g, '""')
-			return escapedValue.includes(',') ? `"${escapedValue}"` : escapedValue
-		}
-
-		const headers = categoryColumns.map(getHeaderLabel)
-		const rows = finalProtocols.map((protocol) =>
-			categoryColumns.map((column) => toCsvCellValue(getProtocolValue(column, protocol)))
-		)
-		const csvRows: Array<Array<string | number | boolean>> = [headers, ...rows]
-
-		return {
-			filename: `defillama-${name}-${props.chain || 'all'}-protocols.csv`,
-			rows: csvRows
-		}
-	}
 
 	return (
 		<>
@@ -399,7 +360,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`protocols-${slug(name)}-${slug(props.chain || 'all')}`}
+							filename={`protocols-${namePrefix}${props.chain || 'all'}`}
 							title={
 								props.chain === 'All'
 									? categoryPresentation.headingLabel
@@ -426,11 +387,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				columnToSearch="name"
 				header={categoryPresentation.tableHeader}
 				sortingState={defaultSortingState[name] ?? [{ id: 'tvl', desc: true }]}
-				customFilters={
-					<>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					</>
-				}
+				csvFileName={`defillama-${namePrefix}${props.chain || 'all'}-protocols`}
 			/>
 		</>
 	)

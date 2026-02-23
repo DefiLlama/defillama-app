@@ -1,19 +1,14 @@
-import {
-	CATEGORY_API,
-	CATEGORY_CHART_API,
-	PROTOCOLS_API,
-	RWA_STATS_API_OLD,
-	TAGS_CHART_API,
-	ZERO_FEE_PERPS
-} from '~/constants'
+import { RWA_STATS_API_OLD, ZERO_FEE_PERPS } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ParentProtocolLite, ProtocolLite, ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS, TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
-import type { ILiteParentProtocol, ILiteProtocol } from '../ChainOverview/types'
 import { fetchAdapterChainChartData, fetchAdapterChainMetrics } from '../DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
+import { fetchCategoriesSummary, fetchCategoryChart, fetchTagChart } from './api'
 import {
 	categoriesPageExcludedExtraTvls,
 	getProtocolCategoryChartMetrics,
@@ -256,7 +251,7 @@ export async function getProtocolsByCategoryOrTag(
 		chainsByCategoriesOrTags,
 		rwaStats
 	]: [
-		{ protocols: Array<ILiteProtocol>; parentProtocols: Array<ILiteParentProtocol> },
+		{ protocols: Array<ProtocolLite>; parentProtocols: Array<ParentProtocolLite> },
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
@@ -271,7 +266,7 @@ export async function getProtocolsByCategoryOrTag(
 		Record<string, Array<string>> | null,
 		Record<string, IRWAStats> | null
 	] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
+		fetchProtocols(),
 		currentChainMetadata?.fees
 			? fetchAdapterChainMetrics({
 					chain: chain ?? 'All',
@@ -325,9 +320,7 @@ export async function getProtocolsByCategoryOrTag(
 					dataType: 'dailyNotionalVolume'
 				})
 			: null,
-		tag
-			? fetchJson(`${TAGS_CHART_API}/${slug(tag)}${chain ? `/${slug(chain)}` : ''}`)
-			: fetchJson(`${CATEGORY_CHART_API}/${slug(category)}${chain ? `/${slug(chain)}` : ''}`),
+		tag ? fetchTagChart({ tag, chain }) : fetchCategoryChart({ category: category ?? '', chain }),
 		currentChainMetadata?.dexs && shouldFetchDexVolumeChart
 			? fetchAdapterChainChartData({
 					chain: chain ?? 'All',
@@ -753,10 +746,6 @@ type CategoriesApiResponse = {
 	categories: Array<string> | Record<string, unknown> | null
 }
 
-type ProtocolsApiResponse = {
-	protocols: Array<ILiteProtocol>
-}
-
 type CategoryAggregateRow = {
 	name: string
 	protocols: number
@@ -832,7 +821,11 @@ function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories'])
 	}
 
 	if (categories != null && typeof categories === 'object') {
-		return Object.keys(categories)
+		const categoryKeys: string[] = []
+		for (const categoryName in categories) {
+			categoryKeys.push(categoryName)
+		}
+		return categoryKeys
 	}
 
 	return []
@@ -840,17 +833,17 @@ function getCategoryKeysFromApi(categories: CategoriesApiResponse['categories'])
 
 export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCategoriesPageData> {
 	const [{ protocols }, revenueData, { chart, categories }]: [
-		ProtocolsApiResponse,
+		ProtocolsResponse,
 		IAdapterChainMetrics | null,
 		CategoriesApiResponse
 	] = await Promise.all([
-		fetchJson<ProtocolsApiResponse>(PROTOCOLS_API),
+		fetchProtocols(),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue'
 		}).catch(() => null),
-		fetchJson<CategoriesApiResponse>(CATEGORY_API)
+		fetchCategoriesSummary()
 	])
 
 	const categoryDescriptions = new Map<string, string>()
@@ -946,9 +939,13 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 
 	const categoryKeysFromApi = getCategoryKeysFromApi(categories)
 	const fallbackCategoryKeysFromRows = Array.from(categoryRows.keys())
-	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) =>
-		Object.keys(chartByCategory)
-	)
+	const fallbackCategoryKeysFromChart = Object.values(chart ?? {}).flatMap((chartByCategory) => {
+		const categoryKeys: string[] = []
+		for (const categoryName in chartByCategory) {
+			categoryKeys.push(categoryName)
+		}
+		return categoryKeys
+	})
 	const categoryKeys = Array.from(
 		new Set(
 			categoryKeysFromApi.length > 0

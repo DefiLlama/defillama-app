@@ -15,12 +15,14 @@ import { Bookmark } from '~/components/Bookmark'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import type { FormSubmitEvent } from '~/types/forms'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 const UnconstrainedSmolLineChart = lazy(() =>
@@ -103,72 +105,34 @@ export const UnlocksTable = ({
 	const minPerc = typeof minUnlockPercQuery === 'string' && minUnlockPercQuery !== '' ? Number(minUnlockPercQuery) : ''
 	const maxPerc = typeof maxUnlockPercQuery === 'string' && maxUnlockPercQuery !== '' ? Number(maxUnlockPercQuery) : ''
 
-	const handleUnlockValueSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleUnlockValueSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		const form = e.currentTarget
-		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement)?.value
-		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement)?.value
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minUnlockValue,
-					maxUnlockValue
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
+		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
+		pushShallowQuery(router, {
+			minUnlockValue: minUnlockValue || undefined,
+			maxUnlockValue: maxUnlockValue || undefined
+		})
 	}
 
 	const handleUnlockValueClear = () => {
-		const { minUnlockValue: _minUnlockValue, maxUnlockValue: _maxUnlockValue, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		pushShallowQuery(router, { minUnlockValue: undefined, maxUnlockValue: undefined })
 	}
 
-	const handleUnlockPercSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleUnlockPercSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		const form = e.currentTarget
-		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement)?.value
-		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement)?.value
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					minUnlockPerc,
-					maxUnlockPerc
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
+		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
+		pushShallowQuery(router, {
+			minUnlockPerc: minUnlockPerc || undefined,
+			maxUnlockPerc: maxUnlockPerc || undefined
+		})
 	}
 
 	const handleUnlockPercClear = () => {
-		const { minUnlockPerc: _minUnlockPerc, maxUnlockPerc: _maxUnlockPerc, ...restQuery } = router.query
-
-		router.push(
-			{
-				pathname: router.pathname,
-				query: restQuery
-			},
-			undefined,
-			{
-				shallow: true
-			}
-		)
+		pushShallowQuery(router, { minUnlockPerc: undefined, maxUnlockPerc: undefined })
 	}
 
 	const columnsInStorage = useSyncExternalStore(
@@ -177,9 +141,17 @@ export const UnlocksTable = ({
 		() => defaultColumns
 	)
 
-	const selectedOptions = useMemo(() => {
-		const storage = JSON.parse(columnsInStorage)
-		return columnOptions.flatMap((c) => (storage[c.key] ? [c.key] : []))
+	const { columnVisibility, selectedOptions } = useMemo(() => {
+		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedOptions = columnOptions.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { columnVisibility, selectedOptions }
 	}, [columnsInStorage])
 
 	const [sorting, setSorting] = useState<SortingState>([{ id: 'upcomingEvent', desc: false }])
@@ -273,14 +245,17 @@ export const UnlocksTable = ({
 		maxPerc
 	])
 
+	const [nowSec] = useState(() => Math.floor(Date.now() / 1000))
+	const columns = useMemo(() => [...emissionsColumns, upcomingEventColumn(nowSec)], [nowSec])
+
 	const instance = useReactTable({
 		data: filteredData,
-		columns: emissionsColumns,
+		columns,
 		state: {
 			sorting,
 			expanded,
 			columnSizing,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -400,16 +375,7 @@ const columnOptions = [
 // { name: 'Value (USD)', key: 'unlockValue' },
 // { name: '% of Supply', key: 'percSupply' },
 
-const defaultColumns = JSON.stringify({
-	name: true,
-	tPrice: true,
-	mcap: true,
-	totalLocked: true,
-	prevUnlock: true,
-	postUnlock: true,
-	nextEvent: true,
-	upcomingEvent: true
-})
+const defaultColumns = JSON.stringify(Object.fromEntries(columnOptions.map((column) => [column.key, true])))
 
 interface IEmission {
 	name: string
@@ -576,7 +542,9 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue<number | undefined>()
 			return (
-				<div className="flex h-full items-center justify-end">{value != null ? renderPercentChange(value) : ''}</div>
+				<div className="flex h-full items-center justify-end">
+					{value != null ? <PercentChange percent={value} /> : ''}
+				</div>
 			)
 		},
 		meta: {
@@ -604,38 +572,39 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Next Event',
-		id: 'upcomingEvent',
-		accessorFn: (row) => {
-			const { timestamp } = row.upcomingEvent?.[0] || {}
-			if (!timestamp || timestamp < Date.now() / 1e3) return undefined
-			return timestamp
-		},
-		cell: ({ row }) => {
-			if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
-			const { timestamp } = row.original.upcomingEvent[0]
-			if (!timestamp || timestamp < Date.now() / 1e3) return null
-
-			return (
-				<UpcomingEvent
-					{...{
-						noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
-						timestamp,
-						event: row.original.upcomingEvent.map((event) => ({
-							...event,
-							timestamp: event.timestamp ?? timestamp
-						})),
-						price: row.original.tPrice,
-						symbol: row.original.tSymbol,
-						mcap: row.original.mcap,
-						maxSupply: row.original.maxSupply,
-						name: row.original.name
-					}}
-				/>
-			)
-		},
-		size: 400
 	}
 ]
+
+const upcomingEventColumn = (nowSec: number): ColumnDef<IEmission> => ({
+	header: 'Next Event',
+	id: 'upcomingEvent',
+	accessorFn: (row) => {
+		const { timestamp } = row.upcomingEvent?.[0] || {}
+		if (!timestamp || timestamp < nowSec) return undefined
+		return timestamp
+	},
+	cell: ({ row }) => {
+		if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
+		const { timestamp } = row.original.upcomingEvent[0]
+		if (!timestamp || timestamp < nowSec) return null
+
+		return (
+			<UpcomingEvent
+				{...{
+					noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
+					timestamp,
+					event: row.original.upcomingEvent.map((event) => ({
+						...event,
+						timestamp: event.timestamp ?? timestamp
+					})),
+					price: row.original.tPrice,
+					symbol: row.original.tSymbol,
+					mcap: row.original.mcap,
+					maxSupply: row.original.maxSupply,
+					name: row.original.name
+				}}
+			/>
+		)
+	},
+	size: 400
+})

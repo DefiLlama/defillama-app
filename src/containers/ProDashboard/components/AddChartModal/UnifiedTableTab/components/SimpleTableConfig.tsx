@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
@@ -316,9 +317,12 @@ export function SimpleTableConfig({
 								return (
 									<div key={token} className="inline-flex items-center gap-1.5 rounded-md bg-(--pro-bg3) px-2.5 py-1">
 										{option?.logo ? (
-											<img
+											<Image
 												src={option.logo}
 												alt=""
+												width={16}
+												height={16}
+												unoptimized
 												className="h-4 w-4 rounded-full"
 												onError={(e) => {
 													e.currentTarget.style.display = 'none'
@@ -341,8 +345,9 @@ export function SimpleTableConfig({
 							})}
 						</div>
 					)}
-					<div
-						className="flex cursor-pointer items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 pro-text2 transition-colors hover:pro-text1"
+					<button
+						type="button"
+						className="flex w-full items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 text-left pro-text2 transition-colors hover:pro-text1"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative h-4 w-4">
@@ -366,7 +371,7 @@ export function SimpleTableConfig({
 							</div>
 						</div>
 						<span className="text-sm font-medium pro-text2">Include CEXs</span>
-					</div>
+					</button>
 				</>
 			) : null}
 		</div>

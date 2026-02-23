@@ -1,12 +1,13 @@
-import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
-import { ForksData } from '~/containers/ProtocolOverview/Forks'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -33,6 +34,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+		const { getForksByProtocolPageData } = await import('~/containers/Forks/queries')
+		const forksData = await getForksByProtocolPageData({ fork: protocolData.name })
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
@@ -42,6 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
+				forksData,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
@@ -53,7 +57,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -63,7 +67,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -77,7 +81,13 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
 				<h1 className="text-xl font-bold">{props.name} Forks</h1>
 			</div>
-			<ForksData protocolName={props.name} />
+			{!props.forksData ? (
+				<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<p className="p-2">Failed to fetch</p>
+				</div>
+			) : (
+				<ForksByProtocol {...props.forksData} />
+			)}
 		</ProtocolOverviewLayout>
 	)
 }

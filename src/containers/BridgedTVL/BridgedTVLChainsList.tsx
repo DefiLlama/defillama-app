@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -17,38 +17,22 @@ interface BridgedTVLChainsListProps {
 const DEFAULT_SORTING_STATE = [{ id: 'total', desc: true }]
 
 export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChainsListProps) {
-	const data = Object.keys(assets)
-		.map((name) => {
-			const chainAssets = assets?.[name]
+	const data = useMemo(() => {
+		const rows: IBridgedRow[] = []
+		for (const name in assets) {
+			const chainAssets = assets[name]
+			if (!chainAssets?.total) continue
+
 			const chainFlows = flows1d?.[name]
-
-			return {
+			rows.push({
 				name,
-				...(chainAssets || {}),
+				...chainAssets,
 				change_24h: chainFlows?.total?.perc
-			}
-		})
-		.filter((row) => row?.total)
-		.sort((a, b) => Number(b.total.total) - Number(a.total.total))
-
-	const prepareCsv = () => {
-		const csvData: Record<string, string | number | undefined>[] = data.map((row) => {
-			return {
-				Chain: row.name,
-				Total: row.total?.total,
-				Change_24h: row?.change_24h,
-				Canonical: row?.canonical?.total,
-				OwnTokens: row?.ownTokens?.total,
-				ThirdParty: row?.thirdParty?.total,
-				Native: row?.native?.total
-			}
-		})
-		if (csvData.length === 0) return { filename: 'bridged-chains.csv', rows: [] }
-		const headers = Object.keys(csvData[0])
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => String(row[header] ?? ''))))
-
-		return { filename: 'bridged-chains.csv', rows }
-	}
+			})
+		}
+		rows.sort((a, b) => Number(b.total?.total ?? 0) - Number(a.total?.total ?? 0))
+		return rows
+	}, [assets, flows1d])
 
 	return (
 		<>
@@ -58,11 +42,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 				columns={bridgedColumns}
 				placeholder={'Search chains...'}
 				columnToSearch={'name'}
-				customFilters={
-					<>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					</>
-				}
+				csvFileName="bridged-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
@@ -71,7 +51,7 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChai
 
 const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 	{
-		header: () => 'Name',
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {

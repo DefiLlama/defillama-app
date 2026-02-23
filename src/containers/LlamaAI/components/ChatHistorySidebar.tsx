@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -15,14 +15,15 @@ interface ChatHistorySidebarProps {
 	shouldAnimate?: boolean
 }
 
-function getGroupName(lastActivity: string) {
-	return new Date(lastActivity).getTime() >= Date.now() - 24 * 60 * 60 * 1000
+function getGroupName(lastActivity: string, now: number) {
+	const t = new Date(lastActivity).getTime()
+	return t >= now - 24 * 60 * 60 * 1000
 		? 'Today'
-		: new Date(lastActivity).getTime() >= Date.now() - 48 * 60 * 60 * 1000
+		: t >= now - 48 * 60 * 60 * 1000
 			? 'Yesterday'
-			: new Date(lastActivity).getTime() >= Date.now() - 7 * 24 * 60 * 60 * 1000
+			: t >= now - 7 * 24 * 60 * 60 * 1000
 				? 'This week'
-				: new Date(lastActivity).getTime() >= Date.now() - 30 * 24 * 60 * 60 * 1000
+				: t >= now - 30 * 24 * 60 * 60 * 1000
 					? 'This month'
 					: 'Older'
 }
@@ -43,17 +44,18 @@ export function ChatHistorySidebar({
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 
+	const [nowMs] = useState(() => Date.now())
 	const groupedSessions = useMemo(() => {
 		return Object.entries(
 			sessions.reduce((acc: Record<string, Array<ChatSession>>, session) => {
-				const groupName = getGroupName(session.lastActivity)
+				const groupName = getGroupName(session.lastActivity, nowMs)
 				acc[groupName] = [...(acc[groupName] || []), session]
 				return acc
 			}, {})
 		).sort((a, b) => Date.parse(b[1][0].lastActivity) - Date.parse(a[1][0].lastActivity)) as Array<
 			[string, Array<ChatSession>]
 		>
-	}, [sessions])
+	}, [sessions, nowMs])
 
 	const virtualItems = useMemo(() => {
 		const items: VirtualItem[] = []

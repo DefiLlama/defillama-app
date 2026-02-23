@@ -64,7 +64,7 @@ export function IncomeStatementChartTab({
 	)
 
 	const { data: incomeStatement, isLoading } = useQuery({
-		queryKey: ['income-statement-preview', selectedIncomeStatementProtocol],
+		queryKey: ['pro-dashboard', 'income-statement-preview', selectedIncomeStatementProtocol],
 		queryFn: () => getProtocolIncomeStatement({ metadata }),
 		enabled: Boolean(selectedIncomeStatementProtocol && displayName),
 		staleTime: 60 * 60 * 1000

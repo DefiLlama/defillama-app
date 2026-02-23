@@ -77,10 +77,11 @@ export function PreviewStep() {
 		<div className="grid grid-cols-2 items-start gap-5">
 			<div className="flex flex-col gap-3">
 				<div>
-					<label className="mb-1 block text-sm font-medium text-(--text-primary)">
+					<label htmlFor="comparison-dashboard-name" className="mb-1 block text-sm font-medium text-(--text-primary)">
 						Dashboard Name <span className="text-red-500">*</span>
 					</label>
 					<input
+						id="comparison-dashboard-name"
 						type="text"
 						value={state.dashboardName}
 						onChange={(e) => actions.setDashboardName(e.target.value)}
@@ -91,7 +92,7 @@ export function PreviewStep() {
 
 				<div className="flex items-center gap-3">
 					<div className="flex-1">
-						<label className="mb-1 block text-sm font-medium text-(--text-primary)">Visibility</label>
+						<p className="mb-1 block text-sm font-medium text-(--text-primary)">Visibility</p>
 						<div className="flex gap-1.5">
 							<button
 								type="button"
@@ -137,9 +138,12 @@ export function PreviewStep() {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-sm font-medium text-(--text-primary)">Tags</label>
+					<label htmlFor="comparison-dashboard-tags" className="mb-1 block text-sm font-medium text-(--text-primary)">
+						Tags
+					</label>
 					<div className="flex gap-1.5">
 						<input
+							id="comparison-dashboard-tags"
 							type="text"
 							value={tagInput}
 							onChange={(e) => setTagInput(e.target.value)}
@@ -178,10 +182,14 @@ export function PreviewStep() {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-sm font-medium text-(--text-primary)">
+					<label
+						htmlFor="comparison-dashboard-description"
+						className="mb-1 block text-sm font-medium text-(--text-primary)"
+					>
 						Description <span className="text-xs font-normal text-(--text-tertiary)">(optional)</span>
 					</label>
 					<input
+						id="comparison-dashboard-description"
 						type="text"
 						value={state.description}
 						onChange={(e) => actions.setDescription(e.target.value)}

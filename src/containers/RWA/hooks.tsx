@@ -2,6 +2,14 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
+import {
+	toNonEmptyArrayParam,
+	parseExcludeParam,
+	parseNumberInput,
+	parseNumberQueryParam,
+	isTrueQueryParam,
+	pushShallowQuery
+} from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { rwaSlug } from './rwaSlug'
 
@@ -30,41 +38,10 @@ const buildStackColors = (order: string[]) => {
 	return stackColors
 }
 
-const toArrayParam = (p: string | string[] | undefined): string[] => {
-	if (!p) return []
-	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
-const parseNumberInput = (value: string | number | null | undefined): number | null => {
-	if (value == null) return null
-	if (typeof value === 'number') return Number.isFinite(value) ? value : null
-	const n = Number(value)
-	return Number.isFinite(n) ? n : null
-}
-
-const toNumberParam = (p: string | string[] | undefined): number | null => {
-	if (Array.isArray(p)) {
-		return parseNumberInput(p[0])
-	}
-	return parseNumberInput(p)
-}
-
-export const toBooleanParam = (p: string | string[] | undefined): boolean => {
-	if (Array.isArray(p)) return p[0] === 'true'
-	return p === 'true'
-}
-
 const parseAttributeFilterStatesParam = (param: string | string[] | undefined): RWAAttributeFilterState[] => {
 	if (!param) return [...RWA_ATTRIBUTE_FILTER_STATES]
 
-	const values = toArrayParam(param).map((value) => value.toLowerCase())
+	const values = toNonEmptyArrayParam(param).map((value) => value.toLowerCase())
 	if (values.some((value) => value === 'none')) return []
 
 	const selectedSet = new Set<RWAAttributeFilterState>()
@@ -85,45 +62,38 @@ const updateNumberRangeQuery = (
 	maxValue: string | number | null | undefined,
 	router: NextRouter
 ) => {
-	const nextQuery: Record<string, any> = { ...router.query }
 	const parsedMin = parseNumberInput(minValue)
 	const parsedMax = parseNumberInput(maxValue)
-	if (parsedMin == null) {
-		delete nextQuery[minKey]
-	} else {
-		nextQuery[minKey] = String(parsedMin)
-	}
-	if (parsedMax == null) {
-		delete nextQuery[maxKey]
-	} else {
-		nextQuery[maxKey] = String(parsedMax)
-	}
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	pushShallowQuery(router, {
+		[minKey]: parsedMin == null ? undefined : String(parsedMin),
+		[maxKey]: parsedMax == null ? undefined : String(parsedMax)
+	})
 }
 
 const updateAttributeFilterStatesQuery = (queryKey: string, values: RWAAttributeFilterState[], router: NextRouter) => {
-	const nextQuery: Record<string, any> = { ...router.query }
 	const selectedSet = new Set<RWAAttributeFilterState>()
 	for (const value of values) {
 		if (RWA_ATTRIBUTE_FILTER_STATE_SET.has(value)) selectedSet.add(value)
 	}
 
 	const normalizedStates = RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
-	if (normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length) {
-		delete nextQuery[queryKey]
-	} else if (normalizedStates.length === 0) {
-		nextQuery[queryKey] = 'none'
-	} else {
-		nextQuery[queryKey] = normalizedStates.length === 1 ? normalizedStates[0] : normalizedStates
-	}
-
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	pushShallowQuery(router, {
+		[queryKey]:
+			normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length
+				? undefined
+				: normalizedStates.length === 0
+					? 'none'
+					: normalizedStates.length === 1
+						? normalizedStates[0]
+						: normalizedStates
+	})
 }
 
 export const useRWATableQueryParams = ({
 	assetNames,
 	types,
 	categories,
+	platforms,
 	assetClasses,
 	rwaClassifications,
 	accessModels,
@@ -134,6 +104,7 @@ export const useRWATableQueryParams = ({
 	assetNames: string[]
 	types: string[]
 	categories: string[]
+	platforms: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
@@ -149,6 +120,8 @@ export const useRWATableQueryParams = ({
 		excludeTypes: excludeTypesQ,
 		categories: categoriesQ,
 		excludeCategories: excludeCategoriesQ,
+		platforms: platformsQ,
+		excludePlatforms: excludePlatformsQ,
 		assetClasses: assetClassesQ,
 		excludeAssetClasses: excludeAssetClassesQ,
 		rwaClassifications: rwaClassificationsQ,
@@ -178,6 +151,7 @@ export const useRWATableQueryParams = ({
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -206,13 +180,14 @@ export const useRWATableQueryParams = ({
 		): string[] => {
 			if (param === 'None') return []
 			if (!param) return allValues
-			const arr = toArrayParam(param)
+			const arr = toNonEmptyArrayParam(param)
 			return arr.filter((v) => validSet.has(v))
 		}
 
 		const assetNamesValidSet = new Set(assetNames)
 		const typesValidSet = new Set(types)
 		const categoriesValidSet = new Set(categories)
+		const platformsValidSet = new Set(platforms)
 		const assetClassesValidSet = new Set(assetClasses)
 		const rwaClassificationsValidSet = new Set(rwaClassifications)
 		const accessModelsValidSet = new Set(accessModels)
@@ -222,6 +197,7 @@ export const useRWATableQueryParams = ({
 		const excludeAssetNamesSet = parseExcludeParam(excludeAssetNamesQ)
 		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
+		const excludePlatformsSet = parseExcludeParam(excludePlatformsQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
@@ -230,8 +206,8 @@ export const useRWATableQueryParams = ({
 		// Default toggles:
 		// - category pages: ON (include stablecoins + governance by default)
 		// - other pages: OFF (unless explicitly set in the URL)
-		const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : defaultIncludeStablecoins
-		const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : defaultIncludeGovernance
+		const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : defaultIncludeStablecoins
+		const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : defaultIncludeGovernance
 
 		// Build selected arrays with correct "exclude" semantics:
 		// - if include param missing but exclude param exists, selection is (all - excluded), NOT "defaults - excluded"
@@ -260,6 +236,15 @@ export const useRWATableQueryParams = ({
 					: categories
 		const selectedCategories =
 			excludeCategoriesSet.size > 0 ? baseCategories.filter((c) => !excludeCategoriesSet.has(c)) : baseCategories
+
+		const basePlatforms =
+			platformsQ != null
+				? parseArrayParam(platformsQ, platforms, platformsValidSet)
+				: excludePlatformsSet.size > 0
+					? platforms
+					: platforms
+		const selectedPlatforms =
+			excludePlatformsSet.size > 0 ? basePlatforms.filter((p) => !excludePlatformsSet.has(p)) : basePlatforms
 
 		const baseAssetClasses =
 			assetClassesQ != null
@@ -303,17 +288,18 @@ export const useRWATableQueryParams = ({
 		const selectedTransferableStates = parseAttributeFilterStatesParam(transferableStatesQ)
 		const selectedSelfCustodyStates = parseAttributeFilterStatesParam(selfCustodyStatesQ)
 
-		const minDefiActiveTvlToOnChainMcapPct = toNumberParam(minDefiActiveTvlToOnChainMcapPctQ)
-		const maxDefiActiveTvlToOnChainMcapPct = toNumberParam(maxDefiActiveTvlToOnChainMcapPctQ)
-		const minActiveMcapToOnChainMcapPct = toNumberParam(minActiveMcapToOnChainMcapPctQ)
-		const maxActiveMcapToOnChainMcapPct = toNumberParam(maxActiveMcapToOnChainMcapPctQ)
-		const minDefiActiveTvlToActiveMcapPct = toNumberParam(minDefiActiveTvlToActiveMcapPctQ)
-		const maxDefiActiveTvlToActiveMcapPct = toNumberParam(maxDefiActiveTvlToActiveMcapPctQ)
+		const minDefiActiveTvlToOnChainMcapPct = parseNumberQueryParam(minDefiActiveTvlToOnChainMcapPctQ)
+		const maxDefiActiveTvlToOnChainMcapPct = parseNumberQueryParam(maxDefiActiveTvlToOnChainMcapPctQ)
+		const minActiveMcapToOnChainMcapPct = parseNumberQueryParam(minActiveMcapToOnChainMcapPctQ)
+		const maxActiveMcapToOnChainMcapPct = parseNumberQueryParam(maxActiveMcapToOnChainMcapPctQ)
+		const minDefiActiveTvlToActiveMcapPct = parseNumberQueryParam(minDefiActiveTvlToActiveMcapPctQ)
+		const maxDefiActiveTvlToActiveMcapPct = parseNumberQueryParam(maxDefiActiveTvlToActiveMcapPctQ)
 
 		return {
 			selectedAssetNames,
 			selectedTypes,
 			selectedCategories,
+			selectedPlatforms,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -341,6 +327,8 @@ export const useRWATableQueryParams = ({
 		excludeTypesQ,
 		categoriesQ,
 		excludeCategoriesQ,
+		platformsQ,
+		excludePlatformsQ,
 		assetClassesQ,
 		excludeAssetClassesQ,
 		rwaClassificationsQ,
@@ -369,6 +357,7 @@ export const useRWATableQueryParams = ({
 		assetNames,
 		types,
 		categories,
+		platforms,
 		assetClasses,
 		rwaClassifications,
 		accessModels,
@@ -395,23 +384,11 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (value) {
-			nextQuery.includeStablecoins = 'true'
-		} else {
-			delete nextQuery.includeStablecoins
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeStablecoins: value ? 'true' : 'false' })
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (value) {
-			nextQuery.includeGovernance = 'true'
-		} else {
-			delete nextQuery.includeGovernance
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		pushShallowQuery(router, { includeGovernance: value ? 'true' : 'false' })
 	}
 
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>
@@ -433,6 +410,7 @@ export const useRWATableQueryParams = ({
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -494,6 +472,7 @@ export const useFilteredRwaAssets = ({
 	selectedAssetNames,
 	selectedTypes,
 	selectedCategories,
+	selectedPlatforms,
 	selectedAssetClasses,
 	selectedRwaClassifications,
 	selectedAccessModels,
@@ -519,6 +498,7 @@ export const useFilteredRwaAssets = ({
 	selectedAssetNames: string[]
 	selectedTypes: string[]
 	selectedCategories: string[]
+	selectedPlatforms: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -563,6 +543,7 @@ export const useFilteredRwaAssets = ({
 		const selectedAssetNamesSet = isPlatformMode ? new Set(selectedAssetNames) : null
 		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
+		const selectedPlatformsSet = new Set(selectedPlatforms)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
@@ -629,8 +610,18 @@ export const useFilteredRwaAssets = ({
 			}
 
 			const assetType = asset.type || 'Unknown'
+			const platformRaw = asset.parentPlatform as unknown
+			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+			const normalizedPlatforms = toUniqueNonEmptyValues(
+				platformCandidates
+					.map((platform) => (typeof platform === 'string' ? platform : ''))
+					.filter((platform) => platform.length > 0)
+			)
 			const toFilter =
 				(asset.category?.length ? asset.category.some((category) => selectedCategoriesSet.has(category)) : true) &&
+				(normalizedPlatforms.length > 0
+					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
+					: true) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
@@ -664,6 +655,7 @@ export const useFilteredRwaAssets = ({
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -724,11 +716,17 @@ export function useRWAAssetCategoryPieChartData({
 			}
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			Array.from(categoryTotals.entries())
-				.map(([name, totals]) => ({ name, value: totals[metric] }))
-				.filter((x) => x.value > 0)
-				.sort((a, b) => b.value - a.value)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, totals] of categoryTotals.entries()) {
+				const value = totals[metric]
+				if (value > 0) {
+					rows.push({ name, value })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return rows
+		}
 
 		return {
 			assetCategoryOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -778,11 +776,17 @@ export function useRwaCategoryAssetClassPieChartData({
 			}
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			Array.from(assetClassTotals.entries())
-				.map(([name, totals]) => ({ name, value: totals[metric] }))
-				.filter((x) => x.value > 0)
-				.sort((a, b) => b.value - a.value)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, totals] of assetClassTotals.entries()) {
+				const value = totals[metric]
+				if (value > 0) {
+					rows.push({ name, value })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return rows
+		}
 
 		return {
 			assetClassOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -836,7 +840,8 @@ export function useRwaAssetNamePieChartData({
 			discoveredNames.add(asset.assetName || asset.ticker)
 		}
 
-		const colorOrder = Array.from(discoveredNames).sort()
+		const colorOrder = Array.from(discoveredNames)
+		colorOrder.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const assetNamePieChartStackColors = buildStackColors(colorOrder)
@@ -858,13 +863,17 @@ export function useRwaAssetNamePieChartData({
 			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			limitChartData(
-				Array.from(totals.entries())
-					.map(([name, v]) => ({ name, value: v[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
-			)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const [name, values] of totals.entries()) {
+				const value = values[metric]
+				if (value > 0) {
+					rows.push({ name, value })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
 
 		return {
 			assetNameOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -922,10 +931,13 @@ export function useRwaAssetPlatformPieChartData({
 			}
 		}
 
-		const colorOrder = Array.from(totalsBySlug.values())
-			.map((x) => x.label)
-			.filter(Boolean)
-			.sort()
+		const colorOrder: string[] = []
+		for (const value of totalsBySlug.values()) {
+			if (value.label) {
+				colorOrder.push(value.label)
+			}
+		}
+		colorOrder.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const assetPlatformPieChartStackColors = buildStackColors(colorOrder)
@@ -937,13 +949,17 @@ export function useRwaAssetPlatformPieChartData({
 			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			limitChartData(
-				Array.from(totalsBySlug.values())
-					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
-			)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const value of totalsBySlug.values()) {
+				const metricValue = value[metric]
+				if (metricValue > 0) {
+					rows.push({ name: value.label || UNKNOWN, value: metricValue })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
 
 		return {
 			assetPlatformOnChainMcapPieChartData: toSortedChartData('onChain'),
@@ -1017,10 +1033,13 @@ export function useRwaChainBreakdownPieChartData({
 			}
 		}
 
-		const colorOrder = Array.from(totalsBySlug.values())
-			.map((x) => x.label)
-			.filter(Boolean)
-			.sort()
+		const colorOrder: string[] = []
+		for (const value of totalsBySlug.values()) {
+			if (value.label) {
+				colorOrder.push(value.label)
+			}
+		}
+		colorOrder.sort()
 		// Keep existing label colors stable while ensuring "Others" exists.
 		if (!colorOrder.includes(OTHERS)) colorOrder.push(OTHERS)
 		const chainPieChartStackColors = buildStackColors(colorOrder)
@@ -1032,13 +1051,17 @@ export function useRwaChainBreakdownPieChartData({
 			return othersValue > 0 ? [...head, { name: OTHERS, value: othersValue }] : head
 		}
 
-		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') =>
-			limitChartData(
-				Array.from(totalsBySlug.values())
-					.map((v) => ({ name: v.label || UNKNOWN, value: v[metric] }))
-					.filter((x) => x.value > 0)
-					.sort((a, b) => b.value - a.value)
-			)
+		const toSortedChartData = (metric: 'onChain' | 'active' | 'defi') => {
+			const rows: PieChartDatum[] = []
+			for (const value of totalsBySlug.values()) {
+				const metricValue = value[metric]
+				if (metricValue > 0) {
+					rows.push({ name: value.label || UNKNOWN, value: metricValue })
+				}
+			}
+			rows.sort((a, b) => b.value - a.value)
+			return limitChartData(rows)
+		}
 
 		return {
 			chainOnChainMcapPieChartData: toSortedChartData('onChain'),

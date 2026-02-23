@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { toNumberOrNullFromQueryParam } from '~/utils'
+import { parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
 
 interface IFormatYieldQueryParams {
 	projectList?: Array<string>
@@ -9,13 +9,6 @@ interface IFormatYieldQueryParams {
 	chainList?: Array<string>
 	categoryList?: Array<string>
 	evmChains?: Array<string>
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
 }
 
 export const useFormatYieldQueryParams = ({
@@ -232,13 +225,13 @@ export const useFormatYieldQueryParams = ({
 			selectedLendingProtocols,
 			selectedFarmProtocols,
 			pairTokens,
-			minTvl: toNumberOrNullFromQueryParam(minTvl),
-			maxTvl: toNumberOrNullFromQueryParam(maxTvl),
-			minApy: toNumberOrNullFromQueryParam(minApy),
-			maxApy: toNumberOrNullFromQueryParam(maxApy),
-			minAvailable: minAvailable ? toNumberOrNullFromQueryParam(minAvailable) : null,
-			maxAvailable: maxAvailable ? toNumberOrNullFromQueryParam(maxAvailable) : null,
-			customLTV: toNumberOrNullFromQueryParam(customLTV)
+			minTvl: parseNumberQueryParam(minTvl),
+			maxTvl: parseNumberQueryParam(maxTvl),
+			minApy: parseNumberQueryParam(minApy),
+			maxApy: parseNumberQueryParam(maxApy),
+			minAvailable: parseNumberQueryParam(minAvailable),
+			maxAvailable: parseNumberQueryParam(maxAvailable),
+			customLTV: parseNumberQueryParam(customLTV)
 		}
 	}, [
 		projectList,

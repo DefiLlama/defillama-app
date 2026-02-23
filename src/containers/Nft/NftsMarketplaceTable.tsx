@@ -9,10 +9,10 @@ import {
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { renderPercentChange } from '~/utils'
 
 interface INftMarketplace {
 	exchangeName: string
@@ -69,7 +69,7 @@ const columns: ColumnDef<INftMarketplace>[] = [
 		header: 'Volume change',
 		accessorKey: 'weeklyChange',
 		size: 160,
-		cell: (info) => <>{info.getValue() != null ? renderPercentChange(info.getValue()) : null}</>,
+		cell: (info) => <>{info.getValue() != null ? <PercentChange percent={info.getValue()} /> : null}</>,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change of last 7d volume over the previous 7d volume'

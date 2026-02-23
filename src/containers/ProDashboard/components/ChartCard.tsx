@@ -1,10 +1,13 @@
 import type * as echarts from 'echarts/core'
-import { lazy, Suspense, useMemo } from 'react'
+import Image from 'next/image'
+import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download, toNiceDayMonthYear } from '~/utils'
+import { capitalizeFirstLetter, toNiceDayMonthYear } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
@@ -14,7 +17,6 @@ import {
 import { type Chain, CHART_TYPES, type ChartConfig, type Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const SingleSeriesChart = lazy(
@@ -56,6 +58,7 @@ function ChartRenderer({
 	onChartReady
 }: ChartRendererProps) {
 	const chartType = CHART_TYPES[type]
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 
 	if (isLoading) {
 		return (
@@ -87,7 +90,6 @@ function ChartRenderer({
 			: percentMetricTypes.includes(type)
 				? '%'
 				: '$'
-	const todayTimestamp = Math.floor(Date.now() / 1000)
 	const todayHallmarks: [number, string][] | null =
 		type === 'unlocks' ? [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]] : null
 
@@ -182,7 +184,13 @@ export function ChartCard({ chart }: ChartCardProps) {
 				<div className="mr-auto flex items-center gap-1">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
-							<img src={itemIconUrl} alt={itemName} className="h-5 w-5 shrink-0 rounded-full" />
+							<Image
+								src={itemIconUrl}
+								alt={itemName}
+								width={20}
+								height={20}
+								className="h-5 w-5 shrink-0 rounded-full"
+							/>
 						) : (
 							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 								{itemName?.charAt(0)?.toUpperCase()}

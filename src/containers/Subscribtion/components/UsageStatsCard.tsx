@@ -121,14 +121,17 @@ export const UsageStatsCard = ({ show, usageStats, isLoading, isError }: UsageSt
 					const axisValue = params[0]?.value?.[0] ?? params[0]?.data?.[0]
 					const dateLabel = typeof axisValue === 'number' ? formatTooltipChartDate(axisValue, 'daily') : ''
 
-					const items = params
-						.map((item) => ({
+					const items: Array<{ name: string; value: number; marker: string }> = []
+					for (const item of params) {
+						const value = Number(item?.value?.[1] ?? 0)
+						if (!Number.isFinite(value) || value <= 0) continue
+						items.push({
 							name: item.seriesName,
-							value: Number(item?.value?.[1] ?? 0),
+							value,
 							marker: item.marker ?? ''
-						}))
-						.filter((item) => Number.isFinite(item.value) && item.value > 0)
-						.sort((a, b) => b.value - a.value)
+						})
+					}
+					items.sort((a, b) => b.value - a.value)
 
 					const total = params.reduce((sum, item) => sum + Number(item?.value?.[1] ?? 0), 0)
 

@@ -4,7 +4,6 @@ type Value = string | number | boolean
 
 type EChartsFormatterParams = Record<string, unknown>
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ChartDataItem = any
 
 export interface IChartProps {

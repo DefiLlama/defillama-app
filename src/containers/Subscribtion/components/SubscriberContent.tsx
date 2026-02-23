@@ -26,6 +26,8 @@ interface SubscriberContentProps {
 	usageStats: any | null
 	isUsageStatsLoading: boolean
 	isUsageStatsError: boolean
+	cancelSubscription: (message?: string) => Promise<any>
+	isCancelSubscriptionLoading: boolean
 }
 
 export const SubscriberContent = ({
@@ -40,7 +42,9 @@ export const SubscriberContent = ({
 	isEnableOverageLoading,
 	usageStats,
 	isUsageStatsLoading,
-	isUsageStatsError
+	isUsageStatsError,
+	cancelSubscription,
+	isCancelSubscriptionLoading
 }: SubscriberContentProps) => {
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
@@ -53,6 +57,9 @@ export const SubscriberContent = ({
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval || 'month')
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 	const [upgradeType, setUpgradeType] = useState<'api' | 'llamafeed' | null>(null)
+	const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+
+	const isCancelPending = subscription?.metadata?.isCanceled === 'true'
 
 	const monthlyPricePro = 49
 	const yearlyPricePro = monthlyPricePro * 10
@@ -68,6 +75,15 @@ export const SubscriberContent = ({
 				? `$${yearlyPriceAPI}.00 USD`
 				: `$${monthlyPriceAPI}.00 USD`
 			: ''
+
+	function handleCancelSubscription(type: 'llamafeed' | 'api') {
+		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
+		if (sub?.provider === 'stripe') {
+			setIsCancelModalOpen(true)
+		} else {
+			window.open('https://subscriptions.llamapay.io/', '_blank')
+		}
+	}
 
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
 		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
@@ -115,7 +131,10 @@ export const SubscriberContent = ({
 					<SubscribeProCard
 						context="account"
 						active={hasProSubscription && subscription?.provider !== 'trial'}
-						onCancelSubscription={hasProSubscription ? () => handleManageSubscription('llamafeed') : undefined}
+						onCancelSubscription={
+							hasProSubscription && !isCancelPending ? () => handleCancelSubscription('llamafeed') : undefined
+						}
+						isCancelPending={isCancelPending}
 						currentBillingInterval={llamafeedSubscription?.billing_interval}
 						billingInterval={billingInterval}
 					/>
@@ -124,7 +143,10 @@ export const SubscriberContent = ({
 					<SubscribeAPICard
 						context="account"
 						active={hasApiSubscription || hasLegacySubscription}
-						onCancelSubscription={hasApiSubscription ? () => handleManageSubscription('api') : undefined}
+						onCancelSubscription={
+							hasApiSubscription && !isCancelPending ? () => handleCancelSubscription('api') : undefined
+						}
+						isCancelPending={isCancelPending}
 						isLegacyActive={hasLegacySubscription}
 						currentBillingInterval={apiSubscription?.billing_interval}
 						billingInterval={billingInterval}
@@ -279,20 +301,25 @@ export const SubscriberContent = ({
 											</div>
 
 											<div className="mb-2 h-3 overflow-hidden rounded-full bg-[#39393E]/20">
-												{credits && (
+												{credits && creditsLimit > 0 ? (
 													<div
-														className={`w-[ relative h-full${((credits / creditsLimit) * 100).toFixed(
-															1
-														)}%] bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]`}
+														className="relative h-full bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]"
+														style={{
+															width: `${Math.min(100, (credits / creditsLimit) * 100).toFixed(1)}%`
+														}}
 													>
 														<div className="absolute inset-0 animate-shimmer bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 													</div>
-												)}
+												) : null}
 											</div>
 
 											<div className="flex items-center justify-between text-xs text-[#8a8c90]">
 												<span>{credits ? `${credits.toLocaleString()} remaining` : 'No calls available'}</span>
-												<span>{credits ? `${((credits / creditsLimit) * 100).toFixed(1)}% remaining` : '-'}</span>
+												<span>
+													{credits && creditsLimit > 0
+														? `${((credits / creditsLimit) * 100).toFixed(1)}% remaining`
+														: '-'}
+												</span>
 											</div>
 										</div>
 
@@ -393,10 +420,17 @@ export const SubscriberContent = ({
 										<span>{hasProSubscription ? 'Pro' : hasApiSubscription ? 'API' : ''} Plan</span>
 									</h4>
 									<div className="flex items-center gap-3 sm:gap-4">
-										<div className="flex items-center gap-2">
-											<span className="h-2 w-2 rounded-full bg-green-400"></span>
-											<span className="text-xs font-medium text-white sm:text-sm">Active</span>
-										</div>
+										{isCancelPending ? (
+											<div className="flex items-center gap-2">
+												<span className="h-2 w-2 rounded-full bg-yellow-400"></span>
+												<span className="text-xs font-medium text-yellow-400 sm:text-sm">Cancels at period end</span>
+											</div>
+										) : (
+											<div className="flex items-center gap-2">
+												<span className="h-2 w-2 rounded-full bg-green-400"></span>
+												<span className="text-xs font-medium text-white sm:text-sm">Active</span>
+											</div>
+										)}
 										<button
 											onClick={
 												hasProSubscription
@@ -438,7 +472,9 @@ export const SubscriberContent = ({
 									</div>
 
 									<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
-										<p className="mb-1 text-xs text-[#8a8c90]">Next billing date</p>
+										<p className="mb-1 text-xs text-[#8a8c90]">
+											{isCancelPending ? 'Cancels on' : 'Next billing date'}
+										</p>
 										<p className="text-sm font-medium sm:text-base">
 											{hasProSubscription && llamafeedSubscription?.expires_at
 												? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
@@ -597,6 +633,103 @@ export const SubscriberContent = ({
 					/>
 				</Suspense>
 			)}
+
+			{isCancelModalOpen && (
+				<CancelSubscriptionModal
+					isOpen={isCancelModalOpen}
+					onClose={() => {
+						setIsCancelModalOpen(false)
+					}}
+					cancelSubscription={cancelSubscription}
+					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
+				/>
+			)}
 		</>
+	)
+}
+
+interface CancelSubscriptionModalProps {
+	isOpen: boolean
+	onClose: () => void
+	cancelSubscription: (message?: string) => Promise<any>
+	isCancelSubscriptionLoading: boolean
+}
+
+const CancelSubscriptionModal = ({
+	isOpen,
+	onClose,
+	cancelSubscription,
+	isCancelSubscriptionLoading
+}: CancelSubscriptionModalProps) => {
+	const [message, setMessage] = useState('')
+
+	function handleClose() {
+		setMessage('')
+		onClose()
+	}
+
+	async function handleConfirmCancel() {
+		let cancellationMessage: string | undefined = undefined
+		if (message) {
+			cancellationMessage = message
+		}
+		try {
+			await cancelSubscription(cancellationMessage)
+			handleClose()
+		} catch {
+			// error handled by mutation
+		}
+	}
+
+	return (
+		<Ariakit.DialogProvider open={isOpen} setOpen={handleClose}>
+			<Ariakit.Dialog
+				className="dialog gap-0 border border-[#4a4a50]/10 bg-[#131415] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[480px]"
+				portal
+				unmountOnHide
+			>
+				<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white">
+					<Icon name="x" className="h-6 w-6" />
+				</Ariakit.DialogDismiss>
+				<div className="p-6 sm:p-8">
+					<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+						<Icon name="alert-triangle" height={24} width={24} />
+					</div>
+					<h2 className="mb-2 text-center text-xl font-bold text-white">Cancel Subscription</h2>
+					<p className="mb-6 text-center text-sm text-[#b4b7bc]">
+						Your subscription will remain active until the end of your current billing period. After that, it will not
+						renew.
+					</p>
+					<div className="mb-6">
+						<label htmlFor="cancel-reason" className="mb-2 block text-sm font-medium text-[#b4b7bc]">
+							Reason for cancelling (optional)
+						</label>
+						<textarea
+							id="cancel-reason"
+							value={message}
+							onChange={(e) => setMessage(e.target.value)}
+							placeholder="Let us know why you're cancelling..."
+							rows={3}
+							className="w-full resize-none rounded-lg border border-[#39393E] bg-[#1a1b1f] p-3 text-sm text-white placeholder-[#8a8c90] transition-colors outline-none focus:border-[#5C5CF9]"
+						/>
+					</div>
+					<div className="flex flex-col gap-3">
+						<button
+							onClick={handleConfirmCancel}
+							disabled={isCancelSubscriptionLoading}
+							className="w-full rounded-lg bg-red-500 px-4 py-3 font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+						>
+							{isCancelSubscriptionLoading ? 'Cancelling...' : 'Confirm Cancellation'}
+						</button>
+						<button
+							onClick={handleClose}
+							className="w-full rounded-lg bg-[#22242930] px-4 py-3 font-medium text-white transition-colors hover:bg-[#39393E]"
+						>
+							Keep Subscription
+						</button>
+					</div>
+				</div>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }

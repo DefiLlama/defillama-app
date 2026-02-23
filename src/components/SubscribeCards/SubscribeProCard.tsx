@@ -3,12 +3,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { BasicLink } from '../Link'
 import { QuestionHelper } from '../QuestionHelper'
 
 const StripeCheckoutModal = lazy(() =>
@@ -20,6 +20,7 @@ interface SubscribeProCardProps {
 	active?: boolean
 	returnUrl?: string
 	onCancelSubscription?: () => void
+	isCancelPending?: boolean
 	billingInterval?: 'year' | 'month'
 	currentBillingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
@@ -217,6 +218,7 @@ export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
+	isCancelPending = false,
 	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
@@ -263,14 +265,16 @@ export function SubscribeProCard({
 								Upgrade to Full Access
 							</button>
 						)}
-						{onCancelSubscription && (
+						{isCancelPending ? (
+							<p className="mt-2 text-center text-sm text-yellow-400">Cancellation scheduled</p>
+						) : onCancelSubscription ? (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#222429] px-4 py-2 text-white transition-colors hover:bg-[#39393E]"
 								onClick={onCancelSubscription}
 							>
 								Cancel Subscription
 							</button>
-						)}
+						) : null}
 					</div>
 				) : (
 					<>
@@ -353,7 +357,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		}
 	}, [dialogStore])
 
-	const _finalReturnUrl = returnUrl ?? router.asPath
+	const finalReturnUrl = returnUrl ?? router.asPath
 
 	return (
 		<WalletProvider>
@@ -366,7 +370,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={returnUrl} />
+							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
 						) : (
 							<>
 								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">

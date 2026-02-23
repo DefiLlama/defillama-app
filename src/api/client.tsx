@@ -1,18 +1,35 @@
 import { useQuery } from '@tanstack/react-query'
-import { CACHE_SERVER, COINS_PRICES_API } from '~/constants'
-import { fetchApi } from '~/utils/async'
+import {
+	fetchCgChartByGeckoId,
+	fetchDenominationPriceHistory,
+	fetchGeckoIdByAddress,
+	fetchTokenPriceByGeckoId,
+	fetchAllCGTokensList
+} from '~/api'
+import type {
+	CgChartResponse,
+	DenominationPriceHistory,
+	GeckoIdResponse,
+	IResponseCGMarketsAPI,
+	PriceObject
+} from './types'
+
+export const useFetchCoingeckoTokensList = () => {
+	return useQuery<Array<IResponseCGMarketsAPI>, Error>({
+		queryKey: ['coingecko', 'tokens-list'],
+		queryFn: fetchAllCGTokensList,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		retry: 1
+	})
+}
 
 export const useGeckoId = (addressData: string | null) => {
-	const [chain, address] = addressData?.split(':') ?? [null, null]
 	const isEnabled = !!addressData
-	const { data, error, isLoading } = useQuery({
-		queryKey: ['geckoId', addressData, isEnabled],
-		queryFn:
-			address && address !== '-'
-				? chain === 'coingecko'
-					? () => ({ id: address })
-					: () => fetchApi(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`)
-				: () => null,
+	const { data, error, isLoading } = useQuery<GeckoIdResponse | null, Error>({
+		queryKey: ['coingecko', 'gecko-id', addressData],
+		queryFn: () => fetchGeckoIdByAddress(addressData!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -22,11 +39,10 @@ export const useGeckoId = (addressData: string | null) => {
 }
 
 export const usePriceChart = (geckoId?: string) => {
-	const url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
-	const isEnabled = !!url
-	return useQuery({
-		queryKey: ['price-chart', url, isEnabled],
-		queryFn: isEnabled ? () => fetchApi(url).catch(() => null) : () => Promise.resolve(null),
+	const isEnabled = Boolean(geckoId)
+	return useQuery<CgChartResponse | null, Error>({
+		queryKey: ['coingecko', 'price-chart', geckoId ?? null],
+		queryFn: () => fetchCgChartByGeckoId(geckoId!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
@@ -34,37 +50,21 @@ export const usePriceChart = (geckoId?: string) => {
 }
 
 export const useGetTokenPrice = (geckoId?: string) => {
-	let url = geckoId ? `${COINS_PRICES_API}/current/coingecko:${geckoId}` : null
-	const isEnabled = !!url
-	const { data, isLoading, error } = useQuery({
-		queryKey: ['gecko-token-price', url, isEnabled],
-		queryFn: isEnabled ? () => fetchApi(url) : () => Promise.resolve(null),
+	const isEnabled = Boolean(geckoId)
+	return useQuery<PriceObject | null, Error>({
+		queryKey: ['coingecko', 'token-price', geckoId ?? null],
+		queryFn: () => fetchTokenPriceByGeckoId(geckoId!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
 	})
-
-	return { data: data?.coins?.[`coingecko:${geckoId}`], error, isLoading }
 }
 
-interface IDenominationPriceHistory {
-	prices: Array<[number, number]>
-	mcaps: Array<[number, number]>
-	volumes: Array<[number, number]>
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useDenominationPriceHistory = (geckoId?: string) => {
-	let url = geckoId ? `${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true` : null
-	const isEnabled = !!url
-	return useQuery<IDenominationPriceHistory>({
-		queryKey: ['denom-price-history', url, isEnabled],
-		queryFn: isEnabled
-			? () =>
-					fetchApi(url)
-						.then((r) => r.data)
-						.then((data) => (data.prices.length > 0 ? data : { prices: [], mcaps: [], volumes: [] }))
-			: () => ({ prices: [], mcaps: [], volumes: [] }),
+export const useDenominationPriceHistory = (geckoId?: string) => {
+	const isEnabled = Boolean(geckoId)
+	return useQuery<DenominationPriceHistory, Error>({
+		queryKey: ['coingecko', 'denom-price-history', geckoId ?? null],
+		queryFn: () => fetchDenominationPriceHistory(geckoId!),
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled

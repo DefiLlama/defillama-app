@@ -1,12 +1,12 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { PROTOCOLS_API } from '~/constants'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -54,14 +54,14 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
 		}
 	}
 
-	const res = await fetchJson(PROTOCOLS_API)
+	const res = await fetchProtocols()
 	const slugs = new Set()
 	const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
 	for (const protocol of res.protocols) {

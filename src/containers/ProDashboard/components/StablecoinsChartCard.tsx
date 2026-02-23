@@ -1,14 +1,15 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinsChartData } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
 import { generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
-import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import { formattedNum, toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinsChartConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -137,7 +138,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					['Date', 'Market Cap'],
 					...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Mcap ?? ''])
 				]
-				filename = `stablecoins-${chainSlug}-total-mcap.csv`
+				filename = `stablecoins-${chainSlug}-total-mcap`
 				break
 			case 'tokenMcaps':
 				rows = [
@@ -147,7 +148,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						...peggedAssetNames.map((name) => el[name] ?? '')
 					])
 				]
-				filename = `stablecoins-${chainSlug}-token-mcaps.csv`
+				filename = `stablecoins-${chainSlug}-token-mcaps`
 				break
 			case 'dominance':
 				rows = [
@@ -157,14 +158,14 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						...peggedAssetNames.map((name) => el[name] ?? '')
 					])
 				]
-				filename = `stablecoins-${chainSlug}-dominance.csv`
+				filename = `stablecoins-${chainSlug}-dominance`
 				break
 			case 'usdInflows':
 				rows = [
 					['Date', 'USD Inflows'],
 					...filteredChartData.usdInflows.map((el: any) => [toNiceCsvDate(el.date), el.Inflows ?? ''])
 				]
-				filename = `stablecoins-${chainSlug}-usd-inflows.csv`
+				filename = `stablecoins-${chainSlug}-usd-inflows`
 				break
 			case 'tokenInflows':
 				rows = [
@@ -174,11 +175,11 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						...tokenInflowNames.map((name) => el[name] ?? '')
 					])
 				]
-				filename = `stablecoins-${chainSlug}-token-inflows.csv`
+				filename = `stablecoins-${chainSlug}-token-inflows`
 				break
 			case 'pie':
 				rows = [['Token', 'Market Cap'], ...chainsCirculatingValues.map((el: any) => [el.name, el.value])]
-				filename = `stablecoins-${chainSlug}-pie.csv`
+				filename = `stablecoins-${chainSlug}-pie`
 				break
 		}
 
@@ -201,7 +202,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 		)
 	}
 
-	const renderChart = () => {
+	const chartContent = (() => {
 		switch (chartType) {
 			case 'totalMcap':
 				return (
@@ -220,7 +221,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 							hideDefaultLegend={true}
 							hideDownloadButton={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
+							color="#3e79cc"
 							chartOptions={chartOptions}
 							onReady={handleChartReady}
 						/>
@@ -296,7 +297,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					>
 						<BarChart
 							chartData={filteredChartData.usdInflows}
-							color="#4f8fea"
+							color="#3e79cc"
 							title=""
 							hideDownloadButton={true}
 							onReady={handleChartReady}
@@ -328,7 +329,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 			default:
 				return null
 		}
-	}
+	})()
 
 	const hasChartData =
 		filteredChartData.peggedAreaTotalData.length > 0 ||
@@ -360,7 +361,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Total Market Cap</span>
-						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#4f8fea' }}>
+						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#3e79cc' }}>
 							{formattedNum(latestMcap, true)}
 						</span>
 					</div>
@@ -375,7 +376,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						</div>
 					}
 				>
-					{renderChart()}
+					{chartContent}
 				</Suspense>
 			</div>
 		</div>

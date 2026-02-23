@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
-import { MCP_SERVER } from '~/constants'
+import { MCP_SERVER, SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { LlamaAI } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
@@ -37,7 +37,7 @@ export const getStaticPaths = async () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -79,7 +79,7 @@ export default function SharedConversationPage() {
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['shared-session', shareToken],
+		queryKey: ['llamaai', 'shared-session', shareToken],
 		queryFn: () => getSharedSession(shareToken as string),
 		enabled: !!shareToken && typeof shareToken === 'string',
 		staleTime: Infinity,

@@ -1,8 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { useSearchParams } from 'next/navigation'
-import { useRouter } from 'next/router'
+import { type NextRouter, useRouter } from 'next/router'
 import { Fragment, lazy, Suspense, useMemo, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
@@ -23,7 +22,9 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { definitions } from '~/public/definitions'
-import { capitalizeFirstLetter, chainIconUrl, downloadCSV, formattedNum, slug } from '~/utils'
+import { capitalizeFirstLetter, chainIconUrl, formattedNum, slug } from '~/utils'
+import { downloadCSV } from '~/utils/download'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import type { IChainOverviewData } from './types'
@@ -45,7 +46,10 @@ interface IStatsProps extends IChainOverviewData {
 export function Stats(props: IStatsProps) {
 	const router = useRouter()
 
-	const searchParams = useSearchParams()
+	const searchParams = useMemo(() => {
+		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
+		return new URLSearchParams(queryString)
+	}, [router.asPath])
 
 	const [darkMode] = useDarkModeManager()
 
@@ -127,14 +131,7 @@ export function Stats(props: IStatsProps) {
 		props.metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const updateGroupBy = (newGroupBy) => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: { ...router.query, groupBy: newGroupBy }
-			},
-			undefined,
-			{ shallow: true }
-		)
+		pushShallowQuery(router, { groupBy: newGroupBy })
 	}
 
 	const metricsDialogStore = Ariakit.useDialogStore()
@@ -154,15 +151,17 @@ export function Stats(props: IStatsProps) {
 				return
 			}
 
-			try {
-				const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
-				const url = `https://api.llama.fi/simpleChainDataset/${
-					chainsNamesMap[props.metadata.name] || props.metadata.name
-				}?${enabledParams.join('&')}`.replaceAll(' ', '%20')
+			const enabledParams = TVL_SETTINGS_KEYS.flatMap((key) => (tvlSettings[key] ? [`${key}=true`] : []))
+			const chainDatasetName = chainsNamesMap[props.metadata.name] || props.metadata.id || props.metadata.name
+			const url = `https://api.llama.fi/simpleChainDataset/${chainDatasetName}?${enabledParams.join('&')}`.replaceAll(
+				' ',
+				'%20'
+			)
 
+			try {
 				const response = await fetch(url)
 
-				if (!response || !response.ok) {
+				if (!response.ok) {
 					toast.error('Failed to download CSV data')
 					return
 				}
@@ -929,19 +928,20 @@ export function Stats(props: IStatsProps) {
 	)
 }
 
-const updateRoute = (key, val, router) => {
-	router.push(
-		{
-			query: {
-				...router.query,
-				[key]: val
-			}
-		},
-		undefined,
-		{ shallow: true }
-	)
+const updateRoute = (key: string, val: string, router: NextRouter) => {
+	pushShallowQuery(router, { [key]: val })
 }
 
 const chainsNamesMap = {
-	'OP Mainnet': 'Optimism'
+	'OP Mainnet': 'optimism',
+	Gnosis: 'xdai',
+	Avalanche: 'avax',
+	'Arbitrum Nova': 'arbitrum_nova',
+	'ZKsync Era': 'era',
+	'ZKsync Lite': 'zksync',
+	'Hyperliquid L1': 'hyperliquid',
+	'EOS EVM': 'eos_evm',
+	Rootstock: 'rsk',
+	Kaia: 'klaytn',
+	CosmosHub: 'cosmos'
 }

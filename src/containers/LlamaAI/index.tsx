@@ -24,6 +24,37 @@ import { fetchPromptResponse } from './utils/fetchPromptResponse'
 import { responseToItems } from './utils/messageToItems'
 import { debounce, throttle } from './utils/scrollUtils'
 
+interface LlamaChatMessage {
+	role?: 'user' | 'assistant' | string
+	content?: string
+	question?: string
+	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	items?: StreamItem[]
+	response?: {
+		answer: string
+		metadata?: any
+		suggestions?: any[]
+		charts?: any[]
+		chartData?: any[]
+		citations?: string[]
+		inlineSuggestions?: string
+		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+	}
+	timestamp: number
+	messageId?: string
+	clientId?: string
+	sequenceNumber?: number
+	userRating?: 'good' | 'bad' | null
+	metadata?: any
+	suggestions?: any[]
+	charts?: any[]
+	chartData?: any[] | Record<string, any[]>
+	citations?: string[]
+	inlineSuggestions?: string
+	csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+	savedAlertIds?: string[]
+}
+
 interface SharedSession {
 	session: {
 		sessionId: string
@@ -32,21 +63,12 @@ interface SharedSession {
 		isPublic: boolean
 	}
 	// Shared sessions now use role-based format (same as regular sessions)
-	messages: Array<{
-		role: 'user' | 'assistant'
-		content: string
-		messageId?: string
-		timestamp: number
-		sequenceNumber?: number
-		images?: Array<{ url: string; mimeType: string; filename?: string }>
-		// Assistant-specific fields
-		metadata?: any
-		suggestions?: any[]
-		charts?: any[]
-		chartData?: any[] | Record<string, any[]>
-		citations?: string[]
-		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-	}>
+	messages: Array<
+		LlamaChatMessage & {
+			role: 'user' | 'assistant'
+			content: string
+		}
+	>
 	isPublicView: true
 }
 
@@ -56,6 +78,23 @@ interface LlamaAIProps {
 	isPublicView?: boolean
 	readOnly?: boolean
 	showDebug?: boolean
+}
+
+const hashText = (value: string): string => {
+	let hash = 5381
+	for (let i = 0; i < value.length; i++) {
+		hash = (hash << 5) + hash + value.charCodeAt(i)
+		hash |= 0
+	}
+	return (hash >>> 0).toString(36)
+}
+
+const getFallbackMessageIdentity = (message: LlamaChatMessage): string => {
+	const role = message.role ?? 'unknown'
+	const timestamp = Number.isFinite(message.timestamp) ? message.timestamp : 0
+	const sequence = typeof message.sequenceNumber === 'number' ? message.sequenceNumber : 'na'
+	const content = (message.content ?? message.question ?? '').trim().slice(0, 200)
+	return `${role}-${timestamp}-${sequence}-${hashText(content)}`
 }
 
 export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, showDebug = false }: LlamaAIProps = {}) {
@@ -79,37 +118,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const sessionIdRef = useRef<string | null>(null)
 	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
 
-	const [messages, setMessages] = useState<
-		Array<{
-			role?: string
-			content?: string
-			question?: string
-			images?: Array<{ url: string; mimeType: string; filename?: string }>
-			// New: Items-based message content
-			items?: StreamItem[]
-			response?: {
-				answer: string
-				metadata?: any
-				suggestions?: any[]
-				charts?: any[]
-				chartData?: any[]
-				citations?: string[]
-				inlineSuggestions?: string
-				csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-			}
-			timestamp: number
-			messageId?: string
-			userRating?: 'good' | 'bad' | null
-			metadata?: any
-			suggestions?: any[]
-			charts?: any[]
-			chartData?: any[] | Record<string, any[]>
-			citations?: string[]
-			inlineSuggestions?: string
-			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-			savedAlertIds?: string[]
-		}>
-	>([])
+	const [messages, setMessages] = useState<Array<LlamaChatMessage>>([])
 	const [paginationState, setPaginationState] = useState<{
 		hasMore: boolean
 		isLoadingMore: boolean
@@ -117,7 +126,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		totalMessages?: number
 	}>({ hasMore: false, isLoadingMore: false })
 
-	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
+	const hasRestoredSessionRef = useRef<string | null>(null)
 	// New: Items-based streaming state (replaces 15+ streaming-related states)
 	const [streamingItems, setStreamingItems] = useState<StreamItem[]>([])
 	const [streamingError, setStreamingError] = useState('')
@@ -162,33 +171,86 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 	const resizeObserverRef = useRef<ResizeObserver | null>(null)
 	const isAutoScrollingRef = useRef(false) // Flag during session restoration auto-scroll
 	const promptInputRef = useRef<HTMLTextAreaElement>(null)
+	const clientMessageCounterRef = useRef(0)
+
+	const createClientMessageId = useCallback((role: 'user' | 'assistant') => {
+		clientMessageCounterRef.current += 1
+		return `client-${role}-${Date.now()}-${clientMessageCounterRef.current}`
+	}, [])
+
+	const attachClientIds = useCallback(
+		(incomingMessages: Array<LlamaChatMessage>, existingMessages: Array<LlamaChatMessage> = []) => {
+			const usedIds = new Set<string>()
+			for (const message of existingMessages) {
+				if (message.clientId) {
+					usedIds.add(message.clientId)
+					continue
+				}
+				if (message.messageId) {
+					usedIds.add(`server-${message.messageId}`)
+					continue
+				}
+				usedIds.add(`fallback-${getFallbackMessageIdentity(message)}`)
+			}
+
+			return incomingMessages.map((message) => {
+				if (message.clientId) {
+					usedIds.add(message.clientId)
+					return message
+				}
+
+				const baseId = message.messageId
+					? `server-${message.messageId}`
+					: `fallback-${getFallbackMessageIdentity(message)}`
+				let candidateId = baseId
+				let duplicateIndex = 1
+				while (usedIds.has(candidateId)) {
+					candidateId = `${baseId}-${duplicateIndex}`
+					duplicateIndex += 1
+				}
+				usedIds.add(candidateId)
+				return {
+					...message,
+					clientId: candidateId
+				}
+			})
+		},
+		[]
+	)
+
+	const getMessageRenderKey = useCallback((message: LlamaChatMessage) => {
+		if (message.messageId) return message.messageId
+		if (message.clientId) return message.clientId
+		return `ts-${getFallbackMessageIdentity(message)}`
+	}, [])
 
 	const resetScrollState = useCallback(() => {
-		setShowScrollToBottom(false)
+		setShowScrollToBottom(() => false)
 		shouldAutoScrollRef.current = true
 		isAutoScrollingRef.current = true
 	}, [])
 
 	useEffect(() => {
 		sessionIdRef.current = sessionId
+		shouldAutoScrollRef.current = true
+		isAutoScrollingRef.current = true
 	}, [sessionId])
 
-	useEffect(() => {
-		if (initialSessionId && !sessionId) {
-			resetScrollState()
-			setSessionId(initialSessionId)
-			setHasRestoredSession(null)
-		}
-	}, [initialSessionId, sessionId, resetScrollState])
+	const [prevSharedSession, setPrevSharedSession] = useState<SharedSession | undefined>(undefined)
 
-	useEffect(() => {
+	if (initialSessionId && !sessionId) {
+		setShowScrollToBottom(false)
+		setSessionId(initialSessionId)
+	}
+
+	if (sharedSession !== prevSharedSession) {
+		setPrevSharedSession(sharedSession)
 		if (sharedSession) {
-			resetScrollState()
-			// Shared sessions now use role-based format - use messages as-is
-			setMessages(sharedSession.messages)
+			setShowScrollToBottom(false)
+			setMessages(attachClientIds(sharedSession.messages))
 			setSessionId(sharedSession.session.sessionId)
 		}
-	}, [sharedSession, resetScrollState])
+	}
 
 	const reconnectToStream = useCallback(
 		(sid: string, initialContent: string) => {
@@ -239,7 +301,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							{
 								role: 'assistant',
 								items: result.items,
-								timestamp: Date.now()
+								timestamp: Date.now(),
+								clientId: createClientMessageId('assistant')
 							}
 						])
 					}
@@ -251,7 +314,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					setStreamingItems([])
 				})
 		},
-		[authorizedFetch, updateSessionTitle]
+		[authorizedFetch, updateSessionTitle, createClientMessageId]
 	)
 
 	useEffect(() => {
@@ -260,15 +323,17 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			user &&
 			!sharedSession &&
 			!readOnly &&
-			hasRestoredSession !== sessionId &&
+			hasRestoredSessionRef.current !== sessionId &&
 			!newlyCreatedSessionsRef.current.has(sessionId) &&
 			!isStreaming
 		) {
-			resetScrollState()
-			setHasRestoredSession(sessionId)
+			hasRestoredSessionRef.current = sessionId
+			shouldAutoScrollRef.current = true
+			isAutoScrollingRef.current = true
 			restoreSession(sessionId)
 				.then((result: any) => {
-					setMessages(result.messages)
+					setShowScrollToBottom(false)
+					setMessages(attachClientIds(result.messages))
 					setPaginationState(result.pagination)
 
 					if (result.streaming?.status === 'streaming') {
@@ -283,7 +348,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 								chartData: result.streaming.result.chartData,
 								suggestions: result.streaming.result.suggestions,
 								citations: result.streaming.result.citations,
-								timestamp: Date.now()
+								timestamp: Date.now(),
+								clientId: createClientMessageId('assistant')
 							}
 						])
 					}
@@ -297,12 +363,36 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		user,
 		sharedSession,
 		readOnly,
-		hasRestoredSession,
 		restoreSession,
-		resetScrollState,
 		isStreaming,
-		reconnectToStream
+		reconnectToStream,
+		attachClientIds,
+		createClientMessageId
 	])
+
+	const stopSessionMutation = useMutation({
+		mutationFn: async (targetSessionId: string) => {
+			await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ sessionId: targetSessionId })
+			})
+		},
+		onError: (error) => {
+			console.log('Error stopping streaming session:', error)
+		}
+	})
+
+	const deleteSessionMutation = useMutation({
+		mutationFn: async (targetSessionId: string) => {
+			await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${targetSessionId}`, {
+				method: 'DELETE'
+			})
+		},
+		onError: (error) => {
+			console.log('Failed to reset backend session:', error)
+		}
+	})
 
 	const {
 		data: promptResponse,
@@ -376,8 +466,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					newlyCreatedSessionsRef.current.add(newSessionId)
 					setSessionId(newSessionId)
 					sessionIdRef.current = newSessionId
-					// Mark as restored to prevent restoration after streaming completes
-					setHasRestoredSession(newSessionId)
+				// Mark as restored to prevent restoration after streaming completes
+				hasRestoredSessionRef.current = newSessionId
 				},
 				onTitle: (title) => {
 					updateSessionTitle({ sessionId: currentSessionId, title })
@@ -436,14 +526,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					role: 'user',
 					content: variables.userQuestion,
 					images: currentImages,
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					clientId: createClientMessageId('user')
 				},
 				{
 					role: 'assistant',
 					items: finalItems,
 					messageId: currentMessageId,
 					timestamp: Date.now(),
-					metadata: finalMetadata
+					metadata: finalMetadata,
+					clientId: createClientMessageId('assistant')
 				}
 			])
 
@@ -486,14 +578,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 						role: 'user',
 						content: variables.userQuestion,
 						images: stoppedImages,
-						timestamp: Date.now()
+						timestamp: Date.now(),
+						clientId: createClientMessageId('user')
 					},
 					{
 						role: 'assistant',
 						items: streamingItems,
 						metadata: { stopped: true, partial: true },
 						messageId: currentMessageId,
-						timestamp: Date.now()
+						timestamp: Date.now(),
+						clientId: createClientMessageId('assistant')
 					}
 				])
 
@@ -549,26 +643,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsStreaming(false)
 
 		if (currentSessionId) {
-			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: currentSessionId
-					})
-				})
-
-				if (response.ok) {
-					console.log('Successfully stopped streaming session')
-				} else {
-					const errorData = await response.json()
-					console.log('Failed to stop streaming session:', errorData)
-				}
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
-			}
+			stopSessionMutation.mutate(currentSessionId)
 		}
 
 		if (abortControllerRef.current) {
@@ -584,14 +659,16 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 				{
 					role: 'user',
 					content: prompt,
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					clientId: createClientMessageId('user')
 				},
 				{
 					role: 'assistant',
 					items: streamingItems,
 					metadata: { stopped: true, partial: true },
 					messageId: currentMessageId,
-					timestamp: Date.now()
+					timestamp: Date.now(),
+					clientId: createClientMessageId('assistant')
 				}
 			])
 			setPrompt('')
@@ -629,7 +706,8 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setIsResearchMode,
 		resetPrompt,
 		promptInputRef,
-		authorizedFetch
+		stopSessionMutation,
+		createClientMessageId
 	])
 
 	const handleRetry = useCallback(() => {
@@ -650,7 +728,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const finalPrompt = prompt.trim()
-			setPrompt(finalPrompt)
+			setPrompt(() => finalPrompt)
 			lastInputRef.current = { text: finalPrompt, entities: preResolved }
 			shouldAutoScrollRef.current = true
 
@@ -675,7 +753,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			const finalPrompt = prompt.trim()
-			setPrompt(finalPrompt)
+			setPrompt(() => finalPrompt)
 			shouldAutoScrollRef.current = true
 
 			if (sessionId) {
@@ -700,7 +778,9 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		const pendingPageContext = consumePendingPageContext()
 		if (pendingPrompt) {
 			pendingPromptConsumedRef.current = true
-			handleSubmit(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
+			queueMicrotask(() => {
+				handleSubmit(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
+			})
 		}
 	}, [isRestoringSession, isPending, isStreaming, initialSessionId, sharedSession, readOnly, handleSubmit])
 
@@ -711,19 +791,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (sessionId && isStreaming) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: sessionId
-					})
-				})
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
-			}
+			await stopSessionMutation.mutateAsync(sessionId).catch(() => {})
 
 			if (abortControllerRef.current) {
 				abortControllerRef.current.abort()
@@ -731,17 +799,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		}
 
 		if (sessionId) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${sessionId}`, {
-					method: 'DELETE'
-				})
-			} catch (error) {
-				console.log('Failed to reset backend session:', error)
-			}
+			deleteSessionMutation.mutate(sessionId)
 		}
 
 		setSessionId(null)
-		setHasRestoredSession(null)
+		hasRestoredSessionRef.current = null
 		newlyCreatedSessionsRef.current.clear()
 		setPrompt('')
 		resetPrompt()
@@ -751,26 +813,23 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 		setMessages([])
 		setResizeTrigger((prev) => prev + 1)
 		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
+	}, [
+		initialSessionId,
+		sessionId,
+		isStreaming,
+		stopSessionMutation,
+		deleteSessionMutation,
+		abortControllerRef,
+		resetPrompt,
+		router
+	])
 
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
 			resetScrollState()
 
 			if (sessionId && isStreaming) {
-				try {
-					await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							sessionId: sessionId
-						})
-					})
-				} catch (error) {
-					console.log('Error stopping streaming session:', error)
-				}
+				stopSessionMutation.mutate(sessionId)
 
 				if (abortControllerRef.current) {
 					abortControllerRef.current.abort()
@@ -778,22 +837,22 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			}
 
 			setSessionId(selectedSessionId)
-			setHasRestoredSession(selectedSessionId)
-			setMessages(data.messages)
+			hasRestoredSessionRef.current = selectedSessionId
+			setMessages(attachClientIds(data.messages))
 			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
 			setPrompt('')
 			resetPrompt()
 			setStreamingItems([])
-			setCurrentMessageId(null) // Clear message ID when switching sessions
-			setIsResearchMode(false) // Reset research mode when switching sessions
-			setIsStreaming(false) // Ensure streaming state is cleared
+			setCurrentMessageId(null)
+			setIsResearchMode(false)
+			setIsStreaming(false)
 			setStreamingError('')
 			setProgressMessage('')
 			setResizeTrigger((prev) => prev + 1)
 
 			promptInputRef.current?.focus()
 		},
-		[sessionId, isStreaming, authorizedFetch, resetScrollState, resetPrompt]
+		[sessionId, isStreaming, stopSessionMutation, resetScrollState, resetPrompt, attachClientIds]
 	)
 
 	const handleLoadMoreMessages = useCallback(async () => {
@@ -807,7 +866,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor)
-			setMessages((prev) => [...result.messages, ...prev])
+			setMessages((prev) => [...attachClientIds(result.messages, prev), ...prev])
 			setPaginationState(result.pagination)
 
 			// Use RAF to batch layout reads/writes with browser paint cycle
@@ -824,7 +883,14 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 			console.log('Failed to load more messages:', error)
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 		}
-	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages])
+	}, [
+		sessionId,
+		paginationState.hasMore,
+		paginationState.isLoadingMore,
+		paginationState.cursor,
+		loadMoreMessages,
+		attachClientIds
+	])
 
 	const handleSuggestionClick = useCallback(
 		(suggestion: any) => {
@@ -1095,14 +1161,11 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 											)}
 											{messages.length > 0 && (
 												<div className="flex flex-col gap-2.5">
-													{messages.map((item, index) => {
+													{messages.map((item) => {
+														const messageKey = getMessageRenderKey(item)
 														if (item.role === 'user') {
 															return (
-																<SentPrompt
-																	key={`user-${item.timestamp}-${index}`}
-																	prompt={item.content}
-																	images={item.images}
-																/>
+																<SentPrompt key={`user-${messageKey}`} prompt={item.content} images={item.images} />
 															)
 														}
 														if (item.role === 'assistant') {
@@ -1146,10 +1209,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 															const msgMetadata = messageItems.find((i): i is MetadataItem => i.type === 'metadata')
 
 															return (
-																<div
-																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
-																	className="flex flex-col gap-2.5"
-																>
+																<div key={`assistant-${messageKey}`} className="flex flex-col gap-2.5">
 																	<PromptResponse
 																		items={messageItems}
 																		isPending={false}
@@ -1282,7 +1342,7 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 							</div>
 							<div className="relative mx-auto w-full max-w-3xl pb-2.5">
 								{!readOnly && (
-									<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+									<div className="absolute -top-8 right-0 left-0 h-9 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 								)}
 								{!readOnly && (
 									<PromptInput

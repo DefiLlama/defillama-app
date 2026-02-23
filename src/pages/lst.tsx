@@ -1,8 +1,8 @@
-import { maxAgeForNext } from '~/api'
 import { LSTOverview } from '~/containers/LST'
 import { getLSDPageData } from '~/containers/LST/queries'
 import type { LSTOverviewProps } from '~/containers/LST/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('lsd', async () => {

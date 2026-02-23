@@ -1,7 +1,8 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useMemo, useRef } from 'react'
-import { CHAINS_API, PROTOCOLS_API } from '~/constants'
+import { fetchChainsList } from '~/containers/Chains/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import type { CustomTimePeriod, TimePeriod } from './ProDashboardAPIContext'
@@ -432,7 +433,7 @@ function useChartData(
 ) {
 	const { data: parentMapping } = useParentChildMapping()
 	return useQuery({
-		queryKey: getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType),
+		queryKey: ['pro-dashboard', ...getChartQueryKey(type, itemType, item, geckoId, timePeriod, undefined, dataType)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, timePeriod, parentMapping, undefined, dataType),
 		staleTime: 1000 * 60 * 5,
 		gcTime: 1000 * 60 * 30,
@@ -449,10 +450,9 @@ export { getChartQueryKey, getChartQueryFn }
 // oxlint-disable-next-line no-unused-vars
 function useChains() {
 	return useQuery({
-		queryKey: ['chains'],
+		queryKey: ['pro-dashboard', 'chains'],
 		queryFn: async () => {
-			const response = await fetch(CHAINS_API)
-			const data = await response.json()
+			const data = await fetchChainsList()
 			const transformedData = data.map((chain) => ({
 				...chain,
 				name: toDisplayName(chain.name)
@@ -466,18 +466,11 @@ function useChains() {
 	})
 }
 
-export function useProtocolsAndChains() {
+export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
 	return useQuery({
-		queryKey: ['protocols-and-chains'],
+		queryKey: ['pro-dashboard', 'protocols-and-chains'],
 		queryFn: async () => {
-			const [protocolsResponse, chainsResponse] = await Promise.all([fetch(PROTOCOLS_API), fetch(CHAINS_API)])
-
-			if (!protocolsResponse.ok || !chainsResponse.ok) {
-				throw new Error('Network response was not ok')
-			}
-
-			const protocolsData = await protocolsResponse.json()
-			const chainsData = await chainsResponse.json()
+			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
 			const transformedChains = chainsData.map((chain) => ({
 				...chain,
@@ -525,11 +518,13 @@ export function useProtocolsAndChains() {
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		},
-		staleTime: 1000 * 60 * 60,
+		staleTime: serverData ? Infinity : 1000 * 60 * 60,
 		gcTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
-		refetchOnReconnect: false
+		refetchOnReconnect: false,
+		initialData: serverData ?? undefined,
+		initialDataUpdatedAt: serverData ? Date.now() : undefined
 	})
 }
 
@@ -546,7 +541,12 @@ function computeGrouped(
 	return result
 }
 
-export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: CustomTimePeriod | null) {
+export function useChartsData(
+	charts,
+	timePeriod?: TimePeriod,
+	customPeriod?: CustomTimePeriod | null,
+	serverChartData?: Record<string, [number, number][]> | null
+) {
 	const { data: parentMapping } = useParentChildMapping()
 	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({
@@ -554,8 +554,11 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 			const itemType = chart.protocol ? 'protocol' : 'chain'
 			const item = chart.protocol || chart.chain
 
+			const chartServerData = serverChartData?.[chart.id]
+
 			return {
 				queryKey: [
+					'pro-dashboard',
 					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
 					chart.grouping,
 					chart.id
@@ -570,11 +573,11 @@ export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: Cu
 					customPeriod,
 					chart.dataType
 				),
-				staleTime: 1000 * 60 * 5,
+				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,
-				keepPreviousData: true,
-				placeholderData: (prev) => prev,
+				initialData: chartServerData ?? undefined,
+				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {
 					const chartTypeDetails = CHART_TYPES[chart.type]
 					if (chartTypeDetails?.groupable && chart.grouping && chart.grouping !== 'day') {

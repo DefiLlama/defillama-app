@@ -10,17 +10,19 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { useCalcCirculating } from '~/containers/Stablecoins/hooks'
-import { formattedNum, peggedAssetIconUrl as stablecoinAssetIconUrl, renderPercentChange, slug } from '~/utils'
+import { formattedNum, peggedAssetIconUrl as stablecoinAssetIconUrl, slug } from '~/utils'
 
 type StablecoinDeviationInfo = {
 	timestamp: number
@@ -176,7 +178,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 						info.row.original.change_1d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{renderPercentChange(info.getValue())}
+					<PercentChange percent={info.getValue()} />
 				</Tooltip>
 			) : (
 				'-'
@@ -197,7 +199,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 						info.row.original.change_7d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{renderPercentChange(info.getValue())}
+					<PercentChange percent={info.getValue()} />
 				</Tooltip>
 			) : (
 				'-'
@@ -218,7 +220,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 						info.row.original.change_1m_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{renderPercentChange(info.getValue())}
+					<PercentChange percent={info.getValue()} />
 				</Tooltip>
 			) : (
 				'-'
@@ -401,6 +403,7 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-assets' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

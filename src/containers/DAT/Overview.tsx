@@ -1,7 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
@@ -10,7 +9,6 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
 import type { IDATOverviewPageProps } from './types'
 
@@ -28,56 +26,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 	return typeof value === 'object' && value != null ? (value as Record<string, unknown>) : undefined
 }
 
-const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
 const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
-
-function prepareInstitutionsCsv(institutions: IDATOverviewPageProps['institutions']) {
-	const headers = [
-		'Institution',
-		'Ticker',
-		'Type',
-		'Cost Basis',
-		"Today's Holdings Value",
-		'Stock Price',
-		'24h Price Change (%)',
-		'Realized mNAV',
-		'Realistic mNAV',
-		'Max mNAV',
-		'Asset Breakdown'
-	]
-
-	const rows = institutions.map((institution) => {
-		const assetBreakdownStr = institution.holdings
-			.map((asset) => {
-				const parts = [`${asset.name} (${asset.ticker})`]
-				if (asset.usdValue != null) parts.push(`Value: $${asset.usdValue.toLocaleString()}`)
-				if (asset.amount != null) parts.push(`Amount: ${asset.amount.toLocaleString()} ${asset.ticker}`)
-				if (asset.dominance != null) parts.push(`${asset.dominance}%`)
-				return parts.join(' - ')
-			})
-			.join(' | ')
-
-		return [
-			institution.name,
-			institution.ticker,
-			institution.type,
-			institution.totalCost ?? '',
-			institution.totalUsdValue ?? '',
-			institution.price ?? '',
-			institution.priceChange24h ?? '',
-			institution.realized_mNAV ?? '',
-			institution.realistic_mNAV ?? '',
-			institution.max_mNAV ?? '',
-			assetBreakdownStr
-		]
-	})
-
-	const date = new Date().toISOString().split('T')[0]
-	return {
-		filename: `digital-asset-treasuries-${date}.csv`,
-		rows: [headers, ...rows]
-	}
-}
 
 export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
 	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
@@ -119,7 +68,10 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 	}, [groupBy])
 
 	const { chartData } = useMemo(() => {
-		const assetKeys = Object.keys(dailyFlowsByAsset)
+		const assetKeys: string[] = []
+		for (const asset in dailyFlowsByAsset) {
+			assetKeys.push(asset)
+		}
 		const rowMap = new Map<number, Record<string, number | null>>()
 
 		if (['Weekly', 'Monthly'].includes(groupBy)) {
@@ -168,16 +120,9 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 	}, [dailyFlowsByAsset, groupBy])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
-	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
 
 	return (
-		<Layout
-			title={`Digital Asset Treasuries - DefiLlama`}
-			description={`Track institutions that own digital assets as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`digital asset treasury, digital asset treasuries, digital asset treasury by institution, digital asset treasury by company, digital asset treasury by asset`}
-			canonicalUrl={`/digital-asset-treasuries`}
-			pageName={pageName}
-		>
+		<>
 			<RowLinksWithDropdown links={allAssets} activeLink={'All'} />
 			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
@@ -212,9 +157,9 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={<CSVDownloadButton prepareCsv={handlePrepareInstitutionsCsv} />}
+				csvFileName="digital-asset-treasuries"
 			/>
-		</Layout>
+		</>
 	)
 }
 
@@ -248,10 +193,12 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 	},
 	{
 		header: 'Assets',
-		accessorKey: 'holdings',
+		id: 'holdings',
+		accessorFn: (row) =>
+			row.holdings.map((asset) => `${asset.name} (${(Number(asset.dominance) || 0).toFixed(2)}%)`).join(', '),
 		enableSorting: false,
 		cell: (info) => {
-			const assetBreakdown = info.getValue<IDATOverviewPageProps['institutions'][0]['holdings']>()
+			const assetBreakdown = info.row.original.holdings
 
 			return (
 				<Tooltip

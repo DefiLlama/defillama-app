@@ -49,12 +49,12 @@ export default function ChainCoreChart({
 	})
 
 	const { series, allYAxis } = useMemo(() => {
-		const uniqueYAxis = new Set()
-
-		const stacks = Object.keys(chartData) as any
-
-		for (const stack of stacks) {
-			uniqueYAxis.add(yAxisByChart[stack])
+		const uniqueYAxis = new Set<ChainChartLabels>()
+		const stacks: ChainChartLabels[] = []
+		for (const stack in chartData) {
+			const chartLabel = stack as ChainChartLabels
+			stacks.push(chartLabel)
+			uniqueYAxis.add(yAxisByChart[chartLabel])
 		}
 
 		const indexByYAxis = Object.fromEntries(

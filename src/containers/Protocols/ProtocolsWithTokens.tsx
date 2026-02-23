@@ -1,7 +1,6 @@
 import type { ColumnDef, SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -10,23 +9,10 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, TokenMetricType } from './types'
-import { parseExcludeParam } from './utils'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
-
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
-	return columnId
-}
-
-function getCsvCellValue(value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
-}
 
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
@@ -77,7 +63,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
-				customFilters={({ instance }) => (
+				customFilters={() => (
 					<>
 						{props.categories.length > 0 ? (
 							<SelectWithCombobox
@@ -91,25 +77,9 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								variant="filter-responsive"
 							/>
 						) : null}
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const visibleColumns = instance
-									.getAllLeafColumns()
-									.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
-								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
-
-								return {
-									filename: `protocols-with-tokens-${props.type}-${slug(props.chain)}.csv`,
-									rows: [headers, ...rows]
-								}
-							}}
-							smol
-						/>
 					</>
 				)}
+				csvFileName={`protocols-with-tokens-${props.type}-${props.chain}`}
 				sortingState={sortingState}
 			/>
 		</>

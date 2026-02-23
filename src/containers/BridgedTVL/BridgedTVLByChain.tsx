@@ -16,7 +16,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 import type { RawChainAsset } from './api.types'
 
 interface BridgedChainRow {
@@ -170,7 +170,7 @@ export function BridgedTVLByChain({
 									<button
 										className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										data-active={chartType === type}
-										onClick={() => React.startTransition(() => setChartType(type))}
+										onClick={() => setChartType(type)}
 										key={'bridged-' + name}
 									>
 										{name}
@@ -181,7 +181,7 @@ export function BridgedTVLByChain({
 								<button
 									className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									data-active={chartType === 'inflows'}
-									onClick={() => React.startTransition(() => setChartType('inflows'))}
+									onClick={() => setChartType('inflows')}
 								>
 									Inflows
 								</button>
@@ -190,7 +190,7 @@ export function BridgedTVLByChain({
 								<button
 									className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 									data-active={chartType === 'ownTokens'}
-									onClick={() => React.startTransition(() => setChartType('ownTokens'))}
+									onClick={() => setChartType('ownTokens')}
 								>
 									Own Tokens
 								</button>
@@ -209,7 +209,7 @@ export function BridgedTVLByChain({
 						) : null}
 						<ChartExportButtons
 							chartInstance={exportChartInstance}
-							filename={`${slug(chainName)}-bridged-tvl`}
+							filename={`${chainName}-bridged-tvl`}
 							title={`${chainName} Bridged TVL`}
 						/>
 					</div>

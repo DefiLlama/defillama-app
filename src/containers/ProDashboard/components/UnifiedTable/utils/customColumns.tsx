@@ -1,7 +1,8 @@
 import type { ColumnDef, Row } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
+import { PercentChange } from '~/components/PercentChange'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { CustomColumnDefinition } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
@@ -52,7 +53,11 @@ const renderNumber = (value: number | null | undefined) => {
 
 const renderPercent = (value: number | null | undefined) => {
 	if (value == null) return renderDash()
-	return <span className="pro-text2">{renderPercentChange(value, true)}</span>
+	return (
+		<span className="pro-text2">
+			<PercentChange percent={value} noSign />
+		</span>
+	)
 }
 
 const renderRatio = (value: number | null | undefined) => {

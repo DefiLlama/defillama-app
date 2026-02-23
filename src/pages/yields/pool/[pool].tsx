@@ -103,14 +103,14 @@ const PageView = (_props) => {
 
 	// prepare csv data
 	const prepareCsv = () => {
-		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
+		if (!chart?.data || !query?.pool) return { filename: `yields`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
 		for (const item of chart?.data ?? EMPTY_CHART_DATA) {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		}
 
-		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
+		return { filename: `${query.pool}`, rows: rows as (string | number | boolean)[][] }
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0

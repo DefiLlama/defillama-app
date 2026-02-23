@@ -1,4 +1,4 @@
-import type { IChainAsset } from '~/containers/ChainOverview/types'
+import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
 
 interface IChainTvl {
 	tvl: number
@@ -86,7 +86,7 @@ interface IChain extends IChainTvl {
 	users: number | null
 	totalAppRevenue24h: number | null
 	totalAppRevenue30d?: number | null
-	chainAssets: IChainAsset | null
+	chainAssets: RawChainAsset | null
 	bridgedTvl?: number | null
 	childGroups: Record<string, Array<string>> | null
 }
@@ -103,4 +103,29 @@ export interface IChainsByCategoryData {
 	tvlChartsByChain: Record<string, Record<string, Record<number, number>>>
 	description: string
 	keywords: string
+}
+
+export type IFormattedDataWithExtraTvlBase = {
+	chainAssets?: RawChainAsset | null
+	tvl: number
+	tvlPrevDay: number
+	tvlPrevWeek: number
+	tvlPrevMonth: number
+	change_1d: number | null
+	change_7d: number | null
+	change_1m: number | null
+	mcap: number | null
+	mcaptvl: number | null
+	name: string
+	protocols: IChain['protocols']
+	stablesMcap: IChain['stablesMcap']
+	totalVolume24h: IChain['totalVolume24h']
+	totalFees24h: IChain['totalFees24h']
+	totalAppRevenue24h: IChain['totalAppRevenue24h']
+	users: IChain['users']
+	nftVolume: IChain['nftVolume']
+}
+
+export interface IFormattedDataWithExtraTvl extends IFormattedDataWithExtraTvlBase {
+	subRows?: Array<IFormattedDataWithExtraTvlBase>
 }

@@ -13,7 +13,7 @@ import {
 	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'

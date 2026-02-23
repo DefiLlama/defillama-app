@@ -16,13 +16,13 @@ import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/EChar
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
-import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
+import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { isParamNone, parseArrayParam, parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
 import { HacksFilters } from './Filters'
 import type { IHacksPageData } from './types'
 
@@ -57,27 +57,6 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
-	const prepareCsv = () => {
-		const rows: Array<Array<string | number | boolean>> = [
-			['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
-		]
-		for (const { name, date, amount, chains, classification, target, technique, bridge, language, link } of data) {
-			rows.push([
-				name,
-				date,
-				amount,
-				chains?.join(',') ?? '',
-				classification,
-				target,
-				technique,
-				bridge,
-				language,
-				link
-			])
-		}
-		return { filename: 'hacks.csv', rows }
-	}
-
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex items-center justify-end gap-2 p-3">
@@ -100,7 +79,7 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 					/>
 				</label>
 
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
@@ -109,12 +88,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 const chartTypeList = ['Monthly Sum', 'Total Hacked by Technique']
 
-const pageName = ['Hacks: Overview']
-
-const getTimeSinceSeconds = (timeQuery: string | undefined): number | null => {
+const getTimeSinceSeconds = (timeQuery: string | undefined, nowSec: number): number | null => {
 	if (typeof timeQuery !== 'string') return null
 
-	const nowSec = Math.floor(Date.now() / 1000)
 	switch (timeQuery) {
 		case '7d':
 			return nowSec - 7 * 24 * 60 * 60
@@ -182,27 +158,6 @@ const applyFilters = (
 	})
 }
 
-const toArrayParam = (p: string | string[] | undefined): string[] => {
-	if (!p) return []
-	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-}
-
-const isParamNone = (param: string | string[] | undefined) =>
-	param === 'None' || (Array.isArray(param) && param.includes('None'))
-
-const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
-	if (!param) return allValues
-	const values = toArrayParam(param).filter((v) => v !== 'None')
-	const valid = new Set(allValues)
-	return values.filter((value) => valid.has(value))
-}
-
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
 export const HacksContainer = ({
 	data,
 	monthlyHacksChartData,
@@ -215,6 +170,7 @@ export const HacksContainer = ({
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
+	const [nowSec] = React.useState(() => Math.floor(Date.now() / 1000))
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const router = useRouter()
 	const {
@@ -247,8 +203,8 @@ export const HacksContainer = ({
 		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
 	}, [classQ, excludeClass, classificationOptions])
 
-	const minLostVal = toNumberOrNullFromQueryParam(minLost)
-	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
+	const minLostVal = parseNumberQueryParam(minLost)
+	const maxLostVal = parseNumberQueryParam(maxLost)
 
 	const hasActiveFilters =
 		typeof chainQ !== 'undefined' ||
@@ -273,7 +229,7 @@ export const HacksContainer = ({
 		const chainKeys = chainFilterEnabled ? new Set(selectedChains) : undefined
 		const techKeys = techFilterEnabled ? new Set(selectedTechniques) : undefined
 		const classKeys = classFilterEnabled ? new Set(selectedClassifications) : undefined
-		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined)
+		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined, nowSec)
 
 		return applyFilters(data ?? [], {
 			chainKeys,
@@ -299,7 +255,8 @@ export const HacksContainer = ({
 		selectedClassifications,
 		timeQ,
 		minLostVal,
-		maxLostVal
+		maxLostVal,
+		nowSec
 	])
 
 	const derivedStats = React.useMemo(() => {
@@ -361,13 +318,7 @@ export const HacksContainer = ({
 	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
 
 	return (
-		<Layout
-			title={`Hacks - DefiLlama`}
-			description={`Track hacks on all chains and DeFi protocols. View total value lost, breakdown by technique, and DeFi hacks on DefiLlama.`}
-			keywords={`total value hacked, total value lost in hacks, blockchain hacks, hacks on DeFi protocols, DeFi hacks`}
-			canonicalUrl={`/hacks`}
-			pageName={pageName}
-		>
+		<>
 			<HacksFilters
 				chainOptions={chainOptions}
 				techniqueOptions={techniqueOptions}
@@ -417,7 +368,7 @@ export const HacksContainer = ({
 				</div>
 			</div>
 			<HacksTable data={filteredData} />
-		</Layout>
+		</>
 	)
 }
 

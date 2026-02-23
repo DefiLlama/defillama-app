@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
@@ -66,6 +66,19 @@ function ProPageContent() {
 
 const tabs = ['my-dashboards', 'discover', 'favorites'] as const
 
+function getDashboardPagesToShow(selectedPage: number, totalPages: number): number[] {
+	if (totalPages < 1) return []
+	const clampedSelectedPage = Math.max(1, Math.min(selectedPage, totalPages))
+	const pagesToShow =
+		clampedSelectedPage === 1
+			? [1, 2, Math.min(3, totalPages)]
+			: clampedSelectedPage === totalPages
+				? [Math.max(1, totalPages - 2), Math.max(1, totalPages - 1), totalPages]
+				: [clampedSelectedPage - 1, clampedSelectedPage, clampedSelectedPage + 1]
+
+	return pagesToShow.filter((n, i, arr) => n >= 1 && n <= totalPages && arr.indexOf(n) === i)
+}
+
 function ProContent({
 	hasActiveSubscription,
 	isAuthenticated
@@ -82,8 +95,8 @@ function ProContent({
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
 	const [comparisonPreset, setComparisonPreset] = useState<ComparisonPreset | null>(null)
-	const createDialogOpen = createDashboardDialogStore.useState('open')
-	const [dialogWasOpen, setDialogWasOpen] = useState(false)
+	const createDialogOpen = Ariakit.useStoreState(createDashboardDialogStore, 'open')
+	const dialogWasOpenRef = useRef(false)
 
 	const selectedPage =
 		typeof router.query.page === 'string' && !Number.isNaN(Number(router.query.page)) ? parseInt(router.query.page) : 1
@@ -96,15 +109,23 @@ function ProContent({
 	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: activeTab === 'my-dashboards' })
 
 	useEffect(() => {
-		if (createDialogOpen && !dialogWasOpen) {
-			setDialogWasOpen(true)
+		if (createDialogOpen && !dialogWasOpenRef.current) {
+			dialogWasOpenRef.current = true
 			return
 		}
-		if (!createDialogOpen && dialogWasOpen) {
-			setComparisonPreset(null)
-			setDialogWasOpen(false)
+		if (!createDialogOpen && dialogWasOpenRef.current) {
+			let cancelled = false
+			queueMicrotask(() => {
+				if (cancelled) return
+				setComparisonPreset(null)
+			})
+			dialogWasOpenRef.current = false
+
+			return () => {
+				cancelled = true
+			}
 		}
-	}, [createDialogOpen, dialogWasOpen])
+	}, [createDialogOpen])
 
 	useEffect(() => {
 		if (!router.isReady) return
@@ -117,11 +138,19 @@ function ProContent({
 			.map((item) => item.trim())
 			.filter(Boolean)
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
+		let cancelled = false
 		if (parsedItems.length > 0) {
-			setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			queueMicrotask(() => {
+				if (cancelled) return
+				setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			})
 		}
 		createDashboardDialogStore.show()
 		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+
+		return () => {
+			cancelled = true
+		}
 	}, [comparisonPreset, createDashboardDialogStore, router, router.isReady, router.query])
 
 	const handleDeleteDashboard = async (dashboardId: string) => {
@@ -228,31 +257,19 @@ function ProContent({
 									<Icon name="chevron-left" height={16} width={16} />
 								</button>
 
-								{(() => {
-									const totalPages = myDashboardsTotalPages
-									const pagesToShow =
-										selectedPage === 1
-											? [1, 2, Math.min(3, totalPages)]
-											: selectedPage === totalPages
-												? [Math.max(1, totalPages - 2), Math.max(1, totalPages - 1), totalPages]
-												: [selectedPage - 1, selectedPage, selectedPage + 1]
-
-									return pagesToShow
-										.filter((n, i, arr) => n >= 1 && n <= totalPages && arr.indexOf(n) === i)
-										.map((pageNum) => {
-											const isActive = selectedPage === pageNum
-											return (
-												<button
-													key={`my-dashboard-page-${pageNum}`}
-													onClick={() => goToPage(pageNum)}
-													data-active={isActive}
-													className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-												>
-													{pageNum}
-												</button>
-											)
-										})
-								})()}
+								{getDashboardPagesToShow(selectedPage, myDashboardsTotalPages).map((pageNum) => {
+									const isActive = selectedPage === pageNum
+									return (
+										<button
+											key={`my-dashboard-page-${pageNum}`}
+											onClick={() => goToPage(pageNum)}
+											data-active={isActive}
+											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										>
+											{pageNum}
+										</button>
+									)
+								})}
 
 								<button
 									onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}

@@ -14,6 +14,16 @@ import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExport
 
 const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
+const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
+
+function normalizeSourceUrl(url: string): string {
+	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
+		if (url.startsWith(prefix)) {
+			return `https://defillama.com${url.slice(prefix.length)}`
+		}
+	}
+	return url
+}
 
 interface InlineChartConfig {
 	resizeTrigger?: number
@@ -50,7 +60,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 
 	const prepareCsv = () => {
 		const table = tableRef.current?.querySelector('table')
-		if (!table) return { filename: 'table.csv', rows: [] }
+		if (!table) return { filename: 'table', rows: [] }
 
 		const rows: Array<Array<string>> = []
 		const tableRows = Array.from(table.querySelectorAll('tr'))
@@ -61,7 +71,7 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 		}
 
 		const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-		return { filename: `table-${timestamp}.csv`, rows }
+		return { filename: `table-${timestamp}`, rows }
 	}
 
 	return (
@@ -145,14 +155,11 @@ export function MarkdownRenderer({
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
-	const linkMapRef = useRef(processedData.linkMap)
-	linkMapRef.current = processedData.linkMap
-
 	const markdownComponents = useMemo(
 		() => ({
 			a: (props: any) => {
-				if (!props.href && props.children && linkMapRef.current.has(props.children)) {
-					const llamaUrl = linkMapRef.current.get(props.children)
+				if (!props.href && props.children && processedData.linkMap.has(props.children)) {
+					const llamaUrl = processedData.linkMap.get(props.children)
 					return EntityLinkRenderer({ ...props, href: llamaUrl })
 				}
 				return EntityLinkRenderer(props)
@@ -173,7 +180,7 @@ export function MarkdownRenderer({
 			ul: ({ children }: { children: React.ReactNode }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
 			ol: ({ children }: { children: React.ReactNode }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
 		}),
-		[isStreaming]
+		[isStreaming, processedData.linkMap]
 	)
 
 	const renderMarkdownSection = (markdownContent: string, key: string) => (
@@ -190,7 +197,7 @@ export function MarkdownRenderer({
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
-				? contentParts.map((part, index) => {
+				? contentParts.map((part, partIndex) => {
 						if (part.type === 'chart' && part.chartId) {
 							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.chartId)
@@ -201,7 +208,7 @@ export function MarkdownRenderer({
 									? chartItem.chartData
 									: chartItem.chartData?.[chartItem.chart.id] || []
 								return (
-									<div key={`chart-${part.chartId}-${index}`} className="my-4">
+									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chartItem.chart]}
 											chartData={normalizedData}
@@ -219,7 +226,7 @@ export function MarkdownRenderer({
 							if (chart && inlineChartConfig) {
 								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
 								return (
-									<div key={`chart-${part.chartId}-${index}`} className="my-4">
+									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chart]}
 											chartData={data}
@@ -234,7 +241,7 @@ export function MarkdownRenderer({
 							if (isStreaming || (!artifactIndex && (!charts || charts.length === 0))) {
 								return (
 									<div
-										key={`chart-loading-${part.chartId}-${index}`}
+										key={`chart-loading-${part.chartId}`}
 										className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
 									>
 										<p className="text-sm text-gray-500">Loading chart...</p>
@@ -250,7 +257,7 @@ export function MarkdownRenderer({
 								const csvItem = artifactItem as CsvItem
 								return (
 									<CSVExportArtifact
-										key={`csv-${part.csvId}-${index}`}
+										key={`csv-${part.csvId}`}
 										csvExport={{
 											id: csvItem.id,
 											title: csvItem.title,
@@ -265,10 +272,10 @@ export function MarkdownRenderer({
 							// Legacy: O(n) lookup via csvExports array (backward compatibility)
 							const csvExport = csvExports?.find((e) => e.id === part.csvId)
 							if (csvExport) {
-								return <CSVExportArtifact key={`csv-${part.csvId}-${index}`} csvExport={csvExport} />
+								return <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} />
 							}
 							if (isStreaming || (!artifactIndex && !csvExports)) {
-								return <CSVExportLoading key={`csv-loading-${part.csvId}-${index}`} />
+								return <CSVExportLoading key={`csv-loading-${part.csvId}`} />
 							}
 							return null
 						}
@@ -276,7 +283,7 @@ export function MarkdownRenderer({
 							if (inlineChartConfig?.alertIntent) {
 								return (
 									<AlertArtifact
-										key={`alert-${part.alertId}-${index}`}
+										key={`alert-${part.alertId}`}
 										alertId={part.alertId}
 										alertIntent={inlineChartConfig.alertIntent}
 										messageId={inlineChartConfig.messageId}
@@ -285,12 +292,15 @@ export function MarkdownRenderer({
 								)
 							}
 							if (isStreaming) {
-								return <AlertArtifactLoading key={`alert-loading-${part.alertId}-${index}`} />
+								return <AlertArtifactLoading key={`alert-loading-${part.alertId}`} />
 							}
 							return null
 						}
 						if (part.content.trim()) {
-							return renderMarkdownSection(processCitationMarkers(part.content, citations), `text-${index}`)
+							return renderMarkdownSection(
+								processCitationMarkers(part.content, citations),
+								`text-${partIndex}-${part.content.slice(0, 50)}`
+							)
 						}
 						return null
 					})
@@ -317,20 +327,23 @@ export function MarkdownRenderer({
 						<Icon name="chevron-down" height={14} width={14} />
 					</summary>
 					<div className="flex flex-col gap-2.5 pt-2.5">
-						{citations.map((url, index) => (
-							<a
-								key={`citation-${index}-${url}`}
-								href={url}
-								target="_blank"
-								rel="noopener noreferrer"
-								className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
-							>
-								<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
-									{index + 1}
-								</span>
-								<span className="overflow-hidden text-ellipsis whitespace-nowrap">{url}</span>
-							</a>
-						))}
+						{citations.map((url, index) => {
+							const normalizedUrl = normalizeSourceUrl(url)
+							return (
+								<a
+									key={`citation-${index}-${normalizedUrl}`}
+									href={normalizedUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
+								>
+									<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+										{index + 1}
+									</span>
+									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
+								</a>
+							)
+						})}
 					</div>
 				</details>
 			)}

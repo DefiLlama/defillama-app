@@ -1,5 +1,4 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { maxAgeForNext } from '~/api'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -9,6 +8,7 @@ import type { IChainsByREVPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { definitions } from '~/public/definitions'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -43,6 +43,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
+				csvFileName="revenue-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

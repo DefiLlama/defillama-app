@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
+import type { FormSubmitEvent } from '~/types/forms'
 
 const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
 const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
@@ -107,17 +108,17 @@ export function LlamaAIFloatingButton() {
 		if (!suggestedData?.categories) return FALLBACK_SUGGESTIONS
 
 		const allPrompts: string[] = []
-		Object.values(suggestedData.categories).forEach((prompts) => {
+		for (const prompts of Object.values(suggestedData.categories)) {
 			if (Array.isArray(prompts)) {
 				allPrompts.push(...prompts.slice(0, 2))
 			}
-		})
+		}
 
 		return allPrompts.length > 0 ? allPrompts.slice(0, 4) : FALLBACK_SUGGESTIONS
 	}, [entityContext, entityData, suggestedData])
 
 	const handleSubmit = useCallback(
-		(e?: React.FormEvent) => {
+		(e?: FormSubmitEvent) => {
 			e?.preventDefault()
 			const prompt = value.trim()
 			if (!prompt) return

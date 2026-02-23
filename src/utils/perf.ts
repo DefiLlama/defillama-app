@@ -1,5 +1,5 @@
 import type { GetStaticProps, GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { postRuntimeLogs, sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
 import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
 import { fetchWithPoolingOnServer } from './http-client'

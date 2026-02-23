@@ -27,7 +27,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['saved-charts-list', user?.id],
+		queryKey: ['pro-dashboard', 'saved-charts-list', user?.id],
 		queryFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/charts`)
 			if (!res.ok) throw new Error('Failed to load charts')
@@ -44,7 +44,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			if (!res.ok) throw new Error('Failed to delete chart')
 		},
 		onSuccess: (_, chartId) => {
-			queryClient.invalidateQueries({ queryKey: ['saved-charts-list'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'saved-charts-list'] })
 			if (selectedChart?.id === chartId) onChartSelect(null)
 			setDeleteConfirmId(null)
 		}
@@ -159,9 +159,14 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			{deleteConfirmId && (
 				<div
 					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+					role="presentation"
 					onClick={() => setDeleteConfirmId(null)}
 				>
-					<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="pro-card mx-4 w-full max-w-sm rounded-lg p-4"
+						role="presentation"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<h3 className="font-medium pro-text1">Delete chart?</h3>
 						<p className="mt-2 text-sm pro-text3">
 							This will permanently delete the chart. Dashboards using it will show an error.

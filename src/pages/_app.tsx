@@ -8,6 +8,7 @@ import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
 import { useEffect, useRef } from 'react'
+import { UmamiIdentityTracker } from '~/components/analytics/UmamiIdentityTracker'
 import { LlamaAIFloatingButton } from '~/components/LlamaAIFloatingButton'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
@@ -140,6 +141,7 @@ function App({ Component, pageProps }: AppProps) {
 				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
 				data-host-url="https://tasty.defillama.com"
 			/>
+			<UmamiIdentityTracker />
 
 			{showFloatingButton ? <LlamaAIFloatingButton /> : null}
 

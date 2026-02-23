@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -13,6 +13,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
@@ -87,6 +88,8 @@ const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: b
 	return extended
 }
 
+const EXCLUDED_CHART_CATEGORIES = new Set(['Market Cap', 'Price'])
+
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
@@ -135,10 +138,14 @@ export function EmissionsByProtocol({
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 }) {
+	const router = useRouter()
+	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
+
 	return (
 		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
 			{!isEmissionsPage && <h3>Emissions</h3>}
 			<ChartContainer
+				key={chartKey}
 				data={data}
 				isEmissionsPage={isEmissionsPage}
 				initialTokenMarketData={initialTokenMarketData}
@@ -375,9 +382,6 @@ const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K
 	return grouped
 }
 
-const areArraysEqual = (left: string[], right: string[]) =>
-	left.length === right.length && left.every((value, index) => value === right[index])
-
 const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string) => {
 	let total = 0
 	for (const [key, value] of Object.entries(data)) {
@@ -423,7 +427,15 @@ const ChartContainer = ({
 
 	const setQueryParam = (key: string, value: string | undefined) => pushShallowQuery(router, { [key]: value })
 
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+	const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+		const initialCategoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			return Object.keys(data.categoriesBreakdown)
+		} else if (initialCategoriesFromData.length > 0) {
+			return initialCategoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
+		}
+		return []
+	})
 
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
@@ -441,15 +453,6 @@ const ChartContainer = ({
 	const pieChartDataRaw = data.pieChartData?.[dataType]
 	const hallmarks = data.hallmarks?.[dataType] ?? []
 
-	useEffect(() => {
-		if (categoriesFromData.length > 0) {
-			setSelectedCategories((current) => {
-				const newCategories = categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-				if (current.length !== newCategories.length) return newCategories
-				return areArraysEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
-			})
-		}
-	}, [categoriesFromData])
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
 	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
@@ -511,28 +514,29 @@ const ChartContainer = ({
 
 	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
 
+	const nowSec = useNowSeconds()
+	const currentMinuteSec = Math.floor(nowSec / 60) * 60
 	const sortedEvents = useMemo(() => {
-		const now = Date.now() / 1e3
 		const entries = Object.entries(groupedEvents)
 
-		const upcomingEvents = entries.filter(([ts]) => +ts > now).sort(([a], [b]) => +a - +b) // near to far
+		const upcomingEvents = entries.filter(([ts]) => +ts > currentMinuteSec).sort(([a], [b]) => +a - +b) // near to far
 
 		const pastEvents =
 			upcomingEvents.length > 0
-				? entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
-				: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
+				? entries.filter(([ts]) => +ts <= currentMinuteSec).sort(([a], [b]) => +a - +b) // oldest to newest
+				: entries.filter(([ts]) => +ts <= currentMinuteSec).sort(([a], [b]) => +b - +a) // newest to oldest
 
 		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
-	}, [groupedEvents])
+	}, [groupedEvents, currentMinuteSec])
 
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
 			const { timestamp } = event
-			return +timestamp > Date.now() / 1e3
+			return +timestamp > currentMinuteSec
 		})
 		return index === -1 ? 0 : index
-	}, [sortedEvents])
+	}, [sortedEvents, currentMinuteSec])
 
 	const paginationItems = useMemo(
 		() =>
@@ -586,8 +590,16 @@ const ChartContainer = ({
 
 	const availableCategories =
 		allocationMode === 'standard'
-			? Object.keys(data.categoriesBreakdown || {})
-			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+			? (() => {
+					const categories: string[] = []
+					for (const category in data.categoriesBreakdown || {}) {
+						categories.push(category)
+					}
+					return categories
+				})()
+			: (() => {
+					return categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
+				})()
 
 	const displayData = useMemo(() => {
 		let result = chartData
@@ -596,17 +608,6 @@ const ChartContainer = ({
 		}
 		return groupChartDataByTime(result || [], timeGrouping)
 	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
-
-	useEffect(() => {
-		setSelectedCategories(() => {
-			if (allocationMode === 'standard' && data.categoriesBreakdown) {
-				return Object.keys(data.categoriesBreakdown)
-			} else if (categoriesFromData.length > 0) {
-				return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-			}
-			return []
-		})
-	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const groupAllocation = useMemo(() => {
 		const finalAllocation = tokenAllocation?.final
@@ -633,11 +634,12 @@ const ChartContainer = ({
 
 	const pieChartDataAllocation = useMemo(() => {
 		const source = pieChartDataRaw ?? []
+		const selectedCategoriesSet = new Set(selectedCategories)
 		const filtered: Array<{ name: string; value: number }> = []
 		for (const item of source) {
 			if (!item) continue
 			if (typeof item.value !== 'number') continue
-			if (!selectedCategories.includes(item.name)) continue
+			if (!selectedCategoriesSet.has(item.name)) continue
 			filtered.push({ name: item.name, value: item.value })
 		}
 		return sortPieChartDataDesc(filtered)
@@ -650,10 +652,7 @@ const ChartContainer = ({
 		[pieChartDataAllocationMode]
 	)
 
-	const allocationPieStackColors = useMemo(
-		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
-		[allocationMode, stackColors]
-	)
+	const allocationPieStackColors = allocationMode === 'standard' ? standardGroupColors : stackColors
 
 	const formattedAllocationPieStackColors = useMemo(
 		() =>
@@ -789,7 +788,7 @@ const ChartContainer = ({
 		() => ({
 			png: true,
 			csv: true,
-			filename: `${slug(data.name)}-allocation`,
+			filename: `${data.name}-allocation`,
 			pngTitle: `${data.name} Allocation`
 		}),
 		[data.name]
@@ -799,7 +798,7 @@ const ChartContainer = ({
 		() => ({
 			png: true,
 			csv: true,
-			filename: `${slug(data.name)}-unlocked`,
+			filename: `${data.name}-unlocked`,
 			pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
 		}),
 		[data.name, unlockedPercent]
@@ -931,7 +930,7 @@ const ChartContainer = ({
 							/>
 							<ChartExportButtons
 								chartInstance={exportChartInstance}
-								filename={`${slug(data.name)}-unlock-schedule`}
+								filename={`${data.name}-unlock-schedule`}
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
@@ -1100,6 +1099,8 @@ export const UnlocksCharts = ({
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
 }) => {
+	const router = useRouter()
+	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
 	const shouldFetch = !initialData
 	const { data = null, isLoading, error } = useGetProtocolEmissions(shouldFetch ? slug(protocolName) : null)
 
@@ -1122,6 +1123,7 @@ export const UnlocksCharts = ({
 
 	return (
 		<ChartContainer
+			key={chartKey}
 			data={resolvedData}
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}

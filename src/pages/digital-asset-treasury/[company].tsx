@@ -1,7 +1,10 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { DATCompany } from '~/containers/DAT/Company'
 import { getDATCompanyData, getDATCompanyPaths } from '~/containers/DAT/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -25,7 +28,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -38,5 +41,14 @@ export async function getStaticPaths() {
 }
 
 export default function DigitalAssetTreasuryPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return <DATCompany {...props} />
+	return (
+		<Layout
+			title={`${props.name} Digital Asset Treasury - DefiLlama`}
+			description={`Track ${props.name}'s digital asset treasury holdings. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${props.name} digital asset treasury holdings, ${props.name} DATs`}
+			canonicalUrl={`/digital-asset-treasury/${slug(props.ticker)}`}
+		>
+			<DATCompany {...props} />
+		</Layout>
+	)
 }

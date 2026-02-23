@@ -1,8 +1,8 @@
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { CompareChains } from '~/containers/CompareChains'
 import { getCompareChainsPageData } from '~/containers/CompareChains/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('compare-chains', async () => {

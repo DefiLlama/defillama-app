@@ -350,7 +350,7 @@ const ChartByType = ({
 				/>
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
-					filename={title ? slug(title) : `${protocolName}-${chartType}`}
+					filename={title ? title : `${protocolName}-${chartType}`}
 					title={title}
 				/>
 				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}

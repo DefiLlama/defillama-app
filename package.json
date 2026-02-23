@@ -8,7 +8,7 @@
 	"scripts": {
 		"analyze": "bunx next experimental-analyze",
 		"dev": "bun run build:metadata && bunx next dev",
-		"build:metadata": "bun scripts/pullMetadata.js",
+		"build:metadata": "bun scripts/pullMetadata.js && bun scripts/generateRobots.js",
 		"build": "bun run build:metadata && bunx next build",
 		"start": "./scripts/prestart.sh & bunx next start",
 		"format": "oxfmt --write",

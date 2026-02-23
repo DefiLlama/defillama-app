@@ -1,6 +1,5 @@
 import { MarkAreaComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
-import * as React from 'react'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
@@ -72,8 +71,10 @@ export default function ProtocolCoreChart({
 
 	const { series, allYAxis } = useMemo(() => {
 		const uniqueYAxis = new Set()
-
-		const stacks = Object.keys(chartData) as ProtocolChartsLabels[]
+		const stacks: ProtocolChartsLabels[] = []
+		for (const stack in chartData) {
+			stacks.push(stack as ProtocolChartsLabels)
+		}
 
 		for (const stack of stacks) {
 			uniqueYAxis.add(yAxisByChart[stack])
@@ -201,7 +202,7 @@ export default function ProtocolCoreChart({
 
 		const mergedSettings = { ...defaultChartSettings } as Record<string, unknown>
 		if (chartOptions) {
-			for (const option of Object.keys(chartOptions)) {
+			for (const option in chartOptions) {
 				const opts = chartOptions as Record<string, Record<string, unknown>>
 				if (mergedSettings[option]) {
 					mergedSettings[option] = mergeDeep(mergedSettings[option] as Record<string, unknown>, opts[option])
@@ -536,12 +537,14 @@ export default function ProtocolCoreChart({
 			finalYAxis.push(yAxis)
 		}
 
+		const shouldHideDataZoom = hideDataZoom || series.every((s) => s.data.length < 2)
+
 		instance.setOption({
 			graphic,
 			tooltip,
 			grid: {
 				left: 12,
-				bottom: hideDataZoom ? 12 : 68,
+				bottom: shouldHideDataZoom ? 12 : 68,
 				top: (rangeHallmarks?.length ?? 0) > 0 ? 18 : 12,
 				right: 12,
 				outerBoundsMode: 'same',
@@ -549,7 +552,7 @@ export default function ProtocolCoreChart({
 			},
 			xAxis,
 			yAxis: finalYAxis,
-			...(series.every((s) => s.data.length > 1) ? { dataZoom } : {}),
+			...(shouldHideDataZoom ? {} : { dataZoom }),
 			series
 		})
 

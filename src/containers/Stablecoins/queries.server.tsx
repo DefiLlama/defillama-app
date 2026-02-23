@@ -176,12 +176,20 @@ const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
 			normalizedSources[sourceChain] = { amount }
 		}
 
-		if (Object.keys(normalizedSources).length > 0) {
+		let hasNormalizedSources = false
+		for (const _sourceChain in normalizedSources) {
+			hasNormalizedSources = true
+			break
+		}
+		if (hasNormalizedSources) {
 			normalized[bridgeId] = normalizedSources
 		}
 	}
 
-	return Object.keys(normalized).length > 0 ? normalized : null
+	for (const _bridgeId in normalized) {
+		return normalized
+	}
+	return null
 }
 
 const readStablecoinBridgesFromChart = (
@@ -283,8 +291,8 @@ export async function getStablecoinsByChainPageData(chain: string | null): Promi
 		const [{ peggedAssets, chains }, chainData, priceData, rateData] = await Promise.all([
 			getStablecoinAssets(),
 			fetchStablecoinChartApi(chainLabel),
-			getStablecoinPrices(),
-			getStablecoinRates()
+			getStablecoinPrices().catch(() => null),
+			getStablecoinRates().catch(() => null)
 		])
 		const breakdown = chainData.breakdown
 		if (!breakdown) {
@@ -357,15 +365,16 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 		const peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
 		const chainDominances: Record<string, { symbol: string; mcap: number }> = {}
-		peggedDomDataByChain.forEach((charts, i) => {
-			if (!charts) return
+		for (let i = 0; i < peggedDomDataByChain.length; i++) {
+			const charts = peggedDomDataByChain[i]
+			if (!charts) continue
 			const lastChart = charts[charts.length - 1]
-			if (!lastChart) return
+			if (!lastChart) continue
 			const greatestChainMcap = lastChart.greatestMcap
-			if (!greatestChainMcap) return
+			if (!greatestChainMcap) continue
 			const chainName = chainList[i]
 			chainDominances[chainName] = greatestChainMcap
-		})
+		}
 
 		const chainCirculatings = formatPeggedChainsData({
 			chainList,
@@ -421,9 +430,9 @@ export const getStablecoinAssetPageData = async (
 	return withStablecoinsCache(`asset:${peggedID}`, async () => {
 		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo] = await Promise.all([
 			fetchStablecoinAssetApi(peggedID),
-			getStablecoinConfigData(),
-			fetchStablecoinRecentCoinsDataApi(),
-			getStablecoinBridgeInfo()
+			getStablecoinConfigData().catch(() => ({ chainCoingeckoIds: {} })),
+			fetchStablecoinRecentCoinsDataApi().catch(() => ({})),
+			getStablecoinBridgeInfo().catch(() => null)
 		])
 		if (!res) return null
 
@@ -434,7 +443,10 @@ export const getStablecoinAssetPageData = async (
 		const unreleased = readStablecoinNumericFromChart(peggedChart, 0, 'totalUnreleased', pegType)
 		const mcap = readStablecoinNumericFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
-		const chainsUnique: string[] = Object.keys(res.chainBalances ?? {})
+		const chainsUnique: string[] = []
+		for (const chainName in res.chainBalances ?? {}) {
+			chainsUnique.push(chainName)
+		}
 		const chainsData: StablecoinChainBalanceToken[][] = chainsUnique.map(
 			(elem) => res.chainBalances[elem]?.tokens ?? []
 		)

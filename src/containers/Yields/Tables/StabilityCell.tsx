@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react'
 import { LockIcon } from '~/components/LockIcon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 const SubscribeProModal = lazy(() =>
@@ -35,9 +36,14 @@ interface StabilityCellProps {
 }
 
 export function StabilityHeader() {
+	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
+	if (!isClient) {
+		return <span>Yield Score</span>
+	}
 
 	if (hasActiveSubscription) {
 		return <span>Yield Score</span>
@@ -65,9 +71,15 @@ export function StabilityHeader() {
 }
 
 export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellProps) {
+	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
+	// Keep SSR/client-hydration output deterministic before auth state is available.
+	if (!isClient) {
+		return <span className="ml-auto opacity-30">—</span>
+	}
 
 	if (!hasActiveSubscription) {
 		const redactedTooltip = (

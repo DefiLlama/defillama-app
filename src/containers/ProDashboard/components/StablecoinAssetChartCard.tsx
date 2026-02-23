@@ -1,14 +1,15 @@
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, type ReactElement } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { useStablecoinAssetChartData } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
 import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
-import { download, formattedNum, toNiceCsvDate } from '~/utils'
+import { formattedNum, toNiceCsvDate } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { StablecoinAssetChartConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -108,7 +109,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 					['Date', 'Circulating'],
 					...filteredChartData.peggedAreaTotalData.map((el: any) => [toNiceCsvDate(el.date), el.Circulating ?? ''])
 				]
-				filename = `${assetSlug}-total-circulating.csv`
+				filename = `${assetSlug}-total-circulating`
 				break
 			case 'chainMcaps':
 				rows = [
@@ -118,7 +119,7 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						...chainsUnique.map((chain) => el[chain] ?? '')
 					])
 				]
-				filename = `${assetSlug}-by-chain.csv`
+				filename = `${assetSlug}-by-chain`
 				break
 			case 'chainDominance':
 				rows = [
@@ -128,11 +129,11 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						...chainsUnique.map((chain) => el[chain] ?? '')
 					])
 				]
-				filename = `${assetSlug}-chain-dominance.csv`
+				filename = `${assetSlug}-chain-dominance`
 				break
 			case 'chainPie':
 				rows = [['Chain', 'Circulating'], ...chainsCirculatingValues.map((el: any) => [el.name, el.value])]
-				filename = `${assetSlug}-chain-pie.csv`
+				filename = `${assetSlug}-chain-pie`
 				break
 		}
 
@@ -155,93 +156,94 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 		)
 	}
 
-	const renderChart = () => {
-		switch (chartType) {
-			case 'totalCirc':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							chartData={filteredChartData.peggedAreaTotalData}
-							stacks={CIRC_STACKS}
-							valueSymbol="$"
-							hideDefaultLegend={true}
-							hideDownloadButton={true}
-							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
-							chartOptions={chartOptions}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				)
-			case 'chainMcaps':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							chartData={filteredChartData.peggedAreaChartData}
-							stacks={chainsUnique}
-							valueSymbol="$"
-							hideDefaultLegend={true}
-							hideDownloadButton={true}
-							hideGradient={true}
-							stackColors={chainColors}
-							chartOptions={chartOptions}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				)
-			case 'chainPie':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<PieChart chartData={chainsCirculatingValues} stackColors={chainColors} />
-					</Suspense>
-				)
-			case 'chainDominance':
-				return (
-					<Suspense
-						fallback={
-							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
-							</div>
-						}
-					>
-						<AreaChart
-							title=""
-							valueSymbol="%"
-							chartData={filteredChartData.dataWithExtraPeggedAndDominanceByDay}
-							stacks={chainsUnique}
-							hideDefaultLegend={true}
-							hideDownloadButton={true}
-							hideGradient={true}
-							expandTo100Percent={true}
-							stackColors={chainColors}
-							chartOptions={chartOptions}
-							onReady={handleChartReady}
-						/>
-					</Suspense>
-				)
-			default:
-				return null
-		}
+	let chartContent: ReactElement | null = null
+	switch (chartType) {
+		case 'totalCirc':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						chartData={filteredChartData.peggedAreaTotalData}
+						stacks={CIRC_STACKS}
+						valueSymbol="$"
+						hideDefaultLegend={true}
+						hideDownloadButton={true}
+						hallmarks={EMPTY_HALLMARKS}
+						color="#3e79cc"
+						chartOptions={chartOptions}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			)
+			break
+		case 'chainMcaps':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						chartData={filteredChartData.peggedAreaChartData}
+						stacks={chainsUnique}
+						valueSymbol="$"
+						hideDefaultLegend={true}
+						hideDownloadButton={true}
+						hideGradient={true}
+						stackColors={chainColors}
+						chartOptions={chartOptions}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			)
+			break
+		case 'chainPie':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<PieChart chartData={chainsCirculatingValues} stackColors={chainColors} />
+				</Suspense>
+			)
+			break
+		case 'chainDominance':
+			chartContent = (
+				<Suspense
+					fallback={
+						<div className="flex h-[320px] items-center justify-center">
+							<LocalLoader />
+						</div>
+					}
+				>
+					<AreaChart
+						title=""
+						valueSymbol="%"
+						chartData={filteredChartData.dataWithExtraPeggedAndDominanceByDay}
+						stacks={chainsUnique}
+						hideDefaultLegend={true}
+						hideDownloadButton={true}
+						hideGradient={true}
+						expandTo100Percent={true}
+						stackColors={chainColors}
+						chartOptions={chartOptions}
+						onReady={handleChartReady}
+					/>
+				</Suspense>
+			)
+			break
 	}
 
 	const hasChartData =
@@ -276,24 +278,14 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Total Circulating</span>
-						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#4f8fea' }}>
+						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#3e79cc' }}>
 							{formattedNum(latestCirculating, true)}
 						</span>
 					</div>
 				</div>
 			)}
 
-			<div className="flex-1">
-				<Suspense
-					fallback={
-						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
-						</div>
-					}
-				>
-					{renderChart()}
-				</Suspense>
-			</div>
+			<div className="flex-1">{chartContent}</div>
 		</div>
 	)
 }

@@ -1,25 +1,26 @@
-import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { YIELD_POOLS_API } from '~/constants'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
 import Layout from '~/layout'
-import { fetchApi } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('about', async () => {
 	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
-		getSimpleProtocolsPageData(),
-		fetchApi(YIELD_POOLS_API),
+		fetchProtocols().then(basicProtocolPropertiesToKeepV1List()),
+		fetchJson(YIELD_POOLS_API).catch(() => ({ data: [] })),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',
 			chain: 'All',
 			dataType: 'dailyRevenue'
-		}),
+		}).catch(() => ({ protocols: [] })),
 		fetchAdapterChainMetrics({
 			adapterType: 'dexs',
 			chain: 'All',
 			dataType: 'dailyVolume'
-		})
+		}).catch(() => ({ protocols: [] }))
 	])
 
 	return {

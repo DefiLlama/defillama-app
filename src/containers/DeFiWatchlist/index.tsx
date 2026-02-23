@@ -7,17 +7,18 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ICONS_CDN } from '~/constants'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useIsClient } from '~/hooks/useIsClient'
-import { renderPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
+import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { ChainProtocolsTable } from '../ChainOverview/Table'
 import type { IProtocol } from '../ChainOverview/types'
 import { useGroupAndFormatChains } from '../ChainsByCategory'
@@ -52,11 +53,11 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 
 	const router = useRouter()
 
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const protocolsTableData = useMemo(() => {
-		return formatProtocolsList2({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
 	}, [savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl])
 
 	const handleProtocolSelection = (selectedValues: string[]) => {
@@ -174,10 +175,12 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	)
 }
 
+const EMPTY_ARRAY: any[] = []
+
 function PortfolioNotifications({
 	selectedPortfolio,
-	filteredProtocols = [],
-	filteredChains = []
+	filteredProtocols = EMPTY_ARRAY,
+	filteredChains = EMPTY_ARRAY
 }: {
 	selectedPortfolio: string
 	filteredProtocols?: any[]
@@ -202,11 +205,30 @@ function PortfolioNotifications({
 	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
 		const protocols = preferences?.settings?.protocols
 		const chains = preferences?.settings?.chains
+		let protocolsCount = 0
+		let protocolsFirstMetrics = ''
+		let chainsCount = 0
+		let chainsFirstMetrics = ''
+
+		for (const protocolId in protocols ?? {}) {
+			protocolsCount++
+			if (protocolsCount === 1) {
+				protocolsFirstMetrics = protocols[protocolId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
+		for (const chainId in chains ?? {}) {
+			chainsCount++
+			if (chainsCount === 1) {
+				chainsFirstMetrics = chains[chainId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
 		return {
-			protocolsCount: protocols ? Object.keys(protocols).length : 0,
-			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
-			chainsCount: chains ? Object.keys(chains).length : 0,
-			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+			protocolsCount,
+			protocolsFirstMetrics,
+			chainsCount,
+			chainsFirstMetrics
 		}
 	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
 
@@ -268,28 +290,45 @@ function PortfolioNotifications({
 	}
 
 	const handleFormSubmit = async () => {
-		try {
+		const buildAndSavePreferences = async () => {
 			const values = formStore.getState().values
-			const { protocolMetrics, chainMetrics } = values
+			const selectedProtocolMetrics = values.protocolMetrics
+			const selectedChainMetrics = values.chainMetrics
 
 			const settings: NotificationSettings = {}
 
-			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
-				settings.protocols = {}
-				for (const protocol of filteredProtocols) {
-					const identifier = protocol.slug
-					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
+			if (selectedProtocolMetrics.length > 0 && filteredProtocols.length > 0) {
+				const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
+				const protocolsMap: NotificationSettings['protocols'] = {}
+				let protocolCount = 0
+				for (let i = 0; i < filteredProtocols.length; i++) {
+					const identifier = filteredProtocols[i].slug
+					if (!identifier) continue
+					protocolsMap[identifier] = mappedProtocolMetrics
+					protocolCount++
+				}
+				if (protocolCount > 0) {
+					settings.protocols = protocolsMap
 				}
 			}
 
-			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
-				settings.chains = {}
-				for (const chain of filteredChains) {
-					settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
+			if (selectedChainMetrics.length > 0 && filteredChains.length > 0) {
+				const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
+				const chainsMap: NotificationSettings['chains'] = {}
+				let chainCount = 0
+				for (let i = 0; i < filteredChains.length; i++) {
+					if (!filteredChains[i].name) continue
+					chainsMap[filteredChains[i].name] = mappedChainMetrics
+					chainCount++
+				}
+				if (chainCount > 0) {
+					settings.chains = chainsMap
 				}
 			}
 
-			if (!settings.protocols && !settings.chains) {
+			const hasProtocols = settings.protocols != null
+			const hasChains = settings.chains != null
+			if (!hasProtocols && !hasChains) {
 				toast.error('Unable to save: no valid settings configured')
 				return
 			}
@@ -301,10 +340,10 @@ function PortfolioNotifications({
 			})
 
 			dialogStore.hide()
-		} catch (error) {
-			console.log('Error saving notification preferences:', error)
-			toast.error('Failed to save notification preferences')
 		}
+		await buildAndSavePreferences().catch(() => {
+			// Error toast handled by mutation's onError
+		})
 	}
 
 	const handleDisableNotifications = async () => {
@@ -655,6 +694,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 	const [showPositive, setShowPositive] = useState(true)
 	const [showNegative, setShowNegative] = useState(true)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
+	const selectedChainsSet = useMemo(() => new Set(selectedChains), [selectedChains])
 
 	const availableChains = useMemo(() => {
 		const chainSet = new Set<string>()
@@ -681,8 +721,13 @@ function TopMovers({ protocols }: TopMoversProps) {
 					chains: p.chains || []
 				}))
 
-			if (selectedChains.length > 0) {
-				candidates = candidates.filter((p) => p.chains.some((chain) => selectedChains.includes(chain)))
+			if (selectedChainsSet.size > 0) {
+				candidates = candidates.filter((protocolEntry) => {
+					for (const chain of protocolEntry.chains) {
+						if (selectedChainsSet.has(chain)) return true
+					}
+					return false
+				})
 			}
 
 			if (!showPositive && !showNegative) {
@@ -698,7 +743,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 		}
 
 		return movers
-	}, [protocols, showPositive, showNegative, selectedChains])
+	}, [protocols, showPositive, showNegative, selectedChainsSet])
 
 	const chainOptions = useMemo(() => {
 		return availableChains.map((chain) => ({
@@ -787,7 +832,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 														: 'text-(--text-secondary)'
 											}`}
 										>
-											{renderPercentChange(mover.change, false, 400, true)}
+											{formatPercentChangeText(mover.change)}
 										</span>
 									</div>
 								))}

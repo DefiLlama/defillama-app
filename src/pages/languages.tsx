@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import type {
 	IMultiSeriesChart2Props,
 	MultiSeriesChart2Dataset,
 	MultiSeriesChart2SeriesConfig
 } from '~/components/ECharts/types'
-import { LANGS_API } from '~/constants'
+import { SERVER_URL } from '~/constants'
 import Layout from '~/layout'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(
@@ -64,7 +64,7 @@ function buildCharts(keys: string[], colors: Record<string, string>, stack?: str
 }
 
 export const getStaticProps = withPerformanceLogging('languages', async () => {
-	const data = await fetchJson(LANGS_API)
+	const data = await fetchJson(`${SERVER_URL}/langs`)
 
 	const { dataset: tvlDataset, keys: langsUnique } = buildDataset(data.chart, 'absolute')
 	const { dataset: dominanceDataset } = buildDataset(data.chart, 'dominance')

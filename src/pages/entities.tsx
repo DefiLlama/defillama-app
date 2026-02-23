@@ -1,7 +1,11 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { Treasuries } from '~/containers/Treasuries'
 import { getEntitiesPageData } from '~/containers/Treasuries/queries'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Entities', 'ranked by', 'Treasury']
 
 export const getStaticProps = withPerformanceLogging('entities', async () => {
 	const data = await getEntitiesPageData()
@@ -11,6 +15,16 @@ export const getStaticProps = withPerformanceLogging('entities', async () => {
 	}
 })
 
-export default function Entities(props) {
-	return <Treasuries {...props} />
+export default function Entities(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title="Entities - DefiLlama"
+			description="Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
+			keywords="blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries"
+			canonicalUrl="/entities"
+			pageName={pageName}
+		>
+			<Treasuries {...props} />
+		</Layout>
+	)
 }

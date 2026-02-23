@@ -17,18 +17,21 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, toNumberOrNullFromQueryParam } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
 import { replaceAliases, sampleProtocol } from './customColumnsUtils'
@@ -52,11 +55,11 @@ export const ChainProtocolsTable = ({
 
 	const router = useRouter()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const finalProtocols = useMemo(() => {
-		return formatProtocolsList2({ protocols, extraTvlsEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({ protocols, extraTvlsEnabled, minTvl, maxTvl })
 	}, [protocols, extraTvlsEnabled, minTvl, maxTvl])
 
 	const columnsInStorage = useSyncExternalStore(
@@ -123,8 +126,8 @@ export const ChainProtocolsTable = ({
 		}
 	}
 
-	const mergedColumns = useMemo(() => {
-		return [
+	const { mergedColumns, columnVisibility, selectedColumns } = useMemo(() => {
+		const mergedColumns = [
 			...columnOptions,
 			...customColumns.map((col, idx) => ({
 				name: col.name,
@@ -135,7 +138,18 @@ export const ChainProtocolsTable = ({
 				formatType: col.formatType
 			}))
 		]
-	}, [customColumns])
+		const defaultColumnVisibility = Object.fromEntries(mergedColumns.map((col) => [col.key, true] as const))
+
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedColumns = mergedColumns.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { mergedColumns, columnVisibility, selectedColumns }
+	}, [customColumns, columnsInStorage])
 
 	const setColumnOptions = (newColumns: string[]) => {
 		const allKeys = mergedColumns.map((col) => col.key)
@@ -151,20 +165,14 @@ export const ChainProtocolsTable = ({
 		setColumnOptions(mergedColumns.map((col) => col.key))
 	}
 
-	const columnVisibility = useMemo(() => JSON.parse(columnsInStorage), [columnsInStorage])
-
-	const selectedColumns = useMemo(() => {
-		return mergedColumns.flatMap((c) => (columnVisibility[c.key] ? [c.key] : []))
-	}, [columnVisibility, mergedColumns])
-
 	const [sorting, setSorting] = useState<SortingState>([
 		{ desc: true, id: MAIN_COLUMN_BY_CATEGORY[filterState] ?? 'tvl' }
 	])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
-	const customColumnDefs = useMemo(() => {
-		return customColumns.map((col, idx) => {
+	const allColumns = useMemo<ColumnDef<IProtocol>[]>(() => {
+		const customColumnDefs = customColumns.map((col, idx) => {
 			const columnId = `custom_formula_${idx}`
 
 			return columnHelper.accessor(
@@ -244,23 +252,20 @@ export const ChainProtocolsTable = ({
 				}
 			)
 		})
-	}, [customColumns, sorting])
 
-	const allColumns = useMemo(
-		() => [
+		if (customColumnDefs.length === 0) {
+			return columns
+		}
+
+		return [
 			...columns,
-			...(customColumnDefs.length > 0
-				? [
-						{
-							id: 'custom_columns',
-							header: 'Custom Columns',
-							columns: customColumnDefs
-						}
-					]
-				: [])
-		],
-		[customColumnDefs]
-	)
+			{
+				id: 'custom_columns',
+				header: 'Custom Columns',
+				columns: customColumnDefs
+			}
+		]
+	}, [customColumns, sorting])
 
 	const instance = useReactTable({
 		data: finalProtocols,
@@ -321,50 +326,8 @@ export const ChainProtocolsTable = ({
 			// window.dispatchEvent(new Event('storage'))
 		}
 	}
-
-	const prepareCsv = () => {
-		const visibleColumns = instance.getVisibleLeafColumns().filter((col) => col.id !== 'custom_columns')
-		const headers = visibleColumns.map((col) => {
-			if (typeof col.columnDef.header === 'string') {
-				return col.columnDef.header
-			}
-			return col.id
-		})
-
-		const rows = instance.getSortedRowModel().rows.map((row) => {
-			return visibleColumns.map((col) => {
-				const cell = row.getAllCells().find((c) => c.column.id === col.id)
-				if (!cell) return ''
-
-				const value = cell.getValue()
-				if (value == null) return ''
-
-				if (col.id === 'name') {
-					return `"${row.original.name}"`
-				} else if (col.id === 'category') {
-					return row.original.category || ''
-				} else if (col.id === 'tvl') {
-					return row.original.tvl?.default?.tvl || 0
-				} else if (col.id.includes('change_')) {
-					return value
-				} else if (col.id === 'mcaptvl' || col.id === 'pf' || col.id === 'ps') {
-					return value
-				} else if (typeof value === 'number') {
-					return value
-				} else {
-					const str = String(value)
-					return str.includes(',') ? `"${str}"` : str
-				}
-			})
-		})
-
-		const chainName = router.query.chain || 'all'
-
-		return {
-			filename: `defillama-${chainName}-protocols.csv`,
-			rows: [headers, ...rows] as (string | number | boolean)[][]
-		}
-	}
+	const chainQuery = router.query.chain
+	const activeChain = Array.isArray(chainQuery) ? chainQuery[0] : chainQuery
 
 	return (
 		<div className={borderless ? 'isolate' : 'isolate rounded-md border border-(--cards-border) bg-(--cards-bg)'}>
@@ -408,7 +371,10 @@ export const ChainProtocolsTable = ({
 					onDeleteCustomColumn={handleDeleteCustomColumn}
 				/>
 				<TVLRange triggerClassName="w-full sm:w-auto" />
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton
+					prepareCsv={() => prepareTableCsv({ instance, filename: `defillama-${activeChain ?? 'all'}-protocols` })}
+					smol
+				/>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
 			<CustomColumnModal
@@ -668,7 +634,11 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
 				id: 'change_1d',
 				header: '1d Change',
-				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				cell: ({ getValue }) => (
+					<>
+						<PercentChange percent={getValue()} />
+					</>
+				),
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
@@ -678,7 +648,11 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
 				id: 'change_7d',
 				header: '7d Change',
-				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				cell: ({ getValue }) => (
+					<>
+						<PercentChange percent={getValue()} />
+					</>
+				),
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
@@ -688,7 +662,11 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
 				id: 'change_1m',
 				header: '1m Change',
-				cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+				cell: ({ getValue }) => (
+					<>
+						<PercentChange percent={getValue()} />
+					</>
+				),
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
@@ -1115,7 +1093,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
-				cell: ({ getValue }) => <>{getValue() != 0 ? renderPercentChange(getValue()) : null}</>,
+				cell: ({ getValue }) => <>{getValue() != 0 ? <PercentChange percent={getValue()} /> : null}</>,
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']

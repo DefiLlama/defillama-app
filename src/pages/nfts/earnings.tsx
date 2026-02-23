@@ -1,12 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { FallbackLogo, TokenLogo } from '~/components/TokenLogo'
 import { getNFTCollectionEarnings } from '~/containers/Nft/queries'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('nfts/earnings', async () => {
@@ -39,6 +38,7 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
+				csvFileName="nft-earnings"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

@@ -1,9 +1,10 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldsStrategyPage from '~/containers/Yields/indexStrategy'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/strategy', async () => {
@@ -11,7 +12,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategy', async ()
 		props: { pools, allPools, ...data }
 	} = await getLendBorrowData()
 
-	const searchData = await getAllCGTokensList()
+	const searchData = await fetchAllCGTokensList()
 
 	// restrict borrow and farming part (min apy's, noIL, single exposure only)
 	// and uppercase symbols (lend and borrow strings from router are upper case only)

@@ -2,15 +2,15 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { useDebounce } from '~/hooks/useDebounce'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
-import { Icon } from '../Icon'
-import { BasicLink } from '../Link'
 
 async function getDefaultSearchList() {
 	try {
@@ -68,7 +68,7 @@ export const MobileSearch = () => {
 		useDefaultSearchList()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const handleSelect = () => setDialogOpen(false)
@@ -199,7 +199,7 @@ export const DesktopSearch = () => {
 		useDefaultSearchList()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (
@@ -363,7 +363,7 @@ const setRecentSearch = (route: ISearchItem) => {
 
 const useDefaultSearchList = () => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['defaultsearchlist'],
+		queryKey: ['search', 'default-list'],
 		queryFn: getDefaultSearchList,
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: false,
@@ -399,7 +399,7 @@ const useDefaultSearchList = () => {
 
 function useSearch(searchValue: string) {
 	return useQuery({
-		queryKey: ['search-list', searchValue],
+		queryKey: ['search', 'results', searchValue],
 		queryFn: () => fetchSearchList(searchValue),
 		enabled: searchValue.length > 0,
 		staleTime: 5 * 60 * 1000,

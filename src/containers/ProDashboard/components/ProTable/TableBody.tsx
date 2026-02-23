@@ -1,14 +1,24 @@
-import { flexRender, type Table } from '@tanstack/react-table'
-import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
+'use no memo'
+
+import { flexRender, type Header, type Table } from '@tanstack/react-table'
+import type { IProtocolRow } from './proTable.types'
 import { ReorderableHeader } from './ReorderableHeader'
 
 interface TableBodyProps {
 	table: Table<IProtocolRow> | null
+	isLoading?: boolean
+	isEmptyProtocols?: boolean
 	moveColumnUp?: (columnId: string) => void
 	moveColumnDown?: (columnId: string) => void
 }
 
-export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProps) {
+const getSortableColumn = (header: Header<IProtocolRow, unknown>) => {
+	if (header.column.getCanSort()) return header.column
+	const firstSortableLeaf = header.column.getLeafColumns().find((leafColumn) => leafColumn.getCanSort())
+	return firstSortableLeaf ?? null
+}
+
+export function TableBody({ table, isLoading, isEmptyProtocols, moveColumnUp, moveColumnDown }: TableBodyProps) {
 	if (!table) {
 		return (
 			<div
@@ -22,6 +32,8 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 		)
 	}
 
+	const rows = table.getRowModel().rows
+
 	return (
 		<div
 			className="relative -mx-2 thin-scrollbar min-h-0 w-full flex-1 overflow-auto px-2 sm:mx-0 sm:px-0"
@@ -29,79 +41,99 @@ export function TableBody({ table, moveColumnUp, moveColumnDown }: TableBodyProp
 		>
 			<table className="w-full min-w-[600px] border-collapse text-xs text-(--text-primary) sm:text-sm">
 				<thead className="sticky top-0 z-10">
-					{table.getHeaderGroups().map((headerGroup) => (
-						<tr key={headerGroup.id}>
-							{headerGroup.headers.map((header, _index) => {
-								const visibleColumns = headerGroup.headers.filter((h) => !h.isPlaceholder)
-								const columnIndex = visibleColumns.indexOf(header)
-								const isFirst = columnIndex === 0
-								const isLast = columnIndex === visibleColumns.length - 1
+					{table.getHeaderGroups().map((headerGroup) => {
+						const visibleColumns = headerGroup.headers.filter((h) => !h.isPlaceholder)
+						return (
+							<tr key={headerGroup.id}>
+								{headerGroup.headers.map((header, _index) => {
+									const columnIndex = visibleColumns.indexOf(header)
+									const isFirst = columnIndex === 0
+									const isLast = columnIndex === visibleColumns.length - 1
+									const sortable = getSortableColumn(header)
 
-								return (
-									<th
-										key={header.id}
-										colSpan={header.colSpan}
-										className={`relative border-r border-b border-(--divider) bg-(--cards-bg) px-1 py-2 font-medium first:rounded-l-md last:rounded-r-md last:border-r-0 sm:px-2 ${
-											header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
-										}`}
-										style={{
-											minWidth: columnIndex === 0 ? '120px' : '60px',
-											width: header.column.columnDef.size
-										}}
-									>
-										{header.isPlaceholder ? null : (
-											<ReorderableHeader
-												columnId={header.column.id}
-												canSort={header.column.getCanSort()}
-												isSorted={header.column.getIsSorted()}
-												onSort={() => header.column.toggleSorting()}
-												onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
-												onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
-												canMoveUp={!isFirst}
-												canMoveDown={!isLast}
-											>
-												{flexRender(header.column.columnDef.header, header.getContext())}
-											</ReorderableHeader>
-										)}
-									</th>
-								)
-							})}
-						</tr>
-					))}
+									return (
+										<th
+											key={header.id}
+											colSpan={header.colSpan}
+											className={`relative border-r border-b border-(--divider) bg-(--cards-bg) px-1 py-2 font-medium first:rounded-l-md last:rounded-r-md last:border-r-0 sm:px-2 ${
+												header.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
+											}`}
+											style={{
+												minWidth: columnIndex === 0 ? '120px' : '60px',
+												width: header.column.columnDef.size
+											}}
+										>
+											{header.isPlaceholder ? null : (
+												<ReorderableHeader
+													columnId={header.column.id}
+													canSort={sortable !== null}
+													isSorted={sortable?.getIsSorted() ?? false}
+													onSort={() => sortable?.toggleSorting()}
+													onMoveUp={moveColumnUp ? () => moveColumnUp(header.column.id) : undefined}
+													onMoveDown={moveColumnDown ? () => moveColumnDown(header.column.id) : undefined}
+													canMoveUp={!isFirst}
+													canMoveDown={!isLast}
+												>
+													{flexRender(header.column.columnDef.header, header.getContext())}
+												</ReorderableHeader>
+											)}
+										</th>
+									)
+								})}
+							</tr>
+						)
+					})}
 				</thead>
 				<tbody>
-					{table.getRowModel().rows.map((row) => (
-						<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
-							{row.getVisibleCells().map((cell, cellIndex) => (
-								<td
-									key={cell.id}
-									className={`border-r border-(--divider) px-1 py-2 last:border-r-0 sm:px-2 ${
-										cell.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
-									}`}
-									style={{
-										minWidth: cellIndex === 0 ? '120px' : '60px',
-										maxWidth: cellIndex === 0 ? '250px' : '150px',
-										width: cell.column.columnDef.size
-									}}
-								>
-									{cellIndex === 0 ? (
-										<div className="min-h-[20px]">{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>
-									) : (
-										<div
-											className="truncate"
-											title={
-												typeof cell.getValue() === 'string' || typeof cell.getValue() === 'number'
-													? String(cell.getValue())
-													: ''
-											}
-										>
-											{flexRender(cell.column.columnDef.cell, cell.getContext())}
-										</div>
-									)}
-								</td>
-							))}
+					{rows.length === 0 ? (
+						<tr>
+							<td colSpan={table.getAllLeafColumns().length} className="py-8 text-center">
+								{isLoading ? (
+									<div className="flex items-center justify-center gap-2">
+										<div className="h-5 w-5 animate-spin rounded-full border-b-2 border-(--primary)" />
+										<span className="text-(--text-tertiary)">Loading data...</span>
+									</div>
+								) : (
+									<span className="text-(--text-tertiary)">
+										{isEmptyProtocols ? 'No protocols found' : 'No protocols match current filters'}
+									</span>
+								)}
+							</td>
 						</tr>
-					))}
+					) : (
+						rows.map((row) => (
+							<tr key={row.id} className="border-b border-(--divider) hover:bg-(--bg-tertiary)">
+								{row.getVisibleCells().map((cell, cellIndex) => (
+									<td
+										key={cell.id}
+										className={`border-r border-(--divider) px-1 py-2 last:border-r-0 sm:px-2 ${
+											cell.column.columnDef.meta?.align === 'end' ? 'text-right' : 'text-left'
+										}`}
+										style={{
+											minWidth: cellIndex === 0 ? '120px' : '60px',
+											maxWidth: cellIndex === 0 ? '250px' : '150px',
+											width: cell.column.columnDef.size
+										}}
+									>
+										{cellIndex === 0 ? (
+											<div className="min-h-[20px]">{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>
+										) : (
+											<div
+												className="truncate"
+												title={
+													typeof cell.getValue() === 'string' || typeof cell.getValue() === 'number'
+														? String(cell.getValue())
+														: ''
+												}
+											>
+												{flexRender(cell.column.columnDef.cell, cell.getContext())}
+											</div>
+										)}
+									</td>
+								))}
+							</tr>
+						))
+					)}
 				</tbody>
 			</table>
 		</div>

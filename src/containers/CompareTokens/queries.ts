@@ -1,27 +1,22 @@
-import { getAllCGTokensList } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { fetchAdapterChainMetrics } from '../DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
 import { ADAPTER_TYPES } from '../DimensionAdapters/constants'
-import { fetchProtocolsList } from './api'
-import type { RawProtocolsResponse } from './api.types'
-import type { Protocol } from './types'
-
-type CompareTokensPageData = {
-	coinsData: Array<IResponseCGMarketsAPI & { label: string; value: string }>
-	protocols: Protocol[]
-}
+import { fetchProtocols } from '../Protocols/api'
+import type { ProtocolsResponse } from '../Protocols/api.types'
+import type { CompareTokenProtocol, CompareTokensPageData } from './types'
 
 export async function getCompareTokensPageData(): Promise<CompareTokensPageData> {
-	const emptyProtocolsResponse: RawProtocolsResponse = { protocols: [], chains: [], parentProtocols: [] }
+	const emptyProtocolsResponse: ProtocolsResponse = { protocols: [], chains: [], parentProtocols: [] }
 	const emptyAdapterProtocols: IAdapterChainMetrics['protocols'] = []
 
 	const [coinsData, tvlProtocols, feesProtocols, revenueProtocols] = await Promise.all([
-		getAllCGTokensList().catch((error) => {
+		fetchAllCGTokensList().catch((error) => {
 			console.log(`Couldn't fetch CoinGecko tokens at path: compare-tokens`, 'Error:', error)
 			return [] as IResponseCGMarketsAPI[]
 		}),
-		fetchProtocolsList().catch((error) => {
+		fetchProtocols().catch((error) => {
 			console.log(`Couldn't fetch TVL protocols list at path: compare-tokens`, 'Error:', error)
 			return emptyProtocolsResponse
 		}),
@@ -51,7 +46,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 		{ name: string; geckoId: string | null; tvl: number | null; fees: number | null; revenue: number | null }
 	> = {}
 
-	for (const protocol of tvlProtocols?.parentProtocols ?? []) {
+	for (const protocol of tvlProtocols.parentProtocols) {
 		parentProtocols[protocol.id] = {
 			name: protocol.name,
 			geckoId: protocol.gecko_id ?? null,
@@ -64,7 +59,7 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 	const feesByProtocolId = new Map(feesProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const))
 	const revenueByProtocolId = new Map(revenueProtocols.map((fp) => [fp.defillamaId, fp.total24h ?? null] as const))
 
-	const llamaProtocols: Protocol[] = (tvlProtocols?.protocols ?? []).map((protocol) => {
+	const llamaProtocols: CompareTokenProtocol[] = tvlProtocols.protocols.map((protocol) => {
 		const fees = feesByProtocolId.get(protocol.defillamaId) ?? null
 		const revenue = revenueByProtocolId.get(protocol.defillamaId) ?? null
 
@@ -93,6 +88,6 @@ export async function getCompareTokensPageData(): Promise<CompareTokensPageData>
 
 	return {
 		coinsData: coinsData.map((coin) => ({ ...coin, label: coin.symbol.toUpperCase(), value: coin.id })),
-		protocols: [...Object.values(parentProtocols), ...llamaProtocols]
+		protocols: [...llamaProtocols, ...Object.values(parentProtocols)]
 	}
 }

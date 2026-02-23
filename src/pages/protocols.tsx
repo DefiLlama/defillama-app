@@ -1,7 +1,7 @@
-import { maxAgeForNext } from '~/api'
 import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('protocols', async () => {

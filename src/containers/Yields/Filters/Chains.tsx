@@ -2,6 +2,9 @@ import { useRouter } from 'next/router'
 import { useCallback, useMemo, useRef } from 'react'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
+
+const EMPTY_ARRAY: string[] = []
 
 interface IFiltersByChainProps {
 	chainList: string[]
@@ -10,7 +13,12 @@ interface IFiltersByChainProps {
 	nestedMenu?: boolean
 }
 
-export function FilterByChain({ chainList = [], selectedChains, evmChains, nestedMenu }: IFiltersByChainProps) {
+export function FilterByChain({
+	chainList = EMPTY_ARRAY,
+	selectedChains,
+	evmChains,
+	nestedMenu
+}: IFiltersByChainProps) {
 	const router = useRouter()
 	const { chain } = router.query
 	const prevSelectionRef = useRef<Set<string>>(new Set(selectedChains))
@@ -75,39 +83,51 @@ export function FilterByChain({ chainList = [], selectedChains, evmChains, neste
 			const skipTracking = isSelectAll || justAddedAllEvm
 			if (!skipTracking) {
 				const prevSet = prevSelectionRef.current
-				finalValues.forEach((c) => {
+				for (const c of finalValues) {
 					if (!prevSet.has(c)) {
 						trackYieldsEvent(YIELDS_EVENTS.FILTER_CHAIN, { chain: c })
 					}
-				})
+				}
 				prevSelectionRef.current = new Set(finalValues)
 			}
 
-			const nextQuery = { ...router.query }
-
 			if (finalValues.length === 0) {
-				nextQuery.chain = 'None'
-				delete nextQuery.excludeChain
-			} else if (finalValues.length === chainList.length) {
+				pushShallowQuery(router, {
+					chain: 'None',
+					excludeChain: undefined
+				})
+				return
+			}
+			if (finalValues.length === chainList.length) {
 				// All selected - remove chain params (default = all)
-				delete nextQuery.chain
-				delete nextQuery.excludeChain
-			} else if (finalValues.includes('ALL_EVM')) {
-				nextQuery.chain = 'ALL_EVM'
-				delete nextQuery.excludeChain
-			} else {
-				// Specific chains selected - use include or exclude based on which is shorter
-				const excluded = chainList.filter((c) => !finalValues.includes(c))
-				if (excluded.length < finalValues.length) {
-					delete nextQuery.chain
-					nextQuery.excludeChain = excluded.length === 1 ? excluded[0] : excluded
-				} else {
-					nextQuery.chain = finalValues.length === 1 ? finalValues[0] : finalValues
-					delete nextQuery.excludeChain
-				}
+				pushShallowQuery(router, {
+					chain: undefined,
+					excludeChain: undefined
+				})
+				return
+			}
+			if (finalValues.includes('ALL_EVM')) {
+				pushShallowQuery(router, {
+					chain: 'ALL_EVM',
+					excludeChain: undefined
+				})
+				return
 			}
 
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+			// Specific chains selected - use include or exclude based on which is shorter
+			const excluded = chainList.filter((c) => !finalValues.includes(c))
+			if (excluded.length < finalValues.length) {
+				pushShallowQuery(router, {
+					chain: undefined,
+					excludeChain: excluded.length === 1 ? excluded[0] : excluded
+				})
+				return
+			}
+
+			pushShallowQuery(router, {
+				chain: finalValues.length === 1 ? finalValues[0] : finalValues,
+				excludeChain: undefined
+			})
 		},
 		[displaySelectedChains, isEvmChain, chainList, chainListWithSpecial, router, evmChains]
 	)

@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
@@ -27,7 +26,7 @@ const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage>
 
 const metricsByCategory = trending.concat(
 	Object.entries(
-		defillamaPages.Metrics.reduce((acc, metric) => {
+		defillamaPages.Metrics.reduce<Record<string, IPage[]>>((acc, metric) => {
 			const category = metric.category || 'Others'
 			acc[category] = acc[category] || []
 			acc[category].push({
@@ -71,7 +70,7 @@ export function Metrics({
 	useEffect(() => {
 		if (currentCategory && canDismiss) {
 			const el = document.querySelector(`[data-category="${currentCategory}"]`)
-			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
+			if (el && hasScrolledToCategoryRef && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
 				requestAnimationFrame(() => {
 					hasScrolledToCategoryRef.current = `${currentCategory}-true`
 					el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -135,7 +134,7 @@ export function Metrics({
 	}, [deferredSearchValue, tabPages])
 
 	const { data: totalTrackedByMetric } = useQuery({
-		queryKey: ['totalTrackedByMetric'],
+		queryKey: ['metrics', 'total-tracked'],
 		queryFn: () => fetchJson(TOTAL_TRACKED_BY_METRIC_API),
 		staleTime: 60 * 60 * 1000
 	})
@@ -324,10 +323,6 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 						/>
 					</div>
 					<div className="flex h-full flex-wrap items-center justify-center gap-1">
-						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
-							<Icon name="sparkles" height={12} width={12} />
-							<span>New</span>
-						</span>
 						{currentMetric.map((metric, i) => (
 							<Fragment key={`metric-name-${metric}`}>
 								{i === 1 ? (

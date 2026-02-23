@@ -139,7 +139,7 @@ const ChainBadge = ({
 	contracts?: string[]
 }) => {
 	return (
-		<div className="flex items-center gap-1.5 rounded-md border p-2">
+		<div className="flex items-center gap-1.5 rounded-md border border-(--cards-border) p-2">
 			<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
 			<div className="flex flex-col">
 				<div className="flex items-center gap-1.5">
@@ -168,6 +168,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const onChainMcap = asset.onChainMcap ?? null
 	const activeMcap = asset.activeMcap ?? null
 	const defiActiveTv = asset.defiActiveTvl ?? null
+	const oracleProvider =
+		typeof asset.oracleProvider === 'string' && asset.oracleProvider.trim().length > 0 ? asset.oracleProvider : null
+	const oracleProofLink =
+		typeof asset.oracleProofLink === 'string' && asset.oracleProofLink.trim().length > 0 ? asset.oracleProofLink : null
+	const rwaGithub = typeof asset.rwaGithub === 'string' && asset.rwaGithub.trim().length > 0 ? asset.rwaGithub : null
+	const discord = typeof asset.discord === 'string' && asset.discord.trim().length > 0 ? asset.discord : null
+	const telegram = typeof asset.telegram === 'string' && asset.telegram.trim().length > 0 ? asset.telegram : null
+	const hasDiscord = asset.discord === true || discord !== null
+	const hasTelegram = asset.telegram === true || telegram !== null
+	const dateOfLastAttestation =
+		typeof asset.dateOfLastAttestation === 'string' && asset.dateOfLastAttestation.trim().length > 0
+			? asset.dateOfLastAttestation
+			: null
+	const attestationFrequency = Array.isArray(asset.attestationFrequency)
+		? asset.attestationFrequency.filter(Boolean).join('; ')
+		: asset.attestationFrequency || null
 	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
 	const timeSeriesCharts =
 		chartDimensions.length > 0
@@ -230,6 +246,51 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								<Icon name="external-link" className="h-3 w-3" />
 								Twitter
 							</a>
+						)
+					) : null}
+					{rwaGithub ? (
+						<a
+							href={rwaGithub}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							GitHub
+						</a>
+					) : null}
+					{hasDiscord ? (
+						discord ? (
+							<a
+								href={discord}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Discord
+							</a>
+						) : (
+							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
+								Discord
+							</span>
+						)
+					) : null}
+					{hasTelegram ? (
+						telegram ? (
+							<a
+								href={telegram}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Telegram
+							</a>
+						) : (
+							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
+								Telegram
+							</span>
 						)
 					) : null}
 				</div>
@@ -527,8 +588,35 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						</div>
 					</SectionCard>
 
+					{/* Oracle Metadata */}
+					{oracleProvider || oracleProofLink ? (
+						<SectionCard title="Oracle">
+							{oracleProofLink ? (
+								<a
+									href={oracleProofLink}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
+								>
+									<span className="flex items-center gap-2">
+										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
+										<span className="flex flex-col">
+											<span className="text-sm font-medium">{oracleProvider || 'Oracle Proof'}</span>
+											<span className="text-xs text-(--text-disabled)">View oracle proof details</span>
+										</span>
+									</span>
+									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
+								</a>
+							) : (
+								<p className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+									<span className="text-sm font-medium">{oracleProvider}</span>
+								</p>
+							)}
+						</SectionCard>
+					) : null}
+
 					{/* Attestations */}
-					{attestationLinks.length > 0 && (
+					{attestationLinks.length > 0 || dateOfLastAttestation || attestationFrequency ? (
 						<SectionCard
 							title={
 								<Tooltip content={definitions.attestations.description} className="underline decoration-dotted">
@@ -536,26 +624,38 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 							}
 						>
-							{attestationLinks.map((link, idx) => (
+							{dateOfLastAttestation ? (
+								<p className="mb-2 flex flex-col gap-1">
+									<span className="text-(--text-label)">Date of Last Attestation</span>
+									<span className="font-medium">{dateOfLastAttestation}</span>
+								</p>
+							) : null}
+							{attestationFrequency ? (
+								<p className="mb-2 flex flex-col gap-1">
+									<span className="text-(--text-label)">Attestation Frequency</span>
+									<span className="font-medium">{attestationFrequency}</span>
+								</p>
+							) : null}
+							{attestationLinks.map((link) => (
 								<a
-									key={idx}
+									key={link}
 									href={link}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
 								>
-									<div className="flex items-center gap-2">
+									<span className="flex items-center gap-2">
 										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
-										<div className="flex flex-col">
+										<span className="flex flex-col">
 											<span className="text-sm font-medium">View Attestations</span>
 											<span className="text-xs text-(--text-disabled)">Third-party verification reports</span>
-										</div>
-									</div>
+										</span>
+									</span>
 									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
 								</a>
 							))}
 						</SectionCard>
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -564,7 +664,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				<SectionCard title="Notes">
 					<ul className="list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
 						{asset.descriptionNotes.map((note, idx) => (
-							<li key={`${keyBase}-note-${idx}`}>{note}</li>
+							<li key={`${keyBase}-note-${idx}-${note.slice(0, 50)}`}>{note}</li>
 						))}
 					</ul>
 				</SectionCard>

@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { Icon } from '../Icon'
+import { Icon } from '~/components/Icon'
 import type { MultiSelectOption } from './types'
 
 export const MultiSelectCombobox = ({

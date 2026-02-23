@@ -1,7 +1,7 @@
-import { maxAgeForNext } from '~/api'
 import { Cexs } from '~/containers/Cexs'
 import { getCexsPageData } from '~/containers/Cexs/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('cexs/index', async () => {

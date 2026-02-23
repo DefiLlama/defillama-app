@@ -96,8 +96,11 @@ export function CategoryFilterModal({
 
 				<div className="flex-1 space-y-6 overflow-y-auto p-4" style={{ backgroundColor: 'var(--pro-bg1)' }}>
 					<div>
-						<label className="mb-2 block text-sm font-medium pro-text2">Include Categories</label>
+						<label htmlFor="category-filter-include" className="mb-2 block text-sm font-medium pro-text2">
+							Include Categories
+						</label>
 						<ReactSelect
+							inputId="category-filter-include"
 							isMulti
 							options={includeOptions}
 							value={includeValue}
@@ -105,10 +108,7 @@ export function CategoryFilterModal({
 								setSelectedInclude(selection ? selection.map((item: any) => item.value) : [])
 							}}
 							placeholder="Select categories to include..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
+							styles={reactSelectStyles}
 							components={{ MenuList: SimpleMenuList }}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"
@@ -116,8 +116,11 @@ export function CategoryFilterModal({
 					</div>
 
 					<div>
-						<label className="mb-2 block text-sm font-medium pro-text2">Exclude Categories</label>
+						<label htmlFor="category-filter-exclude" className="mb-2 block text-sm font-medium pro-text2">
+							Exclude Categories
+						</label>
 						<ReactSelect
+							inputId="category-filter-exclude"
 							isMulti
 							options={excludeOptions}
 							value={excludeValue}
@@ -125,10 +128,7 @@ export function CategoryFilterModal({
 								setSelectedExclude(selection ? selection.map((item: any) => item.value) : [])
 							}}
 							placeholder="Select categories to exclude..."
-							styles={{
-								...reactSelectStyles,
-								menuPortal: (base: any) => ({ ...base, zIndex: 9999 })
-							}}
+							styles={reactSelectStyles}
 							components={{ MenuList: SimpleMenuList }}
 							closeMenuOnSelect={false}
 							menuPosition="fixed"

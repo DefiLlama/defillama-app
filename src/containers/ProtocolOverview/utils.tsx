@@ -1,29 +1,6 @@
-import type { IProtocolMetricsV2, IRaise } from '~/containers/ProtocolOverview/api.types'
+import type { IProtocolMetricsV2 } from '~/containers/ProtocolOverview/api.types'
 import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
-
-// oxlint-disable-next-line no-unused-vars
-const formatRaise = (raise: Omit<IRaise, 'defillamaId'>) => {
-	let text = ''
-
-	if (raise.round) {
-		text += ` ${raise.round}`
-	}
-
-	if (raise.round && raise.amount) {
-		text += ' -'
-	}
-
-	if (raise.amount) {
-		text += ` Raised ${formatRaisedAmount(Number(raise.amount))}`
-	}
-
-	if (raise.valuation && Number(raise.valuation)) {
-		text += ` at ${formatRaisedAmount(Number(raise.valuation))} valuation`
-	}
-
-	return text
-}
 
 export const formatRaisedAmount = (n: number) => {
 	if (n === 0) return null

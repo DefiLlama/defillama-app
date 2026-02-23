@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { NftsCollectionTable } from '~/containers/Nft/NftsCollectionTable'
 import { getNFTData } from '~/containers/Nft/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('nfts', async () => {
@@ -17,7 +18,7 @@ export const getStaticProps = withPerformanceLogging('nfts', async () => {
 
 const pageName = ['NFTs Collections']
 
-export default function NFTHomePage(props) {
+export default function NFTHomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="NFTs Collections - DefiLlama"

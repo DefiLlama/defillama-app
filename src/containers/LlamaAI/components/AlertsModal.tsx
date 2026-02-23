@@ -212,17 +212,13 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
-				if (!res.ok) {
-					throw new Error('Failed to fetch alerts')
-				}
-				const data = await res.json()
-				return data.alerts || []
-			} catch (error) {
-				console.log('Failed to fetch alerts:', error)
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
+			if (!res) throw new Error('Not authenticated')
+			if (!res.ok) {
 				throw new Error('Failed to fetch alerts')
 			}
+			const data = await res.json()
+			return Array.isArray(data.alerts) ? data.alerts : []
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})
@@ -329,6 +325,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ enabled })
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}
@@ -359,6 +356,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				throw new Error('Not authenticated')
 			}
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to delete alert')
 			}
@@ -415,6 +413,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					alertConfig
 				})
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}

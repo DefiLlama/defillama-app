@@ -6,10 +6,12 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formatProtocolsList2 } from '~/hooks/data/defi'
-import { getNDistinctColors, toNumberOrNullFromQueryParam } from '~/utils'
-import { fetchProtocol } from './api'
+import { getNDistinctColors, slug } from '~/utils'
+import { parseNumberQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import type { RawProtocolResponse } from './api.types'
 import type { CompareProtocolsProps } from './types'
 
 const MultiSeriesChart2 = React.lazy(
@@ -31,8 +33,11 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 
 	const results = useQueries({
 		queries: selectedProtocols.map((protocol) => ({
-			queryKey: ['protocol-to-compare', protocol],
-			queryFn: () => fetchProtocol(protocol),
+			queryKey: ['compare-protocols', protocol],
+			queryFn: async () => {
+				const protocolData = await fetchProtocolBySlug<RawProtocolResponse>(slug(protocol))
+				return { protocolData }
+			},
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
 			retry: 0
@@ -41,8 +46,8 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 
 	const isLoading = results.some((r) => r.isLoading)
 
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const { dataset, charts } = React.useMemo(() => {
 		const formattedData = results
@@ -60,7 +65,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 				chartsByProtocol[protocol.protocolName] = {}
 			}
 
-			for (const chain of Object.keys(protocol.protocolChartData)) {
+			for (const chain in protocol.protocolChartData) {
 				if (chain.includes('-') || chain === 'offers') continue
 				if (chain in extraTvlEnabled && !extraTvlEnabled[chain]) continue
 
@@ -76,14 +81,18 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 		}
 
 		const distinctColors = getNDistinctColors(totalProtocols)
-		const seriesNames = Object.keys(chartsByProtocol)
+		const seriesNames: string[] = []
+		for (const protocolName in chartsByProtocol) {
+			seriesNames.push(protocolName)
+		}
 
 		const rowMap = new Map<number, Record<string, number>>()
 		for (const protocolName of seriesNames) {
-			for (const date of Object.keys(chartsByProtocol[protocolName])) {
+			const protocolChart = chartsByProtocol[protocolName]
+			for (const date in protocolChart) {
 				const ts = +date * 1e3
 				const row = rowMap.get(ts) ?? { timestamp: ts }
-				row[protocolName] = chartsByProtocol[protocolName][+date]
+				row[protocolName] = protocolChart[+date]
 				rowMap.set(ts, row)
 			}
 		}
@@ -123,7 +132,12 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 	}, [selectedProtocols, protocols])
 
 	const protocolsTableData = React.useMemo(() => {
-		return formatProtocolsList2({ protocols: selectedProtocolsData, extraTvlsEnabled: extraTvlEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({
+			protocols: selectedProtocolsData,
+			extraTvlsEnabled: extraTvlEnabled,
+			minTvl,
+			maxTvl
+		})
 	}, [selectedProtocolsData, extraTvlEnabled, minTvl, maxTvl])
 
 	return (
@@ -134,18 +148,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 					placeholder="Select Protocols..."
 					selectedValues={selectedProtocolsNames}
 					setSelectedValues={(values) => {
-						router.push(
-							{
-								pathname: router.pathname,
-								query: {
-									protocol: values
-								}
-							},
-							undefined,
-							{
-								shallow: true
-							}
-						)
+						pushShallowQuery(router, { protocol: values.length > 0 ? values : undefined })
 					}}
 				/>
 			</div>

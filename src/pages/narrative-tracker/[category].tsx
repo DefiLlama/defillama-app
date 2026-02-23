@@ -1,8 +1,9 @@
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CategoryPerformanceContainer } from '~/containers/NarrativeTracker'
 import { getCategoryInfo, getCoinPerformance } from '~/containers/NarrativeTracker/queries'
 import type { CategoryPerformanceProps } from '~/containers/NarrativeTracker/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('category-performance', async ({ params }) => {
@@ -26,7 +27,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

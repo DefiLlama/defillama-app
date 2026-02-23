@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { slug } from '~/utils'
 import { generateICSContent } from '~/utils/calendar'
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -19,7 +18,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 	}
 
 	const content = generateICSContent(event, String(name), String(value))
-	const filename = `${slug(String(name))}-unlock.ics`
+	const filename = `${String(name)}-unlock.ics`
 
 	res.setHeader('Content-Type', 'text/calendar')
 	res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)

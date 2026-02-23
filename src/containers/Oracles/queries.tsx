@@ -1,288 +1,320 @@
-import { formatProtocolsData } from '~/api/categories/protocols/utils'
-import { ORACLE_API, PROTOCOLS_API } from '~/constants'
-import type { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
+import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolLite } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { getNDistinctColors } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { getNDistinctColors, slug } from '~/utils'
+import {
+	fetchOracleMetrics,
+	fetchOracleProtocolBreakdownChart,
+	fetchOracleProtocolChart,
+	fetchOracleProtocolChainBreakdownChart,
+	fetchOracleChainProtocolBreakdownChart
+} from './api'
+import type {
+	OracleBreakdownItem,
+	OracleChartData,
+	OracleOverviewPageData,
+	OraclesByChainPageData,
+	OracleProtocolWithBreakdown,
+	OracleTableDataRow
+} from './types'
 
-interface IOracleProtocols {
-	[key: string]: number
+function isExtraTvlKey(value: string): boolean {
+	return TVL_SETTINGS_KEYS_SET.has(value) || value === 'dcAndLsOverlap'
 }
 
-interface IOracleApiResponse {
-	chart: Record<string, Record<string, Record<string, number>>>
-	chainChart: Record<string, Record<string, Record<string, number>>>
-	oraclesTVS: Record<string, Record<string, Record<string, number>>>
-	chainsByOracle: Record<string, Array<string>>
+function resolveCanonicalName(value: string, options: Array<string>): string | null {
+	const normalizedValue = slug(value)
+
+	for (const option of options) {
+		if (option === value) {
+			return option
+		}
+
+		if (slug(option) === normalizedValue) {
+			return option
+		}
+	}
+
+	return null
 }
 
-// - used in /oracles and /oracles/[name]
-// oxlint-disable-next-line no-unused-vars
-async function getOraclePageData(oracle = null, chain = null) {
-	try {
-		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
-			IOracleApiResponse,
-			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
-		] = await Promise.all([fetchJson(ORACLE_API), fetchJson(PROTOCOLS_API)])
+function getAllChains(chainsByOracle: Record<string, Array<string>>): Array<string> {
+	return Array.from(new Set(Object.values(chainsByOracle).flat()))
+}
 
-		const oracleExists = oracle ? oraclesTVS[oracle] && (chain ? chainsByOracle[oracle].includes(chain) : true) : true
+function buildMultiOracleChartDataFromBreakdown(
+	protocolBreakdown: ReadonlyArray<OracleBreakdownItem>
+): OracleChartData {
+	return protocolBreakdown.map((dayData) => ({ ...dayData }))
+}
 
-		if (!oracleExists) {
-			return {
-				notFound: true
-			}
+function aggregateTvlFromBreakdown({
+	data,
+	chain
+}: {
+	data: Record<string, number> | undefined
+	chain: string | null
+}): { tvl: number; extraTvl: Record<string, number> } {
+	let tvl = 0
+	const extraTvl: Record<string, number> = {}
+
+	if (!data) {
+		return { tvl, extraTvl }
+	}
+
+	for (const [breakdownKey, value] of Object.entries(data)) {
+		if (isExtraTvlKey(breakdownKey)) {
+			continue
 		}
 
-		const oracleFilteredProtocols =
-			oracle && oraclesTVS[oracle] ? protocols.filter((protocol) => protocol.name in oraclesTVS[oracle]) : protocols
-
-		const filteredProtocols = formatProtocolsData({ oracle, protocols: oracleFilteredProtocols, chain })
-		const protocolsWithBreakdown = filteredProtocols.map((protocol) => {
-			const tvsBreakdown: { tvl: number; extraTvl: { [key: string]: { tvl: number } } } = {
-				tvl: 0,
-				extraTvl: {}
+		if (chain) {
+			if (breakdownKey === chain) {
+				tvl += value
+				continue
 			}
-			const oraclesToCheck = oracle ? [oracle] : Object.keys(oraclesTVS)
 
-			for (const oracleKey of oraclesToCheck) {
-				const protocolData = oraclesTVS[oracleKey]?.[protocol.name]
-				if (protocolData) {
-					for (const key in protocolData) {
-						const value = protocolData[key]
-						const keyParts = key.split('-')
-						if (keyParts.length === 1 && !protocol.chains.includes(keyParts[0])) continue
-						const chainName = keyParts[0]
-						const category = keyParts.length > 1 ? keyParts.slice(1).join('-') : 'tvl'
-
-						if (!chain || chainName === chain) {
-							if (category === 'tvl') {
-								tvsBreakdown.tvl += value
-							} else {
-								if (!tvsBreakdown.extraTvl[category]) {
-									tvsBreakdown.extraTvl[category] = { tvl: 0 }
-								}
-								tvsBreakdown.extraTvl[category].tvl += value
-							}
-						}
-					}
-					break
-				}
-			}
-			return {
-				...protocol,
-				tvl: tvsBreakdown.tvl,
-				extraTvl: tvsBreakdown.extraTvl
-			}
-		})
-
-		// Sort by timestamp key: object iteration order is not guaranteed.
-		let chartData = Object.entries(chart).sort(([a], [b]) => Number(a) - Number(b))
-		const chainChartEntries = Object.entries(chainChart).sort(([a], [b]) => Number(a) - Number(b))
-		const chainChartData = chain
-			? chainChartEntries
-					.map(([date, data]) => {
-						const chainName = chain
-						const chainData = Object.entries(data[oracle] || {})
-							.map(([name, value]) =>
-								name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
-							)
-							.filter(Boolean)
-						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
-					})
-					.filter(Boolean)
-			: null
-
-		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
-			.sort((a, b) => b[1].tvl - a[1].tvl)
-			.map((orc) => orc[0])
-
-		if (oracle) {
-			let data = []
-			for (const [date, tokens] of chartData) {
-				const value = tokens[oracle]
-				if (value) {
-					data.push([date, value])
-				}
-			}
-			chartData = data
+			const metricPrefix = `${chain}-`
+			if (!breakdownKey.startsWith(metricPrefix)) continue
+			const metricName = breakdownKey.slice(metricPrefix.length)
+			if (!metricName || !isExtraTvlKey(metricName)) continue
+			extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
+			continue
 		}
 
-		const oraclesProtocols: IOracleProtocols = {}
-
-		for (const orc in oraclesTVS) {
-			let count = 0
-			for (const _ in oraclesTVS[orc] || {}) count++
-			oraclesProtocols[orc] = count
+		if (!breakdownKey.includes('-')) {
+			tvl += value
+		} else {
+			const separatorIndex = breakdownKey.indexOf('-')
+			const metricName = breakdownKey.slice(separatorIndex + 1)
+			if (!metricName || !isExtraTvlKey(metricName)) continue
+			extraTvl[metricName] = (extraTvl[metricName] ?? 0) + value
 		}
+	}
 
-		const latestOracleTvlByChain = (
-			chainChartEntries.length ? chainChartEntries[chainChartEntries.length - 1]![1] : {}
-		) as Record<string, Record<string, number>>
+	return { tvl, extraTvl }
+}
 
-		const latestTvlByChain: Record<string, number> = {}
-		for (const oracle in latestOracleTvlByChain) {
-			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !TVL_SETTINGS_KEYS_SET.has(ochain)) {
-					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
-				}
-			}
-		}
+function buildOracleProtocolBreakdown({
+	protocolOracleData,
+	chain
+}: {
+	protocolOracleData: Record<string, number> | undefined
+	chain: string | null
+}): { tvl: number; extraTvl: Record<string, number> } {
+	return aggregateTvlFromBreakdown({
+		data: protocolOracleData,
+		chain
+	})
+}
 
-		const uniqueChains = (Array.from(new Set(Object.values(chainsByOracle).flat())) as Array<string>).sort(
-			(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
-		)
+// - /oracles, /oracles/chain/:chain
+export async function getOraclesListPageData({
+	chain = null
+}: {
+	chain?: string | null
+} = {}): Promise<OraclesByChainPageData | null> {
+	const metrics = await fetchOracleMetrics()
 
-		let oracleLinks = oracle
-			? [{ label: 'All', to: `/oracles/${oracle}` }].concat(
-					chainsByOracle[oracle].map((c: string) => ({ label: c, to: `/oracles/${oracle}/${c}` }))
-				)
-			: [{ label: 'All', to: `/oracles` }].concat(uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` })))
+	const chainsByOracle = metrics.chainsByOracle ?? {}
+	const oraclesTVS = metrics.oraclesTVS ?? {}
+	const allChains = getAllChains(chainsByOracle)
+	const canonicalChain = chain ? resolveCanonicalName(chain, allChains) : null
 
-		const allColors = getNDistinctColors(oraclesUnique.length)
-		const colors = {}
-		for (let i = 0; i < oraclesUnique.length; i++) {
-			colors[oraclesUnique[i]] = allColors[i]
-		}
-		colors['Others'] = '#AAAAAA'
-
-		return {
-			chain: chain ?? null,
-			chainChartData,
-			chainsByOracle,
-			tokens: oraclesUnique,
-			tokenLinks: oracleLinks,
-			token: oracle,
-			tokensProtocols: oraclesProtocols,
-			filteredProtocols: protocolsWithBreakdown,
-			chartData,
-			oraclesColors: colors
-		}
-	} catch (e) {
-		console.log(e)
+	if (chain && !canonicalChain) {
 		return null
+	}
+
+	const chartData = canonicalChain
+		? buildMultiOracleChartDataFromBreakdown(await fetchOracleChainProtocolBreakdownChart({ chain: canonicalChain }))
+		: buildMultiOracleChartDataFromBreakdown(await fetchOracleProtocolBreakdownChart())
+	const latestTvlByChain: Record<string, number> = {}
+
+	const tableData: Array<OracleTableDataRow> = []
+	for (const oracle in oraclesTVS) {
+		const chains = chainsByOracle[oracle] ?? []
+		// Single lookup: .includes() is more efficient than creating a Set
+		if (canonicalChain && !chains.includes(canonicalChain)) {
+			continue
+		}
+
+		let tvl = 0
+		const extraTvl: Record<string, number> = {}
+		let protocolsSecured = 0
+		for (const protocolName in oraclesTVS[oracle]) {
+			const protocolBreakdown = oraclesTVS[oracle][protocolName]
+			const { tvl: protocolTvl, extraTvl: protocolExtraTvl } = aggregateTvlFromBreakdown({
+				data: protocolBreakdown,
+				chain: canonicalChain
+			})
+			tvl += protocolTvl
+			for (const [extraKey, extraValue] of Object.entries(protocolExtraTvl)) {
+				extraTvl[extraKey] = (extraTvl[extraKey] ?? 0) + extraValue
+			}
+
+			for (const chainOrExtraTvlKey in protocolBreakdown) {
+				const value = protocolBreakdown[chainOrExtraTvlKey]
+				if (chainOrExtraTvlKey.includes('-') || isExtraTvlKey(chainOrExtraTvlKey)) continue
+				latestTvlByChain[chainOrExtraTvlKey] = (latestTvlByChain[chainOrExtraTvlKey] ?? 0) + value
+			}
+			protocolsSecured += 1
+		}
+		tableData.push({
+			name: oracle,
+			tvl,
+			extraTvl,
+			protocolsSecured,
+			chains
+		})
+	}
+	tableData.sort((a, b) => b.tvl - a.tvl)
+
+	const oracles = tableData.map((row) => row.name)
+	const oraclesColors: Record<string, string> = {
+		Others: '#AAAAAA'
+	}
+	const sortedColors = getNDistinctColors(oracles.length)
+	for (let i = 0; i < oracles.length; i++) {
+		oraclesColors[oracles[i]] = sortedColors[i]
+	}
+
+	const uniqueChains = [...getAllChains(chainsByOracle)].sort(
+		(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
+	)
+	const chainLinks = [{ label: 'All', to: `/oracles` }].concat(
+		uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${slug(c)}` }))
+	)
+
+	return {
+		chain: canonicalChain,
+		oracles,
+		chainLinks,
+		tableData,
+		chartData,
+		oraclesColors
 	}
 }
 
-// oxlint-disable-next-line no-unused-vars
-async function getOraclePageDataByChain(chain: string) {
-	try {
-		const [{ chart = {}, chainChart = {}, oraclesTVS = {}, chainsByOracle }, { protocols }]: [
-			IOracleApiResponse,
-			{ protocols: Array<ILiteProtocol>; chains: Array<string>; parentProtocols: Array<ILiteParentProtocol> }
-		] = await Promise.all([fetchJson(ORACLE_API), fetchJson(PROTOCOLS_API)])
+// - /oracles/:oracle, /oracles/:oracle/:chain
+export async function getOracleDetailPageData({
+	oracle,
+	chain = null
+}: {
+	oracle: string
+	chain?: string | null
+}): Promise<OracleOverviewPageData | null> {
+	const metrics = await fetchOracleMetrics()
+	const oracleProtocolNamesByOracle = metrics.oracles ?? {}
+	const chainsByOracle = metrics.chainsByOracle ?? {}
+	const oraclesTVS = metrics.oraclesTVS ?? {}
 
-		const filteredProtocols = formatProtocolsData({ protocols, chain })
+	const oracleNames: string[] = []
+	for (const oracleName in oraclesTVS) {
+		oracleNames.push(oracleName)
+	}
+	const canonicalOracle = resolveCanonicalName(oracle, oracleNames)
+	if (!canonicalOracle) {
+		return null
+	}
 
-		const protocolsWithBreakdown = filteredProtocols.map((protocol) => {
-			const tvsBreakdown: { tvl: number; extraTvl: { [key: string]: { tvl: number } } } = {
-				tvl: 0,
-				extraTvl: {}
+	const availableChains = chainsByOracle[canonicalOracle] ?? []
+	const canonicalChain = chain ? resolveCanonicalName(chain, availableChains) : null
+	if (chain && !canonicalChain) {
+		return null
+	}
+
+	let chartData: OracleChartData = []
+	let protocols: Array<ProtocolLite> = []
+
+	if (canonicalChain) {
+		const [fetchedOracleChainBreakdown, { protocols: fetchedProtocols }] = await Promise.all([
+			fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
+			fetchProtocols()
+		])
+		protocols = fetchedProtocols
+		chartData = fetchedOracleChainBreakdown.reduce<OracleChartData>((acc, dayData) => {
+			const chainValue = dayData[canonicalChain]
+			if (typeof chainValue !== 'number') return acc
+			acc.push({
+				timestamp: dayData.timestamp,
+				[canonicalOracle]: chainValue
+			})
+			return acc
+		}, [])
+	} else {
+		const [oracleChart, { protocols: fetchedProtocols }] = await Promise.all([
+			fetchOracleProtocolChart({ protocol: canonicalOracle }),
+			fetchProtocols()
+		])
+		protocols = fetchedProtocols
+		chartData =
+			oracleChart?.map(([timestamp, value]) => ({
+				timestamp,
+				[canonicalOracle]: value
+			})) ?? []
+	}
+
+	const oracleProtocols = oraclesTVS[canonicalOracle] ?? {}
+	let tvl = 0
+	const extraTvl: Record<string, number> = {}
+	for (const protocolName in oracleProtocols) {
+		const { tvl: protocolTvl, extraTvl: protocolExtraTvl } = aggregateTvlFromBreakdown({
+			data: oracleProtocols[protocolName],
+			chain: canonicalChain
+		})
+		tvl += protocolTvl
+		for (const [extraKey, extraValue] of Object.entries(protocolExtraTvl)) {
+			extraTvl[extraKey] = (extraTvl[extraKey] ?? 0) + extraValue
+		}
+	}
+
+	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
+	// Build one Set for repeated membership checks in the table loop.
+	// The per-protocol chain test remains a single cheap `.includes()` call.
+	let protocolsSupportingCanonicalChain: Set<string> | null = null
+	if (canonicalChain) {
+		protocolsSupportingCanonicalChain = new Set<string>()
+		for (const protocol of protocols) {
+			if (protocol.chains.includes(canonicalChain)) {
+				protocolsSupportingCanonicalChain.add(protocol.name)
 			}
+		}
+	}
+	const orderedOracleProtocolNames = oracleProtocolNamesByOracle[canonicalOracle] ?? []
+	const protocolTableData: Array<OracleProtocolWithBreakdown> = []
+	for (const protocolName of orderedOracleProtocolNames) {
+		const protocolData = protocolsByName.get(protocolName)
+		if (!protocolData) continue
+		if (protocolsSupportingCanonicalChain && !protocolsSupportingCanonicalChain.has(protocolName)) continue
 
-			for (const oracleKey in oraclesTVS) {
-				const protocolData = oraclesTVS[oracleKey]?.[protocol.name]
-				if (protocolData) {
-					for (const key in protocolData) {
-						const value = protocolData[key]
-						const keyParts = key.split('-')
-						if (keyParts.length === 1 && !protocol.chains.includes(keyParts[0])) continue
-						const chainName = keyParts[0]
-						const category = keyParts.length > 1 ? keyParts.slice(1).join('-') : 'tvl'
-
-						if (chainName === chain) {
-							if (category === 'tvl') {
-								tvsBreakdown.tvl += value
-							} else {
-								if (!tvsBreakdown.extraTvl[category]) {
-									tvsBreakdown.extraTvl[category] = { tvl: 0 }
-								}
-								tvsBreakdown.extraTvl[category].tvl += value
-							}
-						}
-					}
-				}
-			}
-
-			return {
-				...protocol,
-				tvl: tvsBreakdown.tvl,
-				extraTvl: tvsBreakdown.extraTvl
-			}
+		const { tvl: protocolTvl, extraTvl: protocolExtraTvl } = buildOracleProtocolBreakdown({
+			protocolOracleData: oracleProtocols[protocolName],
+			chain: canonicalChain
 		})
 
-		// Sort by timestamp key: object iteration order is not guaranteed.
-		let chartData = Object.entries(chart).sort(([a], [b]) => Number(a) - Number(b))
-		const chainChartEntries = Object.entries(chainChart).sort(([a], [b]) => Number(a) - Number(b))
-		const chainChartData = chain
-			? chainChartEntries
-					.map(([date, data]) => {
-						const chainName = chain
-						const chainData = Object.entries(data)
-							.map(([oracle, dayData]) => {
-								const chainData = Object.entries(dayData)
-									.map(([name, value]) =>
-										name.includes(chainName) ? [name.replace(chainName, '').replace('-', '') || 'tvl', value] : null
-									)
-									.filter(Boolean)
-								return Object.values(chainData).length ? [oracle, Object.fromEntries(chainData)] : null
-							})
-							.filter(Boolean)
-						return Object.values(chainData).length ? [date, Object.fromEntries(chainData)] : null
-					})
-					.filter(Boolean)
-			: null
+		protocolTableData.push({
+			...protocolData,
+			tvl: protocolTvl,
+			extraTvl: protocolExtraTvl,
+			strikeTvl: toStrikeTvl(protocolData, {
+				liquidstaking: protocolExtraTvl.liquidstaking !== undefined,
+				doublecounted: protocolExtraTvl.doublecounted !== undefined
+			})
+		})
+	}
 
-		const oraclesUnique = Object.entries(chartData[chartData.length - 1][1])
-			.sort((a, b) => b[1].tvl - a[1].tvl)
-			.map((orc) => orc[0])
-			.filter((orc) => chainsByOracle[orc]?.includes(chain))
+	const oracleChains = chainsByOracle[canonicalOracle] ?? []
+	const chainLinks = [{ label: 'All', to: `/oracles/${slug(canonicalOracle)}` }].concat(
+		oracleChains.map((c) => ({ label: c, to: `/oracles/${slug(canonicalOracle)}/${slug(c)}` }))
+	)
 
-		const oraclesProtocols: IOracleProtocols = {}
-
-		for (const orc in oraclesTVS) {
-			oraclesProtocols[orc] = protocols.filter((p) => p.oracles?.includes(orc) && p.chains.includes(chain)).length
-		}
-
-		const latestOracleTvlByChain = (
-			chainChartEntries.length ? chainChartEntries[chainChartEntries.length - 1]![1] : {}
-		) as Record<string, Record<string, number>>
-
-		const latestTvlByChain: Record<string, number> = {}
-		for (const oracle in latestOracleTvlByChain) {
-			for (const ochain in latestOracleTvlByChain[oracle]) {
-				if (!ochain.includes('-') && !TVL_SETTINGS_KEYS_SET.has(ochain)) {
-					latestTvlByChain[ochain] = (latestTvlByChain[ochain] ?? 0) + latestOracleTvlByChain[oracle][ochain]
-				}
-			}
-		}
-
-		const uniqueChains = (Array.from(new Set(Object.values(chainsByOracle).flat())) as Array<string>).sort(
-			(a, b) => (latestTvlByChain[b] ?? 0) - (latestTvlByChain[a] ?? 0)
-		)
-		const oracleLinks = [{ label: 'All', to: `/oracles` }].concat(
-			uniqueChains.map((c) => ({ label: c, to: `/oracles/chain/${c}` }))
-		)
-
-		const allColors = getNDistinctColors(oraclesUnique.length)
-		const colors = {}
-		for (let i = 0; i < oraclesUnique.length; i++) {
-			colors[oraclesUnique[i]] = allColors[i]
-		}
-		colors['Others'] = '#AAAAAA'
-
-		return {
-			chain: chain ?? null,
-			chainChartData,
-			chainsByOracle,
-			tokens: oraclesUnique,
-			tokenLinks: oracleLinks,
-			tokensProtocols: oraclesProtocols,
-			filteredProtocols: protocolsWithBreakdown,
-			chartData: chainChartData,
-			oraclesColors: colors
-		}
-	} catch (e) {
-		console.log(e)
-		return null
+	return {
+		chain: canonicalChain ?? null,
+		chainLinks,
+		oracle: canonicalOracle,
+		tvl,
+		extraTvl,
+		protocolTableData,
+		chartData
 	}
 }

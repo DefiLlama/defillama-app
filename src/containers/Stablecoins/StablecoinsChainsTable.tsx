@@ -10,15 +10,17 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, renderPercentChange } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 
 type StablecoinsByChainRow = ReturnType<typeof useGroupChainsPegged>[number]
 type DominanceCell = NonNullable<StablecoinsByChainRow['dominance']>
@@ -83,7 +85,11 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 120,
 		meta: {
 			align: 'end'
@@ -100,10 +106,15 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 	},
 	{
 		header: 'Dominant Stablecoin',
-		accessorKey: 'dominance',
+		id: 'dominance',
+		accessorFn: (row) => {
+			const value = row.dominance
+			if (!value) return ''
+			return `${value.name}${value.value != null ? `: ${value.value}%` : ''}`
+		},
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as DominanceCell | null
+		cell: ({ row }) => {
+			const value = row.original.dominance as DominanceCell | null
 
 			if (!value) {
 				return null
@@ -112,7 +123,9 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 			return (
 				<div className="flex w-full items-center justify-end gap-1">
 					<span>{`${value.name}${value.value ? ':' : ''}`}</span>
-					<span>{renderPercentChange(value.value, true)}</span>
+					<span>
+						<PercentChange percent={value.value} noSign />
+					</span>
 				</div>
 			)
 		},
@@ -226,6 +239,7 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 					labelType="smol"
 					variant="filter-responsive"
 				/>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-chains' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

@@ -60,7 +60,7 @@ export function SparklineChart({
 			const [variable, fallback] = match[1].split(',').map((part) => part.trim())
 			let value = ''
 			try {
-				const target = document.documentElement || (dom as HTMLElement)
+				const target: HTMLElement = document.documentElement
 				value = getComputedStyle(target).getPropertyValue(variable)
 			} catch {
 				value = ''

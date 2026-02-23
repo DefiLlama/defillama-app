@@ -9,11 +9,15 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { CHAINS_API, CONFIG_API } from '~/constants'
+import { CONFIG_API } from '~/constants'
+import { fetchChainsList } from '~/containers/Chains/api'
+import type { ChainListItem } from '~/containers/Chains/api.types'
 import type { ChartData } from '~/containers/Liquidations/utils'
 import { chainIconUrl, formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -87,20 +91,10 @@ export const LiqPositionsTable = (props: { data: ChartData; prevData: ChartData 
 	return <LiquidatablePositionsTable data={rows} />
 }
 
-const fetchApi = async (url: string) => {
-	try {
-		const data: unknown = await fetchJson(url)
-		return data
-	} catch (error) {
-		throw new Error(error instanceof Error ? error.message : `Failed to fetch ${url}`)
-	}
-}
-
 type ProtocolConfig = { logo: string; name: string }
 const isProtocolConfig = (value: unknown): value is ProtocolConfig =>
 	isRecord(value) && typeof value.logo === 'string' && typeof value.name === 'string'
 
-type ChainListItem = { name: string }
 const isChainList = (value: unknown): value is ChainListItem[] =>
 	Array.isArray(value) && value.every((x) => isRecord(x) && typeof x.name === 'string')
 
@@ -139,7 +133,7 @@ const ProtocolName = ({ value }: { value: string }) => {
 	const { data } = useQuery<ProtocolConfig | null>({
 		queryKey: [`${CONFIG_API}/smol/${_value}`],
 		queryFn: async () => {
-			const res = await fetchApi(`${CONFIG_API}/smol/${_value}`)
+			const res = await fetchJson(`${CONFIG_API}/smol/${_value}`)
 			return isProtocolConfig(res) ? res : null
 		},
 		staleTime: 60 * 60 * 1000,
@@ -165,9 +159,9 @@ const ProtocolName = ({ value }: { value: string }) => {
 
 const ChainName = ({ value }: { value: string }) => {
 	const { data } = useQuery<ChainListItem[] | null>({
-		queryKey: [`${CHAINS_API}`],
+		queryKey: ['liquidations', 'chains'],
 		queryFn: async () => {
-			const res = await fetchApi(`${CHAINS_API}`)
+			const res = await fetchChainsList()
 			return isChainList(res) ? res : null
 		},
 		staleTime: 60 * 60 * 1000,
@@ -306,24 +300,25 @@ const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
 	},
 	{
 		header: 'Owner',
-		accessorKey: 'owner',
+		id: 'owner',
+		accessorFn: (row) => row.owner?.displayName ?? '',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as ILiquidablePositionsRow['owner']
+		cell: ({ row }) => {
+			const owner = row.original.owner
 
-			if (typeof value !== 'object') {
-				return <span>{value}</span>
+			if (typeof owner !== 'object' || owner == null) {
+				return <span />
 			}
 			return (
 				<a
-					href={value.url}
+					href={owner.url}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center justify-end gap-2 hover:underline"
 				>
-					{value.displayName.length > 13
-						? `${value.displayName.substring(0, 6)}...${value.displayName.substring(value.displayName.length - 4)}`
-						: value.displayName}
+					{owner.displayName.length > 13
+						? `${owner.displayName.substring(0, 6)}...${owner.displayName.substring(owner.displayName.length - 4)}`
+						: owner.displayName}
 					<Icon name="external-link" height={12} width={12} />
 				</a>
 			)
@@ -384,7 +379,14 @@ function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return (
+		<div>
+			<div className="flex justify-end p-3">
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-protocols' })} smol />
+			</div>
+			<VirtualTable instance={instance} />
+		</div>
+	)
 }
 
 function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] }) {
@@ -405,5 +407,12 @@ function LiquidatablePositionsTable({ data }: { data: ILiquidablePositionsRow[] 
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	return <VirtualTable instance={instance} />
+	return (
+		<div>
+			<div className="flex justify-end p-3">
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'liquidatable-positions' })} smol />
+			</div>
+			<VirtualTable instance={instance} />
+		</div>
+	)
 }

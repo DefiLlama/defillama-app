@@ -30,12 +30,13 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorFn: (row) => row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
+			const index = row.index
 			const name = getValue() as string
 			const coinSymbol = row.original.coinSymbol
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<span className="shrink-0">{index + 1}</span>
 
 					<BasicLink
 						href={`/cex/${row.original.slug || name}`}

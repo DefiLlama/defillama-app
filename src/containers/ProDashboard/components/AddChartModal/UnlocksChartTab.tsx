@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, Suspense, type ReactNode, useEffect, useMemo, useState } from 'react'
 import type {
 	IMultiSeriesChart2Props,
 	IPieChartProps,
@@ -58,14 +58,14 @@ export function UnlocksChartTab({
 	protocolOptions,
 	protocolsLoading
 }: UnlocksChartTabProps) {
-	const unlocksEndDate = useMemo(() => Date.now() / 1000 + 30 * 24 * 60 * 60, [])
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
+	const [unlocksEndDate] = useState(() => Date.now() / 1000 + 30 * 24 * 60 * 60)
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 	const todayHallmarks = useMemo<[number, string][]>(
 		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
 		[todayTimestamp]
 	)
 	const { data: unlocksProtocols, isLoading: unlocksProtocolsLoading } = useQuery({
-		queryKey: ['unlocks-protocols', unlocksEndDate],
+		queryKey: ['pro-dashboard', 'unlocks-protocols', unlocksEndDate],
 		queryFn: () => getAllProtocolEmissions({ endDate: unlocksEndDate, getHistoricalPrices: false }),
 		staleTime: 60 * 60 * 1000
 	})
@@ -104,7 +104,7 @@ export function UnlocksChartTab({
 	}, [unlocksProtocols, protocolLogoBySlug, selectedUnlocksProtocol, selectedUnlocksProtocolName])
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unlocks-preview', selectedUnlocksProtocol],
+		queryKey: ['pro-dashboard', 'unlocks-preview', selectedUnlocksProtocol],
 		queryFn: () => getProtocolEmissons(slug(selectedUnlocksProtocol || '')),
 		enabled: Boolean(selectedUnlocksProtocol),
 		staleTime: 60 * 60 * 1000
@@ -214,21 +214,20 @@ export function UnlocksChartTab({
 	const hasSelection = Boolean(selectedUnlocksProtocol)
 	const previewTitle = selectedUnlocksProtocolName || selectedUnlocksProtocol || ''
 	const selectedChartLabel = UNLOCKS_CHART_TYPES.find((t) => t.value === selectedUnlocksChartType)?.label || ''
-
-	const renderChart = () => {
-		if (isLoading) {
-			return (
-				<div className="flex h-[320px] items-center justify-center">
-					<LocalLoader />
-				</div>
+	let chartContent: ReactNode
+	if (isLoading) {
+		chartContent = (
+			<div className="flex h-[320px] items-center justify-center">
+				<LocalLoader />
+			</div>
+		)
+	} else if (selectedUnlocksChartType === 'total') {
+		if (totalSeries.length === 0) {
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
 			)
-		}
-
-		if (selectedUnlocksChartType === 'total') {
-			if (totalSeries.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-			return (
+		} else {
+			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<SingleSeriesChart
 						chartType="line"
@@ -240,13 +239,13 @@ export function UnlocksChartTab({
 				</Suspense>
 			)
 		}
-
-		if (selectedUnlocksChartType === 'schedule') {
-			if (scheduleDataset.source.length === 0 || stacks.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-
-			return (
+	} else if (selectedUnlocksChartType === 'schedule') {
+		if (scheduleDataset.source.length === 0 || stacks.length === 0) {
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
+		} else {
+			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<MultiSeriesChart2
 						dataset={scheduleDataset}
@@ -258,30 +257,34 @@ export function UnlocksChartTab({
 				</Suspense>
 			)
 		}
-
-		if (selectedUnlocksChartType === 'allocation') {
-			if (allocationPieChartData.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-			return (
+	} else if (selectedUnlocksChartType === 'allocation') {
+		if (allocationPieChartData.length === 0) {
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
+		} else {
+			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<PieChart chartData={allocationPieChartData} stackColors={allocationPieChartColors} />
 				</Suspense>
 			)
 		}
-
-		if (selectedUnlocksChartType === 'locked-unlocked') {
-			if (lockedUnlockedPieChartData.length === 0) {
-				return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
-			}
-			return (
+	} else if (selectedUnlocksChartType === 'locked-unlocked') {
+		if (lockedUnlockedPieChartData.length === 0) {
+			chartContent = (
+				<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+			)
+		} else {
+			chartContent = (
 				<Suspense fallback={<div className="h-[320px]" />}>
 					<PieChart chartData={lockedUnlockedPieChartData} stackColors={LOCKED_UNLOCKED_COLORS} valueSymbol="%" />
 				</Suspense>
 			)
 		}
-
-		return <div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+	} else {
+		chartContent = (
+			<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+		)
 	}
 
 	return (
@@ -323,7 +326,7 @@ export function UnlocksChartTab({
 							</h3>
 							<p className="text-xs pro-text2">Unlocks</p>
 						</div>
-						{renderChart()}
+						{chartContent}
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

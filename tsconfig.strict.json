@@ -37,6 +37,8 @@
 		"src/containers/TokenPnl/**/*.tsx",
 		"src/containers/Nft/**/*.ts",
 		"src/containers/Nft/**/*.tsx",
+		"src/containers/Oracles/**/*.ts",
+		"src/containers/Oracles/**/*.tsx",
 		"src/containers/Governance/**/*.ts",
 		"src/containers/Governance/**/*.tsx",
 		"src/containers/CompareTokens/**/*.ts",
@@ -61,12 +63,16 @@
 		"src/containers/Stablecoins/**/*.tsx",
 		"src/containers/ProtocolsByCategoryOrTag/**/*.ts",
 		"src/containers/ProtocolsByCategoryOrTag/**/*.tsx",
-		"src/api/shared.ts",
+		"src/containers/Forks/**/*.ts",
+		"src/containers/Forks/**/*.tsx",
 		"src/utils/**/*.ts",
 		"src/utils/**/*.tsx",
 		"src/contexts/**/*.ts",
 		"src/contexts/**/*.tsx",
 		"src/hooks/**/*.ts",
-		"src/hooks/**/*.tsx"
-	]
+		"src/hooks/**/*.tsx",
+		"src/components/**/*.ts",
+		"src/components/**/*.tsx"
+	],
+	"exclude": ["src/components/ECharts/**/*"]
 }

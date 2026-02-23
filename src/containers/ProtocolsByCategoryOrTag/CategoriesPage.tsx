@@ -1,37 +1,20 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { tvlOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import Layout from '~/layout'
-import { formattedNum, getPercentChange, renderPercentChange, slug } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import { categoriesPageExcludedExtraTvls } from './constants'
 import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
-const pageName = ['Protocol Categories']
-const finalTvlOptions = tvlOptions.filter((option) => !categoriesPageExcludedExtraTvls.has(option.key))
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
-	return columnId
-}
-
-function getCsvCellValue(value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
-}
 
 const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 	{
@@ -104,7 +87,11 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		)
 	},
 	{
 		header: '7d TVL Change',
@@ -114,7 +101,11 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		)
 	},
 	{
 		header: '1m TVL Change',
@@ -124,7 +115,11 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
+		cell: ({ getValue }) => (
+			<>
+				<PercentChange percent={getValue<number | null>()} />
+			</>
+		)
 	},
 	{
 		header: 'Combined 24h Revenue',
@@ -233,14 +228,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	}, [enabledTvls, tableData])
 
 	return (
-		<Layout
-			title="Categories - DefiLlama"
-			description="Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="protocols categories, defi categories"
-			canonicalUrl="/categories"
-			metricFilters={finalTvlOptions}
-			pageName={pageName}
-		>
+		<>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-3">
 					<h1 className="mr-auto text-xl font-semibold">TVL by Category</h1>
@@ -280,26 +268,10 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 					columns={categoriesColumns}
 					columnToSearch="name"
 					placeholder="Search category..."
-					customFilters={({ instance }) => (
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const visibleColumns = instance.getAllLeafColumns().filter((column) => column.getIsVisible())
-								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
-
-								return {
-									filename: 'protocol-categories.csv',
-									rows: [headers, ...rows]
-								}
-							}}
-							smol
-						/>
-					)}
+					csvFileName="protocol-categories"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
-		</Layout>
+		</>
 	)
 }

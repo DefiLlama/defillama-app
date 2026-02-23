@@ -1,44 +1,68 @@
-// adadpted from https://github.com/uidotdev/usehooks/blob/master/src/pages/useWindowSize.md
-import { useEffect, useState } from 'react'
-import { useDebounce } from './useDebounce'
+import { useSyncExternalStore } from 'react'
 
 interface Size {
 	width: number | undefined
 	height: number | undefined
 }
 
-export default function useWindowSize(): Size {
-	// Initialize state with undefined width/height so server and client renders match
-	// Learn more here: https://joshwcomeau.com/react/the-perils-of-rehydration/
-	const [debouncedWindowSize, setDebouncedWindowSize] = useState<Size>({
-		width: undefined,
-		height: undefined
-	})
-	const updateDebouncedWindowSize = useDebounce((nextValue: Size) => {
-		setDebouncedWindowSize(nextValue)
+const getServerSnapshot = (): Size => ({
+	width: undefined,
+	height: undefined
+})
+
+const getClientSnapshot = (): Size => {
+	return {
+		width: window.innerWidth,
+		height: window.innerHeight
+	}
+}
+
+let windowSizeSnapshot: Size = typeof window === 'undefined' ? getServerSnapshot() : getClientSnapshot()
+let resizeTimeoutId: number | null = null
+const listeners = new Set<() => void>()
+
+const publishSnapshotIfChanged = () => {
+	if (typeof window === 'undefined') return
+	const nextSnapshot = getClientSnapshot()
+	if (nextSnapshot.width === windowSizeSnapshot.width && nextSnapshot.height === windowSizeSnapshot.height) return
+	windowSizeSnapshot = nextSnapshot
+	for (const listener of listeners) {
+		listener()
+	}
+}
+
+const handleResize = () => {
+	if (resizeTimeoutId !== null) {
+		window.clearTimeout(resizeTimeoutId)
+	}
+	resizeTimeoutId = window.setTimeout(() => {
+		resizeTimeoutId = null
+		publishSnapshotIfChanged()
 	}, 1000)
+}
 
-	useEffect(() => {
-		// Handler to call on window resize
-		function handleResize() {
-			updateDebouncedWindowSize({
-				width: window.innerWidth,
-				height: window.innerHeight
-			})
-		}
+const subscribe = (listener: () => void) => {
+	if (typeof window === 'undefined') return () => {}
 
-		// Add event listener
+	listeners.add(listener)
+	if (listeners.size === 1) {
 		window.addEventListener('resize', handleResize)
+	}
 
-		// Set initial size immediately; debounce only subsequent resizes
-		setDebouncedWindowSize({
-			width: window.innerWidth,
-			height: window.innerHeight
-		})
+	publishSnapshotIfChanged()
 
-		// Remove event listener on cleanup
-		return () => window.removeEventListener('resize', handleResize)
-	}, [updateDebouncedWindowSize]) // Keep handler in sync with debounced updater
+	return () => {
+		listeners.delete(listener)
+		if (listeners.size === 0) {
+			window.removeEventListener('resize', handleResize)
+			if (resizeTimeoutId !== null) {
+				window.clearTimeout(resizeTimeoutId)
+				resizeTimeoutId = null
+			}
+		}
+	}
+}
 
-	return debouncedWindowSize
+export default function useWindowSize(): Size {
+	return useSyncExternalStore(subscribe, () => windowSizeSnapshot, getServerSnapshot)
 }

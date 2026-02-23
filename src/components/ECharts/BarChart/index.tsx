@@ -45,7 +45,8 @@ export default function BarChart({
 	const [legendOptions, setLegendOptions] = useState(() => (customLegendOptions ? [...customLegendOptions] : []))
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
-		const values = stacks || {}
+		const values = { ...(stacks || {}) }
+		const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 
 		let hasValues = false
 		for (const _ in values) {
@@ -62,7 +63,7 @@ export default function BarChart({
 		const selected: string[] = []
 		for (const s in values) {
 			keys.push(s)
-			if (!legendOptions || !customLegendName || legendOptions.includes(s)) {
+			if (!legendOptionsSet || !customLegendName || legendOptionsSet.has(s)) {
 				selected.push(s)
 			}
 		}
@@ -155,8 +156,6 @@ export default function BarChart({
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks, xAxisType])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
-	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
 	const hasNotifiedReadyRef = useRef(false)
 
 	// Stable resize listener - never re-attaches when dependencies change
@@ -164,42 +163,38 @@ export default function BarChart({
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstanceRef = useRef((instance: echarts.ECharts | null) => {
-		if (shouldEnableExport) handleChartReady(instance)
-	})
-	updateExportInstanceRef.current = (instance: echarts.ECharts | null) => {
-		if (shouldEnableExport) handleChartReady(instance)
-	}
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
 		let instance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !instance
 		if (!instance) {
 			instance = echarts.init(chartDom)
 		}
 		chartRef.current = instance
-		updateExportInstanceRef.current(instance)
+		if (shouldEnableExport) {
+			handleChartReady(instance)
+		}
 
-		if (onReadyRef.current && isNewInstance) {
-			onReadyRef.current(instance)
+		if (onReady && instance && !hasNotifiedReadyRef.current) {
+			onReady(instance)
 			hasNotifiedReadyRef.current = true
 		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
+		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = settings
 
 		const shouldHideDataZoom =
 			(Array.isArray(series) ? series.every((s) => s.data.length < 2) : series.data.length < 2) || hideDataZoom
@@ -233,15 +228,29 @@ export default function BarChart({
 			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
-	}, [defaultChartSettings, series, stackKeys, hideLegend, chartOptions, hideDataZoom, id, orientation])
+	}, [
+		defaultChartSettings,
+		series,
+		stackKeys,
+		hideLegend,
+		chartOptions,
+		hideDataZoom,
+		id,
+		orientation,
+		shouldEnableExport,
+		handleChartReady,
+		onReady
+	])
 
 	useChartCleanup(id, () => {
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
-			onReadyRef.current?.(null)
+			onReady?.(null)
 			hasNotifiedReadyRef.current = false
 		}
-		updateExportInstanceRef.current(null)
+		if (shouldEnableExport) {
+			handleChartReady(null)
+		}
 	})
 
 	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
@@ -267,7 +276,7 @@ export default function BarChart({
 			}
 		}
 		const Mytitle = title ? slug(title) : 'data'
-		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}`
 		return { filename, rows }
 	}
 

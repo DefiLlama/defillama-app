@@ -1,10 +1,9 @@
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { CalendarView } from '~/containers/Unlocks/CalendarView'
 import { getUnlocksCalendarStaticPropsData } from '~/containers/Unlocks/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('unlocks-calendar', async () => {

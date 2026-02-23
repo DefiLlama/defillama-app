@@ -51,7 +51,8 @@ export function responseToItems(response: ResponseFields, messageId?: string): S
 
 	// Charts
 	if (response.charts?.length) {
-		response.charts.forEach((chart: ChartConfiguration, index: number) => {
+		for (let index = 0; index < response.charts.length; index++) {
+			const chart = response.charts[index]
 			const chartItem: ChartItem = {
 				type: 'chart',
 				id: chart.id || `${id}-chart-${index}`,
@@ -59,12 +60,12 @@ export function responseToItems(response: ResponseFields, messageId?: string): S
 				chartData: getChartData(response.chartData, chart.id)
 			}
 			items.push(chartItem)
-		})
+		}
 	}
 
 	// CSV exports
 	if (response.csvExports?.length) {
-		response.csvExports.forEach((csv) => {
+		for (const csv of response.csvExports) {
 			const csvItem: CsvItem = {
 				type: 'csv',
 				id: csv.id,
@@ -74,7 +75,7 @@ export function responseToItems(response: ResponseFields, messageId?: string): S
 				filename: csv.filename
 			}
 			items.push(csvItem)
-		})
+		}
 	}
 
 	// Response images

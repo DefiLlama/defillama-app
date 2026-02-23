@@ -1,9 +1,14 @@
-import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Chains']
 
 export const getStaticProps = withPerformanceLogging(
 	'chains/[category]',
@@ -41,7 +46,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -51,6 +56,18 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Chains(props) {
-	return <ChainsByCategory {...props} />
+export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title={`${props.category} Chains DeFi TVL - DefiLlama`}
+			description={props.description}
+			keywords={props.keywords}
+			canonicalUrl={`/chains${props.category === 'All' ? '' : `/${props.category}`}`}
+			metricFilters={tvlOptions}
+			metricFiltersLabel="Include in TVL"
+			pageName={pageName}
+		>
+			<ChainsByCategory {...props} />
+		</Layout>
+	)
 }

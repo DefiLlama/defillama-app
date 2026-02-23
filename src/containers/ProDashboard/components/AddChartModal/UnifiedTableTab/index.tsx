@@ -1,5 +1,5 @@
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
@@ -201,9 +201,6 @@ function TabContent({
 	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
 	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
 
-	const [localOrder, setLocalOrder] = useState<ColumnOrderState>(columnOrder)
-	const [localVisibility, setLocalVisibility] = useState<VisibilityState>({ ...columnVisibility })
-	const [localSorting, setLocalSorting] = useState<SortingState>(sorting)
 	const initialTab = useMemo<TabKey>(() => {
 		if (focusedSectionOnly === 'filters') return 'filters'
 		if (focusedSectionOnly === 'columns') return 'columns'
@@ -213,22 +210,6 @@ function TabContent({
 		return 'setup'
 	}, [focusedSectionOnly, initialFocusSection])
 	const [activeTab, setActiveTab] = useState<TabKey>(initialTab)
-
-	useEffect(() => {
-		setLocalOrder(columnOrder)
-	}, [columnOrder])
-
-	useEffect(() => {
-		setLocalVisibility({ ...columnVisibility })
-	}, [columnVisibility])
-
-	useEffect(() => {
-		setLocalSorting(sorting)
-	}, [sorting])
-
-	useEffect(() => {
-		setActiveTab((current) => (current === initialTab ? current : initialTab))
-	}, [initialTab])
 
 	const activePreset = UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId)
 
@@ -335,10 +316,9 @@ function TabContent({
 			})
 			const baseOrderSet = new Set(presetConfig.columnOrder)
 			const mergedOrder = [...presetConfig.columnOrder, ...customColumnIds.filter((id) => !baseOrderSet.has(id))]
-			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, localVisibility[id] ?? true]))
-			setLocalOrder(mergedOrder)
-			setLocalVisibility({ ...presetConfig.columnVisibility, ...customVisibility })
-			setLocalSorting(presetConfig.sorting)
+			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, columnVisibility[id] ?? true]))
+			setColumns(mergedOrder, { ...presetConfig.columnVisibility, ...customVisibility })
+			setSorting(presetConfig.sorting)
 		}
 	}
 
@@ -348,13 +328,10 @@ function TabContent({
 	}
 
 	const handleColumnChange = (order: ColumnOrderState, visibility: VisibilityState) => {
-		setLocalOrder(order)
-		setLocalVisibility(visibility)
 		setColumns(order, visibility)
 	}
 
 	const handleSortingChange = (newSorting: SortingState) => {
-		setLocalSorting(newSorting)
 		setSorting(newSorting)
 	}
 
@@ -396,14 +373,11 @@ function TabContent({
 	)
 
 	const isModified =
-		!arraysEqual(localOrder, presetDefaults.order) ||
-		!visibilityEqual(localVisibility, presetDefaults.visibility) ||
-		!sortingEqual(localSorting, presetDefaults.sorting)
+		!arraysEqual(columnOrder, presetDefaults.order) ||
+		!visibilityEqual(columnVisibility, presetDefaults.visibility) ||
+		!sortingEqual(sorting, presetDefaults.sorting)
 
-	const visibleColumnsCount = useMemo(
-		() => localOrder.filter((id) => id !== 'name' && (localVisibility[id] ?? true)).length,
-		[localOrder, localVisibility]
-	)
+	const visibleColumnsCount = columnOrder.filter((id) => id !== 'name' && (columnVisibility[id] ?? true)).length
 
 	const handleAdd = () => {
 		if (editItem) {
@@ -425,12 +399,6 @@ function TabContent({
 		}
 		if (preset.sortBy) {
 			setSorting([
-				{
-					id: preset.sortBy.field,
-					desc: preset.sortBy.direction === 'desc'
-				}
-			])
-			setLocalSorting([
 				{
 					id: preset.sortBy.field,
 					desc: preset.sortBy.direction === 'desc'
@@ -520,17 +488,16 @@ function TabContent({
 		return tabOptions
 	}, [tabOptions, focusedSectionOnly])
 
-	useEffect(() => {
-		if (availableTabs.length === 0) return
-		if (!availableTabs.some((tab) => tab.key === activeTab)) {
-			setActiveTab(availableTabs[0].key)
-		}
-	}, [availableTabs, activeTab])
+	const effectiveActiveTab = useMemo<TabKey>(() => {
+		if (!availableTabs.length) return activeTab
+		if (availableTabs.some((tab) => tab.key === activeTab)) return activeTab
+		return availableTabs[0].key
+	}, [activeTab, availableTabs])
 
 	const tabContent: Record<TabKey, React.ReactNode> = {
 		setup: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection title="Grouping" isDefaultExpanded badge="Protocols" className="shadow-sm">
+				<CollapsibleSection title="Grouping" badge="Protocols" className="shadow-sm">
 					<div className="flex flex-col gap-3">
 						<div>
 							<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Configure Grouping</h4>
@@ -539,7 +506,7 @@ function TabContent({
 					</div>
 				</CollapsibleSection>
 
-				<CollapsibleSection title="Data Views" isDefaultExpanded badge={activePreset?.name} className="shadow-sm">
+				<CollapsibleSection title="Data Views" badge={activePreset?.name} className="shadow-sm">
 					<div className="flex flex-col gap-3">
 						{recommendedPresets.length > 0 && (
 							<div className="flex flex-col gap-2">
@@ -570,12 +537,7 @@ function TabContent({
 		),
 		columns: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection
-					title="Columns"
-					isDefaultExpanded
-					badge={`${visibleColumnsCount} selected`}
-					className="shadow-sm"
-				>
+				<CollapsibleSection title="Columns" badge={`${visibleColumnsCount} selected`} className="shadow-sm">
 					<div className="flex flex-col gap-2">
 						<div className="flex flex-wrap items-center justify-end gap-2 text-xs">
 							<button
@@ -592,14 +554,14 @@ function TabContent({
 							</button>
 						</div>
 						<ColumnManager
-							columnOrder={localOrder}
-							columnVisibility={localVisibility}
+							columnOrder={columnOrder}
+							columnVisibility={columnVisibility}
 							onChange={handleColumnChange}
 							customColumns={customColumns}
 							onAddCustomColumn={addCustomColumn}
 							onUpdateCustomColumn={updateCustomColumn}
 							onRemoveCustomColumn={removeCustomColumn}
-							sorting={localSorting}
+							sorting={sorting}
 							onSortingChange={handleSortingChange}
 							onSortingReset={() => handleSortingChange(presetSortingFallback)}
 						/>
@@ -608,7 +570,7 @@ function TabContent({
 			</div>
 		),
 		filters: (
-			<CollapsibleSection title="Filters" isDefaultExpanded badge={totalFilterCount || undefined} className="shadow-sm">
+			<CollapsibleSection title="Filters" badge={totalFilterCount || undefined} className="shadow-sm">
 				<div className="flex flex-col gap-5">
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
@@ -773,7 +735,7 @@ function TabContent({
 			{availableTabs.length > 0 && (
 				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
 					{availableTabs.map((tab) => {
-						const isActive = tab.key === activeTab
+						const isActive = tab.key === effectiveActiveTab
 						return (
 							<button
 								key={tab.key}
@@ -809,7 +771,7 @@ function TabContent({
 				style={{ height: 'clamp(420px, 65vh, 720px)' }}
 				data-unified-table-scroll="true"
 			>
-				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
+				<div className="flex h-full flex-col gap-3">{tabContent[effectiveActiveTab]}</div>
 			</div>
 
 			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
@@ -834,10 +796,17 @@ function TabContent({
 }
 
 export function UnifiedTableTab(props: UnifiedTableTabProps) {
-	const { editItem, focusedSectionOnly, ...rest } = props
+	const { editItem, focusedSectionOnly, initialFocusSection, ...rest } = props
+	const tabResetKey = `${editItem?.id ?? 'new'}-${focusedSectionOnly ?? 'all'}-${initialFocusSection ?? 'default'}`
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
-			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
+			<TabContent
+				key={tabResetKey}
+				{...rest}
+				editItem={editItem}
+				focusedSectionOnly={focusedSectionOnly}
+				initialFocusSection={initialFocusSection}
+			/>
 		</UnifiedTableWizardProvider>
 	)
 }

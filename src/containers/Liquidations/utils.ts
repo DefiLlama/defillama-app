@@ -1,18 +1,5 @@
-import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchLiquidationsDataAtTimestamp } from './api'
 import { PROTOCOL_NAMES_MAP, SYMBOL_MAP, WRAPPED_GAS_TOKENS } from './constants'
-
-/**
- * Format the URL to the liquidations data payload
- *
- * @param symbol The symbol of the asset to fetch liquidations for
- * @param timestamp UNIX timestamp in **seconds**
- * @returns The URL to the liquidations data payload
- */
-export const getDataUrl = (symbol: string, timestamp: number) => {
-	const hourId = Math.floor(timestamp / 3600 / 6) * 6
-	return `${LIQUIDATIONS_HISTORICAL_R2_PATH}/${symbol.toLowerCase()}/${hourId}.json`
-}
 
 // making aliases so the hints are more readable
 type Address = string
@@ -114,10 +101,7 @@ export interface LiquidationsData {
 
 export const getLiquidationsCsvData = async (symbol: string) => {
 	const now = Math.round(Date.now() / 1000) // in seconds
-	const LIQUIDATIONS_DATA_URL = getDataUrl(symbol, now)
-
-	const res = await fetchJson(LIQUIDATIONS_DATA_URL)
-	const data = res as LiquidationsData
+	const data = await fetchLiquidationsDataAtTimestamp(symbol, now)
 
 	const timestamp = data.time
 	const positions = data.positions
@@ -158,7 +142,11 @@ export const buildLiquidationsChartSeries = (chartData: ChartData): Liquidations
 	const buildGroup = (stackBy: 'protocols' | 'chains') => {
 		const chartDataBins = chartData.chartDataBins[stackBy]
 		const liquidablesByGroup = chartData.totalLiquidables[stackBy]
-		const keys = Object.keys(chartDataBins).sort((a, b) => {
+		const keys: string[] = []
+		for (const key in chartDataBins) {
+			keys.push(key)
+		}
+		keys.sort((a, b) => {
 			const aValue = liquidablesByGroup[a] ?? 0
 			const bValue = liquidablesByGroup[b] ?? 0
 			if (bValue !== aValue) return bValue - aValue

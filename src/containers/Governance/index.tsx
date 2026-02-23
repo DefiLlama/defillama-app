@@ -2,7 +2,6 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	getCoreRowModel,
-	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -14,7 +13,7 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import type { GovernanceOverviewItem } from './types'
 
 export default function Governance({ data }: { data: GovernanceOverviewItem[] }) {
@@ -35,9 +34,7 @@ export default function Governance({ data }: { data: GovernanceOverviewItem[] })
 		onColumnFiltersChange: setColumnFilters,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
-		getRowCanExpand: () => true
+		getFilteredRowModel: getFilteredRowModel()
 	})
 
 	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
@@ -65,26 +62,10 @@ export default function Governance({ data }: { data: GovernanceOverviewItem[] })
 					/>
 				</label>
 			</div>
-			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
+			<VirtualTable instance={instance} />
 		</div>
 	)
 }
-
-const RenderSubComponent = ({ row }: { row: { original: GovernanceOverviewItem } }) => {
-	const subRowEntries = Object.entries(row.original.subRowData)
-
-	return (
-		<span className="flex flex-col gap-1 pl-[72px]">
-			{subRowEntries.map(([type, value]) => (
-				<span key={row.original.name + type + String(value)}>
-					{capitalizeFirstLetter(type) + ' Proposals : ' + value}
-				</span>
-			))}
-		</span>
-	)
-}
-
-const renderSubComponent = ({ row }: { row: { original: GovernanceOverviewItem } }) => <RenderSubComponent row={row} />
 
 const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
 	{

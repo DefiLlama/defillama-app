@@ -12,11 +12,12 @@ import {
 import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 
 type BridgesTableRow = {
 	displayName: string
@@ -27,6 +28,16 @@ type BridgesTableRow = {
 	weeklyVolume?: number
 	monthlyVolume?: number
 	txsPrevDay?: number
+}
+
+export type BridgesTableHandle = {
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+}
+
+type BridgesTableProps = {
+	data: BridgesTableRow[]
+	searchValue?: string
+	csvFileName?: string
 }
 
 const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
@@ -74,7 +85,11 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 	{
 		header: '1d Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 100,
 		meta: {
 			align: 'end'
@@ -154,7 +169,10 @@ const bridgesColumnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export function BridgesTable({ data, searchValue = '' }: { data: BridgesTableRow[]; searchValue?: string }) {
+export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTableProps>(function BridgesTable(
+	{ data, searchValue = '', csvFileName = 'bridges' },
+	ref
+) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -193,5 +211,13 @@ export function BridgesTable({ data, searchValue = '' }: { data: BridgesTableRow
 		columnOrders: bridgesColumnOrders
 	})
 
+	React.useImperativeHandle(
+		ref,
+		() => ({
+			prepareCsv: () => prepareTableCsv({ instance, filename: csvFileName })
+		}),
+		[csvFileName, instance]
+	)
+
 	return <VirtualTable instance={instance} />
-}
+})

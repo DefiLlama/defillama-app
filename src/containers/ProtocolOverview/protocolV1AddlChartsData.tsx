@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { PROTOCOL_API } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { fetchJson } from '~/utils/async'
+import { fetchProtocolBySlug } from './api'
 import type { IProtocolChainTvlEntry, IProtocolOverviewMetricsV1 } from './api.types'
 
 type ChainTvlEntry = IProtocolChainTvlEntry
@@ -140,7 +139,13 @@ function buildProtocolV1Inflows({
 			let tokenDayDifference: Record<string, number> = {}
 
 			// Iterate all tokens that changed
-			const allTokens = new Set([...Object.keys(currentTokens), ...Object.keys(oldTokens)])
+			const allTokens = new Set<string>()
+			for (const token in currentTokens) {
+				allTokens.add(token)
+			}
+			for (const token in oldTokens) {
+				allTokens.add(token)
+			}
 
 			for (const token of allTokens) {
 				// Skip excluded token
@@ -645,8 +650,8 @@ export const useFetchProtocolV1AddlChartsData = (
 ) => {
 	const { data: addlProtocolData, isLoading } = useQuery<IProtocolOverviewMetricsV1>({
 		queryKey: ['protocol-overview-v1', protocolName, 'metrics'],
-		queryFn: () => fetchJson(`${PROTOCOL_API}/${protocolName}`),
-		staleTime: 60 * 60 * 1000,
+		queryFn: () => fetchProtocolBySlug<IProtocolOverviewMetricsV1>(protocolName),
+		staleTime: Infinity,
 		refetchOnWindowFocus: false,
 		retry: 0
 	})
@@ -657,9 +662,9 @@ export const useFetchProtocolV1AddlChartsData = (
 
 	const data = useQuery({
 		queryKey: [
-			'protocols-addl-chart-data',
+			'protocol-overview',
+			'addl-chart-data',
 			protocolName,
-			Boolean(addlProtocolData),
 			isBorrowed ? 'borrowed' : JSON.stringify(extraTvlsEnabled),
 			normalizedTokenToExclude
 		],
@@ -670,10 +675,10 @@ export const useFetchProtocolV1AddlChartsData = (
 				isBorrowed,
 				tokenToExclude: normalizedTokenToExclude
 			}),
-		staleTime: 60 * 60 * 1000,
-		refetchInterval: 10 * 60 * 1000,
+		staleTime: Infinity,
 		refetchOnWindowFocus: false,
-		retry: 0
+		retry: 0,
+		enabled: Boolean(addlProtocolData)
 	})
 
 	const historicalChainTvls = useMemo(() => {

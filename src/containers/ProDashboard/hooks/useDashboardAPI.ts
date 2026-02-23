@@ -22,7 +22,7 @@ export function useGetLiteDashboards() {
 	const liteDashboards = JSON.parse(liteDashboardsInStorage)
 
 	const { isLoading, error } = useQuery({
-		queryKey: ['lite-dashboards', user?.id],
+		queryKey: ['pro-dashboard', 'lite-dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
@@ -59,7 +59,7 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards', user?.id],
+		queryKey: ['pro-dashboard', 'dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
@@ -86,9 +86,9 @@ export function useDashboardAPI() {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: any) => {
@@ -115,10 +115,10 @@ export function useDashboardAPI() {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
 		onSuccess: (dashboard: Dashboard, variables) => {
-			queryClient.setQueriesData({ queryKey: ['dashboard', variables.id], exact: false }, dashboard)
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard', variables.id], exact: false }, dashboard)
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
@@ -131,9 +131,9 @@ export function useDashboardAPI() {
 			return await dashboardAPI.deleteDashboard(id, authorizedFetch)
 		},
 		onSuccess: (_, deletedId) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId

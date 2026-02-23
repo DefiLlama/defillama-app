@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/router'
 import { type ComponentType, lazy, Suspense, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
@@ -15,28 +14,25 @@ import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/L
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
-import { BAR_CHARTS, type ProtocolChartsLabels, protocolCharts } from './constants'
+import { pushShallowQuery } from '~/utils/routerQuery'
+import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IProtocolCoreChartProps } from './ProtocolCoreChart'
 import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
-// Utility function to update any query parameter in URL
-const updateQueryParamInUrl = (currentUrl: string, queryKey: string, newValue: string | null | undefined): string => {
-	const url =
-		typeof document === 'undefined'
-			? new URL(currentUrl, 'http://localhost')
-			: new URL(currentUrl, window.location.origin)
-
-	// If value is falsy or empty, remove the parameter
-	if (!newValue || newValue === '') {
-		url.searchParams.delete(queryKey)
-	} else {
-		// Replace or add the parameter
-		url.searchParams.set(queryKey, newValue)
-	}
-
-	return url.pathname + url.search
+const resolveVisibility = ({
+	queryValue,
+	defaultEnabled
+}: {
+	queryValue: string | null
+	defaultEnabled: boolean
+}): 'true' | 'false' => {
+	if (queryValue === 'true') return 'true'
+	if (queryValue === 'false') return 'false'
+	return defaultEnabled ? 'true' : 'false'
 }
+
+const getQueryValueOnRemove = (isDefaultEnabled: boolean): 'false' | null => (isDefaultEnabled ? 'false' : null)
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 type ChartInterval = (typeof INTERVALS_LIST)[number]
@@ -49,7 +45,10 @@ const ProtocolCoreChart = lazy(() =>
 
 export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const router = useRouter()
-	const searchParams = useSearchParams()
+	const searchParams = useMemo(() => {
+		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
+		return new URLSearchParams(queryString)
+	}, [router.asPath])
 	const [isThemeDark] = useDarkModeManager()
 	const { chartInstance: overviewChartInstance, handleChartReady: handleOverviewChartReady } = useChartImageExport()
 	const overviewImageFilename = slug(props.name)
@@ -59,38 +58,30 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 		[props.chartDenominations]
 	)
 
-	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultToggledCharts } = useMemo(() => {
+	const { toggledMetrics, hasAtleasOneBarChart, toggledCharts, groupBy, defaultEnabledCharts } = useMemo(() => {
+		const defaultEnabledChartSet = new Set<ProtocolChartsLabels>(props.defaultToggledCharts)
+		const defaultEnabledCharts: Partial<Record<ProtocolChartsLabels, boolean>> = {}
 		const chartsByVisibility: Record<string, 'true' | 'false'> = {}
 		for (const chartLabel of Object.keys(protocolCharts) as ProtocolChartsLabels[]) {
 			const chartKey = protocolCharts[chartLabel]
-			chartsByVisibility[chartKey] = searchParams.get(chartKey) === 'true' ? 'true' : 'false'
+			const defaultEnabled = defaultEnabledChartSet.has(chartLabel)
+			defaultEnabledCharts[chartLabel] = defaultEnabled
+			chartsByVisibility[chartKey] = resolveVisibility({
+				queryValue: searchParams.get(chartKey),
+				defaultEnabled
+			})
 		}
 
 		const denominationInSearchParams = searchParams.get('denomination')?.toLowerCase()
+		const hasEvents = (props.hallmarks?.length ?? 0) > 0 || (props.rangeHallmarks?.length ?? 0) > 0
 
 		const toggledMetrics = {
 			...chartsByVisibility,
 			denomination: denominationInSearchParams
 				? (chartDenominationByLowerSymbol.get(denominationInSearchParams)?.symbol ?? null)
 				: null,
-			events:
-				(props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) && searchParams.get('events') !== 'false'
-					? 'true'
-					: 'false'
+			events: hasEvents ? resolveVisibility({ queryValue: searchParams.get('events'), defaultEnabled: true }) : 'false'
 		} as IToggledMetrics
-
-		for (const chartLabel of props.defaultToggledCharts) {
-			const chartKey = protocolCharts[chartLabel]
-			toggledMetrics[chartKey] = searchParams.get(chartKey) === 'false' ? 'false' : 'true'
-		}
-
-		// TVL/Total Assets are special: if chart is available, keep enabled by default unless explicitly disabled via query.
-		toggledMetrics.tvl =
-			props.availableCharts.includes('TVL') && searchParams.get(protocolCharts['TVL']) !== 'false' ? 'true' : 'false'
-		toggledMetrics.totalAssets =
-			props.availableCharts.includes('Total Assets') && searchParams.get(protocolCharts['Total Assets']) !== 'false'
-				? 'true'
-				: 'false'
 
 		const toggledCharts = props.availableCharts.filter((chart) => toggledMetrics[protocolCharts[chart]] === 'true')
 
@@ -106,7 +97,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 				if (isChartInterval(groupByParam)) return groupByParam
 				return (props.defaultChartView ?? 'daily') as ChartInterval
 			})(),
-			defaultToggledCharts: props.defaultToggledCharts
+			defaultEnabledCharts
 		}
 	}, [
 		searchParams,
@@ -169,25 +160,14 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									<button
 										key={`add-metric-${chart}`}
 										onClick={() => {
-											router
-												.push(
-													updateQueryParamInUrl(
-														router.asPath,
-														protocolCharts[chart],
-														toggledMetrics[protocolCharts[chart]] === 'true'
-															? defaultToggledCharts.includes(chart)
-																? 'false'
-																: null
-															: 'true'
-													),
-													undefined,
-													{
-														shallow: true
-													}
-												)
-												.then(() => {
-													metricsDialogStore.toggle()
-												})
+											pushShallowQuery(router, {
+												[protocolCharts[chart]]:
+													toggledMetrics[protocolCharts[chart]] === 'true'
+														? (getQueryValueOnRemove(defaultEnabledCharts[chart] === true) ?? undefined)
+														: 'true'
+											}).then(() => {
+												metricsDialogStore.toggle()
+											})
 										}}
 										data-active={toggledMetrics[protocolCharts[chart]] === 'true'}
 										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -203,21 +183,11 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 								{props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0 ? (
 									<button
 										onClick={() => {
-											router
-												.push(
-													updateQueryParamInUrl(
-														router.asPath,
-														'events',
-														toggledMetrics.events === 'true' ? 'false' : 'true'
-													),
-													undefined,
-													{
-														shallow: true
-													}
-												)
-												.then(() => {
-													metricsDialogStore.toggle()
-												})
+											pushShallowQuery(router, {
+												events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
+											}).then(() => {
+												metricsDialogStore.toggle()
+											})
 										}}
 										data-active={toggledMetrics.events === 'true'}
 										className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
@@ -244,17 +214,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							value={tchart}
 							checked={true}
 							onChange={() => {
-								router.push(
-									updateQueryParamInUrl(
-										router.asPath,
-										protocolCharts[tchart],
-										defaultToggledCharts.includes(tchart) ? 'false' : null
-									),
-									undefined,
-									{
-										shallow: true
-									}
-								)
+								pushShallowQuery(router, {
+									[protocolCharts[tchart]]: getQueryValueOnRemove(defaultEnabledCharts[tchart] === true) ?? undefined
+								})
 							}}
 							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 						/>
@@ -276,13 +238,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 							value="events"
 							checked={true}
 							onChange={() => {
-								router.push(
-									updateQueryParamInUrl(router.asPath, 'events', toggledMetrics.events === 'true' ? 'false' : 'true'),
-									undefined,
-									{
-										shallow: true
-									}
-								)
+								pushShallowQuery(router, {
+									events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
+								})
 							}}
 							className="peer absolute h-[1em] w-[1em] opacity-[0.00001]"
 						/>
@@ -309,11 +267,9 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 										(denom.symbol === 'USD' && !toggledMetrics.denomination)
 									}
 									onClick={() => {
-										router.push(
-											updateQueryParamInUrl(router.asPath, 'denomination', denom.symbol === 'USD' ? '' : denom.symbol),
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, {
+											denomination: denom.symbol === 'USD' ? undefined : denom.symbol
+										})
 									}}
 								>
 									{denom.symbol}
@@ -330,8 +286,8 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
-										router.push(updateQueryParamInUrl(router.asPath, 'groupBy', dataInterval), undefined, {
-											shallow: true
+										pushShallowQuery(router, {
+											groupBy: dataInterval
 										})
 									}}
 									key={`${props.name}-overview-groupBy-${dataInterval}`}

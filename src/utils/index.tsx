@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
+import { renderPercentChange } from '~/components/PercentChange'
 import { ICONS_CDN } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
@@ -16,29 +17,29 @@ interface HSL {
 	l: number
 }
 
-interface CSVDownloadOptions {
-	mimeType?: string
-	addTimestamp?: boolean
-}
-
-interface DatasetCSVParams {
-	data: Record<string, unknown>[]
-	columns?: string[]
-	columnHeaders?: Record<string, string>
-	filename?: string
-	filenameSuffix?: string
-	addTimestamp?: boolean
-}
-
-type CsvCell = string | number | boolean | object | null | undefined
-type CsvData = CsvCell[][] | string
-
 interface VolumeChartEntry {
 	Deposits: number
 	Withdrawals: number
 	txs: number
 	volume: number
 	[key: string]: unknown
+}
+
+export function keepNeededProperties<T extends object, K extends keyof T & string>(
+	protocol: T,
+	propertiesToKeep: readonly K[]
+): Pick<T, K>
+export function keepNeededProperties(protocol: object, propertiesToKeep: readonly string[]): Record<string, unknown>
+export function keepNeededProperties(protocol: object, propertiesToKeep: readonly string[]): Record<string, unknown> {
+	const obj = protocol as Record<string, unknown>
+	const result: Record<string, unknown> = {}
+	for (const prop of propertiesToKeep) {
+		const value = obj[prop]
+		if (value !== undefined) {
+			result[prop] = value
+		}
+	}
+	return result
 }
 
 /** gives output like `5 days ago` or `17 hours ago` from a timestamp, https://day.js.org/docs/en/plugin/relative-time */
@@ -339,79 +340,6 @@ export function peggedAssetIconUrl(name: unknown): string {
 	return `${ICONS_CDN}/pegged/${encodeURIComponent(String(name).toLowerCase().split(' ').join('-'))}?w=48&h=48`
 }
 
-export function renderPercentChange(
-	percent: unknown,
-	noSign: boolean | undefined,
-	fontWeight: number | undefined,
-	returnTextOnly: true
-): string | null
-export function renderPercentChange(
-	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: false
-): React.JSX.Element | null
-export function renderPercentChange(
-	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: boolean
-): string | null | React.JSX.Element
-export function renderPercentChange(
-	percent: unknown,
-	noSign?: boolean,
-	fontWeight?: number,
-	returnTextOnly?: boolean
-): string | null | React.JSX.Element {
-	if (!percent && percent !== 0) {
-		return null
-	}
-
-	const parsedPercent = parseFloat(String(percent))
-	let isPositive = false
-	let isNegative = false
-	let finalValue = ''
-
-	if (!parsedPercent || parsedPercent === 0) {
-		finalValue = '0%'
-	} else if (parsedPercent > 0 && parsedPercent < 0.0001) {
-		isPositive = true
-		finalValue = '< 0.0001%'
-	} else if (parsedPercent < 0 && parsedPercent > -0.0001) {
-		isNegative = true
-		finalValue = '< 0.0001%'
-	} else {
-		const fixedPercent = parsedPercent.toFixed(2)
-		const fixedNum = Number(fixedPercent)
-
-		if (fixedNum === 0) {
-			finalValue = '0%'
-		} else if (fixedNum > 0) {
-			isPositive = true
-			const prefix = noSign ? '' : '+'
-			finalValue = fixedNum > 100 ? `${prefix}${parsedPercent.toFixed(0)}%` : `${prefix}${fixedPercent}%`
-		} else {
-			isNegative = true
-			finalValue = `${fixedPercent}%`
-		}
-	}
-
-	if (returnTextOnly) {
-		return finalValue
-	}
-
-	const colorClass = noSign ? '' : isPositive ? 'text-(--success)' : isNegative ? 'text-(--error)' : ''
-	const weight = fontWeight ?? 400
-
-	return weight > 400 ? (
-		<span className={colorClass} style={{ fontWeight: weight }}>
-			{finalValue}
-		</span>
-	) : (
-		<span className={colorClass}>{finalValue}</span>
-	)
-}
-
 /**
  * get standard percent change between two values
  */
@@ -624,124 +552,6 @@ export const getPrevVolumeFromChart = (
 	return txs ? prevChart.txs : prevChart.volume
 }
 
-export function download(filename: string, text: string): void {
-	const element = document.createElement('a')
-	element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text))
-	element.setAttribute('download', filename)
-
-	element.style.display = 'none'
-	document.body.appendChild(element)
-
-	element.click()
-
-	document.body.removeChild(element)
-}
-
-export function downloadDataURL(filename: string, dataURL: string): void {
-	const element = document.createElement('a')
-	element.setAttribute('href', dataURL)
-	element.setAttribute('download', filename)
-
-	element.style.display = 'none'
-	document.body.appendChild(element)
-
-	element.click()
-
-	document.body.removeChild(element)
-}
-
-export function downloadCSV(filename: string, csvData: CsvData, options: CSVDownloadOptions = {}): void {
-	try {
-		const { mimeType = 'text/csv;charset=utf-8;', addTimestamp = false } = options
-
-		let csvContent: string
-
-		if (Array.isArray(csvData)) {
-			csvContent = csvData
-				.map((row) =>
-					row
-						.map((cell) => {
-							if (cell == null) return ''
-							if (typeof cell === 'object') return JSON.stringify(cell)
-							const cellStr = String(cell)
-							if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
-								return `"${cellStr.replace(/"/g, '""')}"`
-							}
-							return cellStr
-						})
-						.join(',')
-				)
-				.join('\n')
-		} else {
-			csvContent = String(csvData)
-		}
-
-		let finalFilename = filename
-		if (addTimestamp && !filename.includes(new Date().toISOString().split('T')[0])) {
-			const extension = filename.split('.').pop()
-			const nameWithoutExt = filename.replace(`.${extension}`, '')
-			finalFilename = `${nameWithoutExt}_${new Date().toISOString().split('T')[0]}.${extension}`
-		}
-
-		const blob = new Blob([csvContent], { type: mimeType })
-		const downloadUrl = window.URL.createObjectURL(blob)
-
-		const link = document.createElement('a')
-		link.href = downloadUrl
-		link.download = finalFilename
-		link.style.display = 'none'
-
-		document.body.appendChild(link)
-		link.click()
-		document.body.removeChild(link)
-
-		window.URL.revokeObjectURL(downloadUrl)
-	} catch (error) {
-		console.log('CSV download error:', error)
-		download(filename, String(csvData))
-	}
-}
-
-export function downloadDatasetCSV({
-	data,
-	columns,
-	columnHeaders = {},
-	filename,
-	filenameSuffix,
-	addTimestamp = true
-}: DatasetCSVParams): void {
-	try {
-		if (!data || !Array.isArray(data) || data.length === 0) {
-			console.log('No data provided for CSV download')
-			return
-		}
-
-		const finalColumns = columns || Object.keys(data[0] || {})
-		const headers = finalColumns.map((col) => columnHeaders[col] || col)
-
-		const rows = data.map((item) =>
-			finalColumns.map((col) => {
-				const value = item[col]
-				if (value == null) return ''
-				if (typeof value === 'object') return JSON.stringify(value)
-				return String(value)
-			})
-		)
-
-		const csvRows: CsvCell[][] = [headers, ...rows]
-
-		let finalFilename = filename || 'dataset'
-		if (filenameSuffix) {
-			finalFilename += `_${filenameSuffix}`
-		}
-		finalFilename += '.csv'
-
-		downloadCSV(finalFilename, csvRows, { addTimestamp })
-	} catch (error) {
-		console.log('Dataset CSV download error:', error)
-	}
-}
-
 export const formatPercentage = (value: number): string => {
 	let zeroes = 0
 	let stop = false
@@ -918,8 +728,12 @@ export const formatEthAddress = (address: unknown): string => {
 	return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
-export function toNumberOrNullFromQueryParam(value: string | string[] | null | undefined): number | null {
-	const finalValue = value ? (typeof value === 'string' ? value : (value?.[0] ?? null)) : null
-	if (finalValue == null) return null
-	return Number.isNaN(Number(finalValue)) ? null : Number(finalValue)
+export const getAnnualizedRatio = (numerator?: number | null, denominator?: number | null) => {
+	if (numerator == null || denominator == null) {
+		return null
+	}
+	if (denominator === 0) {
+		return null
+	}
+	return Number((numerator / (denominator * 12)).toFixed(2))
 }

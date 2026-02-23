@@ -49,6 +49,11 @@ export default function AreaChart({
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+	const [prevCustomLegendOptions, setPrevCustomLegendOptions] = useState(customLegendOptions)
+	if (customLegendOptions !== prevCustomLegendOptions) {
+		setPrevCustomLegendOptions(customLegendOptions)
+		setLegendOptions(customLegendOptions)
+	}
 
 	const chartsStack = stacks || customLegendOptions
 
@@ -263,11 +268,18 @@ export default function AreaChart({
 				index++
 			}
 
+			const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 			for (const { date, ...item } of chartData) {
-				const sumOfTheDay = Object.values(item).reduce((acc: number, curr: number) => (acc += curr), 0) as number
+				let sumOfTheDay = 0
+				for (const stack of chartsStack) {
+					const rawValue = item[stack]
+					if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+						sumOfTheDay += rawValue
+					}
+				}
 
 				for (const stack of chartsStack) {
-					if ((legendOptions && customLegendName ? legendOptions.includes(stack) : true) && series[stack]) {
+					if ((legendOptionsSet && customLegendName ? legendOptionsSet.has(stack) : true) && series[stack]) {
 						const rawValue = item[stack] || 0
 
 						const value = expandTo100Percent ? (sumOfTheDay ? (rawValue / sumOfTheDay) * 100 : 0) : rawValue
@@ -302,8 +314,6 @@ export default function AreaChart({
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
-	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
 	const hasNotifiedReadyRef = useRef(false)
 
 	// Stable resize listener - never re-attaches when dependencies change
@@ -311,12 +321,7 @@ export default function AreaChart({
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstanceRef = useRef((instance: echarts.ECharts | null) => {
-		if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
-	})
-	updateExportInstanceRef.current = (instance: echarts.ECharts | null) => {
-		if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
-	}
+	const shouldSyncChartInstance = shouldEnableImageExport || shouldEnableCSVDownload
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -328,33 +333,36 @@ export default function AreaChart({
 			instance = echarts.init(chartDom)
 		}
 		chartRef.current = instance
-		updateExportInstanceRef.current(instance)
+		if (shouldSyncChartInstance) {
+			handleChartReady(instance)
+		}
 
-		if (onReadyRef.current && isNewInstance) {
-			onReadyRef.current(instance)
+		if (onReady && isNewInstance) {
+			onReady(instance)
 			hasNotifiedReadyRef.current = true
 		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
 				if (Array.isArray(chartOptions[option])) {
-					if (defaultChartSettings[option]) {
-						defaultChartSettings[option] = [
-							{ ...defaultChartSettings[option][0], ...(chartOptions[option][0] ?? {}) },
-							{ ...defaultChartSettings[option][1], ...(chartOptions[option][1] ?? {}) }
+					if (settings[option]) {
+						settings[option] = [
+							{ ...settings[option][0], ...(chartOptions[option][0] ?? {}) },
+							{ ...settings[option][1], ...(chartOptions[option][1] ?? {}) }
 						]
 					} else {
-						defaultChartSettings[option] = chartOptions[option]
+						settings[option] = chartOptions[option]
 					}
 				}
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = settings
 
 		instance.setOption({
 			graphic,
@@ -380,15 +388,29 @@ export default function AreaChart({
 			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
-	}, [defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend, hideDataZoom, id, chartsStack])
+	}, [
+		defaultChartSettings,
+		series,
+		chartOptions,
+		expandTo100Percent,
+		hideLegend,
+		hideDataZoom,
+		id,
+		chartsStack,
+		shouldSyncChartInstance,
+		handleChartReady,
+		onReady
+	])
 
 	useChartCleanup(id, () => {
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
-			onReadyRef.current?.(null)
+			onReady?.(null)
 			hasNotifiedReadyRef.current = false
 		}
-		updateExportInstanceRef.current(null)
+		if (shouldSyncChartInstance) {
+			handleChartReady(null)
+		}
 	})
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName

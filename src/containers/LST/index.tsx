@@ -4,6 +4,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -11,7 +12,7 @@ import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, renderPercentChange, lastDayOfWeek } from '~/utils'
+import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -46,6 +47,12 @@ const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
 		</span>
 	)
 }
+
+const renderLSTPercentChangeCell: ColumnDef<ILSTTokenRow>['cell'] = ({ getValue }) => (
+	<>
+		<PercentChange percent={getValue<number | null>()} />
+	</>
+)
 
 const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
@@ -91,7 +98,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
 		header: '7d Change',
 		accessorKey: 'stakedEthPctChange7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: renderLSTPercentChangeCell,
 		meta: {
 			align: 'end'
 		},
@@ -100,7 +107,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 	{
 		header: '30d Change',
 		accessorKey: 'stakedEthPctChange30d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: renderLSTPercentChangeCell,
 		meta: {
 			align: 'end'
 		},
@@ -151,7 +158,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 					}
 					className="justify-end"
 				>
-					{getValue<number | null>() != null ? renderPercentChange(getValue<number | null>()) : null}
+					{getValue<number | null>() != null ? <PercentChange percent={getValue<number | null>()} /> : null}
 				</Tooltip>
 			)
 		},
@@ -318,14 +325,14 @@ export const LSTOverview = ({
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
 						className="border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('breakdown'))}
+						onClick={() => setTab('breakdown')}
 						data-selected={tab === 'breakdown'}
 					>
 						Breakdown
 					</button>
 					<button
 						className="border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('inflows'))}
+						onClick={() => setTab('inflows')}
 						data-selected={tab === 'inflows'}
 					>
 						Inflows
@@ -431,6 +438,7 @@ export const LSTOverview = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 				header="Liquid Staking Protocols"
+				csvFileName="liquid-staking"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

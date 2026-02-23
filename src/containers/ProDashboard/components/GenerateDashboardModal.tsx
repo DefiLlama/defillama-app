@@ -57,20 +57,90 @@ export function GenerateDashboardModal({
 	onGenerate
 }: GenerateDashboardModalProps) {
 	const { user, isAuthenticated, authorizedFetch } = useAuthContext()
-	const [dashboardName, setDashboardName] = useState('')
-	const [aiDescription, setAiDescription] = useState('')
-	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
-	const [tags, setTags] = useState<string[]>([])
-	const [tagInput, setTagInput] = useState('')
-	const [isLoading, setIsLoading] = useState(false)
-	const [errors, setErrors] = useState<{
+	type FormState = {
+		dashboardName: string
+		aiDescription: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		tagInput: string
+	}
+	type ValidationErrors = {
 		dashboardName?: string
 		aiDescription?: string
-	}>({})
-	const [touchedFields, setTouchedFields] = useState<{
+	}
+	type TouchedFields = {
 		dashboardName?: boolean
 		aiDescription?: boolean
-	}>({})
+	}
+
+	const [formState, setFormState] = useState<FormState>({
+		dashboardName: '',
+		aiDescription: '',
+		visibility: 'public',
+		tags: [],
+		tagInput: ''
+	})
+	const { dashboardName, aiDescription, visibility, tags, tagInput } = formState
+	const [isLoading, setIsLoading] = useState(false)
+	const [validationState, setValidationState] = useState<{
+		errors: ValidationErrors
+		touchedFields: TouchedFields
+	}>({
+		errors: {},
+		touchedFields: {}
+	})
+	const { errors, touchedFields } = validationState
+
+	const setDashboardName = (value: string) => {
+		setFormState((prev) => ({ ...prev, dashboardName: value }))
+	}
+
+	const setAiDescription = (value: string) => {
+		setFormState((prev) => ({ ...prev, aiDescription: value }))
+	}
+
+	const setVisibility = (value: 'private' | 'public') => {
+		setFormState((prev) => ({ ...prev, visibility: value }))
+	}
+
+	const setTags = (updater: string[] | ((prev: string[]) => string[])) => {
+		setFormState((prev) => ({
+			...prev,
+			tags: typeof updater === 'function' ? updater(prev.tags) : updater
+		}))
+	}
+
+	const setTagInput = (value: string) => {
+		setFormState((prev) => ({ ...prev, tagInput: value }))
+	}
+
+	const setErrors = (updater: ValidationErrors | ((prev: ValidationErrors) => ValidationErrors)) => {
+		setValidationState((prev) => ({
+			...prev,
+			errors: typeof updater === 'function' ? updater(prev.errors) : updater
+		}))
+	}
+
+	const setTouchedFields = (updater: TouchedFields | ((prev: TouchedFields) => TouchedFields)) => {
+		setValidationState((prev) => ({
+			...prev,
+			touchedFields: typeof updater === 'function' ? updater(prev.touchedFields) : updater
+		}))
+	}
+
+	const resetModalState = () => {
+		setFormState({
+			dashboardName: '',
+			aiDescription: '',
+			visibility: 'public',
+			tags: [],
+			tagInput: ''
+		})
+		setValidationState({
+			errors: {},
+			touchedFields: {}
+		})
+	}
 
 	const validateDashboardName = (value: string): string | undefined => {
 		if (mode === 'create' && !value.trim()) {
@@ -138,98 +208,146 @@ export function GenerateDashboardModal({
 			return
 		}
 
+		let sanitizedItems = EMPTY_DASHBOARD_ITEMS
+		if (mode === 'iterate' && existingDashboard && existingDashboard.items) {
+			sanitizedItems = sanitizeItemsForAPI(existingDashboard.items)
+		}
+
+		let requestBody: Record<string, unknown>
+		if (mode === 'iterate') {
+			let existingName = ''
+			if (existingDashboard && existingDashboard.dashboardName) {
+				existingName = existingDashboard.dashboardName
+			}
+			requestBody = {
+				message: aiDescription.trim(),
+				mode: 'iterate',
+				existingDashboard: {
+					dashboardName: existingName,
+					items: sanitizedItems,
+					aiGenerated: existingDashboard && existingDashboard.aiGenerated
+				}
+			}
+		} else {
+			requestBody = {
+				message: aiDescription.trim(),
+				dashboardName: dashboardName.trim()
+			}
+		}
+
+		let dashboardNameForGenerate = dashboardName.trim()
+		if (mode === 'iterate') {
+			dashboardNameForGenerate = ''
+			if (existingDashboard && existingDashboard.dashboardName) {
+				dashboardNameForGenerate = existingDashboard.dashboardName
+			}
+		}
+
+		let visibilityForGenerate = visibility
+		if (mode === 'iterate') {
+			visibilityForGenerate = 'private'
+			if (existingDashboard && existingDashboard.visibility) {
+				visibilityForGenerate = existingDashboard.visibility
+			}
+		}
+
+		let tagsForGenerate = tags
+		if (mode === 'iterate') {
+			tagsForGenerate = EMPTY_DASHBOARD_TAGS
+			if (existingDashboard && existingDashboard.tags != null) {
+				tagsForGenerate = existingDashboard.tags
+			}
+		}
+
+		let descriptionForGenerate = ''
+		if (mode === 'iterate' && existingDashboard && existingDashboard.description) {
+			descriptionForGenerate = existingDashboard.description
+		}
+
 		setIsLoading(true)
-
+		let response: Response | null | undefined
 		try {
-			// Sanitize items before sending to API to remove invalid values
-			const sanitizedItems =
-				mode === 'iterate' && existingDashboard?.items
-					? sanitizeItemsForAPI(existingDashboard.items)
-					: EMPTY_DASHBOARD_ITEMS
-
-			const requestBody =
-				mode === 'iterate'
-					? {
-							message: aiDescription.trim(),
-							mode: 'iterate',
-							existingDashboard: {
-								dashboardName: existingDashboard?.dashboardName || '',
-								items: sanitizedItems,
-								aiGenerated: existingDashboard?.aiGenerated
-							}
-						}
-					: {
-							message: aiDescription.trim(),
-							dashboardName: dashboardName.trim()
-						}
-
-			const response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
+			response = await authorizedFetch(`${MCP_SERVER}/dashboard-creator`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify(requestBody)
 			})
-
-			if (!response) {
-				throw new Error('Authentication failed')
-			}
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`)
-			}
-
-			const data = await response.json()
-
-			if (!data.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
-				throw new Error('Invalid response format from AI service')
-			}
-
-			const items = data.dashboardConfig.items as DashboardItemConfig[]
-			const sessionId = data.metadata?.sessionId
-			const generationMode = data.metadata?.mode || mode
-
-			onGenerate({
-				dashboardName: mode === 'iterate' ? existingDashboard?.dashboardName || '' : dashboardName.trim(),
-				visibility: mode === 'iterate' ? existingDashboard?.visibility || 'private' : visibility,
-				tags: mode === 'iterate' ? (existingDashboard?.tags ?? EMPTY_DASHBOARD_TAGS) : tags,
-				description: mode === 'iterate' ? existingDashboard?.description || '' : '',
-				items,
-				aiGenerationContext: sessionId
-					? {
-							sessionId,
-							mode: generationMode,
-							timestamp: new Date().toISOString(),
-							prompt: aiDescription.trim()
-						}
-					: undefined
-			})
-
-			setDashboardName('')
-			setAiDescription('')
-			setVisibility('public')
-			setTags([])
-			setTagInput('')
-			setErrors({})
-			setTouchedFields({})
-			onClose()
 		} catch (error) {
-			console.log('Failed to generate dashboard:', error)
+			console.error('Failed to generate dashboard:', error)
 			toast.error('Failed to generate dashboard. Please try again.')
-		} finally {
 			setIsLoading(false)
+			return
 		}
+
+		if (!response) {
+			toast.error('Authentication failed. Please sign in again.')
+			setIsLoading(false)
+			return
+		}
+
+		if (!response.ok) {
+			toast.error('Failed to generate dashboard. Please try again.')
+			setIsLoading(false)
+			return
+		}
+
+		let data: any
+		try {
+			data = await response.json()
+		} catch (error) {
+			console.error('Failed to parse dashboard response:', error)
+			toast.error('Invalid response format from AI service')
+			setIsLoading(false)
+			return
+		}
+
+		if (!data.dashboardConfig || !Array.isArray(data.dashboardConfig.items)) {
+			toast.error('Invalid response format from AI service')
+			setIsLoading(false)
+			return
+		}
+
+		const items = data.dashboardConfig.items as DashboardItemConfig[]
+		let sessionId: string | undefined
+		if (data.metadata && typeof data.metadata.sessionId === 'string') {
+			sessionId = data.metadata.sessionId
+		}
+		let generationMode: 'create' | 'iterate' = mode
+		if (data.metadata && (data.metadata.mode === 'create' || data.metadata.mode === 'iterate')) {
+			generationMode = data.metadata.mode
+		}
+
+		let aiGenerationContext:
+			| { sessionId: string; mode: 'create' | 'iterate'; timestamp: string; prompt: string }
+			| undefined
+		if (sessionId) {
+			aiGenerationContext = {
+				sessionId,
+				mode: generationMode,
+				timestamp: new Date().toISOString(),
+				prompt: aiDescription.trim()
+			}
+		}
+
+		onGenerate({
+			dashboardName: dashboardNameForGenerate,
+			visibility: visibilityForGenerate,
+			tags: tagsForGenerate,
+			description: descriptionForGenerate,
+			items,
+			aiGenerationContext
+		})
+
+		resetModalState()
+		onClose()
+		setIsLoading(false)
 	}
 
 	const handleClose = () => {
 		if (!isLoading) {
-			setDashboardName('')
-			setAiDescription('')
-			setVisibility('public')
-			setTags([])
-			setTagInput('')
-			setErrors({})
-			setTouchedFields({})
+			resetModalState()
 			onClose()
 		}
 	}
@@ -282,8 +400,11 @@ export function GenerateDashboardModal({
 				<div className="space-y-6">
 					{mode === 'create' && (
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Dashboard Name</label>
+							<label htmlFor="generate-dashboard-name" className="mb-3 block text-sm font-medium pro-text1">
+								Dashboard Name
+							</label>
 							<input
+								id="generate-dashboard-name"
 								type="text"
 								value={dashboardName}
 								onChange={(e) => {
@@ -300,7 +421,6 @@ export function GenerateDashboardModal({
 										: 'pro-border focus:ring-1 focus:ring-(--primary)'
 								} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 								disabled={isLoading}
-								autoFocus
 							/>
 							{touchedFields.dashboardName && errors.dashboardName && (
 								<p className="mt-1 text-sm text-red-500">{errors.dashboardName}</p>
@@ -309,12 +429,13 @@ export function GenerateDashboardModal({
 					)}
 
 					<div>
-						<label className="mb-3 block text-sm font-medium pro-text1">
+						<label htmlFor="generate-dashboard-description" className="mb-3 block text-sm font-medium pro-text1">
 							{mode === 'iterate'
 								? 'Describe what you want to add or change'
 								: 'Describe the dashboard you want to create'}
 						</label>
 						<textarea
+							id="generate-dashboard-description"
 							value={aiDescription}
 							onChange={(e) => {
 								setAiDescription(e.target.value)
@@ -335,7 +456,6 @@ export function GenerateDashboardModal({
 									: 'pro-border focus:ring-1 focus:ring-(--primary)'
 							} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
 							disabled={isLoading}
-							autoFocus={mode === 'iterate'}
 						/>
 						{touchedFields.aiDescription && errors.aiDescription && (
 							<p className="mt-1 text-sm text-red-500">{errors.aiDescription}</p>
@@ -350,9 +470,12 @@ export function GenerateDashboardModal({
 
 					{mode === 'create' && (
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Visibility</label>
-							<div className="flex gap-3">
+							<p id="generate-dashboard-visibility" className="mb-3 block text-sm font-medium pro-text1">
+								Visibility
+							</p>
+							<div className="flex gap-3" aria-labelledby="generate-dashboard-visibility">
 								<button
+									type="button"
 									onClick={() => setVisibility('public')}
 									disabled={isLoading}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
@@ -363,6 +486,7 @@ export function GenerateDashboardModal({
 									Public
 								</button>
 								<button
+									type="button"
 									onClick={() => setVisibility('private')}
 									disabled={isLoading}
 									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
@@ -381,9 +505,12 @@ export function GenerateDashboardModal({
 
 					{mode === 'create' && (
 						<div>
-							<label className="mb-3 block text-sm font-medium pro-text1">Tags</label>
+							<label htmlFor="generate-dashboard-tag-input" className="mb-3 block text-sm font-medium pro-text1">
+								Tags
+							</label>
 							<div className="flex gap-2">
 								<input
+									id="generate-dashboard-tag-input"
 									type="text"
 									value={tagInput}
 									onChange={(e) => setTagInput(e.target.value)}
@@ -393,6 +520,7 @@ export function GenerateDashboardModal({
 									disabled={isLoading}
 								/>
 								<button
+									type="button"
 									onClick={() => handleAddTag(tagInput)}
 									disabled={!tagInput.trim() || isLoading}
 									className={`rounded-md border px-4 py-2 transition-colors ${
@@ -414,6 +542,7 @@ export function GenerateDashboardModal({
 										>
 											{tag}
 											<button
+												type="button"
 												onClick={() => handleRemoveTag(tag)}
 												className="hover:text-pro-blue-400"
 												disabled={isLoading}
@@ -436,6 +565,7 @@ export function GenerateDashboardModal({
 						Cancel
 					</Ariakit.DialogDismiss>
 					<button
+						type="button"
 						onClick={handleGenerate}
 						disabled={isLoading}
 						className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${

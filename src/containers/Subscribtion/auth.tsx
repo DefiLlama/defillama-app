@@ -3,9 +3,19 @@ import type { RecordAuthResponse, RecordModel } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
+import { handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
 
 export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
+
+function syncAuthTokenToCookie(token: string | null) {
+	if (typeof document === 'undefined') return
+	if (token) {
+		document.cookie = `pb_auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`
+	} else {
+		document.cookie = `pb_auth_token=; path=/; max-age=0; path=/; Secure`
+	}
+}
 
 // Custom event name for auth store changes
 const AUTH_STORE_CHANGE_EVENT = 'pb-auth-store-change'
@@ -30,9 +40,7 @@ const subscribeToAuthStore = (callback: () => void) => {
 				record: record ? { ...record } : null,
 				isValid: pb.authStore.isValid
 			}
-			// window.dispatchEvent(
-			// 	new CustomEvent(AUTH_STORE_CHANGE_EVENT, { detail: { token, record, isValid: pb.authStore.isValid } })
-			// )
+			syncAuthTokenToCookie(pb.authStore.isValid ? token : null)
 			callback()
 		}
 	})
@@ -63,15 +71,30 @@ interface FetchOptions extends RequestInit {
 }
 
 const getNonce = async (address: string) => {
-	const response = await fetch(`${AUTH_SERVER}/nonce?address=${address}`)
-	if (!response.ok) {
-		throw new Error('Failed to get nonce')
+	return fetch(`${AUTH_SERVER}/nonce?address=${address}`)
+		.then(handleSimpleFetchResponse)
+		.then((response) => response.json())
+		.catch((error) => {
+			if (error instanceof Error && error.message) {
+				throw error
+			}
+			throw new Error('Failed to get nonce')
+		})
+}
+
+type CreateSiweMessage = (typeof import('viem/siwe'))['createSiweMessage']
+let createSiweMessagePromise: Promise<CreateSiweMessage> | null = null
+
+const loadCreateSiweMessage = async (): Promise<CreateSiweMessage> => {
+	if (!createSiweMessagePromise) {
+		createSiweMessagePromise = import('viem/siwe').then((module) => module.createSiweMessage)
 	}
-	return response.json()
+	return createSiweMessagePromise
 }
 
 const clearUserSession = () => {
 	pb.authStore.clear()
+	syncAuthTokenToCookie(null)
 	localStorage.removeItem('userHash')
 	localStorage.removeItem('lite-dashboards')
 	if (typeof window !== 'undefined') {
@@ -80,6 +103,41 @@ const clearUserSession = () => {
 	if (typeof window !== 'undefined' && (window as any).FrontChat) {
 		;(window as any).FrontChat('shutdown', { clearSession: true })
 	}
+}
+
+const getAuthErrorMessageFromResponse = async (response: Response, fallbackMessage: string): Promise<string> => {
+	let parsed: unknown = null
+	try {
+		parsed = await response.json()
+	} catch {
+		return fallbackMessage
+	}
+
+	if (parsed == null || typeof parsed !== 'object') {
+		return fallbackMessage
+	}
+
+	const messageValue = (parsed as { message?: unknown }).message
+	if (typeof messageValue === 'string' && messageValue.length > 0) {
+		return messageValue
+	}
+
+	const errorValue = (parsed as { error?: unknown }).error
+	if (typeof errorValue === 'string' && errorValue.length > 0) {
+		return errorValue
+	}
+
+	return fallbackMessage
+}
+
+const getUserFacingErrorMessage = (error: unknown, fallbackMessage: string): string => {
+	if (!(error instanceof Error)) return fallbackMessage
+	const rawMessage = error.message || ''
+	if (!rawMessage.startsWith('[HTTP] [error]')) return rawMessage || fallbackMessage
+	const colonIndex = rawMessage.indexOf(':')
+	if (colonIndex === -1) return fallbackMessage
+	const details = rawMessage.slice(colonIndex + 1).trim()
+	return details || fallbackMessage
 }
 
 interface AuthContextType {
@@ -93,7 +151,7 @@ interface AuthContextType {
 		onSuccess?: () => void
 	) => Promise<void>
 	logout: () => void
-	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response>
+	authorizedFetch: (url: string, options?: FetchOptions, onlyToken?: boolean) => Promise<Response | null>
 	signInWithEthereumMutation: UseMutationResult<
 		{
 			address: string
@@ -141,7 +199,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	const queryClient = useQueryClient()
 
 	const { isLoading: userQueryIsLoading } = useQuery({
-		queryKey: ['currentUserAuthStatus', authStoreState?.record?.id ?? null],
+		queryKey: ['auth', 'status', authStoreState?.record?.id ?? null],
 		queryFn: async () => {
 			if (!authStoreState.token) {
 				clearUserSession()
@@ -198,12 +256,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const login = useCallback(
 		async (email: string, password: string, onSuccess?: () => void) => {
-			try {
-				await loginMutation.mutateAsync({ email, password })
-				onSuccess?.()
-			} catch (e) {
-				console.log('Login error:', e)
-				throw e
+			await loginMutation.mutateAsync({ email, password }).catch((error) => {
+				console.log('Login error:', error)
+				throw error
+			})
+			if (onSuccess) {
+				onSuccess()
 			}
 		},
 		[loginMutation]
@@ -337,7 +395,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const signInWithEthereumMutation = useMutation({
 		mutationFn: async ({ address, signMessageFunction }: { address: string; signMessageFunction: any }) => {
-			const { createSiweMessage } = await import('viem/siwe')
+			const createSiweMessage = await loadCreateSiweMessage()
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -356,34 +414,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				account: address as `0x${string}`
 			})
 
-			try {
-				const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
-				})
+			const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
+			})
 
-				if (!response.ok) {
-					const errorData = await response.json()
-					throw new Error(errorData.error || 'Failed to sign in with Ethereum')
-				}
-
-				const { password, identity, impersonate } = await response.json()
-
-				if (impersonate) {
-					await pb.authStore.save(impersonate.authStore.baseToken, impersonate.authStore.baseModel)
-				} else {
-					await pb.collection('users').authWithPassword(identity, password)
-				}
-
-				toast.success('Successfully signed in with Web3 wallet')
-
-				return { address }
-			} catch (error) {
-				console.log('Ethereum sign-in error:', error)
-				const message = error instanceof Error ? error.message : 'Failed to sign in with Ethereum'
-				throw new Error(message)
+			if (!response.ok) {
+				const errorMessage = await getAuthErrorMessageFromResponse(response, 'Failed to sign in with Ethereum')
+				throw new Error(errorMessage)
 			}
+
+			const { password, identity, impersonate } = await response.json()
+
+			if (impersonate) {
+				await pb.authStore.save(impersonate.token, impersonate.record)
+			} else {
+				await pb.collection('users').authWithPassword(identity, password)
+			}
+
+			toast.success('Successfully signed in with Web3 wallet')
+
+			return { address }
 		}
 	})
 
@@ -409,7 +461,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				throw new Error('User not authenticated')
 			}
 
-			const { createSiweMessage } = await import('viem/siwe')
+			const createSiweMessage = await loadCreateSiweMessage()
 			const { nonce } = await getNonce(address)
 			const issuedAt = new Date()
 			const message = createSiweMessage({
@@ -438,11 +490,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			})
 
 			if (!response.ok) {
-				let reason = 'Failed to link wallet'
-				try {
-					const data = await response.json()
-					reason = data?.message || data?.error || reason
-				} catch {}
+				const reason = await getAuthErrorMessageFromResponse(response, 'Failed to link wallet')
 				throw new Error(reason)
 			}
 
@@ -466,7 +514,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		async (address: string, signMessageFunction: any, onSuccess?: () => void) => {
 			try {
 				await addWalletMutation.mutateAsync({ address, signMessageFunction })
-				onSuccess?.()
+				if (onSuccess) {
+					onSuccess()
+				}
 				return Promise.resolve()
 			} catch (error) {
 				console.log('Add wallet error:', error)
@@ -496,19 +546,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const resendVerification = useMutation({
 		mutationFn: async (email: string) => {
-			try {
-				if (!pb.authStore.isValid) {
-					throw new Error('User not authenticated')
-				}
-
-				await pb.collection('users').requestVerification(email)
-
-				toast.success('Verification email sent')
-				return true
-			} catch (error) {
-				console.log('Error sending verification email:', error)
-				throw error
+			if (!pb.authStore.isValid) {
+				throw new Error('User not authenticated')
 			}
+
+			await pb.collection('users').requestVerification(email)
+
+			toast.success('Verification email sent')
+			return true
 		},
 		onError: () => {
 			toast.error('Failed to send verification email. Please try again.')
@@ -517,23 +562,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 	const addEmail = useMutation({
 		mutationFn: async (email: string) => {
-			try {
-				const response = await fetch(`${AUTH_SERVER}/add-email`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${pb.authStore.token}`
-					},
-					body: JSON.stringify({ email })
-				})
-				if (!response.ok) {
-					const data = await response.json()
-					throw new Error(data?.message || 'Failed to add email')
-				}
-				toast.success('Email added successfully')
-			} catch (error: any) {
-				toast.error(error.message || 'Failed to add email')
-			}
+			const response = await fetch(`${AUTH_SERVER}/add-email`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${pb.authStore.token}`
+				},
+				body: JSON.stringify({ email })
+			})
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to add email'))
+			})
+		},
+		onSuccess: () => {
+			toast.success('Email added successfully')
+		},
+		onError: (error: any) => {
+			toast.error(getUserFacingErrorMessage(error, 'Failed to add email'))
 		}
 	})
 
@@ -547,15 +592,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				},
 				body: JSON.stringify({ value })
 			})
-			if (!response.ok) {
-				const data = await response.json()
-				throw new Error(data?.message || 'Failed to update promotional emails preference')
-			}
+			await handleSimpleFetchResponse(response).catch((error) => {
+				throw new Error(getUserFacingErrorMessage(error, 'Failed to update promotional emails preference'))
+			})
 
 			return { value }
 		},
 		onSuccess: async (data) => {
-			queryClient.setQueryData(['currentUserAuthStatus'], (oldData: any) => {
+			queryClient.setQueryData(['auth', 'status', authStoreState?.record?.id ?? null], (oldData: any) => {
 				if (!oldData) return oldData
 				return {
 					...oldData,
@@ -570,7 +614,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			toast.success('Email preferences updated successfully')
 		},
 		onError: (error: any) => {
-			toast.error(error.message || 'Failed to update email preferences')
+			toast.error(getUserFacingErrorMessage(error, 'Failed to update email preferences'))
 		}
 	})
 
@@ -662,18 +706,16 @@ export const useUserHash = () => {
 	)
 
 	useQuery({
-		queryKey: ['user-hash-front', email, hasActiveSubscription],
+		queryKey: ['auth', 'user-hash', email, hasActiveSubscription],
 		queryFn: () =>
 			authorizedFetch(`${AUTH_SERVER}/user/front-hash`)
 				.then((res) => {
-					if (!res.ok) {
-						throw new Error('Failed to fetch user hash')
-					}
-					return res.json()
+					if (!res) throw new Error('Not authenticated')
+					return handleSimpleFetchResponse(res)
 				})
+				.then((res) => res.json())
 				.then((data) => {
 					const currentUserHash = localStorage.getItem('userHash')
-					// Avoid redundant localStorage writes (can be surprisingly costly in bursts).
 					if (currentUserHash !== data.userHash) {
 						localStorage.setItem('userHash', data.userHash)
 						window.dispatchEvent(new Event('userHashChange'))

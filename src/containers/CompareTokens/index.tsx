@@ -9,7 +9,8 @@ import { LocalLoader } from '~/components/Loaders'
 import { CACHE_SERVER } from '~/constants'
 import { CoinsPicker } from '~/containers/Correlations'
 import { fetchJson } from '~/utils/async'
-import type { Protocol } from './types'
+import { pushShallowQuery } from '~/utils/routerQuery'
+import type { CompareTokenProtocol } from './types'
 
 const EMPTY_SELECTED_COINS: Record<string, IResponseCGMarketsAPI> = {}
 
@@ -31,8 +32,8 @@ function getCompareValues(
 	coin0: IResponseCGMarketsAPI,
 	coin1: IResponseCGMarketsAPI,
 	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
-	protocolsByGeckoId: Map<string, Protocol>,
-	protocolsByName: Map<string, Protocol>
+	protocolsByGeckoId: Map<string, CompareTokenProtocol>,
+	protocolsByName: Map<string, CompareTokenProtocol>
 ): [number | null, number | null] {
 	const p0 = protocolsByGeckoId.get(coin0.id) ?? protocolsByName.get(coin0.name)
 	const p1 = protocolsByGeckoId.get(coin1.id) ?? protocolsByName.get(coin1.name)
@@ -63,8 +64,8 @@ function computeComparison(
 	selectedCoins: Array<IResponseCGMarketsAPI | undefined>,
 	coinPrices: number[],
 	fdvData: [{ coins: Record<string, { price?: number }> }, SupplyResponse, SupplyResponse],
-	protocolsByGeckoId: Map<string, Protocol>,
-	protocolsByName: Map<string, Protocol>
+	protocolsByGeckoId: Map<string, CompareTokenProtocol>,
+	protocolsByName: Map<string, CompareTokenProtocol>
 ): { newPrice: number; increase: number } | null {
 	const coin0 = selectedCoins[0]
 	const coin1 = selectedCoins[1]
@@ -85,7 +86,13 @@ function computeComparison(
 	return { newPrice, increase }
 }
 
-export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCGMarketsAPI[]; protocols: Protocol[] }) {
+export function CompareTokens({
+	coinsData,
+	protocols
+}: {
+	coinsData: IResponseCGMarketsAPI[]
+	protocols: CompareTokenProtocol[]
+}) {
 	const router = useRouter()
 	const [isModalOpen, setModalOpen] = useState(0)
 	const coinParam = router.query?.coin
@@ -96,10 +103,13 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 		[coinsData]
 	)
 	const protocolsByGeckoId = useMemo(
-		() => new Map<string, Protocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
+		() => new Map<string, CompareTokenProtocol>(protocols.flatMap((p) => (p.geckoId ? [[p.geckoId, p] as const] : []))),
 		[protocols]
 	)
-	const protocolsByName = useMemo(() => new Map<string, Protocol>(protocols.map((p) => [p.name, p])), [protocols])
+	const protocolsByName = useMemo(
+		() => new Map<string, CompareTokenProtocol>(protocols.map((p) => [p.name, p])),
+		[protocols]
+	)
 
 	const { selectedCoins, coins, compareType } = useMemo(() => {
 		const queryCoins = coinParam ?? ([] as string[])
@@ -118,7 +128,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 	}, [coinParam, typeParam, coinsDataById])
 
 	const { data: fdvData = null } = useQuery({
-		queryKey: [`fdv-${coins.join('-')}`],
+		queryKey: ['compare-tokens', 'fdv', ...coins],
 		queryFn:
 			coins.length === 2
 				? () =>
@@ -192,17 +202,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 					<button
 						onClick={() => {
 							if (coins.length > 1) {
-								router.push(
-									{
-										pathname: router.pathname,
-										query: {
-											...router.query,
-											coin: [coins[1], coins[0]]
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
+								pushShallowQuery(router, { coin: [coins[1], coins[0]] })
 							}
 						}}
 						className="flex shrink-0 items-center justify-center p-1"
@@ -265,17 +265,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 								<Ariakit.MenuItem
 									key={item.value}
 									onClick={() => {
-										router.push(
-											{
-												pathname: router.pathname,
-												query: {
-													...router.query,
-													type: item.value
-												}
-											},
-											undefined,
-											{ shallow: true }
-										)
+										pushShallowQuery(router, { type: item.value })
 									}}
 									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
@@ -342,17 +332,7 @@ export function CompareTokens({ coinsData, protocols }: { coinsData: IResponseCG
 					selectCoin={(coin) => {
 						const newCoins = coins.slice()
 						newCoins[isModalOpen - 1] = coin.id
-						router.push(
-							{
-								pathname: router.pathname,
-								query: {
-									...router.query,
-									coin: newCoins
-								}
-							},
-							undefined,
-							{ shallow: true }
-						)
+						pushShallowQuery(router, { coin: newCoins })
 						setModalOpen(0)
 						dialogStore.toggle()
 					}}

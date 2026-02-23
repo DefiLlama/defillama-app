@@ -1,12 +1,13 @@
-import { ACTIVE_USERS_API, CHAINS_API_V2 } from '~/constants'
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
-import type { IChainAssets } from '~/containers/ChainOverview/types'
+import type { RawChainsAssetsResponse } from '~/containers/BridgedTVL/api.types'
+import { fetchChainsByCategory } from '~/containers/Chains/api'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'
+import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
+import type { IActiveAddressesResponse } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import { fetchNftsVolumeByChain } from '../Nft/api'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
@@ -31,7 +32,7 @@ export const getChainsByCategory = async ({
 		chainNftsVolume,
 		appRevenue
 	] = await Promise.all([
-		fetchJson(`${CHAINS_API_V2}/${encodeURIComponent(category)}`) as Promise<IChainsByCategory>,
+		fetchChainsByCategory<IChainsByCategory>(category),
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'dexs', dataType: 'dailyVolume', chainMetadata }),
 		fetchAdapterChainMetrics({
 			adapterType: 'fees',
@@ -49,18 +50,8 @@ export const getChainsByCategory = async ({
 			return null
 		}) as Promise<IAdapterChainMetrics | null>,
 		fetchStablecoinAssetsApi(),
-		fetchJson(ACTIVE_USERS_API).catch(() => ({})) as Promise<
-			Record<
-				string,
-				{
-					name: string
-					users: { value: string; end: number }
-					txs: { value: string; end: number }
-					gasUsd: { value: number; end: number }
-				}
-			>
-		>,
-		fetchChainsAssets() as Promise<IChainAssets>,
+		fetchActiveAddresses().catch(() => ({}) as IActiveAddressesResponse),
+		fetchChainsAssets() as Promise<RawChainsAssetsResponse>,
 		fetchNftsVolumeByChain(),
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue', chainMetadata })
 	])
@@ -85,11 +76,40 @@ export const getChainsByCategory = async ({
 	colorsByChain['Others'] = '#AAAAAA'
 
 	const stablesChainMcaps = stablecoins.chains.map((chain) => {
+		let total = 0
+		for (const key in chain.totalCirculatingUSD) {
+			total += chain.totalCirculatingUSD[key]
+		}
 		return {
 			name: chain.name,
-			mcap: Object.values(chain.totalCirculatingUSD).reduce((a: number, b: number) => a + b)
+			mcap: total
 		}
 	}) as Array<{ name: string; mcap: number }>
+	const stablesChainMcapMap = new Map<string, number>()
+	for (const stableChain of stablesChainMcaps) {
+		const stableSlug = slug(stableChain.name)
+		if (!stablesChainMcapMap.has(stableSlug)) {
+			stablesChainMcapMap.set(stableSlug, stableChain.mcap)
+		}
+	}
+
+	// Build lookup maps for O(1) protocol access instead of O(n) .find() calls
+	const feesByDisplayName = new Map<string, (typeof fees.protocols)[0]>()
+	const revenueByDisplayName = new Map<string, (typeof revenue.protocols)[0]>()
+	if (fees?.protocols) {
+		for (const protocol of fees.protocols) {
+			if (!feesByDisplayName.has(protocol.displayName)) {
+				feesByDisplayName.set(protocol.displayName, protocol)
+			}
+		}
+	}
+	if (revenue?.protocols) {
+		for (const protocol of revenue.protocols) {
+			if (!revenueByDisplayName.has(protocol.displayName)) {
+				revenueByDisplayName.set(protocol.displayName, protocol)
+			}
+		}
+	}
 
 	let stackedDataset = rest.stackedDataset
 	if (sampledChart) {
@@ -137,19 +157,22 @@ export const getChainsByCategory = async ({
 		chains: chainTvls.map((chain) => {
 			const name = slug(chain.name)
 			const nftVolume = chainNftsVolume[name] ?? null
-			const totalFees24h = fees?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalFees7d = fees?.protocols?.find((x) => x.displayName === chain.name)?.total7d ?? null
-			const totalFees30d = fees?.protocols?.find((x) => x.displayName === chain.name)?.total30d ?? null
-			const totalRevenue24h = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total24h ?? null
-			const totalRevenue7d = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total7d ?? null
-			const totalRevenue30d = revenue?.protocols?.find((x) => x.displayName === chain.name)?.total30d ?? null
+			// O(1) Map lookups instead of O(n) .find() calls
+			const feesProtocol = feesByDisplayName.get(chain.name)
+			const totalFees24h = feesProtocol?.total24h ?? null
+			const totalFees7d = feesProtocol?.total7d ?? null
+			const totalFees30d = feesProtocol?.total30d ?? null
+			const revenueProtocol = revenueByDisplayName.get(chain.name)
+			const totalRevenue24h = revenueProtocol?.total24h ?? null
+			const totalRevenue7d = revenueProtocol?.total7d ?? null
+			const totalRevenue30d = revenueProtocol?.total30d ?? null
 			const totalAppRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
 			const totalAppRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
 			const totalAppRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null
 			const totalVolume24h = dexs?.[chain.name]?.['24h'] ?? null
 			const totalVolume7d = dexs?.[chain.name]?.['7d'] ?? null
 			const totalVolume30d = dexs?.[chain.name]?.['30d'] ?? null
-			const stablesMcap = stablesChainMcaps.find((x) => slug(x.name) === name)?.mcap ?? null
+			const stablesMcap = stablesChainMcapMap.get(name) ?? null
 			const users = activeUsers['chain#' + name]?.users?.value
 			const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 			const tvl =

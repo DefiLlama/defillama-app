@@ -1,9 +1,9 @@
 import { lazy, Suspense, useMemo, useSyncExternalStore } from 'react'
+import { BasicLink } from '~/components/Link'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { getStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
-import { BasicLink } from '../Link'
 import { DesktopNav } from './Desktop'
 import type { TNavLinks, TOldNavLink } from './types'
 
@@ -19,23 +19,27 @@ const MobileFallback = () => {
 					height={36}
 					width={105}
 					className="mr-auto object-contain object-left"
-					fetchPriority="high"
 				/>
 			</BasicLink>
 		</nav>
 	)
 }
 
-const footerLinks = ['More', 'About Us'].map((category) => ({
+const footerCategories = ['More', 'About Us'] as const
+const footerLinks = footerCategories.map((category) => ({
 	category,
-	pages: defillamaPages[category]
+	pages: defillamaPages[category] ?? []
 })) as TNavLinks
 
 const oldMetricLinks: Array<TOldNavLink> = Object.values(
-	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce((acc, curr) => {
+	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce<Record<string, TOldNavLink>>((acc, curr) => {
 		if (curr.oldCategory) {
 			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
-			acc[curr.oldCategory].pages.push({ name: curr.oldName, route: curr.route })
+			const groupedMetric = acc[curr.oldCategory]
+			if (!groupedMetric.pages) {
+				groupedMetric.pages = []
+			}
+			groupedMetric.pages.push({ name: curr.oldName, route: curr.route })
 		}
 		if (curr.oldName && !curr.oldCategory) {
 			acc[curr.oldName] = acc[curr.oldName] || { name: curr.oldName, route: curr.route }
@@ -72,7 +76,11 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 	}, [hasActiveSubscription])
 
 	const userDashboards = useMemo(
-		() => liteDashboards?.map(({ id, name }) => ({ name, route: `/pro/${id}` })) ?? [],
+		() =>
+			liteDashboards?.map((dashboard: { id: string; name: string }) => ({
+				name: dashboard.name,
+				route: `/pro/${dashboard.id}`
+			})) ?? [],
 		[liteDashboards]
 	)
 	const pinnedMetrics = useSyncExternalStore(
@@ -88,9 +96,8 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		if (!Array.isArray(parsedMetrics) || parsedMetrics.length === 0) return []
 
 		// Create a lookup map for faster access
-		const routeToPageMap = new Map()
-		for (const category in defillamaPages) {
-			const pages = defillamaPages[category]
+		const routeToPageMap = new Map<string, { name: string; route: string }>()
+		for (const [, pages] of Object.entries(defillamaPages as Record<string, Array<{ name: string; route: string }>>)) {
 			for (const page of pages) {
 				routeToPageMap.set(page.route, { name: page.name, route: page.route })
 			}

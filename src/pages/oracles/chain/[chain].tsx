@@ -1,60 +1,59 @@
-// import * as React from 'react'
-// import { maxAgeForNext } from '~/api'
-// import { OraclesByChain } from '~/containers/Oracles'
-// import { getOraclePageData, getOraclePageDataByChain } from '~/containers/Oracles/queries'
-// import { withPerformanceLogging } from '~/utils/perf'
+import type { InferGetStaticPropsType } from 'next'
+import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { OraclesByChain } from '~/containers/Oracles/OraclesByChain'
+import { getOraclesListPageData } from '~/containers/Oracles/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
 
-// export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params: { chain } }) => {
-// 	const data = await getOraclePageDataByChain(chain as string)
+const pageName = ['Oracles', 'ranked by', 'TVS']
 
-// 	if (!data) {
-// 		return { notFound: true }
-// 	}
+export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
+	if (!params?.chain) {
+		return { notFound: true, props: null }
+	}
 
-// 	return {
-// 		props: { ...data },
-// 		revalidate: maxAgeForNext([22])
-// 	}
-// })
+	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
+	const data = await getOraclesListPageData({ chain })
 
-// export async function getStaticPaths() {
-// 	const data = await getOraclePageData()
+	if (!data) {
+		return { notFound: true, props: null }
+	}
 
-// 	const chainsByOracle = data?.chainsByOracle ?? {}
+	return {
+		props: data,
+		revalidate: maxAgeForNext([22])
+	}
+})
 
-// 	const chainsLits = [...new Set(Object.values(chainsByOracle).flat())]
+export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
 
-// 	const paths = chainsLits.slice(0, 10).map((chain) => {
-// 		return {
-// 			params: { chain }
-// 		}
-// 	})
+	return { paths: [], fallback: 'blocking' }
+}
 
-// 	return { paths, fallback: 'blocking' }
-// }
-
-// export default function OraclesPage(props) {
-// 	return <OraclesByChain {...props} />
-// }
-
-import { BasicLink } from '~/components/Link'
-import { TemporarilyDisabledPage } from '~/components/TemporarilyDisabledPage'
-
-export default function OraclesChainPage() {
+export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	const canonicalUrl = props.chain ? `/oracles/chain/${slug(props.chain)}` : '/oracles'
 	return (
-		<TemporarilyDisabledPage
-			title="Oracles temporarily disabled - DefiLlama"
-			description="Oracles dashboards are temporarily disabled and will be back shortly."
-			canonicalUrl="/oracles"
+		<Layout
+			title="Oracles - DefiLlama"
+			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
+			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
+			canonicalUrl={canonicalUrl}
+			metricFilters={tvlOptions}
+			pageName={pageName}
 		>
-			<p>The Oracles dashboards are temporarily disabled while we perform maintenance. We&apos;ll be back shortly.</p>
-			<p>
-				In the meantime, check out{' '}
-				<BasicLink href="/metrics" className="underline">
-					other dashboards
-				</BasicLink>
-				.
-			</p>
-		</TemporarilyDisabledPage>
+			<OraclesByChain {...props} />
+		</Layout>
 	)
 }

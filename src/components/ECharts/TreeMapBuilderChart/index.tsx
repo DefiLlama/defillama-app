@@ -38,7 +38,9 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
+	useEffect(() => {
+		onReadyRef.current = onReady
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)

@@ -1,8 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2 } from '~/constants'
+import { fetchChainsByCategory as fetchChainsByCategoryApi } from '~/containers/Chains/api'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useDimensionProtocols } from '../hooks/useDimensionProtocols'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
@@ -15,11 +15,6 @@ import {
 import type { DashboardItemConfig } from '../types'
 import { CHART_TYPES } from '../types'
 import type { ComparisonPreset } from './ComparisonWizard/types'
-
-// oxlint-disable-next-line no-unused-vars
-const CreateDashboardModal = lazy(() =>
-	import('./CreateDashboardModal').then((m) => ({ default: m.CreateDashboardModal }))
-)
 
 const ComparisonWizard = lazy(() => import('./ComparisonWizard').then((m) => ({ default: m.ComparisonWizard })))
 
@@ -37,29 +32,26 @@ interface CreateDashboardPickerProps {
 	comparisonPreset?: ComparisonPreset | null
 }
 
+async function fetchChainsByCategory(category: string): Promise<{ category: string; chains: string[] }> {
+	return fetchChainsByCategoryApi(category)
+		.then((data) => {
+			const chains = Array.isArray(data?.chainsUnique) ? (data.chainsUnique as string[]) : []
+			return { category, chains }
+		})
+		.catch(() => ({ category, chains: [] }))
+}
+
 export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
-	const isOpen = dialogStore.useState('open')
+	const [comparisonPresetHandled, setComparisonPresetHandled] = useState(false)
 	const { protocols, chains } = useProDashboardCatalog()
 	const { protocolsBySlug } = useAppMetadata()
-	const appliedPresetRef = useRef(false)
 
 	const { data: chainCategoriesData } = useQuery({
-		queryKey: ['chain-categories-for-templates'],
+		queryKey: ['pro-dashboard', 'chain-categories-for-templates'],
 		queryFn: async () => {
 			const categoriesToFetch = ['Rollup']
-			const results = await Promise.all(
-				categoriesToFetch.map(async (cat) => {
-					try {
-						const res = await fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`)
-						if (!res.ok) return { category: cat, chains: [] as string[] }
-						const data = await res.json()
-						return { category: cat, chains: (data?.chainsUnique as string[]) || [] }
-					} catch {
-						return { category: cat, chains: [] as string[] }
-					}
-				})
-			)
+			const results = await Promise.all(categoriesToFetch.map((category) => fetchChainsByCategory(category)))
 			return results
 		},
 		staleTime: 60 * 60 * 1000
@@ -76,21 +68,11 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	}, [chainCategoriesData])
 
 	const { dimensionProtocols } = useDimensionProtocols()
-
-	useEffect(() => {
-		if (!isOpen) {
-			setMode('picker')
-			appliedPresetRef.current = false
-			return
-		}
-		if (comparisonPreset && !appliedPresetRef.current) {
-			setMode('comparison')
-			appliedPresetRef.current = true
-		}
-	}, [comparisonPreset, isOpen])
+	const effectiveMode: PickerMode = comparisonPreset && !comparisonPresetHandled ? 'comparison' : mode
 
 	const handleClose = () => {
 		setMode('picker')
+		setComparisonPresetHandled(false)
 		dialogStore.toggle()
 	}
 
@@ -102,6 +84,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	}) => {
 		onCreate(data)
 		setMode('picker')
+		setComparisonPresetHandled(false)
 	}
 
 	const handleCreateComparison = (data: {
@@ -113,10 +96,12 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	}) => {
 		onCreate(data)
 		setMode('picker')
+		setComparisonPresetHandled(false)
 		dialogStore.toggle()
 	}
 
 	const handleBackToPicker = () => {
+		setComparisonPresetHandled(true)
 		setMode('picker')
 	}
 
@@ -138,10 +123,11 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 			description: template.description,
 			items
 		})
+		setComparisonPresetHandled(false)
 		dialogStore.toggle()
 	}
 
-	if (mode === 'scratch') {
+	if (effectiveMode === 'scratch') {
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
@@ -157,20 +143,12 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 					</button>
 					<h2 className="text-lg font-semibold text-(--text-primary)">Create New Dashboard</h2>
 				</div>
-				<Suspense
-					fallback={
-						<div className="flex h-96 items-center justify-center">
-							<div className="h-8 w-8 animate-spin rounded-full border-b-2 border-(--primary)" />
-						</div>
-					}
-				>
-					<CreateDashboardModalContent onCreate={handleCreateFromScratch} />
-				</Suspense>
+				<CreateDashboardModalContent onCreate={handleCreateFromScratch} />
 			</Ariakit.Dialog>
 		)
 	}
 
-	if (mode === 'comparison') {
+	if (effectiveMode === 'comparison') {
 		return (
 			<Ariakit.Dialog
 				store={dialogStore}
@@ -214,7 +192,10 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 		>
 			<div className="mb-6 flex items-center justify-between">
 				<h2 className="text-xl font-semibold text-(--text-primary)">Create New Dashboard</h2>
-				<Ariakit.DialogDismiss className="rounded-md p-1 text-(--text-tertiary) transition-colors hover:bg-(--cards-bg-alt) hover:text-(--text-primary)">
+				<Ariakit.DialogDismiss
+					onClick={handleClose}
+					className="rounded-md p-1 text-(--text-tertiary) transition-colors hover:bg-(--cards-bg-alt) hover:text-(--text-primary)"
+				>
 					<Icon name="x" height={20} width={20} />
 					<span className="sr-only">Close dialog</span>
 				</Ariakit.DialogDismiss>
@@ -225,7 +206,10 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<button
 					type="button"
-					onClick={() => setMode('scratch')}
+					onClick={() => {
+						setComparisonPresetHandled(true)
+						setMode('scratch')
+					}}
 					className="flex flex-col items-center gap-4 rounded-xl border-2 border-(--cards-border) bg-(--cards-bg) p-6 text-center transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 				>
 					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--cards-bg-alt) text-(--text-secondary)">
@@ -239,7 +223,10 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 
 				<button
 					type="button"
-					onClick={() => setMode('comparison')}
+					onClick={() => {
+						setComparisonPresetHandled(true)
+						setMode('comparison')
+					}}
 					className="flex flex-col items-center gap-4 rounded-xl border-2 border-(--cards-border) bg-(--cards-bg) p-6 text-center transition-all hover:border-(--primary)/40 hover:bg-(--cards-bg-alt)/50"
 				>
 					<div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-(--primary)/10 text-(--primary)">
@@ -282,11 +269,43 @@ function CreateDashboardModalContent({
 		description: string
 	}) => void
 }) {
-	const [dashboardName, setDashboardName] = useState('')
-	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
-	const [tags, setTags] = useState<string[]>([])
-	const [description, setDescription] = useState('')
-	const [tagInput, setTagInput] = useState('')
+	const [formState, setFormState] = useState<{
+		dashboardName: string
+		visibility: 'private' | 'public'
+		tags: string[]
+		description: string
+		tagInput: string
+	}>({
+		dashboardName: '',
+		visibility: 'public',
+		tags: [],
+		description: '',
+		tagInput: ''
+	})
+	const { dashboardName, visibility, tags, description, tagInput } = formState
+
+	const setDashboardName = (value: string) => {
+		setFormState((prev) => ({ ...prev, dashboardName: value }))
+	}
+
+	const setVisibility = (value: 'private' | 'public') => {
+		setFormState((prev) => ({ ...prev, visibility: value }))
+	}
+
+	const setTags = (updater: string[] | ((prev: string[]) => string[])) => {
+		setFormState((prev) => ({
+			...prev,
+			tags: typeof updater === 'function' ? updater(prev.tags) : updater
+		}))
+	}
+
+	const setDescription = (value: string) => {
+		setFormState((prev) => ({ ...prev, description: value }))
+	}
+
+	const setTagInput = (value: string) => {
+		setFormState((prev) => ({ ...prev, tagInput: value }))
+	}
 
 	const handleCreate = () => {
 		if (!dashboardName.trim()) return
@@ -296,10 +315,13 @@ function CreateDashboardModalContent({
 			tags,
 			description
 		})
-		setDashboardName('')
-		setVisibility('public')
-		setTags([])
-		setDescription('')
+		setFormState({
+			dashboardName: '',
+			visibility: 'public',
+			tags: [],
+			description: '',
+			tagInput: ''
+		})
 	}
 
 	const handleAddTag = (tag: string) => {
@@ -325,20 +347,24 @@ function CreateDashboardModalContent({
 		<div className="p-6">
 			<div className="space-y-6">
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Dashboard Name</label>
+					<label htmlFor="create-dashboard-name" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Dashboard Name
+					</label>
 					<input
+						id="create-dashboard-name"
 						type="text"
 						value={dashboardName}
 						onChange={(e) => setDashboardName(e.target.value)}
 						placeholder="Enter dashboard name"
 						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
-						autoFocus
 					/>
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Visibility</label>
-					<div className="flex gap-3">
+					<p id="create-dashboard-visibility" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Visibility
+					</p>
+					<div className="flex gap-3" role="group" aria-labelledby="create-dashboard-visibility">
 						<button
 							type="button"
 							onClick={() => setVisibility('public')}
@@ -370,9 +396,12 @@ function CreateDashboardModalContent({
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Tags</label>
+					<label htmlFor="create-dashboard-tag-input" className="mb-3 block text-sm font-medium text-(--text-primary)">
+						Tags
+					</label>
 					<div className="flex gap-2">
 						<input
+							id="create-dashboard-tag-input"
 							type="text"
 							value={tagInput}
 							onChange={(e) => setTagInput(e.target.value)}
@@ -403,7 +432,9 @@ function CreateDashboardModalContent({
 								>
 									{tag}
 									<button
+										type="button"
 										onClick={() => handleRemoveTag(tag)}
+										aria-label={`Remove tag ${tag}`}
 										className="text-(--text-tertiary) hover:text-(--primary)"
 									>
 										<Icon name="x" height={12} width={12} />
@@ -415,11 +446,18 @@ function CreateDashboardModalContent({
 				</div>
 
 				<div>
-					<label className="mb-3 block text-sm font-medium text-(--text-primary)">Description</label>
+					<label
+						htmlFor="create-dashboard-description"
+						className="mb-3 block text-sm font-medium text-(--text-primary)"
+					>
+						Description
+					</label>
 					<textarea
+						id="create-dashboard-description"
 						value={description}
-						onChange={(e) => setDescription(e.target.value)}
+						onChange={(e) => setDescription(e.target.value.slice(0, 200))}
 						placeholder="Describe your dashboard..."
+						maxLength={200}
 						rows={3}
 						className="w-full resize-none rounded-md border border-(--form-control-border) bg-(--bg-input) px-3 py-2 placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
