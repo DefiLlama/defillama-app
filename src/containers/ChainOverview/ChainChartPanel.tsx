@@ -80,7 +80,7 @@ export function ChainChartPanel({
 	const canAddToDashboard = metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const metricsDialogStore = Ariakit.useDialogStore()
-	const prepareCsv = () => prepareChartCsv(deferredChartRenderModel.chartData, `${chain}.csv`)
+	const prepareCsv = () => prepareChartCsv(chartRenderModel.chartData, `${chain}.csv`)
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(metadata.name)

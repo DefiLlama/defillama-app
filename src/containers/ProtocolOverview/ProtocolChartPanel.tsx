@@ -130,7 +130,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = () => prepareChartCsv(deferredChartRenderModel.chartData, `${props.name}.csv`)
+	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.name}.csv`)
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		return serializeProtocolChartToMultiChart({
