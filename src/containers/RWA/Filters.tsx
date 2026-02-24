@@ -508,7 +508,7 @@ function Filters({
 				Reset filters
 			</button>
 			<BasicLink
-				href="https://docs.llama.fi/real-world-assets/filtering-options"
+				href="https://docs.llama.fi/real-world-assets/real-world-assets"
 				target="_blank"
 				rel="noopener noreferrer"
 				className={
