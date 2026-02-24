@@ -1605,7 +1605,9 @@ function ToolExecutionRow({ execution }: { execution: ToolExecution }) {
 		<div className="flex flex-col">
 			<button
 				type="button"
-				onClick={() => (execution.resultPreview?.length || execution.sqlQuery || execution.toolData) && setShowPreview(!showPreview)}
+				onClick={() =>
+					(execution.resultPreview?.length || execution.sqlQuery || execution.toolData) && setShowPreview(!showPreview)
+				}
 				className="flex items-center gap-2 py-0.5 text-left"
 			>
 				<Icon name={meta.icon as any} height={12} width={12} className="shrink-0" style={{ color: meta.color }} />
@@ -1670,7 +1672,10 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 						{term !== '_single' && <span className="font-medium text-[#666] dark:text-[#999]">{term}:</span>}
 						{val.topMatch ? (
 							<span className="text-[#444] dark:text-[#bbb]">
-								{val.topMatch.slug} <span className="text-[#999]">({val.topMatch.type}, {Math.round(val.topMatch.confidence * 100)}%)</span>
+								{val.topMatch.slug}{' '}
+								<span className="text-[#999]">
+									({val.topMatch.type}, {Math.round(val.topMatch.confidence * 100)}%)
+								</span>
 								{val.matchCount > 1 && <span className="text-[#999]"> +{val.matchCount - 1} more</span>}
 							</span>
 						) : (
@@ -1686,7 +1691,10 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
 				{data.charts.map((c: any) => (
 					<div key={c.id} className="text-[10px] text-[#444] dark:text-[#bbb]">
-						<span className="font-medium">{c.title}</span> <span className="text-[#999]">({c.type}, {c.seriesCount} series)</span>
+						<span className="font-medium">{c.title}</span>{' '}
+						<span className="text-[#999]">
+							({c.type}, {c.seriesCount} series)
+						</span>
 					</div>
 				))}
 			</div>
@@ -1703,7 +1711,9 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 		return (
 			<div className="mt-1 mb-1 text-[10px] text-[#444] dark:text-[#bbb]">
 				<span className="font-medium">{data.skill}</span>
-				{data.unlockedTools?.length > 0 && <span className="text-[#999]"> → unlocked: {data.unlockedTools.join(', ')}</span>}
+				{data.unlockedTools?.length > 0 && (
+					<span className="text-[#999]"> → unlocked: {data.unlockedTools.join(', ')}</span>
+				)}
 			</div>
 		)
 	}
@@ -1712,7 +1722,10 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
 				{data.agents.map((a: any) => (
 					<div key={a.id} className="text-[10px] text-[#444] dark:text-[#bbb]">
-						Agent {a.id.slice(0, 6)} <span className="text-[#999]">({a.toolCalls} tool calls{a.chartCount > 0 ? `, ${a.chartCount} charts` : ''})</span>
+						Agent {a.id.slice(0, 6)}{' '}
+						<span className="text-[#999]">
+							({a.toolCalls} tool calls{a.chartCount > 0 ? `, ${a.chartCount} charts` : ''})
+						</span>
 					</div>
 				))}
 			</div>
@@ -1766,7 +1779,7 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 			<button
 				type="button"
 				onClick={() => setIsOpen((v) => !v)}
-				className="flex items-center gap-1 text-[11px] text-[#999] dark:text-[#666]"
+				className="flex items-center gap-1 text-[11px] text-[#555] dark:text-[#aaa]"
 			>
 				<span className={`inline-block transition-transform duration-150 ${isOpen ? 'rotate-90' : ''}`}>&#9656;</span>
 				<span>Reasoning</span>
@@ -1774,7 +1787,7 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 			{isOpen && (
 				<div
 					ref={contentRef}
-					className="mt-1 max-h-[120px] overflow-y-auto whitespace-pre-wrap pl-3 font-mono text-[11px] leading-[1.6] text-[#999] dark:text-[#666]"
+					className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-[11px] leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
 				>
 					{thinking}
 				</div>
@@ -1894,7 +1907,6 @@ function MessageBubble({
 				messageId={message.id}
 				citations={message.citations || []}
 				toolExecutions={isLlama ? message.toolExecutions : undefined}
-
 				sessionId={sessionId}
 				fetchFn={fetchFn}
 				onActionClick={onActionClick}
