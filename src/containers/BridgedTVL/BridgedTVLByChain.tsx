@@ -86,14 +86,14 @@ export function BridgedTVLByChain({
 		return { pieChartData, tableData }
 	}, [chainData, chartType])
 
-	const { inflowsDataset, inflowsCharts } = React.useMemo(() => {
-		if (!tokenInflowNames?.length) return { inflowsDataset: null, inflowsCharts: [] }
+	const inflowsData = React.useMemo(() => {
+		if (!tokenInflowNames?.length) return null
 		return {
-			inflowsDataset: {
+			dataset: {
 				source: inflows.map(({ date, ...rest }: Record<string, number>) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...tokenInflowNames]
 			},
-			inflowsCharts: tokenInflowNames.map((name: string) => ({
+			charts: tokenInflowNames.map((name: string) => ({
 				type: 'bar' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -103,6 +103,8 @@ export function BridgedTVLByChain({
 			}))
 		}
 	}, [inflows, tokenInflowNames])
+	const deferredPieChartData = React.useDeferredValue(pieChartData)
+	const deferredInflowsData = React.useDeferredValue(inflowsData)
 
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'value', desc: true }])
 	const instance = useReactTable({
@@ -216,13 +218,13 @@ export function BridgedTVLByChain({
 					</div>
 					{chartType !== 'inflows' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart chartData={pieChartData} valueSymbol="" onReady={onChartReady} />
+							<PieChart chartData={deferredPieChartData} valueSymbol="" onReady={onChartReady} />
 						</React.Suspense>
-					) : inflowsDataset ? (
+					) : deferredInflowsData ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
-								dataset={inflowsDataset}
-								charts={inflowsCharts}
+								dataset={deferredInflowsData.dataset}
+								charts={deferredInflowsData.charts}
 								hideDefaultLegend={true}
 								valueSymbol="$"
 								selectedCharts={selectedChartsSet}

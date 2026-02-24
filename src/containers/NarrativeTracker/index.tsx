@@ -267,6 +267,8 @@ export const CategoryPerformanceContainer = ({
 			large: true
 		}))
 	}, [areaChartLegend])
+	const chartDataBundle = React.useMemo(() => ({ dataset, barCharts, lineCharts }), [dataset, barCharts, lineCharts])
+	const deferredChartData = React.useDeferredValue(chartDataBundle)
 
 	const treemapTreeData = React.useMemo(() => {
 		const safeReturn = (v: number | null | undefined): number => {
@@ -371,8 +373,8 @@ export const CategoryPerformanceContainer = ({
 					{tab === 'barchart' ? (
 						<React.Suspense fallback={<div className="h-[533px]" />}>
 							<MultiSeriesChart2
-								dataset={dataset}
-								charts={barCharts}
+								dataset={deferredChartData.dataset}
+								charts={deferredChartData.barCharts}
 								selectedCharts={selectedCharts}
 								valueSymbol={chartValueSymbol}
 								height="533px"
@@ -385,8 +387,8 @@ export const CategoryPerformanceContainer = ({
 					) : tab === 'linechart' ? (
 						<React.Suspense fallback={<div className="h-[533px]" />}>
 							<MultiSeriesChart2
-								dataset={dataset}
-								charts={lineCharts}
+								dataset={deferredChartData.dataset}
+								charts={deferredChartData.lineCharts}
 								selectedCharts={selectedCharts}
 								valueSymbol={chartValueSymbol}
 								height="533px"

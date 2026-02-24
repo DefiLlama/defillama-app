@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
@@ -118,6 +118,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 			chartData: { dataset: { source, dimensions }, charts }
 		}
 	}, [dailyFlowsByAsset, groupBy])
+	const deferredChartData = useDeferredValue(chartData)
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
@@ -143,8 +144,8 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 				</div>
 				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={chartData.dataset}
-						charts={chartData.charts}
+						dataset={deferredChartData.dataset}
+						charts={deferredChartData.charts}
 						valueSymbol="$"
 						chartOptions={chartOptions}
 						onReady={handleChartReady}

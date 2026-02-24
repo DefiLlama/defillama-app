@@ -136,7 +136,7 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const now = initialNowSec
-	const { dataset, charts } = useMemo(() => {
+	const unlockChartData = useMemo(() => {
 		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
 		const endTs = isFullView ? Infinity : END_TIMESTAMP
 		const isTotalView = viewMode === 'Total View'
@@ -221,10 +221,11 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 			}))
 		}
 	}, [protocols, timePeriod, isFullView, viewMode, now])
+	const deferredChartData = React.useDeferredValue(unlockChartData)
 
 	return (
 		<>
-			{dataset.source.length > 0 ? (
+			{unlockChartData.dataset.source.length > 0 ? (
 				<>
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
@@ -246,8 +247,8 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 					</div>
 					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={dataset}
-							charts={charts}
+							dataset={deferredChartData.dataset}
+							charts={deferredChartData.charts}
 							hideDefaultLegend={viewMode === 'Total View'}
 							groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 							valueSymbol="$"

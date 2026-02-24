@@ -54,7 +54,14 @@ export function ChainChartPanel({
 	darkMode
 }: ChainChartPanelProps) {
 	const router = useRouter()
-	const deferredFinalCharts = useDeferredValue(finalCharts)
+	const chartRenderModel = useMemo(
+		() => ({
+			chartData: finalCharts,
+			valueSymbol
+		}),
+		[finalCharts, valueSymbol]
+	)
+	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		if (!metadata?.name) {
@@ -73,7 +80,7 @@ export function ChainChartPanel({
 	const canAddToDashboard = metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const metricsDialogStore = Ariakit.useDialogStore()
-	const prepareCsv = () => prepareChartCsv(deferredFinalCharts, `${chain}.csv`)
+	const prepareCsv = () => prepareChartCsv(chartRenderModel.chartData, `${chain}.csv`)
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
 	const imageExportFilename = slug(metadata.name)
@@ -222,8 +229,8 @@ export function ChainChartPanel({
 			) : (
 				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 					<ChainCoreChart
-						chartData={deferredFinalCharts}
-						valueSymbol={valueSymbol}
+						chartData={deferredChartRenderModel.chartData}
+						valueSymbol={deferredChartRenderModel.valueSymbol}
 						isThemeDark={darkMode}
 						groupBy={groupBy}
 						onReady={handleChartReady}

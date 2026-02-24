@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
@@ -198,6 +198,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 			charts: groupedSeries
 		}
 	}, [charts, chartSeries, groupBy, hasBarCharts])
+	const deferredGroupedCharts = useDeferredValue(groupedCharts)
 
 	const chartGroupBy = groupBy === 'cumulative' ? 'daily' : groupBy
 
@@ -370,8 +371,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={groupedCharts.dataset}
-							charts={groupedCharts.charts}
+							dataset={deferredGroupedCharts.dataset}
+							charts={deferredGroupedCharts.charts}
 							groupBy={chartGroupBy}
 							hideDefaultLegend={false}
 							valueSymbol="$"

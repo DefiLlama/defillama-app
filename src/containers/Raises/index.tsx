@@ -39,6 +39,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		sectors,
 		chains
 	})
+	const deferredMonthlyInvestmentChart = React.useDeferredValue(monthlyInvestmentChart)
 
 	return (
 		<>
@@ -88,8 +89,8 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
-							dataset={monthlyInvestmentChart.dataset}
-							charts={monthlyInvestmentChart.charts}
+							dataset={deferredMonthlyInvestmentChart.dataset}
+							charts={deferredMonthlyInvestmentChart.charts}
 							valueSymbol="$"
 							groupBy="monthly"
 							exportButtons="auto"

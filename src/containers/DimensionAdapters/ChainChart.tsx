@@ -135,6 +135,7 @@ export const AdapterByChainChart = ({
 			}))
 		}
 	}, [chartData, chartInterval, metricDimensions])
+	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
 
@@ -197,9 +198,9 @@ export const AdapterByChainChart = ({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={finalCharts.dataset}
-					charts={finalCharts.charts}
-					hideDefaultLegend={finalCharts.charts.length === 1}
+					dataset={deferredFinalCharts.dataset}
+					charts={deferredFinalCharts.charts}
+					hideDefaultLegend={deferredFinalCharts.charts.length === 1}
 					groupBy={chartInterval === 'Weekly' ? 'weekly' : chartInterval === 'Monthly' ? 'monthly' : 'daily'}
 					onReady={handleChartReady}
 				/>
@@ -235,9 +236,10 @@ export const ChainsByAdapterChart = ({
 			: baseSelectedChains
 	}, [allChains, router.query.chains, router.query.excludeChains])
 
-	const { dataset, charts } = React.useMemo(() => {
+	const chainsByAdapterChartData = React.useMemo(() => {
 		return getChartDataByChainAndInterval({ chartData, chartInterval: effectiveInterval, selectedChains, chartType })
 	}, [chartData, effectiveInterval, selectedChains, chartType])
+	const deferredChartData = React.useDeferredValue(chainsByAdapterChartData)
 
 	const onChangeChartInterval = (nextInterval: ChainsByAdapterInterval) => {
 		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
@@ -300,8 +302,8 @@ export const ChainsByAdapterChart = ({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredChartData.dataset}
+					charts={deferredChartData.charts}
 					{...(chartType === 'Dominance' ? { valueSymbol: '%', solidChartAreaStyle: true } : {})}
 					{...(chartType === 'Dominance'
 						? {

@@ -135,6 +135,10 @@ export const BridgeInfo = ({
 		}),
 		[groupedInflowsData]
 	)
+	const deferredVolumeDataset = React.useDeferredValue(volumeDataset)
+	const deferredInflowsDataset = React.useDeferredValue(inflowsDataset)
+	const deferredTokenWithdrawals = React.useDeferredValue(tokenWithdrawals)
+	const deferredTokenDeposits = React.useDeferredValue(tokenDeposits)
 
 	const chartFilename = `${slug(displayName)}-${chartType === 'Volume' ? 'volume' : chartType === 'Inflows' ? 'inflows' : chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`
 
@@ -233,7 +237,7 @@ export const BridgeInfo = ({
 						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={volumeDataset}
+									dataset={deferredVolumeDataset}
 									charts={VOLUME_CHARTS}
 									valueSymbol="$"
 									onReady={handleChartReady}
@@ -243,21 +247,21 @@ export const BridgeInfo = ({
 						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={inflowsDataset}
+									dataset={deferredInflowsDataset}
 									charts={INFLOW_CHARTS}
 									valueSymbol="$"
 									onReady={handleChartReady}
 								/>
 							</React.Suspense>
 						) : null}
-						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 ? (
+						{chartType === 'Tokens To' && deferredTokenWithdrawals && deferredTokenWithdrawals.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<PieChart chartData={tokenWithdrawals} onReady={handleChartReady} />
+								<PieChart chartData={deferredTokenWithdrawals} onReady={handleChartReady} />
 							</React.Suspense>
 						) : null}
-						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 ? (
+						{chartType === 'Tokens From' && deferredTokenDeposits && deferredTokenDeposits.length > 0 ? (
 							<React.Suspense fallback={<div className="min-h-[360px]" />}>
-								<PieChart chartData={tokenDeposits} onReady={handleChartReady} />
+								<PieChart chartData={deferredTokenDeposits} onReady={handleChartReady} />
 							</React.Suspense>
 						) : null}
 					</>
