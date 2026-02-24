@@ -369,13 +369,13 @@ export function StablecoinsByChain({
 		[peggedAreaTotalData]
 	)
 
-	const { tokenMcapsDataset, tokenMcapsCharts } = React.useMemo(
+	const tokenMcapsData = React.useMemo(
 		() => ({
-			tokenMcapsDataset: {
+			dataset: {
 				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...filteredPeggedNames]
 			},
-			tokenMcapsCharts: filteredPeggedNames.map((name, i) => ({
+			charts: filteredPeggedNames.map((name, i) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -386,9 +386,9 @@ export function StablecoinsByChain({
 		[peggedAreaChartData, filteredPeggedNames]
 	)
 
-	const { dominanceDataset, dominanceCharts } = React.useMemo(
+	const dominanceData = React.useMemo(
 		() => ({
-			dominanceDataset: {
+			dataset: {
 				source: dataWithExtraPeggedAndDominanceByDay
 					.map(({ date, ...rest }) => {
 						const timestamp = Number(date) * 1e3
@@ -406,7 +406,7 @@ export function StablecoinsByChain({
 					.filter((row): row is Record<string, number> => row != null),
 				dimensions: ['timestamp', ...filteredPeggedNames]
 			},
-			dominanceCharts: filteredPeggedNames.map((name, i) => ({
+			charts: filteredPeggedNames.map((name, i) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -417,15 +417,15 @@ export function StablecoinsByChain({
 		[dataWithExtraPeggedAndDominanceByDay, filteredPeggedNames]
 	)
 
-	const { tokenInflowsDataset, tokenInflowsCharts } = React.useMemo(() => {
+	const tokenInflowsData = React.useMemo(() => {
 		const names = tokenInflowNames ?? []
-		if (!tokenInflows) return { tokenInflowsDataset: { source: [], dimensions: ['timestamp'] }, tokenInflowsCharts: [] }
+		if (!tokenInflows) return { dataset: { source: [], dimensions: ['timestamp'] }, charts: [] }
 		return {
-			tokenInflowsDataset: {
+			dataset: {
 				source: tokenInflows.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...names]
 			},
-			tokenInflowsCharts: names.map((name, i) => ({
+			charts: names.map((name, i) => ({
 				type: 'bar' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -445,6 +445,12 @@ export function StablecoinsByChain({
 				: { source: [], dimensions: ['timestamp', 'Inflows'] },
 		[usdInflows]
 	)
+	const deferredTokenInflowsData = React.useDeferredValue(tokenInflowsData)
+	const deferredTotalMcapDataset = React.useDeferredValue(totalMcapDataset)
+	const deferredTokenMcapsData = React.useDeferredValue(tokenMcapsData)
+	const deferredDominanceData = React.useDeferredValue(dominanceData)
+	const deferredChainsCirculatingValues = React.useDeferredValue(chainsCirculatingValues)
+	const deferredUsdInflowsDataset = React.useDeferredValue(usdInflowsDataset)
 
 	const tokenInflowsSelectionKey = tokenInflowNames?.length ? tokenInflowNames.join('|') : ''
 
@@ -536,8 +542,8 @@ export function StablecoinsByChain({
 							exportTitle={getImageExportTitle()}
 							onReady={handleExportChartReady}
 							tokenInflowNames={tokenInflowNames ?? []}
-							dataset={tokenInflowsDataset}
-							charts={tokenInflowsCharts}
+							dataset={deferredTokenInflowsData.dataset}
+							charts={deferredTokenInflowsData.charts}
 						/>
 					) : (
 						<>
@@ -553,7 +559,7 @@ export function StablecoinsByChain({
 							{chartType === 'Total Market Cap' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={totalMcapDataset}
+										dataset={deferredTotalMcapDataset}
 										charts={TOTAL_MCAP_CHARTS}
 										valueSymbol="$"
 										chartOptions={chartOptions}
@@ -563,8 +569,8 @@ export function StablecoinsByChain({
 							) : chartType === 'Token Market Caps' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={tokenMcapsDataset}
-										charts={tokenMcapsCharts}
+										dataset={deferredTokenMcapsData.dataset}
+										charts={deferredTokenMcapsData.charts}
 										stacked={true}
 										valueSymbol="$"
 										chartOptions={chartOptions}
@@ -574,8 +580,8 @@ export function StablecoinsByChain({
 							) : chartType === 'Dominance' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={dominanceDataset}
-										charts={dominanceCharts}
+										dataset={deferredDominanceData.dataset}
+										charts={deferredDominanceData.charts}
 										stacked={true}
 										expandTo100Percent={true}
 										valueSymbol="%"
@@ -586,7 +592,7 @@ export function StablecoinsByChain({
 							) : chartType === 'Pie' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<PieChart
-										chartData={chainsCirculatingValues}
+										chartData={deferredChainsCirculatingValues}
 										stackColors={tokenColors}
 										onReady={handleExportChartReady}
 									/>
@@ -594,7 +600,7 @@ export function StablecoinsByChain({
 							) : chartType === 'USD Inflows' && usdInflows ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={usdInflowsDataset}
+										dataset={deferredUsdInflowsDataset}
 										charts={USD_INFLOWS_CHARTS}
 										chartOptions={chartOptions}
 										onReady={handleExportChartReady}

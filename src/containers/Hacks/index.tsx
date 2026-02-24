@@ -314,6 +314,8 @@ export const HacksContainer = ({
 	const displayTotalRugs = derivedStats?.totalRugs ?? totalRugs
 	const displayMonthlyHacksChartData = derivedStats?.monthlyHacksChartData ?? monthlyHacksChartData
 	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
+	const deferredMonthlyHacksChartData = React.useDeferredValue(displayMonthlyHacksChartData)
+	const deferredPieChartData = React.useDeferredValue(displayPieChartData)
 
 	return (
 		<>
@@ -352,15 +354,15 @@ export const HacksContainer = ({
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
-								dataset={displayMonthlyHacksChartData.dataset}
-								charts={displayMonthlyHacksChartData.charts}
+								dataset={deferredMonthlyHacksChartData.dataset}
+								charts={deferredMonthlyHacksChartData.charts}
 								groupBy="monthly"
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart chartData={displayPieChartData} onReady={handleChartReady} />
+							<PieChart chartData={deferredPieChartData} onReady={handleChartReady} />
 						</React.Suspense>
 					)}
 				</div>

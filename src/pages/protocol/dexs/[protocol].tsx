@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
@@ -147,6 +147,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			]
 		}
 	}, [props.chart, groupBy])
+	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	return (
 		<ProtocolOverviewLayout
@@ -197,8 +198,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={finalCharts.dataset}
-							charts={finalCharts.charts}
+							dataset={deferredFinalCharts.dataset}
+							charts={deferredFinalCharts.charts}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>

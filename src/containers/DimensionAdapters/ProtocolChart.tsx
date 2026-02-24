@@ -320,6 +320,7 @@ const ChartByType = ({
 			charts: chartsConfig
 		}
 	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
+	const deferredMainChartData = React.useDeferredValue(mainChartData)
 
 	return (
 		<>
@@ -357,8 +358,8 @@ const ChartByType = ({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={mainChartData.dataset}
-					charts={mainChartData.charts}
+					dataset={deferredMainChartData.dataset}
+					charts={deferredMainChartData.charts}
 					groupBy={
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
 					}

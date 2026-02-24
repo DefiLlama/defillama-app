@@ -271,13 +271,13 @@ export const LSTOverview = ({
 		return finalData
 	}, [inflowsChartData, groupBy])
 
-	const { breakdownDataset, breakdownCharts } = React.useMemo(
+	const breakdownData = React.useMemo(
 		() => ({
-			breakdownDataset: {
+			dataset: {
 				source: areaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...tokens]
 			},
-			breakdownCharts: tokens.map((name) => ({
+			charts: tokens.map((name) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -288,19 +288,19 @@ export const LSTOverview = ({
 		[areaChartData, tokens, lsdColors]
 	)
 
-	const { inflowsDataset, inflowsCumulativeCharts, inflowsBarCharts } = React.useMemo(
+	const inflowsSeriesData = React.useMemo(
 		() => ({
-			inflowsDataset: {
+			dataset: {
 				source: inflowsData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...tokens]
 			},
-			inflowsCumulativeCharts: tokens.map((name) => ({
+			cumulativeCharts: tokens.map((name) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
 				color: lsdColors[name]
 			})),
-			inflowsBarCharts: tokens.map((name) => ({
+			barCharts: tokens.map((name) => ({
 				type: 'bar' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -310,6 +310,9 @@ export const LSTOverview = ({
 		}),
 		[inflowsData, tokens, lsdColors, barChartStacks]
 	)
+	const deferredPieChartData = React.useDeferredValue(pieChartData)
+	const deferredBreakdownData = React.useDeferredValue(breakdownData)
+	const deferredInflowsData = React.useDeferredValue(inflowsSeriesData)
 
 	return (
 		<>
@@ -344,7 +347,7 @@ export const LSTOverview = ({
 						<div className="grid grid-cols-1 gap-2 pt-2 xl:grid-cols-2">
 							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
-									chartData={pieChartData}
+									chartData={deferredPieChartData}
 									stackColors={lsdColors}
 									exportButtons={{ png: true, csv: true, filename: 'lst-breakdown', pngTitle: 'LST Breakdown' }}
 								/>
@@ -368,8 +371,8 @@ export const LSTOverview = ({
 								</div>
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={breakdownDataset}
-										charts={breakdownCharts}
+										dataset={deferredBreakdownData.dataset}
+										charts={deferredBreakdownData.charts}
 										stacked={true}
 										expandTo100Percent={true}
 										hideDefaultLegend
@@ -403,8 +406,8 @@ export const LSTOverview = ({
 							{groupBy === 'Cumulative' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={inflowsDataset}
-										charts={inflowsCumulativeCharts}
+										dataset={deferredInflowsData.dataset}
+										charts={deferredInflowsData.cumulativeCharts}
 										hideDefaultLegend
 										valueSymbol="ETH"
 										selectedCharts={selectedInflowTokensSet}
@@ -416,8 +419,8 @@ export const LSTOverview = ({
 							) : (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={inflowsDataset}
-										charts={inflowsBarCharts}
+										dataset={deferredInflowsData.dataset}
+										charts={deferredInflowsData.barCharts}
 										hideDefaultLegend
 										valueSymbol="ETH"
 										selectedCharts={selectedInflowTokensSet}

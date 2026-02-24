@@ -187,6 +187,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 
 		return { dataset: { source, dimensions }, charts }
 	}, [categories, categoryColors, chartSource, enabledTvls, extraTvlCharts, selectedCategories])
+	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const finalCategoriesList = React.useMemo(() => {
 		if (enabledTvls.length === 0) return tableData
@@ -244,8 +245,8 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 				</div>
 				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={finalCharts.dataset}
-						charts={finalCharts.charts}
+						dataset={deferredFinalCharts.dataset}
+						charts={deferredFinalCharts.charts}
 						valueSymbol="$"
 						solidChartAreaStyle
 						onReady={handleChartReady}

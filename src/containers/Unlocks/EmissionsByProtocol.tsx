@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { lazy, memo, Suspense, useMemo, useState } from 'react'
+import { lazy, memo, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -761,6 +761,10 @@ const ChartContainer = ({
 			]),
 		[unlockedPercent]
 	)
+	const scheduleChartData = useMemo(() => ({ dataset, charts }), [dataset, charts])
+	const deferredScheduleChartData = useDeferredValue(scheduleChartData)
+	const deferredAllocationPieChartData = useDeferredValue(formattedPieChartDataAllocationMode)
+	const deferredUnlockedPieChartData = useDeferredValue(unlockedPieChartData)
 
 	const getDesktopPieLegendPosition = (itemsCount: number) => {
 		// When there are only a few legend items, center it vertically.
@@ -943,8 +947,8 @@ const ChartContainer = ({
 							</div>
 						) : (
 							<ScheduleChart
-								dataset={dataset}
-								charts={charts}
+								dataset={deferredScheduleChartData.dataset}
+								charts={deferredScheduleChartData.charts}
 								hallmarks={hallmarks}
 								expandTo100Percent={chartType === 'bar'}
 								solidChartAreaStyle
@@ -963,7 +967,7 @@ const ChartContainer = ({
 								<PieChart
 									showLegend
 									title="Allocation"
-									chartData={formattedPieChartDataAllocationMode}
+									chartData={deferredAllocationPieChartData}
 									stackColors={formattedAllocationPieStackColors}
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									legendPosition={allocationPieChartLegendPosition}
@@ -988,7 +992,7 @@ const ChartContainer = ({
 									legendPosition={unlockedPieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
 									radius={unlockedPieChartRadius}
-									chartData={unlockedPieChartData}
+									chartData={deferredUnlockedPieChartData}
 									stackColors={unlockedPieChartStackColors}
 									valueSymbol="%"
 									exportButtons={unlockedExportButtons}

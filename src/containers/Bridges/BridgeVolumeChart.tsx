@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { TagGroup } from '~/components/TagGroup'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
@@ -104,7 +104,7 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 			.sort((a, b) => a.date - b.date)
 	}, [data, timePeriod, metricType, viewType])
 
-	const { dataset, charts } = useMemo(() => {
+	const volumeChartData = useMemo(() => {
 		const isSplit = viewType === 'Split'
 		const dims = isSplit ? ['timestamp', 'Deposits', 'Withdrawals'] : ['timestamp', 'Total']
 		return {
@@ -115,6 +115,7 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 			charts: isSplit ? SPLIT_CHARTS : COMBINED_CHARTS
 		}
 	}, [chartData, viewType])
+	const deferredChartData = useDeferredValue(volumeChartData)
 
 	if (isLoading)
 		return (
@@ -166,8 +167,8 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredChartData.dataset}
+					charts={deferredChartData.charts}
 					height={height}
 					hideDefaultLegend={false}
 					valueSymbol={metricType === 'Volume' ? '$' : ''}
