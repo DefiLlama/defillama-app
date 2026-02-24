@@ -77,7 +77,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
-	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)\|([^\]]+)\]/g
+	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
 	const parts: ContentPart[] = []
 	const chartIds = new Set<string>()
 	const csvIds = new Set<string>()
@@ -100,8 +100,10 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		alertIds.add(match[1])
 	}
 	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
-		allMatches.push({ index: match.index, length: match[0].length, type: 'action', id: `${match[1]}|${match[2]}` })
-		actionItems.push({ label: match[1].trim(), message: match[2].trim() })
+		const actionLabel = match[1].trim()
+		const actionMessage = match[2]?.trim() || actionLabel
+		allMatches.push({ index: match.index, length: match[0].length, type: 'action', id: `${actionLabel}|${actionMessage}` })
+		actionItems.push({ label: actionLabel, message: actionMessage })
 	}
 
 	allMatches.sort((a, b) => a.index - b.index)

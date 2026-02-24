@@ -122,6 +122,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [streamingAlerts, setStreamingAlerts] = useState<AlertProposedData[]>([])
 	const [streamingCitations, setStreamingCitations] = useState<string[]>([])
 	const [streamingToolExecutions, setStreamingToolExecutions] = useState<ToolExecution[]>([])
+	const [streamingThinking, setStreamingThinking] = useState('')
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
 	const [error, setError] = useState<string | null>(null)
 	const [isResearchMode, setIsResearchMode] = useState(false)
@@ -275,6 +276,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				citations: m.citations,
 				csvExports: m.csvExports,
 				toolExecutions: m.metadata?.toolExecutions?.map((t: any) => ({ ...t, name: t.name || t.toolName })),
+				thinking: m.metadata?.thinking,
 				id: m.messageId,
 				timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 			}))
@@ -367,6 +369,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						: undefined,
 					savedAlertIds: m.savedAlertIds,
 					toolExecutions: m.metadata?.toolExecutions?.map((t: any) => ({ ...t, name: t.name || t.toolName })),
+					thinking: m.metadata?.thinking,
 					id: m.messageId,
 					timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
 				}))
@@ -393,6 +396,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					setStreamingAlerts([])
 					setStreamingCitations([])
 					setStreamingToolExecutions([])
+					setStreamingThinking('')
 					setActiveToolCalls([])
 					setSpawnProgress(new Map())
 					setSpawnStartTime(0)
@@ -403,6 +407,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					let accumulatedAlerts: AlertProposedData[] = []
 					let accumulatedCitations: string[] = []
 					let accumulatedToolExecutions: ToolExecution[] = []
+					let accumulatedThinking = ''
 					let hasStartedText = false
 					let spawnStarted = false
 
@@ -445,6 +450,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						onToolExecution: (data) => {
 							accumulatedToolExecutions = [...accumulatedToolExecutions, data]
 							setStreamingToolExecutions(accumulatedToolExecutions)
+						},
+						onThinking: (content) => {
+							accumulatedThinking += content
+							setStreamingThinking(accumulatedThinking)
 						},
 						onSpawnProgress: (data: SpawnProgressData) => {
 							if (data.status === 'started' && !spawnStarted) {
@@ -491,6 +500,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
 									citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
 									toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
+									thinking: accumulatedThinking || undefined,
 									id: finalMessageId
 								}
 							])
@@ -500,6 +510,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							setStreamingAlerts([])
 							setStreamingCitations([])
 							setStreamingToolExecutions([])
+							setStreamingThinking('')
 							setActiveToolCalls([])
 							setSpawnProgress(new Map())
 							setSpawnStartTime(0)
@@ -576,6 +587,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			let accumulatedAlerts: AlertProposedData[] = []
 			let accumulatedCitations: string[] = []
 			let accumulatedToolExecutions: ToolExecution[] = []
+			let accumulatedThinking = ''
 			let hasStartedText = false
 			let spawnStarted = false
 
@@ -628,6 +640,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						accumulatedToolExecutions = [...accumulatedToolExecutions, data]
 						setStreamingToolExecutions(accumulatedToolExecutions)
 					},
+					onThinking: (content) => {
+						accumulatedThinking += content
+						setStreamingThinking(accumulatedThinking)
+					},
 					onSpawnProgress: (data: SpawnProgressData) => {
 						if (data.status === 'started' && !spawnStarted) {
 							spawnStarted = true
@@ -677,6 +693,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
 								citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
 								toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
+								thinking: accumulatedThinking || undefined,
 								id: finalMessageId
 							}
 						])
@@ -686,6 +703,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						setStreamingAlerts([])
 						setStreamingCitations([])
 						setStreamingToolExecutions([])
+						setStreamingThinking('')
 						setActiveToolCalls([])
 						setSpawnProgress(new Map())
 						setSpawnStartTime(0)
@@ -800,6 +818,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			citations: m.citations,
 			images: m.images,
 			toolExecutions: (m as any).metadata?.toolExecutions?.map((t: any) => ({ ...t, name: t.name || t.toolName })),
+			thinking: (m as any).metadata?.thinking,
 			id: m.messageId
 		}))
 		setMessages(mapped)
@@ -903,12 +922,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											activeToolCalls.length === 0 &&
 											spawnProgress.size === 0 &&
 											!streamingText &&
+											!streamingThinking &&
 											streamingCharts.length === 0 && <TypingIndicator />}
 
 										{spawnProgress.size > 0 ? (
 											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
 										) : (
-											<ToolProgressIndicator toolCalls={activeToolCalls} />
+											<ToolProgressIndicator toolCalls={activeToolCalls} thinking={streamingThinking} />
 										)}
 
 										{isStreaming &&
@@ -1729,13 +1749,47 @@ const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	create_alert: { icon: 'sparkles', color: '#fbbf24' }
 }
 
-function ToolProgressIndicator({ toolCalls }: { toolCalls: ToolCall[] }) {
-	const [elapsed, setElapsed] = useState(0)
-	const startTimeRef = useRef(0)
-	const hasToolCalls = toolCalls.length > 0
+function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
+	const [isOpen, setIsOpen] = useState(defaultOpen)
+	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		if (!hasToolCalls) {
+		if (isOpen && contentRef.current) {
+			contentRef.current.scrollTop = contentRef.current.scrollHeight
+		}
+	}, [thinking, isOpen])
+
+	if (!thinking) return null
+
+	return (
+		<div>
+			<button
+				type="button"
+				onClick={() => setIsOpen((v) => !v)}
+				className="flex items-center gap-1 text-[11px] text-[#999] dark:text-[#666]"
+			>
+				<span className={`inline-block transition-transform duration-150 ${isOpen ? 'rotate-90' : ''}`}>&#9656;</span>
+				<span>Reasoning</span>
+			</button>
+			{isOpen && (
+				<div
+					ref={contentRef}
+					className="mt-1 max-h-[120px] overflow-y-auto whitespace-pre-wrap pl-3 font-mono text-[11px] leading-[1.6] text-[#999] dark:text-[#666]"
+				>
+					{thinking}
+				</div>
+			)}
+		</div>
+	)
+}
+
+function ToolProgressIndicator({ toolCalls, thinking }: { toolCalls: ToolCall[]; thinking?: string }) {
+	const [elapsed, setElapsed] = useState(0)
+	const startTimeRef = useRef(0)
+	const hasActivity = toolCalls.length > 0 || !!thinking
+
+	useEffect(() => {
+		if (!hasActivity) {
 			startTimeRef.current = 0
 			setElapsed(0)
 			return
@@ -1747,35 +1801,38 @@ function ToolProgressIndicator({ toolCalls }: { toolCalls: ToolCall[] }) {
 			setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000))
 		}, 1000)
 		return () => clearInterval(interval)
-	}, [hasToolCalls])
+	}, [hasActivity])
 
-	if (toolCalls.length === 0) return null
+	if (!hasActivity) return null
 
 	return (
 		<div className="flex gap-3 py-1.5">
 			<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-16 w-16 shrink-0" />
-			<div className="flex flex-col gap-2 pt-1">
+			<div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
 				<div className="flex flex-col gap-0.5">
 					<span className="text-base font-semibold text-[#555] dark:text-[#919296]">LlamaAI is thinking...</span>
 					<span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 				</div>
-				<div className="flex flex-col gap-1.5">
-					{toolCalls.map((tc) => {
-						const meta = TOOL_ICONS[tc.name] || { icon: 'sparkles', color: '#919296' }
-						return (
-							<div key={tc.id} className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
-								<Icon
-									name={meta.icon as any}
-									height={14}
-									width={14}
-									className="shrink-0 opacity-70"
-									style={{ color: meta.color }}
-								/>
-								<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">{tc.label}</span>
-							</div>
-						)
-					})}
-				</div>
+				{thinking && <ThinkingPanel thinking={thinking} defaultOpen />}
+				{toolCalls.length > 0 && (
+					<div className="flex flex-col gap-1.5">
+						{toolCalls.map((tc) => {
+							const meta = TOOL_ICONS[tc.name] || { icon: 'sparkles', color: '#919296' }
+							return (
+								<div key={tc.id} className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
+									<Icon
+										name={meta.icon as any}
+										height={14}
+										width={14}
+										className="shrink-0 opacity-70"
+										style={{ color: meta.color }}
+									/>
+									<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">{tc.label}</span>
+								</div>
+							)
+						})}
+					</div>
+				)}
 			</div>
 		</div>
 	)
@@ -1827,6 +1884,7 @@ function MessageBubble({
 
 	return (
 		<div>
+			{message.thinking && <ThinkingPanel thinking={message.thinking} />}
 			<InlineContent
 				text={message.content || ''}
 				chartSets={message.charts || []}

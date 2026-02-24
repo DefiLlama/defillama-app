@@ -30,6 +30,7 @@ export interface AgenticSSECallbacks {
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
 	onToolExecution?: (data: ToolExecution) => void
+	onThinking?: (content: string) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
 	onError: (content: string) => void
@@ -105,6 +106,9 @@ function parseSSEStream(
 								break
 							case 'tool_execution':
 								callbacks.onToolExecution?.(data)
+								break
+							case 'thinking':
+								callbacks.onThinking?.(data.content)
 								break
 							case 'citations':
 								callbacks.onCitations(data.citations || [])
