@@ -121,9 +121,10 @@ export function LinksWithDropdown({
 		setOverflowState((prev) => (prev.isMeasuring ? prev : { ...prev, isMeasuring: true }))
 	}, [links.length, linksLayoutSignature])
 
-	// Full measurement: runs synchronously before paint when isMeasuring is true
+	// Full measurement: runs synchronously before paint when isMeasuring is true.
+	// Deferred until isClient so we measure all links, not just the SSR-limited subset.
 	useIsomorphicLayoutEffect(() => {
-		if (!overflowState.isMeasuring) return
+		if (!isClient || !overflowState.isMeasuring) return
 
 		const priorityNav = priorityNavRef.current
 		const result = measureOverflow(links.length, priorityNav, cachedRef)
@@ -142,7 +143,7 @@ export function LinksWithDropdown({
 				prev.isMeasuring
 			return didChange ? { ...result, isMeasuring: false } : prev
 		})
-	}, [overflowState.isMeasuring, overflowState.renderMenuOnly, links.length])
+	}, [isClient, overflowState.isMeasuring, overflowState.renderMenuOnly, links.length])
 
 	// Resize listeners — fast cached recalculation, no two-phase render needed
 	useEffect(() => {
