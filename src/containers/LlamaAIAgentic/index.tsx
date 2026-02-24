@@ -1779,7 +1779,7 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 			<button
 				type="button"
 				onClick={() => setIsOpen((v) => !v)}
-				className="flex items-center gap-1 text-[11px] text-[#999] dark:text-[#666]"
+				className="flex items-center gap-1 text-[11px] text-[#555] dark:text-[#aaa]"
 			>
 				<span className={`inline-block transition-transform duration-150 ${isOpen ? 'rotate-90' : ''}`}>&#9656;</span>
 				<span>Reasoning</span>
@@ -1787,7 +1787,7 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 			{isOpen && (
 				<div
 					ref={contentRef}
-					className="mt-1 max-h-[120px] overflow-y-auto whitespace-pre-wrap pl-3 font-mono text-[11px] leading-[1.6] text-[#999] dark:text-[#666]"
+					className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-[11px] leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
 				>
 					{thinking}
 				</div>

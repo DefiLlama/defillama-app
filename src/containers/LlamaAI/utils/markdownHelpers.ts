@@ -102,7 +102,12 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
 		const actionLabel = match[1].trim()
 		const actionMessage = match[2]?.trim() || actionLabel
-		allMatches.push({ index: match.index, length: match[0].length, type: 'action', id: `${actionLabel}|${actionMessage}` })
+		allMatches.push({
+			index: match.index,
+			length: match[0].length,
+			type: 'action',
+			id: `${actionLabel}|${actionMessage}`
+		})
 		actionItems.push({ label: actionLabel, message: actionMessage })
 	}
 
