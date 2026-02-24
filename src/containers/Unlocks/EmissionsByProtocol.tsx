@@ -228,8 +228,6 @@ function groupChartDataByTime(
 ): Array<{ timestamp: number } & Record<string, number | null>> {
 	if (groupBy === 'D') return chartData
 
-	// Most series (unlock amounts, allocations) are additive within a time bucket, but
-	// some series (e.g. Price/Market Cap) are not and should not be summed.
 	const NON_ADDITIVE_STRATEGIES: Record<string, 'avg' | 'last'> = {
 		Price: 'avg',
 		'Market Cap': 'avg'
@@ -280,7 +278,7 @@ function groupChartDataByTime(
 				continue
 			}
 
-			if (strategy === 'last') {
+			else {
 				if (!lastValues[groupKey]) lastValues[groupKey] = {}
 				if (!lastTimestamps[groupKey]) lastTimestamps[groupKey] = {}
 
@@ -291,9 +289,6 @@ function groupChartDataByTime(
 				}
 				continue
 			}
-
-			// Additive series: sum within the bucket.
-			grouped[groupKey][key] = (grouped[groupKey][key] ?? 0) + value
 		}
 	}
 
