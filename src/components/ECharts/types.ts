@@ -1,4 +1,4 @@
-import * as echarts from 'echarts/core'
+import type * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 

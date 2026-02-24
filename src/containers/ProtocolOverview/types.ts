@@ -1,4 +1,5 @@
-import type { IHackApiItem } from '../Hacks/api.types'
+import type * as echarts from 'echarts/core'
+import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
 import type { IProtocolNumericSeries } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
@@ -237,4 +238,21 @@ export interface IToggledMetrics extends Record<
 > {
 	events: 'true' | 'false'
 	denomination: string | null
+}
+
+export interface IProtocolCoreChartProps {
+	chartData: Record<string, Array<[string | number, number | null]>>
+	chartColors: Record<string, string>
+	valueSymbol?: string
+	color?: string
+	hallmarks: Array<[number, string]> | null
+	rangeHallmarks: Array<[[number, number], string]> | null
+	chartOptions?: Record<string, Record<string, unknown>>
+	height?: string
+	unlockTokenSymbol?: string | null
+	isThemeDark: boolean
+	groupBy?: string
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	style?: React.CSSProperties
 }
