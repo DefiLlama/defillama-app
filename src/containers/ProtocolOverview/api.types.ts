@@ -131,6 +131,7 @@ export interface IProtocolMetricsV2 {
 	warningBanners?: Array<IProtocolWarningBanner>
 	tokenRights?: ITokenRights
 	wrongLiquidity?: boolean
+	tvlCodePath?: string
 }
 
 export interface IProtocolOverviewMetricsV1 extends IProtocolMetricsV2 {

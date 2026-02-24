@@ -799,9 +799,10 @@ export const getProtocolOverviewPageData = async ({
 				? 'Total value of all coins held in the smart contracts of the protocol'
 				: null),
 		methodologyURL:
-			currentProtocolMetadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
+			protocolData.tvlCodePath ??
+			(currentProtocolMetadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
 				? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
-				: null,
+				: null),
 		token: {
 			symbol:
 				protocolData.symbol && protocolData.symbol !== '-'
