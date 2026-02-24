@@ -29,7 +29,7 @@ interface ChainSubMetricRowProps {
 
 export const ChainSubMetricRow = ({ label, tooltip, value, className }: ChainSubMetricRowProps) => (
 	<p
-		className={`justify-stat flex flex-wrap gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none ${className ?? ''}`}
+		className={`flex flex-wrap justify-start gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none ${className ?? ''}`}
 	>
 		{tooltip ? (
 			<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
@@ -53,12 +53,9 @@ export const ChainMetricSection = ({ label, tooltip, value, children }: ChainMet
 	<details className="group">
 		<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 			{tooltip ? (
-				<span
-					title={typeof tooltip === 'string' ? tooltip : undefined}
-					className="text-(--text-label) underline decoration-dotted"
-				>
+				<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
 					{label}
-				</span>
+				</Tooltip>
 			) : (
 				<span className="text-(--text-label)">{label}</span>
 			)}

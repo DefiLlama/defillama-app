@@ -46,6 +46,10 @@ type OverflowAction =
 	| { type: 'MEASURED'; result: OverflowResult }
 	| { type: 'RESIZED'; result: OverflowResult }
 
+function assertUnreachable(action: never): never {
+	throw new Error(`Unhandled OverflowAction: ${JSON.stringify(action)}`)
+}
+
 function overflowReducer(state: OverflowState, action: OverflowAction): OverflowState {
 	switch (action.type) {
 		case 'REQUEST_MEASURE':
@@ -66,6 +70,8 @@ function overflowReducer(state: OverflowState, action: OverflowAction): Overflow
 				state.renderMenuOnly !== result.renderMenuOnly || state.firstOverflowIndex !== result.firstOverflowIndex
 			return didChange ? { ...result, isMeasuring: false } : state
 		}
+		default:
+			return assertUnreachable(action)
 	}
 }
 

@@ -318,6 +318,7 @@ function TreasurySection({ treasury }: { treasury: IChainOverviewData['treasury'
 
 function RaisesSection({ chainRaises }: { chainRaises: IChainOverviewData['chainRaises'] }) {
 	if (!chainRaises || chainRaises.length === 0) return null
+	const sortedRaises = [...chainRaises].sort((a, b) => a.date - b.date)
 
 	return (
 		<ChainMetricSection
@@ -325,33 +326,31 @@ function RaisesSection({ chainRaises }: { chainRaises: IChainOverviewData['chain
 			tooltip="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
 			value={formatRaisedAmount(chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
 		>
-			{chainRaises
-				.sort((a, b) => a.date - b.date)
-				.map((raise) => (
-					<p
-						className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
-						key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
-					>
-						<span className="flex flex-wrap justify-between">
-							<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>
-							<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
-						</span>
-						<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
-							<span>Round: {raise.round}</span>
-							{(raise as any).leadInvestors?.length || (raise as any).otherInvestors?.length ? (
-								<span>
-									Investors:{' '}
-									{(raise as any).leadInvestors.concat((raise as any).otherInvestors).map((i, index, arr) => (
-										<Fragment key={'raised from ' + i}>
-											<a href={`/raises/${slug(i)}`}>{i}</a>
-											{index < arr.length - 1 ? ', ' : ''}
-										</Fragment>
-									))}
-								</span>
-							) : null}
-						</span>
-					</p>
-				))}
+			{sortedRaises.map((raise) => (
+				<p
+					className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
+					key={`${raise.date}-${raise.amount}-${raise.source}-${raise.round}`}
+				>
+					<span className="flex flex-wrap justify-between">
+						<span className="text-(--text-label)">{dayjs(raise.date * 1000).format('MMM D, YYYY')}</span>
+						<span className="font-jetbrains">{formattedNum(raise.amount * 1_000_000, true)}</span>
+					</span>
+					<span className="flex flex-wrap justify-between gap-1 text-(--text-label)">
+						<span>Round: {raise.round}</span>
+						{(raise as any).leadInvestors?.length || (raise as any).otherInvestors?.length ? (
+							<span>
+								Investors:{' '}
+								{(raise as any).leadInvestors.concat((raise as any).otherInvestors).map((i, index, arr) => (
+									<Fragment key={'raised from ' + i}>
+										<a href={`/raises/${slug(i)}`}>{i}</a>
+										{index < arr.length - 1 ? ', ' : ''}
+									</Fragment>
+								))}
+							</span>
+						) : null}
+					</span>
+				</p>
+			))}
 		</ChainMetricSection>
 	)
 }
