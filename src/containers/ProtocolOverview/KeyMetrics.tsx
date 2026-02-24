@@ -68,6 +68,8 @@ const STANDARD_METRICS: StandardMetricConfig[] = [
 	}
 ]
 
+const ANNUALIZATION_FACTOR = 12.2
+
 function buildStandardVolumeMetrics(
 	data: { total30d?: number | null; total7d?: number | null; total24h?: number | null; totalAllTime?: number | null },
 	definitionKey: string,
@@ -301,7 +303,7 @@ const buildMetrics = (
 			metrics.push({
 				name: `${prefix} (Annualized)`,
 				tooltipContent: defs?.annualized,
-				value: data.emissions30d * 12.2
+				value: data.emissions30d * ANNUALIZATION_FACTOR
 			})
 			metrics.push({ name: `${prefix} 30d`, tooltipContent: defs?.['30d'], value: data.emissions30d })
 		}
@@ -319,7 +321,7 @@ const buildMetrics = (
 			metrics.push({
 				name: `${label} (Annualized)`,
 				tooltipContent: defs?.annualized,
-				value: data.total30d * 12.2
+				value: data.total30d * ANNUALIZATION_FACTOR
 			})
 			metrics.push({ name: `${label} 30d`, tooltipContent: defs?.['30d'], value: data.total30d })
 		}
@@ -451,7 +453,7 @@ function Earnings(props: IKeyMetricsProps) {
 		metrics.push({
 			name: 'Earnings (Annualized)',
 			tooltipContent: definitions.earnings.protocol.annualized,
-			value: earnings30d * 12.2
+			value: earnings30d * ANNUALIZATION_FACTOR
 		})
 		metrics.push({ name: 'Earnings 30d', tooltipContent: definitions.earnings.protocol['30d'], value: earnings30d })
 	}
@@ -658,7 +660,10 @@ const Expenses = (props: IKeyMetricsProps) => {
 				/>
 			}
 		>
-			<MetricRow label="Headcount" value={formattedNum(props.expenses.headcount)} />
+			<MetricRow
+				label="Headcount"
+				value={props.expenses.headcount != null ? formattedNum(props.expenses.headcount) : '\u2014'}
+			/>
 			{props.expenses.annualUsdCost.map(([category, amount]) => (
 				<p
 					className="flex flex-col gap-1 border-b border-dashed border-(--cards-border) py-1 group-last:border-none"
@@ -857,7 +862,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 }
 
 const Raises = (props: IProtocolOverviewPageData) => {
-	if (!props.raises) return null
+	if (!props.raises || props.raises.length === 0) return null
 	return (
 		<MetricSection
 			label="Total Raised"

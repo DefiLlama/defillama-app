@@ -137,8 +137,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
 
 	const isClient = useIsClient()
-	const shouldShowEnabledEventsChip =
-		toggledMetrics.events === 'true' ? (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) : false
+	const shouldShowEnabledEventsChip = toggledMetrics.events === 'true'
 
 	return (
 		<div className="flex flex-col gap-3">

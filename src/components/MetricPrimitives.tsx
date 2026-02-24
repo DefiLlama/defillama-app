@@ -1,13 +1,15 @@
+import type { ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 
 interface MetricRowProps {
-	label: React.ReactNode
-	tooltip?: React.ReactNode
-	value: React.ReactNode
-	extra?: React.ReactNode
+	label: ReactNode
+	tooltip?: ReactNode
+	value: ReactNode
+	extra?: ReactNode
 	className?: string
 	valueClassName?: string
+	dashed?: boolean
 }
 
 export const MetricRow = ({
@@ -16,10 +18,11 @@ export const MetricRow = ({
 	value,
 	extra,
 	className = '',
-	valueClassName = 'ml-auto font-jetbrains'
+	valueClassName = 'ml-auto font-jetbrains',
+	dashed = false
 }: MetricRowProps) => (
 	<p
-		className={`group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none ${className}`.trim()}
+		className={`group flex flex-wrap justify-start gap-4 border-b ${dashed ? 'border-dashed' : ''} border-(--cards-border) py-1 last:border-none ${className}`.trim()}
 	>
 		{tooltip ? (
 			<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
@@ -32,6 +35,8 @@ export const MetricRow = ({
 		<span className={valueClassName}>{value}</span>
 	</p>
 )
+
+type SubMetricRowProps = Omit<MetricRowProps, 'dashed'>
 
 export const SubMetricRow = ({
 	label,
@@ -40,28 +45,24 @@ export const SubMetricRow = ({
 	extra,
 	className = '',
 	valueClassName = 'ml-auto font-jetbrains'
-}: MetricRowProps) => (
-	<p
-		className={`group flex flex-wrap justify-start gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none ${className}`.trim()}
-	>
-		{tooltip ? (
-			<Tooltip content={tooltip} className="text-(--text-label) underline decoration-dotted">
-				{label}
-			</Tooltip>
-		) : (
-			<span className="text-(--text-label)">{label}</span>
-		)}
-		{extra}
-		<span className={valueClassName}>{value}</span>
-	</p>
+}: SubMetricRowProps) => (
+	<MetricRow
+		label={label}
+		tooltip={tooltip}
+		value={value}
+		extra={extra}
+		className={className}
+		valueClassName={valueClassName}
+		dashed={true}
+	/>
 )
 
 interface MetricSectionProps {
-	label: React.ReactNode
-	tooltip?: React.ReactNode
-	value: React.ReactNode
-	extra?: React.ReactNode
-	children?: React.ReactNode
+	label: ReactNode
+	tooltip?: string | null
+	value: ReactNode
+	extra?: ReactNode
+	children?: ReactNode
 	defaultOpen?: boolean
 	className?: string
 	valueClassName?: string
@@ -80,11 +81,8 @@ export const MetricSection = ({
 	<details className={`group ${className}`.trim()} open={defaultOpen}>
 		<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 			{tooltip ? (
-				// Keep native title in <summary>; wrapped tooltip triggers can interfere with details toggling.
-				<span
-					title={typeof tooltip === 'string' ? tooltip : undefined}
-					className={`text-(--text-label)${typeof tooltip === 'string' ? ' underline decoration-dotted' : ''}`}
-				>
+				// MetricSection only supports string tooltips because <summary> uses native title for safe toggling.
+				<span title={tooltip ?? undefined} className="text-(--text-label) underline decoration-dotted">
 					{label}
 				</span>
 			) : (
@@ -99,6 +97,6 @@ export const MetricSection = ({
 			{extra}
 			<span className={valueClassName}>{value}</span>
 		</summary>
-		{children && <div className="mb-3 flex flex-col">{children}</div>}
+		{children ? <div className="mb-3 flex flex-col">{children}</div> : null}
 	</details>
 )

@@ -31,15 +31,19 @@ const aggregateTvlByChain = ({
 			continue
 		}
 
-		const [chainName, extraTvlKey] = chain.split('-')
+		const lastIndex = chain.lastIndexOf('-')
+		const extraTvlKey = lastIndex === -1 ? undefined : chain.slice(lastIndex + 1)
+		const normalizedExtraKey = extraTvlKey?.toLowerCase()
+		const hasRecognizedExtraTvl = normalizedExtraKey != null && isTvlSettingsKey(normalizedExtraKey)
 
-		if (!extraTvlKey) {
-			destination[chainName] = (destination[chainName] ?? 0) + source[chain]
+		// Preserve chain names that contain hyphens unless the suffix is a known extra-TVL key.
+		if (!hasRecognizedExtraTvl) {
+			destination[chain] = (destination[chain] ?? 0) + source[chain]
 			continue
 		}
 
-		const normalizedExtraKey = extraTvlKey.toLowerCase()
-		if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
+		const chainName = chain.slice(0, lastIndex)
+		if (extraTvlsEnabled[normalizedExtraKey]) {
 			destination[chainName] = (destination[chainName] ?? 0) + source[chain]
 		}
 	}
@@ -121,13 +125,16 @@ interface TotalsByPeriod {
 	totalAllTime?: number | null
 }
 
+const hasAnyPeriodTotals = (totals: TotalsByPeriod | null | undefined) =>
+	totals?.total24h != null || totals?.total7d != null || totals?.total30d != null || totals?.totalAllTime != null
+
 export const getAdjustedTotals = (
 	base: TotalsByPeriod | null | undefined,
 	bribeRevenue: TotalsByPeriod | null | undefined,
 	tokenTax: TotalsByPeriod | null | undefined,
 	extraTvlsEnabled: Record<string, boolean>
 ) => {
-	const exists = base?.totalAllTime != null || bribeRevenue?.totalAllTime != null || tokenTax?.totalAllTime != null
+	const exists = hasAnyPeriodTotals(base) || hasAnyPeriodTotals(bribeRevenue) || hasAnyPeriodTotals(tokenTax)
 	if (!exists) return null
 
 	const b24h = extraTvlsEnabled.bribes ? bribeRevenue?.total24h : 0

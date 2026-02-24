@@ -165,7 +165,9 @@ export function Flag({
 					>
 						Report
 					</button>
-					{error ? <small className="text-center text-red-500">Something went wrong, couldn't submit report</small> : null}
+					{error ? (
+						<small className="text-center text-red-500">Something went wrong, couldn't submit report</small>
+					) : null}
 				</form>
 			</Ariakit.Dialog>
 
