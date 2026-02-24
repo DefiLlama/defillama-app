@@ -61,6 +61,7 @@ export const getStaticProps = withPerformanceLogging(
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const toggleOptions = []
+		const chainsUnique = new Set<string>()
 
 		for (const chain in protocolData.currentChainTvls) {
 			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
@@ -68,6 +69,9 @@ export const getStaticProps = withPerformanceLogging(
 				if (option) {
 					toggleOptions.push(option)
 				}
+			} else {
+				if (chain.includes('-')) continue
+				chainsUnique.add(chain)
 			}
 		}
 
@@ -79,7 +83,8 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData.category ?? null,
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
-				toggleOptions
+				toggleOptions,
+				chainsUnique: Array.from(chainsUnique)
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -353,6 +358,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 
 	const {
 		isLoading,
+		errors,
 		chainsUnique,
 		tokensUnique,
 		chainsDataset,
@@ -370,19 +376,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		protocol,
 		keys: toggledTvlKeys,
 		includeBase: true,
+		chainsUnique: props.chainsUnique,
 		inflows: props.metrics?.inflows
 	})
 
 	const protocolSlug = slug(props.name || 'protocol')
 	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
 	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
-	const hasBreakdownMetrics =
-		(chainsDataset && chainsUnique?.length > 1) ||
-		(tokenUSDDataset && tokensUnique?.length > 0) ||
-		(tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0) ||
-		(tokenRawDataset && tokensUnique?.length > 0) ||
-		usdInflowsDataset ||
-		(tokenInflowsDataset && tokensUnique?.length > 0)
 
 	return (
 		<ProtocolOverviewLayout
@@ -402,7 +402,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
-			) : !hasBreakdownMetrics ? (
+			) : props.chainsUnique.length <= 1 && !props.metrics.inflows ? (
 				<div className="col-span-2 flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-(--text-label)">
 						Breakdown charts are not available for this protocol as it operates on a single chain and token composition
@@ -481,8 +481,26 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					) : null}
 				</div>
 			)}
+			{errors.length > 0 ? (
+				<div className="col-span-2 flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--text-label)">
+						Failed to fetch{' '}
+						{Array.from(new Set(errors.map((e) => CHART_CATEGORY_LABELS[e.category])))
+							.filter(Boolean)
+							.join(', ')}{' '}
+						APIs
+					</p>
+				</div>
+			) : null}
 		</ProtocolOverviewLayout>
 	)
+}
+
+const CHART_CATEGORY_LABELS: Record<string, string> = {
+	tvl: 'TVL',
+	'chain-breakdown': 'chain breakdown',
+	'token-breakdown-usd': 'token breakdown',
+	'token-breakdown-raw': 'token inflows'
 }
 
 const USD_INFLOWS_CHARTS = [

@@ -22,10 +22,21 @@ interface IUseProtocolBreakdownChartsParams {
 	includeBase?: boolean
 	source?: 'tvl' | 'treasury'
 	inflows?: boolean
+	chainsUnique?: string[]
+}
+
+type FailedQueryCategory = 'tvl' | 'chain-breakdown' | 'token-breakdown-usd' | 'token-breakdown-raw'
+
+export interface IFailedChartQuery {
+	category: FailedQueryCategory
+	/** The key parameter for this query (`undefined` = base/aggregate) */
+	key: string | undefined
+	error: Error
 }
 
 interface IUseProtocolBreakdownChartsResult {
 	isLoading: boolean
+	errors: IFailedChartQuery[]
 	chainsUnique: string[]
 	tokensUnique: string[]
 	chainsDataset: MultiSeriesChart2Dataset | null
@@ -43,7 +54,7 @@ interface IUseProtocolBreakdownChartsResult {
 	tokenInflowsCharts: MultiSeriesCharts
 }
 
-type IUseProtocolBreakdownChartsComputed = Omit<IUseProtocolBreakdownChartsResult, 'isLoading'>
+type IUseProtocolBreakdownChartsComputed = Omit<IUseProtocolBreakdownChartsResult, 'isLoading' | 'errors'>
 
 const getLatestChartTimestamp = (chart: Array<[number, unknown]>): number | null => {
 	if (chart.length === 0) return null
@@ -414,15 +425,42 @@ const buildComputedBreakdownResult = ({
 	}
 }
 
+const collectFailedQueries = (
+	queryGroups: Array<{
+		category: FailedQueryCategory
+		queries: Array<{ isError: boolean; error: Error | null }>
+		keys: Array<string | undefined>
+	}>
+): IFailedChartQuery[] => {
+	const failed: IFailedChartQuery[] = []
+	for (const { category, queries, keys } of queryGroups) {
+		for (let i = 0; i < queries.length; i++) {
+			const query = queries[i]
+			if (query.isError && query.error) {
+				failed.push({ category, key: keys[i], error: query.error })
+			}
+		}
+	}
+	return failed
+}
+
 export function useProtocolBreakdownCharts({
 	protocol,
 	keys,
 	includeBase = true,
 	source = 'tvl',
-	inflows = true
+	inflows = true,
+	chainsUnique: knownChains
 }: IUseProtocolBreakdownChartsParams): IUseProtocolBreakdownChartsResult {
-	const { tvlChartQueries, chainBreakdownChartQueries, tokenBreakdownUsdQueries, tokenBreakdownRawQueries } =
-		useFetchProtocolChartsByKeys({ protocol, keys, includeBase, source, inflows })
+	const chainBreakdown = !knownChains || knownChains.length >= 2
+
+	const {
+		keysToFetch,
+		tvlChartQueries,
+		chainBreakdownChartQueries,
+		tokenBreakdownUsdQueries,
+		tokenBreakdownRawQueries
+	} = useFetchProtocolChartsByKeys({ protocol, keys, includeBase, source, inflows, chainBreakdown })
 
 	const isNetworkLoading =
 		tvlChartQueries.some((query) => query.isLoading) ||
@@ -511,8 +549,20 @@ export function useProtocolBreakdownCharts({
 		}
 	}, [isNetworkLoading, computeSignature, source, inflows])
 
+	const errors = React.useMemo(
+		() =>
+			collectFailedQueries([
+				{ category: 'tvl', queries: tvlChartQueries, keys: keysToFetch },
+				{ category: 'chain-breakdown', queries: chainBreakdownChartQueries, keys: keysToFetch },
+				{ category: 'token-breakdown-usd', queries: tokenBreakdownUsdQueries, keys: keysToFetch },
+				{ category: 'token-breakdown-raw', queries: tokenBreakdownRawQueries, keys: keysToFetch }
+			]),
+		[tvlChartQueries, chainBreakdownChartQueries, tokenBreakdownUsdQueries, tokenBreakdownRawQueries, keysToFetch]
+	)
+
 	return {
 		isLoading: isNetworkLoading || isComputing,
+		errors,
 		...computed
 	}
 }

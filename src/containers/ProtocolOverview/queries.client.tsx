@@ -66,6 +66,7 @@ const getProtocolChartQueryOptions = ({
 				? fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType })
 				: fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	}
@@ -92,6 +93,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 				})
 				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -111,6 +113,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 				})
 				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -131,6 +134,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 				})
 				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -148,6 +152,7 @@ const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 				})
 				.catch(() => []),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -159,6 +164,7 @@ const useFetchProtocolTokenLiquidity = (token: string | null) => {
 		queryKey: ['protocol-overview', 'token-liquidity', token],
 		queryFn: () => fetchProtocolTokenLiquidityChart(token!),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -181,6 +187,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 					return []
 				}),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -208,6 +215,7 @@ interface IFetchProtocolChartsByKeysParams {
 	includeBase?: boolean
 	source: ProtocolChartSource
 	inflows?: boolean
+	chainBreakdown?: boolean
 }
 
 interface IFetchProtocolChartsByKeysResult {
@@ -223,7 +231,8 @@ export function useFetchProtocolChartsByKeys({
 	keys,
 	includeBase = true,
 	source,
-	inflows = true
+	inflows = true,
+	chainBreakdown = true
 }: IFetchProtocolChartsByKeysParams): IFetchProtocolChartsByKeysResult {
 	const keysToFetch = useMemo(() => {
 		const base: Array<string | undefined> = includeBase ? [undefined] : []
@@ -237,7 +246,9 @@ export function useFetchProtocolChartsByKeys({
 	}) as Array<UseQueryResult<IProtocolValueChart | null>>
 
 	const chainBreakdownChartQueries = useQueries({
-		queries: keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'chain-breakdown' }))
+		queries: chainBreakdown
+			? keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'chain-breakdown' }))
+			: []
 	}) as Array<UseQueryResult<IProtocolChainBreakdownChart | null>>
 
 	const tokenBreakdownUsdQueries = useQueries({

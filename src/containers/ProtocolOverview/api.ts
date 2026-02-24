@@ -97,9 +97,8 @@ const fetchProtocolValueChart = async ({
 	currency?: string
 }): Promise<IProtocolValueChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	return fetchJson(finalUrl)
-		.then((values) => normalizeProtocolValueChart(values))
-		.catch(() => null)
+	const values = await fetchJson(finalUrl)
+	return normalizeProtocolValueChart(values)
 }
 
 /**
@@ -115,9 +114,8 @@ const fetchProtocolChainBreakdownChart = async ({
 	currency?: string
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	return fetchJson(finalUrl)
-		.then((values) => normalizeProtocolChainBreakdownChart(values))
-		.catch(() => null)
+	const values = await fetchJson(finalUrl)
+	return normalizeProtocolChainBreakdownChart(values)
 }
 
 /**
@@ -133,9 +131,8 @@ const fetchProtocolTokenBreakdownChart = async ({
 	currency?: string
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	return fetchJson(finalUrl)
-		.then((values) => normalizeProtocolTokenBreakdownChart(values))
-		.catch(() => null)
+	const values = await fetchJson(finalUrl)
+	return normalizeProtocolTokenBreakdownChart(values)
 }
 
 type ProtocolChartNamespace = 'tvl' | 'treasury'
