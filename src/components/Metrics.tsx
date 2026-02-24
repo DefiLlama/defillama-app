@@ -304,12 +304,13 @@ export function LinkToMetricOrToolPage({
 export function usePinnedRoutes(): Set<string> {
 	const raw = useStorageItem('pinned-metrics', '[]')
 	return useMemo(() => {
+		let arr: unknown
 		try {
-			const arr = JSON.parse(raw)
-			return new Set<string>(Array.isArray(arr) ? arr : [])
+			arr = JSON.parse(raw)
 		} catch {
 			return new Set<string>()
 		}
+		return new Set<string>(Array.isArray(arr) ? arr : [])
 	}, [raw])
 }
 
