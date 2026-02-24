@@ -103,4 +103,5 @@ export interface Message {
 	id?: string
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
+	thinking?: string
 }
