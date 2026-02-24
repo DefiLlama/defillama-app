@@ -1,8 +1,8 @@
-import { fetchCexs } from '~/containers/Cexs/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
+import { fetchCexs } from '~/containers/Cexs/api.ts'
+import { fetchProtocols } from '~/containers/Protocols/api.ts'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api.ts'
 import defillamaPages from '~/pages.json'
-import { slug } from '~/utils'
+import { slug } from '~/utils/index.tsx'
 
 const baseUrl = `https://defillama.com`
 

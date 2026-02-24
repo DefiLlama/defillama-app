@@ -1,10 +1,10 @@
-import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
-import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
-import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
-import Layout from '~/layout'
-import { slug } from '~/utils'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import { withPerformanceLogging } from '~/utils/perf'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants/index.ts'
+import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview.tsx'
+import { getBridgePageDatanew } from '~/containers/Bridges/queries.server.tsx'
+import Layout from '~/layout/index.tsx'
+import { slug } from '~/utils/index.tsx'
+import { maxAgeForNext } from '~/utils/maxAgeForNext.ts'
+import { withPerformanceLogging } from '~/utils/perf.ts'
 
 // todo check name in metadata
 export const getStaticProps = withPerformanceLogging('bridge/[bridge]', async ({ params }) => {

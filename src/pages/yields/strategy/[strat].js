@@ -1,18 +1,18 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
-import { LoadingDots } from '~/components/Loaders'
-import { CHART_COLORS } from '~/constants/colors'
+import { LoadingDots } from '~/components/Loaders.tsx'
+import { CHART_COLORS } from '~/constants/colors.ts'
 import {
 	useConfigPool,
 	useYieldChartData,
 	useYieldChartLendBorrow,
 	useYieldConfigData
-} from '~/containers/Yields/queries/client'
-import { calculateLoopAPY } from '~/containers/Yields/queries/index'
-import Layout from '~/layout'
-import { formattedNum } from '~/utils'
+} from '~/containers/Yields/queries/client.ts'
+import { calculateLoopAPY } from '~/containers/Yields/queries/index.ts'
+import Layout from '~/layout/index.tsx'
+import { formattedNum } from '~/utils/index.ts'
 
-const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2.tsx'))
 
 const EMPTY_APY_DATASET = { source: [], dimensions: ['timestamp', 'APY'] }
 const EMPTY_BASE_REWARD_DATASET = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
