@@ -192,7 +192,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 						}
 						valueClassName="ml-auto"
 						value={
-							props.tokenCGData?.marketCap?.current ? (
+							props.tokenCGData?.marketCap?.current != null ? (
 								<span className="flex items-center gap-1">
 									<span className="font-jetbrains">{props.formatPrice(props.currentTvlByChain.staking)}</span>
 									<span className="text-xs text-(--text-label)">
@@ -740,7 +740,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 	if (!props.tokenCGData) return null
 	return (
 		<>
-			{props.tokenCGData?.marketCap?.current ? (
+			{props.tokenCGData?.marketCap?.current != null ? (
 				<MetricRow
 					label="Market Cap"
 					extra={
@@ -754,8 +754,8 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					value={props.formatPrice(props.tokenCGData.marketCap.current)}
 				/>
 			) : null}
-			{props.tokenCGData?.price?.current ? (
-				props.tokenCGData.price.ath || props.tokenCGData.price.atl ? (
+			{props.tokenCGData?.price?.current != null ? (
+				props.tokenCGData.price.ath != null || props.tokenCGData.price.atl != null ? (
 					<MetricSection
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
 						value={props.formatPrice(props.tokenCGData.price.current)}
@@ -786,7 +786,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					/>
 				)
 			) : null}
-			{props.tokenCGData?.fdv?.current ? (
+			{props.tokenCGData?.fdv?.current != null ? (
 				<MetricRow
 					label="Fully Diluted Valuation"
 					tooltip={
@@ -820,7 +820,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					value={props.formatPrice(props.outstandingFDV)}
 				/>
 			) : null}
-			{props.tokenCGData.volume24h?.total ? (
+			{props.tokenCGData.volume24h?.total != null ? (
 				<MetricSection
 					label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Volume 24h`}
 					value={props.formatPrice(props.tokenCGData.volume24h.total)}
@@ -835,7 +835,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				>
 					<SubMetricRow
 						label="CEX Volume"
-						value={props.tokenCGData.volume24h.cex ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
+						value={props.tokenCGData.volume24h.cex != null ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
 					/>
 					<SubMetricRow
 						label="DEX Volume"
@@ -843,7 +843,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						value={
 							<span className="flex items-center gap-1">
 								<span className="font-jetbrains">
-									{props.tokenCGData.volume24h.dex ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
+									{props.tokenCGData.volume24h.dex != null ? props.formatPrice(props.tokenCGData.volume24h.dex) : '-'}
 								</span>
 								<span className="text-xs text-(--text-label)">
 									(

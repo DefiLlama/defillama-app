@@ -43,6 +43,10 @@ const aggregateTvlByChain = ({
 		}
 
 		const chainName = chain.slice(0, lastIndex)
+		const extraOption = tvlOptionsMap.get(normalizedExtraKey)
+		if (extraOption) {
+			pushToggleOption(toggleOptions, extraOption)
+		}
 		if (extraTvlsEnabled[normalizedExtraKey]) {
 			destination[chainName] = (destination[chainName] ?? 0) + source[chain]
 		}
@@ -83,14 +87,14 @@ export const useFinalTVL = (props: IProtocolOverviewPageData) => {
 			oracleTvs += oracleTvsByChainMap[chain]
 		}
 
-		if (props.bribeRevenue?.totalAllTime != null) {
+		if (hasAnyPeriodTotals(props.bribeRevenue)) {
 			const option = feesOptionsMap.get(FEES_SETTINGS.BRIBES)
 			if (option) {
 				pushToggleOption(toggleOptions, option)
 			}
 		}
 
-		if (props.tokenTax?.totalAllTime != null) {
+		if (hasAnyPeriodTotals(props.tokenTax)) {
 			const option = feesOptionsMap.get(FEES_SETTINGS.TOKENTAX)
 			if (option) {
 				pushToggleOption(toggleOptions, option)

@@ -225,7 +225,8 @@ const ChainProtocolsTableInner = ({
 					},
 					sortingFn: (rowA, rowB, columnId) => {
 						const usedFormat = col.determinedFormat || col.formatType
-						const desc = sortingRef.current.length ? sortingRef.current[0].desc : true
+						const sortEntry = sortingRef.current.find((s) => s.id === columnId)
+						const desc = sortEntry?.desc ?? true
 
 						let a = rowA.getValue(columnId)
 						let b = rowB.getValue(columnId)
