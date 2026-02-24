@@ -191,7 +191,7 @@ function DashboardSettingsModalInner({
 									<button
 										type="button"
 										onClick={handleAddTag}
-										className="rounded-md border px-4 py-2 transition-colors pro-btn-blue-outline"
+										className="rounded-md pro-btn-blue-outline border px-4 py-2 transition-colors"
 									>
 										Add Tag
 									</button>
@@ -231,8 +231,7 @@ function DashboardSettingsModalInner({
 									name="description"
 									defaultValue={description}
 									onInput={(e) => {
-										if (charCountRef.current)
-											charCountRef.current.textContent = String(e.currentTarget.value.length)
+										if (charCountRef.current) charCountRef.current.textContent = String(e.currentTarget.value.length)
 									}}
 									placeholder="Describe your dashboard..."
 									maxLength={200}
@@ -247,20 +246,14 @@ function DashboardSettingsModalInner({
 							{onDelete && dashboardId && (
 								<div className="border-t border-(--cards-border) pt-6">
 									<p className="mb-3 block text-sm font-medium pro-text1 text-red-500">Danger Zone</p>
-									<p className="mb-4 text-sm pro-text3">
-										Once you delete a dashboard, there is no going back.
-									</p>
+									<p className="mb-4 text-sm pro-text3">Once you delete a dashboard, there is no going back.</p>
 									<button
 										type="button"
 										onClick={handleDeleteClick}
 										disabled={isDeleting}
 										className="flex items-center gap-2 rounded-md bg-red-500/10 px-4 py-2 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
 									>
-										{isDeleting ? (
-											<LoadingSpinner size={16} />
-										) : (
-											<Icon name="trash-2" height={16} width={16} />
-										)}
+										{isDeleting ? <LoadingSpinner size={16} /> : <Icon name="trash-2" height={16} width={16} />}
 										<span>Delete Dashboard</span>
 									</button>
 								</div>

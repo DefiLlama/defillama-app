@@ -6,6 +6,7 @@ import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import { BAR_CHARTS, type ProtocolChartsLabels, yAxisByChart } from './constants'
+import type { IProtocolCoreChartProps } from './types'
 
 const customOffsets: Record<string, number> = {
 	Contributors: 60,
@@ -16,24 +17,7 @@ const customOffsets: Record<string, number> = {
 
 echarts.use([MarkAreaComponent])
 
-export interface IProtocolCoreChartProps {
-	chartData: Record<string, Array<[string | number, number | null]>>
-	chartColors: Record<string, string>
-	valueSymbol?: string
-	color?: string
-	hallmarks: Array<[number, string]> | null
-	rangeHallmarks: Array<[[number, number], string]> | null
-	chartOptions?: Record<string, Record<string, unknown>>
-	height?: string
-	unlockTokenSymbol?: string | null
-	isThemeDark: boolean
-	groupBy?: string
-	hideDataZoom?: boolean
-	onReady?: (instance: echarts.ECharts | null) => void
-	style?: React.CSSProperties
-}
-
-export default function ProtocolCoreChart({
+export default function ProtocolChart({
 	chartData,
 	chartColors,
 	valueSymbol = '',

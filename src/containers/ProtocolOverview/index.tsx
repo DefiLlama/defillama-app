@@ -20,7 +20,7 @@ import { Flag } from './Flag'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import { ProtocolOverviewLayout } from './Layout'
 import { SectionHeader, MetricRow, MetricSection } from './MetricComponents'
-import { ProtocolChart } from './ProtocolChart'
+import { ProtocolChartPanel } from './ProtocolChartPanel'
 import type { IProtocolOverviewPageData } from './types'
 
 const EMPTY_COMPETITORS: Array<{ name: string; tvl: number }> = []
@@ -109,7 +109,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						<Suspense
 							fallback={<div className="min-h-[400px] rounded-md border border-(--cards-border) bg-(--cards-bg)" />}
 						>
-							<ProtocolChart {...props} />
+							<ProtocolChartPanel {...props} />
 						</Suspense>
 					</div>
 					{props.hasKeyMetrics ? (

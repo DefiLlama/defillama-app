@@ -16,8 +16,7 @@ import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
-import type { IProtocolCoreChartProps } from './ProtocolCoreChart'
-import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
+import type { IProtocolOverviewPageData, IToggledMetrics, IProtocolCoreChartProps } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
 const resolveVisibility = ({
@@ -39,11 +38,11 @@ type ChartInterval = (typeof INTERVALS_LIST)[number]
 const isChartInterval = (value: string | null): value is ChartInterval =>
 	value != null && INTERVALS_LIST.includes(value as (typeof INTERVALS_LIST)[number])
 
-const ProtocolCoreChart = lazy(() =>
-	import('./ProtocolCoreChart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
+const ProtocolChart = lazy(() =>
+	import('./Chart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
 )
 
-export function ProtocolChart(props: IProtocolOverviewPageData) {
+export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const searchParams = useMemo(() => {
 		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
@@ -316,7 +315,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					</p>
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<ProtocolCoreChart
+						<ProtocolChart
 							chartData={finalCharts}
 							chartColors={props.chartColors}
 							isThemeDark={isThemeDark}
