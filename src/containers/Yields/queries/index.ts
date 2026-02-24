@@ -10,24 +10,146 @@ import {
 	YIELD_URL_API
 } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchRaises } from '~/containers/Raises/api'
+import type { RawRaisesResponse } from '~/containers/Raises/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchJson } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
 
+// Cache raises data to avoid repeated API calls (rate-limited)
+let cachedRaises: RawRaisesResponse | null = null
+let cachedRaisesTime = 0
+const RAISES_CACHE_TTL = 30 * 60 * 1000 // 30 minutes
+
+async function getCachedRaises(): Promise<RawRaisesResponse> {
+	const now = Date.now()
+	if (cachedRaises && now - cachedRaisesTime < RAISES_CACHE_TTL) {
+		return cachedRaises
+	}
+	try {
+		cachedRaises = await fetchRaises()
+		cachedRaisesTime = now
+		return cachedRaises
+	} catch {
+		return cachedRaises ?? { raises: [] }
+	}
+}
+
 export async function getYieldPageData() {
-	let poolsAndConfig = await Promise.all([
+	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
 		fetchJson(YIELD_POOLS_API),
 		fetchJson(YIELD_CONFIG_API),
 		fetchJson(YIELD_URL_API),
 		fetchJson(YIELD_CHAIN_API),
-		fetchProtocols()
+		fetchProtocols(),
+		getCachedRaises()
 	])
+
+	let poolsAndConfig = [poolsData, configData, urlsData, chainsData, protocolsData]
 
 	let data = formatYieldsPageData(poolsAndConfig)
 	data.pools = data.pools.map((p) => ({
 		...p,
 		underlyingTokens: p.underlyingTokens ?? [],
 		rewardTokens: p.rewardTokens ?? []
+	}))
+
+	// Build raise valuation lookups
+	const raises = raisesData?.raises ?? []
+	const sortedRaises = [...raises].sort((a, b) => b.date - a.date)
+
+	// 1. By defillamaId (most reliable)
+	const valuationByDefillamaId = new Map<string, number>()
+	for (const raise of sortedRaises) {
+		if (raise.defillamaId && raise.valuation != null) {
+			const key = String(raise.defillamaId)
+			const numVal = Number(raise.valuation)
+			if (!Number.isFinite(numVal) || numVal <= 0) continue
+			if (!valuationByDefillamaId.has(key)) {
+				valuationByDefillamaId.set(key, numVal)
+			}
+		}
+	}
+
+	// 2. By raise name (fallback — most raises lack defillamaId but have names)
+	const valuationByRaiseName = new Map<string, number>()
+	for (const raise of sortedRaises) {
+		if (raise.name && raise.valuation != null) {
+			const key = raise.name.toLowerCase()
+			const numVal = Number(raise.valuation)
+			if (!Number.isFinite(numVal) || numVal <= 0) continue
+			if (!valuationByRaiseName.has(key)) {
+				valuationByRaiseName.set(key, numVal)
+			}
+		}
+	}
+
+	// Build project slug → valuation
+	const _config = configData?.protocols ?? {}
+	const _lite = protocolsData ?? { protocols: [], parentProtocols: [] }
+	const liteProtocols = _lite.protocols ?? []
+	const liteByName = new Map<string, any>()
+	for (const p of liteProtocols) {
+		if (p.name) liteByName.set(p.name.toLowerCase(), p)
+	}
+
+	// Build parent protocol name lookup
+	const parentProtocols = _lite.parentProtocols ?? []
+	const parentNameById = new Map<string, string>()
+	for (const pp of parentProtocols) {
+		if (pp.id && pp.name) parentNameById.set(pp.id, pp.name)
+	}
+
+	const valuationBySlug = new Map<string, number>()
+	for (const slug of Object.keys(_config)) {
+		const configName = _config[slug]?.name
+		if (!configName) continue
+		const liteProtocol = liteByName.get(configName.toLowerCase())
+
+		let val: number | undefined
+
+		// Try defillamaId-based lookup first
+		if (liteProtocol) {
+			const defillamaId = String(liteProtocol.defillamaId ?? liteProtocol.id ?? '')
+			val = valuationByDefillamaId.get(defillamaId)
+
+			// Check parentProtocol raises
+			if (val == null && liteProtocol.parentProtocol) {
+				val = valuationByDefillamaId.get(String(liteProtocol.parentProtocol))
+
+				// Also try parent protocol name-based lookup
+				if (val == null) {
+					const parentName = parentNameById.get(liteProtocol.parentProtocol)
+					if (parentName) val = valuationByRaiseName.get(parentName.toLowerCase())
+				}
+			}
+		}
+
+		// Fallback: match by config name → raise name
+		if (val == null) {
+			val = valuationByRaiseName.get(configName.toLowerCase())
+		}
+
+		if (val != null) valuationBySlug.set(slug, val)
+	}
+
+	// Debug logging (temporary)
+	const airdropPools = data.pools.filter((p) => p.airdrop)
+	const matchedAirdropSlugs = new Set<string>()
+	for (const p of airdropPools) {
+		if (valuationBySlug.has(p.project)) matchedAirdropSlugs.add(p.project)
+	}
+	console.log('[raises debug] raises:', raises.length,
+		'| byId:', valuationByDefillamaId.size,
+		'| byName:', valuationByRaiseName.size,
+		'| slugs:', valuationBySlug.size,
+		'| airdrop matches:', matchedAirdropSlugs.size,
+		'|', [...matchedAirdropSlugs].slice(0, 20))
+
+	// Attach raiseValuation to airdrop pools
+	data.pools = data.pools.map((p) => ({
+		...p,
+		raiseValuation: p.airdrop ? (valuationBySlug.get(p.project) ?? null) : null
 	}))
 
 	const priceChainMapping = {

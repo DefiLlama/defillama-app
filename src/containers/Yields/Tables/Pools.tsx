@@ -39,7 +39,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'project',
 		enableSorting: false,
 		cell: ({ row }) => (
-			<NameYield project={row.original.project} projectslug={row.original.project} airdrop={row.original.airdrop} />
+			<NameYield project={row.original.project} projectslug={row.original.project} airdrop={row.original.airdrop} raiseValuation={row.original.raiseValuation} />
 		),
 		size: 200
 	},

@@ -5,6 +5,7 @@ export interface IYieldTableRow {
 	projectslug: string
 	project: string
 	airdrop?: boolean
+	raiseValuation?: number | null
 	chains: Array<string>
 	tvl: number
 	apy: number

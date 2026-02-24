@@ -118,6 +118,7 @@ const YieldPage = ({
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,
+					raiseValuation: curr.raiseValuation,
 					chains: [curr.chain],
 					tvl: curr.tvlUsd,
 					apy: curr.apy,

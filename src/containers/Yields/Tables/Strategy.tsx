@@ -34,8 +34,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						<PoolStrategyRoute
 							project1={row.original.projectName}
 							airdropProject1={row.original.airdrop}
+							raiseValuationProject1={row.original.raiseValuation}
 							project2={row.original.farmProjectName}
 							airdropProject2={false}
+							raiseValuationProject2={null}
 							chain={row.original.chains[0]}
 						/>
 					</span>
