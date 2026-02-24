@@ -3,67 +3,77 @@ import { feesOptionsMap, tvlOptionsMap } from '~/components/Filters/options'
 import { FEES_SETTINGS, isTvlSettingsKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import type { IProtocolOverviewPageData } from './types'
 
+type ToggleOption = { name: string; key: string }
+
+const pushToggleOption = (toggleOptions: ToggleOption[], option: ToggleOption) => {
+	if (!toggleOptions.some((item) => item.key === option.key)) {
+		toggleOptions.push(option)
+	}
+}
+
+const aggregateTvlByChain = ({
+	source,
+	destination,
+	extraTvlsEnabled,
+	toggleOptions
+}: {
+	source: Record<string, number>
+	destination: Record<string, number>
+	extraTvlsEnabled: Record<string, boolean>
+	toggleOptions: ToggleOption[]
+}) => {
+	for (const chain in source) {
+		if (isTvlSettingsKey(chain)) {
+			const option = tvlOptionsMap.get(chain)
+			if (option) {
+				pushToggleOption(toggleOptions, option)
+			}
+			continue
+		}
+
+		const [chainName, extraTvlKey] = chain.split('-')
+
+		if (!extraTvlKey) {
+			destination[chainName] = (destination[chainName] ?? 0) + source[chain]
+			continue
+		}
+
+		const normalizedExtraKey = extraTvlKey.toLowerCase()
+		if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
+			destination[chainName] = (destination[chainName] ?? 0) + source[chain]
+		}
+	}
+}
+
 export const useFinalTVL = (props: IProtocolOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 
 	return useMemo(() => {
 		let tvl = 0
 		const tvlByChainMap: Record<string, number> = {}
-		let toggleOptions: Array<{ name: string; key: string }> = []
+		const toggleOptions: ToggleOption[] = []
 		let oracleTvs = 0
 		const oracleTvsByChainMap: Record<string, number> = {}
 
 		const currentTvlByChain = props.currentTvlByChain ?? {}
-		for (const chain in currentTvlByChain) {
-			if (isTvlSettingsKey(chain)) {
-				const option = tvlOptionsMap.get(chain)
-				if (option) {
-					toggleOptions.push(option)
-				}
-				continue
-			}
-
-			const [chainName, extraTvlKey] = chain.split('-')
-
-			if (!extraTvlKey) {
-				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + currentTvlByChain[chain]
-				continue
-			}
-
-			const normalizedExtraKey = extraTvlKey.toLowerCase()
-			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
-				tvlByChainMap[chainName] = (tvlByChainMap[chainName] ?? 0) + currentTvlByChain[chain]
-				continue
-			}
-		}
+		aggregateTvlByChain({
+			source: currentTvlByChain,
+			destination: tvlByChainMap,
+			extraTvlsEnabled,
+			toggleOptions
+		})
 
 		for (const chain in tvlByChainMap) {
 			tvl += tvlByChainMap[chain]
 		}
 
 		const oracleTvsData = props.oracleTvs ?? {}
-		for (const chain in oracleTvsData) {
-			if (isTvlSettingsKey(chain)) {
-				const option = tvlOptionsMap.get(chain)
-				if (option && !toggleOptions.some((o) => o.key === option.key)) {
-					toggleOptions.push(option)
-				}
-				continue
-			}
-
-			const [chainName, extraTvlKey] = chain.split('-')
-
-			if (!extraTvlKey) {
-				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + oracleTvsData[chain]
-				continue
-			}
-
-			const normalizedExtraKey = extraTvlKey.toLowerCase()
-			if (isTvlSettingsKey(normalizedExtraKey) && extraTvlsEnabled[normalizedExtraKey]) {
-				oracleTvsByChainMap[chainName] = (oracleTvsByChainMap[chainName] ?? 0) + oracleTvsData[chain]
-				continue
-			}
-		}
+		aggregateTvlByChain({
+			source: oracleTvsData,
+			destination: oracleTvsByChainMap,
+			extraTvlsEnabled,
+			toggleOptions
+		})
 
 		for (const chain in oracleTvsByChainMap) {
 			oracleTvs += oracleTvsByChainMap[chain]
@@ -72,14 +82,14 @@ export const useFinalTVL = (props: IProtocolOverviewPageData) => {
 		if (props.bribeRevenue?.totalAllTime != null) {
 			const option = feesOptionsMap.get(FEES_SETTINGS.BRIBES)
 			if (option) {
-				toggleOptions.push(option)
+				pushToggleOption(toggleOptions, option)
 			}
 		}
 
 		if (props.tokenTax?.totalAllTime != null) {
 			const option = feesOptionsMap.get(FEES_SETTINGS.TOKENTAX)
 			if (option) {
-				toggleOptions.push(option)
+				pushToggleOption(toggleOptions, option)
 			}
 		}
 

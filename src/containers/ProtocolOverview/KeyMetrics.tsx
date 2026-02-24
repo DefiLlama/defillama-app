@@ -6,13 +6,14 @@ import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum } from '~/utils'
 import { Flag } from './Flag'
-import { getAdjustedTotals, getPrimaryValueLabelType, useFinalTVL } from './helpers'
+import { getAdjustedTotals, getPrimaryValueLabelType } from './helpers'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import type { IProtocolOverviewPageData } from './types'
 
 export interface IKeyMetricsProps extends IProtocolOverviewPageData {
 	formatPrice: (value: number | string | null) => string | number | null
 	tvl?: number
+	tvlByChain?: [string, number][]
 	computedOracleTvs?: number
 }
 
@@ -228,7 +229,8 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 }
 
 function TVL(props: IKeyMetricsProps) {
-	const { tvl, tvlByChain } = useFinalTVL(props)
+	const tvl = props.tvl ?? 0
+	const tvlByChain = props.tvlByChain
 
 	const metrics = useMemo(() => {
 		const metrics = []
@@ -238,7 +240,7 @@ function TVL(props: IKeyMetricsProps) {
 			value: tvl
 		})
 
-		for (const [chain, tvl] of tvlByChain) {
+		for (const [chain, tvl] of tvlByChain ?? []) {
 			metrics.push({
 				name: chain,
 				value: tvl
@@ -498,7 +500,7 @@ function BridgeVolume(props: IKeyMetricsProps) {
 
 	for (const item of props.bridgeVolume) {
 		const volume = (item.depositUSD + item.withdrawUSD) / 2
-		const timestamp = new Date(+item.date * 1000).getTime()
+		const timestamp = Number(item.date) * 1000
 
 		totalAllTime += volume
 
@@ -625,16 +627,18 @@ const Treasury = (props: IProtocolOverviewPageData) => {
 				/>
 			}
 		>
-			{props.treasury.majors && (
-				<MetricRow label="Majors" tooltip="BTC, ETH" value={formattedNum(props.treasury.majors, true)} />
-			)}
-			{props.treasury.stablecoins && (
-				<MetricRow label="Stablecoins" value={formattedNum(props.treasury.stablecoins, true)} />
-			)}
-			{props.treasury.ownTokens && (
-				<MetricRow label="Own Tokens" value={formattedNum(props.treasury.ownTokens, true)} />
-			)}
-			{props.treasury.others && <MetricRow label="Others" value={formattedNum(props.treasury.others, true)} />}
+			{props.treasury.majors != null ? (
+				<SubMetricRow label="Majors" tooltip="BTC, ETH" value={formattedNum(props.treasury.majors, true)} />
+			) : null}
+			{props.treasury.stablecoins != null ? (
+				<SubMetricRow label="Stablecoins" value={formattedNum(props.treasury.stablecoins, true)} />
+			) : null}
+			{props.treasury.ownTokens != null ? (
+				<SubMetricRow label="Own Tokens" value={formattedNum(props.treasury.ownTokens, true)} />
+			) : null}
+			{props.treasury.others != null ? (
+				<SubMetricRow label="Others" value={formattedNum(props.treasury.others, true)} />
+			) : null}
 		</MetricSection>
 	)
 }
@@ -759,8 +763,8 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 							/>
 						}
 					>
-						<MetricRow label="All Time High" value={props.formatPrice(props.tokenCGData.price.ath)} />
-						<MetricRow label="All Time Low" value={props.formatPrice(props.tokenCGData.price.atl)} />
+						<SubMetricRow label="All Time High" value={props.formatPrice(props.tokenCGData.price.ath)} />
+						<SubMetricRow label="All Time Low" value={props.formatPrice(props.tokenCGData.price.atl)} />
 					</MetricSection>
 				) : (
 					<MetricRow
@@ -824,7 +828,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 						/>
 					}
 				>
-					<MetricRow
+					<SubMetricRow
 						label="CEX Volume"
 						value={props.tokenCGData.volume24h.cex ? props.formatPrice(props.tokenCGData.volume24h.cex) : '-'}
 					/>

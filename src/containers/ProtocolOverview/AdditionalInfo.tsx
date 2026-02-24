@@ -119,28 +119,26 @@ function Users(props: IProtocolOverviewPageData) {
 	if (!users) return null
 
 	return (
-		<div>
-			<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
-				<h2 className="mr-auto font-semibold underline decoration-dotted">
-					<Tooltip
-						content="This only counts users that interact with protocol directly (so not through another contract, such as a DEX aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
-						className="mr-auto font-semibold underline decoration-dotted"
-					>
-						User Activity
-					</Tooltip>
-				</h2>
-				<div className="flex flex-col">
-					{users.activeUsers != null && (
-						<MetricRow label="Active Addresses (24h)" value={formattedNum(users.activeUsers, false)} />
-					)}
-					{users.newUsers != null && (
-						<MetricRow label="New Addresses (24h)" value={formattedNum(users.newUsers, false)} />
-					)}
-					{users.transactions != null && (
-						<MetricRow label="Transactions (24h)" value={formattedNum(users.transactions, false)} />
-					)}
-					{users.gasUsd != null && <MetricRow label="Gas Used (24h)" value={formattedNum(users.gasUsd, true)} />}
-				</div>
+		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
+			<h2 className="mr-auto font-semibold underline decoration-dotted">
+				<Tooltip
+					content="This only counts users that interact with protocol directly (so not through another contract, such as a DEX aggregator), and only on arbitrum, avax, bsc, ethereum, xdai, optimism, polygon."
+					className="mr-auto font-semibold underline decoration-dotted"
+				>
+					User Activity
+				</Tooltip>
+			</h2>
+			<div className="flex flex-col">
+				{users.activeUsers != null ? (
+					<MetricRow label="Active Addresses (24h)" value={formattedNum(users.activeUsers, false)} />
+				) : null}
+				{users.newUsers != null ? (
+					<MetricRow label="New Addresses (24h)" value={formattedNum(users.newUsers, false)} />
+				) : null}
+				{users.transactions != null ? (
+					<MetricRow label="Transactions (24h)" value={formattedNum(users.transactions, false)} />
+				) : null}
+				{users.gasUsd != null ? <MetricRow label="Gas Used (24h)" value={formattedNum(users.gasUsd, true)} /> : null}
 			</div>
 		</div>
 	)

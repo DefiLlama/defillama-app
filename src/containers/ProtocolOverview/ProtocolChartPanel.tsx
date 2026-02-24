@@ -136,6 +136,8 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
 
 	const isClient = useIsClient()
+	const shouldShowEnabledEventsChip =
+		toggledMetrics.events === 'true' ? (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) : false
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -230,7 +232,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						</span>
 					</label>
 				))}
-				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
+				{shouldShowEnabledEventsChip ? (
 					<label className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto">
 						<input
 							type="checkbox"

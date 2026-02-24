@@ -80,11 +80,11 @@ export function Flag({
 			)}
 
 			<Ariakit.Dialog className="dialog" unmountOnHide store={dialogStore}>
-				{isLending && (
+				{isLending ? (
 					<p className="text-center text-red-500">
 						For lending protocols TVL doesn't include borrowed coins by default
 					</p>
-				)}
+				) : null}
 				<form onSubmit={onSubmit} className="flex flex-col gap-2 p-3 sm:p-0">
 					<label className="flex flex-col gap-1">
 						<span>Protocol</span>
@@ -165,7 +165,7 @@ export function Flag({
 					>
 						Report
 					</button>
-					{error && <small className="text-center text-red-500">Something went wrong, couldn't submit report</small>}
+					{error ? <small className="text-center text-red-500">Something went wrong, couldn't submit report</small> : null}
 				</form>
 			</Ariakit.Dialog>
 

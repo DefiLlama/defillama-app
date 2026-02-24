@@ -33,15 +33,6 @@ export const MetricRow = ({
 	</p>
 )
 
-interface SubMetricRowProps {
-	label: React.ReactNode
-	tooltip?: React.ReactNode
-	value: React.ReactNode
-	extra?: React.ReactNode
-	className?: string
-	valueClassName?: string
-}
-
 export const SubMetricRow = ({
 	label,
 	tooltip,
@@ -49,7 +40,7 @@ export const SubMetricRow = ({
 	extra,
 	className = '',
 	valueClassName = 'ml-auto font-jetbrains'
-}: SubMetricRowProps) => (
+}: MetricRowProps) => (
 	<p
 		className={`group flex flex-wrap justify-start gap-4 border-b border-dashed border-(--cards-border) py-1 last:border-none ${className}`.trim()}
 	>
@@ -89,6 +80,7 @@ export const MetricSection = ({
 	<details className={`group ${className}`.trim()} open={defaultOpen}>
 		<summary className="flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 group-last:border-none group-open:border-none group-open:font-semibold">
 			{tooltip ? (
+				// Keep native title in <summary>; wrapped tooltip triggers can interfere with details toggling.
 				<span
 					title={typeof tooltip === 'string' ? tooltip : undefined}
 					className={`text-(--text-label)${typeof tooltip === 'string' ? ' underline decoration-dotted' : ''}`}

@@ -153,7 +153,7 @@ export function ProtocolOverviewLayout({
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>
-			{(category === 'Uncollateralized Lending' || category === 'RWA Lending') && (
+			{category === 'Uncollateralized Lending' || category === 'RWA Lending' ? (
 				<p className="relative rounded-md border border-(--bg-color) bg-(--btn-bg) p-2 text-center text-xs text-black dark:text-white">
 					Borrowed coins are not included into TVL by default, to include them toggle Borrows. For more info on this
 					click{' '}
@@ -167,7 +167,7 @@ export function ProtocolOverviewLayout({
 					</a>
 					.
 				</p>
-			)}
+			) : null}
 
 			{warningBanners?.map((banner) => (
 				<p
@@ -217,12 +217,12 @@ export function ProtocolOverviewLayout({
 												i === 0 ? 'px-3' : 'ml-5.5 pr-3'
 											} shrink-0 cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) data-[active=true]:bg-(--primary-hover)`}
 										>
-											{i !== 0 && (
+											{i !== 0 ? (
 												<>
 													<span className="absolute top-0 bottom-0 left-0 block h-full w-0.5 bg-(--form-control-border) group-last:h-[50%]" />
 													<span className="-mr-2 h-0.5 w-3 bg-(--form-control-border)" />
 												</>
-											)}
+											) : null}
 											<TokenLogo logo={tokenIconUrl(value)} size={24} />
 											{i === 0 ? (
 												<span className="flex flex-col">
