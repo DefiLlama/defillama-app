@@ -40,6 +40,11 @@ interface CachedLayout {
 
 type OverflowResult = { renderMenuOnly: boolean; firstOverflowIndex: number | null }
 
+function finiteOr(...values: number[]): number {
+	for (const v of values) if (Number.isFinite(v)) return v
+	return 0
+}
+
 // Full DOM measurement — reads all link positions and caches widths for resize
 function measureOverflow(
 	linkCount: number,
@@ -62,7 +67,7 @@ function measureOverflow(
 	const style = getComputedStyle(priorityNav)
 	cache.current = {
 		linkWidths: linkRects.map((r) => r.width),
-		gap: parseFloat(style.columnGap) || parseFloat(style.gap) || 0,
+		gap: finiteOr(parseFloat(style.columnGap), parseFloat(style.gap), 0),
 		containerPadding: parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
 	}
 
@@ -232,7 +237,10 @@ export function LinksWithDropdown({
 				))}
 			</div>
 
-			{hasOverflow ? (
+			{/* Render during measurement so the flex-1 container measures at the correct
+			   narrower width (OtherLinks takes space as a flex sibling). useLayoutEffect
+			   runs before paint so the user never sees the sentinel. */}
+			{overflowState.isMeasuring || hasOverflow ? (
 				<OtherLinks
 					name={
 						isLinkInDropdown ? (activeLink ?? alternativeOthersText ?? 'Others') : (alternativeOthersText ?? 'Others')
