@@ -1895,6 +1895,8 @@ function MessageBubble({
 		)
 	}
 
+	const chartList = message.charts?.flatMap(set => set.charts.map(c => ({ id: c.id, title: c.title }))) ?? []
+
 	return (
 		<div>
 			{message.thinking && <ThinkingPanel thinking={message.thinking} />}
@@ -1913,7 +1915,7 @@ function MessageBubble({
 				nextUserMessage={nextUserMessage}
 			/>
 			{message.id && !parentIsStreaming && (
-				<ResponseControls messageId={message.id} content={message.content} sessionId={sessionId} readOnly={readOnly} />
+				<ResponseControls messageId={message.id} content={message.content} sessionId={sessionId} readOnly={readOnly} charts={chartList} />
 			)}
 		</div>
 	)
