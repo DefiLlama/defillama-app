@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { type ComponentType, lazy, Suspense, useMemo } from 'react'
+import { type ComponentType, lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -119,10 +119,11 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 		feesSettings,
 		isCEX: props.isCEX
 	})
+	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = () => prepareChartCsv(finalCharts, `${props.name}.csv`)
+	const prepareCsv = () => prepareChartCsv(deferredFinalCharts, `${props.name}.csv`)
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		return serializeProtocolChartToMultiChart({
@@ -136,6 +137,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
 
 	const isClient = useIsClient()
+	const shouldShowEnabledEventsChip = toggledMetrics.events === 'true'
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -230,7 +232,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						</span>
 					</label>
 				))}
-				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
+				{shouldShowEnabledEventsChip ? (
 					<label className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto">
 						<input
 							type="checkbox"
@@ -316,7 +318,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<ProtocolChart
-							chartData={finalCharts}
+							chartData={deferredFinalCharts}
 							chartColors={props.chartColors}
 							isThemeDark={isThemeDark}
 							valueSymbol={valueSymbol}
