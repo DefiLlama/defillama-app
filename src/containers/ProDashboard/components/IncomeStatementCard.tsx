@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query'
-import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
@@ -69,12 +68,11 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 			<div className="mb-2 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					{iconUrl ? (
-						<Image
+						<img
 							src={iconUrl}
 							alt={displayName}
 							width={20}
 							height={20}
-							unoptimized
 							className="h-5 w-5 shrink-0 rounded-full"
 						/>
 					) : (

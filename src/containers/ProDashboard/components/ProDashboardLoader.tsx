@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { LoadingDots } from '~/components/Loaders'
 
 export function ProDashboardLoader() {
@@ -32,7 +31,7 @@ export function ProDashboardLoader() {
 
 				<div className="absolute inset-0 flex items-center justify-center">
 					<div className="relative">
-						<Image
+						<img
 							src="/assets/llama.webp"
 							alt="Loading"
 							width={64}

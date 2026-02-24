@@ -1,5 +1,4 @@
 import type * as echarts from 'echarts/core'
-import Image from 'next/image'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
@@ -184,7 +183,7 @@ export function ChartCard({ chart }: ChartCardProps) {
 				<div className="mr-auto flex items-center gap-1">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
-							<Image
+							<img
 								src={itemIconUrl}
 								alt={itemName}
 								width={20}

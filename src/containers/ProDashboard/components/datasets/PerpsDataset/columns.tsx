@@ -1,5 +1,4 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import Image from 'next/image'
 import { PercentChange } from '~/components/PercentChange'
 import { formattedNum } from '~/utils'
 import { percentageSortingFn } from '../../../utils/tableSorting'
@@ -14,7 +13,7 @@ export const perpsDatasetColumns: ColumnDef<any>[] = [
 			return (
 				<div className="flex items-center gap-3">
 					{row.original.logo && (
-						<Image
+						<img
 							src={row.original.logo}
 							alt={row.original.name}
 							width={28}

@@ -1,7 +1,6 @@
 import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import Image from 'next/image'
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -176,16 +175,15 @@ export function AriakitVirtualizedSelect({
 															</span>
 														)}
 														{iconUrl && (
-															<Image
-																src={iconUrl}
-																alt={option.label}
-																width={20}
-																height={20}
-																unoptimized
-																className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
-																	option.isChild ? 'opacity-70' : ''
-																}`}
-															/>
+													<img
+														src={iconUrl}
+														alt={option.label}
+														width={20}
+														height={20}
+														className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
+															option.isChild ? 'opacity-70' : ''
+														}`}
+													/>
 														)}
 														<div className="flex min-w-0 flex-col">
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>

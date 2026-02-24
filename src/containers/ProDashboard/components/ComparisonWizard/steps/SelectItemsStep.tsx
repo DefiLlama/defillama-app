@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { fetchChainsByCategory, fetchChainsCategories } from '~/containers/Chains/api'
@@ -217,12 +216,11 @@ export function SelectItemsStep() {
 									className="flex shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
 								>
 									{item.logo && (
-										<Image
+										<img
 											src={item.logo}
 											alt={item.label}
 											width={20}
 											height={20}
-											unoptimized
 											className="h-5 w-5 rounded-full object-cover"
 										/>
 									)}
@@ -334,12 +332,11 @@ export function SelectItemsStep() {
 											{isSelected && <Icon name="check" height={10} width={10} className="text-white" />}
 										</div>
 
-										<Image
+										<img
 											src={option.logo}
 											alt={option.label}
 											width={24}
 											height={24}
-											unoptimized
 											className={`h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 												option.isChild ? 'opacity-70' : ''
 											}`}

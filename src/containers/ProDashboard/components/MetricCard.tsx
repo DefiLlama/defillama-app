@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { lazy, Suspense, useMemo } from 'react'
 
 const SparklineChart = lazy(() =>
@@ -251,12 +250,11 @@ export function MetricCard({ metric }: MetricCardProps) {
 			<div className="flex items-start justify-between gap-4">
 				<div className="flex items-center gap-1">
 					{iconUrl ? (
-						<Image
+						<img
 							src={iconUrl}
 							alt={displayTitle}
 							width={20}
 							height={20}
-							unoptimized
 							className="h-5 w-5 shrink-0 rounded-full"
 						/>
 					) : (

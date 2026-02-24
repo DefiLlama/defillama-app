@@ -10,7 +10,6 @@ import {
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import Image from 'next/image'
 import { forwardRef, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useMedia } from '~/hooks/useMedia'
@@ -575,12 +574,11 @@ export function MetricSentenceBuilder({
 															>
 																<div className="flex min-w-0 items-center gap-2">
 																	{iconUrl ? (
-																		<Image
+																		<img
 																			src={iconUrl}
 																			alt={option.label}
 																			width={20}
 																			height={20}
-																			unoptimized
 																			className="h-5 w-5 rounded-full object-cover"
 																		/>
 																	) : null}
@@ -627,12 +625,11 @@ export function MetricSentenceBuilder({
 														>
 															<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
 																{iconUrl ? (
-																	<Image
+																	<img
 																		src={option.logo || iconUrl}
 																		alt={option.label}
 																		width={20}
 																		height={20}
-																		unoptimized
 																		className={`h-5 w-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
 																	/>
 																) : null}

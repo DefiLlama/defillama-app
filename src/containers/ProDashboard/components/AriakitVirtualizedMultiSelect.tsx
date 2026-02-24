@@ -1,7 +1,6 @@
 import { Popover, PopoverDisclosure, usePopoverStore, useStoreState } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import Image from 'next/image'
 import { useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { MultiSelectOption } from '~/components/Select/types'
@@ -189,12 +188,11 @@ export function AriakitVirtualizedMultiSelect({
 												>
 													<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
 														{iconUrl && (
-															<Image
+															<img
 																src={iconUrl}
 																alt={option.label}
 																width={20}
 																height={20}
-																unoptimized
 																className={`h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border) ${
 																	option.isChild ? 'opacity-70' : ''
 																}`}
