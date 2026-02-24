@@ -24,9 +24,6 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 	}
 }
 
-const API_KEY = process.env.API_KEY
-const SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
-
 export async function fetchCoreMetadata(): Promise<{
 	protocols: Record<string, any>
 	chains: Record<string, any>
@@ -34,18 +31,22 @@ export async function fetchCoreMetadata(): Promise<{
 	cexs: Array<any>
 	rwaList: any
 }> {
-	const PROTOCOLS_DATA_URL = `${SERVER_URL}/config/smol/appMetadata-protocols.json`
-	const CHAINS_DATA_URL = `${SERVER_URL}/config/smol/appMetadata-chains.json`
-	const CATEGORIES_AND_TAGS_DATA_URL = `${SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json`
-	const CEXS_DATA_URL = `${SERVER_URL}/cexs`
-	const RWA_SERVER_URL = `${SERVER_URL}/rwa`
+	const API_KEY = process.env.API_KEY
+	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
+	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
+
+	const PROTOCOLS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-protocols.json`
+	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json`
+	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json`
+	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs`
+	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list`
 
 	const [protocols, chains, categoriesAndTags, cexs, rwaList] = await Promise.all([
 		fetchJson(PROTOCOLS_DATA_URL),
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
 		fetchJson(CEXS_DATA_URL).then((res) => res.cexs ?? []),
-		fetchJson(`${RWA_SERVER_URL}/list?z=0`).catch(() => ({}))
+		fetchJson(RWA_LIST_DATA_URL).catch(() => ({}))
 	])
 
 	return { protocols, chains, categoriesAndTags, cexs, rwaList }
