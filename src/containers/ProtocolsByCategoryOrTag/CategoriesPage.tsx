@@ -148,8 +148,9 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const enabledTvls = TVL_SETTINGS_KEYS.filter(
-		(key) => extraTvlsEnabled[key] && !categoriesPageExcludedExtraTvls.has(key)
+	const enabledTvls = React.useMemo(
+		() => TVL_SETTINGS_KEYS.filter((key) => extraTvlsEnabled[key] && !categoriesPageExcludedExtraTvls.has(key)),
+		[extraTvlsEnabled]
 	)
 
 	const finalCharts = React.useMemo(() => {

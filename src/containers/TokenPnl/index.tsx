@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
@@ -124,8 +124,6 @@ const TokenPnlContent = ({
 	comparisonData,
 	selectedCoinId
 }: TokenPnlContentProps) => {
-	const deferredChartData = useDeferredValue(pnlData?.chartData ?? null)
-
 	if (!routerReady || isLoading || isFetching) {
 		return (
 			<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -161,7 +159,6 @@ const TokenPnlContent = ({
 	}
 
 	const { metrics, timeline, coinInfo, currentPrice, chartData } = pnlData
-	const chartDataToRender = deferredChartData ?? chartData
 	const { percentChange, isProfit, holdingPeriodDays, annualizedReturn, absoluteChange } = metrics
 	const quantityValue = quantity !== 0 ? absoluteChange * quantity : absoluteChange
 	const formattedQuantityValue = formattedNum(Math.abs(quantityValue), false)
@@ -216,8 +213,8 @@ const TokenPnlContent = ({
 				</div>
 				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={chartDataToRender.dataset}
-						charts={chartDataToRender.charts}
+						dataset={chartData.dataset}
+						charts={chartData.charts}
 						hideDataZoom
 						chartOptions={chartOptions as unknown as IMultiSeriesChart2Props['chartOptions']}
 						onReady={handleChartReady}

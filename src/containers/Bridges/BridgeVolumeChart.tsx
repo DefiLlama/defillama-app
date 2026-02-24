@@ -108,13 +108,14 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 		const isSplit = viewType === 'Split'
 		const dims = isSplit ? ['timestamp', 'Deposits', 'Withdrawals'] : ['timestamp', 'Total']
 		return {
+			metricType,
 			dataset: {
 				source: chartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: dims
 			},
 			charts: isSplit ? SPLIT_CHARTS : COMBINED_CHARTS
 		}
-	}, [chartData, viewType])
+	}, [chartData, metricType, viewType])
 	const deferredChartData = useDeferredValue(volumeChartData)
 
 	if (isLoading)
@@ -166,12 +167,13 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 			</div>
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
+				{/* TODO: Add a subtle stale-state indicator if we revisit deferred transitions UX. */}
 				<MultiSeriesChart2
 					dataset={deferredChartData.dataset}
 					charts={deferredChartData.charts}
 					height={height}
 					hideDefaultLegend={false}
-					valueSymbol={metricType === 'Volume' ? '$' : ''}
+					valueSymbol={deferredChartData.metricType === 'Volume' ? '$' : ''}
 					onReady={onReady}
 				/>
 			</Suspense>

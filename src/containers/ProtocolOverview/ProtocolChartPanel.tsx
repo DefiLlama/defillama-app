@@ -119,11 +119,18 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 		feesSettings,
 		isCEX: props.isCEX
 	})
-	const deferredFinalCharts = useDeferredValue(finalCharts)
+	const chartRenderModel = useMemo(
+		() => ({
+			chartData: finalCharts,
+			valueSymbol
+		}),
+		[finalCharts, valueSymbol]
+	)
+	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
-	const prepareCsv = () => prepareChartCsv(deferredFinalCharts, `${props.name}.csv`)
+	const prepareCsv = () => prepareChartCsv(deferredChartRenderModel.chartData, `${props.name}.csv`)
 
 	const { multiChart, unsupportedMetrics } = useMemo(() => {
 		return serializeProtocolChartToMultiChart({
@@ -318,10 +325,10 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
 						<ProtocolChart
-							chartData={deferredFinalCharts}
+							chartData={deferredChartRenderModel.chartData}
 							chartColors={props.chartColors}
 							isThemeDark={isThemeDark}
-							valueSymbol={valueSymbol}
+							valueSymbol={deferredChartRenderModel.valueSymbol}
 							groupBy={groupBy}
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}

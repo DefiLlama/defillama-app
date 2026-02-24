@@ -107,7 +107,6 @@ export const LiquidationsContainer = (props: {
 
 		return { dataset: { source, dimensions } satisfies MultiSeriesChart2Dataset, charts }
 	}, [chartSeries, stackBy, isLiqsUsingUsd, isLiqsCumulative])
-	const deferredFormattedChart = React.useDeferredValue(formattedChart)
 
 	const chartOptions = React.useMemo(() => {
 		// `IMultiSeriesChart2Props['chartOptions']` is typed as a shallow object-of-objects,
@@ -241,6 +240,17 @@ export const LiquidationsContainer = (props: {
 		return options as unknown as IMultiSeriesChart2Props['chartOptions']
 	}, [isLiqsCumulative, isLiqsUsingUsd, nativeSymbol])
 
+	const chartRenderModel = React.useMemo(
+		() => ({
+			dataset: formattedChart.dataset,
+			charts: formattedChart.charts,
+			chartOptions,
+			valueSymbol: isLiqsUsingUsd ? '$' : ''
+		}),
+		[formattedChart, chartOptions, isLiqsUsingUsd]
+	)
+	const deferredChartRenderModel = React.useDeferredValue(chartRenderModel)
+
 	const liquidableChanges = React.useMemo(
 		() => getLiquidableChangesRatio(data, prevData, stackBy),
 		[data, prevData, stackBy]
@@ -314,13 +324,13 @@ export const LiquidationsContainer = (props: {
 				</div>
 				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={deferredFormattedChart.dataset}
-						charts={deferredFormattedChart.charts}
-						chartOptions={chartOptions}
+						dataset={deferredChartRenderModel.dataset}
+						charts={deferredChartRenderModel.charts}
+						chartOptions={deferredChartRenderModel.chartOptions}
 						containerClassName="min-h-[360px]"
 						hideDefaultLegend={false}
 						onReady={onChartReady}
-						valueSymbol={isLiqsUsingUsd ? '$' : ''}
+						valueSymbol={deferredChartRenderModel.valueSymbol}
 					/>
 				</React.Suspense>
 
