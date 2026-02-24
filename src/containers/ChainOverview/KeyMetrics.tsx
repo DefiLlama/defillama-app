@@ -1,12 +1,16 @@
 import dayjs from 'dayjs'
 import { Fragment, memo, useRef } from 'react'
 import { BasicLink } from '~/components/Link'
+import {
+	MetricRow as ChainMetricRow,
+	MetricSection as ChainMetricSection,
+	SubMetricRow as ChainSubMetricRow
+} from '~/components/MetricPrimitives'
 import { Tooltip } from '~/components/Tooltip'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
-import { ChainMetricRow, ChainMetricSection, ChainSubMetricRow } from './MetricComponents'
 import type { IChainOverviewData } from './types'
 
 const formatKeyMetricsValue = (value: number | string | null) => {
