@@ -4,19 +4,23 @@
 	"private": true,
 	"homepage": "https://defillama.com",
 	"license": "GPL-3.0-or-later",
+	"type": "module",
 	"sideEffects": false,
 	"scripts": {
-		"analyze": "bunx next experimental-analyze",
-		"dev": "bun run build:metadata && bunx next dev",
-		"build:metadata": "bun scripts/pullMetadata.js && bun scripts/generateRobots.js",
-		"build": "bun run build:metadata && bunx next build",
-		"start": "./scripts/prestart.sh & bunx next start",
+		"analyze": "pnpm run build:metadata && vinext build --analyze",
+		"dev": "pnpm run build:metadata && vinext dev",
+		"build:metadata": "node scripts/pullMetadata.js && node scripts/generateRobots.js",
+		"build": "pnpm run build:metadata && vinext build",
+		"start": "./scripts/prestart.sh & vinext start",
+		"dev:vinext": "vinext dev",
+		"build:vinext": "vinext build",
 		"format": "oxfmt --write",
 		"format:check": "oxfmt --check",
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
 		"ts": "tsc --noEmit"
 	},
+	"packageManager": "pnpm@10.5.2",
 	"dependencies": {
 		"@ariakit/react": "0.4.21",
 		"@dnd-kit/core": "6.3.1",
@@ -27,6 +31,7 @@
 		"@stripe/react-stripe-js": "5.6.0",
 		"@stripe/stripe-js": "8.7.0",
 		"@tailwindcss/typography": "0.5.19",
+		"@tailwindcss/vite": "^4.2.1",
 		"@tanstack/react-query": "5.90.21",
 		"@tanstack/react-query-devtools": "5.91.3",
 		"@tanstack/react-table": "8.21.3",
@@ -50,12 +55,13 @@
 		"react-select": "5.10.2",
 		"rehype-raw": "7.0.0",
 		"remark-gfm": "4.0.1",
+		"tailwindcss": "^4.2.1",
 		"textarea-caret": "3.1.0",
 		"viem": "2.42.1",
+		"vinext": "^0.0.4",
 		"wagmi": "2.19.5"
 	},
 	"devDependencies": {
-		"@tailwindcss/postcss": "4.1.18",
 		"@types/lodash": "4.17.23",
 		"@types/node": "25.2.3",
 		"@types/react": "19.2.14",
@@ -63,7 +69,7 @@
 		"oxfmt": "0.32.0",
 		"oxlint": "1.47.0",
 		"postcss": "8.5.6",
-		"tailwindcss": "4.1.18",
-		"typescript": "5.9.3"
+		"typescript": "5.9.3",
+		"vite": "^7.3.1"
 	}
 }

@@ -1,12 +1,14 @@
 # syntax=docker/dockerfile:1.6
 
-FROM oven/bun:1 AS base
+FROM node:22-slim AS base
 
 WORKDIR /usr/src/app
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl ca-certificates \
   && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Install dotenvx (for loading env at runtime inside Docker)
 RUN curl -fsS https://dotenvx.sh | sh
@@ -16,13 +18,13 @@ RUN dotenvx ext prebuild
 # this will cache them and speed up future builds
 FROM base AS install
 RUN mkdir -p /temp/dev
-COPY package.json bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+COPY package.json pnpm-lock.yaml /temp/dev/
+RUN cd /temp/dev && pnpm install --frozen-lockfile
 
-# install with --production (exclude devDependencies)
+# install with --prod (exclude devDependencies)
 RUN mkdir -p /temp/prod
-COPY package.json bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
+COPY package.json pnpm-lock.yaml /temp/prod/
+RUN cd /temp/prod && pnpm install --frozen-lockfile --prod
 
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
@@ -48,10 +50,10 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=builder /usr/src/app/.next ./.next
 COPY --from=builder /usr/src/app/public ./public
 COPY --from=builder /usr/src/app/package.json ./package.json
-COPY --from=builder /usr/src/app/bun.lock ./bun.lock
+COPY --from=builder /usr/src/app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=builder /usr/src/app/next.config.ts ./next.config.ts
 COPY --from=builder /usr/src/app/scripts ./scripts
 
 EXPOSE 3000
 
-CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & bun run start"]
+CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & pnpm run start"]

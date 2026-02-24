@@ -31,7 +31,7 @@ echo "🌿 $BRANCH_NAME"
 echo "======================="
 echo ""
 
-bunx next build 2>&1 | tee build.log
+pnpm exec next build 2>&1 | tee build.log
 BUILD_STATUS=${PIPESTATUS[0]}
 
 BUILD_TIME_SEC=$(($(date -u +"%s") - $START_TIME_TS))
@@ -69,7 +69,7 @@ fi
 
 # Provide build metadata via env vars for build-msg.js.
 export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME
-bun ./scripts/build-msg.js
+node ./scripts/build-msg.js
 
 # exit with the build status
 exit $BUILD_STATUS

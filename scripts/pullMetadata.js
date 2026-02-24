@@ -4,7 +4,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { fetchCoreMetadata } from '../src/utils/metadata/fetch'
+import { fetchCoreMetadata } from '../src/utils/metadata/fetch.ts'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CACHE_DIR = path.join(__dirname, '../.cache')
@@ -13,7 +13,7 @@ const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
 const FIVE_MINUTES = 5 * 60 * 1000
 let defillamaPages
 try {
-	const fileContent = fs.readFileSync(path.join('public', 'pages.json'), 'utf8')
+	const fileContent = fs.readFileSync(path.join('src', 'pages.json'), 'utf8')
 	defillamaPages = JSON.parse(fileContent)
 } catch {
 	console.log('Could not load pages.json, using empty structure')
@@ -165,8 +165,8 @@ async function pullData() {
 			})
 
 		if (trendingPages.length !== 0) {
-			fs.writeFileSync(path.join('public', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
-			fs.writeFileSync(path.join('public', 'trending.json'), JSON.stringify(trendingPages, null, 2))
+			fs.writeFileSync(path.join('src', 'pages.json'), JSON.stringify(finalDefillamaPages, null, 2))
+			fs.writeFileSync(path.join('src', 'trending.json'), JSON.stringify(trendingPages, null, 2))
 		}
 
 		console.log('Data pulled and cached successfully.')

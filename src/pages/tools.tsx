@@ -3,7 +3,7 @@ import { useDeferredValue, useId, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LinkToMetricOrToolPage, usePinnedRoutes } from '~/components/Metrics'
 import Layout from '~/layout'
-import defillamaPages from '~/public/pages.json'
+import defillamaPages from '~/pages.json'
 
 export default function Tools() {
 	const searchInputId = useId()

@@ -8,7 +8,7 @@ import {
 } from '~/components/MetricPrimitives'
 import { Tooltip } from '~/components/Tooltip'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
-import { definitions } from '~/public/definitions'
+import { definitions } from '~/definitions'
 import { formattedNum, slug } from '~/utils'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import type { IChainOverviewData } from './types'

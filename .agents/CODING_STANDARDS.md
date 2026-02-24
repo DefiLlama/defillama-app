@@ -121,7 +121,7 @@ When a JSON file is imported across multiple files and needs type widening:
 
 ```typescript
 // definitions.ts - single source of truth
-import dataJson from '~/public/data.json'
+import dataJson from '/src/data.json'
 
 // Widen specific fields for dynamic key access
 type WithLookupValues<T> = {
@@ -140,7 +140,7 @@ Then import from the module, never from the JSON directly:
 import { definitions } from './definitions'
 
 // BANNED
-import definitions from '~/public/data.json'
+import definitions from '/src/data.json'
 ```
 
 ### Use `?? 0` instead of `|| 0` for numeric fallbacks
@@ -244,11 +244,11 @@ export async function getData(): Promise<Data> {
 Always run all of these before considering work complete:
 
 ```bash
-bun run ts                    # TypeScript errors
-bun run lint                  # Linting errors
+pnpm run ts                   # TypeScript errors
+pnpm run lint                 # Linting errors
 
 # Strict mode for specific folders:
 npx tsc -p tsconfig.strict.json --skipLibCheck 2>&1 | grep "containers/FolderName"
 ```
 
-Never run `bun run build` — it will fail due to API rate limits.
+Never run `pnpm run build` — it will fail due to API rate limits.

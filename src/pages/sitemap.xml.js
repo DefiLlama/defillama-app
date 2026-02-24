@@ -1,7 +1,7 @@
 import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
-import defillamaPages from '~/public/pages.json'
+import defillamaPages from '~/pages.json'
 import { slug } from '~/utils'
 
 const baseUrl = `https://defillama.com`

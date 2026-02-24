@@ -14,6 +14,8 @@ export default function Document() {
 				<link href="/fonts/inter.woff2" rel="preload" as="font" type="font/woff2" crossOrigin="anonymous" />
 				<link href="/fonts/jetbrains.ttf" rel="preload" as="font" type="font/ttf" crossOrigin="anonymous" />
 				<link href="/icons/v34.svg" rel="prefetch" as="image" type="image/svg+xml" crossOrigin="anonymous" />
+				<link href="/src/tailwind.css" rel="stylesheet" />
+				<link href="/src/nprogress.css" rel="stylesheet" />
 				<script
 					dangerouslySetInnerHTML={{
 						__html: `

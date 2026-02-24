@@ -4,30 +4,30 @@ This document defines the commands and conventions that all AI agents (opencode)
 
 ## Package Manager
 
-- Use `bun` as the package manager. **NEVER** use npm, npx, yarn, or pnpm.
+- Use `pnpm` as the package manager. **NEVER** use npm, npx, yarn, or bun.
 
 ## Allowed Commands
 
-- Linting: `bun run lint`
-- TypeScript checking: `bun run ts`
-- Formatting: `bun run format`
+- Linting: `pnpm run lint`
+- TypeScript checking: `pnpm run ts`
+- Formatting: `pnpm run format`
 
 ## Forbidden Commands
 
-- **NEVER** run `bun run build` or any build commands. The build **WILL fail** due to API rate limits.
-- **NEVER** use `npx tsc`, `npx eslint`, or any npx commands. Use `bun run` equivalents instead.
+- **NEVER** run `pnpm run build` or any build commands. The build **WILL fail** due to API rate limits.
+- **NEVER** use `npx tsc`, `npx eslint`, or any npx commands. Use `pnpm run` equivalents instead.
 - **NEVER** run `npm run lint`, `npm run typecheck`, or any npm commands.
 
-**Exception:** `npx tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration (no bun equivalent for project-specific configs).
+**Exception:** `npx tsc -p tsconfig.strict.json --skipLibCheck` is allowed for strict type checking during migration (no pnpm equivalent for project-specific configs).
 
 ## Verification Requirements
 
 When completing any task, you MUST run the following commands to verify code correctness:
 
-1. `bun run lint` - to check for linting errors
-2. `bun run ts` - to check for TypeScript errors
+1. `pnpm run lint` - to check for linting errors
+2. `pnpm run ts` - to check for TypeScript errors
 
-Do NOT run `bun run build` as it will fail due to rate limits.
+Do NOT run `pnpm run build` as it will fail due to rate limits.
 
 ## Code Migration Rules
 

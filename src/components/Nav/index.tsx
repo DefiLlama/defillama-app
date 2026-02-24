@@ -3,7 +3,7 @@ import { BasicLink } from '~/components/Link'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useStorageItem } from '~/contexts/localStorageStore'
-import defillamaPages from '~/public/pages.json'
+import defillamaPages from '~/pages.json'
 import { DesktopNav } from './Desktop'
 import type { TNavLinks, TOldNavLink } from './types'
 

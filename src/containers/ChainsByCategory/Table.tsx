@@ -24,7 +24,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
-import { definitions } from '~/public/definitions'
+import { definitions } from '~/definitions'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { IFormattedDataWithExtraTvl } from './types'
 

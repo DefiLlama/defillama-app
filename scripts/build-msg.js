@@ -115,7 +115,7 @@ const BRANCH_NAME = firstNonEmpty(
 if (!BUILD_STATUS || !BUILD_TIME_STR || !START_TIME) {
 	console.log(
 		'Missing required env vars for build message:',
-		['BUILD_STATUS', 'BUILD_TIME_STR', 'START_TIME'].filter((k) => !normalize(process.env[k])).join(', ')
+		['BUILD_STATUS', 'BUILD_TIME_STR', 'START_TIME'].filter((k) => !normalize(import.meta.env[k])).join(', ')
 	)
 }
 

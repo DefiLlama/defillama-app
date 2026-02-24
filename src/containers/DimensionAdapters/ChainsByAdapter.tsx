@@ -20,7 +20,7 @@ import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { definitions } from '~/public/definitions'
+import { definitions } from '~/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
 import type { IChainsByAdapterPageData } from './types'

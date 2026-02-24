@@ -1,4 +1,4 @@
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
+import rwaDefinitionsJson from '~/rwa-definitions.json'
 
 type WithLookupValues<T> = {
 	[K in keyof T]: T[K] extends { values: Record<string, string> }

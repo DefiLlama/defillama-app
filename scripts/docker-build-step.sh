@@ -23,7 +23,7 @@ START_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 START_TIME_TS="$(date -u +%s)"
 
 set +e
-bun run build 2>&1 | tee build.log
+pnpm run build 2>&1 | tee build.log
 BUILD_STATUS="${PIPESTATUS[0]}"
 set -e
 
@@ -45,7 +45,7 @@ BRANCH_NAME="${BRANCH_NAME:-${COOLIFY_BRANCH:-}}"
 export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME
 
 set +e
-bun run ./scripts/build-msg.js
+node ./scripts/build-msg.js
 set -e
 
 exit "$BUILD_STATUS"

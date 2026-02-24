@@ -25,13 +25,13 @@ cd defillama-app
 #### 2. Install dependencies:
 
 ```bash
-bun install
+pnpm install
 ```
 
 #### 3. Start the development server:
 
 ```bash
-bun dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.

@@ -4,7 +4,7 @@ import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from '
 // Config: Only 2 knobs instead of 5
 // ─────────────────────────────────────────────────────────────
 export function getEnvNumber(name: string, fallback: number): number {
-	const raw = process.env[name]
+	const raw = import.meta.env[name]
 	if (raw === undefined) return fallback
 	const parsed = Number(raw)
 	return Number.isFinite(parsed) ? parsed : fallback

@@ -6,7 +6,7 @@ export const WRAPPED_GAS_TOKENS = ['WETH', 'WAVAX', 'WMATIC', 'WFTM', 'WBNB', 'W
 export const SYMBOL_MAP: { [originSymbol: string]: string } = { BTCB: 'WBTC', BTC: 'WBTC' }
 
 // AUTO-GENERATED: this list order can be refreshed by
-// `bun src/containers/Liquidations/updateAssetOrderByTotalLiquidatable.ts`
+// `node src/containers/Liquidations/updateAssetOrderByTotalLiquidatable.ts`
 export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
 		name: 'Ethereum',
