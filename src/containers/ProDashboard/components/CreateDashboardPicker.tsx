@@ -420,8 +420,7 @@ function CreateDashboardModalContent({
 						id="create-dashboard-description"
 						name="description"
 						onInput={(e) => {
-							if (charCountRef.current)
-								charCountRef.current.textContent = String(e.currentTarget.value.length)
+							if (charCountRef.current) charCountRef.current.textContent = String(e.currentTarget.value.length)
 						}}
 						placeholder="Describe your dashboard..."
 						maxLength={200}

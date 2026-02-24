@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 import { BasicLink } from '~/components/Link'
 import { useIsClient } from '~/hooks/useIsClient'
 import { OtherLinks } from './OtherLinks'
@@ -39,6 +39,35 @@ interface CachedLayout {
 }
 
 type OverflowResult = { renderMenuOnly: boolean; firstOverflowIndex: number | null }
+
+type OverflowAction =
+	| { type: 'REQUEST_MEASURE' }
+	| { type: 'AWAIT_CONTAINER' }
+	| { type: 'MEASURED'; result: OverflowResult }
+	| { type: 'RESIZED'; result: OverflowResult }
+
+function overflowReducer(state: OverflowState, action: OverflowAction): OverflowState {
+	switch (action.type) {
+		case 'REQUEST_MEASURE':
+			return state.isMeasuring ? state : { ...state, isMeasuring: true }
+		case 'AWAIT_CONTAINER':
+			return { renderMenuOnly: false, firstOverflowIndex: null, isMeasuring: true }
+		case 'MEASURED': {
+			const { result } = action
+			const didChange =
+				state.renderMenuOnly !== result.renderMenuOnly ||
+				state.firstOverflowIndex !== result.firstOverflowIndex ||
+				state.isMeasuring
+			return didChange ? { ...result, isMeasuring: false } : state
+		}
+		case 'RESIZED': {
+			const { result } = action
+			const didChange =
+				state.renderMenuOnly !== result.renderMenuOnly || state.firstOverflowIndex !== result.firstOverflowIndex
+			return didChange ? { ...result, isMeasuring: false } : state
+		}
+	}
+}
 
 function finiteOr(...values: number[]): number {
 	for (const v of values) if (Number.isFinite(v)) return v
@@ -112,18 +141,20 @@ export function LinksWithDropdown({
 	alternativeOthersText,
 	...props
 }: IRowLinksProps) {
-	const [overflowState, setOverflowState] = useState<OverflowState>(INITIAL_OVERFLOW_STATE)
+	const [overflowState, dispatch] = useReducer(overflowReducer, INITIAL_OVERFLOW_STATE)
 	const priorityNavRef = useRef<HTMLDivElement | null>(null)
 	const linksLayoutSignature = useMemo(() => links.map((link) => link.label).join('\u0001'), [links])
 	const isClient = useIsClient()
 	const cachedRef = useRef<CachedLayout | null>(null)
 	const linksRef = useRef(links)
-	linksRef.current = links
+	useEffect(() => {
+		linksRef.current = links
+	})
 
 	// Invalidate cache and trigger full re-measurement when links change
 	useEffect(() => {
 		cachedRef.current = null
-		setOverflowState((prev) => (prev.isMeasuring ? prev : { ...prev, isMeasuring: true }))
+		dispatch({ type: 'REQUEST_MEASURE' })
 	}, [links.length, linksLayoutSignature])
 
 	// Full measurement: runs synchronously before paint when isMeasuring is true.
@@ -137,17 +168,11 @@ export function LinksWithDropdown({
 		// Container not mounted yet (transitioning out of renderMenuOnly).
 		// Clear renderMenuOnly so the container renders, stay in measuring mode.
 		if (!result.renderMenuOnly && !priorityNav) {
-			setOverflowState({ renderMenuOnly: false, firstOverflowIndex: null, isMeasuring: true })
+			dispatch({ type: 'AWAIT_CONTAINER' })
 			return
 		}
 
-		setOverflowState((prev) => {
-			const didChange =
-				prev.renderMenuOnly !== result.renderMenuOnly ||
-				prev.firstOverflowIndex !== result.firstOverflowIndex ||
-				prev.isMeasuring
-			return didChange ? { ...result, isMeasuring: false } : prev
-		})
+		dispatch({ type: 'MEASURED', result })
 	}, [isClient, overflowState.isMeasuring, overflowState.renderMenuOnly, links.length])
 
 	// Resize listeners — fast cached recalculation, no two-phase render needed
@@ -160,27 +185,20 @@ export function LinksWithDropdown({
 			timeoutId = setTimeout(() => {
 				const cached = cachedRef.current
 				if (!cached) {
-					// No cache yet (initial mount or links just changed), fall back to full measurement
-					setOverflowState((prev) => (prev.isMeasuring ? prev : { ...prev, isMeasuring: true }))
+					dispatch({ type: 'REQUEST_MEASURE' })
 					return
 				}
 
 				const nav = priorityNavRef.current
 				if (!nav) {
-					// In renderMenuOnly mode — check if viewport widened past mobile breakpoint
 					if (linksRef.current.length > 2 && window.innerWidth <= 640) return
-					setOverflowState((prev) => (prev.isMeasuring ? prev : { ...prev, isMeasuring: true }))
+					dispatch({ type: 'REQUEST_MEASURE' })
 					return
 				}
 
 				const containerWidth = nav.getBoundingClientRect().width
 				const result = recalculateFromCache(containerWidth, cached, linksRef.current.length)
-
-				setOverflowState((prev) => {
-					const didChange =
-						prev.renderMenuOnly !== result.renderMenuOnly || prev.firstOverflowIndex !== result.firstOverflowIndex
-					return didChange ? { ...result, isMeasuring: false } : prev
-				})
+				dispatch({ type: 'RESIZED', result })
 			}, RESIZE_DEBOUNCE_MS)
 		}
 

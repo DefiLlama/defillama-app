@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { startTransition } from 'react'
 import { Checkbox } from '~/components/Checkbox'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
