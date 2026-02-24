@@ -86,7 +86,7 @@ export function ChainOverview(props: IChainOverviewData) {
 const linksToOtherLlamaApps = [
 	{
 		name: 'LlamaSearch',
-		description: 'Fastest way to find any crypto project',
+		description: 'Find official links to projects',
 		href: 'https://search.defillama.com',
 		icon: (
 			<img
@@ -94,8 +94,8 @@ const linksToOtherLlamaApps = [
 				loading="lazy"
 				alt=""
 				height={44}
-				width={44}
-				className="z-10 h-[44px] w-[44px] object-contain"
+				width={39.28}
+				className="z-10 object-contain"
 			/>
 		),
 		background: <span className="llama-app-background" />
@@ -105,7 +105,7 @@ const linksToOtherLlamaApps = [
 		description: 'No fees DEX aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
-			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -123,7 +123,7 @@ const linksToOtherLlamaApps = [
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
-			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},

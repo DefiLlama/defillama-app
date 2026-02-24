@@ -32,6 +32,7 @@ export const MobileNav = ({
 					height={36}
 					width={105}
 					className="mr-auto object-contain object-left"
+					fetchPriority="high"
 				/>
 			</BasicLink>
 
