@@ -87,7 +87,7 @@ export const useFetchProtocolActiveUsers = (protocolId: number | string | null) 
 				.then((values: IUserDataResponse | null) => {
 					return values && values.length > 0
 						? values
-								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, val])
+								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, +val])
 								.sort((a, b) => a[0] - b[0])
 						: null
 				})
@@ -107,7 +107,7 @@ export const useFetchProtocolNewUsers = (protocolId: number | string | null) => 
 				.then((values: IUserDataResponse | null) => {
 					return values && values.length > 0
 						? values
-								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, val])
+								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, +val])
 								.sort((a, b) => a[0] - b[0])
 						: null
 				})
@@ -128,7 +128,7 @@ export const useFetchProtocolTransactions = (protocolId: number | string | null)
 				.then((values: ITxDataResponse | null) => {
 					return values && values.length > 0
 						? values
-								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, val])
+								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, +val])
 								.sort((a, b) => a[0] - b[0])
 						: null
 				})
