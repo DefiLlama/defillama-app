@@ -111,7 +111,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 
-	const { finalCharts, valueSymbol, loadingCharts } = useFetchProtocolChartData({
+	const { finalCharts, valueSymbol, loadingCharts, failedMetrics } = useFetchProtocolChartData({
 		...props,
 		toggledMetrics,
 		groupBy: groupBy,
@@ -316,7 +316,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 					/>
 				</div>
 			</div>
-			<div className="flex min-h-[360px] flex-col">
+			<div className="relative flex min-h-[360px] flex-col">
 				{!isClient ? null : loadingCharts ? (
 					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
 						fetching {loadingCharts}
@@ -337,6 +337,29 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						/>
 					</Suspense>
 				)}
+				{isClient && !loadingCharts && failedMetrics.length > 0 ? (
+					<Ariakit.PopoverProvider>
+						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+							<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+							<span className="sr-only">Show failed metric APIs</span>
+						</Ariakit.PopoverDisclosure>
+						<Ariakit.Popover
+							unmountOnHide
+							hideOnInteractOutside
+							gutter={6}
+							className="z-10 mr-1 flex max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),300px)] flex-col gap-1 overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-xs dark:border-[hsl(204,3%,32%)]"
+						>
+							<p className="font-medium text-(--error)">Failed to load data for:</p>
+							<ul className="pl-4">
+								{failedMetrics.map((metric) => (
+									<li key={metric} className="list-disc">
+										{metric.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}
+									</li>
+								))}
+							</ul>
+						</Ariakit.Popover>
+					</Ariakit.PopoverProvider>
+				) : null}
 			</div>
 		</div>
 	)

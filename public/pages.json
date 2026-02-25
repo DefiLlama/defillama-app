@@ -461,6 +461,33 @@
       "tab": "Protocols"
     },
     {
+      "name": "RWA: Overview",
+      "route": "/rwa",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs)",
+      "tags": [
+        "New"
+      ]
+    },
+    {
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category"
+    },
+    {
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -494,33 +521,6 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
-    },
-    {
-      "name": "RWA: Overview",
-      "route": "/rwa",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs)",
-      "tags": [
-        "New"
-      ]
-    },
-    {
-      "name": "RWA by Chain",
-      "route": "/rwa/chains",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by chain"
-    },
-    {
-      "name": "RWA by Category",
-      "route": "/rwa/categories",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by category"
-    },
-    {
-      "name": "RWA by Platform",
-      "route": "/rwa/platforms",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
       "name": "Hacks: Overview",

@@ -109,6 +109,35 @@ export const DimensionProtocolChartByType = ({
 		retry: 0
 	})
 
+	const failedApiErrors = React.useMemo(() => {
+		const errors: string[] = []
+		const pushError = (label: string, value: unknown) => {
+			if (!value) return
+			const message = value instanceof Error ? value.message : typeof value === 'string' ? value : JSON.stringify(value)
+			if (!message) return
+			errors.push(message.startsWith(`${label}:`) ? message : `${label}: ${message}`)
+		}
+
+		pushError('main', error)
+
+		if (metadata?.bribeRevenue && feesSettings.bribes) {
+			pushError('dailyBribesRevenue', fetchingBribeError)
+		}
+		if (metadata?.tokenTax && feesSettings.tokentax) {
+			pushError('dailyTokenTaxes', fetchingTokenTaxError)
+		}
+
+		return errors
+	}, [
+		error,
+		fetchingBribeError,
+		fetchingTokenTaxError,
+		metadata?.bribeRevenue,
+		metadata?.tokenTax,
+		feesSettings.bribes,
+		feesSettings.tokentax
+	])
+
 	if (isLoading || fetchingBribeData || fetchingTokenTaxData) {
 		return (
 			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
@@ -117,12 +146,18 @@ export const DimensionProtocolChartByType = ({
 		)
 	}
 
-	if (error || fetchingBribeError || fetchingTokenTaxError) {
+	if (failedApiErrors.length > 0) {
 		return (
 			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
-				<p className="p-3 text-center text-sm text-(--error)">
-					Error : {error?.message || fetchingBribeError?.message || fetchingTokenTaxError?.message}
-				</p>
+				<div className="flex flex-col gap-2 p-2">
+					<ul className="flex flex-col gap-4 text-xs text-(--error)">
+						{failedApiErrors.map((apiError, index) => (
+							<li key={`${apiError}-${index}`} className="break-all">
+								{apiError}
+							</li>
+						))}
+					</ul>
+				</div>
 			</div>
 		)
 	}

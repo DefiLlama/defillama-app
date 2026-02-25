@@ -2,14 +2,29 @@ function previewResponseBody(body: string, length = 200): string {
 	return body.replace(/\s+/g, ' ').trim().slice(0, length)
 }
 
+function sanitizeUrlForMetadataLogs(inputUrl: string): string {
+	try {
+		const parsed = new URL(inputUrl)
+		let pathname = parsed.pathname
+
+		// Normalize pro-api paths to avoid exposing API key segments.
+		pathname = pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
+		pathname = pathname.replace(/^\/[^/]+\/rwa(\/|$)/, '/rwa$1')
+
+		return `${pathname}${parsed.search}${parsed.hash}` || '/'
+	} catch {
+		return inputUrl
+	}
+}
+
 async function fetchJson<T = any>(url: string): Promise<T> {
 	const res = await fetch(url)
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
-
+	const urlToLog = sanitizeUrlForMetadataLogs(url)
 	if (!res.ok) {
 		throw new Error(
-			`Metadata request failed for URL: ${url} (status ${res.status}). Body preview: "${previewResponseBody(body)}"`
+			`Metadata request failed for URL: ${urlToLog} (status ${res.status}). Body preview: "${previewResponseBody(body)}"`
 		)
 	}
 
@@ -17,7 +32,7 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 		return JSON.parse(body) as T
 	} catch (error) {
 		throw new Error(
-			`Failed to parse JSON for URL: ${url.replace(process.env.API_KEY ?? '', '***')} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
+			`Failed to parse JSON for URL: ${urlToLog} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
 				body
 			)}". Original error: ${error instanceof Error ? error.message : String(error)}`
 		)
