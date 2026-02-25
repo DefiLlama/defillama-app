@@ -71,6 +71,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				<Suspense
 					fallback={
 						<div
+							id='protocolRankings'
 							style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
 							className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
 						/>
