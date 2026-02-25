@@ -58,7 +58,6 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</div>
 							<SmolBarChart
 								series={props.dexs.chart}
-								name="DEXs Volume"
 								className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'}
 							/>
 						</div>
@@ -80,7 +79,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									)} (24h)`}</p>
 								) : null}
 							</div>
-							<SmolBarChart series={props.etfs} name="ETF" className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'} />
+							<SmolBarChart series={props.etfs} className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'} />
 						</div>
 					) : null}
 					{props.datInflows?.chart?.length > 0 ? (
@@ -102,7 +101,6 @@ export const SmolStats = (props: IChainOverviewData) => {
 							</div>
 							<SmolBarChart
 								series={props.datInflows.chart}
-								name="DAT Inflows"
 								className={'my-auto h-[53px] md:h-[132px] xl:h-[156px]'}
 								groupBy="weekly"
 							/>
@@ -128,7 +126,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 							true
 						)} (24h)`}</p>
 					) : null}
-					<SmolBarChart series={props.dexs.chart} name="DEXs Volume" />
+					<SmolBarChart series={props.dexs.chart} />
 				</div>
 			) : null}
 			{props.chainFees?.topProtocolsChart?.length > 0 ? (
@@ -191,7 +189,6 @@ export const SmolStats = (props: IChainOverviewData) => {
 					<SmolLineChart
 						series={props.stablecoins.mcapChartData}
 						color={+props.stablecoins.change7d >= 0 ? 'green' : 'red'}
-						name="Stablecoin Mcap"
 					/>
 				</div>
 			) : null}

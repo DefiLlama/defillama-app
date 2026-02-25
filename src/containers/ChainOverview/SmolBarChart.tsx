@@ -9,7 +9,6 @@ export function SmolBarChart({
 	groupBy
 }: {
 	series: Array<[number, number]>
-	name: string
 	className?: string
 	groupBy?: 'daily' | 'weekly' | 'monthly'
 }) {

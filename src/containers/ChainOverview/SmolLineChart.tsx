@@ -35,7 +35,6 @@ export function SmolLineChart({
 	className
 }: {
 	series: Array<[number, number]>
-	name: string
 	color: 'green' | 'red'
 	className?: string
 }) {
