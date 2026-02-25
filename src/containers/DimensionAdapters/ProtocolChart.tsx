@@ -150,8 +150,7 @@ export const DimensionProtocolChartByType = ({
 		return (
 			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
 				<div className="flex flex-col gap-2 p-2">
-					<p className="text-center text-sm text-(--error)">Failed to load API data:</p>
-					<ul className="flex w-full max-w-[1000px] list-disc flex-col gap-4 text-xs text-(--error) sm:text-sm">
+					<ul className="flex flex-col gap-4 text-xs text-(--error)">
 						{failedApiErrors.map((apiError, index) => (
 							<li key={`${apiError}-${index}`} className="break-all">
 								{apiError}
