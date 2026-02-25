@@ -4,8 +4,8 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { ChartContainer } from '../ChartContainer'
-import { useDefaults } from '../useDefaults'
 import { formatTooltipValue } from '../formatters'
+import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {

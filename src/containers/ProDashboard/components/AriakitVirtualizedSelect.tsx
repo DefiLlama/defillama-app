@@ -175,15 +175,15 @@ export function AriakitVirtualizedSelect({
 															</span>
 														)}
 														{iconUrl && (
-													<img
-														src={iconUrl}
-														alt={option.label}
-														width={20}
-														height={20}
-														className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
-															option.isChild ? 'opacity-70' : ''
-														}`}
-													/>
+															<img
+																src={iconUrl}
+																alt={option.label}
+																width={20}
+																height={20}
+																className={`h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border) ${
+																	option.isChild ? 'opacity-70' : ''
+																}`}
+															/>
 														)}
 														<div className="flex min-w-0 flex-col">
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>

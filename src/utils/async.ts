@@ -69,12 +69,16 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	// Minimal behavior:
 	// - If SERVER_URL / V2_SERVER_URL (or lowercase variants) is set, strip it from logged URL.
 	// - If not set, log as-is.
+	const apiKey = process.env.API_KEY
+	if (apiKey && raw.includes(apiKey)) {
+		raw = raw.replaceAll(apiKey, '[REDACTED]')
+	}
+
 	const serverUrlCandidates = [
 		process.env.SERVER_URL,
 		process.env.server_url,
 		process.env.V2_SERVER_URL,
-		process.env.v2_server_url,
-		process.env.API_KEY
+		process.env.v2_server_url
 	].filter((url): url is string => typeof url === 'string' && url.length > 0)
 
 	for (const candidate of serverUrlCandidates) {
@@ -90,9 +94,7 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 		const parsed = new URL(raw)
 		// Fallback when env candidates are unavailable in client runtime.
 		if (parsed.hostname === 'api.llama.fi' || parsed.hostname === 'pro-api.llama.fi') {
-			const pathWithoutBase = parsed.pathname
-				.replace(/^\/[^/]+\/api(\/|$)/, '/')
-				.replace(/^\/api(\/|$)/, '/')
+			const pathWithoutBase = parsed.pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
 			return `${pathWithoutBase}${parsed.search}${parsed.hash}` || '/'
 		}
 	} catch {

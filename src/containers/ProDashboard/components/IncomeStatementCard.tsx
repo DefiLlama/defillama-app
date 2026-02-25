@@ -68,13 +68,7 @@ export function IncomeStatementCard({ config }: IncomeStatementCardProps) {
 			<div className="mb-2 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
 					{iconUrl ? (
-						<img
-							src={iconUrl}
-							alt={displayName}
-							width={20}
-							height={20}
-							className="h-5 w-5 shrink-0 rounded-full"
-						/>
+						<img src={iconUrl} alt={displayName} width={20} height={20} className="h-5 w-5 shrink-0 rounded-full" />
 					) : (
 						<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 							{displayName?.charAt(0)?.toUpperCase()}

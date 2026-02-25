@@ -15,8 +15,8 @@ import { oldBlue } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
-import type { ICandlestickChartProps } from '../types'
 import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../formatters'
+import type { ICandlestickChartProps } from '../types'
 
 echarts.use([
 	CanvasRenderer,

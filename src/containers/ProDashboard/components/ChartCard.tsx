@@ -183,13 +183,7 @@ export function ChartCard({ chart }: ChartCardProps) {
 				<div className="mr-auto flex items-center gap-1">
 					{chart.chain !== 'All' &&
 						(itemIconUrl ? (
-							<img
-								src={itemIconUrl}
-								alt={itemName}
-								width={20}
-								height={20}
-								className="h-5 w-5 shrink-0 rounded-full"
-							/>
+							<img src={itemIconUrl} alt={itemName} width={20} height={20} className="h-5 w-5 shrink-0 rounded-full" />
 						) : (
 							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 								{itemName?.charAt(0)?.toUpperCase()}
