@@ -2,6 +2,7 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import type { FormSubmitEvent } from '~/types/forms'
 
 interface RatingProps {
 	sessionId: string
@@ -16,7 +17,6 @@ interface RatingProps {
 export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDismiss }: RatingProps) {
 	const [rating, setRating] = useState(0)
 	const [hoveredRating, setHoveredRating] = useState(0)
-	const [feedback, setFeedback] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const bannerFeedbackId = `${sessionId}-rating-feedback-banner`
 	const inlineFeedbackId = `${sessionId}-rating-feedback-inline`
@@ -25,7 +25,8 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 		setRating(star)
 	}
 
-	const handleSubmit = async () => {
+	const handleSubmit = async (e: FormSubmitEvent) => {
+		e.preventDefault()
 		if (rating === 0) return
 
 		if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
@@ -34,7 +35,8 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 		}
 
 		setIsSubmitting(true)
-		const feedbackValue = feedback.trim() || undefined
+		const feedbackInput = e.currentTarget.elements.namedItem('feedback') as HTMLTextAreaElement | null
+		const feedbackValue = feedbackInput?.value.trim() || undefined
 		try {
 			await onRate(sessionId, rating, feedbackValue)
 		} catch (error) {
@@ -65,13 +67,17 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 	if (variant === 'banner') {
 		return (
-			<div className="relative isolate col-span-full flex animate-ai-glow flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<form
+				onSubmit={handleSubmit}
+				className="relative isolate col-span-full flex animate-ai-glow flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4"
+			>
 				<div className="flex items-center gap-4">
 					<h3 className="text-lg font-semibold">{currentTexts.title}</h3>
 					<div className="flex items-center gap-1">
 						{[1, 2, 3, 4, 5].map((star) => (
 							<button
 								key={star}
+								type="button"
 								onClick={() => handleStarClick(star)}
 								onMouseEnter={() => setHoveredRating(star)}
 								onMouseLeave={() => setHoveredRating(0)}
@@ -91,6 +97,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 					</div>
 					{onDismiss && (
 						<button
+							type="button"
 							onClick={() => onDismiss(sessionId)}
 							className="ml-auto rounded-md p-2 hover:bg-red-500/10 hover:text-(--error)"
 							disabled={isSubmitting}
@@ -120,8 +127,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 						</label>
 						<textarea
 							id={bannerFeedbackId}
-							value={feedback}
-							onChange={(e) => setFeedback(e.target.value)}
+							name="feedback"
 							placeholder="Share your thoughts about the AI-generated dashboard..."
 							rows={3}
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
@@ -131,13 +137,13 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 				)}
 
 				<div className="mt-6 flex items-center justify-center gap-3">
-					<button onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
+					<button type="button" onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
 						Skip
 					</button>
 
 					{rating > 0 && (
 						<button
-							onClick={handleSubmit}
+							type="submit"
 							disabled={isSubmitting}
 							className={`flex items-center gap-2 rounded-md bg-(--old-blue) px-6 py-2 font-medium text-white`}
 						>
@@ -146,12 +152,12 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 						</button>
 					)}
 				</div>
-			</div>
+			</form>
 		)
 	}
 
 	return (
-		<>
+		<form onSubmit={handleSubmit} className="contents">
 			<Icon name="sparkles" height={24} width={24} className="shrink-0 text-pro-blue-400 dark:text-pro-blue-200" />
 
 			<h3 className="-mt-5 text-xl font-semibold">{currentTexts.title}</h3>
@@ -168,6 +174,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 				{[1, 2, 3, 4, 5].map((star) => (
 					<button
 						key={star}
+						type="button"
 						onClick={() => handleStarClick(star)}
 						onMouseEnter={() => setHoveredRating(star)}
 						onMouseLeave={() => setHoveredRating(0)}
@@ -197,8 +204,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 						</label>
 						<textarea
 							id={inlineFeedbackId}
-							value={feedback}
-							onChange={(e) => setFeedback(e.target.value)}
+							name="feedback"
 							placeholder="Share your thoughts about the AI-generated dashboard..."
 							rows={3}
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
@@ -208,6 +214,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 					<div className="flex items-center justify-center gap-3">
 						<button
+							type="button"
 							onClick={handleSkip}
 							disabled={isSubmitting}
 							className="px-4 py-2 text-sm text-(--text-form) hover:text-(--link-text)"
@@ -215,7 +222,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 							Skip
 						</button>
 						<button
-							onClick={handleSubmit}
+							type="submit"
 							disabled={isSubmitting}
 							className={`flex items-center gap-2 rounded-md bg-(--old-blue) px-6 py-2 font-medium text-white`}
 						>
@@ -228,11 +235,11 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 				<>
 					<p className="-mt-5 text-center text-xs text-(--text-form)">Click the stars above to rate your experience</p>
 
-					<button onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
+					<button type="button" onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
 						Skip
 					</button>
 				</>
 			)}
-		</>
+		</form>
 	)
 }
