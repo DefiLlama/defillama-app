@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import Router from 'next/router'
 import { memo, useRef, useState } from 'react'
 import * as React from 'react'
 import toast from 'react-hot-toast'
@@ -28,7 +29,7 @@ interface AgenticSessionItemProps {
 export const AgenticSessionItem = memo(function AgenticSessionItem({
 	session,
 	isActive,
-	onSessionSelect,
+	onSessionSelect: _onSessionSelect,
 	onDelete,
 	onUpdateTitle,
 	isRestoring,
@@ -64,7 +65,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
-		onSessionSelect(sessionId)
+		Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 		if (document.documentElement.clientWidth < 1024) {
 			handleSidebarToggle()
 		}
