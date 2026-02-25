@@ -65,14 +65,20 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 
 		if (toggledSettings.length === 0) return { finalProtocols: props.protocols, charts: props.charts }
 
-		const finalProtocols = props.protocols.map((protocol) => {
+		const applyTvlSettings = (protocol: IProtocolByCategoryOrTagPageData['protocols'][0]) => {
 			let tvl = protocol.tvl
 			for (const setting of toggledSettings) {
 				if (protocol.extraTvls[setting] == null) continue
 				tvl = (tvl ?? 0) + (protocol.extraTvls[setting] ?? 0)
 			}
-			return { ...protocol, tvl }
-		})
+			const updated = { ...protocol, tvl }
+			if (updated.subRows?.length > 0) {
+				updated.subRows = updated.subRows.map(applyTvlSettings)
+			}
+			return updated
+		}
+
+		const finalProtocols = props.protocols.map(applyTvlSettings)
 
 		const shouldMirrorBorrowedChart = props.effectiveCategory === 'Lending' && toggledSettings.includes('borrowed')
 
