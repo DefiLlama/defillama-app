@@ -11,6 +11,7 @@ import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, chainIconUrl, slug } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
@@ -56,6 +57,7 @@ export function ChainChartPanel({
 	darkMode
 }: ChainChartPanelProps) {
 	const router = useRouter()
+	const isClient = useIsClient()
 	const chartRenderModel = useMemo(
 		() => ({
 			chartData: finalCharts,
@@ -240,7 +242,7 @@ export function ChainChartPanel({
 						/>
 					</Suspense>
 				)}
-				{!isFetchingChartData && failedMetrics.length > 0 ? (
+				{isClient && !isFetchingChartData && failedMetrics.length > 0 ? (
 					<Ariakit.PopoverProvider>
 						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 							<Icon name="alert-triangle" className="h-3.5 w-3.5" />

@@ -115,7 +115,7 @@ export const DimensionProtocolChartByType = ({
 			if (!value) return
 			const message = value instanceof Error ? value.message : typeof value === 'string' ? value : JSON.stringify(value)
 			if (!message) return
-			errors.push(message.includes(':') ? message : `${label}: ${message}`)
+			errors.push(message.startsWith(`${label}:`) ? message : `${label}: ${message}`)
 		}
 
 		pushError('main', error)

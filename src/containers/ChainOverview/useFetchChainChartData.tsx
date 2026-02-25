@@ -592,9 +592,12 @@ export const useFetchChainChartData = ({
 			})
 		}
 
-		const failedMetrics = toggledCharts.filter(
-			(chartLabel) => !Object.prototype.hasOwnProperty.call(charts, chartLabel)
-		)
+		const failedMetrics = toggledCharts.filter((chartLabel) => {
+			const isTokenMetric = chartLabel === 'Token Price' || chartLabel === 'Token Mcap' || chartLabel === 'Token Volume'
+			// Token metrics are intentionally not fetched when no chain gecko id is available.
+			if (isTokenMetric && !denominationGeckoId) return false
+			return !Object.prototype.hasOwnProperty.call(charts, chartLabel)
+		})
 
 		return {
 			finalCharts: charts,
@@ -640,6 +643,7 @@ export const useFetchChainChartData = ({
 		fetchingChainIncentives,
 		chainIncentivesData,
 		finalTvlChart,
+		denominationGeckoId,
 		denomination,
 		groupBy,
 		toggledCharts

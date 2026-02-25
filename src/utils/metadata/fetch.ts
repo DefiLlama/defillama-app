@@ -2,11 +2,26 @@ function previewResponseBody(body: string, length = 200): string {
 	return body.replace(/\s+/g, ' ').trim().slice(0, length)
 }
 
+function sanitizeUrlForMetadataLogs(inputUrl: string): string {
+	try {
+		const parsed = new URL(inputUrl)
+		let pathname = parsed.pathname
+
+		// Normalize pro-api paths to avoid exposing API key segments.
+		pathname = pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
+		pathname = pathname.replace(/^\/[^/]+\/rwa(\/|$)/, '/rwa$1')
+
+		return `${pathname}${parsed.search}${parsed.hash}` || '/'
+	} catch {
+		return inputUrl
+	}
+}
+
 async function fetchJson<T = any>(url: string): Promise<T> {
 	const res = await fetch(url)
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
-	const urlToLog = url.split('/api')[1] ?? url.split('/rwa')[1] ?? url
+	const urlToLog = sanitizeUrlForMetadataLogs(url)
 	if (!res.ok) {
 		throw new Error(
 			`Metadata request failed for URL: ${urlToLog} (status ${res.status}). Body preview: "${previewResponseBody(body)}"`
