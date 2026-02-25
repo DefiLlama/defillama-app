@@ -78,7 +78,7 @@ export function Stats(props: IStatsProps) {
 		}
 	}, [searchParams, props.chainTokenInfo, props.metadata.name, props.charts])
 
-	const { totalValueUSD, change24h, valueChange24hUSD, finalCharts, valueSymbol, isFetchingChartData } =
+	const { totalValueUSD, change24h, valueChange24hUSD, finalCharts, valueSymbol, isFetchingChartData, failedMetrics } =
 		useFetchChainChartData({
 			denomination,
 			selectedChain: props.metadata.name,
@@ -217,6 +217,7 @@ export function Stats(props: IStatsProps) {
 					finalCharts={finalCharts}
 					valueSymbol={valueSymbol}
 					isFetchingChartData={isFetchingChartData}
+					failedMetrics={failedMetrics}
 					darkMode={darkMode}
 				/>
 			) : null}

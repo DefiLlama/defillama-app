@@ -394,7 +394,8 @@ export const useFetchChainChartData = ({
 			return {
 				finalCharts: {} as Record<string, Array<[string | number, number]>>,
 				valueSymbol: denomination === 'USD' ? '$' : denomination,
-				loadingCharts: loadingCharts.join(', ').toLowerCase()
+				loadingCharts: loadingCharts.join(', ').toLowerCase(),
+				failedMetrics: [] as ChainChartLabels[]
 			}
 		}
 
@@ -591,10 +592,15 @@ export const useFetchChainChartData = ({
 			})
 		}
 
+		const failedMetrics = toggledCharts.filter(
+			(chartLabel) => !Object.prototype.hasOwnProperty.call(charts, chartLabel)
+		)
+
 		return {
 			finalCharts: charts,
 			valueSymbol: denomination === 'USD' ? '$' : denomination,
-			loadingCharts: ''
+			loadingCharts: '',
+			failedMetrics
 		}
 	}, [
 		toggledChartsSet,
@@ -635,13 +641,15 @@ export const useFetchChainChartData = ({
 		chainIncentivesData,
 		finalTvlChart,
 		denomination,
-		groupBy
+		groupBy,
+		toggledCharts
 	])
 
 	return {
 		isFetchingChartData: !!chartData.loadingCharts,
 		finalCharts: chartData.finalCharts,
 		valueSymbol: chartData.valueSymbol,
+		failedMetrics: chartData.failedMetrics,
 		totalValueUSD,
 		valueChange24hUSD,
 		change24h

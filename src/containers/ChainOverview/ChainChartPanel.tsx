@@ -34,6 +34,7 @@ interface ChainChartPanelProps {
 	finalCharts: any
 	valueSymbol: string
 	isFetchingChartData: boolean
+	failedMetrics: ChainChartLabels[]
 	darkMode: boolean
 }
 
@@ -51,6 +52,7 @@ export function ChainChartPanel({
 	finalCharts,
 	valueSymbol,
 	isFetchingChartData,
+	failedMetrics,
 	darkMode
 }: ChainChartPanelProps) {
 	const router = useRouter()
@@ -219,24 +221,54 @@ export function ChainChartPanel({
 				)}
 			</div>
 
-			{isFetchingChartData ? (
-				<div className="m-auto flex min-h-[360px] items-center justify-center">
-					<p className="flex items-center gap-1">
-						Loading
-						<LoadingDots />
-					</p>
-				</div>
-			) : (
-				<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-					<ChainCoreChart
-						chartData={deferredChartRenderModel.chartData}
-						valueSymbol={deferredChartRenderModel.valueSymbol}
-						isThemeDark={darkMode}
-						groupBy={groupBy}
-						onReady={handleChartReady}
-					/>
-				</Suspense>
-			)}
+			<div className="relative flex min-h-[360px] flex-col">
+				{isFetchingChartData ? (
+					<div className="m-auto flex min-h-[360px] items-center justify-center">
+						<p className="flex items-center gap-1">
+							Loading
+							<LoadingDots />
+						</p>
+					</div>
+				) : (
+					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
+						<ChainCoreChart
+							chartData={deferredChartRenderModel.chartData}
+							valueSymbol={deferredChartRenderModel.valueSymbol}
+							isThemeDark={darkMode}
+							groupBy={groupBy}
+							onReady={handleChartReady}
+						/>
+					</Suspense>
+				)}
+				{!isFetchingChartData && failedMetrics.length > 0 ? (
+					<Ariakit.PopoverProvider>
+						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+							<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+							<span className="sr-only">Show failed metric APIs</span>
+						</Ariakit.PopoverDisclosure>
+						<Ariakit.Popover
+							unmountOnHide
+							hideOnInteractOutside
+							gutter={6}
+							className="z-10 mr-1 flex max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),300px)] flex-col gap-1 overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-xs dark:border-[hsl(204,3%,32%)]"
+						>
+							<p className="font-medium text-(--error)">Failed to load data for:</p>
+							<ul className="pl-4">
+								{failedMetrics.map((metric) => (
+									<li key={metric} className="list-disc">
+										{metric.includes('Token')
+											? metric.replace(
+													'Token',
+													chainTokenInfo?.token_symbol ? `$${chainTokenInfo.token_symbol}` : 'Token'
+												)
+											: metric}
+									</li>
+								))}
+							</ul>
+						</Ariakit.Popover>
+					</Ariakit.PopoverProvider>
+				) : null}
+			</div>
 		</div>
 	)
 }
