@@ -314,6 +314,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [toggleSidebar])
 
 	const handleNewChat = useCallback(() => {
+		if (initialSessionId) {
+			Router.push('/ai/chat', undefined, { shallow: true })
+			return
+		}
 		setMessages([])
 		setSessionId(null)
 		setSessionTitle(null)
@@ -333,9 +337,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setShowScrollToBottom(false)
 		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
-		if (initialSessionId) {
-			Router.push('/ai/chat', undefined, { shallow: true })
-		}
 	}, [initialSessionId])
 
 	const handleSessionSelect = useCallback(

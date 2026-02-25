@@ -20,7 +20,8 @@ export function LinkToPage({
 	asPath: string
 	umamiEvent?: string
 }) {
-	const isActive = route === asPath.split('/?')[0].split('?')[0]
+	const cleanAsPath = asPath.split('/?')[0].split('?')[0]
+	const isActive = cleanAsPath === route || cleanAsPath.startsWith(route + '/')
 	const isExternal = route.startsWith('http')
 
 	return (
