@@ -3,6 +3,7 @@ import Router from 'next/router'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
+import { LoadingDots } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
@@ -378,6 +379,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				setSessionId(selectedSessionId)
 				const match = sessions.find((s) => s.sessionId === selectedSessionId)
 				setSessionTitle(match?.title || null)
+				window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
 				isFirstMessageRef.current = false
 				shouldAutoScrollRef.current = true
 				setShowScrollToBottom(false)
@@ -526,7 +528,37 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						fetchFn: authorizedFetch
 					})
 						.catch((err: any) => {
-							if (err?.name === 'AbortError') return
+							if (err?.name === 'AbortError') {
+								if (accumulatedText || accumulatedCharts.length > 0) {
+									const messageId = currentMessageIdRef.current || undefined
+									currentMessageIdRef.current = null
+									setMessages((prev) => [
+										...prev,
+										{
+											role: 'assistant',
+											content: accumulatedText || undefined,
+											charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+											csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+											citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
+											toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
+											thinking: accumulatedThinking || undefined,
+											id: messageId
+										}
+									])
+								}
+								setStreamingText('')
+								setStreamingCharts([])
+								setStreamingCsvExports([])
+								setStreamingAlerts([])
+								setStreamingCitations([])
+								setStreamingToolExecutions([])
+								setStreamingThinking('')
+								setActiveToolCalls([])
+								setSpawnProgress(new Map())
+								setSpawnStartTime(0)
+								setIsStreaming(false)
+								return
+							}
 							setIsStreaming(false)
 						})
 						.finally(() => {
@@ -713,7 +745,37 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				}
 			})
 				.catch((err: any) => {
-					if (err?.name === 'AbortError') return
+					if (err?.name === 'AbortError') {
+						if (accumulatedText || accumulatedCharts.length > 0) {
+							const messageId = currentMessageIdRef.current || undefined
+							currentMessageIdRef.current = null
+							setMessages((prev) => [
+								...prev,
+								{
+									role: 'assistant',
+									content: accumulatedText || undefined,
+									charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+									csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+									citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
+									toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
+									thinking: accumulatedThinking || undefined,
+									id: messageId
+								}
+							])
+						}
+						setStreamingText('')
+						setStreamingCharts([])
+						setStreamingCsvExports([])
+						setStreamingAlerts([])
+						setStreamingCitations([])
+						setStreamingToolExecutions([])
+						setStreamingThinking('')
+						setActiveToolCalls([])
+						setSpawnProgress(new Map())
+						setSpawnStartTime(0)
+						setIsStreaming(false)
+						return
+					}
 					if (err?.code === 'USAGE_LIMIT_EXCEEDED') {
 						setRateLimitDetails({
 							period: err.details?.period || 'lifetime',
@@ -767,6 +829,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	const handleStopRequest = useCallback(() => {
 		abortControllerRef.current?.abort()
+		setIsStreaming(false)
+		setStreamingText('')
+		setStreamingCharts([])
+		setStreamingCsvExports([])
+		setStreamingAlerts([])
+		setStreamingCitations([])
+		setStreamingToolExecutions([])
+		setStreamingThinking('')
+		setActiveToolCalls([])
+		setSpawnProgress(new Map())
+		setSpawnStartTime(0)
 	}, [])
 
 	const handleSubmitRef = useRef(handleSubmit)
@@ -865,7 +938,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			<div
 				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 			>
-				{!hasMessages ? (
+				{initialSessionId && !hasMessages ? (
+					<div className="flex flex-1 items-center justify-center">
+						<p className="flex items-center gap-1 text-[#666] dark:text-[#919296]">
+							Loading
+							<LoadingDots />
+						</p>
+					</div>
+				) : !hasMessages ? (
 					<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 						<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 							<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
@@ -1895,7 +1975,7 @@ function MessageBubble({
 		)
 	}
 
-	const chartList = message.charts?.flatMap(set => set.charts.map(c => ({ id: c.id, title: c.title }))) ?? []
+	const chartList = message.charts?.flatMap((set) => set.charts.map((c) => ({ id: c.id, title: c.title }))) ?? []
 
 	return (
 		<div>
@@ -1915,7 +1995,13 @@ function MessageBubble({
 				nextUserMessage={nextUserMessage}
 			/>
 			{message.id && !parentIsStreaming && (
-				<ResponseControls messageId={message.id} content={message.content} sessionId={sessionId} readOnly={readOnly} charts={chartList} />
+				<ResponseControls
+					messageId={message.id}
+					content={message.content}
+					sessionId={sessionId}
+					readOnly={readOnly}
+					charts={chartList}
+				/>
 			)}
 		</div>
 	)
