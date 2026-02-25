@@ -472,6 +472,3 @@ export function useDefaults({
 	return defaults
 }
 
-// Re-export formatters for backward compatibility
-// New code should import directly from '~/components/ECharts/formatters'
-export { formatTooltipValue, formatTooltipChartDate, formatChartEmphasisDate } from './formatters'

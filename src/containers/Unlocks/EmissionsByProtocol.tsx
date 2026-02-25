@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { lazy, memo, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -15,6 +15,7 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
 import { Pagination } from './Pagination'
@@ -96,25 +97,6 @@ const MultiSeriesChart2 = lazy(
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 
-type ScheduleChartProps = Pick<
-	IMultiSeriesChart2Props,
-	| 'dataset'
-	| 'charts'
-	| 'hallmarks'
-	| 'expandTo100Percent'
-	| 'solidChartAreaStyle'
-	| 'valueSymbol'
-	| 'onReady'
-	| 'hideDefaultLegend'
->
-
-const ScheduleChart = memo(function ScheduleChart(props: ScheduleChartProps) {
-	return (
-		<Suspense fallback={<div className="min-h-[360px]" />}>
-			<MultiSeriesChart2 {...props} />
-		</Suspense>
-	)
-})
 
 type InitialTokenMarketData = {
 	price?: number | null
@@ -211,6 +193,14 @@ type DataType = (typeof DATA_TYPES)[number]
 const TIME_GROUPINGS = ['D', 'W', 'M', 'Q', 'Y'] as const
 type TimeGrouping = (typeof TIME_GROUPINGS)[number]
 
+const CHART_GROUP_BY: Record<TimeGrouping, NonNullable<IMultiSeriesChart2Props['groupBy']>> = {
+	D: 'daily',
+	W: 'weekly',
+	M: 'monthly',
+	Q: 'quarterly',
+	Y: 'yearly'
+}
+
 function getQuarterStart(timestampMs: number): number {
 	const date = new Date(timestampMs)
 	const quarter = Math.floor(date.getUTCMonth() / 3)
@@ -228,18 +218,11 @@ function groupChartDataByTime(
 ): Array<{ timestamp: number } & Record<string, number | null>> {
 	if (groupBy === 'D') return chartData
 
-	const NON_ADDITIVE_STRATEGIES: Record<string, 'avg' | 'last'> = {
-		Price: 'avg',
-		'Market Cap': 'avg'
-	}
+	const sorted = ensureChronologicalRows(chartData)
 
 	const grouped: Record<number, Record<string, number | null>> = {}
-	const avgSums: Record<number, Record<string, number>> = {}
-	const avgCounts: Record<number, Record<string, number>> = {}
-	const lastValues: Record<number, Record<string, number>> = {}
-	const lastTimestamps: Record<number, Record<string, number>> = {}
 
-	for (const entry of chartData) {
+	for (const entry of sorted) {
 		const ts = entry.timestamp
 		let groupKey: number
 
@@ -268,44 +251,7 @@ function groupChartDataByTime(
 			if (key === 'timestamp') continue
 			const value = entry[key]
 			if (typeof value !== 'number' || !Number.isFinite(value)) continue
-
-			const strategy = NON_ADDITIVE_STRATEGIES[key]
-			if (strategy === 'avg') {
-				if (!avgSums[groupKey]) avgSums[groupKey] = {}
-				if (!avgCounts[groupKey]) avgCounts[groupKey] = {}
-				avgSums[groupKey][key] = (avgSums[groupKey][key] ?? 0) + value
-				avgCounts[groupKey][key] = (avgCounts[groupKey][key] ?? 0) + 1
-				continue
-			}
-
-			else {
-				if (!lastValues[groupKey]) lastValues[groupKey] = {}
-				if (!lastTimestamps[groupKey]) lastTimestamps[groupKey] = {}
-
-				const prevTs = lastTimestamps[groupKey][key]
-				if (prevTs == null || ts >= prevTs) {
-					lastTimestamps[groupKey][key] = ts
-					lastValues[groupKey][key] = value
-				}
-				continue
-			}
-		}
-	}
-
-	// Merge non-additive results into the grouped output.
-	for (const groupKey in avgSums) {
-		const sums = avgSums[groupKey]
-		const counts = avgCounts[groupKey]
-		for (const key in sums) {
-			const count = counts?.[key] ?? 0
-			if (count > 0) grouped[groupKey][key] = sums[key] / count
-		}
-	}
-
-	for (const groupKey in lastValues) {
-		const values = lastValues[groupKey]
-		for (const key in values) {
-			grouped[groupKey][key] = values[key]
+			grouped[groupKey][key] = value
 		}
 	}
 
@@ -348,20 +294,17 @@ const sortPieChartDataDesc = <T extends { name: string; value: number }>(items: 
 		(a, b) => (Number(b.value) || 0) - (Number(a.value) || 0) || String(a.name).localeCompare(String(b.name))
 	)
 
+const getDesktopPieLegendPosition = (itemsCount: number) =>
+	itemsCount <= 8
+		? { right: 12, top: 'middle' as const, orient: 'vertical' as const }
+		: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
+
 const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
 const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
 
-const chunkArray = <T,>(items: T[], size = 1): T[][] => {
-	if (!Number.isFinite(size) || size < 1) return []
-	const result: T[][] = []
-	for (let i = 0; i < items.length; i += size) {
-		result.push(items.slice(i, i + size))
-	}
-	return result
-}
 
 const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K): Record<K, T[]> => {
 	const grouped = {} as Record<K, T[]>
@@ -387,6 +330,190 @@ const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string)
 		}
 	}
 	return total
+}
+
+function TokenHeader({
+	name,
+	tokenPrice,
+	percentChange
+}: {
+	name: string
+	tokenPrice: number | undefined
+	percentChange: number | null
+}) {
+	return (
+		<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<TokenLogo logo={tokenIconUrl(name)} />
+			<h1 className="text-xl font-semibold">{name}</h1>
+
+			{tokenPrice != null ? (
+				<>
+					<span className="mx-1 h-5 w-px bg-(--cards-border)" />
+					<span className="text-base font-semibold">${formattedNum(tokenPrice)}</span>
+					{percentChange !== null ? (
+						<span
+							className="text-sm font-medium"
+							style={{
+								color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
+							}}
+						>
+							{percentChange > 0 && '+'}
+							{percentChange}%
+						</span>
+					) : null}
+				</>
+			) : null}
+		</div>
+	)
+}
+
+function TokenStats({
+	tokenCircSupply,
+	tokenMaxSupply,
+	tokenMcap,
+	tokenVolume,
+	symbol
+}: {
+	tokenCircSupply: number | undefined
+	tokenMaxSupply: number | undefined
+	tokenMcap: number | undefined
+	tokenVolume: number | undefined
+	symbol: string | null | undefined
+}) {
+	if (!tokenCircSupply && !tokenMaxSupply && !tokenMcap && !tokenVolume) return null
+	return (
+		<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
+			{tokenCircSupply ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">Circ. Supply</span>
+					<span className="text-sm font-medium">
+						{formattedNum(tokenCircSupply)} {symbol}
+					</span>
+				</div>
+			) : null}
+
+			{tokenMaxSupply ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">Max Supply</span>
+					<span className="text-sm font-medium">
+						{tokenMaxSupply !== Infinity ? formattedNum(tokenMaxSupply) : '∞'} {symbol}
+					</span>
+				</div>
+			) : null}
+
+			{tokenMcap ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">MCap</span>
+					<span className="text-sm font-medium">${formattedNum(tokenMcap)}</span>
+				</div>
+			) : null}
+
+			{tokenVolume ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">Vol 24h</span>
+					<span className="text-sm font-medium">${formattedNum(tokenVolume)}</span>
+				</div>
+			) : null}
+		</div>
+	)
+}
+
+function TokenAllocationBars({
+	tokenAllocation,
+	stackColors
+}: {
+	tokenAllocation: { current: Record<string, number>; final: Record<string, number> }
+	stackColors: Record<string, string>
+}) {
+	return (
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<h3 className="text-base font-semibold">Token Allocation</h3>
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				{(['current', 'final'] as const).map((phase) => {
+					const entries = phase === 'current' ? tokenAllocation.current : tokenAllocation.final
+					if (!entries) return null
+					const sorted = Object.entries(entries).sort(([, a], [, b]) => b - a)
+					return (
+						<div key={phase} className="flex flex-col gap-1.5">
+							<span className="text-xs font-medium tracking-wide text-(--text-label) uppercase">{phase}</span>
+							{sorted.map(([cat, perc]) => (
+								<div key={cat} className="flex flex-col gap-0.5">
+									<div className="flex items-baseline justify-between text-sm">
+										<span>{capitalizeFirstLetter(cat)}</span>
+										<span className="font-medium tabular-nums">{perc}%</span>
+									</div>
+									<div className="h-1.5 w-full overflow-hidden rounded-full bg-(--cards-border)">
+										<div
+											className="h-full rounded-full"
+											style={{
+												width: `${Math.min(perc, 100)}%`,
+												backgroundColor: stackColors[cat] ?? stackColors[capitalizeFirstLetter(cat)] ?? '#6b7280'
+											}}
+										/>
+									</div>
+								</div>
+							))}
+						</div>
+					)
+				})}
+			</div>
+		</div>
+	)
+}
+
+function SourcesNotesSection({
+	sources,
+	notes,
+	futures
+}: {
+	sources: Array<string> | undefined
+	notes: Array<string> | undefined
+	futures: { openInterest?: number; fundingRate?: number } | undefined
+}) {
+	if (!sources?.length && !notes?.length && !futures?.openInterest && !futures?.fundingRate) return null
+	return (
+		<div className="flex flex-wrap gap-2 *:flex-1">
+			{sources && sources.length > 0 ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Sources</h3>
+					<ul className="list-disc space-y-1 pl-4 text-sm">
+						{sources.map((source) => (
+							<li key={source}>
+								<Link
+									href={source}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
+								>
+									<span>{new URL(source).hostname}</span>
+									<Icon name="external-link" height={14} width={14} />
+								</Link>
+							</li>
+						))}
+					</ul>
+				</div>
+			) : null}
+			{notes && notes.length > 0 ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Notes</h3>
+					<ul className="list-disc space-y-1 pl-4 text-sm text-(--text-secondary)">
+						{notes.map((note) => (
+							<li key={note}>{note}</li>
+						))}
+					</ul>
+				</div>
+			) : null}
+			{futures?.openInterest || futures?.fundingRate ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Futures</h3>
+					<div className="flex flex-col gap-1 text-sm">
+						{futures.openInterest ? <p>{`Open Interest: $${formattedNum(futures.openInterest)}`}</p> : null}
+						{futures.fundingRate ? <p>{`Funding Rate: ${futures.fundingRate}%`}</p> : null}
+					</div>
+				</div>
+			) : null}
+		</div>
+	)
 }
 
 const ChartContainer = ({
@@ -436,14 +563,10 @@ const ChartContainer = ({
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
-	const { tokenAllocation, tokenAllocationCurrentChunks, tokenAllocationFinalChunks } = useMemo(() => {
-		const allocation = data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION
-		return {
-			tokenAllocation: allocation,
-			tokenAllocationCurrentChunks: chunkArray(Object.entries(allocation.current ?? EMPTY_ALLOCATION)),
-			tokenAllocationFinalChunks: chunkArray(Object.entries(allocation.final ?? EMPTY_ALLOCATION))
-		}
-	}, [data.tokenAllocation, dataType])
+	const tokenAllocation = useMemo(
+		() => data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION,
+		[data.tokenAllocation, dataType]
+	)
 	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
 	const pieChartDataRaw = data.pieChartData?.[dataType]
 	const hallmarks = data.hallmarks?.[dataType] ?? []
@@ -507,7 +630,7 @@ const ChartContainer = ({
 		return result
 	}, [priceChartForOverlay])
 
-	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
+	const groupedEvents = useMemo(() => groupByKey(data.events ?? [], (event) => event.timestamp), [data.events])
 
 	const nowSec = useNowSeconds()
 	const currentMinuteSec = Math.floor(nowSec / 60) * 60
@@ -585,16 +708,8 @@ const ChartContainer = ({
 
 	const availableCategories =
 		allocationMode === 'standard'
-			? (() => {
-					const categories: string[] = []
-					for (const category in data.categoriesBreakdown || {}) {
-						categories.push(category)
-					}
-					return categories
-				})()
-			: (() => {
-					return categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
-				})()
+			? Object.keys(data.categoriesBreakdown ?? {})
+			: categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
 
 	const displayData = useMemo(() => {
 		let result = chartData
@@ -642,25 +757,21 @@ const ChartContainer = ({
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
-	const formattedPieChartDataAllocationMode = useMemo(
-		() => pieChartDataAllocationMode.map((item) => ({ ...item, name: formatUnlockLabel(item.name) })),
-		[pieChartDataAllocationMode]
-	)
+	const formattedPieChartDataAllocationMode = pieChartDataAllocationMode.map((item) => ({
+		...item,
+		name: formatUnlockLabel(item.name)
+	}))
 
 	const allocationPieStackColors = allocationMode === 'standard' ? standardGroupColors : stackColors
 
-	const formattedAllocationPieStackColors = useMemo(
-		() =>
-			Object.fromEntries(
-				Object.entries(allocationPieStackColors).map(([label, color]) => [formatUnlockLabel(label), color])
-			),
-		[allocationPieStackColors]
+	const formattedAllocationPieStackColors = Object.fromEntries(
+		Object.entries(allocationPieStackColors).map(([label, color]) => [formatUnlockLabel(label), color])
 	)
 
-	const formattedAvailableCategories = useMemo(
-		() => availableCategories.map((category) => ({ key: category, name: formatUnlockLabel(category) })),
-		[availableCategories]
-	)
+	const formattedAvailableCategories = availableCategories.map((category) => ({
+		key: category,
+		name: formatUnlockLabel(category)
+	}))
 
 	const chartConfig = useMemo(() => {
 		let stacks = selectedCategories
@@ -711,15 +822,15 @@ const ChartContainer = ({
 			for (const s of stacks) {
 				if (!overlaySet.has(s)) sum += Number(entry[s]) || 0
 			}
-			for (const s of stacks) {
+		for (const s of stacks) {
+			if (overlaySet.has(s)) {
+				const val = entry[s]
+				row[s] = typeof val === 'number' && Number.isFinite(val) ? val : null
+			} else {
 				const raw = Number(entry[s]) || 0
-				if (overlaySet.has(s)) {
-					// Preserve original dollar value for overlay series
-					row[s] = raw
-				} else {
-					row[s] = sum > 0 ? (raw / sum) * 100 : 0
-				}
+				row[s] = sum > 0 ? (raw / sum) * 100 : 0
 			}
+		}
 			source[i] = row
 		}
 		return { source, dimensions }
@@ -761,14 +872,6 @@ const ChartContainer = ({
 	const deferredAllocationPieChartData = useDeferredValue(formattedPieChartDataAllocationMode)
 	const deferredUnlockedPieChartData = useDeferredValue(unlockedPieChartData)
 
-	const getDesktopPieLegendPosition = (itemsCount: number) => {
-		// When there are only a few legend items, center it vertically.
-		// When there are many, constrain height so the legend can scroll.
-		return itemsCount <= 8
-			? { right: 12, top: 'middle' as const, orient: 'vertical' as const }
-			: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
-	}
-
 	const pieChartLegendTextStyle = useMemo(() => ({ fontSize: width < 640 ? 12 : 14 }), [width])
 
 	const allocationPieChartLegendPosition = useMemo(() => {
@@ -803,78 +906,24 @@ const ChartContainer = ({
 		[data.name, unlockedPercent]
 	)
 
-	const hasGroupAllocationData = (() => {
-		if (!data.categoriesBreakdown || typeof data.categoriesBreakdown !== 'object') return false
-		for (const _ in data.categoriesBreakdown) {
-			return true
-		}
-		return false
-	})()
+	const hasGroupAllocationData =
+		data.categoriesBreakdown != null && Object.keys(data.categoriesBreakdown).length > 0
 
 	if (!data) return null
 
 	return (
 		<>
 			{isEmissionsPage ? (
-				<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<TokenLogo logo={tokenIconUrl(data.name)} />
-					<h1 className="text-xl font-semibold">{data.name}</h1>
-
-					{tokenPrice != null ? (
-						<>
-							<span className="mx-1 h-5 w-px bg-(--cards-border)" />
-							<span className="text-base font-semibold">${formattedNum(tokenPrice)}</span>
-							{percentChange !== null ? (
-								<span
-									className="text-sm font-medium"
-									style={{
-										color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
-									}}
-								>
-									{percentChange > 0 && '+'}
-									{percentChange}%
-								</span>
-							) : null}
-						</>
-					) : null}
-				</div>
+				<TokenHeader name={data.name} tokenPrice={tokenPrice} percentChange={percentChange} />
 			) : null}
 
-			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply || tokenMcap || tokenVolume ? (
-				<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
-					{tokenCircSupply ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">Circ. Supply</span>
-							<span className="text-sm font-medium">
-								{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
-							</span>
-						</div>
-					) : null}
-
-					{tokenMaxSupply ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">Max Supply</span>
-							<span className="text-sm font-medium">
-								{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
-							</span>
-						</div>
-					) : null}
-
-					{tokenMcap ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">MCap</span>
-							<span className="text-sm font-medium">${formattedNum(tokenMcap)}</span>
-						</div>
-					) : null}
-
-					{tokenVolume ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">Vol 24h</span>
-							<span className="text-sm font-medium">${formattedNum(tokenVolume)}</span>
-						</div>
-					) : null}
-				</div>
-			) : null}
+			<TokenStats
+				tokenCircSupply={tokenCircSupply}
+				tokenMaxSupply={tokenMaxSupply}
+				tokenMcap={tokenMcap}
+				tokenVolume={tokenVolume}
+				symbol={data.tokenPrice?.symbol}
+			/>
 
 			{data.chartData?.realtime?.length > 0 ? (
 				<TagGroup
@@ -941,16 +990,19 @@ const ChartContainer = ({
 								</p>
 							</div>
 						) : (
-							<ScheduleChart
-								dataset={deferredScheduleChartData.dataset}
-								charts={deferredScheduleChartData.charts}
-								hallmarks={hallmarks}
-								expandTo100Percent={chartType === 'bar'}
-								solidChartAreaStyle
-								valueSymbol={data.tokenPrice?.symbol ?? ''}
-								onReady={handleChartReady}
-								hideDefaultLegend={false}
-							/>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={deferredScheduleChartData.dataset}
+									charts={deferredScheduleChartData.charts}
+									hallmarks={hallmarks}
+									expandTo100Percent={chartType === 'bar'}
+									solidChartAreaStyle
+									valueSymbol={data.tokenPrice?.symbol ?? ''}
+									groupBy={CHART_GROUP_BY[timeGrouping]}
+									onReady={handleChartReady}
+									hideDefaultLegend={false}
+								/>
+							</Suspense>
 						)}
 					</div>
 				)}
@@ -998,39 +1050,10 @@ const ChartContainer = ({
 				</div>
 			</div>
 
-			{data.token && tokenAllocationCurrentChunks.length > 0 && tokenAllocationFinalChunks.length > 0 ? (
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h3 className="text-base font-semibold">Token Allocation</h3>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						{(['current', 'final'] as const).map((phase) => {
-							const entries = phase === 'current' ? tokenAllocation.current : tokenAllocation.final
-							if (!entries) return null
-							const sorted = Object.entries(entries).sort(([, a], [, b]) => b - a)
-							return (
-								<div key={phase} className="flex flex-col gap-1.5">
-									<span className="text-xs font-medium tracking-wide text-(--text-label) uppercase">{phase}</span>
-									{sorted.map(([cat, perc]) => (
-										<div key={cat} className="flex flex-col gap-0.5">
-											<div className="flex items-baseline justify-between text-sm">
-												<span>{capitalizeFirstLetter(cat)}</span>
-												<span className="font-medium tabular-nums">{perc}%</span>
-											</div>
-											<div className="h-1.5 w-full overflow-hidden rounded-full bg-(--cards-border)">
-												<div
-													className="h-full rounded-full"
-													style={{
-														width: `${Math.min(perc, 100)}%`,
-														backgroundColor: stackColors[cat] ?? stackColors[capitalizeFirstLetter(cat)] ?? '#6b7280'
-													}}
-												/>
-											</div>
-										</div>
-									))}
-								</div>
-							)
-						})}
-					</div>
-				</div>
+			{data.token &&
+			Object.keys(tokenAllocation.current).length > 0 &&
+			Object.keys(tokenAllocation.final).length > 0 ? (
+				<TokenAllocationBars tokenAllocation={tokenAllocation} stackColors={stackColors} />
 			) : null}
 
 			{data.events?.length > 0 ? (
@@ -1040,47 +1063,7 @@ const ChartContainer = ({
 				</div>
 			) : null}
 
-			<div className="flex flex-wrap gap-2 *:flex-1">
-				{data.sources?.length > 0 ? (
-					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h3 className="text-base font-semibold">Sources</h3>
-						<ul className="list-disc space-y-1 pl-4 text-sm">
-							{data.sources.map((source) => (
-								<li key={source}>
-									<Link
-										href={source}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
-									>
-										<span>{new URL(source).hostname}</span>
-										<Icon name="external-link" height={14} width={14} />
-									</Link>
-								</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-				{data.notes?.length > 0 ? (
-					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h3 className="text-base font-semibold">Notes</h3>
-						<ul className="list-disc space-y-1 pl-4 text-sm text-(--text-secondary)">
-							{data.notes.map((note) => (
-								<li key={note}>{note}</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-				{data.futures?.openInterest || data.futures?.fundingRate ? (
-					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h3 className="text-base font-semibold">Futures</h3>
-						<div className="flex flex-col gap-1 text-sm">
-							{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}
-							{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}
-						</div>
-					</div>
-				) : null}
-			</div>
+			<SourcesNotesSection sources={data.sources} notes={data.notes} futures={data.futures} />
 		</>
 	)
 }

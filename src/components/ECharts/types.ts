@@ -36,7 +36,7 @@ export interface IChartProps {
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
 	hideDataZoom?: boolean
@@ -135,7 +135,7 @@ type MultiSeriesChart2BaseProps = {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string
@@ -207,7 +207,7 @@ export interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	hallmarks?: [number, string][]
 	valueSymbol?: string
 	yAxisSymbols?: string[]

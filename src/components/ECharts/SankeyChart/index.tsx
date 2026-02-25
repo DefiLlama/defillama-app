@@ -12,7 +12,7 @@ import { abbreviateNumber } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
 import type { ISankeyChartProps } from '../types'
-import { formatTooltipValue } from '../useDefaults'
+import { formatTooltipValue } from '../formatters'
 
 echarts.use([CanvasRenderer, ESankeyChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
 
