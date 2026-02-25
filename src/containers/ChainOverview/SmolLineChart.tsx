@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formattedNum } from '~/utils'
@@ -60,6 +60,15 @@ export function SmolLineChart({
 
 	const onMouseLeave = useCallback(() => setHoveredIndex(null), [])
 
+	useLayoutEffect(() => {
+		const el = tooltipRef.current
+		if (!el || hoveredIndex == null) return
+		const flipX = mousePos.x + 12 + el.offsetWidth > window.innerWidth
+		const flipY = mousePos.y - 12 + el.offsetHeight > window.innerHeight
+		el.style.left = `${flipX ? mousePos.x - el.offsetWidth - 12 : mousePos.x + 12}px`
+		el.style.top = `${flipY ? mousePos.y - el.offsetHeight + 12 : mousePos.y - 12}px`
+	}, [mousePos, hoveredIndex])
+
 	const { pathD, stroke } = useMemo(() => {
 		if (series.length === 0) return { pathD: '', stroke: '' }
 
@@ -85,48 +94,43 @@ export function SmolLineChart({
 	if (series.length === 0) return null
 
 	return (
-		<div
-			ref={containerRef}
-			className={'relative ' + (className ?? 'my-auto h-[112px]')}
-			onMouseMove={onMouseMove}
-			onMouseLeave={onMouseLeave}
-		>
-			<svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-				<path d={pathD} fill="none" stroke={stroke} strokeWidth="2" vectorEffect="non-scaling-stroke" />
-			</svg>
-			{hoveredIndex != null && (
-				<div
-					className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
-					style={{ left: `${series.length === 1 ? 50 : (hoveredIndex / (series.length - 1)) * 100}%` }}
-				/>
-			)}
-			{hoveredIndex != null && (
-				<div
-					ref={tooltipRef}
-					className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
-					style={{
-						top: mousePos.y - 12,
-						left:
-							tooltipRef.current && mousePos.x + 12 + tooltipRef.current.offsetWidth > window.innerWidth
-								? mousePos.x - tooltipRef.current.offsetWidth - 12
-								: mousePos.x + 12
-					}}
-				>
-					<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily')}</div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-						<span
-							style={{
-								display: 'inline-block',
-								width: '10px',
-								height: '10px',
-								borderRadius: '50%',
-								backgroundColor: stroke
-							}}
-						/>
-						${formattedNum(series[hoveredIndex][1])}
+		<div className={className ?? 'my-auto h-[112px]'}>
+			<div
+				ref={containerRef}
+				className="relative h-full"
+				onMouseMove={onMouseMove}
+				onMouseLeave={onMouseLeave}
+			>
+				<svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+					<path d={pathD} fill="none" stroke={stroke} strokeWidth="2" vectorEffect="non-scaling-stroke" />
+				</svg>
+				{hoveredIndex != null && (
+					<div
+						className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
+						style={{ left: `${series.length === 1 ? 50 : (hoveredIndex / (series.length - 1)) * 100}%` }}
+					/>
+				)}
+				{hoveredIndex != null && (
+					<div
+						ref={tooltipRef}
+						className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
+					>
+						<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily')}</div>
+						<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+							<span
+								style={{
+									display: 'inline-block',
+									width: '10px',
+									height: '10px',
+									borderRadius: '50%',
+									backgroundColor: stroke
+								}}
+							/>
+							${formattedNum(series[hoveredIndex][1])}
+						</div>
 					</div>
-				</div>
-			)}
+				)}
+			</div>
 		</div>
 	)
 }

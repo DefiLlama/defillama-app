@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { CHART_COLORS, purple } from '~/constants/colors'
 import { formattedNum } from '~/utils'
@@ -33,6 +33,15 @@ export function SmolBarChart({
 
 	const onMouseLeave = useCallback(() => setHoveredIndex(null), [])
 
+	useLayoutEffect(() => {
+		const el = tooltipRef.current
+		if (!el || hoveredIndex == null) return
+		const flipX = mousePos.x + 12 + el.offsetWidth > window.innerWidth
+		const flipY = mousePos.y - 12 + el.offsetHeight > window.innerHeight
+		el.style.left = `${flipX ? mousePos.x - el.offsetWidth - 12 : mousePos.x + 12}px`
+		el.style.top = `${flipY ? mousePos.y - el.offsetHeight + 12 : mousePos.y - 12}px`
+	}, [mousePos, hoveredIndex])
+
 	const { bars, hasNegative, posRatio } = useMemo(() => {
 		if (series.length === 0) return { bars: [], hasNegative: false, posRatio: 1 }
 
@@ -58,29 +67,17 @@ export function SmolBarChart({
 	const negHeight = `${(1 - posRatio) * 100}%`
 
 	return (
-		<div
-			ref={containerRef}
-			className={'relative ' + (className ?? 'my-auto h-[132px]')}
-			onMouseMove={onMouseMove}
-			onMouseLeave={onMouseLeave}
-		>
-			<div className="flex items-end" style={{ height: posHeight }}>
-				{bars.map((bar, i) => (
-					<div key={i} className="flex h-full flex-1 items-end justify-center">
-						{!bar.isNegative && (
-							<div
-								className="min-h-px w-[70%] min-w-[2px]"
-								style={{ height: `${bar.heightPct}%`, backgroundColor: bar.fill }}
-							/>
-						)}
-					</div>
-				))}
-			</div>
-			{hasNegative && (
-				<div className="flex items-start" style={{ height: negHeight }}>
+		<div className={className ?? 'my-auto h-[132px]'}>
+			<div
+				ref={containerRef}
+				className="relative h-full"
+				onMouseMove={onMouseMove}
+				onMouseLeave={onMouseLeave}
+			>
+				<div className="flex items-end" style={{ height: posHeight }}>
 					{bars.map((bar, i) => (
-						<div key={i} className="flex h-full flex-1 items-start justify-center">
-							{bar.isNegative && (
+						<div key={i} className="flex h-full flex-1 items-end justify-center">
+							{!bar.isNegative && (
 								<div
 									className="min-h-px w-[70%] min-w-[2px]"
 									style={{ height: `${bar.heightPct}%`, backgroundColor: bar.fill }}
@@ -89,40 +86,47 @@ export function SmolBarChart({
 						</div>
 					))}
 				</div>
-			)}
-			{hoveredIndex != null && (
-				<div
-					className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
-					style={{ left: `${((hoveredIndex + 0.5) / series.length) * 100}%` }}
-				/>
-			)}
-			{hoveredIndex != null && (
-				<div
-					ref={tooltipRef}
-					className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
-					style={{
-						top: mousePos.y - 12,
-						left:
-							tooltipRef.current && mousePos.x + 12 + tooltipRef.current.offsetWidth > window.innerWidth
-								? mousePos.x - tooltipRef.current.offsetWidth - 12
-								: mousePos.x + 12
-					}}
-				>
-					<div>{formatTooltipChartDate(series[hoveredIndex][0], groupBy ?? 'daily')}</div>
-					<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-						<span
-							style={{
-								display: 'inline-block',
-								width: '10px',
-								height: '10px',
-								borderRadius: '50%',
-								backgroundColor: series[hoveredIndex][1] >= 0 ? CHART_COLORS[0] : purple
-							}}
-						/>
-						{formattedNum(series[hoveredIndex][1], true)}
+				{hasNegative && (
+					<div className="flex items-start" style={{ height: negHeight }}>
+						{bars.map((bar, i) => (
+							<div key={i} className="flex h-full flex-1 items-start justify-center">
+								{bar.isNegative && (
+									<div
+										className="min-h-px w-[70%] min-w-[2px]"
+										style={{ height: `${bar.heightPct}%`, backgroundColor: bar.fill }}
+									/>
+								)}
+							</div>
+						))}
 					</div>
-				</div>
-			)}
+				)}
+				{hoveredIndex != null && (
+					<div
+						className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
+						style={{ left: `${((hoveredIndex + 0.5) / series.length) * 100}%` }}
+					/>
+				)}
+				{hoveredIndex != null && (
+					<div
+						ref={tooltipRef}
+						className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
+					>
+						<div>{formatTooltipChartDate(series[hoveredIndex][0], groupBy ?? 'daily')}</div>
+						<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+							<span
+								style={{
+									display: 'inline-block',
+									width: '10px',
+									height: '10px',
+									borderRadius: '50%',
+									backgroundColor: series[hoveredIndex][1] >= 0 ? CHART_COLORS[0] : purple
+								}}
+							/>
+							{formattedNum(series[hoveredIndex][1], true)}
+						</div>
+					</div>
+				)}
+			</div>
 		</div>
 	)
 }
