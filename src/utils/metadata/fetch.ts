@@ -17,7 +17,7 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 		return JSON.parse(body) as T
 	} catch (error) {
 		throw new Error(
-			`Failed to parse JSON for URL: ${url} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
+			`Failed to parse JSON for URL: ${url.replace(process.env.API_KEY ?? '', '***')} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
 				body
 			)}". Original error: ${error instanceof Error ? error.message : String(error)}`
 		)
