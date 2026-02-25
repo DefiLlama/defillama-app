@@ -4,6 +4,7 @@ import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -15,7 +16,6 @@ import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useNowSeconds } from '~/hooks/useNowSeconds'
 import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
 import { Pagination } from './Pagination'
@@ -96,7 +96,6 @@ const MultiSeriesChart2 = lazy(
 ) as React.FC<IMultiSeriesChart2Props>
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-
 
 type InitialTokenMarketData = {
 	price?: number | null
@@ -304,7 +303,6 @@ const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
 const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
-
 
 const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K): Record<K, T[]> => {
 	const grouped = {} as Record<K, T[]>
@@ -914,16 +912,13 @@ const ChartContainer = ({
 		[data.name, unlockedPercent]
 	)
 
-	const hasGroupAllocationData =
-		data.categoriesBreakdown != null && Object.keys(data.categoriesBreakdown).length > 0
+	const hasGroupAllocationData = data.categoriesBreakdown != null && Object.keys(data.categoriesBreakdown).length > 0
 
 	if (!data) return null
 
 	return (
 		<>
-			{isEmissionsPage ? (
-				<TokenHeader name={data.name} tokenPrice={tokenPrice} percentChange={percentChange} />
-			) : null}
+			{isEmissionsPage ? <TokenHeader name={data.name} tokenPrice={tokenPrice} percentChange={percentChange} /> : null}
 
 			<TokenStats
 				tokenCircSupply={tokenCircSupply}

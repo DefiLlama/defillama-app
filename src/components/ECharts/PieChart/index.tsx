@@ -11,8 +11,8 @@ import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
-import type { IPieChartProps } from '../types'
 import { formatTooltipValue } from '../formatters'
+import type { IPieChartProps } from '../types'
 
 echarts.use([
 	CanvasRenderer,

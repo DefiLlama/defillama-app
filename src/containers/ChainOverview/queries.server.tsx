@@ -34,15 +34,7 @@ import type { RawTreasuriesResponse } from '~/containers/Treasuries/api.types'
 import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import type { ProtocolEmissionWithHistory } from '~/containers/Unlocks/types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import {
-	formatNum,
-	getNDistinctColors,
-	getPercentChange,
-	lastDayOfWeek,
-	slug,
-	tokenIconUrl,
-	getAnnualizedRatio
-} from '~/utils'
+import { formatNum, getPercentChange, lastDayOfWeek, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import type { ChainChartLabels } from './constants'
@@ -131,8 +123,6 @@ export async function getChainOverviewData({
 			perps,
 			cexVolume,
 			etfData,
-			globalMcapChartData,
-			rwaTvlChartData,
 			upcomingUnlocks,
 			chainIncentives,
 			datInflows,
@@ -163,8 +153,6 @@ export async function getChainOverviewData({
 			IAdapterProtocolMetrics | null,
 			IAdapterChainMetrics | null,
 			number | null,
-			Array<[number, number]> | null,
-			Array<[number, number]> | null,
 			Array<[number, number]> | null,
 			ProtocolEmissionWithHistory[] | null,
 			ChainIncentivesSummary | null,
@@ -307,27 +295,6 @@ export async function getChainOverviewData({
 									}, 0)
 								])
 							return recentFlows
-						})
-						.catch(() => null)
-				: Promise.resolve(null),
-			chain === 'All'
-				? fetchJson(`https://pro-api.coingecko.com/api/v3/global/market_cap_chart?days=14`, {
-						headers: {
-							'x-cg-pro-api-key': COINGECKO_KEY
-						}
-					})
-						.then((data) => data?.market_cap_chart?.market_cap?.slice(0, 14) ?? null)
-						.catch(() => null)
-				: Promise.resolve(null),
-			chain === 'All'
-				? fetchJson(`https://api.llama.fi/categories`)
-						.then((data) => {
-							const chart = Object.entries(data.chart)
-
-							return chart
-								.slice(chart.length - 15, chart.length - 2)
-								.map(([date, cat]) => [+date * 1000, cat['RWA'] ?? null])
-								.filter((x) => x[1] != null)
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
@@ -482,7 +449,21 @@ export async function getChainOverviewData({
 						return acc
 					}, 0) ?? 0)
 
-		const uniqUnlockTokenColors = getNDistinctColors(uniqueUnlockTokens.size)
+		const precomputedUnlocksChart = finalUnlocksChart.map(([date, tokensInDate]) => {
+			const entries = Object.entries(tokensInDate).sort((a, b) => b[1] - a[1])
+			const total = entries.reduce((sum, [, v]) => sum + v, 0)
+			return {
+				date,
+				total,
+				breakdown: entries
+					.filter(([, v]) => v > 0)
+					.map(([token, value]) => ({
+						token,
+						value,
+						pct: total > 0 ? ((value / total) * 100).toFixed(2) : '0'
+					}))
+			}
+		})
 
 		const charts: ChainChartLabels[] = []
 
@@ -601,25 +582,11 @@ export async function getChainOverviewData({
 					? { total24h: nftVolumesData[currentChainMetadata.name.toLowerCase()] }
 					: null,
 			etfs: etfData,
-			globalmcap:
-				globalMcapChartData?.length > 0
-					? {
-							chart: globalMcapChartData,
-							change7d: getPercentChange(
-								globalMcapChartData[globalMcapChartData.length - 1][1],
-								globalMcapChartData[globalMcapChartData.length - 7][1]
-							)?.toFixed(2)
-						}
-					: null,
-			rwaTvlChartData,
 			allChains: [{ label: 'All', to: '/' }].concat(chains.map((c) => ({ label: c, to: `/chain/${slug(c)}` }))),
 			unlocks: upcomingUnlocks
 				? {
-						chart: finalUnlocksChart,
-						total14d: total14dUnlocks,
-						tokens: Array.from(uniqueUnlockTokens).map(
-							(x, index) => [x, uniqUnlockTokenColors[index]] as [string, string]
-						)
+						chart: precomputedUnlocksChart,
+						total14d: total14dUnlocks
 					}
 				: null,
 			chainIncentives: chainIncentives ?? {

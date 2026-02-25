@@ -137,7 +137,12 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 				)}
 
 				<div className="mt-6 flex items-center justify-center gap-3">
-					<button type="button" onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
+					<button
+						type="button"
+						onClick={handleSkip}
+						disabled={isSubmitting}
+						className="px-4 py-2 text-sm hover:text-(--link-text)"
+					>
 						Skip
 					</button>
 
@@ -235,7 +240,12 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 				<>
 					<p className="-mt-5 text-center text-xs text-(--text-form)">Click the stars above to rate your experience</p>
 
-					<button type="button" onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
+					<button
+						type="button"
+						onClick={handleSkip}
+						disabled={isSubmitting}
+						className="px-4 py-2 text-sm hover:text-(--link-text)"
+					>
 						Skip
 					</button>
 				</>

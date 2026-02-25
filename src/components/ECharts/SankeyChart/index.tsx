@@ -11,8 +11,8 @@ import { useMedia } from '~/hooks/useMedia'
 import { abbreviateNumber } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
-import type { ISankeyChartProps } from '../types'
 import { formatTooltipValue } from '../formatters'
+import type { ISankeyChartProps } from '../types'
 
 echarts.use([CanvasRenderer, ESankeyChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
 
