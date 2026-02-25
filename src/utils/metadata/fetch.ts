@@ -6,10 +6,10 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 	const res = await fetch(url)
 	const body = await res.text()
 	const contentType = res.headers.get('content-type') ?? 'unknown'
-
+	const urlToLog = url.split('/api')[1] ?? url.split('/rwa')[1] ?? url
 	if (!res.ok) {
 		throw new Error(
-			`Metadata request failed for URL: ${url} (status ${res.status}). Body preview: "${previewResponseBody(body)}"`
+			`Metadata request failed for URL: ${urlToLog} (status ${res.status}). Body preview: "${previewResponseBody(body)}"`
 		)
 	}
 
@@ -17,7 +17,7 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 		return JSON.parse(body) as T
 	} catch (error) {
 		throw new Error(
-			`Failed to parse JSON for URL: ${url.replace(process.env.API_KEY ?? '', '***')} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
+			`Failed to parse JSON for URL: ${urlToLog} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
 				body
 			)}". Original error: ${error instanceof Error ? error.message : String(error)}`
 		)

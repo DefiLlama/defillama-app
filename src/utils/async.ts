@@ -86,6 +86,19 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 		if (raw.startsWith(base)) return raw.slice(base.length) || '/'
 	}
 
+	try {
+		const parsed = new URL(raw)
+		// Fallback when env candidates are unavailable in client runtime.
+		if (parsed.hostname === 'api.llama.fi' || parsed.hostname === 'pro-api.llama.fi') {
+			const pathWithoutBase = parsed.pathname
+				.replace(/^\/[^/]+\/api(\/|$)/, '/')
+				.replace(/^\/api(\/|$)/, '/')
+			return `${pathWithoutBase}${parsed.search}${parsed.hash}` || '/'
+		}
+	} catch {
+		// raw can be a relative URL; keep as-is.
+	}
+
 	return raw
 }
 
@@ -310,6 +323,7 @@ export async function fetchJson<T = any>(
 ): Promise<T> {
 	const start = Date.now()
 	const maxAttempts = extraRetry ? 3 : 2
+	const sanitizedUrl = sanitizeUrlForLogs(url)
 	let lastErr: Error | null = null
 	let lastErrWasHtml = false
 
@@ -323,7 +337,7 @@ export async function fetchJson<T = any>(
 					const text = await res.text().catch(() => res.statusText)
 					const sanitized = sanitizeResponseTextForError(text || res.statusText)
 					lastErrWasHtml = looksLikeHtmlDocument(text || '')
-					throw new Error(`[${res.status}] ${sanitized || res.statusText}`)
+					throw new Error(`${sanitizedUrl}: [${res.status}] ${sanitized || res.statusText}`)
 				}
 				// Retryable server errors
 				if (isRetryableStatus(res.status) && attempt < maxAttempts - 1) {
@@ -333,13 +347,13 @@ export async function fetchJson<T = any>(
 				const text = await res.text().catch(() => res.statusText)
 				const sanitized = sanitizeResponseTextForError(text || res.statusText)
 				lastErrWasHtml = looksLikeHtmlDocument(text || '')
-				throw new Error(`[${res.status}] ${sanitized || res.statusText}`)
+				throw new Error(`${sanitizedUrl}: [${res.status}] ${sanitized || res.statusText}`)
 			}
 
 			const data = await res.json()
 			const elapsed = Date.now() - start
 			if (elapsed > 5000) {
-				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${sanitizeUrlForLogs(url)} >`)
+				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${sanitizedUrl} >`)
 			}
 
 			return data
@@ -361,11 +375,17 @@ export async function fetchJson<T = any>(
 	// Log on final failure only
 	const elapsed = Date.now() - start
 	const finalLog = lastErrWasHtml
-		? `[fetchJson] [error] [${elapsed}ms] [returned html page] < ${sanitizeUrlForLogs(url)} >`
-		: `[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${sanitizeUrlForLogs(url)} >`
+		? `[fetchJson] [error] [${elapsed}ms] [returned html page] < ${sanitizedUrl} >`
+		: `[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${sanitizedUrl} >`
 	// Avoid spamming console when webhook logging is configured.
 	postRuntimeLogs(finalLog, { level: 'error', forceConsole: !webhookEnabled() })
-	throw lastErr
+	if (!lastErr) {
+		throw new Error(`${sanitizedUrl}: Unknown fetch error`)
+	}
+	if (lastErr.message.startsWith(`${sanitizedUrl}:`)) {
+		throw lastErr
+	}
+	throw new Error(`${sanitizedUrl}: ${lastErr.message}`)
 }
 
 // ─────────────────────────────────────────────────────────────
