@@ -95,7 +95,7 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		return (
 			<>
 				<WatchListTabs />
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			</>

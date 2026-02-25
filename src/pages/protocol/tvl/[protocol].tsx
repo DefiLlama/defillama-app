@@ -407,7 +407,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				<h1 className="text-xl font-bold">{props.name} TVL Breakdown</h1>
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : props.chainsUnique.length <= 1 && !props.metrics.inflows ? (
@@ -491,7 +491,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			)}
 			{errors.length > 0 ? (
 				<div className="col-span-2 flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<p className="text-(--text-label)">
+					<p className="text-(--error)">
 						Failed to fetch{' '}
 						{Array.from(new Set(errors.map((e) => CHART_CATEGORY_LABELS[e.category])))
 							.filter(Boolean)

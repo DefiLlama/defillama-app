@@ -67,12 +67,7 @@ export function SmolBarChart({
 
 	return (
 		<div className={className ?? 'my-auto h-[132px]'}>
-			<div
-				ref={containerRef}
-				className="relative h-full"
-				onMouseMove={onMouseMove}
-				onMouseLeave={onMouseLeave}
-			>
+			<div ref={containerRef} className="relative h-full" onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
 				<div className="flex items-end" style={{ height: posHeight }}>
 					{bars.map((bar, i) => (
 						<div key={i} className="flex h-full flex-1 items-end justify-center">

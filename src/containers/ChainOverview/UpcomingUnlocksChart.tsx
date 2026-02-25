@@ -45,12 +45,7 @@ export function UpcomingUnlocksChart({ data, className }: { data: Array<UnlockEn
 
 	return (
 		<div className={className ?? 'my-auto h-[156px]'}>
-			<div
-				ref={containerRef}
-				className="relative h-full"
-				onMouseMove={onMouseMove}
-				onMouseLeave={onMouseLeave}
-			>
+			<div ref={containerRef} className="relative h-full" onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
 				<div className="flex h-full items-end">
 					{data.map((d, i) => (
 						<div key={i} className="flex h-full flex-1 items-end justify-center">

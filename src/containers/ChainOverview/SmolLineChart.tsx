@@ -94,13 +94,14 @@ export function SmolLineChart({
 
 	return (
 		<div className={className ?? 'my-auto h-[112px]'}>
-			<div
-				ref={containerRef}
-				className="relative h-full"
-				onMouseMove={onMouseMove}
-				onMouseLeave={onMouseLeave}
-			>
-				<svg width="100%" height="100%" viewBox="0 0 300 100" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+			<div ref={containerRef} className="relative h-full" onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}>
+				<svg
+					width="100%"
+					height="100%"
+					viewBox="0 0 300 100"
+					preserveAspectRatio="none"
+					style={{ overflow: 'visible' }}
+				>
 					<path d={pathD} fill="none" stroke={stroke} strokeWidth="2" vectorEffect="non-scaling-stroke" />
 				</svg>
 				{hoveredIndex != null && (

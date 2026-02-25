@@ -56,10 +56,7 @@ export const SmolStats = (props: IChainOverviewData) => {
 									)} (24h)`}</p>
 								) : null}
 							</div>
-							<SmolBarChart
-								series={props.dexs.chart}
-								className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'}
-							/>
+							<SmolBarChart series={props.dexs.chart} className={'my-auto h-[53px] md:h-[132px] xl:h-[53px]'} />
 						</div>
 					) : null}
 					{props.etfs?.length > 0 ? (
