@@ -402,7 +402,7 @@ function createTooltipFormatter({
 		const shouldCap = Number.isFinite(cap) && cap > 0
 		const cappedVals = shouldCap && vals.length > cap ? vals.slice(0, cap) : vals
 		const remaining = shouldCap && vals.length > cap ? vals.length - cap : 0
-		const total = vals.reduce((sum, curr) => sum + curr[2], 0)
+		const total = vals.reduce((sum, curr) => (curr[4] ? sum : sum + curr[2]), 0)
 		const totalLine =
 			showTotalInTooltip && vals.length > 0
 				? `<li style="list-style:none;font-weight:600;">Total: ${formatAxisLabel(total, valueSymbol)}</li>`

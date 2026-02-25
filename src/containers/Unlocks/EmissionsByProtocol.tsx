@@ -222,8 +222,6 @@ function groupChartDataByTime(
 
 	const grouped: Record<number, Record<string, number | null>> = {}
 
-	const SNAPSHOT_KEYS = new Set(['Price', 'Market Cap'])
-
 	for (const entry of sorted) {
 		const ts = entry.timestamp
 		let groupKey: number
@@ -253,12 +251,7 @@ function groupChartDataByTime(
 			if (key === 'timestamp') continue
 			const value = entry[key]
 			if (typeof value !== 'number' || !Number.isFinite(value)) continue
-
-			if (SNAPSHOT_KEYS.has(key)) {
-				grouped[groupKey][key] = value
-			} else {
-				grouped[groupKey][key] = (grouped[groupKey][key] ?? 0) + value
-			}
+			grouped[groupKey][key] = value
 		}
 	}
 
@@ -1014,6 +1007,7 @@ const ChartContainer = ({
 									solidChartAreaStyle
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									groupBy={CHART_GROUP_BY[timeGrouping]}
+									showTotalInTooltip
 									onReady={handleChartReady}
 									hideDefaultLegend={false}
 								/>
