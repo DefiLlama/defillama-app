@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
@@ -6,6 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -485,7 +485,7 @@ function SourcesNotesSection({
 					<ul className="list-disc space-y-1 pl-4 text-sm">
 						{sources.map((source) => (
 							<li key={source}>
-								<Link
+								<BasicLink
 									href={source}
 									target="_blank"
 									rel="noopener noreferrer"
@@ -493,7 +493,7 @@ function SourcesNotesSection({
 								>
 									<span>{safeHostname(source)}</span>
 									<Icon name="external-link" height={14} width={14} />
-								</Link>
+								</BasicLink>
 							</li>
 						))}
 					</ul>

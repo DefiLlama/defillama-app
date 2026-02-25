@@ -1,5 +1,5 @@
-import Link from 'next/link'
 import type { InferGetStaticPropsType } from 'next/types'
+import { BasicLink } from '~/components/Link'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import Layout from '~/layout'
@@ -10,9 +10,9 @@ const pageName = ['Overview']
 const Announcement = () => (
 	<>
 		NEW!{' '}
-		<Link href="/rwa" className="underline">
+		<BasicLink href="/rwa" className="underline">
 			RWA dashboard
-		</Link>
+		</BasicLink>
 	</>
 )
 
