@@ -55,7 +55,7 @@ function formatAxisLabel(value: number, symbol: string): string {
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
-const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly'])
+const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
 
 function coerceGroupBy(groupBy: IMultiSeriesChart2Props['groupBy']): GroupBy {
 	return groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily'
@@ -169,10 +169,13 @@ function buildSeries({
 		}
 
 		if (expandTo100Percent) {
-			base.stack = 'A'
-			if (chart.type === 'line') {
-				base.lineStyle = { width: 0, color: resolvedColor }
-				base.areaStyle = {}
+			const isOverlay = chart.yAxisIndex != null && chart.yAxisIndex > 0
+			if (!isOverlay) {
+				base.stack = 'A'
+				if (chart.type === 'line') {
+					base.lineStyle = { width: 0, color: resolvedColor }
+					base.areaStyle = {}
+				}
 			}
 		} else {
 			if (chart.stack != null) base.stack = chart.stack

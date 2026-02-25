@@ -4,7 +4,8 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { ChartContainer } from '../ChartContainer'
-import { formatTooltipValue, useDefaults } from '../useDefaults'
+import { useDefaults } from '../useDefaults'
+import { formatTooltipValue } from '../formatters'
 import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
@@ -24,7 +25,7 @@ interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	valueSymbol?: string
 	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
@@ -60,8 +61,8 @@ export default function MultiSeriesChart({
 		valueSymbol,
 		xAxisType,
 		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly')
 				: 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
