@@ -93,15 +93,15 @@
 	},
 	"onChainMcap": {
 		"label": "Onchain Marketcap",
-		"description": "Total fully diluted USD value of the asset that exists on chain across tracked chains"
+		"description": "Total USD value of token supply present onchain across tracked chains, including issuer, treasury, custodial, idle, and DeFi-held balances."
 	},
 	"activeMcap": {
 		"label": "Active Marketcap",
-		"description": "Portion of onchain, circulating TVL taking real market risk in user or protocol hands"
+		"description": "Onchain value in user or protocol-controlled positions that can meaningfully gain, or lose, from market moves, excluding inert issuer, treasury, custodial, or team-controlled wallets, and excluding internal looping, or bookkeeping positions that do not add net market exposure."
 	},
 	"defiActiveTvl": {
 		"label": "DeFi Active TVL",
-		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
+		"description": "Active TVL deployed into external, third-party DeFi apps tracked by DeFiLlama (lending, DEX LP, derivatives, vaults, etc.), rather than held in wallets, or in native protocol contracts."
 	},
 	"totalOnChainMcap": {
 		"label": "Total RWA Onchain Mcap",
