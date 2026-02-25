@@ -222,6 +222,8 @@ function groupChartDataByTime(
 
 	const grouped: Record<number, Record<string, number | null>> = {}
 
+	const SNAPSHOT_KEYS = new Set(['Price', 'Market Cap'])
+
 	for (const entry of sorted) {
 		const ts = entry.timestamp
 		let groupKey: number
@@ -251,7 +253,12 @@ function groupChartDataByTime(
 			if (key === 'timestamp') continue
 			const value = entry[key]
 			if (typeof value !== 'number' || !Number.isFinite(value)) continue
-			grouped[groupKey][key] = value
+
+			if (SNAPSHOT_KEYS.has(key)) {
+				grouped[groupKey][key] = value
+			} else {
+				grouped[groupKey][key] = (grouped[groupKey][key] ?? 0) + value
+			}
 		}
 	}
 
@@ -380,10 +387,10 @@ function TokenStats({
 	tokenVolume: number | undefined
 	symbol: string | null | undefined
 }) {
-	if (!tokenCircSupply && !tokenMaxSupply && !tokenMcap && !tokenVolume) return null
+	if (tokenCircSupply == null && tokenMaxSupply == null && tokenMcap == null && tokenVolume == null) return null
 	return (
 		<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
-			{tokenCircSupply ? (
+			{tokenCircSupply != null ? (
 				<div className="flex items-baseline gap-1.5">
 					<span className="text-sm text-(--text-label)">Circ. Supply</span>
 					<span className="text-sm font-medium">
@@ -392,7 +399,7 @@ function TokenStats({
 				</div>
 			) : null}
 
-			{tokenMaxSupply ? (
+			{tokenMaxSupply != null ? (
 				<div className="flex items-baseline gap-1.5">
 					<span className="text-sm text-(--text-label)">Max Supply</span>
 					<span className="text-sm font-medium">
@@ -401,14 +408,14 @@ function TokenStats({
 				</div>
 			) : null}
 
-			{tokenMcap ? (
+			{tokenMcap != null ? (
 				<div className="flex items-baseline gap-1.5">
 					<span className="text-sm text-(--text-label)">MCap</span>
 					<span className="text-sm font-medium">${formattedNum(tokenMcap)}</span>
 				</div>
 			) : null}
 
-			{tokenVolume ? (
+			{tokenVolume != null ? (
 				<div className="flex items-baseline gap-1.5">
 					<span className="text-sm text-(--text-label)">Vol 24h</span>
 					<span className="text-sm font-medium">${formattedNum(tokenVolume)}</span>
@@ -478,7 +485,7 @@ function SourcesNotesSection({
 	notes: Array<string> | undefined
 	futures: { openInterest?: number; fundingRate?: number } | undefined
 }) {
-	if (!sources?.length && !notes?.length && !futures?.openInterest && !futures?.fundingRate) return null
+	if (!sources?.length && !notes?.length && futures?.openInterest == null && futures?.fundingRate == null) return null
 	return (
 		<div className="flex flex-wrap gap-2 *:flex-1">
 			{sources && sources.length > 0 ? (
@@ -511,12 +518,12 @@ function SourcesNotesSection({
 					</ul>
 				</div>
 			) : null}
-			{futures?.openInterest || futures?.fundingRate ? (
+			{futures?.openInterest != null || futures?.fundingRate != null ? (
 				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<h3 className="text-base font-semibold">Futures</h3>
 					<div className="flex flex-col gap-1 text-sm">
-						{futures.openInterest ? <p>{`Open Interest: $${formattedNum(futures.openInterest)}`}</p> : null}
-						{futures.fundingRate ? <p>{`Funding Rate: ${futures.fundingRate}%`}</p> : null}
+						{futures.openInterest != null ? <p>{`Open Interest: $${formattedNum(futures.openInterest)}`}</p> : null}
+						{futures.fundingRate != null ? <p>{`Funding Rate: ${futures.fundingRate}%`}</p> : null}
 					</div>
 				</div>
 			) : null}
