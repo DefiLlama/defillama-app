@@ -461,6 +461,14 @@ function TokenAllocationBars({
 	)
 }
 
+function safeHostname(url: string): string {
+	try {
+		return new URL(url).hostname
+	} catch {
+		return url.length > 40 ? url.slice(0, 40) + '…' : url
+	}
+}
+
 function SourcesNotesSection({
 	sources,
 	notes,
@@ -485,7 +493,7 @@ function SourcesNotesSection({
 									rel="noopener noreferrer"
 									className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
 								>
-									<span>{new URL(source).hostname}</span>
+									<span>{safeHostname(source)}</span>
 									<Icon name="external-link" height={14} width={14} />
 								</Link>
 							</li>
@@ -822,15 +830,15 @@ const ChartContainer = ({
 			for (const s of stacks) {
 				if (!overlaySet.has(s)) sum += Number(entry[s]) || 0
 			}
-		for (const s of stacks) {
-			if (overlaySet.has(s)) {
-				const val = entry[s]
-				row[s] = typeof val === 'number' && Number.isFinite(val) ? val : null
-			} else {
-				const raw = Number(entry[s]) || 0
-				row[s] = sum > 0 ? (raw / sum) * 100 : 0
+			for (const s of stacks) {
+				if (overlaySet.has(s)) {
+					const val = entry[s]
+					row[s] = typeof val === 'number' && Number.isFinite(val) ? val : null
+				} else {
+					const raw = Number(entry[s]) || 0
+					row[s] = sum > 0 ? (raw / sum) * 100 : 0
+				}
 			}
-		}
 			source[i] = row
 		}
 		return { source, dimensions }

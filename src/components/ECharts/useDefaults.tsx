@@ -70,7 +70,7 @@ interface IUseDefaultsProps {
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
 	hideOthersInTooltip?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	alwaysShowTooltip?: boolean
 	showAggregateInTooltip?: boolean
 	xAxisType?: 'time' | 'category'

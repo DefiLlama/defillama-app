@@ -169,7 +169,7 @@ function buildSeries({
 		}
 
 		if (expandTo100Percent) {
-			const isOverlay = chart.yAxisIndex != null
+			const isOverlay = chart.yAxisIndex != null && chart.yAxisIndex > 0
 			if (!isOverlay) {
 				base.stack = 'A'
 				if (chart.type === 'line') {

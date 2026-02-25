@@ -25,7 +25,7 @@ interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	valueSymbol?: string
 	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
@@ -61,8 +61,8 @@ export default function MultiSeriesChart({
 		valueSymbol,
 		xAxisType,
 		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly')
 				: 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
