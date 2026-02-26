@@ -6,12 +6,13 @@ import { chainIconUrl, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import {
+	fetchAdapterChainChartDataByProtocolBreakdown,
 	fetchAdapterChainChartData,
 	fetchAdapterChainMetrics,
 	fetchAdapterProtocolChartData,
 	fetchAdapterProtocolMetrics
 } from './api'
-import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
+import type { IAdapterBreakdownChartData, IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
 import {
 	ADAPTER_DATA_TYPE_KEYS,
 	ADAPTER_DATA_TYPES,
@@ -258,12 +259,14 @@ function buildAdapterByChainChartDataset({
 	adapterType,
 	metricName,
 	primaryChartData,
+	breakdownChartData,
 	openInterestChartData,
 	activeLiquidityChartData
 }: {
 	adapterType: `${ADAPTER_TYPES}`
 	metricName: string
 	primaryChartData: Array<[number, number]>
+	breakdownChartData: IAdapterBreakdownChartData | null
 	openInterestChartData: Array<[number, number]>
 	activeLiquidityChartData: Array<[number, number]>
 }) {
@@ -278,10 +281,8 @@ function buildAdapterByChainChartDataset({
 		return map
 	}
 
-	const primaryDataMap = toChartPointMap(primaryChartData)
 	const secondaryDimensionLabel =
 		adapterType === 'derivatives' ? 'Open Interest' : adapterType === 'normalized-volume' ? 'Active Liquidity' : null
-	const primaryDimensionLabel = metricName
 
 	const secondarySourceData =
 		adapterType === 'derivatives'
@@ -291,18 +292,78 @@ function buildAdapterByChainChartDataset({
 				: []
 
 	const secondaryDataMap = toChartPointMap(secondarySourceData)
+	const hasSecondarySeries = secondaryDataMap.size > 0
+	const secondaryDimensions = hasSecondarySeries && secondaryDimensionLabel ? [secondaryDimensionLabel] : []
+
+	if (breakdownChartData && breakdownChartData.length > 0) {
+		const protocolValuesByTimestamp = new Map<number, Record<string, number>>()
+		const totalByTimestamp = new Map<number, number>()
+		const protocolTotals = new Map<string, number>()
+
+		for (const [timestamp, protocolValues] of breakdownChartData) {
+			if (!Number.isFinite(timestamp)) continue
+
+			const protocolValuesAtTimestamp: Record<string, number> = {}
+			let totalAtTimestamp = 0
+
+			for (const [protocolName, value] of Object.entries(protocolValues ?? {})) {
+				if (!Number.isFinite(value)) continue
+				protocolValuesAtTimestamp[protocolName] = value
+				totalAtTimestamp += value
+				protocolTotals.set(protocolName, (protocolTotals.get(protocolName) ?? 0) + value)
+			}
+
+			const timestampInMs = timestamp * 1e3
+			protocolValuesByTimestamp.set(timestampInMs, protocolValuesAtTimestamp)
+			totalByTimestamp.set(timestampInMs, totalAtTimestamp)
+		}
+
+		const allProtocols = Array.from(protocolTotals.entries())
+			.toSorted((a, b) => b[1] - a[1])
+			.map(([protocolName]) => protocolName)
+
+		const allTimestamps = new Set<number>([...totalByTimestamp.keys(), ...secondaryDataMap.keys()])
+		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
+
+		const source = sortedTimestamps.map((timestamp) => {
+			const row: Record<string, number | null> = {
+				timestamp,
+				Total: totalByTimestamp.get(timestamp) ?? null
+			}
+			const valuesAtTimestamp = protocolValuesByTimestamp.get(timestamp)
+
+			for (const protocolName of allProtocols) {
+				row[protocolName] = valuesAtTimestamp?.[protocolName] ?? null
+			}
+
+			if (hasSecondarySeries && secondaryDimensionLabel) {
+				row[secondaryDimensionLabel] = secondaryDataMap.get(timestamp) ?? null
+			}
+
+			return row
+		})
+
+		return {
+			chartData: {
+				source,
+				dimensions: ['timestamp', 'Total', ...allProtocols, ...secondaryDimensions]
+			},
+			allProtocols
+		}
+	}
+
+	const primaryDataMap = toChartPointMap(primaryChartData)
+	const primaryDimensionLabel = metricName
 
 	const allTimestamps = new Set<number>([...primaryDataMap.keys(), ...secondaryDataMap.keys()])
 	const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
-	const hasSecondarySeries = secondaryDataMap.size > 0
-
 	const source = sortedTimestamps.map((timestamp) => {
-		if (hasSecondarySeries) {
+		if (hasSecondarySeries && secondaryDimensionLabel) {
 			return {
 				timestamp,
 				[primaryDimensionLabel]: primaryDataMap.get(timestamp) ?? null,
-				[secondaryDimensionLabel as string]: secondaryDataMap.get(timestamp) ?? null
+				[secondaryDimensionLabel]: secondaryDataMap.get(timestamp) ?? null
 			}
 		}
 
@@ -313,10 +374,13 @@ function buildAdapterByChainChartDataset({
 	})
 
 	return {
-		source,
-		dimensions: hasSecondarySeries
-			? ['timestamp', primaryDimensionLabel, secondaryDimensionLabel as string]
-			: ['timestamp', primaryDimensionLabel]
+		chartData: {
+			source,
+			dimensions: hasSecondarySeries
+				? ['timestamp', primaryDimensionLabel, ...secondaryDimensions]
+				: ['timestamp', primaryDimensionLabel]
+		},
+		allProtocols: []
 	}
 }
 
@@ -335,6 +399,7 @@ export const getAdapterByChainPageData = async ({
 	hasOpenInterest?: boolean
 	metricName: string
 }): Promise<IAdapterByChainPageData | null> => {
+	const safeBreakdownDataType = dataType === 'dailyEarnings' ? undefined : dataType
 	const [
 		data,
 		protocolsData,
@@ -342,7 +407,8 @@ export const getAdapterByChainPageData = async ({
 		tokenTaxesData,
 		openInterestData,
 		activeLiquidityData,
-		normalizedVolumeData
+		normalizedVolumeData,
+		breakdownChartData
 	]: [
 		IAdapterChainOverview,
 		{
@@ -353,7 +419,8 @@ export const getAdapterByChainPageData = async ({
 		IAdapterChainMetrics | null,
 		IAdapterChainOverview | null,
 		IAdapterChainOverview | null,
-		IAdapterChainMetrics | null
+		IAdapterChainMetrics | null,
+		IAdapterBreakdownChartData | null
 	] = await Promise.all([
 		getAdapterChainOverview({
 			adapterType,
@@ -396,6 +463,13 @@ export const getAdapterByChainPageData = async ({
 			? fetchAdapterChainMetrics({
 					adapterType: 'normalized-volume',
 					chain
+				}).catch(() => null)
+			: Promise.resolve(null),
+		adapterType !== 'fees'
+			? fetchAdapterChainChartDataByProtocolBreakdown({
+					adapterType,
+					chain,
+					dataType: safeBreakdownDataType
 				}).catch(() => null)
 			: Promise.resolve(null)
 	])
@@ -812,6 +886,18 @@ export const getAdapterByChainPageData = async ({
 		}
 	}
 
+	const { chartData, allProtocols: chartProtocols } =
+		adapterType === 'fees'
+			? { chartData: { source: [], dimensions: ['timestamp', 'value'] } as MultiSeriesChart2Dataset, allProtocols: [] }
+			: buildAdapterByChainChartDataset({
+					adapterType,
+					metricName,
+					primaryChartData: data.totalDataChart ?? [],
+					breakdownChartData,
+					openInterestChartData: openInterestData?.totalDataChart ?? [],
+					activeLiquidityChartData: activeLiquidityData?.totalDataChart ?? []
+				})
+
 	return {
 		chain,
 		chains: [
@@ -819,18 +905,10 @@ export const getAdapterByChainPageData = async ({
 			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/chain/${slug(chain)}` }))
 		],
 		protocols: finalProtocols,
+		allProtocols: chartProtocols,
 		categories: adapterType === 'fees' ? Array.from(categories).sort() : [],
 		adapterType,
-		chartData:
-			adapterType === 'fees'
-				? { source: [], dimensions: ['timestamp', 'value'] }
-				: buildAdapterByChainChartDataset({
-						adapterType,
-						metricName,
-						primaryChartData: data.totalDataChart ?? [],
-						openInterestChartData: openInterestData?.totalDataChart ?? [],
-						activeLiquidityChartData: activeLiquidityData?.totalDataChart ?? []
-					}),
+		chartData,
 		dataType: dataType ?? null,
 		total24h: data.total24h ?? null,
 		total7d: data.total7d ?? null,

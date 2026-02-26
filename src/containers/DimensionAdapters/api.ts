@@ -124,8 +124,7 @@ export async function fetchAdapterProtocolChartDataByBreakdownType({
 /**
  * Fetch adapter chain chart data broken down by protocol.
  */
-// oxlint-disable-next-line no-unused-vars
-async function fetchAdapterChainChartDataByProtocolBreakdown({
+export async function fetchAdapterChainChartDataByProtocolBreakdown({
 	adapterType,
 	chain,
 	dataType
@@ -134,7 +133,10 @@ async function fetchAdapterChainChartDataByProtocolBreakdown({
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }): Promise<IAdapterBreakdownChartData> {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
+	let totalDataChartUrl =
+		chain && chain !== 'All'
+			? `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
+			: `${V2_SERVER_URL}/chart/${adapterType}/protocol-breakdown`
 
 	if (dataType) {
 		totalDataChartUrl += `?dataType=${dataType}`
