@@ -24,7 +24,12 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 				<h1 className="text-xl font-bold">{symbol ? `$${symbol}` : name} Token Rights</h1>
 				{overview.lastUpdated ? (
 					<span className="ml-auto text-xs text-(--text-secondary)">
-						Updated {new Date(overview.lastUpdated).toLocaleDateString()}
+						Updated{' '}
+						{new Date(overview.lastUpdated).toLocaleDateString('en-GB', {
+							day: '2-digit',
+							month: 'short',
+							year: 'numeric'
+						})}
 					</span>
 				) : null}
 			</div>
@@ -174,7 +179,13 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 								{raises.map((r, i) => (
 									<tr key={`${r.date}-${r.round}-${i}`} className="border-b border-(--cards-border) last:border-0">
 										<td className="py-2 pr-4 whitespace-nowrap">
-											{r.date ? new Date(r.date * 1000).toLocaleDateString() : '—'}
+											{r.date
+												? new Date(r.date * 1000).toLocaleDateString('en-GB', {
+														day: '2-digit',
+														month: 'short',
+														year: 'numeric'
+													})
+												: '—'}
 										</td>
 										<td className="py-2 pr-4 whitespace-nowrap">{r.round || '—'}</td>
 										<td className="py-2 pr-4 font-jetbrains whitespace-nowrap tabular-nums">
