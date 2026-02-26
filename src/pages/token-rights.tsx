@@ -1,7 +1,7 @@
 import Link from 'next/link'
+import { TokenLogo } from '~/components/TokenLogo'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
-import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -43,10 +43,7 @@ export const getStaticProps = withPerformanceLogging('token-rights', async () =>
 	}
 })
 
-function resolveDisplayName(
-	entry: IRawTokenRightsEntry,
-	metadata: Record<string, IProtocolMetadata>
-): string | null {
+function resolveDisplayName(entry: IRawTokenRightsEntry, metadata: Record<string, IProtocolMetadata>): string | null {
 	const id = entry['DefiLlama ID']
 	if (!id) return null
 

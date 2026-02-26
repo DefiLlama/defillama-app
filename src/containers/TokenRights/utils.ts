@@ -63,10 +63,16 @@ export function parseAddresses(raw: string | undefined | null): ITokenRightsPars
 	if (!raw) return []
 
 	const results: ITokenRightsParsedAddress[] = []
-	const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean)
+	const lines = raw
+		.split('\n')
+		.map((l) => l.trim())
+		.filter(Boolean)
 
 	for (const line of lines) {
-		const parts = line.split('|').map((p) => p.trim()).filter(Boolean)
+		const parts = line
+			.split('|')
+			.map((p) => p.trim())
+			.filter(Boolean)
 
 		if (parts.length >= 2 && parts.length % 2 === 0) {
 			for (let i = 0; i < parts.length; i += 2) {
@@ -92,10 +98,7 @@ export function parseAddresses(raw: string | undefined | null): ITokenRightsPars
  * Find a protocol entry by its DefiLlama ID. The `defillamaId` parameter is the
  * metadata cache key (e.g. "182" or "parent#aave").
  */
-export function findProtocolEntry(
-	data: IRawTokenRightsEntry[],
-	defillamaId: string
-): IRawTokenRightsEntry | null {
+export function findProtocolEntry(data: IRawTokenRightsEntry[], defillamaId: string): IRawTokenRightsEntry | null {
 	return data.find((entry) => entry['DefiLlama ID'] === defillamaId) ?? null
 }
 

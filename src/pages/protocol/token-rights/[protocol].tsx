@@ -70,9 +70,7 @@ export const getStaticProps = withPerformanceLogging(
 		const tokenRightsData = parseTokenRightsEntry(rawEntry)
 		const raises = protocolData?.raises ? [...protocolData.raises].sort((a, b) => b.date - a.date) : null
 
-		const computedMetrics = protocolData
-			? getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-			: null
+		const computedMetrics = protocolData ? getProtocolMetricFlags({ protocolData, metadata: metadata[1] }) : null
 		const metrics: IProtocolPageMetrics = {
 			...(computedMetrics ?? {
 				tvl: false,
