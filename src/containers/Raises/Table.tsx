@@ -221,7 +221,41 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises' })} smol />
+				<CSVDownloadButton
+					prepareCsv={() => {
+						const csv = prepareTableCsv({ instance, filename: 'raises' })
+						if (csv.rows.length === 0) return csv
+						const headers = csv.rows[0] as string[]
+						const dateIdx = headers.indexOf('Date')
+						const amountIdx = headers.indexOf('Amount Raised')
+						const valuationIdx = headers.indexOf('Valuation')
+						const newHeaders = [...headers]
+						if (dateIdx !== -1) newHeaders.splice(dateIdx, 1, 'Timestamp', 'Date')
+						return {
+							...csv,
+							rows: [
+								newHeaders,
+								...csv.rows.slice(1).map((row) => {
+									const newRow = [...row]
+									if (amountIdx !== -1 && typeof newRow[amountIdx] === 'number') {
+										newRow[amountIdx] = (newRow[amountIdx] as number) * 1e6
+									}
+									if (valuationIdx !== -1 && newRow[valuationIdx]) {
+										newRow[valuationIdx] = Number(newRow[valuationIdx]) * 1e6
+									}
+									if (dateIdx !== -1 && typeof newRow[dateIdx] === 'number') {
+										const ts = newRow[dateIdx] as number
+										const d = new Date(ts * 1000)
+										const formatted = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+										newRow.splice(dateIdx, 1, ts, formatted)
+									}
+									return newRow
+								})
+							]
+						}
+					}}
+					smol
+				/>
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
