@@ -3,5 +3,8 @@ import { fetchJson } from '~/utils/async'
 import type { IRawTokenRightsEntry } from './api.types'
 
 export async function fetchTokenRightsData(): Promise<IRawTokenRightsEntry[]> {
-	return fetchJson<IRawTokenRightsEntry[]>(`${SERVER_URL}/token-rights`).catch(() => [])
+	return fetchJson<IRawTokenRightsEntry[]>(`${SERVER_URL}/token-rights`).catch((error) => {
+		console.error(`[fetchTokenRightsData] Failed to fetch ${SERVER_URL}/token-rights`, error)
+		return []
+	})
 }

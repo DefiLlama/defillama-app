@@ -243,8 +243,11 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 function PillList({ items }: { items: string[] }) {
 	return (
 		<div className="flex flex-wrap gap-1.5">
-			{items.map((item) => (
-				<span key={item} className="rounded-full border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.5 text-sm">
+			{items.map((item, index) => (
+				<span
+					key={`${item}-${index}`}
+					className="rounded-full border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.5 text-sm"
+				>
 					{item}
 				</span>
 			))}
@@ -268,7 +271,7 @@ function LinkList({ links }: { links: ITokenRightsParsedLink[] }) {
 		<div className="flex flex-col gap-1.5">
 			{links.map((l) => (
 				<a
-					key={l.url}
+					key={`${l.label}-${l.url}`}
 					href={l.url}
 					target="_blank"
 					rel="noopener noreferrer"

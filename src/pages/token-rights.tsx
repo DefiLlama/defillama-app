@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { fetchTokenRightsData } from '~/containers/TokenRights/api'
 import type { IRawTokenRightsEntry } from '~/containers/TokenRights/api.types'
+import { TokenLogo } from '~/components/TokenLogo'
 import Layout from '~/layout'
 import { slug, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -73,7 +74,7 @@ function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 							href={p.href}
 							className="flex items-center gap-2 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
 						>
-							<img src={p.logo} alt={`${p.name} logo`} className="h-6 w-6 shrink-0 rounded-full" loading="lazy" />
+							<TokenLogo logo={p.logo} size={24} />
 							<span className="truncate text-sm">{p.name}</span>
 						</Link>
 					))}
