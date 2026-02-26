@@ -11,29 +11,9 @@ import {
 } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchRaises } from '~/containers/Raises/api'
-import type { RawRaisesResponse } from '~/containers/Raises/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchJson } from '~/utils/async'
 import { formatYieldsPageData } from './utils'
-
-// Cache raises data to avoid repeated API calls (rate-limited)
-let cachedRaises: RawRaisesResponse | null = null
-let cachedRaisesTime = 0
-const RAISES_CACHE_TTL = 30 * 60 * 1000 // 30 minutes
-
-async function getCachedRaises(): Promise<RawRaisesResponse> {
-	const now = Date.now()
-	if (cachedRaises && now - cachedRaisesTime < RAISES_CACHE_TTL) {
-		return cachedRaises
-	}
-	try {
-		cachedRaises = await fetchRaises()
-		cachedRaisesTime = now
-		return cachedRaises
-	} catch {
-		return cachedRaises ?? { raises: [] }
-	}
-}
 
 export async function getYieldPageData() {
 	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
@@ -42,7 +22,7 @@ export async function getYieldPageData() {
 		fetchJson(YIELD_URL_API),
 		fetchJson(YIELD_CHAIN_API),
 		fetchProtocols(),
-		getCachedRaises()
+		fetchRaises()
 	])
 
 	let poolsAndConfig = [poolsData, configData, urlsData, chainsData, protocolsData]
