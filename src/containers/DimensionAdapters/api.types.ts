@@ -48,35 +48,6 @@ export interface IAdapterProtocolMetrics {
 	forkedFrom?: Array<string> | null
 	audits?: string | null
 	audit_links?: Array<string> | null
-	tokenRights?: {
-		rights: Array<{
-			label: string
-			hasRight: boolean
-			details: string
-		}>
-		governanceData: {
-			rights: string
-			details: string
-			feeSwitchStatus: string
-			feeSwitchDetails: string
-		}
-		holdersRevenueAndValueAccrual: {
-			buybacks: string
-			dividends: string
-			burns: string
-			primaryValueAccrual: string
-		}
-		tokenAlignment: {
-			fundraising: string
-			raiseDetailsLink: {
-				label: string
-				url: string
-			}
-			associatedEntities: Array<string>
-			equityRevenueCapture: string
-			equityStatement: string
-		}
-	}
 	childProtocols?: Array<{
 		name: string
 		defillamaId: string
