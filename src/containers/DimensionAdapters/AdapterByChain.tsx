@@ -413,6 +413,7 @@ export function AdapterByChain(props: IProps) {
 					</div>
 					<AdapterByChainChart
 						chartData={props.chartData}
+						allProtocols={props.allProtocols}
 						adapterType={props.adapterType}
 						chain={props.chain}
 						chartName={props.type}

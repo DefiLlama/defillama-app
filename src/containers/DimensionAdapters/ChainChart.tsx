@@ -18,29 +18,70 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 
 const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 const LINE_DIMENSIONS = new Set(['Open Interest', 'Active Liquidity'])
+const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
 type AdapterByChainInterval = (typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]
+type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
 type ChainsByAdapterInterval = AdapterByChainInterval
 const CHART_TYPES_CHAINS_BY_ADAPTER = ['Volume', 'Dominance'] as const
 type ChainsByAdapterChartType = (typeof CHART_TYPES_CHAINS_BY_ADAPTER)[number]
 
 export const AdapterByChainChart = ({
 	chartData,
+	allProtocols,
 	adapterType,
 	chain,
 	chartName
-}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain'> & { chartName: string }) => {
+}: Pick<IAdapterByChainPageData, 'chartData' | 'allProtocols' | 'adapterType' | 'chain'> & { chartName: string }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const metricDimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
+	const breakdownProtocolDimensions = React.useMemo(
+		() => (allProtocols ?? []).filter((protocolName) => metricDimensions.includes(protocolName)),
+		[allProtocols, metricDimensions]
+	)
+	const hasBreakdownData = metricDimensions.includes('Total') && breakdownProtocolDimensions.length > 0
 
 	const chartInterval = React.useMemo<AdapterByChainInterval>(() => {
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
 		const matchedInterval = INTERVALS_LIST_ADAPTER_BY_CHAIN.find((interval) => interval.toLowerCase() === groupByParam)
 		return matchedInterval ?? 'Daily'
 	}, [router.query.groupBy])
+	const chartViewMode = React.useMemo<AdapterByChainViewMode>(() => {
+		if (!hasBreakdownData) return 'Combined'
+		const chartViewParam = readSingleQueryValue(router.query.chartView)?.toLowerCase()
+		return chartViewParam === 'breakdown' ? 'Breakdown' : 'Combined'
+	}, [hasBreakdownData, router.query.chartView])
+	const selectedProtocols = React.useMemo(() => {
+		if (!hasBreakdownData) return []
+		const protocolsQuery = router.query.chartProtocols
+		const excludeProtocolsQuery = router.query.excludeChartProtocols
+		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
+		const baseSelectedProtocols =
+			protocolsQuery != null
+				? parseArrayParam(protocolsQuery, breakdownProtocolDimensions)
+				: breakdownProtocolDimensions
+
+		return excludedProtocolsSet.size > 0
+			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
+			: baseSelectedProtocols
+	}, [hasBreakdownData, breakdownProtocolDimensions, router.query.chartProtocols, router.query.excludeChartProtocols])
+	const dimensionsToRender = React.useMemo(() => {
+		if (!hasBreakdownData) return metricDimensions
+		const secondaryDimensions = metricDimensions.filter((dimension) => LINE_DIMENSIONS.has(dimension))
+
+		if (chartViewMode === 'Combined') {
+			return ['Total', ...secondaryDimensions]
+		}
+
+		const selectedProtocolsSet = new Set(selectedProtocols)
+		return breakdownProtocolDimensions.filter((dimension) => selectedProtocolsSet.has(dimension))
+	}, [hasBreakdownData, metricDimensions, chartViewMode, selectedProtocols, breakdownProtocolDimensions])
 
 	const onChangeChartInterval = (nextInterval: AdapterByChainInterval) => {
 		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+	}
+	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
+		pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
 	}
 
 	const finalCharts = React.useMemo(() => {
@@ -54,12 +95,14 @@ export const AdapterByChainChart = ({
 						? 'cumulative'
 						: 'daily'
 		const isCumulative = chartInterval === 'Cumulative'
-		const seriesDefinitions = metricDimensions.map((dimension, index) => {
+		const isBreakdownMode = hasBreakdownData && chartViewMode === 'Breakdown'
+		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
 			const type = isCumulative || isIntrinsicLineSeries ? ('line' as const) : ('bar' as const)
+			const stack = isBreakdownMode && !isIntrinsicLineSeries ? 'protocol-breakdown' : undefined
 			if (isDaily) {
-				return { dimension, seriesName, type, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
+				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
 
 			const rawData = chartData.source
@@ -86,7 +129,7 @@ export const AdapterByChainChart = ({
 						denominationPriceHistory: null
 					})
 
-			return { dimension, seriesName, type, data, color: CHART_COLORS[index % CHART_COLORS.length] }
+			return { dimension, seriesName, type, stack, data, color: CHART_COLORS[index % CHART_COLORS.length] }
 		})
 
 		if (isDaily) {
@@ -97,6 +140,7 @@ export const AdapterByChainChart = ({
 					name: series.seriesName,
 					encode: { x: 'timestamp', y: series.seriesName },
 					color: series.color,
+					...(series.stack ? { stack: series.stack } : {}),
 					...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 				}))
 			}
@@ -131,10 +175,11 @@ export const AdapterByChainChart = ({
 				name: series.seriesName,
 				encode: { x: 'timestamp', y: series.seriesName },
 				color: series.color,
+				...(series.stack ? { stack: series.stack } : {}),
 				...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 			}))
 		}
-	}, [chartData, chartInterval, metricDimensions])
+	}, [chartData, chartInterval, chartViewMode, dimensionsToRender, hasBreakdownData])
 	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
@@ -173,6 +218,33 @@ export const AdapterByChainChart = ({
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
+				{hasBreakdownData ? (
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+						{CHART_VIEW_MODES_ADAPTER_BY_CHAIN.map((mode) => (
+							<button
+								key={`adapter-by-chain-chart-view-mode-${mode}`}
+								className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+								data-active={mode === chartViewMode}
+								onClick={() => onChangeChartViewMode(mode)}
+							>
+								{mode}
+							</button>
+						))}
+					</div>
+				) : null}
+				{hasBreakdownData && chartViewMode === 'Breakdown' ? (
+					<SelectWithCombobox
+						allValues={breakdownProtocolDimensions}
+						selectedValues={selectedProtocols}
+						includeQueryKey="chartProtocols"
+						excludeQueryKey="excludeChartProtocols"
+						defaultSelectedValues={breakdownProtocolDimensions}
+						label="Protocols"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{chartName === 'Open Interest'
 						? null
