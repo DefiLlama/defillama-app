@@ -25,7 +25,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 				{overview.lastUpdated ? (
 					<span className="ml-auto text-xs text-(--text-secondary)">
 						Updated{' '}
-						{new Date(overview.lastUpdated).toLocaleDateString('en-GB', {
+						{new Date(overview.lastUpdated).toLocaleDateString(undefined, {
 							day: '2-digit',
 							month: 'short',
 							year: 'numeric'
@@ -180,7 +180,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 									<tr key={`${r.date}-${r.round}-${i}`} className="border-b border-(--cards-border) last:border-0">
 										<td className="py-2 pr-4 whitespace-nowrap">
 											{r.date
-												? new Date(r.date * 1000).toLocaleDateString('en-GB', {
+												? new Date(r.date * 1000).toLocaleDateString(undefined, {
 														day: '2-digit',
 														month: 'short',
 														year: 'numeric'
