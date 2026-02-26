@@ -274,8 +274,7 @@ function buildMultiYAxis({
 		// Primary axis is intentionally not auto-colored from series colors (can be misleading when multiple series share axis 0).
 		// But if the caller explicitly assigns a unique color to that axis via charts config, apply it.
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
-		// Preserve historical behavior (no symbol on primary axis) unless explicitly provided via charts config.
-		const axisSymbol = yAxisIndexToSymbol.get(i) ?? (isPrimary ? '' : valueSymbol)
+		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
 
 		out.push({
