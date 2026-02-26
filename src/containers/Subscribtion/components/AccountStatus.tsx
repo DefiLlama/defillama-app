@@ -216,7 +216,10 @@ export const AccountStatus = ({
 										user.walletAddress.length - 6
 									)}`}
 								</p>
-								<button className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1b1f] text-[#5C5CF9] opacity-0 transition-colors group-hover:opacity-100 hover:bg-[#5C5CF9]/5 hover:text-[#6A6AFA]">
+								<button
+									onClick={() => navigator.clipboard.writeText(user.walletAddress)}
+									className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1b1f] text-[#5C5CF9] opacity-0 transition-colors group-hover:opacity-100 hover:bg-[#5C5CF9]/5 hover:text-[#6A6AFA]"
+								>
 									<Icon name="copy" height={12} width={12} />
 								</button>
 							</div>
