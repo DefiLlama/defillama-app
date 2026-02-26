@@ -7,7 +7,6 @@ async function reportError(report: any) {
 	try {
 		const data = await fetchJson('https://api.llama.fi/reportError', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(report)
 		})
 		return data
