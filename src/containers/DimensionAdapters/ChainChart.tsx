@@ -99,8 +99,10 @@ export const AdapterByChainChart = ({
 		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			const type = isCumulative || isIntrinsicLineSeries ? ('line' as const) : ('bar' as const)
-			const stack = isBreakdownMode && !isIntrinsicLineSeries ? 'protocol-breakdown' : undefined
+			const isOpenInterestSeries = chartName === 'Open Interest'
+			const type = isOpenInterestSeries || isCumulative || isIntrinsicLineSeries ? ('line' as const) : ('bar' as const)
+			const stack =
+				isBreakdownMode && !isIntrinsicLineSeries && !isOpenInterestSeries ? 'protocol-breakdown' : undefined
 			if (isDaily) {
 				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
@@ -179,7 +181,7 @@ export const AdapterByChainChart = ({
 				...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 			}))
 		}
-	}, [chartData, chartInterval, chartViewMode, dimensionsToRender, hasBreakdownData])
+	}, [chartData, chartInterval, chartName, chartViewMode, dimensionsToRender, hasBreakdownData])
 	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
@@ -245,22 +247,22 @@ export const AdapterByChainChart = ({
 						portal
 					/>
 				) : null}
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{chartName === 'Open Interest'
-						? null
-						: INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-								<Tooltip
-									content={dataInterval}
-									render={<button />}
-									className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-									onClick={() => onChangeChartInterval(dataInterval)}
-									data-active={dataInterval === chartInterval}
-									key={`${dataInterval}-${chartName}-${chain}`}
-								>
-									{dataInterval.slice(0, 1).toUpperCase()}
-								</Tooltip>
-							))}
-				</div>
+				{chartName === 'Open Interest' ? null : (
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+						{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
+							<Tooltip
+								content={dataInterval}
+								render={<button />}
+								className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
+								onClick={() => onChangeChartInterval(dataInterval)}
+								data-active={dataInterval === chartInterval}
+								key={`${dataInterval}-${chartName}-${chain}`}
+							>
+								{dataInterval.slice(0, 1).toUpperCase()}
+							</Tooltip>
+						))}
+					</div>
+				)}
 				{chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
