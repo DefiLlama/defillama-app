@@ -58,7 +58,7 @@ export async function getYieldPageData() {
 	const raises = raisesData?.raises ?? []
 	const sortedRaises = [...raises].sort((a, b) => b.date - a.date)
 
-	// 1. By defillamaId (most reliable)
+	// 1. By defillamaId
 	const valuationByDefillamaId = new Map<string, number>()
 	for (const raise of sortedRaises) {
 		if (raise.defillamaId && raise.valuation != null) {
@@ -75,7 +75,7 @@ export async function getYieldPageData() {
 	const valuationByRaiseName = new Map<string, number>()
 	for (const raise of sortedRaises) {
 		if (raise.name && raise.valuation != null) {
-			const key = raise.name.toLowerCase()
+			const key = raise.name.trim().toLowerCase()
 			const numVal = Number(raise.valuation)
 			if (!Number.isFinite(numVal) || numVal <= 0) continue
 			if (!valuationByRaiseName.has(key)) {
@@ -100,6 +100,41 @@ export async function getYieldPageData() {
 		if (pp.id && pp.name) parentNameById.set(pp.id, pp.name)
 	}
 
+	// Build parent → children map for O(1) child lookups
+	const childrenByParentId = new Map<string, typeof liteProtocols>()
+	for (const lp of liteProtocols) {
+		if (lp.parentProtocol) {
+			if (!childrenByParentId.has(lp.parentProtocol)) childrenByParentId.set(lp.parentProtocol, [])
+			childrenByParentId.get(lp.parentProtocol)!.push(lp)
+		}
+	}
+
+	// Build parent protocol name → valuation map (for prefix matching tier)
+	// Uses curated parent protocol names (clean, structured) rather than raw raise names
+	const valuationByParentName = new Map<string, number>()
+	for (const pp of parentProtocols) {
+		if (!pp.name || pp.name.length < 4) continue
+		const parentNameLower = pp.name.trim().toLowerCase()
+		// Try resolving valuation via parent ID in raises
+		let val = valuationByDefillamaId.get(pp.id)
+		// Also check if any child protocol's defillamaId has a raise
+		if (val == null) {
+			const children = childrenByParentId.get(pp.id)
+			if (children) {
+				for (const lp of children) {
+					const childId = String(lp.defillamaId ?? lp.id ?? '')
+					val = valuationByDefillamaId.get(childId)
+					if (val != null) break
+				}
+			}
+		}
+		// Also try by parent name in raises
+		if (val == null) {
+			val = valuationByRaiseName.get(parentNameLower)
+		}
+		if (val != null) valuationByParentName.set(parentNameLower, val)
+	}
+
 	const valuationBySlug = new Map<string, number>()
 	for (const slug of Object.keys(_config)) {
 		const configName = _config[slug]?.name
@@ -108,12 +143,12 @@ export async function getYieldPageData() {
 
 		let val: number | undefined
 
-		// Try defillamaId-based lookup first
+		// Tier 1: defillamaId-based lookup
 		if (liteProtocol) {
 			const defillamaId = String(liteProtocol.defillamaId ?? liteProtocol.id ?? '')
 			val = valuationByDefillamaId.get(defillamaId)
 
-			// Check parentProtocol raises
+			// Tier 2: parentProtocol raises
 			if (val == null && liteProtocol.parentProtocol) {
 				val = valuationByDefillamaId.get(String(liteProtocol.parentProtocol))
 
@@ -125,26 +160,25 @@ export async function getYieldPageData() {
 			}
 		}
 
-		// Fallback: match by config name → raise name
+		// Tier 3: exact config name → raise name
 		if (val == null) {
 			val = valuationByRaiseName.get(configName.toLowerCase())
 		}
 
+		// Tier 4: config name starts with a parent protocol name
+		// e.g. "Phantom SOL" starts with "Phantom" (a curated parent protocol name)
+		if (val == null) {
+			const configNameLower = configName.toLowerCase()
+			for (const [parentName, parentVal] of valuationByParentName) {
+				if (configNameLower.startsWith(parentName + ' ')) {
+					val = parentVal
+					break
+				}
+			}
+		}
+
 		if (val != null) valuationBySlug.set(slug, val)
 	}
-
-	// Debug logging (temporary)
-	const airdropPools = data.pools.filter((p) => p.airdrop)
-	const matchedAirdropSlugs = new Set<string>()
-	for (const p of airdropPools) {
-		if (valuationBySlug.has(p.project)) matchedAirdropSlugs.add(p.project)
-	}
-	console.log('[raises debug] raises:', raises.length,
-		'| byId:', valuationByDefillamaId.size,
-		'| byName:', valuationByRaiseName.size,
-		'| slugs:', valuationBySlug.size,
-		'| airdrop matches:', matchedAirdropSlugs.size,
-		'|', [...matchedAirdropSlugs].slice(0, 20))
 
 	// Attach raiseValuation to airdrop pools
 	data.pools = data.pools.map((p) => ({
