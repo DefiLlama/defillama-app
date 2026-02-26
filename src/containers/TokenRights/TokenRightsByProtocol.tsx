@@ -166,7 +166,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 								<tr className="border-b border-(--cards-border) text-sm text-(--text-label)">
 									<th className="pr-4 pb-2 font-medium">Date</th>
 									<th className="pr-4 pb-2 font-medium">Round</th>
-									<th className="pr-4 pb-2 text-right font-medium">Amount</th>
+									<th className="pr-4 pb-2 font-medium">Amount</th>
 									<th className="pr-4 pb-2 font-medium">Lead Investors</th>
 								</tr>
 							</thead>
@@ -177,7 +177,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 											{r.date ? new Date(r.date * 1000).toLocaleDateString() : '—'}
 										</td>
 										<td className="py-2 pr-4 whitespace-nowrap">{r.round || '—'}</td>
-										<td className="py-2 pr-4 text-right font-jetbrains whitespace-nowrap tabular-nums">
+										<td className="py-2 pr-4 font-jetbrains whitespace-nowrap tabular-nums">
 											{r.amount ? formattedNum(r.amount * 1_000_000, true) : '—'}
 										</td>
 										<td className="py-2 pr-4 whitespace-nowrap">{r.leadInvestors?.join(', ') || '—'}</td>
@@ -301,28 +301,26 @@ function isNATokens(tokens: string[]): boolean {
 }
 
 function DecisionRow({ label, tokens, details }: { label: string; tokens: string[]; details: string | null }) {
-	const isNA = isNATokens(tokens)
-	const tone: StatusTone = isNA ? 'neutral' : 'positive'
 	return (
-		<div className={`flex flex-col gap-2 rounded-md border p-3 ${toneClasses(tone)}`}>
-			<span className="text-sm font-semibold">{label}</span>
-			<PillList items={tokens} />
-			{details !== null ? <p className="text-sm">{details}</p> : null}
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<span className="text-sm font-semibold">{label}</span>
+				<PillList items={tokens} />
+			</div>
+			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
 		</div>
 	)
 }
 
 function TokenActionRow({ label, tokens, details }: { label: string; tokens: string[]; details: string | null }) {
 	const isNA = isNATokens(tokens)
-	const tone: StatusTone = isNA ? 'neutral' : 'positive'
 	return (
-		<div className={`flex flex-col gap-2 rounded-md border p-3 ${toneClasses(tone)}`}>
-			<div className="flex items-center justify-between">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+			<div className="flex flex-wrap items-center justify-between gap-2">
 				<span className="text-sm font-semibold">{label}</span>
-				{isNA ? <StatusBadge label="N/A" tone="neutral" /> : <StatusBadge label="Active" tone="positive" />}
+				{isNA ? <StatusBadge label="N/A" tone="neutral" /> : <PillList items={tokens} />}
 			</div>
-			{!isNA ? <PillList items={tokens} /> : null}
-			{details !== null ? <p className="text-sm">{details}</p> : null}
+			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
 		</div>
 	)
 }
@@ -330,12 +328,12 @@ function TokenActionRow({ label, tokens, details }: { label: string; tokens: str
 function BurnsRow({ status, details }: { status: string; details: string | null }) {
 	const tone: StatusTone = status === 'Active' ? 'positive' : 'neutral'
 	return (
-		<div className={`flex flex-col gap-2 rounded-md border p-3 ${toneClasses(tone)}`}>
-			<div className="flex items-center justify-between">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+			<div className="flex items-center justify-between gap-2">
 				<span className="text-sm font-semibold">Burns</span>
 				<StatusBadge label={status} tone={tone} />
 			</div>
-			{details !== null ? <p className="text-sm">{details}</p> : null}
+			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
 		</div>
 	)
 }
@@ -343,12 +341,12 @@ function BurnsRow({ status, details }: { status: string; details: string | null 
 function FeeSwitchRow({ status, details }: { status: string; details: string | null }) {
 	const tone = feeSwitchTone(status)
 	return (
-		<div className={`flex flex-col gap-2 rounded-md border p-3 ${toneClasses(tone)}`}>
-			<div className="flex items-center justify-between">
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
+			<div className="flex items-center justify-between gap-2">
 				<span className="text-sm font-semibold">Fee Switch</span>
 				<StatusBadge label={status} tone={tone} />
 			</div>
-			{details !== null ? <p className="text-sm">{details}</p> : null}
+			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
 		</div>
 	)
 }
