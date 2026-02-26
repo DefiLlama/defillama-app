@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { IProtocolRaise } from '~/containers/ProtocolOverview/api.types'
 import { formattedNum, tokenIconUrl } from '~/utils'
-import type { ITokenRightsData, ITokenRightsParsedAddress, ITokenRightsParsedLink } from './api.types'
+import type { ITokenRightsData, ITokenRightsParsedLink } from './api.types'
 
 interface TokenRightsByProtocolProps {
 	name: string
@@ -15,6 +15,16 @@ interface TokenRightsByProtocolProps {
 
 export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }: TokenRightsByProtocolProps) {
 	const { overview, governance, decisions, economic, valueAccrual, alignment, resources } = tokenRightsData
+
+	const hasOwnershipContent =
+		(raises && raises.length > 0) ||
+		alignment.fundraising.length > 0 ||
+		alignment.equityRevenueCapture !== null ||
+		alignment.associatedEntities.length > 0 ||
+		alignment.ipAndBrand !== null ||
+		alignment.domain !== null ||
+		alignment.equityStatement !== null ||
+		alignment.links.length > 0
 
 	return (
 		<div className="grid grid-cols-1 gap-2">
@@ -35,170 +45,151 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 			</div>
 
 			<div className="grid gap-2 xl:grid-cols-2">
-				{/* Overview */}
-				<SectionCard title="Overview">
-					<p className="text-sm text-(--text-secondary)">{overview.description}</p>
-					{overview.tokens.length > 0 ? (
-						<Field label="Tokens">
-							<PillList items={overview.tokens} />
-						</Field>
-					) : null}
-					{overview.tokenTypes.length > 0 ? (
-						<Field label="Token Type">
-							<PillList items={overview.tokenTypes} />
-						</Field>
-					) : null}
-					{overview.utility !== null ? (
-						<Field label="Utility">
-							<span className="text-sm">{overview.utility}</span>
-						</Field>
-					) : null}
-				</SectionCard>
-
-				{/* Governance */}
-				<SectionCard title="Governance">
-					<p className="text-sm text-(--text-secondary)">{governance.summary}</p>
-					{governance.decisionTokens.length > 0 ? (
-						<Field label="Voting Tokens">
-							<PillList items={governance.decisionTokens} />
-						</Field>
-					) : null}
-					{governance.details !== null ? (
-						<Field label="Process Details">
-							<p className="text-sm text-(--text-secondary)">{governance.details}</p>
-						</Field>
-					) : null}
-					<LinkList links={governance.links} />
-				</SectionCard>
-
-				{/* Token Decisions */}
-				<SectionCard title="Token Decisions">
-					<DecisionRow label="Treasury" tokens={decisions.treasury.tokens} details={decisions.treasury.details} />
-					<DecisionRow label="Revenue" tokens={decisions.revenue.tokens} details={decisions.revenue.details} />
-				</SectionCard>
-
-				{/* Economic Rights */}
-				<SectionCard title="Economic Rights">
-					{economic.summary !== null ? <p className="text-sm text-(--text-secondary)">{economic.summary}</p> : null}
-					<FeeSwitchRow status={economic.feeSwitchStatus} details={economic.feeSwitchDetails} />
-					<LinkList links={economic.links} />
-				</SectionCard>
-
-				{/* Value Accrual */}
-				<SectionCard title="Value Accrual">
-					{valueAccrual.primary !== null ? (
-						<Field label="Primary Mechanism">
-							<StatusBadge label={valueAccrual.primary} tone={valueAccrualPrimaryTone(valueAccrual.primary)} />
-						</Field>
-					) : null}
-					{valueAccrual.details !== null ? (
-						<p className="text-sm text-(--text-secondary)">{valueAccrual.details}</p>
-					) : null}
-					<TokenActionRow
-						label="Buybacks"
-						tokens={valueAccrual.buybacks.tokens}
-						details={valueAccrual.buybacks.details}
-					/>
-					<TokenActionRow
-						label="Dividends"
-						tokens={valueAccrual.dividends.tokens}
-						details={valueAccrual.dividends.details}
-					/>
-					<BurnsRow status={valueAccrual.burns.status} details={valueAccrual.burns.details} />
-				</SectionCard>
-
-				{/* Token Alignment */}
-				<SectionCard title="Token Alignment">
-					{alignment.fundraising.length > 0 ? (
-						<Field label="Fundraising">
-							<PillList items={alignment.fundraising} />
-						</Field>
-					) : null}
-					{alignment.raiseDetails !== null ? (
-						<Field label="Raise Details">
-							<p className="text-sm text-(--text-secondary)">{alignment.raiseDetails}</p>
-						</Field>
-					) : null}
-					{alignment.associatedEntities.length > 0 ? (
-						<Field label="Associated Entities">
-							<PillList items={alignment.associatedEntities} />
-						</Field>
-					) : null}
-					{alignment.equityRevenueCapture !== null ? (
-						<Field label="Equity Revenue Capture">
-							<StatusBadge
-								label={alignment.equityRevenueCapture}
-								tone={equityCaptureTone(alignment.equityRevenueCapture)}
-							/>
-						</Field>
-					) : null}
-					{alignment.equityStatement !== null ? (
-						<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
-					) : null}
-					{alignment.ipAndBrand !== null ? (
-						<Field label="IP & Brand">
-							<span className="text-sm">{alignment.ipAndBrand}</span>
-						</Field>
-					) : null}
-					{alignment.domain !== null ? (
-						<Field label="Domain">
-							<span className="text-sm">{alignment.domain}</span>
-						</Field>
-					) : null}
-					<LinkList links={alignment.links} />
-				</SectionCard>
-
-				{/* Resources */}
-				{resources.addresses.length > 0 || resources.reports.length > 0 ? (
-					<SectionCard title="Resources">
-						<AddressList addresses={resources.addresses} />
-						{resources.reports.length > 0 ? (
-							<div className="flex flex-col gap-1.5">
-								<span className="text-sm font-medium text-(--text-label)">Reports</span>
-								<LinkList links={resources.reports} />
-							</div>
-						) : null}
+				{/* ── Left column ── */}
+				<div className="flex flex-col gap-2">
+					{/* Overview */}
+					<SectionCard title="Overview">
+						<div className="divide-y divide-(--cards-border) empty:hidden">
+							{overview.tokens.length > 0 ? (
+								<KeyValueRow label="Token(s)">
+									<span className="text-right text-sm">{overview.tokens.join(', ')}</span>
+								</KeyValueRow>
+							) : null}
+							{overview.tokenTypes.length > 0 ? (
+								<KeyValueRow label="Token Type">
+									<PillList items={overview.tokenTypes} />
+								</KeyValueRow>
+							) : null}
+							{overview.utility !== null ? (
+								<KeyValueRow label="Utility">
+									<span className="text-sm">{overview.utility}</span>
+								</KeyValueRow>
+							) : null}
+						</div>
+						<p className="text-sm text-(--text-secondary)">{overview.description}</p>
 					</SectionCard>
-				) : null}
-			</div>
 
-			{/* Raise History */}
-			{raises && raises.length > 0 ? (
-				<SectionCard title="Raise History">
-					<div className="overflow-x-auto">
-						<table className="w-full text-left text-sm">
-							<thead>
-								<tr className="border-b border-(--cards-border) text-sm text-(--text-label)">
-									<th className="pr-4 pb-2 font-medium">Date</th>
-									<th className="pr-4 pb-2 font-medium">Round</th>
-									<th className="pr-4 pb-2 font-medium">Amount</th>
-									<th className="pr-4 pb-2 font-medium">Lead Investors</th>
-								</tr>
-							</thead>
-							<tbody>
-								{raises.map((r, i) => (
-									<tr key={`${r.date}-${r.round}-${i}`} className="border-b border-(--cards-border) last:border-0">
-										<td className="py-2 pr-4 whitespace-nowrap">
-											{r.date
-												? new Date(r.date * 1000).toLocaleDateString(undefined, {
-														day: '2-digit',
-														month: 'short',
-														year: 'numeric'
-													})
-												: '—'}
-										</td>
-										<td className="py-2 pr-4 whitespace-nowrap">{r.round || '—'}</td>
-										<td className="py-2 pr-4 font-jetbrains whitespace-nowrap tabular-nums">
-											{r.amount ? formattedNum(r.amount * 1_000_000, true) : '—'}
-										</td>
-										<td className="py-2 pr-4 whitespace-nowrap">{r.leadInvestors?.join(', ') || '—'}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				</SectionCard>
-			) : null}
+					{/* Governance & Decisions */}
+					<SectionCard title="Governance Rights" badge="Control">
+						<p className="text-sm text-(--text-secondary)">{governance.summary}</p>
+						<DecisionRow label="Governance Decisions" tokens={governance.decisionTokens} details={governance.details} />
+						<DecisionRow
+							label="Treasury Decisions"
+							tokens={decisions.treasury.tokens}
+							details={decisions.treasury.details}
+						/>
+						<DecisionRow
+							label="Revenue Decisions"
+							tokens={decisions.revenue.tokens}
+							details={decisions.revenue.details}
+						/>
+						<FeeSwitchRow status={economic.feeSwitchStatus} details={economic.feeSwitchDetails} />
+						<InlineLinks links={governance.links} />
+					</SectionCard>
+
+					{/* Resources */}
+					{resources.addresses.length > 0 || resources.reports.length > 0 ? (
+						<SectionCard title="Resources">
+							{resources.addresses.map((a, i) => (
+								<div key={`${a.value}-${i}`} className="flex items-center justify-between gap-4">
+									<div className="flex min-w-0 flex-col gap-0.5">
+										{a.label ? <span className="text-sm">{a.label}</span> : null}
+										<span className="truncate font-mono text-xs text-(--text-secondary)">{a.value}</span>
+									</div>
+									<CopyHelper toCopy={a.value} />
+								</div>
+							))}
+							{resources.reports.map((r) => (
+								<div key={r.url} className="flex items-center justify-between gap-4">
+									<span className="text-sm">{r.label}</span>
+									<a
+										href={r.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="inline-flex shrink-0 items-center gap-1 text-sm text-blue-500 hover:underline"
+									>
+										{tryHostname(r.url)}
+										<Icon name="external-link" className="h-3.5 w-3.5" />
+									</a>
+								</div>
+							))}
+						</SectionCard>
+					) : null}
+				</div>
+
+				{/* ── Right column ── */}
+				<div className="flex flex-col gap-2">
+					{/* Economic Rights & Value Accrual */}
+					<SectionCard title="Economic Rights" badge="Value Capture">
+						{economic.summary !== null ? <p className="text-sm text-(--text-secondary)">{economic.summary}</p> : null}
+						<TokenActionRow
+							label="Buybacks"
+							tokens={valueAccrual.buybacks.tokens}
+							details={valueAccrual.buybacks.details}
+						/>
+						<TokenActionRow
+							label="Dividends"
+							tokens={valueAccrual.dividends.tokens}
+							details={valueAccrual.dividends.details}
+						/>
+						<BurnsRow status={valueAccrual.burns.status} details={valueAccrual.burns.details} />
+						{valueAccrual.primary !== null || valueAccrual.details !== null ? (
+							<QuotedBlock title="Primary Value Accrual">
+								{valueAccrual.primary !== null ? (
+									<span className="text-sm font-semibold">{valueAccrual.primary}</span>
+								) : null}
+								{valueAccrual.details !== null ? (
+									<p className="text-sm text-(--text-secondary)">{valueAccrual.details}</p>
+								) : null}
+							</QuotedBlock>
+						) : null}
+						<InlineLinks links={economic.links} />
+					</SectionCard>
+
+					{/* Ownership */}
+					{hasOwnershipContent ? (
+						<SectionCard title="Ownership">
+							{raises && raises.length > 0 ? <RaiseHistorySection raises={raises} /> : null}
+							<div className="divide-y divide-(--cards-border) empty:hidden">
+								{alignment.fundraising.length > 0 ? (
+									<KeyValueRow label="Fundraising">
+										<PillList items={alignment.fundraising} />
+									</KeyValueRow>
+								) : null}
+								{alignment.equityRevenueCapture !== null ? (
+									<KeyValueRow label="Equity Revenue Capture">
+										<StatusBadge
+											label={alignment.equityRevenueCapture}
+											tone={equityCaptureTone(alignment.equityRevenueCapture)}
+										/>
+									</KeyValueRow>
+								) : null}
+								{alignment.associatedEntities.length > 0 ? (
+									<KeyValueRow label="Associated Entities">
+										<PillList items={alignment.associatedEntities} />
+									</KeyValueRow>
+								) : null}
+								{alignment.ipAndBrand !== null ? (
+									<KeyValueRow label="IP & Brand">
+										<span className="text-right text-sm">{alignment.ipAndBrand}</span>
+									</KeyValueRow>
+								) : null}
+								{alignment.domain !== null ? (
+									<KeyValueRow label="Domain">
+										<span className="text-right text-sm">{alignment.domain}</span>
+									</KeyValueRow>
+								) : null}
+							</div>
+							{alignment.equityStatement !== null ? (
+								<QuotedBlock title="Equity Statement">
+									<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
+								</QuotedBlock>
+							) : null}
+							<InlineLinks links={alignment.links} />
+						</SectionCard>
+					) : null}
+				</div>
+			</div>
 		</div>
 	)
 }
@@ -222,20 +213,25 @@ function toneClasses(tone: StatusTone) {
 	}
 }
 
-function SectionCard({ title, children }: { title: ReactNode; children: ReactNode }) {
+function SectionCard({ title, badge, children }: { title: string; badge?: string; children: ReactNode }) {
 	return (
 		<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-			<h2 className="font-semibold">{title}</h2>
+			<div className="flex items-center justify-between">
+				<h2 className="text-base font-semibold">{title}</h2>
+				{badge ? (
+					<span className="text-xs font-medium tracking-wider text-(--text-secondary) uppercase">{badge}</span>
+				) : null}
+			</div>
 			{children}
 		</div>
 	)
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function KeyValueRow({ label, children }: { label: string; children: ReactNode }) {
 	return (
-		<div className="flex flex-col gap-1">
-			<span className="text-sm font-medium text-(--text-label)">{label}</span>
-			{children}
+		<div className="flex items-center justify-between gap-4 py-2">
+			<span className="shrink-0 text-sm text-(--text-secondary)">{label}</span>
+			<div className="flex flex-wrap items-center justify-end gap-1.5">{children}</div>
 		</div>
 	)
 }
@@ -265,43 +261,31 @@ function StatusBadge({ label, tone }: { label: string; tone: StatusTone }) {
 	)
 }
 
-function LinkList({ links }: { links: ITokenRightsParsedLink[] }) {
+function InlineLinks({ links }: { links: ITokenRightsParsedLink[] }) {
 	if (links.length === 0) return null
 	return (
-		<div className="flex flex-col gap-1.5">
+		<div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1">
 			{links.map((l) => (
 				<a
-					key={`${l.label}-${l.url}`}
+					key={l.url}
 					href={l.url}
 					target="_blank"
 					rel="noopener noreferrer"
-					className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5 text-sm hover:bg-(--link-hover-bg)"
+					className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
 				>
-					<span className="font-medium">{l.label}</span>
-					<Icon name="external-link" className="ml-auto h-3.5 w-3.5 shrink-0 text-(--text-secondary)" />
+					<Icon name="external-link" className="h-3 w-3 shrink-0" />
+					<span>{l.label}</span>
 				</a>
 			))}
 		</div>
 	)
 }
 
-function AddressList({ addresses }: { addresses: ITokenRightsParsedAddress[] }) {
-	if (addresses.length === 0) return null
+function QuotedBlock({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<div className="flex flex-col gap-1.5">
-			<span className="text-sm font-medium text-(--text-label)">Addresses</span>
-			{addresses.map((a, i) => (
-				<div
-					key={`${a.value}-${i}`}
-					className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2.5"
-				>
-					<div className="flex min-w-0 flex-col gap-0.5">
-						{a.label ? <span className="text-sm font-medium">{a.label}</span> : null}
-						<span className="truncate font-mono text-sm text-(--text-secondary)">{a.value}</span>
-					</div>
-					<CopyHelper toCopy={a.value} />
-				</div>
-			))}
+		<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+			<span className="text-xs font-medium tracking-wider text-(--text-label) uppercase">{title}</span>
+			{children}
 		</div>
 	)
 }
@@ -365,9 +349,79 @@ function FeeSwitchRow({ status, details }: { status: string; details: string | n
 	)
 }
 
+function RaiseHistorySection({ raises }: { raises: IProtocolRaise[] }) {
+	const totalAmount = raises.reduce((sum, r) => sum + (r.amount || 0), 0)
+
+	return (
+		<div className="flex flex-col gap-2">
+			<div className="flex items-center justify-between">
+				<span className="text-sm font-semibold">Raise History</span>
+				<span className="text-xs text-(--text-secondary)">
+					{raises.length} round{raises.length !== 1 ? 's' : ''} · {formattedNum(totalAmount * 1_000_000, true)} total
+				</span>
+			</div>
+			<div className="overflow-x-auto">
+				<table className="w-full text-left text-sm">
+					<thead>
+						<tr className="border-b border-(--cards-border) text-xs font-medium tracking-wider text-(--text-label) uppercase">
+							<th className="pr-4 pb-2">Date</th>
+							<th className="pr-4 pb-2 text-right">Amount</th>
+							<th className="pr-4 pb-2">Round</th>
+							<th className="pr-4 pb-2">Lead Investor</th>
+							<th className="pr-4 pb-2 text-right">Valuation</th>
+							<th className="w-8 pb-2" />
+						</tr>
+					</thead>
+					<tbody>
+						{raises.map((r, i) => (
+							<tr key={`${r.date}-${r.round}-${i}`} className="border-b border-(--cards-border) last:border-0">
+								<td className="py-2 pr-4 whitespace-nowrap">
+									{r.date
+										? new Date(r.date * 1000).toLocaleDateString(undefined, {
+												day: '2-digit',
+												month: 'short',
+												year: 'numeric'
+											})
+										: '—'}
+								</td>
+								<td className="py-2 pr-4 text-right font-jetbrains whitespace-nowrap tabular-nums">
+									{r.amount ? formattedNum(r.amount * 1_000_000, true) : '—'}
+								</td>
+								<td className="py-2 pr-4 whitespace-nowrap">{r.round || '—'}</td>
+								<td className="py-2 pr-4 whitespace-nowrap">{r.leadInvestors?.join(', ') || '—'}</td>
+								<td className="py-2 pr-4 text-right whitespace-nowrap">{r.valuation || '—'}</td>
+								<td className="py-2">
+									{r.source ? (
+										<a
+											href={r.source}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="text-(--text-secondary) hover:text-(--text-primary)"
+										>
+											<Icon name="external-link" className="h-3.5 w-3.5" />
+										</a>
+									) : null}
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	)
+}
+
 // ---------------------------------------------------------------------------
-// Tone helpers
+// Helpers
 // ---------------------------------------------------------------------------
+
+function tryHostname(url: string): string {
+	try {
+		return new URL(url).hostname
+	} catch {
+		return url
+	}
+}
 
 function feeSwitchTone(status: string): StatusTone {
 	switch (status) {
@@ -380,11 +434,6 @@ function feeSwitchTone(status: string): StatusTone {
 		default:
 			return 'neutral'
 	}
-}
-
-function valueAccrualPrimaryTone(val: string): StatusTone {
-	if (val === 'N/A') return 'neutral'
-	return 'positive'
 }
 
 function equityCaptureTone(val: string): StatusTone {
