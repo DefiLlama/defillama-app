@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, slug } from '~/utils'
+import { ProtocolsTreemap } from './ProtocolsTreemap'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
 import type { IChainOverviewData } from './types'
@@ -68,16 +69,19 @@ export function ChainOverview(props: IChainOverviewData) {
 				</div>
 			) : null}
 			{props.protocols.length > 0 ? (
-				<Suspense
-					fallback={
-						<div
-							style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
-							className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
-						/>
-					}
-				>
-					<Table protocols={props.protocols} />
-				</Suspense>
+				<>
+					<ProtocolsTreemap protocols={props.protocols} chainName={props.metadata.name} />
+					<Suspense
+						fallback={
+							<div
+								style={{ minHeight: `${props.protocols.length * 50 + 200}px` }}
+								className="rounded-md border border-(--cards-border) bg-(--cards-bg)"
+							/>
+						}
+					>
+						<Table protocols={props.protocols} />
+					</Suspense>
+				</>
 			) : null}
 		</>
 	)
