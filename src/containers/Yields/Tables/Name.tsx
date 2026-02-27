@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { chainIconUrl, tokenIconUrl } from '~/utils'
 
@@ -23,6 +24,7 @@ interface INameYield {
 	project: string
 	projectslug: string
 	airdrop?: boolean
+	raiseValuation?: number | null
 	borrow?: boolean
 	withoutLink?: boolean
 }
@@ -125,20 +127,45 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 	)
 }
 
-export function NameYield({ project, projectslug, airdrop, borrow: _borrow, withoutLink, ...props }: INameYield) {
+function AirdropIndicator({
+	raiseValuation,
+	className = 'm-[0_16px_0_-32px]'
+}: {
+	raiseValuation?: number | null
+	className?: string
+}) {
+	const tooltipContent =
+		raiseValuation != null ? (
+			<span className="flex flex-col gap-1">
+				<span>Potential Airdrop</span>
+				<span className="border-t border-current/20 pt-1">Last Valuation: {formatRaisedAmount(raiseValuation)}</span>
+			</span>
+		) : (
+			'Potential Airdrop'
+		)
+
+	return (
+		<Tooltip content={tooltipContent} className={className}>
+			{raiseValuation != null ? '💸' : '🪂'}
+		</Tooltip>
+	)
+}
+
+export function NameYield({
+	project,
+	projectslug,
+	airdrop,
+	raiseValuation,
+	borrow: _borrow,
+	withoutLink,
+	...props
+}: INameYield) {
 	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<span className="relative flex items-center pl-6" {...props}>
-			{airdrop && project !== 'Fraxlend' ? (
-				<Tooltip
-					content="This project has no token and might airdrop one to depositors in the future"
-					className="m-[0_16px_0_-32px]"
-				>
-					🪂
-				</Tooltip>
-			) : null}
+			{airdrop && project !== 'Fraxlend' ? <AirdropIndicator raiseValuation={raiseValuation} /> : null}
 			<TokenLogo logo={iconUrl} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
@@ -176,7 +203,15 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 	)
 }
 
-export function PoolStrategyRoute({ project1, airdropProject1, project2, airdropProject2, chain }) {
+export function PoolStrategyRoute({
+	project1,
+	airdropProject1,
+	raiseValuationProject1,
+	project2,
+	airdropProject2,
+	raiseValuationProject2,
+	chain
+}) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)
@@ -186,25 +221,28 @@ export function PoolStrategyRoute({ project1, airdropProject1, project2, airdrop
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				{airdropProject1 ? (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
-				) : null}
 				<TokenLogo logo={iconUrl1} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
+				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span className="shrink-0">{'->'}</span>
 			<span className="flex items-center gap-1">
-				{airdropProject2 ? (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
-				) : null}
 				<TokenLogo logo={iconUrl2} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
+				{airdropProject2 ? <AirdropIndicator raiseValuation={raiseValuationProject2} className="" /> : null}
 			</span>
 		</span>
 	)
 }
 
-export function FRStrategyRoute({ project1, airdropProject1, project2, airdropProject2: _airdropProject2, chain }) {
+export function FRStrategyRoute({
+	project1,
+	airdropProject1,
+	raiseValuationProject1,
+	project2,
+	airdropProject2: _airdropProject2,
+	chain
+}) {
 	const iconUrl1 = tokenIconUrl(project1)
 	const iconUrl2 = tokenIconUrl(project2)
 	const chainIcon = chainIconUrl(chain)
@@ -214,11 +252,9 @@ export function FRStrategyRoute({ project1, airdropProject1, project2, airdropPr
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				{airdropProject1 ? (
-					<Tooltip content="This project has no token and might airdrop one to depositors in the future">🪂</Tooltip>
-				) : null}
 				<TokenLogo logo={iconUrl1} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
+				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">

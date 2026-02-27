@@ -10,24 +10,32 @@ import {
 	YIELD_URL_API
 } from '~/constants'
 import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchRaises } from '~/containers/Raises/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchJson } from '~/utils/async'
-import { formatYieldsPageData } from './utils'
+import { buildRaiseValuations, formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await Promise.all([
+	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
 		fetchJson(YIELD_POOLS_API),
 		fetchJson(YIELD_CONFIG_API),
 		fetchJson(YIELD_URL_API),
 		fetchJson(YIELD_CHAIN_API),
-		fetchProtocols()
+		fetchProtocols(),
+		fetchRaises().catch((): { raises: [] } => ({ raises: [] }))
 	])
 
+	let poolsAndConfig = [poolsData, configData, urlsData, chainsData, protocolsData]
+
 	let data = formatYieldsPageData(poolsAndConfig)
+
+	// Attach raiseValuation to airdrop pools
+	const valuationBySlug = buildRaiseValuations(raisesData?.raises ?? [], configData?.protocols ?? {}, protocolsData)
 	data.pools = data.pools.map((p) => ({
 		...p,
 		underlyingTokens: p.underlyingTokens ?? [],
-		rewardTokens: p.rewardTokens ?? []
+		rewardTokens: p.rewardTokens ?? [],
+		raiseValuation: p.airdrop ? (valuationBySlug.get(p.project) ?? null) : null
 	}))
 
 	const priceChainMapping = {

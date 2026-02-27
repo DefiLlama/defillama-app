@@ -36,6 +36,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				project={row.original.project}
 				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
 				borrow={true}
 			/>
 		),

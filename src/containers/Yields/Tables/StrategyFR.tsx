@@ -44,6 +44,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						<FRStrategyRoute
 							project1={row.original.projectName}
 							airdropProject1={row.original.airdrop}
+							raiseValuationProject1={row.original.raiseValuation}
 							project2={row.original.marketplace}
 							airdropProject2={false}
 							chain={row.original.chains[0]}

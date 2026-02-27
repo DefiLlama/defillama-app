@@ -35,6 +35,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 				project={row.original.projectName}
 				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
 				borrow={true}
 			/>
 		),
