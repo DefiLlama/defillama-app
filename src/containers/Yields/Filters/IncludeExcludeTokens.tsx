@@ -40,7 +40,7 @@ export function IncludeExcludeTokens({
 		const updates: Record<string, string | string[]> = { token: tokenQueryParams }
 		if (action !== 'delete') {
 			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
-		} else if (tokenQueryParams.length === 0) {
+		} else if (tokenQueryParams.length === 0 && tokensThatMatchExactly.length === 0) {
 			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
 		}
 
@@ -78,10 +78,17 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXACT, { token })
 		}
 
+		const updates: Record<string, string | string[]> = { exactToken: tokenQueryParams }
+		if (action !== 'delete') {
+			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
+		} else if (tokenQueryParams.length === 0 && tokensToInclude.length === 0) {
+			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+		}
+
 		if (action === 'delete') {
-			pushShallowQuery(router, { exactToken: tokenQueryParams })
+			pushShallowQuery(router, updates)
 		} else {
-			pushShallowQuery(router, { exactToken: tokenQueryParams }).then(() => {
+			pushShallowQuery(router, updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
