@@ -13,7 +13,7 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import { fetchRaises } from '~/containers/Raises/api'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { fetchJson } from '~/utils/async'
-import { formatYieldsPageData } from './utils'
+import { buildRaiseValuations, formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
 	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
@@ -34,133 +34,8 @@ export async function getYieldPageData() {
 		rewardTokens: p.rewardTokens ?? []
 	}))
 
-	// Build raise valuation lookups
-	const raises = raisesData?.raises ?? []
-	const sortedRaises = [...raises].sort((a, b) => b.date - a.date)
-
-	// 1. By defillamaId
-	const valuationByDefillamaId = new Map<string, number>()
-	for (const raise of sortedRaises) {
-		if (raise.defillamaId && raise.valuation != null) {
-			const key = String(raise.defillamaId)
-			const numVal = Number(raise.valuation)
-			if (!Number.isFinite(numVal) || numVal <= 0) continue
-			if (!valuationByDefillamaId.has(key)) {
-				valuationByDefillamaId.set(key, numVal)
-			}
-		}
-	}
-
-	// 2. By raise name (fallback — most raises lack defillamaId but have names)
-	const valuationByRaiseName = new Map<string, number>()
-	for (const raise of sortedRaises) {
-		if (raise.name && raise.valuation != null) {
-			const key = raise.name.trim().toLowerCase()
-			const numVal = Number(raise.valuation)
-			if (!Number.isFinite(numVal) || numVal <= 0) continue
-			if (!valuationByRaiseName.has(key)) {
-				valuationByRaiseName.set(key, numVal)
-			}
-		}
-	}
-
-	// Build project slug → valuation
-	const _config = configData?.protocols ?? {}
-	const _lite = protocolsData ?? { protocols: [], parentProtocols: [] }
-	const liteProtocols = _lite.protocols ?? []
-	const liteByName = new Map<string, any>()
-	for (const p of liteProtocols) {
-		if (p.name) liteByName.set(p.name.toLowerCase(), p)
-	}
-
-	// Build parent protocol name lookup
-	const parentProtocols = _lite.parentProtocols ?? []
-	const parentNameById = new Map<string, string>()
-	for (const pp of parentProtocols) {
-		if (pp.id && pp.name) parentNameById.set(pp.id, pp.name)
-	}
-
-	// Build parent → children map for O(1) child lookups
-	const childrenByParentId = new Map<string, typeof liteProtocols>()
-	for (const lp of liteProtocols) {
-		if (lp.parentProtocol) {
-			if (!childrenByParentId.has(lp.parentProtocol)) childrenByParentId.set(lp.parentProtocol, [])
-			childrenByParentId.get(lp.parentProtocol)!.push(lp)
-		}
-	}
-
-	// Build parent protocol name → valuation map (for prefix matching tier)
-	// Uses curated parent protocol names (clean, structured) rather than raw raise names
-	const valuationByParentName = new Map<string, number>()
-	for (const pp of parentProtocols) {
-		if (!pp.name || pp.name.length < 4) continue
-		const parentNameLower = pp.name.trim().toLowerCase()
-		// Try resolving valuation via parent ID in raises
-		let val = valuationByDefillamaId.get(pp.id)
-		// Also check if any child protocol's defillamaId has a raise
-		if (val == null) {
-			const children = childrenByParentId.get(pp.id)
-			if (children) {
-				for (const lp of children) {
-					const childId = String(lp.defillamaId ?? lp.id ?? '')
-					val = valuationByDefillamaId.get(childId)
-					if (val != null) break
-				}
-			}
-		}
-		// Also try by parent name in raises
-		if (val == null) {
-			val = valuationByRaiseName.get(parentNameLower)
-		}
-		if (val != null) valuationByParentName.set(parentNameLower, val)
-	}
-
-	const valuationBySlug = new Map<string, number>()
-	for (const slug of Object.keys(_config)) {
-		const configName = _config[slug]?.name
-		if (!configName) continue
-		const liteProtocol = liteByName.get(configName.toLowerCase())
-
-		let val: number | undefined
-
-		// Tier 1: defillamaId-based lookup
-		if (liteProtocol) {
-			const defillamaId = String(liteProtocol.defillamaId ?? liteProtocol.id ?? '')
-			val = valuationByDefillamaId.get(defillamaId)
-
-			// Tier 2: parentProtocol raises
-			if (val == null && liteProtocol.parentProtocol) {
-				val = valuationByDefillamaId.get(String(liteProtocol.parentProtocol))
-
-				// Also try parent protocol name-based lookup
-				if (val == null) {
-					const parentName = parentNameById.get(liteProtocol.parentProtocol)
-					if (parentName) val = valuationByRaiseName.get(parentName.toLowerCase())
-				}
-			}
-		}
-
-		// Tier 3: exact config name → raise name
-		if (val == null) {
-			val = valuationByRaiseName.get(configName.toLowerCase())
-		}
-
-		// Tier 4: config name starts with a parent protocol name
-		// e.g. "Phantom SOL" starts with "Phantom" (a curated parent protocol name)
-		if (val == null) {
-			const configNameLower = configName.toLowerCase()
-			for (const [parentName, parentVal] of valuationByParentName) {
-				if (configNameLower.startsWith(parentName + ' ')) {
-					val = parentVal
-					break
-				}
-			}
-		}
-
-		if (val != null) valuationBySlug.set(slug, val)
-	}
-
 	// Attach raiseValuation to airdrop pools
+	const valuationBySlug = buildRaiseValuations(raisesData?.raises ?? [], configData?.protocols ?? {}, protocolsData)
 	data.pools = data.pools.map((p) => ({
 		...p,
 		raiseValuation: p.airdrop ? (valuationBySlug.get(p.project) ?? null) : null
