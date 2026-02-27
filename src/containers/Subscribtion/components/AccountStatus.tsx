@@ -274,7 +274,8 @@ export const AccountStatus = ({
 								<div>
 									<span className="text-sm text-[#b4b7bc]">Promotional emails</span>
 									<p className="mt-0.5 text-xs text-[#8a8c90]">
-										Receive emails about upcoming DefiLlama products and new releases
+										Get early access announcements, new feature releases, and DeFi data insights from the DefiLlama
+										team. Unsubscribe anytime
 									</p>
 								</div>
 								<button
