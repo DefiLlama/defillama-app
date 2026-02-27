@@ -127,7 +127,13 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 	)
 }
 
-function AirdropIndicator({ raiseValuation }: { raiseValuation?: number | null }) {
+function AirdropIndicator({
+	raiseValuation,
+	className = 'm-[0_16px_0_-32px]'
+}: {
+	raiseValuation?: number | null
+	className?: string
+}) {
 	const tooltipContent =
 		raiseValuation != null ? (
 			<span className="flex flex-col gap-1">
@@ -139,7 +145,7 @@ function AirdropIndicator({ raiseValuation }: { raiseValuation?: number | null }
 		)
 
 	return (
-		<Tooltip content={tooltipContent} className="m-[0_16px_0_-32px]">
+		<Tooltip content={tooltipContent} className={className}>
 			{raiseValuation != null ? '💸' : '🪂'}
 		</Tooltip>
 	)
@@ -215,15 +221,15 @@ export function PoolStrategyRoute({
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} /> : null}
 				<TokenLogo logo={iconUrl1} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
+				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span className="shrink-0">{'->'}</span>
 			<span className="flex items-center gap-1">
-				{airdropProject2 ? <AirdropIndicator raiseValuation={raiseValuationProject2} /> : null}
 				<TokenLogo logo={iconUrl2} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
+				{airdropProject2 ? <AirdropIndicator raiseValuation={raiseValuationProject2} className="" /> : null}
 			</span>
 		</span>
 	)
@@ -246,9 +252,9 @@ export function FRStrategyRoute({
 			<TokenLogo logo={chainIcon} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} /> : null}
 				<TokenLogo logo={iconUrl1} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
+				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">

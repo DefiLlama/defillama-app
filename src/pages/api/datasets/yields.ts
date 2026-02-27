@@ -71,7 +71,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			projectslug: pool.project,
 			project: pool.projectName,
 			airdrop: pool.airdrop,
-			raiseValuation: pool.raiseValuation ?? null,
 			chains: [pool.chain],
 			tvl: pool.tvlUsd,
 			apy: pool.apy,
