@@ -22,22 +22,19 @@ export async function getYieldPageData() {
 		fetchJson(YIELD_URL_API),
 		fetchJson(YIELD_CHAIN_API),
 		fetchProtocols(),
-		fetchRaises()
+		fetchRaises().catch((): { raises: [] } => ({ raises: [] }))
 	])
 
 	let poolsAndConfig = [poolsData, configData, urlsData, chainsData, protocolsData]
 
 	let data = formatYieldsPageData(poolsAndConfig)
-	data.pools = data.pools.map((p) => ({
-		...p,
-		underlyingTokens: p.underlyingTokens ?? [],
-		rewardTokens: p.rewardTokens ?? []
-	}))
 
 	// Attach raiseValuation to airdrop pools
 	const valuationBySlug = buildRaiseValuations(raisesData?.raises ?? [], configData?.protocols ?? {}, protocolsData)
 	data.pools = data.pools.map((p) => ({
 		...p,
+		underlyingTokens: p.underlyingTokens ?? [],
+		rewardTokens: p.rewardTokens ?? [],
 		raiseValuation: p.airdrop ? (valuationBySlug.get(p.project) ?? null) : null
 	}))
 
