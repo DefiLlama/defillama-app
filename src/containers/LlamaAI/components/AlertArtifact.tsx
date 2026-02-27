@@ -123,7 +123,27 @@ export const AlertArtifact = memo(function AlertArtifact({
 	}
 
 	return (
-		<div className="my-2 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
+		<div
+			className={`my-2 flex flex-col gap-3 rounded-lg border p-3 ${
+				saved
+					? 'border-[#e6e6e6] bg-white dark:border-[#222324] dark:bg-[#181A1C]'
+					: 'animate-[alertPulse_2s_ease-in-out_infinite] border-amber-500/50 bg-white dark:bg-[#181A1C]'
+			}`}
+			style={
+				!saved
+					? ({
+							'--tw-shadow': '0 0 0 0 rgba(245, 158, 11, 0)',
+							animation: 'alertPulse 2s ease-in-out infinite'
+						} as React.CSSProperties)
+					: undefined
+			}
+		>
+			<style>{`
+				@keyframes alertPulse {
+					0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.15); }
+					50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1); }
+				}
+			`}</style>
 			<div className="flex items-center gap-3">
 				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
 					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
@@ -184,27 +204,38 @@ export const AlertArtifact = memo(function AlertArtifact({
 				</select>
 
 				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
-
-				<button
-					onClick={handleSave}
-					disabled={!canSave}
-					className="ml-auto flex items-center gap-1.5 rounded-md bg-[#2172E5] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50"
-				>
-					{saved ? (
-						<>
-							<Icon name="check" className="h-4 w-4" />
-							<span>Saved</span>
-						</>
-					) : isSaving ? (
-						<span>Saving...</span>
-					) : (
-						<>
-							<Icon name="calendar-plus" className="h-4 w-4" />
-							<span>Save Alert</span>
-						</>
-					)}
-				</button>
 			</div>
+
+			{!saved && (
+				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
+					<span>Action required — confirm your alert settings and save</span>
+				</p>
+			)}
+
+			<button
+				onClick={handleSave}
+				disabled={!canSave}
+				className={`flex w-full items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+					saved
+						? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+						: 'bg-[#2172E5] text-white hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50'
+				}`}
+			>
+				{saved ? (
+					<>
+						<Icon name="check" className="h-4 w-4" />
+						<span>Saved</span>
+					</>
+				) : isSaving ? (
+					<span>Saving...</span>
+				) : (
+					<>
+						<Icon name="calendar-plus" className="h-4 w-4" />
+						<span>Save Alert</span>
+					</>
+				)}
+			</button>
 			{saveErrorMessage ? <p className="text-center text-xs text-(--error)">{saveErrorMessage}</p> : null}
 		</div>
 	)
