@@ -318,6 +318,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			Router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
+		abortControllerRef.current?.abort()
+		setIsStreaming(false)
 		setMessages([])
 		setSessionId(null)
 		setSessionTitle(null)
@@ -329,6 +331,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setStreamingAlerts([])
 		setStreamingCitations([])
 		setStreamingToolExecutions([])
+		setStreamingThinking('')
 		setActiveToolCalls([])
 		setSpawnProgress(new Map())
 		setSpawnStartTime(0)
