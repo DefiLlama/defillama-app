@@ -137,11 +137,11 @@ function AirdropIndicator({
 	const tooltipContent =
 		raiseValuation != null ? (
 			<span className="flex flex-col gap-1">
-				<span>Potential airdrop</span>
+				<span>Potential Airdrop</span>
 				<span className="border-t border-current/20 pt-1">Last Valuation: {formatRaisedAmount(raiseValuation)}</span>
 			</span>
 		) : (
-			'Potential airdrop'
+			'Potential Airdrop'
 		)
 
 	return (
