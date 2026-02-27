@@ -2,9 +2,39 @@ import type { ReactNode } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
+import { Tooltip } from '~/components/Tooltip'
 import type { IProtocolRaise } from '~/containers/ProtocolOverview/api.types'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import type { ITokenRightsData, ITokenRightsParsedLink } from './api.types'
+
+const TOOLTIPS = {
+	'Governance Decisions':
+		'Which token grants holders the ability to participate in governance decisions such as parameter changes, upgrades and protocol direction.',
+	'Treasury Decisions':
+		'Which token grants holders the ability to vote on how treasury funds are allocated or deployed.',
+	'Revenue Decisions':
+		'Which token grants holders voting control over how protocol revenue is distributed or redirected.',
+	'Fee Switch':
+		'Whether the protocol has activated a mechanism to direct a share of fees to token holders through buybacks, revenue sharing or token burns. Status can be ON, OFF or PENDING.',
+	Buybacks:
+		'Whether the protocol uses revenue to purchase its own token on the open market, reducing circulating supply and creating buy pressure.',
+	Dividends:
+		'Whether the protocol distributes revenue directly to token holders, similar to a dividend or yield payment.',
+	Burns:
+		'Whether the protocol permanently removes tokens from circulation through a burn mechanism, reducing total supply over time.',
+	Fundraising:
+		'How the protocol raised initial or ongoing funding. Options: None, Unknown, Equity (sold ownership shares), Token Sale (sold tokens to investors).',
+	'Raise History':
+		'Information about historical fundraising rounds sourced from public announcements and verified manually.',
+	'Equity Revenue Capture':
+		'Whether any equity entity (Labs, parent company) captures protocol revenue separately from token holders. Active means equity holders receive revenue that could otherwise flow to token holders.',
+	'Associated Entities':
+		'Legal or organizational entities associated with the protocol, such as a DAO, Labs company, Foundation, or parent holding company.',
+	'IP & Brand':
+		"Which entity owns the intellectual property, trademarks, and brand assets of the protocol. Important for understanding who controls the project's identity.",
+	Domain:
+		'Which entity owns the primary domain name(s) and frontend interface of the protocol. Domain ownership affects user access and frontend fee capture.'
+} as const
 
 interface TokenRightsByProtocolProps {
 	name: string
@@ -29,7 +59,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 	return (
 		<div className="grid grid-cols-1 gap-2">
 			{/* Header */}
-			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<header className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<TokenLogo logo={tokenIconUrl(name)} size={24} />
 				<h1 className="text-xl font-bold">{symbol ? `$${symbol}` : name} Token Rights</h1>
 				{overview.lastUpdated ? (
@@ -42,14 +72,14 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 						})}
 					</span>
 				) : null}
-			</div>
+			</header>
 
 			<div className="grid gap-2 xl:grid-cols-2">
 				{/* ── Left column ── */}
 				<div className="flex flex-col gap-2">
 					{/* Overview */}
 					<SectionCard title="Overview">
-						<div className="divide-y divide-(--cards-border) empty:hidden">
+						<dl className="divide-y divide-(--cards-border) empty:hidden">
 							{overview.tokens.length > 0 ? (
 								<KeyValueRow label="Token(s)">
 									<span className="text-right text-sm">{overview.tokens.join(', ')}</span>
@@ -65,54 +95,78 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 									<span className="text-sm">{overview.utility}</span>
 								</KeyValueRow>
 							) : null}
-						</div>
+						</dl>
 						<p className="text-sm text-(--text-secondary)">{overview.description}</p>
 					</SectionCard>
 
 					{/* Governance & Decisions */}
 					<SectionCard title="Governance Rights" badge="Control">
 						<p className="text-sm text-(--text-secondary)">{governance.summary}</p>
-						<DecisionRow label="Governance Decisions" tokens={governance.decisionTokens} details={governance.details} />
+						<DecisionRow
+							label="Governance Decisions"
+							tooltip={TOOLTIPS['Governance Decisions']}
+							tokens={governance.decisionTokens}
+							details={governance.details}
+						/>
 						<DecisionRow
 							label="Treasury Decisions"
+							tooltip={TOOLTIPS['Treasury Decisions']}
 							tokens={decisions.treasury.tokens}
 							details={decisions.treasury.details}
 						/>
 						<DecisionRow
 							label="Revenue Decisions"
+							tooltip={TOOLTIPS['Revenue Decisions']}
 							tokens={decisions.revenue.tokens}
 							details={decisions.revenue.details}
 						/>
-						<FeeSwitchRow status={economic.feeSwitchStatus} details={economic.feeSwitchDetails} />
+						<FeeSwitchRow
+							tooltip={TOOLTIPS['Fee Switch']}
+							status={economic.feeSwitchStatus}
+							details={economic.feeSwitchDetails}
+						/>
 						<InlineLinks links={governance.links} />
 					</SectionCard>
 
 					{/* Resources */}
 					{resources.addresses.length > 0 || resources.reports.length > 0 ? (
 						<SectionCard title="Resources">
-							{resources.addresses.map((a, i) => (
-								<div key={`${a.value}-${i}`} className="flex items-center justify-between gap-4">
-									<div className="flex min-w-0 flex-col gap-0.5">
-										{a.label ? <span className="text-sm">{a.label}</span> : null}
-										<span className="truncate font-mono text-xs text-(--text-secondary)">{a.value}</span>
+							{resources.addresses.length > 0 ? (
+								<div className="flex flex-col gap-2 text-sm">
+									<h3 className="text-(--text-label)">Foundation Multisigs / Addresses</h3>
+									{resources.addresses.map((a, i) => (
+										<div key={`${a.value}-${i}`} className="flex items-center justify-between gap-4">
+											<div className="flex min-w-0 flex-col gap-0.5">
+												{a.label ? <span>{a.label}</span> : null}
+												<span className="truncate font-mono text-(--text-secondary)">{a.value}</span>
+											</div>
+											<CopyHelper toCopy={a.value} />
+										</div>
+									))}
+								</div>
+							) : null}
+							{resources.reports.length > 0 ? (
+								<>
+									<hr className="my-2 border-(--cards-border)" />
+									<div className="flex flex-col gap-2 text-sm">
+										{/* <h3 className="font-medium text-(--text-label)">Latest Treasury / Token Report</h3> */}
+										{resources.reports.map((r) => (
+											<div key={r.url} className="flex items-center justify-between gap-4">
+												<span>{r.label}</span>
+												<a
+													href={r.url}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="inline-flex shrink-0 items-center gap-1 text-blue-500 hover:underline"
+												>
+													{tryHostname(r.url)}
+													<Icon name="external-link" className="h-3.5 w-3.5" />
+												</a>
+											</div>
+										))}
 									</div>
-									<CopyHelper toCopy={a.value} />
-								</div>
-							))}
-							{resources.reports.map((r) => (
-								<div key={r.url} className="flex items-center justify-between gap-4">
-									<span className="text-sm">{r.label}</span>
-									<a
-										href={r.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex shrink-0 items-center gap-1 text-sm text-blue-500 hover:underline"
-									>
-										{tryHostname(r.url)}
-										<Icon name="external-link" className="h-3.5 w-3.5" />
-									</a>
-								</div>
-							))}
+								</>
+							) : null}
 						</SectionCard>
 					) : null}
 				</div>
@@ -124,15 +178,21 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 						{economic.summary !== null ? <p className="text-sm text-(--text-secondary)">{economic.summary}</p> : null}
 						<TokenActionRow
 							label="Buybacks"
+							tooltip={TOOLTIPS['Buybacks']}
 							tokens={valueAccrual.buybacks.tokens}
 							details={valueAccrual.buybacks.details}
 						/>
 						<TokenActionRow
 							label="Dividends"
+							tooltip={TOOLTIPS['Dividends']}
 							tokens={valueAccrual.dividends.tokens}
 							details={valueAccrual.dividends.details}
 						/>
-						<BurnsRow status={valueAccrual.burns.status} details={valueAccrual.burns.details} />
+						<BurnsRow
+							tooltip={TOOLTIPS['Burns']}
+							status={valueAccrual.burns.status}
+							details={valueAccrual.burns.details}
+						/>
 						{valueAccrual.primary !== null || valueAccrual.details !== null ? (
 							<QuotedBlock title="Primary Value Accrual">
 								{valueAccrual.primary !== null ? (
@@ -149,15 +209,17 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 					{/* Ownership */}
 					{hasOwnershipContent ? (
 						<SectionCard title="Ownership">
-							{raises && raises.length > 0 ? <RaiseHistorySection raises={raises} /> : null}
-							<div className="divide-y divide-(--cards-border) empty:hidden">
+							{raises && raises.length > 0 ? (
+								<RaiseHistorySection tooltip={TOOLTIPS['Raise History']} raises={raises} />
+							) : null}
+							<dl className="divide-y divide-(--cards-border) empty:hidden">
 								{alignment.fundraising.length > 0 ? (
-									<KeyValueRow label="Fundraising">
+									<KeyValueRow label="Fundraising" tooltip={TOOLTIPS['Fundraising']}>
 										<PillList items={alignment.fundraising} category="fundraising" />
 									</KeyValueRow>
 								) : null}
 								{alignment.equityRevenueCapture !== null ? (
-									<KeyValueRow label="Equity Revenue Capture">
+									<KeyValueRow label="Equity Revenue Capture" tooltip={TOOLTIPS['Equity Revenue Capture']}>
 										<StatusBadge
 											label={alignment.equityRevenueCapture}
 											tone={equityCaptureTone(alignment.equityRevenueCapture)}
@@ -165,21 +227,21 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 									</KeyValueRow>
 								) : null}
 								{alignment.associatedEntities.length > 0 ? (
-									<KeyValueRow label="Associated Entities">
+									<KeyValueRow label="Associated Entities" tooltip={TOOLTIPS['Associated Entities']}>
 										<PillList items={alignment.associatedEntities} category="associatedEntities" />
 									</KeyValueRow>
 								) : null}
 								{alignment.ipAndBrand !== null ? (
-									<KeyValueRow label="IP & Brand">
+									<KeyValueRow label="IP & Brand" tooltip={TOOLTIPS['IP & Brand']}>
 										<span className="text-right text-sm">{alignment.ipAndBrand}</span>
 									</KeyValueRow>
 								) : null}
 								{alignment.domain !== null ? (
-									<KeyValueRow label="Domain">
+									<KeyValueRow label="Domain" tooltip={TOOLTIPS['Domain']}>
 										<span className="text-right text-sm">{alignment.domain}</span>
 									</KeyValueRow>
 								) : null}
-							</div>
+							</dl>
 							{alignment.equityStatement !== null ? (
 								<QuotedBlock title="Equity Statement">
 									<p className="text-sm text-(--text-secondary)">{alignment.equityStatement}</p>
@@ -215,7 +277,7 @@ function toneClasses(tone: StatusTone) {
 
 function SectionCard({ title, badge, children }: { title: string; badge?: string; children: ReactNode }) {
 	return (
-		<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+		<section className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 			<div className="flex items-center justify-between">
 				<h2 className="text-base font-semibold">{title}</h2>
 				{badge ? (
@@ -223,15 +285,25 @@ function SectionCard({ title, badge, children }: { title: string; badge?: string
 				) : null}
 			</div>
 			{children}
-		</div>
+		</section>
 	)
 }
 
-function KeyValueRow({ label, children }: { label: string; children: ReactNode }) {
+function KeyValueRow({ label, tooltip, children }: { label: string; tooltip?: string; children: ReactNode }) {
 	return (
 		<div className="flex items-center justify-between gap-4 py-2">
-			<span className="shrink-0 text-sm text-(--text-secondary)">{label}</span>
-			<div className="flex flex-wrap items-center justify-end gap-1.5">{children}</div>
+			{tooltip ? (
+				<Tooltip
+					content={tooltip}
+					render={<dt />}
+					className="shrink-0 text-sm text-(--text-secondary) underline decoration-dotted"
+				>
+					{label}
+				</Tooltip>
+			) : (
+				<dt className="shrink-0 text-sm text-(--text-secondary)">{label}</dt>
+			)}
+			<dd className="flex flex-wrap items-center justify-end gap-1.5">{children}</dd>
 		</div>
 	)
 }
@@ -268,7 +340,7 @@ function StatusBadge({ label, tone }: { label: string; tone: StatusTone }) {
 function InlineLinks({ links }: { links: ITokenRightsParsedLink[] }) {
 	if (links.length === 0) return null
 	return (
-		<div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1">
+		<nav className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-1">
 			{links.map((l) => (
 				<a
 					key={l.url}
@@ -278,19 +350,19 @@ function InlineLinks({ links }: { links: ITokenRightsParsedLink[] }) {
 					className="inline-flex items-center gap-1 text-sm text-blue-500 hover:underline"
 				>
 					<Icon name="external-link" className="h-3 w-3 shrink-0" />
-					<span>{l.label}</span>
+					{l.label}
 				</a>
 			))}
-		</div>
+		</nav>
 	)
 }
 
 function QuotedBlock({ title, children }: { title: string; children: ReactNode }) {
 	return (
-		<div className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
-			<span className="text-xs font-medium tracking-wider text-(--text-label) uppercase">{title}</span>
+		<aside className="flex flex-col gap-1.5 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
+			<h3 className="text-xs font-medium tracking-wider text-(--text-label) uppercase">{title}</h3>
 			{children}
-		</div>
+		</aside>
 	)
 }
 
@@ -302,11 +374,27 @@ function isNATokens(tokens: string[]): boolean {
 	return tokens.length === 1 && tokens[0] === 'N/A'
 }
 
-function DecisionRow({ label, tokens, details }: { label: string; tokens: string[]; details: string | null }) {
+function DecisionRow({
+	label,
+	tooltip,
+	tokens,
+	details
+}: {
+	label: string
+	tooltip?: string
+	tokens: string[]
+	details: string | null
+}) {
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<span className="text-sm font-semibold">{label}</span>
+				{tooltip ? (
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+						{label}
+					</Tooltip>
+				) : (
+					<h3 className="text-sm font-semibold">{label}</h3>
+				)}
 				<PillList items={tokens} category={label} highlight />
 			</div>
 			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
@@ -314,12 +402,28 @@ function DecisionRow({ label, tokens, details }: { label: string; tokens: string
 	)
 }
 
-function TokenActionRow({ label, tokens, details }: { label: string; tokens: string[]; details: string | null }) {
+function TokenActionRow({
+	label,
+	tooltip,
+	tokens,
+	details
+}: {
+	label: string
+	tooltip?: string
+	tokens: string[]
+	details: string | null
+}) {
 	const isNA = isNATokens(tokens)
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
-				<span className="text-sm font-semibold">{label}</span>
+				{tooltip ? (
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+						{label}
+					</Tooltip>
+				) : (
+					<h3 className="text-sm font-semibold">{label}</h3>
+				)}
 				{isNA ? <StatusBadge label="N/A" tone="neutral" /> : <PillList items={tokens} category={label} highlight />}
 			</div>
 			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
@@ -327,12 +431,18 @@ function TokenActionRow({ label, tokens, details }: { label: string; tokens: str
 	)
 }
 
-function BurnsRow({ status, details }: { status: string; details: string | null }) {
+function BurnsRow({ tooltip, status, details }: { tooltip?: string; status: string; details: string | null }) {
 	const tone: StatusTone = status === 'Active' ? 'positive' : 'neutral'
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
 			<div className="flex items-center justify-between gap-2">
-				<span className="text-sm font-semibold">Burns</span>
+				{tooltip ? (
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+						Burns
+					</Tooltip>
+				) : (
+					<h3 className="text-sm font-semibold">Burns</h3>
+				)}
 				<StatusBadge label={status} tone={tone} />
 			</div>
 			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
@@ -340,12 +450,18 @@ function BurnsRow({ status, details }: { status: string; details: string | null 
 	)
 }
 
-function FeeSwitchRow({ status, details }: { status: string; details: string | null }) {
+function FeeSwitchRow({ tooltip, status, details }: { tooltip?: string; status: string; details: string | null }) {
 	const tone = feeSwitchTone(status)
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
 			<div className="flex items-center justify-between gap-2">
-				<span className="text-sm font-semibold">Fee Switch</span>
+				{tooltip ? (
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+						Fee Switch
+					</Tooltip>
+				) : (
+					<h3 className="text-sm font-semibold">Fee Switch</h3>
+				)}
 				<StatusBadge label={status} tone={tone} />
 			</div>
 			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
@@ -353,13 +469,19 @@ function FeeSwitchRow({ status, details }: { status: string; details: string | n
 	)
 }
 
-function RaiseHistorySection({ raises }: { raises: IProtocolRaise[] }) {
+function RaiseHistorySection({ tooltip, raises }: { tooltip?: string; raises: IProtocolRaise[] }) {
 	const totalAmount = raises.reduce((sum, r) => sum + (r.amount || 0), 0)
 
 	return (
 		<div className="flex flex-col gap-2">
 			<div className="flex items-center justify-between">
-				<span className="text-sm font-semibold">Raise History</span>
+				{tooltip ? (
+					<Tooltip content={tooltip} render={<h3 />} className="text-sm font-semibold underline decoration-dotted">
+						Raise History
+					</Tooltip>
+				) : (
+					<h3 className="text-sm font-semibold">Raise History</h3>
+				)}
 				<span className="text-xs text-(--text-secondary)">
 					{raises.length} round{raises.length !== 1 ? 's' : ''} · {formattedNum(totalAmount * 1_000_000, true)} total
 				</span>
