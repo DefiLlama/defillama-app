@@ -375,7 +375,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	}
 	// keep looping strategies only if no tokenToBorrow is given or if they both match
 	const loopPoolsFiltered =
-		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
+		tokenToBorrow !== tokenToLend && tokenToBorrow?.length > 0
 			? []
 			: loopPools
 					.filter((p) => matchesToken(p.symbol, tokenToLend))
