@@ -259,6 +259,7 @@ export default function Protocols(props: TreasuryPageProps) {
 
 	const {
 		isLoading,
+		errors,
 		valueDataset,
 		valueCharts,
 		tokensUnique,
@@ -272,7 +273,7 @@ export default function Protocols(props: TreasuryPageProps) {
 		keys: extraKeys,
 		includeBase: true,
 		source: 'treasury',
-		inflows: props.metrics?.inflows
+		inflows: true
 	})
 
 	const { data: ownTokensBreakdown } = useQuery({
@@ -285,11 +286,6 @@ export default function Protocols(props: TreasuryPageProps) {
 	})
 
 	const hasOwnTokens = (ownTokensBreakdown?.length ?? 0) > 0
-	const hasBreakdownMetrics =
-		(tokenBreakdownPieChart?.length ?? 0) > 0 ||
-		!!valueDataset ||
-		(tokenRawDataset && tokensUnique.length > 0) ||
-		(tokenUSDDataset && tokensUnique.length > 0)
 
 	const toggleIncludeOwnTokens = React.useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
@@ -325,12 +321,8 @@ export default function Protocols(props: TreasuryPageProps) {
 				) : null}
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
-				</div>
-			) : !hasBreakdownMetrics ? (
-				<div className="col-span-full flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<p className="text-(--text-label)">Breakdown metrics are not available</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">
@@ -378,6 +370,24 @@ export default function Protocols(props: TreasuryPageProps) {
 					) : null}
 				</div>
 			)}
+			{errors.length > 0 ? (
+				<div className="col-span-full flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--error)">
+						Failed to fetch{' '}
+						{Array.from(new Set(errors.map((e) => CHART_CATEGORY_LABELS[e.category])))
+							.filter(Boolean)
+							.join(', ')}{' '}
+						APIs
+					</p>
+				</div>
+			) : null}
 		</ProtocolOverviewLayout>
 	)
+}
+
+const CHART_CATEGORY_LABELS: Record<string, string> = {
+	tvl: 'historical treasury',
+	'chain-breakdown': 'chain breakdown',
+	'token-breakdown-usd': 'token breakdown (USD)',
+	'token-breakdown-raw': 'token breakdown (raw quantities)'
 }

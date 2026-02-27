@@ -117,7 +117,11 @@ export default function TrendingContracts() {
 				<div className="flex flex-wrap items-center gap-5 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>
 					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={TIME_VALUES} />
-					<TagGroup selectedValue={chain} setValue={(val: string) => startTransition(() => setChain(val))} values={CHAIN_VALUES} />
+					<TagGroup
+						selectedValue={chain}
+						setValue={(val: string) => startTransition(() => setChain(val))}
+						values={CHAIN_VALUES}
+					/>
 				</div>
 				{isLoading ? (
 					<div className="my-auto flex min-h-[360px] flex-1 items-center justify-center">

@@ -50,7 +50,7 @@ export default function ProtocolsFdvByChain(props: InferGetStaticPropsType<typeo
 	return (
 		<Layout
 			title={`${props.chain} Protocol Fully Diluted Valuations - DefiLlama`}
-			description={`${props.chain} protocols Fully Diluted Valuations. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Fully Diluted Valuations for ${props.chain} protocols. Track live FDV for all protocols in this ecosystem to compare relative token valuations.`}
 			keywords={`${props.chain} protocols fully diluted valuations`}
 			canonicalUrl={`/fdv/chain/${props.chain}`}
 			pageName={pageName}

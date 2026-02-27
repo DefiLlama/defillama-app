@@ -605,7 +605,7 @@ export async function getProDashboardServerData({
 			stablecoinsResult,
 			emissionResult
 		] = await Promise.allSettled([
-			fetchAllChartData(dashboard.data.items, timePeriod, customTimePeriod),
+			fetchAllChartData(dashboard.data.items, 'all', null),
 			fetchTableServerData(dashboard.data.items),
 			fetchAllYieldsChartData(dashboard.data.items),
 			fetchProtocolFullData(dashboard.data.items),

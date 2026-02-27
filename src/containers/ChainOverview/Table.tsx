@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
@@ -40,17 +40,30 @@ import type { IProtocol } from './types'
 
 const EMPTY_CUSTOM_COLUMN_VALUES: Record<string, unknown> = {}
 
-export const ChainProtocolsTable = ({
-	protocols,
-	sampleRow = sampleProtocol,
-	useStickyHeader = true,
-	borderless = false
-}: {
+type ChainProtocolsTableProps = {
 	protocols: Array<IProtocol>
 	sampleRow?: any
 	useStickyHeader?: boolean
 	borderless?: boolean
-}) => {
+}
+
+type ChainProtocolsTableInnerProps = ChainProtocolsTableProps & {
+	filterState: string | null
+}
+
+export const ChainProtocolsTable = (props: ChainProtocolsTableProps) => {
+	const filterState = useStorageItem(tableFilterStateKey, null)
+
+	return <ChainProtocolsTableInner {...props} filterState={filterState} key={`filter-state-${filterState}`} />
+}
+
+const ChainProtocolsTableInner = ({
+	protocols,
+	sampleRow = sampleProtocol,
+	useStickyHeader = true,
+	borderless = false,
+	filterState
+}: ChainProtocolsTableInnerProps) => {
 	const { customColumns, setCustomColumns } = useCustomColumns()
 
 	const router = useRouter()
@@ -64,8 +77,6 @@ export const ChainProtocolsTable = ({
 
 	const rawColumnsInStorage = useStorageItem(tableColumnOptionsKey, defaultColumns)
 	const columnsInStorage = useDeferredValue(rawColumnsInStorage)
-
-	const filterState = useStorageItem(tableFilterStateKey, null)
 
 	const [customColumnModalEditIndex, setCustomColumnModalEditIndex] = useState<number | null>(null)
 	const [customColumnModalInitialValues, setCustomColumnModalInitialValues] = useState<
@@ -163,6 +174,8 @@ export const ChainProtocolsTable = ({
 	])
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [expanded, setExpanded] = useState<ExpandedState>({})
+	const sortingRef = useRef(sorting)
+	sortingRef.current = sorting
 
 	const allColumns = useMemo<ColumnDef<IProtocol>[]>(() => {
 		const customColumnDefs = customColumns.map((col, idx) => {
@@ -212,7 +225,8 @@ export const ChainProtocolsTable = ({
 					},
 					sortingFn: (rowA, rowB, columnId) => {
 						const usedFormat = col.determinedFormat || col.formatType
-						const desc = sorting.length ? sorting[0].desc : true
+						const sortEntry = sortingRef.current.find((s) => s.id === columnId)
+						const desc = sortEntry?.desc ?? true
 
 						let a = rowA.getValue(columnId)
 						let b = rowB.getValue(columnId)
@@ -239,7 +253,6 @@ export const ChainProtocolsTable = ({
 							return Number(a) - Number(b)
 						}
 					},
-
 					size: 140,
 					meta: { align: 'end', headerHelperText: col.formula }
 				}
@@ -258,7 +271,7 @@ export const ChainProtocolsTable = ({
 				columns: customColumnDefs
 			}
 		]
-	}, [customColumns, sorting])
+	}, [customColumns])
 
 	const instance = useReactTable({
 		data: finalProtocols,
@@ -599,7 +612,7 @@ const columns: ColumnDef<IProtocol>[] = [
 						row.original.strikeTvl || row.original.tvl.excludeParent ? (
 							<ProtocolTvlCell rowValues={row.original} />
 						) : (
-							<>{`$${formattedNum(row.original.tvl?.default?.tvl || 0)}`}</>
+							`$${formattedNum(row.original.tvl?.default?.tvl || 0)}`
 						)
 					) : null,
 				meta: {
@@ -611,11 +624,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1d, {
 				id: 'change_1d',
 				header: '1d Change',
-				cell: ({ getValue }) => (
-					<>
-						<PercentChange percent={getValue()} />
-					</>
-				),
+				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 24 hours'
@@ -625,11 +634,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change7d, {
 				id: 'change_7d',
 				header: '7d Change',
-				cell: ({ getValue }) => (
-					<>
-						<PercentChange percent={getValue()} />
-					</>
-				),
+				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 7 days'
@@ -639,11 +644,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.tvlChange?.change1m, {
 				id: 'change_1m',
 				header: '1m Change',
-				cell: ({ getValue }) => (
-					<>
-						<PercentChange percent={getValue()} />
-					</>
-				),
+				cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 				meta: {
 					align: 'end',
 					headerHelperText: 'Change in TVL in the last 30 days'
@@ -653,9 +654,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor('mcaptvl', {
 				id: 'mcaptvl',
 				header: 'Mcap/TVL',
-				cell: (info) => {
-					return <>{info.getValue() ?? null}</>
-				},
+				cell: (info) => info.getValue() ?? null,
 				size: 110,
 				meta: {
 					align: 'end',
@@ -672,7 +671,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.total24h, {
 				id: 'fees_24h',
 				header: 'Fees 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['24h']
@@ -682,7 +681,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.total24h, {
 				id: 'revenue_24h',
 				header: 'Revenue 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['24h']
@@ -692,7 +691,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.holdersRevenue?.total24h, {
 				id: 'holdersRevenue_24h',
 				header: 'Holders Revenue 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['24h']
@@ -702,7 +701,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.emissions?.total24h, {
 				id: 'emissions_24h',
 				header: 'Incentives 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['24h']
@@ -712,7 +711,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.total7d, {
 				id: 'fees_7d',
 				header: 'Fees 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['7d']
@@ -722,7 +721,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.total7d, {
 				id: 'revenue_7d',
 				header: 'Revenue 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['7d']
@@ -732,7 +731,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.holdersRevenue?.total7d, {
 				id: 'holdersRevenue_7d',
 				header: 'Holders Revenue 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['7d']
@@ -742,7 +741,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.emissions?.total7d, {
 				id: 'emissions_7d',
 				header: 'Incentives 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['7d']
@@ -752,7 +751,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.total30d, {
 				id: 'fees_30d',
 				header: 'Fees 30d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['30d']
@@ -762,7 +761,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.total30d, {
 				id: 'revenue_30d',
 				header: 'Revenue 30d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['30d']
@@ -772,7 +771,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.holdersRevenue?.total30d, {
 				id: 'holdersRevenue_30d',
 				header: 'Holders Revenue 30d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['30d']
@@ -782,7 +781,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.emissions?.total30d, {
 				id: 'emissions_30d',
 				header: 'Incentives 30d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['30d']
@@ -792,7 +791,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.total1y, {
 				id: 'fees_1y',
 				header: 'Fees 1Y',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['1y']
@@ -802,7 +801,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.monthlyAverage1y, {
 				id: 'average_fees_1y',
 				header: 'Monthly Avg 1Y Fees',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['monthlyAverage1y']
@@ -812,7 +811,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.total1y, {
 				id: 'revenue_1y',
 				header: 'Revenue 1Y',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['1y']
@@ -822,7 +821,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.holdersRevenue?.total1y, {
 				id: 'holdersRevenue_1y',
 				header: 'Holders Revenue 1Y',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['1y']
@@ -832,7 +831,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.monthlyAverage1y, {
 				id: 'average_revenue_1y',
 				header: 'Monthly Avg 1Y Rev',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['monthlyAverage1y']
@@ -842,7 +841,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.holdersRevenue?.monthlyAverage1y, {
 				id: 'average_holdersRevenue_1y',
 				header: 'Monthly Avg 1Y Holders Revenue',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['monthlyAverage1y']
@@ -852,7 +851,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.emissions?.total1y, {
 				id: 'emissions_1y',
 				header: 'Incentives 1Y',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['1y']
@@ -862,7 +861,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.emissions?.monthlyAverage1y, {
 				id: 'average_emissions_1y',
 				header: 'Monthly Avg 1Y Incentives',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['monthlyAverage1y']
@@ -872,7 +871,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.totalAllTime, {
 				id: 'fees_cumulative',
 				header: 'Cumulative Fees',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['cumulative']
@@ -882,7 +881,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.totalAllTime, {
 				id: 'cumulativeRevenue',
 				header: 'Cumulative Revenue',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['cumulative']
@@ -892,7 +891,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.holdersRevenue?.totalAllTime, {
 				id: 'cumulativeHoldersRevenue',
 				header: 'Cumulative Holders Revenue',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.holdersRevenue.protocol['cumulative']
@@ -902,7 +901,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.emissions?.totalAllTime, {
 				id: 'cumulativeEmissions',
 				header: 'Cumulative Incentives',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.incentives.protocol['cumulative']
@@ -912,7 +911,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.pf, {
 				id: 'pf',
 				header: 'P/F',
-				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
+				cell: (info) => (info.getValue() != null ? info.getValue() + 'x' : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['pf']
@@ -922,7 +921,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.ps, {
 				id: 'ps',
 				header: 'P/S',
-				cell: (info) => <>{info.getValue() != null ? info.getValue() + 'x' : null}</>,
+				cell: (info) => (info.getValue() != null ? info.getValue() + 'x' : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['ps']
@@ -938,7 +937,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				{
 					id: 'earnings_24h',
 					header: 'Earnings 24h',
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 					meta: {
 						align: 'end',
@@ -956,7 +955,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				{
 					id: 'earnings_7d',
 					header: 'Earnings 7d',
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 					meta: {
 						align: 'end',
@@ -974,7 +973,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				{
 					id: 'earnings_30d',
 					header: 'Earnings 30d',
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 					meta: {
 						align: 'end',
@@ -992,7 +991,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				{
 					id: 'earnings_1y',
 					header: 'Earnings 1Y',
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 					meta: {
 						align: 'end',
@@ -1010,7 +1009,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				{
 					id: 'average_earnings_1y',
 					header: 'Monthly Avg 1Y Earnings',
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 					meta: {
 						align: 'end',
@@ -1028,7 +1027,7 @@ const columns: ColumnDef<IProtocol>[] = [
 				{
 					id: 'cumulativeEarnings',
 					header: 'Cumulative Earnings',
-					cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 
 					meta: {
 						align: 'end',
@@ -1050,7 +1049,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.total24h, {
 				id: 'dex_volume_24h',
 				header: 'Spot Volume 24h',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['24h']
@@ -1060,7 +1059,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.total7d, {
 				id: 'dex_volume_7d',
 				header: 'Spot Volume 7d',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['7d']
@@ -1070,7 +1069,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
-				cell: ({ getValue }) => <>{getValue() != 0 ? <PercentChange percent={getValue()} /> : null}</>,
+				cell: ({ getValue }) => (getValue() != 0 ? <PercentChange percent={getValue()} /> : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']
@@ -1080,7 +1079,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.totalAllTime, {
 				id: 'dex_cumulative_volume',
 				header: 'Spot Cumulative Volume',
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['cumulative']

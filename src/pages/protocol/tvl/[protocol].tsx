@@ -127,6 +127,8 @@ function ChainsChartCard({
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
+	const deferredCharts = React.useDeferredValue(charts)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
@@ -147,8 +149,8 @@ function ChainsChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredDataset}
+					charts={deferredCharts}
 					valueSymbol="$"
 					selectedCharts={selectedChartsSet}
 					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
@@ -181,6 +183,8 @@ function TokenLineChartCard({
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
+	const deferredCharts = React.useDeferredValue(charts)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
@@ -201,8 +205,8 @@ function TokenLineChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredDataset}
+					charts={deferredCharts}
 					valueSymbol={valueSymbol}
 					selectedCharts={selectedChartsSet}
 					chartOptions={valueSymbol === '$' ? { tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } } : undefined}
@@ -232,6 +236,7 @@ function TokensBreakdownPieChartCard({
 		if (selectedTokens.length === 0) return []
 		return chartData.filter((d) => selectedTokensSet.has(d.name))
 	}, [chartData, selectedTokens.length, selectedTokensSet])
+	const deferredFilteredChartData = React.useDeferredValue(filteredChartData)
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
@@ -253,7 +258,7 @@ function TokensBreakdownPieChartCard({
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
+				<PieChart chartData={deferredFilteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -273,6 +278,7 @@ function USDInflowsChartCard({
 	const allSeries = React.useMemo(() => ['USD Inflows'], [])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
@@ -282,7 +288,7 @@ function USDInflowsChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
+					dataset={deferredDataset}
 					charts={USD_INFLOWS_CHARTS}
 					valueSymbol="$"
 					selectedCharts={new Set(allSeries)}
@@ -313,6 +319,8 @@ function InflowsByTokenChartCard({
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
+	const deferredCharts = React.useDeferredValue(charts)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
@@ -333,8 +341,8 @@ function InflowsByTokenChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredDataset}
+					charts={deferredCharts}
 					hideDefaultLegend={true}
 					valueSymbol="$"
 					selectedCharts={selectedChartsSet}
@@ -399,7 +407,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				<h1 className="text-xl font-bold">{props.name} TVL Breakdown</h1>
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : props.chainsUnique.length <= 1 && !props.metrics.inflows ? (
@@ -483,7 +491,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			)}
 			{errors.length > 0 ? (
 				<div className="col-span-2 flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<p className="text-(--text-label)">
+					<p className="text-(--error)">
 						Failed to fetch{' '}
 						{Array.from(new Set(errors.map((e) => CHART_CATEGORY_LABELS[e.category])))
 							.filter(Boolean)

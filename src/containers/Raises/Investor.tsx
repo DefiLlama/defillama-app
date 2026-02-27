@@ -122,6 +122,9 @@ export const InvestorContainer = ({
 		sectors,
 		chains
 	})
+	const deferredFundingRoundsByMonthChart = React.useDeferredValue(fundingRoundsByMonthChart)
+	const deferredInvestmentByRounds = React.useDeferredValue(investmentByRounds)
+	const deferredRaisesByCategory = React.useDeferredValue(raisesByCategory)
 
 	return (
 		<>
@@ -180,8 +183,8 @@ export const InvestorContainer = ({
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
-							dataset={fundingRoundsByMonthChart.dataset}
-							charts={fundingRoundsByMonthChart.charts}
+							dataset={deferredFundingRoundsByMonthChart.dataset}
+							charts={deferredFundingRoundsByMonthChart.charts}
 							groupBy="monthly"
 							valueSymbol=""
 							exportButtons={{
@@ -199,7 +202,7 @@ export const InvestorContainer = ({
 				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
-							chartData={investmentByRounds}
+							chartData={deferredInvestmentByRounds}
 							title="Investment by Rounds"
 							valueSymbol=""
 							exportButtons={{
@@ -214,7 +217,7 @@ export const InvestorContainer = ({
 				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
-							chartData={raisesByCategory}
+							chartData={deferredRaisesByCategory}
 							title="Investments by Category"
 							valueSymbol=""
 							exportButtons={{

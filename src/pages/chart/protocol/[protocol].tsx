@@ -13,7 +13,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/ProtocolCoreChart')) as ComponentType<any>
+const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
@@ -68,7 +68,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ProtocolChart(props: IProtocolOverviewPageData) {
+export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 
 	const queryParamsString = useMemo(() => {

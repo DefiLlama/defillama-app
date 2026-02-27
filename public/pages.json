@@ -461,6 +461,33 @@
       "tab": "Protocols"
     },
     {
+      "name": "RWA: Overview",
+      "route": "/rwa",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs)",
+      "tags": [
+        "New"
+      ]
+    },
+    {
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category"
+    },
+    {
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -494,20 +521,6 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
-    },
-    {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
-    },
-    {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
     },
     {
       "name": "Hacks: Overview",
@@ -546,31 +559,18 @@
       "oldName": "Chains"
     },
     {
-      "name": "RWA: Overview",
-      "route": "/rwa",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs)",
-      "tags": [
-        "New"
-      ]
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
     },
     {
-      "name": "RWA by Chain",
-      "route": "/rwa/chains",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by chain"
-    },
-    {
-      "name": "RWA by Category",
-      "route": "/rwa/categories",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by category"
-    },
-    {
-      "name": "RWA by Platform",
-      "route": "/rwa/platforms",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by platform"
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
     },
     {
       "name": "Unlocks: Overview",
@@ -726,19 +726,19 @@
       "oldName": "Watchlist"
     },
     {
+      "name": "Token Liquidity",
+      "route": "/liquidity",
+      "category": "Tools",
+      "description": "Check how deep the liquidity is for a given token",
+      "oldName": "Token Liquidity"
+    },
+    {
       "name": "Yields: Watchlist",
       "route": "/yields/watchlist",
       "category": "Tools",
       "description": "Watchlist of all pools that we track in our yields section",
       "oldCategory": "Yields",
       "oldName": "Watchlist"
-    },
-    {
-      "name": "Token Liquidity",
-      "route": "/liquidity",
-      "category": "Tools",
-      "description": "Check how deep the liquidity is for a given token",
-      "oldName": "Token Liquidity"
     },
     {
       "name": "Borrow Aggregator: Simple",

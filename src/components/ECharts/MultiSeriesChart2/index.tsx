@@ -55,7 +55,7 @@ function formatAxisLabel(value: number, symbol: string): string {
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
-const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly'])
+const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
 
 function coerceGroupBy(groupBy: IMultiSeriesChart2Props['groupBy']): GroupBy {
 	return groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily'
@@ -169,10 +169,13 @@ function buildSeries({
 		}
 
 		if (expandTo100Percent) {
-			base.stack = 'A'
-			if (chart.type === 'line') {
-				base.lineStyle = { width: 0, color: resolvedColor }
-				base.areaStyle = {}
+			const isOverlay = chart.yAxisIndex != null && chart.yAxisIndex > 0
+			if (!isOverlay) {
+				base.stack = 'A'
+				if (chart.type === 'line') {
+					base.lineStyle = { width: 0, color: resolvedColor }
+					base.areaStyle = {}
+				}
 			}
 		} else {
 			if (chart.stack != null) base.stack = chart.stack
@@ -271,8 +274,7 @@ function buildMultiYAxis({
 		// Primary axis is intentionally not auto-colored from series colors (can be misleading when multiple series share axis 0).
 		// But if the caller explicitly assigns a unique color to that axis via charts config, apply it.
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
-		// Preserve historical behavior (no symbol on primary axis) unless explicitly provided via charts config.
-		const axisSymbol = yAxisIndexToSymbol.get(i) ?? (isPrimary ? '' : valueSymbol)
+		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
 
 		out.push({
@@ -399,7 +401,7 @@ function createTooltipFormatter({
 		const shouldCap = Number.isFinite(cap) && cap > 0
 		const cappedVals = shouldCap && vals.length > cap ? vals.slice(0, cap) : vals
 		const remaining = shouldCap && vals.length > cap ? vals.length - cap : 0
-		const total = vals.reduce((sum, curr) => sum + curr[2], 0)
+		const total = vals.reduce((sum, curr) => (curr[4] ? sum : sum + curr[2]), 0)
 		const totalLine =
 			showTotalInTooltip && vals.length > 0
 				? `<li style="list-style:none;font-weight:600;">Total: ${formatAxisLabel(total, valueSymbol)}</li>`

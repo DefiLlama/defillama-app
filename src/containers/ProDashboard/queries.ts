@@ -557,9 +557,11 @@ export function useChartsData(
 			const chartServerData = serverChartData?.[chart.id]
 
 			return {
+				// queryKey is time-period-independent: the API always returns the full dataset,
+				// so we cache it once and apply time filtering in `select`.
 				queryKey: [
 					'pro-dashboard',
-					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, timePeriod, customPeriod, chart.dataType),
+					...getChartQueryKey(chart.type, itemType, item, chart.geckoId, undefined, undefined, chart.dataType),
 					chart.grouping,
 					chart.id
 				],
@@ -568,9 +570,9 @@ export function useChartsData(
 					itemType,
 					item,
 					chart.geckoId,
-					timePeriod,
+					undefined,
 					parentMapping,
-					customPeriod,
+					undefined,
 					chart.dataType
 				),
 				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
@@ -579,11 +581,12 @@ export function useChartsData(
 				initialData: chartServerData ?? undefined,
 				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {
+					const filtered = filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 					const chartTypeDetails = CHART_TYPES[chart.type]
 					if (chartTypeDetails?.groupable && chart.grouping && chart.grouping !== 'day') {
-						return computeGrouped(groupingCacheRef.current, chart.id, data, chart.grouping)
+						return computeGrouped(groupingCacheRef.current, chart.id, filtered, chart.grouping)
 					}
-					return data
+					return filtered
 				},
 				enabled:
 					!!item &&

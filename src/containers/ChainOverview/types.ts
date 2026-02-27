@@ -70,16 +70,10 @@ export interface IChainOverviewData {
 	devMetrics: null
 	nfts: { total24h: number | null }
 	etfs: Array<[number, number]> | null
-	globalmcap: {
-		chart: Array<[number, number]> | null
-		change7d: string | null
-	} | null
-	rwaTvlChartData: Array<[number, number]> | null
 	allChains: Array<{ label: string; to: string }>
 	unlocks: {
-		chart: Array<[number, Record<string, number>]>
+		chart: Array<{ date: number; total: number; breakdown: Array<{ token: string; value: number; pct: string }> }>
 		total14d: number
-		tokens: Array<[string, string]>
 	} | null
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
 	charts: ChainChartLabels[]

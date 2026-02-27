@@ -1,41 +1,47 @@
+import type { InferGetStaticPropsType } from 'next'
 import { YIELD_POOLS_API } from '~/constants'
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
-import { fetchProtocols } from '~/containers/Protocols/api'
-import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('about', async () => {
-	const [protocolsRaw, yields, fees, dexs] = await Promise.all([
-		fetchProtocols().then(basicProtocolPropertiesToKeepV1List()),
-		fetchJson(YIELD_POOLS_API).catch(() => ({ data: [] })),
-		fetchAdapterChainMetrics({
-			adapterType: 'fees',
-			chain: 'All',
-			dataType: 'dailyRevenue'
-		}).catch(() => ({ protocols: [] })),
-		fetchAdapterChainMetrics({
-			adapterType: 'dexs',
-			chain: 'All',
-			dataType: 'dailyVolume'
-		}).catch(() => ({ protocols: [] }))
+	const [metadataCache, yields] = await Promise.all([
+		import('~/utils/metadata').then((m) => m.default),
+		fetchJson(YIELD_POOLS_API).catch(() => ({ data: [] }))
 	])
+	const { protocolMetadata, chainMetadata } = metadataCache
+
+	let allProtocols = 0
+	let revenueProtocols = 0
+	let dexsProtocols = 0
+	let chains = 0
+
+	for (const protocolId in protocolMetadata) {
+		if (protocolId.startsWith('parent#')) continue
+		const metadata = protocolMetadata[protocolId]
+		allProtocols++
+		if (metadata.revenue) revenueProtocols++
+		if (metadata.dexs) dexsProtocols++
+	}
+
+	for (const _chain in chainMetadata) {
+		chains++
+	}
 
 	return {
 		props: {
-			protocols: protocolsRaw.protocols.length,
-			chains: protocolsRaw.chains.length,
+			protocols: allProtocols,
+			chains,
 			pools: yields.data.length,
-			fees: fees.protocols.length,
-			dexs: dexs.protocols.length
+			revenue: revenueProtocols,
+			dexs: dexsProtocols
 		},
 		revalidate: maxAgeForNext([22])
 	}
 })
 
-function AboutPage(props: any) {
+function AboutPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="About - DefiLlama"
@@ -70,20 +76,22 @@ function AboutPage(props: any) {
 				<p>Our focus is on accurate data and transparent methodology.</p>
 			</div>
 
-			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h2 className="text-lg font-semibold">Stats</h2>
-				<hr className="border-black/20 dark:border-white/20" />
-				<div>
-					<p>We track:</p>
-					<ul className="list-inside list-disc">
-						<li>{props.protocols} protocols</li>
-						<li>{props.chains} chains</li>
-						<li>{props.pools} pools</li>
-						<li>Revenue for {props.fees} protocols</li>
-						<li>Volume for {props.dexs} DEXs</li>
-					</ul>
+			{props.protocols && props.chains ? (
+				<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
+					<h2 className="text-lg font-semibold">Stats</h2>
+					<hr className="border-black/20 dark:border-white/20" />
+					<div>
+						<p>We track:</p>
+						<ul className="list-inside list-disc">
+							<li>{props.protocols} protocols</li>
+							<li>{props.chains} chains</li>
+							<li>{props.pools} pools</li>
+							<li>Revenue for {props.revenue} protocols</li>
+							<li>Volume for {props.dexs} DEXs</li>
+						</ul>
+					</div>
 				</div>
-			</div>
+			) : null}
 
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
 				<h2 className="text-lg font-semibold">Contact</h2>

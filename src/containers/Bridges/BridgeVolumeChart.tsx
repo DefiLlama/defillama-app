@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
 import { TagGroup } from '~/components/TagGroup'
 import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
@@ -104,17 +104,19 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 			.sort((a, b) => a.date - b.date)
 	}, [data, timePeriod, metricType, viewType])
 
-	const { dataset, charts } = useMemo(() => {
+	const volumeChartData = useMemo(() => {
 		const isSplit = viewType === 'Split'
 		const dims = isSplit ? ['timestamp', 'Deposits', 'Withdrawals'] : ['timestamp', 'Total']
 		return {
+			metricType,
 			dataset: {
 				source: chartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: dims
 			},
 			charts: isSplit ? SPLIT_CHARTS : COMBINED_CHARTS
 		}
-	}, [chartData, viewType])
+	}, [chartData, metricType, viewType])
+	const deferredChartData = useDeferredValue(volumeChartData)
 
 	if (isLoading)
 		return (
@@ -165,12 +167,13 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolu
 			</div>
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
+				{/* TODO: Add a subtle stale-state indicator if we revisit deferred transitions UX. */}
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredChartData.dataset}
+					charts={deferredChartData.charts}
 					height={height}
 					hideDefaultLegend={false}
-					valueSymbol={metricType === 'Volume' ? '$' : ''}
+					valueSymbol={deferredChartData.metricType === 'Volume' ? '$' : ''}
 					onReady={onReady}
 				/>
 			</Suspense>

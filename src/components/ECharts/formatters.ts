@@ -7,7 +7,7 @@ import { formatNum, formattedNum } from '~/utils'
 
 const SERIES_SYMBOL: Record<string, string> = { APY: '%', TVL: '$' }
 
-type TooltipGroupBy = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'cumulative'
+type TooltipGroupBy = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'cumulative'
 
 type TooltipRow = { marker: string; name: string; value: number }
 
@@ -260,6 +260,8 @@ export function formatTooltipChartDate(value: number, groupBy: TooltipGroupBy, h
 			return getQuarterDateRange(value)
 		case 'weekly':
 			return getStartAndEndDayOfTheWeek(value)
+		case 'yearly':
+			return `Jan 1 - Dec 31, ${date.getUTCFullYear()}`
 		case 'cumulative': {
 			const formatted = `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
 			return `Cumulative through ${formatted}`

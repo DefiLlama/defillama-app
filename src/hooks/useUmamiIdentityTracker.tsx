@@ -4,7 +4,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 const UMAMI_READY_RETRY_INTERVAL_MS = 500
 const MAX_UMAMI_READY_RETRIES = 10
 
-export function UmamiIdentityTracker() {
+export function useUmamiIdentityTracker() {
 	const { user } = useAuthContext()
 	const lastIdentifiedIdRef = useRef<string | null>(null)
 	const shouldSkipIdentify = user?.flags?.is_llama === true
@@ -83,6 +83,4 @@ export function UmamiIdentityTracker() {
 			}
 		}
 	}, [distinctId, shouldSkipIdentify])
-
-	return null
 }

@@ -1,9 +1,9 @@
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { BasicLink } from './Link'
 
 interface IBookmarkProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	readableName: string
@@ -28,9 +28,9 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 		toast.success(
 			<span>
 				{action} {readableName} {action === 'Added' ? 'to' : 'from'}{' '}
-				<Link href={urlPath} className="font-medium underline">
+				<BasicLink href={urlPath} className="font-medium underline">
 					watchlist
-				</Link>
+				</BasicLink>
 			</span>
 		)
 	}

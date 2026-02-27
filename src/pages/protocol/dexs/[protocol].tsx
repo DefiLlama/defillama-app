@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
@@ -9,8 +9,8 @@ import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
-import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
@@ -147,6 +147,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			]
 		}
 	}, [props.chart, groupBy])
+	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	return (
 		<ProtocolOverviewLayout
@@ -181,7 +182,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
-										setGroupBy(dataInterval)
+										startTransition(() => setGroupBy(dataInterval))
 									}}
 									key={`${props.name}-dexs-groupBy-${dataInterval}`}
 								>
@@ -197,8 +198,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={finalCharts.dataset}
-							charts={finalCharts.charts}
+							dataset={deferredFinalCharts.dataset}
+							charts={deferredFinalCharts.charts}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>

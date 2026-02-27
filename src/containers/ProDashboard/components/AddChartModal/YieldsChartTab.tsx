@@ -1,7 +1,6 @@
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import Image from 'next/image'
 import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useReducer, useRef } from 'react'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -579,12 +578,11 @@ export function YieldsChartTab({
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
 															{iconUrl && (
-																<Image
+																<img
 																	src={iconUrl}
 																	alt={option.label}
 																	width={20}
 																	height={20}
-																	unoptimized
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
 																/>
 															)}
@@ -689,12 +687,11 @@ export function YieldsChartTab({
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
 															{iconUrl && (
-																<Image
+																<img
 																	src={iconUrl}
 																	alt={option.label}
 																	width={20}
 																	height={20}
-																	unoptimized
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
 																/>
 															)}
@@ -860,12 +857,11 @@ export function YieldsChartTab({
 							<div className="flex items-center justify-between px-3 py-2.5">
 								<div className="flex items-center gap-3">
 									{selectedPoolData && (
-										<Image
+										<img
 											src={getItemIconUrl('protocol', null, selectedPoolData.project)}
 											alt={selectedPoolData.project}
 											width={32}
 											height={32}
-											unoptimized
 											className="h-8 w-8 rounded-full object-cover ring-1 ring-(--cards-border)"
 										/>
 									)}
@@ -1019,12 +1015,11 @@ export function YieldsChartTab({
 												>
 													<div className="flex min-w-0 items-center gap-2">
 														{iconUrl && (
-															<Image
+															<img
 																src={iconUrl}
 																alt={pool.project}
 																width={24}
 																height={24}
-																unoptimized
 																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 															/>
 														)}

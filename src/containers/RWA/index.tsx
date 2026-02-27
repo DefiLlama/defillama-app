@@ -1,6 +1,6 @@
 import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
@@ -368,9 +368,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			: chartTypeKey === 'activeMcap'
 				? activeMcapPieChartData
 				: defiActiveTvlPieChartData
+	const deferredSelectedTimeSeriesDataset = useDeferredValue(selectedTimeSeriesDataset)
+	const deferredSelectedPieChartData = useDeferredValue(selectedPieChartData)
 	const valueSortedPieChartStackColors = useMemo(() => {
 		const stackColors = { ...pieChartStackColors }
-		const sortedData = [...selectedPieChartData]
+		const sortedData = [...deferredSelectedPieChartData]
 			.filter((item) => Number.isFinite(item.value) && item.value > 0)
 			.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
 
@@ -379,7 +381,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 
 		return stackColors
-	}, [pieChartStackColors, selectedPieChartData])
+	}, [pieChartStackColors, deferredSelectedPieChartData])
 
 	const chartTypeSwitch = (
 		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
@@ -667,7 +669,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={selectedTimeSeriesDataset}
+									dataset={deferredSelectedTimeSeriesDataset}
 									hideDefaultLegend={false}
 									stacked
 									showTotalInTooltip
@@ -704,7 +706,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							<Suspense fallback={<div className={chartView === 'treemap' ? 'min-h-[600px]' : 'min-h-[360px]'} />}>
 								{chartView === 'pie' ? (
 									<PieChart
-										chartData={selectedPieChartData}
+										chartData={deferredSelectedPieChartData}
 										stackColors={valueSortedPieChartStackColors}
 										radius={pieChartRadius}
 										legendPosition={pieChartLegendPosition}

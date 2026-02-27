@@ -8,7 +8,6 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
@@ -49,14 +48,7 @@ interface TokenUsageDatasetProps {
 const TokenOptionComponent = ({ innerProps, label, data }: any) => (
 	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
-			<Image
-				src={data.logo?.replace('/0/', '')}
-				alt=""
-				width={20}
-				height={20}
-				unoptimized
-				className="h-5 w-5 rounded-full"
-			/>
+			<img src={data.logo?.replace('/0/', '')} alt="" width={20} height={20} className="h-5 w-5 rounded-full" />
 		) : (
 			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
 		)}

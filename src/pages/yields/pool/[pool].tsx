@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -272,6 +272,12 @@ const PageView = (_props) => {
 			poolLiquidityDataset
 		}
 	}, [chart, chartBorrow, category])
+	const deferredTvlApyDataset = useDeferredValue(tvlApyDataset)
+	const deferredSupplyApyBarDataset = useDeferredValue(supplyApyBarDataset)
+	const deferredSupplyApy7dDataset = useDeferredValue(supplyApy7dDataset)
+	const deferredBorrowApyBarDataset = useDeferredValue(borrowApyBarDataset)
+	const deferredNetBorrowApyDataset = useDeferredValue(netBorrowApyDataset)
+	const deferredPoolLiquidityDataset = useDeferredValue(poolLiquidityDataset)
 
 	const liquidityCharts = useMemo(() => {
 		return LIQUIDITY_LEGEND_OPTIONS.map((name) => ({
@@ -355,7 +361,7 @@ const PageView = (_props) => {
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={tvlApyDataset}
+							dataset={deferredTvlApyDataset}
 							charts={tvlApyCharts}
 							chartOptions={tvlApyChartOptions}
 							valueSymbol=""
@@ -386,7 +392,7 @@ const PageView = (_props) => {
 								</div>
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={supplyApyBarDataset}
+										dataset={deferredSupplyApyBarDataset}
 										charts={BASE_REWARD_BAR_CHARTS}
 										valueSymbol="%"
 										hideDefaultLegend={false}
@@ -408,7 +414,7 @@ const PageView = (_props) => {
 								</div>
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={supplyApy7dDataset}
+										dataset={deferredSupplyApy7dDataset}
 										charts={SINGLE_APY_LINE_CHARTS}
 										valueSymbol="%"
 										onReady={handleSupplyApy7dReady}
@@ -439,7 +445,7 @@ const PageView = (_props) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={borrowApyBarDataset}
+									dataset={deferredBorrowApyBarDataset}
 									charts={BASE_REWARD_BAR_CHARTS}
 									valueSymbol="%"
 									hideDefaultLegend={false}
@@ -461,7 +467,7 @@ const PageView = (_props) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={netBorrowApyDataset}
+									dataset={deferredNetBorrowApyDataset}
 									charts={SINGLE_APY_LINE_CHARTS}
 									valueSymbol="%"
 									onReady={handleNetBorrowApyReady}
@@ -492,7 +498,7 @@ const PageView = (_props) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={poolLiquidityDataset}
+									dataset={deferredPoolLiquidityDataset}
 									charts={liquidityCharts}
 									valueSymbol="$"
 									selectedCharts={new Set(selectedLiquiditySeries)}

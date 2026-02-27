@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -57,154 +57,52 @@ export function GenerateDashboardModal({
 	onGenerate
 }: GenerateDashboardModalProps) {
 	const { user, isAuthenticated, authorizedFetch } = useAuthContext()
-	type FormState = {
-		dashboardName: string
-		aiDescription: string
-		visibility: 'private' | 'public'
-		tags: string[]
-		tagInput: string
-	}
-	type ValidationErrors = {
-		dashboardName?: string
-		aiDescription?: string
-	}
-	type TouchedFields = {
-		dashboardName?: boolean
-		aiDescription?: boolean
-	}
-
-	const [formState, setFormState] = useState<FormState>({
-		dashboardName: '',
-		aiDescription: '',
-		visibility: 'public',
-		tags: [],
-		tagInput: ''
-	})
-	const { dashboardName, aiDescription, visibility, tags, tagInput } = formState
 	const [isLoading, setIsLoading] = useState(false)
-	const [validationState, setValidationState] = useState<{
-		errors: ValidationErrors
-		touchedFields: TouchedFields
-	}>({
-		errors: {},
-		touchedFields: {}
-	})
-	const { errors, touchedFields } = validationState
-
-	const setDashboardName = (value: string) => {
-		setFormState((prev) => ({ ...prev, dashboardName: value }))
-	}
-
-	const setAiDescription = (value: string) => {
-		setFormState((prev) => ({ ...prev, aiDescription: value }))
-	}
-
-	const setVisibility = (value: 'private' | 'public') => {
-		setFormState((prev) => ({ ...prev, visibility: value }))
-	}
-
-	const setTags = (updater: string[] | ((prev: string[]) => string[])) => {
-		setFormState((prev) => ({
-			...prev,
-			tags: typeof updater === 'function' ? updater(prev.tags) : updater
-		}))
-	}
-
-	const setTagInput = (value: string) => {
-		setFormState((prev) => ({ ...prev, tagInput: value }))
-	}
-
-	const setErrors = (updater: ValidationErrors | ((prev: ValidationErrors) => ValidationErrors)) => {
-		setValidationState((prev) => ({
-			...prev,
-			errors: typeof updater === 'function' ? updater(prev.errors) : updater
-		}))
-	}
-
-	const setTouchedFields = (updater: TouchedFields | ((prev: TouchedFields) => TouchedFields)) => {
-		setValidationState((prev) => ({
-			...prev,
-			touchedFields: typeof updater === 'function' ? updater(prev.touchedFields) : updater
-		}))
-	}
+	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
+	const [tags, setTags] = useState<string[]>([])
+	const tagInputRef = useRef<HTMLInputElement>(null)
+	const charCountRef = useRef<HTMLSpanElement>(null)
 
 	const resetModalState = () => {
-		setFormState({
-			dashboardName: '',
-			aiDescription: '',
-			visibility: 'public',
-			tags: [],
-			tagInput: ''
-		})
-		setValidationState({
-			errors: {},
-			touchedFields: {}
-		})
+		setVisibility('public')
+		setTags([])
 	}
 
-	const validateDashboardName = (value: string): string | undefined => {
-		if (mode === 'create' && !value.trim()) {
-			return 'Dashboard name is required'
-		}
-		return undefined
-	}
-
-	const validateAiDescription = (value: string): string | undefined => {
-		if (!value.trim()) {
-			return 'Description is required'
-		}
-		if (value.trim().length < 20) {
-			return 'Description must be at least 20 characters'
-		}
-		if (value.length > 5000) {
-			return 'Description must be 5000 characters or less'
-		}
-		return undefined
-	}
-
-	const validateForm = (): boolean => {
-		const newErrors: typeof errors = {}
-
-		const dashboardNameError = validateDashboardName(dashboardName)
-		const aiDescriptionError = validateAiDescription(aiDescription)
-
-		if (dashboardNameError) newErrors.dashboardName = dashboardNameError
-		if (aiDescriptionError) newErrors.aiDescription = aiDescriptionError
-
-		setErrors(newErrors)
-		let hasErrors = false
-		for (const _ in newErrors) {
-			hasErrors = true
-			break
-		}
-		return !hasErrors
-	}
-
-	const handleFieldBlur = (field: keyof typeof touchedFields) => {
-		setTouchedFields((prev) => ({ ...prev, [field]: true }))
-
-		const newErrors = { ...errors }
-		if (field === 'dashboardName') {
-			const error = validateDashboardName(dashboardName)
-			if (error) newErrors.dashboardName = error
-			else delete newErrors.dashboardName
-		}
-		if (field === 'aiDescription') {
-			const error = validateAiDescription(aiDescription)
-			if (error) newErrors.aiDescription = error
-			else delete newErrors.aiDescription
-		}
-		setErrors(newErrors)
-	}
-
-	const handleGenerate = async () => {
+	const handleGenerate = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
 		if (!isAuthenticated || !user?.id) {
 			toast.error('Please sign in to generate dashboards')
 			return
 		}
 
-		if (!validateForm()) {
-			setTouchedFields({ dashboardName: true, aiDescription: true })
+		const form = e.currentTarget
+		const formData = new FormData(form)
+		const dashboardName = (formData.get('dashboardName') as string)?.trim() ?? ''
+		const aiDescription = (formData.get('aiDescription') as string) ?? ''
+
+		if (mode === 'create') {
+			const nameInput = form.elements.namedItem('dashboardName') as HTMLInputElement | null
+			if (!dashboardName) {
+				nameInput?.setCustomValidity('Dashboard name is required')
+				nameInput?.reportValidity()
+				return
+			}
+		}
+
+		const descInput = form.elements.namedItem('aiDescription') as HTMLTextAreaElement | null
+		if (!aiDescription.trim()) {
+			descInput?.setCustomValidity('Description is required')
+			descInput?.reportValidity()
+			return
+		}
+		if (aiDescription.trim().length < 20) {
+			descInput?.setCustomValidity('Description must be at least 20 characters')
+			descInput?.reportValidity()
+			return
+		}
+		if (aiDescription.length > 5000) {
+			descInput?.setCustomValidity('Description must be 5000 characters or less')
+			descInput?.reportValidity()
 			return
 		}
 
@@ -231,11 +129,11 @@ export function GenerateDashboardModal({
 		} else {
 			requestBody = {
 				message: aiDescription.trim(),
-				dashboardName: dashboardName.trim()
+				dashboardName
 			}
 		}
 
-		let dashboardNameForGenerate = dashboardName.trim()
+		let dashboardNameForGenerate = dashboardName
 		if (mode === 'iterate') {
 			dashboardNameForGenerate = ''
 			if (existingDashboard && existingDashboard.dashboardName) {
@@ -352,12 +250,14 @@ export function GenerateDashboardModal({
 		}
 	}
 
-	const handleAddTag = (tag: string) => {
-		const trimmedTag = tag.trim().toLowerCase()
+	const handleAddTag = () => {
+		const input = tagInputRef.current
+		if (!input) return
+		const trimmedTag = input.value.trim().toLowerCase()
 		if (trimmedTag) {
 			setTags((prev) => (prev.includes(trimmedTag) ? prev : [...prev, trimmedTag]))
 		}
-		setTagInput('')
+		input.value = ''
 	}
 
 	const handleRemoveTag = (tag: string) => {
@@ -365,9 +265,9 @@ export function GenerateDashboardModal({
 	}
 
 	const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === 'Enter' && tagInput.trim()) {
+		if (e.key === 'Enter') {
 			e.preventDefault()
-			handleAddTag(tagInput)
+			handleAddTag()
 		}
 	}
 
@@ -397,194 +297,174 @@ export function GenerateDashboardModal({
 					</Ariakit.DialogDismiss>
 				</div>
 
-				<div className="space-y-6">
-					{mode === 'create' && (
-						<div>
-							<label htmlFor="generate-dashboard-name" className="mb-3 block text-sm font-medium pro-text1">
-								Dashboard Name
-							</label>
-							<input
-								id="generate-dashboard-name"
-								type="text"
-								value={dashboardName}
-								onChange={(e) => {
-									setDashboardName(e.target.value)
-									if (touchedFields.dashboardName) {
-										handleFieldBlur('dashboardName')
-									}
-								}}
-								onBlur={() => handleFieldBlur('dashboardName')}
-								placeholder="e.g., Ethereum vs Arbitrum Analysis"
-								className={`w-full rounded-md border px-3 py-2 pro-text1 placeholder:pro-text3 focus:outline-hidden ${
-									touchedFields.dashboardName && errors.dashboardName
-										? 'border-red-500 focus:ring-1 focus:ring-red-500'
-										: 'pro-border focus:ring-1 focus:ring-(--primary)'
-								} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
-								disabled={isLoading}
-							/>
-							{touchedFields.dashboardName && errors.dashboardName && (
-								<p className="mt-1 text-sm text-red-500">{errors.dashboardName}</p>
-							)}
-						</div>
-					)}
-
-					<div>
-						<label htmlFor="generate-dashboard-description" className="mb-3 block text-sm font-medium pro-text1">
-							{mode === 'iterate'
-								? 'Describe what you want to add or change'
-								: 'Describe the dashboard you want to create'}
-						</label>
-						<textarea
-							id="generate-dashboard-description"
-							value={aiDescription}
-							onChange={(e) => {
-								setAiDescription(e.target.value)
-								if (touchedFields.aiDescription) {
-									handleFieldBlur('aiDescription')
-								}
-							}}
-							onBlur={() => handleFieldBlur('aiDescription')}
-							placeholder={
-								mode === 'iterate'
-									? 'e.g., Add a chart showing weekly DEX volume breakdown by top 5 protocols, or Remove the stablecoin chart and add TVL comparison...'
-									: 'e.g., Build a DeFi yields dashboard with top earning protocols, comparing different chains and showing historical performance...'
-							}
-							rows={4}
-							className={`w-full resize-none rounded-md border px-3 py-2 pro-text1 placeholder:pro-text3 focus:outline-hidden ${
-								touchedFields.aiDescription && errors.aiDescription
-									? 'border-red-500 focus:ring-1 focus:ring-red-500'
-									: 'pro-border focus:ring-1 focus:ring-(--primary)'
-							} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
-							disabled={isLoading}
-						/>
-						{touchedFields.aiDescription && errors.aiDescription && (
-							<p className="mt-1 text-sm text-red-500">{errors.aiDescription}</p>
+				<form onSubmit={handleGenerate}>
+					<div className="space-y-6">
+						{mode === 'create' && (
+							<div>
+								<label htmlFor="generate-dashboard-name" className="mb-3 block text-sm font-medium pro-text1">
+									Dashboard Name
+								</label>
+								<input
+									id="generate-dashboard-name"
+									name="dashboardName"
+									type="text"
+									onInput={(e) => e.currentTarget.setCustomValidity('')}
+									placeholder="e.g., Ethereum vs Arbitrum Analysis"
+									className={`w-full rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+									disabled={isLoading}
+									required
+								/>
+							</div>
 						)}
-						<p className="mt-1 text-xs pro-text3">
-							{mode === 'iterate'
-								? 'Be specific about what you want to add, remove, or modify'
-								: 'Be specific about what data, charts, and insights you want to see'}{' '}
-							({aiDescription.length}/5000)
-						</p>
+
+						<div>
+							<label htmlFor="generate-dashboard-description" className="mb-3 block text-sm font-medium pro-text1">
+								{mode === 'iterate'
+									? 'Describe what you want to add or change'
+									: 'Describe the dashboard you want to create'}
+							</label>
+							<textarea
+								id="generate-dashboard-description"
+								name="aiDescription"
+								onInput={(e) => {
+									e.currentTarget.setCustomValidity('')
+									if (charCountRef.current) charCountRef.current.textContent = String(e.currentTarget.value.length)
+								}}
+								placeholder={
+									mode === 'iterate'
+										? 'e.g., Add a chart showing weekly DEX volume breakdown by top 5 protocols, or Remove the stablecoin chart and add TVL comparison...'
+										: 'e.g., Build a DeFi yields dashboard with top earning protocols, comparing different chains and showing historical performance...'
+								}
+								rows={4}
+								className={`w-full resize-none rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+								disabled={isLoading}
+								required
+							/>
+							<p className="mt-1 text-xs pro-text3">
+								{mode === 'iterate'
+									? 'Be specific about what you want to add, remove, or modify'
+									: 'Be specific about what data, charts, and insights you want to see'}{' '}
+								(<span ref={charCountRef}>0</span>/5000)
+							</p>
+						</div>
+
+						{mode === 'create' && (
+							<div>
+								<p id="generate-dashboard-visibility" className="mb-3 block text-sm font-medium pro-text1">
+									Visibility
+								</p>
+								<div className="flex gap-3" aria-labelledby="generate-dashboard-visibility">
+									<button
+										type="button"
+										onClick={() => setVisibility('public')}
+										disabled={isLoading}
+										className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
+											visibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
+										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+									>
+										<Icon name="earth" height={16} width={16} className="mr-2 inline" />
+										Public
+									</button>
+									<button
+										type="button"
+										onClick={() => setVisibility('private')}
+										disabled={isLoading}
+										className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
+											visibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
+										} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+									>
+										<Icon name="key" height={16} width={16} className="mr-2 inline" />
+										Private
+									</button>
+								</div>
+								{visibility === 'public' && (
+									<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
+								)}
+							</div>
+						)}
+
+						{mode === 'create' && (
+							<div>
+								<label htmlFor="generate-dashboard-tag-input" className="mb-3 block text-sm font-medium pro-text1">
+									Tags
+								</label>
+								<div className="flex gap-2">
+									<input
+										id="generate-dashboard-tag-input"
+										ref={tagInputRef}
+										type="text"
+										onKeyDown={handleTagInputKeyDown}
+										placeholder="Enter tag name"
+										className={`flex-1 rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+										disabled={isLoading}
+									/>
+									<button
+										type="button"
+										onClick={handleAddTag}
+										disabled={isLoading}
+										className={`rounded-md border px-4 py-2 transition-colors ${
+											!isLoading ? 'pro-btn-blue-outline' : 'cursor-not-allowed pro-border pro-text3'
+										}`}
+									>
+										Add Tag
+									</button>
+								</div>
+
+								<p className="mt-2 text-xs pro-text3">Press Enter to add tag</p>
+
+								{tags.length > 0 && (
+									<div className="mt-3 flex flex-wrap gap-2">
+										{tags.map((tag) => (
+											<span
+												key={tag}
+												className="flex items-center gap-1 rounded-md border pro-border px-3 py-1 text-sm pro-text2"
+											>
+												{tag}
+												<button
+													type="button"
+													onClick={() => handleRemoveTag(tag)}
+													className="hover:text-pro-blue-400"
+													disabled={isLoading}
+												>
+													<Icon name="x" height={12} width={12} />
+												</button>
+											</span>
+										))}
+									</div>
+								)}
+							</div>
+						)}
 					</div>
 
-					{mode === 'create' && (
-						<div>
-							<p id="generate-dashboard-visibility" className="mb-3 block text-sm font-medium pro-text1">
-								Visibility
-							</p>
-							<div className="flex gap-3" aria-labelledby="generate-dashboard-visibility">
-								<button
-									type="button"
-									onClick={() => setVisibility('public')}
-									disabled={isLoading}
-									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
-										visibility === 'public' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
-									} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
-								>
-									<Icon name="earth" height={16} width={16} className="mr-2 inline" />
-									Public
-								</button>
-								<button
-									type="button"
-									onClick={() => setVisibility('private')}
-									disabled={isLoading}
-									className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
-										visibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
-									} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
-								>
-									<Icon name="key" height={16} width={16} className="mr-2 inline" />
-									Private
-								</button>
-							</div>
-							{visibility === 'public' && (
-								<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
+					<div className="mt-8 flex gap-3">
+						<Ariakit.DialogDismiss
+							type="button"
+							disabled={isLoading}
+							className="flex-1 rounded-md border pro-border pro-hover-bg px-4 py-2 pro-text2 transition-colors hover:pro-text1 disabled:opacity-50"
+						>
+							Cancel
+						</Ariakit.DialogDismiss>
+						<button
+							type="submit"
+							disabled={isLoading}
+							className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${
+								!isLoading ? 'animate-ai-glow pro-btn-blue' : 'cursor-not-allowed border pro-border pro-text3'
+							}`}
+						>
+							{isLoading ? (
+								<>
+									<Icon name="sparkles" height={16} width={16} className="animate-spin" />
+									{mode === 'iterate' ? 'Updating...' : 'Generating...'}
+								</>
+							) : (
+								<>
+									<Icon name="sparkles" height={16} width={16} />
+									{mode === 'iterate' ? 'Edit Dashboard' : 'Generate Dashboard'}
+								</>
 							)}
-						</div>
-					)}
-
-					{mode === 'create' && (
-						<div>
-							<label htmlFor="generate-dashboard-tag-input" className="mb-3 block text-sm font-medium pro-text1">
-								Tags
-							</label>
-							<div className="flex gap-2">
-								<input
-									id="generate-dashboard-tag-input"
-									type="text"
-									value={tagInput}
-									onChange={(e) => setTagInput(e.target.value)}
-									onKeyDown={handleTagInputKeyDown}
-									placeholder="Enter tag name"
-									className={`flex-1 rounded-md border pro-border px-3 py-2 pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
-									disabled={isLoading}
-								/>
-								<button
-									type="button"
-									onClick={() => handleAddTag(tagInput)}
-									disabled={!tagInput.trim() || isLoading}
-									className={`rounded-md border px-4 py-2 transition-colors ${
-										tagInput.trim() && !isLoading ? 'pro-btn-blue-outline' : 'cursor-not-allowed pro-border pro-text3'
-									}`}
-								>
-									Add Tag
-								</button>
-							</div>
-
-							<p className="mt-2 text-xs pro-text3">Press Enter to add tag</p>
-
-							{tags.length > 0 && (
-								<div className="mt-3 flex flex-wrap gap-2">
-									{tags.map((tag) => (
-										<span
-											key={tag}
-											className="flex items-center gap-1 rounded-md border pro-border px-3 py-1 text-sm pro-text2"
-										>
-											{tag}
-											<button
-												type="button"
-												onClick={() => handleRemoveTag(tag)}
-												className="hover:text-pro-blue-400"
-												disabled={isLoading}
-											>
-												<Icon name="x" height={12} width={12} />
-											</button>
-										</span>
-									))}
-								</div>
-							)}
-						</div>
-					)}
-				</div>
-
-				<div className="mt-8 flex gap-3">
-					<Ariakit.DialogDismiss
-						disabled={isLoading}
-						className="flex-1 rounded-md border pro-border pro-hover-bg px-4 py-2 pro-text2 transition-colors hover:pro-text1 disabled:opacity-50"
-					>
-						Cancel
-					</Ariakit.DialogDismiss>
-					<button
-						type="button"
-						onClick={handleGenerate}
-						disabled={isLoading}
-						className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2 transition-colors ${
-							!isLoading ? 'animate-ai-glow pro-btn-blue' : 'cursor-not-allowed border pro-border pro-text3'
-						}`}
-					>
-						{isLoading ? (
-							<>
-								<Icon name="sparkles" height={16} width={16} className="animate-spin" />
-								{mode === 'iterate' ? 'Updating...' : 'Generating...'}
-							</>
-						) : (
-							<>
-								<Icon name="sparkles" height={16} width={16} />
-								{mode === 'iterate' ? 'Edit Dashboard' : 'Generate Dashboard'}
-							</>
-						)}
-					</button>
-				</div>
+						</button>
+					</div>
+				</form>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

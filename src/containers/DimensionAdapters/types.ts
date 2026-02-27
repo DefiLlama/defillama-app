@@ -53,6 +53,7 @@ export interface IAdapterByChainPageData {
 	chain: string
 	chains: Array<{ label: string; to: string }>
 	protocols: Array<IProtocol>
+	allProtocols?: string[]
 	categories: Array<string>
 	adapterType: `${ADAPTER_TYPES}`
 	dataType: `${ADAPTER_DATA_TYPES}` | null

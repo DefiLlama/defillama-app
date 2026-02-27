@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { type ComponentType, lazy, Suspense, useMemo } from 'react'
+import { type ComponentType, lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -16,8 +16,7 @@ import { useIsClient } from '~/hooks/useIsClient'
 import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
-import type { IProtocolCoreChartProps } from './ProtocolCoreChart'
-import type { IProtocolOverviewPageData, IToggledMetrics } from './types'
+import type { IProtocolOverviewPageData, IToggledMetrics, IProtocolCoreChartProps } from './types'
 import { useFetchProtocolChartData } from './useFetchProtocolChartData'
 
 const resolveVisibility = ({
@@ -39,11 +38,11 @@ type ChartInterval = (typeof INTERVALS_LIST)[number]
 const isChartInterval = (value: string | null): value is ChartInterval =>
 	value != null && INTERVALS_LIST.includes(value as (typeof INTERVALS_LIST)[number])
 
-const ProtocolCoreChart = lazy(() =>
-	import('./ProtocolCoreChart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
+const ProtocolChart = lazy(() =>
+	import('./Chart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
 )
 
-export function ProtocolChart(props: IProtocolOverviewPageData) {
+export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 	const searchParams = useMemo(() => {
 		const queryString = router.asPath.split('?')[1]?.split('#')[0] ?? ''
@@ -112,7 +111,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	const [tvlSettings] = useLocalStorageSettingsManager('tvl')
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 
-	const { finalCharts, valueSymbol, loadingCharts } = useFetchProtocolChartData({
+	const { finalCharts, valueSymbol, loadingCharts, failedMetrics } = useFetchProtocolChartData({
 		...props,
 		toggledMetrics,
 		groupBy: groupBy,
@@ -120,6 +119,14 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 		feesSettings,
 		isCEX: props.isCEX
 	})
+	const chartRenderModel = useMemo(
+		() => ({
+			chartData: finalCharts,
+			valueSymbol
+		}),
+		[finalCharts, valueSymbol]
+	)
+	const deferredChartRenderModel = useDeferredValue(chartRenderModel)
 
 	const metricsDialogStore = Ariakit.useDialogStore()
 
@@ -137,6 +144,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 	}, [props.name, props.geckoId, toggledCharts, props.chartColors, groupBy])
 
 	const isClient = useIsClient()
+	const shouldShowEnabledEventsChip = toggledMetrics.events === 'true'
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -231,7 +239,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						</span>
 					</label>
 				))}
-				{toggledMetrics.events === 'true' && (props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0) ? (
+				{shouldShowEnabledEventsChip ? (
 					<label className="relative flex cursor-pointer flex-nowrap items-center gap-1 text-sm last-of-type:mr-auto">
 						<input
 							type="checkbox"
@@ -308,7 +316,7 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					/>
 				</div>
 			</div>
-			<div className="flex min-h-[360px] flex-col">
+			<div className="relative flex min-h-[360px] flex-col">
 				{!isClient ? null : loadingCharts ? (
 					<p className="my-auto flex min-h-[360px] items-center justify-center gap-1 text-center text-xs">
 						fetching {loadingCharts}
@@ -316,11 +324,11 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 					</p>
 				) : (
 					<Suspense fallback={<div className="m-auto flex min-h-[360px] items-center justify-center" />}>
-						<ProtocolCoreChart
-							chartData={finalCharts}
+						<ProtocolChart
+							chartData={deferredChartRenderModel.chartData}
 							chartColors={props.chartColors}
 							isThemeDark={isThemeDark}
-							valueSymbol={valueSymbol}
+							valueSymbol={deferredChartRenderModel.valueSymbol}
 							groupBy={groupBy}
 							hallmarks={toggledMetrics.events === 'true' ? props.hallmarks : null}
 							rangeHallmarks={toggledMetrics.events === 'true' ? props.rangeHallmarks : null}
@@ -329,6 +337,29 @@ export function ProtocolChart(props: IProtocolOverviewPageData) {
 						/>
 					</Suspense>
 				)}
+				{isClient && !loadingCharts && failedMetrics.length > 0 ? (
+					<Ariakit.PopoverProvider>
+						<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+							<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+							<span className="sr-only">Show failed metric APIs</span>
+						</Ariakit.PopoverDisclosure>
+						<Ariakit.Popover
+							unmountOnHide
+							hideOnInteractOutside
+							gutter={6}
+							className="z-10 mr-1 flex max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),300px)] flex-col gap-1 overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-xs dark:border-[hsl(204,3%,32%)]"
+						>
+							<p className="font-medium text-(--error)">Failed to load data for:</p>
+							<ul className="pl-4">
+								{failedMetrics.map((metric) => (
+									<li key={metric} className="list-disc">
+										{metric.replace('Token', props.token?.symbol ? `$${props.token.symbol}` : 'Token')}
+									</li>
+								))}
+							</ul>
+						</Ariakit.Popover>
+					</Ariakit.PopoverProvider>
+				) : null}
 			</div>
 		</div>
 	)

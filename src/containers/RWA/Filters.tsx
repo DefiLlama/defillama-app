@@ -1,5 +1,4 @@
 import { useRouter } from 'next/router'
-import { startTransition } from 'react'
 import { Checkbox } from '~/components/Checkbox'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
@@ -509,7 +508,7 @@ function Filters({
 				Reset filters
 			</button>
 			<BasicLink
-				href="https://docs.llama.fi/real-world-assets/filtering-options"
+				href="https://docs.llama.fi/real-world-assets/real-world-assets"
 				target="_blank"
 				rel="noopener noreferrer"
 				className={

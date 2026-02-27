@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
+import type { FormSubmitEvent } from '~/types/forms'
 import type { CustomTimePeriod } from '../ProDashboardAPIContext'
 
 interface CustomTimePeriodPickerProps {
@@ -47,40 +48,55 @@ export function CustomTimePeriodPicker({
 }: CustomTimePeriodPickerProps) {
 	const popover = Ariakit.usePopoverStore({ placement: 'bottom-end' })
 	const [mode, setMode] = useState<'relative' | 'absolute'>(customPeriod?.type || 'relative')
-	const [relativeDays, setRelativeDays] = useState<string>(
-		customPeriod?.type === 'relative' && customPeriod.relativeDays ? String(customPeriod.relativeDays) : '45'
-	)
-	const [startDate, setStartDate] = useState<string>(
-		customPeriod?.type === 'absolute' && customPeriod.startDate
-			? dayjs.unix(customPeriod.startDate).format('YYYY-MM-DD')
-			: dayjs().subtract(90, 'day').format('YYYY-MM-DD')
-	)
-	const [endDate, setEndDate] = useState<string>(
-		customPeriod?.type === 'absolute' && customPeriod.endDate
-			? dayjs.unix(customPeriod.endDate).format('YYYY-MM-DD')
-			: dayjs().format('YYYY-MM-DD')
-	)
 
 	const today = dayjs().format('YYYY-MM-DD')
 
-	const handleApply = () => {
+	const defaultRelativeDays =
+		customPeriod?.type === 'relative' && customPeriod.relativeDays ? String(customPeriod.relativeDays) : '45'
+	const defaultStartDate =
+		customPeriod?.type === 'absolute' && customPeriod.startDate
+			? dayjs.unix(customPeriod.startDate).format('YYYY-MM-DD')
+			: dayjs().subtract(90, 'day').format('YYYY-MM-DD')
+	const defaultEndDate =
+		customPeriod?.type === 'absolute' && customPeriod.endDate
+			? dayjs.unix(customPeriod.endDate).format('YYYY-MM-DD')
+			: dayjs().format('YYYY-MM-DD')
+
+	const handleApply = (e: FormSubmitEvent) => {
+		e.preventDefault()
+		const form = e.currentTarget
+
 		if (mode === 'relative') {
-			const days = parseInt(relativeDays, 10)
-			if (days && days > 0) {
-				onApply({ type: 'relative', relativeDays: days })
-				popover.hide()
+			const input = form.elements.namedItem('relativeDays') as HTMLInputElement | null
+			if (!input) return
+			input.setCustomValidity('')
+			const days = parseInt(input.value, 10)
+			if (!days || days <= 0) {
+				input.setCustomValidity('Please enter a valid number greater than 0')
+				input.reportValidity()
+				return
 			}
+			onApply({ type: 'relative', relativeDays: days })
+			popover.hide()
 		} else {
-			const start = dayjs(startDate)
-			const end = dayjs(endDate)
-			if (start.isValid() && end.isValid() && start.isBefore(end)) {
-				onApply({
-					type: 'absolute',
-					startDate: start.unix(),
-					endDate: end.endOf('day').unix()
-				})
-				popover.hide()
+			const startInput = form.elements.namedItem('startDate') as HTMLInputElement | null
+			const endInput = form.elements.namedItem('endDate') as HTMLInputElement | null
+			if (!startInput || !endInput) return
+			startInput.setCustomValidity('')
+			endInput.setCustomValidity('')
+			const start = dayjs(startInput.value)
+			const end = dayjs(endInput.value)
+			if (!start.isValid() || !end.isValid() || !start.isBefore(end)) {
+				endInput.setCustomValidity('End date must be after start date')
+				endInput.reportValidity()
+				return
 			}
+			onApply({
+				type: 'absolute',
+				startDate: start.unix(),
+				endDate: end.endOf('day').unix()
+			})
+			popover.hide()
 		}
 	}
 
@@ -88,11 +104,6 @@ export function CustomTimePeriodPicker({
 		onClear()
 		popover.hide()
 	}
-
-	const isValidRelative = parseInt(relativeDays, 10) > 0
-	const isValidAbsolute =
-		dayjs(startDate).isValid() && dayjs(endDate).isValid() && dayjs(startDate).isBefore(dayjs(endDate))
-	const canApply = mode === 'relative' ? isValidRelative : isValidAbsolute
 
 	return (
 		<Ariakit.PopoverProvider store={popover}>
@@ -113,9 +124,10 @@ export function CustomTimePeriodPicker({
 				className="z-50 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4 shadow-lg"
 				style={{ minWidth: '300px' }}
 			>
-				<div className="flex flex-col gap-4">
+				<form onSubmit={handleApply} className="flex flex-col gap-4">
 					<div className="flex gap-2">
 						<button
+							type="button"
 							onClick={() => setMode('relative')}
 							className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
 								mode === 'relative'
@@ -126,6 +138,7 @@ export function CustomTimePeriodPicker({
 							Relative
 						</button>
 						<button
+							type="button"
 							onClick={() => setMode('absolute')}
 							className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
 								mode === 'absolute'
@@ -145,25 +158,16 @@ export function CustomTimePeriodPicker({
 							<div className="flex items-center gap-2">
 								<input
 									id="custom-period-relative-days"
+									name="relativeDays"
 									type="text"
 									inputMode="numeric"
-									value={relativeDays}
-									onChange={(e) => {
-										const value = e.target.value
-										if (value === '' || /^\d+$/.test(value)) {
-											setRelativeDays(value)
-										}
-									}}
-									className={`flex-1 rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden ${
-										relativeDays && !isValidRelative ? 'border-red-500' : ''
-									}`}
+									defaultValue={defaultRelativeDays}
+									onInput={(e) => e.currentTarget.setCustomValidity('')}
+									className="flex-1 rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 									placeholder="Enter days"
 								/>
 								<span className="text-sm text-(--text-secondary)">days ago → Now</span>
 							</div>
-							{relativeDays && !isValidRelative && (
-								<span className="text-xs text-red-500">Please enter a valid number greater than 0</span>
-							)}
 						</div>
 					) : (
 						<div className="flex flex-col gap-3">
@@ -173,10 +177,11 @@ export function CustomTimePeriodPicker({
 								</label>
 								<input
 									id="custom-period-start-date"
+									name="startDate"
 									type="date"
-									value={startDate}
+									defaultValue={defaultStartDate}
 									max={today}
-									onChange={(e) => setStartDate(e.target.value)}
+									onInput={(e) => e.currentTarget.setCustomValidity('')}
 									className="rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
@@ -186,10 +191,11 @@ export function CustomTimePeriodPicker({
 								</label>
 								<input
 									id="custom-period-end-date"
+									name="endDate"
 									type="date"
-									value={endDate}
+									defaultValue={defaultEndDate}
 									max={today}
-									onChange={(e) => setEndDate(e.target.value)}
+									onInput={(e) => e.currentTarget.setCustomValidity('')}
 									className="rounded-md border pro-border bg-(--bg-input) px-3 py-2 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 								/>
 							</div>
@@ -198,20 +204,20 @@ export function CustomTimePeriodPicker({
 
 					<div className="flex gap-2 border-t border-(--cards-border) pt-2">
 						<button
+							type="button"
 							onClick={handleClear}
 							className="flex-1 rounded-md border pro-border pro-hover-bg px-3 py-2 text-sm font-medium pro-text2 transition-colors hover:pro-text1"
 						>
 							Clear
 						</button>
 						<button
-							onClick={handleApply}
-							disabled={!canApply}
-							className="flex-1 rounded-md pro-btn-blue px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							type="submit"
+							className="flex-1 rounded-md pro-btn-blue px-3 py-2 text-sm font-medium transition-colors"
 						>
 							Apply
 						</button>
 					</div>
-				</div>
+				</form>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
 	)

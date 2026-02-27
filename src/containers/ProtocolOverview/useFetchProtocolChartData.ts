@@ -823,7 +823,8 @@ export const useFetchProtocolChartData = ({
 			return {
 				finalCharts: {} as Record<string, Array<[string | number, number | null]>>,
 				valueSymbol,
-				loadingCharts: loadingCharts.join(', ').toLowerCase()
+				loadingCharts: loadingCharts.join(', ').toLowerCase(),
+				failedMetrics: [] as ProtocolChartsLabels[]
 			}
 		}
 
@@ -1135,7 +1136,13 @@ export const useFetchProtocolChartData = ({
 			})
 		) as Record<string, Array<[number, number | null]>>
 
-		return { finalCharts: filteredCharts, valueSymbol, loadingCharts: '' }
+		const failedMetrics = availableCharts.filter((chartLabel) => {
+			const queryParamKey = protocolCharts[chartLabel]
+			if (!queryParamKey || toggledMetrics[queryParamKey] !== 'true') return false
+			return !Object.prototype.hasOwnProperty.call(filteredCharts, chartLabel)
+		})
+
+		return { finalCharts: filteredCharts, valueSymbol, loadingCharts: '', failedMetrics }
 	}, [
 		tvlChart,
 		fetchingDenominationPriceHistory,
@@ -1222,6 +1229,7 @@ export const useFetchProtocolChartData = ({
 		toggledMetrics,
 		groupBy,
 		extraTvlCharts,
+		availableCharts,
 		valueSymbol,
 		isCEX
 	])
