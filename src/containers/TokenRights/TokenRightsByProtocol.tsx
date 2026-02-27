@@ -57,7 +57,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 							) : null}
 							{overview.tokenTypes.length > 0 ? (
 								<KeyValueRow label="Token Type">
-									<PillList items={overview.tokenTypes} />
+									<PillList items={overview.tokenTypes} category="tokenTypes" />
 								</KeyValueRow>
 							) : null}
 							{overview.utility !== null ? (
@@ -153,7 +153,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 							<div className="divide-y divide-(--cards-border) empty:hidden">
 								{alignment.fundraising.length > 0 ? (
 									<KeyValueRow label="Fundraising">
-										<PillList items={alignment.fundraising} />
+										<PillList items={alignment.fundraising} category="fundraising" />
 									</KeyValueRow>
 								) : null}
 								{alignment.equityRevenueCapture !== null ? (
@@ -166,7 +166,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 								) : null}
 								{alignment.associatedEntities.length > 0 ? (
 									<KeyValueRow label="Associated Entities">
-										<PillList items={alignment.associatedEntities} />
+										<PillList items={alignment.associatedEntities} category="associatedEntities" />
 									</KeyValueRow>
 								) : null}
 								{alignment.ipAndBrand !== null ? (
@@ -236,13 +236,17 @@ function KeyValueRow({ label, children }: { label: string; children: ReactNode }
 	)
 }
 
-function PillList({ items }: { items: string[] }) {
+function PillList({ items, category, highlight }: { items: string[]; category: string; highlight?: boolean }) {
 	return (
 		<div className="flex flex-wrap gap-1.5">
-			{items.map((item, index) => (
+			{items.map((item) => (
 				<span
-					key={`${item}-${index}`}
-					className="rounded-full border border-(--cards-border) bg-(--app-bg) px-2.5 py-0.5 text-sm"
+					key={`${category}-${item}`}
+					className={`rounded-full border px-2.5 py-0.5 text-sm ${
+						highlight && item !== 'N/A'
+							? 'border-green-600/30 bg-green-600/10 text-green-700 dark:text-green-400'
+							: 'border-(--cards-border) bg-(--app-bg)'
+					}`}
 				>
 					{item}
 				</span>
@@ -303,7 +307,7 @@ function DecisionRow({ label, tokens, details }: { label: string; tokens: string
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<span className="text-sm font-semibold">{label}</span>
-				<PillList items={tokens} />
+				<PillList items={tokens} category={label} highlight />
 			</div>
 			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
 		</div>
@@ -316,7 +320,7 @@ function TokenActionRow({ label, tokens, details }: { label: string; tokens: str
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) p-3">
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<span className="text-sm font-semibold">{label}</span>
-				{isNA ? <StatusBadge label="N/A" tone="neutral" /> : <PillList items={tokens} />}
+				{isNA ? <StatusBadge label="N/A" tone="neutral" /> : <PillList items={tokens} category={label} highlight />}
 			</div>
 			{details !== null ? <p className="text-sm text-(--text-secondary)">{details}</p> : null}
 		</div>
