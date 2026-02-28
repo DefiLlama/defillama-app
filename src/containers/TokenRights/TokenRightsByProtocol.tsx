@@ -133,16 +133,32 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 						<SectionCard title="Resources">
 							{resources.addresses.length > 0 ? (
 								<div className="flex flex-col gap-2 text-sm">
-									<h3 className="text-(--text-label)">Foundation Multisigs / Addresses</h3>
-									{resources.addresses.map((a, i) => (
-										<div key={`${a.value}-${i}`} className="flex items-center justify-between gap-4">
-											<div className="flex min-w-0 flex-col gap-0.5">
-												{a.label ? <span>{a.label}</span> : null}
-												<span className="truncate font-mono text-(--text-secondary)">{a.value}</span>
+									{resources.addresses.every((a) => !a.label) ? (
+										<h3 className="text-(--text-label)">Foundation Multisigs / Addresses</h3>
+									) : null}
+									{resources.addresses.map((a, i) => {
+										const isLink = a.value.startsWith('http://') || a.value.startsWith('https://')
+										return (
+											<div key={`${a.value}-${i}`} className="flex min-w-0 flex-col gap-0.5">
+												{a.label ? <span className="text-(--text-label)">{a.label}</span> : null}
+												{isLink ? (
+													<a
+														href={a.value}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="truncate text-(--link) underline"
+													>
+														{a.value}
+													</a>
+												) : (
+													<div className="flex items-center justify-between gap-4">
+														<span className="truncate font-mono text-(--text-secondary)">{a.value}</span>
+														<CopyHelper toCopy={a.value} />
+													</div>
+												)}
 											</div>
-											<CopyHelper toCopy={a.value} />
-										</div>
-									))}
+										)
+									})}
 								</div>
 							) : null}
 							{resources.reports.length > 0 ? (

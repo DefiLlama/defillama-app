@@ -30,35 +30,37 @@ async function pullData() {
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
 
 	try {
-		const [{ protocols, chains, categoriesAndTags, cexs, rwaList }, { tastyMetrics, trendingRoutes }] =
-			await Promise.all([
-				fetchCoreMetadata(),
-				process.env.TASTY_API_URL
-					? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
-							headers: {
-								Authorization: `Bearer ${process.env.TASTY_API_KEY}`
-							}
-						})
-							.then((res) => res.json())
-							.then((res) => {
-								const tastyMetrics = {}
-								const trendingRoutes = []
-								let i = 0
-								for (const xy of res) {
-									if (i <= 20) {
-										trendingRoutes.push([xy.x, xy.y])
-									}
-									tastyMetrics[xy.x] = xy.y
-									i++
+		const [
+			{ protocols, chains, categoriesAndTags, cexs, rwaList, tokenlist, cgExchangeIdentifiers },
+			{ tastyMetrics, trendingRoutes }
+		] = await Promise.all([
+			fetchCoreMetadata(),
+			process.env.TASTY_API_URL
+				? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
+						headers: {
+							Authorization: `Bearer ${process.env.TASTY_API_KEY}`
+						}
+					})
+						.then((res) => res.json())
+						.then((res) => {
+							const tastyMetrics = {}
+							const trendingRoutes = []
+							let i = 0
+							for (const xy of res) {
+								if (i <= 20) {
+									trendingRoutes.push([xy.x, xy.y])
 								}
-								return { tastyMetrics, trendingRoutes }
-							})
-							.catch((e) => {
-								console.log('Error fetching tasty metrics', e)
-								return { tastyMetrics: {}, trendingRoutes: [] }
-							})
-					: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] })
-			])
+								tastyMetrics[xy.x] = xy.y
+								i++
+							}
+							return { tastyMetrics, trendingRoutes }
+						})
+						.catch((e) => {
+							console.log('Error fetching tasty metrics', e)
+							return { tastyMetrics: {}, trendingRoutes: [] }
+						})
+				: Promise.resolve({ tastyMetrics: {}, trendingRoutes: [] })
+		])
 
 		if (!fs.existsSync(CACHE_DIR)) {
 			fs.mkdirSync(CACHE_DIR)
@@ -69,6 +71,10 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+
+		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
+		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
+
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		// Group routes by category and sort each category by tasty metrics

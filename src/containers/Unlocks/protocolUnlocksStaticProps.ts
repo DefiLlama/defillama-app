@@ -1,6 +1,7 @@
-import { getTokenMarketDataFromCgChart } from '~/api'
+import { fetchCgChartByGeckoId } from '~/api'
 import { getProtocolEmissons } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
+import type { ITokenListEntry } from '~/utils/metadata/types'
 import type { EmissionEvent } from './api.types'
 
 export function calculateTotalUnlockValue(emissions: {
@@ -45,12 +46,32 @@ export function getEventCountdown(timestamp: number | null | undefined): string 
 	return 'in less than a minute'
 }
 
-export async function getProtocolUnlocksStaticPropsData(protocolParam: string) {
+export async function getProtocolUnlocksStaticPropsData(
+	protocolParam: string,
+	tokenlist: Record<string, ITokenListEntry>
+) {
 	const normalizedName = slug(protocolParam)
 
 	const emissions = await getProtocolEmissons(normalizedName).catch(() => null)
 	const geckoId = emissions?.geckoId ?? emissions?.meta?.gecko_id ?? null
-	const initialTokenMarketData = geckoId ? await getTokenMarketDataFromCgChart(geckoId).catch(() => null) : null
+	const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
+	const cgChart = geckoId ? await fetchCgChartByGeckoId(geckoId, { fullChart: false }).catch(() => null) : null
+	const cgMarketData = cgChart?.data?.coinData?.market_data
+	const initialTokenMarketData = tokenEntry
+		? {
+				price: tokenEntry.current_price ?? null,
+				prevPrice:
+					tokenEntry.current_price != null && tokenEntry.price_change_24h != null
+						? tokenEntry.current_price - tokenEntry.price_change_24h
+						: null,
+				priceChangePercent: tokenEntry.price_change_percentage_24h ?? null,
+				mcap: tokenEntry.market_cap ?? null,
+				volume24h: tokenEntry.total_volume ?? null,
+				circSupply: tokenEntry.circulating_supply ?? null,
+				maxSupply: tokenEntry.max_supply ?? null,
+				maxSupplyInfinite: cgMarketData?.max_supply_infinite ?? null
+			}
+		: null
 
 	return {
 		normalizedName,

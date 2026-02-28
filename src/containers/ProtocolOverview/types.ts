@@ -140,9 +140,9 @@ export interface IProtocolOverviewPageData {
 		price: {
 			current: number | null
 			ath: number | null
-			athDate: number | null
+			athDate: string | null
 			atl: number | null
-			atlDate: number | null
+			atlDate: string | null
 		}
 		marketCap: { current: number | null }
 		totalSupply: number | null

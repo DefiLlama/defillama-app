@@ -19,7 +19,14 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(params.protocol)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
+
+		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
+			params.protocol,
+			metadataCache.tokenlist
+		)
 
 		if (!emissions) {
 			return {

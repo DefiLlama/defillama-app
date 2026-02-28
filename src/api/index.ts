@@ -4,6 +4,7 @@ import { runBatchPromises } from '~/utils/batchPromises'
 import type {
 	CgMarketsQueryParams,
 	CgChartResponse,
+	CgMarketChartResponse,
 	ChainGeckoPair,
 	CoinsChartResponse,
 	CoinMcapsResponse,
@@ -15,12 +16,14 @@ import type {
 	PriceObject,
 	ProtocolLiquidityToken,
 	ProtocolTokenLiquidityChart,
-	TwitterPostsResponse,
-	TokenMarketData
+	TwitterPostsResponse
 } from './types'
 
 const COINGECKO_MARKETS_API_BASE = 'https://api.coingecko.com/api/v3/coins/markets'
+const COINGECKO_CONTRACTS_API_BASE = 'https://api.coingecko.com/api/v3/coins'
+const COINGECKO_MARKET_CHART_API_BASE = 'https://api.coingecko.com/api/v3/coins'
 const TOKEN_LIST_API_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
+const CG_CHART_CACHE_URL = `${CACHE_SERVER}/cgchart`
 const COINS_MCAPS_API_URL = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
 const COINS_CHART_API_URL = `${COINS_SERVER_URL}/chart`
 const COINS_PRICES_API_URL = `${COINS_SERVER_URL}/prices`
@@ -28,12 +31,17 @@ const TWITTER_POSTS_API_V2_URL = `${SERVER_URL}/twitter/user`
 const TOKEN_LIQUIDITY_API_URL = `${SERVER_URL}/historicalLiquidity`
 const LIQUIDITY_API_URL = `${DATASETS_SERVER_URL}/liquidity.json`
 
+// ---------------------------------------------------------------------------
+// CoinGecko queries
+// ---------------------------------------------------------------------------
+
 function isCGMarketsApiItem(value: unknown): value is IResponseCGMarketsAPI {
 	if (typeof value !== 'object' || value === null) return false
 	const item = value as Partial<IResponseCGMarketsAPI>
 	return typeof item.id === 'string' && typeof item.symbol === 'string' && typeof item.name === 'string'
 }
 
+/** Fetch the full sorted token list from the DefiLlama datasets mirror. */
 export async function fetchAllCGTokensList(): Promise<Array<IResponseCGMarketsAPI>> {
 	const data = await fetchJson<unknown>(TOKEN_LIST_API_URL)
 	if (!Array.isArray(data)) {
@@ -51,6 +59,7 @@ export async function fetchAllCGTokensList(): Promise<Array<IResponseCGMarketsAP
 	return validTokens
 }
 
+/** Fetch a single page from the CoinGecko /coins/markets endpoint. */
 export async function fetchCGMarketsPage({
 	page,
 	vsCurrency = 'usd',
@@ -78,33 +87,83 @@ export async function fetchCGMarketsPage({
 	return validTokens
 }
 
-export async function fetchTwitterPostsByUsername(username: string): Promise<TwitterPostsResponse | null> {
-	if (!username) return null
-	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(
-		() => null
-	)
+/**
+ * Resolve a CoinGecko ID from a "chain:address" string.
+ * Returns `{ id: address }` directly when the chain is "coingecko".
+ */
+export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoIdResponse | null> {
+	const [chain, address] = addressData.split(':')
+	if (!chain || !address || address === '-') return null
+
+	if (chain === 'coingecko') {
+		return { id: address }
+	}
+
+	return fetchJson<GeckoIdResponse>(`${COINGECKO_CONTRACTS_API_BASE}/${chain}/contract/${address}`).catch(() => null)
 }
 
-export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
-	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
+/**
+ * Fetch CoinGecko chart data (prices, mcaps, volumes, coinData) for a token.
+ * Tries the DefiLlama cache first, falls back to CoinGecko's public market_chart API.
+ * Note: the public CG fallback does not include coinData (only the cache has that).
+ */
+export async function fetchCgChartByGeckoId(
+	geckoId: string,
+	{ fullChart = true }: { fullChart?: boolean } = {}
+): Promise<CgChartResponse | null> {
+	if (!geckoId) return null
+	const cacheUrl = new URL(`${CG_CHART_CACHE_URL}/${geckoId}`)
+	if (fullChart) cacheUrl.searchParams.set('fullChart', 'true')
+	const cached = await fetchJson<CgChartResponse>(cacheUrl.toString()).catch(() => null)
+	if (cached?.data?.prices) return cached
+	const fallbackUrl = new URL(`${COINGECKO_MARKET_CHART_API_BASE}/${geckoId}/market_chart`)
+	fallbackUrl.searchParams.set('vs_currency', 'usd')
+	fallbackUrl.searchParams.set('days', fullChart ? 'max' : '365')
+	const fallback = await fetchJson<CgMarketChartResponse>(fallbackUrl.toString()).catch(() => null)
+	if (!fallback) return null
+	return {
+		data: {
+			prices: fallback.prices,
+			mcaps: fallback.market_caps,
+			volumes: fallback.total_volumes
+		}
+	}
 }
 
-export async function fetchProtocolTokenLiquidityChart(tokenId: string): Promise<ProtocolTokenLiquidityChart | null> {
-	if (!tokenId) return null
-	const encodedTokenId = encodeURIComponent(tokenId.replaceAll('#', '$'))
-	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${encodedTokenId}`).catch(() => null)
+/** Fetch current price for a single token via the coins.llama.fi prices API. */
+export async function fetchTokenPriceByGeckoId(geckoId: string): Promise<PriceObject | null> {
+	if (!geckoId) return null
+	const prices = await fetchCoinPrices([`coingecko:${geckoId}`])
+	return prices[`coingecko:${geckoId}`] ?? null
 }
 
+/** Fetch price/mcap/volume history for use as a denomination overlay (e.g. ETH-denominated charts). */
+export async function fetchDenominationPriceHistory(geckoId: string): Promise<DenominationPriceHistory> {
+	const res = await fetchCgChartByGeckoId(geckoId)
+	const data = res?.data
+
+	const prices = Array.isArray(data?.prices) ? (data.prices as Array<[number, number]>) : []
+	const mcaps = Array.isArray(data?.mcaps) ? (data.mcaps as Array<[number, number]>) : []
+	const volumes = Array.isArray(data?.volumes) ? (data.volumes as Array<[number, number]>) : []
+
+	return prices.length > 0 ? { prices, mcaps, volumes } : { prices: [], mcaps: [], volumes: [] }
+}
+
+// ---------------------------------------------------------------------------
+// DefiLlama Coins API queries
+// ---------------------------------------------------------------------------
+
+/** Fetch the global DefiLlama protocol/chain config (chainCoingeckoIds, etc.). */
 export async function fetchLlamaConfig(): Promise<LlamaConfigResponse> {
 	return fetchJson<LlamaConfigResponse>(CONFIG_API)
 }
 
+/** Fetch market caps for a list of chains, batched in groups of 10. */
 export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Record<string, number | null>> {
 	if (chains.length === 0) {
 		return {}
 	}
 
-	// Filter out chains without gecko_id
 	const validChains: Array<ChainGeckoPair> = chains
 		.filter(([_, geckoId]) => geckoId != null && geckoId !== '')
 		.map(([chain, geckoId]) => [chain, geckoId])
@@ -113,7 +172,6 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 		return {}
 	}
 
-	// Split chains into batches of 10
 	const batchSize = 10
 	const batches: Array<Array<ChainGeckoPair>> = []
 	for (let i = 0; i < validChains.length; i += batchSize) {
@@ -139,7 +197,6 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 		}
 	)
 
-	// Merge all results into a single object
 	const mergedMcaps: CoinMcapsResponse = {}
 	for (const batchResult of batchResults) {
 		Object.assign(mergedMcaps, batchResult)
@@ -154,6 +211,7 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 	}, {})
 }
 
+/** Fetch current prices for a list of coin identifiers, batched in groups of 10. */
 export async function fetchCoinPrices(
 	coins: Array<string>,
 	options?: { searchWidth?: string }
@@ -162,7 +220,6 @@ export async function fetchCoinPrices(
 		return {}
 	}
 
-	// Split coins into batches of 10
 	const batchSize = 10
 	const batches: Array<Array<string>> = []
 	for (let i = 0; i < coins.length; i += batchSize) {
@@ -188,7 +245,6 @@ export async function fetchCoinPrices(
 		}
 	)
 
-	// Merge all results into a single object
 	const mergedPrices: Record<string, PriceObject | undefined> = {}
 	for (const batchResult of batchResults) {
 		Object.assign(mergedPrices, batchResult)
@@ -201,6 +257,7 @@ export async function fetchCoinPrices(
 	}, {})
 }
 
+/** Fetch historical price chart for a single coin from the coins.llama.fi chart API. */
 export async function fetchCoinsChart(params: {
 	coin: string
 	start: number
@@ -219,71 +276,26 @@ export async function fetchCoinsChart(params: {
 	return fetchJson<CoinsChartResponse>(`${COINS_CHART_API_URL}/${encodeURIComponent(coin)}?${searchParams.toString()}`)
 }
 
-export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoIdResponse | null> {
-	const [chain, address] = addressData.split(':')
-	if (!chain || !address || address === '-') return null
+// ---------------------------------------------------------------------------
+// Protocol & social queries
+// ---------------------------------------------------------------------------
 
-	if (chain === 'coingecko') {
-		return { id: address }
-	}
-
-	return fetchJson<GeckoIdResponse>(`https://api.coingecko.com/api/v3/coins/${chain}/contract/${address}`).catch(
+/** Fetch recent Twitter/X posts for a given username. */
+export async function fetchTwitterPostsByUsername(username: string): Promise<TwitterPostsResponse | null> {
+	if (!username) return null
+	return fetchJson<TwitterPostsResponse>(`${TWITTER_POSTS_API_V2_URL}/${encodeURIComponent(username)}`).catch(
 		() => null
 	)
 }
 
-export async function fetchCgChartByGeckoId(geckoId: string): Promise<CgChartResponse | null> {
-	if (!geckoId) return null
-	return fetchJson<CgChartResponse>(`${CACHE_SERVER}/cgchart/${geckoId}?fullChart=true`).catch(() => null)
+/** Fetch the list of all protocols that have liquidity data available. */
+export async function fetchProtocolLiquidityTokens(): Promise<ProtocolLiquidityToken[]> {
+	return fetchJson<ProtocolLiquidityToken[]>(LIQUIDITY_API_URL)
 }
 
-export async function fetchTokenPriceByGeckoId(geckoId: string): Promise<PriceObject | null> {
-	if (!geckoId) return null
-	const prices = await fetchCoinPrices([`coingecko:${geckoId}`])
-	return prices[`coingecko:${geckoId}`] ?? null
-}
-
-export async function fetchDenominationPriceHistory(geckoId: string): Promise<DenominationPriceHistory> {
-	const res = await fetchCgChartByGeckoId(geckoId)
-	const data = res?.data
-
-	const prices = Array.isArray(data?.prices) ? (data.prices as Array<[number, number]>) : []
-	const mcaps = Array.isArray(data?.mcaps) ? (data.mcaps as Array<[number, number]>) : []
-	const volumes = Array.isArray(data?.volumes) ? (data.volumes as Array<[number, number]>) : []
-
-	return prices.length > 0 ? { prices, mcaps, volumes } : { prices: [], mcaps: [], volumes: [] }
-}
-
-export async function getTokenMarketDataFromCgChart(geckoId: string): Promise<TokenMarketData | null> {
-	if (!geckoId) return null
-
-	const res = await fetchCgChartByGeckoId(geckoId)
-	const data = res?.data
-	if (!data) return null
-
-	const marketData = data?.coinData?.market_data
-	const prices = Array.isArray(data?.prices) ? (data.prices as Array<[number, number]>) : null
-	const mcaps = Array.isArray(data?.mcaps) ? (data.mcaps as Array<[number, number]>) : null
-	const volumes = Array.isArray(data?.volumes) ? (data.volumes as Array<[number, number]>) : null
-
-	const lastPrice = prices?.[prices.length - 1]?.[1]
-	const prevPrice = prices?.[prices.length - 2]?.[1]
-	const lastMcap = mcaps?.[mcaps.length - 1]?.[1]
-	const lastVolume = volumes?.[volumes.length - 1]?.[1]
-
-	const priceChangePercent =
-		typeof lastPrice === 'number' && typeof prevPrice === 'number' && prevPrice !== 0
-			? +(((lastPrice - prevPrice) / prevPrice) * 100).toFixed(2)
-			: null
-
-	return {
-		price: typeof lastPrice === 'number' ? lastPrice : null,
-		prevPrice: typeof prevPrice === 'number' ? prevPrice : null,
-		priceChangePercent,
-		mcap: typeof lastMcap === 'number' ? lastMcap : null,
-		volume24h: typeof lastVolume === 'number' ? lastVolume : null,
-		circSupply: typeof marketData?.circulating_supply === 'number' ? marketData.circulating_supply : null,
-		maxSupply: typeof marketData?.max_supply === 'number' ? marketData.max_supply : null,
-		maxSupplyInfinite: typeof marketData?.max_supply_infinite === 'boolean' ? marketData.max_supply_infinite : null
-	}
+/** Fetch historical liquidity chart for a specific token. */
+export async function fetchProtocolTokenLiquidityChart(tokenId: string): Promise<ProtocolTokenLiquidityChart | null> {
+	if (!tokenId) return null
+	const encodedTokenId = encodeURIComponent(tokenId.replaceAll('#', '$'))
+	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${encodedTokenId}`).catch(() => null)
 }

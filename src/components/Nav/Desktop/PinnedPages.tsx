@@ -4,7 +4,7 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from '@dnd-kit/utilities'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { Tooltip } from '../../Tooltip'
+import { Tooltip } from '~/components/Tooltip'
 import { mutatePinnedMetrics } from '../pinnedUtils'
 import type { TNavLink } from '../types'
 import { LinkToPage, NavItemContent } from './shared'

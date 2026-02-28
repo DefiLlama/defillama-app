@@ -39,7 +39,9 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { protocol } = params
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 
 		let metadata: [string, IProtocolMetadata] | undefined
@@ -69,6 +71,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const tokenRightsData = parseTokenRightsEntry(rawEntry)
 		const raises = protocolData?.raises ? [...protocolData.raises].sort((a, b) => b.date - a.date) : null
+		const tokenlistSymbol = protocolData?.gecko_id
+			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
+			: undefined
+		const symbol = tokenlistSymbol ?? (protocolData?.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
 
 		const computedMetrics = protocolData ? getProtocolMetricFlags({ protocolData, metadata: metadata[1] }) : null
 		const metrics: IProtocolPageMetrics = {
@@ -107,7 +113,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const props: TokenRightsPageProps = {
 			name: protocolData?.name ?? rawEntry['Protocol Name'],
-			symbol: protocolData?.symbol ?? null,
+			symbol,
 			parentProtocol: protocolData?.parentProtocol ?? null,
 			otherProtocols: protocolData?.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
 			category: protocolData?.category ?? null,

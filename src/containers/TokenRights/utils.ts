@@ -80,7 +80,12 @@ export function parseAddresses(raw: string | undefined | null): ITokenRightsPars
 			}
 		} else if (parts.length === 1) {
 			const stripped = line.replace(/^<|>$/g, '')
-			results.push({ label: null, value: stripped })
+			const colonUrl = stripped.match(/^(.+?):\s*(https?:\/\/\S+)$/i)
+			if (colonUrl) {
+				results.push({ label: colonUrl[1].trim(), value: colonUrl[2] })
+			} else {
+				results.push({ label: null, value: stripped })
+			}
 		} else {
 			const pipeMatch = line.match(PIPE_PAIR_RE)
 			if (pipeMatch) {
