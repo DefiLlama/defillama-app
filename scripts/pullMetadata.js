@@ -30,8 +30,10 @@ async function pullData() {
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
 
 	try {
-		const [{ protocols, chains, categoriesAndTags, cexs, rwaList }, { tastyMetrics, trendingRoutes }] =
-			await Promise.all([
+		const [
+			{ protocols, chains, categoriesAndTags, cexs, rwaList, tokenlist, cgExchangeIdentifiers },
+			{ tastyMetrics, trendingRoutes }
+		] = await Promise.all([
 				fetchCoreMetadata(),
 				process.env.TASTY_API_URL
 					? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
@@ -69,6 +71,10 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
 		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+
+		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
+		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
+
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		// Group routes by category and sort each category by tasty metrics

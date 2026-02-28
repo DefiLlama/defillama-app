@@ -85,25 +85,34 @@ export interface CoinsChartResponse {
 	coins?: Record<string, CoinChartEntry | undefined>
 }
 
-export interface TokenMarketData {
-	price: number | null
-	prevPrice: number | null
-	priceChangePercent: number | null
-	mcap: number | null
-	volume24h: number | null
-	circSupply: number | null
-	maxSupply: number | null
-	maxSupplyInfinite: boolean | null
+export interface CgMarketChartResponse {
+	prices?: Array<[number, number]>
+	market_caps?: Array<[number, number]>
+	total_volumes?: Array<[number, number]>
 }
 
 export interface CgChartResponse {
 	data?: {
 		coinData?: {
+			symbol?: string
 			market_data?: {
+				ath?: { usd?: number | null }
+				ath_date?: { usd?: number | null }
+				atl?: { usd?: number | null }
+				atl_date?: { usd?: number | null }
+				market_cap?: { usd?: number | null }
+				total_supply?: number | null
+				fully_diluted_valuation?: { usd?: number | null }
+				total_volume?: { usd?: number | null }
 				circulating_supply?: number
 				max_supply?: number
 				max_supply_infinite?: boolean
 			}
+			tickers?: Array<{
+				trust_score?: string
+				market?: { identifier?: string }
+				converted_volume?: { usd?: number | null }
+			}>
 		}
 		prices?: Array<[number, number]>
 		mcaps?: Array<[number, number]>

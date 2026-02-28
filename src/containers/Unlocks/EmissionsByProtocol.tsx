@@ -108,6 +108,24 @@ type InitialTokenMarketData = {
 	maxSupplyInfinite?: boolean | null
 }
 
+function toNumberOrUndefined(val: unknown): number | undefined {
+	return typeof val === 'number' ? val : undefined
+}
+
+const MS_24H = 24 * 60 * 60 * 1000
+
+function findPriceAtLeast24hAgo(prices: Array<[number, number]> | undefined): number | undefined {
+	if (!prices || prices.length < 2) return undefined
+	const latestTs = prices[prices.length - 1][0]
+	const target = latestTs - MS_24H
+	for (let i = prices.length - 2; i >= 0; i--) {
+		if (prices[i][0] <= target) {
+			return prices[i][1]
+		}
+	}
+	return undefined
+}
+
 export function EmissionsByProtocol({
 	data,
 	isEmissionsPage,
@@ -590,33 +608,28 @@ const ChartContainer = ({
 	const isPriceAndMcapLoading =
 		isPriceAndMcapRequested && !isPriceAndMcapActive && (priceChart.isLoading || priceChart.isFetching)
 
-	const tokenMaxSupplyFromChart = priceChart.data?.data.coinData.market_data?.max_supply_infinite
-		? Infinity
-		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
-	const tokenCircSupplyFromChart = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
-	const tokenPriceFromChartRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
-	const tokenMcapFromChartRaw = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
-	const tokenVolumeFromChartRaw = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
-	const ystdPriceRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
+	const chartMarketData = priceChart.data?.data?.coinData?.market_data
+	const chartPrices = priceChart.data?.data?.prices
+	const chartMcaps = priceChart.data?.data?.mcaps
+	const chartVolumes = priceChart.data?.data?.volumes
 
-	const tokenPriceFromChart = typeof tokenPriceFromChartRaw === 'number' ? tokenPriceFromChartRaw : undefined
-	const tokenMcapFromChart = typeof tokenMcapFromChartRaw === 'number' ? tokenMcapFromChartRaw : undefined
-	const tokenVolumeFromChart = typeof tokenVolumeFromChartRaw === 'number' ? tokenVolumeFromChartRaw : undefined
-	const ystdPrice = typeof ystdPriceRaw === 'number' ? ystdPriceRaw : undefined
-
-	const tokenPrice = tokenPriceFromChart ?? initialTokenMarketData?.price ?? data?.tokenPrice?.price ?? undefined
-	const tokenMcap = tokenMcapFromChart ?? initialTokenMarketData?.mcap ?? data?.meta?.mcap ?? undefined
-	const tokenVolume = tokenVolumeFromChart ?? initialTokenMarketData?.volume24h ?? undefined
+	const tokenPrice =
+		initialTokenMarketData?.price ?? toNumberOrUndefined(chartPrices?.[chartPrices.length - 1]?.[1]) ?? data?.tokenPrice?.price ?? undefined
+	const tokenMcap =
+		initialTokenMarketData?.mcap ?? toNumberOrUndefined(chartMcaps?.[chartMcaps.length - 1]?.[1]) ?? data?.meta?.mcap ?? undefined
+	const tokenVolume =
+		initialTokenMarketData?.volume24h ?? toNumberOrUndefined(chartVolumes?.[chartVolumes.length - 1]?.[1]) ?? undefined
 	const tokenCircSupply =
-		tokenCircSupplyFromChart ?? initialTokenMarketData?.circSupply ?? data?.meta?.circSupply ?? undefined
+		initialTokenMarketData?.circSupply ?? chartMarketData?.circulating_supply ?? data?.meta?.circSupply ?? undefined
 	const tokenMaxSupply =
 		initialTokenMarketData?.maxSupplyInfinite === true
 			? Infinity
-			: (tokenMaxSupplyFromChart ?? initialTokenMarketData?.maxSupply ?? data?.meta?.maxSupply ?? undefined)
+			: (initialTokenMarketData?.maxSupply ?? (chartMarketData?.max_supply_infinite ? Infinity : (chartMarketData?.max_supply ?? data?.meta?.maxSupply ?? undefined)))
 
+	const ystdPrice = findPriceAtLeast24hAgo(chartPrices)
 	const percentChangeFromChart =
 		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
-	const percentChange = percentChangeFromChart ?? initialTokenMarketData?.priceChangePercent ?? null
+	const percentChange = initialTokenMarketData?.priceChangePercent ?? percentChangeFromChart ?? null
 
 	const priceChartForOverlay = isPriceAndMcapActive ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {

@@ -1,9 +1,8 @@
-import { fetchProtocolLiquidityTokens } from '~/api'
-import type { ProtocolLiquidityToken } from '~/api/types'
+import { fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
+import type { CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
 import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
-import { fetchCexs } from '~/containers/Cexs/api'
 import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
 import { governanceIdsToApis } from '~/containers/Governance/api'
@@ -42,9 +41,9 @@ interface IProtocolDataExtended extends IProtocolMetricsV2 {
 		price: {
 			current: number | null
 			ath: number | null
-			athDate: number | null
+			athDate: string | null
 			atl: number | null
-			atlDate: number | null
+			atlDate: string | null
 		}
 		marketCap: { current: number | null }
 		totalSupply: number | null
@@ -113,12 +112,16 @@ export const getProtocolOverviewPageData = async ({
 	protocolId,
 	currentProtocolMetadata,
 	isCEX = false,
-	chainMetadata
+	chainMetadata,
+	tokenlist,
+	cgExchangeIdentifiers
 }: {
 	protocolId: string
 	currentProtocolMetadata: IProtocolMetadata
 	isCEX?: boolean
 	chainMetadata: Record<string, IChainMetadata>
+	tokenlist: Record<string, import('~/utils/metadata/types').ITokenListEntry>
+	cgExchangeIdentifiers: string[]
 }): Promise<IProtocolOverviewPageData> => {
 	const displayName = currentProtocolMetadata.displayName ?? ''
 	const oracleProtocolName = (oracleProtocols as Record<string, string>)[displayName] ?? null
@@ -191,17 +194,14 @@ export const getProtocolOverviewPageData = async ({
 			async (data): Promise<IProtocolDataExtended | null> => {
 				if (!data) return null
 				try {
-					const [tokenCGData, cg_volume_cexs]: [unknown, string[]] = data.gecko_id
-						? await Promise.all([
-								fetchJson(`https://fe-cache.llama.fi/cgchart/${data.gecko_id}?fullChart=true`)
-									.then(({ data: cgData }) => cgData)
-									.catch(() => null),
-								fetchCexs()
-									.then((cexData) => cexData.cg_volume_cexs)
-									.catch(() => [])
-							])
-						: [null, []]
-					return { ...data, tokenCGData: tokenCGData ? getTokenCGData(tokenCGData, cg_volume_cexs) : null }
+					const geckoId = data.gecko_id
+					const tokenEntry = geckoId ? tokenlist[geckoId] ?? null : null
+					const tickers = geckoId
+						? await fetchCgChartByGeckoId(geckoId)
+								.then((res) => res?.data?.coinData?.tickers)
+								.catch(() => undefined)
+						: undefined
+					return { ...data, tokenCGData: getTokenCGData(tokenEntry, tickers, cgExchangeIdentifiers) }
 				} catch (e) {
 					console.log('[HTTP]:[ERROR]:[TOKEN_CG_DATA]:', e)
 					return data
@@ -999,73 +999,45 @@ const fetchArticles = async ({ tags = '', size = 2 }) => {
 	return articles.slice(0, size)
 }
 
-interface ICoingeckoTicker {
-	trust_score?: string
-	market?: { identifier?: string }
-	converted_volume?: { usd?: number | null }
-}
-
-interface ICoingeckoCoinData {
-	market_data?: {
-		ath?: { usd?: number | null }
-		ath_date?: { usd?: number | null }
-		atl?: { usd?: number | null }
-		atl_date?: { usd?: number | null }
-		market_cap?: { usd?: number | null }
-		total_supply?: number | null
-		fully_diluted_valuation?: { usd?: number | null }
-		total_volume?: { usd?: number | null }
-	}
-	tickers?: ICoingeckoTicker[]
-	symbol?: string
-}
-
-interface ICoingeckoFullChartPayload {
-	prices?: Array<[number, number]>
-	coinData?: ICoingeckoCoinData
-}
-
-function getTokenCGData(tokenCGData: unknown, cg_volume_cexs: string[]) {
-	const normalized: ICoingeckoFullChartPayload =
-		tokenCGData != null && typeof tokenCGData === 'object' && !Array.isArray(tokenCGData)
-			? (tokenCGData as ICoingeckoFullChartPayload)
-			: {}
-	const tokenPrice = normalized.prices?.length ? normalized.prices[normalized.prices.length - 1][1] : null
-	const tokenInfo = normalized.coinData
-
+function getTokenCGData(
+	tokenEntry: import('~/utils/metadata/types').ITokenListEntry | null,
+	tickers: CgChartResponse['data']['coinData']['tickers'] | undefined,
+	cgExchangeIdentifiers: string[]
+) {
+	if (!tokenEntry) return null
 	return {
 		price: {
-			current: tokenPrice ?? null,
-			ath: tokenInfo?.['market_data']?.['ath']?.['usd'] ?? null,
-			athDate: tokenInfo?.['market_data']?.['ath_date']?.['usd'] ?? null,
-			atl: tokenInfo?.['market_data']?.['atl']?.['usd'] ?? null,
-			atlDate: tokenInfo?.['market_data']?.['atl_date']?.['usd'] ?? null
+			current: tokenEntry.current_price ?? null,
+			ath: tokenEntry.ath ?? null,
+			athDate: tokenEntry.ath_date ?? null,
+			atl: tokenEntry.atl ?? null,
+			atlDate: tokenEntry.atl_date ?? null
 		},
-		marketCap: { current: tokenInfo?.['market_data']?.['market_cap']?.['usd'] ?? null },
-		totalSupply: tokenInfo?.['market_data']?.['total_supply'] ?? null,
-		fdv: { current: tokenInfo?.['market_data']?.['fully_diluted_valuation']?.['usd'] ?? null },
+		marketCap: { current: tokenEntry.market_cap ?? null },
+		totalSupply: tokenEntry.total_supply ?? null,
+		fdv: { current: tokenEntry.fully_diluted_valuation ?? null },
 		volume24h: {
-			total: tokenInfo?.['market_data']?.['total_volume']?.['usd'] ?? null,
+			total: tokenEntry.total_volume ?? null,
 			cex:
-				tokenInfo?.['tickers']?.reduce(
+				tickers?.reduce(
 					(acc, curr) =>
 						(acc +=
-							curr['trust_score'] !== 'red' && cg_volume_cexs.includes(curr.market?.identifier ?? '')
+							curr['trust_score'] !== 'red' && cgExchangeIdentifiers.includes(curr.market?.identifier ?? '')
 								? (curr.converted_volume?.usd ?? 0)
 								: 0),
 					0
 				) ?? null,
 			dex:
-				tokenInfo?.['tickers']?.reduce(
+				tickers?.reduce(
 					(acc, curr) =>
 						(acc +=
-							curr['trust_score'] === 'red' || cg_volume_cexs.includes(curr.market?.identifier ?? '')
+							curr['trust_score'] === 'red' || cgExchangeIdentifiers.includes(curr.market?.identifier ?? '')
 								? 0
 								: (curr.converted_volume?.usd ?? 0)),
 					0
 				) ?? null
 		},
-		symbol: tokenInfo?.['symbol'] ? tokenInfo.symbol.toUpperCase() : null
+		symbol: tokenEntry.symbol ? tokenEntry.symbol.toUpperCase() : null
 	}
 }
 

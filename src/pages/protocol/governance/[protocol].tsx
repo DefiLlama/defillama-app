@@ -20,7 +20,9 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { protocol } = params
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
@@ -35,16 +37,24 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
-		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const governanceProps = await getGovernanceDetailsPageData({
-			governanceIDs: protocolData.governanceID ?? [],
-			projectName: protocolData.name
-		})
+		const symbol = protocolData.gecko_id
+			? (metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase() ?? null)
+			: protocolData.symbol && protocolData.symbol !== '-'
+				? protocolData.symbol
+				: null
+
+		const [metrics, governanceProps] = await Promise.all([
+			Promise.resolve(getProtocolMetricFlags({ protocolData, metadata: metadata[1] })),
+			getGovernanceDetailsPageData({
+				governanceIDs: protocolData.governanceID ?? [],
+				projectName: protocolData.name
+			})
+		])
 
 		return {
 			props: {
 				name: protocolData.name,
-				symbol: protocolData.symbol ?? null,
+				symbol,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
