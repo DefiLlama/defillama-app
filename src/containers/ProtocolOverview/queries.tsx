@@ -195,12 +195,13 @@ export const getProtocolOverviewPageData = async ({
 				if (!data) return null
 				try {
 					const geckoId = data.gecko_id
-					const tokenEntry = geckoId ? tokenlist[geckoId] ?? null : null
-					const tickers = geckoId
-						? await fetchCgChartByGeckoId(geckoId)
-								.then((res) => res?.data?.coinData?.tickers)
-								.catch(() => undefined)
-						: undefined
+					const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
+					const tickers =
+						tokenEntry && geckoId
+							? await fetchCgChartByGeckoId(geckoId)
+									.then((res) => res?.data?.coinData?.tickers)
+									.catch(() => undefined)
+							: undefined
 					return { ...data, tokenCGData: getTokenCGData(tokenEntry, tickers, cgExchangeIdentifiers) }
 				} catch (e) {
 					console.log('[HTTP]:[ERROR]:[TOKEN_CG_DATA]:', e)
@@ -1005,6 +1006,26 @@ function getTokenCGData(
 	cgExchangeIdentifiers: string[]
 ) {
 	if (!tokenEntry) return null
+
+	let cexVolume: number | null = null
+	let dexVolume: number | null = null
+	if (tickers) {
+		const cexIds = new Set(cgExchangeIdentifiers)
+		let cex = 0
+		let dex = 0
+		for (const t of tickers) {
+			const vol = t.converted_volume?.usd ?? 0
+			if (t.trust_score === 'red') continue
+			if (cexIds.has(t.market?.identifier ?? '')) {
+				cex += vol
+			} else {
+				dex += vol
+			}
+		}
+		cexVolume = cex
+		dexVolume = dex
+	}
+
 	return {
 		price: {
 			current: tokenEntry.current_price ?? null,
@@ -1018,24 +1039,8 @@ function getTokenCGData(
 		fdv: { current: tokenEntry.fully_diluted_valuation ?? null },
 		volume24h: {
 			total: tokenEntry.total_volume ?? null,
-			cex:
-				tickers?.reduce(
-					(acc, curr) =>
-						(acc +=
-							curr['trust_score'] !== 'red' && cgExchangeIdentifiers.includes(curr.market?.identifier ?? '')
-								? (curr.converted_volume?.usd ?? 0)
-								: 0),
-					0
-				) ?? null,
-			dex:
-				tickers?.reduce(
-					(acc, curr) =>
-						(acc +=
-							curr['trust_score'] === 'red' || cgExchangeIdentifiers.includes(curr.market?.identifier ?? '')
-								? 0
-								: (curr.converted_volume?.usd ?? 0)),
-					0
-				) ?? null
+			cex: cexVolume,
+			dex: dexVolume
 		},
 		symbol: tokenEntry.symbol ? tokenEntry.symbol.toUpperCase() : null
 	}

@@ -1,10 +1,10 @@
 import { fetchAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
-import { fetchAdapterChainMetrics } from '../DimensionAdapters/api'
-import type { IAdapterChainMetrics } from '../DimensionAdapters/api.types'
-import { ADAPTER_TYPES } from '../DimensionAdapters/constants'
-import { fetchProtocols } from '../Protocols/api'
-import type { ProtocolsResponse } from '../Protocols/api.types'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
+import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import type { CompareTokenProtocol, CompareTokensPageData } from './types'
 
 export async function getCompareTokensPageData(): Promise<CompareTokensPageData> {

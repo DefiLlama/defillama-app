@@ -6,8 +6,8 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
-import { Tooltip } from '../Tooltip'
 
 interface ITableProps<T extends RowData = any> {
 	instance: Table<T>

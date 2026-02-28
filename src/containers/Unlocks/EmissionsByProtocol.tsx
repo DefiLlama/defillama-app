@@ -126,6 +126,17 @@ function findPriceAtLeast24hAgo(prices: Array<[number, number]> | undefined): nu
 	return undefined
 }
 
+function resolveTokenMaxSupply(
+	initial: InitialTokenMarketData | null | undefined,
+	chartMarketData: { max_supply_infinite?: boolean; max_supply?: number } | undefined,
+	metaMaxSupply: number | undefined
+): number | undefined {
+	if (initial?.maxSupplyInfinite === true) return Infinity
+	if (initial?.maxSupply != null) return initial.maxSupply
+	if (chartMarketData?.max_supply_infinite) return Infinity
+	return chartMarketData?.max_supply ?? metaMaxSupply ?? undefined
+}
+
 export function EmissionsByProtocol({
 	data,
 	isEmissionsPage,
@@ -614,17 +625,20 @@ const ChartContainer = ({
 	const chartVolumes = priceChart.data?.data?.volumes
 
 	const tokenPrice =
-		initialTokenMarketData?.price ?? toNumberOrUndefined(chartPrices?.[chartPrices.length - 1]?.[1]) ?? data?.tokenPrice?.price ?? undefined
+		initialTokenMarketData?.price ??
+		toNumberOrUndefined(chartPrices?.[chartPrices.length - 1]?.[1]) ??
+		data?.tokenPrice?.price ??
+		undefined
 	const tokenMcap =
-		initialTokenMarketData?.mcap ?? toNumberOrUndefined(chartMcaps?.[chartMcaps.length - 1]?.[1]) ?? data?.meta?.mcap ?? undefined
+		initialTokenMarketData?.mcap ??
+		toNumberOrUndefined(chartMcaps?.[chartMcaps.length - 1]?.[1]) ??
+		data?.meta?.mcap ??
+		undefined
 	const tokenVolume =
 		initialTokenMarketData?.volume24h ?? toNumberOrUndefined(chartVolumes?.[chartVolumes.length - 1]?.[1]) ?? undefined
 	const tokenCircSupply =
 		initialTokenMarketData?.circSupply ?? chartMarketData?.circulating_supply ?? data?.meta?.circSupply ?? undefined
-	const tokenMaxSupply =
-		initialTokenMarketData?.maxSupplyInfinite === true
-			? Infinity
-			: (initialTokenMarketData?.maxSupply ?? (chartMarketData?.max_supply_infinite ? Infinity : (chartMarketData?.max_supply ?? data?.meta?.maxSupply ?? undefined)))
+	const tokenMaxSupply = resolveTokenMaxSupply(initialTokenMarketData, chartMarketData, data?.meta?.maxSupply)
 
 	const ystdPrice = findPriceAtLeast24hAgo(chartPrices)
 	const percentChangeFromChart =

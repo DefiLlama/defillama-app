@@ -104,7 +104,8 @@ export async function fetchGeckoIdByAddress(addressData: string): Promise<GeckoI
 
 /**
  * Fetch CoinGecko chart data (prices, mcaps, volumes, coinData) for a token.
- * Tries the DefiLlama cache first, falls back to CoinGecko's market_chart API.
+ * Tries the DefiLlama cache first, falls back to CoinGecko's public market_chart API.
+ * Note: the public CG fallback does not include coinData (only the cache has that).
  */
 export async function fetchCgChartByGeckoId(
 	geckoId: string,
@@ -117,7 +118,7 @@ export async function fetchCgChartByGeckoId(
 	if (cached?.data?.prices) return cached
 	const fallbackUrl = new URL(`${COINGECKO_MARKET_CHART_API_BASE}/${geckoId}/market_chart`)
 	fallbackUrl.searchParams.set('vs_currency', 'usd')
-	fallbackUrl.searchParams.set('days', '365')
+	fallbackUrl.searchParams.set('days', fullChart ? 'max' : '365')
 	const fallback = await fetchJson<CgMarketChartResponse>(fallbackUrl.toString()).catch(() => null)
 	if (!fallback) return null
 	return {

@@ -97,9 +97,9 @@ export interface CgChartResponse {
 			symbol?: string
 			market_data?: {
 				ath?: { usd?: number | null }
-				ath_date?: { usd?: number | null }
+				ath_date?: { usd?: string | null }
 				atl?: { usd?: number | null }
-				atl_date?: { usd?: number | null }
+				atl_date?: { usd?: string | null }
 				market_cap?: { usd?: number | null }
 				total_supply?: number | null
 				fully_diluted_valuation?: { usd?: number | null }

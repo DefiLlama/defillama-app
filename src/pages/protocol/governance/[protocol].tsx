@@ -37,11 +37,10 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
-		const symbol = protocolData.gecko_id
-			? (metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase() ?? null)
-			: protocolData.symbol && protocolData.symbol !== '-'
-				? protocolData.symbol
-				: null
+		const tokenlistSymbol = protocolData.gecko_id
+			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
+			: undefined
+		const symbol = tokenlistSymbol ?? (protocolData.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
 
 		const [metrics, governanceProps] = await Promise.all([
 			Promise.resolve(getProtocolMetricFlags({ protocolData, metadata: metadata[1] })),

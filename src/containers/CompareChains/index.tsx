@@ -7,12 +7,12 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { Select } from '~/components/Select/Select'
+import { Stats } from '~/containers/ChainOverview/Stats'
+import type { IChainOverviewData } from '~/containers/ChainOverview/types'
+import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/DimensionAdapters/types'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { Stats } from '../ChainOverview/Stats'
-import type { IChainOverviewData } from '../ChainOverview/types'
-import type { IAdapterChainOverview, IAdapterProtocolOverview } from '../DimensionAdapters/types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')

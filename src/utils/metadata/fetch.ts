@@ -1,3 +1,5 @@
+import type { ITokenListEntry } from './types'
+
 function previewResponseBody(body: string, length = 200): string {
 	return body.replace(/\s+/g, ' ').trim().slice(0, length)
 }
@@ -45,7 +47,7 @@ export async function fetchCoreMetadata(): Promise<{
 	categoriesAndTags: any
 	cexs: Array<any>
 	rwaList: any
-	tokenlist: Record<string, { symbol: string; current_price: number | null; price_change_24h: number | null; price_change_percentage_24h: number | null; ath: number | null; ath_date: string | null; atl: number | null; atl_date: string | null; market_cap: number | null; fully_diluted_valuation: number | null; total_volume: number | null; total_supply: number | null; circulating_supply: number | null; max_supply: number | null }>
+	tokenlist: Record<string, ITokenListEntry>
 	cgExchangeIdentifiers: string[]
 }> {
 	const API_KEY = process.env.API_KEY
@@ -71,8 +73,9 @@ export async function fetchCoreMetadata(): Promise<{
 		fetchJson<Array<any>>(TOKENLIST_DATA_URL)
 	])
 
-	const tokenlist: Record<string, any> = {}
+	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
+		if (!t || typeof t.id !== 'string' || !t.id) continue
 		tokenlist[t.id] = {
 			symbol: t.symbol,
 			current_price: t.current_price ?? null,

@@ -61,7 +61,9 @@ export async function getProtocolUnlocksStaticPropsData(
 		? {
 				price: tokenEntry.current_price ?? null,
 				prevPrice:
-					tokenEntry.price_change_24h != null ? (tokenEntry.current_price ?? 0) - tokenEntry.price_change_24h : null,
+					tokenEntry.current_price != null && tokenEntry.price_change_24h != null
+						? tokenEntry.current_price - tokenEntry.price_change_24h
+						: null,
 				priceChangePercent: tokenEntry.price_change_percentage_24h ?? null,
 				mcap: tokenEntry.market_cap ?? null,
 				volume24h: tokenEntry.total_volume ?? null,

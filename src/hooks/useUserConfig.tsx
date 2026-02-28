@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { AUTH_SERVER } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import {
 	readAppStorage,
 	readAppStorageRaw,
@@ -11,8 +13,6 @@ import {
 	writeAppStorage
 } from '~/contexts/LocalStorage'
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { AUTH_SERVER } from '../constants'
-import { useAuthContext } from '../containers/Subscribtion/auth'
 import { useDebouncedCallback } from './useDebounce'
 
 const USER_CONFIG_QUERY_KEY = ['user-config']

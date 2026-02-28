@@ -71,11 +71,10 @@ export const getStaticProps = withPerformanceLogging(
 
 		const tokenRightsData = parseTokenRightsEntry(rawEntry)
 		const raises = protocolData?.raises ? [...protocolData.raises].sort((a, b) => b.date - a.date) : null
-		const symbol = protocolData?.gecko_id
-			? (metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase() ?? null)
-			: protocolData?.symbol && protocolData.symbol !== '-'
-				? protocolData.symbol
-				: null
+		const tokenlistSymbol = protocolData?.gecko_id
+			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
+			: undefined
+		const symbol = tokenlistSymbol ?? (protocolData?.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
 
 		const computedMetrics = protocolData ? getProtocolMetricFlags({ protocolData, metadata: metadata[1] }) : null
 		const metrics: IProtocolPageMetrics = {
