@@ -360,7 +360,7 @@ export const slug = (name: unknown = ''): string =>
 		.toLowerCase()
 		.replace(/ /g, '-')
 		.replace(/'/g, '')
-		.replace(/\./g, '-')
+    .replace(/\./g, '-')
 
 export function getNDistinctColors(n: number): string[] {
 	if (n <= 0) {
