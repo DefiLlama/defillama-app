@@ -294,6 +294,11 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 					) : null}
 				</>
 			) : null}
+			{props.treasuryMethodologyUrl ? (
+				<a href={props.treasuryMethodologyUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+					<span className="font-medium">Treasury:</span> <span>Value of tokens owned by the protocol</span>
+				</a>
+			) : null}
 		</div>
 	)
 }

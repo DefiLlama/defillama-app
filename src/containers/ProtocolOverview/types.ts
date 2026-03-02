@@ -189,6 +189,7 @@ export interface IProtocolOverviewPageData {
 	defaultToggledCharts: ProtocolChartsLabels[]
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]
+	treasuryMethodologyUrl?: string | null
 }
 
 interface ICredit {

@@ -810,6 +810,7 @@ export const getProtocolOverviewPageData = async ({
 				: currentProtocolMetadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
 					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
 					: null,
+		treasuryMethodologyUrl: protocolData.treasuryCodePath ?? null,
 		token: {
 			symbol:
 				protocolData.symbol && protocolData.symbol !== '-'

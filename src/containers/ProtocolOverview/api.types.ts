@@ -64,6 +64,7 @@ export interface IProtocolMetricsV2 {
 	warningBanners?: Array<IProtocolWarningBanner>
 	wrongLiquidity?: boolean
 	tvlCodePath?: string
+	treasuryCodePath?: string
 }
 
 export interface IProtocolOverviewMetricsV1 extends IProtocolMetricsV2 {
