@@ -42,8 +42,8 @@ ENV PORT=3000
 
 WORKDIR /usr/src/app
 
-RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs \
+  && useradd --system --uid 1001 --gid nodejs nextjs
 
 RUN mkdir .next && chown nextjs:nodejs .next
 
@@ -56,4 +56,4 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & node server.js"]
+CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & bun server.js"]
