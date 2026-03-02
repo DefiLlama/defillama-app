@@ -33,6 +33,8 @@ export const MobileNav = ({
 					width={105}
 					className="mr-auto object-contain object-left"
 					fetchPriority="high"
+					loading="eager"
+					decoding="sync"
 				/>
 			</BasicLink>
 

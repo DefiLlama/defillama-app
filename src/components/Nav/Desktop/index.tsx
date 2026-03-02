@@ -37,6 +37,8 @@ export function DesktopNav({
 						className="mr-auto hidden object-contain object-left dark:block"
 						alt=""
 						fetchPriority="high"
+						loading="eager"
+						decoding="sync"
 					/>
 					<img
 						src="/assets/defillama-dark.webp"
@@ -45,6 +47,8 @@ export function DesktopNav({
 						className="mr-auto object-contain object-left dark:hidden"
 						alt=""
 						fetchPriority="high"
+						loading="eager"
+						decoding="sync"
 					/>
 				</BasicLink>
 
