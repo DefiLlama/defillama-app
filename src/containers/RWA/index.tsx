@@ -1,10 +1,9 @@
-import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
-import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
+import type { IHBarChartProps, IMultiSeriesChart2Props, IPieChartProps, ITreemapChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -39,19 +38,13 @@ import {
 	resolveTreemapNestedByOnParentGroupingChange,
 	validTreemapNestedBy
 } from './treemap'
-import type { RWAChartType, RwaTreemapNestedBy, RwaTreemapNode } from './treemap'
+import type { RWAChartType, RwaTreemapNestedBy } from './treemap'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
-interface ITreemapChartProps {
-	treeData: RwaTreemapNode[]
-	variant?: 'yields' | 'narrative' | 'rwa'
-	height?: string
-	onReady?: (instance: echarts.ECharts | null) => void
-	valueLabel?: string
-}
+const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 type RWAOverviewMode = 'chain' | 'category' | 'platform'
@@ -73,10 +66,12 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
 			? router.query.chartType
 			: 'activeMcap'
+	const chartViewQuery = typeof router.query.chartView === 'string' ? router.query.chartView : null
 	const chartView =
-		typeof router.query.chartView === 'string' &&
-		(router.query.chartView === 'pie' || router.query.chartView === 'treemap')
-			? router.query.chartView
+		chartViewQuery === 'bar'
+			? 'hbar'
+			: chartViewQuery === 'pie' || chartViewQuery === 'treemap' || chartViewQuery === 'hbar'
+				? chartViewQuery
 			: 'timeSeries'
 	const treemapNestedByQuery =
 		typeof router.query.treemapNestedBy === 'string' &&
@@ -351,6 +346,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
 	const pieChartFilename = `rwa-pie-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
+	const { chartInstance: barChartInstance, handleChartReady: handleBarChartReady } = useChartImageExport()
+	const barChartFilename = `rwa-bar-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
@@ -382,6 +379,40 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 		return stackColors
 	}, [pieChartStackColors, deferredSelectedPieChartData])
+	const selectedBarChartData = useMemo(() => {
+		let othersValue = 0
+		const sorted: Array<{ name: string; value: number }> = []
+
+		for (const item of deferredSelectedPieChartData) {
+			if (!Number.isFinite(item.value) || item.value <= 0) continue
+
+			if (item.name === 'Others') {
+				othersValue += item.value
+				continue
+			}
+
+			sorted.push({ name: item.name, value: item.value })
+		}
+
+		sorted.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+
+		if (sorted.length <= MAX_HORIZONTAL_BARS - (othersValue > 0 ? 1 : 0)) {
+			return othersValue > 0 ? [...sorted, { name: 'Others', value: othersValue }] : sorted
+		}
+
+		const limitedData = sorted.slice(0, MAX_HORIZONTAL_BARS - 1)
+		const overflowValue = sorted.slice(MAX_HORIZONTAL_BARS - 1).reduce((sum, item) => sum + item.value, 0) + othersValue
+		if (overflowValue > 0) {
+			limitedData.push({ name: 'Others', value: overflowValue })
+		}
+		return limitedData
+	}, [deferredSelectedPieChartData])
+	const selectedBarChartCategories = useMemo(() => selectedBarChartData.map((item) => item.name), [selectedBarChartData])
+	const selectedBarChartValues = useMemo(() => selectedBarChartData.map((item) => item.value), [selectedBarChartData])
+	const selectedBarChartColors = useMemo(
+		() => selectedBarChartData.map((item) => valueSortedPieChartStackColors[item.name] ?? '#1f77b4'),
+		[selectedBarChartData, valueSortedPieChartStackColors]
+	)
 
 	const chartTypeSwitch = (
 		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
@@ -407,7 +438,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			setSelectedValues={(value) => {
 				const selectedView = getSelectedFilterValue(value)
 
-				if (selectedView === 'pie' || selectedView === 'treemap') {
+				if (selectedView === 'pie' || selectedView === 'treemap' || selectedView === 'hbar') {
 					pushShallowMergedQuery({ chartView: selectedView })
 					return
 				}
@@ -418,7 +449,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					pieChartBreakdown: undefined
 				})
 			}}
-			label={chartView === 'pie' ? 'Pie Chart' : chartView === 'treemap' ? 'Treemap Chart' : 'Time Series'}
+			label={
+				chartView === 'pie'
+					? 'Pie Chart'
+					: chartView === 'treemap'
+						? 'Treemap Chart'
+						: chartView === 'hbar'
+							? 'HBar Chart'
+							: 'Time Series'
+			}
 			labelType="none"
 			variant="filter"
 		/>
@@ -554,6 +593,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		treemapNestedBy,
 		treemapParentGrouping
 	])
+	const nonTimeSeriesChartInstance =
+		chartView === 'treemap' ? treemapChartInstance : chartView === 'hbar' ? barChartInstance : pieChartInstance
+	const nonTimeSeriesChartFilename =
+		chartView === 'treemap' ? treemapChartFilename : chartView === 'hbar' ? barChartFilename : pieChartFilename
 
 	return (
 		<>
@@ -679,7 +722,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 							</Suspense>
 						</div>
 					) : null}
-					{chartView === 'pie' || chartView === 'treemap' ? (
+					{chartView === 'pie' || chartView === 'treemap' || chartView === 'hbar' ? (
 						<div
 							className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${
 								chartView === 'treemap' ? 'min-h-[652px]' : 'min-h-[412px]'
@@ -691,15 +734,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{pieChartBreakdownSwitch}
 								{chartView === 'treemap' ? treemapNestedBySwitch : null}
 								{chartView === 'treemap' ? <ChartRestoreButton chartInstance={treemapChartInstance} /> : null}
-								{chartView === 'pie' || chartView === 'treemap' ? (
-									<ChartCsvExportButton
-										chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
-										filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
-									/>
-								) : null}
+								<ChartCsvExportButton chartInstance={nonTimeSeriesChartInstance} filename={nonTimeSeriesChartFilename} />
 								<ChartPngExportButton
-									chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
-									filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
+									chartInstance={nonTimeSeriesChartInstance}
+									filename={nonTimeSeriesChartFilename}
 									title={exportChartTitle}
 								/>
 							</div>
@@ -713,6 +751,14 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										legendTextStyle={pieChartLegendTextStyle}
 										onReady={handlePieChartReady}
 									/>
+								) : chartView === 'hbar' ? (
+								<HBarChart
+									categories={selectedBarChartCategories}
+									values={selectedBarChartValues}
+									colors={selectedBarChartColors}
+									valueSymbol="$"
+									onReady={handleBarChartReady}
+								/>
 								) : (
 									<TreemapChart
 										treeData={treemapTreeData}
@@ -789,7 +835,9 @@ const PIE_CHART_TYPES = [
 const CHART_VIEW_OPTIONS = [
 	{ key: 'timeSeries', name: 'Time Series Chart' },
 	{ key: 'pie', name: 'Pie Chart' },
-	{ key: 'treemap', name: 'Treemap Chart' }
+	{ key: 'treemap', name: 'Treemap Chart' },
+	{ key: 'hbar', name: 'HBar Chart' }
 ]
 
 const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
+const MAX_HORIZONTAL_BARS = 9

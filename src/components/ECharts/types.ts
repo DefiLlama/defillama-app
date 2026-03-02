@@ -77,6 +77,27 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	orientation?: 'vertical' | 'horizontal'
 }
 
+export interface IHBarChartProps {
+	categories: string[]
+	values: number[]
+	title?: string
+	valueSymbol?: string
+	height?: string
+	color?: string
+	colors?: string[]
+	onReady?: (instance: echarts.ECharts | null) => void
+}
+
+export type TreemapVariant = 'yields' | 'narrative' | 'rwa'
+
+export interface ITreemapChartProps {
+	treeData: any[]
+	variant?: TreemapVariant
+	height?: string
+	onReady?: (instance: echarts.ECharts | null) => void
+	valueLabel?: string
+}
+
 export type MultiSeriesChart2Dataset = {
 	source: Array<
 		Record<
