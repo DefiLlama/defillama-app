@@ -76,7 +76,9 @@ echo "======================="
 echo ""
 
 # 3. Sync static assets to/from R2 so new deployments can serve old build chunks
-if [ $BUILD_STATUS -eq 0 ]; then
+if [ "${SKIP_ARTIFACT_SYNC:-0}" = "1" ]; then
+  echo "SKIP_ARTIFACT_SYNC=1, skipping rclone sync"
+elif [ $BUILD_STATUS -eq 0 ]; then
   rclone --config scripts/rclone.conf copy ./.next/static artifacts:defillama-app-artifacts
   rclone --config scripts/rclone.conf copy artifacts:defillama-app-artifacts ./.next/static
 else
@@ -85,6 +87,10 @@ fi
 
 # 4. Send build status notification to Discord
 export BUILD_STATUS BUILD_TIME_STR START_TIME BUILD_ID BRANCH_NAME
-bun ./scripts/build-msg.js
+if [ "${SKIP_BUILD_NOTIFY:-0}" = "1" ]; then
+  echo "SKIP_BUILD_NOTIFY=1, skipping Discord notification"
+else
+  bun ./scripts/build-msg.js
+fi
 
 exit $BUILD_STATUS
