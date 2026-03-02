@@ -30,9 +30,9 @@ export default function NetflowChart({ height, onReady, data: allData }: Netflow
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const data = allData?.[period] ?? []
-
 	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {
+		const data = allData?.[period] ?? []
+
 		const nonZeroData: Array<{ chain: string; value: number }> = []
 		for (const item of data ?? []) {
 			if (item.net_flow === '0') continue
@@ -68,12 +68,12 @@ export default function NetflowChart({ height, onReady, data: allData }: Netflow
 			chains: chainNames,
 			csvSource: csvRows
 		}
-	}, [data])
+	}, [allData, period])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
 		return () => {

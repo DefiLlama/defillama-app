@@ -122,7 +122,7 @@ export default function ChainCoreChart({
 		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 		if (onReady) {
 			onReady(instance)

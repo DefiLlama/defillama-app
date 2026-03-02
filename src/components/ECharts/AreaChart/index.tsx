@@ -330,7 +330,7 @@ export default function AreaChart({
 		let instance = echarts.getInstanceByDom(chartDom)
 		const isNewInstance = !instance
 		if (!instance) {
-			instance = echarts.init(chartDom)
+			instance = echarts.init(chartDom, null, { renderer: 'canvas' })
 		}
 		chartRef.current = instance
 		if (shouldSyncChartInstance) {

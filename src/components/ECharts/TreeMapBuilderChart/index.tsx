@@ -49,7 +49,7 @@ export default function TreeMapBuilderChart({ data, height = '450px', onReady }:
 		const container = document.getElementById(id)
 		if (!container) return
 
-		const instance = echarts.init(container)
+		const instance = echarts.init(container, null, { renderer: 'canvas' })
 		chartRef.current = instance
 		onReadyRef.current?.(instance)
 

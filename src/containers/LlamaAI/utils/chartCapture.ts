@@ -34,7 +34,8 @@ async function captureChartById(chartId: string, title: string, isDark: boolean)
 	try {
 		const tempChart = echarts.init(tempContainer, null, {
 			width: CAPTURE_WIDTH,
-			height: CAPTURE_HEIGHT
+			height: CAPTURE_HEIGHT,
+			renderer: 'canvas'
 		})
 
 		const currentOptions: any = existingChart.getOption()

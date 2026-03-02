@@ -115,7 +115,8 @@ async function renderClonedChartExport(
 
 	const tempChart = echartsCore.init(tempContainer, null, {
 		width: IMAGE_EXPORT_WIDTH,
-		height: IMAGE_EXPORT_HEIGHT
+		height: IMAGE_EXPORT_HEIGHT,
+		renderer: 'canvas'
 	})
 
 	try {

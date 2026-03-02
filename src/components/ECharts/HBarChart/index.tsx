@@ -39,7 +39,7 @@ export default function HBarChart({
 
 		let instance = echarts.getInstanceByDom(chartDom)
 		if (!instance) {
-			instance = echarts.init(chartDom)
+			instance = echarts.init(chartDom, null, { renderer: 'canvas' })
 		}
 		chartRef.current = instance
 

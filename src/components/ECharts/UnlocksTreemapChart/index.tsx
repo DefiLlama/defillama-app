@@ -250,7 +250,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
 		const option = {
