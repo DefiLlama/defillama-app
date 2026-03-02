@@ -32,6 +32,8 @@ export default function Bridges({
 	chartDataByBridge,
 	chain,
 	chainVolumeData,
+	rawBridgeVolumeData,
+	netflowsData,
 	bridgeStatsCurrentDay,
 	largeTxsData
 	//backgroundColor
@@ -53,6 +55,8 @@ export default function Bridges({
 				bridgeNameToChartDataIndex={bridgeNameToChartDataIndex}
 				chartDataByBridge={chartDataByBridge}
 				chainVolumeData={chainVolumeData}
+				rawBridgeVolumeData={rawBridgeVolumeData}
+				netflowsData={netflowsData}
 				bridgeStatsCurrentDay={bridgeStatsCurrentDay}
 				largeTxsData={largeTxsData}
 			/>

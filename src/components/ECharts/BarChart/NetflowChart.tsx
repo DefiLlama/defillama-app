@@ -16,9 +16,10 @@ echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 interface NetflowChartProps {
 	height?: number | string
 	onReady?: (instance: echarts.ECharts | null) => void
+	initialData?: Record<string, Array<{ chain: string; net_flow: string }>>
 }
 
-export default function NetflowChart({ height, onReady }: NetflowChartProps) {
+export default function NetflowChart({ height, onReady, initialData }: NetflowChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
@@ -34,7 +35,8 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 
 	const { data = [] } = useQuery<Array<{ chain: string; net_flow: string }>>({
 		queryKey: ['netflow', 'data', period],
-		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => [])
+		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => []),
+		...(initialData?.[period] ? { initialData: initialData[period] } : {})
 	})
 
 	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {

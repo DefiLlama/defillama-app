@@ -10,6 +10,7 @@ interface BridgeVolumeChartProps {
 	chain?: string
 	height?: string
 	onReady?: (instance: any | null) => void
+	initialData?: any[]
 }
 
 const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
@@ -39,11 +40,11 @@ const COMBINED_CHARTS = [
 	{ type: 'bar' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: '#22c55e' }
 ]
 
-export function BridgeVolumeChart({ chain = 'all', height, onReady }: BridgeVolumeChartProps) {
+export function BridgeVolumeChart({ chain = 'all', height, onReady, initialData }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
-	const { data, isLoading, error } = useFetchBridgeVolume(chain)
+	const { data, isLoading, error } = useFetchBridgeVolume(chain, initialData)
 
 	const chartData = useMemo(() => {
 		if (!data) return []

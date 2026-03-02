@@ -34,11 +34,11 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 							Withdrawals: -chart.withdrawUSD
 						}
 					})
-					return formattedChart
+					return { formatted: formattedChart, raw: chart }
 				} catch {}
 			}
 			throw new Error(`${BRIDGEVOLUME_API}/${chain} is broken`)
-		} else return null
+		} else return { formatted: null, raw: [] }
 	} else {
 		const chart = await fetchJson(BRIDGEVOLUME_API + '/all')
 		const formattedChart = chart.map((chart) => {
@@ -48,7 +48,7 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds) => {
 				txs: chart.depositTxs + chart.withdrawTxs
 			}
 		})
-		return formattedChart
+		return { formatted: formattedChart, raw: chart }
 	}
 }
 
@@ -144,11 +144,22 @@ export async function getBridgeOverviewPageData(chain) {
 		currentTimestamp
 	)
 
-	const [chainVolumeData, bridgeStatsCurrentDay, unformattedLargeTxsData] = await Promise.all([
+	const netflowsPromise = !chain
+		? Promise.all([
+				fetchJson(`${NETFLOWS_API}/day`).catch(() => []),
+				fetchJson(`${NETFLOWS_API}/week`).catch(() => []),
+				fetchJson(`${NETFLOWS_API}/month`).catch(() => [])
+			]).then(([day, week, month]) => ({ day, week, month }))
+		: Promise.resolve(null)
+
+	const [chainVolumeResult, bridgeStatsCurrentDay, unformattedLargeTxsData, netflowsData] = await Promise.all([
 		chainVolumePromise,
 		bridgeStatsPromise,
-		largeTxsPromise
+		largeTxsPromise,
+		netflowsPromise
 	])
+	const chainVolumeData = chainVolumeResult?.formatted ?? []
+	const rawBridgeVolumeData = chainVolumeResult?.raw ?? []
 	const largeTxsData = Array.isArray(unformattedLargeTxsData)
 		? unformattedLargeTxsData.map((transaction) => {
 				const { token, symbol, isDeposit, chain: txChain } = transaction
@@ -176,6 +187,8 @@ export async function getBridgeOverviewPageData(chain) {
 		bridgeNameToChartDataIndex,
 		chartDataByBridge,
 		chainVolumeData: chainVolumeData ?? [],
+		rawBridgeVolumeData,
+		netflowsData,
 		bridgeStatsCurrentDay,
 		largeTxsData,
 		chain: chain ?? 'All'

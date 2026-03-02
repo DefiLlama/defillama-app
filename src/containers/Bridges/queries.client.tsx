@@ -37,12 +37,13 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 	})
 }
 
-export const useFetchBridgeVolume = (chain: string = 'all') => {
+export const useFetchBridgeVolume = (chain: string = 'all', initialData?: any[]) => {
 	return useQuery({
 		queryKey: ['bridges', 'volume', chain],
 		queryFn: () => fetchJson(`${BRIDGEVOLUME_API}/${chain}`),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 0
+		retry: 0,
+		...(initialData ? { initialData } : {})
 	})
 }

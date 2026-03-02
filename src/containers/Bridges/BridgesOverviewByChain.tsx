@@ -91,6 +91,8 @@ export function BridgesOverviewByChain({
 	bridgeNameToChartDataIndex,
 	chartDataByBridge,
 	chainVolumeData,
+	rawBridgeVolumeData,
+	netflowsData,
 	bridgeStatsCurrentDay,
 	largeTxsData
 }) {
@@ -298,13 +300,14 @@ export function BridgesOverviewByChain({
 
 							{chartView === 'netflow' ? (
 								<React.Suspense fallback={<div className="min-h-[600px]" />}>
-									<NetflowChart height={600} onReady={handleChartReady} />
+									<NetflowChart height={600} onReady={handleChartReady} initialData={netflowsData} />
 								</React.Suspense>
 							) : (
 								<BridgeVolumeChart
 									chain={selectedChain === 'All' ? 'all' : selectedChain}
 									height="360px"
 									onReady={handleChartReady}
+									initialData={rawBridgeVolumeData}
 								/>
 							)}
 						</>
@@ -323,6 +326,7 @@ export function BridgesOverviewByChain({
 									chain={selectedChain === 'All' ? 'all' : selectedChain}
 									height="360px"
 									onReady={handleChartReady}
+									initialData={rawBridgeVolumeData}
 								/>
 							) : chartType === 'Net Flow' ? (
 								chainNetFlowData && chainNetFlowData.length > 0 ? (
