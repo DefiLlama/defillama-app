@@ -22,7 +22,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, slug } from '~/utils'
+import { formatNum, formattedNum, slug } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
@@ -268,6 +268,17 @@ const columns: ColumnDef<AssetRow>[] = [
 			headerHelperText: definitions.defiActiveTvl.description,
 			align: 'end'
 		}
+	},
+	{
+		id: 'utilization',
+		header: 'Utilization',
+		accessorFn: (asset) =>
+			Number.isNaN(Number(asset.defiActiveTvl?.total)) || Number.isNaN(Number(asset.activeMcap?.total))
+				? null
+				: formatNum((Number(asset.defiActiveTvl?.total) / Number(asset.activeMcap?.total)) * 100, 2),
+		cell: (info) => (info.getValue() != null ? `${info.getValue()}%` : null),
+		size: 120,
+		meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }
 	},
 	{
 		id: 'assetClass',
