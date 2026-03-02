@@ -12,7 +12,6 @@ import {
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useState } from 'react'
-import { lazy, Suspense } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
 import { Icon } from '~/components/Icon'
@@ -28,9 +27,7 @@ import type { FormSubmitEvent } from '~/types/forms'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
-const UnconstrainedSmolLineChart = lazy(() =>
-	import('~/containers/Unlocks/UnconstrainedSmolLineChart').then((m) => ({ default: m.UnconstrainedSmolLineChart }))
-)
+import { UnconstrainedSmolLineChart } from '~/containers/Unlocks/UnconstrainedSmolLineChart'
 
 const optionsKey = 'unlockTable'
 
@@ -497,22 +494,20 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 			return (
 				<div className="flex h-full items-center justify-end">
 					<div className="relative w-full">
-						<Suspense fallback={<></>}>
-							<UnconstrainedSmolLineChart
-								series={historicalPrice}
-								name=""
-								color={
-									historicalPrice[Math.floor(historicalPrice.length / 2)][1] >=
-									historicalPrice[historicalPrice.length - 1][1]
-										? 'red'
-										: 'green'
-								}
-								className="h-[44px]"
-								extraData={{
-									lastEvent: row.original.lastEvent
-								}}
-							/>
-						</Suspense>
+					<UnconstrainedSmolLineChart
+						series={historicalPrice}
+						name=""
+						color={
+							historicalPrice[Math.floor(historicalPrice.length / 2)][1] >=
+							historicalPrice[historicalPrice.length - 1][1]
+								? 'red'
+								: 'green'
+						}
+						className="h-[44px]"
+						extraData={{
+							lastEvent: row.original.lastEvent
+						}}
+					/>
 					</div>
 				</div>
 			)
