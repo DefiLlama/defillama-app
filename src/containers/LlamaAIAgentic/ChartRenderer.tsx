@@ -515,15 +515,22 @@ function ChartRendererImpl({
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
 	useEffect(() => {
-		if (!containerRef.current) return
-
-		const resizeObserver = new ResizeObserver(() => {
-			const event = new CustomEvent('chartResize')
-			window.dispatchEvent(event)
+		const el = containerRef.current
+		if (!el) return
+		let lastWidth = el.getBoundingClientRect().width
+		let timer: ReturnType<typeof setTimeout> | null = null
+		const observer = new ResizeObserver((entries) => {
+			const w = entries[0]?.contentRect.width ?? 0
+			if (Math.abs(w - lastWidth) < 1) return
+			lastWidth = w
+			if (timer) clearTimeout(timer)
+			timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 150)
 		})
-
-		resizeObserver.observe(containerRef.current)
-		return () => resizeObserver.disconnect()
+		observer.observe(el)
+		return () => {
+			observer.disconnect()
+			if (timer) clearTimeout(timer)
+		}
 	}, [])
 
 	useEffect(() => {
