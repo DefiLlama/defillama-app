@@ -125,6 +125,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [streamingToolExecutions, setStreamingToolExecutions] = useState<ToolExecution[]>([])
 	const [streamingThinking, setStreamingThinking] = useState('')
 	const [activeToolCalls, setActiveToolCalls] = useState<ToolCall[]>([])
+	const [isCompacting, setIsCompacting] = useState(false)
 	const [error, setError] = useState<string | null>(null)
 	const [isResearchMode, setIsResearchMode] = useState(false)
 	const [customInstructions, setCustomInstructions] = useState(() =>
@@ -488,6 +489,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								return next
 							})
 						},
+						onCompaction: (data) => {
+							setIsCompacting(data.status === 'started')
+						},
 						onSessionId: () => {},
 						onMessageId: (messageId) => {
 							currentMessageIdRef.current = messageId
@@ -706,6 +710,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							})
 							return next
 						})
+					},
+					onCompaction: (data) => {
+						setIsCompacting(data.status === 'started')
 					},
 					onSessionId: (id) => {
 						setSessionId(id)
@@ -1019,7 +1026,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 										{spawnProgress.size > 0 ? (
 											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
 										) : (
-											<ToolProgressIndicator toolCalls={activeToolCalls} thinking={streamingThinking} />
+											<ToolProgressIndicator
+												toolCalls={activeToolCalls}
+												thinking={streamingThinking}
+												isCompacting={isCompacting}
+											/>
 										)}
 
 										{isStreaming &&
@@ -1889,10 +1900,18 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 	)
 }
 
-function ToolProgressIndicator({ toolCalls, thinking }: { toolCalls: ToolCall[]; thinking?: string }) {
+function ToolProgressIndicator({
+	toolCalls,
+	thinking,
+	isCompacting
+}: {
+	toolCalls: ToolCall[]
+	thinking?: string
+	isCompacting?: boolean
+}) {
 	const [elapsed, setElapsed] = useState(0)
 	const startTimeRef = useRef(0)
-	const hasActivity = toolCalls.length > 0 || !!thinking
+	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting
 
 	useEffect(() => {
 		if (!hasActivity) {
@@ -1920,6 +1939,18 @@ function ToolProgressIndicator({ toolCalls, thinking }: { toolCalls: ToolCall[];
 					<span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 				</div>
 				{thinking && <ThinkingPanel thinking={thinking} defaultOpen />}
+				{isCompacting && (
+					<div className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
+						<Icon
+							name="layers"
+							height={14}
+							width={14}
+							className="shrink-0 animate-pulse opacity-70"
+							style={{ color: '#8b5cf6' }}
+						/>
+						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory...</span>
+					</div>
+				)}
 				{toolCalls.length > 0 && (
 					<div className="flex flex-col gap-1.5">
 						{toolCalls.map((tc) => {
