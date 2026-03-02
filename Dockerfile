@@ -22,17 +22,12 @@ COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 ARG COOLIFY_BRANCH
+ARG LOGGER_API_KEY
+ARG LOGGER_API_URL
+ARG BUILD_STATUS_DASHBOARD
+ARG BUILD_STATUS_WEBHOOK
 
-RUN --mount=type=secret,id=LOGGER_API_KEY \
-  --mount=type=secret,id=LOGGER_API_URL \
-  --mount=type=secret,id=BUILD_STATUS_DASHBOARD \
-  --mount=type=secret,id=BUILD_STATUS_WEBHOOK \
-  LOGGER_API_KEY="$(cat /run/secrets/LOGGER_API_KEY 2>/dev/null || true)" \
-  LOGGER_API_URL="$(cat /run/secrets/LOGGER_API_URL 2>/dev/null || true)" \
-  BUILD_STATUS_DASHBOARD="$(cat /run/secrets/BUILD_STATUS_DASHBOARD 2>/dev/null || true)" \
-  BUILD_STATUS_WEBHOOK="$(cat /run/secrets/BUILD_STATUS_WEBHOOK 2>/dev/null || true)" \
-  COOLIFY_BRANCH="${COOLIFY_BRANCH:-}" \
-  bash ./scripts/build.sh
+RUN bash ./scripts/build.sh
 
 FROM base AS runner
 

@@ -786,8 +786,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		const tooltipConfig = {
 			...baseTooltip,
-			// Always render tooltips above all stacking contexts / overflow clipping.
-			appendToBody: true,
+			appendToBody: alwaysShowTooltip ? undefined : true,
 			renderMode: 'html',
 			className: 'defillama-echarts-tooltip',
 			enterable,
