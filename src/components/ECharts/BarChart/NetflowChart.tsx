@@ -1,25 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
-import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { capitalizeFirstLetter, formattedNum } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
 interface NetflowChartProps {
 	height?: number | string
 	onReady?: (instance: echarts.ECharts | null) => void
-	initialData?: Record<string, Array<{ chain: string; net_flow: string }>>
+	data: Record<string, Array<{ chain: string; net_flow: string }>>
 }
 
-export default function NetflowChart({ height, onReady, initialData }: NetflowChartProps) {
+export default function NetflowChart({ height, onReady, data: allData }: NetflowChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
@@ -33,11 +30,7 @@ export default function NetflowChart({ height, onReady, initialData }: NetflowCh
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const { data = [] } = useQuery<Array<{ chain: string; net_flow: string }>>({
-		queryKey: ['netflow', 'data', period],
-		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => []),
-		...(initialData?.[period] ? { initialData: initialData[period] } : {})
-	})
+	const data = allData?.[period] ?? []
 
 	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {
 		const nonZeroData: Array<{ chain: string; value: number }> = []

@@ -1,16 +1,13 @@
 import dayjs from 'dayjs'
 import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
-import { LocalLoader } from '~/components/Loaders'
 import { TagGroup } from '~/components/TagGroup'
-import { useFetchBridgeVolume } from '~/containers/Bridges/queries.client'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 interface BridgeVolumeChartProps {
-	chain?: string
+	data: any[]
 	height?: string
 	onReady?: (instance: any | null) => void
-	initialData?: any[]
 }
 
 const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
@@ -40,14 +37,13 @@ const COMBINED_CHARTS = [
 	{ type: 'bar' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: '#22c55e' }
 ]
 
-export function BridgeVolumeChart({ chain = 'all', height, onReady, initialData }: BridgeVolumeChartProps) {
+export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
-	const { data, isLoading, error } = useFetchBridgeVolume(chain, initialData)
 
 	const chartData = useMemo(() => {
-		if (!data) return []
+		if (!data?.length) return []
 
 		const sortedData = [...data].sort((a, b) => Number(a.date) - Number(b.date))
 
@@ -118,20 +114,6 @@ export function BridgeVolumeChart({ chain = 'all', height, onReady, initialData 
 		}
 	}, [chartData, metricType, viewType])
 	const deferredChartData = useDeferredValue(volumeChartData)
-
-	if (isLoading)
-		return (
-			<div className="flex items-center justify-center" style={{ height: `calc(${height ?? '360px'} + 82px)` }}>
-				<LocalLoader />
-			</div>
-		)
-
-	if (error)
-		return (
-			<div className="flex items-center justify-center" style={{ height: `calc(${height ?? '360px'} + 82px)` }}>
-				<p>Error loading bridge volume data</p>
-			</div>
-		)
 
 	return (
 		<>
