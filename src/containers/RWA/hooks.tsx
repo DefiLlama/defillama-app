@@ -1134,17 +1134,37 @@ export function useRwaChartDataByAssetName({
 }
 
 const CHART_FILTER_QUERY_KEYS = new Set([
-	'assetNames', 'types', 'categories', 'platforms', 'assetClasses',
-	'rwaClassifications', 'accessModels', 'issuers',
-	'excludeAssetNames', 'excludeTypes', 'excludeCategories', 'excludePlatforms',
-	'excludeAssetClasses', 'excludeRwaClassifications', 'excludeAccessModels', 'excludeIssuers',
-	'redeemableStates', 'attestationsStates', 'cexListedStates',
-	'kycForMintRedeemStates', 'kycAllowlistedWhitelistedToTransferHoldStates',
-	'transferableStates', 'selfCustodyStates',
-	'minDefiActiveTvlToOnChainMcapPct', 'maxDefiActiveTvlToOnChainMcapPct',
-	'minActiveMcapToOnChainMcapPct', 'maxActiveMcapToOnChainMcapPct',
-	'minDefiActiveTvlToActiveMcapPct', 'maxDefiActiveTvlToActiveMcapPct',
-	'includeStablecoins', 'includeGovernance'
+	'assetNames',
+	'types',
+	'categories',
+	'platforms',
+	'assetClasses',
+	'rwaClassifications',
+	'accessModels',
+	'issuers',
+	'excludeAssetNames',
+	'excludeTypes',
+	'excludeCategories',
+	'excludePlatforms',
+	'excludeAssetClasses',
+	'excludeRwaClassifications',
+	'excludeAccessModels',
+	'excludeIssuers',
+	'redeemableStates',
+	'attestationsStates',
+	'cexListedStates',
+	'kycForMintRedeemStates',
+	'kycAllowlistedWhitelistedToTransferHoldStates',
+	'transferableStates',
+	'selfCustodyStates',
+	'minDefiActiveTvlToOnChainMcapPct',
+	'maxDefiActiveTvlToOnChainMcapPct',
+	'minActiveMcapToOnChainMcapPct',
+	'maxActiveMcapToOnChainMcapPct',
+	'minDefiActiveTvlToActiveMcapPct',
+	'maxDefiActiveTvlToActiveMcapPct',
+	'includeStablecoins',
+	'includeGovernance'
 ])
 
 export function hasActiveChartFilters(query: NextRouter['query']): boolean {
@@ -1192,7 +1212,11 @@ export function useRwaChartDataset({
 	isChartLoading: boolean
 	chartError: string | null
 } {
-	const { data: tickerData, isLoading, error } = useQuery({
+	const {
+		data: tickerData,
+		isLoading,
+		error
+	} = useQuery({
 		queryKey: ['rwa-ticker-chart', chainSlug, categorySlug, platformSlug],
 		queryFn: () => fetchRwaTickerChartData({ chainSlug, categorySlug, platformSlug }),
 		staleTime: 60 * 60 * 1000,

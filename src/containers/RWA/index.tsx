@@ -3,7 +3,12 @@ import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
-import type { IHBarChartProps, IMultiSeriesChart2Props, IPieChartProps, ITreemapChartProps } from '~/components/ECharts/types'
+import type {
+	IHBarChartProps,
+	IMultiSeriesChart2Props,
+	IPieChartProps,
+	ITreemapChartProps
+} from '~/components/ECharts/types'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
@@ -73,7 +78,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			? 'hbar'
 			: chartViewQuery === 'pie' || chartViewQuery === 'treemap' || chartViewQuery === 'hbar'
 				? chartViewQuery
-			: 'timeSeries'
+				: 'timeSeries'
 	const treemapNestedByQuery =
 		typeof router.query.treemapNestedBy === 'string' &&
 		validTreemapNestedBy.has(router.query.treemapNestedBy as RwaTreemapNestedBy)
@@ -399,7 +404,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 		return limitedData
 	}, [deferredSelectedPieChartData])
-	const selectedBarChartCategories = useMemo(() => selectedBarChartData.map((item) => item.name), [selectedBarChartData])
+	const selectedBarChartCategories = useMemo(
+		() => selectedBarChartData.map((item) => item.name),
+		[selectedBarChartData]
+	)
 	const selectedBarChartValues = useMemo(() => selectedBarChartData.map((item) => item.value), [selectedBarChartData])
 	const selectedBarChartColors = useMemo(
 		() => selectedBarChartData.map((item) => valueSortedPieChartStackColors[item.name] ?? '#1f77b4'),
@@ -735,7 +743,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{pieChartBreakdownSwitch}
 								{chartView === 'treemap' ? treemapNestedBySwitch : null}
 								{chartView === 'treemap' ? <ChartRestoreButton chartInstance={treemapChartInstance} /> : null}
-								<ChartCsvExportButton chartInstance={nonTimeSeriesChartInstance} filename={nonTimeSeriesChartFilename} />
+								<ChartCsvExportButton
+									chartInstance={nonTimeSeriesChartInstance}
+									filename={nonTimeSeriesChartFilename}
+								/>
 								<ChartPngExportButton
 									chartInstance={nonTimeSeriesChartInstance}
 									filename={nonTimeSeriesChartFilename}
@@ -753,13 +764,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										onReady={handlePieChartReady}
 									/>
 								) : chartView === 'hbar' ? (
-								<HBarChart
-									categories={selectedBarChartCategories}
-									values={selectedBarChartValues}
-									colors={selectedBarChartColors}
-									valueSymbol="$"
-									onReady={handleBarChartReady}
-								/>
+									<HBarChart
+										categories={selectedBarChartCategories}
+										values={selectedBarChartValues}
+										colors={selectedBarChartColors}
+										valueSymbol="$"
+										onReady={handleBarChartReady}
+									/>
 								) : (
 									<TreemapChart
 										treeData={treemapTreeData}

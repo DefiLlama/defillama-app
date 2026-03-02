@@ -303,11 +303,7 @@ export function BridgesOverviewByChain({
 									<NetflowChart height={600} onReady={handleChartReady} data={netflowsData} />
 								</React.Suspense>
 							) : (
-								<BridgeVolumeChart
-									data={rawBridgeVolumeData}
-									height="360px"
-									onReady={handleChartReady}
-								/>
+								<BridgeVolumeChart data={rawBridgeVolumeData} height="360px" onReady={handleChartReady} />
 							)}
 						</>
 					) : (
@@ -321,11 +317,7 @@ export function BridgesOverviewByChain({
 								/>
 							</div>
 							{chartType === 'Bridge Volume' ? (
-								<BridgeVolumeChart
-									data={rawBridgeVolumeData}
-									height="360px"
-									onReady={handleChartReady}
-								/>
+								<BridgeVolumeChart data={rawBridgeVolumeData} height="360px" onReady={handleChartReady} />
 							) : chartType === 'Net Flow' ? (
 								chainNetFlowData && chainNetFlowData.length > 0 ? (
 									<React.Suspense fallback={<div className="min-h-[360px]" />}>

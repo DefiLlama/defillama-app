@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_SERVER_URL } from '~/constants'
-import { fetchJson } from '~/utils/async'
 import { toUnixMsTimestamp } from '~/containers/RWA/api'
 import type { IRWAChartDataByTicker } from '~/containers/RWA/api.types'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { fetchJson } from '~/utils/async'
 
 function buildUpstreamUrl(chain?: string, category?: string, platform?: string): string | null {
 	if (chain) return `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(chain))}/ticker-breakdown`
@@ -15,9 +15,7 @@ function buildUpstreamUrl(chain?: string, category?: string, platform?: string):
 
 function normalizeChartData(raw: IRWAChartDataByTicker): IRWAChartDataByTicker {
 	const normalize = (rows: IRWAChartDataByTicker['onChainMcap']) =>
-		ensureChronologicalRows(
-			(rows ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) }))
-		)
+		ensureChronologicalRows((rows ?? []).map((row) => ({ ...row, timestamp: toUnixMsTimestamp(row.timestamp) })))
 
 	return {
 		onChainMcap: normalize(raw.onChainMcap),
@@ -31,9 +29,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
 
-	const chain = typeof req.query.chain === 'string' ? req.query.chain : undefined
-	const category = typeof req.query.category === 'string' ? req.query.category : undefined
-	const platform = typeof req.query.platform === 'string' ? req.query.platform : undefined
+	const rawChain = req.query.chain
+	const rawCategory = req.query.category
+	const rawPlatform = req.query.platform
+
+	if (Array.isArray(rawChain) || Array.isArray(rawCategory) || Array.isArray(rawPlatform)) {
+		return res.status(400).json({ error: 'Duplicate query parameters are not allowed' })
+	}
+
+	const chain = typeof rawChain === 'string' ? rawChain : undefined
+	const category = typeof rawCategory === 'string' ? rawCategory : undefined
+	const platform = typeof rawPlatform === 'string' ? rawPlatform : undefined
 
 	const paramCount = Number(!!chain) + Number(!!category) + Number(!!platform)
 	if (paramCount > 1) {
