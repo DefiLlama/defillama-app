@@ -13,51 +13,65 @@ import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
-interface INetflowChartProps {
-	data: Array<{
-		chain: string
-		net_flow: string
-	}>
-	height?: string
+interface NetflowChartProps {
+	height?: number | string
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
-export default function NetflowChart({ height }: INetflowChartProps) {
+export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const onReadyRef = useRef<NetflowChartProps['onReady']>(onReady)
+
+	useEffect(() => {
+		onReadyRef.current = onReady
+	}, [onReady])
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const { data = [] } = useQuery({
-		queryKey: ['netflowData', period],
+	const { data = [] } = useQuery<Array<{ chain: string; net_flow: string }>>({
+		queryKey: ['netflow', 'data', period],
 		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => [])
 	})
 
-	const { positiveData, negativeData, chains } = useMemo(() => {
-		const nonZeroData = data
-			.filter((item) => item.net_flow !== '0')
-			.map((item) => ({
+	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {
+		const nonZeroData: Array<{ chain: string; value: number }> = []
+		for (const item of data ?? []) {
+			if (item.net_flow === '0') continue
+			nonZeroData.push({
 				chain: item.chain,
 				value: Number(item.net_flow)
-			}))
-			.sort((a, b) => Math.abs(a.value) - Math.abs(b.value))
-			.slice(-15)
-			.sort((a, b) => a.value - b.value)
-			.map((item) => ({
-				chain: capitalizeFirstLetter(item.chain),
-				value: item.value
-			}))
+			})
+		}
+		nonZeroData.sort((a, b) => Math.abs(a.value) - Math.abs(b.value))
+		const slicedData = nonZeroData.slice(-15)
+		slicedData.sort((a, b) => a.value - b.value)
 
-		const positive = nonZeroData.map((item) => (item.value > 0 ? item.value : 0))
-		const negative = nonZeroData.map((item) => (item.value < 0 ? item.value : 0))
-		const chainNames = nonZeroData.map((item) => item.chain)
+		const positive: number[] = []
+		const negative: number[] = []
+		const chainNames: string[] = []
+		const csvRows: Array<{ Chain: string; Inflow: number; Outflow: number; 'Net Flow': number }> = []
+		for (const item of slicedData) {
+			const chain = capitalizeFirstLetter(item.chain)
+			chainNames.push(chain)
+			positive.push(item.value > 0 ? item.value : 0)
+			negative.push(item.value < 0 ? item.value : 0)
+			csvRows.push({
+				Chain: chain,
+				Inflow: item.value > 0 ? item.value : 0,
+				Outflow: item.value < 0 ? Math.abs(item.value) : 0,
+				'Net Flow': item.value
+			})
+		}
 
 		return {
 			positiveData: positive,
 			negativeData: negative,
-			chains: chainNames
+			chains: chainNames,
+			csvSource: csvRows
 		}
 	}, [data])
 
@@ -66,6 +80,23 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
 		chartRef.current = instance
+
+		return () => {
+			onReadyRef.current?.(null)
+			chartRef.current = null
+			instance.dispose()
+		}
+	}, [id])
+
+	const heightStyle = useMemo(() => {
+		if (height == null) return undefined
+		if (typeof height === 'number') return { height: `${height}px` }
+		return { height }
+	}, [height])
+
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance) return
 
 		const option = {
 			tooltip: {
@@ -159,6 +190,10 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 					}
 				}
 			],
+			dataset: {
+				dimensions: ['Chain', 'Inflow', 'Outflow', 'Net Flow'],
+				source: csvSource
+			},
 			graphic: [
 				{
 					type: 'image',
@@ -175,18 +210,15 @@ export default function NetflowChart({ height }: INetflowChartProps) {
 			]
 		}
 
-		instance.setOption(option)
-
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-		}
-	}, [id, chains, positiveData, negativeData, isThemeDark, height])
+		instance.setOption(option, { notMerge: true })
+		instance.resize()
+		onReadyRef.current?.(instance)
+	}, [chains, positiveData, negativeData, isThemeDark, csvSource, height])
 
 	return (
-		<div className="relative min-h-[600px] pr-5">
-			<div id={id} className="my-auto min-h-[600px]" style={height ? { height: `${height}px` } : undefined}></div>
-			<div className="mt-4 flex justify-center">
+		<div className="relative pr-5">
+			<div id={id} className="my-auto" style={heightStyle ?? { minHeight: '600px' }}></div>
+			<div className="m-4 flex justify-center">
 				<TagGroup values={flowTypes} selectedValue={period} setValue={setPeriod} />
 			</div>
 		</div>

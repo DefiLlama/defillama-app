@@ -1,13 +1,15 @@
-import { maxAgeForNext } from '~/api'
-import { Pool2ProtocolsTVLByChain } from '~/containers/Pool2/Pool2ByChain'
-import { getPool2TVLByChain } from '~/containers/Pool2/queries'
+import type { InferGetStaticPropsType } from 'next'
+import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`pool2/index`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getPool2TVLByChain({
+	const data = await getExtraTvlByChain({
 		chain: 'All',
+		metric: 'pool2',
 		protocolMetadata: metadataCache.protocolMetadata
 	})
 
@@ -21,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(`pool2/index`, async () => 
 
 const pageName = ['Protocols', 'ranked by', 'Pool2 TVL']
 
-export default function Pool2TVL(props) {
+export default function Pool2TVL(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Pool2 TVL - DefiLlama"
@@ -30,7 +32,7 @@ export default function Pool2TVL(props) {
 			canonicalUrl={`/pool2`}
 			pageName={pageName}
 		>
-			<Pool2ProtocolsTVLByChain {...props} />
+			<ExtraTvlByChain {...props} />
 		</Layout>
 	)
 }

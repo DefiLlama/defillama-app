@@ -1,6 +1,6 @@
 import { useQueries } from '@tanstack/react-query'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 
@@ -30,7 +30,7 @@ export function useDiscoveryCategories() {
 
 	const queries = useQueries({
 		queries: CATEGORIES.map((category) => ({
-			queryKey: ['discovery-category', category.key],
+			queryKey: ['pro-dashboard', 'discovery-category', category.key, isAuthenticated],
 			queryFn: async () => {
 				return await dashboardAPI.searchDashboards(
 					{

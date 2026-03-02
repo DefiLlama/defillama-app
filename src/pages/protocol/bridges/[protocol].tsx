@@ -1,11 +1,14 @@
-import { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { BridgeContainerOnClient } from '~/containers/Bridges/BridgeProtocolOverview'
+import type { GetStaticPropsContext } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { BridgeInfo } from '~/containers/Bridges/BridgeProtocolOverview'
+import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
@@ -32,9 +35,16 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const [protocolData, bridgeData] = await Promise.all([
+			fetchProtocolOverviewMetrics(protocol),
+			getBridgePageDatanew(protocol)
+		])
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		if (!bridgeData) {
+			return { notFound: true, props: null }
+		}
+
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		return {
 			props: {
@@ -42,7 +52,8 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				bridgeData
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -50,10 +61,20 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
+export default function Protocols({ bridgeData, ...props }) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -64,8 +85,8 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 		>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<BridgeContainerOnClient protocol={props.name} />
+			<div className="flex flex-col gap-10 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+				<BridgeInfo {...bridgeData} />
 			</div>
 		</ProtocolOverviewLayout>
 	)

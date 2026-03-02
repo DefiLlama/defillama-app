@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
-import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
+import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.AGGREGATORS
@@ -26,7 +26,7 @@ const DexAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Live ${type} by chain. Compare volumes across networks with multi-timeframe data, historical volume trends and chain dominance tracking.`}
 			keywords={`${type} by chain`}
 			canonicalUrl={`/dex-aggregators/chains`}
 			pageName={pageName}

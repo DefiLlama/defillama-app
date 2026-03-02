@@ -41,9 +41,10 @@ export const LinkPreviewCard = ({
 }: ILinkPreviewCardProps) => {
 	const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
 
-	const isTvlValid = unlockPage ? true : tvl && tvl !== '$0'
+	const isTvlValid = unlockPage ? true : typeof tvl === 'string' && tvl !== '$0'
 
-	const isVolumeChangeValid = volumeChange && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
+	const isVolumeChangeValid =
+		typeof volumeChange === 'string' && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
 
 	const cardURL = (() => {
 		let cardSrc = new URL(`https://og-cards-chi.vercel.app/`)
@@ -85,11 +86,11 @@ export const LinkPreviewCard = ({
 
 		cardSrc.searchParams.append('valueHeader', valueHeader)
 
-		if (isTvlValid) {
+		if (isTvlValid && typeof tvl === 'string') {
 			cardSrc.searchParams.append('tvl', tvl)
 		}
 
-		if (isVolumeChangeValid) {
+		if (isVolumeChangeValid && typeof volumeChange === 'string') {
 			cardSrc.searchParams.append('volumeChange', volumeChange)
 		}
 

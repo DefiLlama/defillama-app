@@ -1,4 +1,5 @@
 import { preparePieChartData } from '~/components/ECharts/formatters'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import {
 	BRIDGEDAYSTATS_API,
 	BRIDGELARGETX_API,
@@ -7,6 +8,7 @@ import {
 	CONFIG_API,
 	NETFLOWS_API
 } from '~/constants'
+import { CHART_COLORS } from '~/constants/colors'
 import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { formatBridgesData, formatChainsData } from './utils'
@@ -257,18 +259,61 @@ export async function getBridgeChainsPageData() {
 		netflowsDataWeek
 	})
 
+	const chartRows: Array<{ date: number; [key: string]: number }> = []
+	for (const date in chartData) {
+		chartRows.push({ date: Number(date), ...chartData[date] })
+	}
+
+	const chart = buildBridgeChainsMultiSeriesChart({ chartRows, chains: chainList })
+
 	return {
 		allChains: chainList,
 		tableData: filteredChains,
-		chartData: Object.entries(chartData).map(([date, data]: [string, Record<string, number>]) => ({
-			date,
-			...data
-		})),
-		chartStacks: Object.fromEntries(chainList.map((chain) => [chain, chain]))
+		chart
 	}
 }
 
-export async function getBridgePageData(bridge: string) {
+function buildBridgeChainsMultiSeriesChart({
+	chartRows,
+	chains
+}: {
+	chartRows: Array<{ date: number; [key: string]: number }>
+	chains: string[]
+}): {
+	dataset: MultiSeriesChart2Dataset
+	charts: NonNullable<IMultiSeriesChart2Props['charts']>
+} {
+	const source = (chartRows ?? [])
+		.map((row) => {
+			const { date, ...rest } = row
+			return {
+				timestamp: date * 1e3,
+				...rest
+			}
+		})
+		.filter((row) => Number.isFinite(Number(row.timestamp)))
+		.toSorted((a, b) => Number(a.timestamp) - Number(b.timestamp))
+
+	const dimensions = ['timestamp', ...(chains ?? [])]
+
+	const charts = (chains ?? []).map((name, i) => ({
+		type: 'bar' as const,
+		name,
+		encode: { x: 'timestamp', y: name },
+		// Use per-series stacks so selected chains render as clustered bars (not stacked).
+		stack: name,
+		color: CHART_COLORS[i % CHART_COLORS.length],
+		large: true
+	}))
+
+	return {
+		dataset: { source, dimensions } satisfies MultiSeriesChart2Dataset,
+		charts
+	}
+}
+
+// oxlint-disable-next-line no-unused-vars
+async function getBridgePageData(bridge: string) {
 	const { bridges } = await getBridges()
 	const bridgeData = bridges.filter((obj) => slug(obj.displayName) === slug(bridge))[0]
 
@@ -479,39 +524,40 @@ export async function getBridgePageDatanew(bridge: string) {
 					return { symbol: entry[0], ...entry[1] }
 				})
 
-			let fullTokenDeposits = Object.values(totalTokensDeposited).map(
-				(tokenData: { symbol: string; usdValue: number }) => {
-					return { name: tokenData.symbol, value: tokenData.usdValue }
-				}
-			)
-			let fullTokenWithdrawals = Object.values(totalTokensWithdrawn).map(
-				(tokenData: { symbol: string; usdValue: number }) => {
-					return { name: tokenData.symbol, value: tokenData.usdValue }
-				}
-			)
+			let fullTokenDeposits: { name: string; value: number }[] = []
+			for (const key in totalTokensDeposited) {
+				const tokenData = totalTokensDeposited[key] as { symbol: string; usdValue: number }
+				fullTokenDeposits.push({ name: tokenData.symbol, value: tokenData.usdValue })
+			}
+			let fullTokenWithdrawals: { name: string; value: number }[] = []
+			for (const key in totalTokensWithdrawn) {
+				const tokenData = totalTokensWithdrawn[key] as { symbol: string; usdValue: number }
+				fullTokenWithdrawals.push({ name: tokenData.symbol, value: tokenData.usdValue })
+			}
 
 			if (currentChain === 'All Chains') {
-				const allTokensSymbols = new Set(
-					Object.values(totalTokensDeposited).map((token: { symbol: string; usdValue: number }) => token.symbol)
-				)
-				fullTokenDeposits = Array.from(allTokensSymbols).reduce((acc, symbol) => {
-					const sameTokenDeposits = fullTokenDeposits.filter((token) => token.name === symbol)
-					const totalValue = sameTokenDeposits.reduce((total, entry) => {
-						return (total += entry.value)
-					}, 0)
-					return acc.concat({ name: symbol, value: totalValue })
-				}, [])
+				// Use for..in instead of Object.values() and Set for deduplication
+				const symbolToDeposits = new Map<string, number>()
+				for (const key in totalTokensDeposited) {
+					const tokenData = totalTokensDeposited[key] as { symbol: string; usdValue: number }
+					const existing = symbolToDeposits.get(tokenData.symbol) ?? 0
+					symbolToDeposits.set(tokenData.symbol, existing + tokenData.usdValue)
+				}
+				fullTokenDeposits = []
+				for (const [symbol, value] of symbolToDeposits) {
+					fullTokenDeposits.push({ name: symbol, value })
+				}
 
-				const allTokensSymbolsWithdrawn = new Set(
-					Object.values(totalTokensWithdrawn).map((token: { symbol: string; usdValue: number }) => token.symbol)
-				)
-				fullTokenWithdrawals = Array.from(allTokensSymbolsWithdrawn).reduce((acc, symbol) => {
-					const sameTokenWithdrawals = fullTokenWithdrawals.filter((token) => token.name === symbol)
-					const totalValue = sameTokenWithdrawals.reduce((total, entry) => {
-						return (total += entry.value)
-					}, 0)
-					return acc.concat({ name: symbol, value: totalValue })
-				}, [])
+				const symbolToWithdrawals = new Map<string, number>()
+				for (const key in totalTokensWithdrawn) {
+					const tokenData = totalTokensWithdrawn[key] as { symbol: string; usdValue: number }
+					const existing = symbolToWithdrawals.get(tokenData.symbol) ?? 0
+					symbolToWithdrawals.set(tokenData.symbol, existing + tokenData.usdValue)
+				}
+				fullTokenWithdrawals = []
+				for (const [symbol, value] of symbolToWithdrawals) {
+					fullTokenWithdrawals.push({ name: symbol, value })
+				}
 			}
 
 			tokenDeposits = preparePieChartData({

@@ -212,17 +212,13 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
-				if (!res.ok) {
-					throw new Error('Failed to fetch alerts')
-				}
-				const data = await res.json()
-				return data.alerts || []
-			} catch (error) {
-				console.log('Failed to fetch alerts:', error)
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
+			if (!res) throw new Error('Not authenticated')
+			if (!res.ok) {
 				throw new Error('Failed to fetch alerts')
 			}
+			const data = await res.json()
+			return Array.isArray(data.alerts) ? data.alerts : []
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})
@@ -329,6 +325,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ enabled })
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}
@@ -359,6 +356,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				throw new Error('Not authenticated')
 			}
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to delete alert')
 			}
@@ -415,6 +413,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					alertConfig
 				})
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}
@@ -545,13 +544,13 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						value={title}
 						onChange={(e) => setTitle(e.target.value)}
 						placeholder="Alert title"
-						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-none dark:border-[#333] dark:bg-[#222]"
+						className="w-full rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) placeholder:text-(--text3) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 					/>
 					<div className="flex flex-wrap items-center gap-2">
 						<select
 							value={frequency}
 							onChange={(e) => setFrequency(e.target.value as 'daily' | 'weekly')}
-							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none dark:border-[#333] dark:bg-[#222]"
+							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							<option value="daily">Daily</option>
 							<option value="weekly">Weekly</option>
@@ -560,7 +559,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							<select
 								value={dayOfWeek}
 								onChange={(e) => setDayOfWeek(Number(e.target.value))}
-								className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none dark:border-[#333] dark:bg-[#222]"
+								className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 							>
 								{DAYS_OF_WEEK.map((day, idx) => (
 									<option key={day} value={idx}>
@@ -574,7 +573,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							key={`hour-${timezone}`}
 							value={hour}
 							onChange={(e) => setHour(Number(e.target.value))}
-							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none dark:border-[#333] dark:bg-[#222]"
+							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							{Array.from({ length: 24 }, (_, i) => (
 								<option key={`${timezone}-${i}`} value={i} disabled={blockedHours.includes(i)}>
@@ -585,7 +584,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<select
 							value={timezone}
 							onChange={(e) => handleTimezoneChange(e.target.value)}
-							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-none dark:border-[#333] dark:bg-[#222]"
+							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							{GMT_OFFSETS.map((tz) => (
 								<option key={tz.value} value={tz.value}>

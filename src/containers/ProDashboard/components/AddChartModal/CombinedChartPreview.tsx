@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import { CHART_TYPES, ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))

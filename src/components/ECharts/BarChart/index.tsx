@@ -1,12 +1,15 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useChartResize } from '~/hooks/useChartResize'
 import { slug, toNiceCsvDate } from '~/utils'
+import { ChartContainer } from '../ChartContainer'
+import { ChartHeader } from '../ChartHeader'
 import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
@@ -28,7 +31,6 @@ export default function BarChart({
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
-	customComponents,
 	onReady,
 	enableImageExport,
 	imageExportFilename,
@@ -42,7 +44,8 @@ export default function BarChart({
 	const [legendOptions, setLegendOptions] = useState(() => (customLegendOptions ? [...customLegendOptions] : []))
 
 	const { defaultStacks, stackKeys, selectedStacks } = useMemo(() => {
-		const values = stacks || {}
+		const values = { ...(stacks || {}) }
+		const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 
 		let hasValues = false
 		for (const _ in values) {
@@ -59,7 +62,7 @@ export default function BarChart({
 		const selected: string[] = []
 		for (const s in values) {
 			keys.push(s)
-			if (!legendOptions || !customLegendName || legendOptions.includes(s)) {
+			if (!legendOptionsSet || !customLegendName || legendOptionsSet.has(s)) {
 				selected.push(s)
 			}
 		}
@@ -143,49 +146,45 @@ export default function BarChart({
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const hasNotifiedReadyRef = useRef(false)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			if (shouldEnableExport) {
-				handleChartReady(instance)
-			}
-		},
-		[shouldEnableExport, handleChartReady]
-	)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
 		if (!chartDom) return
 
 		let instance = echarts.getInstanceByDom(chartDom)
-		const isNewInstance = !instance
 		if (!instance) {
 			instance = echarts.init(chartDom)
 		}
 		chartRef.current = instance
-		updateExportInstance(instance)
-
-		if (onReady && isNewInstance) {
-			onReady(instance)
+		if (shouldEnableExport) {
+			handleChartReady(instance)
 		}
 
+		if (onReady && instance && !hasNotifiedReadyRef.current) {
+			onReady(instance)
+			hasNotifiedReadyRef.current = true
+		}
+
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
 				// update tooltip formatter
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = defaultChartSettings
+		const { graphic, grid, tooltip, xAxis, yAxis, legend, dataZoom } = settings
 
 		const shouldHideDataZoom =
 			(Array.isArray(series) ? series.every((s) => s.data.length < 2) : series.data.length < 2) || hideDataZoom
@@ -219,12 +218,6 @@ export default function BarChart({
 			dataZoom: shouldHideDataZoom ? [] : [...dataZoom],
 			series
 		})
-
-		return () => {
-			chartRef.current = null
-			instance.dispose()
-			updateExportInstance(null)
-		}
 	}, [
 		defaultChartSettings,
 		series,
@@ -233,29 +226,22 @@ export default function BarChart({
 		chartOptions,
 		hideDataZoom,
 		id,
-		updateExportInstance,
 		orientation,
+		shouldEnableExport,
+		handleChartReady,
 		onReady
 	])
 
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			if (chartRef.current) {
-				chartRef.current = null
-			}
-			if (onReady) {
-				onReady(null)
-			}
-			updateExportInstance(null)
+	useChartCleanup(id, () => {
+		chartRef.current = null
+		if (hasNotifiedReadyRef.current) {
+			onReady?.(null)
+			hasNotifiedReadyRef.current = false
 		}
-	}, [id, onReady, updateExportInstance])
+		if (shouldEnableExport) {
+			handleChartReady(null)
+		}
+	})
 
 	const showLegend = Boolean(customLegendName && customLegendOptions?.length > 1)
 
@@ -274,38 +260,47 @@ export default function BarChart({
 			}
 		}
 		const Mytitle = title ? slug(title) : 'data'
-		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}.csv`
+		const filename = `bar-chart-${Mytitle}-${new Date().toISOString().split('T')[0]}`
 		return { filename, rows }
 	}
 
 	return (
-		<div className="relative">
-			{title || showLegend || !hideDownloadButton ? (
-				<div className="mb-2 flex flex-wrap items-center justify-end gap-2 px-2">
-					{title && <h1 className="mr-auto text-lg font-bold">{title}</h1>}
-					{customComponents ?? null}
-					{customLegendName && customLegendOptions?.length > 1 && (
-						<SelectWithCombobox
-							allValues={customLegendOptions}
-							selectedValues={legendOptions}
-							setSelectedValues={setLegendOptions}
-							label={customLegendName}
-							labelType="smol"
-							variant="filter"
-							portal
-						/>
-					)}
-					{!hideDownloadButton && <CSVDownloadButton prepareCsv={prepareCsv} smol />}
-					{shouldEnableExport && (
-						<ChartExportButton chartInstance={exportChartInstance} filename={exportFilename} title={exportTitle} />
-					)}
-				</div>
-			) : null}
-			<div
-				id={id}
-				className={containerClassName ? containerClassName : 'mx-0 my-auto h-[360px]'}
-				style={height ? { height } : undefined}
-			></div>
-		</div>
+		<ChartContainer
+			id={id}
+			chartClassName={containerClassName ?? 'mx-0 my-auto h-[360px]'}
+			chartStyle={height ? { height } : undefined}
+			header={
+				title || showLegend || !hideDownloadButton ? (
+					<ChartHeader
+						title={title}
+						customComponents={
+							customLegendName && customLegendOptions?.length > 1 ? (
+								<SelectWithCombobox
+									allValues={customLegendOptions}
+									selectedValues={legendOptions}
+									setSelectedValues={setLegendOptions}
+									label={customLegendName}
+									labelType="smol"
+									variant="filter"
+									portal
+								/>
+							) : null
+						}
+						exportButtons={
+							<>
+								{!hideDownloadButton ? <CSVDownloadButton prepareCsv={prepareCsv} smol /> : null}
+								{shouldEnableExport ? (
+									<ChartPngExportButton
+										chartInstance={exportChartInstance}
+										filename={exportFilename}
+										title={exportTitle}
+									/>
+								) : null}
+							</>
+						}
+					/>
+				) : null
+			}
+		/>
 	)
 }

@@ -1,6 +1,6 @@
-import { SetStateAction } from 'react'
-import { Dashboard } from './services/DashboardAPI'
-import { DashboardItemConfig } from './types'
+import type { SetStateAction } from 'react'
+import type { Dashboard } from './services/DashboardAPI'
+import type { DashboardItemConfig } from './types'
 
 export type TimePeriod = '30d' | '90d' | '365d' | 'ytd' | '3y' | 'all' | 'custom'
 
@@ -39,7 +39,7 @@ export type DashboardAction =
 	| { type: 'SET_SHOW_ITERATE_DASHBOARD_MODAL'; payload: boolean }
 	| { type: 'APPLY_DASHBOARD'; payload: Dashboard }
 
-export const INITIAL_DASHBOARD_STATE: DashboardState = {
+const INITIAL_DASHBOARD_STATE: DashboardState = {
 	items: [],
 	timePeriod: '365d',
 	customTimePeriod: null,

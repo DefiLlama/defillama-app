@@ -567,6 +567,11 @@ const nextConfig: NextConfig = {
 				source: '/protocols/rwa/:chain',
 				destination: '/rwa/chain/:chain',
 				permanent: true
+			},
+			{
+				source: '/dats',
+				destination: '/digital-asset-treasuries',
+				permanent: true
 			}
 		]
 	},
@@ -599,26 +604,6 @@ const nextConfig: NextConfig = {
 						value: 'identity'
 					}
 				]
-			}
-		]
-	},
-	images: {
-		remotePatterns: [
-			{
-				protocol: 'https',
-				hostname: 'icons.llama.fi'
-			},
-			{
-				protocol: 'https',
-				hostname: 'assets.coingecko.com'
-			},
-			{
-				protocol: 'https',
-				hostname: 'yield-charts.llama.fi'
-			},
-			{
-				protocol: 'https',
-				hostname: 'icons.llamao.fi'
 			}
 		]
 	}

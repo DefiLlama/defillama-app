@@ -1,6 +1,7 @@
+import type { RawRaise } from '~/containers/Raises/api.types'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
-import { IChainMetadata } from '~/utils/metadata/types'
-import { ChainChartLabels } from './constants'
+import type { IChainMetadata } from '~/utils/metadata/types'
+import type { ChainChartLabels } from './constants'
 
 export interface IChainOverviewData {
 	chain: string
@@ -64,21 +65,15 @@ export interface IChainOverviewData {
 	users: { activeUsers: number | null; newUsers: number | null; transactions: number | null }
 	inflows: { netInflows: number | null } | null
 	treasury: { tvl: number | null; tokenBreakdowns: Record<string, number> | null } | null
-	chainRaises: Array<IRaises> | null
+	chainRaises: Array<RawRaise> | null
 	chainAssets: IFormattedChainAsset | null
 	devMetrics: null
 	nfts: { total24h: number | null }
 	etfs: Array<[number, number]> | null
-	globalmcap: {
-		chart: Array<[number, number]> | null
-		change7d: string | null
-	} | null
-	rwaTvlChartData: Array<[number, { tvl: number; borrowed?: number; staking?: number; doublecounted?: number }]> | null
 	allChains: Array<{ label: string; to: string }>
 	unlocks: {
-		chart: Array<[number, Record<string, number>]>
+		chart: Array<{ date: number; total: number; breakdown: Array<{ token: string; value: number; pct: string }> }>
 		total14d: number
-		tokens: Array<[string, string]>
 	} | null
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
 	charts: ChainChartLabels[]
@@ -109,7 +104,7 @@ export interface ILiteProtocol {
 	category: string
 	tags?: Array<string>
 	chains: Array<string>
-	mcap: number
+	mcap: number | null
 	name: string
 	symbol: string
 	logo: string
@@ -134,7 +129,7 @@ export interface ILiteProtocol {
 	parentProtocol?: string
 	oracles?: Array<string>
 	oraclesByChain?: Record<string, Array<string>>
-	forkedFrom?: string
+	forkedFrom?: Array<string>
 	listedAt?: number
 	deprecated?: boolean
 }
@@ -215,84 +210,8 @@ export interface IProtocol extends IChildProtocol {
 	childProtocols?: Array<IChildProtocol>
 }
 
-export interface IRaises {
-	date: number
-	name: string
-	round: string
-	amount: number
-	chains: Array<string>
-	sector: string
-	category: string
-	categoryGroup: string
-	source: string
-	leadInvestors: []
-	otherInvestors: Array<string>
-	valuation: string | null
-	defillamaId?: string
-}
-
-export interface ITreasury {
-	id: string
-	name: string
-	address: string | null
-	symbol: string
-	url: string
-	description: string
-	chain: string
-	logo: string
-	audits: string
-	audit_note: string | null
-	gecko_id: string | number | null
-	cmcId: string | number | null
-	category: string
-	chains: Array<string>
-	module: string
-	treasury: string
-	twitter: string
-	oracles: Array<string>
-	forkedFrom: Array<string>
-	slug: string
-	tvl: number | null
-	chainTvls: {
-		Ethereum: number | null
-	}
-	change_1h: number | null
-	change_1d: number | null
-	change_7d: number | null
-	tokenBreakdowns: {
-		ownTokens: number | null
-		stablecoins: number | null
-		majors: number | null
-		others: number | null
-	}
-	mcap: number | null
-}
-
-export interface IChainAsset {
-	canonical: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	ownTokens?: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	native?: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	thirdParty?: {
-		total: string
-		breakdown: Record<string, string>
-	}
-	total: {
-		total: string
-		breakdown: Record<string, string>
-	}
-}
-
 export interface IFormattedChainAsset {
-	canonical: {
+	canonical?: {
 		total: number
 		breakdown: Record<string, number>
 	}
@@ -312,8 +231,4 @@ export interface IFormattedChainAsset {
 		total: number
 		breakdown: Record<string, number>
 	}
-}
-
-export interface IChainAssets {
-	[chain: string]: IChainAsset
 }

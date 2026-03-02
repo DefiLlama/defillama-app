@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useResize } from '~/hooks/useResize'
@@ -15,13 +15,7 @@ interface IChainLogo {
 	disableLink?: boolean
 }
 
-export const ChainLogo = ({
-	chain,
-	url,
-	iconType,
-	yieldRewardsSymbol,
-	disableLink: disableLinks = false
-}: IChainLogo) => {
+const ChainLogo = ({ chain, url, iconType, yieldRewardsSymbol, disableLink: disableLinks = false }: IChainLogo) => {
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
 			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>
@@ -66,46 +60,43 @@ interface IIconsRowProps {
 	iconsAlignment?: 'start' | 'end'
 }
 
-const isChain = (chain) => {
+const EMPTY_ARRAY: string[] = []
+
+const isChain = (chain: string) => {
 	return ['ethereum', 'avalanche', 'optimism', 'near', 'metis', 'aurora'].includes(chain.toLowerCase())
 }
 
 // todo update links prop to {name: string, iconType: string}
 export const IconsRow = ({
-	links = [],
+	links = EMPTY_ARRAY,
 	url,
 	iconType,
-	yieldRewardsSymbols = [],
+	yieldRewardsSymbols = EMPTY_ARRAY,
 	disableLinks = false,
 	urlPrefix = '',
 	iconsAlignment = 'end'
 }: IIconsRowProps) => {
-	const [visibleChainIndex, setVisibileChainIndex] = useState(0)
-	const mainWrapEl = useRef(null)
+	const mainWrapEl = useRef<HTMLDivElement>(null)
 	const { width: mainWrapWidth } = useResize(mainWrapEl)
 
-	useEffect(() => {
+	const { visibleChains, hoverChains } = useMemo(() => {
 		let remainingWidth = (mainWrapWidth > 280 ? 280 : mainWrapWidth) - CHAIN_ICON_WIDTH
-		let lastIndexOfFilters = 0
+		let visibleChainIndex = 0
 
 		for (const _ of links) {
-			if (remainingWidth < 0) continue
+			if (remainingWidth < 0) break
 			remainingWidth -= CHAIN_ICON_WIDTH
-			lastIndexOfFilters += 1
+			visibleChainIndex += 1
 		}
 
-		setVisibileChainIndex(links.length > 2 ? lastIndexOfFilters : links.length)
-	}, [mainWrapWidth, links])
-
-	const { visibleChains, hoverChains } = useMemo(() => {
+		visibleChainIndex = links.length > 2 ? visibleChainIndex : links.length
 		const tooManyChainsIndex = visibleChainIndex < links.length ? visibleChainIndex - 1 : visibleChainIndex
 
 		const visibleChains = links.length > 2 ? links.slice(0, tooManyChainsIndex) : links
-
 		const hoverChains = tooManyChainsIndex !== visibleChainIndex ? links.slice(tooManyChainsIndex, links.length) : []
 
 		return { visibleChains, hoverChains }
-	}, [links, visibleChainIndex])
+	}, [links, mainWrapWidth])
 
 	return (
 		<div

@@ -1,11 +1,11 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
-import { IProtocol } from '~/containers/ChainOverview/types'
+import type { IProtocol } from '~/containers/ChainOverview/types'
 import Layout from '~/layout'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
@@ -79,6 +79,7 @@ export default function SafeHarborAgreements({ protocols }) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
+				csvFileName="safe-harbor-agreements"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

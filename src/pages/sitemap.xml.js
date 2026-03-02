@@ -1,7 +1,8 @@
-import { CEXS_API, PEGGEDS_API, PROTOCOLS_API } from '~/constants/index'
+import { fetchCexs } from '~/containers/Cexs/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 const baseUrl = `https://defillama.com`
 
@@ -53,18 +54,24 @@ function SiteMap() {
 
 export async function getServerSideProps({ res }) {
 	const [{ protocols, chains, protocolCategories, parentProtocols }, stablecoins, cexs] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
-		fetchJson(PEGGEDS_API).then(({ peggedAssets }) => peggedAssets),
-		fetchJson(CEXS_API).then(({ cexs }) => cexs)
+		fetchProtocols(),
+		fetchStablecoinAssetsApi().then(({ peggedAssets }) => peggedAssets),
+		fetchCexs().then(({ cexs }) => cexs)
 	])
 
 	const sitemap = generateSiteMap(
 		protocols.map(({ name }) => slug(name)),
 		chains.map((c) => slug(c)),
-		protocolCategories.map((c) => slug(c)),
+		(protocolCategories ?? []).map((c) => slug(c)),
 		parentProtocols.map(({ name }) => slug(name)),
 		stablecoins.map(({ name }) => slug(name)),
-		cexs.filter((c) => c.slug != null).map(({ slug: cexSlug }) => slug(cexSlug))
+		(() => {
+			const slugs = []
+			for (const c of cexs) {
+				if (c.slug != null) slugs.push(slug(c.slug))
+			}
+			return slugs
+		})()
 	)
 
 	res.setHeader('Content-Type', 'text/xml')

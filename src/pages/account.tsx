@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -10,32 +10,43 @@ import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function Account() {
 	const router = useRouter()
-	const { success } = router.query
+	const success = Array.isArray(router.query.success) ? router.query.success[0] : router.query.success
 	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
-	const [showSuccessModal, setShowSuccessModal] = useState(false)
-	const [hasProcessedSuccess, setHasProcessedSuccess] = useState(false)
-	const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false)
+	const successProcessedRef = useRef(false)
+	const successFlowIdRef = useRef(0)
+	const [activeFlowId, setActiveFlowId] = useState<number | null>(null)
 
 	useEffect(() => {
-		if (success === 'true' && isAuthenticated && !hasProcessedSuccess) {
-			queryClient.invalidateQueries({ queryKey: ['subscription'] })
-			setHasProcessedSuccess(true)
-			Router.replace('/account', undefined, { shallow: true })
+		if (success !== 'true') {
+			successProcessedRef.current = false
 		}
-	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router.query, router.pathname])
+	}, [success])
 
 	useEffect(() => {
-		if (hasProcessedSuccess && !isSubscriptionLoading && hasActiveSubscription && !hasShownSuccessModal) {
-			setShowSuccessModal(true)
-			setHasShownSuccessModal(true)
-		}
-	}, [hasProcessedSuccess, isSubscriptionLoading, hasActiveSubscription, hasShownSuccessModal])
+		if (success !== 'true' || !isAuthenticated || successProcessedRef.current) return
+
+		successProcessedRef.current = true
+		successFlowIdRef.current += 1
+		setActiveFlowId(successFlowIdRef.current)
+		void queryClient.invalidateQueries({ queryKey: ['subscription'] })
+
+		const { success: _ignoredSuccess, ...nextQuery } = router.query
+		void router.replace(
+			{
+				pathname: router.pathname,
+				query: nextQuery
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [success, isAuthenticated, queryClient, router])
+
+	const showSuccessModal = activeFlowId != null && !isSubscriptionLoading && hasActiveSubscription
 
 	const handleCloseSuccessModal = () => {
-		setShowSuccessModal(false)
-		setHasProcessedSuccess(false)
+		setActiveFlowId(null)
 	}
 
 	return (

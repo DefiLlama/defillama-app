@@ -1,36 +1,16 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import { LinkPreviewCard } from '~/components/SEO'
-import { Emissions } from '~/containers/ProtocolOverview/Emissions/index'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { EmissionsByProtocol } from '~/containers/Unlocks/EmissionsByProtocol'
+import {
+	calculateTotalUnlockValue,
+	getEventCountdown,
+	getProtocolUnlocksStaticPropsData
+} from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import Layout from '~/layout'
 import { formattedNum, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
-
-const calculateTotalUnlockValue = (emissions) => {
-	if (!emissions.upcomingEvent || !emissions.tokenPrice.price) return 0
-
-	const totalAmount = emissions.upcomingEvent?.reduce((sum, event) => {
-		const eventTotal = event?.noOfTokens?.reduce((eventSum, amount) => eventSum + amount, 0)
-		return sum + eventTotal
-	}, 0)
-
-	return totalAmount * emissions.tokenPrice.price
-}
-
-const getEventCountdown = (timestamp: number): string => {
-	const now = Math.floor(Date.now() / 1000)
-	const timeLeft = timestamp - now
-
-	const hoursLeft = Math.floor(timeLeft / 3600)
-	const daysLeft = Math.floor(hoursLeft / 24)
-
-	if (daysLeft >= 1) {
-		return `in ${daysLeft} day${daysLeft > 1 ? 's' : ''}`
-	}
-
-	return `in ${hoursLeft} hour${hoursLeft > 1 ? 's' : ''}`
-}
 
 export const getStaticProps = withPerformanceLogging(
 	'unlocks/[protocol]',
@@ -39,10 +19,24 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocol = params.protocol
-		const emissions = await getProtocolEmissons(protocol)
-		const noUpcomingEvent = emissions.upcomingEvent[0].timestamp === null
-		if (emissions.chartData?.documented?.length === 0 && emissions.chartData?.realtime?.length === 0) {
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
+
+		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
+			params.protocol,
+			metadataCache.tokenlist
+		)
+
+		if (!emissions) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
+		const noUpcomingEvent = emissions?.upcomingEvent?.[0]?.timestamp == null
+		if ((emissions.chartData?.documented?.length ?? 0) === 0 && (emissions.chartData?.realtime?.length ?? 0) === 0) {
 			return {
 				notFound: true,
 				revalidate: maxAgeForNext([22])
@@ -53,8 +47,9 @@ export const getStaticProps = withPerformanceLogging(
 			props: {
 				emissions,
 				totalUnlockValue: calculateTotalUnlockValue(emissions),
-				eventCountdown: getEventCountdown(emissions.upcomingEvent[0]?.timestamp),
-				noUpcomingEvent
+				eventCountdown: getEventCountdown(emissions?.upcomingEvent?.[0]?.timestamp),
+				noUpcomingEvent,
+				initialTokenMarketData
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -62,10 +57,26 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocol({ emissions, totalUnlockValue, eventCountdown, noUpcomingEvent }) {
+export default function Protocol({
+	emissions,
+	totalUnlockValue,
+	eventCountdown,
+	noUpcomingEvent,
+	initialTokenMarketData
+}) {
 	return (
 		<Layout
 			title={`${emissions.name} ${emissions.tokenPrice.symbol} Token Unlocks & Vesting Schedules - DefiLlama`}
@@ -80,7 +91,12 @@ export default function Protocol({ emissions, totalUnlockValue, eventCountdown, 
 				unlockAmount={`$${formattedNum(totalUnlockValue)}`}
 				tvl={noUpcomingEvent ? 'No Events' : eventCountdown}
 			/>
-			<Emissions data={emissions} isEmissionsPage />
+			<EmissionsByProtocol
+				data={emissions}
+				isEmissionsPage
+				initialTokenMarketData={initialTokenMarketData}
+				disableClientTokenStatsFetch
+			/>
 		</Layout>
 	)
 }

@@ -1,7 +1,8 @@
 import type { ColumnDef, Row } from '@tanstack/react-table'
 import { Parser } from 'expr-eval'
+import { PercentChange } from '~/components/PercentChange'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { CustomColumnDefinition } from '../../../types'
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '../config/ColumnDictionary'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
@@ -52,7 +53,11 @@ const renderNumber = (value: number | null | undefined) => {
 
 const renderPercent = (value: number | null | undefined) => {
 	if (value == null) return renderDash()
-	return <span className="pro-text2">{formattedPercent(value, true)}</span>
+	return (
+		<span className="pro-text2">
+			<PercentChange percent={value} noSign />
+		</span>
+	)
 }
 
 const renderRatio = (value: number | null | undefined) => {
@@ -171,7 +176,7 @@ export function evaluateExpression(expression: string, metrics: NumericMetrics):
 	}
 }
 
-export interface AvailableVariable {
+interface AvailableVariable {
 	key: string
 	name: string
 	group: string
@@ -195,7 +200,7 @@ function getAllVariables(): AvailableVariable[] {
 	return ALL_VARIABLES_CACHE
 }
 
-export interface GetAvailableVariablesOptions {
+interface GetAvailableVariablesOptions {
 	groups?: string[]
 	keys?: string[]
 }
@@ -299,7 +304,8 @@ export const SAMPLE_METRICS: NumericMetrics = {
 	ps: 36.5
 }
 
-export function evaluateWithSampleData(expression: string): { value: number | null; error?: string } {
+// oxlint-disable-next-line no-unused-vars
+function evaluateWithSampleData(expression: string): { value: number | null; error?: string } {
 	const validation = validateExpression(expression)
 	if (!validation.isValid) {
 		return { value: null, error: validation.error }

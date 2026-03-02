@@ -1,7 +1,5 @@
 import { fetchCoinPrices } from '~/api'
 import {
-	PEGGEDS_API,
-	PROTOCOLS_API,
 	YIELD_TOKEN_CATEGORIES_API,
 	YIELD_CHAIN_API,
 	YIELD_CONFIG_API,
@@ -11,23 +9,33 @@ import {
 	YIELD_POOLS_API,
 	YIELD_URL_API
 } from '~/constants'
-import { fetchApi } from '~/utils/async'
-import { formatYieldsPageData } from './utils'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchRaises } from '~/containers/Raises/api'
+import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
+import { fetchJson } from '~/utils/async'
+import { buildRaiseValuations, formatYieldsPageData } from './utils'
 
 export async function getYieldPageData() {
-	let poolsAndConfig = await fetchApi([
-		YIELD_POOLS_API,
-		YIELD_CONFIG_API,
-		YIELD_URL_API,
-		YIELD_CHAIN_API,
-		PROTOCOLS_API
+	let [poolsData, configData, urlsData, chainsData, protocolsData, raisesData] = await Promise.all([
+		fetchJson(YIELD_POOLS_API),
+		fetchJson(YIELD_CONFIG_API),
+		fetchJson(YIELD_URL_API),
+		fetchJson(YIELD_CHAIN_API),
+		fetchProtocols(),
+		fetchRaises().catch((): { raises: [] } => ({ raises: [] }))
 	])
 
+	let poolsAndConfig = [poolsData, configData, urlsData, chainsData, protocolsData]
+
 	let data = formatYieldsPageData(poolsAndConfig)
+
+	// Attach raiseValuation to airdrop pools
+	const valuationBySlug = buildRaiseValuations(raisesData?.raises ?? [], configData?.protocols ?? {}, protocolsData)
 	data.pools = data.pools.map((p) => ({
 		...p,
 		underlyingTokens: p.underlyingTokens ?? [],
-		rewardTokens: p.rewardTokens ?? []
+		rewardTokens: p.rewardTokens ?? [],
+		raiseValuation: p.airdrop ? (valuationBySlug.get(p.project) ?? null) : null
 	}))
 
 	const priceChainMapping = {
@@ -35,7 +43,10 @@ export async function getYieldPageData() {
 		avalanche: 'avax',
 		gnosis: 'xdai'
 	}
-	const priceChainMappingKeys = new Set(Object.keys(priceChainMapping))
+	const priceChainMappingKeys = new Set<string>()
+	for (const chainName in priceChainMapping) {
+		priceChainMappingKeys.add(chainName)
+	}
 
 	// get Price data
 	//
@@ -116,7 +127,7 @@ export async function getYieldPageData() {
 
 	// build USD-pegged symbols list (min length 2)
 	try {
-		const stablecoins = await fetchApi(`${PEGGEDS_API}?includePrices=false`)
+		const stablecoins = await fetchStablecoinAssetsApi({ includePrices: false })
 		const usdPeggedSymbols = Array.from(
 			new Set(
 				(stablecoins?.peggedAssets || [])
@@ -131,7 +142,7 @@ export async function getYieldPageData() {
 
 	// fetch token categories for yields filtering (tokenized assets, meme tokens, etc.)
 	try {
-		const tokenCategories = await fetchApi(YIELD_TOKEN_CATEGORIES_API)
+		const tokenCategories = await fetchJson(YIELD_TOKEN_CATEGORIES_API)
 		data['tokenCategories'] = tokenCategories && typeof tokenCategories === 'object' ? tokenCategories : {}
 
 		// Dynamically add token filter options for non-meme categories
@@ -154,22 +165,29 @@ export async function getYieldPageData() {
 		// Insert at position 2 (after ALL_BITCOINS, ALL_USD_STABLES)
 		data.tokens.splice(2, 0, ...categoryTokens)
 		data.tokenSymbolsList.splice(2, 0, ...categorySymbols)
+	} catch {
+		data['tokenCategories'] = {}
+	}
 
-		// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
-		const memeTokenData = data['tokenCategories']['meme-token']
+	// Add hasMemeToken flag to pools for the "No Memecoins" attribute filter
+	// Separate try/catch so errors here don't wipe out tokenCategories
+	try {
+		const memeTokenData = data['tokenCategories']?.['meme-token']
 		if (memeTokenData) {
 			const memeAddresses = new Set(memeTokenData.addresses || [])
 			const memeSymbols = new Set(memeTokenData.symbols || [])
 
 			data.pools = data.pools.map((p) => {
 				let hasMemeToken = false
+				if (!p.symbol) return { ...p, hasMemeToken }
+
 				const chain = priceChainMapping[p.chain?.toLowerCase()] ?? p.chain?.toLowerCase()
 				const underlyingTokens = p.underlyingTokens ?? []
 
 				// Check by address first
 				if (underlyingTokens.length > 0 && memeAddresses.size > 0) {
-					hasMemeToken = underlyingTokens.some((addr: string) =>
-						memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+					hasMemeToken = underlyingTokens.some(
+						(addr: string) => addr && memeAddresses.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 					)
 				}
 
@@ -183,7 +201,7 @@ export async function getYieldPageData() {
 			})
 		}
 	} catch {
-		data['tokenCategories'] = {}
+		// meme token detection failed, pools keep hasMemeToken as undefined
 	}
 
 	return {
@@ -192,15 +210,18 @@ export async function getYieldPageData() {
 }
 
 export async function getYieldMedianData() {
-	let data = (await fetchApi([YIELD_MEDIAN_API]))[0]
+	let data = await fetchJson(YIELD_MEDIAN_API)
 	// for the 4th of june we have low nb of datapoints which is skewing the median/
 	// hence why we remove it from the plot
 	data = data.filter((p) => p.timestamp !== '2022-06-04T00:00:00.000Z')
 
 	// add 7day average field
-	data = data
-		.map((e) => ({ ...e, timestamp: e.timestamp.split('T')[0] }))
-		.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+	const formattedData = []
+	for (const entry of data) {
+		formattedData.push({ ...entry, timestamp: entry.timestamp.split('T')[0] })
+	}
+	formattedData.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+	data = formattedData
 	// add rolling 7d avg of median values (first 6days == null)
 	const windowSize = 7
 	const apyMedianValues = data.map((m) => m.medianAPY)
@@ -240,22 +261,59 @@ export async function getLendBorrowData() {
 	let pools = props.pools.filter((p) => p.category && categoriesToKeepSet.has(p.category))
 
 	// get new borrow fields
-	let dataBorrow = (await fetchApi([YIELD_LEND_BORROW_API]))[0]
+	let dataBorrow = await fetchJson(YIELD_LEND_BORROW_API)
 	dataBorrow = dataBorrow.filter((p) => p.ltv <= 1)
 
 	// for morpho: if totalSupplyUsd < totalBorrowUsd on morpho
-	const configIdsCompound = pools.filter((p) => p.project === 'compound').map((p) => p.pool)
-	const configIdsAave = pools
-		.filter((p) => p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
-		.map((p) => p.pool)
-	const compoundPools = dataBorrow.filter((p) => configIdsCompound.includes(p.pool))
-	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.includes(p.pool))
+	const configIdsCompound = new Set<string>()
+	const configIdsAave = new Set<string>()
+	for (const p of pools) {
+		if (p.project === 'compound') configIdsCompound.add(p.pool)
+		if (p.project === 'aave-v2' && p.chain === 'Ethereum' && !p.symbol.toLowerCase().includes('amm'))
+			configIdsAave.add(p.pool)
+	}
+	// O(1) Set lookup instead of O(n) array .includes()
+	const compoundPools = dataBorrow.filter((p) => configIdsCompound.has(p.pool))
+	const aavev2Pools = dataBorrow.filter((p) => configIdsAave.has(p.pool))
 
 	const tokenSymbols = new Set<string>()
-	const cdpPools = [...new Set(props.pools.filter((p) => p.category === 'CDP').map((p) => p.pool))]
+	const cdpPoolSet = new Set<string>()
+	for (const p of props.pools) {
+		if (p.category === 'CDP') cdpPoolSet.add(p.pool)
+	}
+	const cdpPools = [...cdpPoolSet]
+	// Build lookup map for O(1) borrow data access
+	const dataBorrowByPool = new Map<string, (typeof dataBorrow)[0]>()
+	for (const item of dataBorrow) {
+		dataBorrowByPool.set(item.pool, item)
+	}
+
+	// Build lookup map for compound pools by underlying token
+	const compoundPoolsByToken = new Map<string, (typeof compoundPools)[0]>()
+	for (const pool of compoundPools) {
+		if (pool.underlyingTokens?.[0]) {
+			const tokenKey = pool.underlyingTokens[0].toLowerCase()
+			if (!compoundPoolsByToken.has(tokenKey)) {
+				compoundPoolsByToken.set(tokenKey, pool)
+			}
+		}
+	}
+
+	// Build lookup map for aave pools by underlying token
+	const aavePoolsByToken = new Map<string, (typeof aavev2Pools)[0]>()
+	for (const pool of aavev2Pools) {
+		if (pool.underlyingTokens?.[0]) {
+			const tokenKey = pool.underlyingTokens[0].toLowerCase()
+			if (!aavePoolsByToken.has(tokenKey)) {
+				aavePoolsByToken.set(tokenKey, pool)
+			}
+		}
+	}
+
 	pools = pools
 		.map((p) => {
-			const x = dataBorrow.find((i) => i.pool === p.pool)
+			// O(1) Map lookup instead of O(n) .find()
+			const x = dataBorrowByPool.get(p.pool)
 			// for some projects we haven't added the new fields yet, dataBorrow will thus be smaller;
 			// hence the check for undefined
 			if (x === undefined) return null
@@ -273,15 +331,17 @@ export async function getLendBorrowData() {
 			// instead we display the compound available pool liq together with a tooltip to clarify this
 			let totalAvailableUsd
 			if (p.project === 'morpho-compound') {
-				const compoundData = compoundPools.find(
-					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
-				)
-				totalAvailableUsd = compoundData?.totalSupplyUsd - compoundData?.totalBorrowUsd
+				// O(1) Map lookup instead of O(n) .find()
+				const compoundData = x.underlyingTokens?.[0]
+					? compoundPoolsByToken.get(x.underlyingTokens[0].toLowerCase())
+					: undefined
+				totalAvailableUsd = compoundData
+					? (compoundData.totalSupplyUsd ?? 0) - (compoundData.totalBorrowUsd ?? 0)
+					: null
 			} else if (p.project === 'morpho-aave') {
-				const aaveData = aavev2Pools.find(
-					(a) => a.underlyingTokens[0].toLowerCase() === x.underlyingTokens[0].toLowerCase()
-				)
-				totalAvailableUsd = aaveData?.totalSupplyUsd - aaveData?.totalBorrowUsd
+				// O(1) Map lookup instead of O(n) .find()
+				const aaveData = x.underlyingTokens?.[0] ? aavePoolsByToken.get(x.underlyingTokens[0].toLowerCase()) : undefined
+				totalAvailableUsd = aaveData ? (aaveData.totalSupplyUsd ?? 0) - (aaveData.totalBorrowUsd ?? 0) : null
 			} else if (p.project === 'morpho-blue') {
 				totalAvailableUsd = x.debtCeilingUsd
 			} else if (x.totalSupplyUsd === null && x.totalBorrowUsd === null) {
@@ -382,6 +442,6 @@ export function calculateLoopAPY(lendBorrowPools, loops = 10, customLTV) {
 }
 
 export async function getPerpData() {
-	const perps = (await fetchApi([YIELD_PERPS_API]))[0]
+	const perps = await fetchJson(YIELD_PERPS_API)
 	return perps.data.map((m) => ({ ...m, symbol: m.baseAsset }))
 }

@@ -21,5 +21,3 @@ export const llamaDb: DbInstance = globalThis.__LLAMA_DB__ ?? createDb()
 if (process.env.NODE_ENV !== 'production') {
 	globalThis.__LLAMA_DB__ = llamaDb
 }
-
-export { pgp }

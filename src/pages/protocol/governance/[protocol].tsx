@@ -1,16 +1,14 @@
-import { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import {
-	PROTOCOL_GOVERNANCE_COMPOUND_API,
-	PROTOCOL_GOVERNANCE_SNAPSHOT_API,
-	PROTOCOL_GOVERNANCE_TALLY_API
-} from '~/constants'
-import { GovernanceData } from '~/containers/ProtocolOverview/Governance'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import GovernanceProject from '~/containers/Governance/GovernanceProject'
+import { getGovernanceDetailsPageData } from '~/containers/Governance/queries'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -19,9 +17,12 @@ export const getStaticProps = withPerformanceLogging(
 		if (!params?.protocol) {
 			return { notFound: true, props: null }
 		}
+
 		const { protocol } = params
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
@@ -35,36 +36,29 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+		const tokenlistSymbol = protocolData.gecko_id
+			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
+			: undefined
+		const symbol = tokenlistSymbol ?? (protocolData.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
-
-		const governanceApis = (
-			protocolData.governanceID?.map((gid) =>
-				gid.startsWith('snapshot:')
-					? `${PROTOCOL_GOVERNANCE_SNAPSHOT_API}/${gid.split('snapshot:')[1].replace(/(:|’|')/g, '/')}.json`
-					: gid.startsWith('compound:')
-						? `${PROTOCOL_GOVERNANCE_COMPOUND_API}/${gid.split('compound:')[1].replace(/(:|’|')/g, '/')}.json`
-						: gid.startsWith('tally:')
-							? `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.split('tally:')[1].replace(/(:|’|')/g, '/')}.json`
-							: `${PROTOCOL_GOVERNANCE_TALLY_API}/${gid.replace(/(:|’|')/g, '/')}.json`
-			) ?? []
-		)
-			.map((g) =>
-				g.replace(
-					process.env.DATASETS_SERVER_URL ?? 'https://defillama-datasets.llama.fi',
-					'https://defillama-datasets.llama.fi'
-				)
-			)
-			.map((g) => g.toLowerCase())
+		const [metrics, governanceProps] = await Promise.all([
+			Promise.resolve(getProtocolMetricFlags({ protocolData, metadata: metadata[1] })),
+			getGovernanceDetailsPageData({
+				governanceIDs: protocolData.governanceID ?? [],
+				projectName: protocolData.name
+			})
+		])
 
 		return {
 			props: {
 				name: protocolData.name,
+				symbol,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				governanceApis: governanceApis.filter((x) => !!x),
+				governanceData: governanceProps.governanceData,
+				governanceTypes: governanceProps.governanceTypes,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
@@ -73,10 +67,20 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -86,7 +90,13 @@ export default function Protocols(props) {
 			tab="governance"
 			warningBanners={props.warningBanners}
 		>
-			<GovernanceData apis={props.governanceApis} />
+			{props.governanceData?.length ? (
+				<GovernanceProject
+					projectName={props.name}
+					governanceData={props.governanceData}
+					governanceTypes={props.governanceTypes ?? []}
+				/>
+			) : null}
 		</ProtocolOverviewLayout>
 	)
 }

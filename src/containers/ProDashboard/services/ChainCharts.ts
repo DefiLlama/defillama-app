@@ -1,15 +1,13 @@
+import { CACHE_SERVER, DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
+import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
+import { fetchChainChart } from '~/containers/Chains/api'
 import {
-	CACHE_SERVER,
-	CHAINS_ASSETS_CHART,
-	CHART_API,
-	DIMENSIONS_OVERVIEW_API,
-	DIMENSIONS_SUMMARY_API,
-	PEGGEDCHART_API,
-	PROTOCOL_ACTIVE_USERS_API,
-	PROTOCOL_GAS_USED_API,
-	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_TRANSACTIONS_API
-} from '~/constants'
+	ONCHAIN_ADDRESSES_API,
+	ONCHAIN_GAS_API,
+	ONCHAIN_NEW_ADDRESSES_API,
+	ONCHAIN_TXS_API
+} from '~/containers/OnchainUsersAndTxs/api'
+import { fetchStablecoinChartApi } from '~/containers/Stablecoins/api'
 import { toDisplayName } from '~/utils/chainNormalizer'
 import { processAdjustedTvl } from '~/utils/tvl'
 import { convertToNumberFormat, normalizeHourlyToDaily } from '../utils'
@@ -31,11 +29,11 @@ const CHART_METADATA = {
 	chainFees: { type: 'protocol', endpoint: 'fees' },
 	chainRevenue: { type: 'protocol', endpoint: 'fees', dataType: 'dailyRevenue' },
 
-	users: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
-	activeUsers: { type: 'userMetrics', api: PROTOCOL_ACTIVE_USERS_API },
-	newUsers: { type: 'userMetrics', api: PROTOCOL_NEW_USERS_API },
-	txs: { type: 'userMetrics', api: PROTOCOL_TRANSACTIONS_API },
-	gasUsed: { type: 'userMetrics', api: PROTOCOL_GAS_USED_API },
+	users: { type: 'userMetrics', api: ONCHAIN_ADDRESSES_API },
+	activeUsers: { type: 'userMetrics', api: ONCHAIN_ADDRESSES_API },
+	newUsers: { type: 'userMetrics', api: ONCHAIN_NEW_ADDRESSES_API },
+	txs: { type: 'userMetrics', api: ONCHAIN_TXS_API },
+	gasUsed: { type: 'userMetrics', api: ONCHAIN_GAS_API },
 
 	stablecoins: { type: 'stablecoins' },
 	stablecoinInflows: { type: 'stablecoins', dataType: 'inflows' },
@@ -49,25 +47,21 @@ const CHART_METADATA = {
 export default class ChainCharts {
 	private static async fetchAndMergeChains(
 		chains: string[],
-		fetchUrl: (chainName: string) => string,
+		fetchData: (chainName: string) => Promise<any>,
 		extractData: (data: any) => [number, number][]
 	): Promise<[number, number][]> {
 		if (chains.length === 0) return []
 
 		try {
-			const responses = await Promise.all(
-				chains.map((chain) => fetch(fetchUrl(chain.includes(' ') ? encodeURIComponent(chain) : chain)))
-			)
+			const responses = await Promise.all(chains.map((chain) => fetchData(chain).catch(() => null)))
 
 			const mergedMap = new Map<number, number>()
 
-			for (const response of responses) {
-				if (response.ok) {
-					const data = await response.json()
-					const extracted = extractData(data)
-					for (const [timestamp, value] of extracted) {
-						mergedMap.set(timestamp, value)
-					}
+			for (const data of responses) {
+				if (data == null) continue
+				const extracted = extractData(data)
+				for (const [timestamp, value] of extracted) {
+					mergedMap.set(timestamp, value)
 				}
 			}
 
@@ -116,15 +110,15 @@ export default class ChainCharts {
 		const chainNames = this.getChainNames(chain)
 
 		if (chainNames.length === 1) {
-			const response = await fetch(`${CHART_API}/${chain}`)
-			const data = await response.json()
+			const data = await fetchChainChart<any>(chain).catch(() => null)
+			if (data == null) return []
 			const adjustedTvl = processAdjustedTvl(data)
 			return convertToNumberFormat(adjustedTvl)
 		}
 
 		return this.fetchAndMergeChains(
 			chainNames,
-			(chainName) => `${CHART_API}/${chainName}`,
+			(chainName) => fetchChainChart<any>(chainName),
 			(data) => {
 				const adjustedTvl = processAdjustedTvl(data)
 				return convertToNumberFormat(adjustedTvl)
@@ -136,8 +130,7 @@ export default class ChainCharts {
 		if (!chain) return []
 		const apiChain = toDisplayName(chain)
 		const encodedChain = apiChain.includes(' ') ? encodeURIComponent(apiChain) : apiChain
-		const response = await fetch(`${PEGGEDCHART_API}/${encodedChain}`)
-		const data = await response.json()
+		const data = await fetchStablecoinChartApi(encodedChain)
 
 		if (!data.aggregated || !Array.isArray(data.aggregated)) return []
 
@@ -189,20 +182,29 @@ export default class ChainCharts {
 		const chainNames = this.getChainNames(chain)
 
 		if (chainNames.length === 1) {
-			const response = await fetch(`${CHAINS_ASSETS_CHART}/${chain}`)
-			const data = await response.json()
+			const data = await fetchChainAssetsChart(chain).catch(() => null)
 			if (!Array.isArray(data)) return []
-			return data.map((item: any) => [parseInt(item.timestamp, 10), parseFloat(item.data?.total) || 0])
+			return data.map((item) => [Number(item.timestamp), Number(item.data?.total) || 0])
 		}
 
-		return this.fetchAndMergeChains(
-			chainNames,
-			(chainName) => `${CHAINS_ASSETS_CHART}/${chainName}`,
-			(data) => {
-				if (!Array.isArray(data)) return []
-				return data.map((item: any) => [parseInt(item.timestamp, 10), parseFloat(item.data?.total) || 0])
+		try {
+			const responses = await Promise.all(
+				chainNames.map((chainName) => fetchChainAssetsChart(chainName).catch(() => null))
+			)
+			const mergedMap = new Map<number, number>()
+			for (const data of responses) {
+				if (!Array.isArray(data)) continue
+				for (const item of data) {
+					const timestamp = Number(item.timestamp)
+					const value = Number(item.data?.total) || 0
+					mergedMap.set(timestamp, value)
+				}
 			}
-		)
+			return Array.from(mergedMap.entries()).sort((a, b) => a[0] - b[0])
+		} catch (error) {
+			console.log('Error merging chain assets data:', error)
+			return []
+		}
 	}
 
 	private static async getTokenData(geckoId: string) {

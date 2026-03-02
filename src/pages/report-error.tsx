@@ -1,5 +1,4 @@
 import { useMutation } from '@tanstack/react-query'
-import * as React from 'react'
 import toast from 'react-hot-toast'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
@@ -8,7 +7,6 @@ async function reportError(report: any) {
 	try {
 		const data = await fetchJson('https://api.llama.fi/reportError', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(report)
 		})
 		return data

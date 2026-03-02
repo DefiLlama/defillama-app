@@ -1,16 +1,15 @@
 import { useMemo } from 'react'
-import { keepNeededProperties } from '~/api/shared'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, slug } from '~/utils'
+import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, keepNeededProperties, slug } from '~/utils'
 
-export interface ITokenData {
+interface ITokenData {
 	usdValue: number
 	amount: number
 	symbol: string
 	decimals: number
 }
 
-export interface IDailyBridgeStats {
+interface IDailyBridgeStats {
 	date: number
 	totalTokensDeposited: {
 		[token: string]: ITokenData
@@ -33,7 +32,7 @@ export interface IDailyBridgeStats {
 	name?: string
 }
 
-export const bridgePropertiesToKeep = [
+const bridgePropertiesToKeep = [
 	'displayName',
 	'name',
 	'symbol',

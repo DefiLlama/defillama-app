@@ -440,9 +440,9 @@ export const DemoPreview = () => {
 
 					<div className="flex items-center justify-center">
 						<div className="grid gap-2 pro-dashboard sm:grid-cols-2 lg:gap-6 xl:grid-cols-4">
-							{features.map((feature, index) => (
+							{features.map((feature) => (
 								<div
-									key={index}
+									key={feature.title}
 									className="flex flex-wrap items-center justify-center gap-2 pro-info-card px-8 py-15 text-sm text-(--text-secondary)"
 								>
 									<div className="align-center flex gap-2">
@@ -499,8 +499,8 @@ export const DemoPreview = () => {
 								</Link>
 							</div>
 
-							<div className="relative flex transform flex-col rounded-sm border-2 border-(--primary) bg-gradient-to-br from-(--primary)/10 to-purple-600/10 px-6 py-8 text-center shadow-(--primary)/10 shadow-xl transition-transform hover:scale-[1.02]">
-								<h3 className="mb-3 bg-gradient-to-r from-(--primary) to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
+							<div className="relative flex transform flex-col rounded-sm border-2 border-(--primary) bg-linear-to-br from-(--primary)/10 to-purple-600/10 px-6 py-8 text-center shadow-(--primary)/10 shadow-xl transition-transform hover:scale-[1.02]">
+								<h3 className="mb-3 bg-linear-to-r from-(--primary) to-purple-600 bg-clip-text text-2xl font-bold text-transparent">
 									Pro
 								</h3>
 								<div className="mb-6 text-4xl font-bold text-(--primary)">
@@ -533,7 +533,7 @@ export const DemoPreview = () => {
 									</li>
 								</ul>
 								<Link href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`}>
-									<span className="flex inline-flex cursor-pointer items-center gap-2 rounded-sm bg-gradient-to-r from-(--primary) to-purple-600 px-8 py-3 font-semibold text-white shadow-lg transition-opacity hover:opacity-90">
+									<span className="flex inline-flex cursor-pointer items-center gap-2 rounded-sm bg-linear-to-r from-(--primary) to-purple-600 px-8 py-3 font-semibold text-white shadow-lg transition-opacity hover:opacity-90">
 										<Icon name="sparkles" height={16} width={16} />
 										Upgrade to Pro
 									</span>

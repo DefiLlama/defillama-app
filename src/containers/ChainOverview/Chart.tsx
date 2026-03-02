@@ -7,7 +7,7 @@ import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
 import {
 	BAR_CHARTS,
-	ChainChartLabels,
+	type ChainChartLabels,
 	chainOverviewChartColors,
 	DISABLED_CUMULATIVE_CHARTS,
 	yAxisByChart
@@ -15,7 +15,7 @@ import {
 
 const customOffsets = {}
 
-export default function ChainLineBarChart({
+export default function ChainCoreChart({
 	chartData,
 	valueSymbol = '',
 	color,
@@ -49,12 +49,12 @@ export default function ChainLineBarChart({
 	})
 
 	const { series, allYAxis } = useMemo(() => {
-		const uniqueYAxis = new Set()
-
-		const stacks = Object.keys(chartData) as any
-
-		for (const stack of stacks) {
-			uniqueYAxis.add(yAxisByChart[stack])
+		const uniqueYAxis = new Set<ChainChartLabels>()
+		const stacks: ChainChartLabels[] = []
+		for (const stack in chartData) {
+			const chartLabel = stack as ChainChartLabels
+			stacks.push(chartLabel)
+			uniqueYAxis.add(yAxisByChart[chartLabel])
 		}
 
 		const indexByYAxis = Object.fromEntries(
@@ -128,15 +128,17 @@ export default function ChainLineBarChart({
 			onReady(instance)
 		}
 
+		const settings = { ...defaultChartSettings }
+
 		for (const option in chartOptions) {
-			if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+			if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom } = settings
 
 		const finalYAxis = []
 

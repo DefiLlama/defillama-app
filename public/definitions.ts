@@ -209,12 +209,12 @@ export const definitions = {
     }
   },
   "normalizedVolume": {
-    "common": "Normalized trading volume, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+    "common": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions",
     "protocol": {
-      "24h": "Normalized trading volume in the last 24 hours, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
-      "7d": "Normalized trading volume in the last 7 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
-      "30d": "Normalized trading volume in the last 30 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
-      "1y": "Normalized trading volume in the last 12 months, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes",
+      "24h": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 24 hours",
+      "7d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 7 days",
+      "30d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 30 days",
+      "1y": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 12 months",
       "cumulative": "Total normalized trading volume since the protocol was launched",
       "annualized": "Total normalized trading volume in the last 30 days, multiplied by 12 to annualize it",
       "change1d": "Day-over-day percentage change in normalized trading volume",
@@ -225,11 +225,16 @@ export const definitions = {
       "average1y": "Average monthly normalized trading volume in the last 12 months"
     },
     "chain": {
-      "24h": "Normalized trading volume on the chain in the last 24 hours, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes. Updated daily at 00:00 UTC",
-      "7d": "Normalized trading volume on the chain in the last 7 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes. Updated daily at 00:00 UTC",
-      "30d": "Normalized trading volume on the chain in the last 30 days, adjusted using active orderbook liquidity per market and a baseline from the most organic exchange to reduce inflated/inorganic volumes. Updated daily at 00:00 UTC",
+      "24h": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions on the chain in the last 24 hours",
+      "7d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions on the chain in the last 7 days",
+      "30d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions on the chain in the last 30 days. Updated daily at 00:00 UTC",
       "change7dover7d": "Change of last 7 days normalized trading volume over the previous 7 days normalized trading volume",
     }
+  },
+  "activeLiquidity": {
+    "common": "The total dollar value of buy and sell orders positioned close enough to the current price that they could realistically be traded against during normal market activity - essentially, the \"usable\" depth in the orderbook",
+    "protocol": "The total dollar value of buy and sell orders positioned close enough to the current price that they could realistically be traded against during normal market activity - essentially, the \"usable\" depth in the orderbook",
+    "chain": "The total dollar value of buy and sell orders positioned close enough to the current price that they could realistically be traded against during normal market activity - essentially, the \"usable\" depth in the orderbook on all protocols on the chain"
   },
   "perpsAggregators": {
     "common": "Notional volume of all trades including leverage routed through the perp aggregator",

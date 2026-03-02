@@ -1,12 +1,17 @@
-import { maxAgeForNext } from '~/api'
-import { BorrowedProtocolsTVLByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
-import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
+import type { InferGetStaticPropsType } from 'next'
+import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`total-borrowed/index`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getTotalBorrowedByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
+	const data = await getExtraTvlByChain({
+		chain: 'All',
+		metric: 'borrowed',
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 
 	if (!data) return { notFound: true }
 
@@ -18,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(`total-borrowed/index`, asy
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
-export default function TotalBorrowed(props) {
+export default function TotalBorrowed(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Total Borrowed - DefiLlama"
@@ -27,7 +32,7 @@ export default function TotalBorrowed(props) {
 			canonicalUrl={`/total-borrowed`}
 			pageName={pageName}
 		>
-			<BorrowedProtocolsTVLByChain {...props} />
+			<ExtraTvlByChain {...props} />
 		</Layout>
 	)
 }

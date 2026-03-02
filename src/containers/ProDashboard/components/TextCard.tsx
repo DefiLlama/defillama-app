@@ -1,5 +1,5 @@
 import ReactMarkdown from 'react-markdown'
-import { TextConfig } from '../types'
+import type { TextConfig } from '../types'
 
 interface TextCardProps {
 	text: TextConfig

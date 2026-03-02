@@ -1,24 +1,24 @@
-import { GetStaticPropsContext } from 'next'
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { KeyMetrics } from '~/containers/ProtocolOverview'
+import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
+import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
@@ -48,15 +48,19 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const [protocolData, adapterData] = await Promise.all([
-			getProtocol(protocol),
-			getAdapterProtocolSummary({
+			fetchProtocolOverviewMetrics(protocol),
+			getAdapterProtocolOverview({
 				adapterType: 'aggregator-derivatives',
 				protocol: metadata[1].displayName,
 				excludeTotalDataChart: false
 			})
 		])
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		if (!protocolData) {
+			return { notFound: true, props: null }
+		}
+
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		const perpAggregatorVolume: IProtocolOverviewPageData['perpAggregatorVolume'] = {
 			total24h: adapterData.total24h ?? null,
@@ -106,15 +110,24 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = useMemo(() => {
 		const formattedData = formatBarChart({
@@ -139,6 +152,7 @@ export default function Protocols(props) {
 			]
 		}
 	}, [props.chart, groupBy])
+	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	return (
 		<ProtocolOverviewLayout
@@ -164,7 +178,7 @@ export default function Protocols(props) {
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
 				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
-					<div className="flex items-center justify-end gap-2 p-2">
+					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
@@ -173,7 +187,7 @@ export default function Protocols(props) {
 									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
-										setGroupBy(dataInterval)
+										startTransition(() => setGroupBy(dataInterval))
 									}}
 									key={`${props.name}-perps-aggregators-groupBy-${dataInterval}`}
 								>
@@ -181,32 +195,25 @@ export default function Protocols(props) {
 								</Tooltip>
 							))}
 						</div>
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename={`${slug(props.name)}-perp-aggregator-volume`}
-						/>
-						<ChartExportButton
-							chartInstance={exportChartInstance}
-							filename={`${slug(props.name)}-perp-aggregator-volume`}
+						<ChartExportButtons
+							chartInstance={chartInstance}
+							filename={`${props.name}-perp-aggregator-volume`}
 							title="Perp Aggregator Volume"
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={finalCharts.dataset}
-							charts={finalCharts.charts}
+							dataset={deferredFinalCharts.dataset}
+							charts={deferredFinalCharts.charts}
 							valueSymbol="$"
-							onReady={(instance) => {
-								handleChartReady(instance)
-								handleChartCsvReady(instance)
-							}}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.protocolChains?.length > 1 ? (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
@@ -217,7 +224,7 @@ export default function Protocols(props) {
 					</div>
 				) : null}
 				{props.protocolVersions?.length > 1 ? (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}

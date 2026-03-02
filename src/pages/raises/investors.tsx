@@ -1,224 +1,37 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
+	type ColumnDef,
+	type ColumnFiltersState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { RAISES_API } from '~/constants'
-import { IRaises } from '~/containers/ChainOverview/types'
+import { getInvestorsPageData } from '~/containers/Raises/queries'
+import type { IInvestorsPageData, IInvestorTimespan } from '~/containers/Raises/types'
 import Layout from '~/layout'
 import { formattedNum, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
-
-interface ITimespan {
-	topCategory: string | null
-	topRound: string | null
-	amounts: Array<number>
-	deals: number
-}
-
-interface IDealTimespan extends ITimespan {
-	projects: Set<string>
-	chains: Set<string>
-	topAmount: number
-}
-
-interface IInvestorTimespan extends ITimespan {
-	projects: string
-	chains: Array<string>
-	medianAmount: number
-}
-
-interface IInvestor {
-	name: string
-	last30d: IInvestorTimespan
-	last180d: IInvestorTimespan
-	last1y: IInvestorTimespan
-	allTime: IInvestorTimespan
-}
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface INormalizedInvestor extends IInvestorTimespan {
 	name: string
 }
 
-function calculateMedian(amounts: Array<number>) {
-	if (amounts.length === 0) return 0
-
-	const sorted = [...amounts].sort((a, b) => a - b)
-	const mid = Math.floor(sorted.length / 2)
-
-	return sorted.length % 2 === 0
-		? (sorted[mid - 1] + sorted[mid]) / 2 // Even number of items
-		: sorted[mid] // Odd number of items
-}
-
 export const getStaticProps = withPerformanceLogging('raises/active-investors', async () => {
-	const data: { raises: Array<IRaises> } = await fetchJson(RAISES_API)
-
-	const deals: Record<
-		string,
-		{
-			name: string
-			last30d: IDealTimespan
-			last180d: IDealTimespan
-			last1y: IDealTimespan
-			allTime: IDealTimespan
-		}
-	> = {}
-	for (const raise of data.raises ?? []) {
-		for (const lead of raise.leadInvestors) {
-			deals[lead] = deals[lead] || {
-				name: lead,
-				last30d: {
-					topCategory: null,
-					topRound: null,
-					topAmount: 0,
-					amounts: [],
-					projects: new Set(),
-					chains: new Set(),
-					deals: 0
-				},
-				last180d: {
-					topCategory: null,
-					topRound: null,
-					topAmount: 0,
-					amounts: [],
-					projects: new Set(),
-					chains: new Set(),
-					deals: 0
-				},
-				last1y: {
-					topCategory: null,
-					topRound: null,
-					topAmount: 0,
-					amounts: [],
-					projects: new Set(),
-					chains: new Set(),
-					deals: 0
-				},
-				allTime: {
-					topCategory: null,
-					topRound: null,
-					topAmount: 0,
-					amounts: [],
-					projects: new Set(),
-					chains: new Set(),
-					deals: 0
-				}
-			}
-			if (raise.date * 1000 >= Date.now() - 30 * 24 * 60 * 60 * 1000) {
-				deals[lead].last30d.deals = (deals[lead].last30d.deals ?? 0) + 1
-				deals[lead].last30d.projects.add(raise.name)
-				for (const chain of raise.chains ?? []) {
-					deals[lead].last30d.chains.add(chain)
-				}
-				if (raise.amount) {
-					deals[lead].last30d.amounts.push(raise.amount)
-				}
-				if (raise.amount && raise.amount > deals[lead].last30d.topAmount) {
-					deals[lead].last30d.topCategory = raise.category ?? null
-					deals[lead].last30d.topRound = raise.round ?? null
-					deals[lead].last30d.topAmount = raise.amount
-				}
-			}
-			if (raise.date * 1000 >= Date.now() - 180 * 24 * 60 * 60 * 1000) {
-				deals[lead].last180d.deals = (deals[lead].last180d.deals || 0) + 1
-				deals[lead].last180d.projects.add(raise.name)
-				for (const chain of raise.chains ?? []) {
-					deals[lead].last180d.chains.add(chain)
-				}
-				if (raise.amount) {
-					deals[lead].last180d.amounts.push(raise.amount)
-				}
-				if (raise.amount && raise.amount > deals[lead].last180d.topAmount) {
-					deals[lead].last180d.topCategory = raise.category ?? null
-					deals[lead].last180d.topRound = raise.round ?? null
-					deals[lead].last180d.topAmount = raise.amount
-				}
-			}
-			if (raise.date * 1000 >= Date.now() - 365 * 24 * 60 * 60 * 1000) {
-				deals[lead].last1y.deals = (deals[lead].last1y.deals || 0) + 1
-				deals[lead].last1y.projects.add(raise.name)
-				for (const chain of raise.chains ?? []) {
-					deals[lead].last1y.chains.add(chain)
-				}
-				if (raise.amount) {
-					deals[lead].last1y.amounts.push(raise.amount)
-				}
-				if (raise.amount && raise.amount > deals[lead].last1y.topAmount) {
-					deals[lead].last1y.topCategory = raise.category ?? null
-					deals[lead].last1y.topRound = raise.round ?? null
-					deals[lead].last1y.topAmount = raise.amount
-				}
-			}
-			deals[lead].allTime.deals = (deals[lead].allTime.deals ?? 0) + 1
-			deals[lead].allTime.projects.add(raise.name)
-			for (const chain of raise.chains ?? []) {
-				deals[lead].allTime.chains.add(chain)
-			}
-			if (raise.amount) {
-				deals[lead].allTime.amounts.push(raise.amount)
-			}
-			if (raise.amount && raise.amount > deals[lead].allTime.topAmount) {
-				deals[lead].allTime.topCategory = raise.category ?? null
-				deals[lead].allTime.topRound = raise.round ?? null
-				deals[lead].allTime.topAmount = raise.amount
-			}
-		}
-	}
-	const investors: IInvestor[] = []
-	for (const investor in deals) {
-		const investorData = deals[investor]
-		const last30d = investorData.last30d
-		const last180d = investorData.last180d
-		const last1y = investorData.last1y
-		const allTime = investorData.allTime
-		investors.push({
-			name: investor,
-			last30d: {
-				...last30d,
-				projects: Array.from(last30d.projects).join(', '),
-				chains: Array.from(last30d.chains),
-				medianAmount: calculateMedian(last30d.amounts)
-			},
-			last180d: {
-				...last180d,
-				projects: Array.from(last180d.projects).join(', '),
-				chains: Array.from(last180d.chains),
-				medianAmount: calculateMedian(last180d.amounts)
-			},
-			last1y: {
-				...last1y,
-				projects: Array.from(last1y.projects).join(', '),
-				chains: Array.from(last1y.chains),
-				medianAmount: calculateMedian(last1y.amounts)
-			},
-			allTime: {
-				...allTime,
-				projects: Array.from(allTime.projects).join(', '),
-				chains: Array.from(allTime.chains),
-				medianAmount: calculateMedian(allTime.amounts)
-			}
-		})
-	}
+	const data = await getInvestorsPageData()
 
 	return {
-		props: {
-			investors
-		},
+		props: data,
 		revalidate: maxAgeForNext([22])
 	}
 })
@@ -310,7 +123,7 @@ const allPeriods = [
 ]
 const validPeriods = new Set(allPeriods.map((p) => p.value))
 
-const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
+const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 	const router = useRouter()
 	const { period } = router.query
 	const selectedPeriod = typeof period === 'string' && validPeriods.has(period) ? period : allPeriods[0].value
@@ -348,14 +161,15 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [investorName, setInvestorName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_investorName, setInvestorName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<Layout
@@ -378,10 +192,7 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 						/>
 						<input
 							name="search"
-							value={investorName}
-							onChange={(e) => {
-								setInvestorName(e.target.value)
-							}}
+							onInput={(e) => setInvestorName(e.currentTarget.value)}
 							placeholder="Search investors..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
@@ -392,17 +203,7 @@ const ActiveInvestors = ({ investors }: { investors: IInvestor[] }) => {
 								className="shrink-0 px-2 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataInterval.value === selectedPeriod}
 								onClick={() => {
-									router.push(
-										{
-											pathname: router.pathname,
-											query: {
-												...router.query,
-												period: dataInterval.value
-											}
-										},
-										undefined,
-										{ shallow: true }
-									)
+									pushShallowQuery(router, { period: dataInterval.value })
 								}}
 								key={`deals-period-${dataInterval.value}`}
 							>

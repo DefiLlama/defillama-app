@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { maxAgeForNext } from '~/api'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 interface VC {
@@ -66,15 +66,17 @@ export const getStaticProps = withPerformanceLogging('pitch', async () => {
 			)
 		)
 	)
-	const chains = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.chains)?.filter(Boolean))?.map((x) => x.trim()))
-	)
-	const defiCategories = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.defiCategories)?.filter(Boolean))?.map((x) => x.trim()))
-	)
-	const roundTypes = Array.from(
-		new Set(vcList.flatMap((vc) => Array.from(vc.roundTypes)?.filter(Boolean))?.map((x) => x.trim()))
-	)
+	const chainsSet = new Set<string>()
+	const defiCategoriesSet = new Set<string>()
+	const roundTypesSet = new Set<string>()
+	for (const vc of vcList) {
+		for (const x of vc.chains) if (x) chainsSet.add(x.trim())
+		for (const x of vc.defiCategories) if (x) defiCategoriesSet.add(x.trim())
+		for (const x of vc.roundTypes) if (x) roundTypesSet.add(x.trim())
+	}
+	const chains = Array.from(chainsSet)
+	const defiCategories = Array.from(defiCategoriesSet)
+	const roundTypes = Array.from(roundTypesSet)
 	const lastRounds = vcList.map((vc) => vc.lastRound).sort((a, b) => b - a)
 
 	return {
@@ -136,8 +138,6 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		minLastRoundTime: ''
 	})
 
-	const [matchedInvestors, _setMatchedInvestors] = useState(null)
-	const [totalCost, _setTotalCost] = useState(null)
 	const [projectInfo, setProjectInfo] = useState({
 		projectName: '',
 		link: '',
@@ -169,43 +169,58 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 		setProjectInfo((prevInfo) => ({ ...prevInfo, [name]: value }))
 	}
 
-	const useInvestorsQuery = (filters, hasSelectedFilters) => {
-		return useQuery({
-			queryKey: ['investors', filters],
-			queryFn: () => fetchInvestors(filters),
-			enabled: hasSelectedFilters,
-			staleTime: 60 * 60 * 1000,
-			refetchOnWindowFocus: false,
-			retry: 0
-		})
-	}
+	const { data: investorResult, isLoading } = useQuery({
+		queryKey: ['pitch', 'investors', filters],
+		queryFn: () => fetchInvestors(filters),
+		enabled: hasSelectedFilters,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0
+	})
 
-	const { isLoading } = useInvestorsQuery(filters, hasSelectedFilters)
+	const matchedInvestors = investorResult?.count ?? null
+	const totalCost = investorResult?.totalCost ?? null
 
 	const handleSubmit = async (e) => {
 		e.preventDefault()
 		setIsSubmitting(true)
-		try {
+		const submitPayment = async () => {
 			const filtersData: Record<string, any> = {}
 			for (const key in filters) {
 				const v = filters[key]
-				if (v && v.length !== 0) {
-					filtersData[key] = v
+				if (v) {
+					if (v.length !== 0) {
+						filtersData[key] = v
+					}
 				}
 			}
+			const payload = { ...projectInfo, filters: filtersData }
 			const response = await fetch('https://vc-emails.llama.fi/new-payment', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ ...projectInfo, filters: filtersData })
+				body: JSON.stringify(payload)
 			})
+			if (!response.ok) {
+				let message = `Payment request failed (${response.status})`
+				try {
+					const errorData = await response.json()
+					if (errorData.message) message = errorData.message
+				} catch {}
+				throw new Error(message)
+			}
 			const data = await response.json()
+			if (!data.link) {
+				throw new Error('No payment link returned')
+			}
 			window.location.href = data.link
 			setPaymentLink(data.link)
-		} catch (error) {
-			console.log('Error creating payment:', error)
-		} finally {
-			setIsSubmitting(false)
 		}
+		try {
+			await submitPayment()
+		} catch (error) {
+			console.error('Error creating payment:', error)
+		}
+		setIsSubmitting(false)
 	}
 
 	return (

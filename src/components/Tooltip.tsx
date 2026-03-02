@@ -1,11 +1,11 @@
 import * as Ariakit from '@ariakit/react'
-import * as React from 'react'
 
 interface ITooltip extends Ariakit.TooltipOptions {
 	content: string | null | React.ReactNode
+	'data-fullwidth'?: boolean
 	href?: string
 	shallow?: boolean
-	onClick?: (e: any) => any
+	onClick?: (e: React.MouseEvent) => void
 	children: React.ReactNode
 	render?: Ariakit.TooltipOptions['render']
 	color?: string

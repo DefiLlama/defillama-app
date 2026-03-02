@@ -1,18 +1,19 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useEffect, useMemo } from 'react'
-import { maxAgeForNext } from '~/api'
+import { type ComponentType, lazy, Suspense, useEffect, useMemo } from 'react'
 import { LocalLoader } from '~/components/Loaders'
-import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/Chart/constants'
-import { useFetchAndFormatChartData } from '~/containers/ProtocolOverview/Chart/ProtocolChart'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
+import { useFetchProtocolChartData } from '~/containers/ProtocolOverview/useFetchProtocolChartData'
 import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ProtocolLineBarChart = lazy(() => import('~/containers/ProtocolOverview/Chart/Chart')) as React.FC<any>
+const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
@@ -25,7 +26,9 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocol = params.protocol
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
@@ -42,7 +45,9 @@ export const getStaticProps = withPerformanceLogging(
 		const data = await getProtocolOverviewPageData({
 			protocolId: metadata[0],
 			currentProtocolMetadata: metadata[1],
-			chainMetadata: metadataCache.chainMetadata
+			chainMetadata: metadataCache.chainMetadata,
+			tokenlist: metadataCache.tokenlist,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
 		})
 
 		if (!data) {
@@ -54,10 +59,20 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ProtocolChart(props: IProtocolOverviewPageData) {
+export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 
 	const queryParamsString = useMemo(() => {
@@ -127,7 +142,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 		}
 	}, [isThemeDark])
 
-	const { finalCharts, valueSymbol, loadingCharts } = useFetchAndFormatChartData({
+	const { finalCharts, valueSymbol, loadingCharts } = useFetchProtocolChartData({
 		...props,
 		toggledMetrics,
 		groupBy: groupBy,
@@ -143,7 +158,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 				</div>
 			) : (
 				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
-					<ProtocolLineBarChart
+					<ProtocolCoreChart
 						chartData={finalCharts}
 						chartColors={props.chartColors}
 						isThemeDark={isThemeDark}

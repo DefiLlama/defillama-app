@@ -1,32 +1,29 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
-import { maxAgeForNext } from '~/api'
 import { LocalLoader } from '~/components/Loaders'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
-import { BAR_CHARTS, ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
+import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ChainChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
 const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
 
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
-		if (!params?.chain) {
-			return { notFound: true, props: null }
-		}
-
-		const chain = params.chain
+		const chain = !params.chain || params.chain === 'all' ? 'All' : params.chain
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 
 		const data = await getChainOverviewData({
-			chain,
+			chain: chain,
 			chainMetadata: metadataCache.chainMetadata,
 			protocolMetadata: metadataCache.protocolMetadata
 		})
@@ -43,6 +40,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -142,7 +149,12 @@ export default function ChainChartPage(props) {
 				</div>
 			) : (
 				<Suspense fallback={<div className="flex min-h-[360px] items-center justify-center" />}>
-					<ChainChart chartData={finalCharts} valueSymbol={valueSymbol} isThemeDark={isThemeDark} groupBy={groupBy} />
+					<ChainCoreChart
+						chartData={finalCharts}
+						valueSymbol={valueSymbol}
+						isThemeDark={isThemeDark}
+						groupBy={groupBy}
+					/>
 				</Suspense>
 			)}
 		</div>

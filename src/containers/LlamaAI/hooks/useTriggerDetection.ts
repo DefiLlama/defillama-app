@@ -1,6 +1,6 @@
 import { getSearchValue, getTrigger, getTriggerOffset } from '../utils/entitySuggestions'
 
-export interface TriggerState {
+interface TriggerState {
 	isActive: boolean
 	isTriggerOnly: boolean
 	trigger: '@' | '$' | null

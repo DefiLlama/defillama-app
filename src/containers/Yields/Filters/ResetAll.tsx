@@ -17,7 +17,11 @@ export function ResetAllYieldFilters({
 	}
 
 	// Check if any filters are active
-	const hasActiveFilters = Object.keys(router.query).length > 0
+	let hasActiveFilters = false
+	for (const _key in router.query) {
+		hasActiveFilters = true
+		break
+	}
 
 	return (
 		<button

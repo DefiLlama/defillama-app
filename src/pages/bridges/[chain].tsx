@@ -1,8 +1,9 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 // todo check name in metadata
@@ -37,6 +38,16 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -58,7 +69,7 @@ export default function Bridges({
 	return (
 		<Layout
 			title={`Bridges Volume on ${chain} - DefiLlama`}
-			description={`Track Bridge Volume deployed on ${chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Live bridge volume analytics for ${chain}. Track deposits, withdrawals, large transactions and net flows across bridges and protocols.`}
 			keywords={`${chain} bridge volume`}
 			canonicalUrl={`/bridges/${chain}`}
 			pageName={pageName}

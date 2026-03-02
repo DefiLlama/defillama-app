@@ -15,8 +15,8 @@ import { oldBlue } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
+import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../formatters'
 import type { ICandlestickChartProps } from '../types'
-import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../useDefaults'
 
 echarts.use([
 	CanvasRenderer,
@@ -32,6 +32,8 @@ echarts.use([
 	LegendComponent
 ])
 
+const EMPTY_INDICATORS: ICandlestickChartProps['indicators'] = []
+
 const INDICATOR_COLORS = ['#ff7f0e', '#2ca02c', '#9467bd', '#e377c2', '#17becf', '#bcbd22', '#7f7f7f']
 
 const PANEL_HEIGHT = 60
@@ -39,7 +41,7 @@ const VOLUME_HEIGHT = 80
 const DATAZOOM_HEIGHT = 52
 const BASE_BOTTOM = DATAZOOM_HEIGHT
 
-export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICandlestickChartProps) {
+export default function CandleStickAndVolumeChart({ data, indicators = EMPTY_INDICATORS }: ICandlestickChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)

@@ -4,8 +4,6 @@ export default function Document() {
 	return (
 		<Html lang="en">
 			<Head>
-				{/* Resource hints for third-party domains */}
-				<link rel="preconnect" href="https://icons.llamao.fi" />
 				<link rel="dns-prefetch" href="https://tasty.defillama.com" />
 
 				<link rel="icon" href="/favicon.ico" />

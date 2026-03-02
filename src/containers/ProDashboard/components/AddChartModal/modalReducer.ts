@@ -1,9 +1,16 @@
-import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
-import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType, ModalState } from './types'
+import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
+import type {
+	ChartBuilderConfig,
+	ChartModeType,
+	ChartTabType,
+	CombinedTableType,
+	MainTabType,
+	ModalState
+} from './types'
 
 type SetStateAction<T> = T | ((prev: T) => T)
 
-export type ModalAction =
+type ModalAction =
 	| { type: 'SET_SELECTED_MAIN_TAB'; payload: MainTabType }
 	| { type: 'SET_SELECTED_CHART_TAB'; payload: ChartTabType }
 	| { type: 'SET_CHART_MODE'; payload: ChartModeType }
@@ -116,7 +123,7 @@ const DEFAULT_CHART_BUILDER: ChartBuilderConfig = {
 	seriesColors: {}
 }
 
-export const INITIAL_MODAL_STATE: ModalState = {
+const INITIAL_MODAL_STATE: ModalState = {
 	selectedMainTab: 'charts',
 	selectedChartTab: 'chain',
 	chartMode: 'builder',

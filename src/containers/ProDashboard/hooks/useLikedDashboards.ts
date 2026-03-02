@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useState } from 'react'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 
@@ -11,7 +11,7 @@ export function useLikedDashboards() {
 	const [limit] = useState(20)
 
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ['liked-dashboards', page, limit],
+		queryKey: ['pro-dashboard', 'liked-dashboards', page, limit],
 		queryFn: async () => {
 			if (!isAuthenticated) {
 				return {

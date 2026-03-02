@@ -1,11 +1,11 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { CEXS_API } from '~/constants'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { fetchCexs } from '~/containers/Cexs/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -16,7 +16,9 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const exchangeName = params.cex
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const cexs = metadataCache.cexs
 
 		const exchangeData = cexs.find(
@@ -37,7 +39,9 @@ export const getStaticProps = withPerformanceLogging(
 				stablecoins: true
 			},
 			isCEX: true,
-			chainMetadata: metadataCache.chainMetadata
+			chainMetadata: metadataCache.chainMetadata,
+			tokenlist: metadataCache.tokenlist,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
 		})
 
 		if (!data) {
@@ -49,7 +53,17 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	const { cexs } = await fetchJson(CEXS_API)
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const { cexs } = await fetchCexs()
 
 	const paths = cexs
 		.filter((cex) => cex.slug)

@@ -1,9 +1,10 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldsStrategyPageLongShort from '~/containers/Yields/indexStrategyLongShort'
 import { getPerpData, getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/strategyLongShort', async () => {
@@ -30,7 +31,7 @@ export const getStaticProps = withPerformanceLogging('yields/strategyLongShort',
 
 	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
 	// filter search token to only include what we have in pool arrays
-	const cgTokens = (await getAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol?.toUpperCase()))
+	const cgTokens = (await fetchAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol?.toUpperCase()))
 	const tokens = []
 	const tokenSymbolsList = []
 

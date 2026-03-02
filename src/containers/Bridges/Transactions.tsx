@@ -1,12 +1,11 @@
 import { useMutation } from '@tanstack/react-query'
-import { ColumnDef } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
-import { toNiceCsvDate, toNiceDayAndHour } from '~/utils'
+import { toNiceDayAndHour } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 type BridgeTransaction = {
@@ -177,7 +176,7 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 		const earliestTimestamp = Math.floor(new Date(earliestTx.ts).getTime() / 1000)
 
 		if (earliestTimestamp >= currentEndTimestamp) {
-			console.warn('Timestamp not decreasing, stopping pagination')
+			console.log('Timestamp not decreasing, stopping pagination')
 			break
 		}
 
@@ -190,7 +189,7 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 	}
 
 	if (iterations >= MAX_ITERATIONS) {
-		console.warn(`Reached maximum iterations (${MAX_ITERATIONS}). Some transactions may be missing.`)
+		console.log(`Reached maximum iterations (${MAX_ITERATIONS}). Some transactions may be missing.`)
 	}
 
 	// Dedupe across pagination boundaries
@@ -217,11 +216,16 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
 
 	const [transactions, setTransactions] = useState<BridgeTransaction[]>([])
+	const [fetchedDateRange, setFetchedDateRange] = useState<{ startDate: string; endDate: string } | null>(null)
 
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: fetchTransactions,
-		onSuccess: (data) => {
+		onSuccess: (data, variables) => {
 			setTransactions(data)
+			setFetchedDateRange({
+				startDate: variables.startDate,
+				endDate: variables.endDate
+			})
 		}
 	})
 
@@ -252,35 +256,9 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	}
 
 	const maxDate = new Date().toISOString().split('T')[0]
+	const csvDateRange = fetchedDateRange ?? { startDate, endDate }
 
 	const tableData = useMemo(() => transactions.map(transformTransactionForTable), [transactions])
-
-	const prepareCsv = useCallback(() => {
-		const filename = `bridge-transactions_${startDate}_${endDate}.csv`
-		if (transactions.length === 0) return { filename, rows: [] }
-
-		const csvData = transactions.map((tx) => {
-			const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000)
-			return {
-				Timestamp: timestamp,
-				Date: toNiceCsvDate(timestamp),
-				Bridge: tx.bridge_name,
-				Chain: tx.chain,
-				Type: tx.is_deposit ? 'deposit' : 'withdrawal',
-				Token: tx.token,
-				Amount: tx.amount,
-				USD_Value: tx.usd_value,
-				From: tx.tx_from,
-				To: tx.tx_to,
-				Hash: tx.tx_hash
-			}
-		})
-
-		const headers = Object.keys(csvData[0])
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
-
-		return { filename, rows }
-	}, [transactions, startDate, endDate])
 
 	return (
 		<div className="mt-4 flex flex-col gap-4 lg:mt-10">
@@ -298,7 +276,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								onChange={(e) => handleStartDateChange(e.target.value)}
 								max={maxDate}
 								required
-								className="placeholder:text-opacity-40 cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
+								className="cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black placeholder:opacity-40 dark:bg-black dark:text-white dark:scheme-dark"
 							/>
 						</label>
 						<label className="flex min-w-35 flex-1 flex-col gap-2">
@@ -311,13 +289,13 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 								min={startDate}
 								max={maxDate}
 								required
-								className="placeholder:text-opacity-40 cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white dark:scheme-dark"
+								className="cursor-pointer rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black placeholder:opacity-40 dark:bg-black dark:text-white dark:scheme-dark"
 							/>
 						</label>
 					</span>
 					<select
 						name="selectedBridge"
-						className="placeholder:text-opacity-40 rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black dark:bg-black dark:text-white"
+						className="rounded-lg bg-[#f2f2f2] px-3 py-2 text-base text-black placeholder:opacity-40 dark:bg-black dark:text-white"
 						required
 					>
 						<option value="">--Please choose a bridge--</option>
@@ -351,12 +329,12 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 					data={tableData}
 					columns={bridgeTransactionsColumns}
 					header="Bridge Transactions"
-					customFilters={
+					customFilters={() => (
 						<div className="flex items-center justify-between gap-3">
 							<span>({transactions.length.toLocaleString()}) transactions</span>
-							<CSVDownloadButton prepareCsv={prepareCsv} />
 						</div>
-					}
+					)}
+					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}`}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
 			)}

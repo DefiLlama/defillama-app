@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -11,7 +11,7 @@ import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { mutatePinnedMetrics } from '../pinnedUtils'
 import { PremiumHeader } from '../PremiumHeader'
-import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
@@ -71,7 +71,7 @@ export function Menu({
 							<span>Old Menu</span>
 							<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 						</summary>
-						<div className="border-l border-black/20 pl-2 dark:border-white/20">
+						<div className="hidden border-l border-black/20 pl-2 group-open:block group-open:border-l dark:border-white/20">
 							{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
 								<React.Fragment key={`mobile-nav-old-${name}-${route}`}>
 									{pages ? (
@@ -380,7 +380,7 @@ function NavItemContent({
 					/>
 				) : null}
 				{freeTrial ? (
-					<span className="relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-gradient-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)]">
+					<span className="relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-linear-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)]">
 						Try free
 					</span>
 				) : null}

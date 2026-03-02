@@ -1,12 +1,15 @@
-import { ColumnDef, Row, type CellContext } from '@tanstack/react-table'
+'use no memo'
+
+import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-table'
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
@@ -21,13 +24,6 @@ import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/cust
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
 
-declare module '@tanstack/table-core' {
-	interface ColumnMeta<TData, TValue> {
-		align?: 'start' | 'center' | 'end'
-		hidden?: boolean
-	}
-}
-
 const renderDash = () => <span className="pro-text3">-</span>
 
 const renderUsd = (value: number | null | undefined) => {
@@ -37,6 +33,7 @@ const renderUsd = (value: number | null | undefined) => {
 	return <span className="pro-text2">{formattedNum(value, true)}</span>
 }
 
+// oxlint-disable-next-line no-unused-vars
 const renderNumber = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
@@ -48,14 +45,22 @@ const renderPercent = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{formattedPercent(value, true)}</span>
+	return (
+		<span className="pro-text2">
+			<PercentChange percent={value} noSign />
+		</span>
+	)
 }
 
-const renderPercentChange = (value: number | null | undefined) => {
+const renderPercentChangeCell = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{formattedPercent(value, false)}</span>
+	return (
+		<span className="pro-text2">
+			<PercentChange percent={value} />
+		</span>
+	)
 }
 
 const renderRatio = (value: number | null | undefined) => {
@@ -191,7 +196,7 @@ const createPercentChangeColumn = (key: MetricKey, header: string): ColumnDef<No
 	header,
 	accessorFn: metricAccessor(key),
 	meta: { align: 'end' },
-	cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+	cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 	sortingFn: applyNumericColumnSorting,
 	aggregationFn: createMetricAggregationFn(key)
 })
@@ -389,7 +394,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			header: '1d Change',
 			accessorFn: (row) => row.metrics.change1d ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 			aggregationFn: createMetricAggregationFn('change1d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -402,7 +407,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			header: '7d Change',
 			accessorFn: (row) => row.metrics.change7d ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 			aggregationFn: createMetricAggregationFn('change7d' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined
@@ -415,7 +420,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 			header: '30d Change',
 			accessorFn: (row) => row.metrics.change1m ?? null,
 			meta: { align: 'end' },
-			cell: (ctx) => renderMetricCell(ctx, renderPercentChange),
+			cell: (ctx) => renderMetricCell(ctx, renderPercentChangeCell),
 			aggregationFn: createMetricAggregationFn('change1m' as MetricKey),
 			sortingFn: (rowA, rowB, columnId) => {
 				const a = rowA.getValue(columnId) as number | null | undefined

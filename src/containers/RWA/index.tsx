@@ -1,68 +1,106 @@
+import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
+import { CHART_COLORS } from '~/constants/colors'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum, slug } from '~/utils'
+import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
+import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
-import { DownloadPieChartCsv } from './DownloadPieChartCsv'
+import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
 	useFilteredRwaAssets,
 	useRWATableQueryParams,
 	useRWAAssetCategoryPieChartData,
 	useRwaAssetNamePieChartData,
+	useRwaAssetPlatformPieChartData,
 	useRwaCategoryAssetClassPieChartData,
 	useRwaChainBreakdownPieChartData,
 	useRwaChartDataByAssetClass,
 	useRwaChartDataByAssetName,
 	useRwaChartDataByCategory
 } from './hooks'
-import { IRWAAssetsOverview } from './queries'
 import { rwaSlug } from './rwaSlug'
+import {
+	buildRwaNestedTreemapTreeData,
+	buildRwaTreemapTreeData,
+	canBuildRwaNestedTreemap,
+	getRwaTreemapParentGrouping,
+	getTreemapNestedByOptions,
+	normalizeTreemapNestedByForParentGrouping,
+	resolveTreemapNestedByOnParentGroupingChange,
+	validTreemapNestedBy
+} from './treemap'
+import type { RWAChartType, RwaTreemapNestedBy, RwaTreemapNode } from './treemap'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
-
-type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
-
-type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMcap: { label: string; description: string }
-	totalActiveMcap: { label: string; description: string }
-	totalDefiActiveTvl: { label: string; description: string }
+interface ITreemapChartProps {
+	treeData: RwaTreemapNode[]
+	variant?: 'yields' | 'narrative' | 'rwa'
+	height?: string
+	onReady?: (instance: echarts.ECharts | null) => void
+	valueLabel?: string
 }
+const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
-const definitions = rwaDefinitionsJson as RWADefinitions
+type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
+	const pushShallowMergedQuery = (patch: Record<string, string | string[] | undefined>) => {
+		pushShallowQuery(router, patch)
+	}
+	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
-	const isChainMode = props.chainLinks.length > 0
-	const isCategoryMode = props.categoryLinks.length > 0
-	const isPlatformMode = props.platformLinks.length > 0
-	const pieChartBreakdown = typeof router.query.pieChartBreakdown === 'string' ? router.query.pieChartBreakdown : null
+	const mode = getRWAOverviewMode(props)
+	const isChainMode = mode === 'chain'
+	const isCategoryMode = mode === 'category'
+	const isPlatformMode = mode === 'platform'
+	const nonTimeSeriesChartBreakdown =
+		typeof router.query.nonTimeSeriesChartBreakdown === 'string' ? router.query.nonTimeSeriesChartBreakdown : null
 	const chartType =
 		typeof router.query.chartType === 'string' && validPieChartTypes.has(router.query.chartType)
 			? router.query.chartType
 			: 'activeMcap'
 	const chartView =
-		typeof router.query.chartView === 'string' && router.query.chartView === 'pie' ? 'pie' : 'timeSeries'
+		typeof router.query.chartView === 'string' &&
+		(router.query.chartView === 'pie' || router.query.chartView === 'treemap')
+			? router.query.chartView
+			: 'timeSeries'
+	const treemapNestedByQuery =
+		typeof router.query.treemapNestedBy === 'string' &&
+		validTreemapNestedBy.has(router.query.treemapNestedBy as RwaTreemapNestedBy)
+			? (router.query.treemapNestedBy as RwaTreemapNestedBy)
+			: null
 	const chartTypeKey = chartType as RWAChartType
 
 	const {
 		selectedAssetNames,
 		selectedTypes,
 		selectedCategories,
+		selectedPlatforms,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
 		selectedIssuers,
+		selectedRedeemableStates,
+		selectedAttestationsStates,
+		selectedCexListedStates,
+		selectedKycForMintRedeemStates,
+		selectedKycAllowlistedWhitelistedToTransferHoldStates,
+		selectedTransferableStates,
+		selectedSelfCustodyStates,
 		minDefiActiveTvlToOnChainMcapPct,
 		maxDefiActiveTvlToOnChainMcapPct,
 		minActiveMcapToOnChainMcapPct,
@@ -75,11 +113,19 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		setActiveMcapToOnChainMcapPctRange,
 		setDefiActiveTvlToActiveMcapPctRange,
 		setIncludeStablecoins,
-		setIncludeGovernance
+		setIncludeGovernance,
+		setRedeemableStates,
+		setAttestationsStates,
+		setCexListedStates,
+		setKycForMintRedeemStates,
+		setKycAllowlistedWhitelistedToTransferHoldStates,
+		setTransferableStates,
+		setSelfCustodyStates
 	} = useRWATableQueryParams({
 		assetNames: props.assetNames,
 		types: props.types,
 		categories: props.categories,
+		platforms: props.platforms,
 		assetClasses: props.assetClasses,
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
@@ -94,11 +140,19 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			isPlatformMode,
 			selectedAssetNames,
 			selectedCategories,
+			selectedPlatforms,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
 			selectedIssuers,
 			selectedTypes,
+			selectedRedeemableStates,
+			selectedAttestationsStates,
+			selectedCexListedStates,
+			selectedKycForMintRedeemStates,
+			selectedKycAllowlistedWhitelistedToTransferHoldStates,
+			selectedTransferableStates,
+			selectedSelfCustodyStates,
 			includeStablecoins,
 			includeGovernance,
 			minDefiActiveTvlToOnChainMcapPct,
@@ -145,7 +199,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetClassDefiActiveTvlPieChartData,
 		assetClassPieChartStackColors
 	} = useRwaCategoryAssetClassPieChartData({
-		enabled: isCategoryMode,
+		enabled: isCategoryMode || isChainMode,
 		assets: filteredAssets,
 		assetClasses: props.assetClasses,
 		selectedAssetClasses
@@ -162,26 +216,54 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedAssetNames
 	})
 
-	const isChainBreakdownEnabled = isCategoryMode || isPlatformMode || props.selectedChain === 'All'
+	const {
+		assetPlatformOnChainMcapPieChartData,
+		assetPlatformActiveMcapPieChartData,
+		assetPlatformDefiActiveTvlPieChartData,
+		assetPlatformPieChartStackColors
+	} = useRwaAssetPlatformPieChartData({
+		enabled: isChainMode,
+		assets: filteredAssets
+	})
+
+	const canBreakdownByChain = isCategoryMode || isPlatformMode || props.selectedChain === 'All'
 	const {
 		chainOnChainMcapPieChartData,
 		chainActiveMcapPieChartData,
 		chainDefiActiveTvlPieChartData,
 		chainPieChartStackColors
 	} = useRwaChainBreakdownPieChartData({
-		enabled: isChainBreakdownEnabled,
+		enabled: canBreakdownByChain,
 		assets: filteredAssets
 	})
 
 	// Select pie chart breakdown based on route mode (same precedence as nav links).
 	const { onChainPieChartData, activeMcapPieChartData, defiActiveTvlPieChartData, pieChartStackColors } =
 		useMemo(() => {
-			if (isChainBreakdownEnabled && pieChartBreakdown === 'chain') {
+			if (canBreakdownByChain && nonTimeSeriesChartBreakdown === 'chain') {
 				return {
 					onChainPieChartData: chainOnChainMcapPieChartData,
 					activeMcapPieChartData: chainActiveMcapPieChartData,
 					defiActiveTvlPieChartData: chainDefiActiveTvlPieChartData,
 					pieChartStackColors: chainPieChartStackColors
+				}
+			}
+
+			if (isChainMode && nonTimeSeriesChartBreakdown === 'platform') {
+				return {
+					onChainPieChartData: assetPlatformOnChainMcapPieChartData,
+					activeMcapPieChartData: assetPlatformActiveMcapPieChartData,
+					defiActiveTvlPieChartData: assetPlatformDefiActiveTvlPieChartData,
+					pieChartStackColors: assetPlatformPieChartStackColors
+				}
+			}
+
+			if (isChainMode && nonTimeSeriesChartBreakdown === 'assetClass') {
+				return {
+					onChainPieChartData: assetClassOnChainMcapPieChartData,
+					activeMcapPieChartData: assetClassActiveMcapPieChartData,
+					defiActiveTvlPieChartData: assetClassDefiActiveTvlPieChartData,
+					pieChartStackColors: assetClassPieChartStackColors
 				}
 			}
 
@@ -218,14 +300,19 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			assetNameDefiActiveTvlPieChartData,
 			assetNameOnChainMcapPieChartData,
 			assetNamePieChartStackColors,
+			assetPlatformOnChainMcapPieChartData,
+			assetPlatformActiveMcapPieChartData,
+			assetPlatformDefiActiveTvlPieChartData,
+			assetPlatformPieChartStackColors,
 			assetCategoryActiveMcapPieChartData,
 			assetCategoryDefiActiveTvlPieChartData,
 			assetCategoryOnChainMcapPieChartData,
 			assetCategoryPieChartStackColors,
+			isChainMode,
 			isCategoryMode,
 			isPlatformMode,
-			isChainBreakdownEnabled,
-			pieChartBreakdown,
+			canBreakdownByChain,
+			nonTimeSeriesChartBreakdown,
 			chainOnChainMcapPieChartData,
 			chainActiveMcapPieChartData,
 			chainDefiActiveTvlPieChartData,
@@ -235,52 +322,44 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Preserve filter/toggle query params only in chain mode.
 	// (The chain/category/platform itself is in the pathname, so we strip the dynamic param from the query object.)
 	const navLinks = useMemo(() => {
-		const baseLinks = isCategoryMode ? props.categoryLinks : isPlatformMode ? props.platformLinks : props.chainLinks
+		const baseLinks = getModeLinks(mode, props.chainLinks, props.categoryLinks, props.platformLinks)
 
 		// Only preserve query filters/toggles on chain mode. In category/platform mode, links should be "clean".
-		const shouldPreserveQuery = isChainMode && !isCategoryMode && !isPlatformMode
+		const shouldPreserveQuery = isChainMode
 		if (!shouldPreserveQuery) return baseLinks
 
 		const { chain: _chain, category: _category, platform: _platform, ...restQuery } = router.query
 		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
 		if (!qs) return baseLinks
 		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
-	}, [
-		isChainMode,
-		isCategoryMode,
-		isPlatformMode,
-		props.categoryLinks,
-		props.platformLinks,
-		props.chainLinks,
-		router.query
-	])
+	}, [isChainMode, mode, props.categoryLinks, props.platformLinks, props.chainLinks, router.query])
 
-	const showFilters =
-		(props.typeOptions.length > 1 ||
-			props.categoriesOptions.length > 1 ||
-			props.assetClassOptions.length > 1 ||
-			props.rwaClassificationOptions.length > 1 ||
-			props.accessModelOptions.length > 1 ||
-			props.issuers.length > 1) &&
-		props.assets.length > 1
+	const showFilters = props.assets.length > 1
 
 	const showCharts = props.assets.length > 1
 
 	const { chartInstance: multiSeriesChart2Instance, handleChartReady: handleMultiSeriesChart2Ready } =
 		useChartImageExport()
-	const timeSeriesChartTitle =
+	const chartMetricLabel =
 		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
-	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(timeSeriesChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+	const selectedModeLabel = getSelectedModeLabel(mode, props)
+	const exportChartTitle = getRwaExportChartTitle({
+		mode,
+		metricLabel: chartMetricLabel,
+		selectedModeLabel
+	})
+	const timeSeriesChartFilename = `rwa-time-series-chart-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 	const { chartInstance: pieChartInstance, handleChartReady: handlePieChartReady } = useChartImageExport()
-	const pieChartTitle =
-		chartType === 'onChainMcap' ? 'Onchain Mcap' : chartType === 'activeMcap' ? 'Active Mcap' : 'DeFi Active TVL'
-	const pieChartFilename = `rwa-pie-${slug(pieChartTitle)}-${rwaSlug(isChainMode ? props.selectedChain : isCategoryMode ? props.selectedCategory : props.selectedPlatform)}`
+	const pieChartFilename = `rwa-pie-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
+	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
+	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
-	const chartDatasetByMode = isCategoryMode
-		? chartDatasetByAssetClass
-		: isPlatformMode
-			? chartDatasetByAssetName
-			: chartDatasetByCategory
+	const chartDatasetByMode =
+		mode === 'category'
+			? chartDatasetByAssetClass
+			: mode === 'platform'
+				? chartDatasetByAssetName
+				: chartDatasetByCategory
 
 	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
 	const selectedPieChartData =
@@ -289,6 +368,20 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			: chartTypeKey === 'activeMcap'
 				? activeMcapPieChartData
 				: defiActiveTvlPieChartData
+	const deferredSelectedTimeSeriesDataset = useDeferredValue(selectedTimeSeriesDataset)
+	const deferredSelectedPieChartData = useDeferredValue(selectedPieChartData)
+	const valueSortedPieChartStackColors = useMemo(() => {
+		const stackColors = { ...pieChartStackColors }
+		const sortedData = [...deferredSelectedPieChartData]
+			.filter((item) => Number.isFinite(item.value) && item.value > 0)
+			.sort((a, b) => b.value - a.value || a.name.localeCompare(b.name))
+
+		for (const [index, item] of sortedData.entries()) {
+			stackColors[item.name] = CHART_COLORS[index % CHART_COLORS.length]
+		}
+
+		return stackColors
+	}, [pieChartStackColors, deferredSelectedPieChartData])
 
 	const chartTypeSwitch = (
 		<div className="mr-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
@@ -298,9 +391,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 					data-active={chartType === key}
 					onClick={() => {
-						router.push({ pathname: router.pathname, query: { ...router.query, chartType: key } }, undefined, {
-							shallow: true
-						})
+						pushShallowMergedQuery({ chartType: key })
 					}}
 				>
 					{label}
@@ -310,70 +401,219 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	)
 
 	const chartViewSwitch = (
-		<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-			<button
-				className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-				data-active={chartView === 'timeSeries'}
-				onClick={() => {
-					const { chartView: _chartView, ...restQuery } = router.query
-					router.push({ pathname: router.pathname, query: { ...restQuery } }, undefined, { shallow: true })
-				}}
-			>
-				Time Series
-			</button>
-			<button
-				className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-				data-active={chartView === 'pie'}
-				onClick={() => {
-					router.push({ pathname: router.pathname, query: { ...router.query, chartView: 'pie' } }, undefined, {
-						shallow: true
-					})
-				}}
-			>
-				Pie Chart
-			</button>
-		</div>
+		<Select
+			allValues={CHART_VIEW_OPTIONS}
+			selectedValues={chartView}
+			setSelectedValues={(value) => {
+				const selectedView = getSelectedFilterValue(value)
+
+				if (selectedView === 'pie' || selectedView === 'treemap') {
+					pushShallowMergedQuery({ chartView: selectedView })
+					return
+				}
+
+				pushShallowQuery(router, {
+					chartView: undefined,
+					nonTimeSeriesChartBreakdown: undefined,
+					pieChartBreakdown: undefined
+				})
+			}}
+			label={chartView === 'pie' ? 'Pie Chart' : chartView === 'treemap' ? 'Treemap Chart' : 'Time Series'}
+			labelType="none"
+			variant="filter"
+		/>
 	)
+
+	const pieChartBreakdownDefaultLabel =
+		mode === 'chain' ? 'Asset Category' : mode === 'category' ? 'Asset Class' : 'Asset Name'
+	const pieChartBreakdownOptions = isChainMode
+		? [
+				{ key: 'default', name: pieChartBreakdownDefaultLabel },
+				{ key: 'assetClass', name: 'Asset Class' },
+				{ key: 'platform', name: 'Asset Platform' },
+				...(canBreakdownByChain ? [{ key: 'chain', name: 'Chain' }] : [])
+			]
+		: [
+				{ key: 'default', name: pieChartBreakdownDefaultLabel },
+				{ key: 'chain', name: 'Chain' }
+			]
+	const selectedPieChartBreakdown =
+		nonTimeSeriesChartBreakdown === 'chain' && canBreakdownByChain
+			? 'chain'
+			: isChainMode && nonTimeSeriesChartBreakdown === 'platform'
+				? 'platform'
+				: isChainMode && nonTimeSeriesChartBreakdown === 'assetClass'
+					? 'assetClass'
+					: 'default'
+	const selectedPieChartBreakdownLabel =
+		selectedPieChartBreakdown === 'chain'
+			? 'Chain'
+			: selectedPieChartBreakdown === 'platform'
+				? 'Asset Platform'
+				: selectedPieChartBreakdown === 'assetClass'
+					? 'Asset Class'
+					: pieChartBreakdownDefaultLabel
+	const treemapParentGrouping = getRwaTreemapParentGrouping({
+		mode,
+		nonTimeSeriesChartBreakdown,
+		canBreakdownByChain
+	})
+	const treemapNestedBy = normalizeTreemapNestedByForParentGrouping({
+		parentGrouping: treemapParentGrouping,
+		nestedBy: treemapNestedByQuery
+	})
+	const treemapNestedByOptions = getTreemapNestedByOptions(treemapParentGrouping)
+	const isNestedTreemapSupported = canBuildRwaNestedTreemap({
+		parentGrouping: treemapParentGrouping,
+		childGrouping: treemapNestedBy
+	})
+	const pieChartBreakdownSwitch = (
+		<Select
+			allValues={pieChartBreakdownOptions}
+			selectedValues={selectedPieChartBreakdown}
+			setSelectedValues={(value) => {
+				const selectedBreakdown = getSelectedFilterValue(value)
+				const applyBreakdownChange = (nextBreakdown: 'default' | 'chain' | 'platform' | 'assetClass') => {
+					const nextNonTimeSeriesChartBreakdown = nextBreakdown === 'default' ? null : nextBreakdown
+					const nextTreemapParentGrouping = getRwaTreemapParentGrouping({
+						mode,
+						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown,
+						canBreakdownByChain
+					})
+					const nextTreemapNestedBy = resolveTreemapNestedByOnParentGroupingChange({
+						currentParentGrouping: treemapParentGrouping,
+						nextParentGrouping: nextTreemapParentGrouping,
+						currentNestedBy: treemapNestedBy
+					})
+					pushShallowQuery(router, {
+						treemapNestedBy: nextTreemapNestedBy,
+						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown ?? undefined
+					})
+				}
+
+				if (selectedBreakdown === 'chain' && canBreakdownByChain) {
+					applyBreakdownChange('chain')
+					return
+				}
+				if (selectedBreakdown === 'platform') {
+					applyBreakdownChange('platform')
+					return
+				}
+				if (selectedBreakdown === 'assetClass') {
+					applyBreakdownChange('assetClass')
+					return
+				}
+				applyBreakdownChange('default')
+			}}
+			label={selectedPieChartBreakdownLabel}
+			labelType="none"
+			variant="filter"
+		/>
+	)
+	const treemapNestedByLabel =
+		treemapNestedBy === 'assetName' ? 'Asset Name' : treemapNestedBy === 'assetClass' ? 'Asset Class' : 'No Grouping'
+	const treemapNestedBySwitch = (
+		<Select
+			allValues={treemapNestedByOptions}
+			selectedValues={treemapNestedBy}
+			setSelectedValues={(value) => {
+				const selectedNestedBy = getSelectedFilterValue(value)
+				if (selectedNestedBy !== 'none' && selectedNestedBy !== 'assetClass' && selectedNestedBy !== 'assetName') return
+				const normalizedNestedBy = normalizeTreemapNestedByForParentGrouping({
+					parentGrouping: treemapParentGrouping,
+					nestedBy: selectedNestedBy
+				})
+				pushShallowMergedQuery({ treemapNestedBy: normalizedNestedBy })
+			}}
+			label={`Nested by: ${treemapNestedByLabel}`}
+			labelType="none"
+			variant="filter"
+		/>
+	)
+
+	const treemapTreeData = useMemo(() => {
+		if (chartView !== 'treemap') return []
+		if (isNestedTreemapSupported) {
+			const nestedTreeData = buildRwaNestedTreemapTreeData({
+				assets: filteredAssets,
+				metric: chartTypeKey,
+				rootLabel: selectedPieChartBreakdownLabel,
+				parentGrouping: treemapParentGrouping,
+				childGrouping: treemapNestedBy
+			})
+			if (nestedTreeData.length > 0) return nestedTreeData
+		}
+		return buildRwaTreemapTreeData(selectedPieChartData, selectedPieChartBreakdownLabel)
+	}, [
+		chartView,
+		chartTypeKey,
+		filteredAssets,
+		isNestedTreemapSupported,
+		selectedPieChartData,
+		selectedPieChartBreakdownLabel,
+		treemapNestedBy,
+		treemapParentGrouping
+	])
 
 	return (
 		<>
-			<RowLinksWithDropdown
-				links={navLinks}
-				activeLink={
-					isCategoryMode ? props.selectedCategory : isPlatformMode ? props.selectedPlatform : props.selectedChain
-				}
-			/>
+			<RowLinksWithDropdown links={navLinks} activeLink={selectedModeLabel} />
 			<RWAOverviewFilters
 				enabled={showFilters}
-				isChainMode={isChainMode}
-				isPlatformMode={isPlatformMode}
-				assetNames={props.assetNames}
-				selectedAssetNames={selectedAssetNames}
-				typeOptions={props.typeOptions}
-				categoriesOptions={props.categoriesOptions}
-				assetClassOptions={props.assetClassOptions}
-				rwaClassificationOptions={props.rwaClassificationOptions}
-				accessModelOptions={props.accessModelOptions}
-				issuers={props.issuers}
-				selectedTypes={selectedTypes}
-				selectedCategories={selectedCategories}
-				selectedAssetClasses={selectedAssetClasses}
-				selectedRwaClassifications={selectedRwaClassifications}
-				selectedAccessModels={selectedAccessModels}
-				selectedIssuers={selectedIssuers}
-				minDefiActiveTvlToOnChainMcapPct={minDefiActiveTvlToOnChainMcapPct}
-				maxDefiActiveTvlToOnChainMcapPct={maxDefiActiveTvlToOnChainMcapPct}
-				minActiveMcapToOnChainMcapPct={minActiveMcapToOnChainMcapPct}
-				maxActiveMcapToOnChainMcapPct={maxActiveMcapToOnChainMcapPct}
-				minDefiActiveTvlToActiveMcapPct={minDefiActiveTvlToActiveMcapPct}
-				maxDefiActiveTvlToActiveMcapPct={maxDefiActiveTvlToActiveMcapPct}
-				setDefiActiveTvlToOnChainMcapPctRange={setDefiActiveTvlToOnChainMcapPctRange}
-				setActiveMcapToOnChainMcapPctRange={setActiveMcapToOnChainMcapPctRange}
-				setDefiActiveTvlToActiveMcapPctRange={setDefiActiveTvlToActiveMcapPctRange}
-				includeStablecoins={includeStablecoins}
-				includeGovernance={includeGovernance}
-				setIncludeStablecoins={setIncludeStablecoins}
-				setIncludeGovernance={setIncludeGovernance}
+				modes={{
+					isChainMode,
+					isCategoryMode,
+					isPlatformMode
+				}}
+				options={{
+					assetNames: props.assetNames,
+					typeOptions: props.typeOptions,
+					categoriesOptions: props.categoriesOptions,
+					platforms: props.platforms,
+					assetClassOptions: props.assetClassOptions,
+					rwaClassificationOptions: props.rwaClassificationOptions,
+					accessModelOptions: props.accessModelOptions,
+					issuers: props.issuers
+				}}
+				selections={{
+					selectedAssetNames,
+					selectedTypes,
+					selectedCategories,
+					selectedPlatforms,
+					selectedAssetClasses,
+					selectedRwaClassifications,
+					selectedAccessModels,
+					selectedIssuers,
+					selectedRedeemableStates,
+					selectedAttestationsStates,
+					selectedCexListedStates,
+					selectedKycForMintRedeemStates,
+					selectedKycAllowlistedWhitelistedToTransferHoldStates,
+					selectedTransferableStates,
+					selectedSelfCustodyStates,
+					minDefiActiveTvlToOnChainMcapPct,
+					maxDefiActiveTvlToOnChainMcapPct,
+					minActiveMcapToOnChainMcapPct,
+					maxActiveMcapToOnChainMcapPct,
+					minDefiActiveTvlToActiveMcapPct,
+					maxDefiActiveTvlToActiveMcapPct,
+					includeStablecoins,
+					includeGovernance
+				}}
+				actions={{
+					setDefiActiveTvlToOnChainMcapPctRange,
+					setActiveMcapToOnChainMcapPctRange,
+					setDefiActiveTvlToActiveMcapPctRange,
+					setIncludeStablecoins,
+					setIncludeGovernance,
+					setRedeemableStates,
+					setAttestationsStates,
+					setCexListedStates,
+					setKycForMintRedeemStates,
+					setKycAllowlistedWhitelistedToTransferHoldStates,
+					setTransferableStates,
+					setSelfCustodyStates
+				}}
 			/>
 			<div className="flex flex-col gap-2 md:flex-row md:items-center">
 				<p className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
@@ -421,81 +661,67 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{chartTypeSwitch}
 								{chartViewSwitch}
 								<ChartCsvExportButton chartInstance={multiSeriesChart2Instance} filename={timeSeriesChartFilename} />
-								<ChartExportButton
+								<ChartPngExportButton
 									chartInstance={multiSeriesChart2Instance}
 									filename={timeSeriesChartFilename}
-									title={timeSeriesChartTitle}
+									title={exportChartTitle}
 								/>
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={selectedTimeSeriesDataset}
+									dataset={deferredSelectedTimeSeriesDataset}
 									hideDefaultLegend={false}
 									stacked
-									chartOptions={timeSeriesChartOptions}
+									showTotalInTooltip
+									tooltipTotalPosition="top"
 									onReady={handleMultiSeriesChart2Ready}
 								/>
 							</Suspense>
 						</div>
 					) : null}
-					{chartView === 'pie' ? (
-						<div className="flex min-h-[412px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-							<div className="flex items-center justify-end gap-2 p-3 pb-0">
+					{chartView === 'pie' || chartView === 'treemap' ? (
+						<div
+							className={`flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) ${
+								chartView === 'treemap' ? 'min-h-[652px]' : 'min-h-[412px]'
+							}`}
+						>
+							<div className="flex flex-wrap items-center justify-end gap-2 p-3 pb-0">
 								{chartTypeSwitch}
 								{chartViewSwitch}
-								{isChainBreakdownEnabled ? (
-									<div className="flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-										<button
-											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-											data-active={pieChartBreakdown !== 'chain'}
-											onClick={() => {
-												const { pieChartBreakdown: _pieChartBreakdown, ...restQuery } = router.query
-												router.push(
-													{
-														pathname: router.pathname,
-														query: { ...restQuery }
-													},
-													undefined,
-													{ shallow: true }
-												)
-											}}
-										>
-											{isChainMode ? 'Asset Category' : isCategoryMode ? 'Asset Class' : 'Asset Name'}
-										</button>
-										<button
-											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-											data-active={pieChartBreakdown === 'chain'}
-											onClick={() => {
-												router.push(
-													{
-														pathname: router.pathname,
-														query: { ...router.query, pieChartBreakdown: 'chain' }
-													},
-													undefined,
-													{ shallow: true }
-												)
-											}}
-										>
-											Chain
-										</button>
-									</div>
+								{pieChartBreakdownSwitch}
+								{chartView === 'treemap' ? treemapNestedBySwitch : null}
+								{chartView === 'treemap' ? <ChartRestoreButton chartInstance={treemapChartInstance} /> : null}
+								{chartView === 'pie' || chartView === 'treemap' ? (
+									<ChartCsvExportButton
+										chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
+										filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
+									/>
 								) : null}
-								<DownloadPieChartCsv filename={`${pieChartFilename}.csv`} chartData={selectedPieChartData} smol />
-								<ChartExportButton
-									chartInstance={pieChartInstance}
-									filename={`${pieChartFilename}.png`}
-									title={pieChartTitle}
+								<ChartPngExportButton
+									chartInstance={chartView === 'treemap' ? treemapChartInstance : pieChartInstance}
+									filename={chartView === 'treemap' ? treemapChartFilename : pieChartFilename}
+									title={exportChartTitle}
 								/>
 							</div>
-							<Suspense fallback={<div className="h-[360px]" />}>
-								<PieChart
-									chartData={selectedPieChartData}
-									stackColors={pieChartStackColors}
-									radius={pieChartRadius}
-									legendPosition={pieChartLegendPosition}
-									legendTextStyle={pieChartLegendTextStyle}
-									onReady={handlePieChartReady}
-								/>
+							<Suspense fallback={<div className={chartView === 'treemap' ? 'min-h-[600px]' : 'min-h-[360px]'} />}>
+								{chartView === 'pie' ? (
+									<PieChart
+										chartData={deferredSelectedPieChartData}
+										stackColors={valueSortedPieChartStackColors}
+										radius={pieChartRadius}
+										legendPosition={pieChartLegendPosition}
+										legendTextStyle={pieChartLegendTextStyle}
+										onReady={handlePieChartReady}
+									/>
+								) : (
+									<TreemapChart
+										treeData={treemapTreeData}
+										variant="rwa"
+										height="600px"
+										onReady={handleTreemapChartReady}
+										valueLabel={chartMetricLabel}
+									/>
+								)}
 							</Suspense>
 						</div>
 					) : null}
@@ -506,21 +732,41 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	)
 }
 
-const toQueryString = (query: Record<string, string | string[] | undefined>): string => {
-	const params = new URLSearchParams()
-	for (const [key, value] of Object.entries(query)) {
-		if (value == null) continue
-		if (Array.isArray(value)) {
-			for (const v of value) {
-				if (!v) continue
-				params.append(key, String(v))
-			}
-		} else if (value) {
-			params.set(key, String(value))
-		}
-	}
-	const qs = params.toString()
-	return qs ? `?${qs}` : ''
+const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
+	if (props.categoryLinks.length > 0) return 'category'
+	if (props.platformLinks.length > 0) return 'platform'
+	return 'chain'
+}
+
+const getModeLinks = (
+	mode: RWAOverviewMode,
+	chainLinks: IRWAAssetsOverview['chainLinks'],
+	categoryLinks: IRWAAssetsOverview['categoryLinks'],
+	platformLinks: IRWAAssetsOverview['platformLinks']
+) => {
+	if (mode === 'category') return categoryLinks
+	if (mode === 'platform') return platformLinks
+	return chainLinks
+}
+
+const getSelectedModeLabel = (mode: RWAOverviewMode, props: IRWAAssetsOverview) => {
+	if (mode === 'category') return props.selectedCategory
+	if (mode === 'platform') return props.selectedPlatform
+	return props.selectedChain
+}
+
+const getRwaExportChartTitle = ({
+	mode,
+	metricLabel,
+	selectedModeLabel
+}: {
+	mode: RWAOverviewMode
+	metricLabel: string
+	selectedModeLabel: string
+}) => {
+	if (mode === 'category') return `RWA ${metricLabel} by Category`
+	if (!selectedModeLabel || selectedModeLabel === 'All') return `RWA ${metricLabel}`
+	return `RWA ${metricLabel} on ${selectedModeLabel}`
 }
 
 const pieChartRadius = ['50%', '70%'] as [string, string]
@@ -528,10 +774,10 @@ const pieChartLegendPosition = {
 	left: 'center',
 	top: 'bottom',
 	orient: 'horizontal',
-	formatter: function (name) {
+	formatter: function (name: string) {
 		return name
 	}
-} as any
+} as const
 const pieChartLegendTextStyle = { fontSize: 14 }
 
 const PIE_CHART_TYPES = [
@@ -540,9 +786,10 @@ const PIE_CHART_TYPES = [
 	{ key: 'defiActiveTvl', label: 'DeFi Active TVL' }
 ]
 
-const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))
+const CHART_VIEW_OPTIONS = [
+	{ key: 'timeSeries', name: 'Time Series Chart' },
+	{ key: 'pie', name: 'Pie Chart' },
+	{ key: 'treemap', name: 'Treemap Chart' }
+]
 
-const timeSeriesChartOptions = {
-	legend: { top: 0, left: 12, right: 12 },
-	grid: { top: 56 }
-}
+const validPieChartTypes = new Set(PIE_CHART_TYPES.map(({ key }) => key))

@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.OPEN_INTEREST
@@ -15,7 +15,8 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 		adapterType,
 		dataType,
 		chain: 'All',
-		route: 'open-interest'
+		route: 'open-interest',
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType} ${dataType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }

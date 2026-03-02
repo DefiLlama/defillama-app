@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useMemo, useRef } from 'react'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { badDebt, lockupsCollateral } from '~/containers/Yields/utils'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
@@ -216,11 +216,11 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			excludeQueryKey="excludeAttribute"
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
-				values.forEach((attribute) => {
+				for (const attribute of values) {
 					if (!prevSet.has(attribute)) {
 						trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, { attribute })
 					}
-				})
+				}
 				prevSelectionRef.current = new Set(values)
 			}}
 		/>

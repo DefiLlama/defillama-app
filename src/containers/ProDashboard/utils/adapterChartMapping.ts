@@ -1,6 +1,6 @@
-import { ChartBuilderConfig } from '../types'
+import type { ChartBuilderConfig } from '../types'
 
-export const ADAPTER_TO_DASHBOARD_TYPE: Record<string, string | null> = {
+const ADAPTER_TO_DASHBOARD_TYPE: Record<string, string | null> = {
 	dexs: 'volume',
 	fees: 'fees',
 	derivatives: 'perps',
@@ -11,7 +11,7 @@ export const ADAPTER_TO_DASHBOARD_TYPE: Record<string, string | null> = {
 	'open-interest': 'openInterest'
 }
 
-export const ADAPTER_TO_BUILDER_METRIC: Record<string, ChartBuilderConfig['config']['metric'] | null> = {
+const ADAPTER_TO_BUILDER_METRIC: Record<string, ChartBuilderConfig['config']['metric'] | null> = {
 	dexs: 'volume',
 	fees: 'fees',
 	derivatives: 'perps',

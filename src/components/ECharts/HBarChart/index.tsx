@@ -5,7 +5,7 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
-import { formatTooltipValue } from '../useDefaults'
+import { formatTooltipValue } from '../formatters'
 
 echarts.use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
 

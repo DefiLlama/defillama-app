@@ -6,7 +6,7 @@ import { TablePagination } from '../../ProTable/TablePagination'
 import { useYieldsData } from './useYieldsData'
 import { useYieldsTable } from './useYieldsTable'
 import { YieldsColumnManagementPanel } from './YieldsColumnManagementPanel'
-import { YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
+import { type YieldsFilters, YieldsFiltersPanel } from './YieldsFiltersPanel'
 import { YieldsTableHeader } from './YieldsTableHeader'
 
 interface YieldsDatasetProps {
@@ -27,7 +27,8 @@ export function YieldsDataset({
 	const { data, isLoading, error } = useYieldsData(chains)
 	const { handleTableColumnsChange, handleTableFiltersChange } = useProDashboardEditorActions()
 
-	const uniqueTableId = React.useMemo(() => tableId || `yields-table-${Date.now()}`, [tableId])
+	const [fallbackTableId] = React.useState(() => `yields-table-${Date.now()}`)
+	const uniqueTableId = tableId || fallbackTableId
 
 	const {
 		table,

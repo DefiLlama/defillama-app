@@ -1,46 +1,38 @@
-import { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
+import type { RawChainsAssetsResponse, RawChainAssetsFlowEntry } from './api.types'
+import type { IBridgedRow } from './types'
+
+interface BridgedTVLChainsListProps {
+	assets: RawChainsAssetsResponse
+	chains: Array<{ label: string; to: string }>
+	flows1d: Record<string, RawChainAssetsFlowEntry> | null
+}
 
 const DEFAULT_SORTING_STATE = [{ id: 'total', desc: true }]
 
-export function BridgedTVLChainsList({ assets, chains, flows1d }) {
-	const data = Object.keys(assets)
-		.map((name) => {
-			const chainAssets = assets?.[name]
+export function BridgedTVLChainsList({ assets, chains, flows1d }: BridgedTVLChainsListProps) {
+	const data = useMemo(() => {
+		const rows: IBridgedRow[] = []
+		for (const name in assets) {
+			const chainAssets = assets[name]
+			if (!chainAssets?.total) continue
+
 			const chainFlows = flows1d?.[name]
-
-			return {
+			rows.push({
 				name,
-				...(chainAssets || {}),
+				...chainAssets,
 				change_24h: chainFlows?.total?.perc
-			}
-		})
-		.filter((row) => row?.total)
-		.sort((a, b) => b.total.total - a.total.total)
-
-	const prepareCsv = () => {
-		const csvData = data.map((row) => {
-			return {
-				Chain: row.name,
-				Total: row.total?.total,
-				Change_24h: row?.change_24h,
-				Canonical: row?.canonical?.total,
-				OwnTokens: row?.ownTokens?.total,
-				ThirdParty: row?.thirdParty?.total,
-				Native: row?.native?.total
-			}
-		})
-		const headers = Object.keys(csvData[0])
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
-
-		return { filename: 'bridged-chains.csv', rows }
-	}
+			})
+		}
+		rows.sort((a, b) => Number(b.total?.total ?? 0) - Number(a.total?.total ?? 0))
+		return rows
+	}, [assets, flows1d])
 
 	return (
 		<>
@@ -50,42 +42,29 @@ export function BridgedTVLChainsList({ assets, chains, flows1d }) {
 				columns={bridgedColumns}
 				placeholder={'Search chains...'}
 				columnToSearch={'name'}
-				customFilters={
-					<>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
-					</>
-				}
+				csvFileName="bridged-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
 }
 
-interface IBridgedRow {
-	name: string
-	total?: { total?: string }
-	thirdParty?: { total?: string }
-	canonical?: { total?: string }
-	ownTokens?: { total?: string }
-	native?: { total?: string }
-	change_24h: number
-}
-
 const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 	{
-		header: () => 'Name',
+		header: 'Name',
 		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue<string>()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(getValue())} />
+					<TokenLogo logo={chainIconUrl(value)} />
 					<BasicLink
-						href={`/bridged/${slug(getValue() as string)}`}
+						href={`/bridged/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as any}
+						{value}
 					</BasicLink>
 				</span>
 			)
@@ -96,10 +75,10 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		header: 'Total Bridged',
 		accessorKey: 'total',
 		accessorFn: (row) => row.total?.total ?? undefined,
-		cell: (info: any) => {
+		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
-			return <>${formattedNum(value)}</>
+			return <>{formattedNum(value, true)}</>
 		},
 		meta: { align: 'end', headerHelperText: 'Total value of assets on the chain, excluding own tokens' }
 	},
@@ -110,7 +89,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
-			return <>${formattedNum(value)}</>
+			return <>{formattedNum(value, true)}</>
 		},
 		meta: { align: 'end', headerHelperText: 'Assets minted natively on the chain' }
 	},
@@ -121,7 +100,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
-			return <>${formattedNum(value)}</>
+			return <>{formattedNum(value, true)}</>
 		},
 		meta: { align: 'end', headerHelperText: 'Assets bridged through the official canonical bridge' }
 	},
@@ -132,7 +111,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
-			return <>${formattedNum(value)}</>
+			return <>{formattedNum(value, true)}</>
 		},
 		meta: { align: 'end', headerHelperText: 'The chains own token, either for gas or for governance ' }
 	},
@@ -143,7 +122,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 		cell: (info) => {
 			const value = info.getValue()
 			if (!value) return <></>
-			return <>${formattedNum(value)}</>
+			return <>{formattedNum(value, true)}</>
 		},
 		meta: { align: 'end', headerHelperText: 'Assets bridged through bridges that aren’t the canonical bridge' }
 	}

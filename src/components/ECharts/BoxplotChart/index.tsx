@@ -34,7 +34,7 @@ echarts.use([
 // Register transform once at module level
 echarts.registerTransform(aggregate)
 
-export interface IChartProps {
+interface IChartProps {
 	chartData: any
 }
 

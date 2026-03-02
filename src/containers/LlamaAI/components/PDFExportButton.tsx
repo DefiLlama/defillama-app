@@ -13,6 +13,21 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
+const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
+
+function formatPdfError(error: unknown): string {
+	if (!error) return 'Failed to generate PDF'
+	if (typeof error === 'string') return error
+	if (typeof error === 'object' && error !== null && 'message' in error && typeof (error as any).message === 'string') {
+		return (error as any).message
+	}
+	try {
+		return JSON.stringify(error)
+	} catch {
+		return 'Failed to generate PDF'
+	}
+}
+
 interface PDFExportButtonProps {
 	sessionId: string | null
 	messageId?: string | null
@@ -21,7 +36,13 @@ interface PDFExportButtonProps {
 	className?: string
 }
 
-export function PDFExportButton({ sessionId, messageId, charts = [], exportType, className }: PDFExportButtonProps) {
+export function PDFExportButton({
+	sessionId,
+	messageId,
+	charts = EMPTY_CHARTS,
+	exportType,
+	className
+}: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
@@ -31,11 +52,22 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 	const loading = loaders.userLoading || isLoading
 
 	const handlePDFExport = async () => {
-		if (loading || !sessionId) return
+		if (loading) return
+		if (!sessionId) return
 
-		if (!loaders.userLoading && hasActiveSubscription) {
+		if (hasActiveSubscription) {
 			try {
 				setIsLoading(true)
+
+				if (exportType === 'single_message') {
+					if (!messageId) {
+						toast.error('Unable to export this message. Please try again from a specific message.', {
+							id: 'pdf-export'
+						})
+						setIsLoading(false)
+						return
+					}
+				}
 
 				let chartImages: CapturedChart[] = []
 				if (charts.length > 0) {
@@ -57,7 +89,7 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 					}
 				}
 
-				if (exportType === 'single_message' && messageId) {
+				if (exportType === 'single_message') {
 					requestBody.messageId = messageId
 				}
 
@@ -69,15 +101,37 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 					body: JSON.stringify(requestBody)
 				})
 
-				const data = await response.json()
-
-				if (!response.ok || !data.success) {
-					throw new Error(data.error || 'Failed to generate PDF')
+				if (!response) {
+					toast.error('Not authenticated', { id: 'pdf-export' })
+					setIsLoading(false)
+					return
 				}
 
-				toast.success('PDF generated!', { id: 'pdf-export' })
+				const data = await response.json()
+
+				let hasError = false
+				if (!response.ok) {
+					hasError = true
+				}
+				if (!data.success) {
+					hasError = true
+				}
+
+				if (hasError) {
+					const pdfErrorMsg = formatPdfError(data.error)
+					console.error('PDF export error:', pdfErrorMsg)
+					toast.error(pdfErrorMsg, { id: 'pdf-export' })
+					setIsLoading(false)
+					return
+				}
 
 				const pdfResponse = await fetch(data.pdfUrl)
+				if (!pdfResponse.ok) {
+					toast.error(`Failed to download PDF (${pdfResponse.status})`, { id: 'pdf-export' })
+					setIsLoading(false)
+					return
+				}
+
 				const blob = await pdfResponse.blob()
 				const url = window.URL.createObjectURL(blob)
 				const a = document.createElement('a')
@@ -87,13 +141,15 @@ export function PDFExportButton({ sessionId, messageId, charts = [], exportType,
 				a.click()
 				document.body.removeChild(a)
 				window.URL.revokeObjectURL(url)
+				toast.success('PDF downloaded!', { id: 'pdf-export' })
+				setIsLoading(false)
 			} catch (error) {
+				const errorMsg = formatPdfError(error)
 				console.error('PDF export error:', error)
-				toast.error(error instanceof Error ? error.message : 'Failed to export PDF', { id: 'pdf-export' })
-			} finally {
+				toast.error(errorMsg, { id: 'pdf-export' })
 				setIsLoading(false)
 			}
-		} else if (!loading) {
+		} else {
 			subscribeModalStore.show()
 		}
 	}

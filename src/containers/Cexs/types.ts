@@ -9,14 +9,14 @@ export interface ICex {
 	lastAuditDate?: number
 	auditor?: string | null
 	auditLink?: string
-	currentTvl: number
-	cleanAssetsTvl: number
-	inflows_24h: number
-	inflows_1w: number
-	inflows_1m: number
-	spotVolume: number
-	oi: number
-	derivVolume: number
-	leverage: number
+	currentTvl: number | null
+	cleanAssetsTvl: number | null
+	inflows_24h: number | null
+	inflows_1w: number | null
+	inflows_1m: number | null
+	spotVolume: number | null
+	oi: number | null
+	derivVolume: number | null
+	leverage: number | null
 	customRange?: number
 }

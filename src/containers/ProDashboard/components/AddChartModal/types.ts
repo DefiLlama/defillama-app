@@ -1,4 +1,4 @@
-import { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
+import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
 export interface AddChartModalProps {
@@ -138,7 +138,8 @@ export interface ModalState {
 	selectedUnlocksChartType: 'total' | 'schedule' | 'allocation' | 'locked-unlocked'
 }
 
-export interface ModalActions {
+// oxlint-disable-next-line no-unused-vars
+interface ModalActions {
 	setSelectedMainTab: (tab: MainTabType) => void
 	setSelectedChartTab: (tab: ChartTabType) => void
 	setChartMode: (mode: ChartModeType) => void

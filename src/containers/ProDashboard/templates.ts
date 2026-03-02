@@ -208,7 +208,7 @@ interface SelectedItem {
 	name: string
 }
 
-export interface DimensionProtocol {
+interface DimensionProtocol {
 	name: string
 	slug: string
 	displayName?: string

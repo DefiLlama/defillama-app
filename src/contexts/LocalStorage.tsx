@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useDeferredValue, useEffect, useMemo, useSyncExternalStore } from 'react'
 import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
@@ -11,12 +11,11 @@ export const THEME_SYNC_KEY = 'defillama-theme' as const
 const valuesOf = <T extends Record<string, string>>(obj: T) => Object.values(obj) as Array<T[keyof T]>
 
 export const DARK_MODE = 'DARK_MODE' as const
-export const UNRELEASED = 'unreleased' as const
 export const DEFAULT_PORTFOLIO_NAME = 'main' as const
-export const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
+const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
-export const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
-export const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
+const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
+const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
@@ -76,7 +75,7 @@ export const YIELDS_SETTINGS = {
 } as const
 
 // NFT
-export const NFT_SETTINGS = {
+const NFT_SETTINGS = {
 	DISPLAY_USD: 'DISPLAY_USD',
 	HIDE_LAST_DAY: 'HIDE_LAST_DAY'
 } as const
@@ -112,17 +111,17 @@ export const LIQS_SETTINGS = {
 } as const
 
 // BRIDGES
-export const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
+const BRIDGES_SETTINGS = { BRIDGES_SHOWING_TXS, BRIDGES_SHOWING_ADDRESSES } as const
 
 export type TvlSettingsKey = (typeof TVL_SETTINGS)[keyof typeof TVL_SETTINGS]
 export type FeesSettingKey = (typeof FEES_SETTINGS)[keyof typeof FEES_SETTINGS]
 export type YieldsSettingKey = (typeof YIELDS_SETTINGS)[keyof typeof YIELDS_SETTINGS]
-export type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
-export type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
-export type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
-export type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
+type NftSettingKey = (typeof NFT_SETTINGS)[keyof typeof NFT_SETTINGS]
+type LiquidationsSettingKey = (typeof LIQS_SETTINGS)[keyof typeof LIQS_SETTINGS]
+type BridgesSettingKey = (typeof BRIDGES_SETTINGS)[keyof typeof BRIDGES_SETTINGS]
+type ChainsCategoryGroupKey = (typeof CHAINS_CATEGORY_GROUP_SETTINGS)[number]['key']
 
-export type SettingKey =
+type SettingKey =
 	| TvlSettingsKey
 	| FeesSettingKey
 	| NftSettingKey
@@ -130,7 +129,7 @@ export type SettingKey =
 	| BridgesSettingKey
 	| ChainsCategoryGroupKey
 
-export type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
+type KeysFor<T extends TSETTINGTYPE> = T extends 'tvl'
 	? TvlSettingsKey
 	: T extends 'fees'
 		? FeesSettingKey
@@ -150,7 +149,7 @@ type YieldFilterValue = string | number | boolean
 type YieldSavedFilter = Record<string, YieldFilterValue>
 type YieldSavedFilters = Record<string, YieldSavedFilter>
 export type WatchlistStore = Record<string, Record<string, string>>
-export type SettingsStore = Partial<Record<SettingKey, boolean>>
+type SettingsStore = Partial<Record<SettingKey, boolean>>
 
 export type CustomColumnDef = {
 	name: string
@@ -177,11 +176,11 @@ const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.k
 const CHAINS_CATEGORY_GROUP_KEYS_SET = new Set<string>(CHAINS_CATEGORY_GROUP_KEYS)
 export const TVL_SETTINGS_KEYS = valuesOf(TVL_SETTINGS)
 export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
-export const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
+const FEES_SETTINGS_KEYS = valuesOf(FEES_SETTINGS)
 export const FEES_SETTINGS_KEYS_SET = new Set<string>(FEES_SETTINGS_KEYS)
-export const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
-export const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
-export const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
+const NFT_SETTINGS_KEYS = valuesOf(NFT_SETTINGS)
+const LIQS_SETTINGS_KEYS = valuesOf(LIQS_SETTINGS)
+const BRIDGES_SETTINGS_KEYS = valuesOf(BRIDGES_SETTINGS)
 
 export const isTvlSettingsKey = (value: string): value is TvlSettingsKey => TVL_SETTINGS_KEYS_SET.has(value)
 export const isFeesSettingKey = (value: string): value is FeesSettingKey => FEES_SETTINGS_KEYS_SET.has(value)
@@ -196,6 +195,8 @@ export function subscribeToPinnedMetrics(callback: () => void) {
 	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
 }
 
+const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
+
 const toggleDarkMode = () => {
 	const isDarkMode = getThemeCookie() === 'dark'
 	setThemeCookie(!isDarkMode)
@@ -204,7 +205,7 @@ const toggleDarkMode = () => {
 
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(THEME_SYNC_KEY, callback),
+		subscribeToTheme,
 		() => getThemeCookie() ?? 'dark',
 		() => 'dark'
 	)
@@ -266,8 +267,9 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 
 	const url = new URL(window.location.href)
 
-	for (const key in keys) {
-		if (keys[key]) {
+	const keysRecord: Record<string, boolean | undefined> = keys
+	for (const key in keysRecord) {
+		if (keysRecord[key]) {
 			url.searchParams.set(key, 'true')
 		} else {
 			url.searchParams.delete(key)
@@ -279,7 +281,7 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 	writeAppStorage({ ...(current as AppStorage), ...keys })
 }
 
-export type TSETTINGTYPE =
+type TSETTINGTYPE =
 	| 'tvl'
 	| 'fees'
 	| 'tvl_fees'
@@ -312,6 +314,32 @@ function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 	}
 }
 
+function computeSettingsSnapshot<T extends TSETTINGTYPE>(keys: KeysFor<T>[], isClient: boolean): string {
+	let urlParams: URLSearchParams | null = null
+	if (isClient) {
+		urlParams = new URLSearchParams(window.location.search)
+	}
+	const ps = readAppStorage()
+	const obj = {} as Record<KeysFor<T>, boolean>
+	for (const s of keys) {
+		const storedValue = (ps as SettingsStore)[s as SettingKey]
+		let param: string | null = null
+		if (urlParams != null) {
+			param = urlParams.get(s)
+		}
+		let value: boolean
+		if (param) {
+			value = param === 'true'
+		} else if (typeof storedValue === 'boolean') {
+			value = storedValue
+		} else {
+			value = false
+		}
+		obj[s] = value
+	}
+	return JSON.stringify(obj)
+}
+
 export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 	type: T
 ): [Record<KeysFor<T>, boolean>, (key: KeysFor<T>) => void] {
@@ -322,18 +350,7 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 		subscribeToLocalStorage,
 		() => {
 			try {
-				const urlParams = isClient ? new URLSearchParams(window.location.search) : null
-
-				const ps = readAppStorage()
-				const obj = {} as Record<KeysFor<T>, boolean>
-				for (const s of keys) {
-					const storedValue = (ps as SettingsStore)[s as SettingKey]
-					obj[s] =
-						(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ??
-						(typeof storedValue === 'boolean' ? storedValue : false)
-				}
-
-				return JSON.stringify(obj)
+				return computeSettingsSnapshot(keys, isClient)
 			} catch {
 				return '{}'
 			}
@@ -341,43 +358,40 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 		() => '{}'
 	)
 
+	const deferredSnapshot = useDeferredValue(snapshot)
+
 	const settings = useMemo(() => {
 		try {
-			return JSON.parse(snapshot) as Record<KeysFor<T>, boolean>
+			return JSON.parse(deferredSnapshot) as Record<KeysFor<T>, boolean>
 		} catch {
 			return {} as Record<KeysFor<T>, boolean>
 		}
-	}, [snapshot])
+	}, [deferredSnapshot])
 
-	return [settings, (key: KeysFor<T>) => updateSetting(key)]
-}
+	const toggle = useMemo(() => (key: KeysFor<T>) => updateSetting(key), [])
 
-export const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
-	const current = readAppStorage()
-	writeAppStorage({ ...(current as AppStorage), ...keys })
-}
-
-export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<SettingKey, boolean>>) => void] {
-	const store = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
-	)
-	const toggledSettings = useMemo(() => JSON.parse(store) as SettingsStore, [store])
-
-	return [toggledSettings, updateAllSettings]
+	return [settings, toggle]
 }
 
 // YIELDS SAVED FILTERS HOOK
 export function useYieldFilters() {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
+		() => {
+			const store = readAppStorage()
+			const filters = store[YIELDS_SAVED_FILTERS]
+			return filters ? JSON.stringify(filters) : '{}'
+		},
 		() => '{}'
 	)
 
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const savedFilters: YieldSavedFilters = parsedStore?.[YIELDS_SAVED_FILTERS] ?? {}
+	const savedFilters: YieldSavedFilters = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as YieldSavedFilters
+		} catch {
+			return {}
+		}
+	}, [snapshot])
 
 	return {
 		savedFilters,
@@ -399,28 +413,34 @@ export function useYieldFilters() {
 }
 
 export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
-	const store = useSyncExternalStore(
+	const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
+	const selectedPortfolioKey =
+		type === 'defi'
+			? DEFI_SELECTED_PORTFOLIO
+			: type === 'yields'
+				? YIELDS_SELECTED_PORTFOLIO
+				: CHAINS_SELECTED_PORTFOLIO
+
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const store = readAppStorage()
+			const wl = store[watchlistKey as keyof AppStorage]
+			const sp = store[selectedPortfolioKey as keyof AppStorage]
+			return JSON.stringify({ wl, sp })
+		},
+		() => JSON.stringify({ wl: undefined, sp: undefined })
 	)
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
 
 	return useMemo(() => {
-		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
-		const selectedPortfolioKey =
-			type === 'defi'
-				? DEFI_SELECTED_PORTFOLIO
-				: type === 'yields'
-					? YIELDS_SELECTED_PORTFOLIO
-					: CHAINS_SELECTED_PORTFOLIO
+		const { wl, sp } = JSON.parse(snapshot) as { wl: WatchlistStore | undefined; sp: string | undefined }
+		const watchlist = wl ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+		const selectedPortfolio = sp ?? DEFAULT_PORTFOLIO_NAME
 
-		const watchlist = (parsedStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
-			[DEFAULT_PORTFOLIO_NAME]: {}
+		const portfolios: string[] = []
+		for (const portfolioName in watchlist) {
+			portfolios.push(portfolioName)
 		}
-		const portfolios = Object.keys(watchlist)
-		const selectedPortfolio =
-			(parsedStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 		return {
 			portfolios,
@@ -509,29 +529,30 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				})
 			}
 		}
-	}, [parsedStore, type])
+	}, [snapshot, watchlistKey, selectedPortfolioKey])
 }
 
 export function useCustomColumns() {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const store = readAppStorage()
+			const cols = store[CUSTOM_COLUMNS]
+			return cols ? JSON.stringify(cols) : '[]'
+		},
+		() => '[]'
 	)
-	const parsedStore = useMemo(() => {
-		try {
-			return JSON.parse(store) as AppStorage
-		} catch {
-			return {} as AppStorage
-		}
-	}, [store])
 
 	const customColumns = useMemo(() => {
-		return (parsedStore?.[CUSTOM_COLUMNS] as CustomColumnDef[] | undefined) ?? []
-	}, [parsedStore])
+		try {
+			return JSON.parse(snapshot) as CustomColumnDef[]
+		} catch {
+			return [] as CustomColumnDef[]
+		}
+	}, [snapshot])
 
 	function setCustomColumns(cols: CustomColumnDef[]) {
-		writeAppStorage({ ...parsedStore, [CUSTOM_COLUMNS]: cols })
+		writeAppStorage({ ...readAppStorage(), [CUSTOM_COLUMNS]: cols })
 	}
 
 	function addCustomColumn(col: CustomColumnDef) {
@@ -556,18 +577,15 @@ export function useCustomColumns() {
 }
 
 export function useLlamaAIWelcome(): [boolean, () => void] {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => (readAppStorage()[LLAMA_AI_WELCOME_SHOWN] ? '1' : '0'),
+		() => '0'
 	)
 
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const shown = parsedStore?.[LLAMA_AI_WELCOME_SHOWN] ?? false
+	const shown = snapshot === '1'
 
-	const setShown = () => {
-		writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true })
-	}
+	const setShown = useMemo(() => () => writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true }), [])
 
 	return [shown, setShown]
 }

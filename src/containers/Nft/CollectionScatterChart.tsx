@@ -36,13 +36,12 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	const [isDark] = useDarkModeManager()
 	const chartRef = React.useRef<echarts.ECharts | null>(null)
 
-	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	React.useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) ?? echarts.init(el)
 		chartRef.current = instance
 
 		const series =
@@ -108,7 +107,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 			tooltip: {
 				showDelay: 0,
 				confine: true,
-				formatter: function (params) {
+				formatter: function (params: { value: [number, number]; marker: string; seriesName: string }) {
 					const chartdate = formatTooltipChartDate(params.value[0], 'daily')
 
 					let vals =
@@ -180,7 +179,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 					type: 'value',
 					min: 'dataMin',
 					axisLabel: {
-						formatter: (value) => Number(value.toFixed(2)) + ' ETH',
+						formatter: (value: number) => Number(value.toFixed(2)) + ' ETH',
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
 					axisLine: {
@@ -206,7 +205,7 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 					type: 'value',
 					name: 'Volume',
 					show: false,
-					max: (value) => value.max * 4,
+					max: (value: { max: number }) => value.max * 4,
 					position: 'right',
 					axisLine: {
 						show: false
@@ -241,9 +240,9 @@ export default function CollectionScatterChart({ height, sales, salesMedian1d, v
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined} />
 }
 
-const findClosest = (arr, n, target, isDateInSeconds) => {
-	let left = 0,
-		right = n - 1
+const findClosest = (arr: Array<[number, number]>, n: number, target: number, isDateInSeconds: boolean): string => {
+	let left = 0
+	let right = n - 1
 	while (left < right) {
 		if (
 			Math.abs((isDateInSeconds ? arr[left][0] * 1e3 : arr[left][0]) - target) <=
@@ -254,5 +253,5 @@ const findClosest = (arr, n, target, isDateInSeconds) => {
 			left++
 		}
 	}
-	return arr?.[left]?.[1]?.toFixed(2) ?? 0
+	return arr[left]?.[1]?.toFixed(2) ?? '0'
 }

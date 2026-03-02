@@ -1,28 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
-import { useCallback, useSyncExternalStore } from 'react'
+import { useRouter } from 'next/router'
+import { useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { TimePeriod } from '../ProDashboardAPIContext'
-import { Dashboard, dashboardAPI } from '../services/DashboardAPI'
-import { DashboardItemConfig } from '../types'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
+import type { TimePeriod } from '../ProDashboardAPIContext'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
+import type { DashboardItemConfig } from '../types'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
 
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
-	const liteDashboardsInStorage = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('lite-dashboards', callback),
-		() => getStorageItem('lite-dashboards', '[]') ?? '[]',
-		() => '[]'
-	)
+	const liteDashboardsInStorage = useStorageItem('lite-dashboards', '[]')
 
 	const liteDashboards = JSON.parse(liteDashboardsInStorage)
 
 	const { isLoading, error } = useQuery({
-		queryKey: ['lite-dashboards', user?.id],
+		queryKey: ['pro-dashboard', 'lite-dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
@@ -59,7 +55,7 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards', user?.id],
+		queryKey: ['pro-dashboard', 'dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
@@ -86,9 +82,9 @@ export function useDashboardAPI() {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: any) => {
@@ -115,10 +111,10 @@ export function useDashboardAPI() {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
 		onSuccess: (dashboard: Dashboard, variables) => {
-			queryClient.setQueriesData({ queryKey: ['dashboard', variables.id], exact: false }, dashboard)
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard', variables.id], exact: false }, dashboard)
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 		},
 		onError: (error: any) => {
 			toast.error(error.message || 'Failed to save dashboard')
@@ -131,9 +127,9 @@ export function useDashboardAPI() {
 			return await dashboardAPI.deleteDashboard(id, authorizedFetch)
 		},
 		onSuccess: (_, deletedId) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
@@ -161,15 +157,13 @@ export function useDashboardAPI() {
 
 	// Navigate to a dashboard
 	const navigateToDashboard = (id: string) => {
-		Router.push(`/pro/${id}`)
+		router.push(`/pro/${id}`)
 	}
 
-	// Delete dashboard with confirmation
+	// Delete dashboard (confirmation handled in UI)
 	const deleteDashboardWithConfirmation = useCallback(
 		async (id: string) => {
-			if (confirm('Are you sure you want to delete this dashboard?')) {
-				await deleteDashboardMutation.mutateAsync(id)
-			}
+			await deleteDashboardMutation.mutateAsync(id)
 		},
 		[deleteDashboardMutation]
 	)

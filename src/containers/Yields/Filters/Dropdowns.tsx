@@ -1,10 +1,11 @@
 import { useRouter } from 'next/router'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { Checkbox } from '~/components/Checkbox'
 import { AvailableRange } from '~/components/Filters/AvailableRange'
 import { TVLRange } from '~/components/Filters/TVLRange'
-import { Switch } from '~/components/Switch'
 import { YIELDS_SETTINGS } from '~/contexts/LocalStorage'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import { APYRange } from './APYRange'
 import { YieldAttributes } from './Attributes'
 import { FiltersByCategory } from './Categories'
@@ -39,25 +40,18 @@ export function YieldFilterDropdowns({
 	attributes,
 	tvlRange,
 	apyRange,
-	show7dBaseApy,
-	show7dIL,
+	enabledColumns,
 	resetFilters,
 	availableRange,
 	excludeBadDebt,
 	selectedAttributes,
 	excludeRewardApy,
 	nestedMenu,
-	show1dVolume,
-	show7dVolume,
-	showInceptionApy,
 	includeLsdApy,
-	showBorrowBaseApy,
-	showBorrowRewardApy,
-	showNetBorrowApy,
-	showLTV,
-	showTotalSupplied,
-	showTotalBorrowed,
-	showAvailable,
+	// oxlint-disable-next-line no-unused-vars
+	showMedianApy,
+	// oxlint-disable-next-line no-unused-vars
+	showStdDev,
 	prepareCsv
 }: IDropdownMenusProps) {
 	const router = useRouter()
@@ -67,6 +61,21 @@ export function YieldFilterDropdowns({
 	const shouldExlcudeRewardApy = router.query.excludeRewardApy === 'true'
 
 	const shouldIncludeLsdApy = router.query.includeLsdApy === 'true'
+
+	const safeSelectedAttributes = selectedAttributes ?? []
+	const effectivePathname = pathname || router.pathname
+	const toggleBadDebtFilter = () => {
+		const nextAttributes = isBadDebtToggled
+			? safeSelectedAttributes.filter((attribute) => attribute !== BAD_DEBT_KEY)
+			: [...safeSelectedAttributes, BAD_DEBT_KEY]
+		pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
+	}
+	const toggleExcludeRewardApyFilter = () => {
+		pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
+	}
+	const toggleIncludeLsdApyFilter = () => {
+		pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
+	}
 
 	return (
 		<>
@@ -139,7 +148,12 @@ export function YieldFilterDropdowns({
 						const eventData: Record<string, number> = {}
 						if (min != null) eventData.min = min
 						if (max != null) eventData.max = max
-						if (Object.keys(eventData).length > 0) {
+						let hasEventData = false
+						for (const _key in eventData) {
+							hasEventData = true
+							break
+						}
+						if (hasEventData) {
 							trackYieldsEvent(YIELDS_EVENTS.FILTER_TVL_RANGE, eventData)
 						}
 					}}
@@ -150,178 +164,41 @@ export function YieldFilterDropdowns({
 
 			{availableRange && <AvailableRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />}
 
-			{(show7dBaseApy ||
-				show7dIL ||
-				show1dVolume ||
-				show7dVolume ||
-				showInceptionApy ||
-				showBorrowBaseApy ||
-				showBorrowRewardApy ||
-				showNetBorrowApy ||
-				showTotalSupplied ||
-				showTotalBorrowed ||
-				showAvailable ||
-				showLTV) && (
-				<ColumnFilters
-					show7dBaseApy={show7dBaseApy}
-					show7dIL={show7dIL}
-					show1dVolume={show1dVolume}
-					show7dVolume={show7dVolume}
-					showInceptionApy={showInceptionApy}
-					showBorrowBaseApy={showBorrowBaseApy}
-					showBorrowRewardApy={showBorrowRewardApy}
-					showNetBorrowApy={showNetBorrowApy}
-					showTotalSupplied={showTotalSupplied}
-					showTotalBorrowed={showTotalBorrowed}
-					showAvailable={showAvailable}
-					showLTV={showLTV}
-					nestedMenu={nestedMenu}
-				/>
-			)}
+			{enabledColumns && enabledColumns.length > 0 ? (
+				<ColumnFilters enabledColumns={enabledColumns} nestedMenu={nestedMenu} />
+			) : null}
 
 			{excludeBadDebt && selectedAttributes ? (
-				nestedMenu ? (
-					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
-						<input
-							type="checkbox"
-							value="excludeBadDebt"
-							checked={isBadDebtToggled}
-							onChange={() => {
-								router.push(
-									{
-										pathname: pathname || router.pathname,
-										query: {
-											...router.query,
-											attribute: isBadDebtToggled
-												? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
-												: [...selectedAttributes, BAD_DEBT_KEY]
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						/>
-						<span>Exclude bad debt</span>
-					</label>
-				) : (
-					<Switch
-						value="excludeBadDebt"
-						label="Exclude bad debt"
-						checked={isBadDebtToggled}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: {
-										...router.query,
-										attribute: isBadDebtToggled
-											? selectedAttributes.filter((a) => a !== BAD_DEBT_KEY)
-											: [...selectedAttributes, BAD_DEBT_KEY]
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-					/>
-				)
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'default'}
+					value="excludeBadDebt"
+					checked={isBadDebtToggled}
+					onChange={toggleBadDebtFilter}
+				>
+					Exclude bad debt
+				</Checkbox>
 			) : null}
 
 			{excludeRewardApy ? (
-				nestedMenu ? (
-					<label
-						className={
-							nestedMenu
-								? 'flex flex-row-reverse items-center justify-between gap-3 px-3 py-2'
-								: 'flex flex-nowrap items-center gap-1'
-						}
-					>
-						<input
-							type="checkbox"
-							value="excludeRewardApy"
-							checked={shouldExlcudeRewardApy}
-							onChange={() => {
-								router.push(
-									{
-										pathname: pathname || router.pathname,
-										query: {
-											...router.query,
-											excludeRewardApy: !shouldExlcudeRewardApy
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						/>
-						<span>Exclude reward APY</span>
-					</label>
-				) : (
-					<Switch
-						label="Exclude reward APY"
-						value="excludeRewardApy"
-						checked={shouldExlcudeRewardApy}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: {
-										...router.query,
-										excludeRewardApy: !shouldExlcudeRewardApy
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-					/>
-				)
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'default'}
+					value="excludeRewardApy"
+					checked={shouldExlcudeRewardApy}
+					onChange={toggleExcludeRewardApyFilter}
+				>
+					Exclude reward APY
+				</Checkbox>
 			) : null}
 
 			{includeLsdApy ? (
-				nestedMenu ? (
-					<label className="flex flex-row-reverse items-center justify-between gap-3 px-3 py-2">
-						<input
-							type="checkbox"
-							value="includeLsdApy"
-							checked={shouldIncludeLsdApy}
-							onChange={() => {
-								router.push(
-									{
-										pathname: pathname || router.pathname,
-										query: {
-											...router.query,
-											includeLsdApy: !shouldIncludeLsdApy
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						/>
-						<span>Include LSD APY</span>
-					</label>
-				) : (
-					<Switch
-						label="LSD APY"
-						value="includeLsdApy"
-						checked={shouldIncludeLsdApy}
-						onChange={() => {
-							router.push(
-								{
-									pathname: pathname || router.pathname,
-									query: {
-										...router.query,
-										includeLsdApy: !shouldIncludeLsdApy
-									}
-								},
-								undefined,
-								{ shallow: true }
-							)
-						}}
-					/>
-				)
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'default'}
+					value="includeLsdApy"
+					checked={shouldIncludeLsdApy}
+					onChange={toggleIncludeLsdApyFilter}
+				>
+					Include LSD APY
+				</Checkbox>
 			) : null}
 
 			{resetFilters ? <ResetAllYieldFilters pathname={pathname || router.pathname} nestedMenu={nestedMenu} /> : null}

@@ -1,4 +1,4 @@
-export type SeriesPoint = [number, number]
+type SeriesPoint = [number, number]
 
 export const METRIC_CONFIG_BASE: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
 	tvl: { endpoint: 'tvl', metricName: 'TVL' },
@@ -19,7 +19,7 @@ export const METRIC_CONFIG_BASE: Record<string, { endpoint: string; dataType?: s
 
 export const toSlug = (name: string = ''): string => name?.toLowerCase().split(' ').join('-').split("'").join('')
 
-export const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
+const toUtcDay = (ts: number): number => Math.floor(ts / 86400) * 86400
 
 export const normalizeDailyPairs = (pairs: SeriesPoint[], mode: 'sum' | 'last' = 'sum'): SeriesPoint[] => {
 	const daily = new Map<number, number>()
@@ -34,7 +34,7 @@ export const normalizeDailyPairs = (pairs: SeriesPoint[], mode: 'sum' | 'last' =
 	return Array.from(daily.entries()).sort((a, b) => a[0] - b[0]) as SeriesPoint[]
 }
 
-export const startOfTodayUtc = (): number => {
+const startOfTodayUtc = (): number => {
 	const now = new Date()
 	return Math.floor(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / 1000)
 }

@@ -1,10 +1,11 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { BorrowAggregatorAdvanced } from '~/containers/Yields/indexOptimizer'
 import { UNBOUNDED_DEBT_CEILING_PROJECTS } from '~/containers/Yields/queries'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('borrow', async () => {
@@ -12,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('borrow', async () => {
 		props: { pools, ...data }
 	} = await getLendBorrowData()
 
-	let cgList = await getAllCGTokensList()
+	let cgList = await fetchAllCGTokensList()
 	const cgPositions = cgList.reduce((acc, e, i) => ({ ...acc, [e.symbol]: i }), {} as any)
 	const searchData = data.symbols
 		.sort((a, b) => cgPositions[a] - cgPositions[b])
@@ -46,7 +47,7 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout
 			title={`Lend/Borrow optimizer - DefiLlama Yield`}
-			description={`Lend/Borrow optimizer on DefiLlama. Advanced view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Find the cheapest way to borrow. Calculate the best lending routes. Compare supply APR, borrow APR, incentives and LTV across all protocols.`}
 			keywords={`lend/borrow optimizer, defi lend/borrow optimizer, advanced view of optimal lending routes by collateral to borrow assets`}
 			canonicalUrl={`/borrow/advanced`}
 			pageName={pageName}

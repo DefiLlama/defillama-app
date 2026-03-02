@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
-import { useDebounce } from '~/hooks/useDebounce'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
-export interface EntityResult {
+interface EntityResult {
 	id: string
 	name: string
 	logo: string | null
@@ -40,7 +40,7 @@ async function searchApi(query: SearchQuery): Promise<EntityResult[]> {
 /**
  * Fetch entities (chains, protocols, stablecoins, categories) matching the query.
  */
-export async function fetchEntities(query: string): Promise<EntityResult[]> {
+async function fetchEntities(query: string): Promise<EntityResult[]> {
 	return searchApi({
 		indexUid: 'pages',
 		limit: 10,
@@ -82,7 +82,7 @@ export async function fetchCoins(query: string, limit: number = 10): Promise<Ent
  * - $ prefix: fetches coins/tokens
  */
 export function useGetEntities(q: string) {
-	const debouncedQuery = useDebounce(q, 200)
+	const debouncedQuery = useDebouncedValue(q, 200)
 
 	const isCoins = debouncedQuery.startsWith('$')
 	const isEntities = debouncedQuery.startsWith('@')
@@ -90,7 +90,7 @@ export function useGetEntities(q: string) {
 	const isBareTrigger = debouncedQuery === '$' || debouncedQuery === '@'
 
 	return useQuery({
-		queryKey: ['get-entities', debouncedQuery],
+		queryKey: ['llamaai', 'entities', debouncedQuery],
 		queryFn: () => (isCoins ? fetchCoins(queryWithoutTrigger) : fetchEntities(queryWithoutTrigger)),
 		// Fetch defaults when user typed a bare trigger (@ / $), otherwise only fetch when there's a query
 		enabled: queryWithoutTrigger.length > 0 || isBareTrigger,

@@ -3,6 +3,7 @@ export interface IChainMetadata {
 	dexs?: boolean
 	name: string
 	activeUsers?: boolean
+	activeLiquidity?: boolean
 	fees?: boolean
 	revenue?: boolean
 	chainFees?: boolean
@@ -18,12 +19,12 @@ export interface IChainMetadata {
 	inflows?: boolean
 	chainAssets?: boolean
 	gecko_id?: string
-	tokenSymbol?: string
+	tokenSymbol?: string | null
 	github?: boolean
 	id: string
 	protocolCount?: number
 	incentives?: boolean
-	dimAgg?: Record<string, Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>>
+	dimAgg?: Record<string, Record<string, { '24h'?: number | null; '7d'?: number | null; '30d'?: number | null }>>
 }
 
 export interface IProtocolMetadata {
@@ -61,6 +62,7 @@ export interface IProtocolMetadata {
 	safeHarbor?: boolean
 	borrowed?: boolean
 	tokenRights?: boolean
+	inflows?: boolean
 }
 
 export interface ICexItem {
@@ -82,4 +84,21 @@ export interface IRWAList {
 	chains: Array<string>
 	categories: Array<string>
 	idMap: Record<string, string>
+}
+
+export interface ITokenListEntry {
+	symbol: string
+	current_price: number | null
+	price_change_24h: number | null
+	price_change_percentage_24h: number | null
+	ath: number | null
+	ath_date: string | null
+	atl: number | null
+	atl_date: string | null
+	market_cap: number | null
+	fully_diluted_valuation: number | null
+	total_volume: number | null
+	total_supply: number | null
+	circulating_supply: number | null
+	max_supply: number | null
 }

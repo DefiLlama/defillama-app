@@ -1,7 +1,4 @@
 export { useDashboardAPI } from './useDashboardAPI'
 export { useAutoSave } from './useAutoSave'
 export { useDashboardPermissions } from './useDashboardPermissions'
-export { useDashboardDiscovery } from './useDashboardDiscovery'
-export { useDashboardEngagement } from './useDashboardEngagement'
 export { useMyDashboards } from './useMyDashboards'
-export { useDimensionProtocols } from './useDimensionProtocols'

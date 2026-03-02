@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
-import { download } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
@@ -13,13 +14,12 @@ import {
 } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const TreeMapBuilderChart = lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
-const DEFAULT_SERIES_COLOR = '#3366ff'
+const DEFAULT_SERIES_COLOR = '#3e61cc'
 const EMPTY_SERIES_COLORS: Record<string, string> = {}
 const EMPTY_SERIES_NAMES: string[] = []
 const HEX_COLOR_REGEX = /^#([0-9a-f]{3}){1,2}$/i
@@ -133,12 +133,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 	const categoryFilterMode = resolveFilterMode(config.categoryFilterMode, config.filterMode)
 	const chainCategoryFilterMode = resolveFilterMode(config.chainCategoryFilterMode, config.filterMode)
 	const protocolCategoryFilterMode = resolveFilterMode(config.protocolCategoryFilterMode, config.filterMode)
-
-	useEffect(() => {
-		if (isReadOnly) {
-			setShowColors(false)
-		}
-	}, [isReadOnly])
+	const effectiveShowColors = !isReadOnly && showColors
 
 	const isTvlChart = config.metric === 'tvl' || config.metric === 'stablecoins'
 	const treemapValue = config.treemapValue || 'latest'
@@ -162,6 +157,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 
 	const { data: chartData, isLoading } = useQuery({
 		queryKey: [
+			'pro-dashboard',
 			'chartBuilder',
 			config.mode,
 			config.metric,
@@ -647,7 +643,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 									onClick={() => handleGroupingChange(builder.id, option)}
 									className={`px-2 py-1 text-xs font-medium transition-colors duration-150 ease-in-out sm:px-3 ${index > 0 ? 'border-l border-(--form-control-border)' : ''} ${
 										builder.grouping === option || (!builder.grouping && option === 'day')
-											? 'focus:ring-opacity-50 bg-(--primary) text-white focus:ring-2 focus:ring-(--primary) focus:outline-hidden'
+											? 'bg-(--primary) text-white focus:ring-2 focus:ring-(--primary)/50 focus:outline-hidden'
 											: 'bg-transparent pro-hover-bg pro-text2 focus:ring-1 focus:ring-(--form-control-border) focus:outline-hidden'
 									}`}
 								>
@@ -703,9 +699,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							type="button"
 							onClick={() => setShowColors((prev) => !prev)}
 							disabled={isReadOnly}
-							aria-pressed={showColors}
+							aria-pressed={effectiveShowColors}
 							className={`flex items-center gap-1 rounded-md border px-1.5 py-1 text-xs transition-colors disabled:cursor-not-allowed ${
-								showColors
+								effectiveShowColors
 									? 'border-transparent bg-(--primary) text-white'
 									: 'border-(--form-control-border) hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue'
 							} disabled:border-(--cards-border) disabled:text-(--text-disabled)`}
@@ -738,7 +734,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 					)}
 					{chartSeries.length > 0 && (
 						<>
-							<ChartExportButton
+							<ChartPngExportButton
 								chartInstance={chartInstance}
 								filename={builder.name || config.metric}
 								title={config.chartType === 'treemap' ? undefined : builder.name || `${config.metric} by Protocol`}
@@ -753,7 +749,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						</>
 					)}
 				</div>
-				{showColors && chartSeries.length > 0 && (
+				{effectiveShowColors && chartSeries.length > 0 && (
 					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
 						{chartSeries.map((series: any) => {

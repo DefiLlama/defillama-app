@@ -1,7 +1,10 @@
+'use no memo'
+
+// TODO(PRO-2004): Remove this opt-out once React Compiler no longer regresses virtualized column sizing/layout sync.
+
 import type { Table } from '@tanstack/react-table'
 import { flexRender } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import * as React from 'react'
 import { useLayoutEffect, useRef } from 'react'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '~/components/Tooltip'
@@ -43,6 +46,7 @@ export function UnifiedVirtualTable({
 	})
 
 	const virtualItems = rowVirtualizer.getVirtualItems()
+	const headerGroups = table.getHeaderGroups()
 	const expandedCount = Object.keys(table.getState().expanded ?? {}).length
 
 	useLayoutEffect(() => {
@@ -66,10 +70,18 @@ export function UnifiedVirtualTable({
 					background: 'var(--cards-bg)'
 				}}
 			>
-				{table.getHeaderGroups().map((headerGroup) => {
+				{headerGroups.map((headerGroup) => {
 					const headers = headerGroup.headers.filter((header) => !header.column.columnDef.meta?.hidden)
 					if (!headers.length) {
 						return null
+					}
+
+					const isGroupRow = headerGroup.depth === 0 && headerGroups.length > 1
+					if (isGroupRow) {
+						const distinctGroups = headers.filter((h) => !h.isPlaceholder)
+						if (distinctGroups.length <= 1) {
+							return null
+						}
 					}
 
 					return (
@@ -85,7 +97,6 @@ export function UnifiedVirtualTable({
 								return (
 									<div
 										key={header.id}
-										data-align={meta?.align ?? 'start'}
 										style={{
 											gridColumn: `span ${header.colSpan}`,
 											position: isSticky ? 'sticky' : undefined,
@@ -99,19 +110,19 @@ export function UnifiedVirtualTable({
 												: ''
 										}`}
 									>
-										<span
+										<button
+											type="button"
 											className={`relative flex w-full flex-nowrap items-center justify-start gap-1 font-medium *:whitespace-nowrap data-[align=center]:justify-center data-[align=end]:justify-end ${header.column.getCanSort() ? 'cursor-pointer' : ''}`}
-											data-align={
-												meta?.align ??
-												(headerGroup.depth === 0 && table.getHeaderGroups().length > 1 ? 'center' : 'start')
-											}
+											data-align={meta?.align ?? (isGroupRow ? 'center' : 'start')}
 											onClick={header.column.getCanSort() ? () => header.column.toggleSorting() : undefined}
 										>
 											{header.isPlaceholder ? null : (
 												<HeaderWithTooltip content={meta?.headerHelperText}>{value}</HeaderWithTooltip>
 											)}
-											{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-										</span>
+											{!header.isPlaceholder && header.column.getCanSort() && (
+												<SortIcon dir={header.column.getIsSorted()} />
+											)}
+										</button>
 									</div>
 								)
 							})}
@@ -153,7 +164,7 @@ export function UnifiedVirtualTable({
 									return (
 										<div
 											key={cell.id}
-											data-ligther={stripedBg && i % 2 === 0}
+											data-lighter={stripedBg && i % 2 === 0}
 											className={`overflow-hidden border-t border-r border-(--divider) p-3 text-ellipsis whitespace-nowrap ${
 												compact
 													? 'flex items-center border-t-black/10 border-r-transparent px-5 dark:border-t-white/10'

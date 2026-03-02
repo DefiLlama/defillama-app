@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { startTransition, useState } from 'react'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldPageLoop from '~/containers/Yields/indexLoop'
 import { calculateLoopAPY, getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
@@ -12,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 		props: { ...data }
 	} = await getLendBorrowData()
 
-	const cgTokens = await getAllCGTokensList()
+	const cgTokens = await fetchAllCGTokensList()
 
 	const tokens = []
 
@@ -79,7 +80,7 @@ export default function YieldBorrow(data) {
 				<br />
 				3. deposit the borrowed amount M into pool X
 				<button
-					onClick={() => setMethodologyActivated((prev) => !prev)}
+					onClick={() => startTransition(() => setMethodologyActivated((prev) => !prev))}
 					className="mx-auto block font-medium text-(--blue) hover:underline"
 				>
 					Example

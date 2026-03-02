@@ -1,78 +1,62 @@
-import type { GetStaticPropsContext } from 'next'
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
-import { RAISES_API } from '~/constants'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { InvestorContainer } from '~/containers/Raises/Investor'
-import { getRaisesFiltersList } from '~/containers/Raises/utils'
+import { getInvestorRaisesPageData } from '~/containers/Raises/queries'
+import Layout from '~/layout'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Deals by Investor']
 
 export const getStaticProps = withPerformanceLogging(
 	'raises/[investorName]',
 	async ({ params }: GetStaticPropsContext<{ investorName: string }>) => {
+		const revalidate = maxAgeForNext([22])
+
 		if (!params?.investorName) {
-			return { notFound: true, props: null }
+			return { notFound: true, revalidate }
 		}
 
-		const name = params.investorName
-		const data = await fetchJson(RAISES_API)
-
-		const raises = []
-
-		let investorName = null
-
-		for (const raise of data.raises) {
-			let isInvestor = false
-
-			for (const leadInvestor of raise.leadInvestors ?? []) {
-				if (slug(leadInvestor.toLowerCase()) === name) {
-					investorName = leadInvestor
-					isInvestor = true
-				}
-			}
-
-			for (const otherInvestor of raise.otherInvestors ?? []) {
-				if (slug(otherInvestor.toLowerCase()) === name) {
-					investorName = otherInvestor
-					isInvestor = true
-				}
-			}
-
-			if (isInvestor) {
-				raises.push(raise)
-			}
+		const data = await getInvestorRaisesPageData(params.investorName)
+		if ('notFound' in data) {
+			return { notFound: true, revalidate }
 		}
 
-		if (raises.length === 0) {
-			return {
-				notFound: true,
-				revalidate: maxAgeForNext([22])
-			}
-		}
-
-		const filters = getRaisesFiltersList({ raises: data.raises, investorName: name })
-
-		return {
-			props: {
-				raises,
-				...filters,
-				investorName
-			},
-			revalidate: maxAgeForNext([22])
-		}
+		return { props: data, revalidate }
 	}
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return {
 		paths: [],
 		fallback: 'blocking'
 	}
 }
 
-const Raises = (props) => {
-	return <InvestorContainer {...props} />
+const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
+	const investorName = props.investorName
+	return (
+		<Layout
+			title="Raises - DefiLlama"
+			description={`Track ${investorName} investments, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			keywords={`${investorName.toLowerCase()} investments, total funding amount, total funding rounds`}
+			canonicalUrl={`/raises/${slug(investorName)}`}
+			pageName={pageName}
+		>
+			<InvestorContainer {...props} />
+		</Layout>
+	)
 }
 
 export default Raises

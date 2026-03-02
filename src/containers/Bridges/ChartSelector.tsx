@@ -15,7 +15,7 @@ export function ChartSelector({ options, selectedChart, onClick }: IProps) {
 	}
 
 	return (
-		<Ariakit.SelectProvider value={selectedChart} setValue={onClick}>
+		<Ariakit.SelectProvider value={selectedChart} setValue={onItemClick}>
 			<Ariakit.Select className="z-10 mr-auto flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) p-2 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
 				<FormattedName text={selectedChart} maxCharacters={20} fontSize={'16px'} fontWeight={600} />
 				<Ariakit.SelectArrow />

@@ -1,36 +1,36 @@
-import { Dispatch, SetStateAction, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import {
 	DEFAULT_COLUMN_ORDER,
 	DEFAULT_ROW_HEADERS,
 	DEFAULT_UNIFIED_TABLE_SORTING
 } from './components/UnifiedTable/constants'
-import { CustomTimePeriod, DashboardAction, DashboardState, TimePeriod } from './dashboardReducer'
-import { Dashboard } from './services/DashboardAPI'
+import type { CustomTimePeriod, DashboardAction, DashboardState, TimePeriod } from './dashboardReducer'
+import type { Dashboard } from './services/DashboardAPI'
 import {
-	AdvancedTvlChartConfig,
-	AdvancedTvlChartType,
-	BorrowedChartConfig,
-	BorrowedChartType,
+	type AdvancedTvlChartConfig,
+	type AdvancedTvlChartType,
+	type BorrowedChartConfig,
+	type BorrowedChartType,
 	CHART_TYPES,
-	ChartBuilderConfig,
-	ChartConfig,
-	DashboardItemConfig,
-	IncomeStatementConfig,
-	LlamaAIChartConfig,
-	MetricConfig,
-	MultiChartConfig,
-	ProtocolsTableConfig,
-	StablecoinAssetChartConfig,
-	StablecoinAssetChartType,
-	StablecoinChartType,
-	StablecoinsChartConfig,
-	StoredColSpan,
-	TableFilters,
-	TextConfig,
-	UnifiedTableConfig,
-	UnlocksScheduleConfig,
-	UnlocksPieConfig,
-	YieldsChartConfig
+	type ChartBuilderConfig,
+	type ChartConfig,
+	type DashboardItemConfig,
+	type IncomeStatementConfig,
+	type LlamaAIChartConfig,
+	type MetricConfig,
+	type MultiChartConfig,
+	type ProtocolsTableConfig,
+	type StablecoinAssetChartConfig,
+	type StablecoinAssetChartType,
+	type StablecoinChartType,
+	type StablecoinsChartConfig,
+	type StoredColSpan,
+	type TableFilters,
+	type TextConfig,
+	type UnifiedTableConfig,
+	type UnlocksScheduleConfig,
+	type UnlocksPieConfig,
+	type YieldsChartConfig
 } from './types'
 import { generateItemId } from './utils/dashboardUtils'
 

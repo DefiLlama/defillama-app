@@ -46,6 +46,7 @@ export interface MetricWithAvailability {
 
 export type WizardAction =
 	| { type: 'SET_STEP'; step: WizardStep }
+	| { type: 'APPLY_PRESET'; comparisonType: ComparisonType; items: string[]; step: WizardStep }
 	| { type: 'SET_COMPARISON_TYPE'; comparisonType: ComparisonType }
 	| { type: 'SET_SELECTED_ITEMS'; items: string[] }
 	| { type: 'TOGGLE_SELECTED_ITEM'; item: string; maxItems?: number }

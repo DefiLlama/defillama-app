@@ -1,9 +1,10 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -35,6 +36,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				project={row.original.project}
 				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
 				borrow={true}
 			/>
 		),
@@ -55,7 +57,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -79,7 +81,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="supply">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</div>
 			)
 		},
@@ -96,7 +98,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		cell: (info) => {
 			return (
 				<ColoredAPY data-variant={(info.getValue() as number) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-					{formattedPercent(info.getValue(), true, 700, true)}
+					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -111,7 +113,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
@@ -139,7 +141,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						iconType="token"
 						yieldRewardsSymbols={row.original.rewardTokensSymbols}
 					/>
-					<ColoredAPY data-variant="borrow">{formattedPercent(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="borrow">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</div>
 			) : null
 		},

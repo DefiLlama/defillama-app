@@ -1,4 +1,4 @@
-import { MetricType } from '~/hooks/useEmailNotifications'
+import type { MetricType } from '~/hooks/useEmailNotifications'
 
 export const mapUIMetricToAPI = (uiMetric: string): MetricType => {
 	const mapping: Record<string, MetricType> = {

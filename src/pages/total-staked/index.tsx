@@ -1,12 +1,17 @@
-import { maxAgeForNext } from '~/api'
-import { getTotalStakedByChain } from '~/containers/TotalStaked/queries'
-import { StakedProtocolsTVLByChain } from '~/containers/TotalStaked/StakedByChain'
+import type { InferGetStaticPropsType } from 'next'
+import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`total-staked/index`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const data = await getTotalStakedByChain({ chain: 'All', protocolMetadata: metadataCache.protocolMetadata })
+	const data = await getExtraTvlByChain({
+		chain: 'All',
+		metric: 'staking',
+		protocolMetadata: metadataCache.protocolMetadata
+	})
 
 	if (!data) return { notFound: true }
 
@@ -18,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(`total-staked/index`, async
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
 
-export default function TotalBorrowed(props) {
+export default function TotalStaked(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Total Staked - DefiLlama"
@@ -27,7 +32,7 @@ export default function TotalBorrowed(props) {
 			canonicalUrl={`/total-staked`}
 			pageName={pageName}
 		>
-			<StakedProtocolsTVLByChain {...props} />
+			<ExtraTvlByChain {...props} />
 		</Layout>
 	)
 }

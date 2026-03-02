@@ -9,7 +9,8 @@ export const setChainMetrics = (metrics: Record<string, ChainMetrics> | undefine
 	}
 }
 
-export const getChainMetrics = (): Record<string, ChainMetrics> => {
+// oxlint-disable-next-line no-unused-vars
+const getChainMetrics = (): Record<string, ChainMetrics> => {
 	return currentChainMetrics
 }
 

@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { PEGGEDCHART_API, PEGGEDPRICES_API, PEGGEDRATES_API, PEGGEDS_API } from '~/constants'
+import {
+	fetchStablecoinAssetsApi,
+	fetchStablecoinChartApi,
+	fetchStablecoinPricesApi,
+	fetchStablecoinRatesApi
+} from '~/containers/Stablecoins/api'
 import { buildStablecoinChartData, formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getDominancePercent } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 interface UseStablecoinsChartDataResult {
 	peggedAreaTotalData: any[]
@@ -26,13 +30,13 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['stablecoins-chart-data', chain],
+		queryKey: ['pro-dashboard', 'stablecoins-chart-data', chain],
 		queryFn: async () => {
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
-				fetchJson(PEGGEDS_API),
-				fetchJson(`${PEGGEDCHART_API}/${chain === 'All' ? 'all-llama-app' : chain}`),
-				fetchJson(PEGGEDPRICES_API),
-				fetchJson(PEGGEDRATES_API)
+				fetchStablecoinAssetsApi(),
+				fetchStablecoinChartApi(chain === 'All' ? 'all-llama-app' : chain),
+				fetchStablecoinPricesApi(),
+				fetchStablecoinRatesApi()
 			])
 
 			const { peggedAssets } = peggedData
@@ -91,7 +95,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			const doublecountedIds: number[] = []
 			for (let idx = 0; idx < peggedAssets.length; idx++) {
 				const asset = peggedAssets[idx]
-				if (asset.doublecounted) {
+				if ((asset as unknown as { doublecounted?: boolean }).doublecounted) {
 					doublecountedIds.push(idx)
 				}
 			}
@@ -209,9 +213,9 @@ export interface StablecoinChainInfo {
 
 export function useStablecoinChainsList() {
 	return useQuery({
-		queryKey: ['stablecoin-chains-list'],
+		queryKey: ['pro-dashboard', 'stablecoin-chains-list'],
 		queryFn: async () => {
-			const data = await fetchJson(PEGGEDS_API)
+			const data = await fetchStablecoinAssetsApi()
 			const chains = data?.chains || []
 			return chains
 				.map((c: any) => {

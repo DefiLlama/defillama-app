@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
@@ -150,10 +149,11 @@ function PressPage() {
 				</p>
 				<p>
 					<a
-						className="text-(--blue) hover:underline"
+						href="/defillama-press-kit.zip"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="/defillama-press-kit.zip"
+						download
+						className="text-(--blue) hover:underline"
 					>
 						Download branding assets
 					</a>

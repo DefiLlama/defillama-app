@@ -1,11 +1,14 @@
-import { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { ForksData } from '~/containers/ProtocolOverview/Forks'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { slug } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import { slug, tokenIconUrl } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -30,9 +33,11 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true, props: null }
 		}
 
-		const protocolData = await getProtocol(protocol)
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+		const { getForksByProtocolPageData } = await import('~/containers/Forks/queries')
+		const forksData = await getForksByProtocolPageData({ fork: protocolData.name })
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
 
 		return {
 			props: {
@@ -40,6 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
+				forksData,
 				warningBanners: getProtocolWarningBanners(protocolData)
 			},
 			revalidate: maxAgeForNext([22])
@@ -48,10 +54,20 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Protocols({ clientSide: _clientSide, protocolData: _protocolData, ...props }) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<ProtocolOverviewLayout
 			name={props.name}
@@ -61,9 +77,17 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			tab="forks"
 			warningBanners={props.warningBanners}
 		>
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<ForksData protocolName={props.name} />
+			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<h1 className="text-xl font-bold">{props.name} Forks</h1>
 			</div>
+			{!props.forksData ? (
+				<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<p className="p-2">Failed to fetch</p>
+				</div>
+			) : (
+				<ForksByProtocol {...props.forksData} />
+			)}
 		</ProtocolOverviewLayout>
 	)
 }

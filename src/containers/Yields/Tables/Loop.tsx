@@ -1,9 +1,10 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -35,6 +36,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				project={row.original.project}
 				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
 				borrow={true}
 			/>
 		),
@@ -61,12 +63,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						<div className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
 							<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
-								{formattedPercent(getValue(), true, 700, true)}
+								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</div>
 					) : (
 						<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
-							{formattedPercent(getValue(), true, 700, true)}
+							{formatPercentChangeText(getValue(), true)}
 						</ColoredAPY>
 					)}
 				</>
@@ -83,7 +85,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 120,
 		meta: {
