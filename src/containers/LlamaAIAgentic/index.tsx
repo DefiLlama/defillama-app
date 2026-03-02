@@ -594,7 +594,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			prompt: string,
 			_entities?: Array<{ term: string; slug: string }>,
 			images?: Array<{ data: string; mimeType: string; filename?: string }>,
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 		) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming) return

@@ -399,7 +399,8 @@ function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChart
 			case 'pie':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} customComponents={chartToolbar} />
+						{chartToolbar}
+						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} />
 					</Suspense>
 				)
 				break
