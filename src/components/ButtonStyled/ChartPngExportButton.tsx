@@ -17,6 +17,53 @@ const approximateTextWidth = (text: string, fontSize: number) => {
 	return text.length * fontSize * averageCharWidthRatio
 }
 
+/**
+ * ECharts' SVG painter ignores the `type` param and always returns an SVG data URL
+ * from getDataURL(). This helper detects that case and rasterizes the SVG to a PNG
+ * asynchronously (Image.onload + Canvas), which getDataURL() can't do internally
+ * because it's synchronous.
+ */
+async function getChartPngDataURL(
+	chart: echarts.ECharts,
+	opts: { pixelRatio?: number; backgroundColor?: string; excludeComponents?: string[] }
+): Promise<string> {
+	const { pixelRatio = 2, backgroundColor = '#ffffff', excludeComponents } = opts
+
+	const dataURL = chart.getDataURL({
+		type: 'png',
+		pixelRatio,
+		backgroundColor,
+		excludeComponents
+	})
+
+	if (dataURL.startsWith('data:image/png')) {
+		return dataURL
+	}
+
+	// SVG renderer ignores the type param and returns SVG — rasterize to PNG manually
+	const img = new Image()
+	await new Promise<void>((resolve, reject) => {
+		img.onload = () => resolve()
+		img.onerror = reject
+		img.src = dataURL
+	})
+
+	const w = img.naturalWidth || img.width
+	const h = img.naturalHeight || img.height
+	const canvas = document.createElement('canvas')
+	canvas.width = w * pixelRatio
+	canvas.height = h * pixelRatio
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return dataURL
+
+	ctx.fillStyle = backgroundColor
+	ctx.fillRect(0, 0, canvas.width, canvas.height)
+	ctx.scale(pixelRatio, pixelRatio)
+	ctx.drawImage(img, 0, 0, w, h)
+
+	return canvas.toDataURL('image/png')
+}
+
 const parsePixelValue = (value: unknown) => {
 	if (typeof value === 'number' && Number.isFinite(value)) return value
 	if (typeof value === 'string') {
@@ -27,6 +74,51 @@ const parsePixelValue = (value: unknown) => {
 		}
 	}
 	return null
+}
+
+const hasSeriesType = (options: Record<string, any>, type: string) =>
+	Array.isArray(options.series) &&
+	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
+
+async function loadCircularIcon(url: string): Promise<string | null> {
+	const slugMatch = url.match(/\/protocols\/([^?]+)/)
+	const slug = slugMatch?.[1]
+	if (!slug) return null
+
+	try {
+		const response = await fetch(`/api/protocol-icon?slug=${encodeURIComponent(slug)}`)
+		if (!response.ok) return null
+
+		const blob = await response.blob()
+		const base64 = await new Promise<string>((resolve, reject) => {
+			const reader = new FileReader()
+			reader.onloadend = () => resolve(reader.result as string)
+			reader.onerror = reject
+			reader.readAsDataURL(blob)
+		})
+
+		const img = new Image()
+		await new Promise<void>((resolve, reject) => {
+			img.onload = () => resolve()
+			img.onerror = reject
+			img.src = base64
+		})
+
+		const canvas = document.createElement('canvas')
+		canvas.width = img.width
+		canvas.height = img.height
+		const ctx = canvas.getContext('2d')
+		if (!ctx) return base64
+
+		ctx.beginPath()
+		ctx.arc(img.width / 2, img.height / 2, Math.min(img.width, img.height) / 2, 0, 2 * Math.PI)
+		ctx.closePath()
+		ctx.clip()
+		ctx.drawImage(img, 0, 0)
+		return canvas.toDataURL()
+	} catch {
+		return null
+	}
 }
 
 /**
@@ -40,10 +132,7 @@ async function exportTreemapWithZoom(
 	isDark: boolean
 ): Promise<string | null> {
 	try {
-		// Capture exactly what the user sees, including any zoom state.
-		// Use a high pixel ratio for sharp output regardless of viewport size.
-		const chartDataURL = chart.getDataURL({
-			type: 'png',
+		const chartDataURL = await getChartPngDataURL(chart, {
 			pixelRatio: 4,
 			backgroundColor: isDark ? '#0b1214' : '#ffffff',
 			excludeComponents: ['toolbox']
@@ -123,69 +212,11 @@ async function renderClonedChartExport(
 		// Get the current options from the original chart
 		const currentOptions = originalChart.getOption()
 
-		let iconBase64: string | null = null
-		if (iconUrl) {
-			try {
-				const slugMatch = iconUrl.match(/\/protocols\/([^?]+)/)
-				const slug = slugMatch?.[1]
-				if (!slug) throw new Error('Could not extract slug from icon URL')
-				const proxyUrl = `/api/protocol-icon?slug=${encodeURIComponent(slug)}`
-				const response = await fetch(proxyUrl)
-				if (!response.ok) throw new Error('Network response was not ok')
-				const blob = await response.blob()
-				const base64 = await new Promise<string>((resolve, reject) => {
-					const reader = new FileReader()
-					reader.onloadend = () => resolve(reader.result as string)
-					reader.onerror = reject
-					reader.readAsDataURL(blob)
-				})
+		const iconBase64 = iconUrl ? await loadCircularIcon(iconUrl) : null
 
-				try {
-					const img = new Image()
-					await new Promise((resolve, reject) => {
-						img.onload = resolve
-						img.onerror = reject
-						img.src = base64
-					})
-
-					const canvas = document.createElement('canvas')
-					canvas.width = img.width
-					canvas.height = img.height
-					const ctx = canvas.getContext('2d')
-					if (ctx) {
-						ctx.beginPath()
-						ctx.arc(img.width / 2, img.height / 2, Math.min(img.width, img.height) / 2, 0, 2 * Math.PI)
-						ctx.closePath()
-						ctx.clip()
-						ctx.drawImage(img, 0, 0)
-						iconBase64 = canvas.toDataURL()
-					} else {
-						iconBase64 = base64
-					}
-				} catch (e) {
-					console.log('Error processing icon image', e)
-					iconBase64 = base64
-				}
-			} catch (e) {
-				console.log('Failed to load icon for export', e)
-			}
-		}
-
-		const isSankeyChart =
-			Array.isArray(currentOptions.series) &&
-			currentOptions.series.some(
-				(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'sankey'
-			)
-		const isPieChart =
-			Array.isArray(currentOptions.series) &&
-			currentOptions.series.some(
-				(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'pie'
-			)
-		const isTreemapChart =
-			Array.isArray(currentOptions.series) &&
-			currentOptions.series.some(
-				(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
-			)
+		const isSankeyChart = hasSeriesType(currentOptions, 'sankey')
+		const isPieChart = hasSeriesType(currentOptions, 'pie')
+		const isTreemapChart = hasSeriesType(currentOptions, 'treemap')
 
 		// Treemap labels rely on local rich-text sizing. A global textStyle boost makes
 		// inline label text (e.g. "DeFi Active TVL") too large vs the value text.
@@ -327,10 +358,10 @@ async function renderClonedChartExport(
 			totalLegendWidth > 0 &&
 			titleWidth + horizontalGap + totalLegendWidth <= availableWidth
 
-		let legendTop =
+		const legendTop =
 			baseTopPadding +
 			(canShareRow ? Math.max(0, (titleHeight - singleRowHeight) / 2) : title ? titleHeight + verticalGap : 0)
-		let gridTop =
+		const gridTop =
 			baseTopPadding +
 			(canShareRow
 				? Math.max(titleHeight, legendHeight) + verticalGap
@@ -472,9 +503,7 @@ async function renderClonedChartExport(
 			tempChart.on('rendered', handler as any)
 		})
 
-		// Get the data URL from the temporary chart
-		const dataURL = tempChart.getDataURL({
-			type: 'png',
+		const dataURL = await getChartPngDataURL(tempChart, {
 			pixelRatio: 2,
 			backgroundColor: isDark ? '#0b1214' : '#ffffff',
 			excludeComponents: ['toolbox', 'dataZoom']
@@ -533,13 +562,7 @@ export function ChartPngExportButton({
 			}
 			setIsLoading(true)
 
-			const earlyOptions = _chartInstance.getOption()
-			let isTreemapExport = false
-			if (Array.isArray(earlyOptions.series)) {
-				isTreemapExport = earlyOptions.series.some(
-					(series) => typeof series === 'object' && series != null && 'type' in series && series.type === 'treemap'
-				)
-			}
+			const isTreemapExport = hasSeriesType(_chartInstance.getOption(), 'treemap')
 
 			let dataURL: string | null
 
