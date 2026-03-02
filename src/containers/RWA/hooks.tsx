@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
@@ -10,7 +11,13 @@ import {
 	isTrueQueryParam,
 	pushShallowQuery
 } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
+import {
+	aggregateRwaChartData,
+	emptyChartDatasets,
+	type RWAChartAggregationMode,
+	type RWAChartDatasetsByMetric
+} from './chartAggregation'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
@@ -1072,46 +1079,8 @@ export function useRwaChainBreakdownPieChartData({
 	}, [assets, enabled])
 }
 
-type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
-
-type RWAChartRow = { timestamp: number } & Record<string, number>
-
-type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
-
-function emptyChartDataset(): RWAChartDataset {
-	return { source: [], dimensions: ['timestamp'] }
-}
-
-function emptyChartDatasets(): Record<RWAChartMetric, RWAChartDataset> {
-	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
-}
-
-function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
-	const arr = Array.from(keys).filter(Boolean)
-	if (arr.length === 0) return arr
-
-	let latestRow: RWAChartRow | null = null
-	let latestTimestamp = Number.NEGATIVE_INFINITY
-	for (const row of rows) {
-		if (!Number.isFinite(row.timestamp)) continue
-		if (row.timestamp >= latestTimestamp) {
-			latestTimestamp = row.timestamp
-			latestRow = row
-		}
-	}
-
-	return arr.sort((a, b) => {
-		if (a === 'Others') return 1
-		if (b === 'Others') return -1
-
-		const aValueRaw = latestRow?.[a]
-		const bValueRaw = latestRow?.[b]
-		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
-		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
-		if (aValue !== bValue) return bValue - aValue
-		return a.localeCompare(b)
-	})
-}
+// RWAChartMetric, RWAChartRow, emptyChartDatasets, sortKeysByLatestTimestampValue
+// are now re-exported from ./chartAggregation
 
 export function useRwaChartDataByCategory({
 	enabled,
@@ -1120,83 +1089,13 @@ export function useRwaChartDataByCategory({
 }: {
 	enabled: boolean
 	assets: IRWAAssetsOverview['assets']
-	chartDataByTicker: IRWAAssetsOverview['chartData']
+	chartDataByTicker: IRWAChartDataByTicker | null
 }): {
-	chartDatasetByCategory: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
+	chartDatasetByCategory: RWAChartDatasetsByMetric
 } {
 	return useMemo(() => {
-		const empty = { chartDatasetByCategory: emptyChartDatasets() }
-
-		if (!enabled) return empty
-		if (!chartDataByTicker) return empty
-
-		// Build ticker -> categories lookup from filtered assets.
-		// Use a Set per ticker to avoid both duplicate category labels and ticker-collision overwrites.
-		const tickerToCategories = new Map<string, Set<string>>()
-		for (const asset of assets) {
-			const ticker = asset.ticker
-			if (!ticker) continue
-			const categories = toUniqueNonEmptyValues(asset.category)
-			if (categories.length === 0) continue
-
-			const tickerCategories = tickerToCategories.get(ticker) ?? new Set<string>()
-			for (const category of categories) {
-				tickerCategories.add(category)
-			}
-			tickerToCategories.set(ticker, tickerCategories)
-		}
-
-		const aggregate = (rows: RWAChartRow[], seenCategories: Set<string>): RWAChartRow[] => {
-			const out: RWAChartRow[] = []
-
-			for (const row of rows ?? []) {
-				const outRow: RWAChartRow = { timestamp: row.timestamp }
-
-				for (const [ticker, value] of Object.entries(row)) {
-					if (ticker === 'timestamp') continue
-					if (!Number.isFinite(value) || value === 0) continue
-
-					const categories = tickerToCategories.get(ticker)
-					if (!categories || categories.size === 0) continue
-
-					for (const category of categories) {
-						// Intentional full-count behavior across all category memberships.
-						// To migrate to split-even later, add value / categories.length instead.
-						seenCategories.add(category)
-						outRow[category] = (outRow[category] ?? 0) + value
-					}
-				}
-
-				out.push(outRow)
-			}
-
-			return out
-		}
-
-		const seenOnChain = new Set<string>()
-		const seenActive = new Set<string>()
-		const seenDefi = new Set<string>()
-
-		const onChainMcap = aggregate(chartDataByTicker.onChainMcap, seenOnChain)
-		const activeMcap = aggregate(chartDataByTicker.activeMcap, seenActive)
-		const defiActiveTvl = aggregate(chartDataByTicker.defiActiveTvl, seenDefi)
-
-		return {
-			chartDatasetByCategory: {
-				onChainMcap: {
-					source: onChainMcap,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
-				},
-				activeMcap: {
-					source: activeMcap,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
-				},
-				defiActiveTvl: {
-					source: defiActiveTvl,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
-				}
-			}
-		}
+		if (!enabled || !chartDataByTicker) return { chartDatasetByCategory: emptyChartDatasets() }
+		return { chartDatasetByCategory: aggregateRwaChartData(assets, chartDataByTicker, 'category') }
 	}, [assets, chartDataByTicker, enabled])
 }
 
@@ -1207,83 +1106,13 @@ export function useRwaChartDataByAssetClass({
 }: {
 	enabled: boolean
 	assets: IRWAAssetsOverview['assets']
-	chartDataByTicker: IRWAAssetsOverview['chartData']
+	chartDataByTicker: IRWAChartDataByTicker | null
 }): {
-	chartDatasetByAssetClass: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
+	chartDatasetByAssetClass: RWAChartDatasetsByMetric
 } {
 	return useMemo(() => {
-		const empty = { chartDatasetByAssetClass: emptyChartDatasets() }
-
-		if (!enabled) return empty
-		if (!chartDataByTicker) return empty
-
-		// Build ticker -> asset classes lookup from filtered assets.
-		// Use a Set per ticker to avoid both duplicate class labels and ticker-collision overwrites.
-		const tickerToAssetClasses = new Map<string, Set<string>>()
-		for (const asset of assets) {
-			const ticker = asset.ticker
-			if (!ticker) continue
-			const assetClasses = toUniqueNonEmptyValues(asset.assetClass)
-			if (assetClasses.length === 0) continue
-
-			const tickerAssetClasses = tickerToAssetClasses.get(ticker) ?? new Set<string>()
-			for (const assetClass of assetClasses) {
-				tickerAssetClasses.add(assetClass)
-			}
-			tickerToAssetClasses.set(ticker, tickerAssetClasses)
-		}
-
-		const aggregate = (rows: RWAChartRow[], seenAssetClasses: Set<string>): RWAChartRow[] => {
-			const out: RWAChartRow[] = []
-
-			for (const row of rows ?? []) {
-				const outRow: RWAChartRow = { timestamp: row.timestamp }
-
-				for (const [ticker, value] of Object.entries(row)) {
-					if (ticker === 'timestamp') continue
-					if (!Number.isFinite(value) || value === 0) continue
-
-					const assetClasses = tickerToAssetClasses.get(ticker)
-					if (!assetClasses || assetClasses.size === 0) continue
-
-					for (const assetClass of assetClasses) {
-						// Intentional full-count behavior across all asset-class memberships.
-						// To migrate to split-even later, add value / assetClasses.length instead.
-						seenAssetClasses.add(assetClass)
-						outRow[assetClass] = (outRow[assetClass] ?? 0) + value
-					}
-				}
-
-				out.push(outRow)
-			}
-
-			return out
-		}
-
-		const seenOnChain = new Set<string>()
-		const seenActive = new Set<string>()
-		const seenDefi = new Set<string>()
-
-		const onChainMcap = aggregate(chartDataByTicker.onChainMcap, seenOnChain)
-		const activeMcap = aggregate(chartDataByTicker.activeMcap, seenActive)
-		const defiActiveTvl = aggregate(chartDataByTicker.defiActiveTvl, seenDefi)
-
-		return {
-			chartDatasetByAssetClass: {
-				onChainMcap: {
-					source: onChainMcap,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
-				},
-				activeMcap: {
-					source: activeMcap,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
-				},
-				defiActiveTvl: {
-					source: defiActiveTvl,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
-				}
-			}
-		}
+		if (!enabled || !chartDataByTicker) return { chartDatasetByAssetClass: emptyChartDatasets() }
+		return { chartDatasetByAssetClass: aggregateRwaChartData(assets, chartDataByTicker, 'assetClass') }
 	}, [assets, chartDataByTicker, enabled])
 }
 
@@ -1294,79 +1123,124 @@ export function useRwaChartDataByAssetName({
 }: {
 	enabled: boolean
 	assets: IRWAAssetsOverview['assets']
-	chartDataByTicker: IRWAAssetsOverview['chartData']
+	chartDataByTicker: IRWAChartDataByTicker | null
 }): {
-	chartDatasetByAssetName: Record<RWAChartMetric, { source: RWAChartRow[]; dimensions: string[] }>
+	chartDatasetByAssetName: RWAChartDatasetsByMetric
 } {
 	return useMemo(() => {
-		const empty = { chartDatasetByAssetName: emptyChartDatasets() }
-
-		if (!enabled) return empty
-		if (!chartDataByTicker) return empty
-
-		// Build ticker -> asset names lookup from filtered assets.
-		// Use a Set per ticker to avoid ticker-collision overwrites.
-		const tickerToAssetNames = new Map<string, Set<string>>()
-		for (const asset of assets) {
-			const ticker = asset.ticker
-			if (!ticker) continue
-			const name = (asset.assetName || asset.ticker || '').trim()
-			if (!name) continue
-			const names = tickerToAssetNames.get(ticker) ?? new Set<string>()
-			names.add(name)
-			tickerToAssetNames.set(ticker, names)
-		}
-
-		const aggregate = (rows: RWAChartRow[], seenAssetNames: Set<string>): RWAChartRow[] => {
-			const out: RWAChartRow[] = []
-
-			for (const row of rows ?? []) {
-				const outRow: RWAChartRow = { timestamp: row.timestamp }
-
-				for (const [ticker, value] of Object.entries(row)) {
-					if (ticker === 'timestamp') continue
-					if (!Number.isFinite(value) || value === 0) continue
-
-					const assetNames = tickerToAssetNames.get(ticker)
-					if (!assetNames || assetNames.size === 0) continue
-
-					// Intentional full-count behavior across all ticker->assetName mappings.
-					// To migrate to split-even later, add value / assetNames.size instead.
-					for (const assetName of assetNames) {
-						seenAssetNames.add(assetName)
-						outRow[assetName] = (outRow[assetName] ?? 0) + value
-					}
-				}
-
-				out.push(outRow)
-			}
-
-			return out
-		}
-
-		const seenOnChain = new Set<string>()
-		const seenActive = new Set<string>()
-		const seenDefi = new Set<string>()
-
-		const onChainMcap = aggregate(chartDataByTicker.onChainMcap, seenOnChain)
-		const activeMcap = aggregate(chartDataByTicker.activeMcap, seenActive)
-		const defiActiveTvl = aggregate(chartDataByTicker.defiActiveTvl, seenDefi)
-
-		return {
-			chartDatasetByAssetName: {
-				onChainMcap: {
-					source: onChainMcap,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
-				},
-				activeMcap: {
-					source: activeMcap,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
-				},
-				defiActiveTvl: {
-					source: defiActiveTvl,
-					dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
-				}
-			}
-		}
+		if (!enabled || !chartDataByTicker) return { chartDatasetByAssetName: emptyChartDatasets() }
+		return { chartDatasetByAssetName: aggregateRwaChartData(assets, chartDataByTicker, 'assetName') }
 	}, [assets, chartDataByTicker, enabled])
+}
+
+const CHART_FILTER_QUERY_KEYS = new Set([
+	'assetNames',
+	'types',
+	'categories',
+	'platforms',
+	'assetClasses',
+	'rwaClassifications',
+	'accessModels',
+	'issuers',
+	'excludeAssetNames',
+	'excludeTypes',
+	'excludeCategories',
+	'excludePlatforms',
+	'excludeAssetClasses',
+	'excludeRwaClassifications',
+	'excludeAccessModels',
+	'excludeIssuers',
+	'redeemableStates',
+	'attestationsStates',
+	'cexListedStates',
+	'kycForMintRedeemStates',
+	'kycAllowlistedWhitelistedToTransferHoldStates',
+	'transferableStates',
+	'selfCustodyStates',
+	'minDefiActiveTvlToOnChainMcapPct',
+	'maxDefiActiveTvlToOnChainMcapPct',
+	'minActiveMcapToOnChainMcapPct',
+	'maxActiveMcapToOnChainMcapPct',
+	'minDefiActiveTvlToActiveMcapPct',
+	'maxDefiActiveTvlToActiveMcapPct',
+	'includeStablecoins',
+	'includeGovernance'
+])
+
+export function hasActiveChartFilters(query: NextRouter['query']): boolean {
+	for (const key of CHART_FILTER_QUERY_KEYS) {
+		if (key in query) return true
+	}
+	return false
+}
+
+async function fetchRwaTickerChartData(params: {
+	chainSlug: string | null
+	categorySlug: string | null
+	platformSlug: string | null
+}): Promise<IRWAChartDataByTicker> {
+	const searchParams = new URLSearchParams()
+	if (params.chainSlug) searchParams.set('chain', params.chainSlug)
+	else if (params.categorySlug) searchParams.set('category', params.categorySlug)
+	else if (params.platformSlug) searchParams.set('platform', params.platformSlug)
+
+	const response = await fetch(`/api/rwa/chart-data?${searchParams.toString()}`)
+	if (!response.ok) {
+		throw new Error(`Failed to fetch RWA chart data: ${response.status}`)
+	}
+	return response.json()
+}
+
+export function useRwaChartDataset({
+	initialChartDataset,
+	filteredAssets,
+	mode,
+	chainSlug,
+	categorySlug,
+	platformSlug,
+	hasActiveFilters
+}: {
+	initialChartDataset: RWAChartDatasetsByMetric | null
+	filteredAssets: IRWAAssetsOverview['assets']
+	mode: RWAChartAggregationMode
+	chainSlug: string | null
+	categorySlug: string | null
+	platformSlug: string | null
+	hasActiveFilters: boolean
+}): {
+	chartDatasetByMode: RWAChartDatasetsByMetric
+	isChartLoading: boolean
+	chartError: string | null
+} {
+	const {
+		data: tickerData,
+		isLoading,
+		error
+	} = useQuery({
+		queryKey: ['rwa-ticker-chart', chainSlug, categorySlug, platformSlug],
+		queryFn: () => fetchRwaTickerChartData({ chainSlug, categorySlug, platformSlug }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: hasActiveFilters
+	})
+
+	const filteredDataset = useMemo(() => {
+		if (!hasActiveFilters || !tickerData) return null
+		return aggregateRwaChartData(filteredAssets, tickerData, mode)
+	}, [hasActiveFilters, tickerData, filteredAssets, mode])
+
+	if (!hasActiveFilters) {
+		return {
+			chartDatasetByMode: initialChartDataset ?? emptyChartDatasets(),
+			isChartLoading: false,
+			chartError: null
+		}
+	}
+
+	return {
+		chartDatasetByMode: filteredDataset ?? emptyChartDatasets(),
+		isChartLoading: isLoading,
+		chartError: error ? (error instanceof Error ? error.message : String(error)) : null
+	}
 }

@@ -3,7 +3,13 @@ import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
-import type { IHBarChartProps, IMultiSeriesChart2Props, IPieChartProps, ITreemapChartProps } from '~/components/ECharts/types'
+import type {
+	IHBarChartProps,
+	IMultiSeriesChart2Props,
+	IPieChartProps,
+	ITreemapChartProps
+} from '~/components/ECharts/types'
+import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -13,6 +19,7 @@ import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
+import type { RWAChartAggregationMode } from './chartAggregation'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
@@ -23,9 +30,8 @@ import {
 	useRwaAssetPlatformPieChartData,
 	useRwaCategoryAssetClassPieChartData,
 	useRwaChainBreakdownPieChartData,
-	useRwaChartDataByAssetClass,
-	useRwaChartDataByAssetName,
-	useRwaChartDataByCategory
+	useRwaChartDataset,
+	hasActiveChartFilters
 } from './hooks'
 import { rwaSlug } from './rwaSlug'
 import {
@@ -72,7 +78,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			? 'hbar'
 			: chartViewQuery === 'pie' || chartViewQuery === 'treemap' || chartViewQuery === 'hbar'
 				? chartViewQuery
-			: 'timeSeries'
+				: 'timeSeries'
 	const treemapNestedByQuery =
 		typeof router.query.treemapNestedBy === 'string' &&
 		validTreemapNestedBy.has(router.query.treemapNestedBy as RwaTreemapNestedBy)
@@ -158,22 +164,20 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			maxDefiActiveTvlToActiveMcapPct
 		})
 
-	const { chartDatasetByCategory } = useRwaChartDataByCategory({
-		enabled: isChainMode,
-		assets: filteredAssets,
-		chartDataByTicker: props.chartData
-	})
-
-	const { chartDatasetByAssetClass } = useRwaChartDataByAssetClass({
-		enabled: isCategoryMode,
-		assets: filteredAssets,
-		chartDataByTicker: props.chartData
-	})
-
-	const { chartDatasetByAssetName } = useRwaChartDataByAssetName({
-		enabled: isPlatformMode,
-		assets: filteredAssets,
-		chartDataByTicker: props.chartData
+	const activeFilters = hasActiveChartFilters(router.query)
+	const chartAggregationMode: RWAChartAggregationMode = isCategoryMode
+		? 'assetClass'
+		: isPlatformMode
+			? 'assetName'
+			: 'category'
+	const { chartDatasetByMode, isChartLoading, chartError } = useRwaChartDataset({
+		initialChartDataset: props.initialChartDataset,
+		filteredAssets,
+		mode: chartAggregationMode,
+		chainSlug: props.chainSlug,
+		categorySlug: props.categorySlug,
+		platformSlug: props.platformSlug,
+		hasActiveFilters: activeFilters
 	})
 
 	const {
@@ -351,13 +355,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
-	const chartDatasetByMode =
-		mode === 'category'
-			? chartDatasetByAssetClass
-			: mode === 'platform'
-				? chartDatasetByAssetName
-				: chartDatasetByCategory
-
 	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
 	const selectedPieChartData =
 		chartTypeKey === 'onChainMcap'
@@ -407,7 +404,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		}
 		return limitedData
 	}, [deferredSelectedPieChartData])
-	const selectedBarChartCategories = useMemo(() => selectedBarChartData.map((item) => item.name), [selectedBarChartData])
+	const selectedBarChartCategories = useMemo(
+		() => selectedBarChartData.map((item) => item.name),
+		[selectedBarChartData]
+	)
 	const selectedBarChartValues = useMemo(() => selectedBarChartData.map((item) => item.value), [selectedBarChartData])
 	const selectedBarChartColors = useMemo(
 		() => selectedBarChartData.map((item) => valueSortedPieChartStackColors[item.name] ?? '#1f77b4'),
@@ -710,16 +710,25 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									title={exportChartTitle}
 								/>
 							</div>
-							<Suspense fallback={<div className="min-h-[360px]" />}>
-								<MultiSeriesChart2
-									dataset={deferredSelectedTimeSeriesDataset}
-									hideDefaultLegend={false}
-									stacked
-									showTotalInTooltip
-									tooltipTotalPosition="top"
-									onReady={handleMultiSeriesChart2Ready}
-								/>
-							</Suspense>
+							{chartError ? (
+								<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{chartError}</p>
+							) : isChartLoading ? (
+								<p className="flex min-h-[360px] items-center justify-center gap-1">
+									Loading
+									<LoadingDots />
+								</p>
+							) : (
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={deferredSelectedTimeSeriesDataset}
+										hideDefaultLegend={false}
+										stacked
+										showTotalInTooltip
+										tooltipTotalPosition="top"
+										onReady={handleMultiSeriesChart2Ready}
+									/>
+								</Suspense>
+							)}
 						</div>
 					) : null}
 					{chartView === 'pie' || chartView === 'treemap' || chartView === 'hbar' ? (
@@ -734,7 +743,10 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 								{pieChartBreakdownSwitch}
 								{chartView === 'treemap' ? treemapNestedBySwitch : null}
 								{chartView === 'treemap' ? <ChartRestoreButton chartInstance={treemapChartInstance} /> : null}
-								<ChartCsvExportButton chartInstance={nonTimeSeriesChartInstance} filename={nonTimeSeriesChartFilename} />
+								<ChartCsvExportButton
+									chartInstance={nonTimeSeriesChartInstance}
+									filename={nonTimeSeriesChartFilename}
+								/>
 								<ChartPngExportButton
 									chartInstance={nonTimeSeriesChartInstance}
 									filename={nonTimeSeriesChartFilename}
@@ -752,13 +764,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										onReady={handlePieChartReady}
 									/>
 								) : chartView === 'hbar' ? (
-								<HBarChart
-									categories={selectedBarChartCategories}
-									values={selectedBarChartValues}
-									colors={selectedBarChartColors}
-									valueSymbol="$"
-									onReady={handleBarChartReady}
-								/>
+									<HBarChart
+										categories={selectedBarChartCategories}
+										values={selectedBarChartValues}
+										colors={selectedBarChartColors}
+										valueSymbol="$"
+										onReady={handleBarChartReady}
+									/>
 								) : (
 									<TreemapChart
 										treeData={treemapTreeData}

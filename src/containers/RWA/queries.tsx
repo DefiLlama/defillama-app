@@ -28,6 +28,7 @@ import type {
 	IRWAPlatformsOverviewRow,
 	RWAChartMetricKey
 } from './api.types'
+import { aggregateRwaChartData, applyDefaultAssetFilters, type RWAChartAggregationMode } from './chartAggregation'
 import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
@@ -516,6 +517,21 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			throw new Error('platforms not found in RWA list')
 		}
 
+		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
+		const isChainMode = !selectedCategory && !selectedPlatform
+		const aggregationMode: RWAChartAggregationMode = selectedCategory
+			? 'assetClass'
+			: selectedPlatform
+				? 'assetName'
+				: 'category'
+		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
+			includeStablecoins: !isChainMode,
+			includeGovernance: !isChainMode
+		})
+		const initialChartDataset = chartDataMs
+			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
+			: null
+
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
 			types: formattedTypes,
@@ -590,7 +606,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					issuers: Array.from(issuerSetStablecoinsAndGovernance)
 				}
 			},
-			chartData: chartDataMs
+			initialChartDataset,
+			chainSlug: selectedChain ?? null,
+			categorySlug: selectedCategory ?? null,
+			platformSlug: selectedPlatform ?? null
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
