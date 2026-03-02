@@ -515,10 +515,12 @@ export const getProtocolOverviewPageData = async ({
 		protocolData.currentChainTvls?.borrowed != null ||
 		raises?.length ||
 		expenses ||
+		treasury ||
 		tokenLiquidity?.length ||
 		feesData?.totalAllTime ||
 		revenueData?.totalAllTime ||
 		holdersRevenueData?.totalAllTime ||
+		incentives ||
 		dexVolumeData?.totalAllTime ||
 		perpVolumeData?.totalAllTime ||
 		dexAggregatorVolumeData?.totalAllTime ||
@@ -526,8 +528,11 @@ export const getProtocolOverviewPageData = async ({
 		bridgeAggregatorVolumeData?.totalAllTime ||
 		optionsPremiumVolumeData?.totalAllTime ||
 		optionsNotionalVolumeData?.totalAllTime ||
+		openInterestData?.total24h != null ||
+		bridgeVolumeData?.length ||
 		bribesData?.totalAllTime ||
 		tokenTaxData?.totalAllTime ||
+		oracleTvs ||
 		protocolData.tokenCGData
 	)
 
@@ -794,16 +799,17 @@ export const getProtocolOverviewPageData = async ({
 				? [protocolData.github]
 				: protocolData.github
 			: null,
-		methodology:
+		tvlMethodology:
 			protocolData.methodology ||
 			(currentProtocolMetadata.tvl && protocolData.module !== 'dummy.js'
 				? 'Total value of all coins held in the smart contracts of the protocol'
 				: null),
-		methodologyURL:
-			protocolData.tvlCodePath ??
-			(currentProtocolMetadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
-				? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
-				: null),
+		tvlMethodologyUrl:
+			protocolData.tvlCodePath && !protocolData.tvlCodePath.endsWith('dummy.js')
+				? protocolData.tvlCodePath
+				: currentProtocolMetadata.tvl && protocolData.module && protocolData.module !== 'dummy.js'
+					? `https://github.com/DefiLlama/DefiLlama-Adapters/tree/main/projects/${protocolData.module}`
+					: null,
 		token: {
 			symbol:
 				protocolData.symbol && protocolData.symbol !== '-'

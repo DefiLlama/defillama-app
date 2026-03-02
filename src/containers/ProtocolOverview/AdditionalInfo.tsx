@@ -239,23 +239,23 @@ const Methodology = (props: IProtocolOverviewPageData) => {
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
 			<SectionHeader id="methodology">Methodology</SectionHeader>
-			{!props.oracleTvs && props.methodologyURL ? (
-				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
+			{!props.oracleTvs && props.tvlMethodologyUrl ? (
+				<a href={props.tvlMethodologyUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
-					<span>{props.methodology ?? ''}</span>
+					<span>{props.tvlMethodology ?? ''}</span>
 					<span className="relative top-0.5 left-1 inline-block">
 						<Icon name="external-link" className="h-3.5 w-3.5" />
 						<span className="sr-only">View code on GitHub</span>
 					</span>
 				</a>
-			) : !props.oracleTvs && props.methodology ? (
+			) : !props.oracleTvs && props.tvlMethodology ? (
 				<p>
 					<span className="font-medium">{props.isCEX ? 'Total Assets:' : 'TVL:'}</span>{' '}
-					<span>{props.methodology ?? ''}</span>
+					<span>{props.tvlMethodology ?? ''}</span>
 				</p>
 			) : null}
-			{props.oracleTvs && props.methodologyURL ? (
-				<a href={props.methodologyURL} target="_blank" rel="noopener noreferrer" className="hover:underline">
+			{props.oracleTvs && props.tvlMethodologyUrl ? (
+				<a href={props.tvlMethodologyUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
 					<span className="font-medium">TVS:</span>{' '}
 					<span>Total value secured by an oracle, where oracle failure would lead to a loss equal to TVS</span>
 					<span className="relative top-0.5 left-1 inline-block">

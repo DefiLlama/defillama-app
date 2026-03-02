@@ -72,8 +72,8 @@ export interface IProtocolOverviewPageData {
 	website?: string | null
 	twitter?: string | null
 	safeHarbor?: boolean
-	methodology?: string | null
-	methodologyURL?: string | null
+	tvlMethodology?: string | null
+	tvlMethodologyUrl?: string | null
 	github?: Array<string> | null
 	metrics: IProtocolPageMetrics
 	fees: IAdapterOverview | null
