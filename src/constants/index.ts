@@ -63,7 +63,7 @@ export const RWA_STATS_API_OLD = 'https://api.llama.fi/rwa/stats'
 export const TOTAL_TRACKED_BY_METRIC_API = 'https://api.llama.fi/config/smol/appMetadata-totalTrackedByMetric.json'
 
 // External services
-export const MCP_SERVER = 'https://mcp.llama.fi'
+export const MCP_SERVER = 'https://mcp.llama.team'
 export const POCKETBASE_URL = 'https://pb.llama.fi'
 export const SEARCH_API_URL = 'https://search-core.defillama.com/multi-search'
 
