@@ -6,7 +6,7 @@
 set -o pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-cd "$REPO_ROOT"
+cd "$REPO_ROOT" || { echo "Failed to cd to $REPO_ROOT"; exit 1; }
 
 # Source .env for local builds (Docker builds get env vars via ARGs/secrets)
 set -a
@@ -33,11 +33,18 @@ echo "======================="
 echo ""
 
 # 1. Pull metadata (protocols, chains, etc.) and generate robots.txt
-bun run build:metadata
+if ! bun run build:metadata; then
+  echo "🚨 Metadata pull failed, aborting build"
+  BUILD_STATUS=1
+fi
 
 # 2. Run Next.js build, capturing output for log upload
-bunx next build 2>&1 | tee build.log
-BUILD_STATUS=${PIPESTATUS[0]}
+if [ "${BUILD_STATUS:-0}" -eq 0 ]; then
+  bunx next build 2>&1 | tee build.log
+  BUILD_STATUS=${PIPESTATUS[0]}
+else
+  echo "Skipping next build due to earlier failure"
+fi
 
 # Calculate build duration
 BUILD_TIME_SEC=$(($(date -u +"%s") - START_TIME_TS))
