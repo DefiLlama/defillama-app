@@ -27,7 +27,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		res.setHeader('Content-Type', response.headers.get('content-type') || 'image/png')
 		res.setHeader('Cache-Control', 'public, max-age=86400')
-		res.setHeader('Access-Control-Allow-Origin', '*')
 		res.send(buffer)
 	} catch (error) {
 		console.log('Error fetching icon:', error)

@@ -181,8 +181,18 @@ export interface IRWAAssetsOverview {
 			issuers: string[]
 		}
 	}
-	chartData: IRWAChartDataByTicker | null
+	initialChartDataset: IRWAInitialChartDataset | null
+	chainSlug: string | null
+	categorySlug: string | null
+	platformSlug: string | null
 }
+
+export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+
+export type IRWAInitialChartDataset = Record<
+	'onChainMcap' | 'activeMcap' | 'defiActiveTvl',
+	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
+>
 
 export interface IRWAChartDataByTicker {
 	onChainMcap: Array<{ timestamp: number } & Record<string, number>>

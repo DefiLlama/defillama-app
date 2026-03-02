@@ -4,6 +4,7 @@ import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportBu
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
 import type { IHBarChartProps, IMultiSeriesChart2Props, IPieChartProps, ITreemapChartProps } from '~/components/ECharts/types'
+import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -13,6 +14,7 @@ import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
+import type { RWAChartAggregationMode } from './chartAggregation'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
@@ -23,9 +25,8 @@ import {
 	useRwaAssetPlatformPieChartData,
 	useRwaCategoryAssetClassPieChartData,
 	useRwaChainBreakdownPieChartData,
-	useRwaChartDataByAssetClass,
-	useRwaChartDataByAssetName,
-	useRwaChartDataByCategory
+	useRwaChartDataset,
+	hasActiveChartFilters
 } from './hooks'
 import { rwaSlug } from './rwaSlug'
 import {
@@ -158,22 +159,20 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			maxDefiActiveTvlToActiveMcapPct
 		})
 
-	const { chartDatasetByCategory } = useRwaChartDataByCategory({
-		enabled: isChainMode,
-		assets: filteredAssets,
-		chartDataByTicker: props.chartData
-	})
-
-	const { chartDatasetByAssetClass } = useRwaChartDataByAssetClass({
-		enabled: isCategoryMode,
-		assets: filteredAssets,
-		chartDataByTicker: props.chartData
-	})
-
-	const { chartDatasetByAssetName } = useRwaChartDataByAssetName({
-		enabled: isPlatformMode,
-		assets: filteredAssets,
-		chartDataByTicker: props.chartData
+	const activeFilters = hasActiveChartFilters(router.query)
+	const chartAggregationMode: RWAChartAggregationMode = isCategoryMode
+		? 'assetClass'
+		: isPlatformMode
+			? 'assetName'
+			: 'category'
+	const { chartDatasetByMode, isChartLoading, chartError } = useRwaChartDataset({
+		initialChartDataset: props.initialChartDataset,
+		filteredAssets,
+		mode: chartAggregationMode,
+		chainSlug: props.chainSlug,
+		categorySlug: props.categorySlug,
+		platformSlug: props.platformSlug,
+		hasActiveFilters: activeFilters
 	})
 
 	const {
@@ -350,13 +349,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const barChartFilename = `rwa-bar-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
-
-	const chartDatasetByMode =
-		mode === 'category'
-			? chartDatasetByAssetClass
-			: mode === 'platform'
-				? chartDatasetByAssetName
-				: chartDatasetByCategory
 
 	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
 	const selectedPieChartData =
@@ -710,16 +702,25 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 									title={exportChartTitle}
 								/>
 							</div>
-							<Suspense fallback={<div className="min-h-[360px]" />}>
-								<MultiSeriesChart2
-									dataset={deferredSelectedTimeSeriesDataset}
-									hideDefaultLegend={false}
-									stacked
-									showTotalInTooltip
-									tooltipTotalPosition="top"
-									onReady={handleMultiSeriesChart2Ready}
-								/>
-							</Suspense>
+							{chartError ? (
+								<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{chartError}</p>
+							) : isChartLoading ? (
+								<p className="flex min-h-[360px] items-center justify-center gap-1">
+									Loading
+									<LoadingDots />
+								</p>
+							) : (
+								<Suspense fallback={<div className="min-h-[360px]" />}>
+									<MultiSeriesChart2
+										dataset={deferredSelectedTimeSeriesDataset}
+										hideDefaultLegend={false}
+										stacked
+										showTotalInTooltip
+										tooltipTotalPosition="top"
+										onReady={handleMultiSeriesChart2Ready}
+									/>
+								</Suspense>
+							)}
 						</div>
 					) : null}
 					{chartView === 'pie' || chartView === 'treemap' || chartView === 'hbar' ? (
