@@ -98,11 +98,7 @@ export function UnconstrainedSmolLineChart({
 		})
 
 		const mlX =
-			unlockIndex < series.length
-				? series.length === 1
-					? VB_W / 2
-					: (unlockIndex / (series.length - 1)) * VB_W
-				: 0
+			unlockIndex < series.length ? (series.length === 1 ? VB_W / 2 : (unlockIndex / (series.length - 1)) * VB_W) : 0
 
 		const themeKey = isThemeDark ? 'dark' : 'light'
 		return { pathD: smoothPath(pts), stroke: COLOR_MAP[color][themeKey], markLineX: mlX }
@@ -148,42 +144,46 @@ export function UnconstrainedSmolLineChart({
 						style={{ left: `${series.length === 1 ? 50 : (hoveredIndex / (series.length - 1)) * 100}%` }}
 					/>
 				)}
-			{hoveredIndex != null &&
-				createPortal(
-					<div
-						ref={tooltipRef}
-						className="pointer-events-none fixed z-[1000] rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[12px] leading-[1.4] whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
-					>
-						<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</div>
-						<div className="flex items-center gap-1">
-							<span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: stroke }} />
-							Price: ${formattedNum(series[hoveredIndex][1])}
-						</div>
-						<div className="mt-1 opacity-80">
-							{dayPosition === 0 ? (
-								lastEvent && lastEvent.length > 0 ? (
-									<UnlockEventTooltip
-										lastEvent={lastEvent}
-										unlockValue={unlockValue}
-										stroke={stroke}
-									/>
-								) : null
-							) : (
-								<span>
-									Day {dayPosition != null && dayPosition > 0 ? '+' : ''}
-									{dayPosition} from unlock
-								</span>
-							)}
-						</div>
-						{percentChange != null && (
-							<div style={{ color: percentChange >= 0 ? COLOR_MAP.green[isThemeDark ? 'dark' : 'light'] : COLOR_MAP.red[isThemeDark ? 'dark' : 'light'] }} className="opacity-80">
-								{percentChange >= 0 ? '+' : ''}
-								{percentChange.toFixed(1)}% from unlock
+				{hoveredIndex != null &&
+					createPortal(
+						<div
+							ref={tooltipRef}
+							className="pointer-events-none fixed z-[1000] rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[12px] leading-[1.4] whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
+						>
+							<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</div>
+							<div className="flex items-center gap-1">
+								<span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: stroke }} />
+								Price: ${formattedNum(series[hoveredIndex][1])}
 							</div>
-						)}
-					</div>,
-					document.body
-				)}
+							<div className="mt-1 opacity-80">
+								{dayPosition === 0 ? (
+									lastEvent && lastEvent.length > 0 ? (
+										<UnlockEventTooltip lastEvent={lastEvent} unlockValue={unlockValue} stroke={stroke} />
+									) : null
+								) : (
+									<span>
+										Day {dayPosition != null && dayPosition > 0 ? '+' : ''}
+										{dayPosition} from unlock
+									</span>
+								)}
+							</div>
+							{percentChange != null && (
+								<div
+									style={{
+										color:
+											percentChange >= 0
+												? COLOR_MAP.green[isThemeDark ? 'dark' : 'light']
+												: COLOR_MAP.red[isThemeDark ? 'dark' : 'light']
+									}}
+									className="opacity-80"
+								>
+									{percentChange >= 0 ? '+' : ''}
+									{percentChange.toFixed(1)}% from unlock
+								</div>
+							)}
+						</div>,
+						document.body
+					)}
 			</div>
 		</div>
 	)
@@ -210,9 +210,7 @@ function UnlockEventTooltip({
 
 	const eventDatas = lastEvent.map(parseEventData)
 	const totalAmount = eventDatas.reduce((sum, event) => sum + event.amount, 0)
-	const uniqueCategories = Array.from(
-		new Set(eventDatas.flatMap((event) => (event.category ? [event.category] : [])))
-	)
+	const uniqueCategories = Array.from(new Set(eventDatas.flatMap((event) => (event.category ? [event.category] : []))))
 
 	return (
 		<div className="mt-1">

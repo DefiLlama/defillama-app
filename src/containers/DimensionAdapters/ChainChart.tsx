@@ -311,19 +311,14 @@ function useAdapterByChainBreakdownChartData({
 
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['adapter-breakdown-chart', adapterType, chain, safeDataType],
-		queryFn: () =>
-			fetchAdapterChainChartDataByProtocolBreakdown({ adapterType, chain, dataType: safeDataType }),
+		queryFn: () => fetchAdapterChainChartDataByProtocolBreakdown({ adapterType, chain, dataType: safeDataType }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
 		enabled
 	})
 
-	const breakdownError = error
-		? error instanceof Error
-			? error.message
-			: String(error)
-		: null
+	const breakdownError = error ? (error instanceof Error ? error.message : String(error)) : null
 
 	return React.useMemo(() => {
 		if (!data || data.length === 0) {
@@ -486,4 +481,3 @@ export const ChainsByAdapterChart = ({
 		</div>
 	)
 }
-

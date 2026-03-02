@@ -27,9 +27,7 @@ type AggregatedProtocol = Omit<
 	totalAllTime: number
 }
 
-export function aggregateProtocolVersions(
-	protocolVersions: IAdapterChainMetrics['protocols']
-): AggregatedProtocol {
+export function aggregateProtocolVersions(protocolVersions: IAdapterChainMetrics['protocols']): AggregatedProtocol {
 	const aggregatedRevenue = {
 		total24h: protocolVersions.reduce((sum, p) => sum + (p.total24h ?? 0), 0),
 		total7d: protocolVersions.reduce((sum, p) => sum + (p.total7d ?? 0), 0),
@@ -254,8 +252,13 @@ export function getChartDataByChainAndInterval({
 }) {
 	const isDominance = chartType === 'Dominance'
 	const isCumulative = chartInterval === 'Cumulative'
-	const groupBy =
-		isCumulative ? 'cumulative' : chartInterval === 'Weekly' ? 'weekly' : chartInterval === 'Monthly' ? 'monthly' : 'daily'
+	const groupBy = isCumulative
+		? 'cumulative'
+		: chartInterval === 'Weekly'
+			? 'weekly'
+			: chartInterval === 'Monthly'
+				? 'monthly'
+				: 'daily'
 
 	const chainTotals = new Map<string, number>()
 	const chainSeries = new Map<string, Array<[number, number]>>()

@@ -1,6 +1,3 @@
-import { ToolboxComponent } from 'echarts/components'
-import * as echarts from 'echarts/core'
-import { UniversalTransition } from 'echarts/features'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -21,11 +18,7 @@ interface ITreemapProps {
 const ScatterChart = React.lazy(() => import('~/components/ECharts/ScatterChart')) as React.FC<IChartProps>
 const BoxplotChart = React.lazy(() => import('~/components/ECharts/BoxplotChart')) as React.FC<IChartProps>
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapProps>
-const MultiSeriesChart2 = React.lazy(
-	() => import('~/components/ECharts/MultiSeriesChart2')
-) as React.FC<IMultiSeriesChart2Props>
-
-echarts.use([ToolboxComponent, UniversalTransition])
+const MultiSeriesChart2 = React.lazy(() => import('./YieldsMultiSeriesChart')) as React.FC<IMultiSeriesChart2Props>
 
 export const PlotsPage = ({
 	pools,

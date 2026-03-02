@@ -106,7 +106,15 @@ export const getAdapterByChainPageData = async ({
 	hasOpenInterest?: boolean
 	metricName: string
 }): Promise<IAdapterByChainPageData | null> => {
-	const [data, protocolsData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData, normalizedVolumeData]: [
+	const [
+		data,
+		protocolsData,
+		bribesData,
+		tokenTaxesData,
+		openInterestData,
+		activeLiquidityData,
+		normalizedVolumeData
+	]: [
 		IAdapterChainOverview,
 		{
 			protocols: Array<{ name: string; mcap: number | null }>

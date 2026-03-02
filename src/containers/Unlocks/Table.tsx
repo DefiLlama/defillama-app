@@ -21,13 +21,12 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
+import { UnconstrainedSmolLineChart } from '~/containers/Unlocks/UnconstrainedSmolLineChart'
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { FormSubmitEvent } from '~/types/forms'
 import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-
-import { UnconstrainedSmolLineChart } from '~/containers/Unlocks/UnconstrainedSmolLineChart'
 
 const optionsKey = 'unlockTable'
 
@@ -494,20 +493,20 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 			return (
 				<div className="flex h-full items-center justify-end">
 					<div className="relative w-full">
-					<UnconstrainedSmolLineChart
-						series={historicalPrice}
-						name=""
-						color={
-							historicalPrice[Math.floor(historicalPrice.length / 2)][1] >=
-							historicalPrice[historicalPrice.length - 1][1]
-								? 'red'
-								: 'green'
-						}
-						className="h-[44px]"
-						extraData={{
-							lastEvent: row.original.lastEvent
-						}}
-					/>
+						<UnconstrainedSmolLineChart
+							series={historicalPrice}
+							name=""
+							color={
+								historicalPrice[Math.floor(historicalPrice.length / 2)][1] >=
+								historicalPrice[historicalPrice.length - 1][1]
+									? 'red'
+									: 'green'
+							}
+							className="h-[44px]"
+							extraData={{
+								lastEvent: row.original.lastEvent
+							}}
+						/>
 					</div>
 				</div>
 			)

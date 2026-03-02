@@ -1,5 +1,4 @@
-import { LegendComponent } from 'echarts/components'
-import * as echarts from 'echarts/core'
+import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
@@ -111,8 +110,9 @@ async function renderClonedChartExport(
 	iconUrl: string | undefined,
 	expandLegend: boolean | undefined
 ): Promise<string> {
-	// Create a new chart instance on the temporary container
-	const tempChart = echarts.init(tempContainer, null, {
+	const { echarts: echartsCore } = await import('./chartExportEcharts')
+
+	const tempChart = echartsCore.init(tempContainer, null, {
 		width: IMAGE_EXPORT_WIDTH,
 		height: IMAGE_EXPORT_HEIGHT
 	})
@@ -496,8 +496,6 @@ interface ChartPngExportButtonProps {
 	iconUrl?: string
 	expandLegend?: boolean
 }
-
-echarts.use([LegendComponent])
 
 export function ChartPngExportButton({
 	chartInstance,

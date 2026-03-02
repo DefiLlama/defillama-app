@@ -1,13 +1,14 @@
 import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import MultiSeriesChart2 from '~/components/ECharts/MultiSeriesChart2'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey } from '~/components/Select/types'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { pushShallowQuery, readSingleQueryValue, toNonEmptyArrayParam } from '~/utils/routerQuery'
 import type { IRWABreakdownDatasetsByMetric, RWAChartMetricKey } from './api.types'
+
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const CHART_TYPE_OPTIONS: Array<{ key: RWAChartMetricKey; label: string }> = [
 	{ key: 'activeMcap', label: 'Active Mcap' },
@@ -97,14 +98,16 @@ export function RWAOverviewBreakdownChart({
 					smol
 				/>
 			</div>
-			<MultiSeriesChart2
-				dataset={dataset}
-				stacked
-				showTotalInTooltip
-				tooltipTotalPosition="top"
-				selectedCharts={selectedStacksSet}
-				onReady={handleChartReady}
-			/>
+			<Suspense fallback={<div className="h-[400px]" />}>
+				<MultiSeriesChart2
+					dataset={dataset}
+					stacked
+					showTotalInTooltip
+					tooltipTotalPosition="top"
+					selectedCharts={selectedStacksSet}
+					onReady={handleChartReady}
+				/>
+			</Suspense>
 		</div>
 	)
 }
