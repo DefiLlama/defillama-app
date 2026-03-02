@@ -44,7 +44,7 @@ export async function getStaticPaths() {
 		params: { chain: slug(chain) }
 	}))
 
-	return { paths, fallback: 'blocking' }
+	return { paths: [], fallback: 'blocking' }
 }
 
 export default function Chain(props) {
