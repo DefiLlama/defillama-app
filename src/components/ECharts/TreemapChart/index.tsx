@@ -345,7 +345,7 @@ export default function TreemapChart({
 											? [
 													`${pathParts[pathParts.length - 1]}`,
 													`${valueLabel}: ${formattedNum(normalizedValue[0], true)}`,
-													`Share: ${Number.isFinite(normalizedValue[1]) ? normalizedValue[1] : 0}%`
+													`Share: ${Number.isFinite(normalizedValue[2]) ? normalizedValue[2] : 0}%`
 												]
 											: [
 													`{name|${pathParts[pathParts.length - 1]}}`,
