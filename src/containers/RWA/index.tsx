@@ -1,10 +1,9 @@
-import type * as echarts from 'echarts/core'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
-import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
+import type { IHBarChartProps, IMultiSeriesChart2Props, IPieChartProps, ITreemapChartProps } from '~/components/ECharts/types'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
@@ -39,28 +38,12 @@ import {
 	resolveTreemapNestedByOnParentGroupingChange,
 	validTreemapNestedBy
 } from './treemap'
-import type { RWAChartType, RwaTreemapNestedBy, RwaTreemapNode } from './treemap'
+import type { RWAChartType, RwaTreemapNestedBy } from './treemap'
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
-interface IHBarChartProps {
-	categories: string[]
-	values: number[]
-	valueSymbol?: string
-	height?: string
-	color?: string
-	colors?: string[]
-	onReady?: (instance: echarts.ECharts | null) => void
-}
-interface ITreemapChartProps {
-	treeData: RwaTreemapNode[]
-	variant?: 'yields' | 'narrative' | 'rwa'
-	height?: string
-	onReady?: (instance: echarts.ECharts | null) => void
-	valueLabel?: string
-}
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 

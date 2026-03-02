@@ -12,6 +12,7 @@ import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
+import type { ITreemapChartProps } from '../types'
 
 echarts.use([
 	TitleComponent,
@@ -22,16 +23,6 @@ echarts.use([
 	CanvasRenderer,
 	GraphicComponent
 ])
-
-type TreemapVariant = 'yields' | 'narrative' | 'rwa'
-
-interface IChartProps {
-	treeData: any[]
-	variant?: TreemapVariant
-	height?: string
-	onReady?: (instance: echarts.ECharts | null) => void
-	valueLabel?: string
-}
 
 const visualMin = -100
 const visualMax = 100
@@ -112,13 +103,24 @@ function addColorGradientField(chartDataTree) {
 	}
 }
 
+function formatRwaUpperLabel(params: { name?: unknown; value?: unknown }) {
+	const name = typeof params?.name === 'string' ? params.name : String(params?.name ?? '')
+	const normalizedValue = normalizeTreemapValue(params?.value)
+	const shareRaw = normalizedValue[1]
+	const share = typeof shareRaw === 'number' && Number.isFinite(shareRaw) ? Number(shareRaw.toFixed(2)) : null
+
+	if (share == null) return name
+	if (!name) return `(${share}%)`
+	return `${name} - (${share}%)`
+}
+
 export default function TreemapChart({
 	treeData,
 	variant = 'yields',
 	height,
 	onReady,
 	valueLabel = 'Market Cap'
-}: IChartProps) {
+}: ITreemapChartProps) {
 	const id = useId()
 	const isNarrativeVariant = variant === 'narrative'
 	const isRwaVariant = variant === 'rwa'
@@ -343,9 +345,10 @@ export default function TreemapChart({
 											]
 										: isRwaVariant
 											? [
-													`${pathParts[pathParts.length - 1]}`,
-													`${valueLabel}: ${formattedNum(normalizedValue[0], true)}`,
-													`Share: ${Number.isFinite(normalizedValue[2]) ? normalizedValue[2] : 0}%`
+													`{rwaName|${pathParts[pathParts.length - 1]}}`,
+													`{rwaMetric|${valueLabel}: ${formattedNum(normalizedValue[0], true)}}`,
+													`{shareParent|Parent: ${Number.isFinite(normalizedValue[1]) ? normalizedValue[1] : 0}%}`,
+													`{shareTotal|Overall: ${Number.isFinite(normalizedValue[2]) ? normalizedValue[2] : 0}%}`
 												]
 											: [
 													`{name|${pathParts[pathParts.length - 1]}}`,
@@ -367,13 +370,34 @@ export default function TreemapChart({
 								fontSize: 13,
 								color: '#fff',
 								lineHeight: 20
+							},
+							rwaName: {
+								fontSize: 12,
+								color: '#fff',
+								lineHeight: 18
+							},
+							rwaMetric: {
+								fontSize: 12,
+								color: '#fff',
+								lineHeight: 18
+							},
+							shareParent: {
+								fontSize: 12,
+								color: 'rgba(255,255,255,0.7)',
+								lineHeight: 18
+							},
+							shareTotal: {
+								fontSize: 12,
+								color: 'rgba(255,255,255,0.7)',
+								lineHeight: 18
 							}
 						}
 					},
 					upperLabel: {
 						show: true,
 						height: 20,
-						color: isDark ? '#fff' : '#111'
+						color: isDark ? '#fff' : '#111',
+						...(isRwaVariant ? { formatter: formatRwaUpperLabel } : {})
 					},
 					itemStyle: {
 						borderColor: isRwaVariant ? (isDark ? '#2d3139' : '#d1d5db') : '#fff'
@@ -392,6 +416,7 @@ export default function TreemapChart({
 										height: 22,
 										padding: [0, 4],
 										color: isDark ? '#fff' : '#1f2937',
+										formatter: formatRwaUpperLabel,
 										...(isDark ? { textBorderColor: 'rgba(0,0,0,0.3)', textBorderWidth: 2 } : {})
 									}
 								: {
@@ -423,6 +448,7 @@ export default function TreemapChart({
 											height: 22,
 											padding: [0, 2],
 											color: isDark ? '#fff' : '#1f2937',
+											formatter: formatRwaUpperLabel,
 											...(isDark
 												? {
 														backgroundColor: 'rgba(55,65,81,0.88)',

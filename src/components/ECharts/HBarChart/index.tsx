@@ -6,19 +6,9 @@ import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipValue } from '../formatters'
+import type { IHBarChartProps } from '../types'
 
 echarts.use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
-
-interface IHBarChartProps {
-	categories: string[]
-	values: number[]
-	title?: string
-	valueSymbol?: string
-	height?: string
-	color?: string
-	colors?: string[]
-	onReady?: (instance: echarts.ECharts | null) => void
-}
 
 export default function HBarChart({
 	categories,
