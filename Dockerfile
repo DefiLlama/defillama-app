@@ -27,7 +27,12 @@ RUN --mount=type=secret,id=LOGGER_API_KEY \
   --mount=type=secret,id=LOGGER_API_URL \
   --mount=type=secret,id=BUILD_STATUS_DASHBOARD \
   --mount=type=secret,id=BUILD_STATUS_WEBHOOK \
-  bash ./scripts/docker-build-step.sh
+  LOGGER_API_KEY="$(cat /run/secrets/LOGGER_API_KEY 2>/dev/null || true)" \
+  LOGGER_API_URL="$(cat /run/secrets/LOGGER_API_URL 2>/dev/null || true)" \
+  BUILD_STATUS_DASHBOARD="$(cat /run/secrets/BUILD_STATUS_DASHBOARD 2>/dev/null || true)" \
+  BUILD_STATUS_WEBHOOK="$(cat /run/secrets/BUILD_STATUS_WEBHOOK 2>/dev/null || true)" \
+  COOLIFY_BRANCH="${COOLIFY_BRANCH:-}" \
+  bun run build
 
 FROM base AS runner
 
