@@ -31,6 +31,7 @@ export interface AgenticSSECallbacks {
 	onAlertProposed?: (data: AlertProposedData) => void
 	onToolExecution?: (data: ToolExecution) => void
 	onThinking?: (content: string) => void
+	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
 	onError: (content: string) => void
@@ -103,6 +104,9 @@ function parseSSEStream(
 								break
 							case 'spawn_progress':
 								callbacks.onSpawnProgress(data)
+								break
+							case 'compaction':
+								callbacks.onCompaction?.(data)
 								break
 							case 'tool_execution':
 								callbacks.onToolExecution?.(data)
