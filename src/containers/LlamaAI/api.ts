@@ -17,7 +17,7 @@ export async function fetchEntityQuestions(
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ entity: entitySlug, entityType, context })
 			})
-			return res
+			return { questions: res.questions ?? [], suggestGlobal: res.suggestGlobal ?? false }
 		}
 		const data = await fetchJson<EntityQuestionsResponse>(
 			`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
