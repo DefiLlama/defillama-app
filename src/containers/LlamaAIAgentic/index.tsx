@@ -132,6 +132,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	)
 	const customInstructionsRef = useRef(customInstructions)
 	customInstructionsRef.current = customInstructions
+	const [enableMemory, setEnableMemory] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
+	)
 	const [spawnProgress, setSpawnProgress] = useState<Map<string, SpawnAgentStatus>>(new Map())
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
@@ -188,6 +191,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				if (typeof serverValue === 'string') {
 					setCustomInstructions(serverValue)
 					localStorage.setItem('llamaai-custom-instructions', serverValue)
+				}
+				if (typeof data?.settings?.enableMemory === 'boolean') {
+					setEnableMemory(data.settings.enableMemory)
+					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
 				}
 			})
 			.catch(() => {})
@@ -1105,6 +1112,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					dialogStore={settingsModalStore}
 					customInstructions={customInstructions}
 					onCustomInstructionsChange={setCustomInstructions}
+					enableMemory={enableMemory}
+					onEnableMemoryChange={setEnableMemory}
 					fetchFn={authorizedFetch}
 				/>
 			)}
