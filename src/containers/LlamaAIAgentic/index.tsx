@@ -179,6 +179,34 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	const hasMessages = messages.length > 0 || isStreaming
 
+	const streamingDraft = useMemo((): Message | null => {
+		if (!isStreaming) return null
+		const hasContent =
+			streamingText ||
+			streamingCharts.length > 0 ||
+			streamingCsvExports.length > 0 ||
+			streamingAlerts.length > 0 ||
+			streamingCitations.length > 0
+		if (!hasContent) return null
+		return {
+			role: 'assistant',
+			content: streamingText || undefined,
+			charts: streamingCharts.length > 0 ? streamingCharts : undefined,
+			csvExports: streamingCsvExports.length > 0 ? streamingCsvExports : undefined,
+			alerts: streamingAlerts.length > 0 ? streamingAlerts : undefined,
+			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
+			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined
+		}
+	}, [
+		isStreaming,
+		streamingText,
+		streamingCharts,
+		streamingCsvExports,
+		streamingAlerts,
+		streamingCitations,
+		streamingToolExecutions
+	])
+
 	useEffect(() => {
 		paginationRef.current = paginationState
 	}, [paginationState])
@@ -222,8 +250,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				requestAnimationFrame(() => {
 					const { scrollTop, scrollHeight, clientHeight } = container
 					const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
-					if (isAtBottom && !shouldAutoScrollRef.current && !userScrollCooldownRef.current) {
+					if (isAtBottom) {
 						shouldAutoScrollRef.current = true
+						userScrollCooldownRef.current = false
 					}
 					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
 					const pg = paginationRef.current
@@ -248,15 +277,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	useEffect(() => {
 		if (!isStreaming) {
-			const container = scrollContainerRef.current
-			if (container) {
-				const { scrollTop, scrollHeight, clientHeight } = container
-				const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
-				if (!isAtBottom && scrollHeight > clientHeight) {
-					setShowScrollToBottom(true)
-				}
-			}
-			return
+			const timer = setTimeout(() => {
+				requestAnimationFrame(() => {
+					const c = scrollContainerRef.current
+					if (!c) return
+					const isAtBottom = Math.ceil(c.scrollTop + c.clientHeight) >= c.scrollHeight - 150
+					if (isAtBottom) {
+						shouldAutoScrollRef.current = true
+						setShowScrollToBottom(false)
+					} else if (c.scrollHeight > c.clientHeight) {
+						setShowScrollToBottom(true)
+					}
+				})
+			}, 100)
+			return () => clearTimeout(timer)
 		}
 		const interval = setInterval(() => {
 			if (shouldAutoScrollRef.current && scrollContainerRef.current) {
@@ -1003,7 +1037,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											const nextUser = nextMsg?.role === 'user' ? nextMsg.content : undefined
 											return (
 												<MessageBubble
-													key={i}
+													key={msg.id || `msg-${i}`}
 													message={msg}
 													sessionId={sessionId}
 													isStreaming={isStreaming}
@@ -1033,25 +1067,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											/>
 										)}
 
-										{isStreaming &&
-											(streamingText ||
-												streamingCharts.length > 0 ||
-												streamingCsvExports.length > 0 ||
-												streamingAlerts.length > 0 ||
-												streamingCitations.length > 0) && (
-												<InlineContent
-													text={streamingText}
-													chartSets={streamingCharts}
-													csvExports={streamingCsvExports}
-													alerts={streamingAlerts}
-													messageId={currentMessageIdRef.current || undefined}
-													citations={streamingCitations}
-													toolExecutions={isLlama ? streamingToolExecutions : undefined}
-													isStreaming
-													sessionId={sessionId}
-													fetchFn={authorizedFetch}
-												/>
-											)}
+										{streamingDraft && (
+											<MessageBubble
+												key={streamingDraft.id || 'streaming-draft'}
+												message={streamingDraft}
+												sessionId={sessionId}
+												isStreaming={isStreaming}
+												isDraft
+												fetchFn={authorizedFetch}
+												readOnly={readOnly}
+												isLlama={isLlama}
+											/>
+										)}
 
 										{error && (
 											<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
@@ -1514,7 +1541,7 @@ function InlineContent({
 		}
 	}, [text])
 
-	const hasInlineRefs = referencedChartIds.size > 0 || referencedCsvIds.size > 0 || hasActions
+	const hasInlineRefs = !isStreaming && (referencedChartIds.size > 0 || referencedCsvIds.size > 0 || hasActions)
 
 	const groupedParts = useMemo(() => {
 		const result: Array<
@@ -1548,12 +1575,13 @@ function InlineContent({
 	}, [parts])
 
 	const unreferencedCharts = useMemo(() => {
+		if (isStreaming) return []
 		const all: { chart: ChartConfiguration; chartData: Record<string, any[]> }[] = []
 		for (const [id, entry] of chartIndex) {
 			if (!referencedChartIds.has(id)) all.push(entry)
 		}
 		return all
-	}, [chartIndex, referencedChartIds])
+	}, [chartIndex, referencedChartIds, isStreaming])
 
 	const unreferencedCsvs = useMemo(() => {
 		const all: CsvExport[] = []
@@ -1979,6 +2007,7 @@ function MessageBubble({
 	message,
 	sessionId,
 	isStreaming: parentIsStreaming,
+	isDraft = false,
 	fetchFn,
 	readOnly = false,
 	isLlama = false,
@@ -1988,6 +2017,7 @@ function MessageBubble({
 	message: Message
 	sessionId: string | null
 	isStreaming: boolean
+	isDraft?: boolean
 	fetchFn?: typeof fetch
 	readOnly?: boolean
 	isLlama?: boolean
@@ -2023,7 +2053,7 @@ function MessageBubble({
 
 	return (
 		<div>
-			{message.thinking && <ThinkingPanel thinking={message.thinking} />}
+			{message.thinking && <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} />}
 			<InlineContent
 				text={message.content || ''}
 				chartSets={message.charts || []}
@@ -2033,12 +2063,13 @@ function MessageBubble({
 				messageId={message.id}
 				citations={message.citations || []}
 				toolExecutions={isLlama ? message.toolExecutions : undefined}
+				isStreaming={isDraft}
 				sessionId={sessionId}
 				fetchFn={fetchFn}
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
 			/>
-			{message.id && !parentIsStreaming && (
+			{message.id && !parentIsStreaming && !isDraft && (
 				<ResponseControls
 					messageId={message.id}
 					content={message.content}
