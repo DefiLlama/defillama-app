@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+	output: 'standalone',
 	reactStrictMode: true,
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)

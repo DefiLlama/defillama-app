@@ -69,7 +69,7 @@ export async function fetchCoreMetadata(): Promise<{
 		fetchJson(CHAINS_DATA_URL),
 		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
 		fetchJson(CEXS_DATA_URL),
-		fetchJson(RWA_LIST_DATA_URL).catch(() => ({})),
+		fetchJson(RWA_LIST_DATA_URL),
 		fetchJson<Array<any>>(TOKENLIST_DATA_URL)
 	])
 
