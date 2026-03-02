@@ -32,7 +32,7 @@ RUN --mount=type=secret,id=LOGGER_API_KEY \
   BUILD_STATUS_DASHBOARD="$(cat /run/secrets/BUILD_STATUS_DASHBOARD 2>/dev/null || true)" \
   BUILD_STATUS_WEBHOOK="$(cat /run/secrets/BUILD_STATUS_WEBHOOK 2>/dev/null || true)" \
   COOLIFY_BRANCH="${COOLIFY_BRANCH:-}" \
-  bun run build
+  bash ./scripts/build.sh
 
 FROM base AS runner
 

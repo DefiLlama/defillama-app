@@ -3,23 +3,18 @@ import fs from 'fs'
 const normalize = (value) => (typeof value === 'string' ? value.trim() : '')
 const normalizeBranchName = (value) => {
 	const normalized = normalize(value)
-	if (!normalized) {
-		return ''
-	}
+	if (!normalized) return ''
 	const stripped = normalized.replace(/^refs\/(heads|tags)\//, '').replace(/^refs\//, '')
 	return stripped === 'HEAD' ? '' : stripped
 }
 const firstNonEmpty = (...values) => {
 	for (const value of values) {
 		const normalized = normalize(value)
-		if (normalized) {
-			return normalized
-		}
+		if (normalized) return normalized
 	}
 	return ''
 }
 
-// read the build.log file into base64 string (optional)
 let buildLogBase64 = ''
 try {
 	const buildLog = fs.readFileSync('./build.log', 'utf8')
@@ -27,13 +22,11 @@ try {
 } catch {
 	console.log('build.log not found, skipping upload')
 }
-const BUILD_LOG_CONTENT_TYPE = 'text/plain;charset=UTF-8'
-const LOGGER_API_KEY = process.env.LOGGER_API_KEY
-const LOGGER_API_URL = process.env.LOGGER_API_URL
-const loggerApiKey = normalize(LOGGER_API_KEY)
-const loggerApiUrl = normalize(LOGGER_API_URL)
 
-// upload the build.log file to the logger service
+const BUILD_LOG_CONTENT_TYPE = 'text/plain;charset=UTF-8'
+const loggerApiKey = normalize(process.env.LOGGER_API_KEY)
+const loggerApiUrl = normalize(process.env.LOGGER_API_URL)
+
 const uploadBuildLog = async () => {
 	if (!buildLogBase64) {
 		console.log('build.log missing or empty, skipping upload')
@@ -48,48 +41,38 @@ const uploadBuildLog = async () => {
 		headers.apikey = loggerApiKey
 	}
 	try {
-		let response
-		let res = ''
-		try {
-			response = await fetch(loggerApiUrl, {
-				method: 'POST',
-				headers,
-				body: JSON.stringify({
-					data: buildLogBase64,
-					contentType: BUILD_LOG_CONTENT_TYPE
-				})
-			})
-			res = await response.text()
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error)
-			console.log('Build log upload error', message)
-			return ''
-		}
+		const response = await fetch(loggerApiUrl, {
+			method: 'POST',
+			headers,
+			body: JSON.stringify({ data: buildLogBase64, contentType: BUILD_LOG_CONTENT_TYPE })
+		})
+		const res = await response.text()
 		if (!response.ok) {
 			console.log('Build log upload failed', res)
 			return ''
 		}
 		return res.trim()
 	} catch (error) {
-		console.log('Build log upload failed', error)
+		const message = error instanceof Error ? error.message : String(error)
+		console.log('Build log upload error', message)
 		return ''
 	}
 }
 
-// convert the bash script above to JS
-// const BUILD_LLAMAS = process.env.BUILD_LLAMAS || ''
 const BUILD_STATUS_DASHBOARD = process.env.BUILD_STATUS_DASHBOARD
 const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
 
-// const buildLlamaUsers = BUILD_LLAMAS.split(',')
-// 	.map((llama) => llama.trim())
-// 	.filter(Boolean)
-// 	.map((llama) => `@${llama}`)
-// 	.join(' ')
+// Comma-separated Discord user IDs to ping on build failure (e.g. "123456789,987654321")
+const BUILD_NOTIFY_USERS = normalize(process.env.BUILD_NOTIFY_USERS)
+const userMentions = BUILD_NOTIFY_USERS
+	? BUILD_NOTIFY_USERS.split(',')
+			.map((id) => id.trim())
+			.filter(Boolean)
+			.map((id) => `<@${id}>`)
+			.join(' ')
+	: ''
 
-// Inputs are env vars (works best for Docker/CI).
-// Example:
-//   BUILD_STATUS=0 BUILD_TIME_STR="1m 2s" START_TIME="..." BUILD_ID="..." BRANCH_NAME="..." bun ./scripts/build-msg.js
+// build.sh exports these; fallback branch detection for non-Docker environments
 const BUILD_STATUS = normalize(process.env.BUILD_STATUS)
 const BUILD_TIME_STR = normalize(process.env.BUILD_TIME_STR)
 const START_TIME = normalize(process.env.START_TIME)
@@ -97,18 +80,9 @@ const BUILD_ID = normalize(process.env.BUILD_ID)
 const BRANCH_NAME = firstNonEmpty(
 	normalizeBranchName(process.env.BRANCH_NAME),
 	normalizeBranchName(process.env.COOLIFY_BRANCH),
-	normalizeBranchName(process.env.GIT_BRANCH),
-	normalizeBranchName(process.env.CI_COMMIT_REF_NAME),
 	normalizeBranchName(process.env.GITHUB_HEAD_REF),
 	normalizeBranchName(process.env.GITHUB_REF_NAME),
 	normalizeBranchName(process.env.GITHUB_REF),
-	normalizeBranchName(process.env.VERCEL_GIT_COMMIT_REF),
-	normalizeBranchName(process.env.CIRCLE_BRANCH),
-	normalizeBranchName(process.env.TRAVIS_BRANCH),
-	normalizeBranchName(process.env.BITBUCKET_BRANCH),
-	normalizeBranchName(process.env.NETLIFY_BRANCH),
-	normalizeBranchName(process.env.BUILD_SOURCEBRANCHNAME),
-	normalizeBranchName(process.env.CF_PAGES_BRANCH),
 	''
 )
 
@@ -119,7 +93,7 @@ if (!BUILD_STATUS || !BUILD_TIME_STR || !START_TIME) {
 	)
 }
 
-const buildBuildSummary = () => {
+const formatSummary = () => {
 	let summary =
 		BUILD_STATUS === '0' ? `🎉 Build succeeded in ${BUILD_TIME_STR}` : `🚨 Build failed in ${BUILD_TIME_STR}`
 	summary += '\n📂 defillama-app\n'
@@ -133,9 +107,14 @@ const buildBuildSummary = () => {
 	return summary
 }
 
-async function checkWebhookResponse(bodyResponse) {
-	if (!bodyResponse.ok) {
-		console.log(`Failed to post webhook`, await bodyResponse.text())
+async function postWebhook(body) {
+	const response = await fetch(BUILD_STATUS_WEBHOOK, {
+		method: 'POST',
+		body: JSON.stringify(body),
+		headers: { 'Content-Type': 'application/json' }
+	})
+	if (!response.ok) {
+		console.log('Failed to post webhook', await response.text())
 	}
 }
 
@@ -145,51 +124,30 @@ const sendMessages = async () => {
 		return
 	}
 
-	const buildSummary = buildBuildSummary()
-	const message = ['===== BUILD SUMMARY =====', buildSummary].filter(Boolean).join('\n')
-	const body = {
-		content: `\`\`\`${message}\`\`\``,
+	await postWebhook({
+		content: `\`\`\`${'===== BUILD SUMMARY =====\n' + formatSummary()}\`\`\``,
 		allowed_mentions: { parse: ['users', 'roles'] }
-	}
-	await checkWebhookResponse(
-		await fetch(BUILD_STATUS_WEBHOOK, {
-			method: 'POST',
-			body: JSON.stringify(body),
-			headers: { 'Content-Type': 'application/json' }
-		})
-	)
+	})
 
 	const buildLogId = await uploadBuildLog()
 	if (buildLogId) {
 		const buildLogUrl = `${loggerApiUrl}/get/${buildLogId}`
-		const buildLogMessage = buildLogUrl
-		console.log(buildLogMessage)
-		const buildLogBody = { content: buildLogMessage }
-		await checkWebhookResponse(
-			await fetch(BUILD_STATUS_WEBHOOK, {
-				method: 'POST',
-				body: JSON.stringify(buildLogBody),
-				headers: { 'Content-Type': 'application/json' }
-			})
-		)
+		console.log(buildLogUrl)
+		await postWebhook({ content: buildLogUrl })
 	} else {
 		console.log('Build log upload skipped')
 	}
 
 	if (BUILD_STATUS !== '0') {
 		const llamaMessage = ['Build failed.', BUILD_STATUS_DASHBOARD || null].filter(Boolean).join('\n')
-		const llamaBody = {
-			content: `\`\`\`${llamaMessage}\`\`\``,
-			allowed_mentions: { parse: ['users', 'roles'] }
-		}
-		await checkWebhookResponse(
-			await fetch(BUILD_STATUS_WEBHOOK, {
-				method: 'POST',
-				body: JSON.stringify(llamaBody),
-				headers: { 'Content-Type': 'application/json' }
-			})
-		)
+		const failContent = userMentions ? `${userMentions}\n\`\`\`${llamaMessage}\`\`\`` : `\`\`\`${llamaMessage}\`\`\``
+		await postWebhook({
+			content: failContent,
+			allowed_mentions: { parse: ['users'] }
+		})
 	}
 }
 
-sendMessages()
+sendMessages().catch((error) => {
+	console.log('Build notification failed:', error instanceof Error ? error.message : String(error))
+})
