@@ -1660,17 +1660,16 @@ function InlineContent({
 						/>
 					)}
 			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
-			{!hasInlineRefs &&
-				unreferencedCharts.map((entry, i) => (
-					<ChartRenderer
-						key={`chart-${entry.chart.id || i}`}
-						charts={[entry.chart]}
-						chartData={entry.chartData}
-						sessionId={sessionId}
-						fetchFn={fetchFn}
-					/>
-				))}
-			{!hasInlineRefs && unreferencedCsvs.map((csv) => <CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />)}
+			{unreferencedCharts.map((entry, i) => (
+				<ChartRenderer
+					key={`chart-${entry.chart.id || i}`}
+					charts={[entry.chart]}
+					chartData={entry.chartData}
+					sessionId={sessionId}
+					fetchFn={fetchFn}
+				/>
+			))}
+			{unreferencedCsvs.map((csv) => <CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />)}
 			{alerts.map((alert) => (
 				<AlertArtifact
 					key={alert.alertId}
@@ -2028,7 +2027,7 @@ function MessageBubble({
 
 	if (message.role === 'user') {
 		return (
-			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
+			<div className="ml-auto max-w-[80%] break-words rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
 				{message.images && message.images.length > 0 && (
 					<div className="mb-2.5 flex flex-wrap gap-3">
 						{message.images.map((img) => (
