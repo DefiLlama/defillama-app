@@ -1,19 +1,14 @@
 import * as Ariakit from '@ariakit/react'
-import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
-import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Suspense, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
-import { mutatePinnedMetrics } from '../pinnedUtils'
 import { PremiumHeader } from '../PremiumHeader'
 import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
-const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
+const ReorderablePinnedPages = lazy(() => import('./ReorderablePinnedPages'))
 
 export function Menu({
 	mainLinks,
@@ -39,8 +34,11 @@ export function Menu({
 				<Icon name="menu" height={16} width={16} />
 			</Ariakit.DialogDisclosure>
 
-			<Ariakit.Dialog unmountOnHide>
-				<nav className="fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] animate-slidein flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white">
+			<Ariakit.Dialog
+				unmountOnHide={false}
+				className="fixed top-0 right-0 bottom-0 z-10 flex w-full max-w-[300px] drawer-to-left flex-col overflow-auto bg-(--bg-main) p-4 pl-5 text-black dark:text-white"
+			>
+				<nav className="flex flex-1 flex-col">
 					<Ariakit.DialogDismiss className="ml-auto">
 						<span className="sr-only">Close Navigation Menu</span>
 						<Icon name="x" height={20} width={20} strokeWidth="4px" />
@@ -172,27 +170,6 @@ function PinnedPagesSection({
 		}
 	}, [isReordering, pinnedPages.length])
 
-	const sensors = useSensors(
-		useSensor(PointerSensor, {
-			activationConstraint: { distance: 6 }
-		})
-	)
-
-	const handleDragEnd = (event: DragEndEvent) => {
-		const { active, over } = event
-		if (!over || active.id === over.id) return
-
-		const oldIndex = pinnedPages.findIndex(({ route }) => route === active.id)
-		const newIndex = pinnedPages.findIndex(({ route }) => route === over.id)
-
-		if (oldIndex === -1 || newIndex === -1) return
-
-		const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
-		mutatePinnedMetrics(() => reordered.map(({ route }) => route))
-	}
-
-	const sortableItems = pinnedPages.map(({ route }) => route)
-
 	return (
 		<div className="group/pinned mb-3 flex flex-col first:mb-auto">
 			<div className="mb-1 flex items-center justify-between gap-2 text-xs opacity-65">
@@ -201,12 +178,7 @@ function PinnedPagesSection({
 					<button
 						type="button"
 						className="rounded-md px-2 py-1 text-[11px] font-semibold tracking-wide text-(--text-tertiary) uppercase hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-						onClick={() =>
-							setIsReordering((value) => {
-								const next = !value
-								return next
-							})
-						}
+						onClick={() => setIsReordering((v) => !v)}
 					>
 						{isReordering ? 'Done' : 'Reorder'}
 					</button>
@@ -214,95 +186,26 @@ function PinnedPagesSection({
 			</div>
 			<hr className="border-black/20 dark:border-white/20" />
 			{isReordering ? (
-				<p className="mt-1 text-[11px] text-(--text-tertiary)">Drag to reorder, tap remove to unpin</p>
-			) : null}
-			<DndContext sensors={sensors} onDragEnd={handleDragEnd} modifiers={VERTICAL_SORTING_MODIFIERS}>
-				<SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
-					<div className="mt-1 flex flex-col gap-1">
-						{pinnedPages.map((page) => (
-							<PinnedPageRow
-								key={`mobile-nav-pinned-${page.name}-${page.route}`}
-								page={page}
-								asPath={asPath}
-								setShow={setShow}
-								isReordering={isReordering}
-							/>
-						))}
-					</div>
-				</SortableContext>
-			</DndContext>
-		</div>
-	)
-}
-
-const PinnedPageRow = ({
-	page,
-	asPath,
-	setShow,
-	isReordering
-}: {
-	page: TNavLink
-	asPath: string
-	setShow: (show: boolean) => void
-	isReordering: boolean
-}) => {
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-		id: page.route,
-		disabled: !isReordering
-	})
-
-	const style: React.CSSProperties = {
-		transform: CSS.Translate.toString(transform),
-		transition
-	}
-
-	const handleUnpin = () => {
-		mutatePinnedMetrics((routes) => routes.filter((route) => route !== page.route))
-	}
-
-	return (
-		<div
-			ref={setNodeRef}
-			style={style}
-			className="group relative"
-			data-reordering={isReordering}
-			data-dragging={isDragging}
-		>
-			{isReordering ? (
-				<div
-					className={`group/link -ml-1.5 flex flex-1 items-start gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'} select-none`}
-					data-dragging={isDragging}
-				>
-					<div className="flex w-full items-center gap-2">
-						<button
-							type="button"
-							className="flex h-7 w-7 items-center justify-center rounded-md text-(--text-tertiary) hover:bg-black/5 focus-visible:bg-black/5 dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-							aria-label={`Drag ${page.name}`}
-							{...attributes}
-							{...listeners}
-						>
-							<Icon name="menu" className="h-4 w-4" />
-						</button>
-						<NavItemContent name={page.name} icon={page.icon} attention={page.attention} />
-						<button
-							type="button"
-							className="ml-auto flex h-7 w-7 items-center justify-center rounded-md text-(--error) hover:bg-(--error)/10 focus-visible:bg-(--error)/10"
-							aria-label={`Unpin ${page.name}`}
-							onClick={() => handleUnpin()}
-						>
-							<Icon name="x" className="h-4 w-4" />
-						</button>
-					</div>
-				</div>
+				<>
+					<p className="mt-1 text-[11px] text-(--text-tertiary)">Drag to reorder, tap remove to unpin</p>
+					<Suspense fallback={<div className="mt-1 min-h-[40px]" />}>
+						<ReorderablePinnedPages pinnedPages={pinnedPages} />
+					</Suspense>
+				</>
 			) : (
-				<LinkToPage
-					route={page.route}
-					name={page.name}
-					icon={page.icon}
-					attention={page.attention}
-					asPath={asPath}
-					setShow={setShow}
-				/>
+				<div className="mt-1 flex flex-col gap-1">
+					{pinnedPages.map((page) => (
+						<LinkToPage
+							key={`mobile-nav-pinned-${page.name}-${page.route}`}
+							route={page.route}
+							name={page.name}
+							icon={page.icon}
+							attention={page.attention}
+							asPath={asPath}
+							setShow={setShow}
+						/>
+					))}
+				</div>
 			)}
 		</div>
 	)

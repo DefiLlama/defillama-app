@@ -382,7 +382,13 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
-			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.assetName && !ASSETS_TO_EXCLUDE.has(asset.assetName)) {
+			if (
+				hasChainInTvl &&
+				hasCategoryMatch &&
+				hasPlatformMatch &&
+				asset.assetName &&
+				!ASSETS_TO_EXCLUDE.has(asset.assetName)
+			) {
 				const isStablecoin = !!item.stablecoin
 				const isGovernance = !!item.governance
 				const isStablecoinOnly = isStablecoin && !isGovernance

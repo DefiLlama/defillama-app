@@ -23,6 +23,7 @@ interface ISelectWithComboboxBase {
 	portal?: boolean
 	onValuesChange?: (values: string[], label: string) => void
 	defaultSelectedValues?: string[]
+	unmountOnHide?: boolean
 }
 
 interface ISelectWithComboboxUrlParams extends ISelectWithComboboxBase {
@@ -56,7 +57,8 @@ export function SelectWithCombobox({
 	includeQueryKey,
 	excludeQueryKey,
 	onValuesChange,
-	defaultSelectedValues
+	defaultSelectedValues,
+	unmountOnHide = true
 }: ISelectWithCombobox) {
 	const router = useRouter()
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
@@ -275,7 +277,7 @@ export function SelectWithCombobox({
 					<Ariakit.SelectArrow />
 				</Ariakit.Select>
 				<Ariakit.SelectPopover
-					unmountOnHide
+					unmountOnHide={unmountOnHide}
 					hideOnInteractOutside
 					gutter={6}
 					wrapperProps={{

@@ -31,6 +31,7 @@
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
+	--animate-fadein: fadein 180ms ease-out;
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
@@ -97,6 +98,14 @@
 		100% {
 			opacity: 1;
 			right: 0%;
+		}
+	}
+	@keyframes fadein {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
 		}
 	}
 	@keyframes slideup {
@@ -224,7 +233,10 @@
 @utility drawer-to-left {
 	opacity: 0;
 	transform: translateX(100%);
-	transition: 0.2s ease-out;
+	transition:
+		opacity 150ms ease-out,
+		transform 150ms ease-out,
+		display 150ms ease-out allow-discrete;
 
 	&[data-enter] {
 		opacity: 1;
@@ -232,7 +244,17 @@
 	}
 
 	&[data-leave] {
-		transition: 0.1s ease-out;
+		transition:
+			opacity 100ms ease-out,
+			transform 100ms ease-out,
+			display 100ms ease-out allow-discrete;
+	}
+
+	@starting-style {
+		&[data-enter] {
+			opacity: 0;
+			transform: translateX(100%);
+		}
 	}
 }
 

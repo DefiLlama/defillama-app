@@ -204,6 +204,7 @@ export function Metrics({
 						</div>
 						<div
 							className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canDismiss ? 'lg:grid-cols-3 xl:grid-cols-4' : 'xl:grid-cols-3 2xl:grid-cols-4'}`}
+							style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 300px' }}
 						>
 							{metrics.map((metric) => (
 								<LinkToMetricOrToolPage
@@ -404,7 +405,7 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 				</div>
 				<Ariakit.Dialog
 					className="dialog thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 max-sm:drawer sm:w-full sm:max-w-[min(85vw,1280px)]"
-					unmountOnHide
+					unmountOnHide={false}
 					hideOnInteractOutside
 				>
 					<Metrics canDismiss={true} hasScrolledToCategoryRef={hasScrolledToCategoryRef} />
