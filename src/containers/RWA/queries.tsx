@@ -176,6 +176,8 @@ type RWAAssetsOverviewParams = {
 	rwaList: IRWAList
 }
 
+const ASSETS_TO_EXCLUDE = new Set(['Franklin OnChain U.S. Government Money Fund (BENJI)'])
+
 export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
 		const selectedChain = params?.chain ? rwaSlug(params.chain) : undefined
@@ -380,7 +382,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
-			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.assetName) {
+			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.assetName && !ASSETS_TO_EXCLUDE.has(asset.assetName)) {
 				const isStablecoin = !!item.stablecoin
 				const isGovernance = !!item.governance
 				const isStablecoinOnly = isStablecoin && !isGovernance
