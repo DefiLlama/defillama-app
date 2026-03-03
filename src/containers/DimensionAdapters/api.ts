@@ -162,12 +162,12 @@ interface CoinGeckoBtcPrice {
 export async function fetchCexVolume(): Promise<number | null> {
 	try {
 		const [cexs, btcPriceRes] = await Promise.all([
-			fetchJson<CoinGeckoExchange[]>('https://api.coingecko.com/api/v3/exchanges?per_page=250', {
+			fetchJson<CoinGeckoExchange[]>('https://pro-api.coingecko.com/api/v3/exchanges?per_page=250', {
 				headers: {
 					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
-			fetchJson<CoinGeckoBtcPrice>('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', {
+			fetchJson<CoinGeckoBtcPrice>('https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', {
 				headers: {
 					'x-cg-pro-api-key': COINGECKO_KEY
 				}
