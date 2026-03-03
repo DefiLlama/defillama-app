@@ -76,6 +76,7 @@ function MetricFilters({ options, label }: { options: { name: string; key: strin
 						'whitespace-nowrap *:shrink-0 flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 				}}
 				placement="bottom-end"
+				unmountOnHide={false}
 			/>
 		</>
 	)

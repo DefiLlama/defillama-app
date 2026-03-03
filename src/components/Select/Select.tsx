@@ -19,6 +19,7 @@ interface ISelectBase {
 	portal?: boolean
 	placement?: Ariakit.SelectProviderProps['placement']
 	defaultSelectedValues?: string[]
+	unmountOnHide?: boolean
 }
 
 interface ISelectWithUrlParams extends ISelectBase {
@@ -49,7 +50,8 @@ export function Select({
 	placement = 'bottom-start',
 	includeQueryKey,
 	excludeQueryKey,
-	defaultSelectedValues
+	defaultSelectedValues,
+	unmountOnHide = true
 }: ISelect) {
 	const router = useRouter()
 
@@ -240,7 +242,7 @@ export function Select({
 				<Ariakit.SelectArrow />
 			</Ariakit.Select>
 			<Ariakit.SelectPopover
-				unmountOnHide
+				unmountOnHide={unmountOnHide}
 				hideOnInteractOutside
 				gutter={6}
 				wrapperProps={{

@@ -63,7 +63,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 				</Ariakit.MenuButton>
 
 				<Ariakit.Menu
-					unmountOnHide
+					unmountOnHide={false}
 					hideOnInteractOutside
 					gutter={6}
 					wrapperProps={{

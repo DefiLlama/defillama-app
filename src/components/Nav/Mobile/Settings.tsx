@@ -17,7 +17,7 @@ export function Settings({ metricFilters = EMPTY_FILTERS }: { metricFilters?: { 
 				<Icon name="settings" height={16} width={16} />
 			</Ariakit.Select>
 			<Ariakit.SelectPopover
-				unmountOnHide
+				unmountOnHide={false}
 				hideOnInteractOutside
 				gutter={6}
 				wrapperProps={{

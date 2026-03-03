@@ -1,11 +1,11 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ----------------------------- Theme Tokens ----------------------------- */
 @theme {
-	--font-inter: Inter var, 'Inter-fallback', sans-serif;
+	--font-inter: Inter var, "Inter-fallback", sans-serif;
 	--font-jetbrains: JetBrains Mono, monospace;
 
 	--color-pro-purple-100: oklch(0.935 0.02 286); /* Grayish/off-white */
@@ -23,7 +23,9 @@
 	--color-pro-green-300: oklch(0.612 0.213 143); /* Vibrant green */
 	--color-pro-green-400: oklch(0.41 0.13 143); /* Deep green */
 
-	--color-pro-gold-100: oklch(0.94 0.01 71.72); /* Light version of pro-gold-400 */
+	--color-pro-gold-100: oklch(
+		0.94 0.01 71.72
+	); /* Light version of pro-gold-400 */
 	--color-pro-gold-200: oklch(0.78 0.08 60); /* Medium gold */
 	--color-pro-gold-300: oklch(0.612 0.15 60); /* Vibrant gold */
 	--color-pro-gold-400: oklch(0.41 0.12 60); /* Deep gold */
@@ -31,6 +33,7 @@
 	--animate-loader: loader 800ms linear infinite;
 	--animate-wiggle: wiggle 300ms ease-out;
 	--animate-slidein: slidein 300ms ease-out;
+	--animate-fadein: fadein 180ms ease-out;
 	--animate-linebeat: linebeat 1s ease-in-out infinite alternate;
 	--animate-ai-glow: ai-glow 3s ease-in-out infinite;
 	--animate-shimmer: shimmer 2s ease-in-out infinite;
@@ -97,6 +100,14 @@
 		100% {
 			opacity: 1;
 			right: 0%;
+		}
+	}
+	@keyframes fadein {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
 		}
 	}
 	@keyframes slideup {
@@ -189,7 +200,7 @@
 
 @utility vf-row-counter {
 	counter-reset: vf-row var(--vf-row-offset, 0);
-	& > .vf-row[data-depth='0'] {
+	& > .vf-row[data-depth="0"] {
 		counter-increment: vf-row;
 	}
 }
@@ -224,7 +235,10 @@
 @utility drawer-to-left {
 	opacity: 0;
 	transform: translateX(100%);
-	transition: 0.2s ease-out;
+	transition:
+		opacity 150ms ease-out,
+		transform 150ms ease-out,
+		display 150ms ease-out allow-discrete;
 
 	&[data-enter] {
 		opacity: 1;
@@ -232,7 +246,17 @@
 	}
 
 	&[data-leave] {
-		transition: 0.1s ease-out;
+		transition:
+			opacity 100ms ease-out,
+			transform 100ms ease-out,
+			display 100ms ease-out allow-discrete;
+	}
+
+	@starting-style {
+		&[data-enter] {
+			opacity: 0;
+			transform: translateX(100%);
+		}
 	}
 }
 
@@ -402,7 +426,11 @@
 @utility pro-info-card {
 	.pro-dashboard & {
 		border-radius: 0.3rem;
-		background-image: linear-gradient(to top, rgba(35, 91, 255, 0), rgba(35, 91, 255, 0.15));
+		background-image: linear-gradient(
+			to top,
+			rgba(35, 91, 255, 0),
+			rgba(35, 91, 255, 0.15)
+		);
 	}
 	.pro-dashboard &:hover {
 		background-color: rgba(17, 30, 78, 0.25);
@@ -428,25 +456,25 @@
 /* --------------------------------- Base --------------------------------- */
 @layer base {
 	@font-face {
-		font-family: 'Inter-fallback';
+		font-family: "Inter-fallback";
 		size-adjust: 107%;
-		src: local('Arial');
+		src: local("Arial");
 	}
 
 	@font-face {
-		font-family: 'Inter var';
+		font-family: "Inter var";
 		font-style: normal;
 		font-weight: 100 900;
 		font-display: swap;
-		src: url('/fonts/inter.woff2') format('woff2');
+		src: url("/fonts/inter.woff2") format("woff2");
 	}
 
 	@font-face {
-		font-family: 'JetBrains Mono';
+		font-family: "JetBrains Mono";
 		font-style: normal;
 		font-weight: 800;
 		font-display: swap;
-		src: url('/fonts/jetbrains.ttf') format('truetype');
+		src: url("/fonts/jetbrains.ttf") format("truetype");
 	}
 
 	:root {
@@ -484,7 +512,9 @@
 		/* Link Colors */
 		--link-bg: oklch(0.953 0.015 257.2);
 		--link-hover-bg: oklch(0.905 0.034 265.2);
-		--link-text: oklch(0.535 0.179 258.6); /* should be oklch(0.535 0.179 258.6) */
+		--link-text: oklch(
+			0.535 0.179 258.6
+		); /* should be oklch(0.535 0.179 258.6) */
 		--link-active-bg: oklch(0.535 0.179 258.6);
 
 		/* Button Colors */
@@ -623,9 +653,9 @@
 	}
 
 	/* Dark mode calendar picker indicator */
-	html.dark input[type='date']::-webkit-calendar-picker-indicator {
-		filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(95%)
-			contrast(88%);
+	html.dark input[type="date"]::-webkit-calendar-picker-indicator {
+		filter: brightness(0) saturate(100%) invert(76%) sepia(0%) saturate(0%)
+			hue-rotate(0deg) brightness(95%) contrast(88%);
 		opacity: 1 !important;
 	}
 
@@ -676,7 +706,7 @@
 	}
 
 	.message-sent::before {
-		content: '';
+		content: "";
 		width: 0px;
 		height: 0px;
 		position: absolute;
@@ -728,7 +758,12 @@
 
 /* -------------------------- Llama AI UI Classes -------------------------- */
 .llamaai-glow {
-	background: linear-gradient(93.94deg, #fde0a9 24.73%, #fbedcb 57.42%, #fde0a9 99.73%);
+	background: linear-gradient(
+		93.94deg,
+		#fde0a9 24.73%,
+		#fbedcb 57.42%,
+		#fde0a9 99.73%
+	);
 	box-shadow:
 		0px 0px 60px rgba(253, 224, 169, 0.5),
 		0px 0px 2px 4px rgba(255, 255, 255, 0.1);
@@ -742,13 +777,18 @@
 }
 
 .llamaai-glow::before {
-	content: '';
+	content: "";
 	position: absolute;
 	top: -50%;
 	left: -50%;
 	width: 200%;
 	height: 200%;
-	background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+	background: linear-gradient(
+		45deg,
+		transparent,
+		rgba(255, 255, 255, 0.3),
+		transparent
+	);
 	transform: rotate(45deg);
 	opacity: 0;
 	pointer-events: none;
@@ -783,7 +823,12 @@
 }
 
 .llamaai-glow-text {
-	background: linear-gradient(93.94deg, #d97706 24.73%, #f59e0b 57.42%, #d97706 99.73%);
+	background: linear-gradient(
+		93.94deg,
+		#d97706 24.73%,
+		#f59e0b 57.42%,
+		#d97706 99.73%
+	);
 	background-clip: text;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -798,7 +843,12 @@
 }
 
 .dark .llamaai-glow-text {
-	background: linear-gradient(93.94deg, #fde0a9 24.73%, #fbedcb 57.42%, #fde0a9 99.73%);
+	background: linear-gradient(
+		93.94deg,
+		#fde0a9 24.73%,
+		#fbedcb 57.42%,
+		#fde0a9 99.73%
+	);
 	background-clip: text;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -835,7 +885,7 @@
 .prose.llamaai-prose figure,
 .prose.llamaai-prose figcaption,
 .prose.llamaai-prose table,
-.prose.llamaai-prose [class~='lead'] {
+.prose.llamaai-prose [class~="lead"] {
 	margin-top: 0;
 	margin-bottom: 0;
 }
