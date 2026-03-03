@@ -4,11 +4,14 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { useChartResize } from '~/hooks/useChartResize'
 import { formatTooltipValue } from '../formatters'
 import type { IHBarChartProps } from '../types'
 
 echarts.use([CanvasRenderer, BarChart, GridComponent, TooltipComponent])
+
+function getYAxisLabelWidth(containerWidth: number) {
+	return Math.min(Math.max(containerWidth * 0.2, 100), 300)
+}
 
 export default function HBarChart({
 	categories,
@@ -23,8 +26,6 @@ export default function HBarChart({
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const chartRef = useRef<echarts.ECharts | null>(null)
-
-	useChartResize(chartRef)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -45,6 +46,7 @@ export default function HBarChart({
 		})
 
 		const textColor = isThemeDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)'
+		const yAxisLabelWidth = getYAxisLabelWidth(chartDom.clientWidth || 600)
 
 		instance.setOption(
 			{
@@ -74,7 +76,7 @@ export default function HBarChart({
 					inverse: true,
 					axisLabel: {
 						color: textColor,
-						width: 100,
+						width: yAxisLabelWidth,
 						overflow: 'truncate'
 					}
 				},
@@ -99,7 +101,19 @@ export default function HBarChart({
 			true
 		)
 
+		const observer = new ResizeObserver((entries) => {
+			const inst = chartRef.current
+			if (!inst) return
+			const entry = entries[0]
+			if (!entry) return
+			const width = entry.contentRect.width
+			inst.resize()
+			inst.setOption({ yAxis: { axisLabel: { width: getYAxisLabelWidth(width) } } })
+		})
+		observer.observe(chartDom)
+
 		return () => {
+			observer.disconnect()
 			chartRef.current = null
 			onReady?.(null)
 			instance?.dispose()

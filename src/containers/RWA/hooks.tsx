@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchJson } from '~/utils/async'
 import {
 	toNonEmptyArrayParam,
 	parseExcludeParam,
@@ -1079,60 +1080,6 @@ export function useRwaChainBreakdownPieChartData({
 	}, [assets, enabled])
 }
 
-// RWAChartMetric, RWAChartRow, emptyChartDatasets, sortKeysByLatestTimestampValue
-// are now re-exported from ./chartAggregation
-
-export function useRwaChartDataByCategory({
-	enabled,
-	assets,
-	chartDataByTicker
-}: {
-	enabled: boolean
-	assets: IRWAAssetsOverview['assets']
-	chartDataByTicker: IRWAChartDataByTicker | null
-}): {
-	chartDatasetByCategory: RWAChartDatasetsByMetric
-} {
-	return useMemo(() => {
-		if (!enabled || !chartDataByTicker) return { chartDatasetByCategory: emptyChartDatasets() }
-		return { chartDatasetByCategory: aggregateRwaChartData(assets, chartDataByTicker, 'category') }
-	}, [assets, chartDataByTicker, enabled])
-}
-
-export function useRwaChartDataByAssetClass({
-	enabled,
-	assets,
-	chartDataByTicker
-}: {
-	enabled: boolean
-	assets: IRWAAssetsOverview['assets']
-	chartDataByTicker: IRWAChartDataByTicker | null
-}): {
-	chartDatasetByAssetClass: RWAChartDatasetsByMetric
-} {
-	return useMemo(() => {
-		if (!enabled || !chartDataByTicker) return { chartDatasetByAssetClass: emptyChartDatasets() }
-		return { chartDatasetByAssetClass: aggregateRwaChartData(assets, chartDataByTicker, 'assetClass') }
-	}, [assets, chartDataByTicker, enabled])
-}
-
-export function useRwaChartDataByAssetName({
-	enabled,
-	assets,
-	chartDataByTicker
-}: {
-	enabled: boolean
-	assets: IRWAAssetsOverview['assets']
-	chartDataByTicker: IRWAChartDataByTicker | null
-}): {
-	chartDatasetByAssetName: RWAChartDatasetsByMetric
-} {
-	return useMemo(() => {
-		if (!enabled || !chartDataByTicker) return { chartDatasetByAssetName: emptyChartDatasets() }
-		return { chartDatasetByAssetName: aggregateRwaChartData(assets, chartDataByTicker, 'assetName') }
-	}, [assets, chartDataByTicker, enabled])
-}
-
 const CHART_FILTER_QUERY_KEYS = new Set([
 	'assetNames',
 	'types',
@@ -1184,11 +1131,7 @@ async function fetchRwaTickerChartData(params: {
 	else if (params.categorySlug) searchParams.set('category', params.categorySlug)
 	else if (params.platformSlug) searchParams.set('platform', params.platformSlug)
 
-	const response = await fetch(`/api/rwa/chart-data?${searchParams.toString()}`)
-	if (!response.ok) {
-		throw new Error(`Failed to fetch RWA chart data: ${response.status}`)
-	}
-	return response.json()
+	return fetchJson<IRWAChartDataByTicker>(`/api/rwa/chart-data?${searchParams.toString()}`)
 }
 
 export function useRwaChartDataset({
