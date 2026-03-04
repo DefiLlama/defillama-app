@@ -184,6 +184,7 @@ export interface IProtocolOverviewPageData {
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IProtocolMetricsV2['warningBanners']
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	seoTitle: string
 	seoDescription: string
 	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]

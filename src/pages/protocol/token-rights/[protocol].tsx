@@ -16,7 +16,6 @@ import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []
-
 type TokenRightsPageProps = {
 	name: string
 	symbol: string | null
@@ -28,6 +27,8 @@ type TokenRightsPageProps = {
 	toggleOptions: Array<{ name: string; key: string }>
 	tokenRightsData: ITokenRightsData
 	raises: IProtocolRaise[] | null
+	seoTitle: string
+	seoDescription: string
 }
 
 export const getStaticProps = withPerformanceLogging(
@@ -77,6 +78,9 @@ export const getStaticProps = withPerformanceLogging(
 		const symbol = tokenlistSymbol ?? (protocolData?.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
 
 		const computedMetrics = protocolData ? getProtocolMetricFlags({ protocolData, metadata: metadata[1] }) : null
+		const name = protocolData?.name ?? rawEntry['Protocol Name']
+		const seoTitle = `${name} Token Rights & Utility - DefiLlama`
+		const seoDescription = `Explore ${name}${symbol ? ` (${symbol})` : ''} token rights, holder benefits, governance power, and revenue distribution on DefiLlama.`
 		const metrics: IProtocolPageMetrics = {
 			...(computedMetrics ?? {
 				tvl: false,
@@ -112,7 +116,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const props: TokenRightsPageProps = {
-			name: protocolData?.name ?? rawEntry['Protocol Name'],
+			name,
 			symbol,
 			parentProtocol: protocolData?.parentProtocol ?? null,
 			otherProtocols: protocolData?.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
@@ -121,7 +125,9 @@ export const getStaticProps = withPerformanceLogging(
 			warningBanners: protocolData ? getProtocolWarningBanners(protocolData) : [],
 			toggleOptions: [],
 			tokenRightsData,
-			raises
+			raises,
+			seoTitle,
+			seoDescription
 		}
 
 		return { props, revalidate: maxAgeForNext([22]) }
@@ -149,6 +155,8 @@ export default function ProtocolTokenRightsPage(props: TokenRightsPageProps) {
 			tab="tokenRights"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<TokenRightsByProtocol
 				name={props.name}

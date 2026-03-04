@@ -92,6 +92,8 @@ export const getStaticProps = withPerformanceLogging(
 		)
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Fees, Revenue & Earnings - DefiLlama`
+		const seoDescription = `Compare ${protocolData.name} daily and cumulative fees, revenue, and protocol earnings on DefiLlama.`
 
 		const fees: IProtocolOverviewPageData['fees'] = {
 			total24h: feesData.total24h ?? null,
@@ -219,7 +221,9 @@ export const getStaticProps = withPerformanceLogging(
 					bribeRevenueData?.defaultChartView ??
 					tokenTaxData?.defaultChartView ??
 					'daily',
-				toggleOptions
+				toggleOptions,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -362,6 +366,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="fees"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">

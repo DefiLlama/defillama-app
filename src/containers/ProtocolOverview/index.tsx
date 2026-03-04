@@ -52,6 +52,7 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 			metrics={props.metrics}
 			warningBanners={props.warningBanners}
 			tab="information"
+			seoTitle={props.seoTitle}
 			seoDescription={props.seoDescription}
 			seoKeywords={props.seoKeywords}
 			entityQuestions={props.entityQuestions}

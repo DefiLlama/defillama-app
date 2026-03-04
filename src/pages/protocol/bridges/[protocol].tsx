@@ -45,6 +45,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Bridge Volume & Activity - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} cross-chain bridge volume, supported networks, and transactions on DefiLlama.`
 
 		return {
 			props: {
@@ -53,7 +55,9 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
-				bridgeData
+				bridgeData,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -84,6 +88,8 @@ export default function Protocols({ bridgeData, ...props }) {
 			tab="bridges"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex flex-col gap-10 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 				<BridgeInfo {...bridgeData} />

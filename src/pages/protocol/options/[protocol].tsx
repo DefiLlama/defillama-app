@@ -68,6 +68,8 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Options Trading Volume - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} options premium and notional trading volume with historical charts on DefiLlama.`
 
 		const optionsPremiumVolume: IProtocolOverviewPageData['optionsPremiumVolume'] = {
 			total24h: premiumVolumeData?.total24h ?? null,
@@ -128,7 +130,9 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: premiumVolumeData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((protocol) => protocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
-				defaultChartView: premiumVolumeData?.defaultChartView ?? notionalVolumeData?.defaultChartView ?? 'daily'
+				defaultChartView: premiumVolumeData?.defaultChartView ?? notionalVolumeData?.defaultChartView ?? 'daily',
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -224,6 +228,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="options"
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
 			warningBanners={props.warningBanners}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">

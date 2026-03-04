@@ -59,6 +59,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Total Value Locked (TVL) - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} Total Value Locked across all chains with historical charts and breakdowns on DefiLlama.`
 
 		const toggleOptions = []
 		const chainsUnique = new Set<string>()
@@ -84,7 +86,9 @@ export const getStaticProps = withPerformanceLogging(
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
 				toggleOptions,
-				chainsUnique: Array.from(chainsUnique)
+				chainsUnique: Array.from(chainsUnique),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -401,6 +405,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="tvl"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />

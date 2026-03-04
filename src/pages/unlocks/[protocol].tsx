@@ -23,7 +23,7 @@ export const getStaticProps = withPerformanceLogging(
 		await metadataModule.refreshMetadataIfStale()
 		const metadataCache = metadataModule.default
 
-		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
+		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
 			params.protocol,
 			metadataCache.tokenlist
 		)
@@ -42,6 +42,11 @@ export const getStaticProps = withPerformanceLogging(
 				revalidate: maxAgeForNext([22])
 			}
 		}
+		const resolvedTokenSymbol = tokenSymbol ?? emissions.tokenPrice?.symbol ?? null
+		const symbolKeywords = resolvedTokenSymbol ?? emissions.name
+		const seoTitle = `${emissions.name} Token Unlocks & Vesting Schedule - DefiLlama`
+		const seoDescription = `View ${emissions.name}${resolvedTokenSymbol ? ` (${resolvedTokenSymbol})` : ''} token unlock schedule, vesting charts, and cliff events. Track upcoming emissions on DefiLlama.`
+		const seoKeywords = `${emissions.name} ${symbolKeywords} token unlocks, vesting schedules, emission data, DefiLlama, ${symbolKeywords}, ${emissions.name}, ${symbolKeywords} Tokenomics, ${symbolKeywords} Unlocks, ${symbolKeywords} Vesting Schedule, ${emissions.name} Unlocks, ${emissions.name} Vesting Schedule, ${emissions.name} Tokenomics`
 
 		return {
 			props: {
@@ -49,7 +54,10 @@ export const getStaticProps = withPerformanceLogging(
 				totalUnlockValue: calculateTotalUnlockValue(emissions),
 				eventCountdown: getEventCountdown(emissions?.upcomingEvent?.[0]?.timestamp),
 				noUpcomingEvent,
-				initialTokenMarketData
+				initialTokenMarketData,
+				seoTitle,
+				seoDescription,
+				seoKeywords
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -75,13 +83,16 @@ export default function Protocol({
 	totalUnlockValue,
 	eventCountdown,
 	noUpcomingEvent,
-	initialTokenMarketData
+	initialTokenMarketData,
+	seoTitle,
+	seoDescription,
+	seoKeywords
 }) {
 	return (
 		<Layout
-			title={`${emissions.name} ${emissions.tokenPrice.symbol} Token Unlocks & Vesting Schedules - DefiLlama`}
-			description={`Track upcoming ${emissions.name} token unlocks, detailed vesting schedules, and key emission data on DefiLlama. Stay informed on ${emissions.tokenPrice.symbol} release events and supply changes.`}
-			keywords={`${emissions.name} ${emissions.tokenPrice.symbol} token unlocks, vesting schedules, emission data, DefiLlama, ${emissions.tokenPrice.symbol}, ${emissions.name}, ${emissions.tokenPrice.symbol} Tokenomics, ${emissions.tokenPrice.symbol} Unlocks, ${emissions.tokenPrice.symbol} Vesting Schedule, ${emissions.name} Unlocks, ${emissions.name} Vesting Schedule, ${emissions.name} Tokenomics`}
+			title={seoTitle}
+			description={seoDescription}
+			keywords={seoKeywords}
 			canonicalUrl={`/unlocks/${emissions.name}`}
 		>
 			<LinkPreviewCard

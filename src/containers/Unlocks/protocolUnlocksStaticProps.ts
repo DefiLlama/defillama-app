@@ -57,6 +57,7 @@ export async function getProtocolUnlocksStaticPropsData(
 	const tokenEntry = geckoId ? (tokenlist[geckoId] ?? null) : null
 	const cgChart = geckoId ? await fetchCgChartByGeckoId(geckoId, { fullChart: false }).catch(() => null) : null
 	const cgMarketData = cgChart?.data?.coinData?.market_data
+	const tokenSymbol = emissions?.tokenPrice?.symbol ?? tokenEntry?.symbol?.toUpperCase() ?? null
 	const initialTokenMarketData = tokenEntry
 		? {
 				price: tokenEntry.current_price ?? null,
@@ -77,6 +78,7 @@ export async function getProtocolUnlocksStaticPropsData(
 		normalizedName,
 		emissions,
 		geckoId,
+		tokenSymbol,
 		initialTokenMarketData
 	}
 }

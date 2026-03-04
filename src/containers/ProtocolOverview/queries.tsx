@@ -697,22 +697,6 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const name = protocolData.name ?? currentProtocolMetadata.displayName ?? ''
-	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
-	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
-	if (expenses) {
-		seoDescription += `, Expenses`
-		seoKeywords += `, ${name.toLowerCase()} expenses`
-	}
-	if (revenueData && incentives) {
-		seoDescription += `, Earnings`
-		seoKeywords += `, ${name.toLowerCase()} earnings`
-	}
-	if (incomeStatement) {
-		seoDescription += `, Income Statement`
-		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
-	}
-	seoDescription += ' and their methodologies'
-	seoKeywords += `, ${name.toLowerCase()} methodologies`
 
 	const defaultToggledCharts = buildDefaultToggledCharts({
 		isCEX,
@@ -780,6 +764,50 @@ export const getProtocolOverviewPageData = async ({
 			}
 		}
 	}
+	const titleMetrics: string[] = []
+	if (availableCharts.includes(isCEX ? 'Total Assets' : 'TVL')) {
+		titleMetrics.push(isCEX ? 'Assets' : 'TVL')
+	}
+	if (availableCharts.includes('Fees')) {
+		titleMetrics.push('Fees')
+	}
+	if (availableCharts.includes('Revenue')) {
+		titleMetrics.push('Revenue')
+	}
+	if (availableCharts.includes('DEX Volume') || availableCharts.includes('Perp Volume')) {
+		titleMetrics.push('Volume')
+	}
+	const titleMetricSegment =
+		titleMetrics.length === 0
+			? 'Stats & Charts'
+			: titleMetrics.length === 1
+				? `${titleMetrics[0]} Stats & Charts`
+				: `${titleMetrics.slice(0, -1).join(', ')} & ${titleMetrics.at(-1)} Stats`
+	const baseTitle = `${name} ${titleMetricSegment} - DefiLlama`
+	const seoTitle = baseTitle.length < 30 ? `${baseTitle} - DeFi Dashboard & Crypto Analytics` : baseTitle
+
+	const chartLabelsForSeo = availableCharts.filter(
+		(chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)
+	)
+	let seoDescription = `Track ${name} on DefiLlama. Including ${chartLabelsForSeo.length ? chartLabelsForSeo.join(', ') : 'key onchain and financial stats'}`
+	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
+	if (expenses) {
+		seoDescription += `, Expenses`
+		seoKeywords += `, ${name.toLowerCase()} expenses`
+	}
+	if (revenueData && incentives) {
+		seoDescription += `, Earnings`
+		seoKeywords += `, ${name.toLowerCase()} earnings`
+	}
+	if (incomeStatement) {
+		seoDescription += `, Income Statement`
+		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
+	}
+	if (currentProtocolMetadata.tokenRights) {
+		seoDescription += `, Token Rights`
+		seoKeywords += `, ${name.toLowerCase()} token rights`
+	}
+	seoKeywords += `, ${name.toLowerCase()} defi`
 
 	return {
 		id: String(protocolData.id),
@@ -906,6 +934,7 @@ export const getProtocolOverviewPageData = async ({
 			optionsPremiumVolumeData?.defaultChartView ??
 			optionsNotionalVolumeData?.defaultChartView ??
 			'daily',
+		seoTitle,
 		seoDescription,
 		seoKeywords,
 		defaultToggledCharts,

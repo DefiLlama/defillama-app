@@ -39,6 +39,8 @@ interface TreasuryPageProps {
 	category: string | null
 	metrics: IProtocolPageMetrics
 	warningBanners: ReturnType<typeof getProtocolWarningBanners>
+	seoTitle: string
+	seoDescription: string
 }
 
 function updateSelectionOnListChange(selected: string[], all: string[]) {
@@ -219,6 +221,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Treasury Holdings & Assets - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} treasury holdings, asset composition, and own-token vs stablecoin breakdown on DefiLlama.`
 
 		return {
 			props: {
@@ -226,7 +230,9 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -304,6 +310,8 @@ export default function Protocols(props: TreasuryPageProps) {
 			tab="treasury"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="mr-auto flex items-center gap-2">

@@ -38,11 +38,15 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-
-		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
+		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
 			normalizedName,
 			metadataCache.tokenlist
 		)
+		if (!emissions) {
+			return { notFound: true, props: null }
+		}
+		const seoTitle = `${protocolData.name} Token Unlocks & Vesting - DefiLlama`
+		const seoDescription = `Track ${protocolData.name}${tokenSymbol ? ` (${tokenSymbol})` : ''} token unlock schedule, vesting timelines, and upcoming emission events on DefiLlama.`
 
 		return {
 			props: {
@@ -52,7 +56,9 @@ export const getStaticProps = withPerformanceLogging(
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
 				emissions,
-				initialTokenMarketData
+				initialTokenMarketData,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -82,6 +88,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			metrics={props.metrics}
 			tab="unlocks"
 			warningBanners={props.warningBanners}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex flex-col gap-2 rounded-md">
 				<UnlocksCharts

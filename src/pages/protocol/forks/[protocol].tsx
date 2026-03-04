@@ -38,6 +38,8 @@ export const getStaticProps = withPerformanceLogging(
 		const forksData = await getForksByProtocolPageData({ fork: protocolData.name })
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Protocol Forks & Derivatives - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} protocol forks, their total TVL, and how derivative projects compare on DefiLlama.`
 
 		return {
 			props: {
@@ -46,7 +48,9 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				forksData,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -76,6 +80,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			metrics={props.metrics}
 			tab="forks"
 			warningBanners={props.warningBanners}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />

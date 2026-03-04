@@ -57,6 +57,8 @@ export const getStaticProps = withPerformanceLogging(
 		])
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Perpetual Futures Volume - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} perpetual futures trading volume with daily and cumulative breakdowns on DefiLlama.`
 
 		const perpVolume: IProtocolOverviewPageData['perpVolume'] = {
 			total24h: adapterData.total24h ?? null,
@@ -98,7 +100,9 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: adapterData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((protocol) => protocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
-				defaultChartView: adapterData?.defaultChartView ?? 'daily'
+				defaultChartView: adapterData?.defaultChartView ?? 'daily',
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -160,6 +164,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="perps"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">

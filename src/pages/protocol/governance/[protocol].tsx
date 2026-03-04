@@ -41,6 +41,8 @@ export const getStaticProps = withPerformanceLogging(
 			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
 			: undefined
 		const symbol = tokenlistSymbol ?? (protocolData.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
+		const seoTitle = `${protocolData.name} Governance Proposals & Voting - DefiLlama`
+		const seoDescription = `Track ${protocolData.name}${symbol ? ` (${symbol})` : ''} governance proposals, voting results, and on-chain participation on DefiLlama.`
 
 		const [metrics, governanceProps] = await Promise.all([
 			Promise.resolve(getProtocolMetricFlags({ protocolData, metadata: metadata[1] })),
@@ -59,7 +61,9 @@ export const getStaticProps = withPerformanceLogging(
 				metrics,
 				governanceData: governanceProps.governanceData,
 				governanceTypes: governanceProps.governanceTypes,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -89,6 +93,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			metrics={props.metrics}
 			tab="governance"
 			warningBanners={props.warningBanners}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			{props.governanceData?.length ? (
 				<GovernanceProject

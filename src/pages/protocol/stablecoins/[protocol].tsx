@@ -38,6 +38,8 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Stablecoin Data & Reserves - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} stablecoin market cap, peg stability, chain distribution, and reserves on DefiLlama.`
 
 		const stablecoinData =
 			Array.isArray(protocolData?.stablecoins) && protocolData.stablecoins.length > 0
@@ -51,7 +53,9 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				stablecoinData: stablecoinData?.props ?? null,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -82,6 +86,8 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			tab="stablecoins"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			{props.stablecoinData ? (
 				<PeggedAssetInfo {...props.stablecoinData} />
