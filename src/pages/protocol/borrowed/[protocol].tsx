@@ -167,7 +167,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
-		if (!protocolData || !protocolData.currentChainTvls?.borrowed) {
+		if (!protocolData || protocolData.currentChainTvls?.borrowed == null) {
 			return { notFound: true, props: null }
 		}
 
