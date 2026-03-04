@@ -47,7 +47,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
 					<TokenLogo
-					size={20}
+						size={20}
 						name={row.original.project}
 						kind="token"
 						alt={`Logo of ${row.original.project}`}

@@ -9,10 +9,7 @@ type TokenLogoProps = {
 	title?: string
 	fallbackSrc?: string | null
 	'data-lgonly'?: boolean
-} & (
-	| { name: string; kind: LogoKind; src?: never }
-	| { src: string | null | undefined; name?: never; kind?: never }
-)
+} & ({ name: string; kind: LogoKind; src?: never } | { src: string | null | undefined; name?: never; kind?: never })
 
 function resolveLogoUrl(name: string, kind: LogoKind): string {
 	switch (kind) {

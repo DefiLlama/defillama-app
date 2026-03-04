@@ -96,11 +96,11 @@ export function AriakitVirtualizedSelect({
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
 						<span className={`flex min-w-0 items-center gap-2 truncate ${selectedOption ? 'pro-text1' : 'pro-text3'}`}>
-							{selectedOption?.icon && (
+							{selectedOption?.icon ? (
 								<span className="text-sm" aria-hidden>
 									{selectedOption.icon}
 								</span>
-							)}
+							) : null}
 							<span className="truncate">{selectedLabel}</span>
 						</span>
 						<Icon name="chevron-down" width={12} height={12} className="ml-2 shrink-0 opacity-70" />
@@ -169,12 +169,12 @@ export function AriakitVirtualizedSelect({
 													}}
 												>
 													<div className={`flex min-w-0 items-center gap-2.5 ${option.isChild ? 'pl-4' : ''}`}>
-														{option.icon && (
+														{option.icon ? (
 															<span className="text-sm" aria-hidden>
 																{option.icon}
 															</span>
-														)}
-														{iconUrl && (
+														) : null}
+														{iconUrl ? (
 															<img
 																src={iconUrl}
 																alt={option.label}
@@ -184,7 +184,7 @@ export function AriakitVirtualizedSelect({
 																	option.isChild ? 'opacity-70' : ''
 																}`}
 															/>
-														)}
+														) : null}
 														<div className="flex min-w-0 flex-col">
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 																{option.label}

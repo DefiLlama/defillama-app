@@ -10,7 +10,6 @@ import { Menu } from '~/components/Menu'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
-
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import type { IProtocol } from '~/containers/ChainOverview/types'
 import { useGroupAndFormatChains } from '~/containers/ChainsByCategory'

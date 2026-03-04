@@ -9,7 +9,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
 import Layout from '~/layout'
-
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getQueryValue, pushShallowQuery } from '~/utils/routerQuery'

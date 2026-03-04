@@ -56,7 +56,14 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					{icon && <TokenLogo name={iconName} kind={iconType === 'chain' ? 'chain' : 'token'} alt={`Logo of ${value}`} data-lgonly />}
+					{icon ? (
+						<TokenLogo
+							name={iconName}
+							kind={iconType === 'chain' ? 'chain' : 'token'}
+							alt={`Logo of ${value}`}
+							data-lgonly
+						/>
+					) : null}
 					<BasicLink
 						href={`/bridge/${linkValue}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

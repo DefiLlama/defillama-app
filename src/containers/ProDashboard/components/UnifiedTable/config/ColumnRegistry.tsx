@@ -279,7 +279,11 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 								shouldShowChainIcon ? (
 									<TokenLogo name={display.label} kind="chain" alt={`Logo of ${display.label}`} size={24} />
 								) : (
-									<TokenLogo src={display.iconUrl ?? baseRow?.logo ?? undefined} alt={`Logo of ${display.label}`} size={24} />
+									<TokenLogo
+										src={display.iconUrl ?? baseRow?.logo ?? undefined}
+										alt={`Logo of ${display.label}`}
+										size={24}
+									/>
 								)
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />

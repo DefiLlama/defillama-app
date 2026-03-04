@@ -116,7 +116,9 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 				rel="noreferrer noopener"
 				{...props}
 			>
-				{type !== 'pool' && <TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />}
+				{type !== 'pool' && (
+					<TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />
+				)}
 				<span className="truncate">{children}</span>
 			</a>
 		)

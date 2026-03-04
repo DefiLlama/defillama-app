@@ -111,10 +111,10 @@ export default function GovernanceProject({
 								<span className="text-sm text-(--text-label)">Chain</span>
 								<span className="flex items-center gap-1 text-sm font-medium">
 									<TokenLogo
-									name={data.stats.chainName}
-									kind="chain"
-									size={20}
-									alt={`Logo of ${data.stats.chainName}`}
+										name={data.stats.chainName}
+										kind="chain"
+										size={20}
+										alt={`Logo of ${data.stats.chainName}`}
 									/>
 									<span>{data.stats.chainName}</span>
 								</span>
