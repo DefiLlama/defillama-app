@@ -693,6 +693,14 @@
       "description": "Breakdown of annual operational expenses by protocol",
       "totalTrackedKey": "expenses.protocols",
       "tab": "Protocols"
+    },
+    {
+      "name": "Token Rights",
+      "route": "/token-rights",
+      "category": "Others",
+      "description": "List of protocols with token rights",
+      "tab": "Protocols",
+      "oldName": "Token Rights"
     }
   ],
   "Tools": [
