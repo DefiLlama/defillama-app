@@ -7,7 +7,7 @@
       "description": "Comprehensive overview of all metrics tracked on each chain, including TVL, Fees, Revenue, Volume, and protocols on each chain",
       "tab": "Protocols",
       "oldCategory": "Market Overview",
-      "oldName": "DeFi Dashboard"
+      "oldName": "Overview"
     },
     {
       "name": "Chains",
@@ -857,7 +857,7 @@
   ],
   "Main": [
     {
-      "name": "DeFi Dashboard",
+      "name": "Home",
       "route": "/",
       "icon": "house"
     },
