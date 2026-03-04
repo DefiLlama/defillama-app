@@ -165,7 +165,7 @@
     },
     {
       "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
+      "route": "/yields/strategy-long-short",
       "category": "Yields",
       "description": "Find 'long-short' strategies across all our tracked pools",
       "oldCategory": "Yields",
