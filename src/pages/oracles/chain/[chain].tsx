@@ -46,7 +46,7 @@ export default function OraclesPage(props: InferGetStaticPropsType<typeof getSta
 	const canonicalUrl = props.chain ? `/oracles/chain/${slug(props.chain)}` : '/oracles'
 	return (
 		<Layout
-			title="Oracles - DefiLlama"
+			title={`${props.chain} DeFi Oracles - Total Value Secured - DefiLlama`}
 			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
 			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
 			canonicalUrl={canonicalUrl}

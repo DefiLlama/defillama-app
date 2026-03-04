@@ -35,7 +35,7 @@ const pageName = ['Yields: All Pools']
 export default function ApyHomePage(data) {
 	return (
 		<Layout
-			title={`Yield Rankings - DefiLlama`}
+			title="DeFi Protocol Yield Rankings - All Chains - DefiLlama"
 			description={`Yield Rankings on DefiLlama. Pools by APY, TVL, and other metrics on all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`yield rankings, defi yield rankings, pools by apy, pools by tvl, pools by other metrics`}
 			canonicalUrl={`/yields`}

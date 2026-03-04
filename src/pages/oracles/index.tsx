@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging('oracles', async () => {
 export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Oracles - DefiLlama"
+			title="DeFi Oracle Total Value Secured Data - All Crypto Chains - DefiLlama"
 			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
 			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
 			canonicalUrl="/oracles"

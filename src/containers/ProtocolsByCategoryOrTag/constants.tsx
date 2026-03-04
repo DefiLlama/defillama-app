@@ -1,4 +1,5 @@
 import type { ProtocolChartsQueryParams } from '~/containers/ProtocolOverview/constants'
+import { capitalizeFirstLetter } from '~/utils'
 
 export const protocolCategories = {
 	Dexs: { description: 'Protocols where you can swap/trade cryptocurrency', defaultChart: 'dexVolume' },
@@ -279,6 +280,7 @@ type CategoryPresentationConfig = {
 	headingLabel?: string
 	seoLabel?: string
 	seoTitleSuffix?: string
+	seoBaseTitle?: string
 	tableHeader?: string
 	searchPlaceholder?: string
 }
@@ -334,6 +336,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'Cross-Chain Bridges',
 			seoLabel: 'Cross-Chain Bridges',
+			seoBaseTitle: 'Cross-Chain Bridges - All Chains - TVL, Fees, & Revenue',
 			searchPlaceholder: 'Search cross-chain bridges...'
 		}
 	},
@@ -355,6 +358,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'Launchpads',
 			seoLabel: 'Launchpads',
+			seoBaseTitle: 'Crypto Launchpad Protocols - Revenue & TVL',
 			tableHeader: 'Launchpad Rankings',
 			searchPlaceholder: 'Search launchpads...'
 		}
@@ -363,6 +367,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'Farms',
 			seoLabel: 'Farms',
+			seoBaseTitle: 'DeFi Farms - All Chains - TVL, Fees, & Revenue',
 			searchPlaceholder: 'Search farms...'
 		}
 	},
@@ -385,6 +390,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'Yield Aggregators',
 			seoLabel: 'Yield Aggregators',
+			seoBaseTitle: 'Top DeFi Yield Aggregators - TVL, Fees, & Revenue',
 			searchPlaceholder: 'Search yield aggregators...'
 		}
 	},
@@ -392,6 +398,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'DEX Aggregators',
 			seoLabel: 'DEX Aggregators',
+			seoBaseTitle: 'Crypto DEX Aggregator Protocols - Volume, TVL, & Fees',
 			searchPlaceholder: 'Search DEX aggregators...'
 		},
 		chartMetrics: ['tvl', 'dexVolume']
@@ -400,6 +407,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'DEX Aggregators',
 			seoLabel: 'DEX Aggregators',
+			seoBaseTitle: 'Crypto DEX Aggregator Protocols - Volume, TVL, & Fees',
 			searchPlaceholder: 'Search DEX aggregators...'
 		},
 		chartMetrics: ['tvl', 'dexVolume']
@@ -565,12 +573,16 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		}
 	},
 	Dexs: {
+		presentation: {
+			seoBaseTitle: 'Crypto DEX Protocols - Volume, TVL, Fees, & Revenue'
+		},
 		chartMetrics: ['tvl', 'dexVolume']
 	},
 	'Prediction Market': {
 		presentation: {
 			headingLabel: 'Prediction Markets',
 			seoLabel: 'Prediction Markets',
+			seoBaseTitle: 'Top Crypto Prediction Markets - TVL, Volume, & Revenue',
 			seoTitleSuffix: 'Rankings',
 			tableHeader: 'Market Rankings',
 			searchPlaceholder: 'Search markets...'
@@ -588,6 +600,9 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		chartMetrics: ['tvl', 'dexVolume']
 	},
 	Derivatives: {
+		presentation: {
+			seoBaseTitle: 'Crypto Derivatives Protocols - Volume, Fees, & Revenue'
+		},
 		chartMetrics: ['tvl', 'perpVolume', 'openInterest'],
 		columnBehavior: {
 			showPerpColumns: true,
@@ -602,18 +617,82 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		}
 	},
 	Options: {
+		presentation: {
+			seoBaseTitle: 'DeFi Options Protocols - TVL, Volume, Fees, & Revenue'
+		},
 		columnBehavior: {
 			showOptionColumns: true
 		}
 	},
 	Lending: {
+		presentation: {
+			seoBaseTitle: 'DeFi Lending Protocols - TVL, Fees, & Revenue'
+		},
 		chartMetrics: ['tvl', 'borrowed'],
 		columnBehavior: {
 			showLendingColumns: true
 		}
 	},
 	'Liquid Staking': {
+		presentation: {
+			seoBaseTitle: 'Liquid Staking Protocols - TVL, Fees, & Revenue'
+		},
 		chartMetrics: ['tvl', 'staking']
+	},
+	Insurance: {
+		presentation: {
+			seoBaseTitle: 'DeFi Insurance Protocols - TVL, Fees, & Revenue'
+		}
+	},
+	'Liquid Restaking': {
+		presentation: {
+			seoBaseTitle: 'Liquid Restaking Protocols - TVL, Fees, & Revenue'
+		}
+	},
+	Restaking: {
+		presentation: {
+			seoBaseTitle: 'Restaking Protocols - TVL & Rewards'
+		}
+	},
+	Yield: {
+		presentation: {
+			seoBaseTitle: 'Top DeFi Yield Protocols - TVL, Fees, & Revenue'
+		}
+	},
+	Privacy: {
+		presentation: {
+			seoBaseTitle: 'Crypto Privacy Protocols - TVL & Revenue'
+		}
+	},
+	Payments: {
+		presentation: {
+			seoBaseTitle: 'Crypto Payment Protocols - TVL & Revenue'
+		}
+	},
+	Indexes: {
+		presentation: {
+			seoBaseTitle: 'Crypto Index Protocols - TVL & Revenue'
+		}
+	},
+	'Leveraged Farming': {
+		presentation: {
+			seoBaseTitle: 'DeFi Leveraged Farming Protocols - TVL & Revenue'
+		}
+	},
+	'NFT Marketplace': {
+		presentation: {
+			seoBaseTitle: 'Top Crypto NFT Marketplaces - Volume & Revenue'
+		}
+	},
+	'NFT Lending': {
+		presentation: {
+			seoBaseTitle: 'NFT Lending Protocols - TVL & Revenue'
+		}
+	},
+	Synthetics: {
+		presentation: {
+			seoBaseTitle: 'DeFi Synthetic Asset Protocols - TVL & Revenue'
+		}
 	}
 }
 
@@ -640,10 +719,22 @@ export function getProtocolCategoryPresentation({
 	const normalizedChain = chain?.trim()
 	const chainTitleSuffix = normalizedChain && normalizedChain !== 'All' ? ` on ${normalizedChain}` : ''
 	const resolvedTitleSuffix = `${presentation?.seoTitleSuffix ?? defaultTitleSuffix}${chainTitleSuffix}`
+	const resolvedSeoLabel = presentation?.seoLabel ?? defaultSeoLabel
+	const seoBaseTitle = presentation?.seoBaseTitle
+	const hasChain = normalizedChain && normalizedChain !== 'All'
+
+	const seoTitle = seoBaseTitle
+		? hasChain
+			? `${normalizedChain} ${seoBaseTitle} - DefiLlama`
+			: `${seoBaseTitle} - DefiLlama`
+		: hasChain
+			? `${normalizedChain} ${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
+			: `${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
 
 	return {
 		headingLabel: presentation?.headingLabel ?? defaultHeadingLabel,
-		seoLabel: presentation?.seoLabel ?? defaultSeoLabel,
+		seoLabel: resolvedSeoLabel,
+		seoTitle,
 		titleSuffix: resolvedTitleSuffix,
 		tableHeader: presentation?.tableHeader ?? defaultTableHeader,
 		searchPlaceholder: presentation?.searchPlaceholder ?? defaultSearchPlaceholder

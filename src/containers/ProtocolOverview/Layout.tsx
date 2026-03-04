@@ -156,7 +156,7 @@ export function ProtocolOverviewLayout({
 
 	return (
 		<Layout
-			title={`${name} - DefiLlama`}
+			title={`${name} Protocol TVL, Revenue, Fees, & Metrics - DefiLlama`}
 			description={
 				seoDescription ||
 				`Track ${name} metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`

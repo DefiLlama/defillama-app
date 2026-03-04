@@ -49,7 +49,7 @@ const pageName = ['Protocols', 'ranked by', 'Outstanding FDV']
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.chain} DeFi Protocol Outstanding FDV - DefiLlama`}
+			title={`Outstanding FDV For All ${props.chain} Protocols - DefiLlama`}
 			description={`Outstanding FDV by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`outstanding fdv by protocol on ${props.chain}`}
 			canonicalUrl={`/outstanding-fdv/chain/${props.chain}`}
