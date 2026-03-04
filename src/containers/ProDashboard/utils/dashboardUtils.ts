@@ -43,7 +43,24 @@ const VALID_CHAIN_CHART_TYPES = new Set([
 ])
 
 // Valid item kinds accepted by the API
-const VALID_ITEM_KINDS = new Set(['chart', 'multi', 'text', 'table', 'builder'])
+const VALID_ITEM_KINDS = new Set([
+	'chart',
+	'multi',
+	'text',
+	'table',
+	'builder',
+	'metric',
+	'stablecoins',
+	'stablecoin-asset',
+	'advanced-tvl',
+	'advanced-borrowed',
+	'income-statement',
+	'yields',
+	'unlocks-schedule',
+	'unlocks-pie',
+	'unified-table',
+	'llamaai-chart'
+])
 
 /**
  * Check if a chart type is valid for the API
