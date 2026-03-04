@@ -51,12 +51,14 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 			const linkValue = slug(value)
 			const rowValues = row.original
 			const icon = rowValues.icon
-			const [iconType, iconName] = icon ? icon.split(':') : []
+			const colonIdx = icon ? icon.indexOf(':') : -1
+			const iconType = colonIdx > 0 ? icon!.slice(0, colonIdx) : undefined
+			const iconName = colonIdx > 0 ? icon!.slice(colonIdx + 1) : icon
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					{icon ? (
+					{iconName ? (
 						<TokenLogo
 							name={iconName}
 							kind={iconType === 'chain' ? 'chain' : 'token'}
