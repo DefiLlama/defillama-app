@@ -5,8 +5,8 @@ import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByCh
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { slug } from '~/utils'
-import metadataCache from '~/utils/metadata'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import metadataCache from '~/utils/metadata'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type BridgesPageData = Awaited<ReturnType<typeof getBridgeOverviewPageData>>
@@ -23,7 +23,6 @@ type BridgesPageProps =
 		chainLabel: string
 	}
 
-// todo check name in metadata
 export const getStaticProps = withPerformanceLogging(
 	'bridges/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
