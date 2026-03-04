@@ -14,10 +14,19 @@ function encodeUrl(urlToAdd) {
 	return encodedPath + encodedQuery
 }
 
+function escapeXml(value) {
+	return String(value)
+		.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-f]+;)/gi, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;')
+}
+
 function url(urlToAdd) {
 	return `
     <url>
-        <loc>${baseUrl}/${urlToAdd}</loc>
+        <loc>${escapeXml(`${baseUrl}/${urlToAdd}`)}</loc>
     </url>
     `
 }
@@ -41,7 +50,7 @@ function generateSiteMap(protocols, chains, categories, parentProtocols, stablec
     ${chains.map(prefixedUrl('chain')).join('')}
     ${protocols.map(prefixedUrl('protocol')).join('')}
 		${parentProtocols.map(prefixedUrl('protocol')).join('')}
-		${categories.map((category) => url(`protocols/${category.toLowerCase()}`)).join('')}
+		${categories.map(prefixedUrl('protocols')).join('')}
 		${stablecoins.map(prefixedUrl('stablecoin')).join('')}
 		${cexs.map(prefixedUrl('cex')).join('')}
    </urlset>
