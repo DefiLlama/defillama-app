@@ -31,7 +31,18 @@ async function pullData() {
 
 	try {
 		const [
-			{ protocols, chains, categoriesAndTags, cexs, rwaList, tokenlist, cgExchangeIdentifiers },
+			{
+				protocols,
+				chains,
+				categoriesAndTags,
+				cexs,
+				rwaList,
+				tokenlist,
+				cgExchangeIdentifiers,
+				bridgeProtocolSlugs,
+				bridgeChainSlugs,
+				bridgeChainSlugToName
+			},
 			{ tastyMetrics, trendingRoutes }
 		] = await Promise.all([
 			fetchCoreMetadata(),
@@ -74,6 +85,9 @@ async function pullData() {
 
 		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
+		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeProtocolSlugs.json'), JSON.stringify(bridgeProtocolSlugs))
+		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugs.json'), JSON.stringify(bridgeChainSlugs))
+		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugToName.json'), JSON.stringify(bridgeChainSlugToName))
 
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 

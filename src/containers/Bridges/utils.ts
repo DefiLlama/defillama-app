@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, keepNeededProperties, slug } from '~/utils'
+import { BLOCK_EXPLORERS_ADDRESSES, BLOCK_EXPLORERS_TXS, BRIDGE_PROPERTIES_TO_KEEP } from './constants'
 
 interface ITokenData {
 	usdValue: number
@@ -32,28 +33,12 @@ interface IDailyBridgeStats {
 	name?: string
 }
 
-const bridgePropertiesToKeep = [
-	'displayName',
-	'name',
-	'symbol',
-	'icon',
-	'chains',
-	'lastDailyVolume',
-	'dayBeforeLastVolume',
-	'weeklyVolume',
-	'monthlyVolume',
-	'txsPrevDay',
-	'change_1d',
-	'change_7d',
-	'change_1m'
-]
-
 export const formatBridgesData = ({
 	chain = '',
 	bridges = [],
 	chartDataByBridge = [],
 	bridgeNameToChartDataIndex = {},
-	bridgeProps = [...bridgePropertiesToKeep]
+	bridgeProps = [...BRIDGE_PROPERTIES_TO_KEEP]
 }) => {
 	let filteredBridges = [...bridges]
 
@@ -174,7 +159,7 @@ export const formatChainsData = ({
 				prevWeekNetFlow =
 					chainNetflowWeek.net_flow !== undefined
 						? Number(chainNetflowWeek.net_flow)
-						: prevWeekUsdWithdrawals - prevWeekUsdDeposits
+						: prevWeekUsdDeposits - prevWeekUsdWithdrawals
 			} else {
 				const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
 				prevWeekUsdDeposits = 0
@@ -183,7 +168,7 @@ export const formatChainsData = ({
 					prevWeekUsdDeposits += chart.depositUSD
 					prevWeekUsdWithdrawals += chart.withdrawUSD
 				}
-				prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
+				prevWeekNetFlow = prevWeekUsdDeposits - prevWeekUsdWithdrawals
 			}
 		} else {
 			const prevWeekCharts = chartDataByChain[chartIndex].slice(-8, -1)
@@ -193,55 +178,11 @@ export const formatChainsData = ({
 				prevWeekUsdDeposits += chart.depositUSD
 				prevWeekUsdWithdrawals += chart.withdrawUSD
 			}
-			prevWeekNetFlow = prevWeekUsdWithdrawals - prevWeekUsdDeposits
+			prevWeekNetFlow = prevWeekUsdDeposits - prevWeekUsdWithdrawals
 		}
 
-		let topTokenDepositedSymbol = null,
-			topTokenWithdrawnSymbol = null,
-			topTokenDepositedUsd = 0,
-			topTokenWithdrawnUsd = 0
-		let hasDeposited = false
-		if (totalTokensDeposited) {
-			for (const _ in totalTokensDeposited) {
-				hasDeposited = true
-				break
-			}
-		}
-		if (totalTokensDeposited && hasDeposited) {
-			let topKey = ''
-			let topUsd = -Infinity
-			for (const key in totalTokensDeposited) {
-				if (totalTokensDeposited[key].usdValue > topUsd) {
-					topUsd = totalTokensDeposited[key].usdValue
-					topKey = key
-				}
-			}
-			if (topKey) {
-				topTokenDepositedSymbol = totalTokensDeposited[topKey].symbol
-				topTokenDepositedUsd = totalTokensDeposited[topKey].usdValue
-			}
-		}
-		let hasWithdrawn = false
-		if (totalTokensWithdrawn) {
-			for (const _ in totalTokensWithdrawn) {
-				hasWithdrawn = true
-				break
-			}
-		}
-		if (totalTokensWithdrawn && hasWithdrawn) {
-			let topKey = ''
-			let topUsd = -Infinity
-			for (const key in totalTokensWithdrawn) {
-				if (totalTokensWithdrawn[key].usdValue > topUsd) {
-					topUsd = totalTokensWithdrawn[key].usdValue
-					topKey = key
-				}
-			}
-			if (topKey) {
-				topTokenWithdrawnSymbol = totalTokensWithdrawn[topKey].symbol
-				topTokenWithdrawnUsd = totalTokensWithdrawn[topKey].usdValue
-			}
-		}
+		const topTokenDeposited = getTopTokenByUsd(totalTokensDeposited)
+		const topTokenWithdrawn = getTopTokenByUsd(totalTokensWithdrawn)
 
 		return {
 			name: name,
@@ -249,10 +190,10 @@ export const formatChainsData = ({
 			prevDayUsdWithdrawals: prevDayUsdWithdrawals ?? 0,
 			prevWeekUsdDeposits: prevWeekUsdDeposits ?? 0,
 			prevWeekUsdWithdrawals: prevWeekUsdWithdrawals ?? 0,
-			topTokenDepositedSymbol: topTokenDepositedSymbol,
-			topTokenDepositedUsd: topTokenDepositedUsd,
-			topTokenWithdrawnSymbol: topTokenWithdrawnSymbol,
-			topTokenWithdrawnUsd: topTokenWithdrawnUsd,
+			topTokenDepositedSymbol: topTokenDeposited.symbol,
+			topTokenDepositedUsd: topTokenDeposited.usdValue,
+			topTokenWithdrawnSymbol: topTokenWithdrawn.symbol,
+			topTokenWithdrawnUsd: topTokenWithdrawn.usdValue,
 			prevDayNetFlow: prevDayNetFlow ?? 0,
 			prevWeekNetFlow: prevWeekNetFlow ?? 0
 		}
@@ -267,6 +208,31 @@ const groupTokensBySymbol = (tokens: { [token: string]: ITokenData }) => {
 		group[symbol] = (group[symbol] ?? 0) + (tokens[token].usdValue || 0)
 	}
 	return group
+}
+
+const getTopTokenByUsd = (tokens?: Record<string, ITokenData>) => {
+	if (!tokens) {
+		return { symbol: null, usdValue: 0 }
+	}
+
+	let topSymbol: string | null = null
+	let topUsdValue = 0
+	for (const key in tokens) {
+		const usdValue = tokens[key]?.usdValue ?? 0
+		if (topSymbol === null || usdValue > topUsdValue) {
+			topSymbol = tokens[key]?.symbol ?? null
+			topUsdValue = usdValue
+		}
+	}
+
+	return { symbol: topSymbol, usdValue: topUsdValue }
+}
+
+const splitChainPrefixedHash = (value: string): { chain: string; hash: string } | null => {
+	if (typeof value !== 'string' || value === '' || !value.includes(':')) return null
+	const [chain, hash] = value.split(':')
+	if (!chain || !hash) return null
+	return { chain, hash }
 }
 
 export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats) => {
@@ -296,53 +262,21 @@ export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats
 	return { tokenDeposits, tokenWithdrawals }
 }
 
-const blockExplorersTxs = {
-	ethereum: ['https://etherscan.io/tx/', 'Etherscan'],
-	bsc: ['https://bscscan.com/tx/', 'Bscscan'],
-	xdai: ['https://gnosisscan.io/tx/', 'GnosisScan'],
-	avax: ['https://snowtrace.io/tx/', 'Snowtrace'],
-	fantom: ['https://ftmscan.com/tx/', 'FTMscan'],
-	heco: ['https://hecoinfo.com/tx/', 'HecoInfo'],
-	polygon: ['https://polygonscan.com/tx/', 'PolygonScan'],
-	solana: ['https://solscan.io/tx/', 'Solscan'],
-	arbitrum: ['https://arbiscan.io/tx/', 'Arbiscan'],
-	optimism: ['https://optimistic.etherscan.io/tx/', 'Optimism Explorer'],
-	aurora: ['https://aurorascan.dev/tx/', 'AuroraScan'],
-	celo: ['https://explorer.celo.org/mainnet/tx/', 'Celo Explorer'],
-	klaytn: ['https://scope.klaytn.com/tx/, Klaytn Scope']
-}
-
-const blockExplorersAddresses = {
-	ethereum: ['https://etherscan.io/address/', 'Etherscan'],
-	bsc: ['https://bscscan.com/address/', 'Bscscan'],
-	xdai: ['https://gnosisscan.io/address/', 'GnosisScan'],
-	avax: ['https://snowtrace.io/address/', 'Snowtrace'],
-	fantom: ['https://ftmscan.com/address/', 'FTMscan'],
-	heco: ['https://hecoinfo.com/address/', 'HecoInfo'],
-	polygon: ['https://polygonscan.com/address/', 'PolygonScan'],
-	solana: ['https://solscan.io/address/', 'Solscan'],
-	arbitrum: ['https://arbiscan.io/address/', 'Arbiscan'],
-	optimism: ['https://optimistic.etherscan.io/address/', 'Optimism Explorer'],
-	aurora: ['https://aurorascan.dev/address/', 'AuroraScan'],
-	celo: ['https://explorer.celo.org/mainnet/address/', 'Celo Explorer'],
-	klaytn: ['https://scope.klaytn.com/account/, Klaytn Scope']
-}
-
 export const getBlockExplorerForTx = (txHash: string = '') => {
-	let blockExplorerLink, blockExplorerName
-	if (txHash?.includes(':')) {
-		const [chain, chainHash] = txHash.split(':')
-		const explorer = blockExplorersTxs[chain]
+	const scopedHash = splitChainPrefixedHash(txHash)
+	if (scopedHash) {
+		const explorer = BLOCK_EXPLORERS_TXS[scopedHash.chain]
 		if (explorer !== undefined) {
-			blockExplorerLink = explorer[0] + chainHash
-			blockExplorerName = explorer[1]
+			return {
+				blockExplorerLink: explorer[0] + scopedHash.hash,
+				blockExplorerName: explorer[1]
+			}
 		}
-	} else {
-		if (typeof txHash === 'string' && txHash !== '') {
-			blockExplorerLink = 'https://etherscan.io/tx/' + txHash
-			blockExplorerName = 'Etherscan'
-		}
+		return { blockExplorerLink: null, blockExplorerName: null }
 	}
+
+	const blockExplorerLink = typeof txHash === 'string' && txHash !== '' ? 'https://etherscan.io/tx/' + txHash : null
+	const blockExplorerName = blockExplorerLink ? 'Etherscan' : null
 
 	return {
 		blockExplorerLink,
@@ -351,27 +285,35 @@ export const getBlockExplorerForTx = (txHash: string = '') => {
 }
 
 export const getBlockExplorerForAddress = (txHash: string = '') => {
-	let blockExplorerLink, blockExplorerName, chainName
-	if (txHash?.includes(':')) {
-		const [chain, chainHash] = txHash.split(':')
-		const explorer = blockExplorersAddresses[chain]
-		if (explorer !== undefined) {
-			blockExplorerLink = explorer[0] + chainHash
-			blockExplorerName = explorer[1]
-		}
-		chainName = chain
-			? chain
+	const scopedHash = splitChainPrefixedHash(txHash)
+	if (scopedHash) {
+		const explorer = BLOCK_EXPLORERS_ADDRESSES[scopedHash.chain]
+		const chainName = scopedHash.chain
+			? scopedHash.chain
 					.split('_')
 					.map((x) => capitalizeFirstLetter(x))
 					.join(' ')
 			: 'Ethereum'
-	} else {
-		if (typeof txHash === 'string' && txHash !== '') {
-			blockExplorerLink = 'https://etherscan.io/address/' + txHash
-			blockExplorerName = 'Etherscan'
-			chainName = 'Ethereum'
+
+		if (explorer !== undefined) {
+			return {
+				blockExplorerLink: explorer[0] + scopedHash.hash,
+				blockExplorerName: explorer[1],
+				chainName
+			}
+		}
+
+		return {
+			blockExplorerLink: null,
+			blockExplorerName: null,
+			chainName
 		}
 	}
+
+	const blockExplorerLink =
+		typeof txHash === 'string' && txHash !== '' ? 'https://etherscan.io/address/' + txHash : null
+	const blockExplorerName = blockExplorerLink ? 'Etherscan' : null
+	const chainName = blockExplorerLink ? 'Ethereum' : null
 
 	return {
 		blockExplorerLink,

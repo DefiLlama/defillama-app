@@ -3,15 +3,14 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
 import { toNiceDayAndHour } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { fetchBridgeTransactions } from './api'
 
 type BridgeTransaction = {
 	tx_hash: string
 	ts: string
-	tx_block: string
+	tx_block: string | number
 	tx_from: string
 	tx_to: string
 	token: string
@@ -19,7 +18,7 @@ type BridgeTransaction = {
 	is_deposit: boolean
 	chain: string
 	bridge_name: string
-	usd_value: string
+	usd_value: string | null
 }
 
 const MAX_ITERATIONS = 50
@@ -31,7 +30,7 @@ interface TransformedTransaction {
 	type: string
 	token: string
 	amount: string
-	usd_value: string
+	usd_value: string | number | null
 	tx_from: string
 	tx_to: string
 	tx_hash: string
@@ -159,8 +158,7 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 	let iterations = 0
 
 	while (iterations < MAX_ITERATIONS) {
-		const url = `${BRIDGETX_API}/${bridgeId}?starttimestamp=${startTimestamp}&endtimestamp=${currentEndTimestamp}`
-		const transactions: BridgeTransaction[] = await fetchJson(url)
+		const transactions = await fetchBridgeTransactions(bridgeId, startTimestamp, currentEndTimestamp)
 
 		if (!transactions?.length) {
 			break

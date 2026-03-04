@@ -1,5 +1,33 @@
 import type { ITokenListEntry } from './types'
 
+type RawBridgeInfo = {
+	id?: number
+	name?: string
+	displayName?: string
+	slug?: string
+	chains?: string[]
+	destinationChain?: string
+}
+
+type RawBridgesResponse = {
+	bridges?: RawBridgeInfo[]
+}
+
+const normalizeSlug = (value: unknown): string =>
+	String(value ?? '')
+		.toLowerCase()
+		.replace(/ /g, '-')
+		.replace(/'/g, '')
+
+const dedupeNonEmpty = (values: string[]): string[] => {
+	const seen = new Set<string>()
+	for (const value of values) {
+		if (!value) continue
+		seen.add(value)
+	}
+	return [...seen]
+}
+
 function previewResponseBody(body: string, length = 200): string {
 	return body.replace(/\s+/g, ' ').trim().slice(0, length)
 }
@@ -12,6 +40,7 @@ function sanitizeUrlForMetadataLogs(inputUrl: string): string {
 		// Normalize pro-api paths to avoid exposing API key segments.
 		pathname = pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
 		pathname = pathname.replace(/^\/[^/]+\/rwa(\/|$)/, '/rwa$1')
+		pathname = pathname.replace(/^\/[^/]+\/bridges(\/|$)/, '/bridges$1')
 
 		return `${pathname}${parsed.search}${parsed.hash}` || '/'
 	} catch {
@@ -49,10 +78,14 @@ export async function fetchCoreMetadata(): Promise<{
 	rwaList: any
 	tokenlist: Record<string, ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	bridgeProtocolSlugs: string[]
+	bridgeChainSlugs: string[]
+	bridgeChainSlugToName: Record<string, string>
 }> {
 	const API_KEY = process.env.API_KEY
 	const API_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 'https://api.llama.fi'
 	const RWA_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/rwa` : 'https://api.llama.fi/rwa'
+	const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
 	const DATASETS_SERVER_URL = API_KEY
 		? `https://pro-api.llama.fi/${API_KEY}/datasets`
 		: 'https://defillama-datasets.llama.fi'
@@ -63,15 +96,21 @@ export async function fetchCoreMetadata(): Promise<{
 	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs`
 	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list`
 	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
+	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
-	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, tokenlistArray] = await Promise.all([
-		fetchJson(PROTOCOLS_DATA_URL),
-		fetchJson(CHAINS_DATA_URL),
-		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-		fetchJson(CEXS_DATA_URL),
-		fetchJson(RWA_LIST_DATA_URL),
-		fetchJson<Array<any>>(TOKENLIST_DATA_URL)
-	])
+	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, tokenlistArray, bridgesResponse] =
+		await Promise.all([
+			fetchJson(PROTOCOLS_DATA_URL),
+			fetchJson(CHAINS_DATA_URL),
+			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
+			fetchJson(CEXS_DATA_URL),
+			fetchJson(RWA_LIST_DATA_URL),
+			fetchJson<Array<any>>(TOKENLIST_DATA_URL),
+			fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL).catch((error) => {
+				console.error('[metadata] failed to fetch bridge inventory, continuing with empty bridge slug caches:', error)
+				return { bridges: [] }
+			})
+		])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -94,6 +133,30 @@ export async function fetchCoreMetadata(): Promise<{
 		}
 	}
 
+	const bridgeChainSlugToName: Record<string, string> = {}
+	const bridgeProtocolSlugs = dedupeNonEmpty(
+		(bridgesResponse?.bridges ?? []).flatMap((bridge) => {
+			const fromApiSlug = normalizeSlug(bridge.slug)
+			const fromDisplayName = normalizeSlug(bridge.displayName)
+			if (!fromApiSlug && !fromDisplayName) return []
+			return fromApiSlug ? [fromApiSlug, fromDisplayName] : [fromDisplayName]
+		})
+	)
+
+	const bridgeChainSlugs = dedupeNonEmpty(
+		(bridgesResponse?.bridges ?? []).flatMap((bridge) => {
+			const destinationChain =
+				bridge.destinationChain && bridge.destinationChain !== 'false' ? [bridge.destinationChain] : []
+			const chainNames = [...(bridge.chains ?? []), ...destinationChain]
+			for (const chainName of chainNames) {
+				const normalized = normalizeSlug(chainName)
+				if (!normalized || bridgeChainSlugToName[normalized]) continue
+				bridgeChainSlugToName[normalized] = chainName
+			}
+			return chainNames.map(normalizeSlug)
+		})
+	)
+
 	return {
 		protocols,
 		chains,
@@ -101,6 +164,9 @@ export async function fetchCoreMetadata(): Promise<{
 		cexs: cexsResponse.cexs ?? [],
 		cgExchangeIdentifiers: cexsResponse.cg_volume_cexs ?? [],
 		rwaList,
-		tokenlist
+		tokenlist,
+		bridgeProtocolSlugs,
+		bridgeChainSlugs,
+		bridgeChainSlugToName
 	}
 }

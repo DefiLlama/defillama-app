@@ -1,3 +1,6 @@
+import bridgeChainSlugsRaw from '../../../.cache/bridgeChainSlugs.json'
+import bridgeChainSlugToNameRaw from '../../../.cache/bridgeChainSlugToName.json'
+import bridgeProtocolSlugsRaw from '../../../.cache/bridgeProtocolSlugs.json'
 import categoriesAndTags from '../../../.cache/categoriesAndTags.json'
 import cexs from '../../../.cache/cexs.json'
 import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json'
@@ -20,6 +23,9 @@ const metadataCache: {
 	rwaList: IRWAList
 	tokenlist: Record<string, ITokenListEntry>
 	cgExchangeIdentifiers: string[]
+	bridgeProtocolSlugs: string[]
+	bridgeChainSlugs: string[]
+	bridgeChainSlugToName: Record<string, string>
 } = {
 	chainMetadata,
 	protocolMetadata,
@@ -27,7 +33,10 @@ const metadataCache: {
 	cexs,
 	rwaList,
 	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
-	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[]
+	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
+	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
+	bridgeChainSlugs: bridgeChainSlugsRaw as string[],
+	bridgeChainSlugToName: bridgeChainSlugToNameRaw as Record<string, string>
 }
 
 // On-demand refresh with TTL (1 hour) and concurrency-safe deduplication
@@ -44,7 +53,10 @@ async function doRefresh(): Promise<void> {
 			cexs: cexData,
 			rwaList: rwaListData,
 			tokenlist,
-			cgExchangeIdentifiers: cgExIds
+			cgExchangeIdentifiers: cgExIds,
+			bridgeProtocolSlugs,
+			bridgeChainSlugs,
+			bridgeChainSlugToName
 		} = await fetchCoreMetadata()
 
 		metadataCache.protocolMetadata = protocols
@@ -54,6 +66,9 @@ async function doRefresh(): Promise<void> {
 		metadataCache.rwaList = rwaListData
 		metadataCache.cgExchangeIdentifiers = cgExIds
 		metadataCache.tokenlist = tokenlist
+		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
+		metadataCache.bridgeChainSlugs = bridgeChainSlugs
+		metadataCache.bridgeChainSlugToName = bridgeChainSlugToName
 
 		lastRefreshMs = Date.now()
 	} catch (err) {

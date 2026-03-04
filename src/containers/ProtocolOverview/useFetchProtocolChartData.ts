@@ -3,7 +3,8 @@ import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
-import { BRIDGEVOLUME_API_SLUG, CACHE_SERVER, oracleProtocols } from '~/constants'
+import { CACHE_SERVER, oracleProtocols } from '~/constants'
+import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.client'
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
@@ -685,10 +686,8 @@ export const useFetchProtocolChartData = ({
 		queryKey: ['protocol-overview', protocolSlug, 'bridge-volume'],
 		enabled: isBridgeVolumeEnabled,
 		queryFn: () =>
-			fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(name)}`)
-				.then((data: { dailyVolumes: Array<{ date: string; depositUSD: number; withdrawUSD: number }> }) =>
-					normalizeBridgeVolumeToChartMs(data.dailyVolumes)
-				)
+			fetchBridgeVolumeBySlug(slug(name))
+				.then((data) => normalizeBridgeVolumeToChartMs(data.dailyVolumes))
 				.catch(() => null)
 	})
 

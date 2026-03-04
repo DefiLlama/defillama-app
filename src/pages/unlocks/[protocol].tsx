@@ -85,11 +85,7 @@ export default function Protocol({
 	seoDescription
 }) {
 	return (
-		<Layout
-			title={seoTitle}
-			description={seoDescription}
-			canonicalUrl={`/unlocks/${emissions.name}`}
-		>
+		<Layout title={seoTitle} description={seoDescription} canonicalUrl={`/unlocks/${emissions.name}`}>
 			<LinkPreviewCard
 				unlockPage={true}
 				cardName={emissions.name}
