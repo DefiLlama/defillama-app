@@ -289,7 +289,10 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue<string | null>()
 			return value ? (
-				<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium whitespace-nowrap text-(--link-text)">
+				<BasicLink
+					href={getCategoryRoute(slug(value))}
+					className="text-sm font-medium whitespace-nowrap text-(--link-text)"
+				>
 					{value}
 				</BasicLink>
 			) : (

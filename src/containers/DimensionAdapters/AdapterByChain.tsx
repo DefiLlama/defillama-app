@@ -669,7 +669,10 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
+						<BasicLink
+							href={getCategoryRoute(slug(getValue() as string))}
+							className="text-sm font-medium text-(--link-text)"
+						>
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -734,7 +737,10 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
+						<BasicLink
+							href={getCategoryRoute(slug(getValue() as string))}
+							className="text-sm font-medium text-(--link-text)"
+						>
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -799,7 +805,10 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
+						<BasicLink
+							href={getCategoryRoute(slug(getValue() as string))}
+							className="text-sm font-medium text-(--link-text)"
+						>
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -1451,7 +1460,10 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
+						<BasicLink
+							href={getCategoryRoute(slug(getValue() as string))}
+							className="text-sm font-medium text-(--link-text)"
+						>
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -1502,7 +1514,10 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
+						<BasicLink
+							href={getCategoryRoute(slug(getValue() as string))}
+							className="text-sm font-medium text-(--link-text)"
+						>
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -1534,7 +1549,10 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
+						<BasicLink
+							href={getCategoryRoute(slug(getValue() as string))}
+							className="text-sm font-medium text-(--link-text)"
+						>
 							{getValue() as string}
 						</BasicLink>
 					) : (

@@ -1,5 +1,5 @@
-import * as React from 'react'
 import Head from 'next/head'
+import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { LinkPreviewCard } from '~/components/SEO'
 

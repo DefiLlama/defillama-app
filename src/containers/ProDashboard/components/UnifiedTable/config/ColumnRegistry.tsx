@@ -310,7 +310,10 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					return renderDash()
 				}
 				return (
-					<BasicLink href={getCategoryRoute(slug(category))} className="text-sm font-medium text-(--link-text) hover:underline">
+					<BasicLink
+						href={getCategoryRoute(slug(category))}
+						className="text-sm font-medium text-(--link-text) hover:underline"
+					>
 						{category}
 					</BasicLink>
 				)
