@@ -744,9 +744,22 @@ export function getProtocolCategoryPresentation({
 			? `${normalizedChain} ${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
 			: `${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
 
+	const MAX_DESC_LENGTH = 155
+	const baseDesc = hasChain
+		? `Track top ${resolvedSeoLabel} on ${normalizedChain} by TVL, volume, and more on DefiLlama.`
+		: `Track top ${resolvedSeoLabel} across all chains by TVL, volume, and more on DefiLlama.`
+	const categoryDesc = effectiveCategory
+		? (protocolCategories as Record<string, { description?: string }>)[effectiveCategory]?.description
+		: undefined
+	const seoDescription =
+		categoryDesc && `${baseDesc} ${categoryDesc}`.length <= MAX_DESC_LENGTH
+			? `${baseDesc} ${categoryDesc}`
+			: baseDesc
+
 	return {
 		headingLabel: presentation?.headingLabel ?? defaultHeadingLabel,
 		seoLabel: resolvedSeoLabel,
+		seoDescription,
 		seoTitle,
 		titleSuffix: resolvedTitleSuffix,
 		tableHeader: presentation?.tableHeader ?? defaultTableHeader,

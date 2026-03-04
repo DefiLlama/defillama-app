@@ -100,7 +100,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		isTagPage: !!props.tag && !props.category
 	})
 	const title = presentation.seoTitle
-	const description = `${presentation.seoLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+	const description = presentation.seoDescription
 	const keywords = `${presentation.seoLabel} rankings, defi ${presentation.seoLabel} rankings`.toLowerCase()
 	return (
 		<Layout

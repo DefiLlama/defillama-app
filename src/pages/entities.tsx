@@ -19,7 +19,7 @@ export default function Entities(props: InferGetStaticPropsType<typeof getStatic
 	return (
 		<Layout
 			title="DeFi Entities & Organizations - DefiLlama"
-			description="Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
+			description="Track entity and organization treasury holdings on DefiLlama. Compare asset breakdowns, stablecoins, and own tokens across blockchain entities."
 			keywords="blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries"
 			canonicalUrl="/entities"
 			pageName={pageName}
