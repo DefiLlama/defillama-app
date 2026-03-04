@@ -21,7 +21,7 @@ const pageName = ['NFTs Collections']
 export default function NFTHomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="NFTs Collections - DefiLlama"
+			title="Top NFT Collections by Market Cap - DefiLlama"
 			description={`Track NFTs collections floor price, 24h volume and total supply. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`nfts collections, nfts on blockchain`}
 			canonicalUrl={`/nfts`}

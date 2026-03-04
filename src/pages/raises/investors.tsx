@@ -173,7 +173,7 @@ const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 
 	return (
 		<Layout
-			title={`Investors - DefiLlama`}
+			title={`Crypto & DeFi Investors Directory - DefiLlama`}
 			description={`Deals by Investors. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`cryptoinvestors, defi investors, blockchain investors, latest blockchain deals`.toLowerCase()}
 			canonicalUrl={`/raises/investors`}

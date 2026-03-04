@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging('about', async () => {
 function AboutPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="About - DefiLlama"
+			title="About DefiLlama - DeFi Dashboard & Crypto Analytics"
 			description={`About DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`about DefiLlama, DefiLlama about, DeFi analytics platform, DeFi data provider`}
 			canonicalUrl={`/about`}

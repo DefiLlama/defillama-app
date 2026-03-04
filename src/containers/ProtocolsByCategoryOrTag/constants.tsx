@@ -96,7 +96,9 @@ export const protocolCategories = {
 			'Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets'
 	},
 	MEV: { description: 'MEV Layer' },
-	CeDeFi: { description: 'Projects that incorporate elements of centralization within their product strategies' },
+	CeDeFi: {
+		description: 'Projects that incorporate elements of centralization within their product strategies'
+	},
 	'CDP Manager': { description: 'Protocols that manage CDPs' },
 	'Governance Incentives': {
 		description:
@@ -329,6 +331,7 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 		presentation: {
 			headingLabel: 'Bridges',
 			seoLabel: 'Bridges',
+			seoBaseTitle: 'Crypto Bridge Protocols - TVL, Volume, & Fees',
 			searchPlaceholder: 'Search bridges...'
 		}
 	},
@@ -692,6 +695,16 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 	Synthetics: {
 		presentation: {
 			seoBaseTitle: 'DeFi Synthetic Asset Protocols - TVL & Revenue'
+		}
+	},
+	MEV: {
+		presentation: {
+			seoBaseTitle: 'MEV (Maximal Extractable Value) Protocols - TVL & Revenue'
+		}
+	},
+	CeDeFi: {
+		presentation: {
+			seoBaseTitle: 'CeDeFi (Centralized DeFi) Protocols - TVL & Revenue'
 		}
 	}
 }

@@ -29,7 +29,7 @@ const pageName = ['Chains', 'ranked by', type]
 const FeesByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
+			title={`DeFi Fee Rankings by Blockchain - DefiLlama`}
 			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`${type} by chain`}
 			canonicalUrl={`/fees/chains`}

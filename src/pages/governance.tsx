@@ -17,7 +17,7 @@ const pageName = ['Governance']
 export default function GovernancePage({ data }) {
 	return (
 		<Layout
-			title={`Governance - DefiLlama`}
+			title={`DeFi Protocol Governance Proposals - DefiLlama`}
 			description={`Governance overview by projects. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`governance proposals, governance by project`}
 			canonicalUrl={`/governance`}

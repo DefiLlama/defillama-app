@@ -107,7 +107,7 @@ const pageName = ['TVL', 'by', 'Smart Contract Languages']
 export default function Protocols({ tvlDataset, tvlCharts, dominanceDataset, dominanceCharts, osDataset, osCharts }) {
 	return (
 		<Layout
-			title={`Languages - DefiLlama`}
+			title={`DeFi Protocols by Programming Language - DefiLlama`}
 			description={`TVL breakdown by smart contract languages that the protocols smart contracts are written in. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`languages, smart contract languages, tvl by language`}
 			canonicalUrl={`/languages`}

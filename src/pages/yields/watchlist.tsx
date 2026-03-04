@@ -18,7 +18,7 @@ export const getStaticProps = withPerformanceLogging('yields/watchlist', async (
 export default function Portfolio({ pools }) {
 	return (
 		<Layout
-			title={`Saved Pools - DefiLlama`}
+			title={`Your Saved DeFi Yield Pools - DefiLlama`}
 			description={`Saved Yields Pools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`saved pools, defi saved pools, saved yields pools, defi saved yields pools`}
 			canonicalUrl={`/yields/watchlist`}

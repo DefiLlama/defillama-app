@@ -52,7 +52,7 @@ const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Protocol Expenses - DefiLlama`}
+			title={`DeFi Protocol Expense Tracker - DefiLlama`}
 			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`protocol expenses, expenses by protocol`}
 			canonicalUrl={`/expenses`}

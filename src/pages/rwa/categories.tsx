@@ -38,7 +38,7 @@ const pageName = ['RWA Categories']
 export default function RWACategoriesPage({ categories, categoryLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Categories - DefiLlama"
+			title="Real World Asset (RWA) Categories - DefiLlama"
 			description={`Real World Assets by category on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`real world assets, rwa categories, rwa onchain by category`}
 			pageName={pageName}

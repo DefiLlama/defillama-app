@@ -7,7 +7,7 @@ export default function Sheets() {
 	return (
 		<>
 			<Head>
-				<title>DefiLlama Sheets</title>
+				<title>DefiLlama Sheets - DeFi Data in Google Sheets</title>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />

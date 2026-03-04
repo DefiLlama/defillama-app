@@ -22,7 +22,7 @@ export default function Tools() {
 
 	return (
 		<Layout
-			title="Tools - DefiLlama"
+			title="DeFi Analytics & Research Tools - DefiLlama"
 			description={`Tools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`tools, defi tools`}
 			canonicalUrl={`/tools`}

@@ -61,7 +61,7 @@ export default function StablecoinAssetPage(props: InferGetStaticPropsType<typeo
 	const nameWithSymbol = name + (symbol && symbol !== '-' ? ` (${symbol})` : '')
 	return (
 		<Layout
-			title={`${nameWithSymbol} - DefiLlama`}
+			title={`${nameWithSymbol} Stablecoin Analytics - DefiLlama`}
 			description={`Track ${nameWithSymbol} supply, market cap, price, and inflows on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`${nameWithSymbol.toLowerCase()} total supply, ${nameWithSymbol.toLowerCase()} market cap, ${nameWithSymbol.toLowerCase()} price, ${nameWithSymbol.toLowerCase()} circulating, ${nameWithSymbol.toLowerCase()} stats`}
 			canonicalUrl={`/stablecoin/${slug(name)}`}

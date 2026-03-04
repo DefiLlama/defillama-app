@@ -39,7 +39,7 @@ const pageName = ['RWA Chains']
 export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Chains - DefiLlama"
+			title="Real World Assets (RWA) by Blockchain - DefiLlama"
 			description={`Real World Assets by chain on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`real world assets, rwa chains, rwa onchain by chain`}
 			pageName={pageName}

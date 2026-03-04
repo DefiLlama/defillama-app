@@ -31,7 +31,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const FeesOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`P/F - DefiLlama`}
+			title={`Price to Fees Ratio (P/F) Rankings - DefiLlama`}
 			description={`P/F by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`p/f by protocol`}
 			canonicalUrl={`/pf`}

@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 export default function ForksPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Forks - DefiLlama"
+			title="DeFi Protocol Forks & Derivatives - DefiLlama"
 			description="Overview of protocols by their forks value. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
 			keywords="forks, protocol forks, forks on blockchain"
 			canonicalUrl="/forks"

@@ -76,7 +76,7 @@ export default function Protocols({ projects }) {
 
 	return (
 		<Layout
-			title={`Projects - DefiLlama Yield`}
+			title={`DeFi Yield by Project Rankings - DefiLlama`}
 			description={`Projects by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`projects by apy values, defi projects with yields, defi projects by apy`}
 			canonicalUrl={`/yields/projects`}
