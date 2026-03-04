@@ -140,7 +140,7 @@ export function SEO({ title, description, keywords, canonicalUrl, slugCanonicalU
 	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>
-			{canonicalUrl ? <link rel="canonical" href={url} /> : <meta name="robots" content="noindex" />}
+			{canonicalUrl != null ? <link rel="canonical" href={url} /> : <meta name="robots" content="noindex" />}
 			<title>{title}</title>
 			{description ? <meta name="description" content={description} /> : null}
 			{keywords ? <meta name="keywords" content={keywords} /> : null}
