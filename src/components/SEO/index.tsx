@@ -132,11 +132,10 @@ export interface ISEOProps {
 	description?: string
 	keywords?: string
 	canonicalUrl?: string
-	slugCanonicalUrl?: boolean
 }
 
-export function SEO({ title, description, keywords, canonicalUrl, slugCanonicalUrl = true }: ISEOProps) {
-	const normalizedCanonicalUrl = slugCanonicalUrl ? slug(canonicalUrl ?? '') : (canonicalUrl ?? '')
+export function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
+	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
 	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>

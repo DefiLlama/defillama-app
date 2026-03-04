@@ -74,7 +74,6 @@ export default function Bridges({
 			description={`Live bridge volume analytics for ${chain}. Track deposits, withdrawals, large transactions and net flows across bridges and protocols.`}
 			keywords={`${chain} bridge volume`}
 			canonicalUrl={`/bridges/${chain}`}
-			slugCanonicalUrl={false}
 			pageName={pageName}
 		>
 			<BridgesOverviewByChain
