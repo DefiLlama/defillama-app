@@ -5,6 +5,7 @@ interface TokenLogoProps {
 	size?: number
 	alt?: string
 	onClick?: React.MouseEventHandler
+	title?: string
 }
 
 export const FallbackLogo = () => (

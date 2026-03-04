@@ -9,6 +9,7 @@ import type { InferGetStaticPropsType } from 'next'
 import { startTransition, useMemo, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
@@ -71,7 +72,9 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => chainHref('/chain', chain))} />
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"

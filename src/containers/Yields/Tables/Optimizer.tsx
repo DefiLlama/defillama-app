@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems, toTokenIconItems } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
@@ -45,9 +46,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		header: 'Chain',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => (
-			<IconsRow disableLinks links={info.row.original.chains as Array<string>} url="/yields?chain" iconType="chain" />
-		),
+		cell: (info) => <IconsRow items={toChainIconItems(info.row.original.chains as Array<string>)} />,
 		meta: {
 			align: 'end'
 		},
@@ -197,11 +196,9 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			return (
 				<span className="flex w-full items-center justify-end gap-1">
 					<IconsRow
-						disableLinks
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
+						items={toTokenIconItems(rewards, {
+							titles: row.original.rewardTokensSymbols
+						})}
 					/>
 					<ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</span>

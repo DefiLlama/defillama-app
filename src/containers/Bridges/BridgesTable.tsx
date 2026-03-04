@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
@@ -75,7 +76,9 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => chainHref('/bridges', chain))} />
+		),
 		size: 200,
 		meta: {
 			align: 'end',

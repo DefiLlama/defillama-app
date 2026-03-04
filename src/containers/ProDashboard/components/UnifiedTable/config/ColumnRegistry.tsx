@@ -4,6 +4,7 @@ import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-tabl
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -339,7 +340,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 				if (!chains.length) {
 					return renderDash()
 				}
-				return <IconsRow links={chains} url="/chain" iconType="chain" />
+				return <IconsRow items={toChainIconItems(chains, (chain) => chainHref('/chain', chain))} />
 			}
 		},
 		{
