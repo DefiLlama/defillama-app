@@ -154,7 +154,10 @@ const ProtocolInfo = (props: IProtocolOverviewPageData) => {
 			{props.category ? (
 				<p className="flex items-center gap-1">
 					<span>Category:</span>
-					<BasicLink href={`/protocols/${slug(props.category)}`} className="hover:underline">
+					<BasicLink
+						href={props.category === 'RWA' ? '/rwa' : `/protocols/${slug(props.category)}`}
+						className="hover:underline"
+					>
 						{props.category}
 					</BasicLink>
 				</p>
