@@ -7,10 +7,15 @@ import { slug } from '~/utils'
 const baseUrl = `https://defillama.com`
 
 function encodeUrl(urlToAdd) {
-	// Properly encode the URL, handling query parameters
-	const [path, query] = urlToAdd.split('?')
-	const encodedPath = encodeURIComponent(path)
-	const encodedQuery = query ? '?' + encodeURIComponent(query) : ''
+	// Encode each path segment but keep "/" separators intact.
+	const [path, ...queryParts] = urlToAdd.split('?')
+	const encodedPath = path
+		.split('/')
+		.map((segment) => encodeURIComponent(segment))
+		.join('/')
+	const query = queryParts.join('?')
+	const encodedQuery = query ? `?${encodeURI(query)}` : ''
+
 	return encodedPath + encodedQuery
 }
 
