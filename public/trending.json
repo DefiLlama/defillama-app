@@ -7,19 +7,19 @@
     "tab": "Protocols"
   },
   {
+    "name": "Yields: All Pools",
+    "route": "/yields",
+    "category": "Trending",
+    "description": "Pools by APY, TVL, and other metrics on all chains",
+    "totalTrackedKey": "yields.pools"
+  },
+  {
     "name": "Chains",
     "route": "/chains",
     "category": "Trending",
     "description": "Combined TVL, Fees, Volume and other metrics by chain",
     "totalTrackedKey": "tvl.chains",
     "tab": "Chains"
-  },
-  {
-    "name": "Yields: All Pools",
-    "route": "/yields",
-    "category": "Trending",
-    "description": "Pools by APY, TVL, and other metrics on all chains",
-    "totalTrackedKey": "yields.pools"
   },
   {
     "name": "Stablecoins by Market Cap",

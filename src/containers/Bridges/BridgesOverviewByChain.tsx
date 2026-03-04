@@ -9,7 +9,7 @@ import { BridgeVolumeChart } from '~/containers/Bridges/BridgeVolumeChart'
 import { ChartSelector } from '~/containers/Bridges/ChartSelector'
 import { useBuildBridgeChartData } from '~/containers/Bridges/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, getPrevVolumeFromChart, toNiceCsvDate } from '~/utils'
+import { formattedNum, getPrevVolumeFromChart, slug, toNiceCsvDate } from '~/utils'
 import { BridgesLargeTxsTable, type BridgesLargeTxsTableHandle } from './BridgesLargeTxsTable'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -53,7 +53,7 @@ const EMPTY_PROTOCOLS: any[] = []
 
 const handleRouting = (selectedChain: string) => {
 	if (selectedChain === 'All') return `/bridges`
-	return `/bridges/${selectedChain}`
+	return `/bridges/${slug(selectedChain)}`
 }
 
 const getBridgeChartFilename = (selectedChain: string, chartType: string) => {

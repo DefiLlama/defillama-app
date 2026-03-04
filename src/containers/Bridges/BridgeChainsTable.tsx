@@ -17,7 +17,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type BridgeChainsTableRow = {
 	name: string
@@ -42,7 +42,7 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<TokenLogo name={value} kind="chain" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
-						href={`/bridges/${value}`}
+						href={`/bridges/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{value}
