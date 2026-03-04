@@ -790,24 +790,18 @@ export const getProtocolOverviewPageData = async ({
 		(chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)
 	)
 	let seoDescription = `Track ${name} on DefiLlama. Including ${chartLabelsForSeo.length ? chartLabelsForSeo.join(', ') : 'key onchain and financial stats'}`
-	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
 	if (expenses) {
 		seoDescription += `, Expenses`
-		seoKeywords += `, ${name.toLowerCase()} expenses`
 	}
 	if (revenueData && incentives) {
 		seoDescription += `, Earnings`
-		seoKeywords += `, ${name.toLowerCase()} earnings`
 	}
 	if (incomeStatement) {
 		seoDescription += `, Income Statement`
-		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
 	}
 	if (currentProtocolMetadata.tokenRights) {
 		seoDescription += `, Token Rights`
-		seoKeywords += `, ${name.toLowerCase()} token rights`
 	}
-	seoKeywords += `, ${name.toLowerCase()} defi`
 
 	return {
 		id: String(protocolData.id),
@@ -936,7 +930,6 @@ export const getProtocolOverviewPageData = async ({
 			'daily',
 		seoTitle,
 		seoDescription,
-		seoKeywords,
 		defaultToggledCharts,
 		oracleTvs
 	}

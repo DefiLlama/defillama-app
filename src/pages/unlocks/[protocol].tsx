@@ -43,10 +43,8 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 		const resolvedTokenSymbol = tokenSymbol ?? emissions.tokenPrice?.symbol ?? null
-		const symbolKeywords = resolvedTokenSymbol ?? emissions.name
 		const seoTitle = `${emissions.name} Token Unlocks & Vesting Schedule - DefiLlama`
 		const seoDescription = `View ${emissions.name}${resolvedTokenSymbol ? ` (${resolvedTokenSymbol})` : ''} token unlock schedule, vesting charts, and cliff events. Track upcoming emissions on DefiLlama.`
-		const seoKeywords = `${emissions.name} ${symbolKeywords} token unlocks, vesting schedules, emission data, DefiLlama, ${symbolKeywords}, ${emissions.name}, ${symbolKeywords} Tokenomics, ${symbolKeywords} Unlocks, ${symbolKeywords} Vesting Schedule, ${emissions.name} Unlocks, ${emissions.name} Vesting Schedule, ${emissions.name} Tokenomics`
 
 		return {
 			props: {
@@ -56,8 +54,7 @@ export const getStaticProps = withPerformanceLogging(
 				noUpcomingEvent,
 				initialTokenMarketData,
 				seoTitle,
-				seoDescription,
-				seoKeywords
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -85,14 +82,12 @@ export default function Protocol({
 	noUpcomingEvent,
 	initialTokenMarketData,
 	seoTitle,
-	seoDescription,
-	seoKeywords
+	seoDescription
 }) {
 	return (
 		<Layout
 			title={seoTitle}
 			description={seoDescription}
-			keywords={seoKeywords}
 			canonicalUrl={`/unlocks/${emissions.name}`}
 		>
 			<LinkPreviewCard

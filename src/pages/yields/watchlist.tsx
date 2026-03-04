@@ -20,7 +20,6 @@ export default function Portfolio({ pools }) {
 		<Layout
 			title={`Your Saved DeFi Yield Pools - DefiLlama`}
 			description={`Saved Yields Pools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`saved pools, defi saved pools, saved yields pools, defi saved yields pools`}
 			canonicalUrl={`/yields/watchlist`}
 		>
 			<Announcement>{disclaimer}</Announcement>

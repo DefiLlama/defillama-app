@@ -82,7 +82,6 @@ export default function StablecoinsPage({
 		<Layout
 			title="Total Stablecoins Circulating by Protocol - DefiLlama"
 			description="Total market cap of stablecoins, their price, supply, inflows, percent off peg, and more. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="stablecoins, stablecoins circulating, defi stablecoins circulating, stablecoins market cap, stablecoins price, stablecoins supply, stablecoins inflows, stablecoins percent off peg"
 			canonicalUrl="/stablecoins"
 			pageName={pageName}
 		>

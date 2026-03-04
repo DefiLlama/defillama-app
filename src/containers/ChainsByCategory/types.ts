@@ -102,7 +102,6 @@ export interface IChainsByCategoryData {
 	totalTvlByDate: Record<string, Record<number, number>>
 	tvlChartsByChain: Record<string, Record<string, Record<number, number>>>
 	description: string
-	keywords: string
 }
 
 export type IFormattedDataWithExtraTvlBase = {

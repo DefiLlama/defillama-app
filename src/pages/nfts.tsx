@@ -23,7 +23,6 @@ export default function NFTHomePage(props: InferGetStaticPropsType<typeof getSta
 		<Layout
 			title="Top NFT Collections by Market Cap - DefiLlama"
 			description={`Track NFTs collections floor price, 24h volume and total supply. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nfts collections, nfts on blockchain`}
 			canonicalUrl={`/nfts`}
 			pageName={pageName}
 		>

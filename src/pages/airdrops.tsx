@@ -21,7 +21,6 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		<Layout
 			title="Tokenless protocols that may airdrop - DefiLlama"
 			description={`Tokenless protocols that may airdrop. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`tokenless protocols, DeFi airdrops, potential airdrops, crypto airdrops, DefiLlama airdrops`}
 			canonicalUrl={`/airdrops`}
 			pageName={pageName}
 		>

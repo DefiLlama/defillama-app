@@ -68,7 +68,6 @@ export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticP
 		<Layout
 			title={`${props.categoryName} - RWA - DefiLlama`}
 			description={`${props.categoryName} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.categoryName}, real world assets, defi rwa rankings, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/categories`}
 		>

@@ -90,7 +90,6 @@ export default function StablecoinChainsPage(props: InferGetStaticPropsType<type
 		<Layout
 			title="Total Stablecoins Circulating by Chain - DefiLlama"
 			description="Stablecoins Circulating by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="stablecoins circulating by chain, stablecoins supply by chain, stablecoins market cap by chain"
 			canonicalUrl="/stablecoins/chains"
 			pageName={pageName}
 		>

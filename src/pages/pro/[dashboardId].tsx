@@ -48,7 +48,6 @@ export default function DashboardPage({
 		<Layout
 			title="DefiLlama - Pro Dashboard"
 			description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords=""
 			canonicalUrl={`/pro/${dashboardId}`}
 		>
 			<ProDashboardAPIProvider

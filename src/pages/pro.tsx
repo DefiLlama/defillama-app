@@ -44,7 +44,6 @@ function ProPageContent() {
 			<Layout
 				title="DefiLlama Pro - Advanced DeFi Analytics Dashboard"
 				description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-				keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
 				canonicalUrl={`/pro`}
 			>
 				<ProDashboardLoader />
@@ -56,7 +55,6 @@ function ProPageContent() {
 		<Layout
 			title="DefiLlama Pro - Advanced DeFi Analytics Dashboard"
 			description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
 			canonicalUrl={`/pro`}
 		>
 			<ProContent hasActiveSubscription={hasActiveSubscription} isAuthenticated={isAuthenticated} />

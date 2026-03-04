@@ -16,7 +16,7 @@ export default function Collection(props) {
 		: 'NFT collection dashboard with collection analytics and on-chain details on DefiLlama.'
 	const canonicalUrl = router.isReady && collection ? `/nfts/collection/${collection}` : '/nfts/collection'
 	return (
-		<Layout title={title} description={description} keywords="" canonicalUrl={canonicalUrl}>
+		<Layout title={title} description={description} canonicalUrl={canonicalUrl}>
 			<NFTCollectionContainer {...props} />
 		</Layout>
 	)

@@ -24,7 +24,6 @@ export default function CompareChainsPage({
 		<Layout
 			title={`Compare Blockchains by TVL & Metrics - DefiLlama`}
 			description={`Compare chains on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare chain, compare blockchain`}
 			canonicalUrl={`/compare-chains`}
 			metricFilters={tvlOptions}
 			pageName={pageName}

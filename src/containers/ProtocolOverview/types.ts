@@ -186,7 +186,6 @@ export interface IProtocolOverviewPageData {
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 	seoTitle: string
 	seoDescription: string
-	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]

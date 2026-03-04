@@ -53,7 +53,6 @@ export function ProtocolOverviewLayout({
 	warningBanners,
 	seoTitle,
 	seoDescription,
-	seoKeywords,
 	entityQuestions
 }: {
 	children: React.ReactNode
@@ -74,7 +73,6 @@ export function ProtocolOverviewLayout({
 	}>
 	seoTitle?: string
 	seoDescription?: string
-	seoKeywords?: string
 	entityQuestions?: string[]
 }) {
 	const metricFiltersLabel = useMemo(() => {
@@ -173,7 +171,6 @@ export function ProtocolOverviewLayout({
 		<Layout
 			title={resolvedTitle}
 			description={resolvedDescription}
-			keywords={seoKeywords || `${name.toLowerCase()} defillama`}
 			canonicalUrl={canonicalUrl}
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}

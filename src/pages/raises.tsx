@@ -20,7 +20,6 @@ const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 		<Layout
 			title="Crypto Industry Investor Funding Rounds - DefiLlama"
 			description="Track recent raises, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="recent raises, total funding amount, total funding rounds"
 			canonicalUrl="/raises"
 			pageName={pageName}
 		>

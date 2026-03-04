@@ -77,7 +77,6 @@ const LiquidationsHomePage: NextPage<{
 		<Layout
 			title={`${nameAndSymbol} Liquidation Levels - DefiLlama`}
 			description={`${nameAndSymbol} Liquidation Levels on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${nameAndSymbol.toLowerCase()} liquidation levels, liquidation levels on blockchain`}
 			canonicalUrl={`/liquidations/${data.symbol.toLowerCase()}`}
 			pageName={pageName}
 		>

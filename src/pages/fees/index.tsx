@@ -51,7 +51,6 @@ const FeesOnAllChains = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`DeFi Protocol Fee Rankings - DefiLlama`}
 			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
 			canonicalUrl={`/fees`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Fees"

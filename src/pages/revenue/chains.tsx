@@ -31,7 +31,6 @@ const RevenueByChain = (props: IChainsByAdapterPageData) => {
 		<Layout
 			title={`DeFi Revenue Rankings by Blockchain - DefiLlama`}
 			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
 			canonicalUrl={`/revenue/chains`}
 			pageName={pageName}
 		>

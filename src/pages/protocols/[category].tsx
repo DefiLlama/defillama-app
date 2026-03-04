@@ -101,12 +101,10 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	})
 	const title = presentation.seoTitle
 	const description = presentation.seoDescription
-	const keywords = `${presentation.seoLabel} rankings, defi ${presentation.seoLabel} rankings`.toLowerCase()
 	return (
 		<Layout
 			title={title}
 			description={description}
-			keywords={keywords}
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}`}
 			metricFilters={toggleOptions}
 		>

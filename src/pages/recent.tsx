@@ -21,7 +21,6 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		<Layout
 			title="Recently Listed Protocols - DefiLlama"
 			description={`Recently Listed Protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`recently listed protocols, defi recently listed protocols`}
 			canonicalUrl={`/recent`}
 			pageName={pageName}
 		>

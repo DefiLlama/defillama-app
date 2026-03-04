@@ -37,7 +37,6 @@ export default function HomePage(props: InferGetStaticPropsType<typeof getStatic
 		<Layout
 			title="DefiLlama - DeFi Dashboard & Crypto Analytics"
 			description={props.description}
-			keywords={props.keywords}
 			canonicalUrl=""
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"

@@ -21,7 +21,6 @@ export default function Chains(props: InferGetStaticPropsType<typeof getStaticPr
 		<Layout
 			title={`Bridged TVL Across All Chains - DefiLlama`}
 			description={`Track the total value of all tokens held on each blockchain network. Monitor bridged TVL across chains and compare token holdings between different blockchains on DefiLlama.`}
-			keywords="bridged TVL, blockchain TVL, token holdings, total value on blockchain, total value on chain"
 			canonicalUrl="/bridged"
 			pageName={pageName}
 		>

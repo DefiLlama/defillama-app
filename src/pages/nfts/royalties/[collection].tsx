@@ -45,7 +45,6 @@ export default function Collection() {
 			<Layout
 				title={'NFT Royalties - DefiLlama'}
 				description={collectionDescription}
-				keywords=""
 				canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
@@ -60,7 +59,6 @@ export default function Collection() {
 			<Layout
 				title={'NFT Royalties - DefiLlama'}
 				description={collectionDescription}
-				keywords=""
 				canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
@@ -76,7 +74,6 @@ export default function Collection() {
 		<Layout
 			title={props.name + ' Royalties - DefiLlama'}
 			description={`NFT royalties for ${props.name}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords=""
 			canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 		>
 			<div className="relative isolate grid grid-cols-2 gap-2 *:last:col-span-2 xl:grid-cols-3">

@@ -23,7 +23,6 @@ export default function TotalLostInHacks(props: IProtocolTotalValueLostInHacksBy
 		<Layout
 			title="Total Value Lost in Hacks - DefiLlama"
 			description="Total Value Lost in Hacks by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="total value lost in hacks, defi total value lost in hacks, net user loss"
 			canonicalUrl="/hacks/total-value-lost"
 			pageName={pageName}
 		>

@@ -28,7 +28,6 @@ export default function TotalStaked(props: InferGetStaticPropsType<typeof getSta
 		<Layout
 			title="Total Staked - All DeFi Protocols - DefiLlama"
 			description={`Total Staked by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`total value staked by protocol`}
 			canonicalUrl={`/total-staked`}
 			pageName={pageName}
 		>

@@ -42,7 +42,6 @@ export default function Bridges({
 		<Layout
 			title={`Cross-Chain Bridge Volume & Rankings - DefiLlama`}
 			description={`Track bridge volume and cross-chain transfers on DefiLlama. Bridge volume includes sum of all assets that were bridged through the protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`bridge volume, cross-chain transfers, bridge data, bridge volume by chain`}
 			canonicalUrl={`/bridges`}
 			pageName={pageName}
 		>

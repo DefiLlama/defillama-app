@@ -280,7 +280,6 @@ export default function Protocols({ data, generatedAtSec }: { data: any[]; gener
 		<Layout
 			title={`Upcoming Token Unlocks Schedule - DefiLlama`}
 			description={`Unlocks by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`unlocks, defi unlocks, upcoming token unlocks, token emissions, emissions`}
 			canonicalUrl={`/unlocks`}
 			pageName={pageName}
 		>

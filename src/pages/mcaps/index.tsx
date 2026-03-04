@@ -24,7 +24,6 @@ export default function ProtocolsMarketCaps(props: InferGetStaticPropsType<typeo
 		<Layout
 			title="Market Caps - All Crypto Protocols - DefiLlama"
 			description={`Market Caps by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`market caps, defi market caps`}
 			canonicalUrl={`/mcaps`}
 			pageName={pageName}
 		>

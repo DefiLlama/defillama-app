@@ -53,7 +53,6 @@ export default function ForkPage(props: InferGetStaticPropsType<typeof getStatic
 					? `Fork analytics for ${fork}, comparing original vs forked TVL, fork counts, and market dominance.`
 					: `Fork analytics for DeFi protocols, comparing original vs forked TVL, fork counts, and market dominance.`
 			}
-			keywords={`forks by protocol, protocol forks, forks on blockchain`}
 			canonicalUrl={fork ? `/forks/${slug(fork)}` : '/forks'}
 			metricFilters={tvlOptions}
 			pageName={pageName}

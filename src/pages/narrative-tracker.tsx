@@ -22,7 +22,6 @@ export default function CategoryPerformance(props: CategoryPerformanceProps) {
 		<Layout
 			title={`Crypto Narrative Tracker & Trends - DefiLlama`}
 			description={`Narrative tracker on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`narrative tracker, defi narrative tracker`}
 			canonicalUrl={`/narrative-tracker`}
 			pageName={pageName}
 		>

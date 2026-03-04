@@ -21,7 +21,6 @@ export default function CompareProtocolsPage({ protocols, protocolsList }: Compa
 		<Layout
 			title={`Compare DeFi Protocols by TVL & Metrics - DefiLlama`}
 			description={`Compare protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare protocols, compare protocols on blockchain`}
 			canonicalUrl={`/compare-protocols`}
 			pageName={pageName}
 			metricFilters={tvlOptions}

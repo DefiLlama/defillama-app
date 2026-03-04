@@ -26,7 +26,6 @@ export default function OraclesPage(props: InferGetStaticPropsType<typeof getSta
 		<Layout
 			title="DeFi Oracle Total Value Secured Data - All Crypto Chains - DefiLlama"
 			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
-			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
 			canonicalUrl="/oracles"
 			metricFilters={tvlOptions}
 			pageName={pageName}

@@ -48,7 +48,6 @@ export default function OraclesPage(props: InferGetStaticPropsType<typeof getSta
 		<Layout
 			title={`${props.oracle ?? 'Oracles'} - DefiLlama`}
 			description={`Track total value secured by ${props.oracle ?? 'Oracles'} oracle across all chains. View protocol breakdown and TVS rankings on DefiLlama.`}
-			keywords="blockchain oracles , total value secured by oracles, defi total value secured by oracles"
 			canonicalUrl={canonicalUrl}
 			metricFilters={tvlOptions}
 			pageName={pageName}

@@ -19,7 +19,6 @@ export default function CexsPage({ cexs }) {
 		<Layout
 			title={`CEX Transparency Dashboard & Rankings - DefiLlama`}
 			description={`Live CEX rankings by assets, with inflow data, volume, open interest, and average leverage across 50+ exchanges.`}
-			keywords={`cex transparency, cex assets, cex rankings`}
 			canonicalUrl={`/cexs`}
 			pageName={pageName}
 		>

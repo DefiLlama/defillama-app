@@ -45,7 +45,6 @@ export default function DigitalAssetTreasuryPage(props: InferGetStaticPropsType<
 		<Layout
 			title={`${props.name} Digital Asset Treasury - DefiLlama`}
 			description={`Track ${props.name}'s live digital asset treasury holdings, cost basis, average purchase price, mNAV, share price and acquisition timeline.`}
-			keywords={`${props.name} digital asset treasury holdings, ${props.name} DATs`}
 			canonicalUrl={`/digital-asset-treasury/${slug(props.ticker)}`}
 		>
 			<DATCompany {...props} />

@@ -51,7 +51,6 @@ export default function ProtocolsTokenPricesByChain(props: InferGetStaticPropsTy
 		<Layout
 			title={`${props.chain} DeFi Protocol Token Prices - DefiLlama`}
 			description={`Token Prices by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token prices by protocol on ${props.chain}`}
 			canonicalUrl={`/token-prices/chain/${props.chain}`}
 			pageName={pageName}
 		>

@@ -20,7 +20,6 @@ export default function TreasuriesPage(props: InferGetStaticPropsType<typeof get
 		<Layout
 			title="DeFi Protocol Treasury Holdings - DefiLlama"
 			description="Track treasuries on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="blockchain project treasuries, blockchain entity treasuries, protocol treasuries, entity treasuries"
 			canonicalUrl="/treasuries"
 			pageName={pageName}
 		>

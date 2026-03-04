@@ -40,7 +40,6 @@ export default function RWACategoriesPage({ categories, categoryLinks, chartData
 		<Layout
 			title="Real World Asset (RWA) Categories - DefiLlama"
 			description={`Real World Assets by category on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, rwa categories, rwa onchain by category`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/categories`}
 		>

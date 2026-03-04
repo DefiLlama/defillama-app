@@ -46,7 +46,6 @@ function AboutPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 		<Layout
 			title="About DefiLlama - DeFi Dashboard & Crypto Analytics"
 			description={`About DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`about DefiLlama, DefiLlama about, DeFi analytics platform, DeFi data provider`}
 			canonicalUrl={`/about`}
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">

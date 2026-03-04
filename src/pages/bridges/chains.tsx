@@ -25,7 +25,6 @@ export default function BridgeChains(props: InferGetStaticPropsType<typeof getSt
 		<Layout
 			title={`Bridges Inflows by Chain - DefiLlama`}
 			description={`Bridge activity by chain, including net flow rankings, deposit and withdrawal data, top tokens, and multi-timeframe comparisons.`}
-			keywords={`bridges inflows by chain, bridge inflows`}
 			canonicalUrl={`/bridges/chains`}
 			pageName={pageName}
 		>

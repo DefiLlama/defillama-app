@@ -24,7 +24,6 @@ export default function ProtocolsFdv(props: InferGetStaticPropsType<typeof getSt
 		<Layout
 			title="Fully Diluted Valuations - DefiLlama"
 			description={`Compare Fully Diluted Valuations across 6,000+ protocols and categories. Real-time fundamental FDV data for token research. Filter by category and chain.`}
-			keywords={`fully diluted valuations, defi fully diluted valuations`}
 			canonicalUrl={`/fdv`}
 			pageName={pageName}
 		>

@@ -32,7 +32,6 @@ const DexsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
 			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
 			canonicalUrl={`/dexs`}
 			pageName={pageName}
 		>

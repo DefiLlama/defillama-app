@@ -27,7 +27,6 @@ const PerpsByChain = (props: IChainsByAdapterPageData) => {
 		<Layout
 			title={`${type} by Chain - DefiLlama`}
 			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
 			canonicalUrl={`/perps/chains`}
 			pageName={pageName}
 		>

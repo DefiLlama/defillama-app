@@ -185,7 +185,6 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		<Layout
 			title="Top Protocols by chain on each category - DefiLlama"
 			description={`Top Protocols by chain on each category. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`top protocols, defi top protocols, top protocols by chain, top protocols by category`}
 			canonicalUrl={`/top-protocols`}
 			pageName={pageName}
 		>

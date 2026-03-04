@@ -187,7 +187,6 @@ export default function LlamaAIGetStarted() {
 			<SEO
 				title="LlamaAI - DefiLlama"
 				description="Ask questions, generate charts, and explore any DeFi metric instantly. LlamaAI brings the power of DefiLlama's comprehensive data to your fingertips through natural conversation."
-				keywords="LlamaAI, DefiLlama AI, DeFi AI"
 				canonicalUrl="/ai"
 			/>
 			<style>{`

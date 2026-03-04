@@ -58,7 +58,6 @@ function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 		<Layout
 			title="Token Rights - DefiLlama"
 			description="Explore token holder rights across DeFi protocols — governance, economic rights, value accrual, and alignment."
-			keywords="token rights, governance, economic rights, value accrual, defi"
 			canonicalUrl="/token-rights"
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">

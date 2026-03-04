@@ -28,7 +28,6 @@ export default function Pool2TVL(props: InferGetStaticPropsType<typeof getStatic
 		<Layout
 			title="Pool2 TVL - All DeFi Protocols - DefiLlama"
 			description={`Pool2 TVL by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`pool2 tvl by protocol`}
 			canonicalUrl={`/pool2`}
 			pageName={pageName}
 		>

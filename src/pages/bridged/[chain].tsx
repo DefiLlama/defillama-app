@@ -54,7 +54,6 @@ export default function Bridged(props: InferGetStaticPropsType<typeof getStaticP
 		<Layout
 			title={`${props.chainName} Bridged TVL & Cross-Chain Assets - DefiLlama`}
 			description={`Track bridged TVL on ${props.chainName} - View total value of all tokens held on ${props.chainName}. Real-time DeFi bridge analytics from DefiLlama.`}
-			keywords={`bridged tvl ${props.chainName}, tokens value on ${props.chainName}`}
 			canonicalUrl={`/bridged/${props.chain}`}
 			pageName={pageName}
 		>

@@ -70,7 +70,6 @@ export default function RWAAssetDetailPage({ asset }) {
 		<Layout
 			title={`${displayName} - RWA - DefiLlama`}
 			description={`${displayName} on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${displayName}, real world assets, defi rwa, rwa on chain`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/asset/${asset.slug}`}
 		>

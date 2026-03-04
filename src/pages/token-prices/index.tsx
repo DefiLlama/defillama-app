@@ -24,7 +24,6 @@ export default function ProtocolsTokenPrices(props: InferGetStaticPropsType<type
 		<Layout
 			title="Token Prices - DefiLlama"
 			description={`Token Prices by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token prices by protocol`}
 			canonicalUrl={`/token-prices`}
 			pageName={pageName}
 		>

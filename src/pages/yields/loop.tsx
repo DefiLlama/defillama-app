@@ -65,7 +65,6 @@ export default function YieldBorrow(data) {
 		<Layout
 			title={`Lend/Borrow rates - DefiLlama Yield`}
 			description={`Pools by leveraged lending APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`pools by leveraged lending apy values, leveraged yields, loop yields`}
 			canonicalUrl={`/yields/loop`}
 			pageName={pageName}
 		>

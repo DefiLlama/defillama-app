@@ -74,7 +74,6 @@ const NormalizedVolumeOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${props.chain} ${type} - DefiLlama`}
 			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
 			canonicalUrl={`/normalized-volume/chain/${props.chain}`}
 			pageName={pageName}
 		>

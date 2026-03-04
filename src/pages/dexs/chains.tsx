@@ -27,7 +27,6 @@ const DexsByChain = (props: IChainsByAdapterPageData) => {
 		<Layout
 			title={`${type} by Chain - DefiLlama`}
 			description={`Live ${type} rankings by chain. Track volume activity across Ethereum, Solana, Base, Arbitrum and 500+ networks. Filter by 24h or 30d.`}
-			keywords={`${type} by chain`}
 			canonicalUrl={`/dexs/chains`}
 			pageName={pageName}
 		>

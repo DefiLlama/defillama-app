@@ -25,7 +25,6 @@ export default function Compare({
 		<Layout
 			title={`Compare Tokens - DefiLlama`}
 			description={`Compare tokens with price, fdv, volume and other metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare tokens, compare tokens on blockchain`}
 			canonicalUrl={`/compare-tokens`}
 		>
 			<CompareTokens coinsData={coinsData} protocols={protocols} />

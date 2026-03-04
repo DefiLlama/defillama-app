@@ -54,7 +54,6 @@ export default function Returns(props: CategoryPageProps) {
 		<Layout
 			title={`Narrative Tracker - DefiLlama`}
 			description={`Narrative Tracker by ${props.categoryName ?? 'Category'}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`narrative tracker, defi narrative tracker, narrative tracker by ${props.categoryName ?? 'category'}`}
 			canonicalUrl={`/narrative-tracker/${props.categoryId}`}
 			pageName={pageName}
 		>

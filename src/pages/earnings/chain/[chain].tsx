@@ -93,7 +93,6 @@ const EarningsOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
 			description={`Real-time DeFi ${type} analytics by protocol for ${props.chain}. Track net earnings rankings showing revenue minus incentives for every protocol across the ecosystem.`}
-			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
 			canonicalUrl={`/earnings/chain/${props.chain}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Earnings"
