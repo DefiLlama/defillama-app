@@ -679,7 +679,7 @@ export function ChartBuilderTab({
 										placeholder={chainFilterMode === 'exclude' ? 'Select chains to exclude...' : 'Select chains...'}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
-										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+										renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 									/>
 								</div>
 
@@ -780,7 +780,7 @@ export function ChartBuilderTab({
 										placeholder={chainFilterMode === 'exclude' ? 'Select chains to exclude...' : 'Select chains...'}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
-										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+										renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 									/>
 								</div>
 								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (

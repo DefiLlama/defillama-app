@@ -549,7 +549,7 @@ export function MetricSentenceBuilder({
 														const option = filteredChainOptions[virtualRow.index]
 														if (!option) return null
 														const isActive = metricChain === option.value
-														const iconUrl = getItemIconUrl('chain', null, option.value)
+														const iconUrl = option.value === 'All' ? null : getItemIconUrl('chain', null, option.value)
 														return (
 															<ComboboxItem
 																key={option.value}

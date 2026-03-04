@@ -248,7 +248,7 @@ export function SimpleTableConfig({
 					onChange={(option) => onDatasetChainChange(option.value)}
 					placeholder="Select chain..."
 					isLoading={protocolsLoading}
-					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+					renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 				/>
 			) : selectedTableType === 'revenue' ||
 			  selectedTableType === 'holders-revenue' ||
@@ -267,7 +267,7 @@ export function SimpleTableConfig({
 					onChange={onChainsChange}
 					isLoading={protocolsLoading}
 					placeholder="All chains..."
-					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+					renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 				/>
 			) : selectedTableType === 'chains' ? (
 				<AriakitSelect
@@ -286,7 +286,7 @@ export function SimpleTableConfig({
 						onChange={(option) => onDatasetChainChange(option.value)}
 						placeholder="Select chain..."
 						isLoading={protocolsLoading}
-						renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+						renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 					/>
 					<AriakitSelect
 						label="Time Period"
