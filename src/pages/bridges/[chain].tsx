@@ -13,15 +13,15 @@ type BridgesPageData = Awaited<ReturnType<typeof getBridgeOverviewPageData>>
 
 type BridgesPageProps =
 	| {
-		state: 'ready'
-		data: BridgesPageData
-		chainSlug: string
-	}
+			state: 'ready'
+			data: BridgesPageData
+			chainSlug: string
+	  }
 	| {
-		state: 'disabled'
-		chainSlug: string
-		chainLabel: string
-	}
+			state: 'disabled'
+			chainSlug: string
+			chainLabel: string
+	  }
 
 export const getStaticProps = withPerformanceLogging(
 	'bridges/[chain]',

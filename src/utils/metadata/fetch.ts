@@ -98,18 +98,19 @@ export async function fetchCoreMetadata(): Promise<{
 	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
-	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, tokenlistArray, bridgesResponse] = await Promise.all([
-		fetchJson(PROTOCOLS_DATA_URL),
-		fetchJson(CHAINS_DATA_URL),
-		fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-		fetchJson(CEXS_DATA_URL),
-		fetchJson(RWA_LIST_DATA_URL),
-		fetchJson<Array<any>>(TOKENLIST_DATA_URL),
-		fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL).catch((error) => {
-			console.error('[metadata] failed to fetch bridge inventory, continuing with empty bridge slug caches:', error)
-			return { bridges: [] }
-		})
-	])
+	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, tokenlistArray, bridgesResponse] =
+		await Promise.all([
+			fetchJson(PROTOCOLS_DATA_URL),
+			fetchJson(CHAINS_DATA_URL),
+			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
+			fetchJson(CEXS_DATA_URL),
+			fetchJson(RWA_LIST_DATA_URL),
+			fetchJson<Array<any>>(TOKENLIST_DATA_URL),
+			fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL).catch((error) => {
+				console.error('[metadata] failed to fetch bridge inventory, continuing with empty bridge slug caches:', error)
+				return { bridges: [] }
+			})
+		])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
 	for (const t of tokenlistArray) {
@@ -144,7 +145,8 @@ export async function fetchCoreMetadata(): Promise<{
 
 	const bridgeChainSlugs = dedupeNonEmpty(
 		(bridgesResponse?.bridges ?? []).flatMap((bridge) => {
-			const destinationChain = bridge.destinationChain && bridge.destinationChain !== 'false' ? [bridge.destinationChain] : []
+			const destinationChain =
+				bridge.destinationChain && bridge.destinationChain !== 'false' ? [bridge.destinationChain] : []
 			const chainNames = [...(bridge.chains ?? []), ...destinationChain]
 			for (const chainName of chainNames) {
 				const normalized = normalizeSlug(chainName)

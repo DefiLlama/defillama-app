@@ -55,7 +55,9 @@ const unwrapBridgeResponse = <T>(context: string, payload: T | BridgeApiErrorEnv
 export function fetchBridges(includeChains = false): Promise<RawBridgesResponse> {
 	const query = includeChains ? '?includeChains=true' : ''
 	const url = `${BRIDGES_API}${query}`
-	return fetchJson<RawBridgesResponse | BridgeApiErrorEnvelope>(url).then((response) => unwrapBridgeResponse(url, response))
+	return fetchJson<RawBridgesResponse | BridgeApiErrorEnvelope>(url).then((response) =>
+		unwrapBridgeResponse(url, response)
+	)
 }
 
 export function fetchBridgeVolumeAll(id?: string | number): Promise<RawBridgeVolumeResponse> {

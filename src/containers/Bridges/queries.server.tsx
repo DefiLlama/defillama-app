@@ -67,7 +67,7 @@ async function retryAsync<T>(operation: () => Promise<T>, options: RetryOptions<
 	console.log(`[bridges][retry-failed] ${context}`, lastError)
 
 	if (throwOnFailure) {
-		throw (onFailureError ? onFailureError() : new Error(`${context} failed`))
+		throw onFailureError ? onFailureError() : new Error(`${context} failed`)
 	}
 
 	return fallback as T
