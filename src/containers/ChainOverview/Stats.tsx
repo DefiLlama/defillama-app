@@ -9,7 +9,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { ChainChartPanel } from './ChainChartPanel'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts } from './constants'
@@ -133,7 +133,7 @@ export function Stats(props: IStatsProps) {
 			>
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
-						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} alt={`Logo of ${props.metadata.name}`} />
+						<TokenLogo name={props.metadata.name} kind="chain" size={24} alt={`Logo of ${props.metadata.name}`} />
 						<span className="text-xl font-semibold">{props.metadata.name}</span>
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>

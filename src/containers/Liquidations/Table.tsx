@@ -19,7 +19,7 @@ import { CONFIG_API } from '~/constants'
 import { fetchChainsList } from '~/containers/Chains/api'
 import type { ChainListItem } from '~/containers/Chains/api.types'
 import type { ChartData } from '~/containers/Liquidations/utils'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
@@ -146,7 +146,7 @@ const ProtocolName = ({ value }: { value: string }) => {
 	return (
 		<span className="flex min-w-0 items-center gap-2">
 			<span className="vf-row-index shrink-0" aria-hidden="true" />
-			<TokenLogo logo={data.logo} data-lgonly alt={`Logo of ${data.name}`} />
+			<TokenLogo src={data.logo} data-lgonly alt={`Logo of ${data.name}`} />
 			<BasicLink
 				href={`/protocol/${_value}`}
 				className="min-w-0 flex-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -184,7 +184,7 @@ const ChainName = ({ value }: { value: string }) => {
 
 	return (
 		<span className="flex min-w-0 items-center gap-2">
-			<TokenLogo logo={chainIconUrl(name)} data-lgonly alt={`Logo of ${name}`} />
+			<TokenLogo name={name} kind="chain" data-lgonly alt={`Logo of ${name}`} />
 			<BasicLink
 				href={`/chain/${displayName}`}
 				className="min-w-0 flex-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -4,7 +4,7 @@ import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface IYieldsRow {
 	pool: string
@@ -48,7 +48,8 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 				<span className="relative flex items-center gap-2 pl-6">
 					<TokenLogo
 						size={20}
-						logo={tokenIconUrl(row.original.project)}
+						name={row.original.project}
+						kind="token"
 						alt={`Logo of ${row.original.project}`}
 						data-lgonly
 					/>

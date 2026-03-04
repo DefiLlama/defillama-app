@@ -55,7 +55,7 @@ const columns: ColumnDef<INetProjectTreasury>[] = [
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink

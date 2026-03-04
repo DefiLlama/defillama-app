@@ -11,7 +11,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute } from '~/constants'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
@@ -253,8 +253,6 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					!shouldShowChainIcon &&
 					display.header !== 'category' &&
 					(display.groupKind === 'parent' || display.header === 'protocol' || display.header === 'parent-protocol')
-				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
-				const iconSource = shouldShowChainIcon ? chainIcon : (display.iconUrl ?? baseRow?.logo ?? undefined)
 				const isChainOrCategoryGroup = display.header === 'chain' || display.header === 'category'
 				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped() ? (row.subRows?.length ?? null) : null
 
@@ -278,7 +276,15 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						)}
 						{display.header !== 'category' &&
 							(shouldShowProtocolLogo || shouldShowChainIcon ? (
-								<TokenLogo logo={iconSource ?? undefined} alt={`Logo of ${display.label}`} size={24} />
+								shouldShowChainIcon ? (
+									<TokenLogo name={display.label} kind="chain" alt={`Logo of ${display.label}`} size={24} />
+								) : (
+									<TokenLogo
+										src={display.iconUrl ?? baseRow?.logo ?? undefined}
+										alt={`Logo of ${display.label}`}
+										size={24}
+									/>
+								)
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
 							))}

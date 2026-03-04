@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute } from '~/constants'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { ExtraTvlMetric, IExtraTvlByChainPageData, IExtraTvlProtocolRow } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -40,7 +40,7 @@ export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 				<div className="col-span-3 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-base xl:col-span-1">
 					{props.chain !== 'All' ? (
 						<h1 className="flex flex-nowrap items-center gap-2">
-							<TokenLogo logo={chainIconUrl(props.chain)} size={24} alt={`Logo of ${props.chain}`} />
+							<TokenLogo name={props.chain} kind="chain" size={24} alt={`Logo of ${props.chain}`} />
 							<span className="text-xl font-semibold">{props.chain}</span>
 						</h1>
 					) : null}
@@ -90,7 +90,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} alt={`Logo of ${chain}`} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -141,7 +141,7 @@ function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[]
 
 						<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-						<TokenLogo logo={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
+						<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 						<span className="-my-2 flex flex-col">
 							<BasicLink

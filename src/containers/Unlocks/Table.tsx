@@ -25,7 +25,7 @@ import { UnconstrainedSmolLineChart } from '~/containers/Unlocks/UnconstrainedSm
 import { UpcomingEvent } from '~/containers/Unlocks/UpcomingEvent'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { FormSubmitEvent } from '~/types/forms'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 const optionsKey = 'unlockTable'
@@ -407,7 +407,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 				<div className="flex h-full items-center">
 					<span className="relative flex items-center gap-2 pl-6">
 						<Bookmark readableName={protocolName} data-bookmark className="absolute -left-0.5" />
-						<TokenLogo logo={tokenIconUrl(protocolName)} alt={`Logo of ${protocolName}`} />
+						<TokenLogo name={protocolName} kind="token" alt={`Logo of ${protocolName}`} />
 						<BasicLink
 							href={`/unlocks/${slug(protocolName)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

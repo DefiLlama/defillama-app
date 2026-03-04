@@ -4,7 +4,7 @@ import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { RawChainsAssetsResponse, RawChainAssetsFlowEntry } from './api.types'
 import type { IBridgedRow } from './types'
 
@@ -59,7 +59,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(value)} alt={`Logo of ${value}`} />
+					<TokenLogo name={value} kind="chain" alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/bridged/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -6,7 +6,7 @@ import { BasicLink, ButtonLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import type { IProtocolPageMetrics } from './types'
 
 const tabs = {
@@ -214,7 +214,7 @@ export function ProtocolOverviewLayout({
 					{(otherProtocols?.length ?? 0) > 1 ? (
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton className="mr-4 flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
-								<TokenLogo logo={tokenIconUrl(name)} size={16} alt={`Logo of ${name}`} />
+								<TokenLogo name={name} kind="token" size={16} alt={`Logo of ${name}`} />
 								<span className="whitespace-nowrap">{name === otherProtocols?.[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
 							</Ariakit.MenuButton>
@@ -248,7 +248,7 @@ export function ProtocolOverviewLayout({
 													<span className="-mr-2 h-0.5 w-3 bg-(--form-control-border)" />
 												</>
 											) : null}
-											<TokenLogo logo={tokenIconUrl(value)} size={24} alt={`Logo of ${value}`} />
+											<TokenLogo name={value} kind="token" size={24} alt={`Logo of ${value}`} />
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>

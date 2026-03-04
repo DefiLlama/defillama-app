@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import { useMemo, useRef } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useResize } from '~/hooks/useResize'
-import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 const ICON_WIDTH = 24
 const MAX_ROW_WIDTH = 280
@@ -19,16 +18,15 @@ interface IIconItemLogoProps {
 }
 
 const IconItemLogo = ({ item }: IIconItemLogoProps) => {
-	const logo = item.kind === 'token' ? tokenIconUrl(item.label) : chainIconUrl(item.label)
 	const title = item.title ?? item.label
 
 	if (!item.href) {
-		return <TokenLogo logo={logo} alt={`Logo of ${item.label}`} title={title} />
+		return <TokenLogo name={item.label} kind={item.kind} alt={`Logo of ${item.label}`} title={title} />
 	}
 
 	return (
-		<a href={item.href} target="_blank" rel="noopener noreferrer" title={title}>
-			<TokenLogo onClick={(e) => e.stopPropagation()} logo={logo} alt={`Logo of ${item.label}`} />
+		<a href={item.href} target="_blank" rel="noopener noreferrer" title={title} onClick={(e) => e.stopPropagation()}>
+			<TokenLogo name={item.label} kind={item.kind} alt={`Logo of ${item.label}`} />
 		</a>
 	)
 }

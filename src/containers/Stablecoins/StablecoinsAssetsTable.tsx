@@ -23,7 +23,7 @@ import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { useCalcCirculating } from '~/containers/Stablecoins/hooks'
-import { formattedNum, peggedAssetIconUrl as stablecoinAssetIconUrl, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type StablecoinDeviationInfo = {
 	timestamp: number
@@ -68,11 +68,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo
-						logo={stablecoinAssetIconUrl(row.original.name)}
-						alt={`Logo of ${row.original.name}`}
-						data-lgonly
-					/>
+					<TokenLogo name={row.original.name} kind="pegged" alt={`Logo of ${row.original.name}`} data-lgonly />
 					{row.original?.deprecated ? (
 						<BasicLink
 							href={`/stablecoin/${slug(row.original.name)}`}

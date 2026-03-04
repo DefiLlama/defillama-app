@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 import { generateGoogleCalendarUrl } from '~/utils/calendar'
 
 const EMPTY_TOKENS: number[][] = []
@@ -395,7 +395,7 @@ export const UpcomingEvent = ({
 				>
 					<span className="flex items-center justify-between gap-4">
 						<span className="flex items-center gap-2 font-medium">
-							<TokenLogo logo={tokenIconUrl(name)} size={30} alt={`Logo of ${name}`} />
+							<TokenLogo name={name} kind="token" size={30} alt={`Logo of ${name}`} />
 							{tokenSymbol}
 						</span>
 						<span className="flex flex-col items-end">

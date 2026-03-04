@@ -19,7 +19,7 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -58,7 +58,7 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly alt={`Logo of ${value}`} />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

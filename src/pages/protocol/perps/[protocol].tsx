@@ -16,7 +16,7 @@ import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -170,7 +170,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} alt={`Logo of ${props.name}`} />
+						<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 						<span className="font-bold">{props.name}</span>
 						{props.deprecated ? (
 							<Tooltip content="Deprecated protocol" className="text-(--error)">

@@ -6,7 +6,7 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { AlertIntent, ChartConfiguration, ChartItem, CsvItem } from '../types'
-import { getEntityIcon, getEntityUrl } from '../utils/entityLinks'
+import { getEntityUrl } from '../utils/entityLinks'
 import { extractLlamaLinks, parseArtifactPlaceholders, processCitationMarkers } from '../utils/markdownHelpers'
 import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
@@ -107,7 +107,6 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 		}
 
 		const entityUrl = getEntityUrl(type, slug)
-		const iconUrl = getEntityIcon(type, slug)
 
 		return (
 			<a
@@ -117,7 +116,9 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 				rel="noreferrer noopener"
 				{...props}
 			>
-				{type !== 'pool' && <TokenLogo logo={iconUrl} alt={`Logo of ${slug}`} size={14} />}
+				{type !== 'pool' && (
+					<TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />
+				)}
 				<span className="truncate">{children}</span>
 			</a>
 		)
