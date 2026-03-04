@@ -18,7 +18,7 @@ type BridgeTransaction = {
 	is_deposit: boolean
 	chain: string
 	bridge_name: string
-	usd_value: string | number | null
+	usd_value: string | null
 }
 
 const MAX_ITERATIONS = 50

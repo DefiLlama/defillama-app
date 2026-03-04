@@ -6,13 +6,14 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import metadataCache from '~/utils/metadata'
+import metadataCache, { refreshMetadataIfStale } from '~/utils/metadata'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type BridgePageProps =
 	| {
 			state: 'ready'
 			data: NonNullable<Awaited<ReturnType<typeof getBridgePageDatanew>>>
+			bridgeSlug: string
 	  }
 	| {
 			state: 'disabled'
@@ -25,6 +26,8 @@ export const getStaticProps = withPerformanceLogging(
 		if (!params?.bridge) {
 			return { notFound: true, props: null }
 		}
+
+		await refreshMetadataIfStale()
 
 		const bridge = slug(params.bridge)
 		const supportedBridgeSlugs = metadataCache.bridgeProtocolSlugs ?? []
@@ -61,7 +64,8 @@ export const getStaticProps = withPerformanceLogging(
 			return {
 				props: {
 					state: 'ready',
-					data
+					data,
+					bridgeSlug: bridge
 				} satisfies BridgePageProps,
 				revalidate: maxAgeForNext([22])
 			}
@@ -116,12 +120,13 @@ export default function Bridge(props: InferGetStaticPropsType<typeof getStaticPr
 	}
 
 	const data = props.data
+	const bridgeSlug = props.bridgeSlug
 
 	return (
 		<Layout
 			title={`${data.displayName}: Bridge Volume - DefiLlama`}
 			description={`Track bridge volume and cross-chain transfers on ${data.displayName}. View bridged assets, transfer volumes, and DeFi bridge analytics from DefiLlama.`}
-			canonicalUrl={`/bridge/${slug(data.displayName)}`}
+			canonicalUrl={`/bridge/${bridgeSlug}`}
 		>
 			<BridgeProtocolOverview {...data} />
 		</Layout>

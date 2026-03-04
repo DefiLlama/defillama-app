@@ -204,7 +204,8 @@ function buildTableDataByChain({
 			const totalTokensWithdrawn = prevDayData.totalTokensWithdrawn
 			const tokensTableUnformatted: Record<string, TokenTableUnformattedRow> = {}
 
-			Object.entries(totalTokensDeposited).map(([token, tokenData]: [string, TokenMapValue]) => {
+			for (const token in totalTokensDeposited) {
+				const tokenData = totalTokensDeposited[token] as TokenMapValue
 				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
 				const usdValue = tokenData.usdValue
 				const key = `${symbol}#${token}`
@@ -213,8 +214,9 @@ function buildTableDataByChain({
 				tokensTableUnformatted[key].volume = (tokensTableUnformatted[key].volume ?? 0) + usdValue
 				// ensure there are no undefined values for deposited/withdrawn so table can be sorted
 				tokensTableUnformatted[key].withdrawn = 0
-			})
-			Object.entries(totalTokensWithdrawn).map(([token, tokenData]: [string, TokenMapValue]) => {
+			}
+			for (const token in totalTokensWithdrawn) {
+				const tokenData = totalTokensWithdrawn[token] as TokenMapValue
 				const symbol = tokenData.symbol == null || tokenData.symbol === '' ? 'unknown' : tokenData.symbol
 				const usdValue = tokenData.usdValue ?? 0
 				const key = `${symbol}#${token}`
@@ -224,7 +226,7 @@ function buildTableDataByChain({
 				if (!tokensTableUnformatted[key].deposited) {
 					tokensTableUnformatted[key].deposited = 0
 				}
-			})
+			}
 
 			tokensTableData = Object.entries(tokensTableUnformatted)
 				.filter(([, volumeData]) => {

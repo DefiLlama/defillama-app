@@ -687,14 +687,7 @@ export const useFetchProtocolChartData = ({
 		enabled: isBridgeVolumeEnabled,
 		queryFn: () =>
 			fetchBridgeVolumeBySlug(slug(name))
-				.then((data) =>
-					normalizeBridgeVolumeToChartMs(
-						data.dailyVolumes.map((point) => ({
-							...point,
-							date: String(point.date)
-						}))
-					)
-				)
+				.then((data) => normalizeBridgeVolumeToChartMs(data.dailyVolumes))
 				.catch(() => null)
 	})
 

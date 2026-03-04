@@ -6,7 +6,7 @@ import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
 import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
-import metadataCache from '~/utils/metadata'
+import metadataCache, { refreshMetadataIfStale } from '~/utils/metadata'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type BridgesPageData = Awaited<ReturnType<typeof getBridgeOverviewPageData>>
@@ -29,6 +29,8 @@ export const getStaticProps = withPerformanceLogging(
 		if (!params?.chain) {
 			return { notFound: true, props: null }
 		}
+
+		await refreshMetadataIfStale()
 
 		const chainSlug = slug(params.chain)
 		const supportedChainSlugs = metadataCache.bridgeChainSlugs ?? []
