@@ -411,7 +411,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo logo={chainIconUrl(chain)} size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -451,7 +451,7 @@ const nameColumn: Column = {
 
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-				<TokenLogo logo={row.original.logo} data-lgonly />
+				<TokenLogo logo={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 				<span className="-my-2 flex flex-col">
 					<BasicLink

@@ -31,7 +31,7 @@ const columns: ColumnDef<{
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(chain)} data-lgonly />
+					<TokenLogo logo={chainIconUrl(chain)} data-lgonly alt={`Logo of ${chain}`} />
 					<BasicLink
 						href={`/rwa/chain/${rwaSlug(chain)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

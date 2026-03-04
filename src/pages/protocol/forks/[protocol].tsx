@@ -84,7 +84,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			seoDescription={props.seoDescription}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<TokenLogo logo={tokenIconUrl(props.name)} size={24} alt={`Logo of ${props.name}`} />
 				<h1 className="text-xl font-bold">{props.name} Forks</h1>
 			</div>
 			{!props.forksData ? (

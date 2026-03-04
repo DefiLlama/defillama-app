@@ -12,7 +12,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ row }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<TokenLogo logo={chainIconUrl(row.original.name)} size={24} />
+					<TokenLogo logo={chainIconUrl(row.original.name)} alt={`Logo of ${row.original.name}`} size={24} />
 					<span className="font-medium pro-text1">{row.original.name}</span>
 				</div>
 			)

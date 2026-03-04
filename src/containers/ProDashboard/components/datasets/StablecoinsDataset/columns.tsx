@@ -32,7 +32,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<TokenLogo logo={peggedAssetIconUrl(name)} data-lgonly />
+					<TokenLogo logo={peggedAssetIconUrl(name)} alt={`Logo of ${name}`} data-lgonly />
 					<BasicLink
 						href={`/stablecoins/${row.original.gecko_id || name}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

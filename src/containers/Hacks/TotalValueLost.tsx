@@ -38,7 +38,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 					) : null}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly />
+					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly alt={`Logo of ${row.original.slug}`} />
 
 					<BasicLink
 						href={row.original.route}

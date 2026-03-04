@@ -19,7 +19,7 @@ const ChainLogo = ({ chain, url, iconType, yieldRewardsSymbol, disableLink: disa
 	if (yieldRewardsSymbol || disableLinks) {
 		return (
 			<Tooltip content={disableLinks ? chain : yieldRewardsSymbol}>
-				<TokenLogo logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} />
+				<TokenLogo logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)} alt={`Logo of ${chain}`} />
 			</Tooltip>
 		)
 	} else {
@@ -44,6 +44,7 @@ const ChainLogo = ({ chain, url, iconType, yieldRewardsSymbol, disableLink: disa
 				<TokenLogo
 					onClick={(e) => e.stopPropagation()}
 					logo={iconType === 'token' ? tokenIconUrl(chain) : chainIconUrl(chain)}
+					alt={`Logo of ${chain}`}
 				/>
 			</Tooltip>
 		)

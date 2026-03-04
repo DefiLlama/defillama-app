@@ -89,7 +89,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 											target="_blank"
 											className="group flex min-w-0 shrink items-center gap-1.5 text-sm font-medium hover:underline"
 										>
-											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
+											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} alt={`Logo of ${event.protocol}`} />
 											<span className="truncate">{event.protocol}</span>
 										</BasicLink>
 										<span className="text-sm font-medium whitespace-nowrap text-(--text-secondary)">

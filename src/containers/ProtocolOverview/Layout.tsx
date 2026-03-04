@@ -24,7 +24,11 @@ const tabs = {
 	perps: { id: 'perps', name: 'Perp Volume', route: '/protocol/perps' },
 	dexAggregators: { id: 'dexAggregators', name: 'DEX Aggregator Volume', route: '/protocol/dex-aggregators' },
 	perpsAggregators: { id: 'perpsAggregators', name: 'Perp Aggregator Volume', route: '/protocol/perps-aggregators' },
-	bridgeAggregators: { id: 'bridgeAggregators', name: 'Bridge Aggregator Volume', route: '/protocol/bridge-aggregators' },
+	bridgeAggregators: {
+		id: 'bridgeAggregators',
+		name: 'Bridge Aggregator Volume',
+		route: '/protocol/bridge-aggregators'
+	},
 	options: { id: 'options', name: 'Options Volume', route: '/protocol/options' },
 	tokenRights: { id: 'tokenRights', name: 'Token Rights', route: '/protocol/token-rights' },
 	governance: { id: 'governance', name: 'Governance', route: '/protocol/governance' },
@@ -36,7 +40,6 @@ const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
 	governance: '/governance',
 	forks: '/forks'
 }
-
 
 export function ProtocolOverviewLayout({
 	children,
@@ -211,7 +214,7 @@ export function ProtocolOverviewLayout({
 					{(otherProtocols?.length ?? 0) > 1 ? (
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton className="mr-4 flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
-								<TokenLogo logo={tokenIconUrl(name)} size={16} />
+								<TokenLogo logo={tokenIconUrl(name)} size={16} alt={`Logo of ${name}`} />
 								<span className="whitespace-nowrap">{name === otherProtocols?.[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
 							</Ariakit.MenuButton>
@@ -245,7 +248,7 @@ export function ProtocolOverviewLayout({
 													<span className="-mr-2 h-0.5 w-3 bg-(--form-control-border)" />
 												</>
 											) : null}
-											<TokenLogo logo={tokenIconUrl(value)} size={24} />
+											<TokenLogo logo={tokenIconUrl(value)} size={24} alt={`Logo of ${value}`} />
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>
@@ -261,66 +264,66 @@ export function ProtocolOverviewLayout({
 						</Ariakit.MenuProvider>
 					) : null}
 
-				{isCEX ? (
-					<>
-						<ButtonLink
-							href={`/cex/${slug(name)}`}
-							data-active={!tab || tab === 'information'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Information
-						</ButtonLink>
-						{metrics.tvl ? (
+					{isCEX ? (
+						<>
 							<ButtonLink
-								href={`/cex/assets/${slug(name)}`}
-								data-active={tab === 'assets'}
+								href={`/cex/${slug(name)}`}
+								data-active={!tab || tab === 'information'}
 								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
-								Assets
+								Information
 							</ButtonLink>
-						) : null}
-						{metrics.stablecoins ? (
+							{metrics.tvl ? (
+								<ButtonLink
+									href={`/cex/assets/${slug(name)}`}
+									data-active={tab === 'assets'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									Assets
+								</ButtonLink>
+							) : null}
+							{metrics.stablecoins ? (
+								<ButtonLink
+									href={`/cex/stablecoins/${slug(name)}`}
+									data-active={tab === 'stablecoins'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									Stablecoin Info
+								</ButtonLink>
+							) : null}
+						</>
+					) : (
+						<>
 							<ButtonLink
-								href={`/cex/stablecoins/${slug(name)}`}
-								data-active={tab === 'stablecoins'}
+								href={`/protocol/${slug(name)}`}
+								data-active={!tab || tab === 'information'}
 								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
-								Stablecoin Info
+								Information
 							</ButtonLink>
-						) : null}
-					</>
-				) : (
-					<>
-						<ButtonLink
-							href={`/protocol/${slug(name)}`}
-							data-active={!tab || tab === 'information'}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							Information
-						</ButtonLink>
-						{metrics.tvl ? (
+							{metrics.tvl ? (
+								<ButtonLink
+									href={`/protocol/tvl/${slug(name)}`}
+									data-active={tab === 'tvl'}
+									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
+								>
+									TVL
+								</ButtonLink>
+							) : null}
+						</>
+					)}
+					{protocolTabs
+						.filter((pt) => (isCEX ? pt.id !== 'stablecoins' : true))
+						.map((pt) => (
 							<ButtonLink
-								href={`/protocol/tvl/${slug(name)}`}
-								data-active={tab === 'tvl'}
+								key={`${pt.id}-${name}`}
+								href={`${pt.route}/${slug(name)}`}
+								data-active={pt.id === tab}
 								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
-								TVL
+								{pt.name}
 							</ButtonLink>
-						) : null}
-					</>
-				)}
-				{protocolTabs
-					.filter((pt) => (isCEX ? pt.id !== 'stablecoins' : true))
-					.map((pt) => (
-						<ButtonLink
-							key={`${pt.id}-${name}`}
-							href={`${pt.route}/${slug(name)}`}
-							data-active={pt.id === tab}
-							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
-						>
-							{pt.name}
-						</ButtonLink>
-					))}
+						))}
 				</div>
 				<EntityQuestionsStrip
 					questions={entityQuestions || []}

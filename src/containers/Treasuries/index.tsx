@@ -47,7 +47,7 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+					<TokenLogo logo={tokenIconUrl(name)} data-lgonly alt={`Logo of ${name}`} />
 					<BasicLink
 						href={`/protocol/${slug}?treasury=true&tvl=false`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

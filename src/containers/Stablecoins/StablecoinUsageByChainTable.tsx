@@ -68,7 +68,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 					) : (
 						<>
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
+							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly alt={`Logo of ${row.original.name}`} />
 							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

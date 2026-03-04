@@ -395,7 +395,7 @@ export const UpcomingEvent = ({
 				>
 					<span className="flex items-center justify-between gap-4">
 						<span className="flex items-center gap-2 font-medium">
-							<TokenLogo logo={tokenIconUrl(name)} size={30} />
+							<TokenLogo logo={tokenIconUrl(name)} size={30} alt={`Logo of ${name}`} />
 							{tokenSymbol}
 						</span>
 						<span className="flex flex-col items-end">

@@ -260,7 +260,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					)}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={chainIconUrl(getValue())} />
+					<TokenLogo logo={chainIconUrl(getValue())} alt={`Logo of ${getValue()}`} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

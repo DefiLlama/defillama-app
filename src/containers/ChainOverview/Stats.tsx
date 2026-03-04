@@ -133,7 +133,7 @@ export function Stats(props: IStatsProps) {
 			>
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
-						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
+						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} alt={`Logo of ${props.metadata.name}`} />
 						<span className="text-xl font-semibold">{props.metadata.name}</span>
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>

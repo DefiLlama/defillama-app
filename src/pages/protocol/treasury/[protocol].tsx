@@ -315,7 +315,7 @@ export default function Protocols(props: TreasuryPageProps) {
 		>
 			<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="mr-auto flex items-center gap-2">
-					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<TokenLogo logo={tokenIconUrl(props.name)} size={24} alt={`Logo of ${props.name}`} />
 					<h1 className="text-xl font-bold">{props.name} Treasury</h1>
 				</div>
 				{hasOwnTokens ? (

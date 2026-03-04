@@ -370,7 +370,7 @@ function TokenHeader({
 }) {
 	return (
 		<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-			<TokenLogo logo={tokenIconUrl(name)} />
+			<TokenLogo logo={tokenIconUrl(name)} alt={`Logo of ${name}`} />
 			<h1 className="text-xl font-semibold">{name}</h1>
 
 			{tokenPrice != null ? (

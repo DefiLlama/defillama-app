@@ -330,7 +330,7 @@ export function AdapterByChain(props: IProps) {
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' && (
 							<h1 className="flex flex-nowrap items-center gap-2">
-								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
+								<TokenLogo logo={chainIconUrl(props.chain)} size={24} alt={`Logo of ${props.chain}`} />
 								<span className="text-xl font-semibold">{props.chain}</span>
 							</h1>
 						)}
@@ -576,7 +576,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo logo={chainIconUrl(chain)} size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -630,7 +630,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo logo={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink

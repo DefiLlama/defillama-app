@@ -45,7 +45,12 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			const pool = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<TokenLogo size={20} logo={tokenIconUrl(row.original.project)} data-lgonly />
+					<TokenLogo
+						size={20}
+						logo={tokenIconUrl(row.original.project)}
+						alt={`Logo of ${row.original.project}`}
+						data-lgonly
+					/>
 					<BasicLink
 						href={`/yields/pool/${row.original.configID}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

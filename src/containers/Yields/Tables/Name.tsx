@@ -166,7 +166,7 @@ export function NameYield({
 	return (
 		<span className="relative flex items-center pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? <AirdropIndicator raiseValuation={raiseValuation} /> : null}
-			<TokenLogo logo={iconUrl} />
+			<TokenLogo logo={iconUrl} alt={`Logo of ${project}`} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
@@ -190,7 +190,7 @@ export function YieldsProject({ project, projectslug }: INameYield) {
 
 	return (
 		<span className="flex items-center gap-2">
-			<TokenLogo logo={iconUrl} />
+			<TokenLogo logo={iconUrl} alt={`Logo of ${project}`} />
 			<BasicLink
 				href={tokenUrl}
 				data-umami-event="yields-project-filter-click"
@@ -218,16 +218,16 @@ export function PoolStrategyRoute({
 
 	return (
 		<span className="flex items-center gap-1">
-			<TokenLogo logo={chainIcon} />
+			<TokenLogo logo={chainIcon} alt={`Logo of ${chain}`} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl1} />
+				<TokenLogo logo={iconUrl1} alt={`Logo of ${project1}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
 				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span className="shrink-0">{'->'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl2} />
+				<TokenLogo logo={iconUrl2} alt={`Logo of ${project2}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
 				{airdropProject2 ? <AirdropIndicator raiseValuation={raiseValuationProject2} className="" /> : null}
 			</span>
@@ -249,16 +249,16 @@ export function FRStrategyRoute({
 
 	return (
 		<span className="flex items-center gap-1">
-			<TokenLogo logo={chainIcon} />
+			<TokenLogo logo={chainIcon} alt={`Logo of ${chain}`} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl1} />
+				<TokenLogo logo={iconUrl1} alt={`Logo of ${project1}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
 				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl2} />
+				<TokenLogo logo={iconUrl2} alt={`Logo of ${project2}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
 			</span>
 		</span>

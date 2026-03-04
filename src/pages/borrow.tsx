@@ -382,7 +382,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 							<tr key={JSON.stringify(pool)} className="p-3">
 								<th className="rounded-l-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
 									<span className="flex flex-nowrap items-center gap-1">
-										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} />
+										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} alt={`Logo of ${pool.projectName}`} />
 										<span className="whitespace-nowrap">{pool.projectName}</span>
 									</span>
 								</th>
@@ -402,7 +402,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 								</td>
 								<td className="rounded-r-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
 									<span className="flex items-center gap-1.5">
-										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
+										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} alt={`Logo of ${pool.chain}`} />
 										<span>{pool.chain}</span>
 									</span>
 								</td>

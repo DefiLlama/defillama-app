@@ -810,6 +810,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 										<span className="flex min-w-0 items-center gap-2">
 											<TokenLogo
 												logo={mover.slug ? `${ICONS_CDN}/protocols/${mover.slug}?w=48&h=48` : undefined}
+												alt={`Logo of ${mover.name}`}
 												size={20}
 											/>
 											{mover.slug ? (

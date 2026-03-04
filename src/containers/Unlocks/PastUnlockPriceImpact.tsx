@@ -144,7 +144,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 			{topImpacts.map((impact) => (
 				<div key={impact.name} className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<TokenLogo logo={tokenIconUrl(`${impact.name}`)} />
+						<TokenLogo logo={tokenIconUrl(`${impact.name}`)} alt={`Logo of ${impact.name}`} />
 						<div className="flex flex-col">
 							<BasicLink
 								href={`/unlocks/${slug(impact.name)}`}
@@ -170,7 +170,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 							>
 								<span className="flex items-center justify-between gap-4">
 									<span className="flex items-center gap-2 font-medium">
-										<TokenLogo logo={tokenIconUrl(impact.name)} size={30} />
+										<TokenLogo logo={tokenIconUrl(impact.name)} size={30} alt={`Logo of ${impact.name}`} />
 										{impact.symbol}
 									</span>
 									<span className="flex flex-col items-end">

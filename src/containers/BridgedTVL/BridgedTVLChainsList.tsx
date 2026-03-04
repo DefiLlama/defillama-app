@@ -59,7 +59,7 @@ const bridgedColumns: ColumnDef<IBridgedRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(value)} />
+					<TokenLogo logo={chainIconUrl(value)} alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/bridged/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

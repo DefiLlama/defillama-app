@@ -67,7 +67,11 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={stablecoinAssetIconUrl(row.original.name)} data-lgonly />
+					<TokenLogo
+						logo={stablecoinAssetIconUrl(row.original.name)}
+						alt={`Logo of ${row.original.name}`}
+						data-lgonly
+					/>
 					{row.original?.deprecated ? (
 						<BasicLink
 							href={`/stablecoin/${slug(row.original.name)}`}

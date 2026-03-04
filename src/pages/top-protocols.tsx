@@ -125,7 +125,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 					return (
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(chain)} />
+							<TokenLogo logo={chainIconUrl(chain)} alt={`Logo of ${chain}`} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

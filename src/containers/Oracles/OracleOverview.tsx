@@ -61,7 +61,7 @@ export const OracleOverview = ({
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-							<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+							<TokenLogo logo={tokenIconUrl(name)} data-lgonly alt={`Logo of ${name}`} />
 
 							<BasicLink
 								href={`/protocol/${slug(name)}`}

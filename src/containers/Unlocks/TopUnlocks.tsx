@@ -78,7 +78,7 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 			{topUnlocks.map((unlock) => (
 				<div key={unlock.name} className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
+						<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} alt={`Logo of ${unlock.name}`} />
 						<BasicLink
 							href={`/unlocks/${slug(unlock.name)}`}
 							className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-primary) hover:underline"

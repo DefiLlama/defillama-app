@@ -3,6 +3,7 @@ interface TokenLogoProps {
 	logo?: string | null
 	fallbackLogo?: string | null
 	size?: number
+	alt?: string
 	onClick?: React.MouseEventHandler
 }
 
@@ -10,15 +11,15 @@ export const FallbackLogo = () => (
 	<span className="inline-block aspect-square h-6 w-6 shrink-0 rounded-full bg-(--bg-tertiary) object-cover" />
 )
 
-export function TokenLogo({ logo = null, size = 24, fallbackLogo, ...rest }: TokenLogoProps) {
+export function TokenLogo({ logo = null, size = 24, fallbackLogo, alt, ...rest }: TokenLogoProps) {
 	// Remount the inner image when the candidate sources change,
 	// so the fallback state resets without needing an effect.
 	const sourcesKey = `${logo ?? ''}|${fallbackLogo ?? ''}`
 
-	return <TokenLogoImg key={sourcesKey} logo={logo} size={size} fallbackLogo={fallbackLogo} {...rest} />
+	return <TokenLogoImg key={sourcesKey} logo={logo} size={size} fallbackLogo={fallbackLogo} alt={alt} {...rest} />
 }
 
-function TokenLogoImg({ logo = null, size = 24, fallbackLogo, ...rest }: TokenLogoProps) {
+function TokenLogoImg({ logo = null, size = 24, fallbackLogo, alt, ...rest }: TokenLogoProps) {
 	const placeholderSrc = '/assets/placeholder.png'
 	const initialSrc = logo || fallbackLogo || placeholderSrc
 	const [src, setSrc] = React.useState<string>(initialSrc)
@@ -26,7 +27,7 @@ function TokenLogoImg({ logo = null, size = 24, fallbackLogo, ...rest }: TokenLo
 	return (
 		<img
 			{...rest}
-			alt={''}
+			alt={alt ?? ''}
 			src={src}
 			height={size}
 			width={size}

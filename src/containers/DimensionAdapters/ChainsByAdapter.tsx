@@ -163,7 +163,7 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo logo={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<BasicLink
 						href={route ? `/${route}/chain/${slug(value)}` : `/chain/${slug(value)}`}

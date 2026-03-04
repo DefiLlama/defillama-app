@@ -407,7 +407,7 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 				<div className="flex h-full items-center">
 					<span className="relative flex items-center gap-2 pl-6">
 						<Bookmark readableName={protocolName} data-bookmark className="absolute -left-0.5" />
-						<TokenLogo logo={tokenIconUrl(protocolName)} />
+						<TokenLogo logo={tokenIconUrl(protocolName)} alt={`Logo of ${protocolName}`} />
 						<BasicLink
 							href={`/unlocks/${slug(protocolName)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

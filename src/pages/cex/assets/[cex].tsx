@@ -425,7 +425,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 		>
 			<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="mr-auto flex items-center gap-2">
-					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<TokenLogo logo={tokenIconUrl(props.name)} size={24} alt={`Logo of ${props.name}`} />
 					<h1 className="text-xl font-bold">{props.name}</h1>
 				</div>
 

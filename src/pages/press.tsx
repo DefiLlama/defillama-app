@@ -4,7 +4,7 @@ import Layout from '~/layout'
 
 const PressPanel = ({ imageFilename }) => (
 	<div className="rounded-md border border-(--cards-border) p-4 text-center">
-		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
+		<TokenLogo logo={`/press/${imageFilename}`} alt={imageFilename} size={150} />
 	</div>
 )
 

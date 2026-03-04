@@ -80,7 +80,7 @@ const columns: ColumnDef<any>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly alt={`Logo of ${getValue()}`} />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -193,7 +193,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo logo={chainIconUrl(chain)} size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -238,7 +238,7 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly alt={`Logo of ${value}`} />
 
 					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (

@@ -31,7 +31,7 @@ export function ChainOverview(props: IChainOverviewData) {
 				<>
 					<div className="flex flex-1 flex-col gap-10 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<h1 className="flex flex-nowrap items-center gap-2">
-							<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
+							<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} alt={`Logo of ${props.metadata.name}`} />
 							<span className="text-xl font-semibold">{props.metadata.name}</span>
 						</h1>
 						<p className="my-auto py-10 text-center text-sm text-(--text-form)">

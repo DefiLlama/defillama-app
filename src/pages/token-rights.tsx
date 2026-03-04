@@ -71,7 +71,7 @@ function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 							href={p.href}
 							className="flex items-center gap-2 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
 						>
-							<TokenLogo logo={p.logo} size={24} />
+							<TokenLogo logo={p.logo} alt={`Logo of ${p.name}`} size={24} />
 							<span className="truncate text-sm">{p.name}</span>
 						</Link>
 					))}

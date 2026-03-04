@@ -53,7 +53,7 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 							>
 								<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) p-2 hover:bg-(--link-hover-bg)">
 									<span className="flex items-center gap-2 text-sm font-medium">
-										<TokenLogo logo={tokenIconUrl(event.protocol)} size={20} />
+										<TokenLogo logo={tokenIconUrl(event.protocol)} size={20} alt={`Logo of ${event.protocol}`} />
 										{event.protocol}
 									</span>
 									<span className="text-sm font-medium text-(--text-secondary)">{formattedNum(event.value, true)}</span>

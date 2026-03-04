@@ -57,7 +57,7 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<TokenLogo logo={tokenIconUrl(value)} data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

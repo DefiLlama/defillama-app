@@ -33,7 +33,7 @@ export const feesDatasetColumns: ColumnDef<IFeesRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
 					<span className="shrink-0">{index + 1}</span>
-					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
+					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} alt={`Logo of ${name}`} data-lgonly />
 					<BasicLink
 						href={`/fees/${row.original.slug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

@@ -752,9 +752,7 @@ export function getProtocolCategoryPresentation({
 		? (protocolCategories as Record<string, { description?: string }>)[effectiveCategory]?.description
 		: undefined
 	const seoDescription =
-		categoryDesc && `${baseDesc} ${categoryDesc}`.length <= MAX_DESC_LENGTH
-			? `${baseDesc} ${categoryDesc}`
-			: baseDesc
+		categoryDesc && `${baseDesc} ${categoryDesc}`.length <= MAX_DESC_LENGTH ? `${baseDesc} ${categoryDesc}` : baseDesc
 
 	return {
 		headingLabel: presentation?.headingLabel ?? defaultHeadingLabel,

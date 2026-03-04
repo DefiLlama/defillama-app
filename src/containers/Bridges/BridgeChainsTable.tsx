@@ -40,7 +40,7 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(value)} data-lgonly />
+					<TokenLogo logo={chainIconUrl(value)} data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/bridges/${value}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
