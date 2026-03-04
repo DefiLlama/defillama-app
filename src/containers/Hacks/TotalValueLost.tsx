@@ -5,7 +5,7 @@ import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { IProtocolTotalValueLostInHacksByProtocol } from './types'
 
 type ProtocolRow = IProtocolTotalValueLostInHacksByProtocol['protocols'][number]
@@ -38,7 +38,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 					) : null}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly alt={`Logo of ${row.original.slug}`} />
+					<TokenLogo name={row.original.slug} kind="token" data-lgonly alt={`Logo of ${row.original.slug}`} />
 
 					<BasicLink
 						href={row.original.route}

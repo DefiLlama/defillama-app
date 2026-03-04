@@ -316,8 +316,8 @@ export function IncludeExcludeTokens({
 										>
 											{(token?.logo || token?.fallbackLogo) && (
 												<TokenLogo
-													logo={token?.logo}
-													fallbackLogo={token?.fallbackLogo}
+													src={token?.logo}
+													fallbackSrc={token?.fallbackLogo}
 													alt={`Logo of ${token.symbol}`}
 												/>
 											)}
@@ -451,8 +451,8 @@ export function IncludeExcludeTokens({
 										>
 											{(token?.logo || token?.fallbackLogo) && (
 												<TokenLogo
-													logo={token?.logo}
-													fallbackLogo={token?.fallbackLogo}
+													src={token?.logo}
+													fallbackSrc={token?.fallbackLogo}
 													alt={`Logo of ${token.symbol}`}
 												/>
 											)}

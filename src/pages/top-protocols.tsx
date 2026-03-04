@@ -19,7 +19,7 @@ import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/util
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { chainIconUrl, slug } from '~/utils'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { parseExcludeParam } from '~/utils/routerQuery'
@@ -125,7 +125,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 					return (
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(chain)} alt={`Logo of ${chain}`} />
+							<TokenLogo name={chain} kind="chain" alt={`Logo of ${chain}`} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -2,7 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 import { percentageSortingFn } from '../../../utils/tableSorting'
 
 interface IRevenueRow {
@@ -33,7 +33,7 @@ export const revenueDatasetColumns: ColumnDef<IRevenueRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
 					<span className="shrink-0">{index + 1}</span>
-					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} alt={`Logo of ${name}`} data-lgonly />
+					<TokenLogo size={20} name={name} kind="token" alt={`Logo of ${name}`} data-lgonly />
 					<BasicLink
 						href={`/revenue/${row.original.slug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 
 export const chainsDatasetColumns: ColumnDef<any>[] = [
 	{
@@ -12,7 +12,7 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ row }) => {
 			return (
 				<div className="flex items-center gap-2">
-					<TokenLogo logo={chainIconUrl(row.original.name)} alt={`Logo of ${row.original.name}`} size={24} />
+					<TokenLogo name={row.original.name} kind="chain" alt={`Logo of ${row.original.name}`} size={24} />
 					<span className="font-medium pro-text1">{row.original.name}</span>
 				</div>
 			)

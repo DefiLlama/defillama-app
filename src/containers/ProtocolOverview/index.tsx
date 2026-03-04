@@ -149,7 +149,7 @@ function ProtocolHeader({
 	return (
 		<>
 			<h1 className={h1ClassName}>
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} alt={`Logo of ${props.name}`} />
+				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<span className="font-bold">{props.name}</span>
 				{props.token?.symbol && props.token.symbol !== '-' ? (
 					<span className="font-normal">({props.token.symbol})</span>

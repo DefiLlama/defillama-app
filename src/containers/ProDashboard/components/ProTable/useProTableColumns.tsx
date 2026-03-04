@@ -15,7 +15,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { TableFilters } from '../../types'
 import { SHARE_METRIC_DEFINITIONS, USD_METRIC_KEYS } from './proTable.constants'
 import type { IProtocolRow, CustomColumn } from './proTable.types'
@@ -350,7 +350,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} alt={`Logo of ${chain}`} size={14} />
+				<TokenLogo name={chain} kind="chain" alt={`Logo of ${chain}`} size={14} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -398,7 +398,7 @@ const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 
 					<span className="shrink-0">{index + 1}</span>
 
-					<TokenLogo logo={tokenIconUrl(value)} alt={`Logo of ${value}`} data-lgonly />
+					<TokenLogo name={value} kind="token" alt={`Logo of ${value}`} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (

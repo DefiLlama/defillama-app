@@ -25,12 +25,12 @@ import { prepareTableCsv } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { getCategoryRoute, ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
+import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
 import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
 import { formatValue } from '../../utils'
 import { CustomColumnModal } from './CustomColumnModal'
@@ -512,7 +512,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} alt={`Logo of ${chain}`} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -556,7 +556,8 @@ const columns: ColumnDef<IProtocol>[] = [
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
 					<TokenLogo
-						logo={`${ICONS_CDN}/protocols/${row.original.slug}?w=48&h=48`}
+						name={row.original.slug}
+						kind="token"
 						data-lgonly
 						alt={`Logo of ${row.original.name}`}
 					/>

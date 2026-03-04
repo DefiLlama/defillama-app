@@ -43,7 +43,7 @@ const columns: ColumnDef<INftChainRow>[] = [
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} data-lgonly />
 
 					<BasicLink
 						href={`/chain/${slug(value)}`}

@@ -146,7 +146,7 @@ export const BridgeInfo = ({
 		<>
 			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
-					<TokenLogo logo={logo} size={24} alt={`Logo of ${displayName}`} />
+					<TokenLogo src={logo} size={24} alt={`Logo of ${displayName}`} />
 					<span>{displayName}</span>
 				</h1>
 				<BridgeChainSelector

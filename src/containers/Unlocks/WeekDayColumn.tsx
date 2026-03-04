@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { DailyUnlocks, DayInfo } from './calendarTypes'
 
 interface WeekDayColumnProps {
@@ -40,7 +40,7 @@ export const WeekDayColumn: React.FC<WeekDayColumnProps> = ({ dayInfo, unlocksDa
 							<div className="rounded-md border border-(--cards-border) p-2 text-xs hover:bg-(--link-hover-bg)">
 								<div className="mb-0.5 flex items-start justify-between gap-1">
 									<div className="flex min-w-0 shrink items-center gap-1.5 font-medium">
-										<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} alt={`Logo of ${event.protocol}`} />
+										<TokenLogo name={event.protocol} kind="token" size={16} alt={`Logo of ${event.protocol}`} />
 										<span className="truncate">{event.protocol}</span>
 									</div>
 									{event.unlockType ? (

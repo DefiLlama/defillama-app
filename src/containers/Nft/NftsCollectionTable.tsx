@@ -57,7 +57,7 @@ const columns: ColumnDef<INftCollection>[] = [
 
 			return (
 				<span className="flex items-center gap-2">
-					<TokenLogo logo={item.image} fallbackLogo={item?.image} alt={`Logo of ${item.name}`} />
+					<TokenLogo src={item.image} fallbackSrc={item?.image} alt={`Logo of ${item.name}`} />
 					<BasicLink
 						href={`/nfts/collection/${slug(item.collectionId)}`}
 						className="text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

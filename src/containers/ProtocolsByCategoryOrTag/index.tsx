@@ -12,7 +12,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formatNum, formattedNum, slug } from '~/utils'
+import { formatNum, formattedNum, slug } from '~/utils'
 import { getProtocolCategoryColumnBehavior, getProtocolCategoryPresentation } from './constants'
 import type { IProtocolByCategoryOrTagPageData } from './types'
 
@@ -411,7 +411,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} alt={`Logo of ${chain}`} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -451,7 +451,7 @@ const nameColumn: Column = {
 
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-				<TokenLogo logo={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
+				<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 				<span className="-my-2 flex flex-col">
 					<BasicLink

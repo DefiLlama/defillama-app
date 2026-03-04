@@ -6,7 +6,7 @@ import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
 import { definitions } from './definitions'
@@ -31,7 +31,7 @@ const columns: ColumnDef<{
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(chain)} data-lgonly alt={`Logo of ${chain}`} />
+					<TokenLogo name={chain} kind="chain" data-lgonly alt={`Logo of ${chain}`} />
 					<BasicLink
 						href={`/rwa/chain/${rwaSlug(chain)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

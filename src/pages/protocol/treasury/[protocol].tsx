@@ -19,7 +19,7 @@ import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -315,7 +315,7 @@ export default function Protocols(props: TreasuryPageProps) {
 		>
 			<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="mr-auto flex items-center gap-2">
-					<TokenLogo logo={tokenIconUrl(props.name)} size={24} alt={`Logo of ${props.name}`} />
+					<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 					<h1 className="text-xl font-bold">{props.name} Treasury</h1>
 				</div>
 				{hasOwnTokens ? (

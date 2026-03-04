@@ -97,7 +97,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					{logo ? <TokenLogo logo={logo} alt={`Logo of ${value}`} data-lgonly /> : <FallbackLogo />}
+					{logo ? <TokenLogo src={logo} alt={`Logo of ${value}`} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
 						<a
