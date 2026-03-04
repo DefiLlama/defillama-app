@@ -25,7 +25,7 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { removedCategoriesFromChainTvlSet } from '~/constants'
+import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { chainIconUrl, formattedNum, slug, toNiceDaysAgo, tokenIconUrl } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
@@ -289,10 +289,7 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue<string | null>()
 			return value ? (
-				<BasicLink
-					href={`/protocols/${slug(value)}`}
-					className="text-sm font-medium whitespace-nowrap text-(--link-text)"
-				>
+				<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium whitespace-nowrap text-(--link-text)">
 					{value}
 				</BasicLink>
 			) : (

@@ -188,7 +188,7 @@ export default function LlamaAIGetStarted() {
 				title="LlamaAI - DefiLlama"
 				description="Ask questions, generate charts, and explore any DeFi metric instantly. LlamaAI brings the power of DefiLlama's comprehensive data to your fingertips through natural conversation."
 				keywords="LlamaAI, DefiLlama AI, DeFi AI"
-				canonicalUrl="https://defillama.com/ai"
+				canonicalUrl="/ai"
 			/>
 			<style>{`
 				@keyframes cta-glow-pulse {
@@ -206,7 +206,7 @@ export default function LlamaAIGetStarted() {
 						href="/"
 						className="inline-block w-fit opacity-70 transition-opacity duration-300 hover:opacity-100"
 					>
-						<span className="sr-only">Navigate to Home Page</span>
+						<span className="sr-only">Navigate to DeFi Dashboard</span>
 						<img
 							src="/assets/defillama.webp"
 							height={36}

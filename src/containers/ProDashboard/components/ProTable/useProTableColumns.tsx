@@ -11,7 +11,7 @@ import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { removedCategoriesFromChainTvlSet } from '~/constants'
+import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
@@ -440,7 +440,7 @@ const protocolsByChainColumns: ColumnDef<IProtocolRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue<string | null>()
 			return value ? (
-				<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+				<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium text-(--link-text)">
 					{value}
 				</BasicLink>
 			) : (

@@ -49,7 +49,7 @@ const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
 export default function ProtocolsFdvByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.chain} Protocol Fully Diluted Valuations - DefiLlama`}
+			title={`${props.chain} DeFi Protocol Fully Diluted Valuations - DefiLlama`}
 			description={`Fully Diluted Valuations for ${props.chain} protocols. Track live FDV for all protocols in this ecosystem to compare relative token valuations.`}
 			keywords={`${props.chain} protocols fully diluted valuations`}
 			canonicalUrl={`/fdv/chain/${props.chain}`}

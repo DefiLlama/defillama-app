@@ -29,7 +29,7 @@ export function DesktopNav({
 		<span className="col-span-1 max-lg:hidden">
 			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
 				<BasicLink href="/" className="mb-4 w-fit shrink-0">
-					<span className="sr-only">Navigate to Home Page</span>
+					<span className="sr-only">Navigate to DeFi Dashboard</span>
 					<img
 						src="/assets/defillama.webp"
 						height={53}
@@ -76,7 +76,7 @@ export function DesktopNav({
 							<span>Old Menu</span>
 							<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 						</summary>
-						<div className="hidden border-l border-black/20 pl-2 group-open:block dark:border-white/20">
+						<div className="border-l border-black/20 pl-2 dark:border-white/20">
 							{oldMetricLinks.map(({ name, route, pages }: TOldNavLink) => (
 								<React.Fragment key={`old-nav-desktop-${name}-${route ?? ''}`}>
 									{pages ? (
@@ -156,7 +156,7 @@ function NavDetailsSection({ category, pages, asPath }: { category: string; page
 				<span>{category}</span>
 				<Icon name="chevron-up" className="h-4 w-4 shrink-0 group-open:rotate-180" />
 			</summary>
-			<div className="hidden border-l border-black/20 pl-2 group-open:block dark:border-white/20">
+			<div className="border-l border-black/20 pl-2 dark:border-white/20">
 				{pages.map(({ name, route, icon, attention }, index) => (
 					<div key={`desktop-nav-${name}-${route}`} ref={index === pages.length - 1 ? lastItemRef : null}>
 						<LinkToPage route={route} name={name} icon={icon} attention={attention} asPath={asPath} />

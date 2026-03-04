@@ -43,7 +43,7 @@ export default function RWAPlatformsPage({ platforms, platformLinks, chartDatase
 			description={`Real World Assets by platform on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`real world assets, rwa platforms, rwa onchain by platform`}
 			pageName={pageName}
-			canonicalUrl={`/rwa/platform`}
+			canonicalUrl={`/rwa/platforms`}
 		>
 			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
 			<RWAPlatformsTable platforms={platforms} chartDatasets={chartDatasets} />

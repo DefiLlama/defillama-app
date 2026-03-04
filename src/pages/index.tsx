@@ -35,7 +35,7 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 export default function HomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="DefiLlama - DeFi Dashboard"
+			title="DefiLlama - DeFi Dashboard & Crypto Analytics"
 			description={props.description}
 			keywords={props.keywords}
 			canonicalUrl=""

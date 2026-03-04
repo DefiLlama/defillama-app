@@ -87,7 +87,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const presentation = getProtocolCategoryPresentation({
 		label: categoryLabel,
 		effectiveCategory: props.effectiveCategory,
-		isTagPage: !!props.tag && !props.category
+		isTagPage: !!props.tag && !props.category,
+		chain: props.chain
 	})
 	const title = `${capitalizeFirstLetter(presentation.seoLabel)} ${presentation.titleSuffix} - DefiLlama`
 	const description = `${presentation.seoLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`

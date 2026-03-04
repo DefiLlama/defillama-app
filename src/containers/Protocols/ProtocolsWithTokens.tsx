@@ -8,6 +8,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, TokenMetricType } from './types'
@@ -220,7 +221,7 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 			cell: ({ getValue }) => {
 				const value = getValue<string | null>()
 				return value ? (
-					<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+					<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium text-(--link-text)">
 						{value}
 					</BasicLink>
 				) : (

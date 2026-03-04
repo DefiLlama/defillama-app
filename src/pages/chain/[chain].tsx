@@ -73,7 +73,11 @@ export async function getStaticPaths() {
 export default function Chain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={props.metadata.name === 'All' ? 'DefiLlama - DeFi Dashboard' : `${props.metadata.name} - DefiLlama`}
+			title={
+				props.metadata.name === 'All'
+					? 'DefiLlama - DeFi Dashboard & Crypto Analytics'
+					: `${props.metadata.name} - DeFi TVL, Fees, & Revenue - DefiLlama`
+			}
 			description={props.description}
 			keywords={props.keywords}
 			canonicalUrl={props.metadata.name === 'All' ? '' : `/chain/${slug(props.metadata.name)}`}

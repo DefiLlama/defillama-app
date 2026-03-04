@@ -141,6 +141,19 @@ export function ProtocolOverviewLayout({
 		return final
 	}, [metrics])
 
+	const entitySlug = slug(name)
+	const canonicalUrl = isCEX
+		? tab === 'assets'
+			? `/cex/assets/${entitySlug}`
+			: tab === 'stablecoins'
+				? `/cex/stablecoins/${entitySlug}`
+				: `/cex/${entitySlug}`
+		: !tab || tab === 'information'
+			? `/protocol/${entitySlug}`
+			: tab === 'tvl'
+				? `/protocol/tvl/${entitySlug}`
+				: `${tabs[tab].route}/${entitySlug}`
+
 	return (
 		<Layout
 			title={`${name} - DefiLlama`}
@@ -149,7 +162,7 @@ export function ProtocolOverviewLayout({
 				`Track ${name} metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
 			}
 			keywords={seoKeywords || `${name.toLowerCase()} defillama`}
-			canonicalUrl={`/protocol/${slug(name)}`}
+			canonicalUrl={canonicalUrl}
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>

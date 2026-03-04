@@ -6,6 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { getCategoryRoute } from '~/constants'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, getPercentChange, slug } from '~/utils'
@@ -49,7 +50,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 					) : null}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
-						href={`/protocols/${slug(categoryName)}`}
+						href={getCategoryRoute(slug(categoryName))}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{categoryName}

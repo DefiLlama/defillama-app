@@ -620,11 +620,13 @@ export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCate
 export function getProtocolCategoryPresentation({
 	label,
 	effectiveCategory,
-	isTagPage = false
+	isTagPage = false,
+	chain
 }: {
 	label: string
 	effectiveCategory: string | null
 	isTagPage?: boolean
+	chain?: string
 }) {
 	const customization = effectiveCategory ? protocolCategoryCustomizations[effectiveCategory] : null
 	const presentation = customization?.presentation
@@ -635,11 +637,14 @@ export function getProtocolCategoryPresentation({
 	const defaultTitleSuffix = 'Rankings'
 	const defaultTableHeader = effectiveCategory === 'RWA' ? 'Assets Rankings' : 'Protocols Rankings'
 	const defaultSearchPlaceholder = hasCustomPresentation ? `Search ${label}...` : 'Search Protocols...'
+	const normalizedChain = chain?.trim()
+	const chainTitleSuffix = normalizedChain && normalizedChain !== 'All' ? ` on ${normalizedChain}` : ''
+	const resolvedTitleSuffix = `${presentation?.seoTitleSuffix ?? defaultTitleSuffix}${chainTitleSuffix}`
 
 	return {
 		headingLabel: presentation?.headingLabel ?? defaultHeadingLabel,
 		seoLabel: presentation?.seoLabel ?? defaultSeoLabel,
-		titleSuffix: presentation?.seoTitleSuffix ?? defaultTitleSuffix,
+		titleSuffix: resolvedTitleSuffix,
 		tableHeader: presentation?.tableHeader ?? defaultTableHeader,
 		searchPlaceholder: presentation?.searchPlaceholder ?? defaultSearchPlaceholder
 	}

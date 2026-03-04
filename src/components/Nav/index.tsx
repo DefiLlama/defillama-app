@@ -12,7 +12,7 @@ const MobileFallback = () => {
 	return (
 		<nav className="col-span-full flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
 			<BasicLink href="/" className="mr-auto shrink-0">
-				<span className="sr-only">Navigate to Home Page</span>
+				<span className="sr-only">Navigate to DeFi Dashboard</span>
 				<img
 					src="/assets/defillama.webp"
 					alt=""

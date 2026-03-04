@@ -8,6 +8,7 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import { chainIconUrl, formattedNum, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
@@ -309,7 +310,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					return renderDash()
 				}
 				return (
-					<BasicLink href={`/protocols/${category}`} className="text-sm font-medium text-(--link-text) hover:underline">
+					<BasicLink href={getCategoryRoute(slug(category))} className="text-sm font-medium text-(--link-text) hover:underline">
 						{category}
 					</BasicLink>
 				)

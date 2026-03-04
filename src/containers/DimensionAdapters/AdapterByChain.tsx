@@ -25,6 +25,7 @@ import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
 import { chainCharts } from '~/containers/ChainOverview/constants'
 import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -668,10 +669,7 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
+						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -736,10 +734,7 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
+						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -804,10 +799,7 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
+						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -1459,10 +1451,7 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
+						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -1513,10 +1502,7 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
+						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
 							{getValue() as string}
 						</BasicLink>
 					) : (
@@ -1548,10 +1534,7 @@ const getColumnsByType = (
 				enableSorting: false,
 				cell: ({ getValue }) =>
 					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
+						<BasicLink href={getCategoryRoute(slug(getValue() as string))} className="text-sm font-medium text-(--link-text)">
 							{getValue() as string}
 						</BasicLink>
 					) : (

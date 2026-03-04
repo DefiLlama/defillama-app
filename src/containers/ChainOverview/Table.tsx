@@ -25,7 +25,7 @@ import { prepareTableCsv } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
+import { getCategoryRoute, ICONS_CDN, removedCategoriesFromChainTvlSet } from '~/constants'
 import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
 import { useCustomColumns, useLocalStorageSettingsManager, type CustomColumnDef } from '~/contexts/LocalStorage'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
@@ -587,14 +587,19 @@ const columns: ColumnDef<IProtocol>[] = [
 		header: 'Category',
 		accessorKey: 'category',
 		enableSorting: false,
-		cell: ({ getValue }) =>
-			getValue() ? (
-				<BasicLink href={`/protocols/${slug(getValue() as string)}`} className="text-sm font-medium text-(--link-text)">
-					{getValue() as string}
+		cell: ({ getValue }) => {
+			const category = getValue() as string | undefined
+
+			if (!category) return ''
+
+			const href = getCategoryRoute(slug(category))
+
+			return (
+				<BasicLink href={href} className="text-sm font-medium text-(--link-text)">
+					{category}
 				</BasicLink>
-			) : (
-				''
-			),
+			)
+		},
 		size: 140,
 		meta: {
 			align: 'end'

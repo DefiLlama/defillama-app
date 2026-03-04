@@ -67,6 +67,7 @@ export default function YieldStrategiesFR(data) {
 			description={`Find strategies to maximize yield by long/shorting tokens. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords={`yield long/short strategies, defi yield long/short strategies, long/short strategies, defi long/short strategies`}
 			canonicalUrl={`/yields/strategyLongShort`}
+			slugCanonicalUrl={false}
 			pageName={pageName}
 		>
 			<Announcement>{disclaimer}</Announcement>

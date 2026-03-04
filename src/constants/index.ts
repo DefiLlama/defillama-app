@@ -109,3 +109,8 @@ export const REV_PROTOCOLS = {
 } as const
 
 export const ZERO_FEE_PERPS = new Set(['Lighter Perps', 'Paradex Perps'])
+
+export const categoryRoutesOutsideProtocolsSet = new Set(['rwa'])
+
+export const getCategoryRoute = (categorySlug: string) =>
+	categoryRoutesOutsideProtocolsSet.has(categorySlug) ? `/${categorySlug}` : `/protocols/${categorySlug}`
