@@ -1,6 +1,7 @@
 import { fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
 import type { CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
-import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
+import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
+import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
@@ -410,7 +411,7 @@ export const getProtocolOverviewPageData = async ({
 		fetchProtocols().catch((): ProtocolsResponse => ({ protocols: [], chains: [], parentProtocols: [] })),
 		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
-			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)
+			? fetchBridgeVolumeBySlug(slug(currentProtocolMetadata.displayName))
 					.then((data) => data.dailyVolumes || null)
 					.catch(() => null)
 			: null,

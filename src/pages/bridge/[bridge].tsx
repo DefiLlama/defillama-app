@@ -1,3 +1,4 @@
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
@@ -7,26 +8,29 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 // todo check name in metadata
-export const getStaticProps = withPerformanceLogging('bridge/[bridge]', async ({ params }) => {
-	if (!params?.bridge) {
-		return { notFound: true, props: null }
-	}
+export const getStaticProps = withPerformanceLogging(
+	'bridge/[bridge]',
+	async ({ params }: GetStaticPropsContext<{ bridge: string }>) => {
+		if (!params?.bridge) {
+			return { notFound: true, props: null }
+		}
 
-	const bridge = params.bridge
-	const props = await getBridgePageDatanew(bridge)
+		const bridge = params.bridge
+		const props = await getBridgePageDatanew(bridge)
 
-	if (!props) {
+		if (!props) {
+			return {
+				notFound: true,
+				revalidate: maxAgeForNext([22])
+			}
+		}
+
 		return {
-			notFound: true,
+			props,
 			revalidate: maxAgeForNext([22])
 		}
 	}
-
-	return {
-		props,
-		revalidate: maxAgeForNext([22])
-	}
-})
+)
 
 export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
@@ -42,7 +46,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function Bridge(props) {
+export default function Bridge(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title={`${props.displayName}: Bridge Volume - DefiLlama`}
