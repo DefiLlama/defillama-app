@@ -48,7 +48,11 @@ export default function ForkPage(props: InferGetStaticPropsType<typeof getStatic
 	return (
 		<Layout
 			title={fork ? `${fork} Protocol Forks - DefiLlama` : 'Protocols Ranked by Forks - DefiLlama'}
-			description={`Fork analytics dashboard for DeFi protocols. Which protocols get forked the most? Compare original TVL vs forked TVL, fork counts and market dominance.`}
+			description={
+				fork
+					? `Fork analytics for ${fork}, comparing original vs forked TVL, fork counts, and market dominance.`
+					: `Fork analytics for DeFi protocols, comparing original vs forked TVL, fork counts, and market dominance.`
+			}
 			keywords={`forks by protocol, protocol forks, forks on blockchain`}
 			canonicalUrl={fork ? `/forks/${slug(fork)}` : '/forks'}
 			metricFilters={tvlOptions}

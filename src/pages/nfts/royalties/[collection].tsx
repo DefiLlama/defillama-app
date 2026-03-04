@@ -36,12 +36,15 @@ export default function Collection() {
 		dataset: { source: [], dimensions: ['timestamp', 'Earnings'] },
 		charts: []
 	}
+	const collectionDescription = collection
+		? `NFT royalties for ${collection}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+		: `NFT royalties by collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
 
 	if (fetchingData) {
 		return (
 			<Layout
 				title={'NFT Royalties - DefiLlama'}
-				description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+				description={collectionDescription}
 				keywords=""
 				canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 			>
@@ -56,7 +59,7 @@ export default function Collection() {
 		return (
 			<Layout
 				title={'NFT Royalties - DefiLlama'}
-				description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+				description={collectionDescription}
 				keywords=""
 				canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 			>
@@ -72,7 +75,7 @@ export default function Collection() {
 	return (
 		<Layout
 			title={props.name + ' Royalties - DefiLlama'}
-			description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`NFT royalties for ${props.name}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			keywords=""
 			canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 		>

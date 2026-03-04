@@ -18,7 +18,7 @@ export default function CexsPage({ cexs }) {
 	return (
 		<Layout
 			title={`CEX Transparency Dashboard & Rankings - DefiLlama`}
-			description={`Which exchanges hold the most assets? Live CEX rankings with inflow data, volume, open interest and average leverage for Binance, Robinhood and 50+ exchanges.`}
+			description={`Live CEX rankings by assets, with inflow data, volume, open interest, and average leverage across 50+ exchanges.`}
 			keywords={`cex transparency, cex assets, cex rankings`}
 			canonicalUrl={`/cexs`}
 			pageName={pageName}
