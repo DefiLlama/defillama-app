@@ -172,7 +172,8 @@ function buildCategoryAndTagRoutes(categoriesAndTags) {
 
 function buildStablecoinAssetRoutes(stablecoins) {
 	const routes = []
-	for (const stablecoin of stablecoins) {
+	const stablecoinList = Array.isArray(stablecoins) ? stablecoins : []
+	for (const stablecoin of stablecoinList) {
 		if (!stablecoin?.name) continue
 		const stablecoinSlug = slug(stablecoin.name)
 		if (stablecoinSlug) routes.push(`stablecoin/${stablecoinSlug}`)
@@ -213,7 +214,12 @@ export async function getServerSideProps({ res }) {
 	const metadataModule = await import('~/utils/metadata')
 	await metadataModule.refreshMetadataIfStale()
 	const { chainMetadata, protocolMetadata, categoriesAndTags, cexs } = metadataModule.default
-	const stablecoins = await fetchStablecoinAssetsApi().then(({ peggedAssets }) => peggedAssets)
+	const stablecoinResponse = await fetchStablecoinAssetsApi()
+	const stablecoins = Array.isArray(stablecoinResponse?.peggedAssets) ? stablecoinResponse.peggedAssets : []
+
+	if (!Array.isArray(stablecoinResponse?.peggedAssets)) {
+		console.warn('[sitemap] stablecoin API payload missing peggedAssets array')
+	}
 
 	const sitemap = generateSiteMap([
 		...getNavRoutes(),
@@ -225,6 +231,7 @@ export async function getServerSideProps({ res }) {
 	])
 
 	res.setHeader('Content-Type', 'text/xml')
+	res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=1800, stale-while-revalidate=3600')
 	// we send the XML to the browser
 	res.write(sitemap)
 	res.end()
