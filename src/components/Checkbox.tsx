@@ -53,9 +53,21 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
 				/>
 			</Ariakit.VisuallyHidden>
 			<div className={CHECKBOX_INDICATOR_VARIANTS[variant]} data-checked={isChecked}>
-				<svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 16 16" height="0.875rem" width="0.875rem">
-					<polyline points="4,8 7,12 12,4" />
-				</svg>
+				{isChecked ? (
+					<svg fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 16 16" height="0.875rem" width="0.875rem">
+						<polyline points="4,8 7,12 12,4" />
+					</svg>
+				) : (
+					<svg
+						viewBox="0 0 16 16"
+						fill="none"
+						height="0.875rem"
+						width="0.875rem"
+						className="text-(--text-form)/20 group-hover:text-(--text-form)/30"
+					>
+						<path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+					</svg>
+				)}
 			</div>
 			{children}
 		</label>
