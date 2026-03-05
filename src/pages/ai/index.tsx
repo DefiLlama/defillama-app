@@ -112,7 +112,6 @@ export default function LlamaAIGetStarted() {
 			<SEO
 				title="LlamaAI - DefiLlama"
 				description="AI-powered research across DeFi, TradFi, and onchain data. Parallel agents, scheduled alerts, custom memory, and DefiLlama's full dataset through natural conversation."
-				keywords="LlamaAI, DefiLlama AI, DeFi AI"
 				canonicalUrl="/ai"
 			/>
 			<style>{`
