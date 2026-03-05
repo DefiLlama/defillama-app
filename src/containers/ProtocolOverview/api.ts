@@ -8,7 +8,7 @@ import type {
 	IProtocolTokenBreakdownValue,
 	IProtocolValueChart,
 	IProtocolChartV2Params,
-	IProtocolTvlMetrics
+	IProtocolMetricsV2
 } from './api.types'
 import type { IProtocolExpenses } from './api.types'
 
@@ -78,10 +78,8 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 /**
  * Fetch aggregate TVL metrics for a protocol.
  */
-export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolTvlMetrics | null> => {
-	return fetchJson(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`)
-		.then((data) => data as IProtocolTvlMetrics)
-		.catch(() => null)
+export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolMetricsV2 | null> => {
+	return fetchJson<IProtocolMetricsV2>(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`).catch(() => null)
 }
 
 /**

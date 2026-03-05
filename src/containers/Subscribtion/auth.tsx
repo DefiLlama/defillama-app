@@ -3,7 +3,7 @@ import type { RecordAuthResponse, RecordModel } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
-import { handleSimpleFetchResponse } from '~/utils/async'
+import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
 
 export type PromotionalEmailsValue = 'initial' | 'on' | 'off'
@@ -71,15 +71,12 @@ interface FetchOptions extends RequestInit {
 }
 
 const getNonce = async (address: string) => {
-	return fetch(`${AUTH_SERVER}/nonce?address=${address}`)
-		.then(handleSimpleFetchResponse)
-		.then((response) => response.json())
-		.catch((error) => {
-			if (error instanceof Error && error.message) {
-				throw error
-			}
-			throw new Error('Failed to get nonce')
-		})
+	return fetchJson(`${AUTH_SERVER}/nonce?address=${address}`).catch((error) => {
+		if (error instanceof Error && error.message) {
+			throw error
+		}
+		throw new Error('Failed to get nonce')
+	})
 }
 
 type CreateSiweMessage = (typeof import('viem/siwe'))['createSiweMessage']

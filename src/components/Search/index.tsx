@@ -10,7 +10,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
-import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 
 async function getDefaultSearchList() {
 	try {
@@ -21,7 +21,7 @@ async function getDefaultSearchList() {
 	}
 }
 async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetch(SEARCH_API_URL, {
+	const response: Array<ISearchItem> = await fetchJson(SEARCH_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -37,10 +37,7 @@ async function fetchSearchList(query: string) {
 				}
 			]
 		})
-	})
-		.then(handleSimpleFetchResponse)
-		.then((res) => res.json())
-		.then((res) => res?.results?.[0]?.hits ?? [])
+	}).then((res) => res?.results?.[0]?.hits ?? [])
 
 	return response
 }

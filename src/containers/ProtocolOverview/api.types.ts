@@ -95,10 +95,6 @@ type IProtocolTokenBreakdownChartRaw = IProtocolTokenBreakdownChartRawPoint[]
 type IProtocolTokenBreakdownChartPoint = [number, IProtocolTokenBreakdownValue]
 export type IProtocolTokenBreakdownChart = IProtocolTokenBreakdownChartPoint[]
 
-export type IProtocolTvlMetrics = IProtocolMetricsV2
-// oxlint-disable-next-line no-unused-vars
-type IProtocolTreasuryMetrics = IProtocolMetricsV2
-
 export interface IProtocolChartV2Params {
 	protocol: string
 	key?: string

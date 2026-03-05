@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useDebouncedValue } from '~/hooks/useDebounce'
-import { handleSimpleFetchResponse } from '~/utils/async'
+import { fetchJson } from '~/utils/async'
 
 interface EntityResult {
 	id: string
@@ -22,17 +22,14 @@ interface SearchQuery {
  * Generic search API helper for DefiLlama multi-search endpoint.
  */
 async function searchApi(query: SearchQuery): Promise<EntityResult[]> {
-	const response = await fetch(SEARCH_API_URL, {
+	const response = await fetchJson(SEARCH_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${SEARCH_API_TOKEN}`
 		},
 		body: JSON.stringify({ queries: [query] })
-	})
-		.then(handleSimpleFetchResponse)
-		.then((res) => res.json())
-		.then((res) => res?.results?.[0]?.hits ?? [])
+	}).then((res) => res?.results?.[0]?.hits ?? [])
 
 	return response
 }
