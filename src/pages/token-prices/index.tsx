@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-token-prices/ind
 const pageName = ['Protocols', 'ranked by', 'Token Price']
 
 export default function ProtocolsTokenPrices(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title="Token Price Rankings - DeFi Protocol Prices - DefiLlama"
 			description="Track DeFi protocol token price rankings across all chains. Compare token prices for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto token price analytics."

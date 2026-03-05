@@ -20,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 const pageName = ['Protocols', 'ranked by', 'Market Cap']
 
 export default function ProtocolsMarketCaps(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title="Market Cap Rankings - DeFi Protocol Token Capitalization - DefiLlama"
 			description="Track DeFi protocol market cap rankings across all chains. Compare token market capitalization for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto market cap analytics."

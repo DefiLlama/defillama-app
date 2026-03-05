@@ -19,7 +19,7 @@ export const getStaticProps = withPerformanceLogging('nfts', async () => {
 const pageName = ['NFTs Collections']
 
 export default function NFTHomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title="NFT Collections Rankings - Market Cap & Floor Price - DefiLlama"
 			description="Track top NFT collections by market cap, floor price, and trading volume. Real-time NFT analytics for CryptoPunks, Bored Apes, and 1000+ collections. Compare 24h volume, holder counts, and supply metrics."

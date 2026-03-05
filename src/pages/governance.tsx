@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging('governance', async () => {
 const pageName = ['Governance']
 
 export default function GovernancePage({ data }) {
-		return (
+	return (
 		<Layout
 			title="Governance Tracker - DeFi Proposals & DAO Voting - DefiLlama"
 			description="Track DeFi governance proposals and DAO voting activity across protocols. Monitor active proposals, voter participation, and governance outcomes for 200+ DeFi DAOs including Uniswap, Aave, and MakerDAO."

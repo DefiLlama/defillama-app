@@ -105,7 +105,7 @@ export const getStaticProps = withPerformanceLogging('languages', async () => {
 const pageName = ['TVL', 'by', 'Smart Contract Languages']
 
 export default function Protocols({ tvlDataset, tvlCharts, dominanceDataset, dominanceCharts, osDataset, osCharts }) {
-		return (
+	return (
 		<Layout
 			title={`Programming Languages by DeFi TVL - Smart Contract Language Analytics - DefiLlama`}
 			description={`TVL breakdown by smart contract programming languages. Track which languages power the most value in DeFi - Solidity, Rust, Move, and more. Real-time language dominance analytics.`}

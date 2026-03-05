@@ -84,7 +84,7 @@ export default function YieldBorrow(data) {
 		cdpRoutes: data.cdpPools
 	})
 
-		return (
+	return (
 		<Layout
 			title="Borrow Rate Aggregator - Best DeFi Lending Rates - DefiLlama"
 			description="Find optimal DeFi lending and borrowing routes. Compare borrow rates across Aave, Compound, Morpho, and 50+ lending protocols. Calculate net APY with collateral on Ethereum, Solana, and all major chains."

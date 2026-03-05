@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging(`pool2/index`, async () => 
 const pageName = ['Protocols', 'ranked by', 'Pool2 TVL']
 
 export default function Pool2TVL(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title="Pool2 TVL Rankings - DeFi Protocol Pool2 Value Locked - DefiLlama"
 			description={`Track Pool2 TVL rankings across DeFi protocols. Compare pool2 value locked in liquidity pools and staking contracts across 7000+ protocols on 500+ chains.`}

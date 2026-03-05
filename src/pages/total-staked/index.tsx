@@ -24,7 +24,7 @@ export const getStaticProps = withPerformanceLogging(`total-staked/index`, async
 const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
 
 export default function TotalStaked(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title="Total Staked Rankings - DeFi Protocol Staking Value - DefiLlama"
 			description={`Track total staked value rankings across DeFi protocols. Compare staking TVL and value locked in staking contracts across 7000+ protocols on 500+ chains.`}

@@ -48,7 +48,7 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 const pageName = ['Protocols', 'ranked by', type]
 
 const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
-		return (
+	return (
 		<Layout
 			title="Protocol Revenue Rankings - DeFi Fees Retained - DefiLlama"
 			description="Track actual revenue earned by DeFi protocols (portion of fees kept after costs). Compare protocol revenue from trading, lending, and staking across 500+ projects. Real-time revenue analytics for sustainable DeFi projects."

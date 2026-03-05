@@ -17,7 +17,7 @@ export const getStaticProps = withPerformanceLogging('comparison', async () => {
 const pageName = ['Compare Protocols']
 
 export default function CompareProtocolsPage({ protocols, protocolsList }: CompareProtocolsProps) {
-		return (
+	return (
 		<Layout
 			title="Protocol Comparison Tool - Side-by-Side DeFi Metrics - DefiLlama"
 			description="Compare DeFi protocols side-by-side by TVL, fees, revenue, and user metrics. Analyze protocol performance across chains and categories. Advanced comparison tool for DeFi investment research."

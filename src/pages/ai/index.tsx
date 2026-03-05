@@ -4,8 +4,8 @@ import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 
 const EXAMPLE_CONVERSATIONS = [
@@ -339,10 +339,12 @@ export default function LlamaAIGetStarted() {
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 							{/* DeFi & TradFi - wide card, first */}
 							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 md:col-span-2 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
-								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">DeFi, TradFi & Onchain</h3>
+								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">
+									DeFi, TradFi & Onchain
+								</h3>
 								<p className="mb-4 max-w-lg text-[14px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">
-									DefiLlama's 5,000+ protocols paired with stocks, macro, and onchain data. Questions that used to
-									need multiple tools and tabs are now single prompts.
+									DefiLlama's 5,000+ protocols paired with stocks, macro, and onchain data. Questions that used to need
+									multiple tools and tabs are now single prompts.
 								</p>
 								{/* Mini UI: tool calls panel */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
@@ -362,19 +364,23 @@ export default function LlamaAIGetStarted() {
 										].map((tool) => {
 											const meta = TOOL_ICONS[tool.key] || { icon: 'sparkles', color: '#919296' }
 											return (
-											<div key={tool.key} className="flex items-center gap-2 px-3 py-1.5">
-												<Icon name={meta.icon as any} height={11} width={11} className="shrink-0 opacity-70" style={{ color: meta.color }} />
-												<span className="flex-1 truncate text-[11px] text-[#555] dark:text-[#999]">
-													{TOOL_LABELS[tool.key]}
-												</span>
-												<span className="text-[10px] font-medium text-[#22c55e]">ok</span>
-												<span className="text-[10px] tabular-nums text-[#999] dark:text-[#666]">{tool.time}</span>
-												{tool.detail && (
-													<span className="text-[10px] tabular-nums text-[#999] dark:text-[#666]">
-														{tool.detail}
+												<div key={tool.key} className="flex items-center gap-2 px-3 py-1.5">
+													<Icon
+														name={meta.icon as any}
+														height={11}
+														width={11}
+														className="shrink-0 opacity-70"
+														style={{ color: meta.color }}
+													/>
+													<span className="flex-1 truncate text-[11px] text-[#555] dark:text-[#999]">
+														{TOOL_LABELS[tool.key]}
 													</span>
-												)}
-											</div>
+													<span className="text-[10px] font-medium text-[#22c55e]">ok</span>
+													<span className="text-[10px] text-[#999] tabular-nums dark:text-[#666]">{tool.time}</span>
+													{tool.detail && (
+														<span className="text-[10px] text-[#999] tabular-nums dark:text-[#666]">{tool.detail}</span>
+													)}
+												</div>
 											)
 										})}
 									</div>
@@ -385,8 +391,8 @@ export default function LlamaAIGetStarted() {
 							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
 								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">Scheduled Alerts</h3>
 								<p className="mb-4 text-[14px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">
-									Automate recurring prompts. Set up daily price checks, portfolio summaries, or custom data monitors
-									on your schedule.
+									Automate recurring prompts. Set up daily price checks, portfolio summaries, or custom data monitors on
+									your schedule.
 								</p>
 								{/* Mini UI: alert panel matching actual UI */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
@@ -502,21 +508,36 @@ export default function LlamaAIGetStarted() {
 									</div>
 									<div className="space-y-1.5 px-3 py-2.5">
 										<div className="flex items-center gap-2">
-											<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="10"
+												height="10"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="#22c55e"
+												strokeWidth="3"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<polyline points="20 6 9 17 4 12" />
+											</svg>
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
-												<span className="font-medium text-[#333] dark:text-[#ccc]">regulatory</span> Complete (19 tools, 3 charts)
+												<span className="font-medium text-[#333] dark:text-[#ccc]">regulatory</span> Complete (19 tools,
+												3 charts)
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
-												<span className="font-medium text-[#333] dark:text-[#ccc]">market_dynamics</span> {TOOL_LABELS.generate_chart}
+												<span className="font-medium text-[#333] dark:text-[#ccc]">market_dynamics</span>{' '}
+												{TOOL_LABELS.generate_chart}
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
-												<span className="font-medium text-[#333] dark:text-[#ccc]">competitive_positioning</span> {TOOL_LABELS.web_search}
+												<span className="font-medium text-[#333] dark:text-[#ccc]">competitive_positioning</span>{' '}
+												{TOOL_LABELS.web_search}
 											</span>
 										</div>
 									</div>

@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 })
 
 export default function ForksPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title="Protocol Forks Rankings - DeFi TVL by Forks - DefiLlama"
 			description="Track DeFi protocol forks and derivatives. Compare original protocols vs their forks by TVL, user count, and market share. Analysis of SushiSwap, PancakeSwap, and 500+ DeFi forks across all chains."

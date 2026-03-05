@@ -38,7 +38,6 @@ export function getEntityIcon(type: string, slug: string): string {
 	}
 }
 
-
 export function convertLlamaLinksToDefillama(content: string): string {
 	const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/([^/)]+)\/([^)]*?))\)/g
 	return content.replace(llamaLinkPattern, (_, text, __, type, slug) => {

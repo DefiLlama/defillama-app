@@ -1,3 +1,5 @@
+import { fetchDATInstitutions } from '~/containers/DAT/api'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
@@ -194,6 +196,45 @@ function buildCexRoutes(cexs) {
 	return routes
 }
 
+async function buildRWAAssetRoutes() {
+	const routes = []
+	const metadataModule = await import('~/utils/metadata')
+	await metadataModule.refreshMetadataIfStale()
+	const rwaList = metadataModule.default.rwaList
+	if (rwaList?.tickers) {
+		for (const ticker of rwaList.tickers) {
+			const tickerSlug = rwaSlug(ticker)
+			if (tickerSlug) routes.push(`rwa/asset/${tickerSlug}`)
+		}
+	}
+	return routes
+}
+
+async function buildDATRoutes() {
+	const data = await fetchDATInstitutions()
+	const companyRoutes = []
+	const assetRoutes = []
+
+	if (data?.institutionMetadata) {
+		for (const institutionId in data.institutionMetadata) {
+			const ticker = data.institutionMetadata[institutionId]?.ticker
+			if (ticker) {
+				const companySlug = slug(ticker)
+				if (companySlug) companyRoutes.push(`digital-asset-treasury/${companySlug}`)
+			}
+		}
+	}
+
+	if (data?.assetMetadata) {
+		for (const asset in data.assetMetadata) {
+			const assetSlug = slug(asset)
+			if (assetSlug) assetRoutes.push(`digital-asset-treasuries/${assetSlug}`)
+		}
+	}
+
+	return { companyRoutes, assetRoutes }
+}
+
 function generateSiteMap(routes) {
 	const dedupedRoutes = Array.from(
 		new Set(routes.map((route) => normalizeRoute(route)).filter((route) => route != null))
@@ -214,7 +255,13 @@ export async function getServerSideProps({ res }) {
 	const metadataModule = await import('~/utils/metadata')
 	await metadataModule.refreshMetadataIfStale()
 	const { chainMetadata, protocolMetadata, categoriesAndTags, cexs } = metadataModule.default
-	const stablecoinResponse = await fetchStablecoinAssetsApi()
+
+	// Build routes in parallel
+	const [stablecoinResponse, rwaAssetRoutes, datRoutes] = await Promise.all([
+		fetchStablecoinAssetsApi(),
+		buildRWAAssetRoutes(),
+		buildDATRoutes()
+	])
 	const stablecoins = Array.isArray(stablecoinResponse?.peggedAssets) ? stablecoinResponse.peggedAssets : []
 
 	if (!Array.isArray(stablecoinResponse?.peggedAssets)) {
@@ -227,7 +274,10 @@ export async function getServerSideProps({ res }) {
 		...buildProtocolRoutes(protocolMetadata),
 		...buildCategoryAndTagRoutes(categoriesAndTags),
 		...buildStablecoinAssetRoutes(stablecoins),
-		...buildCexRoutes(cexs)
+		...buildCexRoutes(cexs),
+		...rwaAssetRoutes,
+		...datRoutes.companyRoutes,
+		...datRoutes.assetRoutes
 	])
 
 	res.setHeader('Content-Type', 'text/xml')

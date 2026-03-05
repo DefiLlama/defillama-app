@@ -137,7 +137,14 @@ export const SettingsModal = memo(function SettingsModal({
 					</div>
 
 					<div className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
-						<button type="button" role="switch" aria-checked={memoryDraft} aria-label="Remember my preferences" onClick={handleMemoryToggle} className="flex w-full items-center justify-between">
+						<button
+							type="button"
+							role="switch"
+							aria-checked={memoryDraft}
+							aria-label="Remember my preferences"
+							onClick={handleMemoryToggle}
+							className="flex w-full items-center justify-between"
+						>
 							<div className="flex flex-col gap-0.5 text-left">
 								<span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Remember my preferences</span>
 								<span className="text-xs text-[#777] dark:text-[#919296]">

@@ -4,11 +4,11 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
+import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '../utils/chartComparison'
-import { ChartControls } from './ChartControls'
 import { ChartDataTransformer } from '../utils/chartDataTransformer'
-import type { ChartConfiguration } from '../types'
+import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
