@@ -214,9 +214,7 @@ export function MarkdownRenderer({
 											charts={[chartItem.chart]}
 											chartData={normalizedData}
 											isLoading={false}
-											isAnalyzing={false}
 											resizeTrigger={inlineChartConfig?.resizeTrigger}
-											messageId={inlineChartConfig?.messageId}
 										/>
 									</div>
 								)
@@ -232,9 +230,7 @@ export function MarkdownRenderer({
 											charts={[chart]}
 											chartData={data}
 											isLoading={false}
-											isAnalyzing={false}
 											resizeTrigger={inlineChartConfig.resizeTrigger}
-											messageId={inlineChartConfig.messageId}
 										/>
 									</div>
 								)

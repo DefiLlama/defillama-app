@@ -22,7 +22,7 @@ import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotif
 import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { AgenticSidebar } from './AgenticSidebar'
-import { ChartRenderer } from './ChartRenderer'
+import { ChartRenderer } from './components/ChartRenderer'
 import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message, AlertProposedData, ToolExecution } from './types'
@@ -628,7 +628,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			prompt: string,
 			_entities?: Array<{ term: string; slug: string }>,
 			images?: Array<{ data: string; mimeType: string; filename?: string }>,
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain'; route: string }
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 		) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming) return
