@@ -72,8 +72,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const NormalizedVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} ${type} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.chain} Normalized DEX Volume - Wash Trading Filtered Activity - DefiLlama`}
+			description={`Track normalized DEX volume with wash trading filtered out on ${props.chain}. Compare genuine trading activity based on available liquidity and market conditions. Real-time ${props.chain} authentic DEX volume analytics.`}
 			canonicalUrl={`/normalized-volume/chain/${props.chain}`}
 			pageName={pageName}
 		>

@@ -48,8 +48,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const PerpsVolumeOnAllChains = (props) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Perpetual DEX & Futures Volume Rankings - Derivatives Trading - DefiLlama"
+			description="Track perpetual DEX and futures trading volume rankings. Compare leverage trading activity on Hyperliquid, Aster, Lighter, and 50+ derivatives protocols. Real-time perp volume and trading analytics."
 			canonicalUrl={`/perps`}
 			pageName={pageName}
 		>

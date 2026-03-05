@@ -29,8 +29,8 @@ const pageName = ['Chains', 'ranked by', type]
 const RevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`DeFi Revenue Rankings by Blockchain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="DeFi Revenue by Blockchain - Protocol Revenue Across All Chains - DefiLlama"
+			description="Compare DeFi protocol revenue across all blockchains. Track actual revenue (fees retained) on Ethereum, Solana, Base, Arbitrum, and 50+ chains. Real-time blockchain revenue analytics by chain."
 			canonicalUrl={`/revenue/chains`}
 			pageName={pageName}
 		>

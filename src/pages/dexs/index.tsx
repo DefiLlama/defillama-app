@@ -30,8 +30,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const DexsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="DEX Swap Volume Rankings - Decentralized Exchange Trading Activity - DefiLlama"
+			description="Track DEX swap volume and trading activity across all decentralized exchanges. Compare 24h and 7-day volume on Uniswap, Curve, PancakeSwap, and 500+ spot DEXs. Real-time DEX volume rankings by protocol and chain."
 			canonicalUrl={`/dexs`}
 			pageName={pageName}
 		>

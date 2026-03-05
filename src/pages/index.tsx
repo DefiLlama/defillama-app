@@ -36,7 +36,7 @@ export default function HomePage(props: InferGetStaticPropsType<typeof getStatic
 	return (
 		<Layout
 			title="DefiLlama - DeFi Dashboard & Crypto Analytics"
-			description={props.description}
+			description="Track Total Value Locked (TVL), revenue, fees, volume, and yields across 7000+ DeFi protocols on 500+ chains. Real-time DeFi analytics including protocol earnings, profit metrics, DEX volume, and transparent crypto data without ads."
 			canonicalUrl=""
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"

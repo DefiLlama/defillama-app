@@ -42,8 +42,8 @@ export const getStaticProps = withPerformanceLogging('chains', async () => {
 export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.category} Chains DeFi TVL - DefiLlama`}
-			description={props.description}
+			title="Blockchain DeFi Rankings by TVL - Compare All Chains - DefiLlama"
+			description="Compare 500+ blockchains by Total Value Locked (TVL), fees, and DeFi activity. Track chain rankings, protocol counts, and cross-chain analytics. Real-time layer-1 and layer-2 blockchain metrics."
 			canonicalUrl="/chains"
 			metricFilters={tvlOptions}
 			metricFiltersLabel="Include in TVL"

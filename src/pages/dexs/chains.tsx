@@ -25,8 +25,8 @@ const pageName = ['Chains', 'ranked by', type]
 const DexsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`Live ${type} rankings by chain. Track volume activity across Ethereum, Solana, Base, Arbitrum and 500+ networks. Filter by 24h or 30d.`}
+			title="DEX Trading Volume by Blockchain - Spot Exchange Activity - DefiLlama"
+			description="Compare DEX swap volume across all blockchains. Track decentralized exchange trading activity on Ethereum, Solana, Base, Arbitrum, and 200+ chains. Real-time blockchain DEX volume rankings by chain."
 			canonicalUrl={`/dexs/chains`}
 			pageName={pageName}
 		>

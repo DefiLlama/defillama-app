@@ -48,10 +48,10 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 const pageName = ['Protocols', 'ranked by', type]
 
 const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
-	return (
+		return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="DeFi Protocol Revenue - Fees Retained by Protocols - DefiLlama"
+			description="Track actual revenue earned by DeFi protocols (portion of fees kept after costs). Compare protocol revenue from trading, lending, and staking across 500+ projects. Real-time revenue analytics for sustainable DeFi projects."
 			canonicalUrl={`/revenue`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"

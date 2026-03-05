@@ -17,10 +17,10 @@ export const getStaticProps = withPerformanceLogging('airdrops', async () => {
 const pageName = ['Tokenless protocols']
 
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title="Tokenless protocols that may airdrop - DefiLlama"
-			description={`Tokenless protocols that may airdrop. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Potential Crypto Airdrops - Tokenless DeFi Protocols List - DefiLlama"
+			description="Discover DeFi protocols without tokens that may launch airdrops. Track 200+ tokenless projects across lending, DEXs, derivatives, and more. Early access to potential retroactive airdrop opportunities."
 			canonicalUrl={`/airdrops`}
 			pageName={pageName}
 		>

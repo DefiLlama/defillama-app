@@ -25,8 +25,8 @@ const pageName = ['Chains', 'ranked by', type]
 const NormalizedVolumeByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Normalized DEX Volume by Blockchain - Wash Trading Filtered Activity - DefiLlama"
+			description="Compare normalized DEX volume across all blockchains with wash trading filtered out. Track genuine trading activity on Hyperliquid, zkLighter and more chains. Real-time authentic volume analytics by chain."
 			canonicalUrl={`/normalized-volume/chains`}
 			pageName={pageName}
 		>

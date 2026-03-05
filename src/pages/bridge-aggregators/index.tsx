@@ -30,8 +30,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const BridgeAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Cross-Chain Bridge Aggregator Volume Rankings - Bridge Routing Analytics - DefiLlama"
+			description="Track bridge aggregator volume and cross-chain transfers routed through aggregators. Compare volume across Bungee, LI.FI, Socket, and 20+ bridge aggregators. Real-time bridge routing analytics across all chains."
 			canonicalUrl={`/bridge-aggregators`}
 			pageName={pageName}
 		>

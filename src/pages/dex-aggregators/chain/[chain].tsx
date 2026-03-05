@@ -89,8 +89,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const DexAggregatorsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.chain} DEX Aggregator Volume - Swap Routing Activity - DefiLlama`}
+			description={`Track DEX aggregator volume and swap routing activity on ${props.chain}. Compare swap volume across 1inch, CowSwap, OpenOcean, and all DEX aggregators on ${props.chain}. Real-time ${props.chain} swap routing analytics with best price execution data.`}
 			canonicalUrl={`/dex-aggregators/chain/${props.chain}`}
 			pageName={pageName}
 		>

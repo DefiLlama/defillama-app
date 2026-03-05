@@ -90,8 +90,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const OpenInterestOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.chain} Crypto Open Interest - Derivatives Open Interest by Protocol - DefiLlama`}
+			description={`Track open interest on ${props.chain} across all derivatives protocols. Compare total open interest and leverage exposure on perp DEXs on ${props.chain}. Real-time ${props.chain} open interest analytics.`}
 			canonicalUrl={`/open-interest/chain/${props.chain}`}
 			pageName={pageName}
 		>
