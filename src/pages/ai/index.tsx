@@ -346,17 +346,17 @@ export default function LlamaAIGetStarted() {
 								{/* Mini UI: tool calls panel */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="flex items-center justify-between border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
-										<span className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">6 tool calls</span>
+										<span className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">5 tool calls</span>
 										<span className="text-[10px] text-[#999] dark:text-[#666]">
-											<span className="text-[#22c55e]">6/6 ok</span> 6925ms
+											<span className="text-[#22c55e]">5/5 ok</span> 6921ms
 										</span>
 									</div>
 									<div className="space-y-0 divide-y divide-[#E8E8E8] dark:divide-[#2a2a2e]">
 										{[
-											{ label: 'Loading knowledge', time: '0ms' },
+											{ label: 'Loading knowledge', time: '2ms' },
 											{ label: 'Querying database', time: '31ms', detail: '64 rows' },
-											{ label: 'valyu_search', time: '6579ms', detail: '42 rows' },
-											{ label: 'execute_code', time: '14ms' },
+											{ label: 'Fetch TradFi data', time: '6579ms', detail: '42 rows' },
+											{ label: 'Execute code', time: '14ms' },
 											{ label: 'Generating visualization', time: '295ms' }
 										].map((tool) => (
 											<div key={tool.label + tool.time} className="flex items-center gap-2 px-3 py-1.5">
