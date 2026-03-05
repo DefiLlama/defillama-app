@@ -6,7 +6,9 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridged', async () => {
-	const data = await getBridgedTVLByChain()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+	const data = await getBridgedTVLByChain({ chainMetadata: metadataCache.chainMetadata })
 
 	return {
 		props: data,

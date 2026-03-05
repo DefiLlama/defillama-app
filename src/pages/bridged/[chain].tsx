@@ -16,12 +16,12 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { chain } = params
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const chainMetadata = metadataCache.chainMetadata[slug(chain)]
-		if (!chainMetadata || !chainMetadata.chainAssets) {
+		const currentChainMetadata = metadataCache.chainMetadata[slug(chain)]
+		if (!currentChainMetadata || !currentChainMetadata.chainAssets) {
 			return { notFound: true }
 		}
 
-		const data = await getBridgedTVLByChain(chain)
+		const data = await getBridgedTVLByChain({ chain, chainMetadata: metadataCache.chainMetadata })
 
 		return {
 			props: { ...data, chain, chainName: capitalizeFirstLetter(chain) },
