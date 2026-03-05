@@ -65,11 +65,15 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['RWA']
 
 export default function RWAAssetDetailPage({ asset }) {
-	const displayName = asset?.name ?? asset?.ticker ?? asset?.slug ?? 'RWA Asset'
+	const displayName =
+		asset.assetName && asset.ticker
+			? `${asset.assetName} (${asset.ticker})`
+			: (asset.ticker ?? asset.slug ?? 'RWA Asset')
+
 	return (
 		<Layout
-			title={`${displayName} - RWA - DefiLlama`}
-			description={`${displayName} on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${displayName} - Real World Assets (RWA) Dashboard & Analytics - DefiLlama`}
+			description={`Overview of the tokenized real-world asset ${displayName}, including supply, blockchain distribution, and platform data. DefiLlama provides transparent, ad-free RWA analytics.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/asset/${asset.slug}`}
 		>

@@ -39,8 +39,8 @@ const pageName = ['RWA Chains']
 export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="Real World Assets (RWA) by Blockchain - DefiLlama"
-			description={`Real World Assets by chain on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Real World Assets (RWA) by Chain Dashboard & Analytics - DefiLlama"
+			description={`An overview of Real World Asset (RWA) adoption across blockchains, with a breakdown of how RWAs are issued and used on each chain. DefiLlama remains committed to delivering accurate, transparent data without ads or sponsored content.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/chains`}
 		>

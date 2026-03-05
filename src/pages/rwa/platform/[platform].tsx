@@ -67,8 +67,8 @@ const pageName = ['RWA']
 export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.platformName} - RWA - DefiLlama`}
-			description={`${props.platformName} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`Real World Assets (RWA) on ${props.platformName} Dashboard & Analytics - DefiLlama`}
+			description={`Explore ${props.platformName}, an RWA platform enabling issuance, custody, trading, or management of tokenized real-world assets across blockchains.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa`}
 		>

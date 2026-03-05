@@ -39,8 +39,8 @@ const pageName = ['RWA Platforms']
 export default function RWAPlatformsPage({ platforms, platformLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Platforms - DefiLlama"
-			description={`Real World Assets by platform on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Real World Assets (RWA) by Platform Dashboard & Analytics - DefiLlama"
+			description={`Discover RWA platforms that enable the issuance, custody, trading, or management of tokenized real-world assets across blockchains.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/platforms`}
 		>
