@@ -5,7 +5,7 @@ import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { PremiumHeader } from '../PremiumHeader'
 import { ThemeSwitch } from '../ThemeSwitch'
-import { TNavLink, TNavLinks, TOldNavLink } from '../types'
+import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { LinkToPage } from './shared'
 
 const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
@@ -29,7 +29,7 @@ export function DesktopNav({
 		<span className="col-span-1 max-lg:hidden">
 			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
 				<BasicLink href="/" className="mb-4 w-fit shrink-0">
-					<span className="sr-only">Navigate to Home Page</span>
+					<span className="sr-only">Navigate to DeFi Dashboard</span>
 					<img
 						src="/assets/defillama.webp"
 						height={53}
@@ -37,6 +37,8 @@ export function DesktopNav({
 						className="mr-auto hidden object-contain object-left dark:block"
 						alt=""
 						fetchPriority="high"
+						loading="eager"
+						decoding="sync"
 					/>
 					<img
 						src="/assets/defillama-dark.webp"
@@ -45,6 +47,8 @@ export function DesktopNav({
 						className="mr-auto object-contain object-left dark:hidden"
 						alt=""
 						fetchPriority="high"
+						loading="eager"
+						decoding="sync"
 					/>
 				</BasicLink>
 

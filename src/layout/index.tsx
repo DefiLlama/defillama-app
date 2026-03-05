@@ -5,8 +5,8 @@ import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
 import { SearchFallback } from '~/components/Search/Fallback'
-import { Select } from '~/components/Select'
-import { ISEOProps, SEO } from '~/components/SEO'
+import { Select } from '~/components/Select/Select'
+import { type ISEOProps, SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks/useIsClient'
 
 const Toaster = React.lazy(() => import('~/components/Toast').then((m) => ({ default: m.Toast })))
@@ -16,25 +16,24 @@ interface ILayoutProps extends ISEOProps {
 	metricFilters?: { name: string; key: string }[]
 	metricFiltersLabel?: string
 	pageName?: Array<string>
-	annonuncement?: React.ReactNode
+	announcement?: React.ReactNode
 }
 
 function Layout({
 	title,
 	description,
-	keywords,
 	canonicalUrl,
 	children,
 	pageName,
 	metricFilters,
 	metricFiltersLabel,
-	annonuncement,
+	announcement,
 	...props
 }: ILayoutProps) {
 	const isClient = useIsClient()
 	return (
 		<>
-			<SEO title={title} description={description} keywords={keywords} canonicalUrl={canonicalUrl} />
+			<SEO title={title} description={description} canonicalUrl={canonicalUrl} />
 			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}
@@ -48,7 +47,7 @@ function Layout({
 						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
 					)}
 				</span>
-				{annonuncement ? <Announcement>{annonuncement}</Announcement> : null}
+				{announcement ? <Announcement>{announcement}</Announcement> : null}
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>
@@ -76,6 +75,7 @@ function MetricFilters({ options, label }: { options: { name: string; key: strin
 						'whitespace-nowrap *:shrink-0 flex items-center gap-2 py-2 px-3 text-xs rounded-md cursor-pointer flex-nowrap bg-[#E2E2E2] dark:bg-[#181A1C] ml-auto'
 				}}
 				placement="bottom-end"
+				unmountOnHide={false}
 			/>
 		</>
 	)

@@ -10,13 +10,12 @@ export function useOptionsData(chains?: string[]) {
 			? `?${filteredChains.map((chain) => `chains=${encodeURIComponent(chain)}`).join('&')}`
 			: ''
 
-	const sortedChains = chains?.length ? [...chains].sort() : []
+	const sortedChains = filteredChains?.length ? [...filteredChains].sort() : []
 
 	return useQuery({
-		queryKey: ['options-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'options-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/options${queryParams}`),
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
-		enabled: true
+		staleTime: Infinity,
+		retry: 1
 	})
 }

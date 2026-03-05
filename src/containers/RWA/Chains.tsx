@@ -1,26 +1,17 @@
-import { ColumnDef } from '@tanstack/react-table'
-import Router, { useRouter } from 'next/router'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
 import { formattedNum } from '~/utils'
-import { chainIconUrl } from '~/utils'
-import type { IRWAChainsOverviewRow } from './queries'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
+import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
+import { definitions } from './definitions'
+import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
-
-type RWADefinitions = typeof rwaDefinitionsJson & {
-	totalOnChainMcap: { label: string; description: string }
-	totalActiveMcap: { label: string; description: string }
-	totalAssetIssuers: { label: string; description: string }
-	totalDefiActiveTvl: { label: string; description: string }
-}
-
-const definitions = rwaDefinitionsJson as RWADefinitions
 
 const columns: ColumnDef<{
 	chain: string
@@ -40,7 +31,7 @@ const columns: ColumnDef<{
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(chain)} data-lgonly />
+					<TokenLogo name={chain} kind="chain" data-lgonly alt={`Logo of ${chain}`} />
 					<BasicLink
 						href={`/rwa/chain/${rwaSlug(chain)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -99,38 +90,27 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { chain: 220 }
 }
 
-const toBooleanParam = (p: string | string[] | undefined): boolean => {
-	if (Array.isArray(p)) return p[0] === 'true'
-	return p === 'true'
-}
-
-export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) {
+export function RWAChainsTable({
+	chains,
+	chartDatasets
+}: {
+	chains: IRWAChainsOverviewRow[]
+	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+}) {
 	const router = useRouter()
 	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
 	const governanceQ = router.query.includeGovernance as string | string[] | undefined
 
-	const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : false
-	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
+	const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : false
+	const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		if (!includeStablecoins) {
-			nextQuery.includeStablecoins = 'true'
-		} else {
-			delete nextQuery.includeStablecoins
-		}
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [includeStablecoins])
+		pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
+	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...Router.query }
-		if (!includeGovernance) {
-			nextQuery.includeGovernance = 'true'
-		} else {
-			delete nextQuery.includeGovernance
-		}
-		Router.push({ pathname: Router.pathname, query: nextQuery }, undefined, { shallow: true })
-	}, [includeGovernance])
+		pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
+	}, [includeGovernance, router])
 
 	const data = useMemo(() => {
 		return chains.map((row) => {
@@ -200,53 +180,49 @@ export function RWAChainsTable({ chains }: { chains: IRWAChainsOverviewRow[] }) 
 		})
 	}, [chains, includeGovernance, includeStablecoins])
 
+	const selectedChartDatasets = includeStablecoins
+		? includeGovernance
+			? chartDatasets.includeStablecoinAndGovernance
+			: chartDatasets.includeStablecoin
+		: includeGovernance
+			? chartDatasets.includeGovernance
+			: chartDatasets.base
+	const csvFileName = (() => {
+		const parts = ['rwa-chains']
+		if (includeStablecoins) parts.push('stablecoins')
+		if (includeGovernance) parts.push('governance')
+		return `${parts.join('-')}.csv`
+	})()
+
 	return (
-		<TableWithSearch
-			data={data}
-			columns={columns}
-			placeholder="Search chains..."
-			columnToSearch="chain"
-			header="Chains"
-			columnSizes={columnSizes}
-			customFilters={({ instance }) => (
-				<>
-					<CSVDownloadButton
-						prepareCsv={() => {
-							const filenameParts = ['rwa-chains']
-							if (includeStablecoins) filenameParts.push('stablecoins')
-							if (includeGovernance) filenameParts.push('governance')
-							const filename = `${filenameParts.join('-')}.csv`
-
-							const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-							const columnIds = columns.map((c) => c.id as string)
-
-							const rows = instance
-								.getRowModel()
-								.rows.map((row) =>
-									columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
-								)
-
-							return { filename, rows: [headers, ...rows] }
-						}}
-						smol
-					/>
-					<Switch
-						label="Stablecoins"
-						value="includeStablecoins"
-						checked={includeStablecoins}
-						help="Include stablecoin-token assets in chain totals/columns."
-						onChange={onToggleStablecoins}
-					/>
-					<Switch
-						label="Governance Tokens"
-						value="includeGovernance"
-						checked={includeGovernance}
-						help="Include governance-token assets in chain totals/columns."
-						onChange={onToggleGovernance}
-					/>
-				</>
-			)}
-			sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
-		/>
+		<div className="flex flex-col gap-2">
+			<div className="flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<Switch
+					label="Stablecoins"
+					value="includeStablecoins"
+					checked={includeStablecoins}
+					help="Include stablecoin-token assets in chain totals/columns."
+					onChange={onToggleStablecoins}
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					help="Include governance-token assets in chain totals/columns."
+					onChange={onToggleGovernance}
+				/>
+			</div>
+			<RWAOverviewBreakdownChart datasets={selectedChartDatasets} stackLabel="Chains" />
+			<TableWithSearch
+				data={data}
+				columns={columns}
+				placeholder="Search chains..."
+				columnToSearch="chain"
+				header="Chains"
+				columnSizes={columnSizes}
+				csvFileName={csvFileName}
+				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
+			/>
+		</div>
 	)
 }

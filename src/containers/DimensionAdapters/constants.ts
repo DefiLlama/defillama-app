@@ -25,27 +25,40 @@ export enum ADAPTER_DATA_TYPES {
 	OPEN_INTEREST_AT_END = 'openInterestAtEnd',
 	DAILY_VOLUME = 'dailyVolume',
 	DAILY_BRIDGE_VOLUME = 'dailyBridgeVolume',
-	DAILY_NORMALIZED_VOLUME = 'dailyNormalizedVolume'
+	DAILY_NORMALIZED_VOLUME = 'dailyNormalizedVolume',
+	DAILY_ACTIVE_LIQUIDITY = 'dailyActiveLiquidity'
 }
 
-export enum ADAPTER_DATA_TYPE_KEYS {
-	'dailyFees' = 'df',
-	'dailyRevenue' = 'dr',
-	'dailyHoldersRevenue' = 'dhr',
-	'dailySupplySideRevenue' = 'dssr',
-	'dailyBribesRevenue' = 'dbr',
-	'dailyTokenTaxes' = 'dtt',
-	'dailyAppRevenue' = 'dar',
-	'dailyAppFees' = 'daf',
-	'dailyNotionalVolume' = 'dnv',
-	'dailyPremiumVolume' = 'dpv',
-	'openInterestAtEnd' = 'doi',
-	'dailyVolume' = 'dv',
-	'dailyBridgeVolume' = 'dbv',
-	'dailyNormalizedVolume' = 'dnvol'
+// oxlint-disable-next-line no-unused-vars
+type AdapterDataType = `${ADAPTER_DATA_TYPES}`
+
+export const ADAPTER_DATA_TYPE_KEYS = {
+	dailyFees: 'df',
+	dailyRevenue: 'dr',
+	dailyHoldersRevenue: 'dhr',
+	dailySupplySideRevenue: 'dssr',
+	dailyBribesRevenue: 'dbr',
+	dailyTokenTaxes: 'dtt',
+	dailyAppRevenue: 'dar',
+	dailyAppFees: 'daf',
+	dailyNotionalVolume: 'dnv',
+	dailyPremiumVolume: 'dpv',
+	openInterestAtEnd: 'doi',
+	dailyVolume: 'dv',
+	dailyBridgeVolume: 'dbv',
+	dailyNormalizedVolume: 'dnvol',
+	dailyActiveLiquidity: 'dal'
+} as const
+
+type AdapterDataTypeKey = keyof typeof ADAPTER_DATA_TYPE_KEYS
+
+// Type guard to check if a string is a valid AdapterDataTypeKey
+export function isAdapterDataTypeKey(key: string): key is AdapterDataTypeKey {
+	return key in ADAPTER_DATA_TYPE_KEYS
 }
 
-export const VOLUME_TYPE_ADAPTERS = [
+// oxlint-disable-next-line no-unused-vars
+const VOLUME_TYPE_ADAPTERS = [
 	'dexs',
 	'derivatives',
 	'options',
@@ -65,4 +78,4 @@ export const ADAPTER_TYPES_TO_METADATA_TYPE = {
 	[ADAPTER_TYPES.BRIDGE_AGGREGATORS]: 'bridgeAggregators',
 	[ADAPTER_TYPES.OPEN_INTEREST]: 'openInterest',
 	[ADAPTER_TYPES.NORMALIZED_VOLUME]: 'normalizedVolume'
-}
+} as const

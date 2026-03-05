@@ -12,46 +12,44 @@ RUN apt-get update \
 RUN curl -fsS https://dotenvx.sh | sh
 RUN dotenvx ext prebuild
 
-# install dependencies into temp directory
-# this will cache them and speed up future builds
 FROM base AS install
 RUN mkdir -p /temp/dev
 COPY package.json bun.lock /temp/dev/
 RUN cd /temp/dev && bun install --frozen-lockfile
 
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY package.json bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
-
-# copy node_modules from temp directory
-# then copy all (non-ignored) project files into the image
 FROM base AS builder
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
 ARG COOLIFY_BRANCH
+ARG LOGGER_API_KEY
+ARG LOGGER_API_URL
+ARG BUILD_STATUS_DASHBOARD
+ARG BUILD_STATUS_WEBHOOK
+ARG BUILD_NOTIFY_USERS
 
-RUN --mount=type=secret,id=LOGGER_API_KEY \
-  --mount=type=secret,id=LOGGER_API_URL \
-  --mount=type=secret,id=BUILD_STATUS_DASHBOARD \
-  --mount=type=secret,id=BUILD_STATUS_WEBHOOK \
-  bash ./scripts/docker-build-step.sh
+RUN bash ./scripts/build.sh
 
 FROM base AS runner
 
 ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
 
 WORKDIR /usr/src/app
 
-COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=builder /usr/src/app/.next ./.next
-COPY --from=builder /usr/src/app/public ./public
-COPY --from=builder /usr/src/app/package.json ./package.json
-COPY --from=builder /usr/src/app/bun.lock ./bun.lock
-COPY --from=builder /usr/src/app/next.config.ts ./next.config.ts
-COPY --from=builder /usr/src/app/scripts ./scripts
+RUN groupadd --system --gid 1001 nodejs \
+  && useradd --system --uid 1001 --gid nodejs nextjs
+
+RUN mkdir .next && chown nextjs:nodejs .next
+
+COPY --from=builder --chown=nextjs:nodejs /usr/src/app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /usr/src/app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /usr/src/app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /usr/src/app/scripts ./scripts
+
+USER nextjs
 
 EXPOSE 3000
 
-CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & bun run start"]
+CMD ["dotenvx", "run", "--", "sh", "-c", "./scripts/prestart.sh & bun server.js"]

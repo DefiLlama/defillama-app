@@ -1,9 +1,10 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYieldPool, PoolStrategyRoute } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -33,8 +34,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 						<PoolStrategyRoute
 							project1={row.original.projectName}
 							airdropProject1={row.original.airdrop}
+							raiseValuationProject1={row.original.raiseValuation}
 							project2={row.original.farmProjectName}
 							airdropProject2={false}
+							raiseValuationProject2={null}
 							chain={row.original.chains[0]}
 						/>
 					</span>
@@ -65,14 +68,14 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 							<QuestionHelper text={earlyExit} />
 							<Tooltip content={<TooltipContent />}>
 								<ColoredAPY data-variant="positive" style={{ '--weight': 700 }}>
-									{formattedPercent(getValue(), true, 700, true)}
+									{formatPercentChangeText(getValue(), true)}
 								</ColoredAPY>
 							</Tooltip>
 						</div>
 					) : (
 						<Tooltip content={<TooltipContent />}>
 							<ColoredAPY data-variant="positive" style={{ '--weight': 700, marginLeft: 'auto' }}>
-								{formattedPercent(getValue(), true, 700, true)}
+								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</Tooltip>
 					)}
@@ -90,7 +93,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{formattedPercent(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {

@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
-import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
+import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.DEXS
@@ -26,8 +26,7 @@ const DexsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
+			description={`Live ${type} rankings by chain. Track volume activity across Ethereum, Solana, Base, Arbitrum and 500+ networks. Filter by 24h or 30d.`}
 			canonicalUrl={`/dexs/chains`}
 			pageName={pageName}
 		>

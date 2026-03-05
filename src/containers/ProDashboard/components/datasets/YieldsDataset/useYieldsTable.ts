@@ -1,23 +1,22 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable,
-	VisibilityState
+	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
-import { downloadCSV } from '~/utils'
 import { toInternalSlug } from '~/utils/chainNormalizer'
 import { yieldsDatasetColumns } from './columns'
-import { YieldsFilters } from './YieldsFiltersPanel'
+import type { YieldsFilters } from './YieldsFiltersPanel'
 
 const YIELDS_COLUMN_PRESETS: Record<string, string[]> = {
 	essential: ['pool', 'project', 'chains', 'tvl', 'apy', 'apyBase', 'apyReward'],
@@ -165,6 +164,7 @@ export function useYieldsTable({
 			columnVisibility
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -375,6 +375,9 @@ export function useYieldsTable({
 
 	// 	downloadCSV('yields-data.csv', csvContent, { addTimestamp: true })
 	// }
+
+	// TODO: uncomment and implement the CSV download logic above
+	const downloadCSV = () => {}
 
 	const [poolName, setPoolName] = useTableSearch({ instance: table, columnToSearch: 'pool' })
 

@@ -1,7 +1,7 @@
 import type { TableFilters } from '~/containers/ProDashboard/types'
 
-export type FilterType = 'numeric-range' | 'numeric-single' | 'boolean' | 'array'
-export type FilterFormat = 'currency' | 'percent' | 'number'
+type FilterType = 'numeric-range' | 'numeric-single' | 'boolean' | 'array'
+type FilterFormat = 'currency' | 'percent' | 'number'
 export type NumericOperator = '>' | '>=' | '<' | '<=' | 'between'
 
 export interface FilterConfig {
@@ -612,7 +612,8 @@ export function getFiltersByCategory(): Map<FilterCategory, FilterConfig[]> {
 	return grouped
 }
 
-export function getFilterConfigById(id: string): FilterConfig | undefined {
+// oxlint-disable-next-line no-unused-vars
+function getFilterConfigById(id: string): FilterConfig | undefined {
 	return FILTER_CONFIGS.find((config) => config.id === id)
 }
 
@@ -635,7 +636,8 @@ export function formatFilterValue(value: number, format: FilterFormat = 'currenc
 	return `$${value.toLocaleString()}`
 }
 
-export function getOperatorLabel(operator: NumericOperator): string {
+// oxlint-disable-next-line no-unused-vars
+function getOperatorLabel(operator: NumericOperator): string {
 	switch (operator) {
 		case '>':
 			return '>'

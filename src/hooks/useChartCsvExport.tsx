@@ -1,7 +1,6 @@
-import type * as echarts from 'echarts/core'
-import { useCallback, useRef } from 'react'
+import { useGetChartInstance } from './useGetChartInstance'
 
-export type CsvCell = string | number | boolean
+type CsvCell = string | number | boolean
 
 export interface ChartCsv {
 	filename: string
@@ -9,14 +8,5 @@ export interface ChartCsv {
 }
 
 export function useChartCsvExport() {
-	const chartInstanceRef = useRef<echarts.ECharts | null>(null)
-
-	const handleChartReady = useCallback((instance: echarts.ECharts | null) => {
-		chartInstanceRef.current = instance
-	}, [])
-
-	return {
-		chartInstance: () => chartInstanceRef.current,
-		handleChartReady
-	}
+	return useGetChartInstance()
 }

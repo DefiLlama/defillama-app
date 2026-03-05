@@ -7,7 +7,7 @@ import { BasicLink } from '~/components/Link'
 import { resolveUserEmail } from '~/components/Nav/Account'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { formatEthAddress } from '~/utils'
-import { AuthModel } from '~/utils/pocketbase'
+import type { AuthModel } from '~/utils/pocketbase'
 
 interface AccountStatusProps {
 	user: AuthModel
@@ -216,7 +216,10 @@ export const AccountStatus = ({
 										user.walletAddress.length - 6
 									)}`}
 								</p>
-								<button className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1b1f] text-[#5C5CF9] opacity-0 transition-colors group-hover:opacity-100 hover:bg-[#5C5CF9]/5 hover:text-[#6A6AFA]">
+								<button
+									onClick={() => navigator.clipboard.writeText(user.walletAddress)}
+									className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1b1f] text-[#5C5CF9] opacity-0 transition-colors group-hover:opacity-100 hover:bg-[#5C5CF9]/5 hover:text-[#6A6AFA]"
+								>
 									<Icon name="copy" height={12} width={12} />
 								</button>
 							</div>
@@ -271,7 +274,8 @@ export const AccountStatus = ({
 								<div>
 									<span className="text-sm text-[#b4b7bc]">Promotional emails</span>
 									<p className="mt-0.5 text-xs text-[#8a8c90]">
-										Receive emails about upcoming DefiLlama products and new releases
+										Get early access announcements, new feature releases, and DeFi data insights from the DefiLlama
+										team. Unsubscribe anytime
 									</p>
 								</div>
 								<button
@@ -284,7 +288,7 @@ export const AccountStatus = ({
 										const newValue = currentValue === 'off' ? 'on' : 'off'
 										setPromotionalEmails(newValue)
 									}}
-									className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:ring-2 focus:ring-[#5C5CF9] focus:ring-offset-2 focus:ring-offset-[#1a1b1f] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${
+									className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:ring-2 focus:ring-[#5C5CF9] focus:ring-offset-2 focus:ring-offset-[#1a1b1f] focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 ${
 										user?.promotionalEmails === 'initial' || user?.promotionalEmails === 'on'
 											? 'bg-[#5C5CF9]'
 											: 'bg-[#39393E]'

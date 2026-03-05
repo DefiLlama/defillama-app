@@ -87,20 +87,21 @@
 			"Other environmental unit": "Tokens linked to other environmental or impact units such as renewable energy certificates or biodiversity credits.",
 			"Governance / voting token (RWA protocol)": "Tokens that confer governance rights, voting power or protocol control over an RWA platform or product suite, without being a direct 1:1 claim on the underlying assets.",
 			"Revenue / fee share token (RWA protocol)": "Tokens that entitle holders to a share of protocol revenues or fees from an RWA platform while not being a direct claim on underlying asset pools.",
-			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves."
+			"Synthetic backed stablecoin": "Stablecoins backed by synthetic crypto or derivatives strategies (such as delta-neutral basis trades or perp hedging) rather than direct fiat or real-world asset reserves.",
+			"Actively-managed strategy vault": "Vault tokens representing deposits into a discretionary, manager-directed strategy that may allocate across RWAs and other onchain yield sources, and that issue a receipt token."
 		}
 	},
 	"onChainMcap": {
 		"label": "Onchain Marketcap",
-		"description": "Total USD value of the asset that exists on chain across tracked chains"
+		"description": "Total USD value of token supply present onchain across tracked chains, including issuer, treasury, custodial, idle, and DeFi-held balances."
 	},
 	"activeMcap": {
 		"label": "Active Marketcap",
-		"description": "Portion of on chain TVL taking real market risk in user or protocol hands"
+		"description": "Onchain value in user or protocol-controlled positions that can meaningfully gain, or lose, from market moves, excluding inert issuer, treasury, custodial, or team-controlled wallets, and excluding internal looping, or bookkeeping positions that do not add net market exposure."
 	},
 	"defiActiveTvl": {
 		"label": "DeFi Active TVL",
-		"description": "Subset of Active TVL deployed in third party DeFi protocols tracked by DeFiLlama"
+		"description": "Active TVL deployed into external, third-party DeFi apps tracked by DeFiLlama (lending, DEX LP, derivatives, vaults, etc.), rather than held in wallets, or in native protocol contracts."
 	},
 	"totalOnChainMcap": {
 		"label": "Total RWA Onchain Mcap",

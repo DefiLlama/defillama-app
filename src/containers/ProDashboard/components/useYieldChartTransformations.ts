@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
-import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
+import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
 
 interface YieldChartData {
 	data?: Array<{

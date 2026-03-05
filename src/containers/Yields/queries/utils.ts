@@ -1,4 +1,94 @@
 import { buildEvmChainsSet } from '~/constants/chains'
+import type { RawRaise } from '~/containers/Raises/api.types'
+
+// Build slug → valuation map from raises + protocol hierarchy
+export function buildRaiseValuations(
+	raises: RawRaise[],
+	config: Record<string, any>,
+	protocolsData: any
+): Map<string, number> {
+	const sorted = [...raises].sort((a, b) => b.date - a.date)
+
+	// Index raises by defillamaId and name (most recent wins)
+	const byId = new Map<string, number>()
+	const byName = new Map<string, number>()
+	for (const r of sorted) {
+		const val = Number(r.valuation)
+		if (!Number.isFinite(val) || val <= 0) continue
+		if (r.defillamaId && !byId.has(String(r.defillamaId))) byId.set(String(r.defillamaId), val)
+		if (r.name && !byName.has(r.name.trim().toLowerCase())) byName.set(r.name.trim().toLowerCase(), val)
+	}
+
+	const lite = protocolsData ?? { protocols: [], parentProtocols: [] }
+	const protocols = lite.protocols ?? []
+	const parents = lite.parentProtocols ?? []
+
+	// Protocol lookups
+	const liteByName = new Map<string, any>()
+	const childrenByParent = new Map<string, any[]>()
+	for (const p of protocols) {
+		if (p.name) liteByName.set(p.name.toLowerCase(), p)
+		if (p.parentProtocol) {
+			if (!childrenByParent.has(p.parentProtocol)) childrenByParent.set(p.parentProtocol, [])
+			childrenByParent.get(p.parentProtocol)!.push(p)
+		}
+	}
+
+	// Parent protocol name + valuation lookups
+	const parentNameById = new Map<string, string>()
+	const valByParentName = new Map<string, number>()
+	for (const pp of parents) {
+		if (pp.id && pp.name) parentNameById.set(pp.id, pp.name)
+		if (!pp.name || pp.name.length < 4) continue
+		const name = pp.name.trim().toLowerCase()
+		let val = byId.get(pp.id)
+		if (val == null) {
+			for (const child of childrenByParent.get(pp.id) ?? []) {
+				val = byId.get(String(child.defillamaId ?? child.id ?? ''))
+				if (val != null) break
+			}
+		}
+		if (val == null) val = byName.get(name)
+		if (val != null) valByParentName.set(name, val)
+	}
+
+	// Match config slugs → valuations (4-tier cascade)
+	const result = new Map<string, number>()
+	for (const slug of Object.keys(config)) {
+		const configName = config[slug]?.name
+		if (!configName) continue
+		const proto = liteByName.get(configName.toLowerCase())
+		let val: number | undefined
+
+		// 1: direct defillamaId
+		if (proto) {
+			val = byId.get(String(proto.defillamaId ?? proto.id ?? ''))
+			// 2: parent protocol (by id, then by name)
+			if (val == null && proto.parentProtocol) {
+				val = byId.get(String(proto.parentProtocol))
+				if (val == null) {
+					const pName = parentNameById.get(proto.parentProtocol)
+					if (pName) val = byName.get(pName.toLowerCase())
+				}
+			}
+		}
+		// 3: exact config name → raise name
+		if (val == null) val = byName.get(configName.toLowerCase())
+		// 4: config name starts with parent protocol name (e.g. "Phantom SOL" → "Phantom")
+		if (val == null) {
+			const lower = configName.toLowerCase()
+			for (const [pName, pVal] of valByParentName) {
+				if (lower.startsWith(pName + ' ')) {
+					val = pVal
+					break
+				}
+			}
+		}
+
+		if (val != null) result.set(slug, val)
+	}
+	return result
+}
 
 export function formatYieldsPageData(poolsAndConfig: any) {
 	let _pools = poolsAndConfig[0]?.data ?? []

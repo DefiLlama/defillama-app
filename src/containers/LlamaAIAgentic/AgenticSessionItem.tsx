@@ -2,7 +2,6 @@ import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Router from 'next/router'
 import { memo, useRef, useState } from 'react'
-import * as React from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
@@ -73,8 +72,8 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 
 	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const title = form.newTitle.value
+		const form = e.currentTarget
+		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
 			onUpdateTitle({ sessionId: session.sessionId, title: title.trim() }).then(() => {
 				setIsEditing(false)
@@ -103,7 +102,6 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 					name="newTitle"
 					defaultValue={session.title}
 					className="flex-1 overflow-hidden p-1.5 text-left text-xs text-ellipsis whitespace-nowrap"
-					autoFocus
 					disabled={isUpdatingTitle}
 				/>
 				<div className="flex items-center justify-center gap-0.5">
@@ -178,17 +176,22 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							<Icon name="x" className="h-5 w-5" />
 						</Ariakit.PopoverDismiss>
 						<Ariakit.MenuItem
-							onClick={() => {
+							onClick={async () => {
 								try {
-									if (session.isPublic && session.shareToken) {
-										navigator.clipboard.writeText(`${window.location.origin}/ai/chat/shared/${session.shareToken}`)
+									if (session.isPublic) {
+										if (session.shareToken) {
+											await navigator.clipboard.writeText(
+												`${window.location.origin}/ai/chat/shared/${session.shareToken}`
+											)
+											setIsCopyingLink(true)
+											setTimeout(() => {
+												setIsCopyingLink(false)
+											}, 500)
+										}
 									}
 								} catch (error) {
-									console.log(error)
+									console.error(error)
 									toast.error('Failed to copy link')
-								} finally {
-									setIsCopyingLink(true)
-									setTimeout(() => setIsCopyingLink(false), 500)
 								}
 							}}
 							hideOnClick={false}

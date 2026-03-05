@@ -3,22 +3,19 @@ import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
-import { tvlOptions } from '~/components/Filters/options'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {
 	CHAINS_CATEGORY_GROUP_SETTINGS,
 	TVL_SETTINGS_KEYS,
 	useLocalStorageSettingsManager
 } from '~/contexts/LocalStorage'
-import Layout from '~/layout'
 import { formatNum, getPercentChange } from '~/utils'
 import { ChainsByCategoryTable } from './Table'
-import { IChainsByCategoryData } from './types'
+import type { IChainsByCategoryData } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-const pageName = ['Chains']
 
 export function ChainsByCategory({
 	chains,
@@ -27,9 +24,8 @@ export function ChainsByCategory({
 	category,
 	tvlChartsByChain,
 	totalTvlByDate,
-	description,
-	keywords
-}: IChainsByCategoryData) {
+	entityQuestions
+}: IChainsByCategoryData & { entityQuestions?: string[] }) {
 	const { pieChartData, dominanceCharts } = useFormatChartData({
 		tvlChartsByChain,
 		totalTvlByDate,
@@ -39,42 +35,31 @@ export function ChainsByCategory({
 	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
 
 	return (
-		<Layout
-			title={`${category} Chains DeFi TVL - DefiLlama`}
-			description={description}
-			keywords={keywords}
-			canonicalUrl={`/chains${category === 'All' ? '' : `/${category}`}`}
-			metricFilters={tvlOptions}
-			metricFiltersLabel="Include in TVL"
-			pageName={pageName}
-		>
+		<>
 			<RowLinksWithDropdown links={allCategories} activeLink={category} />
+			{entityQuestions?.length > 0 && (
+				<EntityQuestionsStrip questions={entityQuestions} entitySlug="chains" entityType="page" entityName="Chains" />
+			)}
 
 			<div className="flex flex-col gap-2 xl:flex-row">
-				<div className="relative isolate flex min-h-[408px] flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
+				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<PieChart
 							chartData={pieChartData}
 							stackColors={colorsByChain}
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename="chains-tvl-pie"
-							imageExportTitle="Chains TVL"
+							exportButtons={{ png: true, csv: true, filename: 'chains-tvl-pie', pngTitle: 'Chains TVL' }}
 						/>
 					</React.Suspense>
 				</div>
-				<div className="min-h-[408px] flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
+				<div className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
 							dataset={dominanceCharts.dataset}
 							charts={dominanceCharts.charts}
 							valueSymbol="%"
 							expandTo100Percent
 							solidChartAreaStyle
-							shouldEnableImageExport
-							shouldEnableCSVDownload
-							imageExportFilename="chains-dominance"
-							imageExportTitle="Chains Dominance"
+							exportButtons={{ png: true, csv: true, filename: 'chains-dominance', pngTitle: 'Chains Dominance' }}
 						/>
 					</React.Suspense>
 				</div>
@@ -90,7 +75,7 @@ export function ChainsByCategory({
 			>
 				<ChainsByCategoryTable data={chainsTableData} showByGroup={showByGroup} />
 			</React.Suspense>
-		</Layout>
+		</>
 	)
 }
 
@@ -107,7 +92,11 @@ const useFormatChartData = ({
 	const data = React.useMemo(() => {
 		const toggledTvlSettings = TVL_SETTINGS_KEYS.filter((key) => tvlSettings[key])
 		const recentTvlByChain: Record<string, number> = {}
-		const chainNames = Object.keys(tvlChartsByChain['tvl'] ?? {})
+		const tvlByChain = tvlChartsByChain['tvl'] ?? {}
+		const chainNames: string[] = []
+		for (const chain in tvlByChain) {
+			chainNames.push(chain)
+		}
 
 		const rowMap = new Map<number, Record<string, number | null>>()
 

@@ -1,6 +1,6 @@
-import { Icon, IIcon } from '~/components/Icon'
+import { Icon, type IIcon } from '~/components/Icon'
 import { useDiscoveryCategories } from '../hooks/useDiscoveryCategories'
-import { Dashboard } from '../services/DashboardAPI'
+import type { Dashboard } from '../services/DashboardAPI'
 import { DiscoverySection } from './DiscoverySection'
 
 interface SectionConfig {

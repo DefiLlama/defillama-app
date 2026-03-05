@@ -1,6 +1,6 @@
 import { Icon } from '~/components/Icon'
 import { ChartBuilderTab } from './ChartBuilderTab'
-import { ChartModeType, ChartTabType } from './types'
+import type { ChartModeType, ChartTabType } from './types'
 import { UnifiedChartTab } from './UnifiedChartTab'
 
 interface ChartTabProps {

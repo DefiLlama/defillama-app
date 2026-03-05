@@ -4,12 +4,15 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { oldBlue } from '~/constants/colors'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+const dashboardBlue = '#326abd'
+import {
+	formatProtocolV1TvlsByChain,
+	useFetchProtocolV1AddlChartsData
+} from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import ProtocolCharts from '../../services/ProtocolCharts'
 import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -80,7 +83,7 @@ export function AdvancedTvlChartTab({
 	const filteredProtocolOptions = protocolOptions
 
 	const { data: basicTvlData, isLoading: isBasicTvlLoading } = useQuery({
-		queryKey: ['advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
+		queryKey: ['pro-dashboard', 'advanced-tvl-preview-basic', selectedAdvancedTvlProtocol],
 		queryFn: () => ProtocolCharts.tvl(selectedAdvancedTvlProtocol!),
 		enabled: !!selectedAdvancedTvlProtocol && selectedAdvancedTvlChartType === 'tvl',
 		staleTime: 60 * 60 * 1000
@@ -90,11 +93,11 @@ export function AdvancedTvlChartTab({
 		data: addlData,
 		historicalChainTvls,
 		isLoading: isAddlLoading
-	} = useFetchProtocolAddlChartsData(selectedAdvancedTvlProtocol || '')
+	} = useFetchProtocolV1AddlChartsData(selectedAdvancedTvlProtocol || '')
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled })
+		const chainsSplit = formatProtocolV1TvlsByChain({ historicalChainTvls, extraTvlsEnabled })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
 		const chainsUnique: string[] = []
 		for (const key in lastEntry) {
@@ -165,7 +168,7 @@ export function AdvancedTvlChartTab({
 
 	const chartTypeLabel = ADVANCED_TVL_CHART_TYPES.find((t) => t.value === selectedAdvancedTvlChartType)?.label || ''
 
-	const renderChart = () => {
+	const chartContent = (() => {
 		if (isLoading) {
 			return (
 				<div className="flex h-[320px] items-center justify-center">
@@ -192,7 +195,7 @@ export function AdvancedTvlChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color={oldBlue}
+							color={dashboardBlue}
 							chartOptions={chartOptions}
 						/>
 					</Suspense>
@@ -278,7 +281,12 @@ export function AdvancedTvlChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={resolvedUsdInflows} color={oldBlue} title="" chartOptions={inflowsChartOptions} />
+						<BarChart
+							chartData={resolvedUsdInflows}
+							color={dashboardBlue}
+							title=""
+							chartOptions={inflowsChartOptions}
+						/>
 					</Suspense>
 				)
 			case 'tokenInflows':
@@ -303,7 +311,7 @@ export function AdvancedTvlChartTab({
 			default:
 				return null
 		}
-	}
+	})()
 
 	const hasProtocolSelection = selectedAdvancedTvlProtocol && selectedAdvancedTvlProtocolName
 
@@ -356,7 +364,7 @@ export function AdvancedTvlChartTab({
 							<p className="text-xs pro-text2">Advanced TVL Chart</p>
 						</div>
 
-						<div className="h-[320px]">{renderChart()}</div>
+						<div className="h-[320px]">{chartContent}</div>
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">

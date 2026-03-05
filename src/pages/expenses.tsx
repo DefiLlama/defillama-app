@@ -1,31 +1,34 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ParentProtocolLite, ProtocolLite } from '~/containers/Protocols/api.types'
 import Layout from '~/layout'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const [{ protocols, parentProtocols }, expenses] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
+		fetchProtocols(),
 		fetchJson(
 			'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 		)
 	])
 
+	const protocolById = new Map<string, ProtocolLite | (ParentProtocolLite & { defillamaId: string })>()
+	for (const p of protocols) protocolById.set(p.defillamaId, p)
+	for (const p of parentProtocols) protocolById.set(p.id, { ...p, defillamaId: p.id })
+
 	return {
 		props: {
 			expenses: expenses
 				.map((e) => {
-					const protocol =
-						protocols
-							.concat(parentProtocols.map((p) => ({ ...p, defillamaId: p.id })))
-							.find((p) => p.defillamaId === e.protocolId) ?? null
+					const protocol = protocolById.get(e.protocolId) ?? null
 					const sumAnnualUsdExpenses = Object.values(e.annualUsdCost).reduce(
 						(sum: number, x: number) => sum + x
 					) as number
@@ -46,12 +49,11 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 const pageName = ['Protocols', 'ranked by', 'Expenses']
 const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Protocol Expenses - DefiLlama`}
+			title={`DeFi Protocol Expense Tracker - DefiLlama`}
 			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`protocol expenses, expenses by protocol`}
 			canonicalUrl={`/expenses`}
 			pageName={pageName}
 		>
@@ -61,6 +63,7 @@ export default function Protocols(props) {
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
+				csvFileName="protocol-expenses"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
@@ -76,7 +79,7 @@ const columns: ColumnDef<any>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo name={getValue() as string} kind="token" data-lgonly alt={`Logo of ${getValue()}`} />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

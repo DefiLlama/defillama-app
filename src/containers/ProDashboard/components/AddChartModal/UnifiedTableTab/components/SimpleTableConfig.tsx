@@ -4,7 +4,7 @@ import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
 import { AriakitVirtualizedSelect } from '../../../AriakitVirtualizedSelect'
 import { useTokenSearch } from '../../../datasets/TokenUsageDataset/useTokenSearch'
-import { CombinedTableType } from '../../types'
+import type { CombinedTableType } from '../../types'
 
 interface SimpleTableConfigProps {
 	selectedChains: string[]
@@ -248,7 +248,7 @@ export function SimpleTableConfig({
 					onChange={(option) => onDatasetChainChange(option.value)}
 					placeholder="Select chain..."
 					isLoading={protocolsLoading}
-					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+					renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 				/>
 			) : selectedTableType === 'revenue' ||
 			  selectedTableType === 'holders-revenue' ||
@@ -267,7 +267,7 @@ export function SimpleTableConfig({
 					onChange={onChainsChange}
 					isLoading={protocolsLoading}
 					placeholder="All chains..."
-					renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+					renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 				/>
 			) : selectedTableType === 'chains' ? (
 				<AriakitSelect
@@ -286,7 +286,7 @@ export function SimpleTableConfig({
 						onChange={(option) => onDatasetChainChange(option.value)}
 						placeholder="Select chain..."
 						isLoading={protocolsLoading}
-						renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+						renderIcon={(option) => (option.value === 'All' ? null : getItemIconUrl('chain', null, option.value))}
 					/>
 					<AriakitSelect
 						label="Time Period"
@@ -319,6 +319,8 @@ export function SimpleTableConfig({
 											<img
 												src={option.logo}
 												alt=""
+												width={16}
+												height={16}
 												className="h-4 w-4 rounded-full"
 												onError={(e) => {
 													e.currentTarget.style.display = 'none'
@@ -341,8 +343,9 @@ export function SimpleTableConfig({
 							})}
 						</div>
 					)}
-					<div
-						className="flex cursor-pointer items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 pro-text2 transition-colors hover:pro-text1"
+					<button
+						type="button"
+						className="flex w-full items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 text-left pro-text2 transition-colors hover:pro-text1"
 						onClick={() => onIncludeCexChange(!includeCex)}
 					>
 						<div className="relative h-4 w-4">
@@ -366,7 +369,7 @@ export function SimpleTableConfig({
 							</div>
 						</div>
 						<span className="text-sm font-medium pro-text2">Include CEXs</span>
-					</div>
+					</button>
 				</>
 			) : null}
 		</div>

@@ -1,6 +1,8 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import type { FormSubmitEvent } from '~/types/forms'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 export function TVLRange({
 	variant = 'primary',
@@ -17,33 +19,26 @@ export function TVLRange({
 }) {
 	const router = useRouter()
 
-	const handleSubmit = (e) => {
+	const handleSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target
+		const form = e.currentTarget
 		const minTvl = form.min?.value
 		const maxTvl = form.max?.value
 
 		onValueChange?.(minTvl ? Number(minTvl) : null, maxTvl ? Number(maxTvl) : null)
 
-		const params = new URLSearchParams(window.location.search)
-		if (minTvl) params.set('minTvl', minTvl)
-		else params.delete('minTvl')
-		if (maxTvl) params.set('maxTvl', maxTvl)
-		else params.delete('maxTvl')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		pushShallowQuery(router, {
+			minTvl: minTvl || undefined,
+			maxTvl: maxTvl || undefined
+		})
 	}
 
-	const { minTvl, maxTvl } = router.query
+	const minTvl = readSingleQueryValue(router.query.minTvl)
+	const maxTvl = readSingleQueryValue(router.query.maxTvl)
 
 	const handleClear = () => {
-		const params = new URLSearchParams(window.location.search)
-		params.delete('minTvl')
-		params.delete('maxTvl')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		onValueChange?.(null, null)
+		pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

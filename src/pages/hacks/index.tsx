@@ -1,8 +1,11 @@
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { HacksContainer } from '~/containers/Hacks'
 import { getHacksPageData } from '~/containers/Hacks/queries'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Hacks: Overview']
 
 export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	const data = await getHacksPageData()
@@ -12,6 +15,15 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 	}
 })
 
-export default function Hacks(props) {
-	return <HacksContainer {...props} />
+export default function Hacks(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title="Crypto Hacks & Exploits Tracker - DefiLlama"
+			description="Track hacks on all chains and DeFi protocols. View total value lost, breakdown by technique, and DeFi hacks on DefiLlama."
+			canonicalUrl="/hacks"
+			pageName={pageName}
+		>
+			<HacksContainer {...props} />
+		</Layout>
+	)
 }

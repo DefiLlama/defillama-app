@@ -1,7 +1,7 @@
 import {
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -11,35 +11,30 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
+import { chainCharts } from '~/containers/ChainOverview/constants'
+import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
-import { chainCharts } from '../ChainOverview/constants'
-import { protocolCharts } from '../ProtocolOverview/Chart/constants'
+import { formattedNum, slug, getAnnualizedRatio } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import { AdapterByChainChart } from './ChainChart'
-import { IAdapterByChainPageData } from './types'
+import type { IAdapterByChainPageData, IProtocol } from './types'
 
 type TPageType =
 	| 'Fees'
@@ -72,9 +67,16 @@ const SUPPORTED_OLD_VIEWS: TPageType[] = [
 ]
 
 const defaultSortingByType: Partial<Record<TPageType, SortingState>> & { default: SortingState } = {
-	'P/F': [{ desc: true, id: 'pf' }],
-	'P/S': [{ desc: true, id: 'ps' }],
+	'P/F': [{ desc: true, id: 'pfOrPs' }],
+	'P/S': [{ desc: true, id: 'pfOrPs' }],
 	default: [{ desc: true, id: 'total24h' }]
+}
+
+const pageSlugByType: Partial<Record<TPageType, string>> = {
+	'Perp Volume': 'perps',
+	'DEX Volume': 'dexs',
+	Fees: 'fees',
+	Revenue: 'revenue'
 }
 
 const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> = {
@@ -91,13 +93,17 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Options Notional Volume': definitions.optionsNotional.chain,
 	Earnings: definitions.earnings.chain
 }
-const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'], categoriesToFilter: Array<string>) => {
-	const final = []
+
+const getProtocolsByCategory = (
+	protocols: IAdapterByChainPageData['protocols'],
+	categoriesToFilter: Array<string>
+): IProtocol[] => {
+	const final: IProtocol[] = []
 
 	for (const protocol of protocols) {
 		if (protocol.childProtocols) {
-			const childProtocols = protocol.childProtocols.filter((childProtocol) =>
-				categoriesToFilter.includes(childProtocol.category)
+			const childProtocols = protocol.childProtocols.filter(
+				(childProtocol) => childProtocol.category && categoriesToFilter.includes(childProtocol.category)
 			)
 
 			if (childProtocols.length === protocol.childProtocols.length) {
@@ -111,7 +117,7 @@ const getProtocolsByCategory = (protocols: IAdapterByChainPageData['protocols'],
 			continue
 		}
 
-		if (categoriesToFilter.includes(protocol.category)) {
+		if (protocol.category && categoriesToFilter.includes(protocol.category)) {
 			final.push(protocol)
 			continue
 		}
@@ -144,82 +150,97 @@ export function AdapterByChain(props: IProps) {
 
 		const categoriesToFilter = selectedCategories.filter((c) => c.toLowerCase() !== 'all' && c.toLowerCase() !== 'none')
 
-		const protocols =
+		const protocols: IProtocol[] =
 			props.categories.length === 0
 				? props.protocols
 				: selectedCategories.length === 0
-					? []
+					? ([] as IProtocol[])
 					: categoriesToFilter.length > 0
 						? getProtocolsByCategory(props.protocols, categoriesToFilter)
 						: props.protocols
 
+		// Helper to safely add values, preserving null when no extras
+		const addValues = (base: number | null, extra: number): number | null =>
+			base != null ? base + extra : extra !== 0 ? extra : null
+
 		const finalProtocols =
-			props.adapterType === 'fees' && (enabledSettings.bribes || enabledSettings.tokentax)
+			props.adapterType === 'fees'
 				? protocols.map((p) => {
-						const childProtocols = p.childProtocols
-							? p.childProtocols.map((cp) => {
-									const total30d =
-										cp.total30d +
-										(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
-										(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
-
-									let pf = cp.mcap && cp.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
-									let ps = cp.mcap && cp.revenue?.total30d ? getAnnualizedRatio(cp.mcap, total30d) : null
-
-									return {
-										...cp,
-										total24h:
-											cp.total24h +
-											(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0),
-										total7d:
-											cp.total7d +
-											(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0),
-										total30d,
-										total1y:
-											cp.total1y +
-											(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0),
-										totalAllTime:
-											cp.totalAllTime +
-											(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
-											(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0),
-										...(pf ? { pf } : {}),
-										...(ps ? { ps } : {})
-									}
-								})
-							: null
-
-						const total30d =
-							p.total30d +
+						// Always calculate pfOrPs for fees pages (P/F, P/S)
+						// Use null-safe math: if base is null and no extras, result stays null
+						const baseTotal30d = p.total30d
+						const extra30d =
 							(enabledSettings.bribes ? (p.bribes?.total30d ?? 0) : 0) +
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
+						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d !== 0 ? extra30d : null
 
-						const pf = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
-						const ps = p.mcap && p.revenue?.total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const pfOrPs = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+
+						// Only aggregate child protocols when bribes/tokentax is enabled
+						const childProtocols: IProtocol['childProtocols'] =
+							p.childProtocols && (enabledSettings.bribes || enabledSettings.tokentax)
+								? p.childProtocols.map((cp) => {
+										const cpBaseTotal30d = cp.total30d
+										const cpExtra30d =
+											(enabledSettings.bribes ? (cp.bribes?.total30d ?? 0) : 0) +
+											(enabledSettings.tokentax ? (cp.tokenTax?.total30d ?? 0) : 0)
+										const cpTotal30d =
+											cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
+
+										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
+
+										return {
+											...cp,
+											total24h: addValues(
+												cp.total24h,
+												(enabledSettings.bribes ? (cp.bribes?.total24h ?? 0) : 0) +
+													(enabledSettings.tokentax ? (cp.tokenTax?.total24h ?? 0) : 0)
+											),
+											total7d: addValues(
+												cp.total7d,
+												(enabledSettings.bribes ? (cp.bribes?.total7d ?? 0) : 0) +
+													(enabledSettings.tokentax ? (cp.tokenTax?.total7d ?? 0) : 0)
+											),
+											total30d: cpTotal30d,
+											total1y: addValues(
+												cp.total1y,
+												(enabledSettings.bribes ? (cp.bribes?.total1y ?? 0) : 0) +
+													(enabledSettings.tokentax ? (cp.tokenTax?.total1y ?? 0) : 0)
+											),
+											totalAllTime: addValues(
+												cp.totalAllTime,
+												(enabledSettings.bribes ? (cp.bribes?.totalAllTime ?? 0) : 0) +
+													(enabledSettings.tokentax ? (cp.tokenTax?.totalAllTime ?? 0) : 0)
+											),
+											pfOrPs: cpPfOrPs
+										}
+									})
+								: p.childProtocols
 
 						return {
 							...p,
-							total24h:
-								p.total24h +
+							total24h: addValues(
+								p.total24h,
 								(enabledSettings.bribes ? (p.bribes?.total24h ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0),
-							total7d:
-								p.total7d +
+									(enabledSettings.tokentax ? (p.tokenTax?.total24h ?? 0) : 0)
+							),
+							total7d: addValues(
+								p.total7d,
 								(enabledSettings.bribes ? (p.bribes?.total7d ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0),
+									(enabledSettings.tokentax ? (p.tokenTax?.total7d ?? 0) : 0)
+							),
 							total30d,
-							total1y:
-								p.total1y +
+							total1y: addValues(
+								p.total1y,
 								(enabledSettings.bribes ? (p.bribes?.total1y ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0),
-							totalAllTime:
-								p.totalAllTime +
+									(enabledSettings.tokentax ? (p.tokenTax?.total1y ?? 0) : 0)
+							),
+							totalAllTime: addValues(
+								p.totalAllTime,
 								(enabledSettings.bribes ? (p.bribes?.totalAllTime ?? 0) : 0) +
-								(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0),
-							...(pf ? { pf } : {}),
-							...(ps ? { ps } : {}),
+									(enabledSettings.tokentax ? (p.tokenTax?.totalAllTime ?? 0) : 0)
+							),
+							pfOrPs,
 							...(childProtocols ? { childProtocols } : {})
 						}
 					})
@@ -259,67 +280,31 @@ export function AdapterByChain(props: IProps) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnSizes,
 		columnOrders
 	})
-	const prepareCsv = () => {
-		const header = [
-			'Protocol',
-			'Category',
-			'Chains',
-			'Total 1d',
-			'Total 7d',
-			'Total 1m',
-			'Total 1y',
-			'Total All Time',
-			'Market Cap',
-			'P/F',
-			'P/S'
-		]
-
-		const csvdata = protocols.map((protocol) => {
-			return [
-				protocol.name,
-				protocol.category,
-				protocol.chains.join(', '),
-				protocol.total24h,
-				protocol.total7d,
-				protocol.total30d,
-				protocol.total1y,
-				protocol.totalAllTime,
-				protocol.mcap,
-				protocol.pf,
-				protocol.ps
-			]
-		})
-
-		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows: [header, ...csvdata] }
-	}
-
-	const metricName = ['Fees', 'Revenue', 'Holders Revenue', 'Open Interest'].includes(props.type)
-		? props.type
-		: props.type.includes('Volume')
-			? props.type
-			: `${props.type} Volume`
+	const metricName = props.type
 	const columnsKey = `columns-${props.type}`
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
+	const setColumnOptions: React.Dispatch<React.SetStateAction<string[]>> = (newOptions) => {
+		const options = typeof newOptions === 'function' ? newOptions(selectedColumns) : newOptions
+		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, options.includes(col.id)]))
 		setStorageItem(columnsKey, JSON.stringify(ops))
 		instance.setColumnVisibility(ops)
 	}
@@ -332,12 +317,20 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
+			{props.entityQuestions && props.entityQuestions.length > 0 && (
+				<EntityQuestionsStrip
+					questions={props.entityQuestions}
+					entitySlug={pageSlugByType[props.type] || slug(props.type)}
+					entityType="page"
+					entityName={props.type}
+				/>
+			)}
 			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 						{props.chain !== 'All' && (
 							<h1 className="flex flex-nowrap items-center gap-2">
-								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
+								<TokenLogo name={props.chain} kind="chain" size={24} alt={`Logo of ${props.chain}`} />
 								<span className="text-xl font-semibold">{props.chain}</span>
 							</h1>
 						)}
@@ -345,16 +338,16 @@ export function AdapterByChain(props: IProps) {
 						{props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
-									{pageTypeByDefinition[props.type]?.['24h'] ? (
-										<Tooltip
-											content={pageTypeByDefinition[props.type]['24h']}
-											className="text-(--text-label) underline decoration-dotted"
-										>
-											{metricName} (24h)
-										</Tooltip>
-									) : (
-										<span className="text-(--text-label)">{metricName} (24h)</span>
-									)}
+									{(() => {
+										const definition = pageTypeByDefinition[props.type]?.['24h']
+										return definition ? (
+											<Tooltip content={definition} className="text-(--text-label) underline decoration-dotted">
+												{metricName} (24h)
+											</Tooltip>
+										) : (
+											<span className="text-(--text-label)">{metricName} (24h)</span>
+										)
+									})()}
 									<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 										{formattedNum(props.total24h, true)}
 									</span>
@@ -374,18 +367,29 @@ export function AdapterByChain(props: IProps) {
 									<span className="ml-auto font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 								</p>
 							) : null}
+							{props.activeLiquidity != null ? (
+								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
+									<Tooltip
+										content={definitions.activeLiquidity.chain}
+										className="text-(--text-label) underline decoration-dotted"
+									>
+										Active Liquidity
+									</Tooltip>
+									<span className="ml-auto font-jetbrains">{formattedNum(props.activeLiquidity, true)}</span>
+								</p>
+							) : null}
 							{props.total30d != null ? (
 								<p className="group flex flex-wrap justify-start gap-4 border-b border-(--cards-border) py-1 last:border-none">
-									{pageTypeByDefinition[props.type]?.['30d'] ? (
-										<Tooltip
-											content={pageTypeByDefinition[props.type]['30d']}
-											className="text-(--text-label) underline decoration-dotted"
-										>
-											{metricName} (30d)
-										</Tooltip>
-									) : (
-										<span className="text-(--text-label)">{metricName} (30d)</span>
-									)}
+									{(() => {
+										const definition = pageTypeByDefinition[props.type]?.['30d']
+										return definition ? (
+											<Tooltip content={definition} className="text-(--text-label) underline decoration-dotted">
+												{metricName} (30d)
+											</Tooltip>
+										) : (
+											<span className="text-(--text-label)">{metricName} (30d)</span>
+										)
+									})()}
 									<span className="ml-auto font-jetbrains">{formattedNum(props.total30d, true)}</span>
 								</p>
 							) : null}
@@ -411,9 +415,9 @@ export function AdapterByChain(props: IProps) {
 					<AdapterByChainChart
 						chartData={props.chartData}
 						adapterType={props.adapterType}
-						dataType={props.dataType}
 						chain={props.chain}
-						chartName={metricName}
+						chartName={props.type}
+						dataType={props.dataType}
 					/>
 				</div>
 			) : null}
@@ -428,10 +432,7 @@ export function AdapterByChain(props: IProps) {
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={projectName}
-							onChange={(e) => {
-								setProjectName(e.target.value)
-							}}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							placeholder="Search..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
@@ -458,9 +459,11 @@ export function AdapterByChain(props: IProps) {
 						/>
 					)}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols` })}
+						smol
+					/>
 				</div>
-
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
 		</>
@@ -475,8 +478,28 @@ const columnSizes: ColumnSizesByBreakpoint = {
 }
 
 const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['name', 'total24h', 'open_interest', 'total7d', 'total30d', 'category', 'definition'],
-	640: ['name', 'category', 'definition', 'total24h', 'open_interest', 'total7d', 'total30d']
+	0: [
+		'name',
+		'normalizedVolume24h',
+		'total24h',
+		'openInterest',
+		'activeLiquidity',
+		'total7d',
+		'total30d',
+		'category',
+		'definition'
+	],
+	640: [
+		'name',
+		'normalizedVolume24h',
+		'category',
+		'definition',
+		'total24h',
+		'openInterest',
+		'activeLiquidity',
+		'total7d',
+		'total30d'
+	]
 }
 
 const protocolChartsKeys: Partial<Record<IProps['type'], (typeof protocolCharts)[keyof typeof protocolCharts]>> = {
@@ -501,8 +524,8 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 	'Perp Volume': 'perpsVolume'
 }
 
-const getColumnsOptions = (type) =>
-	columnsByType[type].map((c: any) => {
+const getColumnsOptions = (type: IProps['type']) =>
+	columnsByType[type].map((c) => {
 		let headerName: string
 		if (typeof c.header === 'function') {
 			switch (c.id) {
@@ -540,20 +563,20 @@ const getColumnsOptions = (type) =>
 					}
 					break
 				default:
-					headerName = c.id
+					headerName = c.id ?? ''
 			}
 		} else {
 			headerName = c.header as string
 		}
 
-		return { name: headerName, key: c.id ?? (c.accessorKey as string) }
+		return { name: headerName, key: c.id ?? ('accessorKey' in c ? (c.accessorKey as string) : '') }
 	})
 
 const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -570,11 +593,15 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 			const value = getValue() as string
 
 			const basePath =
-				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+				row.original.category &&
+				['Chain', 'Rollup'].includes(row.original.category) &&
+				row.original.slug !== 'berachain-incentive-buys'
 					? 'chain'
 					: 'protocol'
 			const chartKey =
-				['Chain', 'Rollup'].includes(row.original.category) && row.original.slug !== 'berachain-incentive-buys'
+				row.original.category &&
+				['Chain', 'Rollup'].includes(row.original.category) &&
+				row.original.slug !== 'berachain-incentive-buys'
 					? (chainChartsKeys[type] ?? protocolChartsKeys[type])
 					: protocolChartsKeys[type]
 
@@ -603,7 +630,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink
@@ -613,12 +640,14 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 							{value}
 						</BasicLink>
 
-						<Tooltip
-							content={<ProtocolChainsComponent chains={row.original.chains} />}
-							className="text-[0.7rem] text-(--text-disabled)"
-						>
-							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
-						</Tooltip>
+						{row.original.chains && (
+							<Tooltip
+								content={<ProtocolChainsComponent chains={row.original.chains} />}
+								className="text-[0.7rem] text-(--text-disabled)"
+							>
+								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
+							</Tooltip>
+						)}
 					</span>
 				</span>
 			)
@@ -641,7 +670,7 @@ const getColumnsByType = (
 				cell: ({ getValue }) =>
 					getValue() ? (
 						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
+							href={getCategoryRoute(slug(getValue() as string))}
 							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
@@ -709,7 +738,7 @@ const getColumnsByType = (
 				cell: ({ getValue }) =>
 					getValue() ? (
 						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
+							href={getCategoryRoute(slug(getValue() as string))}
 							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
@@ -777,7 +806,7 @@ const getColumnsByType = (
 				cell: ({ getValue }) =>
 					getValue() ? (
 						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
+							href={getCategoryRoute(slug(getValue() as string))}
 							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
@@ -976,8 +1005,29 @@ const getColumnsByType = (
 		'Perp Volume': [
 			NameColumn('Perp Volume'),
 			{
+				header: 'Normalized Volume 24h',
+				id: 'normalizedVolume24h',
+				accessorFn: (protocol) => protocol.normalizedVolume24h,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 180
+			},
+			{
 				id: 'total24h',
-				header: 'Perp Volume 24h',
+				header: 'Reported Volume 24h',
 				accessorFn: (protocol) => protocol.total24h,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1014,9 +1064,19 @@ const getColumnsByType = (
 			},
 			{
 				header: 'Open Interest',
-				id: 'open_interest',
+				id: 'openInterest',
 				accessorFn: (protocol) => protocol.openInterest,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its open interest is excluded from totals to avoid double-counting the underlying protocol's open interest" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.openInterest.protocol
@@ -1025,7 +1085,7 @@ const getColumnsByType = (
 			},
 			{
 				id: 'total7d',
-				header: 'Perp Volume 7d',
+				header: 'Reported Volume 7d',
 				accessorFn: (protocol) => protocol.total7d,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1062,7 +1122,7 @@ const getColumnsByType = (
 			},
 			{
 				id: 'total30d',
-				header: 'Perp Volume 30d',
+				header: 'Reported Volume 30d',
 				accessorFn: (protocol) => protocol.total30d,
 				cell: (info) => {
 					if (info.getValue() == null) return null
@@ -1148,6 +1208,27 @@ const getColumnsByType = (
 				meta: {
 					align: 'center',
 					headerHelperText: definitions.normalizedVolume.protocol['24h']
+				},
+				size: 160
+			},
+			{
+				id: 'activeLiquidity',
+				header: 'Active Liquidity',
+				accessorFn: (protocol) => protocol.activeLiquidity,
+				cell: (info) => {
+					if (info.getValue() != null && info.row.original.doublecounted) {
+						return (
+							<span className="flex items-center justify-end gap-1">
+								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its active liquidity is excluded from totals to avoid double-counting the underlying protocol's active liquidity" />
+								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+							</span>
+						)
+					}
+					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
+				},
+				meta: {
+					align: 'center',
+					headerHelperText: definitions.activeLiquidity.protocol
 				},
 				size: 160
 			},
@@ -1240,7 +1321,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['24h']
+					headerHelperText: definitions.perpsAggregators.protocol['24h'],
+					csvHeader: 'Perp Aggregator Volume 24h'
 				},
 				size: 160
 			},
@@ -1267,7 +1349,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['30d']
+					headerHelperText: definitions.perpsAggregators.protocol['30d'],
+					csvHeader: 'Perp Aggregator Volume 30d'
 				},
 				size: 160
 			}
@@ -1286,7 +1369,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['24h']
+					headerHelperText: definitions.bridgeAggregators.chain['24h'],
+					csvHeader: 'Bridge Aggregator Volume 24h'
 				},
 				size: 160
 			},
@@ -1313,7 +1397,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['30d']
+					headerHelperText: definitions.bridgeAggregators.chain['30d'],
+					csvHeader: 'Bridge Aggregator Volume 30d'
 				},
 				size: 160
 			}
@@ -1332,7 +1417,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['24h']
+					headerHelperText: definitions.dexAggregators.protocol['24h'],
+					csvHeader: 'DEX Aggregator Volume 24h'
 				},
 				size: 160
 			},
@@ -1359,7 +1445,8 @@ const getColumnsByType = (
 				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 				meta: {
 					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['30d']
+					headerHelperText: definitions.dexAggregators.protocol['30d'],
+					csvHeader: 'DEX Aggregator Volume 30d'
 				},
 				size: 160
 			}
@@ -1374,7 +1461,7 @@ const getColumnsByType = (
 				cell: ({ getValue }) =>
 					getValue() ? (
 						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
+							href={getCategoryRoute(slug(getValue() as string))}
 							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
@@ -1428,7 +1515,7 @@ const getColumnsByType = (
 				cell: ({ getValue }) =>
 					getValue() ? (
 						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
+							href={getCategoryRoute(slug(getValue() as string))}
 							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
@@ -1442,9 +1529,9 @@ const getColumnsByType = (
 				size: 128
 			},
 			{
-				id: 'pf',
+				id: 'pfOrPs',
 				header: 'P/F',
-				accessorFn: (protocol) => protocol.pf,
+				accessorFn: (protocol) => protocol.pfOrPs,
 				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
 				meta: {
 					align: 'center',
@@ -1463,7 +1550,7 @@ const getColumnsByType = (
 				cell: ({ getValue }) =>
 					getValue() ? (
 						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
+							href={getCategoryRoute(slug(getValue() as string))}
 							className="text-sm font-medium text-(--link-text)"
 						>
 							{getValue() as string}
@@ -1477,9 +1564,9 @@ const getColumnsByType = (
 				size: 128
 			},
 			{
-				id: 'ps',
+				id: 'pfOrPs',
 				header: 'P/S',
-				accessorFn: (protocol) => protocol.ps,
+				accessorFn: (protocol) => protocol.pfOrPs,
 				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
 				meta: {
 					align: 'center',

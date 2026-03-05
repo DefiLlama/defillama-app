@@ -1,17 +1,20 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { AppProps } from 'next/app'
+import type { AppProps } from 'next/app'
 import Head from 'next/head'
 import Router, { useRouter } from 'next/router'
 import '~/tailwind.css'
 import '~/nprogress.css'
 import Script from 'next/script'
 import NProgress from 'nprogress'
-import { useEffect, useRef } from 'react'
-import { LlamaAIFloatingButton } from '~/components/LlamaAIFloatingButton'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { UserSettingsSync } from '~/components/UserSettingsSync'
 import { AuthProvider, useAuthContext } from '~/containers/Subscribtion/auth'
+import { useUmamiIdentityTracker } from '~/hooks/useUmamiIdentityTracker'
 
+const LlamaAIFloatingButton = lazy(() =>
+	import('~/components/LlamaAIFloatingButton').then((m) => ({ default: m.LlamaAIFloatingButton }))
+)
 NProgress.configure({ showSpinner: false })
 
 const CHUNK_LOAD_ERROR_KEY = 'chunk-load-error-reload'
@@ -127,6 +130,8 @@ function App({ Component, pageProps }: AppProps) {
 	const { hasActiveSubscription } = useAuthContext()
 	const showFloatingButton = hasActiveSubscription && !router.pathname.includes('/ai/chat')
 
+	useUmamiIdentityTracker()
+
 	return (
 		<>
 			<Head>
@@ -135,12 +140,16 @@ function App({ Component, pageProps }: AppProps) {
 			</Head>
 			<Script
 				src="/script2.js"
-				strategy="afterInteractive"
+				strategy="lazyOnload"
 				data-website-id="ca346731-f7ec-437f-9727-162f29bb67ae"
 				data-host-url="https://tasty.defillama.com"
 			/>
 
-			{showFloatingButton ? <LlamaAIFloatingButton /> : null}
+			{showFloatingButton ? (
+				<Suspense fallback={null}>
+					<LlamaAIFloatingButton />
+				</Suspense>
+			) : null}
 
 			<Component {...pageProps} />
 		</>

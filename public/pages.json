@@ -64,6 +64,13 @@
       "oldName": "Top Protocols"
     },
     {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Total Value Locked",
@@ -72,13 +79,6 @@
       "tab": "Chains",
       "oldCategory": "Market Overview",
       "oldName": "Bridged TVL"
-    },
-    {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
     },
     {
       "name": "Forks",
@@ -165,7 +165,7 @@
     },
     {
       "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
+      "route": "/yields/strategy-long-short",
       "category": "Yields",
       "description": "Find 'long-short' strategies across all our tracked pools",
       "oldCategory": "Yields",
@@ -461,18 +461,31 @@
       "tab": "Protocols"
     },
     {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
+      "name": "RWA: Overview",
+      "route": "/rwa",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs)",
+      "tags": [
+        "New"
+      ]
     },
     {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
+    },
+    {
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category"
+    },
+    {
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
       "name": "NFTs: Collections",
@@ -510,6 +523,22 @@
       "oldName": "Volume (Chains)"
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -530,20 +559,42 @@
       "oldName": "Chains"
     },
     {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
     },
     {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols",
+      "oldName": "Treasuries"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
+      "totalTrackedKey": "treasury.protocols",
       "tab": "Protocols"
+    },
+    {
+      "name": "Treasury: Entities",
+      "route": "/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity",
+      "totalTrackedKey": "treasury.entities"
     },
     {
       "name": "Unlocks: Overview",
@@ -571,30 +622,6 @@
       "oldName": "Calendar"
     },
     {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols",
-      "oldName": "Treasuries"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding its own token",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Treasury: Entities",
-      "route": "/entities",
-      "category": "Treasury",
-      "description": "Treasury by entity",
-      "totalTrackedKey": "treasury.entities"
-    },
-    {
       "name": "Raises: Overview",
       "route": "/raises",
       "category": "Raises",
@@ -611,33 +638,6 @@
       "totalTrackedKey": "raises.investors",
       "oldCategory": "Raises",
       "oldName": "Investors"
-    },
-    {
-      "name": "RWA: Overview",
-      "route": "/rwa",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs)",
-      "tags": [
-        "New"
-      ]
-    },
-    {
-      "name": "RWA by Chain",
-      "route": "/rwa/chains",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by chain"
-    },
-    {
-      "name": "RWA by Category",
-      "route": "/rwa/categories",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by category"
-    },
-    {
-      "name": "RWA by Platform",
-      "route": "/rwa/platforms",
-      "category": "RWA",
-      "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
       "name": "CEXs",
@@ -680,6 +680,13 @@
       "oldName": "Governance"
     },
     {
+      "name": "Safe Harbor Agreements",
+      "route": "/safe-harbor-agreements",
+      "category": "Others",
+      "description": "Overview of protocols with Safe Harbor Agreements",
+      "totalTrackedKey": "safeHarbor.protocols"
+    },
+    {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
@@ -688,11 +695,12 @@
       "tab": "Protocols"
     },
     {
-      "name": "Safe Harbor Agreements",
-      "route": "/safe-harbor-agreements",
+      "name": "Token Rights",
+      "route": "/token-rights",
       "category": "Others",
-      "description": "Overview of protocols with Safe Harbor Agreements",
-      "totalTrackedKey": "safeHarbor.protocols"
+      "description": "List of protocols with token rights",
+      "tab": "Protocols",
+      "oldName": "Token Rights"
     }
   ],
   "Tools": [
@@ -713,24 +721,16 @@
       "oldName": "Correlations Matrix"
     },
     {
-      "name": "DeFi Watchlist",
-      "route": "/watchlist",
-      "category": "Tools",
-      "description": "Watchlist of all protocols on DefiLlama",
-      "oldName": "Watchlist"
-    },
-    {
       "name": "Sheets",
       "route": "/sheets",
       "category": "Tools",
       "description": "Access DeFi data right in your spreadsheets"
     },
     {
-      "name": "Yields: Watchlist",
-      "route": "/yields/watchlist",
+      "name": "DeFi Watchlist",
+      "route": "/watchlist",
       "category": "Tools",
-      "description": "Watchlist of all pools that we track in our yields section",
-      "oldCategory": "Yields",
+      "description": "Watchlist of all protocols on DefiLlama",
       "oldName": "Watchlist"
     },
     {
@@ -749,12 +749,12 @@
       "oldName": "Simple"
     },
     {
-      "name": "Protocols Website Directory",
-      "route": "/directory",
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist",
       "category": "Tools",
-      "description": "Directory of all protocols websites on DefiLlama",
-      "tab": "Protocols",
-      "oldName": "Directory"
+      "description": "Watchlist of all pools that we track in our yields section",
+      "oldCategory": "Yields",
+      "oldName": "Watchlist"
     },
     {
       "name": "Borrow Aggregator: Advanced",
@@ -763,6 +763,14 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
+    },
+    {
+      "name": "Protocols Website Directory",
+      "route": "/directory",
+      "category": "Tools",
+      "description": "Directory of all protocols websites on DefiLlama",
+      "tab": "Protocols",
+      "oldName": "Directory"
     },
     {
       "name": "Transactions by Bridge",

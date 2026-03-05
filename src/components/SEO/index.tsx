@@ -18,7 +18,7 @@ interface ILinkPreviewCardProps {
 	isCEX?: boolean
 }
 
-// page title, description, keywords
+// page title and description
 // cardName ? optional
 // value name & tvl ? optional
 
@@ -41,9 +41,10 @@ export const LinkPreviewCard = ({
 }: ILinkPreviewCardProps) => {
 	const windowURL = typeof window !== 'undefined' && window.location.href ? window.location.href : ''
 
-	const isTvlValid = unlockPage ? true : tvl && tvl !== '$0'
+	const isTvlValid = unlockPage ? true : typeof tvl === 'string' && tvl !== '$0'
 
-	const isVolumeChangeValid = volumeChange && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
+	const isVolumeChangeValid =
+		typeof volumeChange === 'string' && volumeChange !== 'NaN%' && volumeChange !== 'undefined%'
 
 	const cardURL = (() => {
 		let cardSrc = new URL(`https://og-cards-chi.vercel.app/`)
@@ -85,11 +86,11 @@ export const LinkPreviewCard = ({
 
 		cardSrc.searchParams.append('valueHeader', valueHeader)
 
-		if (isTvlValid) {
+		if (isTvlValid && typeof tvl === 'string') {
 			cardSrc.searchParams.append('tvl', tvl)
 		}
 
-		if (isVolumeChangeValid) {
+		if (isVolumeChangeValid && typeof volumeChange === 'string') {
 			cardSrc.searchParams.append('volumeChange', volumeChange)
 		}
 
@@ -129,18 +130,17 @@ export const LinkPreviewCard = ({
 export interface ISEOProps {
 	title: string
 	description?: string
-	keywords?: string
 	canonicalUrl?: string
 }
 
-export function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
-	const url = `https://defillama.com${slug(canonicalUrl ?? '')}`
+export function SEO({ title, description, canonicalUrl }: ISEOProps) {
+	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
+	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>
-			<link rel="canonical" href={url} />
+			{canonicalUrl != null ? <link rel="canonical" href={url} /> : <meta name="robots" content="noindex" />}
 			<title>{title}</title>
 			{description ? <meta name="description" content={description} /> : null}
-			{keywords ? <meta name="keywords" content={keywords} /> : null}
 			<meta property="og:title" content={title} />
 			<meta property="og:type" content="website" />
 			<meta property="og:url" content={url} />

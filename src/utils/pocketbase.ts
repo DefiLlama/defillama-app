@@ -1,7 +1,7 @@
-import PocketBase, { RecordModel } from 'pocketbase'
+import PocketBase, { type RecordModel } from 'pocketbase'
 import { POCKETBASE_URL } from '~/constants'
 
-export const pb = new PocketBase(POCKETBASE_URL)
+const pb = new PocketBase(POCKETBASE_URL)
 
 export interface AuthModel extends RecordModel {
 	id: string

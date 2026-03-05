@@ -1,8 +1,10 @@
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
+	const router = useRouter()
 	const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const [inputValue, setInputValue] = useState(defaultValue ?? '')
@@ -22,14 +24,14 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 			clearTimeout(timeoutRef.current)
 		}
 		timeoutRef.current = setTimeout(() => {
-			const params = new URLSearchParams(window.location.search)
-			params.delete('page')
-			if (value) {
-				params.set('query', value)
-			} else {
-				params.delete('query')
-			}
-			Router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
+			pushShallowQuery(
+				router,
+				{
+					page: undefined,
+					query: value || undefined
+				},
+				'/pro'
+			)
 		}, 300)
 	}
 
@@ -41,10 +43,14 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
-		const params = new URLSearchParams(window.location.search)
-		params.delete('page')
-		params.delete('query')
-		Router.push(`/pro?${params.toString()}`, undefined, { shallow: true })
+		pushShallowQuery(
+			router,
+			{
+				page: undefined,
+				query: undefined
+			},
+			'/pro'
+		)
 	}
 
 	return (
@@ -62,7 +68,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 					value={inputValue}
 					onChange={(e) => handleChange(e.target.value)}
 					placeholder="Search dashboards…"
-					className="w-full rounded-md border border-(--form-control-border) bg-(--cards-bg) py-2.5 pr-9 pl-9 text-sm transition-shadow duration-150 focus:border-(--primary) focus:shadow-[0_0_0_3px_rgba(var(--primary-rgb),0.15)] focus:outline-none"
+					className="w-full rounded-md border border-(--form-control-border) bg-(--cards-bg) py-2.5 pr-9 pl-9 text-sm transition-shadow duration-150 focus:border-(--primary) focus:shadow-[0_0_0_3px_rgba(var(--primary-rgb),0.15)] focus:outline-hidden"
 				/>
 				{inputValue && (
 					<button

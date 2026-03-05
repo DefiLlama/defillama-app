@@ -2,26 +2,25 @@ import dayjs from 'dayjs'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
-import { getAllProtocolEmissions } from '~/api/categories/protocols'
+import { lazy, useMemo } from 'react'
 import { Announcement } from '~/components/Announcement'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TagGroup } from '~/components/TagGroup'
-import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpact'
-import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
 import { CHART_COLORS } from '~/constants/colors'
+import { PastUnlockPriceImpact } from '~/containers/Unlocks/PastUnlockPriceImpact'
+import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { UnlocksTable } from '~/containers/Unlocks/Table'
+import { TopUnlocks } from '~/containers/Unlocks/TopUnlocks'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 dayjs.extend(weekOfYear)
 
@@ -29,12 +28,11 @@ const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
-const calculateUnlockStatistics = (data) => {
+const calculateUnlockStatistics = (data, nowSec: number) => {
 	let upcomingUnlocks30dValue = 0
 	let upcomingUnlocks7dValue = 0
-	const now = Date.now() / 1000
-	const thirtyDaysLater = now + 30 * 24 * 60 * 60
-	const sevenDaysLater = now + 7 * 24 * 60 * 60
+	const thirtyDaysLater = nowSec + 30 * 24 * 60 * 60
+	const sevenDaysLater = nowSec + 7 * 24 * 60 * 60
 
 	if (data) {
 		for (const protocol of data) {
@@ -53,10 +51,10 @@ const calculateUnlockStatistics = (data) => {
 				}
 
 				const valueUSD = totalTokens * protocol.tPrice
-				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= thirtyDaysLater) {
 					upcomingUnlocks30dValue += valueUSD
 				}
-				if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= sevenDaysLater) {
 					upcomingUnlocks7dValue += valueUSD
 				}
 			}
@@ -71,14 +69,14 @@ const calculateUnlockStatistics = (data) => {
 }
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
+	const generatedAtSec = Math.floor(Date.now() / 1000)
 	const data = await getAllProtocolEmissions({
-		endDate: Date.now() / 1000 + 30 * 24 * 60 * 60
+		endDate: generatedAtSec + 30 * 24 * 60 * 60
 	})
-	const unlockStats = calculateUnlockStatistics(data)
 	return {
 		props: {
 			data,
-			unlockStats
+			generatedAtSec
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -112,25 +110,34 @@ const EMPTY_CHART_RESULT = {
 	charts: [] as NonNullable<IMultiSeriesChart2Props['charts']>
 }
 
-function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
-	const [isFullView, setIsFullView] = useState(false)
-	const [viewMode, setViewMode] = useState<ViewMode>('Total View')
-	const { chartInstance: exportChartInstance, handleChartReady: handleImageExportReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleCsvExportReady } = useChartCsvExport()
+function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: any[]; initialNowSec: number }) {
+	const router = useRouter()
 
-	const handleChartReady = React.useCallback(
-		(instance: any) => {
-			handleImageExportReady(instance)
-			handleCsvExportReady(instance)
+	const updateQueryParam = React.useCallback(
+		(key: string, value: string, defaultValue: string) => {
+			pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
 		},
-		[handleImageExportReady, handleCsvExportReady]
+		[router]
 	)
 
-	const { dataset, charts } = useMemo(() => {
-		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
+	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
+	const timePeriod: TimePeriod =
+		chartGroupParam && (TIME_PERIODS as readonly string[]).includes(chartGroupParam)
+			? (chartGroupParam as TimePeriod)
+			: 'Weekly'
 
-		const now = Date.now() / 1000
+	const chartViewParam = readSingleQueryValue(router.query.chartView)
+	const viewMode: ViewMode =
+		chartViewParam && (VIEW_MODES as readonly string[]).includes(chartViewParam)
+			? (chartViewParam as ViewMode)
+			: 'Total View'
+
+	const isFullView = false
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
+
+	const now = initialNowSec
+	const unlockChartData = useMemo(() => {
+		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
 		const endTs = isFullView ? Infinity : END_TIMESTAMP
 		const isTotalView = viewMode === 'Total View'
 
@@ -213,26 +220,26 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 				color: CHART_COLORS[i % CHART_COLORS.length]
 			}))
 		}
-	}, [protocols, timePeriod, isFullView, viewMode])
+	}, [protocols, timePeriod, isFullView, viewMode, now])
+	const deferredChartData = React.useDeferredValue(unlockChartData)
 
 	return (
 		<>
-			{dataset.source.length > 0 ? (
-				<Suspense fallback={<></>}>
-					<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+			{unlockChartData.dataset.source.length > 0 ? (
+				<>
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
 						<TagGroup
 							selectedValue={timePeriod}
-							setValue={(value: TimePeriod) => setTimePeriod(value)}
+							setValue={(value: TimePeriod) => updateQueryParam('chartGroup', value, 'Weekly')}
 							values={TIME_PERIODS as unknown as string[]}
 						/>
 						<TagGroup
 							selectedValue={viewMode}
-							setValue={(value: ViewMode) => setViewMode(value)}
+							setValue={(value: ViewMode) => updateQueryParam('chartView', value, 'Total View')}
 							values={VIEW_MODES as unknown as string[]}
 						/>
-						<ChartCsvExportButton chartInstance={exportChartCsvInstance} filename="upcoming-unlocks" />
-						<ChartExportButton
+						<ChartExportButtons
 							chartInstance={exportChartInstance}
 							filename="upcoming-unlocks"
 							title="Upcoming Unlocks"
@@ -240,15 +247,15 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 					</div>
 					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={dataset}
-							charts={charts}
+							dataset={deferredChartData.dataset}
+							charts={deferredChartData.charts}
 							hideDefaultLegend={viewMode === 'Total View'}
 							groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>
 					</React.Suspense>
-				</Suspense>
+				</>
 			) : (
 				<p className="flex items-center justify-center" style={{ height: '360px' }}>
 					No upcoming unlock data available for the selected period.
@@ -258,23 +265,21 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	)
 }
 
-export default function Protocols({ data, unlockStats }) {
-	const [projectName, setProjectName] = React.useState('')
-	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
+export default function Protocols({ data, generatedAtSec }: { data: any[]; generatedAtSec: number }) {
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
-	const { minUnlockValue, maxUnlockValue } = router.query
-	const min = typeof minUnlockValue === 'string' && minUnlockValue !== '' ? Number(minUnlockValue) : null
-	const max = typeof maxUnlockValue === 'string' && maxUnlockValue !== '' ? Number(maxUnlockValue) : null
+	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
-	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
+	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = useMemo(
+		() => calculateUnlockStatistics(data, generatedAtSec),
+		[data, generatedAtSec]
+	)
 
 	return (
 		<Layout
-			title={`Unlocks - DefiLlama`}
+			title={`Upcoming Token Unlocks Schedule - DefiLlama`}
 			description={`Unlocks by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`unlocks, defi unlocks, upcoming token unlocks, token emissions, emissions`}
 			canonicalUrl={`/unlocks`}
 			pageName={pageName}
 		>
@@ -313,45 +318,37 @@ export default function Protocols({ data, unlockStats }) {
 						<Icon name="arrow-right" className="h-4 w-4" />
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<UpcomingUnlockVolumeChart protocols={data} />
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<UpcomingUnlockVolumeChart protocols={data} initialNowSec={generatedAtSec} />
 				</div>
 			</div>
 
-			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-fit"></div>}>
-				<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-					<TopUnlocks
-						data={data}
-						period={1}
-						title="24h Top Unlocks"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
+			<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+				<TopUnlocks
+					data={data}
+					period={1}
+					title="24h Top Unlocks"
+					initialNowSec={generatedAtSec}
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
 
-					<TopUnlocks
-						data={data}
-						period={30}
-						title="30d Top Unlocks"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
+				<TopUnlocks
+					data={data}
+					period={30}
+					title="30d Top Unlocks"
+					initialNowSec={generatedAtSec}
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
 
-					<PastUnlockPriceImpact
-						data={data}
-						title="Post Unlock Price Impact"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
-				</div>
-			</Suspense>
+				<PastUnlockPriceImpact
+					data={data}
+					title="Post Unlock Price Impact"
+					initialNowSec={generatedAtSec}
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
+			</div>
 
-			<UnlocksTable
-				protocols={data}
-				showOnlyWatchlist={showOnlyWatchlist}
-				setShowOnlyWatchlist={setShowOnlyWatchlist}
-				projectName={projectName}
-				setProjectName={setProjectName}
-				savedProtocols={savedProtocols}
-				minUnlockValue={min}
-				maxUnlockValue={max}
-			/>
+			<UnlocksTable protocols={data} showOnlyWatchlist={showOnlyWatchlist} savedProtocols={savedProtocols} />
 		</Layout>
 	)
 }

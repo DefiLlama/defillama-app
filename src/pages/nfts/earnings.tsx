@@ -1,12 +1,11 @@
-import { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { FallbackLogo, TokenLogo } from '~/components/TokenLogo'
 import { getNFTCollectionEarnings } from '~/containers/Nft/queries'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('nfts/earnings', async () => {
@@ -27,9 +26,8 @@ function Earnings({ earnings }) {
 	//x
 	return (
 		<Layout
-			title="NFT Earnings - DefiLlama"
+			title="NFT Creator Earnings & Royalties - DefiLlama"
 			description={`NFT Earnings by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nft earnings, defi nft earnings`}
 			canonicalUrl={`/nfts/earnings`}
 			pageName={pageName}
 		>
@@ -39,6 +37,7 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
+				csvFileName="nft-earnings"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
@@ -97,7 +96,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
+					{logo ? <TokenLogo src={logo} alt={`Logo of ${value}`} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
 						<a

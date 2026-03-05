@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { chainIconUrl } from '~/utils'
 

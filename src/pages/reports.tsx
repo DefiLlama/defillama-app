@@ -5,7 +5,6 @@ export default function Protocols() {
 		<Layout
 			title={`Reports - DefiLlama`}
 			description={`Reports on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords=""
 			canonicalUrl={`/reports`}
 		>
 			<h1 className="text-center font-semibold">Reports</h1>

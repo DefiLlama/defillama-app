@@ -1,9 +1,10 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent, peggedAssetIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface IPeggedAssetRow {
 	name: string
@@ -31,7 +32,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<TokenLogo logo={peggedAssetIconUrl(name)} data-lgonly />
+					<TokenLogo name={name} kind="pegged" alt={`Logo of ${name}`} data-lgonly />
 					<BasicLink
 						href={`/stablecoins/${row.original.gecko_id || name}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -89,7 +90,11 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
+			return (
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
+			)
 		},
 		size: 100,
 		meta: {
@@ -101,7 +106,11 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
+			return (
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
+			)
 		},
 		size: 100,
 		meta: {
@@ -113,7 +122,11 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		accessorKey: 'change_1m',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{formattedPercent(value)}</span>
+			return (
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
+			)
 		},
 		size: 100,
 		meta: {

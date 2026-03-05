@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useIsClient } from '~/hooks/useIsClient'
 
 const EXAMPLE_CONVERSATIONS = [
 	{
@@ -177,20 +178,16 @@ export default function LlamaAIGetStarted() {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
-	const [mounted, setMounted] = useState(false)
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
 
-	useEffect(() => {
-		setMounted(true)
-	}, [])
+	const isClient = useIsClient()
 
 	return (
 		<>
 			<SEO
 				title="LlamaAI - DefiLlama"
 				description="Ask questions, generate charts, and explore any DeFi metric instantly. LlamaAI brings the power of DefiLlama's comprehensive data to your fingertips through natural conversation."
-				keywords="LlamaAI, DefiLlama AI, DeFi AI"
-				canonicalUrl="https://defillama.com/ai"
+				canonicalUrl="/ai"
 			/>
 			<style>{`
 				@keyframes cta-glow-pulse {
@@ -208,14 +205,13 @@ export default function LlamaAIGetStarted() {
 						href="/"
 						className="inline-block w-fit opacity-70 transition-opacity duration-300 hover:opacity-100"
 					>
-						<span className="sr-only">Navigate to Home Page</span>
+						<span className="sr-only">Navigate to DeFi Dashboard</span>
 						<img
 							src="/assets/defillama.webp"
 							height={36}
 							width={105}
 							className="hidden object-contain object-left dark:block"
 							alt=""
-							fetchPriority="high"
 						/>
 						<img
 							src="/assets/defillama-dark.webp"
@@ -223,7 +219,6 @@ export default function LlamaAIGetStarted() {
 							width={105}
 							className="object-contain object-left dark:hidden"
 							alt=""
-							fetchPriority="high"
 						/>
 					</BasicLink>
 				</header>
@@ -236,7 +231,7 @@ export default function LlamaAIGetStarted() {
 							className={clsx(
 								'relative z-10 flex flex-col items-center text-center md:items-start md:text-left',
 								'transition-all duration-700',
-								mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+								isClient ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
 							)}
 						>
 							{/* Llama Icon */}
@@ -284,7 +279,7 @@ export default function LlamaAIGetStarted() {
 							className={clsx(
 								'relative w-full',
 								'transition-all delay-200 duration-700',
-								mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+								isClient ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
 							)}
 						>
 							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">

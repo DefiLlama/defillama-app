@@ -115,7 +115,7 @@ export function YieldsFiltersPanel({
 
 					<div className="space-y-3">
 						<div>
-							<label className="mb-2 block text-xs font-medium pro-text2">Total APY Range</label>
+							<p className="mb-2 block text-xs font-medium pro-text2">Total APY Range</p>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
@@ -136,7 +136,7 @@ export function YieldsFiltersPanel({
 						</div>
 
 						<div>
-							<label className="mb-2 block text-xs font-medium pro-text2">Base APY Range</label>
+							<p className="mb-2 block text-xs font-medium pro-text2">Base APY Range</p>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
@@ -192,7 +192,7 @@ export function YieldsFiltersPanel({
 
 					<div className="space-y-3">
 						<div>
-							<label className="mb-2 block text-xs font-medium pro-text2">TVL Range (USD)</label>
+							<p className="mb-2 block text-xs font-medium pro-text2">TVL Range (USD)</p>
 							<div className="flex items-center gap-2">
 								<input
 									type="text"
@@ -248,7 +248,7 @@ export function YieldsFiltersPanel({
 						</label>
 
 						<div className="mt-4">
-							<label className="mb-3 block text-xs font-medium pro-text2">Pool Categories</label>
+							<p className="mb-3 block text-xs font-medium pro-text2">Pool Categories</p>
 							<div className="space-y-2">
 								{['DEX', 'Lending', 'Staking', 'CDP', 'Bridge', 'Yield Aggregator'].map((type) => (
 									<label key={type} className="group flex cursor-pointer items-center gap-2">

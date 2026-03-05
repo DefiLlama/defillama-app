@@ -63,7 +63,7 @@ export const sampleProtocol = {
 	}
 }
 
-export const FIELD_ALIASES = {
+const FIELD_ALIASES = {
 	mcap: 'mcap',
 	// TVL fields
 	tvl: 'tvl_default_tvl',

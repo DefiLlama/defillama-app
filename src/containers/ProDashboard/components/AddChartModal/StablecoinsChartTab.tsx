@@ -3,12 +3,12 @@ import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/E
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import {
-	StablecoinAssetInfo,
+	type StablecoinAssetInfo,
 	useStablecoinAssetChartData,
 	useStablecoinAssetsList
 } from '~/containers/ProDashboard/components/datasets/StablecoinAssetDataset/useStablecoinAssetChartData'
 import {
-	StablecoinChainInfo,
+	type StablecoinChainInfo,
 	useStablecoinChainsList,
 	useStablecoinsChartData
 } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
@@ -19,7 +19,7 @@ import {
 } from '~/containers/ProDashboard/utils/colorManager'
 import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
 import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -208,7 +208,7 @@ export function StablecoinsChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
+							color="#3e79cc"
 							chartOptions={chartOptions}
 						/>
 					</Suspense>
@@ -277,7 +277,7 @@ export function StablecoinsChartTab({
 							</div>
 						}
 					>
-						<BarChart chartData={usdInflows} color="#4f8fea" title="" />
+						<BarChart chartData={usdInflows} color="#3e79cc" title="" />
 					</Suspense>
 				)
 			case 'tokenInflows':
@@ -331,7 +331,7 @@ export function StablecoinsChartTab({
 							valueSymbol="$"
 							hideDefaultLegend={true}
 							hallmarks={EMPTY_HALLMARKS}
-							color="#4f8fea"
+							color="#3e79cc"
 							chartOptions={chartOptions}
 						/>
 					</Suspense>

@@ -1,9 +1,9 @@
 import { Icon, type IIcon } from '~/components/Icon'
-import { ChartTabType } from './types'
+import type { ChartTabType } from './types'
 
 type IconName = IIcon['name']
 
-export interface CategoryCardData {
+interface CategoryCardData {
 	id: ChartTabType
 	title: string
 	description: string
@@ -68,7 +68,8 @@ interface CategoryCardProps {
 	onClick: () => void
 }
 
-export function CategoryCard({ card, onClick }: CategoryCardProps) {
+// oxlint-disable-next-line no-unused-vars
+function CategoryCard({ card, onClick }: CategoryCardProps) {
 	return (
 		<button
 			onClick={onClick}

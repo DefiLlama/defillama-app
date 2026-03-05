@@ -1,20 +1,20 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -52,6 +52,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -79,7 +80,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 		instance.setColumnOrder(defaultOrder)
 	}, [instance, width])
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
@@ -145,8 +146,7 @@ export function StablecoinsDataset({ chain }: StablecoinsDatasetProps) {
 						<input
 							type="text"
 							placeholder="Search stablecoins..."
-							value={projectName}
-							onChange={(e) => setProjectName(e.target.value)}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

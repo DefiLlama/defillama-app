@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { maxAgeForNext } from '~/api'
+import { startTransition, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import YieldPage from '~/containers/Yields'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const methodologyMessage = `
@@ -131,9 +131,8 @@ export default function YieldPlots(data) {
 
 	return (
 		<Layout
-			title={`Halal - DefiLlama Yield`}
+			title={`Halal DeFi Yield Opportunities - DefiLlama`}
 			description={`Halal defi yields. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`halal defi yields, halal defi`}
 			canonicalUrl={`/yields/halal`}
 			pageName={pageName}
 		>
@@ -147,7 +146,7 @@ export default function YieldPlots(data) {
 				We're not islamic scholars, this is just meant as a useful tool.
 				<br />
 				<button
-					onClick={() => setMethodologyActivated((prev) => !prev)}
+					onClick={() => startTransition(() => setMethodologyActivated((prev) => !prev))}
 					className="mx-auto block font-medium text-(--blue) hover:underline"
 				>
 					Full explanation of methodology

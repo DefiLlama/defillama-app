@@ -1,10 +1,15 @@
+import bridgeChainSlugsRaw from '../../../.cache/bridgeChainSlugs.json'
+import bridgeChainSlugToNameRaw from '../../../.cache/bridgeChainSlugToName.json'
+import bridgeProtocolSlugsRaw from '../../../.cache/bridgeProtocolSlugs.json'
 import categoriesAndTags from '../../../.cache/categoriesAndTags.json'
 import cexs from '../../../.cache/cexs.json'
+import cgExchangeIdentifiersRaw from '../../../.cache/cgExchangeIdentifiers.json'
 import chainMetadata from '../../../.cache/chains.json'
 import protocolMetadata from '../../../.cache/protocols.json'
 import rwaList from '../../../.cache/rwa.json'
+import tokenlistRaw from '../../../.cache/tokenlist.json'
 import { fetchCoreMetadata } from './fetch'
-import { ICexItem, IChainMetadata, IProtocolMetadata, IRWAList } from './types'
+import type { ICexItem, IChainMetadata, IProtocolMetadata, IRWAList, ITokenListEntry } from './types'
 
 const metadataCache: {
 	chainMetadata: Record<string, IChainMetadata>
@@ -16,12 +21,22 @@ const metadataCache: {
 	}
 	cexs: Array<ICexItem>
 	rwaList: IRWAList
+	tokenlist: Record<string, ITokenListEntry>
+	cgExchangeIdentifiers: string[]
+	bridgeProtocolSlugs: string[]
+	bridgeChainSlugs: string[]
+	bridgeChainSlugToName: Record<string, string>
 } = {
 	chainMetadata,
 	protocolMetadata,
 	categoriesAndTags,
 	cexs,
-	rwaList
+	rwaList,
+	tokenlist: tokenlistRaw as Record<string, ITokenListEntry>,
+	cgExchangeIdentifiers: cgExchangeIdentifiersRaw as string[],
+	bridgeProtocolSlugs: bridgeProtocolSlugsRaw as string[],
+	bridgeChainSlugs: bridgeChainSlugsRaw as string[],
+	bridgeChainSlugToName: bridgeChainSlugToNameRaw as Record<string, string>
 }
 
 // On-demand refresh with TTL (1 hour) and concurrency-safe deduplication
@@ -36,7 +51,12 @@ async function doRefresh(): Promise<void> {
 			chains,
 			categoriesAndTags: catAndTags,
 			cexs: cexData,
-			rwaList: rwaListData
+			rwaList: rwaListData,
+			tokenlist,
+			cgExchangeIdentifiers: cgExIds,
+			bridgeProtocolSlugs,
+			bridgeChainSlugs,
+			bridgeChainSlugToName
 		} = await fetchCoreMetadata()
 
 		metadataCache.protocolMetadata = protocols
@@ -44,10 +64,14 @@ async function doRefresh(): Promise<void> {
 		metadataCache.categoriesAndTags = catAndTags
 		metadataCache.cexs = cexData
 		metadataCache.rwaList = rwaListData
+		metadataCache.cgExchangeIdentifiers = cgExIds
+		metadataCache.tokenlist = tokenlist
+		metadataCache.bridgeProtocolSlugs = bridgeProtocolSlugs
+		metadataCache.bridgeChainSlugs = bridgeChainSlugs
+		metadataCache.bridgeChainSlugToName = bridgeChainSlugToName
 
 		lastRefreshMs = Date.now()
 	} catch (err) {
-		// On failure, keep old cache and log error; don't update lastRefreshMs so next call retries
 		console.error('[metadata] refresh failed, keeping stale cache:', err)
 	}
 }

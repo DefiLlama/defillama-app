@@ -1,5 +1,7 @@
-import { ChartConfig, DashboardItemConfig } from '../../types'
-import { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
+import type { ChartConfig, DashboardItemConfig } from '../../types'
+import type { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
+
+const EMPTY_ARRAY: string[] = []
 
 interface SubmitButtonProps {
 	editItem?: DashboardItemConfig | null
@@ -45,16 +47,16 @@ export function SubmitButton({
 	selectedMainTab,
 	selectedChartTab,
 	selectedChain: _selectedChain,
-	selectedChains: _selectedChains = [],
+	selectedChains: _selectedChains = EMPTY_ARRAY,
 	selectedProtocol: _selectedProtocol,
-	selectedChartTypes = [],
+	selectedChartTypes = EMPTY_ARRAY,
 	selectedYieldPool,
 	composerItems,
 	textContent,
 	chartTypesLoading,
 	selectedTableType = 'protocols',
 	selectedDatasetChain,
-	selectedTokens = [],
+	selectedTokens = EMPTY_ARRAY,
 	chartBuilder,
 	chartCreationMode = 'separate',
 	chartMode = 'manual',

@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
-import { NftsCollectionTable } from '~/components/Table/Nfts/Collections'
+import type { InferGetStaticPropsType } from 'next'
+import { NftsCollectionTable } from '~/containers/Nft/NftsCollectionTable'
 import { getNFTData } from '~/containers/Nft/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('nfts', async () => {
@@ -17,12 +18,11 @@ export const getStaticProps = withPerformanceLogging('nfts', async () => {
 
 const pageName = ['NFTs Collections']
 
-export default function NFTHomePage(props) {
+export default function NFTHomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="NFTs Collections - DefiLlama"
+			title="Top NFT Collections by Market Cap - DefiLlama"
 			description={`Track NFTs collections floor price, 24h volume and total supply. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nfts collections, nfts on blockchain`}
 			canonicalUrl={`/nfts`}
 			pageName={pageName}
 		>

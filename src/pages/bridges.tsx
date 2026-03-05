@@ -1,7 +1,7 @@
-import { maxAgeForNext } from '~/api'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
 import { getBridgeOverviewPageData } from '~/containers/Bridges/queries.server'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridges', async () => {
@@ -32,15 +32,16 @@ export default function Bridges({
 	chartDataByBridge,
 	chain,
 	chainVolumeData,
+	rawBridgeVolumeData,
+	netflowsData,
 	bridgeStatsCurrentDay,
 	largeTxsData
 	//backgroundColor
 }) {
 	return (
 		<Layout
-			title={`Bridge Volume - DefiLlama`}
+			title={`Cross-Chain Bridge Volume & Rankings - DefiLlama`}
 			description={`Track bridge volume and cross-chain transfers on DefiLlama. Bridge volume includes sum of all assets that were bridged through the protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`bridge volume, cross-chain transfers, bridge data, bridge volume by chain`}
 			canonicalUrl={`/bridges`}
 			pageName={pageName}
 		>
@@ -53,6 +54,8 @@ export default function Bridges({
 				bridgeNameToChartDataIndex={bridgeNameToChartDataIndex}
 				chartDataByBridge={chartDataByBridge}
 				chainVolumeData={chainVolumeData}
+				rawBridgeVolumeData={rawBridgeVolumeData}
+				netflowsData={netflowsData}
 				bridgeStatsCurrentDay={bridgeStatsCurrentDay}
 				largeTxsData={largeTxsData}
 			/>

@@ -1,6 +1,8 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import type { FormSubmitEvent } from '~/types/forms'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 export function AvailableRange({
 	variant = 'primary',
@@ -13,31 +15,23 @@ export function AvailableRange({
 }) {
 	const router = useRouter()
 
-	const handleSubmit = (e) => {
+	const handleSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target
+		const form = e.currentTarget
 		const minAvailable = form.min?.value
 		const maxAvailable = form.max?.value
 
-		const params = new URLSearchParams(window.location.search)
-		if (minAvailable) params.set('minAvailable', minAvailable)
-		else params.delete('minAvailable')
-		if (maxAvailable) params.set('maxAvailable', maxAvailable)
-		else params.delete('maxAvailable')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		pushShallowQuery(router, {
+			minAvailable: minAvailable || undefined,
+			maxAvailable: maxAvailable || undefined
+		})
 	}
 
-	const { minAvailable, maxAvailable } = router.query
+	const minAvailable = readSingleQueryValue(router.query.minAvailable)
+	const maxAvailable = readSingleQueryValue(router.query.maxAvailable)
 
 	const handleClear = () => {
-		const params = new URLSearchParams(window.location.search)
-		params.delete('minAvailable')
-		params.delete('maxAvailable')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
+		pushShallowQuery(router, { minAvailable: undefined, maxAvailable: undefined })
 	}
 
 	const min = typeof minAvailable === 'string' && minAvailable !== '' ? Number(minAvailable) : null

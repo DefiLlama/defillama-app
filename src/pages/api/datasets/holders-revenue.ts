@@ -1,10 +1,12 @@
-import { NextApiRequest, NextApiResponse } from 'next'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { getAdapterByChainPageData, getAdapterChainOverview } from '~/containers/DimensionAdapters/queries'
+import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import { slug } from '~/utils'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_HOLDERS_REVENUE
+const metricName = 'Holders Revenue'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {
@@ -14,11 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 		if (chainList.length === 0) {
 			// No chains selected, return all protocols
-			const data = await getAdapterChainOverview({
+			const data = await fetchAdapterChainMetrics({
 				adapterType,
 				dataType,
-				chain: 'All',
-				excludeTotalDataChart: true
+				chain: 'All'
 			})
 
 			const protocols = data.protocols || []
@@ -45,7 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					adapterType,
 					dataType,
 					chain: chainData.name,
-					route: 'holders-revenue'
+					route: 'holders-revenue',
+					metricName
 				}).catch((e) => {
 					console.info(`Chain page data not found ${adapterType}:${dataType} : chain:${chainSlug}`, e)
 					return null

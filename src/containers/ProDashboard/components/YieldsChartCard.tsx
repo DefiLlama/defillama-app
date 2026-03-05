@@ -1,14 +1,15 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
-import { download, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { YieldsChartConfig } from '../types'
-import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { useYieldChartTransformations } from './useYieldChartTransformations'
 
@@ -27,7 +28,7 @@ const tvlApyCharts = [
 		type: 'line' as const,
 		name: 'APY',
 		encode: { x: 'timestamp', y: 'APY' },
-		color: '#fd3c99',
+		color: '#cc3e82',
 		yAxisIndex: 0,
 		valueSymbol: '%'
 	},
@@ -35,7 +36,7 @@ const tvlApyCharts = [
 		type: 'line' as const,
 		name: 'TVL',
 		encode: { x: 'timestamp', y: 'TVL' },
-		color: '#4f8fea',
+		color: '#3e79cc',
 		yAxisIndex: 1,
 		valueSymbol: '$'
 	}
@@ -220,7 +221,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				</div>
 				{currentChartData && currentChartData.length > 0 && (
 					<div className="flex gap-2">
-						<ChartExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
+						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
@@ -234,13 +235,13 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
-						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#fd3c99' }}>
+						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#cc3e82' }}>
 							{latestData.apy}%
 						</span>
 					</div>
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">TVL</span>
-						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#4f8fea' }}>
+						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#3e79cc' }}>
 							{formattedNum(latestData.tvl, true)}
 						</span>
 					</div>

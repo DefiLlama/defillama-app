@@ -81,7 +81,8 @@ export interface AlertIntent {
 	}>
 }
 
-export interface AlertConfig {
+// oxlint-disable-next-line no-unused-vars
+interface AlertConfig {
 	frequency: 'daily' | 'weekly'
 	hour: number
 	timezone: string
@@ -109,7 +110,7 @@ export interface EntityQuestionsResponse {
 	entityNotFound?: boolean
 	metadata?: {
 		entitySlug: string
-		entityType: 'protocol' | 'chain'
+		entityType: 'protocol' | 'chain' | 'page'
 		generatedAt: string
 	}
 }
@@ -194,7 +195,7 @@ export interface MetadataItem {
 	metadata: any
 }
 
-export interface AlertItem {
+interface AlertItem {
 	type: 'alert'
 	id: string
 	alertId: string
@@ -214,32 +215,39 @@ export type StreamItem =
 	| AlertItem
 
 // Type guards for stream items
-export function isMarkdownItem(item: StreamItem): item is MarkdownItem {
+// oxlint-disable-next-line no-unused-vars
+function isMarkdownItem(item: StreamItem): item is MarkdownItem {
 	return item.type === 'markdown'
 }
 
-export function isChartItem(item: StreamItem): item is ChartItem {
+// oxlint-disable-next-line no-unused-vars
+function isChartItem(item: StreamItem): item is ChartItem {
 	return item.type === 'chart'
 }
 
-export function isCsvItem(item: StreamItem): item is CsvItem {
+// oxlint-disable-next-line no-unused-vars
+function isCsvItem(item: StreamItem): item is CsvItem {
 	return item.type === 'csv'
 }
 
-export function isAlertItem(item: StreamItem): item is AlertItem {
+// oxlint-disable-next-line no-unused-vars
+function isAlertItem(item: StreamItem): item is AlertItem {
 	return item.type === 'alert'
 }
 
-export function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {
+// oxlint-disable-next-line no-unused-vars
+function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {
 	return item.type === 'chart' || item.type === 'csv'
 }
 
-export function isRenderableItem(item: StreamItem): boolean {
+// oxlint-disable-next-line no-unused-vars
+function isRenderableItem(item: StreamItem): boolean {
 	return item.type !== 'metadata'
 }
 
 // Message format with items
-export interface Message {
+// oxlint-disable-next-line no-unused-vars
+interface Message {
 	id: string
 	role: 'user' | 'assistant'
 	content?: string // For user messages

@@ -5,7 +5,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { IncomeStatement } from '~/containers/ProtocolOverview/IncomeStatement'
 import { getProtocolIncomeStatement } from '~/containers/ProtocolOverview/queries'
 import { useAppMetadata } from '../../AppMetadataContext'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 interface IncomeStatementChartTabProps {
 	selectedIncomeStatementProtocol: string | null
@@ -64,7 +64,7 @@ export function IncomeStatementChartTab({
 	)
 
 	const { data: incomeStatement, isLoading } = useQuery({
-		queryKey: ['income-statement-preview', selectedIncomeStatementProtocol],
+		queryKey: ['pro-dashboard', 'income-statement-preview', selectedIncomeStatementProtocol],
 		queryFn: () => getProtocolIncomeStatement({ metadata }),
 		enabled: Boolean(selectedIncomeStatementProtocol && displayName),
 		staleTime: 60 * 60 * 1000

@@ -1,4 +1,4 @@
-import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
+import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
 interface IToFilterPool {
@@ -118,8 +118,8 @@ export function toFilterPool({
 								// Strategy 1: Address-based matching (preferred, no false positives)
 								if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
 									const addressSet = new Set(catAddresses)
-									const hasAddressMatch = underlyingTokens.some((addr: string) =>
-										addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+									const hasAddressMatch = underlyingTokens.some(
+										(addr: string) => addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
 									)
 									if (hasAddressMatch) return true
 								}
@@ -255,7 +255,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 	return lendBorrowPairs.concat(cdpPairs)
 }
 
-export const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
 export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV }) => {
 	// prepare leveraged lending (loop) pools
@@ -375,7 +375,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	}
 	// keep looping strategies only if no tokenToBorrow is given or if they both match
 	const loopPoolsFiltered =
-		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
+		tokenToBorrow !== tokenToLend && tokenToBorrow?.length > 0
 			? []
 			: loopPools
 					.filter((p) => matchesToken(p.symbol, tokenToLend))

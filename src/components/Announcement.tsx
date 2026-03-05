@@ -2,10 +2,10 @@ import { useRouter } from 'next/router'
 import type { NextRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 
 // change 'value' for new announcements
-export const ANNOUNCEMENT = {
+const ANNOUNCEMENT = {
 	defi: {
 		key: 'defi-flag-announcement',
 		value: 'defi6'
@@ -56,20 +56,26 @@ export function Announcement({
 		setStorageItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
 	}
 
-	const store = React.useSyncExternalStore(
-		(callback) => subscribeToStorageKey(routeAnnouncementKey, callback),
-		() => getStorageItem(routeAnnouncementKey, null),
-		() => null
-	)
+	const store = useStorageItem(routeAnnouncementKey, null)
 
-	if (notCancellable ? false : JSON.parse(store)?.value === routeAnnouncementValue) {
+	let announcementValue: string | undefined
+	if (typeof store === 'string') {
+		try {
+			const parsed = JSON.parse(store) as { value?: string }
+			announcementValue = parsed?.value
+		} catch {
+			announcementValue = undefined
+		}
+	}
+
+	if (!notCancellable && announcementValue === routeAnnouncementValue) {
 		return null
 	}
 
 	return (
 		<div
 			className="flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm"
-			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as any}
+			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as React.CSSProperties}
 		>
 			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (

@@ -1,7 +1,8 @@
-import { ColumnDef } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, formattedPercent, slug, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface IEarningsRow {
 	name: string
@@ -26,12 +27,13 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 		accessorFn: (row) => row.displayName || row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
+			const index = row.index
 			const name = getValue() as string
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo size={20} logo={tokenIconUrl(slug(name))} data-lgonly />
+					<span className="shrink-0">{index + 1}</span>
+					<TokenLogo size={20} name={name} kind="token" alt={`Logo of ${name}`} data-lgonly />
 					<BasicLink
 						href={`/earnings/${row.original.slug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -96,7 +98,7 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		},
@@ -112,7 +114,7 @@ export const earningsDatasetColumns: ColumnDef<IEarningsRow>[] = [
 			const value = getValue() as number
 			return (
 				<span className={` ${value > 0 ? 'text-green-500' : value < 0 ? 'text-red-500' : 'pro-text2'}`}>
-					{value ? formattedPercent(value, false, 100) : '-'}
+					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		},

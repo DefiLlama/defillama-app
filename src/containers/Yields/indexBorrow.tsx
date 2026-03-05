@@ -68,6 +68,7 @@ const YieldPageBorrow = ({
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,
+					raiseValuation: curr.raiseValuation,
 					chains: [curr.chain],
 					apyBase: curr.apyBase,
 					apyReward: curr.apyReward,

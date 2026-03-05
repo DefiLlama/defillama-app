@@ -11,7 +11,7 @@ type AnyProtocol = {
 
 type ParentProto = { id: string; name: string; logo?: string }
 
-export interface BuiltProtocolOptions {
+interface BuiltProtocolOptions {
 	options: Array<{ value: string; label: string; logo?: string; isChild?: boolean; id?: string }>
 	parentToChildrenMap: Map<string, string[]>
 }

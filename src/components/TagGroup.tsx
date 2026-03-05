@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import * as React from 'react'
-import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './selectTypes'
+import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './Select/types'
 
 interface IProps extends React.ComponentProps<'div'> {
 	selectedValue: string
@@ -32,6 +32,7 @@ export const TagGroup = ({
 			{values.map((value) => {
 				return (
 					<button
+						type="button"
 						className={button}
 						disabled={disabledValuesSet?.has(value)}
 						data-active={value === selectedValue}

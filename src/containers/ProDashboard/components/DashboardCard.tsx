@@ -3,8 +3,9 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { Dashboard } from '../services/DashboardAPI'
-import { DashboardItemConfig } from '../types'
+import type { Dashboard } from '../services/DashboardAPI'
+import type { DashboardItemConfig } from '../types'
+import { ConfirmationModal } from './ConfirmationModal'
 
 interface DashboardCardProps {
 	dashboard: Dashboard
@@ -17,15 +18,24 @@ interface DashboardCardProps {
 
 export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'grid', className }: DashboardCardProps) {
 	const [isDeleting, setIsDeleting] = useState<boolean>(false)
-	const handleDelete = async (dashboardId: string, e: React.MouseEvent) => {
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false)
+
+	const handleDeleteClick = (e: React.MouseEvent) => {
 		e.stopPropagation()
+		if (!onDelete) return
+		setShowDeleteConfirm(true)
+	}
+
+	const handleConfirmDelete = async () => {
 		if (!onDelete) return
 		setIsDeleting(true)
 		try {
-			await onDelete(dashboardId)
-		} finally {
-			setIsDeleting(false)
+			await onDelete(dashboard.id)
+			setShowDeleteConfirm(false)
+		} catch (error) {
+			console.error('Failed to delete dashboard:', error)
 		}
+		setIsDeleting(false)
 	}
 
 	const itemTypes = useMemo(() => {
@@ -73,7 +83,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 		<div
 			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow,background-color] duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-lg hover:shadow-pro-blue-300/10 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
 		>
-			<div className="h-1.5 w-full bg-gradient-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
+			<div className="h-1.5 w-full bg-linear-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
 
 			<div className="flex flex-1 flex-col gap-1.5 p-3">
 				<div className="flex flex-wrap items-center justify-end gap-2">
@@ -98,7 +108,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 							)}
 							<Tooltip
 								content="Delete dashboard"
-								render={<button disabled={isDeleting} onClick={(e) => handleDelete(dashboard.id, e)} />}
+								render={<button disabled={isDeleting} onClick={handleDeleteClick} />}
 								className="z-10 flex items-center justify-center gap-2 rounded-md bg-red-500/10 px-2 py-1.75 text-sm font-medium text-(--error)"
 							>
 								{isDeleting ? <LoadingSpinner size={12} /> : <Icon name="trash-2" height={12} width={12} />}
@@ -153,6 +163,16 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			<BasicLink href={`/pro/${dashboard.id}`} className="absolute inset-0">
 				<span className="sr-only">View dashboard</span>
 			</BasicLink>
+
+			<ConfirmationModal
+				isOpen={showDeleteConfirm}
+				onClose={() => setShowDeleteConfirm(false)}
+				onConfirm={handleConfirmDelete}
+				title="Delete Dashboard"
+				message="Are you sure you want to delete this dashboard? This action cannot be undone."
+				confirmText="Delete"
+				cancelText="Cancel"
+			/>
 		</div>
 	)
 }

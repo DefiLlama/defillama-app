@@ -1,7 +1,14 @@
 // Inline helper to avoid circular dependency with index.js
 const capitalizeFirstLetter = (word: string) => (word ? word.charAt(0).toUpperCase() + word.slice(1) : '')
 
-const blockExplorers = {
+type ExplorerEntry = [url: string, name: string]
+type BlockExplorerValue = ExplorerEntry | ExplorerEntry[]
+
+function isMultiExplorer(value: BlockExplorerValue): value is ExplorerEntry[] {
+	return Array.isArray(value[0])
+}
+
+const blockExplorers: Record<string, BlockExplorerValue> = {
 	ethereum: [
 		['https://etherscan.io/token/', 'Etherscan'],
 		['https://eth.blockscout.com/token/', 'Blockscout']
@@ -132,7 +139,8 @@ const blockExplorers = {
 	sty: ['https://www.storyscan.xyz/token/', 'Storyscan'],
 	formnetwork: ['https://explorer.form.network/', 'Form Network Explorer'],
 	hemi: ['https://explorer.hemi.xyz/address/', 'Hemi Block Explorer'],
-	ogpu: ['https://ogpuscan.io/address/', 'Ogpuscan']
+	ogpu: ['https://ogpuscan.io/address/', 'Ogpuscan'],
+	keeta: ['https://explorer.keeta.com/token/', 'Keeta Explorer']
 }
 
 export const getBlockExplorer = (address: string = '') => {
@@ -146,7 +154,8 @@ export const getBlockExplorer = (address: string = '') => {
 	const [chain, chainAddress] = address.split(':')
 	const explorer = blockExplorers[chain]
 	if (explorer) {
-		explorers = (explorer[0].length === 2 ? explorer : [explorer]).map((e) => ({
+		const normalized: ExplorerEntry[] = isMultiExplorer(explorer) ? explorer : [explorer]
+		explorers = normalized.map((e) => ({
 			blockExplorerLink: e[0] + chainAddress,
 			blockExplorerName: e[1]
 		}))
@@ -175,8 +184,9 @@ export const getProtocolTokenUrlOnExplorer = (address: string = '') => {
 	const [chain, chainAddress] = newAddress.split(':')
 	const explorer = blockExplorers[chain]
 
-	if (explorer && explorer[0]?.length === 2) {
-		return `${explorer[0][0]}${chainAddress}`
+	if (explorer) {
+		const first: ExplorerEntry = isMultiExplorer(explorer) ? explorer[0] : explorer
+		return `${first[0]}${chainAddress}`
 	}
 
 	return null

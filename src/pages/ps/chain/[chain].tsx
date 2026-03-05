@@ -1,12 +1,13 @@
-import { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import type { GetStaticPropsContext } from 'next'
 import { feesOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -14,6 +15,16 @@ const dataType = ADAPTER_DATA_TYPES.DAILY_REVENUE
 const type = 'P/S'
 
 export const getStaticPaths = async () => {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -31,7 +42,8 @@ export const getStaticProps = withPerformanceLogging(
 			adapterType,
 			dataType,
 			chain: metadataCache.chainMetadata[chain].name,
-			route: 'ps'
+			route: 'ps',
+			metricName: type
 		}).catch((e) => console.info(`Chain page data not found P/S : chain:${chain}`, e))
 
 		if (!data) return { notFound: true }
@@ -48,9 +60,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const RevenueOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`P/S by Protocol on ${props.chain} - DefiLlama`}
+			title={`Price to Sales (P/S) Ratio on ${props.chain} - DefiLlama`}
 			description={`P/S by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`p/s by protocol on ${props.chain}`}
 			canonicalUrl={`/ps/chain/${props.chain}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Metrics"

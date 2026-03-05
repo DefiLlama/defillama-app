@@ -10,7 +10,7 @@ export interface SessionListData {
 	usage: ResearchUsage | null
 }
 
-export const SESSIONS_QUERY_KEY = 'chat-sessions'
+export const SESSIONS_QUERY_KEY = 'llamaai-sessions'
 
 export function useSessionList() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()

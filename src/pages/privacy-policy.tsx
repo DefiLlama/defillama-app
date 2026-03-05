@@ -2,7 +2,7 @@ import { SubscribeLayout2 } from './subscription/fulfillment-policies'
 
 export default function PrivacyPolicy() {
 	return (
-		<SubscribeLayout2>
+		<SubscribeLayout2 title="Privacy Policy - DefiLlama">
 			<div className="mx-auto mb-[64px] flex w-full max-w-3xl flex-col gap-8 text-[#d5d5d5]">
 				<h1 className="text-center text-3xl font-bold text-white">Privacy Policy</h1>
 				<p>

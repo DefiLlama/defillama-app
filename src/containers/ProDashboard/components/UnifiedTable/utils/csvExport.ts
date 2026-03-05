@@ -26,7 +26,7 @@ export function getRowsAtGroupLevel(table: Table<NormalizedRow>, level: UnifiedR
 	return result
 }
 
-export function getGroupedRowCsvValue(row: Row<NormalizedRow>, columnId: string, percentColumns: Set<string>): string {
+function getGroupedRowCsvValue(row: Row<NormalizedRow>, columnId: string, percentColumns: Set<string>): string {
 	const display = getRowDisplayProps(row)
 
 	if (columnId === 'name') {
@@ -75,7 +75,7 @@ export function buildGroupedCsvData(
 	const groupHeader = GROUP_LEVEL_HEADERS[level]
 	const columnHeaders = columns.map((column) => {
 		const header = column.columnDef.header
-		return typeof header === 'string' ? header : column.id
+		return typeof header === 'string' ? header : (column.id ?? '')
 	})
 
 	const hasGroupColumn = columnHeaders.some((h) => h.toLowerCase() === groupHeader.toLowerCase())

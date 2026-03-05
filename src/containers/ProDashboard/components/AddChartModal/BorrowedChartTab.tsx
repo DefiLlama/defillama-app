@@ -1,13 +1,16 @@
-import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { lazy, Suspense, useEffect, useMemo, type ReactElement } from 'react'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { formatTvlsByChain, useFetchProtocolAddlChartsData } from '~/containers/ProtocolOverview/utils'
+import {
+	formatProtocolV1TvlsByChain,
+	useFetchProtocolV1AddlChartsData
+} from '~/containers/ProtocolOverview/protocolV1AddlChartsData'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPES } from '../../borrowedChartConstants'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import { AriakitSelect } from '../AriakitSelect'
-import { AriakitVirtualizedSelect, VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
+import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -56,11 +59,11 @@ export function BorrowedChartTab({
 		data: addlData,
 		historicalChainTvls,
 		isLoading: isAddlLoading
-	} = useFetchProtocolAddlChartsData(selectedBorrowedProtocolName || '', true)
+	} = useFetchProtocolV1AddlChartsData(selectedBorrowedProtocolName || '', true)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
-		const chainsSplit = formatTvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
+		const chainsSplit = formatProtocolV1TvlsByChain({ historicalChainTvls, extraTvlsEnabled: {} })
 		const lastEntry = chainsSplit[chainsSplit.length - 1] ?? {}
 		const chainsUnique: string[] = []
 		for (const key in lastEntry) {
@@ -133,18 +136,17 @@ export function BorrowedChartTab({
 		? `${selectedBorrowedProtocolName} - ${chartTypeLabel}`
 		: selectedBorrowedProtocolName || ''
 
-	const renderChart = () => {
-		if (isAddlLoading) {
-			return (
-				<div className="flex h-[320px] items-center justify-center">
-					<LocalLoader />
-				</div>
-			)
-		}
-
+	let chartContent: ReactElement | null = null
+	if (isAddlLoading) {
+		chartContent = (
+			<div className="flex h-[320px] items-center justify-center">
+				<LocalLoader />
+			</div>
+		)
+	} else {
 		switch (selectedBorrowedChartType) {
 			case 'chainsBorrowed':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -163,8 +165,9 @@ export function BorrowedChartTab({
 						/>
 					</Suspense>
 				)
+				break
 			case 'tokenBorrowedUsd':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -183,8 +186,9 @@ export function BorrowedChartTab({
 						/>
 					</Suspense>
 				)
+				break
 			case 'tokensBorrowedPie':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -195,8 +199,9 @@ export function BorrowedChartTab({
 						<PieChart chartData={resolvedTokenBreakdownPieChart} />
 					</Suspense>
 				)
+				break
 			case 'tokenBorrowedRaw':
-				return (
+				chartContent = (
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
@@ -214,8 +219,7 @@ export function BorrowedChartTab({
 						/>
 					</Suspense>
 				)
-			default:
-				return null
+				break
 		}
 	}
 
@@ -275,7 +279,7 @@ export function BorrowedChartTab({
 								No borrowed data available.
 							</div>
 						) : (
-							<div className="h-[320px]">{renderChart()}</div>
+							<div className="h-[320px]">{chartContent}</div>
 						)}
 					</div>
 				) : (

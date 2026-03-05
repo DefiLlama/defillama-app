@@ -1,10 +1,12 @@
-import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
+import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, slug } from '~/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -65,26 +67,36 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
 const toggleOptions = tvlOptions.filter((key) => !['doublecounted', 'liquidstaking'].includes(key.key))
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const categoryLabel = props.category ?? props.tag ?? ''
-	const displayCategoryLabel =
-		props.effectiveCategory === 'RWA' && props.category ? 'Real World Assets on Chain (RWA)' : categoryLabel
-	const titleLabel = props.effectiveCategory === 'RWA' ? displayCategoryLabel : categoryLabel
-	const titleSuffix = props.effectiveCategory === 'RWA' ? 'Rankings' : 'Protocols Rankings'
-	const title = `${capitalizeFirstLetter(titleLabel)} ${titleSuffix} - DefiLlama`
-	const description = `${displayCategoryLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
-	const keywords = `${displayCategoryLabel} rankings, defi ${displayCategoryLabel} rankings`.toLowerCase()
+	const presentation = getProtocolCategoryPresentation({
+		label: categoryLabel,
+		effectiveCategory: props.effectiveCategory,
+		isTagPage: !!props.tag && !props.category,
+		chain: props.chain
+	})
+	const title = presentation.seoTitle
+	const description = presentation.seoDescription
 	const canonicalChainSuffix = props.chain ? `/${props.chain}` : ''
 	return (
 		<Layout
 			title={title}
 			description={description}
-			keywords={keywords}
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}${canonicalChainSuffix}`}
 			metricFilters={toggleOptions}
 		>

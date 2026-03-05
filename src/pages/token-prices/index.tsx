@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
-import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
-import { getProtocolsTokenPricesByChain } from '~/containers/ProtocolsWithTokens/queries'
+import type { InferGetStaticPropsType } from 'next'
+import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
+import { getProtocolsTokenPricesByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-token-prices/index`, async () => {
@@ -18,12 +19,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-token-prices/ind
 
 const pageName = ['Protocols', 'ranked by', 'Token Price']
 
-export default function ProtocolsTokenPrices(props) {
+export default function ProtocolsTokenPrices(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
 			title="Token Prices - DefiLlama"
 			description={`Token Prices by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token prices by protocol`}
 			canonicalUrl={`/token-prices`}
 			pageName={pageName}
 		>

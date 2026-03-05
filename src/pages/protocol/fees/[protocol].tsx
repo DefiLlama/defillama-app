@@ -1,27 +1,27 @@
-import { GetStaticPropsContext } from 'next'
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
-import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
-import { getAdapterProtocolSummary } from '~/containers/DimensionAdapters/queries'
-import { KeyMetrics } from '~/containers/ProtocolOverview'
+import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
-import { getProtocol, getProtocolMetrics } from '~/containers/ProtocolOverview/queries'
-import { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
+import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartCsvExport } from '~/hooks/useChartCsvExport'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
-import { IProtocolMetadata } from '~/utils/metadata/types'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -50,14 +50,14 @@ export const getStaticProps = withPerformanceLogging(
 
 		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
 			[
-				getProtocol(protocol),
-				getAdapterProtocolSummary({
+				fetchProtocolOverviewMetrics(protocol),
+				getAdapterProtocolOverview({
 					adapterType: 'fees',
 					protocol: metadata[1].displayName,
 					excludeTotalDataChart: false
 				}),
 				metadata[1].revenue
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -65,7 +65,7 @@ export const getStaticProps = withPerformanceLogging(
 						}).catch(() => null)
 					: Promise.resolve(null),
 				metadata[1].holdersRevenue
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -73,7 +73,7 @@ export const getStaticProps = withPerformanceLogging(
 						}).catch(() => null)
 					: Promise.resolve(null),
 				metadata[1].bribeRevenue
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -81,7 +81,7 @@ export const getStaticProps = withPerformanceLogging(
 						}).catch(() => null)
 					: Promise.resolve(null),
 				metadata[1].tokenTax
-					? getAdapterProtocolSummary({
+					? getAdapterProtocolOverview({
 							adapterType: 'fees',
 							protocol: metadata[1].displayName,
 							excludeTotalDataChart: false,
@@ -91,7 +91,9 @@ export const getStaticProps = withPerformanceLogging(
 			]
 		)
 
-		const metrics = getProtocolMetrics({ protocolData, metadata: metadata[1] })
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Fees, Revenue & Earnings - DefiLlama`
+		const seoDescription = `Compare ${protocolData.name} daily and cumulative fees, revenue, and protocol earnings on DefiLlama.`
 
 		const fees: IProtocolOverviewPageData['fees'] = {
 			total24h: feesData.total24h ?? null,
@@ -219,7 +221,9 @@ export const getStaticProps = withPerformanceLogging(
 					bribeRevenueData?.defaultChartView ??
 					tokenTaxData?.defaultChartView ??
 					'daily',
-				toggleOptions
+				toggleOptions,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -227,17 +231,26 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
 const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
-export default function Protocols(props) {
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
 	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
-	const { chartInstance: exportChartCsvInstance, handleChartReady: handleChartCsvReady } = useChartCsvExport()
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = useMemo(() => {
 		let feesChart = props.charts.fees
@@ -322,7 +335,10 @@ export default function Protocols(props) {
 		}
 
 		const rowMap = new Map<number, Record<string, number>>()
-		const seriesNames = Object.keys(seriesData)
+		const seriesNames: string[] = []
+		for (const seriesName in seriesData) {
+			seriesNames.push(seriesName)
+		}
 		for (const name of seriesNames) {
 			for (const [timestamp, value] of seriesData[name]) {
 				const row = rowMap.get(timestamp) ?? { timestamp }
@@ -339,6 +355,7 @@ export default function Protocols(props) {
 			charts: chartsConfig
 		}
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
+	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	return (
 		<ProtocolOverviewLayout
@@ -349,11 +366,13 @@ export default function Protocols(props) {
 			tab="fees"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 						<span className="font-bold">{props.name}</span>
 						{props.deprecated ? (
 							<Tooltip content="Deprecated protocol" className="text-(--error)">
@@ -364,7 +383,7 @@ export default function Protocols(props) {
 					<KeyMetrics {...props} formatPrice={(value) => formattedNum(value, true)} />
 				</div>
 				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
-					<div className="flex items-center justify-end gap-2 p-2">
+					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 							{INTERVALS_LIST.map((dataInterval) => (
 								<Tooltip
@@ -373,7 +392,7 @@ export default function Protocols(props) {
 									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
-										setGroupBy(dataInterval)
+										startTransition(() => setGroupBy(dataInterval))
 									}}
 									key={`${props.name}-fees-groupBy-${dataInterval}`}
 								>
@@ -391,32 +410,25 @@ export default function Protocols(props) {
 								labelType="smol"
 							/>
 						) : null}
-						<ChartCsvExportButton
-							chartInstance={exportChartCsvInstance}
-							filename={`${slug(props.name)}-fees-revenue`}
-						/>
-						<ChartExportButton
-							chartInstance={exportChartInstance}
-							filename={`${slug(props.name)}-fees-revenue`}
+						<ChartExportButtons
+							chartInstance={chartInstance}
+							filename={`${props.name}-fees-revenue`}
 							title="Fees & Revenue"
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={finalCharts.dataset}
-							charts={finalCharts.charts}
+							dataset={deferredFinalCharts.dataset}
+							charts={deferredFinalCharts.charts}
 							valueSymbol="$"
-							onReady={(instance) => {
-								handleChartReady(instance)
-								handleChartCsvReady(instance)
-							}}
+							onReady={handleChartReady}
 						/>
 					</Suspense>
 				</div>
 			</div>
 			<div className="grid grid-cols-2 gap-2">
 				{props.protocolChains?.length > 1 ? (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="chain"
 							protocolName={slug(props.name)}
@@ -431,7 +443,7 @@ export default function Protocols(props) {
 					</div>
 				) : null}
 				{props.protocolFeesVersions?.length > 1 ? (
-					<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+					<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 						<DimensionProtocolChartByType
 							chartType="version"
 							protocolName={slug(props.name)}
@@ -448,7 +460,7 @@ export default function Protocols(props) {
 				{props.protocolRevenueVersions?.length > 1 ? (
 					<>
 						{props.protocolChains?.length > 1 ? (
-							<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+							<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 								<DimensionProtocolChartByType
 									chartType="chain"
 									protocolName={slug(props.name)}
@@ -464,7 +476,7 @@ export default function Protocols(props) {
 							</div>
 						) : null}
 
-						<div className="col-span-full min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
+						<div className="col-span-full rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:only:col-span-full">
 							<DimensionProtocolChartByType
 								chartType="version"
 								protocolName={slug(props.name)}

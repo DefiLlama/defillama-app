@@ -61,9 +61,16 @@ function buildCsvRowsFromDataset(dimensions: string[] | null, source: unknown[] 
 		(() => {
 			const first = source[0]
 			if (!isRecord(first)) return []
-			const keys = Object.keys(first)
-			if (keys.includes('timestamp')) return ['timestamp', ...keys.filter((k) => k !== 'timestamp')]
-			return keys
+			const keys = new Set<string>()
+			let hasTimestamp = false
+			for (const key in first) {
+				if (key === 'timestamp') {
+					hasTimestamp = true
+					continue
+				}
+				keys.add(key)
+			}
+			return hasTimestamp ? ['timestamp', ...keys] : [...keys]
 		})()
 
 	if (!dimensions && headerDimsFromSource) {
@@ -207,7 +214,7 @@ function buildCsvFromChart({
 
 	const base = filenameBase || 'chart'
 	const date = new Date().toISOString().split('T')[0]
-	return { filename: `${base}-${date}.csv`, rows: rowsSafe }
+	return { filename: `${base}-${date}`, rows: rowsSafe }
 }
 
 interface ChartCsvExportButtonProps {

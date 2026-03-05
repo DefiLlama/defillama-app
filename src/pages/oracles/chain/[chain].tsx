@@ -1,42 +1,58 @@
-// import * as React from 'react'
-// import { maxAgeForNext } from '~/api'
-// import { OraclesByChain } from '~/containers/Oracles'
-// import { getOraclePageData, getOraclePageDataByChain } from '~/containers/Oracles/queries'
-// import { withPerformanceLogging } from '~/utils/perf'
+import type { InferGetStaticPropsType } from 'next'
+import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { OraclesByChain } from '~/containers/Oracles/OraclesByChain'
+import { getOraclesListPageData } from '~/containers/Oracles/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
 
-// export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params: { chain } }) => {
-// 	const data = await getOraclePageDataByChain(chain as string)
+const pageName = ['Oracles', 'ranked by', 'TVS']
 
-// 	if (!data) {
-// 		return { notFound: true }
-// 	}
+export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
+	if (!params?.chain) {
+		return { notFound: true, props: null }
+	}
 
-// 	return {
-// 		props: { ...data },
-// 		revalidate: maxAgeForNext([22])
-// 	}
-// })
+	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
+	const data = await getOraclesListPageData({ chain })
 
-// export async function getStaticPaths() {
-// 	const data = await getOraclePageData()
+	if (!data) {
+		return { notFound: true, props: null }
+	}
 
-// 	const chainsByOracle = data?.chainsByOracle ?? {}
+	return {
+		props: data,
+		revalidate: maxAgeForNext([22])
+	}
+})
 
-// 	const chainsLits = [...new Set(Object.values(chainsByOracle).flat())]
+export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
 
-// 	const paths = chainsLits.slice(0, 10).map((chain) => {
-// 		return {
-// 			params: { chain }
-// 		}
-// 	})
+	return { paths: [], fallback: 'blocking' }
+}
 
-// 	return { paths, fallback: 'blocking' }
-// }
-
-// export default function OraclesPage(props) {
-// 	return <OraclesByChain {...props} />
-// }
-
-export default function NotFoundPage() {
-	return <></>
+export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	const canonicalUrl = props.chain ? `/oracles/chain/${slug(props.chain)}` : '/oracles'
+	return (
+		<Layout
+			title={`${props.chain} DeFi Oracles - Total Value Secured - DefiLlama`}
+			description={`Track total value secured by DeFi oracles on ${props.chain}. View protocols, oracle breakdown, and TVS rankings on DefiLlama.`}
+			canonicalUrl={canonicalUrl}
+			metricFilters={tvlOptions}
+			pageName={pageName}
+		>
+			<OraclesByChain {...props} />
+		</Layout>
+	)
 }

@@ -1,10 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -16,7 +16,8 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 		adapterType,
 		dataType,
 		chain: 'All',
-		route: 'holders-revenue'
+		route: 'holders-revenue',
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType}:${dataType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }
@@ -34,7 +35,6 @@ const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${type} by Protocol - DefiLlama`}
 			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
 			canonicalUrl={`/holders-revenue`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"
