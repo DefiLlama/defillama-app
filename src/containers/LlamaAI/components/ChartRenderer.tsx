@@ -73,7 +73,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-function SingleChart({ config, data, isActive, sessionId, fetchFn }: SingleChartProps) {
+function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,

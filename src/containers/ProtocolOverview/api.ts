@@ -95,7 +95,7 @@ const fetchProtocolValueChart = async ({
 	currency?: string
 }): Promise<IProtocolValueChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson(finalUrl)
+	const values = await fetchJson<unknown>(finalUrl)
 	return normalizeProtocolValueChart(values)
 }
 
@@ -112,7 +112,7 @@ const fetchProtocolChainBreakdownChart = async ({
 	currency?: string
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson(finalUrl)
+	const values = await fetchJson<unknown>(finalUrl)
 	return normalizeProtocolChainBreakdownChart(values)
 }
 
@@ -129,7 +129,7 @@ const fetchProtocolTokenBreakdownChart = async ({
 	currency?: string
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	const values = await fetchJson(finalUrl)
+	const values = await fetchJson<unknown>(finalUrl)
 	return normalizeProtocolTokenBreakdownChart(values)
 }
 

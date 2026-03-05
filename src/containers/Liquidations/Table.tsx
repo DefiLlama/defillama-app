@@ -133,7 +133,7 @@ const ProtocolName = ({ value }: { value: string }) => {
 	const { data } = useQuery<ProtocolConfig | null>({
 		queryKey: [`${CONFIG_API}/smol/${_value}`],
 		queryFn: async () => {
-			const res = await fetchJson(`${CONFIG_API}/smol/${_value}`)
+			const res = await fetchJson<unknown>(`${CONFIG_API}/smol/${_value}`)
 			return isProtocolConfig(res) ? res : null
 		},
 		staleTime: 60 * 60 * 1000,

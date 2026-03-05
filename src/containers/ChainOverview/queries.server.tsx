@@ -226,7 +226,7 @@ export async function getChainOverviewData({
 					).catch(() => ({}))
 				: Promise.resolve({}),
 			chain && chain !== 'All'
-				? fetchJson(`https://defillama-datasets.llama.fi/temp/chainNfts`)
+				? fetchJson<Record<string, number>>(`https://defillama-datasets.llama.fi/temp/chainNfts`)
 				: Promise.resolve(null),
 			fetchChainsAssets()
 				.then((chainAssets) => (chain !== 'All' ? (chainAssets[currentChainMetadata.name] ?? null) : null))
@@ -1174,7 +1174,7 @@ function getUTCTimestamp(timestamp: number) {
 
 const getDATInflows = async () => {
 	try {
-		const data: IDATInflow = await fetchJson(`${TRADFI_API}/institutions`)
+		const data = await fetchJson<IDATInflow>(`${TRADFI_API}/institutions`)
 		const weeklyInflows: Record<number, number> = {}
 
 		let total30d = 0

@@ -35,7 +35,7 @@ const YieldPage = ({
 	tokenCategories,
 	evmChains
 }) => {
-	const { query, pathname, push } = useRouter()
+	const { pathname } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)
 	const { data: volatility } = useVolatility()

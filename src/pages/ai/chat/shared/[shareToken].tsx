@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { MCP_SERVER, SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { AgenticChat } from '~/containers/LlamaAI'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 
@@ -62,8 +61,7 @@ async function getSharedSession(shareToken: string) {
 		if (!shareToken) {
 			return null
 		}
-		const data = await fetchJson(`${MCP_SERVER}/user/public/${shareToken}`)
-		return data as SharedSession
+		return await fetchJson<SharedSession>(`${MCP_SERVER}/user/public/${shareToken}`)
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch shared session')
 	}
@@ -72,7 +70,6 @@ async function getSharedSession(shareToken: string) {
 export default function SharedConversationPage() {
 	const router = useRouter()
 	const { shareToken } = router.query
-	const { user } = useAuthContext()
 
 	const {
 		data: session,

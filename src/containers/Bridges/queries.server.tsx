@@ -1,3 +1,4 @@
+import type { LlamaConfigResponse } from '~/api/types'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CONFIG_API } from '~/constants'
@@ -380,7 +381,10 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 }
 
 export async function getBridgeOverviewPageData(chain) {
-	const [{ bridges, chains }, { chainCoingeckoIds }] = await Promise.all([getBridges(), fetchJson(CONFIG_API)])
+	const [{ bridges, chains }, { chainCoingeckoIds }] = await Promise.all([
+		getBridges(),
+		fetchJson<LlamaConfigResponse>(CONFIG_API)
+	])
 
 	let chartDataByBridge: Array<Array<{ date: string; volume: number; txs: number }>> = []
 	let bridgeNames: string[] = []

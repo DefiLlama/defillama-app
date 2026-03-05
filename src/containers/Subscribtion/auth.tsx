@@ -71,7 +71,7 @@ interface FetchOptions extends RequestInit {
 }
 
 const getNonce = async (address: string) => {
-	return fetchJson(`${AUTH_SERVER}/nonce?address=${address}`).catch((error) => {
+	return fetchJson<{ nonce: string }>(`${AUTH_SERVER}/nonce?address=${address}`).catch((error) => {
 		if (error instanceof Error && error.message) {
 			throw error
 		}

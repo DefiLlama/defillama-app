@@ -348,7 +348,7 @@ export const getProtocolOverviewPageData = async ({
 					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.yields
-			? fetchJson(YIELD_POOLS_API).catch((err) => {
+			? fetchJson<IYieldsDataResult>(YIELD_POOLS_API).catch((err) => {
 					console.log(
 						'[HTTP]:[ERROR]:[PROTOCOL_YIELD]:',
 						slug(currentProtocolMetadata.displayName),
@@ -399,7 +399,7 @@ export const getProtocolOverviewPageData = async ({
 					})
 			: null,
 		currentProtocolMetadata.liquidity
-			? fetchJson(YIELD_CONFIG_API).catch(() => {
+			? fetchJson<IYieldsConfigResult>(YIELD_CONFIG_API).catch(() => {
 					return null
 				})
 			: null,
@@ -1008,11 +1008,11 @@ const commonMethodology = {
 }
 
 const fetchArticles = async ({ tags = '', size = 2 }) => {
-	const articlesRes: IArticlesResponse = await fetchJson(`https://api.llama.fi/news/articles`, {
+	const articlesRes = await fetchJson<IArticlesResponse>(`https://api.llama.fi/news/articles`, {
 		timeout: 10_000
 	}).catch((err) => {
 		console.log(err)
-		return {}
+		return { type: '', version: '', content_elements: [] }
 	})
 
 	const target = tags.toLowerCase()

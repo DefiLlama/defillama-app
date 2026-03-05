@@ -1,7 +1,6 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
-import type { IRWAAssetsOverview } from '~/containers/RWA/api.types'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'

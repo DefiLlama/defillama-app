@@ -9,7 +9,7 @@ import type {
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from '../types'
 
-const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
+// const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
 
 const CHART_COLORS = [
 	'#2172E5',

@@ -241,14 +241,10 @@ export async function getGovernanceDetailsPageData(
 
 	// Case 2: We only have a project slug (governance route) and must discover IDs via overview indexes.
 	const project = input.project
-	const [snapshot, compound, tally]: [
-		{ [key: string]: GovernanceOverviewProject },
-		{ [key: string]: GovernanceOverviewProject },
-		{ [key: string]: GovernanceOverviewProject }
-	] = await Promise.all([
-		fetchJson(GOVERNANCE_SNAPSHOT_API).catch(() => ({})),
-		fetchJson(GOVERNANCE_COMPOUND_API).catch(() => ({})),
-		fetchJson(GOVERNANCE_TALLY_API).catch(() => ({}))
+	const [snapshot, compound, tally] = await Promise.all([
+		fetchJson<Record<string, GovernanceOverviewProject>>(GOVERNANCE_SNAPSHOT_API).catch(() => ({})),
+		fetchJson<Record<string, GovernanceOverviewProject>>(GOVERNANCE_COMPOUND_API).catch(() => ({})),
+		fetchJson<Record<string, GovernanceOverviewProject>>(GOVERNANCE_TALLY_API).catch(() => ({}))
 	])
 
 	const normalizedProject = slug(project)

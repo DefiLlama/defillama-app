@@ -12,7 +12,7 @@ export async function fetchEntityQuestions(
 ): Promise<EntityQuestionsResponse> {
 	try {
 		if (context) {
-			const res = await fetchJson(`${MCP_SERVER}/suggested-questions`, {
+			const res = await fetchJson<EntityQuestionsResponse>(`${MCP_SERVER}/suggested-questions`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ entity: entitySlug, entityType, context })

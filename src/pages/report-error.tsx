@@ -5,7 +5,7 @@ import { fetchJson } from '~/utils/async'
 
 async function reportError(report: any) {
 	try {
-		const data = await fetchJson('https://api.llama.fi/reportError', {
+		const data = await fetchJson<{ message?: string }>('https://api.llama.fi/reportError', {
 			method: 'POST',
 			body: JSON.stringify(report)
 		})

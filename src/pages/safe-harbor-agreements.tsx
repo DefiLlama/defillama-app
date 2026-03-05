@@ -16,7 +16,7 @@ export async function getStaticProps() {
 
 	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<IProtocol> }] =
 		await Promise.all([
-			fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'),
+			fetchJson<Record<string, boolean>>('https://api.llama.fi/_fe/static/safe-harbor-projects'),
 			getProtocolsByChain({
 				chain: 'All',
 				chainMetadata: metadataCache.chainMetadata,

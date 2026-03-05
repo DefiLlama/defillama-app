@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
+import type { IProtocolExpenses } from '~/containers/ProtocolOverview/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ParentProtocolLite, ProtocolLite } from '~/containers/Protocols/api.types'
 import Layout from '~/layout'
@@ -15,7 +16,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const [{ protocols, parentProtocols }, expenses] = await Promise.all([
 		fetchProtocols(),
-		fetchJson(
+		fetchJson<IProtocolExpenses[]>(
 			'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 		)
 	])

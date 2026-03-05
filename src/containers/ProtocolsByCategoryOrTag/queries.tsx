@@ -341,9 +341,9 @@ export async function getProtocolsByCategoryOrTag(
 				}).catch(() => null)
 			: null,
 		tag
-			? fetchJson('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
-			: fetchJson('https://api.llama.fi/lite/chains-by-categories').catch(() => null),
-		effectiveCategory === 'RWA' ? fetchJson(RWA_STATS_API_OLD) : null
+			? fetchJson<Record<string, Array<string>>>('https://api.llama.fi/lite/chains-by-tags').catch(() => null)
+			: fetchJson<Record<string, Array<string>>>('https://api.llama.fi/lite/chains-by-categories').catch(() => null),
+		effectiveCategory === 'RWA' ? fetchJson<Record<string, IRWAStats>>(RWA_STATS_API_OLD) : null
 	])
 
 	const chainsLookupKey = tag ?? category

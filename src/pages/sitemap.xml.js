@@ -6,47 +6,47 @@ import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
 
 const baseUrl = `https://defillama.com`
-const protocolTabRoutes = [
-	{ prefix: 'protocol/tvl', hasMetric: (meta) => meta.tvl },
-	{ prefix: 'protocol/borrowed', hasMetric: (meta) => meta.borrowed },
-	{ prefix: 'protocol/stablecoins', hasMetric: (meta) => meta.stablecoins },
-	{ prefix: 'protocol/bridges', hasMetric: (meta) => meta.bridge },
-	{ prefix: 'protocol/treasury', hasMetric: (meta) => meta.treasury },
-	{ prefix: 'protocol/yields', hasMetric: (meta) => meta.yields },
-	{ prefix: 'protocol/fees', hasMetric: (meta) => meta.fees },
-	{ prefix: 'protocol/dexs', hasMetric: (meta) => meta.dexs },
-	{ prefix: 'protocol/perps', hasMetric: (meta) => meta.perps },
-	{ prefix: 'protocol/dex-aggregators', hasMetric: (meta) => meta.dexAggregators },
-	{ prefix: 'protocol/perps-aggregators', hasMetric: (meta) => meta.perpsAggregators },
-	{ prefix: 'protocol/bridge-aggregators', hasMetric: (meta) => meta.bridgeAggregators },
-	{ prefix: 'protocol/options', hasMetric: (meta) => meta.optionsPremiumVolume || meta.optionsNotionalVolume },
-	{ prefix: 'protocol/token-rights', hasMetric: (meta) => meta.tokenRights }
-]
-const standaloneProtocolRoutes = [
-	{ prefix: 'unlocks', hasMetric: (meta) => meta.emissions },
-	{ prefix: 'governance', hasMetric: (meta) => meta.governance },
-	{ prefix: 'forks', hasMetric: (meta) => meta.forks }
-]
-const chainFlaggedRoutes = [
-	{ prefix: 'stablecoins', flag: 'stablecoins' },
-	{ prefix: 'bridged', flag: 'chainAssets' },
-	{ prefix: 'fees/chain', flag: 'fees' },
-	{ prefix: 'revenue/chain', flag: 'fees' },
-	{ prefix: 'earnings/chain', flag: 'fees' },
-	{ prefix: 'holders-revenue/chain', flag: 'fees' },
-	{ prefix: 'pf/chain', flag: 'fees' },
-	{ prefix: 'ps/chain', flag: 'fees' },
-	{ prefix: 'dexs/chain', flag: 'dexs' },
-	{ prefix: 'perps/chain', flag: 'perps' },
-	{ prefix: 'dex-aggregators/chain', flag: 'dexAggregators' },
-	{ prefix: 'perps-aggregators/chain', flag: 'perpsAggregators' },
-	{ prefix: 'bridge-aggregators/chain', flag: 'bridgeAggregators' },
-	{ prefix: 'open-interest/chain', flag: 'openInterest' },
-	{ prefix: 'normalized-volume/chain', flag: 'normalizedVolume' },
-	{ prefix: 'options/notional-volume/chain', flag: 'optionsNotionalVolume' },
-	// `/options/premium-volume/chain/[chain]` currently uses `optionsNotionalVolume` as route guard.
-	{ prefix: 'options/premium-volume/chain', flag: 'optionsNotionalVolume' }
-]
+// const protocolTabRoutes = [
+// 	{ prefix: 'protocol/tvl', hasMetric: (meta) => meta.tvl },
+// 	{ prefix: 'protocol/borrowed', hasMetric: (meta) => meta.borrowed },
+// 	{ prefix: 'protocol/stablecoins', hasMetric: (meta) => meta.stablecoins },
+// 	{ prefix: 'protocol/bridges', hasMetric: (meta) => meta.bridge },
+// 	{ prefix: 'protocol/treasury', hasMetric: (meta) => meta.treasury },
+// 	{ prefix: 'protocol/yields', hasMetric: (meta) => meta.yields },
+// 	{ prefix: 'protocol/fees', hasMetric: (meta) => meta.fees },
+// 	{ prefix: 'protocol/dexs', hasMetric: (meta) => meta.dexs },
+// 	{ prefix: 'protocol/perps', hasMetric: (meta) => meta.perps },
+// 	{ prefix: 'protocol/dex-aggregators', hasMetric: (meta) => meta.dexAggregators },
+// 	{ prefix: 'protocol/perps-aggregators', hasMetric: (meta) => meta.perpsAggregators },
+// 	{ prefix: 'protocol/bridge-aggregators', hasMetric: (meta) => meta.bridgeAggregators },
+// 	{ prefix: 'protocol/options', hasMetric: (meta) => meta.optionsPremiumVolume || meta.optionsNotionalVolume },
+// 	{ prefix: 'protocol/token-rights', hasMetric: (meta) => meta.tokenRights }
+// ]
+// const standaloneProtocolRoutes = [
+// 	{ prefix: 'unlocks', hasMetric: (meta) => meta.emissions },
+// 	{ prefix: 'governance', hasMetric: (meta) => meta.governance },
+// 	{ prefix: 'forks', hasMetric: (meta) => meta.forks }
+// ]
+// const chainFlaggedRoutes = [
+// 	{ prefix: 'stablecoins', flag: 'stablecoins' },
+// 	{ prefix: 'bridged', flag: 'chainAssets' },
+// 	{ prefix: 'fees/chain', flag: 'fees' },
+// 	{ prefix: 'revenue/chain', flag: 'fees' },
+// 	{ prefix: 'earnings/chain', flag: 'fees' },
+// 	{ prefix: 'holders-revenue/chain', flag: 'fees' },
+// 	{ prefix: 'pf/chain', flag: 'fees' },
+// 	{ prefix: 'ps/chain', flag: 'fees' },
+// 	{ prefix: 'dexs/chain', flag: 'dexs' },
+// 	{ prefix: 'perps/chain', flag: 'perps' },
+// 	{ prefix: 'dex-aggregators/chain', flag: 'dexAggregators' },
+// 	{ prefix: 'perps-aggregators/chain', flag: 'perpsAggregators' },
+// 	{ prefix: 'bridge-aggregators/chain', flag: 'bridgeAggregators' },
+// 	{ prefix: 'open-interest/chain', flag: 'openInterest' },
+// 	{ prefix: 'normalized-volume/chain', flag: 'normalizedVolume' },
+// 	{ prefix: 'options/notional-volume/chain', flag: 'optionsNotionalVolume' },
+// 	// `/options/premium-volume/chain/[chain]` currently uses `optionsNotionalVolume` as route guard.
+// 	{ prefix: 'options/premium-volume/chain', flag: 'optionsNotionalVolume' }
+// ]
 
 function encodeUrl(urlToAdd) {
 	// Encode each path segment but keep "/" separators intact.
