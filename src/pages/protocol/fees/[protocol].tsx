@@ -92,8 +92,6 @@ export const getStaticProps = withPerformanceLogging(
 		)
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const seoTitle = `${protocolData.name} Fees, Revenue & Earnings - DefiLlama`
-		const seoDescription = `Compare ${protocolData.name} daily and cumulative fees, revenue, and protocol earnings on DefiLlama.`
 
 		const fees: IProtocolOverviewPageData['fees'] = {
 			total24h: feesData.total24h ?? null,
@@ -194,6 +192,9 @@ export const getStaticProps = withPerformanceLogging(
 		const toggleOptions = feesOptions.filter((option) =>
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
+
+		const seoTitle = `${protocolData.name} ${defaultCharts.join(', ')} - DefiLlama`
+		const seoDescription = `Financial overview of ${protocolData.name} including ${defaultCharts.join(', ').toLowerCase()} with daily, weekly, monthly, and cumulative charts and historical data.`
 
 		return {
 			props: {

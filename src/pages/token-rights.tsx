@@ -56,7 +56,7 @@ function resolveDisplayName(entry: IRawTokenRightsEntry, metadata: Record<string
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 	return (
 		<Layout
-			title="Token Rights - DefiLlama - DeFi Dashboard & Crypto Analytics"
+			title="Token Rights by Project - DefiLlama - DeFi Dashboard & Crypto Analytics"
 			description="Explore token holder rights across DeFi protocols — governance, economic rights, value accrual, and alignment."
 			canonicalUrl="/token-rights"
 		>
