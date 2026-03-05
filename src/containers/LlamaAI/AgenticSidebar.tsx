@@ -1,18 +1,26 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
-import { SessionItem } from './SessionItem'
+import type { ChatSession } from '~/containers/LlamaAI/hooks/useChatHistory'
+import { AgenticSessionItem } from './AgenticSessionItem'
 
-interface ChatHistorySidebarProps {
-	handleSidebarToggle: () => void
+interface AgenticSidebarProps {
+	sessions: ChatSession[]
+	isLoading: boolean
 	currentSessionId: string | null
-	onSessionSelect: (sessionId: string, data: { messages: any[]; pagination?: any }) => void
+	restoringSessionId: string | null
+	onSessionSelect: (sessionId: string) => void
 	onNewChat: () => void
+	handleSidebarToggle: () => void
+	onDelete: (sessionId: string) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	isDeletingSession: boolean
+	isUpdatingTitle: boolean
 	shouldAnimate?: boolean
+	onOpenSettings?: () => void
+	hasCustomInstructions?: boolean
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -32,17 +40,50 @@ type VirtualItem =
 	| { type: 'header'; groupName: string; isFirst: boolean }
 	| { type: 'session'; session: ChatSession; groupName: string }
 
-export function ChatHistorySidebar({
-	handleSidebarToggle,
+export function AgenticSidebar({
+	sessions,
+	isLoading,
 	currentSessionId,
+	restoringSessionId,
 	onSessionSelect,
 	onNewChat,
-	shouldAnimate = false
-}: ChatHistorySidebarProps) {
-	const { user } = useAuthContext()
-	const { sessions, isLoading } = useChatHistory()
+	handleSidebarToggle,
+	onDelete,
+	onUpdateTitle,
+	isDeletingSession: _isDeletingSession,
+	isUpdatingTitle: _isUpdatingTitle,
+	shouldAnimate = false,
+	onOpenSettings,
+	hasCustomInstructions
+}: AgenticSidebarProps) {
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
+	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
+
+	const handleDelete = useCallback(
+		async (sessionId: string) => {
+			setDeletingSessionId(sessionId)
+			try {
+				await onDelete(sessionId)
+			} finally {
+				setDeletingSessionId(null)
+			}
+		},
+		[onDelete]
+	)
+
+	const handleUpdateTitle = useCallback(
+		async (args: { sessionId: string; title: string }) => {
+			setUpdatingTitleSessionId(args.sessionId)
+			try {
+				await onUpdateTitle(args)
+			} finally {
+				setUpdatingTitleSessionId(null)
+			}
+		},
+		[onUpdateTitle]
+	)
 
 	const [nowMs] = useState(() => Date.now())
 	const groupedSessions = useMemo(() => {
@@ -75,15 +116,14 @@ export function ChatHistorySidebar({
 		estimateSize: (index) => {
 			const item = virtualItems[index]
 			if (item.type === 'header') {
-				return item.isFirst ? 20 : 32 // First header has less padding
+				return item.isFirst ? 20 : 32
 			}
-			return 32 // Session item height
+			return 32
 		},
 		overscan: 5
 	})
 
 	const onClickOutside = useEffectEvent((event: MouseEvent) => {
-		// Check if event.target is a Node and if click is outside the sidebar
 		if (
 			event.target instanceof Node &&
 			sidebarRef.current &&
@@ -98,8 +138,6 @@ export function ChatHistorySidebar({
 		document.addEventListener('mousedown', onClickOutside)
 		return () => document.removeEventListener('mousedown', onClickOutside)
 	}, [])
-
-	if (!user) return null
 
 	return (
 		<div
@@ -144,7 +182,7 @@ export function ChatHistorySidebar({
 					>
 						{virtualizer.getVirtualItems().map((virtualItem) => {
 							const item = virtualItems[virtualItem.index]
-							const style = {
+							const itemStyle = {
 								position: 'absolute' as const,
 								top: 0,
 								left: 0,
@@ -155,7 +193,7 @@ export function ChatHistorySidebar({
 
 							if (item.type === 'header') {
 								return (
-									<div key={`header-${item.groupName}`} style={style}>
+									<div key={`header-${item.groupName}`} style={itemStyle}>
 										<h2 className={`text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}>
 											{item.groupName}
 										</h2>
@@ -164,19 +202,41 @@ export function ChatHistorySidebar({
 							}
 
 							return (
-								<SessionItem
+								<AgenticSessionItem
 									key={`session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`}
 									session={item.session}
 									isActive={item.session.sessionId === currentSessionId}
 									onSessionSelect={onSessionSelect}
+									onDelete={handleDelete}
+									onUpdateTitle={handleUpdateTitle}
+									isRestoring={restoringSessionId === item.session.sessionId}
+									isDeleting={deletingSessionId === item.session.sessionId}
+									isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
 									handleSidebarToggle={handleSidebarToggle}
-									style={style}
+									style={itemStyle}
 								/>
 							)
 						})}
 					</div>
 				)}
 			</div>
+
+			{onOpenSettings && (
+				<div className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
+					<button
+						onClick={onOpenSettings}
+						className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+					>
+						<div className="relative">
+							<Icon name="settings" height={14} width={14} />
+							{hasCustomInstructions && (
+								<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+							)}
+						</div>
+						<span>Settings</span>
+					</button>
+				</div>
+			)}
 		</div>
 	)
 }

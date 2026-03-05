@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { LlamaAI } from '~/containers/LlamaAI'
+import { AgenticChat } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
@@ -93,5 +93,12 @@ export default function LlamaAIPage() {
 		)
 	}
 
-	return <LlamaAI showDebug={Boolean(user?.flags?.['is_llama'])} />
+	return (
+		<Layout
+			title="LlamaAI - DefiLlama"
+			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+		>
+			<AgenticChat />
+		</Layout>
+	)
 }

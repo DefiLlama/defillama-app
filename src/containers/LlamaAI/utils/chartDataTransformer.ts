@@ -2,7 +2,7 @@ export class ChartDataTransformer {
 	static groupByInterval(
 		series: any[],
 		interval: 'day' | 'week' | 'month' | 'quarter',
-		_chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
+		_chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar'
 	): any[] {
 		return series.map((s) => {
 			const isFlowMetric = s.metricClass === 'flow'
@@ -13,10 +13,9 @@ export class ChartDataTransformer {
 				let key: number
 
 				if (interval === 'week') {
-					const weekStart = new Date(date)
-					weekStart.setUTCDate(date.getUTCDate() - date.getUTCDay())
-					weekStart.setUTCHours(0, 0, 0, 0)
-					key = Math.floor(weekStart.getTime() / 1000)
+					const day = date.getUTCDay()
+					const weekStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - day)
+					key = Math.floor(weekStart / 1000)
 				} else if (interval === 'month') {
 					key = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 				} else if (interval === 'quarter') {
@@ -46,10 +45,7 @@ export class ChartDataTransformer {
 		})
 	}
 
-	static toStacked(
-		series: any[],
-		chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
-	): any[] {
+	static toStacked(series: any[], chartType: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar'): any[] {
 		const allTimestamps = new Set<number>()
 		for (const s of series) {
 			for (const [timestamp] of s.data as [number, number][]) {
@@ -88,13 +84,17 @@ export class ChartDataTransformer {
 		}
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
-		const seriesDataMaps = series.map((item) => new Map(item.data as [number, number][]))
+
+		const seriesMaps = series.map((s) => new Map(s.data as [number, number][]))
 
 		const totals = new Map<number, number>()
 		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			for (const dataMap of seriesDataMaps) {
-				total += dataMap.get(timestamp) ?? 0
+			for (const dataMap of seriesMaps) {
+				const value = dataMap.get(timestamp)
+				if (value !== undefined) {
+					total += value
+				}
 			}
 			totals.set(timestamp, total)
 		}
@@ -117,8 +117,8 @@ export class ChartDataTransformer {
 			'#D7BDE2'
 		]
 
-		const seriesWithAverages = series.map((s, serieIndex) => {
-			const dataMap = seriesDataMaps[serieIndex]
+		const seriesWithAverages = series.map((s, _serieIndex) => {
+			const dataMap = seriesMaps[_serieIndex]
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
 				const value = dataMap.get(timestamp) ?? 0
 				const total = totals.get(timestamp) || 0

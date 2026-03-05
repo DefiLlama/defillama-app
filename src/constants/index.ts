@@ -32,6 +32,52 @@ export const CONFIG_API = `${SERVER_URL}/config`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
 
+// Protocol config
+export const getProtocolFEConfig = (id: string) => `${SERVER_URL}/config/smol/protocol-${id}.json`.replace('#', '-')
+
+// User metrics
+export const USER_METRICS_PROTOCOL_API = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/stats'
+export const USER_METRICS_CHAIN_API = 'https://users.llama.fi/chain'
+export const USER_METRICS_CHAIN_API_BY_DATE = 'https://6tklng2o7b.execute-api.eu-central-1.amazonaws.com/prod/chain'
+export const USER_METRICS_ALL_API = 'https://users.llama.fi/all'
+
+// Protocol/market data
+export const TOKEN_LIQUIDITY_API = `${SERVER_URL}/historicalLiquidity`
+export const RAISES_API = `${SERVER_URL}/raises`
+export const CEXS_API = `${SERVER_URL}/cexs`
+export const HACKS_API = `${SERVER_URL}/hacks`
+export const CG_TOKEN_API =
+	'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=<PLACEHOLDER>'
+
+// Icons
+export const ICONS_NFT_CDN = 'https://nft-icons.llamao.fi/icons'
+
+// Social
+export const TWITTER_POSTS_API = `${DATASETS_SERVER_URL}/dev-metrics/twitter-files`
+export const TWITTER_POSTS_API_V2 = `${SERVER_URL}/twitter/user`
+
+// Coins
+export const COINS_PRICES_API = `${COINS_SERVER_URL}/prices`
+export const COINS_CHART_API = `${COINS_SERVER_URL}/chart`
+export const COINS_MCAPS_API = 'https://coins.llama.fi/mcaps' // pro api does not support this endpoint
+
+// FDV/Category
+export const CATEGORY_PERFORMANCE_API = `${FDV_SERVER_URL}/performance`
+export const CATEGORY_COIN_PRICES_API = `${FDV_SERVER_URL}/prices`
+export const CATEGORY_INFO_API = `${FDV_SERVER_URL}/info`
+export const COINS_INFO_API = `${FDV_SERVER_URL}/coinInfo`
+
+// Datasets
+export const LIQUIDITY_API = `${DATASETS_SERVER_URL}/liquidity.json`
+
+// RWA
+export const RWA_ACTIVE_TVLS_API = `${RWA_SERVER_URL}/current?z=0`
+export const RWA_STATS_API = `${RWA_SERVER_URL}/stats?z=0`
+export const RWA_ID_MAP_API = `${RWA_SERVER_URL}/id-map?z=0`
+export const RWA_LIST_API = `${RWA_SERVER_URL}/list?z=0`
+export const RWA_ASSET_DATA_API = `${RWA_SERVER_URL}/rwa`
+export const RWA_CHART_API = `${RWA_SERVER_URL}/chart`
+
 // Yields APIs
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`
 export const YIELD_CHART_API = `${YIELDS_SERVER_URL}/chart`

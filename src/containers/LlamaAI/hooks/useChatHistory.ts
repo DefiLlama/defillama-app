@@ -1,4 +1,3 @@
-import { useResearchUsage } from './useResearchUsage'
 import { useSessionList } from './useSessionList'
 import { useSessionMutations } from './useSessionMutations'
 import { useSidebarVisibility } from './useSidebarVisibility'
@@ -69,8 +68,6 @@ export function useChatHistory() {
 
 	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
 
-	const { decrementResearchUsage } = useResearchUsage()
-
 	return {
 		sessions,
 		researchUsage,
@@ -82,7 +79,6 @@ export function useChatHistory() {
 		deleteSession,
 		updateSessionTitle,
 		moveSessionToTop,
-		decrementResearchUsage,
 		toggleSidebar,
 		isCreatingSession,
 		isRestoringSession,

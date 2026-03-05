@@ -1,50 +1,48 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import Router from 'next/router'
 import { memo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
+import type { ChatSession } from '~/containers/LlamaAI/hooks/useChatHistory'
+import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
+import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import type { FormSubmitEvent } from '~/types/forms'
-import { useChatHistory, type ChatSession } from '../hooks/useChatHistory'
-import { useClickOutside } from '../hooks/useClickOutside'
-import { SESSIONS_QUERY_KEY } from '../hooks/useSessionList'
 
-interface SessionItemProps {
+interface AgenticSessionItemProps {
 	session: ChatSession
 	isActive: boolean
-	onSessionSelect: (sessionId: string, data: { messages: any[]; pagination?: any }) => void
+	onSessionSelect: (sessionId: string) => void
+	onDelete: (sessionId: string) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	isRestoring: boolean
+	isDeleting: boolean
+	isUpdatingTitle: boolean
 	handleSidebarToggle: () => void
 	style: React.CSSProperties
 }
 
-export const SessionItem = memo(function SessionItem({
+export const AgenticSessionItem = memo(function AgenticSessionItem({
 	session,
 	isActive,
 	onSessionSelect: _onSessionSelect,
+	onDelete,
+	onUpdateTitle,
+	isRestoring,
+	isDeleting,
+	isUpdatingTitle,
 	handleSidebarToggle,
 	style
-}: SessionItemProps) {
-	const router = useRouter()
+}: AgenticSessionItemProps) {
 	const { authorizedFetch } = useAuthContext()
-	const { deleteSession, updateSessionTitle, isRestoringSession, isDeletingSession, isUpdatingTitle } = useChatHistory()
-
-	const handleSessionClick = async (sessionId: string) => {
-		if (isActive) return
-		router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
-
-		if (document.documentElement.clientWidth < 1024) {
-			handleSidebarToggle()
-		}
-	}
+	const queryClient = useQueryClient()
 
 	const [isEditing, setIsEditing] = useState(false)
+	const [isCopyingLink, setIsCopyingLink] = useState(false)
 	const formRef = useRef<HTMLFormElement>(null)
-
-	const queryClient = useQueryClient()
 
 	const { mutate: toggleVisibility, isPending: isTogglingVisibility } = useMutation({
 		mutationFn: async () => {
@@ -62,29 +60,40 @@ export const SessionItem = memo(function SessionItem({
 		}
 	})
 
-	// Use shared hook for click outside detection
 	useClickOutside(formRef, () => setIsEditing(false), isEditing)
 
-	const handleSave = async (e: FormSubmitEvent) => {
+	const handleSessionClick = (sessionId: string) => {
+		if (isActive) return
+		Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
+		if (document.documentElement.clientWidth < 1024) {
+			handleSidebarToggle()
+		}
+	}
+
+	const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		const form = e.currentTarget
 		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
-			updateSessionTitle({ sessionId: session.sessionId, title: title.trim() }).then(() => {
+			try {
+				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim() })
 				setIsEditing(false)
-			})
+			} catch (err) {
+				console.error('Failed to update title:', err)
+			}
 		}
 	}
 
 	const handleDelete = async () => {
 		if (window.confirm('Are you sure you want to delete this chat?')) {
-			deleteSession(session.sessionId).then(() => {
+			try {
+				await onDelete(session.sessionId)
 				setIsEditing(false)
-			})
+			} catch (err) {
+				console.error('Failed to delete session:', err)
+			}
 		}
 	}
-
-	const [isCopyingLink, setIsCopyingLink] = useState(false)
 
 	if (isEditing) {
 		return (
@@ -115,9 +124,7 @@ export const SessionItem = memo(function SessionItem({
 					</button>
 					<button
 						type="button"
-						onClick={() => {
-							setIsEditing(false)
-						}}
+						onClick={() => setIsEditing(false)}
 						className="flex aspect-square items-center justify-center rounded-sm bg-red-500/20 p-1.5 text-(--error)"
 						disabled={isUpdatingTitle}
 					>
@@ -137,14 +144,13 @@ export const SessionItem = memo(function SessionItem({
 			<button
 				type="button"
 				onClick={(e) => {
-					// Allow cmd/ctrl+click to open in new tab
 					if (e.metaKey || e.ctrlKey) {
 						window.open(`/ai/chat/${session.sessionId}`, '_blank')
 						return
 					}
 					handleSessionClick(session.sessionId)
 				}}
-				aria-disabled={isEditing || isDeletingSession || isRestoringSession}
+				aria-disabled={isEditing || isDeleting || isRestoring}
 				className="flex-1 overflow-hidden p-1.5 text-left text-ellipsis whitespace-nowrap aria-disabled:pointer-events-none aria-disabled:opacity-60"
 			>
 				{session.title}
@@ -152,12 +158,7 @@ export const SessionItem = memo(function SessionItem({
 			<div className="flex items-center justify-center opacity-0 group-focus-within:opacity-100 group-hover:opacity-100">
 				<Tooltip
 					content="Edit Session Title"
-					render={
-						<button
-							onClick={() => setIsEditing(true)}
-							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession}
-						/>
-					}
+					render={<button onClick={() => setIsEditing(true)} disabled={isUpdatingTitle || isDeleting || isRestoring} />}
 					className="flex aspect-square items-center justify-center rounded-sm p-1.5 hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="pencil" height={12} width={12} className="shrink-0" />
@@ -221,7 +222,7 @@ export const SessionItem = memo(function SessionItem({
 								}
 							}}
 							hideOnClick={false}
-							disabled={isTogglingVisibility || isUpdatingTitle || isDeletingSession || isRestoringSession}
+							disabled={isTogglingVisibility || isUpdatingTitle || isDeleting || isRestoring}
 							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
 						>
 							{isTogglingVisibility ? (
@@ -233,11 +234,11 @@ export const SessionItem = memo(function SessionItem({
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
 							onClick={handleDelete}
-							disabled={isUpdatingTitle || isDeletingSession || isRestoringSession || isTogglingVisibility}
-							data-deleting={isDeletingSession}
+							disabled={isUpdatingTitle || isDeleting || isRestoring || isTogglingVisibility}
+							data-deleting={isDeleting}
 							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-active-item:bg-red-500/10 data-active-item:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"
 						>
-							{isDeletingSession ? (
+							{isDeleting ? (
 								<LoadingSpinner size={14} />
 							) : (
 								<Icon name="trash-2" height={14} width={14} className="shrink-0" />
@@ -247,7 +248,7 @@ export const SessionItem = memo(function SessionItem({
 					</Ariakit.Menu>
 				</Ariakit.MenuProvider>
 			</div>
-			{isRestoringSession ? (
+			{isRestoring ? (
 				<span className="absolute top-0 right-0 bottom-0 left-0 flex items-center justify-center rounded-sm bg-(--cards-bg)/70">
 					<LoadingSpinner size={12} />
 				</span>

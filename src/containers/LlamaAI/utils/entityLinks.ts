@@ -9,10 +9,35 @@ export function getEntityUrl(type: string, slug: string): string {
 			return `/yields/pool/${slug}`
 		case 'category':
 			return `/protocols/${slug}`
+		case 'stablecoin':
+			return `/stablecoin/${slug}`
+		case 'cex':
+			return `/cex/${slug}`
 		default:
 			return `/${type}/${slug}`
 	}
 }
+
+/**
+ * Get the icon URL for an entity based on type and slug.
+ * Returns empty string for unsupported types.
+ */
+export function getEntityIcon(type: string, slug: string): string {
+	const encoded = encodeURIComponent(slug)
+	switch (type) {
+		case 'protocol':
+		case 'subprotocol':
+		case 'cex':
+			return `https://icons.llamao.fi/icons/protocols/${encoded}?w=48&h=48`
+		case 'chain':
+			return `https://icons.llamao.fi/icons/chains/rsz_${encoded}?w=48&h=48`
+		case 'stablecoin':
+			return `https://icons.llamao.fi/icons/pegged/${encoded}?w=48&h=48`
+		default:
+			return ''
+	}
+}
+
 
 export function convertLlamaLinksToDefillama(content: string): string {
 	const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/([^/)]+)\/([^)]*?))\)/g

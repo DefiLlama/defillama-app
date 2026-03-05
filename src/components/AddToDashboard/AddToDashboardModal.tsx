@@ -136,15 +136,35 @@ async function buildChartToAdd({
 	nextChartName
 }: BuildChartToAddParams): Promise<DashboardChartConfig | LlamaAIChartConfig | null> {
 	if (llamaAIChart) {
-		const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ messageId: llamaAIChart.messageId, chartId: llamaAIChart.chartId })
-		})
-		if (!res.ok) {
-			throw new Error('Failed to save chart')
+		let savedChartId: string
+
+		if (llamaAIChart.sessionId) {
+			const res = await authorizedFetch(`${MCP_SERVER}/agentic/save-chart`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					sessionId: llamaAIChart.sessionId,
+					chartId: llamaAIChart.chartId,
+					title: nextChartName || llamaAIChart.title
+				})
+			})
+			if (!res.ok) {
+				throw new Error('Failed to save chart')
+			}
+			const data = await res.json()
+			savedChartId = data.id
+		} else {
+			const res = await authorizedFetch(`${MCP_SERVER}/charts`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messageId: llamaAIChart.messageId, chartId: llamaAIChart.chartId })
+			})
+			if (!res.ok) {
+				throw new Error('Failed to save chart')
+			}
+			const data = await res.json()
+			savedChartId = data.id
 		}
-		const { id: savedChartId } = await res.json()
 
 		return {
 			id: crypto.randomUUID(),

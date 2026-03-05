@@ -12,7 +12,7 @@ import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
 import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
 
-const MARKDOWN_REMARK_PLUGINS = [remarkGfm]
+const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
@@ -102,7 +102,7 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 	if (href?.startsWith('llama://')) {
 		const [type, slug] = href.replace('llama://', '').split('/')
 
-		if (!['protocol', 'subprotocol', 'chain', 'pool'].includes(type)) {
+		if (!['protocol', 'subprotocol', 'chain', 'pool', 'category', 'stablecoin', 'cex'].includes(type)) {
 			return <span>{children}</span>
 		}
 
@@ -214,9 +214,7 @@ export function MarkdownRenderer({
 											charts={[chartItem.chart]}
 											chartData={normalizedData}
 											isLoading={false}
-											isAnalyzing={false}
 											resizeTrigger={inlineChartConfig?.resizeTrigger}
-											messageId={inlineChartConfig?.messageId}
 										/>
 									</div>
 								)
@@ -232,9 +230,7 @@ export function MarkdownRenderer({
 											charts={[chart]}
 											chartData={data}
 											isLoading={false}
-											isAnalyzing={false}
 											resizeTrigger={inlineChartConfig.resizeTrigger}
-											messageId={inlineChartConfig.messageId}
 										/>
 									</div>
 								)
@@ -306,7 +302,7 @@ export function MarkdownRenderer({
 						return null
 					})
 				: renderMarkdownSection(processedData.content, 'content')}
-			{citations && citations.length > 0 && (
+			{citations && citations.length > 0 && !isStreaming && (
 				<details className="flex flex-col text-sm">
 					<summary className="mr-auto flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
 						<svg

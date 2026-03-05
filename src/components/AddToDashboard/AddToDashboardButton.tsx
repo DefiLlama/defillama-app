@@ -28,7 +28,8 @@ export type DashboardChartConfig =
 	| StablecoinAssetChartConfig
 
 export interface LlamaAIChartInput {
-	messageId: string
+	messageId?: string
+	sessionId?: string
 	chartId: string
 	title: string
 }

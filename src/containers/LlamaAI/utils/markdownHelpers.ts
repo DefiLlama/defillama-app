@@ -47,16 +47,18 @@ function sanitizeUrl(url: string): string | null {
 interface ArtifactMatch {
 	index: number
 	length: number
-	type: 'chart' | 'csv' | 'alert'
+	type: 'chart' | 'csv' | 'alert' | 'action'
 	id: string
 }
 
 interface ContentPart {
-	type: 'text' | 'chart' | 'csv' | 'alert'
+	type: 'text' | 'chart' | 'csv' | 'alert' | 'action'
 	content: string
 	chartId?: string
 	csvId?: string
 	alertId?: string
+	actionLabel?: string
+	actionMessage?: string
 }
 
 interface ParsedContent {
@@ -64,6 +66,7 @@ interface ParsedContent {
 	chartIds: Set<string>
 	csvIds: Set<string>
 	alertIds: Set<string>
+	actionItems: Array<{ label: string; message: string }>
 }
 
 /**
@@ -74,10 +77,12 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	const chartPlaceholderPattern = /\[CHART:([^\]]+)\]/g
 	const csvPlaceholderPattern = /\[CSV:([^\]]+)\]/g
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
+	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
 	const parts: ContentPart[] = []
 	const chartIds = new Set<string>()
 	const csvIds = new Set<string>()
 	const alertIds = new Set<string>()
+	const actionItems: Array<{ label: string; message: string }> = []
 
 	const allMatches: ArtifactMatch[] = []
 
@@ -94,6 +99,17 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
 		alertIds.add(match[1])
 	}
+	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
+		const actionLabel = match[1].trim()
+		const actionMessage = match[2]?.trim() || actionLabel
+		allMatches.push({
+			index: match.index,
+			length: match[0].length,
+			type: 'action',
+			id: JSON.stringify({ label: actionLabel, message: actionMessage })
+		})
+		actionItems.push({ label: actionLabel, message: actionMessage })
+	}
 
 	allMatches.sort((a, b) => a.index - b.index)
 
@@ -106,6 +122,9 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			parts.push({ type: 'chart', content: '', chartId: m.id })
 		} else if (m.type === 'csv') {
 			parts.push({ type: 'csv', content: '', csvId: m.id })
+		} else if (m.type === 'action') {
+			const { label, message } = JSON.parse(m.id)
+			parts.push({ type: 'action', content: '', actionLabel: label, actionMessage: message })
 		} else {
 			parts.push({ type: 'alert', content: '', alertId: m.id })
 		}
@@ -120,7 +139,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		parts.push({ type: 'text', content })
 	}
 
-	return { parts, chartIds, csvIds, alertIds }
+	return { parts, chartIds, csvIds, alertIds, actionItems }
 }
 
 /**
