@@ -207,6 +207,24 @@ async function buildRWAAssetRoutes() {
 			if (tickerSlug) routes.push(`rwa/asset/${tickerSlug}`)
 		}
 	}
+	if (rwaList?.platforms) {
+		for (const platform of rwaList.platforms) {
+			const platformSlug = rwaSlug(platform)
+			if (platformSlug) routes.push(`rwa/platform/${platformSlug}`)
+		}
+	}
+	if (rwaList?.chains) {
+		for (const chain of rwaList.chains) {
+			const chainSlug = rwaSlug(chain)
+			if (chainSlug) routes.push(`rwa/chain/${chainSlug}`)
+		}
+	}
+	if (rwaList?.categories) {
+		for (const category of rwaList.categories) {
+			const categorySlug = rwaSlug(category)
+			if (categorySlug) routes.push(`rwa/category/${categorySlug}`)
+		}
+	}
 	return routes
 }
 
