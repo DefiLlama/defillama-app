@@ -1,6 +1,7 @@
 import { fetchDATInstitutions } from '~/containers/DAT/api'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
+import { fetchAllProtocolEmissions } from '~/containers/Unlocks/api'
 import defillamaPages from '~/public/pages.json'
 import { slug } from '~/utils'
 
@@ -183,6 +184,17 @@ function buildStablecoinAssetRoutes(stablecoins) {
 	return routes
 }
 
+function buildUnlocksRoutes(protocolEmissions) {
+	const routes = []
+	const emissionsList = Array.isArray(protocolEmissions) ? protocolEmissions : []
+	for (const emission of emissionsList) {
+		if (!emission?.name) continue
+		const protocolSlug = slug(emission.name)
+		if (protocolSlug) routes.push(`unlocks/${protocolSlug}`)
+	}
+	return routes
+}
+
 function buildCexRoutes(cexs) {
 	const routes = []
 	for (const cex of cexs) {
@@ -275,8 +287,9 @@ export async function getServerSideProps({ res }) {
 	const { chainMetadata, protocolMetadata, categoriesAndTags, cexs } = metadataModule.default
 
 	// Build routes in parallel
-	const [stablecoinResponse, rwaAssetRoutes, datRoutes] = await Promise.all([
+	const [stablecoinResponse, protocolEmissions, rwaAssetRoutes, datRoutes] = await Promise.all([
 		fetchStablecoinAssetsApi(),
+		fetchAllProtocolEmissions(),
 		buildRWAAssetRoutes(),
 		buildDATRoutes()
 	])
@@ -292,6 +305,7 @@ export async function getServerSideProps({ res }) {
 		...buildProtocolRoutes(protocolMetadata),
 		...buildCategoryAndTagRoutes(categoriesAndTags),
 		...buildStablecoinAssetRoutes(stablecoins),
+		...buildUnlocksRoutes(protocolEmissions),
 		...buildCexRoutes(cexs),
 		...rwaAssetRoutes,
 		...datRoutes.companyRoutes,
