@@ -5,8 +5,8 @@ import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
-import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Chains']
@@ -62,7 +62,7 @@ export default function Chains(props: InferGetStaticPropsType<typeof getStaticPr
 		<Layout
 			title={`${props.categoryName} Chains DeFi TVL - DefiLlama`}
 			description={props.description}
-			canonicalUrl={`/chains${props.categoryName === 'All' ? '' : `/${props.categoryName}`}`}
+			canonicalUrl={`/chains${props.categoryName === 'All' ? '' : `/${props.category}`}`}
 			metricFilters={tvlOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
