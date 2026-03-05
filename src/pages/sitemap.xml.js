@@ -110,17 +110,17 @@ function buildProtocolRoutes(protocolMetadata) {
 
 		routes.push(`protocol/${protocolSlug}`)
 
-		for (const routeDef of protocolTabRoutes) {
-			if (routeDef.hasMetric(meta)) {
-				routes.push(`${routeDef.prefix}/${protocolSlug}`)
-			}
-		}
+		// for (const routeDef of protocolTabRoutes) {
+		// 	if (routeDef.hasMetric(meta)) {
+		// 		routes.push(`${routeDef.prefix}/${protocolSlug}`)
+		// 	}
+		// }
 
-		for (const routeDef of standaloneProtocolRoutes) {
-			if (routeDef.hasMetric(meta)) {
-				routes.push(`${routeDef.prefix}/${protocolSlug}`)
-			}
-		}
+		// for (const routeDef of standaloneProtocolRoutes) {
+		// 	if (routeDef.hasMetric(meta)) {
+		// 		routes.push(`${routeDef.prefix}/${protocolSlug}`)
+		// 	}
+		// }
 	}
 
 	return routes
@@ -140,11 +140,11 @@ function buildChainRoutes(chainMetadata) {
 		seenChainSlugs.add(chainSlug)
 		routes.push(`chain/${chainSlug}`)
 
-		for (const routeDef of chainFlaggedRoutes) {
-			if (metadata[routeDef.flag]) {
-				routes.push(`${routeDef.prefix}/${chainSlug}`)
-			}
-		}
+		// for (const routeDef of chainFlaggedRoutes) {
+		// 	if (metadata[routeDef.flag]) {
+		// 		routes.push(`${routeDef.prefix}/${chainSlug}`)
+		// 	}
+		// }
 	}
 
 	return routes
@@ -158,13 +158,13 @@ function buildCategoryAndTagRoutes(categoriesAndTags) {
 
 	for (const category of categories) {
 		const categorySlug = slug(category)
-		if (categorySlug) routes.push(`protocols/${categorySlug}`)
+		if (categorySlug && categorySlug !== 'rwa') routes.push(`protocols/${categorySlug}`)
 	}
 
 	for (const tag of tags) {
 		if (!tagCategoryMap[tag]) continue
 		const tagSlug = slug(tag)
-		if (tagSlug) routes.push(`protocols/${tagSlug}`)
+		if (tagSlug && tagCategoryMap[tag] !== 'RWA') routes.push(`protocols/${tagSlug}`)
 	}
 
 	return routes
@@ -188,8 +188,8 @@ function buildCexRoutes(cexs) {
 		const cexSlug = slug(cex.slug)
 		if (!cexSlug) continue
 		routes.push(`cex/${cexSlug}`)
-		routes.push(`cex/assets/${cexSlug}`)
-		routes.push(`cex/stablecoins/${cexSlug}`)
+		// routes.push(`cex/assets/${cexSlug}`)
+		// routes.push(`cex/stablecoins/${cexSlug}`)
 	}
 	return routes
 }
