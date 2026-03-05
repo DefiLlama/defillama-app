@@ -1,4 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { TemporarilyDisabledPage } from '~/components/TemporarilyDisabledPage'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgedTVLByChain } from '~/containers/BridgedTVL/BridgedTVLByChain'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
@@ -48,9 +49,20 @@ const pageName = ['Bridged TVL', 'by', 'Chain']
 
 export default function Bridged(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	if (!props.chainData) {
-		return <div>Not found</div>
-	}
 		return (
+			<TemporarilyDisabledPage
+				title={`${props.chainName} Bridged Assets & Cross-Chain TVL - Assets Bridged To ${props.chainName} - DefiLlama`}
+				description={`Track total value of assets bridged to ${props.chainName} from other chains. View bridged TVL breakdown by token, source chain, and bridge protocol. Real-time cross-chain asset analytics for ${props.chainName}.`}
+				canonicalUrl={`/bridged/${props.chain}`}
+				heading="Bridged TVL temporarily unavailable"
+			>
+				<p>We recognize this route, but the upstream bridge APIs failed while loading this page.</p>
+				<p>Please try again in a few minutes.</p>
+			</TemporarilyDisabledPage>
+		)
+	}
+
+	return (
 		<Layout
 			title={`${props.chainName} Bridged Assets & Cross-Chain TVL - Assets Bridged To ${props.chainName} - DefiLlama`}
 			description={`Track total value of assets bridged to ${props.chainName} from other chains. View bridged TVL breakdown by token, source chain, and bridge protocol. Real-time cross-chain asset analytics for ${props.chainName}.`}

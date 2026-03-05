@@ -70,7 +70,7 @@ export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticP
 			title={`Real World Assets (RWA) on ${props.platformName} Dashboard & Analytics - DefiLlama`}
 			description={`Explore ${props.platformName}, an RWA platform enabling issuance, custody, trading, or management of tokenized real-world assets across blockchains.`}
 			pageName={pageName}
-			canonicalUrl={`/rwa`}
+			canonicalUrl={`/rwa/platform/${props.platformSlug}`}
 		>
 			<RWAOverview {...props} />
 		</Layout>

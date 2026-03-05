@@ -74,7 +74,7 @@ const NormalizedVolumeOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${props.chain} Normalized DEX Volume - Wash Trading Filtered Activity - DefiLlama`}
 			description={`Track normalized DEX volume with wash trading filtered out on ${props.chain}. Compare genuine trading activity based on available liquidity and market conditions. Real-time ${props.chain} authentic DEX volume analytics.`}
-			canonicalUrl={`/normalized-volume/chain/${props.chain}`}
+			canonicalUrl={`/normalized-volume/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

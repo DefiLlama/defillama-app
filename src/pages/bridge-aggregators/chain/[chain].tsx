@@ -91,7 +91,7 @@ const BridgeAggregatorsVolumeOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${props.chain} Bridge Aggregator Volume - Cross-Chain Routing Activity - DefiLlama`}
 			description={`Track bridge aggregator volume and cross-chain transfers routed through aggregators on ${props.chain}. Compare volume across Bungee, LI.FI, Socket, and all bridge aggregators on ${props.chain}. Real-time ${props.chain} bridge routing analytics.`}
-			canonicalUrl={`/bridge-aggregators/chain/${props.chain}`}
+			canonicalUrl={`/bridge-aggregators/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

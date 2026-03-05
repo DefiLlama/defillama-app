@@ -47,11 +47,11 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Market Cap']
 
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title={`${props.chain} Market Cap Rankings - Token Market Capitalization - DefiLlama`}
 			description={`Track DeFi protocol market cap rankings on ${props.chain}. Compare token market capitalization for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto market cap analytics.`}
-			canonicalUrl={`/mcaps/chain/${props.chain}`}
+			canonicalUrl={`/mcaps/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ProtocolsWithTokens {...props} />

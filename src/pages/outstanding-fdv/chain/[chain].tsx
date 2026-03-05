@@ -47,11 +47,11 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Outstanding FDV']
 
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title={`${props.chain} Outstanding FDV Rankings - Outstanding Fully Diluted Valuation - DefiLlama`}
 			description={`Track DeFi protocol outstanding FDV rankings on ${props.chain}. Compare outstanding fully diluted valuations (circulating supply only) for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto oFDV analytics.`}
-			canonicalUrl={`/outstanding-fdv/chain/${props.chain}`}
+			canonicalUrl={`/outstanding-fdv/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ProtocolsWithTokens {...props} />

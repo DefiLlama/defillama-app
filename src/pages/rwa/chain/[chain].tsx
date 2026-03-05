@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
+import type { IRWAAssetsOverview } from '~/containers/RWA/api.types'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
@@ -69,7 +70,7 @@ export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticP
 			title={`Real World Assets (RWA) on ${props.chainName} Dashboard & Analytics - DefiLlama`}
 			description={`${props.chainName} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			pageName={pageName}
-			canonicalUrl={`/rwa/chains`}
+			canonicalUrl={`/rwa/chain/${props.chainSlug}`}
 		>
 			<RWAOverview {...props} />
 		</Layout>

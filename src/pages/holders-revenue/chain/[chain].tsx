@@ -93,7 +93,7 @@ const HoldersRevenueOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
 			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			canonicalUrl={`/holders-revenue/chain/${props.chain}`}
+			canonicalUrl={`/holders-revenue/chain/${slug(props.chain)}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"
 			pageName={pageName}

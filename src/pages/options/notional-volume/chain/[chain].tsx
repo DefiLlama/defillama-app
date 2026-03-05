@@ -92,7 +92,7 @@ const NotionalVolumeOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
 			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			canonicalUrl={`/options/notional-volume/chain/${props.chain}`}
+			canonicalUrl={`/options/notional-volume/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

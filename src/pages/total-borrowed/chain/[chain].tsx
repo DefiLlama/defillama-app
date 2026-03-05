@@ -45,11 +45,12 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
 export default function TotalBorrowedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	console.log(props)
 	return (
 		<Layout
 			title={`Total Borrowed in DeFi on ${props.chain} - DefiLlama`}
 			description={`Total Borrowed by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			canonicalUrl={`/total-borrowed/chain/${props.chain}`}
+			canonicalUrl={`/total-borrowed/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ExtraTvlByChain {...props} />

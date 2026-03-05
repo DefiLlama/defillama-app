@@ -49,7 +49,7 @@ export default function Pool2TVLByChain(props: InferGetStaticPropsType<typeof ge
 		<Layout
 			title={`${props.chain} Pool2 TVL Metrics - DefiLlama`}
 			description={`Pool2 TVL by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			canonicalUrl={`/pool2/chain/${props.chain}`}
+			canonicalUrl={`/pool2/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ExtraTvlByChain {...props} />

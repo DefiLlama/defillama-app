@@ -91,7 +91,7 @@ const DexsVolumeOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${props.chain} DEX Swap Volume Rankings - Decentralized Exchange Activity - DefiLlama`}
 			description={`Track DEX swap volume and trading activity on ${props.chain}. Compare 24h and 7-day volume across Uniswap, Curve, and all spot decentralized exchanges on ${props.chain}. Real-time ${props.chain} DEX volume rankings by protocol.`}
-			canonicalUrl={`/dexs/chain/${props.chain}`}
+			canonicalUrl={`/dexs/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

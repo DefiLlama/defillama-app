@@ -47,11 +47,11 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Token Price']
 
 export default function ProtocolsTokenPricesByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-		return (
+	return (
 		<Layout
 			title={`${props.chain} Token Price Rankings - Crypto Token Prices - DefiLlama`}
 			description={`Track DeFi protocol token price rankings on ${props.chain}. Compare token prices for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto token price analytics.`}
-			canonicalUrl={`/token-prices/chain/${props.chain}`}
+			canonicalUrl={`/token-prices/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ProtocolsWithTokens {...props} />

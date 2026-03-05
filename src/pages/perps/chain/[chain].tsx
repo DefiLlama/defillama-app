@@ -93,7 +93,7 @@ const PerpsVolumeOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${props.chain} Perpetual DEX & Futures Volume - Derivatives Trading - DefiLlama`}
 			description={`Track perpetual DEX and futures trading volume on ${props.chain}. Compare leverage trading activity on derivatives protocols on ${props.chain}. Real-time ${props.chain} perp volume and trading analytics.`}
-			canonicalUrl={`/perps/chain/${props.chain}`}
+			canonicalUrl={`/perps/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />

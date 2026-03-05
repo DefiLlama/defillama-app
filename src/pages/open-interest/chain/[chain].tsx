@@ -92,7 +92,7 @@ const OpenInterestOnChain = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`${props.chain} Crypto Open Interest - Derivatives Open Interest by Protocol - DefiLlama`}
 			description={`Track open interest on ${props.chain} across all derivatives protocols. Compare total open interest and leverage exposure on perp DEXs on ${props.chain}. Real-time ${props.chain} open interest analytics.`}
-			canonicalUrl={`/open-interest/chain/${props.chain}`}
+			canonicalUrl={`/open-interest/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<AdapterByChain {...props} type={type} />
