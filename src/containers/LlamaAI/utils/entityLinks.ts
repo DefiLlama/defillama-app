@@ -23,15 +23,16 @@ export function getEntityUrl(type: string, slug: string): string {
  * Returns empty string for unsupported types.
  */
 export function getEntityIcon(type: string, slug: string): string {
+	const encoded = encodeURIComponent(slug)
 	switch (type) {
 		case 'protocol':
 		case 'subprotocol':
 		case 'cex':
-			return `https://icons.llamao.fi/icons/protocols/${slug}?w=48&h=48`
+			return `https://icons.llamao.fi/icons/protocols/${encoded}?w=48&h=48`
 		case 'chain':
-			return `https://icons.llamao.fi/icons/chains/rsz_${slug}?w=48&h=48`
+			return `https://icons.llamao.fi/icons/chains/rsz_${encoded}?w=48&h=48`
 		case 'stablecoin':
-			return `https://icons.llamao.fi/icons/pegged/${slug}?w=48&h=48`
+			return `https://icons.llamao.fi/icons/pegged/${encoded}?w=48&h=48`
 		default:
 			return ''
 	}

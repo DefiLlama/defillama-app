@@ -75,17 +75,23 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		const form = e.currentTarget
 		const title = (form.elements.namedItem('newTitle') as HTMLInputElement | null)?.value ?? ''
 		if (title.trim() && title !== session.title) {
-			onUpdateTitle({ sessionId: session.sessionId, title: title.trim() }).then(() => {
+			try {
+				await onUpdateTitle({ sessionId: session.sessionId, title: title.trim() })
 				setIsEditing(false)
-			})
+			} catch (err) {
+				console.error('Failed to update title:', err)
+			}
 		}
 	}
 
 	const handleDelete = async () => {
 		if (window.confirm('Are you sure you want to delete this chat?')) {
-			onDelete(session.sessionId).then(() => {
+			try {
+				await onDelete(session.sessionId)
 				setIsEditing(false)
-			})
+			} catch (err) {
+				console.error('Failed to delete session:', err)
+			}
 		}
 	}
 

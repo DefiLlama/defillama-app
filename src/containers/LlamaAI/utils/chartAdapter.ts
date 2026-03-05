@@ -573,7 +573,7 @@ export function adaptCandlestickData(
 
 	const sample = rawData[0] || {}
 	const keys = Object.keys(sample)
-	const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) : new Date(r.date).getTime())
+	const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) * 1000 : new Date(r.date).getTime())
 
 	data = rawData.map((r: any) => [
 		getTs(r),
@@ -608,7 +608,10 @@ export function adaptCandlestickData(
 		indicators.push({
 			name: field.toUpperCase(),
 			category: 'overlay',
-			data: rawData.map((r: any) => [getTs(r), parseFloat(r[field]) || null])
+			data: rawData.map((r: any) => {
+				const v = parseFloat(r[field])
+				return [getTs(r), Number.isFinite(v) ? v : null]
+			})
 		})
 	}
 
@@ -617,7 +620,10 @@ export function adaptCandlestickData(
 		indicators.push({
 			name: 'RSI',
 			category: 'panel',
-			data: rawData.map((r: any) => [getTs(r), parseFloat(r[rsiField]) || null])
+			data: rawData.map((r: any) => {
+				const v = parseFloat(r[rsiField])
+				return [getTs(r), Number.isFinite(v) ? v : null]
+			})
 		})
 	}
 

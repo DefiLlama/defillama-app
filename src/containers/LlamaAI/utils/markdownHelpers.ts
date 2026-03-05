@@ -106,7 +106,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			index: match.index,
 			length: match[0].length,
 			type: 'action',
-			id: `${actionLabel}|${actionMessage}`
+			id: JSON.stringify({ label: actionLabel, message: actionMessage })
 		})
 		actionItems.push({ label: actionLabel, message: actionMessage })
 	}
@@ -123,8 +123,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		} else if (m.type === 'csv') {
 			parts.push({ type: 'csv', content: '', csvId: m.id })
 		} else if (m.type === 'action') {
-			const [label, message] = m.id.split('|')
-			parts.push({ type: 'action', content: '', actionLabel: label.trim(), actionMessage: message.trim() })
+			const { label, message } = JSON.parse(m.id)
+			parts.push({ type: 'action', content: '', actionLabel: label, actionMessage: message })
 		} else {
 			parts.push({ type: 'alert', content: '', alertId: m.id })
 		}

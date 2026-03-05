@@ -13,15 +13,14 @@ export class ChartDataTransformer {
 				let key: number
 
 				if (interval === 'week') {
-					const weekStart = new Date(date)
-					weekStart.setDate(date.getDate() - date.getDay())
-					weekStart.setHours(0, 0, 0, 0)
-					key = Math.floor(weekStart.getTime() / 1000)
+					const day = date.getUTCDay()
+					const weekStart = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - day)
+					key = Math.floor(weekStart / 1000)
 				} else if (interval === 'month') {
-					key = Math.floor(new Date(date.getFullYear(), date.getMonth(), 1).getTime() / 1000)
+					key = Math.floor(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1) / 1000)
 				} else if (interval === 'quarter') {
-					const quarter = Math.floor(date.getMonth() / 3)
-					key = Math.floor(new Date(date.getFullYear(), quarter * 3, 1).getTime() / 1000)
+					const quarter = Math.floor(date.getUTCMonth() / 3)
+					key = Math.floor(Date.UTC(date.getUTCFullYear(), quarter * 3, 1) / 1000)
 				} else {
 					key = timestamp
 				}
@@ -86,13 +85,15 @@ export class ChartDataTransformer {
 
 		const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b)
 
+		const seriesMaps = series.map((s) => new Map(s.data as [number, number][]))
+
 		const totals = new Map<number, number>()
 		for (const timestamp of sortedTimestamps) {
 			let total = 0
-			for (const s of series) {
-				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
-				if (dataPoint) {
-					total += dataPoint[1]
+			for (const dataMap of seriesMaps) {
+				const value = dataMap.get(timestamp)
+				if (value !== undefined) {
+					total += value
 				}
 			}
 			totals.set(timestamp, total)
@@ -117,9 +118,9 @@ export class ChartDataTransformer {
 		]
 
 		const seriesWithAverages = series.map((s, _serieIndex) => {
+			const dataMap = new Map(s.data as [number, number][])
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
-				const dataPoint = s.data.find(([t]: [number, number]) => t === timestamp)
-				const value = dataPoint ? dataPoint[1] : 0
+				const value = dataMap.get(timestamp) ?? 0
 				const total = totals.get(timestamp) || 0
 				const percentage = total > 0 ? (value / total) * 100 : 0
 				return [timestamp, percentage]

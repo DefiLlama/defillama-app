@@ -18,8 +18,6 @@ export interface SpawnProgressData {
 	findingsPreview?: string
 }
 
-export type { AlertProposedData }
-
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, any[]>) => void
@@ -134,11 +132,9 @@ function parseSSEStream(
 				}
 			}
 		} finally {
-			if (!reader.closed) {
-				try {
-					reader.releaseLock()
-				} catch {}
-			}
+			try {
+				reader.releaseLock()
+			} catch {}
 		}
 	}
 
@@ -220,7 +216,7 @@ export async function checkActiveExecution(
 	fetchFn?: typeof fetch
 ): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string }> {
 	try {
-		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${sessionId}`)
+		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
 		if (!res.ok) return { active: false }
 		return res.json()
 	} catch {
@@ -239,7 +235,7 @@ export async function resumeAgenticStream({
 	abortSignal?: AbortSignal
 	fetchFn?: typeof fetch
 }) {
-	const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stream/${sessionId}`, {
+	const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`, {
 		signal: abortSignal
 	})
 
