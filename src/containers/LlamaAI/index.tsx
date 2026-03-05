@@ -27,7 +27,7 @@ import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from 
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import type { ChartConfiguration, Message, AlertProposedData, ToolExecution } from './types'
 
-const TOOL_LABELS: Record<string, string> = {
+export const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
 	resolve_entity: 'Resolving entity',
 	load_skill: 'Loading knowledge',
@@ -36,7 +36,44 @@ const TOOL_LABELS: Record<string, string> = {
 	x_search: 'Searching X/Twitter',
 	spawn_agent: 'Spawning research agents',
 	export_csv: 'Exporting CSV',
-	create_alert: 'Creating alert'
+	create_alert: 'Creating alert',
+	valyu_search: 'Searching financial data',
+	execute_code: 'Running code',
+	read_url: 'Reading URL',
+	get_polymarket_data: 'Fetching prediction markets',
+	get_wallet_data: 'Fetching wallet data',
+	get_token_data: 'Fetching token data',
+	get_tx_data: 'Fetching transaction data',
+	get_kg_enrichment: 'Enriching knowledge graph',
+	get_feed_enrichment: 'Enriching feed data',
+	get_docs: 'Reading documentation',
+	list_alerts: 'Listing alerts',
+	manage_alert: 'Managing alert',
+	search_adapters: 'Searching adapters',
+	get_adapter_code: 'Reading adapter code',
+	query_logs: 'Querying logs',
+	call_contract: 'Calling contract',
+	get_contract: 'Fetching contract',
+	get_monte_carlo_forecast: 'Running Monte Carlo forecast',
+	get_tsmom: 'Computing momentum signal',
+	get_governance_data: 'Fetching governance data',
+	manage_user_memory: 'Updating memory',
+	x_advanced_search: 'Searching X/Twitter',
+	x_get_user: 'Fetching X user profile',
+	x_get_user_by_id: 'Fetching X user profile',
+	x_get_users: 'Fetching X users',
+	x_get_tweets: 'Fetching tweets',
+	x_get_tweet: 'Fetching tweet',
+	x_get_user_tweets: 'Fetching user tweets',
+	x_search_users: 'Searching X users',
+	x_get_followers: 'Fetching X followers',
+	x_get_following: 'Fetching X following',
+	x_get_quote_tweets: 'Fetching quote tweets',
+	x_get_replies: 'Fetching replies',
+	x_get_retweeted_by: 'Fetching retweets',
+	x_get_community: 'Fetching X community',
+	x_get_community_members: 'Fetching community members',
+	x_get_community_posts: 'Fetching community posts'
 }
 
 interface ToolCall {
@@ -1881,7 +1918,7 @@ function TypingIndicator() {
 	)
 }
 
-const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
+export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	execute_sql: { icon: 'layers', color: '#6366f1' },
 	resolve_entity: { icon: 'search', color: '#a78bfa' },
 	load_skill: { icon: 'graduation-cap', color: '#34d399' },
@@ -1890,7 +1927,44 @@ const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	x_search: { icon: 'twitter', color: '#94a3b8' },
 	spawn_agent: { icon: 'users', color: '#f472b6' },
 	export_csv: { icon: 'sheets', color: '#4ade80' },
-	create_alert: { icon: 'sparkles', color: '#fbbf24' }
+	create_alert: { icon: 'sparkles', color: '#fbbf24' },
+	valyu_search: { icon: 'search', color: '#10b981' },
+	execute_code: { icon: 'code', color: '#8b5cf6' },
+	read_url: { icon: 'earth', color: '#06b6d4' },
+	get_polymarket_data: { icon: 'activity', color: '#ec4899' },
+	get_wallet_data: { icon: 'wallet', color: '#f97316' },
+	get_token_data: { icon: 'dollar-sign', color: '#eab308' },
+	get_tx_data: { icon: 'repeat', color: '#14b8a6' },
+	get_kg_enrichment: { icon: 'layers', color: '#6366f1' },
+	get_feed_enrichment: { icon: 'layers', color: '#8b5cf6' },
+	get_docs: { icon: 'file-text', color: '#22d3ee' },
+	list_alerts: { icon: 'sparkles', color: '#fbbf24' },
+	manage_alert: { icon: 'sparkles', color: '#fbbf24' },
+	search_adapters: { icon: 'search', color: '#a78bfa' },
+	get_adapter_code: { icon: 'code', color: '#a78bfa' },
+	query_logs: { icon: 'file-text', color: '#94a3b8' },
+	call_contract: { icon: 'plug', color: '#6366f1' },
+	get_contract: { icon: 'plug', color: '#6366f1' },
+	get_monte_carlo_forecast: { icon: 'trending-up', color: '#f472b6' },
+	get_tsmom: { icon: 'trending-up', color: '#f59e0b' },
+	get_governance_data: { icon: 'users', color: '#8b5cf6' },
+	manage_user_memory: { icon: 'bookmark', color: '#34d399' },
+	x_advanced_search: { icon: 'twitter', color: '#94a3b8' },
+	x_get_user: { icon: 'twitter', color: '#94a3b8' },
+	x_get_user_by_id: { icon: 'twitter', color: '#94a3b8' },
+	x_get_users: { icon: 'twitter', color: '#94a3b8' },
+	x_get_tweets: { icon: 'twitter', color: '#94a3b8' },
+	x_get_tweet: { icon: 'twitter', color: '#94a3b8' },
+	x_get_user_tweets: { icon: 'twitter', color: '#94a3b8' },
+	x_search_users: { icon: 'twitter', color: '#94a3b8' },
+	x_get_followers: { icon: 'twitter', color: '#94a3b8' },
+	x_get_following: { icon: 'twitter', color: '#94a3b8' },
+	x_get_quote_tweets: { icon: 'twitter', color: '#94a3b8' },
+	x_get_replies: { icon: 'twitter', color: '#94a3b8' },
+	x_get_retweeted_by: { icon: 'twitter', color: '#94a3b8' },
+	x_get_community: { icon: 'twitter', color: '#94a3b8' },
+	x_get_community_members: { icon: 'twitter', color: '#94a3b8' },
+	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' }
 }
 
 function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {

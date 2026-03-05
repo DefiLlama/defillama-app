@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI'
 import { useIsClient } from '~/hooks/useIsClient'
 
 const EXAMPLE_CONVERSATIONS = [
@@ -353,15 +354,18 @@ export default function LlamaAIGetStarted() {
 									</div>
 									<div className="space-y-0 divide-y divide-[#E8E8E8] dark:divide-[#2a2a2e]">
 										{[
-											{ label: 'Loading knowledge', time: '2ms' },
-											{ label: 'Querying database', time: '31ms', detail: '64 rows' },
-											{ label: 'Fetch TradFi data', time: '6579ms', detail: '42 rows' },
-											{ label: 'Execute code', time: '14ms' },
-											{ label: 'Generating visualization', time: '295ms' }
-										].map((tool) => (
-											<div key={tool.label + tool.time} className="flex items-center gap-2 px-3 py-1.5">
+											{ key: 'load_skill', time: '2ms' },
+											{ key: 'execute_sql', time: '31ms', detail: '64 rows' },
+											{ key: 'valyu_search', time: '6579ms', detail: '42 rows' },
+											{ key: 'execute_code', time: '14ms' },
+											{ key: 'generate_chart', time: '295ms' }
+										].map((tool) => {
+											const meta = TOOL_ICONS[tool.key] || { icon: 'sparkles', color: '#919296' }
+											return (
+											<div key={tool.key} className="flex items-center gap-2 px-3 py-1.5">
+												<Icon name={meta.icon as any} height={11} width={11} className="shrink-0 opacity-70" style={{ color: meta.color }} />
 												<span className="flex-1 truncate text-[11px] text-[#555] dark:text-[#999]">
-													{tool.label}
+													{TOOL_LABELS[tool.key]}
 												</span>
 												<span className="text-[10px] font-medium text-[#22c55e]">ok</span>
 												<span className="text-[10px] tabular-nums text-[#999] dark:text-[#666]">{tool.time}</span>
@@ -371,7 +375,8 @@ export default function LlamaAIGetStarted() {
 													</span>
 												)}
 											</div>
-										))}
+											)
+										})}
 									</div>
 								</div>
 							</div>
@@ -505,13 +510,13 @@ export default function LlamaAIGetStarted() {
 										<div className="flex items-center gap-2">
 											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
-												<span className="font-medium text-[#333] dark:text-[#ccc]">market_dynamics</span> Generating visualization
+												<span className="font-medium text-[#333] dark:text-[#ccc]">market_dynamics</span> {TOOL_LABELS.generate_chart}
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
 											<span className="text-[11px] text-[#555] dark:text-[#999]">
-												<span className="font-medium text-[#333] dark:text-[#ccc]">competitive_positioning</span> Searching the web
+												<span className="font-medium text-[#333] dark:text-[#ccc]">competitive_positioning</span> {TOOL_LABELS.web_search}
 											</span>
 										</div>
 									</div>
