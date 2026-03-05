@@ -6,6 +6,7 @@ import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { slug } from '~/utils'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Chains']
@@ -19,7 +20,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { category } = params
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category })
+		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category: slug(category) })
 		const { questions: entityQuestions } = await fetchEntityQuestions('chains', 'page', {
 			category,
 			totalChains: data.chains.length,
@@ -59,9 +60,9 @@ export async function getStaticPaths() {
 export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.category} Chains DeFi TVL - DefiLlama`}
+			title={`${props.categoryName} Chains DeFi TVL - DefiLlama`}
 			description={props.description}
-			canonicalUrl={`/chains${props.category === 'All' ? '' : `/${props.category}`}`}
+			canonicalUrl={`/chains${props.categoryName === 'All' ? '' : `/${props.categoryName}`}`}
 			metricFilters={tvlOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}

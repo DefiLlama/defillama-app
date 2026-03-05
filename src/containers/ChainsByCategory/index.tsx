@@ -21,7 +21,8 @@ export function ChainsByCategory({
 	chains,
 	colorsByChain,
 	allCategories,
-	category,
+	category: _category,
+	categoryName,
 	tvlChartsByChain,
 	totalTvlByDate,
 	entityQuestions
@@ -32,11 +33,11 @@ export function ChainsByCategory({
 		colorsByChain
 	})
 
-	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category })
+	const { showByGroup, chainsTableData } = useGroupAndFormatChains({ chains, category: categoryName })
 
 	return (
 		<>
-			<RowLinksWithDropdown links={allCategories} activeLink={category} />
+			<RowLinksWithDropdown links={allCategories} activeLink={categoryName} />
 			{entityQuestions?.length > 0 && (
 				<EntityQuestionsStrip questions={entityQuestions} entitySlug="chains" entityType="page" entityName="Chains" />
 			)}

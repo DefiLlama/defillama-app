@@ -93,6 +93,7 @@ interface IChain extends IChainTvl {
 
 export interface IChainsByCategoryData {
 	category: string
+	categoryName: string
 	allCategories: Array<{
 		label: string
 		to: string

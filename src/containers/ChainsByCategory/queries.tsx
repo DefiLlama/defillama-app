@@ -58,13 +58,23 @@ export const getChainsByCategory = async ({
 
 	const categoryLinks = [
 		{ label: 'All', to: '/chains' },
-		{ label: 'Non-EVM', to: '/chains/Non-EVM' }
+		{ label: 'Non-EVM', to: '/chains/non-evm' }
 	].concat(
-		categories.map((category) => ({
-			label: category,
-			to: `/chains/${category}`
+		categories.map((cat) => ({
+			label: cat,
+			to: `/chains/${slug(cat)}`
 		}))
 	)
+
+	// Find categoryName by matching slugified category against categories
+	let categoryName: string
+	if (category === 'all') {
+		categoryName = 'All'
+	} else if (category === 'non-evm') {
+		categoryName = 'Non-EVM'
+	} else {
+		categoryName = categories.find((cat) => slug(cat) === category) || category
+	}
 
 	const allColors = getNDistinctColors(rest.chainsUnique.length)
 	const colorsByChain: Record<string, string> = {}
@@ -152,6 +162,7 @@ export const getChainsByCategory = async ({
 		tvlChartsByChain,
 		totalTvlByDate,
 		category,
+		categoryName,
 		allCategories: categoryLinks,
 		colorsByChain,
 		chains: chainTvls.map((chain) => {
