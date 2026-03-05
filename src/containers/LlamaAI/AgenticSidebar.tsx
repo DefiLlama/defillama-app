@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -50,14 +50,40 @@ export function AgenticSidebar({
 	handleSidebarToggle,
 	onDelete,
 	onUpdateTitle,
-	isDeletingSession,
-	isUpdatingTitle,
+	isDeletingSession: _isDeletingSession,
+	isUpdatingTitle: _isUpdatingTitle,
 	shouldAnimate = false,
 	onOpenSettings,
 	hasCustomInstructions
 }: AgenticSidebarProps) {
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
+	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
+
+	const handleDelete = useCallback(
+		async (sessionId: string) => {
+			setDeletingSessionId(sessionId)
+			try {
+				await onDelete(sessionId)
+			} finally {
+				setDeletingSessionId(null)
+			}
+		},
+		[onDelete]
+	)
+
+	const handleUpdateTitle = useCallback(
+		async (args: { sessionId: string; title: string }) => {
+			setUpdatingTitleSessionId(args.sessionId)
+			try {
+				await onUpdateTitle(args)
+			} finally {
+				setUpdatingTitleSessionId(null)
+			}
+		},
+		[onUpdateTitle]
+	)
 
 	const [nowMs] = useState(() => Date.now())
 	const groupedSessions = useMemo(() => {
@@ -181,11 +207,11 @@ export function AgenticSidebar({
 									session={item.session}
 									isActive={item.session.sessionId === currentSessionId}
 									onSessionSelect={onSessionSelect}
-									onDelete={onDelete}
-									onUpdateTitle={onUpdateTitle}
+									onDelete={handleDelete}
+									onUpdateTitle={handleUpdateTitle}
 									isRestoring={restoringSessionId === item.session.sessionId}
-									isDeleting={isDeletingSession}
-									isUpdatingTitle={isUpdatingTitle}
+									isDeleting={deletingSessionId === item.session.sessionId}
+									isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
 									handleSidebarToggle={handleSidebarToggle}
 									style={itemStyle}
 								/>

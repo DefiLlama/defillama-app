@@ -118,7 +118,7 @@ export class ChartDataTransformer {
 		]
 
 		const seriesWithAverages = series.map((s, _serieIndex) => {
-			const dataMap = new Map(s.data as [number, number][])
+			const dataMap = seriesMaps[_serieIndex]
 			const percentageData: [number, number][] = sortedTimestamps.map((timestamp) => {
 				const value = dataMap.get(timestamp) ?? 0
 				const total = totals.get(timestamp) || 0

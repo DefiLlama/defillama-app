@@ -388,8 +388,10 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			})
 		}
 
+		const resolvedType = config.type === 'combo' ? (primarySeries?.type === 'bar' ? 'bar' : 'area') : config.type
+
 		return {
-			chartType: config.type,
+			chartType: resolvedType,
 			data: validatedData,
 			props: commonProps,
 			title: config.title,
@@ -573,7 +575,13 @@ export function adaptCandlestickData(
 
 	const sample = rawData[0] || {}
 	const keys = Object.keys(sample)
-	const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) * 1000 : new Date(r.date).getTime())
+	const getTs = (r: any) => {
+		const t = Number(r.timestamp)
+		if (Number.isFinite(t)) {
+			return t < 1e12 ? t * 1000 : t
+		}
+		return new Date(r.date).getTime()
+	}
 
 	data = rawData.map((r: any) => [
 		getTs(r),
