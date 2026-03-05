@@ -17,7 +17,7 @@ const pageName = ['CEXs', 'ranked by', 'Assets']
 export default function CexsPage({ cexs }) {
 	return (
 		<Layout
-			title="CEX Transparency & Proof of Reserves - Exchange Rankings - DefiLlama"
+			title="CEX Rankings - Transparency & Proof of Reserves - DefiLlama"
 			description="Track centralized exchange (CEX) transparency and proof of reserves. Monitor exchange holdings, asset backing, and solvency metrics. Verify CEX balances for Binance, OKX, Bybit, and 50+ exchanges."
 			canonicalUrl={`/cexs`}
 			pageName={pageName}

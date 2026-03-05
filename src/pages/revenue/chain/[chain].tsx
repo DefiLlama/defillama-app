@@ -91,7 +91,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const RevenueOnChain = (props: IAdapterByChainPageData) => {
 		return (
 		<Layout
-			title={`${props.chain} DeFi Revenue - Fees Retained by Protocols - DefiLlama`}
+			title={`${props.chain} Revenue Rankings - Fees Retained by Protocols - DefiLlama`}
 			description={`Track actual revenue earned by DeFi protocols on ${props.chain} (portion of fees kept after costs). Compare protocol revenue from trading, lending, and staking on ${props.chain}. Real-time ${props.chain} revenue analytics.`}
 			canonicalUrl={`/revenue/chain/${props.chain}`}
 			metricFilters={feesOptions}

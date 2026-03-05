@@ -45,10 +45,10 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
 
 export default function TotalStakedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title={`Total Staked on ${props.chain} DeFi Protocols - DefiLlama`}
-			description={`Total Staked by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.chain} Total Staked - DeFi Protocol Staking Value - DefiLlama`}
+			description={`Track total staked value on ${props.chain}. Compare staking TVL and value locked in staking contracts for all protocols on ${props.chain}. Real-time ${props.chain} staking analytics.`}
 			canonicalUrl={`/total-staked/chain/${props.chain}`}
 			pageName={pageName}
 		>

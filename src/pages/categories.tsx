@@ -22,7 +22,7 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 export default function CategoriesPage(props: IProtocolsCategoriesPageData) {
 		return (
 		<Layout
-			title="DeFi Protocol Categories by TVL & Revenue - Sector Analytics - DefiLlama"
+			title="Protocol Categories - DeFi TVL & Revenue Sectors - DefiLlama"
 			description="Explore DeFi protocol categories: DEXs, Lending, Yield, Derivatives, and more. Compare sector TVL, revenue, and growth metrics. Category rankings and market share analytics for DeFi sectors."
 			canonicalUrl="/categories"
 			metricFilters={finalTvlOptions}

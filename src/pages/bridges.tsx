@@ -40,7 +40,7 @@ export default function Bridges({
 }) {
 	return (
 		<Layout
-			title="Cross-Chain Bridge Volume Rankings - Inflows & Outflows - DefiLlama"
+			title="Bridge Volume Rankings - Cross-Chain Inflows & Outflows - DefiLlama"
 			description="Track cross-chain bridge volume, inflows, and outflows across all blockchains. Compare bridge TVL, net flows, and transfer activity. Real-time cross-chain bridge analytics for Ethereum, Solana, Base, Arbitrum, and 90+ networks."
 			canonicalUrl={`/bridges`}
 			pageName={pageName}

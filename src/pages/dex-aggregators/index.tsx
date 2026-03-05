@@ -30,7 +30,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const DexAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title="DEX Aggregator Volume Rankings - Swap Routing Analytics - DefiLlama"
+			title="DEX Aggregator Rankings - Swap Routing Analytics - DefiLlama"
 			description="Track DEX aggregator volume and swap routing activity. Compare swap volume across 1inch, CowSwap, OpenOcean, and 100+ DEX aggregators. Real-time swap routing analytics with best price execution data."
 			canonicalUrl={`/dex-aggregators`}
 			pageName={pageName}

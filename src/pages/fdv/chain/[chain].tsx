@@ -47,10 +47,10 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
 
 export default function ProtocolsFdvByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title={`${props.chain} DeFi Protocol Fully Diluted Valuations - DefiLlama`}
-			description={`Fully Diluted Valuations for ${props.chain} protocols. Track live FDV for all protocols in this ecosystem to compare relative token valuations.`}
+			title={`${props.chain} FDV Rankings - Fully Diluted Valuation Analytics - DefiLlama`}
+			description={`Track DeFi protocol FDV rankings on ${props.chain}. Compare fully diluted valuations for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto FDV analytics and token valuation data.`}
 			canonicalUrl={`/fdv/chain/${props.chain}`}
 			pageName={pageName}
 		>

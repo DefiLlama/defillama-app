@@ -35,7 +35,7 @@ const pageName = ['Yields: All Pools']
 export default function ApyHomePage(data) {
 	return (
 		<Layout
-			title="DeFi Yield Farming Rankings - Best APY Pools by Chain - DefiLlama"
+			title="Yield Farming Rankings - Best DeFi APY Pools - DefiLlama"
 			description="Find the best DeFi yield farming opportunities across all chains. Compare APY rates, TVL, and pool metrics for 10,000+ yield pools on Ethereum, Solana, Base, and 500+ networks. Real-time yield analytics."
 			canonicalUrl={`/yields`}
 			pageName={pageName}

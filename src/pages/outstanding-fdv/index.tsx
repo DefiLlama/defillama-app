@@ -20,10 +20,10 @@ export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, asy
 const pageName = ['Protocols', 'ranked by', 'Outstanding FDV']
 
 export default function ProtocolsMarketCaps(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title="Outstanding FDV - All Crypto Protocols - DefiLlama"
-			description={`Outstanding FDV by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Outstanding FDV Rankings - DeFi Protocol Valuation - DefiLlama"
+			description="Track DeFi protocol outstanding FDV rankings across all chains. Compare outstanding fully diluted valuations (circulating supply only) for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto oFDV analytics."
 			canonicalUrl={`/outstanding-fdv`}
 			pageName={pageName}
 		>

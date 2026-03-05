@@ -22,7 +22,7 @@ export default function CompareChainsPage({
 }) {
 	return (
 		<Layout
-			title="Blockchain Comparison Tool - TVL, Fees & DeFi Activity - DefiLlama"
+			title="Chain Comparison Tool - TVL, Fees & DeFi Activity - DefiLlama"
 			description="Compare blockchains side-by-side by TVL, fees, DeFi activity, and protocol counts. Analyze chain performance metrics for Ethereum, Solana, Base, Arbitrum, and 500+ networks. Chain comparison analytics."
 			canonicalUrl={`/compare-chains`}
 			metricFilters={tvlOptions}
