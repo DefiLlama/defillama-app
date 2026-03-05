@@ -333,7 +333,7 @@ export default function LlamaAIGetStarted() {
 				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
 					<div className="mx-auto max-w-5xl">
 						<h2 className="mb-8 text-center text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:mb-10 md:text-[2rem] dark:text-white">
-							Your research edge
+							Every metric. Every market. One conversation.
 						</h2>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 							{/* DeFi & TradFi - wide card, first */}
