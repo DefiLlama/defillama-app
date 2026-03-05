@@ -20,8 +20,8 @@ const pageName = ['ETFs: Overview']
 export default function ETFs(props: ETFOverviewProps) {
 	return (
 		<Layout
-			title={`Exchange Traded Funds - DefiLlama`}
-			description={`Exchange Traded Funds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`ETF Analytics & Market Data - DefiLlama`}
+			description={`Analyze exchange traded funds with ETF statistics, performance metrics, assets, and flows. Transparent, ad-free ETF data powered by DefiLlama.`}
 			canonicalUrl={`/etfs`}
 			pageName={pageName}
 		>

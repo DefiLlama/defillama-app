@@ -80,8 +80,8 @@ export default function StablecoinsPage({
 }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Total Stablecoins Circulating by Protocol - DefiLlama"
-			description="Total market cap of stablecoins, their price, supply, inflows, percent off peg, and more. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
+			title={`Stablecoin Market Cap Chart, Supply & Peg Data - DefiLlama`}
+			description={`Track the total stablecoin market cap, circulating supply, prices, inflows, and peg stability across all stablecoins. Explore stablecoin market charts and analytics with transparent data from DefiLlama.`}
 			canonicalUrl="/stablecoins"
 			pageName={pageName}
 		>

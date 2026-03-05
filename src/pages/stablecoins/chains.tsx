@@ -88,8 +88,8 @@ const pageName = ['Chains', 'ranked by', 'Stablecoins Supply']
 export default function StablecoinChainsPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Total Stablecoins Circulating by Chain - DefiLlama"
-			description="Stablecoins Circulating by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
+			title={`Stablecoins by Chain - Market Cap, Supply & Usage - DefiLlama`}
+			description={`Compare stablecoin market cap, circulating supply, and usage across blockchains. Analyze stablecoin distribution, inflows, and trends by chain with transparent data from DefiLlama.`}
 			canonicalUrl="/stablecoins/chains"
 			pageName={pageName}
 		>

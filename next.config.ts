@@ -583,6 +583,11 @@ const nextConfig: NextConfig = {
 				source: '/yields/strategylongshort',
 				destination: '/yields/strategy-long-short',
 				permanent: true
+			},
+			{
+				source: '/dat',
+				destination: '/digital-asset-treasuries',
+				permanent: true
 			}
 		]
 	},
