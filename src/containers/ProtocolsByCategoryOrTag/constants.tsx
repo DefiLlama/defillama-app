@@ -64,7 +64,7 @@ export const protocolCategories = {
 		description: 'Protocol that allows you to lend against known parties that can borrow without collaterall'
 	},
 	'Exotic Options': { description: 'Protocols that provide option vaults while also adding borrowing on top' },
-	'Liquidity manager': { description: 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs' },
+	'Liquidity Manager': { description: 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs' },
 	'Staking Pool': {
 		description:
 			"Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects"

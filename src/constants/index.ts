@@ -117,7 +117,7 @@ const removedCategoriesFromChainTvl = [
 	'Farm',
 	'Yield Aggregator',
 	'Yield',
-	'Liquidity manager',
+	'Liquidity Manager',
 	'Onchain Capital Allocator',
 	'Risk Curators',
 	'Treasury Manager',
