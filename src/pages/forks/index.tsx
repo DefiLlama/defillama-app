@@ -22,11 +22,10 @@ export const getStaticProps = withPerformanceLogging('forks', async () => {
 })
 
 export default function ForksPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title="DeFi Protocol Forks & Derivatives - DefiLlama"
-			description="Overview of protocols by their forks value. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="forks, protocol forks, forks on blockchain"
+			title="Protocol Forks Rankings - DeFi TVL by Forks - DefiLlama"
+			description="Track DeFi protocol forks and derivatives. Compare original protocols vs their forks by TVL, user count, and market share. Analysis of SushiSwap, PancakeSwap, and 500+ DeFi forks across all chains."
 			canonicalUrl="/forks"
 			metricFilters={tvlOptions}
 			pageName={pageName}

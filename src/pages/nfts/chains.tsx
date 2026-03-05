@@ -43,7 +43,6 @@ export default function NftsOnAllChains(props: InferGetStaticPropsType<typeof ge
 		<Layout
 			title="NFTs Volume by Chain - DefiLlama"
 			description={`NFTs volume by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nfts volume by chain, defi nfts volume`}
 			canonicalUrl={`/nfts/chains`}
 			pageName={pageName}
 		>

@@ -9,6 +9,7 @@ import type { InferGetStaticPropsType } from 'next'
 import { startTransition, useMemo, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
@@ -18,7 +19,7 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -57,7 +58,7 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -71,7 +72,9 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => chainHref('/chain', chain))} />
+		),
 		meta: {
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
@@ -218,7 +221,6 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 		<Layout
 			title={`Top Gainers and Losers - DefiLlama`}
 			description={`Top Gainers and Losers by their TVL. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`top gainers, top losers, defi top gainers, defi top losers, top gainers and losers by tvl`}
 			canonicalUrl={`/top-gainers-and-losers`}
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">

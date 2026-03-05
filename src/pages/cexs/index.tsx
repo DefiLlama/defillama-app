@@ -17,9 +17,8 @@ const pageName = ['CEXs', 'ranked by', 'Assets']
 export default function CexsPage({ cexs }) {
 	return (
 		<Layout
-			title={`CEX Transparency Dashboard & Rankings - DefiLlama`}
-			description={`Which exchanges hold the most assets? Live CEX rankings with inflow data, volume, open interest and average leverage for Binance, Robinhood and 50+ exchanges.`}
-			keywords={`cex transparency, cex assets, cex rankings`}
+			title="CEX Rankings - Transparency & Proof of Reserves - DefiLlama"
+			description="Track centralized exchange (CEX) transparency and proof of reserves. Monitor exchange holdings, asset backing, and solvency metrics. Verify CEX balances for Binance, OKX, Bybit, and 50+ exchanges."
 			canonicalUrl={`/cexs`}
 			pageName={pageName}
 		>

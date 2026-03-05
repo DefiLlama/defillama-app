@@ -21,11 +21,10 @@ const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
 const DEFAULT_SORTING_STATE = [{ id: 'netTreasury', desc: true }]
 
 const NetProjectTreasuries = (props) => {
-	return (
+		return (
 		<Layout
-			title={`Net Project Treasury - DefiLlama`}
-			description={`Net Project Treasury by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`net project treasury, defi net project treasury`}
+			title="Net Treasury Rankings - DeFi Protocol Assets Excluding Native Token - DefiLlama"
+			description="Track DeFi protocol net treasury rankings - value of assets owned excluding native tokens. Compare protocol treasuries holding stables, ETH, BTC, and other assets across 500+ protocols. Real-time net treasury analytics."
 			canonicalUrl={`/net-project-treasury`}
 			pageName={pageName}
 		>
@@ -55,7 +54,7 @@ const columns: ColumnDef<INetProjectTreasury>[] = [
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink

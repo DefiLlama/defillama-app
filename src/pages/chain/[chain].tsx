@@ -79,7 +79,6 @@ export default function Chain(props: InferGetStaticPropsType<typeof getStaticPro
 					: `${props.metadata.name} - DeFi TVL, Fees, & Revenue - DefiLlama`
 			}
 			description={props.description}
-			keywords={props.keywords}
 			canonicalUrl={props.metadata.name === 'All' ? '' : `/chain/${slug(props.metadata.name)}`}
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"

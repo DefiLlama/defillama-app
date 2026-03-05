@@ -54,7 +54,6 @@ export default function Airdrops({ airdrops }) {
 		<Layout
 			title={`Airdrop Directory - DefiLlama`}
 			description={`Airdrop directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`airdrop directory, airdrops`}
 			canonicalUrl={`/airdrop-directory`}
 		>
 			<TableWithSearch

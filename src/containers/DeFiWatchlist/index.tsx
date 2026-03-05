@@ -10,7 +10,6 @@ import { Menu } from '~/components/Menu'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ICONS_CDN } from '~/constants'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import type { IProtocol } from '~/containers/ChainOverview/types'
 import { useGroupAndFormatChains } from '~/containers/ChainsByCategory'
@@ -808,10 +807,11 @@ function TopMovers({ protocols }: TopMoversProps) {
 										className="flex items-center justify-between gap-3 border-b border-(--divider) py-2 last:border-b-0"
 									>
 										<span className="flex min-w-0 items-center gap-2">
-											<TokenLogo
-												logo={mover.slug ? `${ICONS_CDN}/protocols/${mover.slug}?w=48&h=48` : undefined}
-												size={20}
-											/>
+											{mover.slug ? (
+												<TokenLogo name={mover.slug} kind="token" alt={`Logo of ${mover.name}`} size={20} />
+											) : (
+												<TokenLogo src={undefined} alt={`Logo of ${mover.name}`} size={20} />
+											)}
 											{mover.slug ? (
 												<BasicLink
 													href={`/protocol/${mover.slug}`}

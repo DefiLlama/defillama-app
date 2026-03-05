@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { useForksOverviewExtraSeries } from './queries.client'
 import { getEnabledExtraApiKeys, getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData } from './types'
@@ -34,7 +34,7 @@ const forksColumn: ColumnDef<IForksRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+					<TokenLogo name={name} kind="token" data-lgonly alt={`Logo of ${name}`} />
 					<BasicLink
 						href={`/forks/${slug(name)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -7,7 +7,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
 import type { IProtocol } from '~/containers/ChainOverview/types'
 import Layout from '~/layout'
-import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, tokenIconUrl } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 export async function getStaticProps() {
@@ -69,7 +69,6 @@ export default function SafeHarborAgreements({ protocols }) {
 		<Layout
 			title="Safe Harbor Agreements - DefiLlama"
 			description={`Safe Harbor Agreements by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`safe harbor agreements, defi safe harbor agreements, safe harbor agreements by protocol`}
 			canonicalUrl={`/safe-harbor-agreements`}
 			pageName={pageName}
 		>
@@ -90,7 +89,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -141,7 +140,7 @@ const columns: ColumnDef<{
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					{row.original.chains.length ? (
 						<span className="-my-2 flex flex-col">

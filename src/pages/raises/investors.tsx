@@ -11,6 +11,7 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
@@ -79,7 +80,7 @@ const columns: ColumnDef<INormalizedInvestor>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue() as Array<string>)} />,
 		size: 100,
 		meta: {
 			align: 'end'
@@ -175,7 +176,6 @@ const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 		<Layout
 			title={`Crypto & DeFi Investors Directory - DefiLlama`}
 			description={`Deals by Investors. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`cryptoinvestors, defi investors, blockchain investors, latest blockchain deals`.toLowerCase()}
 			canonicalUrl={`/raises/investors`}
 			pageName={pageName}
 		>

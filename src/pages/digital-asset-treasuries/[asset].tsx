@@ -50,7 +50,6 @@ export default function TreasuriesByAssetPage(props: InferGetStaticPropsType<typ
 		<Layout
 			title={`${props.metadata.name} Treasury Holdings - DefiLlama`}
 			description={`Track institutions that own ${props.metadata.name} (${props.metadata.ticker}) as part of their corporate treasury. See total holdings, purchase history and cost basis data in one view.`}
-			keywords={`${props.metadata.name} (${props.metadata.ticker}) treasury holdings, ${props.metadata.name} (${props.metadata.ticker}) corporate treasury, ${props.metadata.name} (${props.metadata.ticker}) treasury holdings by institution, ${props.metadata.name} (${props.metadata.ticker}) treasury holdings by company, ${props.metadata.name} (${props.metadata.ticker}) DATs, ${props.metadata.name} (${props.metadata.ticker}) digital asset treasury`}
 			canonicalUrl={`/digital-asset-treasuries/${props.asset}`}
 			pageName={pageName}
 		>

@@ -6,7 +6,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { chainIconUrl, tokenIconUrl } from '~/utils'
 
 interface INameYieldPoolProps {
 	value: string
@@ -160,13 +159,12 @@ export function NameYield({
 	withoutLink,
 	...props
 }: INameYield) {
-	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<span className="relative flex items-center pl-6" {...props}>
 			{airdrop && project !== 'Fraxlend' ? <AirdropIndicator raiseValuation={raiseValuation} /> : null}
-			<TokenLogo logo={iconUrl} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
 			{withoutLink ? (
 				<FormattedName text={project} maxCharacters={20} link fontWeight={500} />
 			) : (
@@ -185,12 +183,11 @@ export function NameYield({
 
 //
 export function YieldsProject({ project, projectslug }: INameYield) {
-	const iconUrl = tokenIconUrl(project)
 	const tokenUrl = `/yields?project=${projectslug}`
 
 	return (
 		<span className="flex items-center gap-2">
-			<TokenLogo logo={iconUrl} />
+			<TokenLogo name={project} kind="token" alt={`Logo of ${project}`} />
 			<BasicLink
 				href={tokenUrl}
 				data-umami-event="yields-project-filter-click"
@@ -212,22 +209,18 @@ export function PoolStrategyRoute({
 	raiseValuationProject2,
 	chain
 }) {
-	const iconUrl1 = tokenIconUrl(project1)
-	const iconUrl2 = tokenIconUrl(project2)
-	const chainIcon = chainIconUrl(chain)
-
 	return (
 		<span className="flex items-center gap-1">
-			<TokenLogo logo={chainIcon} />
+			<TokenLogo name={chain} kind="chain" alt={`Logo of ${chain}`} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl1} />
+				<TokenLogo name={project1} kind="token" alt={`Logo of ${project1}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
 				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span className="shrink-0">{'->'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl2} />
+				<TokenLogo name={project2} kind="token" alt={`Logo of ${project2}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
 				{airdropProject2 ? <AirdropIndicator raiseValuation={raiseValuationProject2} className="" /> : null}
 			</span>
@@ -243,22 +236,18 @@ export function FRStrategyRoute({
 	airdropProject2: _airdropProject2,
 	chain
 }) {
-	const iconUrl1 = tokenIconUrl(project1)
-	const iconUrl2 = tokenIconUrl(project2)
-	const chainIcon = chainIconUrl(chain)
-
 	return (
 		<span className="flex items-center gap-1">
-			<TokenLogo logo={chainIcon} />
+			<TokenLogo name={chain} kind="chain" alt={`Logo of ${chain}`} />
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl1} />
+				<TokenLogo name={project1} kind="token" alt={`Logo of ${project1}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project1}</span>
 				{airdropProject1 ? <AirdropIndicator raiseValuation={raiseValuationProject1} className="" /> : null}
 			</span>
 			<span>{'|'}</span>
 			<span className="flex items-center gap-1">
-				<TokenLogo logo={iconUrl2} />
+				<TokenLogo name={project2} kind="token" alt={`Logo of ${project2}`} />
 				<span className="overflow-hidden text-ellipsis whitespace-nowrap">{project2}</span>
 			</span>
 		</span>

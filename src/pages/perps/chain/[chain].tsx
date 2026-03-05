@@ -91,9 +91,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const PerpsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			title={`${props.chain} Perpetual DEX & Futures Volume - Derivatives Trading - DefiLlama`}
+			description={`Track perpetual DEX and futures trading volume on ${props.chain}. Compare leverage trading activity on derivatives protocols on ${props.chain}. Real-time ${props.chain} perp volume and trading analytics.`}
 			canonicalUrl={`/perps/chain/${props.chain}`}
 			pageName={pageName}
 		>

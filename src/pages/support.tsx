@@ -95,7 +95,6 @@ function Support() {
 		<Layout
 			title="Help & Support - DefiLlama DeFi Analytics"
 			description={`Get support from DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`defillama support, support from defillama`}
 			canonicalUrl={`/support`}
 		>
 			{userHash ? (

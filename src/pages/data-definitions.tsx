@@ -26,7 +26,6 @@ export default function DataDefinitions() {
 		<Layout
 			title="DeFi Data Definitions (TVL, Fees, Revenue, DEX Volume) - DefiLlama"
 			description={`Glossary of DeFi metrics: TVL, Fees, Revenue, FDV, DEX Volume, Stablecoin Market Cap, Treasuries and more.`}
-			keywords={`data definitions DefiLlama, DeFi data definitions, TVL definition, crypto data definitions`}
 			canonicalUrl={`/data-definitions`}
 		>
 			<h1 className="rounded-md bg-(--cards-bg) p-3 text-xl font-semibold">Data Definitions</h1>

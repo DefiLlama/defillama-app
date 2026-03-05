@@ -20,7 +20,7 @@ import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type StablecoinsByChainRow = ReturnType<typeof useGroupChainsPegged>[number]
 type DominanceCell = NonNullable<StablecoinsByChainRow['dominance']>
@@ -68,7 +68,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 					) : (
 						<>
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
+							<TokenLogo name={value} kind="chain" data-lgonly alt={`Logo of ${value}`} />
 							<BasicLink
 								href={`/stablecoins/${slug(value)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

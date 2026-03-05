@@ -78,7 +78,6 @@ export interface IChainOverviewData {
 	tvlAndFeesOptions: Array<{ name: string; key: string }>
 	charts: ChainChartLabels[]
 	description: string
-	keywords: string
 	isDataAvailable: boolean
 	datInflows: {
 		chart: Array<[number, number]>

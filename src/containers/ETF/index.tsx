@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -237,7 +238,7 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 		header: 'Coin',
 		accessorKey: 'chain',
 		enableSorting: true,
-		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="" iconType="chain" disableLinks={true} />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue<string[]>())} />,
 		meta: {
 			align: 'end'
 		},

@@ -16,12 +16,12 @@ export const getStaticProps = withPerformanceLogging(
 
 		const { chain } = params
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const chainMetadata = metadataCache.chainMetadata[slug(chain)]
-		if (!chainMetadata || !chainMetadata.chainAssets) {
+		const currentChainMetadata = metadataCache.chainMetadata[slug(chain)]
+		if (!currentChainMetadata || !currentChainMetadata.chainAssets) {
 			return { notFound: true }
 		}
 
-		const data = await getBridgedTVLByChain(chain)
+		const data = await getBridgedTVLByChain({ chain, chainMetadata: metadataCache.chainMetadata })
 
 		return {
 			props: { ...data, chain, chainName: capitalizeFirstLetter(chain) },
@@ -50,11 +50,10 @@ export default function Bridged(props: InferGetStaticPropsType<typeof getStaticP
 	if (!props.chainData) {
 		return <div>Not found</div>
 	}
-	return (
+		return (
 		<Layout
-			title={`${props.chainName} Bridged TVL & Cross-Chain Assets - DefiLlama`}
-			description={`Track bridged TVL on ${props.chainName} - View total value of all tokens held on ${props.chainName}. Real-time DeFi bridge analytics from DefiLlama.`}
-			keywords={`bridged tvl ${props.chainName}, tokens value on ${props.chainName}`}
+			title={`${props.chainName} Bridged Assets & Cross-Chain TVL - Assets Bridged To ${props.chainName} - DefiLlama`}
+			description={`Track total value of assets bridged to ${props.chainName} from other chains. View bridged TVL breakdown by token, source chain, and bridge protocol. Real-time cross-chain asset analytics for ${props.chainName}.`}
 			canonicalUrl={`/bridged/${props.chain}`}
 			pageName={pageName}
 		>

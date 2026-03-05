@@ -16,11 +16,10 @@ export const getStaticProps = withPerformanceLogging('hacks', async () => {
 })
 
 export default function Hacks(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+			return (
 		<Layout
-			title="Crypto Hacks & Exploits Tracker - DefiLlama"
-			description="Track hacks on all chains and DeFi protocols. View total value lost, breakdown by technique, and DeFi hacks on DefiLlama."
-			keywords="total value hacked, total value lost in hacks, blockchain hacks, hacks on DeFi protocols, DeFi hacks"
+			title="Hacks & Exploits Database - DeFi Security Incidents & Total Value Lost - DefiLlama"
+			description="Comprehensive database of DeFi hacks and crypto exploits. Track total value lost, exploit techniques, affected protocols, and historical security incidents. Real-time DeFi security analytics and vulnerability insights."
 			canonicalUrl="/hacks"
 			pageName={pageName}
 		>

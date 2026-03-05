@@ -114,7 +114,6 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 		<Layout
 			title={`Protocols Directory - DefiLlama`}
 			description={`Protocols website directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`protocols directory, defi protocols`}
 			canonicalUrl={`/directory`}
 		>
 			<Announcement notCancellable>
@@ -144,7 +143,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 									className="flex items-center gap-2 rounded-sm border bg-(--cards-bg) p-2 text-xs hover:bg-(--bg-secondary) dark:border-(--bg-secondary)"
 								>
 									{protocol.logo ? (
-										<TokenLogo logo={protocol.logo} />
+										<TokenLogo src={protocol.logo} alt={`Logo of ${protocol.name}`} />
 									) : (
 										<div className="h-6 w-6 rounded bg-(--bg-secondary)" />
 									)}
@@ -185,7 +184,7 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 									setValueOnClick={false}
 									className="flex cursor-pointer items-center gap-4 p-3 text-(--text-primary) hover:bg-(--bg-secondary) aria-disabled:bg-(--bg-secondary) aria-disabled:opacity-50 aria-selected:bg-(--bg-secondary)"
 								>
-									{option.logo ? <TokenLogo logo={option.logo} /> : null}
+									{option.logo ? <TokenLogo src={option.logo} alt={`Logo of ${option.name}`} /> : null}
 									<span>{option.name}</span>
 								</Ariakit.ComboboxItem>
 							))}

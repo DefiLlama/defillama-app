@@ -593,8 +593,11 @@ const liquidityChartColors: Record<string, string> = {
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 export default function YieldPoolPage(props) {
+	const { query } = useRouter()
+	const pool = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+
 	return (
-		<Layout title={`Yields - DefiLlama`}>
+		<Layout title={pool ? `Yields ${pool} - DefiLlama` : 'Yields - DefiLlama'}>
 			<PageView {...props} />
 		</Layout>
 	)

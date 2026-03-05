@@ -12,6 +12,7 @@ import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
@@ -115,7 +116,9 @@ export const raisesColumns: ColumnDef<IRaise>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue<string[]>(), (chain) => chainHref('/chain', chain))} />
+		),
 		size: 80
 	},
 	{

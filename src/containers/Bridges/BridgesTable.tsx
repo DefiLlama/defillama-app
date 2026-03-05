@@ -11,13 +11,14 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type BridgesTableRow = {
 	displayName: string
@@ -50,16 +51,21 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 			const linkValue = slug(value)
 			const rowValues = row.original
 			const icon = rowValues.icon
-			let iconLink
-			if (icon) {
-				const [iconType, iconName] = icon.split(':')
-				iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
-			}
+			const colonIdx = icon ? icon.indexOf(':') : -1
+			const iconType = colonIdx > 0 ? icon!.slice(0, colonIdx) : undefined
+			const iconName = colonIdx > 0 ? icon!.slice(colonIdx + 1) : icon
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					{icon && <TokenLogo logo={iconLink} data-lgonly />}
+					{iconName ? (
+						<TokenLogo
+							name={iconName}
+							kind={iconType === 'chain' ? 'chain' : 'token'}
+							alt={`Logo of ${value}`}
+							data-lgonly
+						/>
+					) : null}
 					<BasicLink
 						href={`/bridge/${linkValue}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -75,7 +81,9 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => `/bridges/${slug(chain)}`)} />
+		),
 		size: 200,
 		meta: {
 			align: 'end',

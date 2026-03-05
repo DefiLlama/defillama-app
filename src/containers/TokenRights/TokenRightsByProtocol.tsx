@@ -4,7 +4,7 @@ import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { IProtocolRaise } from '~/containers/ProtocolOverview/api.types'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { ITokenRightsData, ITokenRightsParsedLink } from './api.types'
 
 const TOOLTIPS = {
@@ -60,7 +60,7 @@ export function TokenRightsByProtocol({ name, symbol, tokenRightsData, raises }:
 		<div className="grid grid-cols-1 gap-2">
 			{/* Header */}
 			<header className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(name)} size={24} />
+				<TokenLogo name={name} kind="token" size={24} alt={`Logo of ${name}`} />
 				<h1 className="text-xl font-bold">{symbol ? `$${symbol}` : name} Token Rights</h1>
 				{overview.lastUpdated ? (
 					<span className="ml-auto text-xs text-(--text-secondary)">

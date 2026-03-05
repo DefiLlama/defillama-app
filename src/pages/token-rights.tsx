@@ -56,9 +56,8 @@ function resolveDisplayName(entry: IRawTokenRightsEntry, metadata: Record<string
 function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 	return (
 		<Layout
-			title="Token Rights - DefiLlama"
+			title="Token Rights by Project - DefiLlama - DeFi Dashboard & Crypto Analytics"
 			description="Explore token holder rights across DeFi protocols — governance, economic rights, value accrual, and alignment."
-			keywords="token rights, governance, economic rights, value accrual, defi"
 			canonicalUrl="/token-rights"
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
@@ -71,7 +70,7 @@ function TokenRightsPage({ protocols }: { protocols: TokenRightsListItem[] }) {
 							href={p.href}
 							className="flex items-center gap-2 rounded-lg bg-black/5 p-2 transition-colors hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
 						>
-							<TokenLogo logo={p.logo} size={24} />
+							<TokenLogo src={p.logo} alt={`Logo of ${p.name}`} size={24} />
 							<span className="truncate text-sm">{p.name}</span>
 						</Link>
 					))}

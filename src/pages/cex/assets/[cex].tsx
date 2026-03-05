@@ -15,7 +15,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { pushShallowQuery } from '~/utils/routerQuery'
@@ -425,7 +425,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 		>
 			<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="mr-auto flex items-center gap-2">
-					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 					<h1 className="text-xl font-bold">{props.name}</h1>
 				</div>
 

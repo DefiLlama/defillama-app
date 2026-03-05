@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import dayjs from 'dayjs'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
+import { BasicLink, ButtonLink } from '~/components/Link'
 import { Menu } from '~/components/Menu'
 import { MetricRow } from '~/components/MetricPrimitives'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -383,13 +383,13 @@ function Yields(props: IProtocolOverviewPageData) {
 				<MetricRow label="Pools Tracked" value={yields.noOfPoolsTracked} />
 				<MetricRow label="Average APY" value={averageApy} />
 			</div>
-			<BasicLink
+			<ButtonLink
 				href={`/yields?project=${props.otherProtocols ? props.otherProtocols.slice(1).join('&project=') : props.name}`}
 				className="mr-auto flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
 			>
 				<span>View all Yields</span>
 				<Icon name="arrow-right" className="h-4 w-4" />
-			</BasicLink>
+			</ButtonLink>
 		</div>
 	)
 }
@@ -513,7 +513,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 			<div className="flex items-center justify-between gap-2">
 				<SectionHeader id="competitors">Competitors</SectionHeader>
 				{comparisonHref ? (
-					<BasicLink
+					<ButtonLink
 						href={comparisonHref}
 						onClick={(event) => {
 							if (canOpenComparison) return
@@ -523,7 +523,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 						className="rounded-md border border-(--primary) px-2 py-1.5 text-xs text-(--primary) hover:bg-(--primary)/10 focus-visible:bg-(--primary)/10"
 					>
 						Create comparison dashboard
-					</BasicLink>
+					</ButtonLink>
 				) : null}
 			</div>
 			<div className="flex flex-wrap items-center gap-4">

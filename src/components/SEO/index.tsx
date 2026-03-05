@@ -18,7 +18,7 @@ interface ILinkPreviewCardProps {
 	isCEX?: boolean
 }
 
-// page title, description, keywords
+// page title and description
 // cardName ? optional
 // value name & tvl ? optional
 
@@ -130,20 +130,17 @@ export const LinkPreviewCard = ({
 export interface ISEOProps {
 	title: string
 	description?: string
-	keywords?: string
 	canonicalUrl?: string
-	slugCanonicalUrl?: boolean
 }
 
-export function SEO({ title, description, keywords, canonicalUrl, slugCanonicalUrl = true }: ISEOProps) {
-	const normalizedCanonicalUrl = slugCanonicalUrl ? slug(canonicalUrl ?? '') : (canonicalUrl ?? '')
+export function SEO({ title, description, canonicalUrl }: ISEOProps) {
+	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
 	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>
 			{canonicalUrl != null ? <link rel="canonical" href={url} /> : <meta name="robots" content="noindex" />}
 			<title>{title}</title>
 			{description ? <meta name="description" content={description} /> : null}
-			{keywords ? <meta name="keywords" content={keywords} /> : null}
 			<meta property="og:title" content={title} />
 			<meta property="og:type" content="website" />
 			<meta property="og:url" content={url} />

@@ -19,7 +19,7 @@ import {
 } from '~/containers/ProtocolOverview/utils'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -490,7 +490,7 @@ export default function CEXStablecoins(props: {
 			isCEX={true}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<h1 className="text-xl font-bold">{props.name}</h1>
 			</div>
 			{isLoading ? (

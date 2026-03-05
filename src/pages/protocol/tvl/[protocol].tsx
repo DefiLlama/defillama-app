@@ -16,7 +16,7 @@ import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/usePro
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -59,6 +59,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Total Value Locked (TVL) - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} Total Value Locked across all chains with historical charts and breakdowns on DefiLlama.`
 
 		const toggleOptions = []
 		const chainsUnique = new Set<string>()
@@ -84,7 +86,9 @@ export const getStaticProps = withPerformanceLogging(
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
 				toggleOptions,
-				chainsUnique: Array.from(chainsUnique)
+				chainsUnique: Array.from(chainsUnique),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -401,9 +405,11 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="tvl"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<h1 className="text-xl font-bold">{props.name} TVL Breakdown</h1>
 			</div>
 			{isLoading ? (

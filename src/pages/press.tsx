@@ -4,7 +4,7 @@ import Layout from '~/layout'
 
 const PressPanel = ({ imageFilename }) => (
 	<div className="rounded-md border border-(--cards-border) p-4 text-center">
-		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
+		<TokenLogo src={`/press/${imageFilename}`} alt={imageFilename} size={150} />
 	</div>
 )
 
@@ -44,7 +44,6 @@ function PressPage() {
 		<Layout
 			title="DefiLlama in the Press - Media Coverage & Mentions"
 			description={`Press and media on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`press, media, defi press, defi media`}
 			canonicalUrl={`/press`}
 		>
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">

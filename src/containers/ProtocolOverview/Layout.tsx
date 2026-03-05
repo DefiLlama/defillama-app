@@ -2,11 +2,11 @@ import * as Ariakit from '@ariakit/react'
 import { useMemo } from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
+import { BasicLink, ButtonLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { TVL_SETTINGS_KEYS_SET, FEES_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import type { IProtocolPageMetrics } from './types'
 
 const tabs = {
@@ -35,6 +35,12 @@ const tabs = {
 	forks: { id: 'forks', name: 'Forks', route: '/protocol/forks' }
 } as const
 
+const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
+	unlocks: '/unlocks',
+	governance: '/governance',
+	forks: '/forks'
+}
+
 export function ProtocolOverviewLayout({
 	children,
 	isCEX,
@@ -45,8 +51,8 @@ export function ProtocolOverviewLayout({
 	metrics,
 	tab,
 	warningBanners,
+	seoTitle,
 	seoDescription,
-	seoKeywords,
 	entityQuestions
 }: {
 	children: React.ReactNode
@@ -65,8 +71,8 @@ export function ProtocolOverviewLayout({
 		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
 		level: 'low' | 'alert' | 'rug'
 	}>
+	seoTitle?: string
 	seoDescription?: string
-	seoKeywords?: string
 	entityQuestions?: string[]
 }) {
 	const metricFiltersLabel = useMemo(() => {
@@ -152,17 +158,20 @@ export function ProtocolOverviewLayout({
 			? `/protocol/${entitySlug}`
 			: tab === 'tvl'
 				? `/protocol/tvl/${entitySlug}`
-				: `${tabs[tab].route}/${entitySlug}`
+				: tab && standaloneCanonicals[tab]
+					? `${standaloneCanonicals[tab]}/${entitySlug}`
+					: `${tabs[tab].route}/${entitySlug}`
+
+	const resolvedTitle = seoTitle || `${name} Protocol Overview - DefiLlama`
+	const resolvedDescription =
+		seoDescription ||
+		`Track ${name} metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
 
 	return (
 		<Layout
-			title={`${name} Protocol TVL, Revenue, Fees, & Metrics - DefiLlama`}
-			description={
-				seoDescription ||
-				`Track ${name} metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
-			}
-			keywords={seoKeywords || `${name.toLowerCase()} defillama`}
-			canonicalUrl={canonicalUrl}
+			title={resolvedTitle}
+			description={resolvedDescription}
+			canonicalUrl={standaloneCanonicals[tab] ? null : canonicalUrl}
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>
@@ -202,7 +211,7 @@ export function ProtocolOverviewLayout({
 					{(otherProtocols?.length ?? 0) > 1 ? (
 						<Ariakit.MenuProvider>
 							<Ariakit.MenuButton className="mr-4 flex shrink-0 cursor-pointer items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-white px-2 py-1 font-normal hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) dark:bg-[#181A1C]">
-								<TokenLogo logo={tokenIconUrl(name)} size={16} />
+								<TokenLogo name={name} kind="token" size={16} alt={`Logo of ${name}`} />
 								<span className="whitespace-nowrap">{name === otherProtocols?.[0] ? `${name} (Combined)` : name}</span>
 								<Ariakit.MenuButtonArrow />
 							</Ariakit.MenuButton>
@@ -236,7 +245,7 @@ export function ProtocolOverviewLayout({
 													<span className="-mr-2 h-0.5 w-3 bg-(--form-control-border)" />
 												</>
 											) : null}
-											<TokenLogo logo={tokenIconUrl(value)} size={24} />
+											<TokenLogo name={value} kind="token" size={24} alt={`Logo of ${value}`} />
 											{i === 0 ? (
 												<span className="flex flex-col">
 													<span>{`${value} (Combined)`}</span>
@@ -254,63 +263,63 @@ export function ProtocolOverviewLayout({
 
 					{isCEX ? (
 						<>
-							<BasicLink
+							<ButtonLink
 								href={`/cex/${slug(name)}`}
 								data-active={!tab || tab === 'information'}
 								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
 								Information
-							</BasicLink>
+							</ButtonLink>
 							{metrics.tvl ? (
-								<BasicLink
+								<ButtonLink
 									href={`/cex/assets/${slug(name)}`}
 									data-active={tab === 'assets'}
 									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 								>
 									Assets
-								</BasicLink>
+								</ButtonLink>
 							) : null}
 							{metrics.stablecoins ? (
-								<BasicLink
+								<ButtonLink
 									href={`/cex/stablecoins/${slug(name)}`}
 									data-active={tab === 'stablecoins'}
 									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 								>
 									Stablecoin Info
-								</BasicLink>
+								</ButtonLink>
 							) : null}
 						</>
 					) : (
 						<>
-							<BasicLink
+							<ButtonLink
 								href={`/protocol/${slug(name)}`}
 								data-active={!tab || tab === 'information'}
 								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
 								Information
-							</BasicLink>
+							</ButtonLink>
 							{metrics.tvl ? (
-								<BasicLink
+								<ButtonLink
 									href={`/protocol/tvl/${slug(name)}`}
 									data-active={tab === 'tvl'}
 									className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 								>
 									TVL
-								</BasicLink>
+								</ButtonLink>
 							) : null}
 						</>
 					)}
 					{protocolTabs
 						.filter((pt) => (isCEX ? pt.id !== 'stablecoins' : true))
 						.map((pt) => (
-							<BasicLink
+							<ButtonLink
 								key={`${pt.id}-${name}`}
 								href={`${pt.route}/${slug(name)}`}
 								data-active={pt.id === tab}
 								className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
 							>
 								{pt.name}
-							</BasicLink>
+							</ButtonLink>
 						))}
 				</div>
 				<EntityQuestionsStrip

@@ -22,7 +22,7 @@ import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
@@ -68,7 +68,6 @@ export default function Tokens() {
 		<Layout
 			title="DeFi Token Usage Tracker - DefiLlama"
 			description={`Token usage in protocols. Checkout how a token is used in protocols on chain as well as CEXs. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token usage, defi token usage, token usage in protocols, token usage in protocols on chain, token usage on cexes`}
 			canonicalUrl={`/token-usage`}
 			pageName={pageName}
 		>
@@ -152,7 +151,7 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -257,7 +256,7 @@ const Search = () => {
 								setValueOnClick={true}
 								className="flex cursor-pointer items-center gap-4 px-3 py-2 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
-								{data?.logo ? <TokenLogo logo={data?.logo} /> : null}
+								{data?.logo ? <TokenLogo src={data?.logo} alt={`Logo of ${data?.name ?? ''}`} /> : null}
 								<span>{data.name}</span>
 							</Ariakit.ComboboxItem>
 						))}

@@ -85,7 +85,6 @@ export const PeggedAssetInfo = ({
 		auditLinks,
 		price
 	} = peggedAssetData
-	const logo = peggedAssetIconUrl(name)
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? '')
 
@@ -250,7 +249,7 @@ export const PeggedAssetInfo = ({
 				{/* Stats card */}
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={logo} size={24} />
+						<TokenLogo name={name} kind="pegged" alt={`Logo of ${name}`} size={24} />
 						<span className="font-bold">{name}</span>
 						{symbol && symbol !== '-' ? <span className="font-normal">({symbol})</span> : null}
 						{peggedAssetData.deprecated ? (

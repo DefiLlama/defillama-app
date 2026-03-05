@@ -1,9 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface IYieldsRow {
 	pool: string
@@ -45,7 +46,13 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			const pool = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<TokenLogo size={20} logo={tokenIconUrl(row.original.project)} data-lgonly />
+					<TokenLogo
+						size={20}
+						name={row.original.project}
+						kind="token"
+						alt={`Logo of ${row.original.project}`}
+						data-lgonly
+					/>
 					<BasicLink
 						href={`/yields/pool/${row.original.configID}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -78,7 +85,9 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		header: 'Chain',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+		cell: (info) => (
+			<IconsRow items={toChainIconItems(info.getValue() as Array<string>, (chain) => yieldsChainHref(chain))} />
+		),
 		size: 60,
 		meta: {
 			align: 'end'

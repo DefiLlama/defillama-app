@@ -25,7 +25,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { IFormattedDataWithExtraTvl } from './types'
 
 const optionsKey = 'chains-overview-table-columns'
@@ -260,7 +260,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					)}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={chainIconUrl(getValue())} />
+					<TokenLogo name={getValue() as string} kind="chain" alt={`Logo of ${getValue()}`} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -9,7 +9,7 @@ import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { TVL_SETTINGS_KEYS, useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { ChainChartPanel } from './ChainChartPanel'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts } from './constants'
@@ -133,28 +133,46 @@ export function Stats(props: IStatsProps) {
 			>
 				{props.metadata.name !== 'All' && (
 					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
-						<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
+						<TokenLogo name={props.metadata.name} kind="chain" size={24} alt={`Logo of ${props.metadata.name}`} />
 						<span className="text-xl font-semibold">{props.metadata.name}</span>
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
 				)}
 				{props.protocols.length > 0 ? (
 					<div className="flex flex-nowrap items-end justify-between gap-8">
-						<h2 className="flex flex-col">
-							<Tooltip
-								content={
-									props.metadata.name === 'All'
-										? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
-										: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
-								}
-								className="inline text-(--text-label) underline decoration-dotted"
-							>
-								Total Value Locked in DeFi
-							</Tooltip>
-							<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
-								{formattedNum(totalValueUSD, true)}
-							</span>
-						</h2>
+						{props.metadata.name === 'All' ? (
+							<h1 className="flex flex-col">
+								<Tooltip
+									content={
+										props.metadata.name === 'All'
+											? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
+											: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
+									}
+									className="inline text-(--text-label) underline decoration-dotted"
+								>
+									Total Value Locked in DeFi
+								</Tooltip>
+								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+									{formattedNum(totalValueUSD, true)}
+								</span>
+							</h1>
+						) : (
+							<h2 className="flex flex-col">
+								<Tooltip
+									content={
+										props.metadata.name === 'All'
+											? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
+											: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
+									}
+									className="inline text-(--text-label) underline decoration-dotted"
+								>
+									Total Value Locked in DeFi
+								</Tooltip>
+								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+									{formattedNum(totalValueUSD, true)}
+								</span>
+							</h2>
+						)}
 						{change24h != null && valueChange24hUSD != null ? (
 							<Tooltip
 								content={`${formattedNum(valueChange24hUSD, true)}`}

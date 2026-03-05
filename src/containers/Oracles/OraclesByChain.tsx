@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -240,7 +241,7 @@ const columns: ColumnDef<IOracleTableRow>[] = [
 			const chains = row.original.chains ?? []
 			return (
 				<div className="flex items-center justify-end gap-1 overflow-hidden">
-					<IconsRow links={chains} url="/oracles/chain" iconType="chain" />
+					<IconsRow items={toChainIconItems(chains, (chain) => chainHref('/oracles/chain', chain))} />
 				</div>
 			)
 		},

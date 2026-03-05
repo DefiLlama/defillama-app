@@ -7,7 +7,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ParentProtocolLite, ProtocolLite } from '~/containers/Protocols/api.types'
 import Layout from '~/layout'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -52,9 +52,8 @@ const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`DeFi Protocol Expense Tracker - DefiLlama`}
+			title={`Protocol Expense Rankings - DefiLlama`}
 			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`protocol expenses, expenses by protocol`}
 			canonicalUrl={`/expenses`}
 			pageName={pageName}
 		>
@@ -80,7 +79,7 @@ const columns: ColumnDef<any>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo name={getValue() as string} kind="token" data-lgonly alt={`Logo of ${getValue()}`} />
 					<BasicLink
 						href={`/protocol/${slug(getValue() as string)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

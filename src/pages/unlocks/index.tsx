@@ -276,11 +276,10 @@ export default function Protocols({ data, generatedAtSec }: { data: any[]; gener
 		[data, generatedAtSec]
 	)
 
-	return (
+		return (
 		<Layout
-			title={`Upcoming Token Unlocks Schedule - DefiLlama`}
-			description={`Unlocks by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`unlocks, defi unlocks, upcoming token unlocks, token emissions, emissions`}
+			title="Token Unlocks Calendar - DeFi Vesting Schedule Tracker - DefiLlama"
+			description="Track upcoming token unlocks and vesting schedules for 500+ DeFi protocols. Monitor unlock dates, amounts, and price impact. Real-time token unlock calendar with 7-day and 30-day unlock analytics."
 			canonicalUrl={`/unlocks`}
 			pageName={pageName}
 		>

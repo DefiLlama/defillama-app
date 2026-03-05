@@ -193,7 +193,6 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 		<Layout
 			title="NFT Marketplace Volume & Rankings - DefiLlama"
 			description={`NFT Marketplaces by Volume. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nft marketplaces by volume, defi nft marketplaces`}
 			canonicalUrl={`/nfts/marketplaces`}
 			pageName={pageName}
 		>

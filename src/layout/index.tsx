@@ -22,9 +22,7 @@ interface ILayoutProps extends ISEOProps {
 function Layout({
 	title,
 	description,
-	keywords,
 	canonicalUrl,
-	slugCanonicalUrl,
 	children,
 	pageName,
 	metricFilters,
@@ -35,13 +33,7 @@ function Layout({
 	const isClient = useIsClient()
 	return (
 		<>
-			<SEO
-				title={title}
-				description={description}
-				keywords={keywords}
-				canonicalUrl={canonicalUrl}
-				slugCanonicalUrl={slugCanonicalUrl}
-			/>
+			<SEO title={title} description={description} canonicalUrl={canonicalUrl} />
 			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}

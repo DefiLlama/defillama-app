@@ -16,7 +16,7 @@ import { LinkPreviewCard } from '~/components/SEO'
 import { VirtualTable } from '~/components/Table/Table'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { RawChainAsset } from './api.types'
 
 interface BridgedChainRow {
@@ -129,7 +129,7 @@ export function BridgedTVLByChain({
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-3 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="mb-3 flex items-center gap-2 text-xl font-semibold">
-						<TokenLogo logo={chainIconUrl(chain)} size={24} />
+						<TokenLogo name={chain} kind="chain" size={24} alt={`Logo of ${chain}`} />
 						<FormattedName text={chainName + ' Bridged TVL'} fontWeight={700} />
 					</h1>
 

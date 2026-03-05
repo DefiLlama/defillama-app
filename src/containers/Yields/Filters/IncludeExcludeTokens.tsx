@@ -315,7 +315,11 @@ export function IncludeExcludeTokens({
 											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
 											{(token?.logo || token?.fallbackLogo) && (
-												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
+												<TokenLogo
+													src={token?.logo}
+													fallbackSrc={token?.fallbackLogo}
+													alt={`Logo of ${token.symbol}`}
+												/>
 											)}
 											<span>{`${token.symbol}`}</span>
 											<div className="mt-1 flex w-full flex-nowrap items-center gap-1 sm:mt-0 sm:ml-auto sm:w-min">
@@ -446,7 +450,11 @@ export function IncludeExcludeTokens({
 											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
 											{(token?.logo || token?.fallbackLogo) && (
-												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
+												<TokenLogo
+													src={token?.logo}
+													fallbackSrc={token?.fallbackLogo}
+													alt={`Logo of ${token.symbol}`}
+												/>
 											)}
 											<span>{`${token.symbol}`}</span>
 										</Ariakit.ComboboxItem>

@@ -7,7 +7,7 @@ import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('yields/strategyLongShort', async () => {
+export const getStaticProps = withPerformanceLogging('yields/strategy-long-short', async () => {
 	const data = await getYieldPageData()
 
 	// for funding rate strategies keep only single sided no IL pools
@@ -65,9 +65,7 @@ export default function YieldStrategiesFR(data) {
 		<Layout
 			title={`Yield Long/Short Strategies - DefiLlama Yield`}
 			description={`Find strategies to maximize yield by long/shorting tokens. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`yield long/short strategies, defi yield long/short strategies, long/short strategies, defi long/short strategies`}
-			canonicalUrl={`/yields/strategyLongShort`}
-			slugCanonicalUrl={false}
+			canonicalUrl={`/yields/strategy-long-short`}
 			pageName={pageName}
 		>
 			<Announcement>{disclaimer}</Announcement>

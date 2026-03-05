@@ -89,11 +89,10 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', type]
 
 const EarningsOnChain = (props: IAdapterByChainPageData) => {
-	return (
+		return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`Real-time DeFi ${type} analytics by protocol for ${props.chain}. Track net earnings rankings showing revenue minus incentives for every protocol across the ecosystem.`}
-			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			title={`${props.chain} Earnings Rankings - Net Profit by Protocol - DefiLlama`}
+			description={`Track DeFi protocol earnings and net profit on ${props.chain}. Compare sustainable earnings (revenue minus incentives) for protocols on ${props.chain}. Real-time ${props.chain} earnings analytics showing true profitability.`}
 			canonicalUrl={`/earnings/chain/${props.chain}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Earnings"

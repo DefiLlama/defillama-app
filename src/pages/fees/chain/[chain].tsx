@@ -89,11 +89,10 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', type]
 
 const FeesOnChain = (props: IAdapterByChainPageData) => {
-	return (
+		return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol on ${props.chain}`.toLowerCase()}
+			title={`${props.chain} Fees Rankings - User Fees by Protocol - DefiLlama`}
+			description={`Track total fees generated on ${props.chain} from users across all DeFi protocols. Compare trading fees, swap fees, and lending fees on ${props.chain}. Real-time ${props.chain} fee analytics.`}
 			canonicalUrl={`/fees/chain/${props.chain}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Fees"

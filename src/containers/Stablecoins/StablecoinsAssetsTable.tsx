@@ -13,6 +13,7 @@ import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -22,7 +23,7 @@ import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { useCalcCirculating } from '~/containers/Stablecoins/hooks'
-import { formattedNum, peggedAssetIconUrl as stablecoinAssetIconUrl, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type StablecoinDeviationInfo = {
 	timestamp: number
@@ -67,7 +68,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={stablecoinAssetIconUrl(row.original.name)} data-lgonly />
+					<TokenLogo name={row.original.name} kind="pegged" alt={`Logo of ${row.original.name}`} data-lgonly />
 					{row.original?.deprecated ? (
 						<BasicLink
 							href={`/stablecoin/${slug(row.original.name)}`}
@@ -97,7 +98,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		header: 'Chains',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/stablecoins" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => chainHref('/stablecoins', chain))} />
+		),
 		size: 200,
 		meta: {
 			align: 'end',

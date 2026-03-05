@@ -31,7 +31,6 @@ const REVByChain = (props: IChainsByREVPageData) => {
 		<Layout
 			title="Real Economic Value (REV) by Blockchain - DefiLlama"
 			description={`REV by chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`rev by chain, defi rev by chain`}
 			canonicalUrl={`/rev/chains`}
 			pageName={pageName}
 		>
@@ -63,7 +62,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink

@@ -602,12 +602,6 @@ export async function getChainOverviewData({
 					: isDataAvailable
 						? `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}, including ${charts.join(', ')}, and protocols on ${currentChainMetadata.name}.`
 						: `Comprehensive overview of all metrics tracked on ${currentChainMetadata.name}`,
-			keywords:
-				currentChainMetadata.name === 'All'
-					? 'blockchains, tvl, total value locked, defi, protocols on all chains, defillama, blockchain analytics'
-					: isDataAvailable
-						? `${charts.map((chart) => `${currentChainMetadata.name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}, protocols on ${currentChainMetadata.name.toLowerCase()}`
-						: '',
 			isDataAvailable,
 			datInflows: datInflows ?? null,
 			chainStablecoins:

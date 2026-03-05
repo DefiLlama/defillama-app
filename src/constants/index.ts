@@ -15,7 +15,7 @@ export const SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/api` : 
 export const V2_SERVER_URL = `${SERVER_URL}/v2`
 
 // Product/domain server roots
-const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
+export const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
 export const COINS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/coins` : 'https://coins.llama.fi'
 export const ETF_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/etfs` : 'https://etfs.llama.fi'
 export const FDV_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
@@ -31,15 +31,6 @@ export const YIELDS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/
 export const CONFIG_API = `${SERVER_URL}/config`
 export const DIMENSIONS_OVERVIEW_API = `${SERVER_URL}/overview`
 export const DIMENSIONS_SUMMARY_API = `${SERVER_URL}/summary`
-
-// Bridges APIs
-export const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`
-export const BRIDGES_API = `${BRIDGES_SERVER_URL}/bridges`
-export const BRIDGELARGETX_API = `${BRIDGES_SERVER_URL}/largetransactions`
-export const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
-export const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
-export const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
-export const NETFLOWS_API = `${BRIDGES_SERVER_URL}/netflows`
 
 // Yields APIs
 export const YIELD_CHAIN_API = `${SERVER_URL}/chains`

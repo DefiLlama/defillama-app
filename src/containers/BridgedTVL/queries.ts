@@ -1,5 +1,6 @@
 import { slug } from '~/utils'
 import { sluggify } from '~/utils/cache-client'
+import type { IChainMetadata } from '~/utils/metadata/types'
 import { fetchChainAssetsFlows1d, fetchChainAssetsHistoricalFlows, fetchChainsAssets } from './api'
 import type { RawChainAsset, RawChainAssetsFlowEntry, RawChainsAssetsResponse } from './api.types'
 
@@ -12,7 +13,13 @@ interface BridgedTVLData {
 	tokenInflowNames: string[]
 }
 
-export async function getBridgedTVLByChain(chain?: string): Promise<BridgedTVLData> {
+export async function getBridgedTVLByChain({
+	chain,
+	chainMetadata
+}: {
+	chain?: string
+	chainMetadata: Record<string, IChainMetadata>
+}): Promise<BridgedTVLData> {
 	const [assets, flows1d, inflows] = await Promise.all([
 		fetchChainsAssets(),
 		fetchChainAssetsFlows1d().catch(() => null),
@@ -48,7 +55,11 @@ export async function getBridgedTVLByChain(chain?: string): Promise<BridgedTVLDa
 	)
 	const chainLinks: { label: string; to: string }[] = [{ label: 'All', to: '/bridged' }]
 	for (const [assetKey] of assetEntries) {
-		chainLinks.push({ label: assetKey, to: `/bridged/${slug(assetKey)}` })
+		const slugChain = slug(assetKey)
+
+		if (!chainMetadata[slugChain]?.chainAssets) continue
+
+		chainLinks.push({ label: assetKey, to: `/bridged/${slugChain}` })
 	}
 
 	return {

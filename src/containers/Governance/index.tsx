@@ -13,7 +13,7 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import type { GovernanceOverviewItem } from './types'
 
 export default function Governance({ data }: { data: GovernanceOverviewItem[] }) {
@@ -74,7 +74,7 @@ const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo name={getValue() as string} kind="token" data-lgonly />
 					<BasicLink
 						href={`/governance/${slug(getValue())}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

@@ -9,7 +9,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
 import Layout from '~/layout'
-import { chainIconUrl, tokenIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { getQueryValue, pushShallowQuery } from '~/utils/routerQuery'
@@ -85,11 +84,10 @@ export default function YieldBorrow(data) {
 		cdpRoutes: data.cdpPools
 	})
 
-	return (
+		return (
 		<Layout
-			title={`DeFi Borrow Rate Aggregator - DefiLlama`}
-			description={`Simple view of optimal lending routes by collateral to borrow assets. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`borrow aggregator, lending routes, optimal lending routes, borrow assets on blockchain`}
+			title="Borrow Rate Aggregator - Best DeFi Lending Rates - DefiLlama"
+			description="Find optimal DeFi lending and borrowing routes. Compare borrow rates across Aave, Compound, Morpho, and 50+ lending protocols. Calculate net APY with collateral on Ethereum, Solana, and all major chains."
 			canonicalUrl={`/borrow`}
 			pageName={pageName}
 		>
@@ -382,7 +380,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 							<tr key={JSON.stringify(pool)} className="p-3">
 								<th className="rounded-l-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
 									<span className="flex flex-nowrap items-center gap-1">
-										<TokenLogo logo={tokenIconUrl(pool.projectName)} size={20} />
+										<TokenLogo name={pool.projectName} kind="token" size={20} alt={`Logo of ${pool.projectName}`} />
 										<span className="whitespace-nowrap">{pool.projectName}</span>
 									</span>
 								</th>
@@ -402,7 +400,7 @@ const PoolsList = ({ pools }: { pools: Array<IPool> }) => {
 								</td>
 								<td className="rounded-r-md bg-[#eff0f3] p-2 text-sm font-normal dark:bg-[#17181c]">
 									<span className="flex items-center gap-1.5">
-										<TokenLogo logo={chainIconUrl(pool.chain)} size={20} />
+										<TokenLogo name={pool.chain} kind="chain" size={20} alt={`Logo of ${pool.chain}`} />
 										<span>{pool.chain}</span>
 									</span>
 								</td>

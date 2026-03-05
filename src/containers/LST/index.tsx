@@ -65,7 +65,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 					<BasicLink
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"

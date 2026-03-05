@@ -226,10 +226,6 @@ export const getChainsByCategory = async ({
 		description:
 			category === 'All'
 				? 'Combined TVL, Fees, Volume, Stablecoins Supply by all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.'
-				: `Combined TVL, Fees, Volume, Stablecoins Supply by ${category} chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`,
-		keywords:
-			category === 'All'
-				? 'compare chains by tvl, fees, volume, stablecoins supply, protocols'
-				: `${category} chains tvl, ${category} chains fees, ${category} chains revenue, ${category} chains volume, ${category} chains total protocols`
+				: `Combined TVL, Fees, Volume, Stablecoins Supply by ${category} chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
 	}
 }

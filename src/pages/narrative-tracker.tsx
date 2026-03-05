@@ -18,11 +18,10 @@ export const getStaticProps = withPerformanceLogging('narrative-tracker', async 
 
 const pageName = ['Narrative Tracker']
 export default function CategoryPerformance(props: CategoryPerformanceProps) {
-	return (
+		return (
 		<Layout
-			title={`Crypto Narrative Tracker & Trends - DefiLlama`}
-			description={`Narrative tracker on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`narrative tracker, defi narrative tracker`}
+			title="Narrative Tracker - Crypto Market Trends - DefiLlama"
+			description="Track crypto narratives and market trends by sector performance. Monitor AI, DePIN, RWA, L2s, and other crypto narratives. Real-time narrative performance analytics and trend identification."
 			canonicalUrl={`/narrative-tracker`}
 			pageName={pageName}
 		>

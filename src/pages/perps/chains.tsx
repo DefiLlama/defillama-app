@@ -25,9 +25,8 @@ const pageName = ['Chains', 'ranked by', type]
 const PerpsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
+			title="Perpetual DEX Volume by Blockchain - Futures Trading Activity - DefiLlama"
+			description="Compare perpetual DEX and futures trading volume across all blockchains. Track derivatives activity on Ethereum, Solana, Base, Arbitrum, and 50+ chains. Real-time blockchain perp volume rankings by chain."
 			canonicalUrl={`/perps/chains`}
 			pageName={pageName}
 		>

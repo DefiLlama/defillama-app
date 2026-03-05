@@ -1,8 +1,9 @@
 import { fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
 import type { CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
-import { BRIDGEVOLUME_API_SLUG, oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
+import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import { fetchAdapterProtocolChartData, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api.types'
 import { governanceIdsToApis } from '~/containers/Governance/api'
@@ -410,7 +411,7 @@ export const getProtocolOverviewPageData = async ({
 		fetchProtocols().catch((): ProtocolsResponse => ({ protocols: [], chains: [], parentProtocols: [] })),
 		fetchHacks().catch(() => []),
 		currentProtocolMetadata.bridge
-			? fetchJson(`${BRIDGEVOLUME_API_SLUG}/${slug(currentProtocolMetadata.displayName)}`)
+			? fetchBridgeVolumeBySlug(slug(currentProtocolMetadata.displayName))
 					.then((data) => data.dailyVolumes || null)
 					.catch(() => null)
 			: null,
@@ -697,22 +698,6 @@ export const getProtocolOverviewPageData = async ({
 	}
 
 	const name = protocolData.name ?? currentProtocolMetadata.displayName ?? ''
-	let seoDescription = `Track ${name} metrics on DefiLlama. Including ${availableCharts.filter((chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)).join(', ')}`
-	let seoKeywords = `${availableCharts.map((chart) => `${name.toLowerCase()} ${chart.toLowerCase()}`).join(', ')}`
-	if (expenses) {
-		seoDescription += `, Expenses`
-		seoKeywords += `, ${name.toLowerCase()} expenses`
-	}
-	if (revenueData && incentives) {
-		seoDescription += `, Earnings`
-		seoKeywords += `, ${name.toLowerCase()} earnings`
-	}
-	if (incomeStatement) {
-		seoDescription += `, Income Statement`
-		seoKeywords += `, ${name.toLowerCase()} income statement, ${name.toLowerCase()} financial statement`
-	}
-	seoDescription += ' and their methodologies'
-	seoKeywords += `, ${name.toLowerCase()} methodologies`
 
 	const defaultToggledCharts = buildDefaultToggledCharts({
 		isCEX,
@@ -779,6 +764,44 @@ export const getProtocolOverviewPageData = async ({
 				initialMultiSeriesChartData[chartLabel] = series
 			}
 		}
+	}
+	const titleMetrics: string[] = []
+	if (availableCharts.includes(isCEX ? 'Total Assets' : 'TVL')) {
+		titleMetrics.push(isCEX ? 'Assets' : 'TVL')
+	}
+	if (availableCharts.includes('Fees')) {
+		titleMetrics.push('Fees')
+	}
+	if (availableCharts.includes('Revenue')) {
+		titleMetrics.push('Revenue')
+	}
+	if (availableCharts.includes('DEX Volume') || availableCharts.includes('Perp Volume')) {
+		titleMetrics.push('Volume')
+	}
+	const titleMetricSegment =
+		titleMetrics.length === 0
+			? 'Stats & Charts'
+			: titleMetrics.length === 1
+				? `${titleMetrics[0]} Stats & Charts`
+				: `${titleMetrics.slice(0, -1).join(', ')} & ${titleMetrics.at(-1)} Stats`
+	const baseTitle = `${name} ${titleMetricSegment} - DefiLlama`
+	const seoTitle = baseTitle.length < 30 ? `${baseTitle} - DeFi Dashboard & Crypto Analytics` : baseTitle
+
+	const chartLabelsForSeo = availableCharts.filter(
+		(chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)
+	)
+	let seoDescription = `Track ${name} on DefiLlama. Including ${chartLabelsForSeo.length ? chartLabelsForSeo.join(', ') : 'key onchain and financial stats'}`
+	if (expenses) {
+		seoDescription += `, Expenses`
+	}
+	if (revenueData && incentives) {
+		seoDescription += `, Earnings`
+	}
+	if (incomeStatement) {
+		seoDescription += `, Income Statement`
+	}
+	if (currentProtocolMetadata.tokenRights) {
+		seoDescription += `, Token Rights`
 	}
 
 	return {
@@ -906,8 +929,8 @@ export const getProtocolOverviewPageData = async ({
 			optionsPremiumVolumeData?.defaultChartView ??
 			optionsNotionalVolumeData?.defaultChartView ??
 			'daily',
+		seoTitle,
 		seoDescription,
-		seoKeywords,
 		defaultToggledCharts,
 		oracleTvs
 	}

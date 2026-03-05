@@ -16,7 +16,7 @@ import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -61,6 +61,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Perp Aggregator Volume - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} perpetual futures aggregator volume with daily and cumulative breakdowns on DefiLlama.`
 
 		const perpAggregatorVolume: IProtocolOverviewPageData['perpAggregatorVolume'] = {
 			total24h: adapterData.total24h ?? null,
@@ -102,7 +104,9 @@ export const getStaticProps = withPerformanceLogging(
 				protocolChains: adapterData?.chains ?? [],
 				protocolVersions: linkedProtocolsWithAdapterData?.map((protocol) => protocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
-				defaultChartView: adapterData?.defaultChartView ?? 'daily'
+				defaultChartView: adapterData?.defaultChartView ?? 'daily',
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -163,11 +167,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="perpsAggregators"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 						<span className="font-bold">{props.name}</span>
 						{props.deprecated ? (
 							<Tooltip content="Deprecated protocol" className="text-(--error)">

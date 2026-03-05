@@ -14,7 +14,7 @@ import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/usePro
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -172,6 +172,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Borrowed Assets & Lending - DefiLlama`
+		const seoDescription = `Monitor ${protocolData.name} total borrowed assets, utilization rates, and lending pools on DefiLlama.`
 
 		const toggleOptions = []
 
@@ -192,7 +194,9 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData.category ?? null,
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
-				toggleOptions
+				toggleOptions,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -247,9 +251,11 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="borrowed"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<h1 className="text-xl font-bold">{props.name} Borrowed TVL</h1>
 			</div>
 			{isLoading ? (

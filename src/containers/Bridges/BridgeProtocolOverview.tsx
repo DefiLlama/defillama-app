@@ -16,6 +16,7 @@ import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
+import type { BridgePageData } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -31,8 +32,8 @@ export const BridgeInfo = ({
 	defaultChain,
 	volumeDataByChain,
 	tableDataByChain,
-	config = {} as Record<string, string>
-}) => {
+	config
+}: BridgePageData) => {
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
@@ -146,7 +147,7 @@ export const BridgeInfo = ({
 		<>
 			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
-					<TokenLogo logo={logo} size={24} />
+					<TokenLogo src={logo} size={24} alt={`Logo of ${displayName}`} />
 					<span>{displayName}</span>
 				</h1>
 				<BridgeChainSelector
@@ -282,7 +283,7 @@ export const BridgeInfo = ({
 	)
 }
 
-export function BridgeProtocolOverview(props) {
+export function BridgeProtocolOverview(props: BridgePageData) {
 	return (
 		<>
 			<LinkPreviewCard cardName={props.displayName} token={props.displayName} />
@@ -323,18 +324,6 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	)
 }
 
-// oxlint-disable-next-line no-unused-vars
-const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
-	return useQuery({
-		queryKey: ['bridges', 'volume-all-chains', protocol],
-		queryFn: protocol
-			? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains'])
-			: () => null,
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-}
 const VOLUME_CHARTS = [{ type: 'bar' as const, name: 'Volume', encode: { x: 'timestamp', y: 'Volume' } }]
 
 const INFLOW_CHARTS = [

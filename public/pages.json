@@ -7,7 +7,7 @@
       "description": "Comprehensive overview of all metrics tracked on each chain, including TVL, Fees, Revenue, Volume, and protocols on each chain",
       "tab": "Protocols",
       "oldCategory": "Market Overview",
-      "oldName": "DeFi Dashboard"
+      "oldName": "Overview"
     },
     {
       "name": "Chains",
@@ -165,7 +165,7 @@
     },
     {
       "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
+      "route": "/yields/strategy-long-short",
       "category": "Yields",
       "description": "Find 'long-short' strategies across all our tracked pools",
       "oldCategory": "Yields",
@@ -573,6 +573,30 @@
       "oldName": "ETFs"
     },
     {
+      "name": "Treasuries",
+      "route": "/treasuries",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols",
+      "oldName": "Treasuries"
+    },
+    {
+      "name": "Net Project Treasury",
+      "route": "/net-project-treasury",
+      "category": "Treasury",
+      "description": "Value of tokens owned by a protocol, excluding its own token",
+      "totalTrackedKey": "treasury.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Treasury: Entities",
+      "route": "/entities",
+      "category": "Treasury",
+      "description": "Treasury by entity",
+      "totalTrackedKey": "treasury.entities"
+    },
+    {
       "name": "Unlocks: Overview",
       "route": "/unlocks",
       "category": "Unlocks",
@@ -596,30 +620,6 @@
       "tab": "Protocols",
       "oldCategory": "Unlocks",
       "oldName": "Calendar"
-    },
-    {
-      "name": "Treasuries",
-      "route": "/treasuries",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, including its own token and breakdown of assets held",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols",
-      "oldName": "Treasuries"
-    },
-    {
-      "name": "Net Project Treasury",
-      "route": "/net-project-treasury",
-      "category": "Treasury",
-      "description": "Value of tokens owned by a protocol, excluding its own token",
-      "totalTrackedKey": "treasury.protocols",
-      "tab": "Protocols"
-    },
-    {
-      "name": "Treasury: Entities",
-      "route": "/entities",
-      "category": "Treasury",
-      "description": "Treasury by entity",
-      "totalTrackedKey": "treasury.entities"
     },
     {
       "name": "Raises: Overview",
@@ -693,6 +693,14 @@
       "description": "Breakdown of annual operational expenses by protocol",
       "totalTrackedKey": "expenses.protocols",
       "tab": "Protocols"
+    },
+    {
+      "name": "Token Rights",
+      "route": "/token-rights",
+      "category": "Others",
+      "description": "List of protocols with token rights",
+      "tab": "Protocols",
+      "oldName": "Token Rights"
     }
   ],
   "Tools": [
@@ -733,14 +741,6 @@
       "oldName": "Token Liquidity"
     },
     {
-      "name": "Yields: Watchlist",
-      "route": "/yields/watchlist",
-      "category": "Tools",
-      "description": "Watchlist of all pools that we track in our yields section",
-      "oldCategory": "Yields",
-      "oldName": "Watchlist"
-    },
-    {
       "name": "Borrow Aggregator: Simple",
       "route": "/borrow",
       "category": "Borrow Aggregator",
@@ -749,12 +749,12 @@
       "oldName": "Simple"
     },
     {
-      "name": "Protocols Website Directory",
-      "route": "/directory",
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist",
       "category": "Tools",
-      "description": "Directory of all protocols websites on DefiLlama",
-      "tab": "Protocols",
-      "oldName": "Directory"
+      "description": "Watchlist of all pools that we track in our yields section",
+      "oldCategory": "Yields",
+      "oldName": "Watchlist"
     },
     {
       "name": "Borrow Aggregator: Advanced",
@@ -763,6 +763,14 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
+    },
+    {
+      "name": "Protocols Website Directory",
+      "route": "/directory",
+      "category": "Tools",
+      "description": "Directory of all protocols websites on DefiLlama",
+      "tab": "Protocols",
+      "oldName": "Directory"
     },
     {
       "name": "Transactions by Bridge",
@@ -857,7 +865,7 @@
   ],
   "Main": [
     {
-      "name": "DeFi Dashboard",
+      "name": "Home",
       "route": "/",
       "icon": "house"
     },

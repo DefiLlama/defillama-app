@@ -21,11 +21,10 @@ export const getStaticProps = withPerformanceLogging(`rwa/index`, async () => {
 const pageName = ['RWA']
 
 export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title="Real World Assets - DefiLlama"
-			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, defi rwa rankings, rwa on chain`}
+			title="Real World Assets (RWA) Dashboard & Analytics - DefiLlama"
+			description="Track Real World Assets (RWA) tokenization on-chain. View tokenized treasuries, private credit, real estate, and commodities. RWA market cap, yields, and adoption analytics across all blockchains."
 			pageName={pageName}
 			canonicalUrl={`/rwa`}
 		>

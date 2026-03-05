@@ -3,7 +3,7 @@ import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { DailyUnlocks, DayInfo } from './calendarTypes'
 import { interpolateColor } from './colorUtils'
 
@@ -89,7 +89,7 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 											target="_blank"
 											className="group flex min-w-0 shrink items-center gap-1.5 text-sm font-medium hover:underline"
 										>
-											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
+											<TokenLogo name={event.protocol} kind="token" size={16} alt={`Logo of ${event.protocol}`} />
 											<span className="truncate">{event.protocol}</span>
 										</BasicLink>
 										<span className="text-sm font-medium whitespace-nowrap text-(--text-secondary)">

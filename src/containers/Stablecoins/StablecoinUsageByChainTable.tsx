@@ -20,7 +20,7 @@ import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/compon
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupBridgeData } from '~/containers/Stablecoins/hooks'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
 
 type StablecoinByChainRow = ReturnType<typeof useGroupBridgeData>[number]
 type BridgeInfoCell = StablecoinByChainRow['bridgeInfo']
@@ -68,7 +68,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 					) : (
 						<>
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
+							<TokenLogo name={row.original.name} kind="chain" data-lgonly alt={`Logo of ${row.original.name}`} />
 							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"

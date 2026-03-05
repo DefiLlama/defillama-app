@@ -22,7 +22,6 @@ export default function YieldPlots(data) {
 		<Layout
 			title={`Stablecoin Yield Opportunities - DefiLlama`}
 			description={`Stablecoin Pools by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`stablecoin pools by apy values, defi stablecoin pools, defi stablecoin pools by apy, stablecoin yields`}
 			canonicalUrl={`/yields/stablecoins`}
 			pageName={pageName}
 		>

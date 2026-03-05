@@ -15,7 +15,7 @@ import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useNowSeconds } from '~/hooks/useNowSeconds'
-import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
 import { Pagination } from './Pagination'
@@ -370,7 +370,7 @@ function TokenHeader({
 }) {
 	return (
 		<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-			<TokenLogo logo={tokenIconUrl(name)} />
+			<TokenLogo name={name} kind="token" alt={`Logo of ${name}`} />
 			<h1 className="text-xl font-semibold">{name}</h1>
 
 			{tokenPrice != null ? (

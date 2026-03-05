@@ -17,11 +17,10 @@ export const getStaticProps = withPerformanceLogging('comparison', async () => {
 const pageName = ['Compare Protocols']
 
 export default function CompareProtocolsPage({ protocols, protocolsList }: CompareProtocolsProps) {
-	return (
+		return (
 		<Layout
-			title={`Compare DeFi Protocols by TVL & Metrics - DefiLlama`}
-			description={`Compare protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare protocols, compare protocols on blockchain`}
+			title="Protocol Comparison Tool - Side-by-Side DeFi Metrics - DefiLlama"
+			description="Compare DeFi protocols side-by-side by TVL, fees, revenue, and user metrics. Analyze protocol performance across chains and categories. Advanced comparison tool for DeFi investment research."
 			canonicalUrl={`/compare-protocols`}
 			pageName={pageName}
 			metricFilters={tvlOptions}

@@ -6,7 +6,7 @@ import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
 /** Protocols that have confirmed tPrice and tSymbol (caller pre-filters nulls). */
@@ -144,7 +144,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 			{topImpacts.map((impact) => (
 				<div key={impact.name} className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<TokenLogo logo={tokenIconUrl(`${impact.name}`)} />
+						<TokenLogo name={impact.name} kind="token" alt={`Logo of ${impact.name}`} />
 						<div className="flex flex-col">
 							<BasicLink
 								href={`/unlocks/${slug(impact.name)}`}
@@ -170,7 +170,7 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 							>
 								<span className="flex items-center justify-between gap-4">
 									<span className="flex items-center gap-2 font-medium">
-										<TokenLogo logo={tokenIconUrl(impact.name)} size={30} />
+										<TokenLogo name={impact.name} kind="token" size={30} alt={`Logo of ${impact.name}`} />
 										{impact.symbol}
 									</span>
 									<span className="flex flex-col items-end">

@@ -19,7 +19,7 @@ import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/ty
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -193,6 +193,9 @@ export const getStaticProps = withPerformanceLogging(
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
 
+		const seoTitle = `${protocolData.name} ${defaultCharts.join(', ')} - DefiLlama`
+		const seoDescription = `Financial overview of ${protocolData.name} including ${defaultCharts.join(', ').toLowerCase()} with daily, weekly, monthly, and cumulative charts and historical data.`
+
 		return {
 			props: {
 				name: protocolData.name,
@@ -219,7 +222,9 @@ export const getStaticProps = withPerformanceLogging(
 					bribeRevenueData?.defaultChartView ??
 					tokenTaxData?.defaultChartView ??
 					'daily',
-				toggleOptions
+				toggleOptions,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -362,11 +367,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="fees"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 						<span className="font-bold">{props.name}</span>
 						{props.deprecated ? (
 							<Tooltip content="Deprecated protocol" className="text-(--error)">

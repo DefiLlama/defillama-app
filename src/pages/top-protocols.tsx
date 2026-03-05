@@ -19,7 +19,7 @@ import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/util
 import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { chainIconUrl, slug } from '~/utils'
+import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { parseExcludeParam } from '~/utils/routerQuery'
@@ -125,7 +125,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 					return (
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(chain)} />
+							<TokenLogo name={chain} kind="chain" alt={`Logo of ${chain}`} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -183,9 +183,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	return (
 		<Layout
-			title="Top Protocols by chain on each category - DefiLlama"
-			description={`Top Protocols by chain on each category. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`top protocols, defi top protocols, top protocols by chain, top protocols by category`}
+			title="Top Protocols by Chain & Category - DeFi TVL Rankings - DefiLlama"
+			description="Discover the top DeFi protocols on each blockchain by category. Compare lending, DEXs, yield, and derivatives protocols ranked by TVL across Ethereum, Solana, Base, Arbitrum, and 500+ chains."
 			canonicalUrl={`/top-protocols`}
 			pageName={pageName}
 		>

@@ -48,6 +48,8 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Yield Pools & APY Rankings - DefiLlama`
+		const seoDescription = `Explore ${protocolData.name} yield pools, APY rankings, and liquidity farming opportunities across chains on DefiLlama.`
 		const protocolSlug = sluggifyProtocol(protocolData.name)
 		const otherProtocolsSet = new Set((protocolData.otherProtocols ?? []).map((op) => sluggifyProtocol(op)))
 
@@ -94,7 +96,9 @@ export const getStaticProps = withPerformanceLogging(
 						: null,
 				poolsList,
 				poolsError,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
@@ -137,6 +141,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="yields"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex flex-1 flex-col gap-1 xl:flex-row">
 				<div className="flex flex-1 flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">

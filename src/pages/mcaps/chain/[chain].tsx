@@ -47,11 +47,10 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Market Cap']
 
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title={`${props.chain} DeFi Protocol Market Caps - DefiLlama`}
-			description={`${props.chain} Market Caps by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.chain} market caps, defi ${props.chain} market caps`}
+			title={`${props.chain} Market Cap Rankings - Token Market Capitalization - DefiLlama`}
+			description={`Track DeFi protocol market cap rankings on ${props.chain}. Compare token market capitalization for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto market cap analytics.`}
 			canonicalUrl={`/mcaps/chain/${props.chain}`}
 			pageName={pageName}
 		>

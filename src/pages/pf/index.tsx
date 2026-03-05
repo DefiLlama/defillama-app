@@ -33,7 +33,6 @@ const FeesOnAllChains = (props: IAdapterByChainPageData) => {
 		<Layout
 			title={`Price to Fees Ratio (P/F) Rankings - DefiLlama`}
 			description={`P/F by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`p/f by protocol`}
 			canonicalUrl={`/pf`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Metrics"

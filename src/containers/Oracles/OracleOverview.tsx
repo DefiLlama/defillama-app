@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getTokenDominance, slug } from '~/utils'
 import { useOracleOverviewExtraSeries } from './queries.client'
 import { calculateTvsWithExtraToggles, getEnabledExtraApiKeys } from './tvl'
 import type { OracleOverviewPageData } from './types'
@@ -61,7 +61,7 @@ export const OracleOverview = ({
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-							<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+							<TokenLogo name={name} kind="token" data-lgonly alt={`Logo of ${name}`} />
 
 							<BasicLink
 								href={`/protocol/${slug(name)}`}

@@ -62,7 +62,6 @@ function DonationsPage({ protocols }) {
 		<Layout
 			title="Support DefiLlama - Donations & Contributions"
 			description={`Donate to DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`donations, defi donations`}
 			canonicalUrl={`/donations`}
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">

@@ -4,13 +4,14 @@ import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-tabl
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { getCategoryRoute } from '~/constants'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
@@ -252,8 +253,6 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					!shouldShowChainIcon &&
 					display.header !== 'category' &&
 					(display.groupKind === 'parent' || display.header === 'protocol' || display.header === 'parent-protocol')
-				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
-				const iconSource = shouldShowChainIcon ? chainIcon : (display.iconUrl ?? baseRow?.logo ?? undefined)
 				const isChainOrCategoryGroup = display.header === 'chain' || display.header === 'category'
 				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped() ? (row.subRows?.length ?? null) : null
 
@@ -277,7 +276,15 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						)}
 						{display.header !== 'category' &&
 							(shouldShowProtocolLogo || shouldShowChainIcon ? (
-								<TokenLogo logo={iconSource ?? undefined} size={24} />
+								shouldShowChainIcon ? (
+									<TokenLogo name={display.label} kind="chain" alt={`Logo of ${display.label}`} size={24} />
+								) : (
+									<TokenLogo
+										src={display.iconUrl ?? baseRow?.logo ?? undefined}
+										alt={`Logo of ${display.label}`}
+										size={24}
+									/>
+								)
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
 							))}
@@ -339,7 +346,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 				if (!chains.length) {
 					return renderDash()
 				}
-				return <IconsRow links={chains} url="/chain" iconType="chain" />
+				return <IconsRow items={toChainIconItems(chains, (chain) => chainHref('/chain', chain))} />
 			}
 		},
 		{

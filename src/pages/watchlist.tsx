@@ -33,11 +33,10 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 })
 
 export default function Portfolio(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	return (
+		return (
 		<Layout
-			title={`Your DeFi Protocol Watchlist - DefiLlama`}
-			description={`Watchlist on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`watchlist, defi watchlist`}
+			title="Watchlist - Track DeFi Protocols & Chains - DefiLlama"
+			description="Create your personalized DeFi watchlist to track favorite protocols and chains. Monitor TVL changes, APY rates, and price movements. Save and compare your selected DeFi investments in one dashboard."
 			canonicalUrl={`/watchlist`}
 			metricFilters={tvlOptions}
 		>

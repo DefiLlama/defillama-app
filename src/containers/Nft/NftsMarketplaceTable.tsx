@@ -58,7 +58,7 @@ const columns: ColumnDef<INftMarketplace>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
+					<TokenLogo src={`https://icons.llamao.fi/icons/protocols/${icon}`} alt={`Logo of ${name}`} data-lgonly />
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name}</span>
 				</span>
 			)
