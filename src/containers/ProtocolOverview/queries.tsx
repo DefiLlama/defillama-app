@@ -1080,7 +1080,7 @@ const protocolsWithFalsyBreakdownMetrics = new Set([])
 
 export async function getProtocolIncomeStatement({ metadata }: { metadata: IProtocolMetadata }) {
 	try {
-		if (!metadata.fees || !metadata.revenue) {
+		if (!metadata.fees) {
 			return null
 		}
 
