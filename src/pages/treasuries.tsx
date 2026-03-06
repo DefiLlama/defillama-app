@@ -1,15 +1,29 @@
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { Treasuries } from '~/containers/Treasuries'
-import { getTreasuryData } from '~/containers/Treasuries/queries'
+import { getTreasuryPageData } from '~/containers/Treasuries/queries'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticProps = withPerformanceLogging('treasuries', async () => {
-	const data = await getTreasuryData()
+const pageName = ['Projects', 'ranked by', 'Treasury']
 
-	return { props: { data, entity: false }, revalidate: maxAgeForNext([22]) }
+export const getStaticProps = withPerformanceLogging('treasuries', async () => {
+	const data = await getTreasuryPageData()
+	return {
+		props: { data, entity: false },
+		revalidate: maxAgeForNext([22])
+	}
 })
 
-export default function TreasuriesPage(props) {
-	return <Treasuries {...props} />
+export default function TreasuriesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title="Treasury Rankings - DeFi Protocol Holdings & Assets - DefiLlama"
+			description="Track DAO and DeFi protocol treasury holdings. View treasury composition, stablecoin allocations, and native token reserves. Real-time treasury analytics for 500+ DeFi protocols and organizations."
+			canonicalUrl="/treasuries"
+			pageName={pageName}
+		>
+			<Treasuries {...props} />
+		</Layout>
+	)
 }

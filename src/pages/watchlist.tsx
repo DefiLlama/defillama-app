@@ -1,9 +1,10 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { tvlOptions } from '~/components/Filters/options'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { DefiWatchlistContainer } from '~/containers/DeFiWatchlist'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('watchlist', async () => {
@@ -31,12 +32,11 @@ export const getStaticProps = withPerformanceLogging('watchlist', async () => {
 	}
 })
 
-export default function Portfolio(props) {
+export default function Portfolio(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Watchlist - DefiLlama`}
-			description={`Watchlist on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`watchlist, defi watchlist`}
+			title="Watchlist - Track DeFi Protocols & Chains - DefiLlama"
+			description="Create your personalized DeFi watchlist to track favorite protocols and chains. Monitor TVL changes, APY rates, and price movements. Save and compare your selected DeFi investments in one dashboard."
 			canonicalUrl={`/watchlist`}
 			metricFilters={tvlOptions}
 		>

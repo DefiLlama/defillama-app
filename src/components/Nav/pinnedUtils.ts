@@ -1,6 +1,6 @@
 import { setStorageItem } from '~/contexts/localStorageStore'
 
-export const PINNED_METRICS_KEY = 'pinned-metrics'
+const PINNED_METRICS_KEY = 'pinned-metrics'
 
 const getStoredPinnedMetrics = () => {
 	if (typeof window === 'undefined') return []

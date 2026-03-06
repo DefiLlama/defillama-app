@@ -1,29 +1,29 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
 import { ChainsByAdapterChart } from './ChainChart'
-import { IChainsByAdapterPageData } from './types'
+import type { IChainsByAdapterPageData } from './types'
 
 type TPageType =
 	| 'Fees'
@@ -31,6 +31,7 @@ type TPageType =
 	| 'Holders Revenue'
 	| 'DEX Volume'
 	| 'Perp Volume'
+	| 'Normalized Volume'
 	| 'Bridge Aggregator Volume'
 	| 'Perp Aggregator Volume'
 	| 'DEX Aggregator Volume'
@@ -86,31 +87,23 @@ export function ChainsByAdapter(props: IProps) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		filterFromLeafRows: true,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnSizes
 	})
-
-	const prepareCsv = () => {
-		const header = ['Chain', 'Total 1d', 'Total 1m']
-		const csvdata = chains.map((protocol) => {
-			return [protocol.name, protocol.total24h, protocol.total30d]
-		})
-
-		return { filename: `${props.type}-chains-protocols.csv`, rows: [header, ...csvdata] }
-	}
 
 	return (
 		<>
@@ -127,9 +120,7 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			)}
-			{props.adapterType !== 'fees' && (
-				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} type={props.type} />
-			)}
+			{props.adapterType !== 'fees' && <ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
 					<label className="relative mr-auto w-full sm:max-w-[280px]">
@@ -141,15 +132,15 @@ export function ChainsByAdapter(props: IProps) {
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={projectName}
-							onChange={(e) => {
-								setProjectName(e.target.value)
-							}}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							placeholder="Search..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-chains-protocols` })}
+						smol
+					/>
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
@@ -172,7 +163,7 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<BasicLink
 						href={route ? `/${route}/chain/${slug(value)}` : `/chain/${slug(value)}`}
@@ -523,6 +514,53 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			size: 160
 		}
 	],
+	'Normalized Volume': [
+		NameColumn('normalized-volume'),
+		{
+			id: 'total24h',
+			header: 'Normalized Volume 24h',
+			accessorFn: (protocol) => protocol.total24h,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['24h']
+			},
+			size: 160
+		},
+		{
+			id: 'activeLiquidity',
+			header: 'Active Liquidity',
+			accessorFn: (protocol) => protocol.activeLiquidity,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.activeLiquidity.chain
+			},
+			size: 160
+		},
+		{
+			id: 'total7d',
+			header: 'Normalized Volume 7d',
+			accessorFn: (protocol) => protocol.total7d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['7d']
+			},
+			size: 160
+		},
+		{
+			id: 'total30d',
+			header: 'Normalized Volume 30d',
+			accessorFn: (protocol) => protocol.total30d,
+			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			meta: {
+				align: 'center',
+				headerHelperText: definitions.normalizedVolume.chain['30d']
+			},
+			size: 160
+		}
+	],
 	'Perp Aggregator Volume': [
 		NameColumn('perps-aggregators'),
 		{
@@ -537,7 +575,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['24h']
+				headerHelperText: definitions.perpsAggregators.chain['24h'],
+				csvHeader: 'Perp Aggregator Volume 24h'
 			},
 			size: 160
 		},
@@ -564,7 +603,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['30d']
+				headerHelperText: definitions.perpsAggregators.chain['30d'],
+				csvHeader: 'Perp Aggregator Volume 30d'
 			},
 			size: 160
 		}
@@ -583,7 +623,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['24h']
+				headerHelperText: definitions.bridgeAggregators.chain['24h'],
+				csvHeader: 'Bridge Aggregator Volume 24h'
 			},
 			size: 160
 		},
@@ -610,7 +651,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['30d']
+				headerHelperText: definitions.bridgeAggregators.chain['30d'],
+				csvHeader: 'Bridge Aggregator Volume 30d'
 			},
 			size: 160
 		}
@@ -629,7 +671,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['24h']
+				headerHelperText: definitions.dexAggregators.chain['24h'],
+				csvHeader: 'DEX Aggregator Volume 24h'
 			},
 			size: 160
 		},
@@ -656,7 +699,8 @@ const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['
 			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 			meta: {
 				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['30d']
+				headerHelperText: definitions.dexAggregators.chain['30d'],
+				csvHeader: 'DEX Aggregator Volume 30d'
 			},
 			size: 160
 		}

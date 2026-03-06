@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
-import { MCP_SERVER } from '~/constants'
-import { LlamaAI } from '~/containers/LlamaAI'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { MCP_SERVER, SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { AgenticChat } from '~/containers/LlamaAI'
 import Layout from '~/layout'
 import { fetchJson } from '~/utils/async'
 
@@ -34,6 +33,16 @@ interface SharedSession {
 }
 
 export const getStaticPaths = async () => {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return {
 		paths: [],
 		fallback: 'blocking'
@@ -52,8 +61,7 @@ async function getSharedSession(shareToken: string) {
 		if (!shareToken) {
 			return null
 		}
-		const data = await fetchJson(`${MCP_SERVER}/user/public/${shareToken}`)
-		return data as SharedSession
+		return await fetchJson<SharedSession>(`${MCP_SERVER}/user/public/${shareToken}`)
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to fetch shared session')
 	}
@@ -62,14 +70,13 @@ async function getSharedSession(shareToken: string) {
 export default function SharedConversationPage() {
 	const router = useRouter()
 	const { shareToken } = router.query
-	const { user } = useAuthContext()
 
 	const {
 		data: session,
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['shared-session', shareToken],
+		queryKey: ['llamaai', 'shared-session', shareToken],
 		queryFn: () => getSharedSession(shareToken as string),
 		enabled: !!shareToken && typeof shareToken === 'string',
 		staleTime: Infinity,
@@ -107,11 +114,11 @@ export default function SharedConversationPage() {
 	}
 
 	return (
-		<LlamaAI
-			sharedSession={session}
-			isPublicView={true}
-			readOnly={true}
-			showDebug={user?.flags?.['is_llama'] ?? false}
-		/>
+		<Layout
+			title="LlamaAI - DefiLlama"
+			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+		>
+			<AgenticChat sharedSession={session as any} readOnly />
+		</Layout>
 	)
 }

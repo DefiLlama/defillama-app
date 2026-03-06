@@ -1,31 +1,43 @@
 import * as Ariakit from '@ariakit/react'
-import Router, { useRouter } from 'next/router'
-import * as React from 'react'
+import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
-import { NestedMenu } from '~/components/NestedMenu'
-import { Select } from '~/components/Select'
-import { useIsClient } from '~/hooks/useIsClient'
-import { useMedia } from '~/hooks/useMedia'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
+import { Select } from '~/components/Select/Select'
+import { useRangeFilter } from '~/hooks/useRangeFilter'
+import { parseExcludeParam, parseIncludeParam } from '~/utils/routerQuery'
+import type { FormattedStablecoinAsset } from './utils'
 
-export const stablecoinAttributeOptions = [
+type StablecoinFilterableItem = Pick<
+	FormattedStablecoinAsset,
+	'pegDeviation' | 'yieldBearing' | 'pegMechanism' | 'pegType'
+>
+
+export type StablecoinFilterOption = {
+	name: string
+	key: string
+	filterFn: (item: StablecoinFilterableItem) => boolean
+	help: string
+}
+
+export const stablecoinAttributeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Stable',
 		key: 'STABLE',
-		filterFn: (item) => typeof item?.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
+		filterFn: (item) => typeof item.pegDeviation === 'number' && Math.abs(item.pegDeviation) <= 10,
 		help: 'Show stablecoins within 10% of peg'
 	},
 	{
 		name: 'Yield Bearing',
 		key: 'YIELDBEARING',
-		filterFn: (item) => !!item?.yieldBearing,
+		filterFn: (item) => !!item.yieldBearing,
 		help: 'Show yield-bearing stablecoins'
 	},
 	{
 		name: 'Unknown',
 		key: 'UNKNOWN',
-		filterFn: (item) => typeof item?.pegDeviation !== 'number',
+		filterFn: (item) => typeof item.pegDeviation !== 'number',
 		help: 'Show stablecoins with no deviation data'
 	},
 	{
@@ -34,15 +46,15 @@ export const stablecoinAttributeOptions = [
 		// Yield-bearing assets intentionally render '-' for peg deviation columns,
 		// so exclude them from the "Depegged" filter to avoid showing "no peg data" rows.
 		filterFn: (item) =>
-			!item?.yieldBearing &&
-			typeof item?.pegDeviation === 'number' &&
+			!item.yieldBearing &&
+			typeof item.pegDeviation === 'number' &&
 			Number.isFinite(item.pegDeviation) &&
 			Math.abs(item.pegDeviation) > 10,
 		help: 'Show stablecoins depegged by more than 10%'
 	}
 ]
 
-export const stablecoinBackingOptions = [
+export const stablecoinBackingOptions: StablecoinFilterOption[] = [
 	{
 		name: 'Fiat',
 		key: 'FIATSTABLES',
@@ -63,7 +75,7 @@ export const stablecoinBackingOptions = [
 	}
 ]
 
-export const stablecoinPegTypeOptions = [
+export const stablecoinPegTypeOptions: StablecoinFilterOption[] = [
 	{
 		name: 'USD',
 		key: 'PEGGEDUSD',
@@ -176,20 +188,6 @@ export const stablecoinPegTypeOptions = [
 
 type StablecoinFilterKey = string
 
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
-// Helper to parse include param ("None" sentinel supported) to array
-const parseIncludeParam = (param: string | string[] | undefined, allKeys: string[]): string[] => {
-	if (!param) return allKeys
-	if (typeof param === 'string') return param === 'None' ? [] : [param]
-	return [...param]
-}
-
 function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 	const router = useRouter()
 	const { attribute, excludeAttribute } = router.query
@@ -205,14 +203,18 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 
 		const allKeys = stablecoinAttributeOptions.map((o) => o.key)
 
-		const includeRaw = parseIncludeParam(attribute as any, allKeys)
-		const includeNormalized = includeRaw.map((a) => normalizeAttributeKey(a)).filter(Boolean) as string[]
+		const includeRaw = parseIncludeParam(attribute, allKeys)
+		const includeNormalized = includeRaw.flatMap((a) => {
+			const key = normalizeAttributeKey(a)
+			return key ? [key] : []
+		})
 
-		const excludeSetRaw = parseExcludeParam(excludeAttribute as any)
+		const excludeSetRaw = parseExcludeParam(excludeAttribute)
 		const excludeSetNormalized = new Set(
-			Array.from(excludeSetRaw)
-				.map((a) => normalizeAttributeKey(a))
-				.filter(Boolean) as string[]
+			Array.from(excludeSetRaw).flatMap((a) => {
+				const key = normalizeAttributeKey(a)
+				return key ? [key] : []
+			})
 		)
 
 		const selected = includeNormalized.filter((a) => !excludeSetNormalized.has(a))
@@ -226,10 +228,7 @@ function Attribute({ nestedMenu }: { nestedMenu: boolean; pathname?: string }) {
 			label="Attribute"
 			nestedMenu={nestedMenu}
 			labelType="smol"
-			triggerProps={{
-				className:
-					'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-			}}
+			variant="filter-responsive"
 			includeQueryKey="attribute"
 			excludeQueryKey="excludeAttribute"
 		/>
@@ -255,8 +254,8 @@ function BackingType({
 
 	const selectedValues = useMemo(() => {
 		const allKeys = backingOptions.map((o) => o.key)
-		const include = parseIncludeParam(backing as any, allKeys)
-		const excludeSet = parseExcludeParam(excludeBacking as any)
+		const include = parseIncludeParam(backing, allKeys)
+		const excludeSet = parseExcludeParam(excludeBacking)
 		return include.filter((k) => !excludeSet.has(k))
 	}, [backing, excludeBacking, backingOptions])
 
@@ -267,10 +266,7 @@ function BackingType({
 			label="Backing Type"
 			nestedMenu={nestedMenu}
 			labelType="smol"
-			triggerProps={{
-				className:
-					'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-			}}
+			variant="filter-responsive"
 			includeQueryKey="backing"
 			excludeQueryKey="excludeBacking"
 		/>
@@ -296,8 +292,8 @@ function PegType({
 
 	const selectedValues = useMemo(() => {
 		const allKeys = pegTypeOptions.map((o) => o.key)
-		const include = parseIncludeParam(pegtype as any, allKeys)
-		const excludeSet = parseExcludeParam(excludePegtype as any)
+		const include = parseIncludeParam(pegtype, allKeys)
+		const excludeSet = parseExcludeParam(excludePegtype)
 		return include.filter((k) => !excludeSet.has(k))
 	}, [pegtype, excludePegtype, pegTypeOptions])
 
@@ -308,10 +304,7 @@ function PegType({
 			label="Peg Type"
 			nestedMenu={nestedMenu}
 			labelType="smol"
-			triggerProps={{
-				className:
-					'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-			}}
+			variant="filter-responsive"
 			includeQueryKey="pegtype"
 			excludeQueryKey="excludePegtype"
 		/>
@@ -325,34 +318,7 @@ function McapRange({
 	nestedMenu?: boolean
 	placement?: Ariakit.PopoverStoreProps['placement']
 }) {
-	const router = useRouter()
-
-	const handleSubmit = (e) => {
-		e.preventDefault()
-		const form = e.target
-		const minMcap = form.min?.value
-		const maxMcap = form.max?.value
-
-		const params = new URLSearchParams(window.location.search)
-		if (minMcap) params.set('minMcap', minMcap)
-		else params.delete('minMcap')
-		if (maxMcap) params.set('maxMcap', maxMcap)
-		else params.delete('maxMcap')
-		Router.push(`${window.location.pathname}?${params.toString()}`, undefined, { shallow: true })
-	}
-
-	const handleClear = () => {
-		const params = new URLSearchParams(window.location.search)
-		params.delete('minMcap')
-		params.delete('maxMcap')
-		const queryString = params.toString()
-		const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
-		Router.push(newUrl, undefined, { shallow: true })
-	}
-
-	const { minMcap, maxMcap } = router.query
-	const min = typeof minMcap === 'string' && minMcap !== '' ? Number(minMcap) : null
-	const max = typeof maxMcap === 'string' && maxMcap !== '' ? Number(maxMcap) : null
+	const { min, max, handleSubmit, handleClear } = useRangeFilter('minMcap', 'maxMcap')
 
 	return (
 		<FilterBetweenRange
@@ -405,7 +371,7 @@ function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu:
 	)
 }
 
-export function PeggedFiltersDropdowns({
+function PeggedFiltersDropdowns({
 	pathname,
 	nestedMenu,
 	prepareCsv,
@@ -436,26 +402,11 @@ export function PeggedFilters(props: {
 	availableBackings?: StablecoinFilterKey[]
 	availablePegTypes?: StablecoinFilterKey[]
 }) {
-	const isSmall = useMedia(`(max-width: 639px)`)
-	const isClient = useIsClient()
 	return (
 		<div className="flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-			<div className="flex min-h-[30px] flex-wrap gap-2 *:flex-1 sm:hidden">
-				{isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<NestedMenu label="Filters" className="w-full">
-							<PeggedFiltersDropdowns {...props} nestedMenu />
-						</NestedMenu>
-					</React.Suspense>
-				) : null}
-			</div>
-			<div className="hidden min-h-[30px] flex-wrap gap-2 sm:flex">
-				{!isSmall && isClient ? (
-					<React.Suspense fallback={<></>}>
-						<PeggedFiltersDropdowns {...props} />
-					</React.Suspense>
-				) : null}
-			</div>
+			<ResponsiveFilterLayout desktopClassName="hidden min-h-[30px] flex-wrap gap-2 sm:flex">
+				{(nestedMenu) => <PeggedFiltersDropdowns {...props} nestedMenu={nestedMenu} />}
+			</ResponsiveFilterLayout>
 		</div>
 	)
 }

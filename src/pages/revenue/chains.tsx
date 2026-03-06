@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByFeesAdapterPageData } from '~/containers/DimensionAdapters/queries'
-import { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
+import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -29,9 +29,8 @@ const pageName = ['Chains', 'ranked by', type]
 const RevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
+			title="Revenue by Blockchain - Protocol Revenue Across All Chains - DefiLlama"
+			description="Compare DeFi protocol revenue across all blockchains. Track actual revenue (fees retained) on Ethereum, Solana, Base, Arbitrum, and 150+ chains. Real-time blockchain revenue analytics by chain."
 			canonicalUrl={`/revenue/chains`}
 			pageName={pageName}
 		>

@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+	output: 'standalone',
 	reactStrictMode: true,
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
@@ -557,6 +558,36 @@ const nextConfig: NextConfig = {
 				source: '/digital-asset-treasury',
 				destination: '/digital-asset-treasuries',
 				permanent: true
+			},
+			{
+				source: '/protocols/rwa',
+				destination: '/rwa',
+				permanent: true
+			},
+			{
+				source: '/protocols/rwa/:chain',
+				destination: '/rwa/chain/:chain',
+				permanent: true
+			},
+			{
+				source: '/dats',
+				destination: '/digital-asset-treasuries',
+				permanent: true
+			},
+			{
+				source: '/yields/strategyLongShort',
+				destination: '/yields/strategy-long-short',
+				permanent: true
+			},
+			{
+				source: '/yields/strategylongshort',
+				destination: '/yields/strategy-long-short',
+				permanent: true
+			},
+			{
+				source: '/dat',
+				destination: '/digital-asset-treasuries',
+				permanent: true
 			}
 		]
 	},
@@ -589,26 +620,6 @@ const nextConfig: NextConfig = {
 						value: 'identity'
 					}
 				]
-			}
-		]
-	},
-	images: {
-		remotePatterns: [
-			{
-				protocol: 'https',
-				hostname: 'icons.llama.fi'
-			},
-			{
-				protocol: 'https',
-				hostname: 'assets.coingecko.com'
-			},
-			{
-				protocol: 'https',
-				hostname: 'yield-charts.llama.fi'
-			},
-			{
-				protocol: 'https',
-				hostname: 'icons.llamao.fi'
 			}
 		]
 	}

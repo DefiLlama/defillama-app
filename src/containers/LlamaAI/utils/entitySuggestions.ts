@@ -1,6 +1,6 @@
 import getCaretCoordinates from 'textarea-caret'
 
-export const defaultTriggers = ['@', '$']
+const defaultTriggers = ['@', '$']
 
 export function getTriggerOffset(element: HTMLTextAreaElement, triggers = defaultTriggers) {
 	const { value, selectionStart } = element

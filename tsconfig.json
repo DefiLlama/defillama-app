@@ -10,18 +10,18 @@
 		"module": "esnext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
+		"moduleDetection": "force",
 		"isolatedModules": true,
+		"verbatimModuleSyntax": true,
 		"jsx": "react-jsx",
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitOverride": true,
 		"incremental": true,
 		"paths": {
 			"~/*": ["./src/*"],
 			"~/public/*": ["./public/*"]
-		},
-		"downlevelIteration": true,
-		"allowSyntheticDefaultImports": true,
-		"noFallthroughCasesInSwitch": true,
-		"strictNullChecks": false
+		}
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts", "**/*.mts"],
-	"exclude": ["node_modules"]
+	"exclude": ["node_modules", "**/*.test.ts", "**/*.test.tsx"]
 }

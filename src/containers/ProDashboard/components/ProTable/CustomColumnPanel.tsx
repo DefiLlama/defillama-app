@@ -1,7 +1,10 @@
+'use no memo'
+
 import { Parser } from 'expr-eval'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { protocolsByChainTableColumns } from '~/components/Table/Defi/Protocols'
+import { formatPreviewNumber } from '../UnifiedTable/utils/customColumns'
+import { protocolsByChainTableColumns } from './useProTableColumns'
 
 interface CustomColumn {
 	id: string
@@ -18,21 +21,7 @@ interface CustomColumnPanelProps {
 	onUpdateCustomColumn: (columnId: string, updates: Partial<CustomColumn>) => void
 }
 
-const formatPreviewNumber = (value: number | null): string => {
-	if (value == null) return '-'
-
-	if (Math.abs(value) >= 1e9) {
-		return `$${(value / 1e9).toFixed(2)}B`
-	} else if (Math.abs(value) >= 1e6) {
-		return `$${(value / 1e6).toFixed(2)}M`
-	} else if (Math.abs(value) >= 1e3) {
-		return `$${(value / 1e3).toFixed(2)}K`
-	} else {
-		return `$${value.toFixed(2)}`
-	}
-}
-
-const handleMouseDown = (e: React.MouseEvent) => {
+const handlePointerDown = (e: React.PointerEvent) => {
 	// Prevent drag events from bubbling up to dashboard
 	e.stopPropagation()
 }
@@ -49,12 +38,10 @@ export function CustomColumnPanel({
 	onRemoveCustomColumn,
 	onUpdateCustomColumn: _onUpdateCustomColumn
 }: CustomColumnPanelProps) {
+	const parser = React.useMemo(() => new Parser(), [])
 	const [newColumnName, setNewColumnName] = React.useState('')
 	const [newColumnExpression, setNewColumnExpression] = React.useState('')
 	const [validationError, setValidationError] = React.useState('')
-	const [liveValidation, setLiveValidation] = React.useState<{ isValid: boolean; error?: string; result?: number }>({
-		isValid: true
-	})
 
 	// Autocomplete state
 	const [showAutocomplete, setShowAutocomplete] = React.useState(false)
@@ -171,19 +158,28 @@ export function CustomColumnPanel({
 			change_7d: -12.8
 		}
 
+		const seededFraction = (key: string) => {
+			let hash = 0
+			for (let i = 0; i < key.length; i += 1) {
+				hash = (hash * 31 + key.charCodeAt(i)) >>> 0
+			}
+			return (hash % 10000) / 10000
+		}
+		const seededRange = (key: string, min: number, max: number) => min + seededFraction(key) * (max - min)
+
 		// Pattern-based sample value generation for unknown keys
-		const SAMPLE_PATTERNS: Array<{ test: RegExp; getValue: () => number }> = [
-			{ test: /tvl|mcap/, getValue: () => Math.floor(Math.random() * 5000000000) },
-			{ test: /volume/, getValue: () => Math.floor(Math.random() * 100000000) },
-			{ test: /fees|revenue/, getValue: () => Math.floor(Math.random() * 2000000) },
-			{ test: /change/, getValue: () => (Math.random() - 0.5) * 40 }
+		const SAMPLE_PATTERNS: Array<{ test: RegExp; getValue: (key: string) => number }> = [
+			{ test: /tvl|mcap/, getValue: (key) => Math.floor(seededRange(key, 0, 5000000000)) },
+			{ test: /volume/, getValue: (key) => Math.floor(seededRange(key, 0, 100000000)) },
+			{ test: /fees|revenue/, getValue: (key) => Math.floor(seededRange(key, 0, 2000000)) },
+			{ test: /change/, getValue: (key) => seededRange(key, -20, 20) }
 		]
 
 		const getSampleValue = (key: string): number => {
 			if (key in FIXED_SAMPLE_VALUES) return FIXED_SAMPLE_VALUES[key]
 			const pattern = SAMPLE_PATTERNS.find((p) => p.test.test(key))
-			if (pattern) return pattern.getValue()
-			return Math.floor(Math.random() * 1000000) // Default up to 1M
+			if (pattern) return pattern.getValue(key)
+			return Math.floor(seededRange(key, 0, 1000000)) // Default up to 1M
 		}
 
 		const sample: Record<string, number> = {}
@@ -197,7 +193,7 @@ export function CustomColumnPanel({
 		() =>
 			Object.entries(sampleData)
 				.slice(0, 3)
-				.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+				.map(([key, value]) => `${key}=${formatPreviewNumber(value, 'number')}`)
 				.join(', '),
 		[sampleData]
 	)
@@ -207,20 +203,18 @@ export function CustomColumnPanel({
 			return { isValid: false, error: 'Expression cannot be empty' }
 		}
 
+		const testData: Record<string, number> = {}
+		for (const variable of availableVariables) {
+			testData[variable.key] = 100
+		}
+
 		try {
-			const parser = new Parser()
 			const expr = parser.parse(expression)
-
-			// Test with dummy data to catch variable issues
-			const testData: Record<string, number> = {}
-			for (const variable of availableVariables) {
-				testData[variable.key] = 100
-			}
-
 			expr.evaluate(testData)
 			return { isValid: true }
 		} catch (error) {
-			return { isValid: false, error: error.message || 'Invalid expression' }
+			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
+			return { isValid: false, error: errorMsg }
 		}
 	}
 
@@ -286,7 +280,7 @@ export function CustomColumnPanel({
 		// Find the start of the current word being typed
 		let wordStart = start
 		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) {
-			wordStart--
+			wordStart -= 1
 		}
 
 		const newValue = value.slice(0, wordStart) + suggestion.value + value.slice(end)
@@ -315,7 +309,7 @@ export function CustomColumnPanel({
 		// Extract current word being typed for autocomplete
 		let wordStart = cursorPos
 		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) {
-			wordStart--
+			wordStart -= 1
 		}
 
 		const currentWord = newValue.slice(wordStart, cursorPos)
@@ -368,27 +362,29 @@ export function CustomColumnPanel({
 		}
 	}
 
-	// Live validation effect
-	React.useEffect(() => {
+	const liveValidation = React.useMemo((): { isValid: boolean; isEmpty?: boolean; error?: string; result?: number } => {
 		if (!newColumnExpression.trim()) {
-			setLiveValidation({ isValid: true })
-			return
+			return { isValid: false, isEmpty: true }
 		}
 
+		let result: unknown
 		try {
-			const parser = new Parser()
 			const expr = parser.parse(newColumnExpression)
-			const result = expr.evaluate(sampleData)
-			setLiveValidation({ isValid: true, result: typeof result === 'number' ? result : null })
+			result = expr.evaluate(sampleData)
 		} catch (error) {
-			setLiveValidation({ isValid: false, error: error.message || 'Invalid expression' })
+			const errorMsg = error instanceof Error && error.message ? error.message : 'Invalid expression'
+			return { isValid: false, error: errorMsg }
 		}
-	}, [newColumnExpression, sampleData])
+		if (typeof result === 'number') {
+			return { isValid: true, result }
+		}
+		return { isValid: true }
+	}, [newColumnExpression, parser, sampleData])
 
 	return (
 		<div
 			className="space-y-6"
-			onMouseDown={handleMouseDown}
+			onPointerDown={handlePointerDown}
 			onDragStart={handleDragStart}
 			style={{ userSelect: 'none' }}
 		>
@@ -398,23 +394,29 @@ export function CustomColumnPanel({
 
 				<div className="space-y-3">
 					<div>
-						<label className="mb-1 block text-xs font-medium pro-text2">Column Name</label>
+						<label htmlFor="custom-column-name" className="mb-1 block text-xs font-medium pro-text2">
+							Column Name
+						</label>
 						<input
+							id="custom-column-name"
 							type="text"
 							value={newColumnName}
 							onChange={(e) => setNewColumnName(e.target.value)}
 							placeholder="e.g., P/E Ratio, Custom Metric"
 							className="w-full rounded-md border pro-border bg-(--bg-glass) px-3 py-2 text-sm pro-text1 transition-colors placeholder:pro-text3 focus:border-(--primary) focus:outline-hidden"
-							onMouseDown={(e) => e.stopPropagation()}
+							onPointerDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						/>
 					</div>
 
 					<div>
-						<label className="mb-1 block text-xs font-medium pro-text2">Expression</label>
+						<label htmlFor="custom-column-expression" className="mb-1 block text-xs font-medium pro-text2">
+							Expression
+						</label>
 						<div className="relative">
 							<input
+								id="custom-column-expression"
 								ref={inputRef}
 								type="text"
 								value={newColumnExpression}
@@ -432,7 +434,7 @@ export function CustomColumnPanel({
 											? 'border-green-500 focus:border-green-500'
 											: 'pro-divider focus:border-(--primary)'
 								}`}
-								onMouseDown={(e) => e.stopPropagation()}
+								onPointerDown={(e) => e.stopPropagation()}
 								onDragStart={(e) => e.preventDefault()}
 								draggable={false}
 							/>
@@ -446,18 +448,20 @@ export function CustomColumnPanel({
 										minWidth: '280px',
 										maxWidth: '400px'
 									}}
-									onMouseDown={(e) => e.stopPropagation()}
+									onPointerDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
 								>
 									{filteredSuggestions.map((suggestion, index) => (
-										<div
+										<button
 											key={`${suggestion.type}-${suggestion.value}`}
+											type="button"
 											onClick={() => insertSuggestion(suggestion)}
-											className={`flex cursor-pointer items-center gap-2 px-3 py-1.5 text-sm ${
+											tabIndex={autocompleteIndex === index ? 0 : -1}
+											className={`flex w-full items-center gap-2 border-0 px-3 py-1.5 text-left text-sm ${
 												index === autocompleteIndex ? 'bg-(--primary) text-white' : 'pro-hover-bg pro-text1'
 											}`}
-											onMouseEnter={() => setAutocompleteIndex(index)}
+											onPointerEnter={() => setAutocompleteIndex(index)}
 										>
 											<span
 												className={`h-1 w-1 shrink-0 rounded-full ${
@@ -470,7 +474,7 @@ export function CustomColumnPanel({
 											/>
 											<code className="min-w-0 shrink-0 text-sm">{suggestion.display}</code>
 											<span className="ml-auto truncate text-xs pro-text3">{suggestion.description}</span>
-										</div>
+										</button>
 									))}
 									{filteredSuggestions.length === 0 && autocompleteFilter && (
 										<div className="px-3 py-2 text-sm pro-text3">No suggestions found for "{autocompleteFilter}"</div>
@@ -480,7 +484,7 @@ export function CustomColumnPanel({
 							{/* Live validation indicator */}
 							{newColumnExpression && (
 								<div className="absolute top-1/2 right-2 -translate-y-1/2 transform">
-									{liveValidation.isValid ? (
+									{liveValidation.isEmpty ? null : liveValidation.isValid ? (
 										<Icon name="check" height={16} width={16} className="text-(--success)" />
 									) : (
 										<Icon name="x" height={16} width={16} className="text-(--error)" />
@@ -507,8 +511,10 @@ export function CustomColumnPanel({
 									<span className="font-medium pro-text2">Live Preview:</span>
 									{liveValidation.isValid ? (
 										<span className="text-green-700 dark:text-green-300">
-											{formatPreviewNumber(liveValidation.result || null)}
+											{formatPreviewNumber(liveValidation.result ?? null, 'number')}
 										</span>
+									) : liveValidation.isEmpty ? (
+										<span className="pro-text3">Enter an expression</span>
 									) : (
 										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>
 									)}
@@ -528,7 +534,7 @@ export function CustomColumnPanel({
 									type="button"
 									onClick={() => insertOperator(operator)}
 									className="rounded-md border pro-border bg-(--bg-glass) pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
-									onMouseDown={(e) => e.stopPropagation()}
+									onPointerDown={(e) => e.stopPropagation()}
 									onDragStart={(e) => e.preventDefault()}
 									draggable={false}
 								>
@@ -545,6 +551,7 @@ export function CustomColumnPanel({
 					)}
 
 					<button
+						type="button"
 						onClick={handleAddColumn}
 						disabled={!newColumnName.trim() || !newColumnExpression.trim()}
 						className="rounded-md bg-(--primary) px-3 py-1 text-sm text-white transition-colors hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
@@ -566,7 +573,7 @@ export function CustomColumnPanel({
 							onClick={() => insertVariable(variable.key)}
 							title={variable.name}
 							className="rounded-md border pro-border bg-(--bg-glass) pro-hover-bg p-1 text-center text-xs transition-colors"
-							onMouseDown={(e) => e.stopPropagation()}
+							onPointerDown={(e) => e.stopPropagation()}
 							onDragStart={(e) => e.preventDefault()}
 							draggable={false}
 						>
@@ -578,7 +585,7 @@ export function CustomColumnPanel({
 					Sample values:{' '}
 					{Object.entries(sampleData)
 						.slice(0, 4)
-						.map(([key, value]) => `${key}=${formatPreviewNumber(value)}`)
+						.map(([key, value]) => `${key}=${formatPreviewNumber(value, 'number')}`)
 						.join(', ')}
 				</div>
 			</div>
@@ -607,7 +614,9 @@ export function CustomColumnPanel({
 									)}
 								</div>
 								<button
+									type="button"
 									onClick={() => onRemoveCustomColumn(column.id)}
+									aria-label={`Delete column ${column.name}`}
 									className="ml-3 rounded-md pro-text3 transition-colors hover:text-(--error)"
 									title="Delete custom column"
 								>

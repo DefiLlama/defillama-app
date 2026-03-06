@@ -1,4 +1,4 @@
-import { Row } from '@tanstack/react-table'
+import type { Row } from '@tanstack/react-table'
 
 export const percentageSortingFn = <T extends Record<string, any>>(
 	rowA: Row<T>,

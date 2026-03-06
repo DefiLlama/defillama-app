@@ -6,6 +6,8 @@ import { useGetPrice } from './queries'
 import { YieldsOptimizerTable } from './Tables/Optimizer'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
+const EMPTY_ARRAY: string[] = []
+
 export const BorrowAggregatorAdvanced = ({
 	pools,
 	projectList,
@@ -13,7 +15,8 @@ export const BorrowAggregatorAdvanced = ({
 	categoryList,
 	lendingProtocols,
 	searchData,
-	unboundedDebtCeilingProjects = []
+	unboundedDebtCeilingProjects = EMPTY_ARRAY,
+	evmChains
 }) => {
 	const unlimitedDebtProjects = React.useMemo(
 		() => new Set(unboundedDebtCeilingProjects),
@@ -30,7 +33,8 @@ export const BorrowAggregatorAdvanced = ({
 			projectList,
 			chainList,
 			lendingProtocols,
-			categoryList
+			categoryList,
+			evmChains
 		})
 
 	const { cdpPools, lendingPools } = React.useMemo(() => {
@@ -231,6 +235,7 @@ export const BorrowAggregatorAdvanced = ({
 				header={header}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				lendingProtocols={lendingProtocols}
 				selectedLendingProtocols={selectedLendingProtocols}
 				attributes={true}

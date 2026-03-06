@@ -1,4 +1,4 @@
-import { calculateLoopAPY, YieldsData } from '~/containers/Yields/queries/index'
+import { calculateLoopAPY, type YieldsData } from '~/containers/Yields/queries/index'
 import { attributeOptions, attributeOptionsMap } from './Filters/Attributes'
 
 interface IToFilterPool {
@@ -17,6 +17,7 @@ interface IToFilterPool {
 	maxApy: number | null
 	pairTokens: string[]
 	usdPeggedSymbols: string[]
+	tokenCategories?: Record<string, { addresses: string[]; symbols: string[]; label: string; filterKey: string }>
 }
 
 export function toFilterPool({
@@ -34,7 +35,8 @@ export function toFilterPool({
 	minApy,
 	maxApy,
 	pairTokens,
-	usdPeggedSymbols
+	usdPeggedSymbols,
+	tokenCategories = {}
 }: IToFilterPool) {
 	const tokensInPoolArray = curr.symbol
 		.split('(')[0]
@@ -99,11 +101,45 @@ export function toFilterPool({
 								tokensInPool.length > 0 &&
 								tokensInPool.every((sym) => usdPeggedSymbols.some((usd) => sym.includes(usd)))
 							)
-						} else if (tokensInPool.some((x) => x.includes(token))) {
-							return true
-						} else if (token === 'eth') {
-							return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
-						} else return false
+						} else {
+							// Check if token matches a dynamic token category (e.g., TOKENIZED_GOLD, TOKENIZED_SILVER)
+							const categoryEntry = Object.values(tokenCategories).find((cat) => cat.filterKey?.toLowerCase() === token)
+							if (categoryEntry) {
+								const { addresses: catAddresses, symbols: catSymbols } = categoryEntry
+								const underlyingTokens = curr.underlyingTokens ?? []
+								// chain name mapping to match llama-ai database format
+								const chainMapping: Record<string, string> = {
+									avalanche: 'avax',
+									gnosis: 'xdai'
+								}
+								let chain = curr.chain?.toLowerCase()
+								chain = chainMapping[chain] ?? chain
+
+								// Strategy 1: Address-based matching (preferred, no false positives)
+								if (underlyingTokens.length > 0 && catAddresses?.length > 0) {
+									const addressSet = new Set(catAddresses)
+									const hasAddressMatch = underlyingTokens.some(
+										(addr: string) => addr && addressSet.has(`${chain}:${addr.toLowerCase().replaceAll('/', ':')}`)
+									)
+									if (hasAddressMatch) return true
+								}
+
+								// Strategy 2: Exact symbol matching (fallback for pools without underlyingTokens)
+								if (catSymbols?.length > 0) {
+									const symbolSet = new Set(catSymbols)
+									return tokensInPool.some((sym) => symbolSet.has(sym))
+								}
+
+								return false
+							}
+
+							// Default: substring match on pool symbol
+							if (tokensInPool.some((x) => x.includes(token))) {
+								return true
+							} else if (token === 'eth') {
+								return tokensInPool.find((x) => x.includes('weth') && x.includes(token))
+							} else return false
+						}
 					})
 				: true
 
@@ -219,7 +255,7 @@ export const findOptimizerPools = ({ pools, tokenToLend, tokenToBorrow, cdpRoute
 	return lendBorrowPairs.concat(cdpPairs)
 }
 
-export const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
+const removeMetaTag = (symbol) => symbol.replace(/ *\([^)]*\) */g, '')
 
 export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools, cdpRoutes, customLTV }) => {
 	// prepare leveraged lending (loop) pools
@@ -339,7 +375,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	}
 	// keep looping strategies only if no tokenToBorrow is given or if they both match
 	const loopPoolsFiltered =
-		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
+		tokenToBorrow !== tokenToLend && tokenToBorrow?.length > 0
 			? []
 			: loopPools
 					.filter((p) => matchesToken(p.symbol, tokenToLend))

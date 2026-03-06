@@ -1,4 +1,4 @@
-import { fetchWithPoolingOnServer, FetchWithPoolingOnServerOptions } from './http-client'
+import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from './http-client'
 
 // ─────────────────────────────────────────────────────────────
 // Config: Only 2 knobs instead of 5
@@ -37,7 +37,7 @@ export function isTransientError(err: unknown): boolean {
 	return TRANSIENT_ERRORS.some((t) => msg.includes(t))
 }
 
-export function isRetryableStatus(status: number): boolean {
+function isRetryableStatus(status: number): boolean {
 	return status === 408 || status === 429 || (status >= 500 && status < 600)
 }
 
@@ -67,16 +67,40 @@ function sanitizeUrlForLogs(input: RequestInfo | URL): string {
 	else raw = String(input)
 
 	// Minimal behavior:
-	// - If SERVER_URL (or server_url) is set, strip it from the logged URL.
+	// - If SERVER_URL / V2_SERVER_URL (or lowercase variants) is set, strip it from logged URL.
 	// - If not set, log as-is.
-	const serverUrl = process.env.SERVER_URL
-	if (!serverUrl) return raw
+	const apiKey = process.env.API_KEY
+	if (apiKey && raw.includes(apiKey)) {
+		raw = raw.replaceAll(apiKey, '[REDACTED]')
+	}
 
-	const base = serverUrl.replace(/\/+$/, '')
-	if (!base) return raw
+	const serverUrlCandidates = [
+		process.env.SERVER_URL,
+		process.env.server_url,
+		process.env.V2_SERVER_URL,
+		process.env.v2_server_url
+	].filter((url): url is string => typeof url === 'string' && url.length > 0)
 
-	if (raw.startsWith(base)) return raw.slice(base.length) || '/'
-	if (raw.startsWith(`${base}/`)) return raw.slice(base.length) || '/'
+	for (const candidate of serverUrlCandidates) {
+		// Normalize env URL for log-sanitizing:
+		// - strip trailing slashes
+		// - if it ends with `/api` (or `/api/`), strip that too
+		const base = candidate.replace(/\/+$/, '').replace(/\/api$/, '')
+		if (!base) continue
+		if (raw.startsWith(base)) return raw.slice(base.length) || '/'
+	}
+
+	try {
+		const parsed = new URL(raw)
+		// Fallback when env candidates are unavailable in client runtime.
+		if (parsed.hostname === 'api.llama.fi' || parsed.hostname === 'pro-api.llama.fi') {
+			const pathWithoutBase = parsed.pathname.replace(/^\/[^/]+\/api(\/|$)/, '/').replace(/^\/api(\/|$)/, '/')
+			return `${pathWithoutBase}${parsed.search}${parsed.hash}` || '/'
+		}
+	} catch {
+		// raw can be a relative URL; keep as-is.
+	}
+
 	return raw
 }
 
@@ -301,6 +325,7 @@ export async function fetchJson<T = any>(
 ): Promise<T> {
 	const start = Date.now()
 	const maxAttempts = extraRetry ? 3 : 2
+	const sanitizedUrl = sanitizeUrlForLogs(url)
 	let lastErr: Error | null = null
 	let lastErrWasHtml = false
 
@@ -314,7 +339,7 @@ export async function fetchJson<T = any>(
 					const text = await res.text().catch(() => res.statusText)
 					const sanitized = sanitizeResponseTextForError(text || res.statusText)
 					lastErrWasHtml = looksLikeHtmlDocument(text || '')
-					throw new Error(`[${res.status}] ${sanitized || res.statusText}`)
+					throw new Error(`${sanitizedUrl}: [${res.status}] ${sanitized || res.statusText}`)
 				}
 				// Retryable server errors
 				if (isRetryableStatus(res.status) && attempt < maxAttempts - 1) {
@@ -324,13 +349,13 @@ export async function fetchJson<T = any>(
 				const text = await res.text().catch(() => res.statusText)
 				const sanitized = sanitizeResponseTextForError(text || res.statusText)
 				lastErrWasHtml = looksLikeHtmlDocument(text || '')
-				throw new Error(`[${res.status}] ${sanitized || res.statusText}`)
+				throw new Error(`${sanitizedUrl}: [${res.status}] ${sanitized || res.statusText}`)
 			}
 
 			const data = await res.json()
 			const elapsed = Date.now() - start
 			if (elapsed > 5000) {
-				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${sanitizeUrlForLogs(url)} >`)
+				postRuntimeLogs(`[fetchJson] [${elapsed}ms] < ${sanitizedUrl} >`)
 			}
 
 			return data
@@ -352,33 +377,23 @@ export async function fetchJson<T = any>(
 	// Log on final failure only
 	const elapsed = Date.now() - start
 	const finalLog = lastErrWasHtml
-		? `[fetchJson] [error] [${elapsed}ms] [returned html page] < ${sanitizeUrlForLogs(url)} >`
-		: `[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${sanitizeUrlForLogs(url)} >`
+		? `[fetchJson] [error] [${elapsed}ms] [returned html page] < ${sanitizedUrl} >`
+		: `[fetchJson] [error] [${elapsed}ms] [${lastErr?.message}] < ${sanitizedUrl} >`
 	// Avoid spamming console when webhook logging is configured.
 	postRuntimeLogs(finalLog, { level: 'error', forceConsole: !webhookEnabled() })
-	throw lastErr
-}
-
-// ─────────────────────────────────────────────────────────────
-// Simple fetch wrapper for API calls
-// ─────────────────────────────────────────────────────────────
-export const fetchApi = async (url: string | Array<string>) => {
-	if (!url) return null
-	try {
-		const data = typeof url === 'string' ? await fetchJson(url) : await Promise.all(url.map((u) => fetchJson(u)))
-		return data
-	} catch (error) {
-		if (error instanceof Error) {
-			throw error
-		}
-		throw new Error(`Failed to fetch ${typeof url === 'string' ? url : url.join(', ')}`)
+	if (!lastErr) {
+		throw new Error(`${sanitizedUrl}: Unknown fetch error`)
 	}
+	if (lastErr.message.startsWith(`${sanitizedUrl}:`)) {
+		throw lastErr
+	}
+	throw new Error(`${sanitizedUrl}: ${lastErr.message}`)
 }
 
 // ─────────────────────────────────────────────────────────────
 // Response handlers (kept for backward compatibility)
 // ─────────────────────────────────────────────────────────────
-export async function handleFetchResponse(res: Response): Promise<any> {
+export async function handleFetchResponse(res: Response): Promise<unknown> {
 	if (res.ok) {
 		return res.json()
 	}

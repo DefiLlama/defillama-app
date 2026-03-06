@@ -1,16 +1,16 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { startTransition, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { useDebounce } from '~/hooks/useDebounce'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import { useIsClient } from '~/hooks/useIsClient'
-import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
-import { Icon } from '../Icon'
-import { BasicLink } from '../Link'
+import { fetchJson } from '~/utils/async'
 
 async function getDefaultSearchList() {
 	try {
@@ -21,7 +21,7 @@ async function getDefaultSearchList() {
 	}
 }
 async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetch(SEARCH_API_URL, {
+	const response: Array<ISearchItem> = await fetchJson(SEARCH_API_URL, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -37,10 +37,7 @@ async function fetchSearchList(query: string) {
 				}
 			]
 		})
-	})
-		.then(handleSimpleFetchResponse)
-		.then((res) => res.json())
-		.then((res) => res?.results?.[0]?.hits ?? [])
+	}).then((res) => res?.results?.[0]?.hits ?? [])
 
 	return response
 }
@@ -64,14 +61,16 @@ export const MobileSearch = () => {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
-	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
-		useDefaultSearchList()
-
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
-	const { data, isLoading, error } = useSearch(debouncedSearchValue)
-	const [dialogOpen, setDialogOpen] = useState(false)
-	const handleSelect = () => setDialogOpen(false)
+	const [mounted, setMounted] = useState(false)
+	const dialogStore = Ariakit.useDialogStore({
+		setMounted(value) {
+			setMounted(value)
+			if (!value) {
+				setSearchValue('')
+			}
+		}
+	})
 
 	return (
 		<>
@@ -88,19 +87,20 @@ export const MobileSearch = () => {
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
 			)}
-			<Ariakit.DialogProvider open={dialogOpen} setOpen={setDialogOpen}>
+			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 					<span className="sr-only">Search</span>
 					<Icon name="search" height={16} width={16} />
 				</Ariakit.DialogDisclosure>
 
 				<Ariakit.Dialog
+					unmountOnHide={false}
 					className="dialog h-[calc(100dvh-80px)] max-h-(--popover-available-height) bg-(--bg-main) p-2 max-sm:drawer"
-					unmountOnHide
 					hideOnInteractOutside
 					portal
 				>
 					<Ariakit.ComboboxProvider
+						value={searchValue}
 						setValue={(value) => {
 							startTransition(() => {
 								setSearchValue(value)
@@ -118,53 +118,9 @@ export const MobileSearch = () => {
 						</span>
 
 						<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
-							{debouncedSearchValue ? (
-								isLoading ? (
-									<p className="flex items-center justify-center gap-1 p-4">
-										Loading
-										<LoadingDots />
-									</p>
-								) : error ? (
-									<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
-								) : !data?.length ? (
-									<p className="flex items-center justify-center p-4">No results found</p>
-								) : (
-									data.map((route: ISearchItem) => (
-										<SearchItem
-											key={`m-srch-data-${route.name}-${route.route}`}
-											route={route}
-											onSelect={handleSelect}
-										/>
-									))
-								)
-							) : isLoadingDefaultSearchList ? (
-								<p className="flex items-center justify-center gap-1 p-4">
-									Loading
-									<LoadingDots />
-								</p>
-							) : errorDefaultSearchList ? (
-								<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorDefaultSearchList.message}`}</p>
-							) : !defaultSearchList?.length ? (
-								<p className="flex items-center justify-center p-4">No results found</p>
-							) : (
-								<>
-									{recentSearchList.map((route: ISearchItem) => (
-										<SearchItem
-											key={`m-search-rct-${route.name}-${route.route}`}
-											route={route}
-											recent
-											onSelect={handleSelect}
-										/>
-									))}
-									{defaultSearchList.map((route: ISearchItem) => (
-										<SearchItem
-											key={`m-search-dl-${route.name}-${route.route}`}
-											route={route}
-											onSelect={handleSelect}
-										/>
-									))}
-								</>
-							)}
+							{mounted ? (
+								<MobileSearchResults searchValue={searchValue} onSelect={() => dialogStore.setOpen(false)} />
+							) : null}
 						</Ariakit.ComboboxList>
 					</Ariakit.ComboboxProvider>
 				</Ariakit.Dialog>
@@ -173,14 +129,80 @@ export const MobileSearch = () => {
 	)
 }
 
+function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; onSelect: () => void }) {
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
+	const { data, isLoading, error } = useSearch(debouncedSearchValue)
+	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
+		useDefaultSearchList()
+
+	if (debouncedSearchValue) {
+		if (isLoading) {
+			return (
+				<p className="flex items-center justify-center gap-1 p-4">
+					Loading
+					<LoadingDots />
+				</p>
+			)
+		}
+		if (error) {
+			return <p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${error.message}`}</p>
+		}
+		if (!data?.length) {
+			return <p className="flex items-center justify-center p-4">No results found</p>
+		}
+		return (
+			<>
+				{data.map((route: ISearchItem) => (
+					<SearchItem key={`m-srch-data-${route.name}-${route.route}`} route={route} onSelect={onSelect} />
+				))}
+			</>
+		)
+	}
+
+	if (isLoadingDefaultSearchList) {
+		return (
+			<p className="flex items-center justify-center gap-1 p-4">
+				Loading
+				<LoadingDots />
+			</p>
+		)
+	}
+	if (errorDefaultSearchList) {
+		return (
+			<p className="flex items-center justify-center p-4 text-(--error)">{`Error: ${errorDefaultSearchList.message}`}</p>
+		)
+	}
+	if (!defaultSearchList?.length) {
+		return <p className="flex items-center justify-center p-4">No results found</p>
+	}
+
+	return (
+		<>
+			{recentSearchList.map((route: ISearchItem) => (
+				<SearchItem key={`m-search-rct-${route.name}-${route.route}`} route={route} recent onSelect={onSelect} />
+			))}
+			{defaultSearchList.map((route: ISearchItem) => (
+				<SearchItem key={`m-search-dl-${route.name}-${route.route}`} route={route} onSelect={onSelect} />
+			))}
+		</>
+	)
+}
+
+function getPreHydrationInputValue() {
+	if (typeof window === 'undefined') return ''
+	return (document.getElementById('desktop-search-input') as HTMLInputElement | null)?.value ?? ''
+}
+
 export const DesktopSearch = () => {
 	const router = useRouter()
 
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
-	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
+
+	const [searchValue, setSearchValue] = useState(getPreHydrationInputValue)
+	const [open, setOpen] = useState(() => searchValue.length > 0)
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
@@ -197,22 +219,25 @@ export const DesktopSearch = () => {
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
-
-	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (
 		<>
 			<Ariakit.ComboboxProvider
-				resetValueOnHide
+				value={searchValue}
 				setValue={(value) => {
 					startTransition(() => {
 						setSearchValue(value)
 					})
 				}}
 				open={open}
-				setOpen={setOpen}
+				setOpen={(value) => {
+					setOpen(value)
+					if (!value) {
+						setSearchValue('')
+					}
+				}}
 			>
 				<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
 					<button onClick={(prev) => setOpen(!prev)} className="absolute top-0 bottom-0 left-2 my-auto opacity-50">
@@ -229,6 +254,7 @@ export const DesktopSearch = () => {
 						)}
 					</button>
 					<Ariakit.Combobox
+						id="desktop-search-input"
 						placeholder="Search..."
 						autoSelect
 						ref={inputField}
@@ -239,7 +265,7 @@ export const DesktopSearch = () => {
 					</span>
 				</span>
 				<Ariakit.ComboboxPopover
-					unmountOnHide
+					unmountOnHide={false}
 					hideOnInteractOutside
 					gutter={6}
 					sameWidth
@@ -329,6 +355,8 @@ const SearchItem = ({
 				onSelect?.()
 			}}
 			value={route.route}
+			setValueOnClick={false}
+			hideOnClick
 		>
 			{route.logo ? (
 				<img src={route.logo} alt={route.name} className="h-6 w-6 rounded-full" loading="lazy" />
@@ -363,18 +391,14 @@ const setRecentSearch = (route: ISearchItem) => {
 
 const useDefaultSearchList = () => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['defaultsearchlist'],
+		queryKey: ['search', 'default-list'],
 		queryFn: getDefaultSearchList,
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: false,
 		refetchOnWindowFocus: false
 	})
 
-	const recentSearch = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('recentSearch', callback),
-		() => getStorageItem('recentSearch', '[]') ?? '[]',
-		() => '[]'
-	)
+	const recentSearch = useStorageItem('recentSearch', '[]')
 
 	const { defaultSearchList, recentSearchList } = useMemo(() => {
 		if (!data || data.length === 0) return { defaultSearchList: [], recentSearchList: [] }
@@ -399,7 +423,7 @@ const useDefaultSearchList = () => {
 
 function useSearch(searchValue: string) {
 	return useQuery({
-		queryKey: ['search-list', searchValue],
+		queryKey: ['search', 'results', searchValue],
 		queryFn: () => fetchSearchList(searchValue),
 		enabled: searchValue.length > 0,
 		staleTime: 5 * 60 * 1000,

@@ -1,8 +1,11 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
+import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
-import { formatTooltipValue, useDefaults } from '../useDefaults'
+import { ChartContainer } from '../ChartContainer'
+import { formatTooltipValue } from '../formatters'
+import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
@@ -22,7 +25,7 @@ interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	valueSymbol?: string
 	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
@@ -58,8 +61,8 @@ export default function MultiSeriesChart({
 		valueSymbol,
 		xAxisType,
 		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
+			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].includes(groupBy)
+				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly')
 				: 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
@@ -114,19 +117,15 @@ export default function MultiSeriesChart({
 	}, [series, isThemeDark, xAxisType])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const hasNotifiedReadyRef = useRef(false)
+	const onReadyRef = useRef(onReady)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const updateChartInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			chartRef.current = instance
-			if (onReady) {
-				onReady(instance)
-			}
-		},
-		[onReady]
-	)
+	useEffect(() => {
+		onReadyRef.current = onReady
+	}, [onReady])
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -134,30 +133,35 @@ export default function MultiSeriesChart({
 
 		let instance = echarts.getInstanceByDom(chartDom)
 		if (!instance) {
-			instance = echarts.init(chartDom)
+			instance = echarts.init(chartDom, null, { renderer: 'canvas' })
 		}
 
-		updateChartInstance(instance)
+		chartRef.current = instance
+		if (instance && !hasNotifiedReadyRef.current && onReadyRef.current) {
+			onReadyRef.current(instance)
+			hasNotifiedReadyRef.current = true
+		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
 		if (showAggregateInTooltip && !chartOptions?.tooltip?.formatter) {
-			defaultChartSettings.tooltip = {
-				...defaultChartSettings.aggregateTooltip
+			settings.tooltip = {
+				...settings.aggregateTooltip
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = settings
 
-		const metricTypes = new Set(processedSeries.map((s: any) => s.metricType).filter(Boolean))
+		const metricTypes = new Set(processedSeries.flatMap((s: any) => (s.metricType ? [s.metricType] : [])))
 		const uniqueMetricTypes = Array.from(metricTypes)
 
 		const hasExplicitAxisIndex = processedSeries.some((s: any) => s.yAxisIndex != null && s.yAxisIndex > 0)
@@ -256,10 +260,6 @@ export default function MultiSeriesChart({
 				})
 			})
 		}
-
-		return () => {
-			updateChartInstance(null)
-		}
 	}, [
 		defaultChartSettings,
 		processedSeries,
@@ -268,28 +268,18 @@ export default function MultiSeriesChart({
 		alwaysShowTooltip,
 		series,
 		id,
-		updateChartInstance,
 		showAggregateInTooltip,
 		valueSymbol,
 		yAxisSymbols
 	])
 
-	useEffect(() => {
-		return () => {
-			const chartDom = document.getElementById(id)
-			if (chartDom) {
-				const chartInstance = echarts.getInstanceByDom(chartDom)
-				if (chartInstance) {
-					chartInstance.dispose()
-				}
-			}
-			updateChartInstance(null)
+	useChartCleanup(id, () => {
+		chartRef.current = null
+		if (hasNotifiedReadyRef.current) {
+			onReadyRef.current?.(null)
+			hasNotifiedReadyRef.current = false
 		}
-	}, [id, updateChartInstance])
+	})
 
-	return (
-		<div className="relative">
-			<div id={id} className="my-auto h-[360px]" style={height ? { height } : undefined}></div>
-		</div>
-	)
+	return <ChartContainer id={id} chartClassName="my-auto h-[360px]" chartStyle={height ? { height } : undefined} />
 }

@@ -1,0 +1,78 @@
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { RWAOverview } from '~/containers/RWA'
+import { getRWAAssetsOverview } from '~/containers/RWA/queries'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
+
+export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
+	return {
+		paths: rwaList.platforms.slice(0, 10).map((platform) => ({ params: { platform: rwaSlug(platform) } })),
+		fallback: 'blocking'
+	}
+}
+
+export const getStaticProps = withPerformanceLogging(
+	`rwa/platform/[platform]`,
+	async ({ params }: GetStaticPropsContext<{ platform: string }>) => {
+		if (!params?.platform) {
+			return { notFound: true }
+		}
+
+		const platformSlug = rwaSlug(params.platform)
+
+		let platformName = null
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const rwaList = metadataCache.rwaList
+		for (const platform of rwaList.platforms) {
+			if (rwaSlug(platform) === platformSlug) {
+				platformName = platform
+				break
+			}
+		}
+
+		if (!platformName) {
+			return { notFound: true }
+		}
+
+		const props = await getRWAAssetsOverview({ platform: platformSlug, rwaList })
+
+		if (!props) {
+			return { notFound: true }
+		}
+
+		return {
+			props: { ...props, platformName },
+			revalidate: maxAgeForNext([22])
+		}
+	}
+)
+
+const pageName = ['RWA']
+
+export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title={`Real World Assets (RWA) on ${props.platformName} Dashboard & Analytics - DefiLlama`}
+			description={`Explore ${props.platformName}, an RWA platform enabling issuance, custody, trading, or management of tokenized real-world assets across blockchains.`}
+			pageName={pageName}
+			canonicalUrl={`/rwa/platform/${props.platformSlug}`}
+		>
+			<RWAOverview {...props} />
+		</Layout>
+	)
+}

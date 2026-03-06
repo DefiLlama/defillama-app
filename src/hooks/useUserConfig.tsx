@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { AUTH_SERVER } from '~/constants'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import {
 	readAppStorage,
 	readAppStorageRaw,
@@ -11,11 +13,9 @@ import {
 	writeAppStorage
 } from '~/contexts/LocalStorage'
 import { subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { AUTH_SERVER } from '../constants'
-import { useAuthContext } from '../containers/Subscribtion/auth'
-import { useDebounce } from './useDebounce'
+import { useDebouncedCallback } from './useDebounce'
 
-const USER_CONFIG_QUERY_KEY = ['userConfig']
+const USER_CONFIG_QUERY_KEY = ['user-config']
 const SYNC_DEBOUNCE_MS = 2000
 type UserConfig = Partial<AppStorage>
 
@@ -26,6 +26,7 @@ const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
 	if (!isRecord(value)) return null
 
 	const normalized: WatchlistStore = {}
+	let hasNormalizedPortfolios = false
 	for (const [portfolio, protocols] of Object.entries(value)) {
 		if (!isRecord(protocols)) continue
 		const normalizedProtocols: Record<string, string> = {}
@@ -34,12 +35,18 @@ const normalizeWatchlistStore = (value: unknown): WatchlistStore | null => {
 				normalizedProtocols[slug] = name
 			}
 		}
-		if (Object.keys(normalizedProtocols).length > 0) {
+		let hasNormalizedProtocols = false
+		for (const _protocol in normalizedProtocols) {
+			hasNormalizedProtocols = true
+			break
+		}
+		if (hasNormalizedProtocols) {
 			normalized[portfolio] = normalizedProtocols
+			hasNormalizedPortfolios = true
 		}
 	}
 
-	return Object.keys(normalized).length > 0 ? normalized : null
+	return hasNormalizedPortfolios ? normalized : null
 }
 
 const mergeWatchlists = (local: WatchlistStore | null, remote: WatchlistStore | null): WatchlistStore | null => {
@@ -69,20 +76,17 @@ export function useUserConfig() {
 	const lastSyncedRawRef = useRef<string | null>(null)
 
 	const fetchConfig = useCallback(async (): Promise<UserConfig | null> => {
-		if (!isAuthenticated || !authorizedFetch) {
-			return null
-		}
-		try {
+		if (!isAuthenticated || !authorizedFetch) return null
+		const processResponse = async (): Promise<UserConfig | null> => {
 			const response = await authorizedFetch(`${AUTH_SERVER}/user/config`)
-			if (response?.ok) {
+			if (response == null) {
+				return null
+			}
+			if (response.ok) {
 				const config: UserConfig = await response.json()
 
-				let hasConfig = false
-				for (const _ in config) {
-					hasConfig = true
-					break
-				}
-				if (hasConfig) {
+				const hasConfig = isRecord(config) && Object.keys(config).length > 0
+				if (hasConfig && !hasInitializedRef.current) {
 					isSyncingRef.current = true
 
 					const localSettings = readAppStorage()
@@ -123,32 +127,36 @@ export function useUserConfig() {
 						writeAppStorage(mergedSettings)
 					}
 					lastSyncedRawRef.current = mergedRaw
+					hasInitializedRef.current = true
 
 					setTimeout(() => {
 						isSyncingRef.current = false
-						hasInitializedRef.current = true
 					}, 100)
-				} else {
+				} else if (!hasConfig) {
 					hasInitializedRef.current = true
 				}
 
 				return config as UserConfig
 			}
-			if (response?.status === 404) {
+			if (response.status === 404) {
 				hasInitializedRef.current = true
 				return {}
 			}
 
 			return null
-		} catch {
+		}
+		try {
+			return await processResponse()
+		} catch (error) {
+			console.error('Failed to fetch/process user config:', error)
 			return null
 		}
 	}, [isAuthenticated, authorizedFetch])
 
 	const saveConfig = useCallback(
-		async (config: UserConfig): Promise<UserConfig> => {
+		async (config: UserConfig): Promise<UserConfig | undefined> => {
 			if (!isAuthenticated || !authorizedFetch) {
-				return
+				return undefined
 			}
 			try {
 				await authorizedFetch(`${AUTH_SERVER}/user/config`, {
@@ -161,7 +169,7 @@ export function useUserConfig() {
 
 				return config
 			} catch {
-				return
+				return undefined
 			}
 		},
 		[isAuthenticated, authorizedFetch]
@@ -184,7 +192,7 @@ export function useUserConfig() {
 		mutateAsync: saveConfigAsync,
 		isPending: isSavingConfig,
 		isError: isErrorSavingConfig
-	} = useMutation<UserConfig, Error, UserConfig>({
+	} = useMutation<UserConfig | undefined, Error, UserConfig>({
 		mutationFn: saveConfig,
 		onSuccess: (savedConfig) => {
 			queryClient.setQueryData(USER_CONFIG_QUERY_KEY, savedConfig)
@@ -195,9 +203,11 @@ export function useUserConfig() {
 	})
 
 	const saveConfigAsyncRef = useRef(saveConfigAsync)
-	saveConfigAsyncRef.current = saveConfigAsync
+	useEffect(() => {
+		saveConfigAsyncRef.current = saveConfigAsync
+	})
 
-	const syncSettings = useDebounce(async () => {
+	const syncSettings = useDebouncedCallback(async () => {
 		try {
 			const currentSettings = readAppStorageRaw()
 			if (!currentSettings) return

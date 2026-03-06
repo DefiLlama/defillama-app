@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldPage from '~/containers/Yields'
 import { getLendBorrowData, getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {
@@ -35,9 +35,8 @@ const pageName = ['Yields: All Pools']
 export default function ApyHomePage(data) {
 	return (
 		<Layout
-			title={`Yield Rankings - DefiLlama`}
-			description={`Yield Rankings on DefiLlama. Pools by APY, TVL, and other metrics on all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`yield rankings, defi yield rankings, pools by apy, pools by tvl, pools by other metrics`}
+			title="Yield Farming Rankings - Best DeFi APY Pools - DefiLlama"
+			description="Find the best DeFi yield farming opportunities across all chains. Compare APY rates, TVL, and pool metrics for 10,000+ yield pools on Ethereum, Solana, Base, and 500+ networks. Real-time yield analytics."
 			canonicalUrl={`/yields`}
 			pageName={pageName}
 		>

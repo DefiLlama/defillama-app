@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import { AUTH_SERVER } from '~/constants'
 import pb from '~/utils/pocketbase'
-import { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
-import { DashboardItemConfig } from '../types'
+import type { CustomTimePeriod, TimePeriod } from '../ProDashboardAPIContext'
+import type { DashboardItemConfig } from '../types'
 
 interface UseAutoSaveOptions {
 	dashboardId: string | null

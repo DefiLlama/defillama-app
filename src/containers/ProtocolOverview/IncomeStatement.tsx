@@ -1,10 +1,13 @@
 import dayjs from 'dayjs'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, startTransition, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum } from '~/utils'
-import { IProtocolOverviewPageData } from './types'
+import { useChartImageExport } from '~/hooks/useChartImageExport'
+import { abbreviateNumber } from '~/utils'
+import type { IProtocolOverviewPageData } from './types'
 
 const SankeyChart = lazy(() => import('~/components/ECharts/SankeyChart'))
 
@@ -12,7 +15,9 @@ const incomeStatementGroupByOptions = ['Yearly', 'Quarterly', 'Monthly'] as cons
 const EMPTY_BREAKDOWN_LABELS: string[] = []
 const EMPTY_BREAKDOWN_METHODOLOGY: Record<string, string> = {}
 
-export type IncomeStatementView = 'table' | 'sankey' | 'both'
+const formatIncomeValue = (value: number): string => abbreviateNumber(value, 2, '$') ?? '$0'
+
+type IncomeStatementView = 'table' | 'sankey' | 'both'
 
 interface IncomeStatementProps {
 	name: string
@@ -36,6 +41,7 @@ export const IncomeStatement = ({
 	const [groupBy, setGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [sankeyGroupBy, setSankeyGroupBy] = useState<(typeof incomeStatementGroupByOptions)[number]>('Quarterly')
 	const [selectedSankeyPeriod, setSelectedSankeyPeriod] = useState<string | null>(null)
+	const { chartInstance: sankeyChartInstance, handleChartReady: handleSankeyChartReady } = useChartImageExport()
 	const headerId = anchorId ?? 'income-statement'
 	const showTable = view === 'table' || view === 'both'
 	const showSankey = view === 'sankey' || view === 'both'
@@ -56,60 +62,67 @@ export const IncomeStatement = ({
 		tokenHolderNetIncomeByLabels,
 		othersTokenHolderFlowsByLabels
 	} = useMemo(() => {
-		const groupKey = groupBy.toLowerCase()
-		const tableHeaders = [] as [string, string, number][]
-		const grossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const costOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const grossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const incentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const earningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const tokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const othersTokenHolderFlowsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const groupKey = groupBy.toLowerCase() as 'monthly' | 'quarterly' | 'yearly'
+		const tableHeaders: Array<[string, string, number]> = []
+		const grossProtocolRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const costOfRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const grossProfitData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const incentivesData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const earningsData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const tokenHolderNetIncomeData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const othersTokenHolderFlowsData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
 
-		for (const key in incomeStatement?.data?.[groupKey] ?? {}) {
-			tableHeaders.push([
-				key,
-				groupKey === 'monthly'
-					? dayjs.utc(key).format('MMM YYYY')
-					: groupKey === 'quarterly'
-						? key.split('-').reverse().join(' ')
-						: key,
-				incomeStatement?.data?.[groupKey]?.[key]?.timestamp ?? 0
-			])
+		const groupData = incomeStatement?.data?.[groupKey]
+		if (groupData) {
+			for (const key in groupData) {
+				if (key === 'timestamp') continue
+				const periodData = groupData[key] as
+					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
+					| undefined
+				tableHeaders.push([
+					key,
+					groupKey === 'monthly'
+						? dayjs.utc(key).format('MMM YYYY')
+						: groupKey === 'quarterly'
+							? key.split('-').reverse().join(' ')
+							: key,
+					periodData?.timestamp ?? 0
+				])
 
-			grossProtocolRevenueData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Gross Protocol Revenue'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				grossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			costOfRevenueData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Cost Of Revenue'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				costOfRevenueData[key] = periodData?.['Cost Of Revenue'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			grossProfitData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Gross Profit'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				grossProfitData[key] = periodData?.['Gross Profit'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			incentivesData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Incentives'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				incentivesData[key] = periodData?.['Incentives'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			earningsData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Earnings'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				earningsData[key] = periodData?.['Earnings'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			tokenHolderNetIncomeData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Token Holder Net Income'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				tokenHolderNetIncomeData[key] = periodData?.['Token Holder Net Income'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			othersTokenHolderFlowsData[key] = incomeStatement?.data?.[groupKey]?.[key]?.['Others Token Holder Flows'] ?? {
-				value: 0,
-				'by-label': {}
+				othersTokenHolderFlowsData[key] = periodData?.['Others Token Holder Flows'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 			}
 		}
 
@@ -133,55 +146,58 @@ export const IncomeStatement = ({
 
 	// Compute Sankey chart data for the selected period
 	const { sankeyData, sankeyPeriodOptions, validSankeyPeriod } = useMemo(() => {
-		const sankeyGroupKey = sankeyGroupBy.toLowerCase()
-		const sankeyHeaders = [] as [string, string, number][]
-		const sankeyGrossProtocolRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyCostOfRevenueData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyGrossProfitData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyIncentivesData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyEarningsData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
-		const sankeyTokenHolderNetIncomeData = {} as Record<string, { value: number; 'by-label': Record<string, number> }>
+		const sankeyGroupKey = sankeyGroupBy.toLowerCase() as 'monthly' | 'quarterly' | 'yearly'
+		const sankeyHeaders: Array<[string, string, number]> = []
+		const sankeyGrossProtocolRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyCostOfRevenueData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyGrossProfitData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyIncentivesData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyEarningsData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
+		const sankeyTokenHolderNetIncomeData: Record<string, { value: number; 'by-label': Record<string, number> }> = {}
 
-		for (const key in incomeStatement?.data?.[sankeyGroupKey] ?? {}) {
-			sankeyHeaders.push([
-				key,
-				sankeyGroupKey === 'monthly'
-					? dayjs.utc(key).format('MMM YYYY')
-					: sankeyGroupKey === 'quarterly'
-						? key.split('-').reverse().join(' ')
-						: key,
-				incomeStatement?.data?.[sankeyGroupKey]?.[key]?.timestamp ?? 0
-			])
+		const sankeyGroupData = incomeStatement?.data?.[sankeyGroupKey]
+		if (sankeyGroupData) {
+			for (const key in sankeyGroupData) {
+				if (key === 'timestamp') continue
+				const periodData = sankeyGroupData[key] as
+					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
+					| undefined
+				sankeyHeaders.push([
+					key,
+					sankeyGroupKey === 'monthly'
+						? dayjs.utc(key).format('MMM YYYY')
+						: sankeyGroupKey === 'quarterly'
+							? key.split('-').reverse().join(' ')
+							: key,
+					periodData?.timestamp ?? 0
+				])
 
-			sankeyGrossProtocolRevenueData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.[
-				'Gross Protocol Revenue'
-			] ?? { value: 0, 'by-label': {} }
+				sankeyGrossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? { value: 0, 'by-label': {} }
 
-			sankeyCostOfRevenueData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Cost Of Revenue'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyCostOfRevenueData[key] = periodData?.['Cost Of Revenue'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyGrossProfitData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Gross Profit'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyGrossProfitData[key] = periodData?.['Gross Profit'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyIncentivesData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Incentives'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyIncentivesData[key] = periodData?.['Incentives'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyEarningsData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.['Earnings'] ?? {
-				value: 0,
-				'by-label': {}
-			}
+				sankeyEarningsData[key] = periodData?.['Earnings'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 
-			sankeyTokenHolderNetIncomeData[key] = incomeStatement?.data?.[sankeyGroupKey]?.[key]?.[
-				'Token Holder Net Income'
-			] ?? {
-				value: 0,
-				'by-label': {}
+				sankeyTokenHolderNetIncomeData[key] = periodData?.['Token Holder Net Income'] ?? {
+					value: 0,
+					'by-label': {}
+				}
 			}
 		}
 
@@ -214,6 +230,7 @@ export const IncomeStatement = ({
 		// Get breakdown by labels for fees
 		const grossProtocolRevenueByLabelData = sankeyGrossProtocolRevenueData[periodKey]?.['by-label'] ?? {}
 		const costOfRevenueByLabelData = sankeyCostOfRevenueData[periodKey]?.['by-label'] ?? {}
+		const incentivesByLabelData = sankeyIncentivesData[periodKey]?.['by-label'] ?? {}
 
 		const nodes: Array<{
 			name: string
@@ -333,14 +350,37 @@ export const IncomeStatement = ({
 					name: 'Incentives',
 					color: COLORS.red,
 					description: incomeStatement?.methodology?.['Incentives'] ?? '',
+					displayValue: incentives,
 					depth: 2 // Same depth as Gross Profit
 				})
+
+				// Add incentives breakdown if labels are available (sources flow INTO Incentives)
+				let hasIncentivesBreakdown = false
+				for (const _ in incentivesByLabelData) {
+					hasIncentivesBreakdown = true
+					break
+				}
+				if (hasIncentivesBreakdown) {
+					for (const label in incentivesByLabelData) {
+						const value = incentivesByLabelData[label]
+						if (value > 0) {
+							const incentiveLabel = `${label} (Incentive)`
+							nodes.push({
+								name: incentiveLabel,
+								color: COLORS.red,
+								description: incomeStatement?.breakdownMethodology?.['Incentives']?.[label] ?? '',
+								percentageLabel: formatPercent(value, incentives)
+							})
+							links.push({ source: incentiveLabel, target: 'Incentives', value })
+						}
+					}
+				}
 
 				// Both Gross Profit and Incentives flow into Earnings
 				nodes.push({
 					name: 'Earnings',
 					color: earnings >= 0 ? COLORS.green : COLORS.red,
-					description: `Gross Profit (${formattedNum(grossProfit, true)}) minus Incentives (${formattedNum(incentives, true)})`,
+					description: `Gross Profit (${formatIncomeValue(grossProfit)}) minus Incentives (${formatIncomeValue(incentives)})`,
 					displayValue: earnings, // Show actual earnings value, not the sum of flows
 					depth: 3,
 					percentageLabel: formatPercent(earnings, grossProfit)
@@ -408,6 +448,58 @@ export const IncomeStatement = ({
 		}
 	}, [sankeyPeriodOptions, validSankeyPeriod])
 
+	const prepareTableCsv = () => {
+		// Match the rendered table header row: blank top-left cell, then the period labels.
+		// (No need to include the "*" incomplete marker in CSV.)
+		const headers = ['', ...tableHeaders.map((h) => h[1])]
+		const rows: Array<Array<string | number | boolean>> = [headers]
+
+		const toCsvNumber = (value: number | null | undefined) => {
+			if (value == null) return 0
+			if (Number.isNaN(value)) return 0
+			if (!Number.isFinite(value)) return 0
+			// avoid exporting noisy float precision (eg. 1.23400000000002)
+			return Number.isInteger(value) ? value : Math.round(value * 1e8) / 1e8
+		}
+
+		const pushMetric = (
+			metricLabel: string,
+			metricData: Record<string, { value: number; 'by-label': Record<string, number> }>,
+			breakdownLabels: string[]
+		) => {
+			rows.push([metricLabel, ...tableHeaders.map((h) => toCsvNumber(metricData[h[0]]?.value))])
+
+			if (breakdownLabels.length > 0) {
+				for (const breakdownLabel of breakdownLabels) {
+					rows.push([
+						`  ${breakdownLabel}`,
+						...tableHeaders.map((h) => toCsvNumber(metricData[h[0]]?.['by-label']?.[breakdownLabel]))
+					])
+				}
+			}
+		}
+
+		pushMetric('Gross Protocol Revenue', grossProtocolRevenueData, grossProtocolRevenueByLabels)
+		pushMetric('Cost of Revenue', costOfRevenueData, costOfRevenueByLabels)
+		pushMetric('Gross Profit', grossProfitData, grossProfitByLabels)
+		if (hasIncentives) pushMetric('Incentives', incentivesData, incentivesByLabels)
+		pushMetric('Earnings', earningsData, EMPTY_BREAKDOWN_LABELS)
+		pushMetric('Token Holder Net Income', tokenHolderNetIncomeData, tokenHolderNetIncomeByLabels)
+		if (incomeStatement?.hasOtherTokenHolderFlows)
+			pushMetric('Others Token Holder Flows', othersTokenHolderFlowsData, othersTokenHolderFlowsByLabels)
+
+		const safeProtocolName = name
+			.toLowerCase()
+			.trim()
+			.replace(/[^a-z0-9]+/g, '-')
+			.replace(/(^-|-$)/g, '')
+
+		return {
+			filename: `income-statement-${safeProtocolName || 'protocol'}-${groupBy.toLowerCase()}`,
+			rows
+		}
+	}
+
 	return (
 		<div
 			className={`col-span-full flex flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4 ${
@@ -428,19 +520,22 @@ export const IncomeStatement = ({
 					</h2>
 				) : null}
 				{showTable ? (
-					<div className="ml-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{incomeStatementGroupByOptions.map((groupOption) => (
-							<button
-								key={`income-statement-${groupOption}`}
-								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-								data-active={groupOption === groupBy}
-								onClick={() => {
-									setGroupBy(groupOption)
-								}}
-							>
-								{groupOption}
-							</button>
-						))}
+					<div className="ml-auto flex items-center gap-2">
+						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+							{incomeStatementGroupByOptions.map((groupOption) => (
+								<button
+									key={`income-statement-${groupOption}`}
+									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+									data-active={groupOption === groupBy}
+									onClick={() => {
+										startTransition(() => setGroupBy(groupOption))
+									}}
+								>
+									{groupOption}
+								</button>
+							))}
+						</div>
+						<CSVDownloadButton prepareCsv={prepareTableCsv} smol />
 					</div>
 				) : null}
 			</div>
@@ -585,46 +680,49 @@ export const IncomeStatement = ({
 								</div>
 							}
 						>
+							<div className="mb-2 flex flex-wrap items-center gap-2 px-2">
+								{showTitles ? <h3 className="mr-auto text-base font-semibold">Income Flow Visualization</h3> : null}
+								<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+									{incomeStatementGroupByOptions.map((groupOption) => (
+										<button
+											key={`sankey-group-${groupOption}`}
+											className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
+											data-active={groupOption === sankeyGroupBy}
+											onClick={() => {
+												startTransition(() => {
+													setSankeyGroupBy(groupOption)
+													setSelectedSankeyPeriod(null)
+												})
+											}}
+										>
+											{groupOption}
+										</button>
+									))}
+								</div>
+								{sankeyPeriodSelectOptions.length > 0 ? (
+									<Select
+										allValues={sankeyPeriodSelectOptions}
+										selectedValues={validSankeyPeriod ?? ''}
+										setSelectedValues={(value) => startTransition(() => setSelectedSankeyPeriod(value as string))}
+										label={sankeyPeriodLabel}
+										labelType="none"
+										triggerProps={{
+											className:
+												'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-sm text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
+										}}
+									/>
+								) : null}
+								<ChartPngExportButton
+									chartInstance={sankeyChartInstance}
+									filename={`${name}-income-statement`}
+									title={`Income Statement for ${name}`}
+								/>
+							</div>
 							<SankeyChart
 								nodes={sankeyData.nodes}
 								links={sankeyData.links}
-								height="450px"
-								title={showTitles ? 'Income Flow Visualization' : undefined}
-								enableImageExport
-								imageExportFilename={`${name}-income-statement`}
-								imageExportTitle={`Income Statement for ${name}`}
-								customComponents={
-									<div className="flex items-center gap-2">
-										<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-											{incomeStatementGroupByOptions.map((groupOption) => (
-												<button
-													key={`sankey-group-${groupOption}`}
-													className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-													data-active={groupOption === sankeyGroupBy}
-													onClick={() => {
-														setSankeyGroupBy(groupOption)
-														setSelectedSankeyPeriod(null)
-													}}
-												>
-													{groupOption}
-												</button>
-											))}
-										</div>
-										{sankeyPeriodSelectOptions.length > 0 && (
-											<Select
-												allValues={sankeyPeriodSelectOptions}
-												selectedValues={validSankeyPeriod ?? ''}
-												setSelectedValues={(value) => setSelectedSankeyPeriod(value as string)}
-												label={sankeyPeriodLabel}
-												labelType="none"
-												triggerProps={{
-													className:
-														'flex cursor-pointer flex-nowrap items-center gap-2 rounded-md border border-(--form-control-border) bg-(--cards-bg) px-2 py-1 text-sm text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)'
-												}}
-											/>
-										)}
-									</div>
-								}
+								height={`${Math.max(450, sankeyData.nodes.length * 50)}px`}
+								onReady={handleSankeyChartReady}
 							/>
 						</Suspense>
 					) : (
@@ -693,17 +791,17 @@ const IncomeStatementByLabel = ({
 								content={
 									<PerformanceTooltipContent
 										currentValue={data[header[0]].value}
-										previousValue={tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]].value : null}
+										previousValue={tableHeaders[i + 1] ? (data[tableHeaders[i + 1][0]]?.value ?? null) : null}
 										groupBy={groupBy}
 										dataType={dataType}
 									/>
 								}
 								className={`justify-start underline decoration-dotted ${isEarnings ? (data[header[0]]?.value >= 0 ? 'decoration-(--success)/60' : 'decoration-(--error)/60') : 'decoration-black/60 dark:decoration-white/60'}`}
 							>
-								{formattedNum(data[header[0]].value, true)}
+								{formatIncomeValue(data[header[0]].value)}
 							</Tooltip>
 						) : (
-							<>{formattedNum(data[header[0]].value, true)}</>
+							<>{formatIncomeValue(data[header[0]].value)}</>
 						)}
 					</td>
 				))}
@@ -731,13 +829,15 @@ const IncomeStatementByLabel = ({
 								>
 									{data[header[0]]?.['by-label']?.[breakdownlabel] == null ? null : i !== 0 &&
 									  tableHeaders[i + 1] &&
-									  data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] ? (
+									  data[tableHeaders[i + 1][0]]?.['by-label']?.[breakdownlabel] ? (
 										<Tooltip
 											content={
 												<PerformanceTooltipContent
 													currentValue={data[header[0]]['by-label']?.[breakdownlabel]}
 													previousValue={
-														tableHeaders[i + 1] ? data[tableHeaders[i + 1][0]]['by-label']?.[breakdownlabel] : null
+														tableHeaders[i + 1]
+															? (data[tableHeaders[i + 1][0]]?.['by-label']?.[breakdownlabel] ?? null)
+															: null
 													}
 													groupBy={groupBy}
 													dataType={dataType}
@@ -746,10 +846,10 @@ const IncomeStatementByLabel = ({
 											}
 											className="justify-start underline decoration-black/60 decoration-dotted dark:decoration-white/60"
 										>
-											{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}
+											{formatIncomeValue(data[header[0]]['by-label']?.[breakdownlabel])}
 										</Tooltip>
 									) : (
-										<>{formattedNum(data[header[0]]['by-label']?.[breakdownlabel], true)}</>
+										<>{formatIncomeValue(data[header[0]]['by-label']?.[breakdownlabel])}</>
 									)}
 								</td>
 							))}
@@ -768,8 +868,8 @@ const PerformanceTooltipContent = ({
 	dataType,
 	label
 }: {
-	currentValue: number
-	previousValue: number
+	currentValue: number | null
+	previousValue: number | null
 	groupBy: 'Yearly' | 'Quarterly' | 'Monthly'
 	dataType:
 		| 'gross protocol revenue'
@@ -781,7 +881,7 @@ const PerformanceTooltipContent = ({
 		| 'others token holder flows'
 	label?: string
 }) => {
-	if (previousValue == null) return null
+	if (previousValue == null || currentValue == null) return null
 	const valueChange = currentValue - previousValue
 	const percentageChange = previousValue !== 0 ? (valueChange / Math.abs(previousValue)) * 100 : 0
 	const percentageChangeText =

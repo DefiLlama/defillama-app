@@ -1,26 +1,22 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { ChartExportButton } from '~/components/ButtonStyled/ChartExportButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { LocalLoader } from '~/components/Loaders'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Tooltip } from '~/components/Tooltip'
-import { ChartBuilderConfig } from '~/containers/ProDashboard/types'
+import type { ChartBuilderConfig } from '~/containers/ProDashboard/types'
 import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug, toNiceCsvDate } from '~/utils'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
+import { fetchAdapterProtocolChartDataByBreakdownType } from './api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
-import { getAdapterProtocolChartDataByBreakdownType } from './queries'
 
 const INTERVALS_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 export const DimensionProtocolChartByType = ({
 	protocolName,
@@ -44,7 +40,7 @@ export const DimensionProtocolChartByType = ({
 	const { data, isLoading, error } = useQuery({
 		queryKey: ['dimension-adapter-chart-breakdown', protocolName, adapterType, dataType ?? null, chartType],
 		queryFn: () =>
-			getAdapterProtocolChartDataByBreakdownType({
+			fetchAdapterProtocolChartDataByBreakdownType({
 				adapterType,
 				protocol: protocolName,
 				dataType,
@@ -71,7 +67,7 @@ export const DimensionProtocolChartByType = ({
 		],
 		queryFn: feesSettings.bribes
 			? () =>
-					getAdapterProtocolChartDataByBreakdownType({
+					fetchAdapterProtocolChartDataByBreakdownType({
 						adapterType,
 						protocol: protocolName,
 						dataType: 'dailyBribesRevenue',
@@ -100,7 +96,7 @@ export const DimensionProtocolChartByType = ({
 		],
 		queryFn: feesSettings.tokentax
 			? () =>
-					getAdapterProtocolChartDataByBreakdownType({
+					fetchAdapterProtocolChartDataByBreakdownType({
 						adapterType,
 						protocol: protocolName,
 						dataType: 'dailyTokenTaxes',
@@ -113,29 +109,64 @@ export const DimensionProtocolChartByType = ({
 		retry: 0
 	})
 
+	const failedApiErrors = React.useMemo(() => {
+		const errors: string[] = []
+		const pushError = (label: string, value: unknown) => {
+			if (!value) return
+			const message = value instanceof Error ? value.message : typeof value === 'string' ? value : JSON.stringify(value)
+			if (!message) return
+			errors.push(message.startsWith(`${label}:`) ? message : `${label}: ${message}`)
+		}
+
+		pushError('main', error)
+
+		if (metadata?.bribeRevenue && feesSettings.bribes) {
+			pushError('dailyBribesRevenue', fetchingBribeError)
+		}
+		if (metadata?.tokenTax && feesSettings.tokentax) {
+			pushError('dailyTokenTaxes', fetchingTokenTaxError)
+		}
+
+		return errors
+	}, [
+		error,
+		fetchingBribeError,
+		fetchingTokenTaxError,
+		metadata?.bribeRevenue,
+		metadata?.tokenTax,
+		feesSettings.bribes,
+		feesSettings.tokentax
+	])
+
 	if (isLoading || fetchingBribeData || fetchingTokenTaxData) {
 		return (
-			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
 				<LocalLoader />
 			</div>
 		)
 	}
 
-	if (error || fetchingBribeError || fetchingTokenTaxError) {
+	if (failedApiErrors.length > 0) {
 		return (
-			<div className="col-span-2 flex min-h-[418px] flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<p className="p-3 text-center text-sm text-(--error)">
-					Error : {error?.message || fetchingBribeError?.message || fetchingTokenTaxError?.message}
-				</p>
+			<div className="col-span-2 flex min-h-[398px] flex-col items-center justify-center">
+				<div className="flex flex-col gap-2 p-2">
+					<ul className="flex flex-col gap-4 text-xs text-(--error)">
+						{failedApiErrors.map((apiError, index) => (
+							<li key={`${apiError}-${index}`} className="break-all">
+								{apiError}
+							</li>
+						))}
+					</ul>
+				</div>
 			</div>
 		)
 	}
 
 	return (
 		<ChartByType
-			data={data}
-			bribeData={bribeData}
-			tokenTaxData={tokenTaxData}
+			data={data ?? []}
+			bribeData={bribeData ?? undefined}
+			tokenTaxData={tokenTaxData ?? undefined}
 			breakdownNames={breakdownNames}
 			title={title}
 			chartType={chartType}
@@ -166,7 +197,7 @@ const ChartByType = ({
 }) => {
 	const [chartInterval, changeChartInterval] = React.useState<(typeof INTERVALS_LIST)[number]>('Daily')
 	const [selectedTypes, setSelectedTypes] = React.useState<string[]>(breakdownNames)
-	const { chartInstance: exportChartInstance, handleChartReady } = useChartImageExport()
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const chartBuilderConfig = React.useMemo<ChartBuilderConfig | null>(() => {
 		const builderMetric = getAdapterBuilderMetric(adapterType)
@@ -202,14 +233,14 @@ const ChartByType = ({
 	}, [protocolName, adapterType, chartInterval, title, chartType])
 
 	const mainChartData = React.useMemo(() => {
-		if (selectedTypes.length === 0) return { charts: {} }
+		if (selectedTypes.length === 0) return { dataset: { source: [], dimensions: ['timestamp'] }, charts: [] }
 
 		// Helper to compute final date based on interval
 		const computeFinalDate = (date: number) =>
 			chartInterval === 'Weekly'
-				? lastDayOfWeek(+date * 1e3) * 1e3
+				? lastDayOfWeek(+date) * 1e3
 				: chartInterval === 'Monthly'
-					? firstDayOfMonth(+date * 1e3) * 1e3
+					? firstDayOfMonth(+date) * 1e3
 					: +date * 1e3
 
 		// Aggregate by date with interval grouping
@@ -222,12 +253,12 @@ const ChartByType = ({
 			const existing = aggregatedByDate.get(finalDate)
 			if (existing) {
 				for (const type of selectedTypes) {
-					existing[type] = (existing[type] || 0) + (versions[type] || 0)
+					existing[type] = (existing[type] ?? 0) + (versions[type] ?? 0)
 				}
 			} else {
 				const entry: Record<string, number> = {}
 				for (const type of selectedTypes) {
-					entry[type] = versions[type] || 0
+					entry[type] = versions[type] ?? 0
 				}
 				aggregatedByDate.set(finalDate, entry)
 			}
@@ -240,12 +271,12 @@ const ChartByType = ({
 				const existing = aggregatedByDate.get(finalDate)
 				if (existing) {
 					for (const type of selectedTypes) {
-						existing[type] = (existing[type] || 0) + (versions[type] || 0)
+						existing[type] = (existing[type] ?? 0) + (versions[type] ?? 0)
 					}
 				} else {
 					const entry: Record<string, number> = {}
 					for (const type of selectedTypes) {
-						entry[type] = versions[type] || 0
+						entry[type] = versions[type] ?? 0
 					}
 					aggregatedByDate.set(finalDate, entry)
 				}
@@ -259,47 +290,46 @@ const ChartByType = ({
 				const existing = aggregatedByDate.get(finalDate)
 				if (existing) {
 					for (const type of selectedTypes) {
-						existing[type] = (existing[type] || 0) + (versions[type] || 0)
+						existing[type] = (existing[type] ?? 0) + (versions[type] ?? 0)
 					}
 				} else {
 					const entry: Record<string, number> = {}
 					for (const type of selectedTypes) {
-						entry[type] = versions[type] || 0
+						entry[type] = versions[type] ?? 0
 					}
 					aggregatedByDate.set(finalDate, entry)
 				}
 			}
 		}
 
-		// Sort dates and build chart arrays
+		// Sort dates and build dataset rows
 		const sortedDates = Array.from(aggregatedByDate.keys()).sort((a, b) => a - b)
 		const isCumulative = chartInterval === 'Cumulative'
 		const cumulative: Record<string, number> = {}
-		const chartArrays: Record<string, Array<[number, number | null]>> = {}
 
 		for (const type of selectedTypes) {
 			cumulative[type] = 0
-			chartArrays[type] = []
 		}
 
-		for (const date of sortedDates) {
+		const source = sortedDates.map((date) => {
 			const entry = aggregatedByDate.get(date)!
+			const row: Record<string, number | null> = { timestamp: date }
 			for (const type of selectedTypes) {
-				const value = entry[type] || 0
+				const value = entry[type] ?? 0
 				if (isCumulative) {
 					cumulative[type] += value
-					chartArrays[type].push([date, cumulative[type]])
+					row[type] = cumulative[type]
 				} else {
-					chartArrays[type].push([date, value])
+					row[type] = value
 				}
 			}
-		}
+			return row
+		})
 
 		// Replace leading zeros with null for cleaner charts
 		for (const type of selectedTypes) {
-			const arr = chartArrays[type]
-			for (let i = 0; i < arr.length && arr[i][1] === 0; i++) {
-				arr[i][1] = null
+			for (let i = 0; i < source.length && source[i][type] === 0; i++) {
+				source[i][type] = null
 			}
 		}
 
@@ -312,50 +342,24 @@ const ChartByType = ({
 		stackColors['Others'] = allColors[allColors.length - 1]
 
 		const chartType2: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
-		const charts: Record<
-			string,
-			{ data: Array<[number, number | null]>; type: 'line' | 'bar'; name: string; stack: string; color: string }
-		> = {}
+		const chartsConfig = selectedTypes.map((type) => ({
+			type: chartType2,
+			name: type,
+			encode: { x: 'timestamp', y: type },
+			stack: 'chartType',
+			color: stackColors[type]
+		}))
 
-		for (const type of selectedTypes) {
-			charts[type] = {
-				data: chartArrays[type],
-				type: chartType2,
-				name: type,
-				stack: 'chartType',
-				color: stackColors[type]
-			}
+		return {
+			dataset: { source, dimensions: ['timestamp', ...selectedTypes] },
+			charts: chartsConfig
 		}
-
-		return { charts }
 	}, [breakdownNames, chartInterval, selectedTypes, data, bribeData, tokenTaxData])
-
-	const prepareCsv = () => {
-		if (selectedTypes.length === 0) return { filename: '', rows: [] }
-
-		const rows: Array<Array<string | number | null>> = [['Timestamp', 'Date', ...selectedTypes]]
-
-		// Use first type's data as reference since all types share the same timestamps
-		const referenceData = mainChartData.charts[selectedTypes[0]]?.data
-		if (!referenceData) return { filename: '', rows: [] }
-
-		for (let i = 0; i < referenceData.length; i++) {
-			const timestamp = referenceData[i][0]
-			const row: Array<string | number | null> = [timestamp, toNiceCsvDate(timestamp / 1000)]
-			for (const type of selectedTypes) {
-				row.push(mainChartData.charts[type]?.data[i]?.[1] ?? '')
-			}
-			rows.push(row)
-		}
-
-		const csvTitle = `${protocolName}-${title ? slug(title) : chartType}`
-		const filename = `${csvTitle}-${chartInterval.toLowerCase()}-${new Date().toISOString().split('T')[0]}.csv`
-		return { filename, rows }
-	}
+	const deferredMainChartData = React.useDeferredValue(mainChartData)
 
 	return (
 		<>
-			<div className="flex flex-wrap items-center justify-end gap-1 p-2">
+			<div className="flex flex-wrap items-center justify-end gap-1 p-2 pb-0">
 				{title && <h2 className="mr-auto text-base font-semibold">{title}</h2>}
 				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{INTERVALS_LIST.map((dataInterval) => (
@@ -364,7 +368,7 @@ const ChartByType = ({
 							render={<button />}
 							className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 							data-active={dataInterval === chartInterval}
-							onClick={() => changeChartInterval(dataInterval as any)}
+							onClick={() => changeChartInterval(dataInterval)}
 							key={`${dataInterval}-${chartType}-${title}-${protocolName}`}
 						>
 							{dataInterval.slice(0, 1).toUpperCase()}
@@ -377,25 +381,20 @@ const ChartByType = ({
 					setSelectedValues={setSelectedTypes}
 					label={chartType === 'version' ? 'Versions' : 'Chains'}
 					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-					}}
+					variant="filter"
 					portal
 				/>
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
-				<ChartExportButton
+				<ChartExportButtons
 					chartInstance={exportChartInstance}
-					filename={title ? slug(title) : `${protocolName}-${chartType}`}
+					filename={title ? title : `${protocolName}-${chartType}`}
 					title={title}
-					className="flex items-center justify-center gap-1 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:text-(--text-disabled)"
-					smol
 				/>
 				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
 			</div>
-			<React.Suspense fallback={<></>}>
-				<LineAndBarChart
-					charts={mainChartData.charts}
+			<React.Suspense fallback={<div className="min-h-[360px]" />}>
+				<MultiSeriesChart2
+					dataset={deferredMainChartData.dataset}
+					charts={deferredMainChartData.charts}
 					groupBy={
 						chartInterval === 'Cumulative' ? 'daily' : (chartInterval.toLowerCase() as 'daily' | 'weekly' | 'monthly')
 					}

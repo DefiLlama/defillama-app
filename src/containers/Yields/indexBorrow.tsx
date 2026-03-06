@@ -12,7 +12,8 @@ const YieldPageBorrow = ({
 	categoryList,
 	tokens,
 	tokenSymbolsList,
-	usdPeggedSymbols
+	usdPeggedSymbols,
+	evmChains
 }) => {
 	const { pathname } = useRouter()
 
@@ -29,7 +30,7 @@ const YieldPageBorrow = ({
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	const poolsData = React.useMemo(() => {
 		const pair_tokens = pairTokens.map((token) => token.toLowerCase())
@@ -67,6 +68,7 @@ const YieldPageBorrow = ({
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,
+					raiseValuation: curr.raiseValuation,
 					chains: [curr.chain],
 					apyBase: curr.apyBase,
 					apyReward: curr.apyReward,
@@ -113,6 +115,7 @@ const YieldPageBorrow = ({
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				attributes={true}

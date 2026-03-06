@@ -199,9 +199,9 @@ export function useMetricData(metric: MetricConfig) {
 		isLoading,
 		isError
 	} = useQuery({
-		queryKey: ['metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
+		queryKey: ['pro-dashboard', 'metric', ...getChartQueryKey(type, itemType, item, geckoId, undefined)],
 		queryFn: getChartQueryFn(type, itemType, item, geckoId, undefined, parentMapping),
-		staleTime: 5 * 60 * 1000,
+		staleTime: Infinity,
 		select: (data: [number, number][]) => (Array.isArray(data) ? data : []),
 		enabled:
 			!!item &&
@@ -245,7 +245,22 @@ export function useMetricData(metric: MetricConfig) {
 			}
 		}
 
-		const sparklineData = inWindow.length > 60 ? inWindow.slice(inWindow.length - 60) : inWindow
+		// Scale data points based on window size - charts handle their own sampling
+		const maxPoints =
+			window === '7d'
+				? 7
+				: window === '30d'
+					? 30
+					: window === '90d'
+						? 90
+						: window === '365d'
+							? 365
+							: window === 'ytd'
+								? 365
+								: window === '3y'
+									? 1095
+									: 1500
+		const sparklineData = inWindow.length > maxPoints ? inWindow.slice(inWindow.length - maxPoints) : inWindow
 		const lastUpdatedTs =
 			inWindow.length > 0
 				? inWindow[inWindow.length - 1][0]

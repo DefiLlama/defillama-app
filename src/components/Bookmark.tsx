@@ -1,14 +1,14 @@
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { useBookmarks } from '~/hooks/useBookmarks'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { BasicLink } from './Link'
 
-interface IBookmarkProps {
+interface IBookmarkProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	readableName: string
 	configID?: string
 	isChain?: boolean
-	[key: string]: any
 }
 
 export function Bookmark({ readableName, configID, isChain, ...props }: IBookmarkProps) {
@@ -18,7 +18,7 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 	const urlPath = isYieldsPage ? '/yields/watchlist' : '/watchlist'
 
 	const watchlistType = isChain ? 'chains' : isYieldsPage ? 'yields' : 'defi'
-	const watchlistNameKey = isYieldsPage ? configID : readableName
+	const watchlistNameKey = isYieldsPage ? (configID ?? readableName) : readableName
 
 	const { savedProtocols, addProtocol, removeProtocol } = useBookmarks(watchlistType)
 
@@ -28,9 +28,9 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 		toast.success(
 			<span>
 				{action} {readableName} {action === 'Added' ? 'to' : 'from'}{' '}
-				<Link href={urlPath} className="font-medium underline">
+				<BasicLink href={urlPath} className="font-medium underline">
 					watchlist
-				</Link>
+				</BasicLink>
 			</span>
 		)
 	}
@@ -43,12 +43,15 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 		: () => {
 				addProtocol(watchlistNameKey)
 				showToast('Added')
+				if (isYieldsPage) {
+					trackYieldsEvent(YIELDS_EVENTS.WATCHLIST_POOL_ADD, { pool: readableName })
+				}
 			}
 
 	return (
 		<button
 			onClick={onClick}
-			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as any}
+			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as React.CSSProperties}
 			{...props}
 			className="-left-0.5 shrink-0 data-[bookmark=true]:absolute data-[lgonly=true]:hidden lg:data-[lgonly=true]:inline-block"
 		>

@@ -4,17 +4,12 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import dotenv from 'dotenv'
-
-dotenv.config()
+import { fetchCoreMetadata } from '../src/utils/metadata/fetch'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CACHE_DIR = path.join(__dirname, '../.cache')
 const CACHE_FILE = path.join(CACHE_DIR, 'lastPull.json')
-const PROTOCOLS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-protocols.json'
-const CHAINS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-chains.json'
-const CATEGORIES_AND_TAGS_DATA_URL = 'https://api.llama.fi/config/smol/appMetadata-categoriesAndTags.json'
-const CEXS_DATA_URL = 'https://api.llama.fi/cexs'
+
 const FIVE_MINUTES = 5 * 60 * 1000
 let defillamaPages
 try {
@@ -28,8 +23,6 @@ try {
 	}
 }
 
-const fetchJson = async (url) => fetch(url).then((res) => res.json())
-
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1)
 
 async function pullData() {
@@ -37,13 +30,22 @@ async function pullData() {
 	const startAt = endAt - 1000 * 60 * 60 * 24 * 90
 
 	try {
-		const [protocols, chains, categoriesAndTags, cexs, { tastyMetrics, trendingRoutes }] = await Promise.all([
-			fetchJson(PROTOCOLS_DATA_URL),
-			fetchJson(CHAINS_DATA_URL),
-			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-			fetchJson(CEXS_DATA_URL)
-				.then((data) => data.cexs ?? [])
-				.catch(() => []),
+		const [
+			{
+				protocols,
+				chains,
+				categoriesAndTags,
+				cexs,
+				rwaList,
+				tokenlist,
+				cgExchangeIdentifiers,
+				bridgeProtocolSlugs,
+				bridgeChainSlugs,
+				bridgeChainSlugToName
+			},
+			{ tastyMetrics, trendingRoutes }
+		] = await Promise.all([
+			fetchCoreMetadata(),
 			process.env.TASTY_API_URL
 				? fetch(`${process.env.TASTY_API_URL}/metrics?startAt=${startAt}&endAt=${endAt}&unit=day&type=url`, {
 						headers: {
@@ -79,6 +81,14 @@ async function pullData() {
 		fs.writeFileSync(path.join(CACHE_DIR, 'protocols.json'), JSON.stringify(protocols))
 		fs.writeFileSync(path.join(CACHE_DIR, 'categoriesAndTags.json'), JSON.stringify(categoriesAndTags))
 		fs.writeFileSync(path.join(CACHE_DIR, 'cexs.json'), JSON.stringify(cexs))
+		fs.writeFileSync(path.join(CACHE_DIR, 'rwa.json'), JSON.stringify(rwaList))
+
+		fs.writeFileSync(path.join(CACHE_DIR, 'tokenlist.json'), JSON.stringify(tokenlist))
+		fs.writeFileSync(path.join(CACHE_DIR, 'cgExchangeIdentifiers.json'), JSON.stringify(cgExchangeIdentifiers))
+		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeProtocolSlugs.json'), JSON.stringify(bridgeProtocolSlugs))
+		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugs.json'), JSON.stringify(bridgeChainSlugs))
+		fs.writeFileSync(path.join(CACHE_DIR, 'bridgeChainSlugToName.json'), JSON.stringify(bridgeChainSlugToName))
+
 		fs.writeFileSync(CACHE_FILE, JSON.stringify({ lastPull: Date.now() }, null, 2))
 
 		// Group routes by category and sort each category by tasty metrics

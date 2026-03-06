@@ -1,40 +1,43 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
-import type { IBarChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import { LazyChart } from '~/components/LazyChart'
 import { LocalLoader } from '~/components/Loaders'
 import { LinkPreviewCard } from '~/components/SEO'
-import { BridgeAddressesTable, BridgeTokensTable } from '~/components/Table/Bridges'
 import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { BridgeAddressesTable } from '~/containers/Bridges/BridgeAddressesTable'
 import { BridgeChainSelector } from '~/containers/Bridges/BridgeChainSelector'
+import { BridgeTokensTable } from '~/containers/Bridges/BridgeTokensTable'
 import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import Layout from '~/layout'
-import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek } from '~/utils'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
+import type { BridgePageData } from './types'
 
-const BarChart = React.lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
+const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const CHART_TYPES = ['Inflows', 'Volume', 'Tokens To', 'Tokens From'] as const
 type ChartType = (typeof CHART_TYPES)[number]
 
 const GROUP_BY_VALUES = ['daily', 'weekly', 'monthly'] as const
 
-const BridgeInfo = ({
+export const BridgeInfo = ({
 	displayName,
 	logo,
 	chains,
 	defaultChain,
 	volumeDataByChain,
 	tableDataByChain,
-	config = {} as Record<string, string>
-}) => {
+	config
+}: BridgePageData) => {
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
 	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const [bridgesSettings] = useLocalStorageSettingsManager('bridges')
 	const isBridgesShowingAddresses = bridgesSettings[BRIDGES_SHOWING_ADDRESSES]
@@ -78,7 +81,7 @@ const BridgeInfo = ({
 		if (groupBy === 'daily' || allChainsVolumePairs.length === 0) return allChainsVolumePairs
 		const store: Record<number, number> = {}
 		for (const [date, value] of allChainsVolumePairs) {
-			const key = groupBy === 'weekly' ? lastDayOfWeek(date * 1e3) : firstDayOfMonth(date * 1e3)
+			const key = groupBy === 'weekly' ? lastDayOfWeek(date) : firstDayOfMonth(date)
 			store[key] = (store[key] ?? 0) + (value ?? 0)
 		}
 		return Object.entries(store)
@@ -104,7 +107,7 @@ const BridgeInfo = ({
 		if (groupBy === 'daily') return volumeChartDataByChain
 		const store: Record<number, { Deposited: number; Withdrawn: number }> = {}
 		for (const point of volumeChartDataByChain as Array<any>) {
-			const key = groupBy === 'weekly' ? lastDayOfWeek(point.date * 1e3) : firstDayOfMonth(point.date * 1e3)
+			const key = groupBy === 'weekly' ? lastDayOfWeek(point.date) : firstDayOfMonth(point.date)
 			store[key] = store[key] || { Deposited: 0, Withdrawn: 0 }
 			store[key].Deposited += Number(point.Deposited ?? 0)
 			store[key].Withdrawn += Number(point.Withdrawn ?? 0)
@@ -114,11 +117,37 @@ const BridgeInfo = ({
 			.sort((a, b) => a.date - b.date)
 	}, [isAllChains, groupBy, volumeChartDataByChain])
 
+	const volumeDataset = React.useMemo(
+		() => ({
+			source: groupedAllChainsVolumePairs.map(([d, v]) => ({ timestamp: +d * 1e3, Volume: v })),
+			dimensions: ['timestamp', 'Volume']
+		}),
+		[groupedAllChainsVolumePairs]
+	)
+
+	const inflowsDataset = React.useMemo(
+		() => ({
+			source: groupedInflowsData.map(({ date, Deposited, Withdrawn }) => ({
+				timestamp: +date * 1e3,
+				Deposited: Deposited ?? 0,
+				Withdrawn: -(Withdrawn ?? 0)
+			})),
+			dimensions: ['timestamp', 'Deposited', 'Withdrawn']
+		}),
+		[groupedInflowsData]
+	)
+	const deferredVolumeDataset = React.useDeferredValue(volumeDataset)
+	const deferredInflowsDataset = React.useDeferredValue(inflowsDataset)
+	const deferredTokenWithdrawals = React.useDeferredValue(tokenWithdrawals)
+	const deferredTokenDeposits = React.useDeferredValue(tokenDeposits)
+
+	const chartFilename = `${slug(displayName)}-${chartType === 'Volume' ? 'volume' : chartType === 'Inflows' ? 'inflows' : chartType === 'Tokens To' ? 'tokens-to' : 'tokens-from'}`
+
 	return (
 		<>
 			<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<h1 className="flex flex-nowrap items-center gap-1 text-xl font-semibold">
-					<TokenLogo logo={logo} size={24} />
+					<TokenLogo src={logo} size={24} alt={`Logo of ${displayName}`} />
 					<span>{displayName}</span>
 				</h1>
 				<BridgeChainSelector
@@ -189,50 +218,54 @@ const BridgeInfo = ({
 				</div>
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<div className="ml-auto flex w-full max-w-full items-center gap-2 overflow-x-auto p-3">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<TagGroup
 							selectedValue={chartType}
 							setValue={(chartType) => setChartType(chartType as ChartType)}
 							values={chartTypes}
-							className="ml-0"
+							className="mr-auto"
 						/>
-						{(chartType === 'Volume' || chartType === 'Inflows') && (
-							<TagGroup
-								selectedValue={groupBy}
-								setValue={(v) => setGroupBy(v as any)}
-								values={GROUP_BY_VALUES}
-								className="ml-auto"
-							/>
-						)}
+						{chartType === 'Volume' || chartType === 'Inflows' ? (
+							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v as any)} values={GROUP_BY_VALUES} />
+						) : null}
+						<ChartExportButtons
+							chartInstance={exportChartInstance}
+							filename={chartFilename}
+							title={`${displayName} ${chartType}`}
+						/>
 					</div>
-					<LazyChart className="relative col-span-full flex min-h-[360px] flex-col xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
-						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 && (
-							<React.Suspense fallback={<></>}>
-								<BarChart chartData={groupedAllChainsVolumePairs} title="" groupBy={groupBy} />
-							</React.Suspense>
-						)}
-						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 && (
-							<React.Suspense fallback={<></>}>
-								<BarChart
-									chartData={groupedInflowsData}
-									title=""
-									chartOptions={volumeChartOptions}
-									stacks={inflowChartStacks}
-									groupBy={groupBy}
+					<>
+						{chartType === 'Volume' && isAllChains && groupedAllChainsVolumePairs.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={deferredVolumeDataset}
+									charts={VOLUME_CHARTS}
+									valueSymbol="$"
+									onReady={handleChartReady}
 								/>
 							</React.Suspense>
-						)}
-						{chartType === 'Tokens To' && tokenWithdrawals && tokenWithdrawals.length > 0 && (
-							<React.Suspense fallback={<></>}>
-								<PieChart chartData={tokenWithdrawals} />
+						) : null}
+						{chartType === 'Inflows' && !isAllChains && groupedInflowsData && groupedInflowsData.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={deferredInflowsDataset}
+									charts={INFLOW_CHARTS}
+									valueSymbol="$"
+									onReady={handleChartReady}
+								/>
 							</React.Suspense>
-						)}
-						{chartType === 'Tokens From' && tokenDeposits && tokenDeposits.length > 0 && (
-							<React.Suspense fallback={<></>}>
-								<PieChart chartData={tokenDeposits} />
+						) : null}
+						{chartType === 'Tokens To' && deferredTokenWithdrawals && deferredTokenWithdrawals.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
+								<PieChart chartData={deferredTokenWithdrawals} onReady={handleChartReady} />
 							</React.Suspense>
-						)}
-					</LazyChart>
+						) : null}
+						{chartType === 'Tokens From' && deferredTokenDeposits && deferredTokenDeposits.length > 0 ? (
+							<React.Suspense fallback={<div className="min-h-[360px]" />}>
+								<PieChart chartData={deferredTokenDeposits} onReady={handleChartReady} />
+							</React.Suspense>
+						) : null}
+					</>
 				</div>
 			</div>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -250,23 +283,18 @@ const BridgeInfo = ({
 	)
 }
 
-export function BridgeProtocolOverview(props) {
+export function BridgeProtocolOverview(props: BridgePageData) {
 	return (
-		<Layout
-			title={`${props.displayName}: Bridge Volume - DefiLlama`}
-			description={`Track bridge volume and cross-chain transfers on ${props.displayName}. View bridged assets, transfer volumes, and DeFi bridge analytics from DefiLlama.`}
-			keywords={`bridge volume ${props.displayName}, cross-chain transfers ${props.displayName}, DeFi bridges ${props.displayName}, bridged assets ${props.displayName}, bridge protocol ${props.displayName}`}
-			canonicalUrl={`/bridges/${props.displayName}`}
-		>
+		<>
 			<LinkPreviewCard cardName={props.displayName} token={props.displayName} />
 			<BridgeInfo {...props} />
-		</Layout>
+		</>
 	)
 }
 
 export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['bridged-data', protocol],
+		queryKey: ['bridges', 'protocol-data', protocol],
 		queryFn: () => getBridgePageDatanew(protocol),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -275,7 +303,7 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 
 	if (isLoading) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center">
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<LocalLoader />
 			</div>
 		)
@@ -283,8 +311,8 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 
 	if (error || !data) {
 		return (
-			<div className="flex min-h-[408px] items-center justify-center">
-				<p>{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
+			<div className="flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<p className="p-2">{error instanceof Error ? error.message : "Something went wrong, couldn't fetch data"}</p>
 			</div>
 		)
 	}
@@ -296,24 +324,9 @@ export const BridgeContainerOnClient = ({ protocol }: { protocol: string }) => {
 	)
 }
 
-export const useFetchBridgeVolumeOnAllChains = (protocol?: string | null) => {
-	return useQuery({
-		queryKey: ['bridged-volume-on-all-chains', protocol],
-		queryFn: protocol
-			? () => getBridgePageDatanew(protocol).then((data) => data.volumeDataByChain['All Chains'])
-			: () => null,
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
-	})
-}
-const volumeChartOptions = {
-	overrides: {
-		inflow: true
-	}
-}
+const VOLUME_CHARTS = [{ type: 'bar' as const, name: 'Volume', encode: { x: 'timestamp', y: 'Volume' } }]
 
-const inflowChartStacks = {
-	Deposited: 'stackA',
-	Withdrawn: 'stackA'
-}
+const INFLOW_CHARTS = [
+	{ type: 'bar' as const, name: 'Deposited', encode: { x: 'timestamp', y: 'Deposited' }, stack: 'stackA' },
+	{ type: 'bar' as const, name: 'Withdrawn', encode: { x: 'timestamp', y: 'Withdrawn' }, stack: 'stackA' }
+]

@@ -1,32 +1,31 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import clsx from 'clsx'
 import { matchSorter } from 'match-sorter'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import rwaDefinitionsJson from '~/public/rwa-definitions.json'
-import { formattedNum, slug } from '~/utils'
-import type { IRWAAssetsOverview } from './queries'
-
-const definitions = rwaDefinitionsJson as typeof rwaDefinitionsJson
+import { formatNum, formattedNum, slug } from '~/utils'
+import type { IRWAAssetsOverview } from './api.types'
+import { BreakdownTooltipContent } from './BreakdownTooltipContent'
+import { definitions } from './definitions'
 
 type AssetRow = IRWAAssetsOverview['assets'][0]
 
@@ -38,7 +37,7 @@ export function RWAAssetsTable({
 	selectedChain: string
 }) {
 	const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-	const [sorting, setSorting] = useState<SortingState>([{ id: 'onChainMarketcap.total', desc: true }])
+	const [sorting, setSorting] = useState<SortingState>([{ id: 'activeMcap.total', desc: true }])
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = useState<ColumnOrderState>([])
@@ -50,7 +49,7 @@ export function RWAAssetsTable({
 		if (!deferredSearchValue) return assets
 
 		return matchSorter(assets, deferredSearchValue, {
-			keys: ['name', 'ticker'],
+			keys: ['assetName', 'ticker'],
 			threshold: matchSorter.rankings.CONTAINS
 		})
 	}, [assets, deferredSearchValue])
@@ -68,13 +67,14 @@ export function RWAAssetsTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		filterFromLeafRows: true,
-		onExpandedChange: setExpanded,
+		onExpandedChange: (updater) => startTransition(() => setExpanded(updater)),
 		getSubRows: (row: any) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -92,72 +92,17 @@ export function RWAAssetsTable({
 		[]
 	)
 
-	const setColumnOptions = (newOptions: string[]) => {
-		const ops = Object.fromEntries(instance.getAllLeafColumns().map((col) => [col.id, newOptions.includes(col.id)]))
-		instance.setColumnVisibility(ops)
-	}
-
 	const selectedColumns = instance
 		.getAllLeafColumns()
 		.filter((col) => col.getIsVisible())
 		.map((col) => col.id)
 
-	const prepareCsv = () => {
-		const tableRows = instance.getSortedRowModel().rows
-		const headers: Array<string | number | boolean> = [
-			// Keep in sync with `columns` below (virtual table columns)
-			'Name',
-			definitions.type.label,
-			definitions.rwaClassification.label,
-			definitions.accessModel.label,
-			definitions.category.label,
-			definitions.assetClass.label,
-			definitions.defiActiveTvl.label,
-			definitions.activeMarketcap.label,
-			definitions.onChainMarketcap.label,
-			'Token Price',
-			definitions.issuer.label,
-			definitions.redeemable.label,
-			definitions.attestations.label,
-			definitions.cexListed.label,
-			definitions.kycForMintRedeem.label,
-			definitions.kycAllowlistedWhitelistedToTransferHold.label,
-			definitions.transferable.label,
-			definitions.selfCustody.label
-		]
-
-		const csvData: Array<Array<string | number | boolean>> = tableRows.map((row) => {
-			const asset = row.original
-			return [
-				asset.name ?? asset.ticker ?? '',
-				asset.type ?? '',
-				asset.rwaClassification ?? '',
-				asset.accessModel ?? '',
-				asset.category?.join(', ') ?? '',
-				asset.assetClass?.join(', ') ?? '',
-				asset.defiActiveTvl.total ?? '',
-				asset.activeMarketcap.total ?? '',
-				asset.onChainMarketcap.total ?? '',
-				asset.price != null ? formattedNum(asset.price, true) : '',
-				asset.issuer ?? '',
-				asset.redeemable != null ? (asset.redeemable ? 'Yes' : 'No') : '',
-				asset.attestations != null ? (asset.attestations ? 'Yes' : 'No') : '',
-				asset.cexListed != null ? (asset.cexListed ? 'Yes' : 'No') : '',
-				asset.kycForMintRedeem != null ? (asset.kycForMintRedeem ? 'Yes' : 'No') : '',
-				asset.kycAllowlistedWhitelistedToTransferHold != null
-					? asset.kycAllowlistedWhitelistedToTransferHold
-						? 'Yes'
-						: 'No'
-					: '',
-				asset.transferable != null ? (asset.transferable ? 'Yes' : 'No') : '',
-				asset.selfCustody != null ? (asset.selfCustody ? 'Yes' : 'No') : ''
-			]
-		})
-
-		return {
-			filename: `rwa-assets${selectedChain !== 'All' ? `-${selectedChain.toLowerCase()}` : ''}.csv`,
-			rows: [headers, ...csvData]
-		}
+	const setColumnOptions = (newOptions: string[] | ((prev: string[]) => string[])) => {
+		const resolvedOptions = Array.isArray(newOptions) ? newOptions : newOptions(selectedColumns)
+		const ops = Object.fromEntries(
+			instance.getAllLeafColumns().map((col) => [col.id, resolvedOptions.includes(col.id)])
+		)
+		instance.setColumnVisibility(ops)
 	}
 
 	return (
@@ -173,10 +118,7 @@ export function RWAAssetsTable({
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={searchValue}
-						onChange={(e) => {
-							setSearchValue(e.target.value)
-						}}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 						placeholder="Search assets..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
@@ -188,12 +130,17 @@ export function RWAAssetsTable({
 					nestedMenu={false}
 					label={'Columns'}
 					labelType="smol"
-					triggerProps={{
-						className:
-							'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-					}}
+					variant="filter-responsive"
 				/>
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton
+					prepareCsv={() =>
+						prepareTableCsv({
+							instance,
+							filename: `rwa-assets${selectedChain !== 'All' ? `-${selectedChain.toLowerCase()}` : ''}`
+						})
+					}
+					smol
+				/>
 			</div>
 			<VirtualTable instance={instance} />
 		</div>
@@ -204,7 +151,7 @@ const columns: ColumnDef<AssetRow>[] = [
 	{
 		id: 'name',
 		header: 'Name',
-		accessorFn: (asset) => asset.name ?? asset.ticker,
+		accessorFn: (asset) => asset.assetName ?? asset.ticker,
 		enableSorting: false,
 		cell: (info) => {
 			return (
@@ -217,17 +164,17 @@ const columns: ColumnDef<AssetRow>[] = [
 									href={`/rwa/asset/${slug(info.row.original.ticker)}`}
 									className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 								>
-									{info.row.original.name ?? info.row.original.ticker}
+									{info.row.original.assetName ?? info.row.original.ticker}
 								</BasicLink>
-								{info.row.original.name ? (
+								{info.row.original.assetName ? (
 									<span className="text-[0.7rem] text-(--text-disabled)">{info.row.original.ticker}</span>
 								) : null}
 							</>
 						) : (
 							<>
-								{info.row.original.name && (
+								{info.row.original.assetName && (
 									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
-										{info.row.original.name}
+										{info.row.original.assetName}
 									</span>
 								)}
 							</>
@@ -239,46 +186,150 @@ const columns: ColumnDef<AssetRow>[] = [
 		size: 240
 	},
 	{
-		id: 'type',
-		header: definitions.type.label,
-		accessorFn: (asset) => asset.type,
+		id: 'category',
+		header: definitions.category.label,
+		accessorFn: (asset) => asset.category,
 		cell: (info) => {
-			const value = info.getValue() as string
-			return <span>{value}</span>
-		},
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.type.description
-		}
-	},
-	{
-		id: 'rwaClassification',
-		header: definitions.rwaClassification.label,
-		accessorFn: (asset) => asset.rwaClassification,
-		cell: (info) => {
-			const value = info.getValue() as string
-			const isTrueRWA = info.row.original.trueRWA
-			// If trueRWA flag, show green color with True RWA definition but display "RWA"
-			const tooltipContent = isTrueRWA
-				? definitions.rwaClassification.values?.['True RWA']
-				: definitions.rwaClassification.values?.[value]
+			const value = info.getValue() as string[]
+			const tooltipContent = value
+				.map((category) => {
+					const description = definitions.category.values?.[category]
+					return `${category}:\n${description || '-'}`
+				})
+				.join('\n\n')
 			if (tooltipContent) {
 				return (
 					<Tooltip
 						content={tooltipContent}
-						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted ${isTrueRWA ? 'text-(--success)' : ''}`}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
 					>
-						{value}
+						{value.join(', ')}
 					</Tooltip>
 				)
 			}
-			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
+			return (
+				<span title={value.join(', ')} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{value.join(', ')}
+				</span>
+			)
 		},
-		size: 180,
+		size: 168,
+		enableSorting: false,
 		meta: {
 			align: 'end',
-			headerHelperText: definitions.rwaClassification.description
+			headerHelperText: definitions.category.description
+		}
+	},
+	{
+		id: 'activeMcap.total',
+		header: definitions.activeMcap.label,
+		accessorFn: (asset) => asset.activeMcap?.total,
+		cell: (info) => (
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.activeMcap?.breakdown}
+				description={definitions.activeMcap.description}
+			/>
+		),
+		meta: {
+			headerHelperText: definitions.activeMcap.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'onChainMcap.total',
+		header: definitions.onChainMcap.label,
+		accessorFn: (asset) => asset.onChainMcap?.total,
+		cell: (info) => (
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.onChainMcap?.breakdown}
+				description={definitions.onChainMcap.description}
+			/>
+		),
+		size: 168,
+		meta: {
+			headerHelperText: definitions.onChainMcap.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'defiActiveTvl.total',
+		header: definitions.defiActiveTvl.label,
+		accessorFn: (asset) => asset.defiActiveTvl?.total,
+		cell: (info) => (
+			<TVLBreakdownCell
+				value={info.getValue() as number | null | undefined}
+				breakdown={info.row.original.defiActiveTvl?.breakdown}
+				description={definitions.defiActiveTvl.description}
+			/>
+		),
+		meta: {
+			headerHelperText: definitions.defiActiveTvl.description,
+			align: 'end'
+		}
+	},
+	{
+		id: 'utilization',
+		header: 'Utilization',
+		accessorFn: (asset) =>
+			Number.isNaN(Number(asset.defiActiveTvl?.total)) || Number.isNaN(Number(asset.activeMcap?.total))
+				? null
+				: formatNum((Number(asset.defiActiveTvl?.total) / Number(asset.activeMcap?.total)) * 100, 2),
+		cell: (info) => (info.getValue() != null ? `${info.getValue()}%` : null),
+		size: 120,
+		meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }
+	},
+	{
+		id: 'assetClass',
+		header: definitions.assetClass.label,
+		accessorFn: (asset) => asset.assetClass?.join(', ') ?? '',
+		cell: (info) => {
+			const assetClasses = info.row.original.assetClass
+			if (!assetClasses || assetClasses.length === 0) return null
+			// For single asset class with definition, show tooltip
+			if (assetClasses.length === 1) {
+				const ac = assetClasses[0]
+				const description = definitions.assetClass.values?.[ac]
+				if (description) {
+					return (
+						<Tooltip
+							content={description}
+							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+						>
+							{ac}
+						</Tooltip>
+					)
+				}
+				return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{ac}</span>
+			}
+			// For multiple asset classes, show combined tooltip
+			const tooltipContent = (
+				<span className="flex flex-col gap-1">
+					{assetClasses.map((ac) => {
+						const description = definitions.assetClass.values?.[ac]
+						return (
+							<span key={ac}>
+								<strong>{ac}</strong>: {description || 'No description'}
+							</span>
+						)
+					})}
+				</span>
+			)
+			return (
+				<Tooltip
+					content={tooltipContent}
+					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+				>
+					{assetClasses.join(', ')}
+				</Tooltip>
+			)
+		},
+		size: 168,
+		enableSorting: false,
+		meta: {
+			align: 'end',
+			headerHelperText: definitions.assetClass.description
 		}
 	},
 	{
@@ -298,7 +349,7 @@ const columns: ColumnDef<AssetRow>[] = [
 					<Tooltip
 						content={valueDescription}
 						className={clsx(
-							'justify-end underline decoration-dotted',
+							'justify-end',
 							value === 'Permissioned' && 'text-(--warning)',
 							value === 'Permissionless' && 'text-(--success)',
 							value === 'Non-transferable' && 'text-(--error)',
@@ -324,115 +375,66 @@ const columns: ColumnDef<AssetRow>[] = [
 			)
 		},
 		size: 180,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.accessModel.description
 		}
 	},
 	{
-		id: 'category',
-		header: definitions.category.label,
-		accessorFn: (asset) => asset.category?.join(', ') ?? '',
+		id: 'type',
+		header: definitions.type.label,
+		accessorFn: (asset) => asset.type,
 		cell: (info) => {
 			const value = info.getValue() as string
-			return (
-				<span title={value} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value}
-				</span>
-			)
-		},
-		size: 168,
-		meta: {
-			align: 'end',
-			headerHelperText: definitions.category.description
-		}
-	},
-	{
-		id: 'assetClass',
-		header: definitions.assetClass.label,
-		accessorFn: (asset) => asset.assetClass?.join(', ') ?? '',
-		cell: (info) => {
-			const assetClasses = info.row.original.assetClass
-			if (!assetClasses || assetClasses.length === 0) return null
-			// For single asset class with definition, show tooltip
-			if (assetClasses.length === 1) {
-				const ac = assetClasses[0]
-				const description = definitions.assetClass.values?.[ac]
-				if (description) {
-					return (
-						<Tooltip
-							content={description}
-							className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
-						>
-							{ac}
-						</Tooltip>
-					)
-				}
-				return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{ac}</span>
+			const tooltipContent = definitions.type.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+					>
+						{value}
+					</Tooltip>
+				)
 			}
-			// For multiple asset classes, show combined tooltip
-			const tooltipContent = (
-				<span className="flex flex-col gap-1">
-					{assetClasses.map((ac) => {
-						const description = definitions.assetClass.values?.[ac]
-						return (
-							<span key={ac}>
-								<strong>{ac}</strong>: {description || 'No description'}
-							</span>
-						)
-					})}
-				</span>
-			)
-			return (
-				<Tooltip
-					content={tooltipContent}
-					className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap underline decoration-dotted"
-				>
-					{assetClasses.join(', ')}
-				</Tooltip>
-			)
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
-		size: 168,
+		size: 120,
+		enableSorting: false,
 		meta: {
 			align: 'end',
-			headerHelperText: definitions.assetClass.description
+			headerHelperText: definitions.type.description
 		}
 	},
 	{
-		id: 'defiActiveTvl.total',
-		header: definitions.defiActiveTvl.label,
-		accessorFn: (asset) => asset.defiActiveTvl.total,
-		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.defiActiveTvl.breakdown} />
-		),
+		id: 'rwaClassification',
+		header: definitions.rwaClassification.label,
+		accessorFn: (asset) => asset.rwaClassification,
+		cell: (info) => {
+			const value = info.getValue() as string
+			const isTrueRWA = info.row.original.trueRWA
+			// If trueRWA flag, show green color with True RWA definition but display "RWA"
+			const tooltipContent = isTrueRWA
+				? definitions.rwaClassification.values?.['True RWA']
+				: definitions.rwaClassification.values?.[value]
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className={`inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap ${isTrueRWA ? 'text-(--success)' : ''}`}
+					>
+						{value}
+					</Tooltip>
+				)
+			}
+			return <span className="inline-block max-w-full overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
+		},
+		size: 180,
+		enableSorting: false,
 		meta: {
-			headerHelperText: definitions.defiActiveTvl.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'activeMarketcap.total',
-		header: definitions.activeMarketcap.label,
-		accessorFn: (asset) => asset.activeMarketcap.total,
-		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.activeMarketcap.breakdown} />
-		),
-		meta: {
-			headerHelperText: definitions.activeMarketcap.description,
-			align: 'end'
-		}
-	},
-	{
-		id: 'onChainMarketcap.total',
-		header: definitions.onChainMarketcap.label,
-		accessorFn: (asset) => asset.onChainMarketcap.total,
-		cell: (info) => (
-			<TVLBreakdownCell value={info.getValue() as number} breakdown={info.row.original.onChainMarketcap.breakdown} />
-		),
-		size: 168,
-		meta: {
-			headerHelperText: definitions.onChainMarketcap.description,
-			align: 'end'
+			align: 'end',
+			headerHelperText: definitions.rwaClassification.description
 		}
 	},
 	{
@@ -458,6 +460,7 @@ const columns: ColumnDef<AssetRow>[] = [
 			)
 		},
 		size: 120,
+		enableSorting: false,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.issuer.description
@@ -570,22 +573,14 @@ const columns: ColumnDef<AssetRow>[] = [
 	}
 ]
 
-const BreakdownTooltipContent = ({ breakdown }: { breakdown: Array<[string, number]> }) => (
-	<span className="flex flex-col gap-1">
-		{breakdown.map(([chain, tvl]) => (
-			<span key={`${chain}-${tvl}`}>
-				{chain}: {formattedNum(tvl, true)}
-			</span>
-		))}
-	</span>
-)
-
 const TVLBreakdownCell = ({
 	value,
-	breakdown
+	breakdown,
+	description
 }: {
-	value: number | null
-	breakdown: Array<[string, number]> | null
+	value: number | null | undefined
+	breakdown: Array<[string, number]> | null | undefined
+	description: string
 }) => {
 	if (value == null) {
 		return null
@@ -597,7 +592,7 @@ const TVLBreakdownCell = ({
 
 	return (
 		<Tooltip
-			content={<BreakdownTooltipContent breakdown={breakdown} />}
+			content={<BreakdownTooltipContent breakdown={breakdown} description={description} />}
 			className="justify-end underline decoration-dotted"
 		>
 			{formattedNum(value, true)}

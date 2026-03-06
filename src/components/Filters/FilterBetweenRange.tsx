@@ -1,13 +1,14 @@
 import * as Ariakit from '@ariakit/react'
-import { FormEventHandler, InputHTMLAttributes, ReactNode } from 'react'
+import clsx from 'clsx'
+import type { InputHTMLAttributes, ReactNode } from 'react'
+import { Icon } from '~/components/Icon'
 import { NestedMenu } from '~/components/NestedMenu'
-import { cn } from '~/utils/cn'
-import { Icon } from '../Icon'
+import type { FormSubmitHandler } from '~/types/forms'
 
 interface IFilterBetweenRange {
 	name: string
 	trigger: ReactNode
-	onSubmit: FormEventHandler<HTMLFormElement>
+	onSubmit: FormSubmitHandler
 	onClear: () => void
 	nestedMenu?: boolean
 	min: number | string | null
@@ -21,19 +22,18 @@ interface IFilterBetweenRange {
 	maxInputProps?: InputHTMLAttributes<HTMLInputElement>
 }
 
-const getVariantClasses = (variant: string) => {
-	switch (variant) {
-		case 'secondary':
-			return 'bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) flex items-center justify-between gap-2 px-3 py-1.5 rounded-md cursor-pointer text-(--text-primary) text-xs flex-nowrap'
-		default:
-			return 'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
-	}
-}
+const baseClasses = 'flex items-center justify-between gap-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap'
+
+const variantClasses = {
+	primary:
+		'px-2 relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium',
+	secondary: 'px-3 bg-(--btn-bg) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) text-(--text-primary)'
+} as const
 
 export function FilterBetweenRange({
-	name,
+	name: _name,
 	trigger,
-	onSubmit,
+	onSubmit: handleSubmit,
 	onClear,
 	nestedMenu,
 	min,
@@ -52,9 +52,9 @@ export function FilterBetweenRange({
 
 	if (nestedMenu) {
 		return (
-			<NestedMenu label={name}>
+			<NestedMenu label={trigger} render={<button type="button" />} menuPortal>
 				<Form
-					onSubmit={onSubmit}
+					onSubmit={handleSubmit}
 					onClear={onClear}
 					min={min}
 					max={max}
@@ -69,7 +69,7 @@ export function FilterBetweenRange({
 
 	return (
 		<Ariakit.PopoverProvider store={popover}>
-			<Ariakit.PopoverDisclosure data-variant={variant} className={cn(getVariantClasses(variant), triggerClassName)}>
+			<Ariakit.PopoverDisclosure className={clsx(baseClasses, variantClasses[variant], triggerClassName)}>
 				{trigger}
 				<Ariakit.PopoverDisclosureArrow className="h-3 w-3 shrink-0" />
 			</Ariakit.PopoverDisclosure>
@@ -93,7 +93,7 @@ export function FilterBetweenRange({
 						min={min}
 						max={max}
 						onSubmit={(e) => {
-							onSubmit(e)
+							handleSubmit(e)
 							popover.hide()
 						}}
 						onClear={() => {
@@ -121,7 +121,7 @@ function Form({
 	minInputProps,
 	maxInputProps
 }: {
-	onSubmit: FormEventHandler<HTMLFormElement>
+	onSubmit: FormSubmitHandler
 	onClear: () => void
 	min: number | string | null
 	max: number | string | null

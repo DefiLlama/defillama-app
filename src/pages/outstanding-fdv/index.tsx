@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
-import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
-import { getProtocolsAdjustedFDVsByChain } from '~/containers/ProtocolsWithTokens/queries'
+import type { InferGetStaticPropsType } from 'next'
+import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
+import { getProtocolsAdjustedFDVsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, async () => {
@@ -18,12 +19,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-aFDV/index`, asy
 
 const pageName = ['Protocols', 'ranked by', 'Outstanding FDV']
 
-export default function ProtocolsMarketCaps(props) {
+export default function ProtocolsMarketCaps(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Outstanding FDV - DefiLlama"
-			description={`Outstanding FDV by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`outstanding fdv, defi outstanding fdv`}
+			title="Outstanding FDV Rankings - DeFi Protocol Valuation - DefiLlama"
+			description="Track DeFi protocol outstanding FDV rankings across all chains. Compare outstanding fully diluted valuations (circulating supply only) for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto oFDV analytics."
 			canonicalUrl={`/outstanding-fdv`}
 			pageName={pageName}
 		>

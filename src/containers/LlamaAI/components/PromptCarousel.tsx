@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 
@@ -13,21 +13,13 @@ interface Category {
 
 interface PromptCarouselProps {
 	categories: Category[]
-	setPrompt: (prompt: string) => void
-	submitPrompt: (prompt: { userQuestion: string }) => void
+	onSubmit: (prompt: string) => void
 	isPending: boolean
 	isLoading?: boolean
 	error?: Error | null
 }
 
-export function PromptCarousel({
-	categories,
-	setPrompt,
-	submitPrompt,
-	isPending,
-	isLoading,
-	error
-}: PromptCarouselProps) {
+export function PromptCarousel({ categories, onSubmit, isPending, isLoading, error }: PromptCarouselProps) {
 	const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
 	const [currentPage, setCurrentPage] = useState(0)
 
@@ -35,12 +27,9 @@ export function PromptCarousel({
 	const currentCategory = categories[safeIndex]
 	const questions = currentCategory?.prompts || []
 	const totalPages = Math.ceil(questions.length / ITEMS_PER_PAGE)
-	const startIndex = currentPage * ITEMS_PER_PAGE
+	const effectivePage = totalPages > 0 ? Math.min(currentPage, totalPages - 1) : 0
+	const startIndex = effectivePage * ITEMS_PER_PAGE
 	const visibleQuestions = questions.slice(startIndex, startIndex + ITEMS_PER_PAGE)
-
-	useEffect(() => {
-		setCurrentPage((prev) => Math.min(prev, Math.max(0, totalPages - 1)))
-	}, [totalPages])
 
 	const handlePreviousCategory = () => {
 		setCurrentCategoryIndex((prev) => (prev - 1 + categories.length) % categories.length)
@@ -61,8 +50,7 @@ export function PromptCarousel({
 	}
 
 	const handleClick = (question: string) => {
-		setPrompt(question)
-		submitPrompt({ userQuestion: question })
+		onSubmit(question)
 	}
 
 	if (isLoading) {
@@ -145,7 +133,7 @@ export function PromptCarousel({
 								key={i}
 								onClick={() => setCurrentPage(i)}
 								className={`h-1 rounded-full transition-all duration-200 ${
-									i === currentPage
+									i === effectivePage
 										? 'w-3 bg-[#2563eb]/40 dark:bg-[#60a5fa]/30'
 										: 'w-1 bg-[#d0d0d0] hover:bg-[#b0b0b0] dark:bg-[#303030] dark:hover:bg-[#404040]'
 								}`}

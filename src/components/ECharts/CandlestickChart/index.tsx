@@ -15,8 +15,8 @@ import { oldBlue } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { useMedia } from '~/hooks/useMedia'
+import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../formatters'
 import type { ICandlestickChartProps } from '../types'
-import { formatChartEmphasisDate, formatTooltipChartDate, formatTooltipValue } from '../useDefaults'
 
 echarts.use([
 	CanvasRenderer,
@@ -32,6 +32,8 @@ echarts.use([
 	LegendComponent
 ])
 
+const EMPTY_INDICATORS: ICandlestickChartProps['indicators'] = []
+
 const INDICATOR_COLORS = ['#ff7f0e', '#2ca02c', '#9467bd', '#e377c2', '#17becf', '#bcbd22', '#7f7f7f']
 
 const PANEL_HEIGHT = 60
@@ -39,7 +41,7 @@ const VOLUME_HEIGHT = 80
 const DATAZOOM_HEIGHT = 52
 const BASE_BOTTOM = DATAZOOM_HEIGHT
 
-export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICandlestickChartProps) {
+export default function CandleStickAndVolumeChart({ data, indicators = EMPTY_INDICATORS }: ICandlestickChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const isSmall = useMedia(`(max-width: 37.5rem)`)
@@ -62,8 +64,18 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 		const priceBottom = volumeBottom + VOLUME_HEIGHT + 20
 
 		const grids: any[] = [
-			{ left: 12, bottom: priceBottom, top: 12, right: 12 },
-			{ height: VOLUME_HEIGHT, left: 54, right: 12, bottom: volumeBottom }
+			{
+				left: 48,
+				bottom: priceBottom,
+				top: 12,
+				right: 12
+			},
+			{
+				height: VOLUME_HEIGHT,
+				left: 48,
+				right: 12,
+				bottom: volumeBottom
+			}
 		]
 
 		const xAxes: any[] = [
@@ -125,7 +137,14 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			const gridIdx = idx + 2
 			const bottom = BASE_BOTTOM + (panelCount - idx - 1) * PANEL_HEIGHT
 
-			grids.push({ height: PANEL_HEIGHT - 10, left: 54, right: 12, bottom })
+			grids.push({
+				height: PANEL_HEIGHT - 10,
+				left: 54,
+				right: 12,
+				bottom,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel'
+			})
 
 			xAxes.push({
 				type: 'time',
@@ -198,13 +217,13 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 			xAxis: xAxes,
 			yAxis: yAxes,
 			dataZoom: [
-				{ type: 'inside', xAxisIndex: allAxisIndices, start: 10, end: 100 },
+				{ type: 'inside', xAxisIndex: allAxisIndices, start: 0, end: 100 },
 				{
 					show: true,
 					xAxisIndex: allAxisIndices,
 					type: 'slider',
 					bottom: 10,
-					start: 10,
+					start: 0,
 					end: 100,
 					textStyle: { color: isThemeDark ? 'rgba(255,255,255,1)' : 'rgba(0,0,0,1)' },
 					borderColor: isThemeDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)',
@@ -217,16 +236,7 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 					fillerColor: isThemeDark ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.1)',
 					labelFormatter: formatChartEmphasisDate
 				}
-			],
-			visualMap: {
-				show: false,
-				seriesIndex: 1,
-				dimension: 6,
-				pieces: [
-					{ value: 1, color: isThemeDark ? '#3eb84f' : '#018a13' },
-					{ value: -1, color: isThemeDark ? '#e24a42' : '#e60d02' }
-				]
-			}
+			]
 		}
 	}, [isSmall, isThemeDark, panels, overlays.length])
 
@@ -365,14 +375,20 @@ export default function CandleStickAndVolumeChart({ data, indicators = [] }: ICa
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
-		instance.setOption({
-			...defaultChartSettings,
-			dataset: { source: data },
-			series
-		})
+		instance.setOption(
+			{
+				...defaultChartSettings,
+				dataset: { source: data },
+				series
+			},
+			// When indicators change we change the number of grids/axes/series.
+			// ECharts merges arrays by index by default, which can leave stale layout components
+			// (making grid.left/right look like they "don't apply"). Replace-merge fixes that.
+			{ replaceMerge: ['grid', 'xAxis', 'yAxis', 'series', 'dataZoom', 'dataset'] }
+		)
 
 		return () => {
 			chartRef.current = null

@@ -1,12 +1,20 @@
-import { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { BorrowedProtocolsTVLByChain } from '~/containers/TotalBorrowed/BorrowedByChain'
-import { getTotalBorrowedByChain } from '~/containers/TotalBorrowed/queries'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
+import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticPaths = async () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
 	return { paths: [], fallback: 'blocking' }
 }
 
@@ -19,8 +27,9 @@ export const getStaticProps = withPerformanceLogging(
 			return { notFound: true }
 		}
 
-		const data = await getTotalBorrowedByChain({
+		const data = await getExtraTvlByChain({
 			chain: metadataCache.chainMetadata[chain].name,
+			metric: 'borrowed',
 			protocolMetadata: metadataCache.protocolMetadata
 		})
 
@@ -35,16 +44,16 @@ export const getStaticProps = withPerformanceLogging(
 
 const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
-export default function TotalBorrowedByChain(props) {
+export default function TotalBorrowedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	console.log(props)
 	return (
 		<Layout
-			title="Total Borrowed - DefiLlama"
+			title={`Total Borrowed in DeFi on ${props.chain} - DefiLlama`}
 			description={`Total Borrowed by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`total value borrowed by protocol on ${props.chain}`}
-			canonicalUrl={`/total-borrowed/chain/${props.chain}`}
+			canonicalUrl={`/total-borrowed/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
-			<BorrowedProtocolsTVLByChain {...props} />
+			<ExtraTvlByChain {...props} />
 		</Layout>
 	)
 }

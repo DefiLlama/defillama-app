@@ -1,10 +1,12 @@
 import * as Ariakit from '@ariakit/react'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import clsx from 'clsx'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SEO } from '~/components/SEO'
+import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { cn } from '~/utils/cn'
+import { useIsClient } from '~/hooks/useIsClient'
 
 const EXAMPLE_CONVERSATIONS = [
 	{
@@ -33,81 +35,6 @@ const EXAMPLE_CONVERSATIONS = [
 	}
 ] as const
 
-const WHY_LLAMAAI_FEATURES = [
-	{
-		title: 'Faster Insights',
-		description:
-			"LlamaAI leverages DefiLlama's data to handle the heavy lifting of analysis so you can move from question to insight in a fraction of the time.",
-		icon: (
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-				<path
-					d="M9 3H5C3.89543 3 3 3.89543 3 5V9C3 10.1046 3.89543 11 5 11H9C10.1046 11 11 10.1046 11 9V5C11 3.89543 10.1046 3 9 3Z"
-					stroke="currentColor"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-				<path
-					d="M7 11V15C7 15.5304 7.21071 16.0391 7.58579 16.4142C7.96086 16.7893 8.46957 17 9 17H13"
-					stroke="currentColor"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-				<path
-					d="M19 13H15C13.8954 13 13 13.8954 13 15V19C13 20.1046 13.8954 21 15 21H19C20.1046 21 21 20.1046 21 19V15C21 13.8954 20.1046 13 19 13Z"
-					stroke="currentColor"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-			</svg>
-		)
-	},
-	{
-		title: 'Automatic Charts',
-		description:
-			'Generates the right chart for your query and pairs it with structured insights, visual context, and downloadable data.',
-		icon: (
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-				<path
-					d="M3 3V19C3 19.5304 3.21071 20.0391 3.58579 20.4142C3.96086 20.7893 4.46957 21 5 21H21"
-					stroke="currentColor"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-				<path
-					d="M7 11.2069C7.00003 11.0746 7.05253 10.9476 7.146 10.8539L9.146 8.85393C9.19245 8.80736 9.24762 8.77042 9.30837 8.74521C9.36911 8.72001 9.43423 8.70703 9.5 8.70703C9.56577 8.70703 9.63089 8.72001 9.69163 8.74521C9.75238 8.77042 9.80755 8.80736 9.854 8.85393L13.146 12.1459C13.1924 12.1925 13.2476 12.2294 13.3084 12.2546C13.3691 12.2798 13.4342 12.2928 13.5 12.2928C13.5658 12.2928 13.6309 12.2798 13.6916 12.2546C13.7524 12.2294 13.8076 12.1925 13.854 12.1459L18.146 7.85393C18.2159 7.78388 18.3049 7.73614 18.402 7.71674C18.499 7.69734 18.5996 7.70716 18.691 7.74495C18.7824 7.78274 18.8606 7.84681 18.9156 7.92905C18.9706 8.01128 19 8.10799 19 8.20692V15.9999C19 16.2651 18.8946 16.5195 18.7071 16.707C18.5196 16.8946 18.2652 16.9999 18 16.9999H8C7.73478 16.9999 7.48043 16.8946 7.29289 16.707C7.10536 16.5195 7 16.2651 7 15.9999V11.2069Z"
-					stroke="currentColor"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-			</svg>
-		)
-	},
-	{
-		title: 'Connect the Dots',
-		description:
-			"Navigate DefiLlama's dataset with flexibility, combining metrics and surfacing insights not easily discoverable on dashboards.",
-		icon: (
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-				<path
-					d="M22 17C22 17.5304 21.7893 18.0391 21.4142 18.4142C21.0391 18.7893 20.5304 19 20 19H6.828C6.29761 19.0001 5.78899 19.2109 5.414 19.586L3.212 21.788C3.1127 21.8873 2.9862 21.9549 2.84849 21.9823C2.71077 22.0097 2.56803 21.9956 2.43831 21.9419C2.30858 21.8881 2.1977 21.7971 2.11969 21.6804C2.04167 21.5637 2.00002 21.4264 2 21.286V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H20C20.5304 3 21.0391 3.21071 21.4142 3.58579C21.7893 3.96086 22 4.46957 22 5V17Z"
-					stroke="currentColor"
-					strokeWidth="1.5"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				/>
-				<path d="M12 11H12.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-				<path d="M16 11H16.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-				<path d="M8 11H8.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-			</svg>
-		)
-	}
-] as const
-
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
@@ -118,7 +45,7 @@ const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
 	return (
 		<>
 			{!isAuthenticated || !hasActiveSubscription ? (
-				<div className={cn('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
+				<div className={clsx('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
 					<span className="inline-flex items-center rounded-full border border-[#C99A4A]/40 bg-linear-to-r from-[#C99A4A]/10 via-[#C99A4A]/5 to-[#C99A4A]/10 px-3.5 py-2 text-[13px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/40 dark:from-[#FDE0A9]/10 dark:via-[#FDE0A9]/5 dark:to-[#FDE0A9]/10 dark:text-[#FDE0A9]">
 						7 days free · Cancel anytime
 					</span>
@@ -146,7 +73,7 @@ const CTAButton = ({
 		<BasicLink
 			href="/ai/chat"
 			data-umami-event="llamaai-landing-cta-subscribed"
-			className={cn(
+			className={clsx(
 				'llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_40px_0px_rgba(253,224,169,0.7)]',
 				className
 			)}
@@ -160,7 +87,7 @@ const CTAButton = ({
 		<button
 			onClick={() => subscribeModalStore.show()}
 			data-umami-event="llamaai-landing-cta-unsubscribed"
-			className={cn(
+			className={clsx(
 				'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
 				className
 			)}
@@ -177,20 +104,16 @@ export default function LlamaAIGetStarted() {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
-	const [mounted, setMounted] = useState(false)
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
 
-	useEffect(() => {
-		setMounted(true)
-	}, [])
+	const isClient = useIsClient()
 
 	return (
 		<>
 			<SEO
 				title="LlamaAI - DefiLlama"
-				description="Ask questions, generate charts, and explore any DeFi metric instantly. LlamaAI brings the power of DefiLlama's comprehensive data to your fingertips through natural conversation."
-				keywords="LlamaAI, DefiLlama AI, DeFi AI"
-				canonicalUrl="https://defillama.com/ai"
+				description="AI-powered research across DeFi, TradFi, and onchain data. Parallel agents, scheduled alerts, custom memory, and DefiLlama's full dataset through natural conversation."
+				canonicalUrl="/ai"
 			/>
 			<style>{`
 				@keyframes cta-glow-pulse {
@@ -200,6 +123,10 @@ export default function LlamaAIGetStarted() {
 				.animate-cta-glow {
 					animation: cta-glow-pulse 2s ease-in-out infinite;
 				}
+				@keyframes bentoBarShimmer {
+					0%, 100% { opacity: 0.3; }
+					50% { opacity: 0.7; }
+				}
 			`}</style>
 			<div className="col-span-full flex min-h-screen flex-col overflow-x-hidden bg-[#FAFAFA] dark:bg-[#131416]">
 				{/* Header */}
@@ -208,14 +135,13 @@ export default function LlamaAIGetStarted() {
 						href="/"
 						className="inline-block w-fit opacity-70 transition-opacity duration-300 hover:opacity-100"
 					>
-						<span className="sr-only">Navigate to Home Page</span>
+						<span className="sr-only">Navigate to DeFi Dashboard</span>
 						<img
 							src="/assets/defillama.webp"
 							height={36}
 							width={105}
 							className="hidden object-contain object-left dark:block"
 							alt=""
-							fetchPriority="high"
 						/>
 						<img
 							src="/assets/defillama-dark.webp"
@@ -223,7 +149,6 @@ export default function LlamaAIGetStarted() {
 							width={105}
 							className="object-contain object-left dark:hidden"
 							alt=""
-							fetchPriority="high"
 						/>
 					</BasicLink>
 				</header>
@@ -233,10 +158,10 @@ export default function LlamaAIGetStarted() {
 					<div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 lg:gap-16">
 						{/* Left: Text Content */}
 						<div
-							className={cn(
+							className={clsx(
 								'relative z-10 flex flex-col items-center text-center md:items-start md:text-left',
 								'transition-all duration-700',
-								mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+								isClient ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
 							)}
 						>
 							{/* Llama Icon */}
@@ -271,7 +196,7 @@ export default function LlamaAIGetStarted() {
 								</span>
 							</h1>
 							<p className="mb-8 max-w-lg text-lg leading-relaxed text-[#555] md:text-xl dark:text-[#a0a0a5]">
-								AI-powered DeFi research: deep data, live insights, actionable analysis.
+								AI-powered research: DeFi and TradFi data with live insights and actionable analysis.
 							</p>
 							<div className="relative z-20">
 								<CTAButton subscribeModalStore={subscribeModalStore} />
@@ -281,10 +206,10 @@ export default function LlamaAIGetStarted() {
 
 						{/* Right: Video Preview Card */}
 						<div
-							className={cn(
+							className={clsx(
 								'relative w-full',
 								'transition-all delay-200 duration-700',
-								mounted ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+								isClient ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
 							)}
 						>
 							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
@@ -355,7 +280,7 @@ export default function LlamaAIGetStarted() {
 
 						<div className="grid gap-5 md:grid-cols-3">
 							{EXAMPLE_CONVERSATIONS.map((example, index) => (
-								<div key={example.id} className={cn('flex flex-col', index === 1 && 'md:translate-y-8')}>
+								<div key={example.id} className={clsx('flex flex-col', index === 1 && 'md:translate-y-8')}>
 									{/* Category Header */}
 									<h3 className="mb-3 text-sm font-bold tracking-wider text-[#C99A4A] uppercase md:text-base dark:text-[#FDE0A9]">
 										{example.category}
@@ -365,7 +290,7 @@ export default function LlamaAIGetStarted() {
 										href={example.url}
 										target="_blank"
 										rel="noopener noreferrer"
-										className={cn(
+										className={clsx(
 											'group relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white transition-all duration-500',
 											'hover:-translate-y-2 hover:border-[#C99A4A]/40 hover:shadow-[0_24px_64px_rgba(253,224,169,0.25)]',
 											'dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30 dark:hover:shadow-[0_24px_64px_rgba(253,224,169,0.12)]'
@@ -405,25 +330,219 @@ export default function LlamaAIGetStarted() {
 					</div>
 				</section>
 
-				{/* Your Research Edge */}
+				{/* Your Research Edge - Bento Grid */}
 				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
 					<div className="mx-auto max-w-5xl">
-						<h2 className="mb-10 text-center text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:mb-12 md:text-[2rem] dark:text-white">
-							Your research edge
+						<h2 className="mb-8 text-center text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:mb-10 md:text-[2rem] dark:text-white">
+							Every metric. Every market. One conversation.
 						</h2>
-
-						<div className="grid gap-6 md:grid-cols-3 md:gap-8">
-							{WHY_LLAMAAI_FEATURES.map((feature) => (
-								<div key={feature.title} className="flex items-start gap-3">
-									<span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center text-[#C99A4A] dark:text-[#FDE0A9]">
-										{feature.icon}
-									</span>
-									<div>
-										<p className="mb-1 font-semibold text-black dark:text-white">{feature.title}</p>
-										<p className="text-[15px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">{feature.description}</p>
+						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+							{/* DeFi & TradFi - wide card, first */}
+							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 md:col-span-2 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
+								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">
+									DeFi, TradFi & Onchain
+								</h3>
+								<p className="mb-4 max-w-lg text-[14px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">
+									DefiLlama's 5,000+ protocols paired with stocks, macro, and onchain data. Questions that used to need
+									multiple tools and tabs are now single prompts.
+								</p>
+								{/* Mini UI: tool calls panel */}
+								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
+									<div className="flex items-center justify-between border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
+										<span className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">5 tool calls</span>
+										<span className="text-[10px] text-[#999] dark:text-[#666]">
+											<span className="text-[#22c55e]">5/5 ok</span> 6921ms
+										</span>
+									</div>
+									<div className="space-y-0 divide-y divide-[#E8E8E8] dark:divide-[#2a2a2e]">
+										{[
+											{ key: 'load_skill', time: '2ms' },
+											{ key: 'execute_sql', time: '31ms', detail: '64 rows' },
+											{ key: 'valyu_search', time: '6579ms', detail: '42 rows' },
+											{ key: 'execute_code', time: '14ms' },
+											{ key: 'generate_chart', time: '295ms' }
+										].map((tool) => {
+											const meta = TOOL_ICONS[tool.key] || { icon: 'sparkles', color: '#919296' }
+											return (
+												<div key={tool.key} className="flex items-center gap-2 px-3 py-1.5">
+													<Icon
+														name={meta.icon as any}
+														height={11}
+														width={11}
+														className="shrink-0 opacity-70"
+														style={{ color: meta.color }}
+													/>
+													<span className="flex-1 truncate text-[11px] text-[#555] dark:text-[#999]">
+														{TOOL_LABELS[tool.key]}
+													</span>
+													<span className="text-[10px] font-medium text-[#22c55e]">ok</span>
+													<span className="text-[10px] text-[#999] tabular-nums dark:text-[#666]">{tool.time}</span>
+													{tool.detail && (
+														<span className="text-[10px] text-[#999] tabular-nums dark:text-[#666]">{tool.detail}</span>
+													)}
+												</div>
+											)
+										})}
 									</div>
 								</div>
-							))}
+							</div>
+
+							{/* Scheduled Alerts */}
+							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
+								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">Scheduled Alerts</h3>
+								<p className="mb-4 text-[14px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">
+									Automate recurring prompts. Set up daily price checks, portfolio summaries, or custom data monitors on
+									your schedule.
+								</p>
+								{/* Mini UI: alert panel matching actual UI */}
+								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
+									<div className="border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
+										<div className="flex items-center gap-2">
+											{/* Calendar icon */}
+											<div className="flex h-5 w-5 items-center justify-center rounded bg-[#C99A4A]/15 dark:bg-[#FDE0A9]/15">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="11"
+													height="11"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth="2.5"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													className="text-[#C99A4A] dark:text-[#FDE0A9]"
+												>
+													<rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+													<line x1="16" y1="2" x2="16" y2="6" />
+													<line x1="8" y1="2" x2="8" y2="6" />
+													<line x1="3" y1="10" x2="21" y2="10" />
+												</svg>
+											</div>
+											<span className="text-[11px] font-semibold text-[#333] dark:text-[#ccc]">Your Alerts</span>
+										</div>
+									</div>
+									<div className="flex items-center gap-2 px-3 py-2.5">
+										<div className="min-w-0 flex-1">
+											<p className="truncate text-[11px] font-medium text-[#333] dark:text-[#ccc]">
+												Daily Crypto Price Check
+											</p>
+											<p className="text-[10px] text-[#999] dark:text-[#666]">Daily at 9 AM UTC</p>
+										</div>
+										<div className="h-3.5 w-6 shrink-0 rounded-full bg-[#3B82F6] p-0.5">
+											<div className="h-2.5 w-2.5 translate-x-2.5 rounded-full bg-white shadow-sm" />
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Memory & Settings */}
+							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
+								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">
+									Customize Your Experience
+								</h3>
+								<p className="mb-4 text-[14px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">
+									LlamaAI learns what you care about and tailors responses to your style. Set custom instructions and
+									let memory build your profile across sessions.
+								</p>
+								{/* Mini UI: settings panel matching actual UI */}
+								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
+									<div className="border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
+										<div className="flex items-center gap-2">
+											<div className="flex h-5 w-5 items-center justify-center rounded bg-[#3B82F6]/15">
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="11"
+													height="11"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													strokeWidth="2.5"
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													className="text-[#3B82F6]"
+												>
+													<circle cx="12" cy="12" r="3" />
+													<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+												</svg>
+											</div>
+											<span className="text-[11px] font-semibold text-[#333] dark:text-[#ccc]">Settings</span>
+										</div>
+									</div>
+									<div className="space-y-0 divide-y divide-[#E8E8E8] dark:divide-[#2a2a2e]">
+										<div className="px-3 py-2">
+											<p className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">Custom Instructions</p>
+											<p className="text-[10px] text-[#999] dark:text-[#666]">Be concise. Always include % changes.</p>
+										</div>
+										<div className="flex items-center gap-2 px-3 py-2">
+											<div className="min-w-0 flex-1">
+												<p className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">Remember my preferences</p>
+											</div>
+											<div className="h-3.5 w-6 shrink-0 rounded-full bg-[#3B82F6] p-0.5">
+												<div className="h-2.5 w-2.5 translate-x-2.5 rounded-full bg-white shadow-sm" />
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+
+							{/* Research Reports - wide card */}
+							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 md:col-span-2 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
+								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">Research Reports</h3>
+								<p className="mb-4 max-w-lg text-[14px] leading-relaxed text-[#555] dark:text-[#a0a0a5]">
+									Generate in-depth research reports on any protocol, sector, or trend. Multiple agents research in
+									parallel, then synthesize everything into a single exportable PDF.
+								</p>
+								{/* Mini UI: "Researching in parallel..." panel */}
+								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
+									<div className="flex items-center gap-2.5 border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
+										<span className="text-[13px]">🦙</span>
+										<span className="flex-1 text-[11px] font-medium text-[#333] dark:text-[#ccc]">
+											Researching in parallel...
+										</span>
+										<span className="rounded bg-[#E8E8E8] px-1.5 py-0.5 text-[10px] font-medium text-[#555] dark:bg-[#2a2a2e] dark:text-[#999]">
+											1/3 done
+										</span>
+										<span className="rounded bg-[#E8E8E8] px-1.5 py-0.5 font-mono text-[10px] text-[#555] dark:bg-[#2a2a2e] dark:text-[#999]">
+											01:27
+										</span>
+									</div>
+									<div className="space-y-1.5 px-3 py-2.5">
+										<div className="flex items-center gap-2">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												width="10"
+												height="10"
+												viewBox="0 0 24 24"
+												fill="none"
+												stroke="#22c55e"
+												strokeWidth="3"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											>
+												<polyline points="20 6 9 17 4 12" />
+											</svg>
+											<span className="text-[11px] text-[#555] dark:text-[#999]">
+												<span className="font-medium text-[#333] dark:text-[#ccc]">regulatory</span> Complete (19 tools,
+												3 charts)
+											</span>
+										</div>
+										<div className="flex items-center gap-2">
+											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
+											<span className="text-[11px] text-[#555] dark:text-[#999]">
+												<span className="font-medium text-[#333] dark:text-[#ccc]">market_dynamics</span>{' '}
+												{TOOL_LABELS.generate_chart}
+											</span>
+										</div>
+										<div className="flex items-center gap-2">
+											<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[#3B82F6]" />
+											<span className="text-[11px] text-[#555] dark:text-[#999]">
+												<span className="font-medium text-[#333] dark:text-[#ccc]">competitive_positioning</span>{' '}
+												{TOOL_LABELS.web_search}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 				</section>
@@ -438,9 +557,9 @@ export default function LlamaAIGetStarted() {
 						<div className="divide-y divide-[#E8E8E8] border-t border-[#E8E8E8] dark:divide-[#2a2a2e] dark:border-[#2a2a2e]">
 							<FAQ question="What is LlamaAI?">
 								<p>
-									Your AI research assistant for DeFi. Ask questions in plain language and get ranked tables, custom
-									charts, research reports, and analysis. LlamaAI combines DefiLlama's comprehensive dataset with
-									real-time web search and market data.
+									Your AI research assistant for DeFi and financial markets. Ask questions in plain language and get
+									ranked tables, custom charts, research reports, and analysis. LlamaAI combines DefiLlama's
+									comprehensive dataset with TradFi data, onchain analytics, and real-time web search.
 								</p>
 							</FAQ>
 							<FAQ question="What can it do right now?">
@@ -449,14 +568,16 @@ export default function LlamaAIGetStarted() {
 									<li>Run complex multi-factor queries (e.g., growing TVL + revenue but declining token price)</li>
 									<li>Generate custom charts and export data as CSV</li>
 									<li>Write in-depth research reports on any topic</li>
-									<li>
-										Provide speculative guidance using technical indicators, statistical models (e.g., Monte Carlo), and
-										prediction market data
-									</li>
+									<li>Query DeFi, TradFi (stocks, ETFs, macro), and onchain data in a single prompt</li>
+									<li>Set up scheduled alerts for automated research (e.g., daily price checks)</li>
+									<li>Remember your preferences, yield criteria, and custom instructions across sessions</li>
 								</ul>
 							</FAQ>
 							<FAQ question="What data does LlamaAI have access to?">
-								<p>DefiLlama's complete dataset enriched with real-time web search for the latest context.</p>
+								<p>
+									DefiLlama's complete dataset, onchain data across EVM chains, TradFi data (stocks, ETFs, macros), and
+									real-time web search for the latest context.
+								</p>
 							</FAQ>
 							<FAQ question="Who has access?">
 								<p>
@@ -471,10 +592,12 @@ export default function LlamaAIGetStarted() {
 									<li>"What are the best stablecoin yields with at least $10M TVL?"</li>
 									<li>"Deep dive into Hyperliquid"</li>
 									<li>"What are the probabilities that ETH price will go lower?"</li>
+									<li>"What are the top tokens traded on CowSwap over the last 30 days?"</li>
+									<li>"How is AAPL performing relative to BTC this quarter?"</li>
 								</ul>
 							</FAQ>
 							<FAQ question="Can I export results?">
-								<p>Yes. You can download returned tables and charts as CSVs.</p>
+								<p>Yes. Tables and charts export as CSV, and research reports can be downloaded as PDF.</p>
 							</FAQ>
 							<FAQ question="Is this investment advice?">
 								<p>

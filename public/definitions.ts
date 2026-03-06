@@ -208,6 +208,34 @@ export const definitions = {
       "change7dover7d": "Change of last 7 days notional volume including leverage over the previous 7 days notional volume including leverage",
     }
   },
+  "normalizedVolume": {
+    "common": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions",
+    "protocol": {
+      "24h": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 24 hours",
+      "7d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 7 days",
+      "30d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 30 days",
+      "1y": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions in the last 12 months",
+      "cumulative": "Total normalized trading volume since the protocol was launched",
+      "annualized": "Total normalized trading volume in the last 30 days, multiplied by 12 to annualize it",
+      "change1d": "Day-over-day percentage change in normalized trading volume",
+      "change7d": "Week-over-week percentage change in normalized trading volume",
+      "change1m": "Month-over-month percentage change in normalized trading volume",
+      "change7dover7d": "Change of last 7 days normalized trading volume over the previous 7 days normalized trading volume",
+      "change30dover30d": "Change of last 30 days normalized trading volume over the previous 30 days normalized trading volume",
+      "average1y": "Average monthly normalized trading volume in the last 12 months"
+    },
+    "chain": {
+      "24h": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions on the chain in the last 24 hours",
+      "7d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions on the chain in the last 7 days",
+      "30d": "The estimated amount of genuine trading activity after filtering out suspected wash trading, calculated by determining how much volume can legitimately occur given the available liquidity and current market volatility conditions on the chain in the last 30 days. Updated daily at 00:00 UTC",
+      "change7dover7d": "Change of last 7 days normalized trading volume over the previous 7 days normalized trading volume",
+    }
+  },
+  "activeLiquidity": {
+    "common": "The total dollar value of buy and sell orders positioned close enough to the current price that they could realistically be traded against during normal market activity - essentially, the \"usable\" depth in the orderbook",
+    "protocol": "The total dollar value of buy and sell orders positioned close enough to the current price that they could realistically be traded against during normal market activity - essentially, the \"usable\" depth in the orderbook",
+    "chain": "The total dollar value of buy and sell orders positioned close enough to the current price that they could realistically be traded against during normal market activity - essentially, the \"usable\" depth in the orderbook on all protocols on the chain"
+  },
   "perpsAggregators": {
     "common": "Notional volume of all trades including leverage routed through the perp aggregator",
     "protocol": {

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { toNumberOrNullFromQueryParam } from '~/utils'
+import { parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
 
 interface IFormatYieldQueryParams {
 	projectList?: Array<string>
@@ -8,13 +8,7 @@ interface IFormatYieldQueryParams {
 	farmProtocols?: Array<string>
 	chainList?: Array<string>
 	categoryList?: Array<string>
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
+	evmChains?: Array<string>
 }
 
 export const useFormatYieldQueryParams = ({
@@ -22,8 +16,10 @@ export const useFormatYieldQueryParams = ({
 	chainList,
 	categoryList,
 	lendingProtocols,
-	farmProtocols
+	farmProtocols,
+	evmChains
 }: IFormatYieldQueryParams) => {
+	const evmChainsSet = React.useMemo(() => new Set(evmChains ?? []), [evmChains])
 	const router = useRouter()
 	const {
 		project,
@@ -141,12 +137,29 @@ export const useFormatYieldQueryParams = ({
 
 		// Chains - apply exclusion inline
 		if (chainList) {
+			const isEvmChain = (c: string) => evmChainsSet.has(c) || evmChainsSet.has(c.toLowerCase())
+
 			let chains: string[]
 			if (chain) {
 				if (typeof chain === 'string') {
-					chains = chain === 'All' ? [...chainList] : chain === 'None' ? [] : [chain]
+					if (chain === 'All') {
+						chains = [...chainList]
+					} else if (chain === 'None') {
+						chains = []
+					} else if (chain === 'ALL_EVM') {
+						chains = chainList.filter(isEvmChain)
+					} else {
+						chains = [chain]
+					}
 				} else {
-					chains = [...chain]
+					// Handle array of chains - expand ALL_EVM if present
+					if (chain.includes('ALL_EVM')) {
+						const evmChainsFromList = chainList.filter(isEvmChain)
+						const otherChains = chain.filter((c) => c !== 'ALL_EVM')
+						chains = [...new Set([...otherChains, ...evmChainsFromList])]
+					} else {
+						chains = [...chain]
+					}
 				}
 			} else {
 				chains = [...chainList]
@@ -212,13 +225,13 @@ export const useFormatYieldQueryParams = ({
 			selectedLendingProtocols,
 			selectedFarmProtocols,
 			pairTokens,
-			minTvl: toNumberOrNullFromQueryParam(minTvl),
-			maxTvl: toNumberOrNullFromQueryParam(maxTvl),
-			minApy: toNumberOrNullFromQueryParam(minApy),
-			maxApy: toNumberOrNullFromQueryParam(maxApy),
-			minAvailable: minAvailable ? toNumberOrNullFromQueryParam(minAvailable) : null,
-			maxAvailable: maxAvailable ? toNumberOrNullFromQueryParam(maxAvailable) : null,
-			customLTV: toNumberOrNullFromQueryParam(customLTV)
+			minTvl: parseNumberQueryParam(minTvl),
+			maxTvl: parseNumberQueryParam(maxTvl),
+			minApy: parseNumberQueryParam(minApy),
+			maxApy: parseNumberQueryParam(maxApy),
+			minAvailable: parseNumberQueryParam(minAvailable),
+			maxAvailable: parseNumberQueryParam(maxAvailable),
+			customLTV: parseNumberQueryParam(customLTV)
 		}
 	}, [
 		projectList,
@@ -248,6 +261,7 @@ export const useFormatYieldQueryParams = ({
 		maxApy,
 		minAvailable,
 		maxAvailable,
-		customLTV
+		customLTV,
+		evmChainsSet
 	])
 }

@@ -6,10 +6,28 @@ import type {
 	IMultiSeriesChartProps,
 	IPieChartProps
 } from '~/components/ECharts/types'
-import { generateChartColor } from '~/containers/ProDashboard/utils'
-import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, getNDistinctColors } from '~/utils'
 import type { ChartConfiguration } from '../types'
+
+// const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
+
+const CHART_COLORS = [
+	'#2172E5',
+	'#FF6B6B',
+	'#4ECDC4',
+	'#45B7D1',
+	'#96CEB4',
+	'#FFEAA7',
+	'#DDA0DD',
+	'#98D8C8',
+	'#F7DC6F',
+	'#BB8FCE',
+	'#85C1E9',
+	'#F8C471',
+	'#82E0AA',
+	'#F1948A',
+	'#85929E'
+]
 
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
@@ -21,23 +39,17 @@ const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Arr
 }
 
 interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
+	chartType: 'area' | 'bar' | 'combo' | 'line' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
 	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
 	title: string
 	description: string
 }
 
-const getChartColor = (entityValue?: string, seriesIndex?: number, fallbackColor: string = '#8884d8'): string => {
-	if (entityValue) {
-		return colorManager.getItemColor(entityValue, 'protocol', fallbackColor)
-	}
-
+const getChartColor = (_entityValue?: string, seriesIndex?: number, fallbackColor: string = '#8884d8'): string => {
 	if (seriesIndex !== undefined) {
-		const pseudoEntity = `series_${seriesIndex}`
-		return generateChartColor(pseudoEntity, fallbackColor)
+		return CHART_COLORS[seriesIndex % CHART_COLORS.length]
 	}
-
 	return fallbackColor
 }
 
@@ -65,19 +77,6 @@ const formatPrecisionPercentage = (value: number): string => {
 	}
 
 	return `${Math.round(value * 100) / 100}%`
-}
-
-const _formatChartValue = (value: number, valueSymbol?: string): string => {
-	switch (valueSymbol) {
-		case '%':
-			return formatPrecisionPercentage(value)
-		case '$':
-			return formattedNum(value, true)
-		case '':
-			return formattedNum(value)
-		default:
-			return `${formattedNum(value)} ${valueSymbol || ''}`
-	}
 }
 
 const validateChartData = (
@@ -112,10 +111,6 @@ const validateChartData = (
 	})
 
 	return validData
-}
-
-const determineTimeGrouping = (_data: any[], _timeField: string): 'day' | 'week' | 'month' => {
-	return 'day'
 }
 
 const convertToUnixTimestamp = (timestamp: any): number => {
@@ -302,9 +297,6 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			throw new Error('No data provided')
 		}
 
-		const timeField = config.dataTransformation?.timeField || config.axes.x.field
-		const _timeGrouping = determineTimeGrouping(rawData, timeField)
-
 		const primarySeries = config.series[0]
 		if (!primarySeries) {
 			throw new Error('No series configuration found')
@@ -319,7 +311,6 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 				const value = row[primarySeries.dataMapping.yField]
 
 				const unixTimestamp = convertToUnixTimestamp(timestamp)
-				// Preserve null/undefined values for connectNulls to work
 				return [unixTimestamp, value == null ? null : parseStringNumber(value)]
 			})
 
@@ -397,8 +388,10 @@ export function adaptChartData(config: ChartConfiguration, rawData: any[]): Adap
 			})
 		}
 
+		const resolvedType = config.type === 'combo' ? (primarySeries?.type === 'bar' ? 'bar' : 'area') : config.type
+
 		return {
-			chartType: config.type === 'combo' ? 'area' : config.type,
+			chartType: resolvedType,
 			data: validatedData,
 			props: commonProps,
 			title: config.title,
@@ -569,8 +562,6 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 	}
 }
 
-const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
-
 export function adaptCandlestickData(
 	config: ChartConfiguration,
 	rawData: any
@@ -578,101 +569,103 @@ export function adaptCandlestickData(
 	let data: ICandlestickChartProps['data'] = []
 	let indicators: ICandlestickChartProps['indicators'] = []
 
-	if (rawData?.ohlcv) {
-		data = rawData.ohlcv.map((row: any[]) => [row[0], row[1], row[2], row[3], row[4], row[5]])
-		indicators = Object.entries(rawData.indicators || {}).map(([name, ind]: [string, any]) => {
-			const isOverlay = OVERLAY_INDICATORS.some((o) => name.toLowerCase().startsWith(o))
-			const hasMultiValues = ind.data?.[0]?.values
-			return {
-				name,
-				category: isOverlay ? 'overlay' : 'panel',
-				data: ind.data?.map((d: any) => [d.date, d.value]) || [],
-				values: hasMultiValues ? ind.data.map((d: any) => [d.date, d.values]) : undefined
-			}
+	if (!Array.isArray(rawData) || rawData.length === 0) {
+		return { data, indicators }
+	}
+
+	const sample = rawData[0] || {}
+	const keys = Object.keys(sample)
+	const getTs = (r: any) => {
+		const t = Number(r.timestamp)
+		if (Number.isFinite(t)) {
+			return t < 1e12 ? t * 1000 : t
+		}
+		return new Date(r.date).getTime()
+	}
+
+	data = rawData.map((r: any) => [
+		getTs(r),
+		parseFloat(r.open ?? r.price ?? 0),
+		parseFloat(r.close),
+		parseFloat(r.low),
+		parseFloat(r.high),
+		parseFloat(r.volume || 0)
+	])
+
+	const bbUpper = keys.find((k) => k.includes('_bb_upper'))
+	const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
+	const bbLower = keys.find((k) => k.includes('_bb_lower'))
+	if (bbUpper && bbMiddle && bbLower) {
+		indicators.push({
+			name: 'BBands',
+			category: 'overlay',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{
+					upper: parseFloat(r[bbUpper] || 0),
+					middle: parseFloat(r[bbMiddle] || 0),
+					lower: parseFloat(r[bbLower] || 0)
+				}
+			])
 		})
-	} else if (Array.isArray(rawData)) {
-		const sample = rawData[0] || {}
-		const keys = Object.keys(sample)
-		const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) : new Date(r.date).getTime())
+	}
 
-		data = rawData.map((r: any) => [
-			getTs(r),
-			parseFloat(r.open),
-			parseFloat(r.close),
-			parseFloat(r.low),
-			parseFloat(r.high),
-			parseFloat(r.volume || 0)
-		])
-
-		const bbUpper = keys.find((k) => k.includes('_bb_upper'))
-		const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
-		const bbLower = keys.find((k) => k.includes('_bb_lower'))
-		if (bbUpper && bbMiddle && bbLower) {
-			indicators.push({
-				name: 'BBands',
-				category: 'overlay',
-				data: [],
-				values: rawData.map((r: any) => [
-					getTs(r),
-					{
-						upper: parseFloat(r[bbUpper] || 0),
-						middle: parseFloat(r[bbMiddle] || 0),
-						lower: parseFloat(r[bbLower] || 0)
-					}
-				])
+	const maFields = keys.filter((k) => /^(sma|ema|dema|tema|wma|vwap)_?\d*$/i.test(k))
+	for (const field of maFields) {
+		indicators.push({
+			name: field.toUpperCase(),
+			category: 'overlay',
+			data: rawData.map((r: any) => {
+				const v = parseFloat(r[field])
+				return [getTs(r), Number.isFinite(v) ? v : null]
 			})
-		}
+		})
+	}
 
-		const maFields = keys.filter((k) => /_(ma|sma|ema)\d*$/i.test(k) || /^(sma|ema)_\d+$/i.test(k))
-		for (const field of maFields) {
-			indicators.push({
-				name: field.toUpperCase(),
-				category: 'overlay',
-				data: rawData.map((r: any) => [getTs(r), parseFloat(r[field]) || null])
+	const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
+	if (rsiField) {
+		indicators.push({
+			name: 'RSI',
+			category: 'panel',
+			data: rawData.map((r: any) => {
+				const v = parseFloat(r[rsiField])
+				return [getTs(r), Number.isFinite(v) ? v : null]
 			})
-		}
+		})
+	}
 
-		const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
-		if (rsiField) {
-			indicators.push({
-				name: 'RSI',
-				category: 'panel',
-				data: rawData.map((r: any) => [getTs(r), parseFloat(r[rsiField]) || null])
-			})
-		}
+	const macdField = keys.find((k) => k === 'macd')
+	const signalField = keys.find((k) => k === 'macd_signal')
+	const histField = keys.find((k) => k === 'macd_histogram')
+	if (macdField || signalField || histField) {
+		indicators.push({
+			name: 'MACD',
+			category: 'panel',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{
+					macd: parseFloat(r[macdField as string] || 0),
+					signal: parseFloat(r[signalField as string] || 0),
+					histogram: parseFloat(r[histField as string] || 0)
+				}
+			])
+		})
+	}
 
-		const macdField = keys.find((k) => k === 'macd')
-		const signalField = keys.find((k) => k === 'macd_signal')
-		const histField = keys.find((k) => k === 'macd_histogram')
-		if (macdField || signalField || histField) {
-			indicators.push({
-				name: 'MACD',
-				category: 'panel',
-				data: [],
-				values: rawData.map((r: any) => [
-					getTs(r),
-					{
-						macd: parseFloat(r[macdField as string] || 0),
-						signal: parseFloat(r[signalField as string] || 0),
-						histogram: parseFloat(r[histField as string] || 0)
-					}
-				])
-			})
-		}
-
-		const stochK = keys.find((k) => k === 'stoch_k')
-		const stochD = keys.find((k) => k === 'stoch_d')
-		if (stochK || stochD) {
-			indicators.push({
-				name: 'Stoch',
-				category: 'panel',
-				data: [],
-				values: rawData.map((r: any) => [
-					getTs(r),
-					{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
-				])
-			})
-		}
+	const stochK = keys.find((k) => k === 'stoch_k')
+	const stochD = keys.find((k) => k === 'stoch_d')
+	if (stochK || stochD) {
+		indicators.push({
+			name: 'Stoch',
+			category: 'panel',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
+			])
+		})
 	}
 
 	return { data, indicators }

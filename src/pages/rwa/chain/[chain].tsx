@@ -1,0 +1,77 @@
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { RWAOverview } from '~/containers/RWA'
+import { getRWAAssetsOverview } from '~/containers/RWA/queries'
+import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
+
+export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
+	return {
+		paths: rwaList.chains.slice(0, 10).map((chain) => ({ params: { chain: rwaSlug(chain) } })),
+		fallback: 'blocking'
+	}
+}
+
+export const getStaticProps = withPerformanceLogging(
+	`rwa/chain/[chain]`,
+	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
+		if (!params?.chain) {
+			return { notFound: true }
+		}
+
+		const chainSlug = rwaSlug(params.chain)
+
+		let chainName = null
+		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const rwaList = metadataCache.rwaList
+		for (const chain of rwaList.chains) {
+			if (rwaSlug(chain) === chainSlug) {
+				chainName = chain
+				break
+			}
+		}
+		if (!chainName) {
+			return { notFound: true }
+		}
+
+		const props = await getRWAAssetsOverview({ chain: chainSlug, rwaList })
+
+		if (!props) {
+			return { notFound: true }
+		}
+
+		return {
+			props: { ...props, chainName },
+			revalidate: maxAgeForNext([22])
+		}
+	}
+)
+
+const pageName = ['RWA']
+
+export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title={`Real World Assets (RWA) on ${props.chainName} Dashboard & Analytics - DefiLlama`}
+			description={`${props.chainName} RWA on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			pageName={pageName}
+			canonicalUrl={`/rwa/chain/${props.chainSlug}`}
+		>
+			<RWAOverview {...props} />
+		</Layout>
+	)
+}

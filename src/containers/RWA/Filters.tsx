@@ -1,12 +1,69 @@
+import { useRouter } from 'next/router'
+import { Checkbox } from '~/components/Checkbox'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
-import { Switch } from '~/components/Switch'
-import type { IRWAAssetsOverview } from './queries'
-
-const filterTriggerClassName =
-	'flex items-center justify-between gap-2 py-1.5 px-2 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
+import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
+import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
+import { pushShallowQuery } from '~/utils/routerQuery'
+import type { IRWAAssetsOverview } from './api.types'
+import { definitions } from './definitions'
 
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
+const ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
+type RWAAttributeFilterState = (typeof ATTRIBUTE_FILTER_STATES)[number]
+const ATTRIBUTE_FILTER_STATE_LABELS: Record<RWAAttributeFilterState, string> = {
+	yes: 'Yes',
+	no: 'No',
+	unknown: 'Unknown'
+}
+
+const FILTER_QUERY_KEYS = [
+	'assetNames',
+	'excludeAssetNames',
+	'types',
+	'excludeTypes',
+	'categories',
+	'excludeCategories',
+	'platforms',
+	'excludePlatforms',
+	'assetClasses',
+	'excludeAssetClasses',
+	'rwaClassifications',
+	'excludeRwaClassifications',
+	'accessModels',
+	'excludeAccessModels',
+	'issuers',
+	'excludeIssuers',
+	'minDefiActiveTvlToOnChainMcapPct',
+	'maxDefiActiveTvlToOnChainMcapPct',
+	'minActiveMcapToOnChainMcapPct',
+	'maxActiveMcapToOnChainMcapPct',
+	'minDefiActiveTvlToActiveMcapPct',
+	'maxDefiActiveTvlToActiveMcapPct',
+	'includeStablecoins',
+	'includeGovernance',
+	'redeemableStates',
+	'attestationsStates',
+	'cexListedStates',
+	'kycForMintRedeemStates',
+	'kycAllowlistedWhitelistedToTransferHoldStates',
+	'transferableStates',
+	'selfCustodyStates'
+] as const
+
+const CHART_QUERY_KEYS = [
+	'chartType',
+	'chartView',
+	'nonTimeSeriesChartBreakdown',
+	'treemapNestedBy',
+	// Legacy key kept for cleanup when present in shared links/bookmarks.
+	'pieChartBreakdown'
+] as const
+
+const RESETTABLE_QUERY_KEYS = [...FILTER_QUERY_KEYS, ...CHART_QUERY_KEYS] as const
 
 const formatPercentRange = (minPercent: number | null, maxPercent: number | null) => {
 	const minLabel = minPercent != null ? `${minPercent.toLocaleString()}%` : 'no min'
@@ -14,253 +71,455 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 	return `${minLabel} - ${maxLabel}`
 }
 
-export function RWAOverviewFilters({
-	enabled,
-	isChainMode,
-	isPlatformMode,
-	assetNames,
-	categoriesOptions,
-	assetClassOptions,
-	rwaClassificationOptions,
-	accessModelOptions,
-	issuers,
-	selectedAssetNames,
-	selectedCategories,
-	selectedAssetClasses,
-	selectedRwaClassifications,
-	selectedAccessModels,
-	selectedIssuers,
-	minDefiActiveTvlToOnChainPct,
-	maxDefiActiveTvlToOnChainPct,
-	minActiveMcapToOnChainPct,
-	maxActiveMcapToOnChainPct,
-	minDefiActiveTvlToActiveMcapPct,
-	maxDefiActiveTvlToActiveMcapPct,
-	setDefiActiveTvlToOnChainPctRange,
-	setActiveMcapToOnChainPctRange,
-	setDefiActiveTvlToActiveMcapPctRange,
-	includeStablecoins,
-	includeGovernance,
-	setIncludeStablecoins,
-	setIncludeGovernance
-}: {
-	enabled: boolean
+type RWAFilterModes = {
 	isChainMode: boolean
+	isCategoryMode: boolean
 	isPlatformMode: boolean
+}
+
+type RWAFilterOptions = {
 	assetNames: IRWAAssetsOverview['assetNames']
+	typeOptions: IRWAAssetsOverview['typeOptions']
 	categoriesOptions: IRWAAssetsOverview['categoriesOptions']
+	platforms: IRWAAssetsOverview['platforms']
 	assetClassOptions: IRWAAssetsOverview['assetClassOptions']
 	rwaClassificationOptions: IRWAAssetsOverview['rwaClassificationOptions']
 	accessModelOptions: IRWAAssetsOverview['accessModelOptions']
 	issuers: IRWAAssetsOverview['issuers']
+}
+
+type RWAFilterSelections = {
 	selectedAssetNames: string[]
+	selectedTypes: string[]
 	selectedCategories: string[]
+	selectedPlatforms: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
 	selectedIssuers: string[]
-	minDefiActiveTvlToOnChainPct: number | null
-	maxDefiActiveTvlToOnChainPct: number | null
-	minActiveMcapToOnChainPct: number | null
-	maxActiveMcapToOnChainPct: number | null
+	selectedRedeemableStates: RWAAttributeFilterState[]
+	selectedAttestationsStates: RWAAttributeFilterState[]
+	selectedCexListedStates: RWAAttributeFilterState[]
+	selectedKycForMintRedeemStates: RWAAttributeFilterState[]
+	selectedKycAllowlistedWhitelistedToTransferHoldStates: RWAAttributeFilterState[]
+	selectedTransferableStates: RWAAttributeFilterState[]
+	selectedSelfCustodyStates: RWAAttributeFilterState[]
+	minDefiActiveTvlToOnChainMcapPct: number | null
+	maxDefiActiveTvlToOnChainMcapPct: number | null
+	minActiveMcapToOnChainMcapPct: number | null
+	maxActiveMcapToOnChainMcapPct: number | null
 	minDefiActiveTvlToActiveMcapPct: number | null
 	maxDefiActiveTvlToActiveMcapPct: number | null
-	setDefiActiveTvlToOnChainPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
-	setActiveMcapToOnChainPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
-	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	includeStablecoins: boolean
 	includeGovernance: boolean
+}
+
+type RWAFilterActions = {
+	setDefiActiveTvlToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	setActiveMcapToOnChainMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	setDefiActiveTvlToActiveMcapPctRange: (minValue: string | number | null, maxValue: string | number | null) => void
 	setIncludeStablecoins: (value: boolean) => void
 	setIncludeGovernance: (value: boolean) => void
+	setRedeemableStates: (values: RWAAttributeFilterState[]) => void
+	setAttestationsStates: (values: RWAAttributeFilterState[]) => void
+	setCexListedStates: (values: RWAAttributeFilterState[]) => void
+	setKycForMintRedeemStates: (values: RWAAttributeFilterState[]) => void
+	setKycAllowlistedWhitelistedToTransferHoldStates: (values: RWAAttributeFilterState[]) => void
+	setTransferableStates: (values: RWAAttributeFilterState[]) => void
+	setSelfCustodyStates: (values: RWAAttributeFilterState[]) => void
+}
+
+type RWAOverviewFiltersProps = {
+	enabled: boolean
+	modes: RWAFilterModes
+	options: RWAFilterOptions
+	selections: RWAFilterSelections
+	actions: RWAFilterActions
+}
+
+type RWAAttributeFilterConfig = {
+	queryKey: string
+	label: string
+	selectedStates: RWAAttributeFilterState[]
+	onUpdateStates: (values: RWAAttributeFilterState[]) => void
+}
+
+const toggleAttributeFilterState = (
+	selectedStates: RWAAttributeFilterState[],
+	state: RWAAttributeFilterState
+): RWAAttributeFilterState[] => {
+	const selectedSet = new Set(selectedStates)
+	if (selectedSet.has(state)) {
+		selectedSet.delete(state)
+	} else {
+		selectedSet.add(state)
+	}
+	return ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
+}
+
+function AttributesFilter({
+	nestedMenu,
+	attributeFilters
+}: {
+	nestedMenu?: boolean
+	attributeFilters: RWAAttributeFilterConfig[]
 }) {
-	if (!enabled) return null
+	const usePortal = true
+
+	const activeAttributeFiltersCount = attributeFilters.filter(
+		(filter) => filter.selectedStates.length !== ATTRIBUTE_FILTER_STATES.length
+	).length
+
+	const trigger =
+		activeAttributeFiltersCount > 0 ? (
+			<>
+				<span>Attributes: </span>
+				<span className="text-(--link)">{activeAttributeFiltersCount} active</span>
+			</>
+		) : (
+			<span>Attributes</span>
+		)
+
+	const attributeSubmenus = attributeFilters.map((filter) => {
+		const subMenuLabel =
+			filter.selectedStates.length === ATTRIBUTE_FILTER_STATES.length
+				? filter.label
+				: `${filter.label} (${filter.selectedStates.length}/3)`
+
+		return (
+			<NestedMenu
+				key={filter.queryKey}
+				label={<span className="block text-left">{subMenuLabel}</span>}
+				render={<button type="button" />}
+				menuPortal={usePortal}
+				className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
+			>
+				{ATTRIBUTE_FILTER_STATES.map((state) => {
+					const isSelected = filter.selectedStates.includes(state)
+					return (
+						<NestedMenuItem
+							key={`${filter.queryKey}-${state}`}
+							hideOnClick={false}
+							onClick={(event) => {
+								event.preventDefault()
+								event.stopPropagation()
+								filter.onUpdateStates(toggleAttributeFilterState(filter.selectedStates, state))
+							}}
+							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+						>
+							<span>{ATTRIBUTE_FILTER_STATE_LABELS[state]}</span>
+							<span className="flex h-3.5 w-3.5 items-center justify-center">
+								{isSelected ? <Icon name="check" height={12} width={12} className="text-(--link)" /> : null}
+							</span>
+						</NestedMenuItem>
+					)
+				})}
+			</NestedMenu>
+		)
+	})
+
+	if (nestedMenu) {
+		return (
+			<NestedMenu label={trigger} render={<button type="button" />} menuPortal={usePortal}>
+				{attributeSubmenus}
+			</NestedMenu>
+		)
+	}
 
 	return (
-		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1 md:flex-row md:flex-wrap md:items-center">
-			{isPlatformMode && assetNames.length > 1 ? (
-				<SelectWithCombobox
-					allValues={assetNames}
-					selectedValues={selectedAssetNames}
-					includeQueryKey="assetNames"
-					excludeQueryKey="excludeAssetNames"
-					label={'Asset Names'}
-					labelType="smol"
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
-				/>
-			) : null}
-			{isChainMode && categoriesOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={categoriesOptions}
-					selectedValues={selectedCategories}
-					includeQueryKey="categories"
-					excludeQueryKey="excludeCategories"
-					label={'Categories'}
-					labelType="smol"
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
-				/>
-			) : null}
-			{assetClassOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={assetClassOptions}
-					selectedValues={selectedAssetClasses}
-					includeQueryKey="assetClasses"
-					excludeQueryKey="excludeAssetClasses"
-					label={'Asset Classes'}
-					labelType="smol"
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
-				/>
-			) : null}
-			{rwaClassificationOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={rwaClassificationOptions}
-					selectedValues={selectedRwaClassifications}
-					includeQueryKey="rwaClassifications"
-					excludeQueryKey="excludeRwaClassifications"
-					label={'RWA Classification'}
-					labelType="smol"
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
-				/>
-			) : null}
-			{accessModelOptions.length > 1 ? (
-				<SelectWithCombobox
-					allValues={accessModelOptions}
-					selectedValues={selectedAccessModels}
-					includeQueryKey="accessModels"
-					excludeQueryKey="excludeAccessModels"
-					label={'Access Model'}
-					labelType="smol"
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
-				/>
-			) : null}
-			{issuers.length > 1 ? (
-				<SelectWithCombobox
-					allValues={issuers}
-					selectedValues={selectedIssuers}
-					includeQueryKey="issuers"
-					excludeQueryKey="excludeIssuers"
-					label={'Issuers'}
-					labelType="smol"
-					triggerProps={{
-						className: filterTriggerClassName
-					}}
-				/>
-			) : null}
-			<FilterBetweenRange
-				name="DeFi TVL / Onchain %"
-				trigger={
-					minDefiActiveTvlToOnChainPct != null || maxDefiActiveTvlToOnChainPct != null ? (
-						<>
-							<span>DeFi TVL / Onchain: </span>
-							<span className="text-(--link)">
-								{formatPercentRange(minDefiActiveTvlToOnChainPct, maxDefiActiveTvlToOnChainPct)}
-							</span>
-						</>
-					) : (
-						<span>DeFi TVL / Onchain %</span>
-					)
-				}
-				onSubmit={(e) => {
-					e.preventDefault()
-					const form = e.currentTarget
-					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setDefiActiveTvlToOnChainPctRange(minValue, maxValue)
-				}}
-				onClear={() => setDefiActiveTvlToOnChainPctRange(null, null)}
-				min={minDefiActiveTvlToOnChainPct}
-				max={maxDefiActiveTvlToOnChainPct}
-				minLabel="Min %"
-				maxLabel="Max %"
-				minInputProps={ratioPercentInputProps}
-				maxInputProps={ratioPercentInputProps}
-			/>
-			<FilterBetweenRange
-				name="Active Marketcap / Onchain %"
-				trigger={
-					minActiveMcapToOnChainPct != null || maxActiveMcapToOnChainPct != null ? (
-						<>
-							<span>Active Marketcap / Onchain: </span>
-							<span className="text-(--link)">
-								{formatPercentRange(minActiveMcapToOnChainPct, maxActiveMcapToOnChainPct)}
-							</span>
-						</>
-					) : (
-						<span>Active Marketcap / Onchain %</span>
-					)
-				}
-				onSubmit={(e) => {
-					e.preventDefault()
-					const form = e.currentTarget
-					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setActiveMcapToOnChainPctRange(minValue, maxValue)
-				}}
-				onClear={() => setActiveMcapToOnChainPctRange(null, null)}
-				min={minActiveMcapToOnChainPct}
-				max={maxActiveMcapToOnChainPct}
-				minLabel="Min %"
-				maxLabel="Max %"
-				minInputProps={ratioPercentInputProps}
-				maxInputProps={ratioPercentInputProps}
-			/>
-			<FilterBetweenRange
-				name="DeFi TVL / Active Marketcap %"
-				trigger={
-					minDefiActiveTvlToActiveMcapPct != null || maxDefiActiveTvlToActiveMcapPct != null ? (
-						<>
-							<span>DeFi TVL / Active Marketcap: </span>
-							<span className="text-(--link)">
-								{formatPercentRange(minDefiActiveTvlToActiveMcapPct, maxDefiActiveTvlToActiveMcapPct)}
-							</span>
-						</>
-					) : (
-						<span>DeFi TVL / Active Marketcap %</span>
-					)
-				}
-				onSubmit={(e) => {
-					e.preventDefault()
-					const form = e.currentTarget
-					const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
-					const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
-					setDefiActiveTvlToActiveMcapPctRange(minValue, maxValue)
-				}}
-				onClear={() => setDefiActiveTvlToActiveMcapPctRange(null, null)}
-				min={minDefiActiveTvlToActiveMcapPct}
-				max={maxDefiActiveTvlToActiveMcapPct}
-				minLabel="Min %"
-				maxLabel="Max %"
-				minInputProps={ratioPercentInputProps}
-				maxInputProps={ratioPercentInputProps}
-			/>
-			{isChainMode ? (
-				<>
-					<Switch
-						label="Stablecoins"
-						value="includeStablecoins"
-						checked={includeStablecoins}
-						help="Include stablecoin assets in the table."
-						onChange={() => setIncludeStablecoins(!includeStablecoins)}
-						className="ml-auto"
-					/>
-					<Switch
-						label="Governance Tokens"
-						value="includeGovernance"
-						checked={includeGovernance}
-						help="Include governance-token assets in the table."
-						onChange={() => setIncludeGovernance(!includeGovernance)}
-					/>
-				</>
-			) : null}
+		<NestedMenu label={trigger} menuPortal={usePortal} buttonVariant="filter">
+			{attributeSubmenus}
+		</NestedMenu>
+	)
+}
+
+export function RWAOverviewFilters(props: RWAOverviewFiltersProps) {
+	if (!props.enabled) return null
+
+	return (
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+			<ResponsiveFilterLayout desktopClassName="hidden min-h-[106px] flex-wrap content-start items-center gap-2 min-[1260px]:min-h-[68px] min-[2102px]:min-h-[30px] sm:flex">
+				{(nestedMenu) => <Filters {...props} nestedMenu={nestedMenu} />}
+			</ResponsiveFilterLayout>
 		</div>
+	)
+}
+
+function Filters({
+	enabled,
+	modes,
+	options,
+	selections,
+	actions,
+	nestedMenu
+}: RWAOverviewFiltersProps & { nestedMenu?: boolean }) {
+	const router = useRouter()
+
+	if (!enabled) return null
+
+	const defaultSelectedTypes = options.typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
+
+	// Determine active filters/chart controls purely from URL query.
+	// Selected arrays often default to "all values" when there is no query set.
+	const hasActiveFilters = RESETTABLE_QUERY_KEYS.some((key) => router.query[key] != null)
+
+	const selectFilters: Array<{
+		enabled: boolean
+		allValues: SelectValues
+		selectedValues: string[]
+		includeQueryKey: string
+		excludeQueryKey: ExcludeQueryKey
+		label: string
+		defaultSelectedValues?: string[]
+	}> = [
+		{
+			enabled: options.typeOptions.length > 1,
+			allValues: options.typeOptions,
+			selectedValues: selections.selectedTypes,
+			includeQueryKey: 'types',
+			excludeQueryKey: 'excludeTypes',
+			label: 'Types',
+			defaultSelectedValues: defaultSelectedTypes
+		},
+		{
+			enabled: modes.isPlatformMode && options.assetNames.length > 1,
+			allValues: options.assetNames,
+			selectedValues: selections.selectedAssetNames,
+			includeQueryKey: 'assetNames',
+			excludeQueryKey: 'excludeAssetNames',
+			label: 'Asset Names'
+		},
+		{
+			enabled: (modes.isChainMode || modes.isPlatformMode) && options.categoriesOptions.length > 1,
+			allValues: options.categoriesOptions,
+			selectedValues: selections.selectedCategories,
+			includeQueryKey: 'categories',
+			excludeQueryKey: 'excludeCategories',
+			label: 'Categories'
+		},
+		{
+			enabled: (modes.isChainMode || modes.isCategoryMode) && options.platforms.length > 1,
+			allValues: options.platforms,
+			selectedValues: selections.selectedPlatforms,
+			includeQueryKey: 'platforms',
+			excludeQueryKey: 'excludePlatforms',
+			label: 'Platforms'
+		},
+		{
+			enabled: options.assetClassOptions.length > 1,
+			allValues: options.assetClassOptions,
+			selectedValues: selections.selectedAssetClasses,
+			includeQueryKey: 'assetClasses',
+			excludeQueryKey: 'excludeAssetClasses',
+			label: 'Asset Classes'
+		},
+		{
+			enabled: options.rwaClassificationOptions.length > 1,
+			allValues: options.rwaClassificationOptions,
+			selectedValues: selections.selectedRwaClassifications,
+			includeQueryKey: 'rwaClassifications',
+			excludeQueryKey: 'excludeRwaClassifications',
+			label: 'RWA Classification'
+		},
+		{
+			enabled: options.accessModelOptions.length > 1,
+			allValues: options.accessModelOptions,
+			selectedValues: selections.selectedAccessModels,
+			includeQueryKey: 'accessModels',
+			excludeQueryKey: 'excludeAccessModels',
+			label: 'Access Model'
+		},
+		{
+			enabled: options.issuers.length > 1,
+			allValues: options.issuers,
+			selectedValues: selections.selectedIssuers,
+			includeQueryKey: 'issuers',
+			excludeQueryKey: 'excludeIssuers',
+			label: 'Issuers'
+		}
+	]
+
+	const rangeFilters: Array<{
+		name: string
+		label: string
+		min: number | null
+		max: number | null
+		onSubmitRange: (minValue: string | number | null, maxValue: string | number | null) => void
+	}> = [
+		{
+			name: 'DeFi TVL / Onchain %',
+			label: 'DeFi TVL / Onchain',
+			min: selections.minDefiActiveTvlToOnChainMcapPct,
+			max: selections.maxDefiActiveTvlToOnChainMcapPct,
+			onSubmitRange: actions.setDefiActiveTvlToOnChainMcapPctRange
+		},
+		{
+			name: 'Active Marketcap / Onchain %',
+			label: 'Active Marketcap / Onchain',
+			min: selections.minActiveMcapToOnChainMcapPct,
+			max: selections.maxActiveMcapToOnChainMcapPct,
+			onSubmitRange: actions.setActiveMcapToOnChainMcapPctRange
+		},
+		{
+			name: 'DeFi TVL / Active Marketcap %',
+			label: 'DeFi TVL / Active Marketcap',
+			min: selections.minDefiActiveTvlToActiveMcapPct,
+			max: selections.maxDefiActiveTvlToActiveMcapPct,
+			onSubmitRange: actions.setDefiActiveTvlToActiveMcapPctRange
+		}
+	]
+
+	const attributeFilters: RWAAttributeFilterConfig[] = [
+		{
+			queryKey: 'redeemableStates',
+			label: definitions.redeemable.label,
+			selectedStates: selections.selectedRedeemableStates,
+			onUpdateStates: actions.setRedeemableStates
+		},
+		{
+			queryKey: 'attestationsStates',
+			label: definitions.attestations.label,
+			selectedStates: selections.selectedAttestationsStates,
+			onUpdateStates: actions.setAttestationsStates
+		},
+		{
+			queryKey: 'cexListedStates',
+			label: definitions.cexListed.label,
+			selectedStates: selections.selectedCexListedStates,
+			onUpdateStates: actions.setCexListedStates
+		},
+		{
+			queryKey: 'kycForMintRedeemStates',
+			label: definitions.kycForMintRedeem.label,
+			selectedStates: selections.selectedKycForMintRedeemStates,
+			onUpdateStates: actions.setKycForMintRedeemStates
+		},
+		{
+			queryKey: 'kycAllowlistedWhitelistedToTransferHoldStates',
+			label: definitions.kycAllowlistedWhitelistedToTransferHold.label,
+			selectedStates: selections.selectedKycAllowlistedWhitelistedToTransferHoldStates,
+			onUpdateStates: actions.setKycAllowlistedWhitelistedToTransferHoldStates
+		},
+		{
+			queryKey: 'transferableStates',
+			label: definitions.transferable.label,
+			selectedStates: selections.selectedTransferableStates,
+			onUpdateStates: actions.setTransferableStates
+		},
+		{
+			queryKey: 'selfCustodyStates',
+			label: definitions.selfCustody.label,
+			selectedStates: selections.selectedSelfCustodyStates,
+			onUpdateStates: actions.setSelfCustodyStates
+		}
+	]
+
+	return (
+		<>
+			{selectFilters.map((config) =>
+				config.enabled ? (
+					<SelectWithCombobox
+						key={`${config.includeQueryKey}-${config.excludeQueryKey}`}
+						allValues={config.allValues}
+						selectedValues={config.selectedValues}
+						includeQueryKey={config.includeQueryKey}
+						excludeQueryKey={config.excludeQueryKey}
+						defaultSelectedValues={config.defaultSelectedValues}
+						label={config.label}
+						labelType="smol"
+						nestedMenu={nestedMenu}
+						variant="filter"
+					/>
+				) : null
+			)}
+			<AttributesFilter nestedMenu={nestedMenu} attributeFilters={attributeFilters} />
+			{rangeFilters.map((config) => (
+				<FilterBetweenRange
+					key={config.name}
+					name={config.name}
+					trigger={
+						config.min != null || config.max != null ? (
+							<>
+								<span>{config.label}: </span>
+								<span className="text-(--link)">{formatPercentRange(config.min, config.max)}</span>
+							</>
+						) : (
+							<span>{config.name}</span>
+						)
+					}
+					onSubmit={(e) => {
+						e.preventDefault()
+						const form = e.currentTarget
+						const minValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
+						const maxValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
+						config.onSubmitRange(minValue ?? null, maxValue ?? null)
+					}}
+					onClear={() => config.onSubmitRange(null, null)}
+					nestedMenu={nestedMenu}
+					min={config.min}
+					max={config.max}
+					minLabel="Min %"
+					maxLabel="Max %"
+					minInputProps={ratioPercentInputProps}
+					maxInputProps={ratioPercentInputProps}
+				/>
+			))}
+			{modes.isChainMode ? (
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'filter'}
+					value="includeStablecoins"
+					checked={selections.includeStablecoins}
+					onChange={() => {
+						const next = !selections.includeStablecoins
+						actions.setIncludeStablecoins(next)
+					}}
+				>
+					Stablecoins
+				</Checkbox>
+			) : null}
+			{modes.isChainMode ? (
+				<Checkbox
+					variant={nestedMenu ? 'filter-borderless' : 'filter'}
+					value="includeGovernance"
+					checked={selections.includeGovernance}
+					onChange={() => {
+						const next = !selections.includeGovernance
+						actions.setIncludeGovernance(next)
+					}}
+				>
+					Governance Tokens
+				</Checkbox>
+			) : null}
+			<button
+				onClick={() => {
+					const resetUpdates: Record<string, undefined> = {}
+					for (const key of RESETTABLE_QUERY_KEYS) {
+						resetUpdates[key] = undefined
+					}
+					pushShallowQuery(router, resetUpdates)
+				}}
+				disabled={!hasActiveFilters}
+				className={
+					nestedMenu
+						? 'relative flex w-full cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md px-3 py-2 text-(--text-primary) hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-40'
+						: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+				}
+			>
+				Reset filters
+			</button>
+			<BasicLink
+				href="https://docs.llama.fi/real-world-assets/real-world-assets"
+				target="_blank"
+				rel="noopener noreferrer"
+				className={
+					nestedMenu
+						? 'relative flex w-full cursor-pointer flex-row-reverse flex-nowrap items-center justify-between gap-2 rounded-md px-3 py-2 text-(--text-primary) hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-40'
+						: 'relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40'
+				}
+			>
+				<Icon name="external-link" height={14} width={14} />
+				<span>Docs</span>
+			</BasicLink>
+		</>
 	)
 }

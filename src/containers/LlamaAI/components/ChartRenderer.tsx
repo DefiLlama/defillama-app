@@ -1,119 +1,8 @@
-/**
- * Server-Side Improvements for Chart Data Pipeline
- * =================================================
- *
- * CURRENT FRONTEND BURDEN:
- * The client currently handles significant data transformation and type detection:
- *
- * 1. FORMAT DETECTION (chartAdapter.ts, ChartRenderer.tsx)
- *    - Check if chartData is array vs object: `Array.isArray(chartData) ? chartData : chartData?.[chart.id]`
- *    - Detect keyed vs flat data structures
- *    - Handle missing/undefined data gracefully
- *
- * 2. CHART TYPE INFERENCE (chartAdapter.ts ~680 lines)
- *    - Detect if data is time-series vs categorical
- *    - Infer pie chart data from value/name/label fields
- *    - Detect scatter plot dimensions (x, y, size, color)
- *    - Identify candlestick OHLCV fields
- *
- * 3. DATA NORMALIZATION (chartAdapter.ts, chartDataTransformer.ts)
- *    - Normalize timestamps (unix seconds/ms → Date objects)
- *    - Convert string numbers to actual numbers
- *    - Fill missing values with nulls/zeros
- *    - Align multi-series data to common time axis
- *
- * RECOMMENDED SERVER CHANGES:
- *
- * 1. PRE-ADAPTED CHART DATA FORMAT
- *    Instead of sending raw query results, send render-ready data:
- *    ```json
- *    {
- *      "type": "charts",
- *      "charts": [{
- *        "id": "tvl-chart",
- *        "chartType": "area",           // Explicit, no inference needed
- *        "renderConfig": {              // Ready for ECharts
- *          "xAxisType": "time",
- *          "yAxisType": "value",
- *          "seriesType": "line",
- *          "areaStyle": true
- *        },
- *        "data": [                      // Always array, always for THIS chart
- *          { "date": 1704067200000, "value": 50000000000 }
- *        ],
- *        "series": ["TVL"],             // Pre-extracted series names
- *        "colors": ["#2172E5"]          // Pre-assigned colors
- *      }]
- *    }
- *    ```
- *
- * 2. ELIMINATE chartData OBJECT KEYING
- *    Current: `chartData: { "chart-1": [...], "chart-2": [...] }` OR `chartData: [...]`
- *    Proposed: Each chart carries its own data, no lookup needed:
- *    ```json
- *    { "id": "chart-1", "data": [...] }  // Data embedded in chart object
- *    ```
- *    This eliminates: `Array.isArray(chartData) ? chartData : chartData?.[chart.id]`
- *
- * 3. PRE-COMPUTED TRANSFORMATIONS
- *    If server knows the chart supports stacking/cumulative, pre-compute:
- *    ```json
- *    {
- *      "data": [...],
- *      "transformedData": {
- *        "stacked": [...],
- *        "cumulative": [...],
- *        "percentage": [...]
- *      }
- *    }
- *    ```
- *    Frontend simply swaps data arrays instead of recomputing.
- *
- * 4. EXPLICIT FIELD MAPPING
- *    Instead of inferring fields, server specifies them:
- *    ```json
- *    {
- *      "fieldMapping": {
- *        "x": "date",
- *        "y": ["tvl", "volume"],
- *        "tooltip": ["tvl", "volume", "change24h"]
- *      }
- *    }
- *    ```
- *
- * 5. NORMALIZED TIMESTAMPS
- *    Always send timestamps as milliseconds (JS-native), not seconds.
- *    Current adapter does: `timestamp * 1000` detection. Server should normalize.
- *
- * CURRENT PIPELINE ASSESSMENT:
- * ============================
- * The current pipeline is FUNCTIONAL but has O(n) overhead per chart:
- * - adaptChartData: ~50 lines of type inference
- * - Time detection: Check first few values for timestamp format
- * - Series extraction: Iterate to find all unique keys
- * - Color assignment: Iterate to map series to colors
- *
- * For typical responses (1-3 charts, <1000 data points), this is acceptable.
- * For large responses (5+ charts, 10k+ points), server pre-processing would help.
- *
- * MIGRATION PATH:
- * 1. Server adds optional `renderConfig` to chart objects
- * 2. Frontend checks for `renderConfig` → skip adaptation if present
- * 3. Gradually migrate chart types to server-side formatting
- * 4. Remove adapter fallback code once all charts migrated
- */
-
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
-import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
-import type {
-	IBarChartProps,
-	ICandlestickChartProps,
-	IChartProps,
-	IPieChartProps,
-	IScatterChartProps
-} from '~/components/ECharts/types'
+import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import type { ChartConfiguration } from '../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../utils/chartAdapter'
@@ -123,7 +12,7 @@ import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
-const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart')) as React.FC<ICandlestickChartProps>
+const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
@@ -131,21 +20,21 @@ const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
 interface ChartRendererProps {
 	charts: ChartConfiguration[]
-	chartData: any[]
+	chartData: any[] | Record<string, any[]>
 	isLoading?: boolean
-	isAnalyzing?: boolean
 	hasError?: boolean
-	expectedChartCount?: number
 	chartTypes?: string[]
 	resizeTrigger?: number
-	messageId?: string
+	sessionId?: string | null
+	fetchFn?: typeof fetch
 }
 
 interface SingleChartProps {
 	config: ChartConfiguration
 	data: any[]
 	isActive: boolean
-	messageId?: string
+	sessionId?: string | null
+	fetchFn?: typeof fetch
 }
 
 type ChartState = {
@@ -184,7 +73,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
+function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -206,7 +95,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	if (config.type === 'candlestick') {
 		const candlestickData = adaptCandlestickData(config, data)
 		return (
-			<div className="flex flex-col" data-chart-id={config.id}>
+			<div className="flex flex-col p-2" data-chart-id={config.id}>
 				<Suspense fallback={<div className="h-[480px]" />}>
 					<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
 				</Suspense>
@@ -215,7 +104,9 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 	}
 
 	try {
-		const isMultiSeries = config.series && config.series.length > 1
+		const isMultiSeries =
+			(config.series && config.series.length > 1 && config.type !== 'scatter' && config.type !== 'pie') ||
+			config.type === 'combo'
 		let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
 
 		if (config.type === 'pie' && chartState.percentage) {
@@ -322,7 +213,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
 			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
 
-			if (['multi-series', 'combo'].includes(adaptedChart.chartType)) {
+			if (adaptedChart.chartType === 'multi-series') {
 				const seriesNames = (adaptedChart.props as any).series.map((s: any) => s.name)
 				const rows: Array<Array<string | number | boolean>> = [
 					isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
@@ -378,6 +269,19 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 			return { filename, rows: [] }
 		}
 
+		const chartToolbar = (
+			<div className="flex items-center justify-end gap-1 p-2 pt-0">
+				{sessionId && (
+					<AddToDashboardButton
+						chartConfig={null}
+						llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
+						smol
+					/>
+				)}
+				<CSVDownloadButton prepareCsv={prepareCsv} smol />
+			</div>
+		)
+
 		if (!hasData) {
 			return (
 				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
@@ -397,14 +301,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				if (isTimeSeriesChart) {
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
-							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								<AddToDashboardButton
-									chartConfig={null}
-									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-									smol
-								/>
-								<CSVDownloadButton prepareCsv={prepareCsv} smol />
-							</div>
+							{chartToolbar}
 							<BarChart
 								key={chartKey}
 								chartData={adaptedChart.data}
@@ -449,14 +346,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 					}
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
-							<div className="flex items-center justify-end gap-1 p-2 pt-0">
-								<AddToDashboardButton
-									chartConfig={null}
-									llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-									smol
-								/>
-								<CSVDownloadButton prepareCsv={prepareCsv} smol />
-							</div>
+							{chartToolbar}
 							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
 						</Suspense>
 					)
@@ -469,14 +359,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				const hbarValues = hbarData.map(([, val]) => val)
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<AddToDashboardButton
-								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-								smol
-							/>
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<HBarChart
 							key={chartKey}
 							categories={hbarCategories}
@@ -492,14 +375,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 			case 'area':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<AddToDashboardButton
-								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-								smol
-							/>
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<AreaChart
 							key={chartKey}
 							chartData={adaptedChart.data}
@@ -511,33 +387,10 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 				)
 				break
 
-			case 'combo':
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<AddToDashboardButton
-								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-								smol
-							/>
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
-						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
-					</Suspense>
-				)
-				break
-
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<AddToDashboardButton
-								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-								smol
-							/>
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
@@ -546,20 +399,8 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 			case 'pie':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						<PieChart
-							key={chartKey}
-							{...(adaptedChart.props as IPieChartProps)}
-							customComponents={
-								<>
-									<AddToDashboardButton
-										chartConfig={null}
-										llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-										smol
-									/>
-									<CSVDownloadButton prepareCsv={prepareCsv} smol />
-								</>
-							}
-						/>
+						{chartToolbar}
+						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} />
 					</Suspense>
 				)
 				break
@@ -567,14 +408,7 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
-						<div className="flex items-center justify-end gap-1 p-2 pt-0">
-							<AddToDashboardButton
-								chartConfig={null}
-								llamaAIChart={messageId ? { messageId, chartId: config.id, title: config.title } : null}
-								smol
-							/>
-							<CSVDownloadButton prepareCsv={prepareCsv} smol />
-						</div>
+						{chartToolbar}
 						<ScatterChart
 							key={chartKey}
 							{...(adaptedChart.props as IScatterChartProps)}
@@ -632,13 +466,6 @@ function SingleChart({ config, data, isActive, messageId }: SingleChartProps) {
 
 const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
 
-const ChartAnalysisPlaceholder = () => (
-	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
-		<ChartLoadingSpinner />
-		<p className="text-[#666] dark:text-[#919296]">Determining the best visualizations for your data...</p>
-	</div>
-)
-
 const ChartLoadingPlaceholder = ({ chartTypes }: { chartTypes?: string[] }) => (
 	<div className="flex flex-col items-center justify-center gap-2 rounded-md border border-[#e6e6e6] px-1 py-8 dark:border-[#222324]">
 		<ChartLoadingSpinner />
@@ -661,16 +488,15 @@ export function ChartRenderer({
 	charts,
 	chartData,
 	isLoading = false,
-	isAnalyzing = false,
 	hasError = false,
-	expectedChartCount: _expectedChartCount,
 	chartTypes,
 	resizeTrigger = 0,
-	messageId
+	sessionId,
+	fetchFn
 }: ChartRendererProps) {
 	return (
 		<ChartRendererMemoized
-			{...{ charts, chartData, isLoading, isAnalyzing, hasError, chartTypes, resizeTrigger, messageId }}
+			{...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, fetchFn }}
 		/>
 	)
 }
@@ -679,26 +505,32 @@ function ChartRendererImpl({
 	charts,
 	chartData,
 	isLoading = false,
-	isAnalyzing = false,
 	hasError = false,
-	expectedChartCount: _expectedChartCount,
 	chartTypes,
 	resizeTrigger = 0,
-	messageId
+	sessionId,
+	fetchFn
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
 	useEffect(() => {
-		if (!containerRef.current) return
-
-		const resizeObserver = new ResizeObserver(() => {
-			const event = new CustomEvent('chartResize')
-			window.dispatchEvent(event)
+		const el = containerRef.current
+		if (!el) return
+		let lastWidth = el.getBoundingClientRect().width
+		let timer: ReturnType<typeof setTimeout> | null = null
+		const observer = new ResizeObserver((entries) => {
+			const w = entries[0]?.contentRect.width ?? 0
+			if (Math.abs(w - lastWidth) < 1) return
+			lastWidth = w
+			if (timer) clearTimeout(timer)
+			timer = setTimeout(() => window.dispatchEvent(new CustomEvent('chartResize')), 150)
 		})
-
-		resizeObserver.observe(containerRef.current)
-		return () => resizeObserver.disconnect()
+		observer.observe(el)
+		return () => {
+			observer.disconnect()
+			if (timer) clearTimeout(timer)
+		}
 	}, [])
 
 	useEffect(() => {
@@ -715,15 +547,11 @@ function ChartRendererImpl({
 		return <ChartErrorPlaceholder />
 	}
 
-	if (isAnalyzing && (!charts || charts.length === 0)) {
-		return <ChartAnalysisPlaceholder />
-	}
-
 	if (isLoading && (!charts || charts.length === 0)) {
 		return <ChartLoadingPlaceholder chartTypes={chartTypes} />
 	}
 
-	if (!isLoading && !isAnalyzing && !hasError && (!charts || charts.length === 0)) {
+	if (!isLoading && !hasError && (!charts || charts.length === 0)) {
 		return null
 	}
 
@@ -752,9 +580,10 @@ function ChartRendererImpl({
 				<SingleChart
 					key={chart.id}
 					config={chart}
-					data={Array.isArray(chartData) ? chartData : chartData?.[chart.id] || []}
+					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
-					messageId={messageId}
+					sessionId={sessionId}
+					fetchFn={fetchFn}
 				/>
 			))}
 		</div>
@@ -764,10 +593,9 @@ function ChartRendererImpl({
 const ChartRendererMemoized = memo(ChartRendererImpl, (prev, next) => {
 	return (
 		prev.isLoading === next.isLoading &&
-		prev.isAnalyzing === next.isAnalyzing &&
 		prev.hasError === next.hasError &&
 		prev.resizeTrigger === next.resizeTrigger &&
-		prev.messageId === next.messageId &&
+		prev.sessionId === next.sessionId &&
 		areStringArraysEqual(prev.chartTypes, next.chartTypes) &&
 		areChartsEqual(prev.charts, next.charts) &&
 		areChartDataEqual(prev.chartData, next.chartData)

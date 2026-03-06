@@ -5,6 +5,7 @@ export interface IYieldTableRow {
 	projectslug: string
 	project: string
 	airdrop?: boolean
+	raiseValuation?: number | null
 	chains: Array<string>
 	tvl: number
 	apy: number
@@ -28,6 +29,9 @@ export interface IYieldTableRow {
 	boost: number
 	apyBorrow: number
 	poolMeta?: string | null
+	apyMedian30d?: number | null
+	apyStd30d?: number | null
+	cv30d?: number | null
 }
 
 export interface IYieldsProjectsTableRow {

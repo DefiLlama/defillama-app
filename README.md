@@ -61,7 +61,6 @@ Before opening a PR:
 Join the conversation and stay up to date:
 
 - [X/Twitter](https://x.com/DefiLlama)
-- [Discord](https://discord.defillama.com/)
 - [Documentation](https://docs.llama.fi/)
 
 ## License

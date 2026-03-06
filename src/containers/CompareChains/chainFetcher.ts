@@ -1,7 +1,6 @@
-import { getChainOverviewData } from '../ChainOverview/queries.server'
-import { IChainMetadata } from '../ChainOverview/types'
-import { getAdapterChainOverview, getAdapterProtocolSummary } from '../DimensionAdapters/queries'
-import { IProtocolMetadata } from '../ProtocolOverview/types'
+import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import { getAdapterChainOverview, getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
+import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 
 export const fetchChain = async ({
 	chain,
@@ -23,18 +22,17 @@ export const fetchChain = async ({
 			chain,
 			excludeTotalDataChart: false
 		}),
-		getAdapterProtocolSummary({
+		getAdapterProtocolOverview({
 			adapterType: 'fees',
 			protocol: chain,
 			excludeTotalDataChart: false
 		}).catch(() => null),
-		getAdapterProtocolSummary({
+		getAdapterProtocolOverview({
 			adapterType: 'fees',
 			protocol: chain,
 			excludeTotalDataChart: false,
 			dataType: 'dailyRevenue'
-		}).catch(() => null),
-		[]
+		}).catch(() => null)
 	])
 
 	return {

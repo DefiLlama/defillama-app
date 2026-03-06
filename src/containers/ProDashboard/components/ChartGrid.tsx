@@ -1,6 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -11,7 +11,7 @@ import {
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
-import { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
+import type { DashboardItemConfig, StoredColSpan, UnifiedTableConfig } from '../types'
 import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
@@ -339,13 +339,16 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const sortableItemIds = chartsWithData.map((c) => c.id)
 
 	const currentRatingSession = getCurrentRatingSession()
-	const currentSessionId = currentRatingSession?.sessionId
 
-	useEffect(() => {
-		if (currentSessionId) {
-			autoSkipOlderSessionsForRating()
-		}
-	}, [currentSessionId, autoSkipOlderSessionsForRating])
+	const handleRatingSubmit = async (sessionId: string, rating: number, feedback?: string) => {
+		await submitRating(sessionId, rating, feedback)
+		await autoSkipOlderSessionsForRating()
+	}
+
+	const handleRatingSkip = async (sessionId: string) => {
+		await skipRating(sessionId)
+		await autoSkipOlderSessionsForRating()
+	}
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -422,10 +425,13 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 							const disableExpand = expandTarget === storedColSpan
 
 							return (
-								<div
+								<SortableItem
 									key={`${item.id}-${item.colSpan}${
 										item.kind === 'multi' ? `-${item.items?.map((i) => i.id).join('-')}` : ''
 									}`}
+									id={item.id}
+									isTable={item.kind === 'table'}
+									data-col={item.colSpan}
 									className={`col-span-1 flex flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) ${COL_SPAN_CLASS_MAP[effectiveColSpan]}`}
 								>
 									<div className="flex flex-wrap items-center justify-end border-b border-(--cards-border)">
@@ -468,15 +474,10 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<span className="sr-only">Remove item</span>
 										</Tooltip>
 									</div>
-									<SortableItem
-										id={item.id}
-										isTable={item.kind === 'table'}
-										data-col={item.colSpan}
-										className="min-h-0 flex-1"
-									>
+									<div className="min-h-0 flex-1">
 										<DashboardItemRenderer item={item} onEditItem={onEditItem} handleEditItem={handleEditItem} />
-									</SortableItem>
-								</div>
+									</div>
+								</SortableItem>
 							)
 						})}
 						{currentRatingSession && !isReadOnly && (
@@ -486,8 +487,8 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 									mode={currentRatingSession.mode}
 									variant="inline"
 									prompt={currentRatingSession.prompt}
-									onRate={submitRating}
-									onSkip={skipRating}
+									onRate={handleRatingSubmit}
+									onSkip={handleRatingSkip}
 								/>
 							</div>
 						)}

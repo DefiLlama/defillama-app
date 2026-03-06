@@ -1,15 +1,13 @@
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
 import { tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const hideProtocols = ['Mycelium', 'Hubble Exchange', 'NEX']
 
 export const getStaticProps = withPerformanceLogging('donations', async () => {
-	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
+	const { protocols, parentProtocols } = await fetchProtocols()
 
 	const protocolsWithReferralurl: Record<string, { name: string; logo: string; url: string; tvl: number }> = {}
 
@@ -62,9 +60,8 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 function DonationsPage({ protocols }) {
 	return (
 		<Layout
-			title="Donations - DefiLlama"
+			title="Support DefiLlama - Donations & Contributions"
 			description={`Donate to DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`donations, defi donations`}
 			canonicalUrl={`/donations`}
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">

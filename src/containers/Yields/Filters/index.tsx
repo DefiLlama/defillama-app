@@ -2,17 +2,18 @@ import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { DialogForm } from '~/components/DialogForm'
+import { ResponsiveFilterLayout } from '~/components/Filters/ResponsiveFilterLayout'
 import { Icon } from '~/components/Icon'
-import { NestedMenu } from '~/components/NestedMenu'
 import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 import { useYieldFilters } from '~/contexts/LocalStorage'
-import { useIsClient } from '~/hooks/useIsClient'
 import { useMedia } from '~/hooks/useMedia'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 import { YieldsSearch } from '../Search'
 import { InputFilter } from './Amount'
 import { YieldFilterDropdowns } from './Dropdowns'
 import { IncludeExcludeTokens } from './IncludeExcludeTokens'
 import { LTV } from './LTV'
+import { PresetFilters } from './PresetFilters'
 import type { IYieldFiltersProps } from './types'
 
 function SavedFilters({ currentFilters }) {
@@ -27,6 +28,7 @@ function SavedFilters({ currentFilters }) {
 	const handleLoad = (name: string) => {
 		const filters = savedFilters[name]
 		if (filters) {
+			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
 			router.push(
 				{
 					pathname: router.pathname,
@@ -51,13 +53,18 @@ function SavedFilters({ currentFilters }) {
 				description="Enter a name for this filter configuration"
 				open={dialogOpen}
 				setOpen={setDialogOpen}
-				onSubmit={(name) => saveFilter(name, currentFilters)}
+				onSubmit={(filterName) => {
+					saveFilter(filterName, currentFilters)
+					trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_CREATE, { filter: filterName })
+				}}
 			/>
 			<ConfirmationModal
 				title={`Deleting saved filter "${filterToDelete}"`}
 				isOpen={deleteOpen}
 				onClose={() => setDeleteOpen(false)}
-				onConfirm={() => deleteFilter(filterToDelete)}
+				onConfirm={() => {
+					deleteFilter(filterToDelete)
+				}}
 			/>
 			<Ariakit.MenuProvider>
 				<Ariakit.MenuButton className="flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
@@ -77,9 +84,9 @@ function SavedFilters({ currentFilters }) {
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.PopoverDismiss>
 
-					{savedFiltersEntries.map(([name], i) => (
+					{savedFiltersEntries.map(([name]) => (
 						<Ariakit.MenuItem
-							key={`custom-filter-${name}-${i}`}
+							key={`custom-filter-${name}`}
 							onClick={() => handleLoad(name)}
 							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
@@ -114,6 +121,7 @@ export function YieldFiltersV2({
 	strategyInputsData,
 	ltvPlaceholder,
 	showSearchOnMobile,
+	showPresetFilters,
 	...props
 }: IYieldFiltersProps) {
 	const trackingStats =
@@ -126,7 +134,6 @@ export function YieldFiltersV2({
 				: null
 
 	const isSmall = useMedia(`(max-width: 639px)`)
-	const isClient = useIsClient()
 
 	const { query } = useRouter()
 
@@ -140,29 +147,22 @@ export function YieldFiltersV2({
 				{trackingStats ? <p>{trackingStats}</p> : null}
 				<SavedFilters currentFilters={query} />
 			</div>
-			<div className="flex flex-col gap-2 rounded-b-md p-3">
+			<div className="flex flex-col gap-3 rounded-b-md p-3">
+				{showPresetFilters && (
+					<>
+						<PresetFilters />
+						<div className="border-t border-(--form-control-border)" />
+					</>
+				)}
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}
 				{tokens && (showSearchOnMobile || !isSmall) ? (
 					<IncludeExcludeTokens tokens={tokens} data-alwaysdisplay={showSearchOnMobile} />
 				) : null}
-				<div className="flex min-h-9 flex-wrap gap-2 *:flex-1 sm:hidden">
-					{isSmall && isClient ? (
-						<React.Suspense fallback={<></>}>
-							<NestedMenu label="Filters">
-								<YieldFilterDropdowns {...props} nestedMenu />
-							</NestedMenu>
-						</React.Suspense>
-					) : null}
-				</div>
-				<div className="hidden min-h-8 flex-wrap gap-2 sm:flex">
-					{!isSmall && isClient ? (
-						<React.Suspense fallback={<></>}>
-							<YieldFilterDropdowns {...props} />
-						</React.Suspense>
-					) : null}
-				</div>
+				<ResponsiveFilterLayout>
+					{(nestedMenu) => <YieldFilterDropdowns {...props} nestedMenu={nestedMenu} />}
+				</ResponsiveFilterLayout>
 			</div>
 		</div>
 	)

@@ -1,6 +1,6 @@
-// Chart-related types from backend
 export interface ChartConfiguration {
 	id: string
+	datasetName?: string
 	type: 'line' | 'area' | 'bar' | 'combo' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
 	title: string
 	description: string
@@ -25,7 +25,7 @@ export interface ChartConfiguration {
 
 	series: Array<{
 		name: string
-		type: 'line' | 'area' | 'bar' | 'hbar' | 'candlestick'
+		type: 'line' | 'area' | 'bar' | 'hbar' | 'scatter' | 'candlestick'
 		yAxisId: string
 		metricClass: 'flow' | 'stock'
 		dataMapping: {
@@ -58,12 +58,50 @@ export interface ChartConfiguration {
 	}
 }
 
-export interface UploadedImage {
+export interface CsvExport {
 	id: string
+	title: string
 	url: string
-	mimeType: string
-	filename?: string
-	size: number
+	rowCount: number
+	filename: string
+}
+
+export interface AlertProposedData {
+	alertId: string
+	title: string
+	alertIntent: {
+		frequency: 'daily' | 'weekly'
+		hour: number
+		timezone: string
+		dayOfWeek?: number
+	}
+	schedule_expression: string
+	next_run_at: string
+}
+
+export interface ToolExecution {
+	name: string
+	executionTimeMs: number
+	success: boolean
+	error?: string
+	resultPreview?: any[]
+	resultCount?: number
+	resultId?: string
+	sqlQuery?: string
+	toolData?: Record<string, any>
+}
+
+export interface AlertIntent {
+	detected: boolean
+	frequency: 'daily' | 'weekly'
+	hour: number
+	timezone: string
+	dayOfWeek?: number
+	toolExecutions: Array<{
+		toolName: string
+		arguments: Record<string, any>
+		sqlQuery: string | null
+	}>
 }
 
 export interface SuggestedQuestionsResponse {
@@ -81,15 +119,15 @@ export interface SuggestedQuestionsResponse {
 	}
 }
 
-// ============================================
-// Stream Item Types (Items-Only Architecture)
-// ============================================
-
-export interface MarkdownItem {
-	type: 'markdown'
-	id: string
-	text: string
-	citations?: string[]
+export interface EntityQuestionsResponse {
+	questions: string[]
+	suggestGlobal: boolean
+	entityNotFound?: boolean
+	metadata?: {
+		entitySlug: string
+		entityType: 'protocol' | 'chain' | 'page'
+		generatedAt: string
+	}
 }
 
 export interface ChartItem {
@@ -108,97 +146,17 @@ export interface CsvItem {
 	filename: string
 }
 
-export interface ImagesItem {
-	type: 'images'
-	id: string
-	images: UploadedImage[]
-}
-
-export interface LoadingItem {
-	type: 'loading'
-	id: string
-	stage: string
-	message?: string
-}
-
-export interface ResearchItem {
-	type: 'research'
-	id: string
-	isActive: boolean
-	startTime: number
-	currentIteration: number
-	totalIterations: number
-	phase: 'planning' | 'fetching' | 'analyzing' | 'synthesizing'
-	dimensionsCovered: string[]
-	dimensionsPending: string[]
-	discoveries: string[]
-	toolsExecuted: number
-}
-
-export interface ErrorItem {
-	type: 'error'
-	id: string
-	message: string
-	code?: string
-	recoverable?: boolean
-}
-
-export interface Suggestion {
-	label: string
-	action?: string
-	params?: Record<string, any>
-}
-
-export interface SuggestionsItem {
-	type: 'suggestions'
-	id: string
-	suggestions: Suggestion[]
-}
-
-export interface MetadataItem {
-	type: 'metadata'
-	id: string
-	metadata: any
-}
-
-export type StreamItem =
-	| MarkdownItem
-	| ChartItem
-	| CsvItem
-	| ImagesItem
-	| LoadingItem
-	| ResearchItem
-	| ErrorItem
-	| SuggestionsItem
-	| MetadataItem
-
-// Type guards for stream items
-export function isMarkdownItem(item: StreamItem): item is MarkdownItem {
-	return item.type === 'markdown'
-}
-
-export function isChartItem(item: StreamItem): item is ChartItem {
-	return item.type === 'chart'
-}
-
-export function isCsvItem(item: StreamItem): item is CsvItem {
-	return item.type === 'csv'
-}
-
-export function isArtifactItem(item: StreamItem): item is ChartItem | CsvItem {
-	return item.type === 'chart' || item.type === 'csv'
-}
-
-export function isRenderableItem(item: StreamItem): boolean {
-	return item.type !== 'metadata'
-}
-
-// Message format with items
 export interface Message {
-	id: string
 	role: 'user' | 'assistant'
-	content?: string // For user messages
-	items?: StreamItem[] // For assistant messages
-	images?: UploadedImage[] // User-uploaded images (part of question)
-	timestamp: number
+	content?: string
+	charts?: Array<{ charts: ChartConfiguration[]; chartData: Record<string, any[]> }>
+	csvExports?: CsvExport[]
+	citations?: string[]
+	alerts?: AlertProposedData[]
+	savedAlertIds?: string[]
+	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	id?: string
+	timestamp?: number
+	toolExecutions?: ToolExecution[]
+	thinking?: string
 }

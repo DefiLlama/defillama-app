@@ -1,15 +1,17 @@
+'use no memo'
+
 import { useQuery } from '@tanstack/react-query'
 import {
-	ColumnOrderState,
+	type ColumnOrderState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getGroupedRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable,
-	VisibilityState,
+	type VisibilityState,
 	type Table
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -43,6 +45,7 @@ interface UseUnifiedTableResult {
 	rowHeaders: UnifiedRowHeaderType[]
 	leafRows: NormalizedRow[]
 	columns: ReturnType<typeof getUnifiedTableColumns>
+	expanded: Record<string, boolean>
 }
 
 type UnifiedTableApiResponse = {
@@ -87,17 +90,19 @@ export function useUnifiedTable({
 	onColumnVisibilityChange,
 	onSortingChange
 }: UseUnifiedTableArgs): UseUnifiedTableResult {
-	const [expanded, setExpandedInternal] = useState<Record<string, boolean>>({})
+	const [expanded, setExpandedState] = useState<Record<string, boolean>>({})
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 30 })
 
-	const setExpanded = (
-		updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)
-	) => {
-		setExpandedInternal((prevExpanded) => {
-			const next = typeof updater === 'function' ? updater(prevExpanded) : updater
-			return next
-		})
-	}
+	// Preserve identity when unchanged so React can skip re-renders.
+	const setExpanded = useCallback(
+		(updater: Record<string, boolean> | ((prev: Record<string, boolean>) => Record<string, boolean>)) => {
+			setExpandedState((prevExpanded) => {
+				const next = typeof updater === 'function' ? updater(prevExpanded) : updater
+				return next === prevExpanded ? prevExpanded : next
+			})
+		},
+		[]
+	)
 
 	const sanitizedHeaders = useMemo(() => sanitizeRowHeaders(config.rowHeaders), [config.rowHeaders])
 
@@ -106,9 +111,10 @@ export function useUnifiedTable({
 	const headersKey = sanitizedHeaders.join('|')
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unified-table', paramsKey, headersKey],
+		queryKey: ['pro-dashboard', 'unified-table', paramsKey, headersKey],
 		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
-		staleTime: 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 
 	useEffect(() => {
@@ -247,6 +253,7 @@ export function useUnifiedTable({
 		isLoading,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
-		columns
+		columns,
+		expanded
 	}
 }

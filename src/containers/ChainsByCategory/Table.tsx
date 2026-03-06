@@ -1,12 +1,12 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ExpandedState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
-	SortingState,
+	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
@@ -15,21 +15,18 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { SelectWithCombobox } from '~/components/SelectWithCombobox'
+import { PercentChange } from '~/components/PercentChange'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import {
-	CHAINS_CATEGORY_GROUP_SETTINGS,
-	isChainsCategoryGroupKey,
-	useLocalStorageSettingsManager
-} from '~/contexts/LocalStorage'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
-import { IFormattedDataWithExtraTvl } from '~/hooks/data/defi'
+import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, formattedPercent, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import type { IFormattedDataWithExtraTvl } from './types'
 
 const optionsKey = 'chains-overview-table-columns'
 
@@ -49,11 +46,20 @@ export function ChainsByCategoryTable({
 	borderless?: boolean
 	showByGroup: boolean
 }) {
-	const columnsInStorage = React.useSyncExternalStore(
-		(callback) => subscribeToStorageKey(optionsKey, callback),
-		() => getStorageItem(optionsKey, defaultColumns) ?? defaultColumns,
-		() => defaultColumns
-	)
+	const rawColumnsInStorage = useStorageItem(optionsKey, defaultColumns)
+	const columnsInStorage = React.useDeferredValue(rawColumnsInStorage)
+	const { columnVisibility, selectedColumns } = React.useMemo(() => {
+		const defaultColumnVisibility = Object.fromEntries(columnOptions.map((column) => [column.key, true] as const))
+		let parsedColumnVisibility: Record<string, boolean> = {}
+		try {
+			parsedColumnVisibility = JSON.parse(columnsInStorage) as Record<string, boolean>
+		} catch {}
+
+		const columnVisibility = { ...defaultColumnVisibility, ...parsedColumnVisibility }
+		const selectedColumns = columnOptions.flatMap((column) => (columnVisibility[column.key] ? [column.key] : []))
+
+		return { columnVisibility, selectedColumns }
+	}, [columnsInStorage])
 
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'tvl', desc: true }])
@@ -66,31 +72,27 @@ export function ChainsByCategoryTable({
 			sorting,
 			expanded,
 			columnFilters,
-			columnVisibility: JSON.parse(columnsInStorage)
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
+		enableSortingRemoval: false,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
 		getSubRows: (row: IFormattedDataWithExtraTvl) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnOrders: chainsTableColumnOrders
 	})
-
-	const selectedColumns = instance
-		.getAllLeafColumns()
-		.filter((col) => col.getIsVisible())
-		.map((col) => col.id)
 
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
@@ -106,32 +108,8 @@ export function ChainsByCategoryTable({
 	}
 
 	const selectedAggregateTypes = React.useMemo(() => {
-		return CHAINS_CATEGORY_GROUP_SETTINGS.filter((key) => groupTvls[key.key]).map((option) => option.key)
+		return CHAINS_CATEGORY_GROUP_SETTINGS.flatMap((key) => (groupTvls[key.key] ? [key.key] : []))
 	}, [groupTvls])
-
-	const prepareCsv = () => {
-		const visibleColumns = instance.getVisibleFlatColumns().filter((col) => col.id !== 'custom_columns')
-		const headers = visibleColumns.map((col) => {
-			if (typeof col.columnDef.header === 'string') {
-				return col.columnDef.header
-			}
-			return col.id
-		})
-
-		const rows = instance.getSortedRowModel().rows.map((row) => {
-			return visibleColumns.map((col) => {
-				const cell = row.getAllCells().find((c) => c.column.id === col.id)
-				if (!cell) return ''
-
-				const value = cell.getValue()
-				if (value == null) return ''
-
-				return value
-			})
-		})
-
-		return { filename: `defillama-chains.csv`, rows: [headers, ...rows] as (string | number | boolean)[][] }
-	}
 
 	return (
 		<div className={`isolate ${borderless ? '' : 'rounded-md border border-(--cards-border) bg-(--cards-bg)'}`}>
@@ -145,10 +123,7 @@ export function ChainsByCategoryTable({
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
@@ -164,10 +139,7 @@ export function ChainsByCategoryTable({
 								nestedMenu={false}
 								label={'Group Chains'}
 								labelType="smol"
-								triggerProps={{
-									className:
-										'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-								}}
+								variant="filter-responsive"
 							/>
 						) : null}
 						<SelectWithCombobox
@@ -177,15 +149,12 @@ export function ChainsByCategoryTable({
 							nestedMenu={false}
 							label={'Columns'}
 							labelType="smol"
-							triggerProps={{
-								className:
-									'flex items-center justify-between gap-2 px-2 py-1.5 text-xs rounded-md cursor-pointer flex-nowrap relative border border-(--form-control-border) text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) font-medium w-full sm:w-auto'
-							}}
+							variant="filter-responsive"
 						/>
 					</div>
 
 					<TVLRange triggerClassName="w-full sm:w-auto" />
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'defillama-chains' })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} useStickyHeader={useStickyHeader} />
@@ -291,7 +260,7 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 					)}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={chainIconUrl(getValue())} />
+					<TokenLogo name={getValue() as string} kind="chain" alt={`Logo of ${getValue()}`} />
 					<BasicLink
 						href={`/chain/${slug(getValue() as string)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -326,7 +295,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1d TVL Change',
 		accessorKey: 'change_1d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -336,7 +309,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '7d TVL Change',
 		accessorKey: 'change_7d',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -346,7 +323,11 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: '1m TVL Change',
 		accessorKey: 'change_1m',
-		cell: (info) => <>{formattedPercent(info.getValue())}</>,
+		cell: (info) => (
+			<>
+				<PercentChange percent={info.getValue()} />
+			</>
+		),
 		size: 140,
 		meta: {
 			align: 'end',
@@ -356,7 +337,12 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 	{
 		header: 'Bridged TVL',
 		accessorKey: 'chainAssets',
-		accessorFn: (row) => (row.chainAssets?.total?.total ? +(+row.chainAssets.total.total).toFixed(2) : undefined),
+		accessorFn: (row) => {
+			const total = row.chainAssets?.total
+			if (total == null) return undefined
+			const raw = typeof total === 'object' ? (total as { total: string }).total : String(total)
+			return raw ? +(+raw).toFixed(2) : undefined
+		},
 		cell: ({ row }) => {
 			const chainAssets: any = row.original.chainAssets
 			if (!chainAssets?.total?.total) return null

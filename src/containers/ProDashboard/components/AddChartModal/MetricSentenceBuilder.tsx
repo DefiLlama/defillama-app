@@ -5,16 +5,16 @@ import {
 	ComboboxProvider,
 	Popover,
 	useComboboxStore,
-	usePopoverStore
+	usePopoverStore,
+	useStoreState
 } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { Switch } from '~/components/Switch'
 import { useMedia } from '~/hooks/useMedia'
 import { useAppMetadata } from '../../AppMetadataContext'
-import type { Chain, MetricAggregator, MetricWindow, Protocol } from '../../types'
+import type { Chain, MetricAggregator, MetricChartType, MetricWindow, Protocol } from '../../types'
 import { CHART_TYPES } from '../../types'
 import { getItemIconUrl } from '../../utils'
 
@@ -50,7 +50,7 @@ interface MetricSentenceBuilderProps {
 	metricChain: string | null
 	metricProtocol: string | null
 	metricWindow: MetricWindow
-	showSparkline: boolean
+	chartType: MetricChartType
 	availableMetricTypes: string[]
 	chains: Chain[]
 	protocols: Protocol[]
@@ -60,7 +60,7 @@ interface MetricSentenceBuilderProps {
 	onChainChange: (option: { value: string; label: string }) => void
 	onProtocolChange: (option: { value: string; label: string }) => void
 	onWindowChange: (value: MetricWindow) => void
-	onShowSparklineChange: (value: boolean) => void
+	onChartTypeChange: (value: MetricChartType) => void
 }
 
 const getTokenWidth = (token: Exclude<ActiveToken, null>, isMobile: boolean): number => {
@@ -118,7 +118,7 @@ export function MetricSentenceBuilder({
 	metricChain,
 	metricProtocol,
 	metricWindow,
-	showSparkline,
+	chartType,
 	availableMetricTypes,
 	chains,
 	protocols,
@@ -128,11 +128,11 @@ export function MetricSentenceBuilder({
 	onChainChange,
 	onProtocolChange,
 	onWindowChange,
-	onShowSparklineChange
+	onChartTypeChange
 }: MetricSentenceBuilderProps) {
 	const [activeToken, setActiveToken] = useState<ActiveToken>(null)
 	const [searchTerm, setSearchTerm] = useState('')
-	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>(metricSubjectType)
+	const [subjectTab, setSubjectTab] = useState<'chain' | 'protocol'>('chain')
 	const isMobile = useMedia('(max-width: 639px)')
 	const popover = usePopoverStore({
 		placement: isMobile ? 'bottom' : 'right-start'
@@ -145,8 +145,9 @@ export function MetricSentenceBuilder({
 		window: null
 	})
 	const [popoverWidth, setPopoverWidth] = useState(260)
-	const isPopoverOpen = popover.useState('open')
-	const subjectSearchValue = subjectCombobox.useState('value') ?? ''
+	const isPopoverOpen = useStoreState(popover, 'open')
+	const subjectSearchValue = useStoreState(subjectCombobox, 'value') ?? ''
+	const deferredSubjectSearchValue = useDeferredValue(subjectSearchValue)
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const protocolListRef = useRef<HTMLDivElement | null>(null)
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
@@ -155,21 +156,33 @@ export function MetricSentenceBuilder({
 		if (!isPopoverOpen) {
 			setActiveToken(null)
 		}
+	}, [isPopoverOpen])
+
+	useEffect(() => {
 		if (!activeToken) {
 			setSearchTerm('')
+		}
+	}, [activeToken])
+
+	useEffect(() => {
+		if (!activeToken) {
 			setSubjectTab(metricSubjectType)
 		}
+	}, [activeToken, metricSubjectType])
+
+	useEffect(() => {
 		if (activeToken === 'subject') {
 			subjectCombobox.setOpen(true)
 			setTimeout(() => {
 				const portal = document.querySelector('[data-metric-token] input') as HTMLInputElement | null
 				portal?.focus()
 			}, 10)
-		} else {
-			subjectCombobox.setValue('')
-			subjectCombobox.setOpen(false)
+			return
 		}
-	}, [isPopoverOpen, activeToken, metricSubjectType, subjectCombobox])
+
+		subjectCombobox.setValue('')
+		subjectCombobox.setOpen(false)
+	}, [activeToken, subjectCombobox])
 
 	const closePopover = () => {
 		popover.setOpen(false)
@@ -242,9 +255,7 @@ export function MetricSentenceBuilder({
 		return Array.from(set)
 	}, [chains, protocols, availableChainChartTypes, availableProtocolChartTypes])
 
-	const baseMetricTypes = useMemo(() => {
-		return availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
-	}, [availableMetricTypes, globalAvailableMetricTypes])
+	const baseMetricTypes = availableMetricTypes.length > 0 ? availableMetricTypes : globalAvailableMetricTypes
 
 	const _selectedProtocolOption = useMemo(
 		() => protocolOptions.find((option) => option.value === metricProtocol) || null,
@@ -268,9 +279,9 @@ export function MetricSentenceBuilder({
 	}, [chainOptions, allowedChainNamesForMetric])
 
 	const filteredChainOptions = useMemo(() => {
-		if (!subjectSearchValue) return chainOptionsByMetric
-		return matchSorter(chainOptionsByMetric, subjectSearchValue, { keys: ['label'] })
-	}, [chainOptionsByMetric, subjectSearchValue])
+		if (!deferredSubjectSearchValue) return chainOptionsByMetric
+		return matchSorter(chainOptionsByMetric, deferredSubjectSearchValue, { keys: ['label'] })
+	}, [chainOptionsByMetric, deferredSubjectSearchValue])
 
 	const allowedProtocolSlugsForMetric = useMemo(() => {
 		if (!metricType) return null as Set<string> | null
@@ -290,9 +301,9 @@ export function MetricSentenceBuilder({
 	}, [protocolOptions, allowedProtocolSlugsForMetric])
 
 	const filteredProtocolOptions = useMemo(() => {
-		if (!subjectSearchValue) return protocolOptionsByMetric
-		return matchSorter(protocolOptionsByMetric, subjectSearchValue, { keys: ['label'] })
-	}, [protocolOptionsByMetric, subjectSearchValue])
+		if (!deferredSubjectSearchValue) return protocolOptionsByMetric
+		return matchSorter(protocolOptionsByMetric, deferredSubjectSearchValue, { keys: ['label'] })
+	}, [protocolOptionsByMetric, deferredSubjectSearchValue])
 
 	const chainVirtualizer = useVirtualizer({
 		count: subjectTab === 'chain' ? filteredChainOptions.length : 0,
@@ -387,7 +398,7 @@ export function MetricSentenceBuilder({
 		closePopover()
 	}
 
-	const renderPopoverContent = () => {
+	const popoverContent = (() => {
 		switch (activeToken) {
 			case 'aggregator':
 				return (
@@ -434,7 +445,6 @@ export function MetricSentenceBuilder({
 					<div className="thin-scrollbar max-h-[320px] w-full overflow-y-auto" data-metric-token="true">
 						<div className="sticky top-0 border-b border-(--cards-border) bg-(--cards-bg) p-1.5">
 							<input
-								autoFocus
 								value={searchTerm}
 								onChange={(event) => setSearchTerm(event.target.value)}
 								placeholder="Search metrics..."
@@ -527,7 +537,6 @@ export function MetricSentenceBuilder({
 							<div className="space-y-2">
 								<div className="rounded-lg border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 shadow-inner">
 									<Combobox
-										autoFocus
 										placeholder={subjectTab === 'chain' ? 'Search chains...' : 'Search protocols...'}
 										className="mb-1.5 w-full rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-sm focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										aria-label="Search"
@@ -540,7 +549,7 @@ export function MetricSentenceBuilder({
 														const option = filteredChainOptions[virtualRow.index]
 														if (!option) return null
 														const isActive = metricChain === option.value
-														const iconUrl = getItemIconUrl('chain', null, option.value)
+														const iconUrl = option.value === 'All' ? null : getItemIconUrl('chain', null, option.value)
 														return (
 															<ComboboxItem
 																key={option.value}
@@ -568,11 +577,9 @@ export function MetricSentenceBuilder({
 																		<img
 																			src={iconUrl}
 																			alt={option.label}
+																			width={20}
+																			height={20}
 																			className="h-5 w-5 rounded-full object-cover"
-																			onError={(event) => {
-																				const target = event.currentTarget
-																				target.style.display = 'none'
-																			}}
 																		/>
 																	) : null}
 																	<span className="truncate">{option.label}</span>
@@ -621,11 +628,9 @@ export function MetricSentenceBuilder({
 																	<img
 																		src={option.logo || iconUrl}
 																		alt={option.label}
+																		width={20}
+																		height={20}
 																		className={`h-5 w-5 rounded-full object-cover ${option.isChild ? 'opacity-80' : ''}`}
-																		onError={(event) => {
-																			const target = event.currentTarget
-																			target.style.display = 'none'
-																		}}
 																	/>
 																) : null}
 																<div className="flex min-w-0 flex-col">
@@ -656,7 +661,7 @@ export function MetricSentenceBuilder({
 			default:
 				return null
 		}
-	}
+	})()
 
 	const handleTokenPress = (token: Exclude<ActiveToken, null>) => () => {
 		handleTokenClick(token)
@@ -665,7 +670,7 @@ export function MetricSentenceBuilder({
 	return (
 		<div className="flex flex-col gap-2.5 sm:gap-3">
 			<div className="rounded-lg border border-(--cards-border) bg-linear-to-br from-(--cards-bg) via-(--cards-bg) to-(--cards-bg-alt) p-2.5 shadow-sm sm:p-3">
-				<div className="flex items-center gap-2 sm:gap-2.5">
+				<div className="mb-4 flex items-center gap-2 sm:gap-2.5">
 					<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) sm:h-8 sm:w-8">
 						<Icon name="sparkles" width={14} height={14} className="sm:h-4 sm:w-4" />
 					</div>
@@ -676,8 +681,6 @@ export function MetricSentenceBuilder({
 						</div>
 					</div>
 				</div>
-			</div>
-			<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-2.5 text-sm text-(--text-secondary) shadow-sm sm:p-3">
 				<div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-(--text-primary) sm:gap-x-2.5 sm:gap-y-2">
 					<span className="text-xs text-(--text-tertiary) sm:text-sm">Show</span>
 					<TokenButton
@@ -715,15 +718,52 @@ export function MetricSentenceBuilder({
 						}}
 					/>
 				</div>
-				<div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 sm:mt-3 sm:px-2.5">
-					<Switch
-						label="Sparkline"
-						checked={showSparkline}
-						onChange={() => onShowSparklineChange(!showSparkline)}
-						value="sparkline"
-						help="Display a tiny trendline inside your metric tile."
-						className="text-[11px] font-medium text-(--text-secondary) sm:text-xs"
-					/>
+				<div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 sm:mt-3 sm:px-2.5">
+					<span className="text-[11px] font-medium text-(--text-secondary) sm:text-xs">Chart:</span>
+					<div className="flex flex-1 items-center gap-1 rounded-md bg-(--bg-input) p-0.5">
+						<button
+							type="button"
+							onClick={() => onChartTypeChange('sparkline')}
+							aria-pressed={chartType === 'sparkline'}
+							title="Line chart"
+							className={`flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+								chartType === 'sparkline'
+									? 'bg-(--primary) text-white'
+									: 'text-(--text-secondary) hover:text-(--text-primary)'
+							}`}
+						>
+							<Icon name="activity" width={12} height={12} />
+							<span>Line</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => onChartTypeChange('bar')}
+							aria-pressed={chartType === 'bar'}
+							title="Bar chart"
+							className={`flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+								chartType === 'bar'
+									? 'bg-(--primary) text-white'
+									: 'text-(--text-secondary) hover:text-(--text-primary)'
+							}`}
+						>
+							<Icon name="bar-chart-2" width={12} height={12} />
+							<span>Bar</span>
+						</button>
+						<button
+							type="button"
+							onClick={() => onChartTypeChange('none')}
+							aria-pressed={chartType === 'none'}
+							title="No chart"
+							className={`flex flex-1 items-center justify-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors sm:text-xs ${
+								chartType === 'none'
+									? 'bg-(--primary) text-white'
+									: 'text-(--text-secondary) hover:text-(--text-primary)'
+							}`}
+						>
+							<Icon name="x" width={12} height={12} />
+							<span>None</span>
+						</button>
+					</div>
 				</div>
 			</div>
 			<Popover
@@ -738,7 +778,7 @@ export function MetricSentenceBuilder({
 					overflow: 'hidden auto'
 				}}
 			>
-				{renderPopoverContent()}
+				{popoverContent}
 			</Popover>
 		</div>
 	)

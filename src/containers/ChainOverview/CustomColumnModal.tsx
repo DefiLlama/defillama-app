@@ -59,15 +59,17 @@ export function CustomColumnModal({
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
 		if (isOpen) {
-			setState({
-				name: initialName,
-				formula: initialFormula,
-				formatType: initialFormatType,
-				error: null,
-				showSuggestions: false,
-				suggestions: [],
-				highlighted: 0,
-				fieldWarning: null
+			queueMicrotask(() => {
+				setState({
+					name: initialName,
+					formula: initialFormula,
+					formatType: initialFormatType,
+					error: null,
+					showSuggestions: false,
+					suggestions: [],
+					highlighted: 0,
+					fieldWarning: null
+				})
 			})
 		}
 	}, [isOpen, initialName, initialFormula, initialFormatType])
@@ -247,7 +249,6 @@ export function CustomColumnModal({
 							value={state.name}
 							onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
 							placeholder="Custom Column"
-							autoFocus
 						/>
 					</label>
 					<label className="flex flex-col gap-1">

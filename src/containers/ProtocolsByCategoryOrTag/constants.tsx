@@ -1,4 +1,5 @@
-import { ProtocolChartsQueryParams } from '../ProtocolOverview/Chart/constants'
+import type { ProtocolChartsQueryParams } from '~/containers/ProtocolOverview/constants'
+import { capitalizeFirstLetter } from '~/utils'
 
 export const protocolCategories = {
 	Dexs: { description: 'Protocols where you can swap/trade cryptocurrency', defaultChart: 'dexVolume' },
@@ -63,7 +64,7 @@ export const protocolCategories = {
 		description: 'Protocol that allows you to lend against known parties that can borrow without collaterall'
 	},
 	'Exotic Options': { description: 'Protocols that provide option vaults while also adding borrowing on top' },
-	'Liquidity manager': { description: 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs' },
+	'Liquidity Manager': { description: 'Protocols that manage Liquidity Positions in concentrated liquidity AMMs' },
 	'Staking Pool': {
 		description:
 			"Refers to platforms where users stake their assets using smart contracts on native blockchains to help secure the network and earn rewards but don't receive a receipt token to use in other Defi apps like with Liquid Staking projects"
@@ -95,7 +96,9 @@ export const protocolCategories = {
 			'Projects simultaneously buying and selling crypto futures to profit from price differences between the spot and futures markets'
 	},
 	MEV: { description: 'MEV Layer' },
-	CeDeFi: { description: 'Projects that incorporate elements of centralization within their product strategies' },
+	CeDeFi: {
+		description: 'Projects that incorporate elements of centralization within their product strategies'
+	},
 	'CDP Manager': { description: 'Protocols that manage CDPs' },
 	'Governance Incentives': {
 		description:
@@ -258,5 +261,520 @@ export const protocolCategories = {
 	'Secondary Debt Markets': {
 		description:
 			'Markets that allow users to exchange or settle existing debt claims and distressed positions, providing liquidity and price discovery for outstanding obligations'
+	},
+	'Block Builders': {
+		description: 'Block builder APIs for private transaction bundles'
+	},
+	'Stablecoin Wrapper': {
+		description: 'Protocols that lock an existing stablecoin and mint a 1:1 redeemable on-chain wrapper token'
+	},
+	'Crypto Card Issuer': {
+		description:
+			'Protocols that issue crypto-linked debit or credit cards for spending through traditional payment networks'
 	}
 } as const satisfies Record<string, { description: string; defaultChart?: ProtocolChartsQueryParams }>
+
+export const categoriesPageExcludedExtraTvls = new Set<string>(['doublecounted', 'liquidstaking'])
+
+export type ProtocolCategoryChartMetric = 'tvl' | 'dexVolume' | 'perpVolume' | 'openInterest' | 'borrowed' | 'staking'
+
+type CategoryPresentationConfig = {
+	headingLabel?: string
+	seoLabel?: string
+	seoTitleSuffix?: string
+	seoBaseTitle?: string
+	tableHeader?: string
+	searchPlaceholder?: string
+}
+
+export interface ProtocolCategoryColumnBehavior {
+	showRwaAssetClass: boolean
+	showPerpColumns: boolean
+	showOpenInterest: boolean
+	showTvl: boolean
+	showRwaStats: boolean
+	showOptionColumns: boolean
+	showLendingColumns: boolean
+}
+
+type ProtocolCategoryCustomization = {
+	presentation?: CategoryPresentationConfig
+	chartMetrics?: ProtocolCategoryChartMetric[]
+	columnBehavior?: Partial<ProtocolCategoryColumnBehavior>
+}
+
+const defaultChartMetrics: ProtocolCategoryChartMetric[] = ['tvl']
+
+const defaultColumnBehavior: ProtocolCategoryColumnBehavior = {
+	showRwaAssetClass: false,
+	showPerpColumns: false,
+	showOpenInterest: false,
+	showTvl: true,
+	showRwaStats: false,
+	showOptionColumns: false,
+	showLendingColumns: false
+}
+
+export const protocolCategoryCustomizations: Partial<Record<string, ProtocolCategoryCustomization>> = {
+	RWA: {
+		presentation: {
+			seoLabel: 'Real World Assets on Chain (RWA)',
+			seoTitleSuffix: 'Rankings',
+			tableHeader: 'Assets Rankings'
+		},
+		columnBehavior: {
+			showRwaAssetClass: true,
+			showRwaStats: true
+		}
+	},
+	Bridge: {
+		presentation: {
+			headingLabel: 'Bridges',
+			seoLabel: 'Bridges',
+			seoBaseTitle: 'Crypto Bridge Protocols - TVL, Volume, & Fees',
+			searchPlaceholder: 'Search bridges...'
+		}
+	},
+	'Cross Chain Bridge': {
+		presentation: {
+			headingLabel: 'Cross-Chain Bridges',
+			seoLabel: 'Cross-Chain Bridges',
+			seoBaseTitle: 'Cross-Chain Bridges - All Chains - TVL, Fees, & Revenue',
+			searchPlaceholder: 'Search cross-chain bridges...'
+		}
+	},
+	'Bridge Aggregator': {
+		presentation: {
+			headingLabel: 'Bridge Aggregators',
+			seoLabel: 'Bridge Aggregators',
+			searchPlaceholder: 'Search bridge aggregators...'
+		}
+	},
+	'Canonical Bridge': {
+		presentation: {
+			headingLabel: 'Canonical Bridges',
+			seoLabel: 'Canonical Bridges',
+			searchPlaceholder: 'Search canonical bridges...'
+		}
+	},
+	Launchpad: {
+		presentation: {
+			headingLabel: 'Launchpads',
+			seoLabel: 'Launchpads',
+			seoBaseTitle: 'Crypto Launchpad Protocols - Revenue & TVL',
+			tableHeader: 'Launchpad Rankings',
+			searchPlaceholder: 'Search launchpads...'
+		}
+	},
+	Farm: {
+		presentation: {
+			headingLabel: 'Farms',
+			seoLabel: 'Farms',
+			seoBaseTitle: 'DeFi Farms - All Chains - TVL, Fees, & Revenue',
+			searchPlaceholder: 'Search farms...'
+		}
+	},
+	Oracle: {
+		presentation: {
+			headingLabel: 'Oracles',
+			seoLabel: 'Oracles',
+			tableHeader: 'Oracle Rankings',
+			searchPlaceholder: 'Search oracles...'
+		}
+	},
+	CDP: {
+		presentation: {
+			headingLabel: 'CDPs',
+			seoLabel: 'CDPs',
+			searchPlaceholder: 'Search CDPs...'
+		}
+	},
+	'Yield Aggregator': {
+		presentation: {
+			headingLabel: 'Yield Aggregators',
+			seoLabel: 'Yield Aggregators',
+			seoBaseTitle: 'Top DeFi Yield Aggregators - TVL, Fees, & Revenue',
+			searchPlaceholder: 'Search yield aggregators...'
+		}
+	},
+	'DEX Aggregator': {
+		presentation: {
+			headingLabel: 'DEX Aggregators',
+			seoLabel: 'DEX Aggregators',
+			seoBaseTitle: 'Crypto DEX Aggregator Protocols - Volume, TVL, & Fees',
+			searchPlaceholder: 'Search DEX aggregators...'
+		},
+		chartMetrics: ['tvl', 'dexVolume']
+	},
+	'DEX Aggregators': {
+		presentation: {
+			headingLabel: 'DEX Aggregators',
+			seoLabel: 'DEX Aggregators',
+			seoBaseTitle: 'Crypto DEX Aggregator Protocols - Volume, TVL, & Fees',
+			searchPlaceholder: 'Search DEX aggregators...'
+		},
+		chartMetrics: ['tvl', 'dexVolume']
+	},
+	'Options Vault': {
+		presentation: {
+			headingLabel: 'Options Vaults',
+			seoLabel: 'Options Vaults',
+			searchPlaceholder: 'Search options vaults...'
+		}
+	},
+	'Staking Pool': {
+		presentation: {
+			headingLabel: 'Staking Pools',
+			seoLabel: 'Staking Pools',
+			searchPlaceholder: 'Search staking pools...'
+		}
+	},
+	'Partially Algorithmic Stablecoin': {
+		presentation: {
+			headingLabel: 'Partially Algorithmic Stablecoins',
+			seoLabel: 'Partially Algorithmic Stablecoins',
+			searchPlaceholder: 'Search partially algorithmic stablecoins...'
+		}
+	},
+	'Dual-Token Stablecoin': {
+		presentation: {
+			headingLabel: 'Dual-Token Stablecoins',
+			seoLabel: 'Dual-Token Stablecoins',
+			searchPlaceholder: 'Search dual-token stablecoins...'
+		}
+	},
+	Wallets: {
+		presentation: {
+			tableHeader: 'Wallets TVL Rankings',
+			searchPlaceholder: 'Search wallets...'
+		}
+	},
+	'Telegram Bot': {
+		presentation: {
+			headingLabel: 'Telegram Bots',
+			seoLabel: 'Telegram Bots',
+			tableHeader: 'Telegram Bot Rankings',
+			searchPlaceholder: 'Search telegram bots...'
+		}
+	},
+	'Security Extension': {
+		presentation: {
+			headingLabel: 'Security Extensions',
+			seoLabel: 'Security Extensions',
+			tableHeader: 'Security Extension Rankings',
+			searchPlaceholder: 'Search security extensions...'
+		}
+	},
+	'AI Agents': {
+		presentation: {
+			tableHeader: 'AI Agents Rankings',
+			searchPlaceholder: 'Search AI Agents...'
+		}
+	},
+	'Treasury Manager': {
+		presentation: {
+			headingLabel: 'Treasury Managers',
+			seoLabel: 'Treasury Managers',
+			tableHeader: 'Treasury Manager Rankings',
+			searchPlaceholder: 'Search treasury managers...'
+		}
+	},
+	'Token Locker': {
+		presentation: {
+			headingLabel: 'Token Lockers',
+			seoLabel: 'Token Lockers',
+			tableHeader: 'Token Locker Rankings',
+			searchPlaceholder: 'Search token lockers...'
+		}
+	},
+	'Stablecoin Issuer': {
+		presentation: {
+			headingLabel: 'Stablecoin Issuers',
+			seoLabel: 'Stablecoin Issuers',
+			tableHeader: 'Stablecoin Issuer Rankings',
+			searchPlaceholder: 'Search stablecoin issuers...'
+		}
+	},
+	'Coins Tracker': {
+		presentation: {
+			headingLabel: 'Coin Trackers',
+			seoLabel: 'Coin Trackers',
+			tableHeader: 'Coin Tracker Rankings',
+			searchPlaceholder: 'Search coin trackers...'
+		}
+	},
+	'Trading App': {
+		presentation: {
+			headingLabel: 'Trading Apps',
+			seoLabel: 'Trading Apps',
+			tableHeader: 'Trading App Rankings',
+			searchPlaceholder: 'Search trading apps...'
+		}
+	},
+	Foundation: {
+		presentation: {
+			headingLabel: 'Foundations',
+			seoLabel: 'Foundations',
+			tableHeader: 'Foundation Rankings',
+			searchPlaceholder: 'Search foundations...'
+		}
+	},
+	'Portfolio Tracker': {
+		presentation: {
+			headingLabel: 'Portfolio Trackers',
+			seoLabel: 'Portfolio Trackers',
+			tableHeader: 'Portfolio Tracker Rankings',
+			searchPlaceholder: 'Search portfolio trackers...'
+		}
+	},
+	Meme: {
+		presentation: {
+			headingLabel: 'Meme Tokens',
+			seoLabel: 'Meme Tokens',
+			tableHeader: 'Meme Token Rankings',
+			searchPlaceholder: 'Search meme tokens...'
+		}
+	},
+	'Private Investment Platform': {
+		presentation: {
+			headingLabel: 'Private Investment Platforms',
+			seoLabel: 'Private Investment Platforms',
+			tableHeader: 'Private Investment Platform Rankings',
+			searchPlaceholder: 'Search private investment platforms...'
+		}
+	},
+	'DAO Service Provider': {
+		presentation: {
+			headingLabel: 'DAO Service Providers',
+			seoLabel: 'DAO Service Providers',
+			tableHeader: 'DAO Service Provider Rankings',
+			searchPlaceholder: 'Search DAO service providers...'
+		}
+	},
+	'Decentralized BTC': {
+		presentation: {
+			headingLabel: 'Decentralized BTC Tokens',
+			seoLabel: 'Decentralized BTC Tokens',
+			tableHeader: 'Decentralized BTC Token Rankings',
+			searchPlaceholder: 'Search decentralized BTC tokens...'
+		}
+	},
+	'Anchor BTC': {
+		presentation: {
+			headingLabel: 'Anchor BTC Tokens',
+			seoLabel: 'Anchor BTC Tokens',
+			tableHeader: 'Anchor BTC Token Rankings',
+			searchPlaceholder: 'Search anchor BTC tokens...'
+		}
+	},
+	'CDP Manager': {
+		presentation: {
+			headingLabel: 'CDP Managers',
+			seoLabel: 'CDP Managers',
+			tableHeader: 'CDP Manager Rankings',
+			searchPlaceholder: 'Search CDP managers...'
+		}
+	},
+	Dexs: {
+		presentation: {
+			seoBaseTitle: 'Crypto DEX Protocols - Volume, TVL, Fees, & Revenue'
+		},
+		chartMetrics: ['tvl', 'dexVolume']
+	},
+	'Prediction Market': {
+		presentation: {
+			headingLabel: 'Prediction Markets',
+			seoLabel: 'Prediction Markets',
+			seoBaseTitle: 'Top Crypto Prediction Markets - TVL, Volume, & Revenue',
+			seoTitleSuffix: 'Rankings',
+			tableHeader: 'Market Rankings',
+			searchPlaceholder: 'Search markets...'
+		},
+		chartMetrics: ['tvl', 'dexVolume']
+	},
+	'Crypto Card Issuer': {
+		presentation: {
+			headingLabel: 'Crypto Card Issuers',
+			seoLabel: 'Crypto Card Issuers',
+			seoTitleSuffix: 'Rankings',
+			tableHeader: 'Issuer Rankings',
+			searchPlaceholder: 'Search Issuers...'
+		},
+		chartMetrics: ['tvl', 'dexVolume']
+	},
+	Derivatives: {
+		presentation: {
+			seoBaseTitle: 'Crypto Derivatives Protocols - Volume, Fees, & Revenue'
+		},
+		chartMetrics: ['tvl', 'perpVolume', 'openInterest'],
+		columnBehavior: {
+			showPerpColumns: true,
+			showOpenInterest: true
+		}
+	},
+	Interface: {
+		chartMetrics: ['tvl', 'perpVolume'],
+		columnBehavior: {
+			showPerpColumns: true,
+			showTvl: false
+		}
+	},
+	Options: {
+		presentation: {
+			seoBaseTitle: 'DeFi Options Protocols - TVL, Volume, Fees, & Revenue'
+		},
+		columnBehavior: {
+			showOptionColumns: true
+		}
+	},
+	Lending: {
+		presentation: {
+			seoBaseTitle: 'DeFi Lending Protocols - TVL, Fees, & Revenue'
+		},
+		chartMetrics: ['tvl', 'borrowed'],
+		columnBehavior: {
+			showLendingColumns: true
+		}
+	},
+	'Liquid Staking': {
+		presentation: {
+			seoBaseTitle: 'Liquid Staking Protocols - TVL, Fees, & Revenue'
+		},
+		chartMetrics: ['tvl', 'staking']
+	},
+	Insurance: {
+		presentation: {
+			seoBaseTitle: 'DeFi Insurance Protocols - TVL, Fees, & Revenue'
+		}
+	},
+	'Liquid Restaking': {
+		presentation: {
+			seoBaseTitle: 'Liquid Restaking Protocols - TVL, Fees, & Revenue'
+		}
+	},
+	Restaking: {
+		presentation: {
+			seoBaseTitle: 'Restaking Protocols - TVL & Rewards'
+		}
+	},
+	Yield: {
+		presentation: {
+			seoBaseTitle: 'Top DeFi Yield Protocols - TVL, Fees, & Revenue'
+		}
+	},
+	Privacy: {
+		presentation: {
+			seoBaseTitle: 'Crypto Privacy Protocols - TVL & Revenue'
+		}
+	},
+	Payments: {
+		presentation: {
+			seoBaseTitle: 'Crypto Payment Protocols - TVL & Revenue'
+		}
+	},
+	Indexes: {
+		presentation: {
+			seoBaseTitle: 'Crypto Index Protocols - TVL & Revenue'
+		}
+	},
+	'Leveraged Farming': {
+		presentation: {
+			seoBaseTitle: 'DeFi Leveraged Farming Protocols - TVL & Revenue'
+		}
+	},
+	'NFT Marketplace': {
+		presentation: {
+			seoBaseTitle: 'Top Crypto NFT Marketplaces - Volume & Revenue'
+		}
+	},
+	'NFT Lending': {
+		presentation: {
+			seoBaseTitle: 'NFT Lending Protocols - TVL & Revenue'
+		}
+	},
+	Synthetics: {
+		presentation: {
+			seoBaseTitle: 'DeFi Synthetic Asset Protocols - TVL & Revenue'
+		}
+	},
+	MEV: {
+		presentation: {
+			seoBaseTitle: 'MEV (Maximal Extractable Value) Protocols - TVL & Revenue'
+		}
+	},
+	CeDeFi: {
+		presentation: {
+			seoBaseTitle: 'CeDeFi (Centralized DeFi) Protocols - TVL & Revenue'
+		}
+	}
+}
+
+export function getProtocolCategoryPresentation({
+	label,
+	effectiveCategory,
+	isTagPage = false,
+	chain
+}: {
+	label: string
+	effectiveCategory: string | null
+	isTagPage?: boolean
+	chain?: string
+}) {
+	const customization = effectiveCategory ? protocolCategoryCustomizations[effectiveCategory] : null
+	const presentation = customization?.presentation
+
+	const defaultSeoLabel = effectiveCategory === 'RWA' && !isTagPage ? 'Real World Assets on Chain (RWA)' : label
+	const hasCustomPresentation = Boolean(presentation)
+	const defaultHeadingLabel = hasCustomPresentation ? label : `${label} Protocols`
+	const defaultTitleSuffix = 'Rankings'
+	const defaultTableHeader = effectiveCategory === 'RWA' ? 'Assets Rankings' : 'Protocols Rankings'
+	const defaultSearchPlaceholder = hasCustomPresentation ? `Search ${label}...` : 'Search Protocols...'
+	const normalizedChain = chain?.trim()
+	const chainTitleSuffix = normalizedChain && normalizedChain !== 'All' ? ` on ${normalizedChain}` : ''
+	const resolvedTitleSuffix = `${presentation?.seoTitleSuffix ?? defaultTitleSuffix}${chainTitleSuffix}`
+	const resolvedSeoLabel = presentation?.seoLabel ?? defaultSeoLabel
+	const seoBaseTitle = presentation?.seoBaseTitle
+	const hasChain = normalizedChain && normalizedChain !== 'All'
+
+	const seoTitle = seoBaseTitle
+		? hasChain
+			? `${normalizedChain} ${seoBaseTitle} - DefiLlama`
+			: `${seoBaseTitle} - DefiLlama`
+		: hasChain
+			? `${normalizedChain} ${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
+			: `${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
+
+	const MAX_DESC_LENGTH = 155
+	const baseDesc = hasChain
+		? `Track top ${resolvedSeoLabel} on ${normalizedChain} by TVL, volume, and more on DefiLlama.`
+		: `Track top ${resolvedSeoLabel} across all chains by TVL, volume, and more on DefiLlama.`
+	const categoryDesc = effectiveCategory
+		? (protocolCategories as Record<string, { description?: string }>)[effectiveCategory]?.description
+		: undefined
+	const seoDescription =
+		categoryDesc && `${baseDesc} ${categoryDesc}`.length <= MAX_DESC_LENGTH ? `${baseDesc} ${categoryDesc}` : baseDesc
+
+	return {
+		headingLabel: presentation?.headingLabel ?? defaultHeadingLabel,
+		seoLabel: resolvedSeoLabel,
+		seoDescription,
+		seoTitle,
+		titleSuffix: resolvedTitleSuffix,
+		tableHeader: presentation?.tableHeader ?? defaultTableHeader,
+		searchPlaceholder: presentation?.searchPlaceholder ?? defaultSearchPlaceholder
+	}
+}
+
+export function getProtocolCategoryChartMetrics(effectiveCategory: string | null): ProtocolCategoryChartMetric[] {
+	if (!effectiveCategory) return defaultChartMetrics
+	return protocolCategoryCustomizations[effectiveCategory]?.chartMetrics ?? defaultChartMetrics
+}
+
+export function getProtocolCategoryColumnBehavior(effectiveCategory: string | null): ProtocolCategoryColumnBehavior {
+	if (!effectiveCategory) return defaultColumnBehavior
+
+	return {
+		...defaultColumnBehavior,
+		...protocolCategoryCustomizations[effectiveCategory]?.columnBehavior
+	}
+}

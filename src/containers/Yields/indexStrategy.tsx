@@ -13,7 +13,8 @@ const YieldsStrategyPage = ({
 	categoryList,
 	allPools,
 	lendingProtocols,
-	farmProtocols
+	farmProtocols,
+	evmChains
 }) => {
 	const { query } = useRouter()
 
@@ -35,7 +36,8 @@ const YieldsStrategyPage = ({
 		chainList,
 		categoryList,
 		lendingProtocols,
-		farmProtocols
+		farmProtocols,
+		evmChains
 	})
 
 	// prepare cdp pools
@@ -106,6 +108,7 @@ const YieldsStrategyPage = ({
 				chainsNumber={selectedChains.length}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				lendingProtocols={lendingProtocols}
 				selectedLendingProtocols={selectedLendingProtocols}
 				farmProtocols={farmProtocols}

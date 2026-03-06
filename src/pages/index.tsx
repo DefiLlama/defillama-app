@@ -1,7 +1,20 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next/types'
+import { BasicLink } from '~/components/Link'
 import { ChainOverview } from '~/containers/ChainOverview'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
+import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const pageName = ['Overview']
+const Announcement = () => (
+	<>
+		NEW!{' '}
+		<BasicLink href="/rwa" className="underline">
+			RWA dashboard
+		</BasicLink>
+	</>
+)
 
 export const getStaticProps = withPerformanceLogging('index', async () => {
 	const metadataModule = await import('~/utils/metadata')
@@ -19,6 +32,18 @@ export const getStaticProps = withPerformanceLogging('index', async () => {
 	}
 })
 
-export default function HomePage(props) {
-	return <ChainOverview {...props} />
+export default function HomePage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title="DefiLlama - DeFi Dashboard & Crypto Analytics"
+			description="Track Total Value Locked (TVL), revenue, fees, volume, and yields across 7000+ DeFi protocols on 500+ chains. Real-time DeFi analytics including protocol earnings, profit metrics, DEX volume, and transparent crypto data without ads."
+			canonicalUrl=""
+			metricFilters={props.tvlAndFeesOptions}
+			metricFiltersLabel="Include in TVL"
+			pageName={pageName}
+			announcement={<Announcement />}
+		>
+			<ChainOverview {...props} />
+		</Layout>
+	)
 }

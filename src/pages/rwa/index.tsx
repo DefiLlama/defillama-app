@@ -1,11 +1,14 @@
-import { maxAgeForNext } from '~/api'
+import type { InferGetStaticPropsType } from 'next'
 import { RWAOverview } from '~/containers/RWA'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/index`, async () => {
-	const props = await getRWAAssetsOverview()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
+	const props = await getRWAAssetsOverview({ rwaList })
 
 	if (!props) return { notFound: true }
 
@@ -17,12 +20,11 @@ export const getStaticProps = withPerformanceLogging(`rwa/index`, async () => {
 
 const pageName = ['RWA']
 
-export default function RWAPage(props) {
+export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Real World Assets - DefiLlama"
-			description={`Real World Assets on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, defi rwa rankings, rwa on chain`}
+			title="Real World Assets (RWA) Dashboard & Analytics - DefiLlama"
+			description="Track Real World Assets (RWA) tokenization on-chain. View tokenized treasuries, private credit, real estate, and commodities. RWA market cap, yields, and adoption analytics across all blockchains."
 			pageName={pageName}
 			canonicalUrl={`/rwa`}
 		>

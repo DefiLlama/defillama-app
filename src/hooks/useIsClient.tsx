@@ -1,15 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
+
+const subscribe = () => () => {}
 
 export const useIsClient = () => {
-	const [isClient, setIsClient] = useState(false)
-
-	const windowType = typeof document
-
-	useEffect(() => {
-		if (windowType !== 'undefined') {
-			setIsClient(true)
-		}
-	}, [windowType])
-
-	return isClient
+	return useSyncExternalStore(
+		subscribe,
+		() => true,
+		() => false
+	)
 }

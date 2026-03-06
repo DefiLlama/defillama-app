@@ -64,6 +64,13 @@
       "oldName": "Top Protocols"
     },
     {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Total Value Locked",
@@ -82,13 +89,6 @@
       "tab": "Protocols",
       "oldCategory": "Market Overview",
       "oldName": "Forks"
-    },
-    {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
     },
     {
       "name": "Total Borrowed by Protocol",
@@ -165,7 +165,7 @@
     },
     {
       "name": "Yields: Long/Short Strategies",
-      "route": "/yields/strategyLongShort",
+      "route": "/yields/strategy-long-short",
       "category": "Yields",
       "description": "Find 'long-short' strategies across all our tracked pools",
       "oldCategory": "Yields",
@@ -310,6 +310,18 @@
       "oldName": "DEXs"
     },
     {
+      "name": "Normalized Volume by Protocol",
+      "route": "/normalized-volume",
+      "category": "Volume",
+      "description": "Volume of genuine trading activity in perp exchanges, adjusted to exclude wash trading and non-economic volume",
+      "totalTrackedKey": "normalizedVolume.protocols",
+      "keys": [
+        "derivatives",
+        "futures"
+      ],
+      "tab": "Protocols"
+    },
+    {
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
@@ -328,6 +340,18 @@
       "tab": "Chains",
       "oldCategory": "Volume",
       "oldName": "DEXs (Chains)"
+    },
+    {
+      "name": "Normalized Volume by Chain",
+      "route": "/normalized-volume/chains",
+      "category": "Volume",
+      "description": "Sum of genuine trading activity volume in perp exchanges on the chain, adjusted to exclude wash trading and non-economic volume",
+      "totalTrackedKey": "normalizedVolume.chains",
+      "keys": [
+        "derivatives",
+        "futures"
+      ],
+      "tab": "Chains"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -461,38 +485,31 @@
       "tab": "Protocols"
     },
     {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
+      "name": "RWA: Overview",
+      "route": "/rwa",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs)",
+      "tags": [
+        "New"
+      ]
     },
     {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
+      "name": "RWA by Chain",
+      "route": "/rwa/chains",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by chain"
     },
     {
-      "name": "Bridges by Volume",
-      "route": "/bridges",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol",
-      "totalTrackedKey": "bridges.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Bridges",
-      "oldName": "Overview"
+      "name": "RWA by Category",
+      "route": "/rwa/categories",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by category"
     },
     {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
-      "totalTrackedKey": "bridges.chains",
-      "tab": "Chains",
-      "oldCategory": "Bridges",
-      "oldName": "Chains"
+      "name": "RWA by Platform",
+      "route": "/rwa/platforms",
+      "category": "RWA",
+      "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
       "name": "NFTs: Collections",
@@ -546,29 +563,38 @@
       "tab": "Protocols"
     },
     {
-      "name": "Unlocks: Overview",
-      "route": "/unlocks",
-      "category": "Unlocks",
-      "description": "Overview of token emissions by protocol",
-      "totalTrackedKey": "emissions.protocols",
-      "keys": [
-        "emissions"
-      ],
+      "name": "Bridges by Volume",
+      "route": "/bridges",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol",
+      "totalTrackedKey": "bridges.protocols",
       "tab": "Protocols",
-      "oldCategory": "Unlocks",
+      "oldCategory": "Bridges",
       "oldName": "Overview"
     },
     {
-      "name": "Unlocks: Calendar",
-      "route": "/unlocks/calendar",
-      "category": "Unlocks",
-      "description": "Upcoming total token emissions by date",
-      "keys": [
-        "emissions"
-      ],
-      "tab": "Protocols",
-      "oldCategory": "Unlocks",
-      "oldName": "Calendar"
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
+      "totalTrackedKey": "bridges.chains",
+      "tab": "Chains",
+      "oldCategory": "Bridges",
+      "oldName": "Chains"
+    },
+    {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
     },
     {
       "name": "Treasuries",
@@ -595,6 +621,31 @@
       "totalTrackedKey": "treasury.entities"
     },
     {
+      "name": "Unlocks: Overview",
+      "route": "/unlocks",
+      "category": "Unlocks",
+      "description": "Overview of token emissions by protocol",
+      "totalTrackedKey": "emissions.protocols",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Unlocks: Calendar",
+      "route": "/unlocks/calendar",
+      "category": "Unlocks",
+      "description": "Upcoming total token emissions by date",
+      "keys": [
+        "emissions"
+      ],
+      "tab": "Protocols",
+      "oldCategory": "Unlocks",
+      "oldName": "Calendar"
+    },
+    {
       "name": "Raises: Overview",
       "route": "/raises",
       "category": "Raises",
@@ -611,12 +662,6 @@
       "totalTrackedKey": "raises.investors",
       "oldCategory": "Raises",
       "oldName": "Investors"
-    },
-    {
-      "name": "Sheets",
-      "route": "/sheets",
-      "category": "Sheets",
-      "description": "Access DeFi data right in your spreadsheets"
     },
     {
       "name": "CEXs",
@@ -659,6 +704,13 @@
       "oldName": "Governance"
     },
     {
+      "name": "Safe Harbor Agreements",
+      "route": "/safe-harbor-agreements",
+      "category": "Others",
+      "description": "Overview of protocols with Safe Harbor Agreements",
+      "totalTrackedKey": "safeHarbor.protocols"
+    },
+    {
       "name": "Expenses by Protocol",
       "route": "/expenses",
       "category": "Others",
@@ -667,11 +719,12 @@
       "tab": "Protocols"
     },
     {
-      "name": "Safe Harbor Agreements",
-      "route": "/safe-harbor-agreements",
+      "name": "Token Rights",
+      "route": "/token-rights",
       "category": "Others",
-      "description": "Overview of protocols with Safe Harbor Agreements",
-      "totalTrackedKey": "safeHarbor.protocols"
+      "description": "List of protocols with token rights",
+      "tab": "Protocols",
+      "oldName": "Token Rights"
     }
   ],
   "Tools": [
@@ -692,18 +745,16 @@
       "oldName": "Correlations Matrix"
     },
     {
+      "name": "Sheets",
+      "route": "/sheets",
+      "category": "Tools",
+      "description": "Access DeFi data right in your spreadsheets"
+    },
+    {
       "name": "DeFi Watchlist",
       "route": "/watchlist",
       "category": "Tools",
       "description": "Watchlist of all protocols on DefiLlama",
-      "oldName": "Watchlist"
-    },
-    {
-      "name": "Yields: Watchlist",
-      "route": "/yields/watchlist",
-      "category": "Tools",
-      "description": "Watchlist of all pools that we track in our yields section",
-      "oldCategory": "Yields",
       "oldName": "Watchlist"
     },
     {
@@ -722,12 +773,12 @@
       "oldName": "Simple"
     },
     {
-      "name": "Protocols Website Directory",
-      "route": "/directory",
+      "name": "Yields: Watchlist",
+      "route": "/yields/watchlist",
       "category": "Tools",
-      "description": "Directory of all protocols websites on DefiLlama",
-      "tab": "Protocols",
-      "oldName": "Directory"
+      "description": "Watchlist of all pools that we track in our yields section",
+      "oldCategory": "Yields",
+      "oldName": "Watchlist"
     },
     {
       "name": "Borrow Aggregator: Advanced",
@@ -736,6 +787,14 @@
       "description": "Advanced view of optimal lending routes by collateral to borrow assets",
       "oldCategory": "Borrow Aggregator",
       "oldName": "Advanced"
+    },
+    {
+      "name": "Protocols Website Directory",
+      "route": "/directory",
+      "category": "Tools",
+      "description": "Directory of all protocols websites on DefiLlama",
+      "tab": "Protocols",
+      "oldName": "Directory"
     },
     {
       "name": "Transactions by Bridge",
@@ -756,10 +815,7 @@
       "name": "Report Error",
       "route": "/report-error",
       "category": "Tools",
-      "description": "Report errors in methodology, protocol metrics, or suggest site improvements",
-      "tags": [
-        "New"
-      ]
+      "description": "Report errors in methodology, protocol metrics, or suggest site improvements"
     },
     {
       "name": "Compare Chains",

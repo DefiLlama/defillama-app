@@ -1,11 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
-import { useDeferredValue, useState } from 'react'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
+import { startTransition, useDeferredValue, useState } from 'react'
 import { LocalLoader } from '~/components/Loaders'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { TagGroup } from '~/components/TagGroup'
 import Layout from '~/layout'
-import { formattedPercent } from '~/utils'
 import { fetchJson } from '~/utils/async'
 
 const valueToFilter = {
@@ -76,7 +82,7 @@ export default function TrendingContracts() {
 	const activeChain = typeof chain === 'string' ? chain.toLowerCase() : 'ethereum'
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: [`trending-contracts-${time}${activeChain}`],
+		queryKey: ['trending-contracts', time, activeChain],
 		queryFn: () => getContracts(activeChain, time),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -93,9 +99,10 @@ export default function TrendingContracts() {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		columns: columns(activeChain),
 		getCoreRowModel: getCoreRowModel(),
-		onSortingChange: setSorting,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		getSortedRowModel: getSortedRowModel()
 	})
 
@@ -103,14 +110,17 @@ export default function TrendingContracts() {
 		<Layout
 			title={`Trending Contracts - DefiLlama`}
 			description={`Trending Contracts on chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`trending contracts, defi trending contracts, trending contracts on chain`}
 			canonicalUrl={`/trending-contracts`}
 		>
 			<div className="flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center gap-5 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>
 					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={TIME_VALUES} />
-					<TagGroup selectedValue={chain} setValue={(val: string) => setChain(val)} values={CHAIN_VALUES} />
+					<TagGroup
+						selectedValue={chain}
+						setValue={(val: string) => startTransition(() => setChain(val))}
+						values={CHAIN_VALUES}
+					/>
 				</div>
 				{isLoading ? (
 					<div className="my-auto flex min-h-[360px] flex-1 items-center justify-center">
@@ -167,7 +177,11 @@ const columns = (chain: string) =>
 		{
 			header: 'Tx Growth',
 			accessorKey: 'txns_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			meta: {
 				align: 'end'
 			}
@@ -182,7 +196,11 @@ const columns = (chain: string) =>
 		{
 			header: 'Account Growth',
 			accessorKey: 'accounts_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			meta: {
 				align: 'end'
 			}
@@ -198,7 +216,11 @@ const columns = (chain: string) =>
 		{
 			header: 'Gas Growth',
 			accessorKey: 'gas_spend_percentage_growth',
-			cell: (info) => <>{formattedPercent(info.getValue())}</>,
+			cell: (info) => (
+				<>
+					<PercentChange percent={info.getValue()} />
+				</>
+			),
 			meta: {
 				align: 'end'
 			}

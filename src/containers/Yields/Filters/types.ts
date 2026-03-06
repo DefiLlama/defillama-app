@@ -4,6 +4,7 @@ export interface IDropdownMenusProps {
 	selectedTokens?: Array<string>
 	chainList?: Array<string>
 	selectedChains?: Array<string>
+	evmChains?: Array<string>
 	projectList?: Array<string>
 	selectedProjects?: Array<string>
 	lendingProtocols?: Array<string>
@@ -16,8 +17,7 @@ export interface IDropdownMenusProps {
 	tvlRange?: boolean
 	apyRange?: boolean
 	availableRange?: boolean
-	show7dBaseApy?: boolean
-	show7dIL?: boolean
+	enabledColumns?: string[]
 	resetFilters?: boolean
 	excludeBadDebt?: boolean
 	selectedAttributes?: Array<string>
@@ -25,16 +25,8 @@ export interface IDropdownMenusProps {
 	includeLsdApy?: boolean
 	nestedMenu?: boolean
 	ltvPlaceholder?: string
-	show1dVolume?: boolean
-	show7dVolume?: boolean
-	showInceptionApy?: boolean
-	showBorrowBaseApy?: boolean
-	showBorrowRewardApy?: boolean
-	showNetBorrowApy?: boolean
-	showLTV?: boolean
-	showTotalSupplied?: boolean
-	showTotalBorrowed?: boolean
-	showAvailable?: boolean
+	showMedianApy?: boolean
+	showStdDev?: boolean
 	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
 }
 
@@ -48,4 +40,5 @@ export interface IYieldFiltersProps extends IDropdownMenusProps {
 	noOfStrategies?: number
 	showSearchOnMobile?: boolean
 	prepareCsv?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	showPresetFilters?: boolean
 }

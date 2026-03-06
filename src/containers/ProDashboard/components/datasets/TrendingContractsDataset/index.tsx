@@ -1,22 +1,22 @@
 import {
-	ColumnDef,
-	ColumnFiltersState,
-	ColumnOrderState,
-	ColumnSizingState,
+	type ColumnDef,
+	type ColumnFiltersState,
+	type ColumnOrderState,
+	type ColumnSizingState,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
 	getSortedRowModel,
-	PaginationState,
-	SortingState,
+	type PaginationState,
+	type SortingState,
 	useReactTable,
-	VisibilityState
+	type VisibilityState
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -84,6 +84,7 @@ export function TrendingContractsDataset({
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -112,7 +113,7 @@ export function TrendingContractsDataset({
 		instance.setColumnOrder(defaultOrder)
 	}, [width, instance])
 
-	const [contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
+	const [_contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
 
 	if (isLoading) {
 		return (
@@ -160,8 +161,7 @@ export function TrendingContractsDataset({
 								}
 							}}
 							values={TIME_VALUES}
-							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
+							variant="pro"
 						/>
 						<TagGroup
 							selectedValue={chain}
@@ -172,8 +172,7 @@ export function TrendingContractsDataset({
 								}
 							}}
 							values={CHAIN_VALUES}
-							containerClassName="text-sm flex items-center overflow-x-auto flex-nowrap w-fit border pro-border pro-text1"
-							buttonClassName="shrink-0 px-3 py-1.5 whitespace-nowrap hover:pro-bg2 focus-visible:pro-bg2 data-[active=true]:bg-(--primary) data-[active=true]:text-white"
+							variant="pro"
 						/>
 						<ProTableCSVButton
 							onClick={() => {
@@ -212,8 +211,7 @@ export function TrendingContractsDataset({
 						<input
 							type="text"
 							placeholder="Search contracts..."
-							value={contractSearch}
-							onChange={(e) => setContractSearch(e.target.value)}
+							onInput={(e) => setContractSearch(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

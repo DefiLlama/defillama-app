@@ -1,26 +1,38 @@
+import dayjs from 'dayjs'
+import weekOfYear from 'dayjs/plugin/weekOfYear'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Suspense } from 'react'
-import { maxAgeForNext } from '~/api'
-import { getAllProtocolEmissions } from '~/api/categories/protocols'
+import { lazy, useMemo } from 'react'
 import { Announcement } from '~/components/Announcement'
-import { UpcomingUnlockVolumeChart } from '~/components/Charts/UpcomingUnlockVolumeChart'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { PastUnlockPriceImpact } from '~/components/Unlocks/PastUnlockPriceImpact'
-import { TopUnlocks } from '~/components/Unlocks/TopUnlocks'
+import { TagGroup } from '~/components/TagGroup'
+import { CHART_COLORS } from '~/constants/colors'
+import { PastUnlockPriceImpact } from '~/containers/Unlocks/PastUnlockPriceImpact'
+import { getAllProtocolEmissions } from '~/containers/Unlocks/queries'
 import { UnlocksTable } from '~/containers/Unlocks/Table'
+import { TopUnlocks } from '~/containers/Unlocks/TopUnlocks'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
-const calculateUnlockStatistics = (data) => {
+dayjs.extend(weekOfYear)
+
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
+
+const calculateUnlockStatistics = (data, nowSec: number) => {
 	let upcomingUnlocks30dValue = 0
 	let upcomingUnlocks7dValue = 0
-	const now = Date.now() / 1000
-	const thirtyDaysLater = now + 30 * 24 * 60 * 60
-	const sevenDaysLater = now + 7 * 24 * 60 * 60
+	const thirtyDaysLater = nowSec + 30 * 24 * 60 * 60
+	const sevenDaysLater = nowSec + 7 * 24 * 60 * 60
 
 	if (data) {
 		for (const protocol of data) {
@@ -39,10 +51,10 @@ const calculateUnlockStatistics = (data) => {
 				}
 
 				const valueUSD = totalTokens * protocol.tPrice
-				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= thirtyDaysLater) {
 					upcomingUnlocks30dValue += valueUSD
 				}
-				if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= sevenDaysLater) {
 					upcomingUnlocks7dValue += valueUSD
 				}
 			}
@@ -57,14 +69,14 @@ const calculateUnlockStatistics = (data) => {
 }
 
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
+	const generatedAtSec = Math.floor(Date.now() / 1000)
 	const data = await getAllProtocolEmissions({
-		endDate: Date.now() / 1000 + 30 * 24 * 60 * 60
+		endDate: generatedAtSec + 30 * 24 * 60 * 60
 	})
-	const unlockStats = calculateUnlockStatistics(data)
 	return {
 		props: {
 			data,
-			unlockStats
+			generatedAtSec
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -72,23 +84,202 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 
 const pageName = ['Protocols', 'ranked by', 'Token Unlocks']
 
-export default function Protocols({ data, unlockStats }) {
-	const [projectName, setProjectName] = React.useState('')
-	const [showOnlyWatchlist, setShowOnlyWatchlist] = React.useState(false)
+const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
+type TimePeriod = (typeof TIME_PERIODS)[number]
+
+const VIEW_MODES = ['Total View', 'Breakdown View'] as const
+type ViewMode = (typeof VIEW_MODES)[number]
+
+const END_TIMESTAMP = dayjs('2031-01-01').unix()
+const SECONDS_PER_DAY = 86400
+
+function bucketTimestamp(ts: number, timePeriod: TimePeriod): number {
+	if (timePeriod === 'Daily') {
+		return Math.floor(ts / SECONDS_PER_DAY) * SECONDS_PER_DAY
+	}
+	if (timePeriod === 'Monthly') {
+		const d = dayjs.unix(ts)
+		return d.startOf('month').unix()
+	}
+	// Weekly — locale-aware week start requires dayjs
+	return dayjs.unix(ts).startOf('week').unix()
+}
+
+const EMPTY_CHART_RESULT = {
+	dataset: { source: [], dimensions: ['timestamp'] } satisfies MultiSeriesChart2Dataset,
+	charts: [] as NonNullable<IMultiSeriesChart2Props['charts']>
+}
+
+function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: any[]; initialNowSec: number }) {
+	const router = useRouter()
+
+	const updateQueryParam = React.useCallback(
+		(key: string, value: string, defaultValue: string) => {
+			pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
+		},
+		[router]
+	)
+
+	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
+	const timePeriod: TimePeriod =
+		chartGroupParam && (TIME_PERIODS as readonly string[]).includes(chartGroupParam)
+			? (chartGroupParam as TimePeriod)
+			: 'Weekly'
+
+	const chartViewParam = readSingleQueryValue(router.query.chartView)
+	const viewMode: ViewMode =
+		chartViewParam && (VIEW_MODES as readonly string[]).includes(chartViewParam)
+			? (chartViewParam as ViewMode)
+			: 'Total View'
+
+	const isFullView = false
+	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
+
+	const now = initialNowSec
+	const unlockChartData = useMemo(() => {
+		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
+		const endTs = isFullView ? Infinity : END_TIMESTAMP
+		const isTotalView = viewMode === 'Total View'
+
+		// Total View: bucket -> aggregated value
+		const totalMap = isTotalView ? new Map<number, number>() : null
+		// Breakdown View: bucket -> { protocolName -> value }
+		const breakdownMap = !isTotalView ? new Map<number, Record<string, number>>() : null
+		const allProtocolNames = !isTotalView ? new Set<string>() : null
+
+		for (const protocol of protocols) {
+			if (!protocol.events || protocol.tPrice == null || protocol.tPrice <= 0) continue
+			const price = protocol.tPrice
+			const name = protocol.name
+
+			for (const event of protocol.events) {
+				const ts = event.timestamp
+				if (ts == null || ts < now || ts >= endTs) continue
+				const tokens = event.noOfTokens
+				if (!tokens || tokens.length === 0) continue
+
+				let totalTokens = 0
+				for (let i = 0; i < tokens.length; i++) {
+					totalTokens += tokens[i] || 0
+				}
+				if (totalTokens === 0) continue
+
+				const valueUSD = totalTokens * price
+				if (valueUSD <= 0) continue
+
+				const key = bucketTimestamp(ts, timePeriod)
+
+				if (totalMap) {
+					totalMap.set(key, (totalMap.get(key) || 0) + valueUSD)
+				} else {
+					const record = breakdownMap!.get(key) || {}
+					record[name] = (record[name] || 0) + valueUSD
+					breakdownMap!.set(key, record)
+					allProtocolNames!.add(name)
+				}
+			}
+		}
+
+		if (totalMap) {
+			const seriesName = 'Total Upcoming Unlock Value'
+			const source = Array.from(totalMap.entries())
+				.sort((a, b) => a[0] - b[0])
+				.map(([date, total]) => ({
+					timestamp: date * 1e3,
+					[seriesName]: total
+				}))
+
+			return {
+				dataset: { source, dimensions: ['timestamp', seriesName] } satisfies MultiSeriesChart2Dataset,
+				charts: [
+					{
+						type: 'bar' as const,
+						name: seriesName,
+						encode: { x: 'timestamp', y: seriesName },
+						color: '#8884d8'
+					}
+				]
+			}
+		}
+
+		const sortedNames = Array.from(allProtocolNames!).sort()
+		const source = Array.from(breakdownMap!.entries())
+			.sort((a, b) => a[0] - b[0])
+			.map(([date, protocolValues]) => ({
+				timestamp: date * 1e3,
+				...protocolValues
+			}))
+
+		return {
+			dataset: { source, dimensions: ['timestamp', ...sortedNames] } satisfies MultiSeriesChart2Dataset,
+			charts: sortedNames.map((name, i) => ({
+				type: 'bar' as const,
+				name,
+				encode: { x: 'timestamp', y: name },
+				stack: 'A',
+				color: CHART_COLORS[i % CHART_COLORS.length]
+			}))
+		}
+	}, [protocols, timePeriod, isFullView, viewMode, now])
+	const deferredChartData = React.useDeferredValue(unlockChartData)
+
+	return (
+		<>
+			{unlockChartData.dataset.source.length > 0 ? (
+				<>
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
+						<TagGroup
+							selectedValue={timePeriod}
+							setValue={(value: TimePeriod) => updateQueryParam('chartGroup', value, 'Weekly')}
+							values={TIME_PERIODS as unknown as string[]}
+						/>
+						<TagGroup
+							selectedValue={viewMode}
+							setValue={(value: ViewMode) => updateQueryParam('chartView', value, 'Total View')}
+							values={VIEW_MODES as unknown as string[]}
+						/>
+						<ChartExportButtons
+							chartInstance={exportChartInstance}
+							filename="upcoming-unlocks"
+							title="Upcoming Unlocks"
+						/>
+					</div>
+					<React.Suspense fallback={<div className="min-h-[360px]" />}>
+						<MultiSeriesChart2
+							dataset={deferredChartData.dataset}
+							charts={deferredChartData.charts}
+							hideDefaultLegend={viewMode === 'Total View'}
+							groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
+							valueSymbol="$"
+							onReady={handleChartReady}
+						/>
+					</React.Suspense>
+				</>
+			) : (
+				<p className="flex items-center justify-center" style={{ height: '360px' }}>
+					No upcoming unlock data available for the selected period.
+				</p>
+			)}
+		</>
+	)
+}
+
+export default function Protocols({ data, generatedAtSec }: { data: any[]; generatedAtSec: number }) {
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
-	const { minUnlockValue, maxUnlockValue } = router.query
-	const min = typeof minUnlockValue === 'string' && minUnlockValue !== '' ? Number(minUnlockValue) : null
-	const max = typeof maxUnlockValue === 'string' && maxUnlockValue !== '' ? Number(maxUnlockValue) : null
+	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
-	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
+	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = useMemo(
+		() => calculateUnlockStatistics(data, generatedAtSec),
+		[data, generatedAtSec]
+	)
 
 	return (
 		<Layout
-			title={`Unlocks - DefiLlama`}
-			description={`Unlocks by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`unlocks, defi unlocks, upcoming token unlocks, token emissions, emissions`}
+			title="Token Unlocks Calendar - DeFi Vesting Schedule Tracker - DefiLlama"
+			description="Track upcoming token unlocks and vesting schedules for 500+ DeFi protocols. Monitor unlock dates, amounts, and price impact. Real-time token unlock calendar with 7-day and 30-day unlock analytics."
 			canonicalUrl={`/unlocks`}
 			pageName={pageName}
 		>
@@ -127,45 +318,37 @@ export default function Protocols({ data, unlockStats }) {
 						<Icon name="arrow-right" className="h-4 w-4" />
 					</BasicLink>
 				</div>
-				<div className="col-span-2 flex min-h-[408px] flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<UpcomingUnlockVolumeChart protocols={data} />
+				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<UpcomingUnlockVolumeChart protocols={data} initialNowSec={generatedAtSec} />
 				</div>
 			</div>
 
-			<Suspense fallback={<div className="min-h-[400px] md:min-h-[200px] xl:min-h-fit"></div>}>
-				<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
-					<TopUnlocks
-						data={data}
-						period={1}
-						title="24h Top Unlocks"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
+			<div className="isolate grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+				<TopUnlocks
+					data={data}
+					period={1}
+					title="24h Top Unlocks"
+					initialNowSec={generatedAtSec}
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
 
-					<TopUnlocks
-						data={data}
-						period={30}
-						title="30d Top Unlocks"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
+				<TopUnlocks
+					data={data}
+					period={30}
+					title="30d Top Unlocks"
+					initialNowSec={generatedAtSec}
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
 
-					<PastUnlockPriceImpact
-						data={data}
-						title="Post Unlock Price Impact"
-						className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
-					/>
-				</div>
-			</Suspense>
+				<PastUnlockPriceImpact
+					data={data}
+					title="Post Unlock Price Impact"
+					initialNowSec={generatedAtSec}
+					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
+				/>
+			</div>
 
-			<UnlocksTable
-				protocols={data}
-				showOnlyWatchlist={showOnlyWatchlist}
-				setShowOnlyWatchlist={setShowOnlyWatchlist}
-				projectName={projectName}
-				setProjectName={setProjectName}
-				savedProtocols={savedProtocols}
-				minUnlockValue={min}
-				maxUnlockValue={max}
-			/>
+			<UnlocksTable protocols={data} showOnlyWatchlist={showOnlyWatchlist} savedProtocols={savedProtocols} />
 		</Layout>
 	)
 }

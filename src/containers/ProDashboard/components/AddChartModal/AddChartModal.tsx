@@ -8,7 +8,7 @@ import { ModalHeader } from './ModalHeader'
 import { SubmitButton } from './SubmitButton'
 import { TabNavigation } from './TabNavigation'
 import { TextTab } from './TextTab'
-import { AddChartModalProps, CombinedTableType } from './types'
+import type { AddChartModalProps, CombinedTableType } from './types'
 import { UnifiedTableTab } from './UnifiedTableTab'
 import { useComposerItemsData } from './useComposerItemsData'
 import { useModalActions } from './useModalActions'
@@ -169,7 +169,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							metricAggregator={state.metricAggregator}
 							metricWindow={state.metricWindow}
 							metricLabel={state.metricLabel}
-							metricShowSparkline={state.metricShowSparkline}
+							metricChartType={state.metricChartType}
 							onSubjectTypeChange={actions.setMetricSubjectType}
 							onChainChange={handleMetricChainChange}
 							onProtocolChange={handleMetricProtocolChange}
@@ -177,7 +177,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onAggregatorChange={actions.setMetricAggregator}
 							onWindowChange={actions.setMetricWindow}
 							onLabelChange={actions.setMetricLabel}
-							onShowSparklineChange={actions.setMetricShowSparkline}
+							onChartTypeChange={actions.setMetricChartType}
 						/>
 					)}
 

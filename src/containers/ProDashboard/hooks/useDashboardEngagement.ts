@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { dashboardAPI } from '../services/DashboardAPI'
+import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 export function useDashboardEngagement(dashboardId: string | null) {
 	const queryClient = useQueryClient()
@@ -13,7 +13,14 @@ export function useDashboardEngagement(dashboardId: string | null) {
 			return await dashboardAPI.viewDashboard(dashboardId, isAuthenticated ? authorizedFetch : undefined)
 		},
 		onSuccess: (data) => {
-			queryClient.setQueryData(['dashboard', dashboardId], data)
+			if (!dashboardId || !data) return
+			queryClient.setQueriesData(
+				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
+				(oldData: Dashboard | undefined) => {
+					if (!oldData) return oldData
+					return { ...oldData, ...data }
+				}
+			)
 		}
 	})
 
@@ -28,14 +35,17 @@ export function useDashboardEngagement(dashboardId: string | null) {
 		},
 		onSuccess: (data) => {
 			if (!data) return
-			queryClient.setQueryData(['dashboard', dashboardId], (oldData: any) => {
-				if (!oldData) return oldData
-				return {
-					...oldData,
-					likeCount: data.likeCount,
-					liked: data.liked
+			queryClient.setQueriesData(
+				{ queryKey: ['pro-dashboard', 'dashboard', dashboardId], exact: false },
+				(oldData: Dashboard | undefined) => {
+					if (!oldData) return oldData
+					return {
+						...oldData,
+						likeCount: data.likeCount,
+						liked: data.liked
+					}
 				}
-			})
+			)
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
 		onError: (error: any) => {

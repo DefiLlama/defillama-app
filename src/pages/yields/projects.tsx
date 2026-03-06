@@ -1,11 +1,13 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsProjectsTable } from '~/containers/Yields/Tables/Projects'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+
+const noAirdropProjects = new Set(['fraxlend', 'origin-dollar', 'origin-ether'])
 
 function median(numbers) {
 	const sorted: any = Array.from(numbers).sort((a: number, b: number) => a - b)
@@ -39,9 +41,7 @@ export const getStaticProps = withPerformanceLogging('yields/projects', async ()
 		projects[project]['medianApy'] = m
 		projects[project]['audits'] = x[0].audits !== '0'
 		projects[project]['category'] = x[0].category
-		projects[project]['airdrop'] = ['fraxlend', 'origin-dollar', 'origin-ether'].includes(project)
-			? false
-			: x[0].airdrop
+		projects[project]['airdrop'] = noAirdropProjects.has(project) ? false : x[0].airdrop
 	}
 
 	const projArray: Array<{ slug: string } & any> = []
@@ -59,7 +59,7 @@ const pageName = ['Yields: All Projects']
 
 export default function Protocols({ projects }) {
 	const prepareCsv = () => ({
-		filename: 'yields-projects.csv',
+		filename: 'yields-projects',
 		rows: [
 			['Project', 'Airdrop', 'Category', 'Pools', 'Combined TVL', 'Audits', 'Median APY'],
 			...projects.map((p) => [
@@ -76,9 +76,8 @@ export default function Protocols({ projects }) {
 
 	return (
 		<Layout
-			title={`Projects - DefiLlama Yield`}
+			title={`DeFi Yield by Project Rankings - DefiLlama`}
 			description={`Projects by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`projects by apy values, defi projects with yields, defi projects by apy`}
 			canonicalUrl={`/yields/projects`}
 			pageName={pageName}
 		>

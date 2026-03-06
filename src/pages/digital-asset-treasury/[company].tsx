@@ -1,0 +1,53 @@
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { DATCompany } from '~/containers/DAT/Company'
+import { getDATCompanyData, getDATCompanyPaths } from '~/containers/DAT/queries'
+import Layout from '~/layout'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
+
+export const getStaticProps = withPerformanceLogging(
+	'digital-asset-treasury/[company]',
+	async ({ params }: GetStaticPropsContext<{ company: string }>) => {
+		if (!params?.company) {
+			return { notFound: true }
+		}
+
+		const props = await getDATCompanyData(params.company)
+
+		if (!props) {
+			return { notFound: true }
+		}
+
+		return {
+			props,
+			revalidate: maxAgeForNext([22])
+		}
+	}
+)
+
+export async function getStaticPaths() {
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	const slugs = await getDATCompanyPaths()
+	const paths = slugs.map((company) => ({ params: { company } }))
+	return { paths, fallback: false }
+}
+
+export default function DigitalAssetTreasuryPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<Layout
+			title={`${props.name} Digital Asset Treasury - DefiLlama`}
+			description={`Track ${props.name}'s live digital asset treasury holdings, cost basis, average purchase price, mNAV, share price and acquisition timeline.`}
+			canonicalUrl={`/digital-asset-treasury/${slug(props.ticker)}`}
+		>
+			<DATCompany {...props} />
+		</Layout>
+	)
+}

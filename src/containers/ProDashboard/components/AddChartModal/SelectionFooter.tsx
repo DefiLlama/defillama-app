@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { CHART_TYPES, ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig } from '../../types'
 
 interface SelectionFooterProps {
 	composerItems: ChartConfig[]
@@ -55,7 +55,7 @@ export function SelectionFooter({
 						</span>
 						<input
 							type="color"
-							value={item.color || CHART_TYPES[item.type]?.color || '#3366ff'}
+							value={item.color || CHART_TYPES[item.type]?.color || '#3e61cc'}
 							onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
 							className="h-5 w-5 cursor-pointer rounded border border-(--cards-border) bg-transparent p-0"
 							aria-label="Select chart color"

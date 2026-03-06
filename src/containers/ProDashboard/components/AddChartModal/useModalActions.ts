@@ -1,21 +1,21 @@
 import { useCallback, useMemo } from 'react'
 import { useProDashboardCatalog, useProDashboardEditorActions, useProDashboardTime } from '../../ProDashboardAPIContext'
 import {
-	Chain,
+	type Chain,
 	CHART_TYPES,
-	ChartConfig,
-	DashboardItemConfig,
-	IncomeStatementConfig,
-	LlamaAIChartConfig,
-	MultiChartConfig,
-	Protocol,
-	ProtocolsTableConfig,
-	StoredColSpan,
-	TextConfig,
-	UnlocksScheduleConfig
+	type ChartConfig,
+	type DashboardItemConfig,
+	type IncomeStatementConfig,
+	type LlamaAIChartConfig,
+	type MultiChartConfig,
+	type Protocol,
+	type ProtocolsTableConfig,
+	type StoredColSpan,
+	type TextConfig,
+	type UnlocksScheduleConfig
 } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
-import { ChartTabType, MainTabType } from './types'
+import type { ChartTabType, MainTabType } from './types'
 import { useModalState } from './useModalState'
 
 export function useModalActions(
@@ -637,7 +637,7 @@ export function useModalActions(
 						aggregator: state.metricAggregator,
 						window: state.metricWindow,
 						compare: { mode: 'previous_value', format: 'percent' },
-						showSparkline: state.metricShowSparkline,
+						chartType: state.metricChartType,
 						label: state.metricLabel
 					} as any
 				}
@@ -841,7 +841,7 @@ export function useModalActions(
 						aggregator: state.metricAggregator,
 						window: state.metricWindow,
 						compare: { mode: 'previous_value', format: 'percent' },
-						showSparkline: state.metricShowSparkline,
+						chartType: state.metricChartType,
 						label: state.metricLabel,
 						colSpan: 0.5 as StoredColSpan
 					} as any)

@@ -1,8 +1,8 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import { CHART_TYPES, ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
+import { CHART_TYPES, type ChartConfig, getChainChartTypes, getProtocolChartTypes } from '../../types'
 import { AdvancedTvlChartTab } from './AdvancedTvlChartTab'
 import { BorrowedChartTab } from './BorrowedChartTab'
 import { CategoryCardsGrid } from './CategoryCardsGrid'
@@ -13,9 +13,11 @@ import { EntityPickerList } from './EntityPickerList'
 import { IncomeStatementChartTab } from './IncomeStatementChartTab'
 import { SelectionFooter } from './SelectionFooter'
 import { StablecoinsChartTab } from './StablecoinsChartTab'
-import { ChartTabType, ManualChartViewMode } from './types'
+import type { ChartTabType, ManualChartViewMode } from './types'
 import { UnlocksChartTab } from './UnlocksChartTab'
 import { YieldsChartTab } from './YieldsChartTab'
+
+const EMPTY_ARRAY: string[] = []
 
 const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
 const CHAIN_CHART_TYPES = getChainChartTypes()
@@ -125,16 +127,16 @@ export function UnifiedChartTab({
 	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
-	selectedChains: _selectedChains = [],
-	selectedProtocols: _selectedProtocols = [],
+	selectedChains: _selectedChains = EMPTY_ARRAY,
+	selectedProtocols: _selectedProtocols = EMPTY_ARRAY,
 	selectedYieldPool = null,
 	onSelectedChainsChange: _onSelectedChainsChange,
 	onSelectedProtocolsChange: _onSelectedProtocolsChange,
 	onSelectedYieldPoolChange,
-	selectedYieldChains = [],
-	selectedYieldProjects = [],
-	selectedYieldCategories = [],
-	selectedYieldTokens = [],
+	selectedYieldChains = EMPTY_ARRAY,
+	selectedYieldProjects = EMPTY_ARRAY,
+	selectedYieldCategories = EMPTY_ARRAY,
+	selectedYieldTokens = EMPTY_ARRAY,
 	minTvl = null,
 	maxTvl = null,
 	onSelectedYieldChainsChange,
@@ -655,7 +657,7 @@ export function UnifiedChartTab({
 					</div>
 
 					<div className="shrink-0">
-						<label className="mb-2 block text-xs font-medium pro-text2">Select Chart Type</label>
+						<span className="mb-2 block text-xs font-medium pro-text2">Select Chart Type</span>
 						<ChartTypePills
 							chartTypes={chartTypeOptions}
 							selectedType={selectedChartTypeSingle}
@@ -688,7 +690,7 @@ export function UnifiedChartTab({
 
 					{(selectedChartTab === 'chain' || selectedChartTab === 'protocol') && bulkChartType && (
 						<div className="shrink-0">
-							<label className="mb-2 block text-xs font-medium pro-text2">Change All Chart Types</label>
+							<span className="mb-2 block text-xs font-medium pro-text2">Change All Chart Types</span>
 							<ChartTypePills
 								chartTypes={bulkChartTypeOptions}
 								selectedType={bulkChartType}
@@ -718,7 +720,7 @@ export function UnifiedChartTab({
 								>
 									<input
 										type="color"
-										value={item.color || '#3366ff'}
+										value={item.color || '#3e61cc'}
 										onChange={(e) => onComposerItemColorChange(item.id, e.target.value)}
 										className="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
 									/>

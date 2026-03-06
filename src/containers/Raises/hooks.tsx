@@ -1,17 +1,20 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { toYearMonth } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
+import type { IRaise } from './types'
 
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
+interface UseRaisesDataParams {
+	raises: IRaise[]
+	investors: string[]
+	rounds: string[]
+	sectors: string[]
+	chains: string[]
 }
 
-export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
+export function useRaisesData({ raises, investors, rounds, sectors, chains }: UseRaisesDataParams) {
 	const { query } = useRouter()
 
 	const {
@@ -93,8 +96,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 		selectedChains = excludeChainsSet.size > 0 ? selectedChains.filter((c) => !excludeChainsSet.has(c)) : selectedChains
 
 		const raisesByCategory: { [category: string]: number } = {}
-		const fundingRoundsByMonth = {}
-		const monthlyInvestment = {}
+		const fundingRoundsByMonth: Record<string, number> = {}
+		const monthlyInvestment: Record<string, number> = {}
 		const investmentByRounds: { [round: string]: number } = {}
 
 		const minimumAmountRaised =
@@ -196,7 +199,7 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			}
 
 			if (raise.category) {
-				raisesByCategory[raise.category] = (raisesByCategory[raise.category] || 0) + 1
+				raisesByCategory[raise.category] = (raisesByCategory[raise.category] ?? 0) + 1
 			}
 
 			return true
@@ -232,6 +235,9 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 			finalMonthlyInvestment.push([new Date(date).getTime(), monthlyInvestment[date] * 1e6])
 			totalAmountRaised += monthlyInvestment[date] * 1e6
 		}
+		// ECharts `dataZoom` (slider shadow) is sensitive to source order.
+		// We build these series from object keys, which are not guaranteed to be chronological.
+		finalMonthlyInvestment.sort((a, b) => a[0] - b[0])
 		for (const category in raisesByCategory) {
 			finalRaisesByCategory.push({ name: category, value: raisesByCategory[category] })
 		}
@@ -241,26 +247,40 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }) {
 		for (const date in fundingRoundsByMonth) {
 			finalFundingRoundsByMonth.push([new Date(date).getTime(), fundingRoundsByMonth[date]])
 		}
+		finalFundingRoundsByMonth.sort((a, b) => a[0] - b[0])
 
-		const monthlyInvestmentChart: ILineAndBarChartProps['charts'] = {
-			'Funding Amount': {
-				name: 'Funding Amount',
-				stack: 'Funding Amount',
-				data: finalMonthlyInvestment,
-				color: CHART_COLORS[0],
-				type: 'bar'
-			}
+		const monthlyInvestmentChart: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] } = {
+			dataset: {
+				source: finalMonthlyInvestment.map(([timestamp, value]) => ({ timestamp, 'Funding Amount': value })),
+				dimensions: ['timestamp', 'Funding Amount']
+			},
+			charts: [
+				{
+					type: 'bar' as const,
+					name: 'Funding Amount',
+					encode: { x: 'timestamp', y: 'Funding Amount' },
+					color: CHART_COLORS[0],
+					stack: 'Funding Amount'
+				}
+			]
 		}
 
-		const fundingRoundsByMonthChart: ILineAndBarChartProps['charts'] = {
-			'Funding Rounds': {
-				name: 'Funding Rounds',
-				stack: 'Funding Rounds',
-				data: finalFundingRoundsByMonth,
-				color: CHART_COLORS[0],
-				type: 'bar'
+		const fundingRoundsByMonthChart: { dataset: MultiSeriesChart2Dataset; charts: IMultiSeriesChart2Props['charts'] } =
+			{
+				dataset: {
+					source: finalFundingRoundsByMonth.map(([timestamp, value]) => ({ timestamp, 'Funding Rounds': value })),
+					dimensions: ['timestamp', 'Funding Rounds']
+				},
+				charts: [
+					{
+						type: 'bar' as const,
+						name: 'Funding Rounds',
+						encode: { x: 'timestamp', y: 'Funding Rounds' },
+						color: CHART_COLORS[0],
+						stack: 'Funding Rounds'
+					}
+				]
 			}
-		}
 
 		return {
 			selectedInvestors,

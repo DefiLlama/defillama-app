@@ -45,7 +45,7 @@ export function useStreamNotification() {
 		audioRef.current.play().catch((error) => {
 			// Audio playback can fail due to autoplay policies - this is expected behavior
 			if (error.name !== 'NotAllowedError') {
-				console.warn('Failed to play notification sound:', error)
+				console.log('Failed to play notification sound:', error)
 			}
 		})
 	}, [])
@@ -89,7 +89,7 @@ export function useStreamNotification() {
 				.catch((error) => {
 					// Expected when autoplay is blocked - silently ignore
 					if (error.name !== 'NotAllowedError') {
-						console.warn('Failed to initialize audio:', error)
+						console.log('Failed to initialize audio:', error)
 					}
 				})
 		}
@@ -97,7 +97,7 @@ export function useStreamNotification() {
 		if (Notification.permission === 'default') {
 			Notification.requestPermission().then((permission) => {
 				if (permission === 'denied') {
-					console.warn('Notification permission was denied by user')
+					console.log('Notification permission was denied by user')
 				}
 			})
 		}

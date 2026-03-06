@@ -1,7 +1,8 @@
-import { maxAgeForNext } from '~/api'
-import { ProtocolsWithTokens } from '~/containers/ProtocolsWithTokens'
-import { getProtocolsMarketCapsByChain } from '~/containers/ProtocolsWithTokens/queries'
+import type { InferGetStaticPropsType } from 'next'
+import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
+import { getProtocolsMarketCapsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-market-caps/index`, async () => {
@@ -18,12 +19,11 @@ export const getStaticProps = withPerformanceLogging(`protocols-market-caps/inde
 
 const pageName = ['Protocols', 'ranked by', 'Market Cap']
 
-export default function ProtocolsMarketCaps(props) {
+export default function ProtocolsMarketCaps(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Market Caps - DefiLlama"
-			description={`Market Caps by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`market caps, defi market caps`}
+			title="Market Cap Rankings - DeFi Protocol Token Capitalization - DefiLlama"
+			description="Track DeFi protocol market cap rankings across all chains. Compare token market capitalization for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto market cap analytics."
 			canonicalUrl={`/mcaps`}
 			pageName={pageName}
 		>

@@ -36,6 +36,15 @@ function reducer(state: ComparisonWizardState, action: WizardAction): Comparison
 	switch (action.type) {
 		case 'SET_STEP':
 			return { ...state, step: action.step }
+		case 'APPLY_PRESET':
+			return {
+				...state,
+				step: action.step,
+				comparisonType: action.comparisonType,
+				selectedItems: action.items,
+				selectedMetrics: [],
+				metricsForCards: []
+			}
 		case 'SET_COMPARISON_TYPE':
 			return {
 				...state,
@@ -126,6 +135,12 @@ export function useComparisonWizard() {
 
 	const setStep = useCallback((step: WizardStep) => dispatch({ type: 'SET_STEP', step }), [])
 
+	const applyPreset = useCallback(
+		(comparisonType: ComparisonType, items: string[], step: WizardStep) =>
+			dispatch({ type: 'APPLY_PRESET', comparisonType, items, step }),
+		[]
+	)
+
 	const setComparisonType = useCallback(
 		(comparisonType: ComparisonType) => dispatch({ type: 'SET_COMPARISON_TYPE', comparisonType }),
 		[]
@@ -191,7 +206,12 @@ export function useComparisonWizard() {
 					return getProtocolInfo(item)?.name || item
 				})
 				if (!state.dashboardName) {
-					const defaultName = displayNames.length === 1 ? displayNames[0] : `Comparison of ${displayNames.join(', ')}`
+					const defaultName =
+						displayNames.length === 1
+							? displayNames[0]
+							: displayNames.length === 2
+								? `${displayNames[0]} vs ${displayNames[1]}`
+								: `${displayNames[0]} vs ${displayNames.length - 1} competitors`
 					setDashboardName(defaultName)
 				}
 				if (state.tags.length === 0) {
@@ -238,6 +258,7 @@ export function useComparisonWizard() {
 		state,
 		actions: {
 			setStep,
+			applyPreset,
 			setComparisonType,
 			setSelectedItems,
 			toggleSelectedItem,

@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import {
+import type {
 	ChartBuilderConfig,
 	MultiChartConfig,
 	StablecoinAssetChartConfig,
@@ -11,6 +11,8 @@ import {
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
+
+const EMPTY_ARRAY: string[] = []
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({
@@ -26,7 +28,8 @@ export type DashboardChartConfig =
 	| StablecoinAssetChartConfig
 
 export interface LlamaAIChartInput {
-	messageId: string
+	messageId?: string
+	sessionId?: string
 	chartId: string
 	title: string
 }
@@ -46,7 +49,7 @@ export function AddToDashboardButton({
 	chartConfig,
 	multiChart,
 	llamaAIChart,
-	unsupportedMetrics = [],
+	unsupportedMetrics = EMPTY_ARRAY,
 	variant = 'button',
 	className,
 	smol,

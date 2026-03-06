@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useMemo } from 'react'
-import { getProtocolEmissons } from '~/api/categories/protocols'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
-import { download, slug } from '~/utils'
+import { getProtocolEmissionsPieData } from '~/containers/Unlocks/queries'
+import { slug } from '~/utils'
+import { download } from '~/utils/download'
 import type { UnlocksPieConfig } from '../types'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -24,8 +25,8 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const { protocol, protocolName, chartType } = config
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unlocks-pie', protocol],
-		queryFn: () => getProtocolEmissons(slug(protocol)),
+		queryKey: ['pro-dashboard', 'unlocks-pie', protocol],
+		queryFn: () => getProtocolEmissionsPieData(slug(protocol)),
 		enabled: Boolean(protocol),
 		staleTime: 60 * 60 * 1000
 	})
@@ -66,14 +67,14 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const chartTitle = chartType === 'allocation' ? 'Allocation' : 'Locked/Unlocked %'
 	const valueSymbol = chartType === 'locked-unlocked' ? '%' : '$'
 	const hasChartData = chartData.length > 0
-	const csvFilename = `${slug(protocolName || protocol)}-unlocks-${chartType}.csv`
+	const csvFileName = `${protocolName || protocol}-unlocks-${chartType}`
 
 	const handleCsvExport = useCallback(() => {
 		if (!hasChartData) return
 		const rows = [['Category', 'Value'], ...chartData.map((item) => [item.name, String(item.value)])]
 		const csvContent = rows.map((row) => row.join(',')).join('\n')
-		download(csvFilename, csvContent)
-	}, [chartData, csvFilename, hasChartData])
+		download(csvFileName, csvContent)
+	}, [chartData, csvFileName, hasChartData])
 
 	if (isLoading) {
 		return (

@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.OPEN_INTEREST
@@ -15,7 +15,8 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 		adapterType,
 		dataType,
 		chain: 'All',
-		route: 'open-interest'
+		route: 'open-interest',
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType} ${dataType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }
@@ -31,9 +32,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const OpenInterestOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
+			title="Crypto Open Interest Rankings - Derivatives Open Interest by Protocol - DefiLlama"
+			description="Track crypto open interest rankings across all derivatives protocols. Compare total open interest on Hyperliquid, Aster, Lighter, and 50+ perp DEXs. Real-time open interest analytics and leverage exposure data."
 			canonicalUrl={`/open-interest`}
 			pageName={pageName}
 		>

@@ -1,44 +1,11 @@
-import { IHack } from '../Hacks/queries'
-import { protocolCharts, ProtocolChartsLabels } from './Chart/constants'
-
-export interface IProtocolMetadata {
-	tvl?: boolean
-	yields?: boolean
-	forks?: boolean
-	liquidity?: boolean
-	raises?: boolean
-	fees?: boolean
-	revenue?: boolean
-	holdersRevenue?: boolean
-	dexs?: boolean
-	perps?: boolean
-	openInterest?: boolean
-	dexAggregators?: boolean
-	optionsPremiumVolume?: boolean
-	optionsNotionalVolume?: boolean
-	perpsAggregators?: boolean
-	bridgeAggregators?: boolean
-	displayName?: string
-	chains?: Array<string>
-	hacks?: boolean
-	activeUsers?: boolean
-	governance?: boolean
-	expenses?: boolean
-	treasury?: boolean
-	nfts?: boolean
-	emissions?: boolean
-	incentives?: boolean
-	bribeRevenue?: boolean
-	tokenTax?: boolean
-	bridge?: boolean
-	stablecoins?: boolean
-	safeHarbor?: boolean
-	borrowed?: boolean
-}
+import type * as echarts from 'echarts/core'
+import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
+import type { IProtocolNumericSeries } from './chartSeries.utils'
+import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
 	tvl: boolean
-	tvlTab: boolean
 	dexs: boolean
 	perps: boolean
 	openInterest: boolean
@@ -68,128 +35,6 @@ export interface IProtocolPageMetrics {
 	tokenRights: boolean
 }
 
-type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
-
-interface TokenRight {
-	label: TokenRightLabel | string // extensible
-	hasRight: boolean
-	details?: string
-}
-
-type GovernanceRights = 'NONE' | 'LIMITED' | 'FULL'
-type FeeSwitchStatus = 'ON' | 'OFF' | 'PENDING' | 'UNKNOWN'
-
-interface GovernanceLink {
-	label: string
-	url: string
-}
-
-interface GovernanceData {
-	rights: GovernanceRights
-	details?: string
-	feeSwitchStatus?: FeeSwitchStatus
-	feeSwitchDetails?: string
-	links?: GovernanceLink[]
-}
-
-type BuybacksStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-type DividendsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-type BurnsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-
-interface HoldersRevenueAndValueAccrual {
-	buybacks?: BuybacksStatus
-	dividends?: DividendsStatus
-	burns?: BurnsStatus
-	burnSources?: string[]
-	primaryValueAccrual?: string
-}
-
-type FundraisingType = 'EQUITY' | 'TOKEN' | 'NONE' | 'UNKNOWN'
-type EquityRevenueCaptureStatus = 'ACTIVE' | 'INACTIVE' | 'PARTIAL' | 'UNKNOWN'
-
-interface TokenAlignmentLink {
-	label: string
-	url: string
-}
-
-interface TokenAlignment {
-	fundraising?: FundraisingType
-	raiseDetailsLink?: TokenAlignmentLink
-	associatedEntities?: string[]
-	equityRevenueCapture?: EquityRevenueCaptureStatus
-	equityStatement?: string
-}
-
-interface ProtocolResource {
-	label: string
-	address?: string
-	url?: string
-	note?: string
-}
-
-export interface ITokenRights {
-	rights?: TokenRight[]
-	governanceData?: GovernanceData
-	holdersRevenueAndValueAccrual?: HoldersRevenueAndValueAccrual
-	tokenAlignment?: TokenAlignment
-	resources?: ProtocolResource[]
-}
-
-export interface IUpdatedProtocol {
-	id: string
-	name: string
-	address?: string | null
-	symbol?: string | null
-	url: string
-	referralUrl?: string | null
-	description: string
-	chain: string
-	logo: string
-	audits: string | null
-	audit_note: string | null
-	gecko_id: string | null
-	cmcId: string | null
-	category: string
-	tags?: Array<string> | null
-	chains: Array<string>
-	module: string
-	treasury?: string | null
-	twitter: string
-	audit_links: Array<string>
-	openSource?: boolean
-	forkedFrom: Array<string>
-	oraclesByChain: Record<string, Array<string>>
-	parentProtocol?: string
-	governanceID?: Array<string>
-	github?: Array<string>
-	chainTvls?: Record<
-		string,
-		{
-			tvl?: Array<{ date: number; totalLiquidityUSD: number }> | null
-			tokens?: Array<{ date: number; tokens: Record<string, number> }> | null
-			tokensInUsd?: Array<{ date: number; tokens: Record<string, number> }> | null
-		}
-	>
-	currentChainTvls?: Record<string, number>
-	isParentProtocol?: boolean
-	mcap: number | null
-	methodology?: string
-	raises: Array<IRaise>
-	otherProtocols?: Array<string>
-	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
-	stablecoins?: Array<string>
-	misrepresentedTokens?: boolean
-	deprecated?: boolean
-	rugged?: boolean
-	deadUrl?: boolean
-	warningBanners?: Array<{
-		message: string
-		until?: number | string // unix timestamp or "forever" or date string  in 'YYYY-MM-DD' format, 'forever' if the field is not set
-		level: 'low' | 'alert' | 'rug'
-	}>
-	tokenRights?: ITokenRights
-}
-
 interface IAdapterOverview {
 	total24h: number | null
 	total7d: number | null
@@ -198,13 +43,17 @@ interface IAdapterOverview {
 	methodology?: string | null
 	methodologyURL?: string | null
 	breakdownMethodology?: Record<string, string> | null
-	childMethodologies?: Array<[string, string | null, string | null, Record<string, string> | null]>
+	childMethodologies?: Array<[string, string | null, string | null]>
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
 }
 
+export type IProtocolOverviewChartSeries = IProtocolNumericSeries
+export type IProtocolOverviewInitialMultiSeriesChartData = Partial<
+	Record<ProtocolChartsLabels, IProtocolOverviewChartSeries>
+>
+
 export interface IProtocolOverviewPageData {
-	tvlChartData: Array<[string, number]>
-	extraTvlCharts: Record<string, Record<string, number>>
+	initialMultiSeriesChartData: IProtocolOverviewInitialMultiSeriesChartData
 	id: string
 	name: string
 	token: {
@@ -223,8 +72,8 @@ export interface IProtocolOverviewPageData {
 	website?: string | null
 	twitter?: string | null
 	safeHarbor?: boolean
-	methodology?: string | null
-	methodologyURL?: string | null
+	tvlMethodology?: string | null
+	tvlMethodologyUrl?: string | null
 	github?: Array<string> | null
 	metrics: IProtocolPageMetrics
 	fees: IAdapterOverview | null
@@ -274,7 +123,7 @@ export interface IProtocolOverviewPageData {
 		transactions: number | null
 		gasUsd: number | null
 	} | null
-	raises: Array<IRaise> | null
+	raises: Array<IProtocolRaise> | null
 	expenses: {
 		headcount: number | null
 		total: number | null
@@ -291,9 +140,9 @@ export interface IProtocolOverviewPageData {
 		price: {
 			current: number | null
 			ath: number | null
-			athDate: number | null
+			athDate: string | null
 			atl: number | null
-			atlDate: number | null
+			atlDate: string | null
 		}
 		marketCap: { current: number | null }
 		totalSupply: number | null
@@ -314,7 +163,7 @@ export interface IProtocolOverviewPageData {
 	isCEX?: boolean
 	hasKeyMetrics?: boolean
 	competitors?: Array<{ name: string; tvl: number }>
-	hacks: Array<IHack>
+	hacks: Array<IHackApiItem>
 	chartDenominations: Array<{ symbol: string; geckoId?: string | null }>
 	chartColors: Record<string, string>
 	availableCharts: ProtocolChartsLabels[]
@@ -328,17 +177,19 @@ export interface IProtocolOverviewPageData {
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
-		methodology: string
+		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
 		hasOtherTokenHolderFlows: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
-	warningBanners?: IUpdatedProtocol['warningBanners']
+	warningBanners?: IProtocolMetricsV2['warningBanners']
 	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	seoTitle: string
 	seoDescription: string
-	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
 	oracleTvs?: Record<string, number> | null
+	entityQuestions?: string[]
+	treasuryMethodologyUrl?: string | null
 }
 
 interface ICredit {
@@ -375,27 +226,6 @@ export interface IArticle {
 	imgSrc: string | null
 }
 
-export interface IRaise {
-	round: string
-	amount: number
-	valuation: string
-	source: string
-	date: number
-	defillamaId: string
-	leadInvestors?: Array<string>
-	otherInvestors?: Array<string>
-	investors?: Array<string>
-}
-
-export interface IProtocolExpenses {
-	protocolId: string
-	headcount: number
-	annualUsdCost: Record<string, number>
-	sources?: Array<string> | null
-	notes?: Array<string> | null
-	lastUpdate?: string | null
-}
-
 // date in the chart is in ms
 export interface IDenominationPriceHistory {
 	prices: Array<[number, number]>
@@ -409,4 +239,21 @@ export interface IToggledMetrics extends Record<
 > {
 	events: 'true' | 'false'
 	denomination: string | null
+}
+
+export interface IProtocolCoreChartProps {
+	chartData: Record<string, Array<[string | number, number | null]>>
+	chartColors: Record<string, string>
+	valueSymbol?: string
+	color?: string
+	hallmarks: Array<[number, string]> | null
+	rangeHallmarks: Array<[[number, number], string]> | null
+	chartOptions?: Record<string, Record<string, unknown>>
+	height?: string
+	unlockTokenSymbol?: string | null
+	isThemeDark: boolean
+	groupBy?: string
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	style?: React.CSSProperties
 }

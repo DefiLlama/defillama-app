@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { PlotsPage } from '~/containers/Yields/indexPlots'
 import { getYieldMedianData, getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/overview', async () => {
@@ -24,9 +24,8 @@ const pageName = ['Yields: Overview']
 export default function YieldPlots(data) {
 	return (
 		<Layout
-			title={`Overview - DefiLlama Yield`}
+			title={`DeFi Yield Overview & Market Summary - DefiLlama`}
 			description={`Overview of defi yields. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`overview of defi yields, defi yields overview`}
 			canonicalUrl={`/yields/overview`}
 			pageName={pageName}
 		>

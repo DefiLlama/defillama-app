@@ -1,7 +1,7 @@
-import PocketBase, { RecordModel } from 'pocketbase'
+import PocketBase, { type RecordModel } from 'pocketbase'
 import { POCKETBASE_URL } from '~/constants'
 
-export const pb = new PocketBase(POCKETBASE_URL)
+const pb = new PocketBase(POCKETBASE_URL)
 
 export interface AuthModel extends RecordModel {
 	id: string
@@ -12,7 +12,7 @@ export interface AuthModel extends RecordModel {
 	created: string
 	updated: string
 	has_active_subscription: boolean
-	flags: Record<string, boolean>
+	flags: Record<string, boolean | number>
 	promotionalEmails?: 'initial' | 'on' | 'off'
 }
 

@@ -1,5 +1,8 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef, useState } from 'react'
+import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
+import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
+import type { FormSubmitEvent } from '~/types/forms'
 import { useEntityCombobox } from '../hooks/useEntityCombobox'
 import { useImageUpload, fileToBase64 } from '../hooks/useImageUpload'
 import { setInputSize, syncHighlightScroll } from '../utils/scrollUtils'
@@ -9,6 +12,12 @@ import { DragOverlay, ImageUpload, ImageUploadButton } from './input/ImageUpload
 import { InputTextarea } from './input/InputTextarea'
 import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
 import { SubmitButton } from './input/SubmitButton'
+
+function revokeImageUrls(images: Array<{ url: string }>) {
+	for (let i = 0; i < images.length; i++) {
+		URL.revokeObjectURL(images[i].url)
+	}
+}
 
 interface PromptInputProps {
 	handleSubmit: (
@@ -32,6 +41,7 @@ interface PromptInputProps {
 	droppedFiles?: File[] | null
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
+	onOpenAlerts?: () => void
 }
 
 const trackSubmit = () => {
@@ -53,7 +63,8 @@ export function PromptInput({
 	researchUsage,
 	droppedFiles,
 	clearDroppedFiles,
-	externalDragging
+	externalDragging,
+	onOpenAlerts
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
@@ -80,20 +91,27 @@ export function PromptInput({
 		if (!textarea) return
 		if (textarea.value.trim().length > 0) return
 
+		let cancelled = false
 		const { text, entities } = restoreRequest
 
 		entityCombobox.restoreEntities(entities)
-		entityCombobox.isProgrammaticUpdateRef.current = true
+		entityCombobox.setIsProgrammaticUpdate(true)
 		textarea.value = text
-		setValue(text)
+		queueMicrotask(() => {
+			if (cancelled) return
+			setValue(text)
+		})
 		setInputSize(promptInputRef, highlightRef)
 
 		if (highlightRef.current) {
 			highlightRef.current.innerHTML = highlightWord(text, Array.from(entityCombobox.entitiesRef.current))
 		}
 
-		entityCombobox.combobox.setValue('')
-		entityCombobox.combobox.hide()
+		entityCombobox.clearSearch()
+
+		return () => {
+			cancelled = true
+		}
 	}, [restoreRequest, entityCombobox, promptInputRef])
 
 	// Focus input after external drop
@@ -103,9 +121,9 @@ export function PromptInput({
 		}
 	}, [droppedFiles, promptInputRef])
 
-	const resetInput = (revokeImageUrls = true) => {
+	const resetInput = (shouldRevoke = true) => {
 		setValue('')
-		imageUpload.clearImages(revokeImageUrls)
+		imageUpload.clearImages(shouldRevoke)
 		entityCombobox.resetCombobox()
 		const textarea = promptInputRef.current
 		if (textarea) {
@@ -123,32 +141,32 @@ export function PromptInput({
 		trackSubmit()
 		const finalEntities = entityCombobox.getFinalEntities()
 		const imagesToSend = [...imageUpload.selectedImages]
+		const hasImages = imagesToSend.length > 0
 
-		// Reset input immediately but don't revoke URLs yet if we have images
-		// (we still need the File objects for base64 conversion)
-		resetInput(imagesToSend.length === 0)
+		resetInput(!hasImages)
 
-		if (imagesToSend.length > 0) {
-			try {
-				const images = await Promise.all(
-					imagesToSend.map(async ({ file }) => ({
-						data: await fileToBase64(file),
-						mimeType: file.type,
-						filename: file.name
-					}))
-				)
-				// Revoke object URLs after base64 conversion to prevent memory leaks
-				for (const { url } of imagesToSend) {
-					URL.revokeObjectURL(url)
+		if (hasImages) {
+			const processAndSubmitImages = async () => {
+				const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
+				for (let i = 0; i < imagesToSend.length; i++) {
+					const file = imagesToSend[i].file
+					imagePromises.push(
+						fileToBase64(file).then((data) => ({
+							data,
+							mimeType: file.type,
+							filename: file.name
+						}))
+					)
 				}
-				handleSubmit(promptValue, finalEntities, images)
-			} catch (error) {
-				console.error('Image upload failed', error)
-				// Still revoke URLs on error to prevent leaks
-				for (const { url } of imagesToSend) {
-					URL.revokeObjectURL(url)
-				}
+				const images = await Promise.all(imagePromises)
+				await handleSubmit(promptValue, finalEntities, images)
 			}
+			try {
+				await processAndSubmitImages()
+			} catch (error) {
+				console.error('Submission failed', error)
+			}
+			revokeImageUrls(imagesToSend)
 		} else {
 			handleSubmit(promptValue, finalEntities)
 		}
@@ -180,10 +198,10 @@ export function PromptInput({
 		entityCombobox.handleScroll()
 	}
 
-	const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleFormSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.target as HTMLFormElement
-		const promptValue = form.prompt.value
+		const form = e.currentTarget
+		const promptValue = (form.elements.namedItem('prompt') as HTMLTextAreaElement | null)?.value ?? ''
 		submitForm(promptValue)
 	}
 
@@ -243,11 +261,23 @@ export function PromptInput({
 			/>
 
 			<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-				<ModeToggle
-					isResearchMode={isResearchMode}
-					setIsResearchMode={setIsResearchMode}
-					researchUsage={researchUsage}
-				/>
+				<div className="flex items-center gap-2">
+					<ModeToggle
+						isResearchMode={isResearchMode}
+						setIsResearchMode={setIsResearchMode}
+						researchUsage={researchUsage}
+					/>
+					{onOpenAlerts && (
+						<Tooltip
+							content="Manage Alerts"
+							render={<button type="button" onClick={onOpenAlerts} />}
+							className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white"
+						>
+							<Icon name="calendar-plus" height={14} width={14} />
+							<span className="sr-only">Manage Alerts</span>
+						</Tooltip>
+					)}
+				</div>
 				<div className="flex items-center gap-2">
 					<ImageUploadButton onClick={imageUpload.openFilePicker} />
 					<SubmitButton

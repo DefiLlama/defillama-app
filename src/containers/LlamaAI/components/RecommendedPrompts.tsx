@@ -88,13 +88,11 @@ const fallbackResearchCategory = {
 }
 
 export const RecommendedPrompts = ({
-	setPrompt,
-	submitPrompt,
+	onSubmit,
 	isPending,
 	isResearchMode
 }: {
-	setPrompt: (prompt: string) => void
-	submitPrompt: (prompt: { userQuestion: string }) => void
+	onSubmit: (prompt: string) => void
 	isPending: boolean
 	isResearchMode?: boolean
 }) => {
@@ -122,8 +120,7 @@ export const RecommendedPrompts = ({
 	return (
 		<PromptCarousel
 			categories={categories}
-			setPrompt={setPrompt}
-			submitPrompt={submitPrompt}
+			onSubmit={onSubmit}
 			isPending={isPending}
 			isLoading={isLoading}
 			error={error}

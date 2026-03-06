@@ -4,6 +4,8 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export function YieldsSearch({
 	lend = false,
@@ -76,8 +78,8 @@ export function YieldsSearch({
 
 					<input
 						placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
-						onChange={(e) => {
-							setSearchValue?.(e.target.value)
+						onInput={(e) => {
+							setSearchValue(e.currentTarget.value)
 						}}
 						className="mb-4 rounded-md border border-(--form-control-border) bg-white p-4 text-base text-black sm:hidden dark:bg-[#22242a] dark:text-white"
 					/>
@@ -149,32 +151,23 @@ const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
-	const { lend: _lendQuery, borrow: _borrow, ...queryParams } = router.query
-
-	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
+	const targetParam = lend ? 'lend' : 'borrow'
 
 	return (
 		<Ariakit.ComboboxItem
 			value={data.name}
 			onClick={() => {
 				setLoading(true)
-				router
-					.push(
-						{
-							pathname: router.pathname,
-							query: {
-								[targetParam]: data.symbol,
-								[restParam]: router.query[restParam] || '',
-								...queryParams
-							}
-						},
-						undefined,
-						{ shallow: true }
-					)
-					.then(() => {
-						setLoading(false)
-						setOpen(false)
-					})
+				trackYieldsEvent(YIELDS_EVENTS.SEARCH_SELECT, {
+					token: data.symbol,
+					type: lend ? 'lend' : 'borrow'
+				})
+				pushShallowQuery(router, {
+					[targetParam]: data.symbol
+				}).then(() => {
+					setLoading(false)
+					setOpen(false)
+				})
 			}}
 			focusOnHover
 			disabled={loading}

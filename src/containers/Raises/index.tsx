@@ -1,22 +1,27 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import type { ILineAndBarChartProps } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
-import Layout from '~/layout'
 import { formattedNum } from '~/utils'
-import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
-import { RaisesTable } from './RaisesTable'
+import { RaisesTable } from './Table'
+import type { IRaise } from './types'
 
-const LineAndBarChart = React.lazy(
-	() => import('~/components/ECharts/LineAndBarChart')
-) as React.FC<ILineAndBarChartProps>
+const MultiSeriesChart2 = React.lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 
-const RAISES_PAGE_NAME = ['Raises Overview']
+interface RaisesContainerProps {
+	raises: IRaise[]
+	investors: string[]
+	rounds: string[]
+	sectors: string[]
+	chains: string[]
+	investorName: string | null
+}
 
-const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }) => {
+const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorName }: RaisesContainerProps) => {
 	const { pathname } = useRouter()
 
 	const {
@@ -34,19 +39,10 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		sectors,
 		chains
 	})
-
-	const prepareCsv = () => {
-		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}
+	const deferredMonthlyInvestmentChart = React.useDeferredValue(monthlyInvestmentChart)
 
 	return (
-		<Layout
-			title={`Raises - DefiLlama`}
-			description={`Track recent raises, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`recent raises, total funding amount, total funding rounds`}
-			canonicalUrl={`/raises`}
-			pageName={RAISES_PAGE_NAME}
-		>
+		<>
 			<Announcement notCancellable>
 				<span>Are we missing any funding round?</span>{' '}
 				<a
@@ -88,18 +84,23 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
-				<div className="col-span-2 min-h-[408px] rounded-md border border-(--cards-border) bg-(--cards-bg) pt-2">
-					<React.Suspense fallback={<></>}>
-						<LineAndBarChart charts={monthlyInvestmentChart} valueSymbol="$" groupBy="monthly" />
+				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<React.Suspense fallback={<div className="min-h-[398px]" />}>
+						<MultiSeriesChart2
+							dataset={deferredMonthlyInvestmentChart.dataset}
+							charts={deferredMonthlyInvestmentChart.charts}
+							valueSymbol="$"
+							groupBy="monthly"
+							exportButtons="auto"
+						/>
 					</React.Suspense>
 				</div>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
-		</Layout>
+			<RaisesTable raises={filteredRaisesList} />
+		</>
 	)
 }
 

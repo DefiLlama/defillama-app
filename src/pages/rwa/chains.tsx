@@ -1,23 +1,34 @@
-import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAChainsTable } from '~/containers/RWA/Chains'
 import { getRWAChainsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
-	const chains = await getRWAChainsOverview()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+	const rwaList = metadataCache.rwaList
+	const { rows: chains, chartDatasets } = await getRWAChainsOverview()
 
-	if (!chains) return { notFound: true }
+	if (!chains) {
+		throw new Error('chains not found in RWA list')
+	}
+
+	const chainLinks = rwaList.chains.map((chain) => ({
+		label: chain,
+		to: `/rwa/chain/${rwaSlug(chain)}`
+	}))
+
+	if (chainLinks.length === 0) {
+		throw new Error('chains not found in RWA list')
+	}
 
 	return {
 		props: {
 			chains,
-			chainLinks: [
-				{ label: 'All', to: '/rwa/chains' },
-				...chains.map((chain) => ({ label: chain.chain, to: `/rwa/chain/${rwaSlug(chain.chain)}` }))
-			]
+			chartDatasets,
+			chainLinks: [{ label: 'All', to: '/rwa/chains' }, ...chainLinks]
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -25,17 +36,16 @@ export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
 
 const pageName = ['RWA Chains']
 
-export default function RWAChainsPage({ chains, chainLinks }) {
+export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Chains - DefiLlama"
-			description={`Real World Assets by chain on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, rwa chains, rwa onchain by chain`}
+			title="Real World Assets (RWA) by Chain Dashboard & Analytics - DefiLlama"
+			description={`An overview of Real World Asset (RWA) adoption across blockchains, with a breakdown of how RWAs are issued and used on each chain. DefiLlama remains committed to delivering accurate, transparent data without ads or sponsored content.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/chains`}
 		>
 			<RowLinksWithDropdown links={chainLinks} activeLink={'All'} />
-			<RWAChainsTable chains={chains} />
+			<RWAChainsTable chains={chains} chartDatasets={chartDatasets} />
 		</Layout>
 	)
 }

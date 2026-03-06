@@ -1,11 +1,10 @@
-import * as React from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
 import { oldBlue } from '~/constants/colors'
 import Layout from '~/layout'
 
 const PressPanel = ({ imageFilename }) => (
 	<div className="rounded-md border border-(--cards-border) p-4 text-center">
-		<TokenLogo logo={`/press/${imageFilename}`} size={150} />
+		<TokenLogo src={`/press/${imageFilename}`} alt={imageFilename} size={150} />
 	</div>
 )
 
@@ -43,9 +42,8 @@ const pressList = [
 function PressPage() {
 	return (
 		<Layout
-			title="Press - DefiLlama"
+			title="DefiLlama in the Press - Media Coverage & Mentions"
 			description={`Press and media on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`press, media, defi press, defi media`}
 			canonicalUrl={`/press`}
 		>
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">
@@ -150,10 +148,11 @@ function PressPage() {
 				</p>
 				<p>
 					<a
-						className="text-(--blue) hover:underline"
+						href="/defillama-press-kit.zip"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="/defillama-press-kit.zip"
+						download
+						className="text-(--blue) hover:underline"
 					>
 						Download branding assets
 					</a>

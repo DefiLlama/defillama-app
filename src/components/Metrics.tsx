@@ -2,12 +2,11 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import * as React from 'react'
+import { Fragment, startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TOTAL_TRACKED_BY_METRIC_API } from '~/constants'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import trendingPages from '~/public/trending.json'
 import { fetchJson } from '~/utils/async'
@@ -25,9 +24,9 @@ interface IPage {
 
 const trending = [{ category: 'Trending', metrics: trendingPages as Array<IPage> }]
 
-export const metricsByCategory = trending.concat(
+const metricsByCategory = trending.concat(
 	Object.entries(
-		defillamaPages.Metrics.reduce((acc, metric) => {
+		defillamaPages.Metrics.reduce<Record<string, IPage[]>>((acc, metric) => {
 			const category = metric.category || 'Others'
 			acc[category] = acc[category] || []
 			acc[category].push({
@@ -71,7 +70,7 @@ export function Metrics({
 	useEffect(() => {
 		if (currentCategory && canDismiss) {
 			const el = document.querySelector(`[data-category="${currentCategory}"]`)
-			if (el && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
+			if (el && hasScrolledToCategoryRef && hasScrolledToCategoryRef.current !== `${currentCategory}-true`) {
 				requestAnimationFrame(() => {
 					hasScrolledToCategoryRef.current = `${currentCategory}-true`
 					el.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -135,17 +134,23 @@ export function Metrics({
 	}, [deferredSearchValue, tabPages])
 
 	const { data: totalTrackedByMetric } = useQuery({
-		queryKey: ['totalTrackedByMetric'],
+		queryKey: ['metrics', 'total-tracked'],
 		queryFn: () => fetchJson(TOTAL_TRACKED_BY_METRIC_API),
 		staleTime: 60 * 60 * 1000
 	})
+
+	const pinnedRoutes = usePinnedRoutes()
 
 	return (
 		<>
 			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
 					<h1 className="text-2xl font-bold">Metrics</h1>
-					<TagGroup selectedValue={tab} setValue={(value) => setTab(value as (typeof TABS)[number])} values={TABS} />
+					<TagGroup
+						selectedValue={tab}
+						setValue={(value) => startTransition(() => setTab(value as (typeof TABS)[number]))}
+						values={TABS}
+					/>
 					{canDismiss ? (
 						<Ariakit.DialogDismiss
 							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
@@ -169,8 +174,7 @@ export function Metrics({
 						inputMode="search"
 						placeholder="Search..."
 						className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
-						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 					/>
 				</label>
 				<div className="flex flex-wrap gap-2">
@@ -200,12 +204,14 @@ export function Metrics({
 						</div>
 						<div
 							className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canDismiss ? 'lg:grid-cols-3 xl:grid-cols-4' : 'xl:grid-cols-3 2xl:grid-cols-4'}`}
+							style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 300px' }}
 						>
 							{metrics.map((metric) => (
 								<LinkToMetricOrToolPage
 									key={`metric-${metric.name}-${metric.route}`}
 									page={metric}
 									totalTrackedByMetric={totalTrackedByMetric}
+									pinnedRoutes={pinnedRoutes}
 								/>
 							))}
 						</div>
@@ -216,17 +222,18 @@ export function Metrics({
 	)
 }
 
-export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: IPage; totalTrackedByMetric: any }) {
-	const pinnedMetrics = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('pinned-metrics', callback),
-		() => getStorageItem('pinned-metrics', '[]') ?? '[]',
-		() => '[]'
-	)
+export function LinkToMetricOrToolPage({
+	page,
+	totalTrackedByMetric,
+	pinnedRoutes
+}: {
+	page: IPage
+	totalTrackedByMetric: any
+	pinnedRoutes: Set<string>
+}) {
+	const isPinned = pinnedRoutes.has(page.route)
 
 	const dialogStore = Ariakit.useDialogContext()
-
-	const pinnedPages = useMemo(() => JSON.parse(pinnedMetrics), [pinnedMetrics])
-	const isPinned = pinnedPages.includes(page.route)
 
 	const isExternalLink = page.route.startsWith('http')
 	const isCurrentPage = useRouter().pathname === page.route
@@ -306,6 +313,19 @@ export function LinkToMetricOrToolPage({ page, totalTrackedByMetric }: { page: I
 	)
 }
 
+export function usePinnedRoutes(): Set<string> {
+	const raw = useStorageItem('pinned-metrics', '[]')
+	return useMemo(() => {
+		let arr: unknown
+		try {
+			arr = JSON.parse(raw)
+		} catch {
+			return new Set<string>()
+		}
+		return new Set<string>(Array.isArray(arr) ? arr : [])
+	}, [raw])
+}
+
 const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
 	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
 	if (!value) return null
@@ -321,7 +341,7 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 				<div className="relative isolate w-full rounded-md bg-(--cards-bg) p-1">
 					{/* Left decorative dot pattern */}
 					<div
-						className="pointer-events-none absolute top-[1px] left-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-l-[6px] sm:w-24 md:w-48"
+						className="pointer-events-none absolute top-px left-px h-[calc(100%-2px)] w-16 overflow-hidden rounded-l-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div
@@ -335,10 +355,6 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 						/>
 					</div>
 					<div className="flex h-full flex-wrap items-center justify-center gap-1">
-						<span className="hidden items-center gap-2 rounded-md bg-(--old-blue) px-2 py-[7px] text-xs text-white lg:flex">
-							<Icon name="sparkles" height={12} width={12} />
-							<span>New</span>
-						</span>
 						{currentMetric.map((metric, i) => (
 							<Fragment key={`metric-name-${metric}`}>
 								{i === 1 ? (
@@ -357,7 +373,7 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 					</div>
 					{/* Right decorative dot pattern */}
 					<div
-						className="pointer-events-none absolute top-[1px] right-[1px] h-[calc(100%-2px)] w-16 overflow-hidden rounded-r-[6px] sm:w-24 md:w-48"
+						className="pointer-events-none absolute top-px right-px h-[calc(100%-2px)] w-16 overflow-hidden rounded-r-[6px] sm:w-24 md:w-48"
 						aria-hidden="true"
 					>
 						<div
@@ -400,7 +416,7 @@ export function MetricsAndTools({ currentMetric }: { currentMetric: Array<string
 				</div>
 				<Ariakit.Dialog
 					className="dialog thin-scrollbar h-full max-h-[calc(100dvh-80px)] gap-3 max-sm:drawer sm:w-full sm:max-w-[min(85vw,1280px)]"
-					unmountOnHide
+					unmountOnHide={false}
 					hideOnInteractOutside
 				>
 					<Metrics canDismiss={true} hasScrolledToCategoryRef={hasScrolledToCategoryRef} />

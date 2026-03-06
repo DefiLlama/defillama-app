@@ -1,14 +1,14 @@
-import { ColumnDef } from '@tanstack/react-table'
-import { maxAgeForNext } from '~/api'
+import type { ColumnDef } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByREVPageData } from '~/containers/DimensionAdapters/queries'
-import { IChainsByREVPageData } from '~/containers/DimensionAdapters/types'
+import type { IChainsByREVPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { definitions } from '~/public/definitions'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -29,9 +29,8 @@ const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
 		<Layout
-			title="REV by chain - DefiLlama"
+			title="Real Economic Value (REV) by Blockchain - DefiLlama"
 			description={`REV by chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`rev by chain, defi rev by chain`}
 			canonicalUrl={`/rev/chains`}
 			pageName={pageName}
 		>
@@ -43,6 +42,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 				header="Protocol Rankings"
 				rowSize={64}
 				compact
+				csvFileName="revenue-chains"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
@@ -62,7 +62,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink

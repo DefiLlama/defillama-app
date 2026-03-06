@@ -1,8 +1,15 @@
-import { ColumnDef, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table'
+import {
+	type ColumnDef,
+	getCoreRowModel,
+	getSortedRowModel,
+	type SortingState,
+	useReactTable
+} from '@tanstack/react-table'
 import * as React from 'react'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, formattedPercent } from '~/utils'
+import { formattedNum } from '~/utils'
 import { YieldsProject } from './Name'
 import type { IYieldsProjectsTableRow } from './types'
 
@@ -73,7 +80,11 @@ const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		header: 'Median APY',
 		accessorKey: 'medianApy',
 		cell: ({ getValue }) => {
-			return <>{formattedPercent(getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={getValue()} noSign />
+				</>
+			)
 		},
 		meta: {
 			align: 'end'
@@ -93,7 +104,8 @@ export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTable
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

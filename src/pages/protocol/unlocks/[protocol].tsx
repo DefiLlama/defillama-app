@@ -1,0 +1,105 @@
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
+import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
+import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
+import { UnlocksCharts } from '~/containers/Unlocks/EmissionsByProtocol'
+import { getProtocolUnlocksStaticPropsData } from '~/containers/Unlocks/protocolUnlocksStaticProps'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import type { IProtocolMetadata } from '~/utils/metadata/types'
+import { withPerformanceLogging } from '~/utils/perf'
+
+export const getStaticProps = withPerformanceLogging(
+	'protocol/unlocks/[protocol]',
+	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
+		if (!params?.protocol) {
+			return { notFound: true }
+		}
+		const { protocol } = params
+		const normalizedName = slug(protocol)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
+		const { protocolMetadata } = metadataCache
+		let metadata: [string, IProtocolMetadata] | undefined
+		for (const key in protocolMetadata) {
+			if (slug(protocolMetadata[key].displayName) === normalizedName) {
+				metadata = [key, protocolMetadata[key]]
+				break
+			}
+		}
+
+		if (!metadata || !metadata[1].emissions) {
+			return { notFound: true }
+		}
+
+		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+
+		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
+			normalizedName,
+			metadataCache.tokenlist
+		)
+		if (!emissions) {
+			return { notFound: true }
+		}
+		const seoTitle = `${protocolData.name} Token Unlocks & Vesting - DefiLlama`
+		const seoDescription = `Track ${protocolData.name}${tokenSymbol ? ` (${tokenSymbol})` : ''} token unlock schedule, vesting timelines, and upcoming emission events on DefiLlama.`
+
+		return {
+			props: {
+				name: protocolData.name,
+				otherProtocols: protocolData?.otherProtocols ?? [],
+				category: protocolData?.category ?? null,
+				metrics,
+				warningBanners: getProtocolWarningBanners(protocolData),
+				emissions,
+				initialTokenMarketData,
+				seoTitle,
+				seoDescription
+			},
+			revalidate: maxAgeForNext([22])
+		}
+	}
+)
+
+export async function getStaticPaths() {
+	// When this is true (in preview environments) don't
+	// prerender any static pages
+	// (faster builds, but slower initial page load)
+	if (SKIP_BUILD_STATIC_GENERATION) {
+		return {
+			paths: [],
+			fallback: 'blocking'
+		}
+	}
+
+	return { paths: [], fallback: 'blocking' }
+}
+
+export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	return (
+		<ProtocolOverviewLayout
+			name={props.name}
+			category={props.category}
+			otherProtocols={props.otherProtocols}
+			metrics={props.metrics}
+			tab="unlocks"
+			warningBanners={props.warningBanners}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
+		>
+			<div className="flex flex-col gap-2 rounded-md">
+				<UnlocksCharts
+					protocolName={props.name}
+					initialData={props.emissions}
+					initialTokenMarketData={props.initialTokenMarketData}
+					disableClientTokenStatsFetch
+					isEmissionsPage
+				/>
+			</div>
+		</ProtocolOverviewLayout>
+	)
+}

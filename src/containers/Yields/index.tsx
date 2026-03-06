@@ -1,16 +1,44 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Announcement } from '~/components/Announcement'
 import { LocalLoader } from '~/components/Loaders'
 import { YieldFiltersV2 } from './Filters'
 import { useFormatYieldQueryParams } from './hooks'
+import { useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
-const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenSymbolsList, usdPeggedSymbols }) => {
-	const { query, pathname, push } = useRouter()
+const ALL_YIELD_COLUMNS = [
+	'show7dBaseApy',
+	'show7dIL',
+	'show1dVolume',
+	'show7dVolume',
+	'showInceptionApy',
+	'showBorrowBaseApy',
+	'showBorrowRewardApy',
+	'showNetBorrowApy',
+	'showLTV',
+	'showTotalSupplied',
+	'showTotalBorrowed',
+	'showAvailable',
+	'showMedianApy',
+	'showStdDev'
+]
+
+const YieldPage = ({
+	pools,
+	projectList,
+	chainList,
+	categoryList,
+	tokens,
+	tokenSymbolsList,
+	usdPeggedSymbols,
+	tokenCategories,
+	evmChains
+}) => {
+	const { pathname } = useRouter()
 
 	const [loading, setLoading] = React.useState(true)
+	const { data: volatility } = useVolatility()
 
 	const {
 		selectedProjects,
@@ -25,7 +53,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		maxTvl,
 		minApy,
 		maxApy
-	} = useFormatYieldQueryParams({ projectList, chainList, categoryList })
+	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
 
 	React.useEffect(() => {
 		const timer = setTimeout(() => setLoading(false), 1000)
@@ -79,7 +107,8 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				minApy,
 				maxApy,
 				pairTokens: pair_tokens,
-				usdPeggedSymbols
+				usdPeggedSymbols,
+				tokenCategories: tokenCategories ?? {}
 			})
 
 			if (toFilter) {
@@ -89,6 +118,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,
+					raiseValuation: curr.raiseValuation,
 					chains: [curr.chain],
 					tvl: curr.tvlUsd,
 					apy: curr.apy,
@@ -119,7 +149,10 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 					totalAvailableUsd: curr.totalAvailableUsd,
 					ltv: curr.ltv,
 					lsdTokenOnly: curr.lsdTokenOnly,
-					poolMeta: curr.poolMeta
+					poolMeta: curr.poolMeta,
+					apyMedian30d: volatility?.[curr.pool]?.[1] ?? null,
+					apyStd30d: volatility?.[curr.pool]?.[2] ?? null,
+					cv30d: volatility?.[curr.pool]?.[3] ?? null
 				})
 			} else return acc
 		}, [])
@@ -138,7 +171,9 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 		exactTokens,
 		pathname,
 		pairTokens,
-		usdPeggedSymbols
+		usdPeggedSymbols,
+		tokenCategories,
+		volatility
 	])
 	const prepareCsv = () => {
 		const headers = [
@@ -169,13 +204,16 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 			'Total Supply USD',
 			'Total Borrow USD',
 			'Total Available USD',
-			'Pool Meta'
+			'Pool Meta',
+			'APY Median 30d',
+			'APY Std Dev 30d',
+			'CV 30d'
 		]
 		const csvData = poolsData.map((row) => {
 			return {
 				Pool: row.pool,
 				Project: row.project,
-				Chain: row.chains,
+				Chain: row.chains?.join(', '),
 				TVL: row.tvl,
 				APY: row.apy,
 				'APY Base': row.apyBase,
@@ -200,42 +238,21 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				'Total Supply USD': row.totalSupplyUsd,
 				'Total Borrow USD': row.totalBorrowUsd,
 				'Total Available USD': row.totalAvailableUsd,
-				'Pool Meta': row.poolMeta
+				'Pool Meta': row.poolMeta,
+				'APY Median 30d': row.apyMedian30d,
+				'APY Std Dev 30d': row.apyStd30d,
+				'CV 30d': row.cv30d
 			}
 		})
 
 		return {
-			filename: 'yields.csv',
+			filename: 'yields',
 			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 		}
 	}
 
 	return (
 		<>
-			{includeTokens.length > 0 &&
-				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
-					<Announcement notCancellable>
-						Do you want to see only pools that have a single token? Click{' '}
-						<a
-							className="font-medium text-(--blue) underline"
-							onClick={() => {
-								push(
-									{
-										pathname,
-										query: {
-											...query,
-											attribute: ['no_il', 'single_exposure']
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						>
-							here
-						</a>
-					</Announcement>
-				)}
 			<YieldFiltersV2
 				header="Yield Rankings"
 				poolsNumber={poolsData.length}
@@ -246,6 +263,7 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				selectedTokens={includeTokens}
 				chainList={chainList}
 				selectedChains={selectedChains}
+				evmChains={evmChains}
 				projectList={projectList}
 				selectedProjects={selectedProjects}
 				categoryList={categoryList}
@@ -253,21 +271,13 @@ const YieldPage = ({ pools, projectList, chainList, categoryList, tokens, tokenS
 				attributes={true}
 				tvlRange={true}
 				apyRange={true}
-				show7dBaseApy={true}
-				show7dIL={true}
+				enabledColumns={ALL_YIELD_COLUMNS}
 				resetFilters={true}
-				show1dVolume={true}
-				show7dVolume={true}
-				showInceptionApy={true}
 				includeLsdApy={true}
-				showNetBorrowApy={true}
-				showBorrowBaseApy={true}
-				showBorrowRewardApy={true}
-				showTotalSupplied={true}
-				showTotalBorrowed={true}
-				showAvailable={true}
-				showLTV={true}
+				showMedianApy={true}
+				showStdDev={true}
 				prepareCsv={prepareCsv}
+				showPresetFilters
 			/>
 
 			{loading ? (

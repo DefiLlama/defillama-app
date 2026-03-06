@@ -1,15 +1,10 @@
-import {
-	CHAIN_TVL_API,
-	CHAINS_API_V2,
-	CHART_API,
-	DIMENSIONS_OVERVIEW_API,
-	DIMENSIONS_SUMMARY_API,
-	PEGGEDCHART_API,
-	PEGGEDCHART_DOMINANCE_ALL_API,
-	PROTOCOL_API,
-	PROTOCOLS_API
-} from '~/constants'
+import { DIMENSIONS_OVERVIEW_API, DIMENSIONS_SUMMARY_API } from '~/constants'
+import { fetchChainChart, fetchChainsByCategory, fetchChainsTvlOverview } from '~/containers/Chains/api'
 import { EXTENDED_COLOR_PALETTE } from '~/containers/ProDashboard/utils/colorManager'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { fetchStablecoinChartAllApi, fetchStablecoinDominanceAllApi } from '~/containers/Stablecoins/api'
+import { fetchJson } from '~/utils/async'
 import {
 	buildChainMatchSet as buildChainMatchSetFromNormalizer,
 	toDimensionsSlug,
@@ -24,7 +19,7 @@ import {
 	toSlug
 } from '~/utils/protocolSplit'
 import { processAdjustedProtocolTvl, processAdjustedTvl } from '~/utils/tvl'
-import { ChartSeries, ProtocolChainData } from './types'
+import type { ChartSeries, ProtocolChainData } from './types'
 
 const METRIC_CONFIG: Record<string, { endpoint: string; dataType?: string; metricName: string }> = {
 	...METRIC_CONFIG_BASE
@@ -115,11 +110,7 @@ const getProtocolCategoryLookup = async (): Promise<ProtocolCategoryLookup | nul
 		return protocolCategoryCache.data
 	}
 	try {
-		const response = await fetch(PROTOCOLS_API)
-		if (!response.ok) {
-			throw new Error(`Failed to fetch protocols for category lookup: ${response.status}`)
-		}
-		const json = await response.json()
+		const json = await fetchProtocols()
 		const lookup = createEmptyCategoryLookup()
 		const protocols = Array.isArray(json?.protocols) ? json.protocols : []
 		for (const proto of protocols) {
@@ -199,7 +190,7 @@ const buildAlignedTopAndOthers = (
 	return { alignedTopSeries, othersData, allTimestamps }
 }
 
-const keysToSkip = ['staking', 'pool2', 'borrowed', 'doublecounted', 'liquidstaking', 'vesting']
+const keysToSkip = new Set(['staking', 'pool2', 'borrowed', 'doublecounted', 'liquidstaking', 'vesting'])
 
 async function getTvlProtocolChainData(
 	protocol: string,
@@ -210,12 +201,7 @@ async function getTvlProtocolChainData(
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
-		const response = await fetch(`${PROTOCOL_API}/${protocol}`)
-		if (!response.ok) {
-			throw new Error(`Failed to fetch TVL data: ${response.statusText}`)
-		}
-
-		const data = await response.json()
+		const data = await fetchProtocolBySlug<{ name?: string; chainTvls?: Record<string, unknown> }>(protocol)
 		const chainTvls = data?.chainTvls || {}
 
 		const series: ChartSeries[] = []
@@ -229,7 +215,13 @@ async function getTvlProtocolChainData(
 			allowNamesFromCategories = await resolveAllowedChainNamesFromCategories(chainCategories)
 		}
 		for (const chainKey in chainTvls) {
-			if (keysToSkip.some((key) => chainKey.includes(`-${key}`) || chainKey === key)) {
+			if (
+				keysToSkip.has(chainKey) ||
+				chainKey
+					.split('-')
+					.slice(1)
+					.some((seg) => keysToSkip.has(seg))
+			) {
 				continue
 			}
 
@@ -334,12 +326,7 @@ async function getDimensionsProtocolChainData(
 			apiUrl += `?dataType=${config.dataType}`
 		}
 
-		const response = await fetch(apiUrl)
-		if (!response.ok) {
-			throw new Error(`Failed to fetch ${metric} data: ${response.statusText}`)
-		}
-
-		const data = await response.json()
+		const data = await fetchJson<any>(apiUrl)
 
 		const breakdown = data?.totalDataChartBreakdown || []
 		if (!Array.isArray(breakdown) || breakdown.length === 0) {
@@ -476,8 +463,7 @@ async function getAllProtocolsTopChainsTvlData(
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
-		const resp = await fetch(CHAIN_TVL_API)
-		const allChains = (await resp.json()) as Array<{ name: string; tvl: number }>
+		const allChains = await fetchChainsTvlOverview()
 		const includeSet = new Set<string>((chains || []).map((c) => toDisplayName(c)))
 		let allowNamesFromCategories: Set<string> | null = null
 		if (chainCategories && chainCategories.length > 0) {
@@ -501,25 +487,26 @@ async function getAllProtocolsTopChainsTvlData(
 		const picked = ranked.slice(0, Math.min(topN, ranked.length))
 		const pickedNames = picked.map((c) => c.name)
 
-		const [globalResp, ...chainResponses] = await Promise.all([
-			fetch(CHART_API),
-			...pickedNames.map((name) => fetch(`${CHART_API}/${encodeURIComponent(name)}`))
+		const [globalJson, ...chainResponses] = await Promise.all([
+			fetchChainChart<any>(),
+			...pickedNames.map((name) =>
+				fetchChainChart<any>(name)
+					.then((data) => ({ name, data }))
+					.catch(() => null)
+			)
 		])
-
-		const globalJson = await globalResp.json()
 		const adjustedGlobalTvl = processAdjustedTvl(globalJson)
 		const totalSeries = filterOutToday(normalizeDailyPairs(adjustedGlobalTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 
 		const topSeriesRaw: ChartSeries[] = []
 		let colorIndex = 0
-		for (let i = 0; i < chainResponses.length; i++) {
-			const r = chainResponses[i]
-			if (!r.ok) continue
-			const j = await r.json()
+		for (const chainResponse of chainResponses) {
+			if (!chainResponse) continue
+			const { name, data: j } = chainResponse
 			const adjustedTvl = processAdjustedTvl(j)
 			const normalized = filterOutToday(normalizeDailyPairs(adjustedTvl.map(([ts, v]) => [Number(ts), Number(v)])))
 			topSeriesRaw.push({
-				name: pickedNames[i],
+				name,
 				data: normalized,
 				color: EXTENDED_COLOR_PALETTE[colorIndex++ % EXTENDED_COLOR_PALETTE.length]
 			})
@@ -527,7 +514,9 @@ async function getAllProtocolsTopChainsTvlData(
 
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(topSeriesRaw, totalSeries)
 
-		const othersCount = Math.max(0, ranked.length - Math.min(topN, ranked.length))
+		const includedTopCount = topSeriesRaw.length
+		const includedTopNames = topSeriesRaw.map((series) => series.name)
+		const othersCount = Math.max(0, ranked.length - includedTopCount)
 		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
 		const finalSeries = [...alignedTopSeries]
 		if (hasOthers) finalSeries.push({ name: `Others (${othersCount} chains)`, data: othersData, color: '#999999' })
@@ -537,9 +526,9 @@ async function getAllProtocolsTopChainsTvlData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: 'TVL',
-				chains: pickedNames,
+				chains: includedTopNames,
 				totalChains: ranked.length,
-				topN: Math.min(topN, ranked.length),
+				topN: includedTopCount,
 				othersCount
 			}
 		}
@@ -557,12 +546,7 @@ async function getAllProtocolsTopChainsStablecoinsData(
 	chainCategories?: string[]
 ): Promise<ProtocolChainData> {
 	try {
-		const dominanceResp = await fetch(PEGGEDCHART_DOMINANCE_ALL_API)
-		if (!dominanceResp.ok) {
-			throw new Error(`Failed to fetch stablecoin dominance data: ${dominanceResp.statusText}`)
-		}
-
-		const dominanceJson = await dominanceResp.json()
+		const dominanceJson = await fetchStablecoinDominanceAllApi()
 		const chainChartMap: Record<string, any[]> = dominanceJson?.chainChartMap ?? {}
 
 		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
@@ -661,27 +645,24 @@ async function getAllProtocolsTopChainsStablecoinsData(
 
 		let totalPairs: [number, number][] = []
 		try {
-			const aggregatedResp = await fetch(`${PEGGEDCHART_API}/all`)
-			if (aggregatedResp.ok) {
-				const aggregatedJson = await aggregatedResp.json()
-				const aggregatedArray: any[] = Array.isArray(aggregatedJson?.aggregated) ? aggregatedJson.aggregated : []
-				totalPairs = filterOutToday(
-					normalizeDailyPairs(
-						aggregatedArray
-							.map((item: any) => {
-								const rawTs = item?.date ?? item?.timestamp
-								if (rawTs == null) return null
-								let ts = Number(rawTs)
-								if (!Number.isFinite(ts)) return null
-								if (ts > 1e12) ts = Math.floor(ts / 1000)
-								const usd = sumStablecoinUsd(item?.totalCirculatingUSD)
-								if (!Number.isFinite(usd)) return null
-								return [ts, usd] as [number, number]
-							})
-							.filter(Boolean) as [number, number][]
-					)
+			const aggregatedJson = await fetchStablecoinChartAllApi()
+			const aggregatedArray: any[] = Array.isArray(aggregatedJson?.aggregated) ? aggregatedJson.aggregated : []
+			totalPairs = filterOutToday(
+				normalizeDailyPairs(
+					aggregatedArray
+						.map((item: any) => {
+							const rawTs = item?.date ?? item?.timestamp
+							if (rawTs == null) return null
+							let ts = Number(rawTs)
+							if (!Number.isFinite(ts)) return null
+							if (ts > 1e12) ts = Math.floor(ts / 1000)
+							const usd = sumStablecoinUsd(item?.totalCirculatingUSD)
+							if (!Number.isFinite(usd)) return null
+							return [ts, usd] as [number, number]
+						})
+						.filter(Boolean) as [number, number][]
 				)
-			}
+			)
 		} catch (err) {
 			console.log('Failed to fetch aggregated stablecoin series for chains builder:', err)
 		}
@@ -742,9 +723,7 @@ async function getAllProtocolsTopChainsChainFeesData(
 		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/fees?excludeTotalDataChartBreakdown=true`
 		if (config?.dataType) overviewUrl += `&dataType=${config.dataType}`
 
-		const overviewResp = await fetch(overviewUrl)
-		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
-		const overview = await overviewResp.json()
+		const overview = await fetchJson<any>(overviewUrl)
 
 		const includeSet = chains && chains.length > 0 ? buildChainMatchSet(chains) : new Set<string>()
 		let allowSlugsFromCategories: Set<string> | null = null
@@ -802,9 +781,8 @@ async function getAllProtocolsTopChainsChainFeesData(
 		const chainSeriesPromises = picked.map(async (entry, idx) => {
 			let summaryUrl = `${DIMENSIONS_SUMMARY_API}/fees/${entry.slug}`
 			if (config?.dataType) summaryUrl += `?dataType=${config.dataType}`
-			const resp = await fetch(summaryUrl)
-			if (!resp.ok) return null
-			const json = await resp.json()
+			const json = await fetchJson<any>(summaryUrl).catch(() => null)
+			if (!json) return null
 			const chart: Array<[number | string, number]> = Array.isArray(json?.totalDataChart) ? json.totalDataChart : []
 			const normalized = filterOutToday(normalizeDailyPairs(chart.map(([ts, value]) => [Number(ts), Number(value)])))
 			return {
@@ -825,7 +803,8 @@ async function getAllProtocolsTopChainsChainFeesData(
 
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(seriesRaw, totalNormalized)
 
-		const othersCount = Math.max(0, rankedEntries.length - picked.length)
+		const includedTopCount = alignedTopSeries.length
+		const othersCount = Math.max(0, seriesRaw.length - includedTopCount)
 		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
 		const finalSeries = [...alignedTopSeries]
 		if (hasOthers) {
@@ -841,9 +820,9 @@ async function getAllProtocolsTopChainsChainFeesData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: CHAIN_ONLY_METRIC_LABELS[metric],
-				chains: picked.map((entry) => entry.name),
-				totalChains: rankedEntries.length,
-				topN: picked.length,
+				chains: alignedTopSeries.map((entry) => entry.name),
+				totalChains: seriesRaw.length,
+				topN: includedTopCount,
 				othersCount
 			}
 		}
@@ -879,12 +858,13 @@ async function getAllProtocolsTopChainsDimensionsData(
 	try {
 		let overviewUrl = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}?excludeTotalDataChartBreakdown=false`
 		if (config.dataType) overviewUrl += `&dataType=${config.dataType}`
-		const overviewResp = await fetch(overviewUrl)
-		if (!overviewResp.ok) throw new Error(`Overview fetch failed: ${overviewResp.status}`)
-		const overview = await overviewResp.json()
+		const overview = await fetchJson<any>(overviewUrl)
 
-		const normalizedProtocolCategories = (protocolCategories || []).map((cat) => cat.toLowerCase()).filter(Boolean)
-		const protocolCategoryFilterSet = new Set(normalizedProtocolCategories)
+		const protocolCategoryFilterSet = new Set<string>()
+		for (const cat of protocolCategories || []) {
+			const lower = cat?.toLowerCase()
+			if (lower) protocolCategoryFilterSet.add(lower)
+		}
 		const hasProtocolCategoryFilter = protocolCategoryFilterSet.size > 0
 
 		let protocolCategoryLookup: ProtocolCategoryLookup | null = null
@@ -989,9 +969,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 			const endpointSlug = toDisplayName(slug)
 			let url = `${DIMENSIONS_OVERVIEW_API}/${config.endpoint}/${endpointSlug}?excludeTotalDataChartBreakdown=${includeBreakdownParam}`
 			if (config.dataType) url += `&dataType=${config.dataType}`
-			const r = await fetch(url)
-			if (!r.ok) return null
-			const j = await r.json()
+			const j = await fetchJson<any>(url).catch(() => null)
+			if (!j) return null
 			const tdc: Array<[number, number]> = Array.isArray(j?.totalDataChart) ? j.totalDataChart : []
 			let normalized = filterOutToday(
 				normalizeDailyPairs((tdc as Array<[number | string, number]>).map(([ts, v]) => [Number(ts), Number(v)]))
@@ -1034,7 +1013,8 @@ async function getAllProtocolsTopChainsDimensionsData(
 
 		const { alignedTopSeries, othersData } = buildAlignedTopAndOthers(seriesRaw, totalNormalized)
 
-		const othersCount = Math.max(0, ranked.length - Math.min(topN, ranked.length))
+		const includedTopCount = alignedTopSeries.length
+		const othersCount = Math.max(0, seriesRaw.length - includedTopCount)
 		const hasOthers = othersCount > 0 && othersData.some(([, v]) => v > 0)
 		const finalSeries = [...alignedTopSeries]
 		if (hasOthers) finalSeries.push({ name: `Others (${othersCount} chains)`, data: othersData, color: '#999999' })
@@ -1044,9 +1024,9 @@ async function getAllProtocolsTopChainsDimensionsData(
 			metadata: {
 				protocol: 'All Protocols',
 				metric: config.metricName,
-				chains: picked.map(displayChainName),
-				totalChains: ranked.length,
-				topN: Math.min(topN, ranked.length),
+				chains: alignedTopSeries.map((entry) => entry.name),
+				totalChains: seriesRaw.length,
+				topN: includedTopCount,
 				othersCount
 			}
 		}
@@ -1064,7 +1044,7 @@ async function getAllProtocolsTopChainsDimensionsData(
 	}
 }
 
-export type ProtocolChainSplitParams = {
+type ProtocolChainSplitParams = {
 	protocol?: string
 	metric: string
 	chains: string[]
@@ -1143,16 +1123,12 @@ export const getProtocolChainSplitData = async ({
 
 async function resolveAllowedChainNamesFromCategories(categories: string[]): Promise<Set<string>> {
 	if (!categories || categories.length === 0) return new Set()
-	const requests = categories.map((cat) => fetch(`${CHAINS_API_V2}/${encodeURIComponent(cat)}`))
-	const responses = await Promise.allSettled(requests)
+	const responses = await Promise.allSettled(categories.map((cat) => fetchChainsByCategory(cat)))
 	const out = new Set<string>()
 	for (const res of responses) {
-		if (res.status === 'fulfilled' && res.value.ok) {
-			try {
-				const j = await res.value.json()
-				const arr: string[] = Array.isArray(j?.chainsUnique) ? j.chainsUnique : []
-				for (const name of arr) out.add(name)
-			} catch {}
+		if (res.status === 'fulfilled') {
+			const arr: string[] = Array.isArray(res.value?.chainsUnique) ? res.value.chainsUnique : []
+			for (const name of arr) out.add(name)
 		}
 	}
 	return out

@@ -10,12 +10,15 @@ export const DailyPnLGrid = ({ timeline }: { timeline: TimelinePoint[] }) => {
 	const displayDays = days.slice(-90)
 
 	return (
-		<div className="overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+		<section
+			className="overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) p-4"
+			aria-label="Daily change grid"
+		>
 			<div className="mb-3 flex items-center justify-between gap-2">
 				<h3 className="text-base font-semibold">Daily Change Grid</h3>
-				<span className="text-xs text-(--text-secondary)">{displayDays.length} days shown</span>
+				<p className="text-xs text-(--text-secondary)">{displayDays.length} days shown</p>
 			</div>
-			<div className="no-scrollbar flex max-w-full flex-wrap gap-1.5 pb-1">
+			<ul className="no-scrollbar flex max-w-full flex-wrap gap-1.5 pb-1" aria-label="Daily return heat cells">
 				{displayDays.map((day) => {
 					const isPositive = day.percentChange > 0
 					const isZero = day.percentChange === 0
@@ -23,24 +26,25 @@ export const DailyPnLGrid = ({ timeline }: { timeline: TimelinePoint[] }) => {
 					const backgroundColor = isZero
 						? 'rgba(148, 163, 184, 0.22)'
 						: isPositive
-							? `rgba(16, 185, 129, ${alpha})` // emerald-500 with controlled alpha
-							: `rgba(239, 68, 68, ${alpha})` // red-500 with controlled alpha
+							? `rgba(16, 185, 129, ${alpha})`
+							: `rgba(239, 68, 68, ${alpha})`
 					return (
-						<Tooltip
-							key={day.timestamp}
-							placement="top"
-							content={`${formatPercent(day.percentChange)} • ${formatDateLabel(day.timestamp)}`}
-						>
-							<div
-								className="flex h-8 w-8 shrink-0 items-end justify-center rounded-md border border-white/5 transition-transform duration-200 hover:scale-[0.99]"
-								style={{ background: backgroundColor }}
+						<li key={day.timestamp}>
+							<Tooltip
+								placement="top"
+								content={`${formatPercent(day.percentChange)} • ${formatDateLabel(day.timestamp)}`}
 							>
-								<span className="sr-only">{`${formatPercent(day.percentChange)} on ${formatDateLabel(day.timestamp)}`}</span>
-							</div>
-						</Tooltip>
+								<span
+									className="flex h-8 w-8 shrink-0 items-end justify-center rounded-md border border-(--cards-border) transition-transform duration-200 hover:scale-[0.99]"
+									style={{ background: backgroundColor }}
+								>
+									<span className="sr-only">{`${formatPercent(day.percentChange)} on ${formatDateLabel(day.timestamp)}`}</span>
+								</span>
+							</Tooltip>
+						</li>
 					)
 				})}
-			</div>
-		</div>
+			</ul>
+		</section>
 	)
 }

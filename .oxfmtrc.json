@@ -41,6 +41,7 @@
 		"*.tsbuildinfo",
 		"next-env.d.ts",
 		"/public/",
-		".cache"
+		".cache",
+		".agents"
 	]
 }

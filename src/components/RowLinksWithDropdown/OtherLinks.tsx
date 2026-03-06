@@ -2,8 +2,8 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
-import { Icon } from '../Icon'
 
 interface IProps {
 	options: { label: string; to: string }[]
@@ -63,7 +63,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 				</Ariakit.MenuButton>
 
 				<Ariakit.Menu
-					unmountOnHide
+					unmountOnHide={false}
 					hideOnInteractOutside
 					gutter={6}
 					wrapperProps={{
@@ -77,7 +77,6 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 					</span>
@@ -123,7 +122,7 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 					// window.open(to, '_self')
 				}
 			}}
-			render={<Ariakit.ComboboxItem value={label} />}
+			render={<Ariakit.ComboboxItem value={label} setValueOnClick={false} />}
 			className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md data-active-item:bg-(--primary-hover)"
 		>
 			<span>{label}</span>

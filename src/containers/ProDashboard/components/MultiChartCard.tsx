@@ -1,8 +1,10 @@
 import { lazy, memo, Suspense, useCallback, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { Icon } from '~/components/Icon'
-import { Select } from '~/components/Select'
+import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download } from '~/utils'
+import { capitalizeFirstLetter } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
@@ -10,11 +12,10 @@ import {
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { CHART_TYPES, MultiChartConfig } from '../types'
+import { CHART_TYPES, type MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
-import { ChartExportButton } from './ProTable/ChartExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -296,21 +297,21 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 
 		const percentageColors = [
-			'#FF6B6B',
-			'#4ECDC4',
-			'#45B7D1',
-			'#96CEB4',
-			'#FFEAA7',
-			'#DDA0DD',
-			'#98D8C8',
-			'#F7DC6F',
-			'#BB8FCE',
-			'#85C1E9',
-			'#F8C471',
-			'#82E0AA',
-			'#F1948A',
-			'#85929E',
-			'#D7BDE2'
+			'#cc3e3e',
+			'#4ccdc4',
+			'#4ab6cf',
+			'#59b188',
+			'#ccaa3e',
+			'#be4bbe',
+			'#4ebca0',
+			'#ccaf3e',
+			'#9855b4',
+			'#3e93cc',
+			'#cc953e',
+			'#3ecc7b',
+			'#cc4c3e',
+			'#778592',
+			'#a56abe'
 		]
 
 		const seriesWithAverages = processedSeries.map((serie) => {
@@ -573,10 +574,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showCumulative ? 'Cumulative' : 'Individual'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && !showTreemap && (
@@ -589,10 +587,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showStacked ? 'Stacked' : 'Separate'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && !showTreemap && (
@@ -605,10 +600,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showPercentage ? '% Percentage' : '$ Absolute'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
@@ -620,10 +612,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						}}
 						label={showTreemap ? 'Tree Map' : 'Time Series'}
 						labelType="none"
-						triggerProps={{
-							className:
-								'hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent focus-visible:border-transparent disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-						}}
+						variant="pro"
 					/>
 				)}
 				{!isReadOnly && (
@@ -638,7 +627,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 				)}
 				{series.length > 0 && (
 					<>
-						<ChartExportButton
+						<ChartPngExportButton
 							chartInstance={chartInstance}
 							filename={multi.name || 'multi_chart'}
 							title={showTreemap ? undefined : capitalizeFirstLetter(multi.name) || 'Multi Chart'}
@@ -676,11 +665,11 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 					</p>
 				</div>
 			) : showTreemap && treemapData.length > 0 ? (
-				<Suspense fallback={<div className="h-[360px]" />}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<TreeMapBuilderChart key={multi.id} data={treemapData} height="360px" onReady={handleChartReady} />
 				</Suspense>
 			) : (
-				<Suspense fallback={<div className="h-[360px]" />}>
+				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart
 						key={`${multi.id}-${showStacked}-${showPercentage}-${multi.grouping || 'day'}-${timeKey}`}
 						series={series}

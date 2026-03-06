@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
-import { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
+import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.DEXS
@@ -13,7 +13,8 @@ export const getStaticProps = withPerformanceLogging(`${type}/index`, async () =
 	const data = await getAdapterByChainPageData({
 		adapterType,
 		chain: 'All',
-		route: 'dexs'
+		route: 'dexs',
+		metricName: type
 	}).catch((e) => console.info(`Chain page data not found ${adapterType} : ALL_CHAINS`, e))
 
 	if (!data) return { notFound: true }
@@ -29,9 +30,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const DexsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
+			title="DEX Volume Rankings - Decentralized Exchange Trading - DefiLlama"
+			description="Track DEX swap volume and trading activity across all decentralized exchanges. Compare 24h and 7-day volume on Uniswap, Curve, PancakeSwap, and 500+ spot DEXs. Real-time DEX volume rankings by protocol and chain."
 			canonicalUrl={`/dexs`}
 			pageName={pageName}
 		>
