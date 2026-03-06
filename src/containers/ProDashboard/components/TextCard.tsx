@@ -8,13 +8,13 @@ interface TextCardProps {
 export function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="prose prose-sm flex thin-scrollbar flex-col gap-2 overflow-y-auto p-4 prose-invert">
-			{text.title && <h1 className="text-lg font-semibold text-(--text-primary)">{text.title}</h1>}
+			{text.title && <h2 className="text-lg font-semibold text-(--text-primary)">{text.title}</h2>}
 
 			<ReactMarkdown
 				components={{
-					h1: ({ children }) => <h1 className="m-0! text-xl font-bold text-(--text-primary)">{children}</h1>,
-					h2: ({ children }) => <h2 className="m-0! text-lg font-semibold text-(--text-primary)">{children}</h2>,
-					h3: ({ children }) => <h3 className="m-0! text-base font-medium text-(--text-primary)">{children}</h3>,
+				h1: ({ children }) => <h3 className="m-0! text-xl font-bold text-(--text-primary)">{children}</h3>,
+				h2: ({ children }) => <h4 className="m-0! text-lg font-semibold text-(--text-primary)">{children}</h4>,
+				h3: ({ children }) => <h5 className="m-0! text-base font-medium text-(--text-primary)">{children}</h5>,
 					p: ({ children }) => <p className="m-0! leading-relaxed text-(--text-secondary)">{children}</p>,
 					ul: ({ children }) => <ul className="m-0! flex list-disc flex-col gap-1 pl-4">{children}</ul>,
 					ol: ({ children }) => <ol className="m-0! flex list-decimal flex-col gap-1 pl-4">{children}</ol>,

@@ -45,14 +45,23 @@ export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 						</h1>
 					) : null}
 					<div className="flex flex-wrap items-end justify-between gap-4">
-						<p className="flex flex-col">
-							<span className="flex flex-col">
-								<span>{metricInfo.header}</span>
-								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+						{props.chain === 'All' ? (
+							<div className="flex flex-col">
+								<h1 className="text-(--text-label)">{metricInfo.header}</h1>
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(props.totalValue, true)}
+								</p>
+							</div>
+						) : (
+							<p className="flex flex-col">
+								<span className="flex flex-col">
+									<span>{metricInfo.header}</span>
+									<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+										{formattedNum(props.totalValue, true)}
+									</span>
 								</span>
-							</span>
-						</p>
+							</p>
+						)}
 						{props.change24h != null ? (
 							<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2 text-sm">
 								<span

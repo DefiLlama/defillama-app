@@ -204,7 +204,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
-						<h1 className="mr-auto text-base font-semibold">Cumulative Holdings Over Time</h1>
+						<h2 className="mr-auto text-base font-semibold">Cumulative Holdings Over Time</h2>
 						{props.assets.length > 1 ? (
 							<TagGroup
 								selectedValue={selectedAsset}

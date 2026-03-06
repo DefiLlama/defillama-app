@@ -203,6 +203,7 @@ export const OraclesByChain = ({
 					columnToSearch="name"
 					placeholder="Search oracles..."
 					header="Oracle Rankings"
+					headingAs="h1"
 					csvFileName="oracle-rankings"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>

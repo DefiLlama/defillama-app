@@ -189,9 +189,9 @@ export function ChartCard({ chart }: ChartCardProps) {
 								{itemName?.charAt(0)?.toUpperCase()}
 							</div>
 						))}
-					<h1 className="text-base font-semibold">
+					<h2 className="text-base font-semibold">
 						{itemName} {chartTypeDetails.title}
-					</h1>
+					</h2>
 				</div>
 				<div className="flex flex-wrap items-center justify-end gap-2">
 					{!isReadOnly && (

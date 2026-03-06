@@ -29,6 +29,7 @@ export default function PieChart({
 	stackColors,
 	chartData,
 	title,
+	headingAs,
 	valueSymbol = '$',
 	radius = null,
 	showLegend = false,
@@ -439,6 +440,7 @@ export default function PieChart({
 				title || imageExportEnabled || csvDownloadEnabled ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
 						exportButtons={
 							<ChartExportButtons

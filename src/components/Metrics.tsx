@@ -145,7 +145,7 @@ export function Metrics({
 		<>
 			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
-					<h1 className="text-2xl font-bold">Metrics</h1>
+					<h2 className="text-2xl font-bold">Metrics</h2>
 					<TagGroup
 						selectedValue={tab}
 						setValue={(value) => startTransition(() => setTab(value as (typeof TABS)[number]))}

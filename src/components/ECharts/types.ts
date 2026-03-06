@@ -11,6 +11,7 @@ export interface IChartProps {
 	stacks?: Array<string>
 	valueSymbol?: string
 	title?: string
+	headingAs?: 'h1' | 'h2'
 	color?: string
 	hallmarks?: [number, string][]
 	style?: React.CSSProperties
@@ -174,6 +175,7 @@ type MultiSeriesChart2BaseProps = {
 	// Canonical (and only) input shape.
 	dataset: MultiSeriesChart2Dataset
 	title?: string
+	headingAs?: 'h1' | 'h2'
 }
 
 export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
@@ -242,6 +244,7 @@ export interface IMultiSeriesChartProps {
 
 export interface IPieChartProps {
 	title?: string
+	headingAs?: 'h1' | 'h2'
 	chartData: Array<{ name: string; value: number }>
 	height?: string
 	stackColors?: {
@@ -282,6 +285,7 @@ export interface IScatterChartProps {
 
 export interface ISankeyChartProps {
 	title?: string
+	headingAs?: 'h1' | 'h2'
 	height?: string
 	nodes: Array<{
 		name: string

@@ -629,12 +629,12 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		<div className="flex min-h-[422px] flex-col p-1 md:min-h-[438px]">
 			<div className="flex flex-col gap-1 p-1 md:p-3">
 				<div className="flex flex-wrap items-center justify-end gap-2">
-					<h1 className="mr-auto text-base font-semibold">
+					<h2 className="mr-auto text-base font-semibold">
 						{builder.name ||
 							(config.mode === 'protocol'
 								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'All Protocols'} ${config.metric} by Chain`
 								: `${config.metric} by Protocol`)}
-					</h1>
+					</h2>
 					{!isReadOnly && chartSeries.length > 0 && config.chartType !== 'treemap' && (
 						<div className="flex overflow-hidden rounded-md border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (

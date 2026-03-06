@@ -76,7 +76,7 @@ export function NestedMenu({
 							>
 								<Icon name="chevron-left" height={20} width={20} />
 							</button>
-							<h1 className="px-3 py-1.5 text-base font-medium">{label}</h1>
+							<h2 className="px-3 py-1.5 text-base font-medium">{label}</h2>
 						</div>
 					</>
 				) : null}

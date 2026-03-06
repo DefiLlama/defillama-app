@@ -37,9 +37,10 @@ const REVByChain = (props: IChainsByREVPageData) => {
 			<TableWithSearch
 				data={props.chains}
 				columns={columns}
-				placeholder={'Search protocols...'}
+				placeholder={'Search chains...'}
 				columnToSearch={'name'}
-				header="Protocol Rankings"
+				header="Chain Rankings"
+				headingAs="h1"
 				rowSize={64}
 				compact
 				csvFileName="revenue-chains"
@@ -53,7 +54,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 	{
 		id: 'name',
 		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
+		accessorFn: (chain) => chain.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const value = getValue() as string
@@ -80,7 +81,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 	{
 		id: 'total24h',
 		header: 'REV 24h',
-		accessorFn: (protocol) => protocol.total24h,
+		accessorFn: (chain) => chain.total24h,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		meta: {
 			align: 'center',
@@ -91,7 +92,7 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 	{
 		id: 'total30d',
 		header: 'REV 30d',
-		accessorFn: (protocol) => protocol.total30d,
+		accessorFn: (chain) => chain.total30d,
 		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
 		meta: {
 			align: 'center',

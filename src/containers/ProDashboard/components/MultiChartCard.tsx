@@ -543,7 +543,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-2">
-					<h1 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h1>
+					<h2 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h2>
 				</div>
 				{!isReadOnly && allChartsGroupable && hasAnyData && (
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">

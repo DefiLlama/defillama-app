@@ -223,13 +223,14 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 			description={`Top Gainers and Losers by their TVL. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			canonicalUrl={`/top-gainers-and-losers`}
 		>
+			<h1 className="text-xl font-semibold">Top Gainers and Losers</h1>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
+				<h2 className="p-3 text-xl font-semibold">Top Gainers</h2>
 				<TopGainersAndLosersTable key="gainers-change_1d" data={topGainers} sortingState={GAINERS_SORTING_STATE} />
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
+				<h2 className="p-3 text-xl font-semibold">Top Losers</h2>
 				<TopGainersAndLosersTable key="losers-change_1d" data={topLosers} sortingState={LOSERS_SORTING_STATE} />
 			</div>
 		</Layout>

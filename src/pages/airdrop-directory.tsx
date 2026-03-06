@@ -61,6 +61,8 @@ export default function Airdrops({ airdrops }) {
 				columns={columns}
 				columnToSearch={'name'}
 				placeholder={'Search Airdrop...'}
+				header="Airdrop Directory"
+				headingAs="h1"
 				csvFileName="airdrop-directory"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
