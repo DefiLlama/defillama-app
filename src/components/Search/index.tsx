@@ -232,7 +232,12 @@ export const DesktopSearch = () => {
 					})
 				}}
 				open={open}
-				setOpen={setOpen}
+				setOpen={(value) => {
+					setOpen(value)
+					if (!value) {
+						setSearchValue('')
+					}
+				}}
 			>
 				<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
 					<button onClick={(prev) => setOpen(!prev)} className="absolute top-0 bottom-0 left-2 my-auto opacity-50">
@@ -350,6 +355,8 @@ const SearchItem = ({
 				onSelect?.()
 			}}
 			value={route.route}
+			setValueOnClick={false}
+			hideOnClick
 		>
 			{route.logo ? (
 				<img src={route.logo} alt={route.name} className="h-6 w-6 rounded-full" loading="lazy" />
