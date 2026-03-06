@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { LinkPreviewCard } from '~/components/SEO'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { EmissionsByProtocol } from '~/containers/Unlocks/EmissionsByProtocol'
@@ -83,7 +83,7 @@ export default function Protocol({
 	initialTokenMarketData,
 	seoTitle,
 	seoDescription
-}) {
+}: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout title={seoTitle} description={seoDescription} canonicalUrl={`/unlocks/${emissions.name}`}>
 			<LinkPreviewCard
