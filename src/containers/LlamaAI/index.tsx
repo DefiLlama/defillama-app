@@ -12,6 +12,7 @@ import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArti
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { MarkdownRenderer } from '~/containers/LlamaAI/components/MarkdownRenderer'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import { RecommendedPrompts } from '~/containers/LlamaAI/components/RecommendedPrompts'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
@@ -1043,19 +1044,26 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							</h1>
 						</div>
 						{!readOnly && (
-							<PromptInput
-								handleSubmit={handleSubmit}
-								promptInputRef={promptInputRef}
-								isPending={false}
-								handleStopRequest={handleStopRequest}
-								isStreaming={isStreaming}
-								restoreRequest={null}
-								placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-								isResearchMode={isResearchMode}
-								setIsResearchMode={setIsResearchMode}
-								researchUsage={null}
-								onOpenAlerts={alertsModalStore.show}
-							/>
+							<>
+								<PromptInput
+									handleSubmit={handleSubmit}
+									promptInputRef={promptInputRef}
+									isPending={false}
+									handleStopRequest={handleStopRequest}
+									isStreaming={isStreaming}
+									restoreRequest={null}
+									placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+									isResearchMode={isResearchMode}
+									setIsResearchMode={setIsResearchMode}
+									researchUsage={null}
+									onOpenAlerts={alertsModalStore.show}
+								/>
+								<RecommendedPrompts
+									onSubmit={handleSubmit}
+									isPending={isStreaming}
+									isResearchMode={isResearchMode}
+								/>
+							</>
 						)}
 					</div>
 				) : (
