@@ -1,38 +1,25 @@
-import { lazy, Suspense, useMemo } from 'react'
-import { BasicLink } from '~/components/Link'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import { DesktopNav } from './Desktop'
+import { MobileNav } from './Mobile'
 import type { TNavLinks, TOldNavLink } from './types'
-
-const MobileNav = lazy(() => import('./Mobile').then((m) => ({ default: m.MobileNav })))
-const MobileFallback = () => {
-	return (
-		<nav className="col-span-full flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
-			<BasicLink href="/" className="mr-auto shrink-0">
-				<span className="sr-only">Navigate to DeFi Dashboard</span>
-				<img
-					src="/assets/defillama.webp"
-					alt=""
-					height={36}
-					width={105}
-					className="mr-auto object-contain object-left"
-					fetchPriority="high"
-					loading="eager"
-					decoding="sync"
-				/>
-			</BasicLink>
-		</nav>
-	)
-}
 
 const footerCategories = ['More', 'About Us'] as const
 const footerLinks = footerCategories.map((category) => ({
 	category,
 	pages: defillamaPages[category] ?? []
 })) as TNavLinks
+
+const routeToPageMap = new Map<string, { name: string; route: string }>()
+for (const pages of Object.values(defillamaPages as Record<string, Array<{ name: string; route: string }>>)) {
+	for (const page of pages) {
+		routeToPageMap.set(page.route, page)
+	}
+}
 
 const oldMetricLinks: Array<TOldNavLink> = Object.values(
 	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce<Record<string, TOldNavLink>>((acc, curr) => {
@@ -52,6 +39,7 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 )
 
 function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
+	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { hasActiveSubscription } = useAuthContext()
@@ -90,22 +78,16 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 
 	const pinnedPages = useMemo(() => {
 		if (!pinnedMetrics) return []
-
-		const parsedMetrics = JSON.parse(pinnedMetrics)
-		if (!Array.isArray(parsedMetrics) || parsedMetrics.length === 0) return []
-
-		// Create a lookup map for faster access
-		const routeToPageMap = new Map<string, { name: string; route: string }>()
-		for (const [, pages] of Object.entries(defillamaPages as Record<string, Array<{ name: string; route: string }>>)) {
-			for (const page of pages) {
-				routeToPageMap.set(page.route, { name: page.name, route: page.route })
-			}
+		try {
+			const parsed = JSON.parse(pinnedMetrics)
+			if (!Array.isArray(parsed) || parsed.length === 0) return []
+			return parsed.flatMap((metric: string) => {
+				const page = routeToPageMap.get(metric)
+				return page ? [page] : []
+			})
+		} catch {
+			return []
 		}
-
-		return parsedMetrics.flatMap((metric: string) => {
-			const page = routeToPageMap.get(metric)
-			return page ? [page] : []
-		})
 	}, [pinnedMetrics])
 
 	return (
@@ -116,17 +98,17 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 				userDashboards={userDashboards}
 				footerLinks={footerLinks}
 				oldMetricLinks={oldMetricLinks}
+				asPath={asPath}
 			/>
-			<Suspense fallback={<MobileFallback />}>
-				<MobileNav
-					mainLinks={mainLinks}
-					pinnedPages={pinnedPages}
-					userDashboards={userDashboards}
-					footerLinks={footerLinks}
-					metricFilters={metricFilters}
-					oldMetricLinks={oldMetricLinks}
-				/>
-			</Suspense>
+			<MobileNav
+				mainLinks={mainLinks}
+				pinnedPages={pinnedPages}
+				userDashboards={userDashboards}
+				footerLinks={footerLinks}
+				metricFilters={metricFilters}
+				oldMetricLinks={oldMetricLinks}
+				asPath={asPath}
+			/>
 		</>
 	)
 }

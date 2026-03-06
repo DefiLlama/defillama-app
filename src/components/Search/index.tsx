@@ -53,7 +53,7 @@ interface ISearchItem {
 	subName?: string
 }
 
-const hideLlamaAI = new Set(['/ai'])
+const hideLlamaAiButtonOnRoutes = new Set(['/ai'])
 
 export const MobileSearch = () => {
 	const router = useRouter()
@@ -74,7 +74,7 @@ export const MobileSearch = () => {
 
 	return (
 		<>
-			{!hideLlamaAI.has(router.pathname) && (
+			{!hideLlamaAiButtonOnRoutes.has(router.pathname) && (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
@@ -310,7 +310,7 @@ export const DesktopSearch = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{!hideLlamaAI.has(router.pathname) && (
+			{!hideLlamaAiButtonOnRoutes.has(router.pathname) && (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
