@@ -202,7 +202,6 @@ function ProContent({
 										: () => subscribeModalStore.show()
 							}
 							data-umami-event="dashboard-llamaai-generate"
-							data-umami-event-page={router.pathname}
 							className="flex items-center gap-1 rounded-md pro-btn-blue px-4 py-2"
 						>
 							<Icon name="sparkles" height={16} width={16} />

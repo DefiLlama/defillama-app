@@ -424,7 +424,7 @@ const TemplatesSection = () => (
 					href={tpl.href}
 					target="_blank"
 					rel="noopener noreferrer"
-					data-umami-event="sheets-template-click"
+					data-umami-event="sheets-templates-click"
 					data-umami-event-template={tpl.title}
 					className="flex flex-col gap-2.5 rounded-2xl border border-[#39393E]/40 bg-[#1a1b1f] p-7 transition-all hover:border-[#2172E5] hover:shadow-[0_4px_20px_rgba(33,114,229,0.15)]"
 				>
