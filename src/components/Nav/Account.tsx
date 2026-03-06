@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
@@ -20,8 +19,7 @@ export const resolveUserEmail = (user: AuthUser | null | undefined): string | nu
 	return user.email || null
 }
 
-export function Account() {
-	const { asPath } = useRouter()
+export function Account({ asPath }: { asPath: string }) {
 	const { isAuthenticated, user, logout, loaders, hasActiveSubscription } = useAuthContext()
 	const isClient = useIsClient()
 

@@ -244,6 +244,7 @@ export async function getData(): Promise<Data> {
 Always run all of these before considering work complete:
 
 ```bash
+bun run format                # Format code
 bun run ts                    # TypeScript errors
 bun run lint                  # Linting errors
 

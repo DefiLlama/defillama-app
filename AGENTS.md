@@ -24,8 +24,9 @@ This document defines the commands and conventions that all AI agents (opencode)
 
 When completing any task, you MUST run the following commands to verify code correctness:
 
-1. `bun run lint` - to check for linting errors
-2. `bun run ts` - to check for TypeScript errors
+1. `bun run format` - to format code
+2. `bun run lint` - to check for linting errors
+3. `bun run ts` - to check for TypeScript errors
 
 Do NOT run `bun run build` as it will fail due to rate limits.
 

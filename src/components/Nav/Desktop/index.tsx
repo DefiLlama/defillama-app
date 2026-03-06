@@ -1,30 +1,28 @@
-import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { PremiumHeader } from '../PremiumHeader'
+import { LinkToPage } from '../shared'
 import { ThemeSwitch } from '../ThemeSwitch'
 import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
-import { LinkToPage } from './shared'
-
-const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
+import { PinnedPages } from './PinnedPages'
 
 export function DesktopNav({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
 	footerLinks,
-	oldMetricLinks
+	oldMetricLinks,
+	asPath
 }: {
 	mainLinks: TNavLinks
 	pinnedPages: Array<TNavLink>
 	userDashboards: Array<TNavLink>
 	footerLinks: TNavLinks
 	oldMetricLinks: Array<TOldNavLink>
+	asPath: string
 }) {
-	const { asPath } = useRouter()
-
 	return (
 		<span className="col-span-1 max-lg:hidden">
 			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
@@ -104,11 +102,7 @@ export function DesktopNav({
 						</div>
 					</details>
 
-					{pinnedPages.length > 0 ? (
-						<React.Suspense>
-							<PinnedPages pinnedPages={pinnedPages} asPath={asPath} />
-						</React.Suspense>
-					) : null}
+					{pinnedPages.length > 0 ? <PinnedPages pinnedPages={pinnedPages} asPath={asPath} /> : null}
 
 					{userDashboards.length > 0 ? (
 						<div className="group">
@@ -130,7 +124,7 @@ export function DesktopNav({
 
 				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
 					<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
-					<Account />
+					<Account asPath={asPath} />
 					<ThemeSwitch />
 				</div>
 			</nav>

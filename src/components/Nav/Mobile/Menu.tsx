@@ -1,11 +1,10 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
 import * as React from 'react'
 import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { PremiumHeader } from '../PremiumHeader'
+import { LinkToPage } from '../shared'
 import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 
 const ReorderablePinnedPages = lazy(() => import('./ReorderablePinnedPages'))
@@ -15,17 +14,18 @@ export function Menu({
 	pinnedPages,
 	userDashboards,
 	footerLinks,
-	oldMetricLinks
+	oldMetricLinks,
+	asPath
 }: {
 	mainLinks: TNavLinks
 	pinnedPages: Array<TNavLink>
 	userDashboards: Array<TNavLink>
 	footerLinks: TNavLinks
 	oldMetricLinks: Array<TOldNavLink>
+	asPath: string
 }) {
 	const [show, setShow] = useState(false)
-
-	const { asPath } = useRouter()
+	const handleClose = () => setShow(false)
 
 	return (
 		<Ariakit.DialogProvider open={show} setOpen={setShow}>
@@ -57,7 +57,7 @@ export function Menu({
 									isNew={isNew}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
-									setShow={setShow}
+									onClick={handleClose}
 									umamiEvent={umamiEvent}
 								/>
 							))}
@@ -85,7 +85,7 @@ export function Menu({
 														name={name}
 														key={`mobile-nav-old-${name}-${route}`}
 														asPath={asPath}
-														setShow={setShow}
+														onClick={handleClose}
 													/>
 												))}
 											</div>
@@ -96,7 +96,7 @@ export function Menu({
 											name={name}
 											key={`mobile-nav-old-${name}-${route}`}
 											asPath={asPath}
-											setShow={setShow}
+											onClick={handleClose}
 										/>
 									) : null}
 								</React.Fragment>
@@ -105,7 +105,7 @@ export function Menu({
 					</details>
 
 					{pinnedPages.length > 0 ? (
-						<PinnedPagesSection pinnedPages={pinnedPages} asPath={asPath} setShow={setShow} />
+						<PinnedPagesSection pinnedPages={pinnedPages} asPath={asPath} onClose={handleClose} />
 					) : null}
 
 					{userDashboards.length > 0 ? (
@@ -119,7 +119,7 @@ export function Menu({
 									icon={icon}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
-									setShow={setShow}
+									onClick={handleClose}
 								/>
 							))}
 						</div>
@@ -136,7 +136,7 @@ export function Menu({
 									icon={icon}
 									key={`mobile-nav-${name}-${route}`}
 									asPath={asPath}
-									setShow={setShow}
+									onClick={handleClose}
 								/>
 							))}
 						</div>
@@ -144,9 +144,7 @@ export function Menu({
 
 					<hr className="my-3 border-black/20 dark:border-white/20" />
 
-					<Suspense fallback={<div className="flex min-h-7 w-full items-center justify-center" />}>
-						<Account />
-					</Suspense>
+					<Account asPath={asPath} />
 				</nav>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
@@ -156,11 +154,11 @@ export function Menu({
 function PinnedPagesSection({
 	pinnedPages,
 	asPath,
-	setShow
+	onClose
 }: {
 	pinnedPages: Array<TNavLink>
 	asPath: string
-	setShow: (show: boolean) => void
+	onClose: () => void
 }) {
 	const [isReordering, setIsReordering] = useState(false)
 
@@ -202,98 +200,11 @@ function PinnedPagesSection({
 							icon={page.icon}
 							attention={page.attention}
 							asPath={asPath}
-							setShow={setShow}
+							onClick={onClose}
 						/>
 					))}
 				</div>
 			)}
 		</div>
-	)
-}
-
-function LinkToPage({
-	route,
-	name,
-	attention,
-	freeTrial,
-	isNew,
-	icon,
-	asPath,
-	setShow,
-	umamiEvent
-}: {
-	route: string
-	name: string
-	attention?: boolean
-	freeTrial?: boolean
-	isNew?: boolean
-	icon?: string
-	asPath: string
-	setShow: (show: boolean) => void
-	umamiEvent?: string
-}) {
-	const cleanAsPath = asPath.split('/?')[0].split('?')[0]
-	const isActive = cleanAsPath === route || cleanAsPath.startsWith(route + '/')
-	const isExternal = route.startsWith('http')
-	const handleClick = () => setShow(false)
-
-	return (
-		<BasicLink
-			href={route}
-			target={isExternal ? '_blank' : undefined}
-			rel={isExternal ? 'noopener noreferrer' : undefined}
-			data-linkactive={isActive}
-			data-umami-event={umamiEvent}
-			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 cv-auto-30 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
-			onClick={handleClick}
-		>
-			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} isNew={isNew} />
-		</BasicLink>
-	)
-}
-
-function NavItemContent({
-	name,
-	icon,
-	attention,
-	freeTrial,
-	isNew
-}: {
-	name: string
-	icon?: string
-	attention?: boolean
-	freeTrial?: boolean
-	isNew?: boolean
-}) {
-	return (
-		<>
-			{icon ? (
-				<Icon name={icon as any} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
-			) : name === 'LlamaAI' ? (
-				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
-					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
-				</svg>
-			) : null}
-			<span className="relative flex min-w-0 flex-1 flex-wrap items-center gap-2 text-left leading-tight">
-				<span className="min-w-0 wrap-break-word">{name}</span>
-				{attention ? (
-					<span
-						aria-hidden
-						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
-					/>
-				) : null}
-				{freeTrial ? (
-					<span className="relative inline-flex items-center rounded-full border border-[#C99A4A]/50 bg-linear-to-r from-[#C99A4A]/15 via-[#C99A4A]/5 to-[#C99A4A]/15 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#996F1F] shadow-[0_0_8px_rgba(201,154,74,0.3)] dark:border-[#FDE0A9]/50 dark:from-[#FDE0A9]/20 dark:via-[#FDE0A9]/10 dark:to-[#FDE0A9]/20 dark:text-[#FDE0A9] dark:shadow-[0_0_8px_rgba(253,224,169,0.25)]">
-						Try free
-					</span>
-				) : null}
-				{isNew ? (
-					<span className="flex items-center gap-1 rounded-md bg-(--old-blue) px-1.5 py-0.5 text-[10px] font-bold text-white">
-						<Icon name="sparkles" height={10} width={10} />
-						<span>New</span>
-					</span>
-				) : null}
-			</span>
-		</>
 	)
 }
