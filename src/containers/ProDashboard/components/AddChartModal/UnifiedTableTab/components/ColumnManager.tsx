@@ -949,7 +949,7 @@ export function ColumnManager({
 
 				<div className="thin-scrollbar max-h-[240px] overflow-y-auto p-2">
 					{filteredColumns.length === 0 ? (
-						<div className="flex h-16 items-center justify-center text-xs text-(--text-tertiary)">No columns match</div>
+						<p className="flex h-16 items-center justify-center text-xs text-(--text-tertiary)">No columns match</p>
 					) : (
 						<div className="flex flex-col gap-1">
 							{filteredColumns.map((column) => {

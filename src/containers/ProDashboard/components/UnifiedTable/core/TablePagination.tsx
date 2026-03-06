@@ -61,7 +61,7 @@ export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 				disabledValues={disabledValues}
 			/>
 			<div className="flex items-center">
-				<div className="mr-2 text-xs">Per page</div>
+				<span className="mr-2 text-xs">Per page</span>
 				<TagGroup selectedValue={pageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 			</div>
 		</div>

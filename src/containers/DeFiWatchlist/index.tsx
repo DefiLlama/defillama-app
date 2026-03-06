@@ -391,18 +391,18 @@ function PortfolioNotifications({
 					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
 						<div className="space-y-1 text-xs text-(--text-secondary)">
 							{protocolsCount > 0 && (
-								<div>
+								<p>
 									<span className="font-medium">Tracking {protocolsCount} protocol(s)</span>
 									{' - '}
 									<span>{protocolsFirstMetrics}</span>
-								</div>
+								</p>
 							)}
 							{chainsCount > 0 && (
-								<div>
+								<p>
 									<span className="font-medium">Tracking {chainsCount} chain(s)</span>
 									{' - '}
 									<span>{chainsFirstMetrics}</span>
-								</div>
+								</p>
 							)}
 							<div className="mt-1 text-xs opacity-75">
 								<Icon name="calendar" height={12} width={12} className="mr-1 inline" />

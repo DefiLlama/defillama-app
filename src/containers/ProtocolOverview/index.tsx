@@ -64,17 +64,17 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				isCEX={props.isCEX}
 			/>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
-			<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
-				<ProtocolHeader
-					props={props}
-					oracleTvs={oracleTvs}
-					tvl={tvl}
-					tvlByChain={tvlByChain}
-					oracleTvsByChain={oracleTvsByChain}
-					formatPrice={formatPrice}
-					headingAs="h1"
-					headingClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
-				/>
+				<div className="col-span-1 row-[2/3] hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:row-[1/2] xl:flex xl:min-h-[360px]">
+					<ProtocolHeader
+						props={props}
+						oracleTvs={oracleTvs}
+						tvl={tvl}
+						tvlByChain={tvlByChain}
+						oracleTvsByChain={oracleTvsByChain}
+						formatPrice={formatPrice}
+						headingAs="h1"
+						headingClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
+					/>
 					<KeyMetrics
 						{...props}
 						formatPrice={formatPrice}
@@ -85,17 +85,17 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 				</div>
 				<div className="col-span-1 grid grid-cols-2 gap-2 xl:col-[2/-1]">
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<div className="flex flex-col gap-6 xl:hidden">
-						<ProtocolHeader
-							props={props}
-							oracleTvs={oracleTvs}
-							tvl={tvl}
-							tvlByChain={tvlByChain}
-							oracleTvsByChain={oracleTvsByChain}
-							formatPrice={formatPrice}
-							headingAs="div"
-							headingClassName="flex flex-wrap items-center gap-2 text-xl"
-						/>
+						<div className="flex flex-col gap-6 xl:hidden">
+							<ProtocolHeader
+								props={props}
+								oracleTvs={oracleTvs}
+								tvl={tvl}
+								tvlByChain={tvlByChain}
+								oracleTvsByChain={oracleTvsByChain}
+								formatPrice={formatPrice}
+								headingAs="div"
+								headingClassName="flex flex-wrap items-center gap-2 text-xl"
+							/>
 						</div>
 						<Suspense
 							fallback={<div className="min-h-[400px] rounded-md border border-(--cards-border) bg-(--cards-bg)" />}

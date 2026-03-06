@@ -1906,10 +1906,10 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 		)
 	}
 	if (name === 'web_search') {
-		return <div className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</div>
+		return <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</span>
 	}
 	if (name === 'x_search') {
-		return <div className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</div>
+		return <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</span>
 	}
 	return null
 }

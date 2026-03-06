@@ -150,11 +150,11 @@ export function UnconstrainedSmolLineChart({
 							ref={tooltipRef}
 							className="pointer-events-none fixed z-[1000] rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[12px] leading-[1.4] whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
 						>
-							<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</div>
-							<div className="flex items-center gap-1">
+							<p>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</p>
+							<p className="flex items-center gap-1">
 								<span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: stroke }} />
 								Price: ${formattedNum(series[hoveredIndex][1])}
-							</div>
+							</p>
 							<div className="mt-1 opacity-80">
 								{dayPosition === 0 ? (
 									lastEvent && lastEvent.length > 0 ? (

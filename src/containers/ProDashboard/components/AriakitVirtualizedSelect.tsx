@@ -134,7 +134,7 @@ export function AriakitVirtualizedSelect({
 								className="thin-scrollbar max-h-[280px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 							>
 								{filteredOptions.length === 0 ? (
-									<div className="px-3 py-2 text-center text-xs pro-text3">No results found.</div>
+									<p className="px-3 py-2 text-center text-xs pro-text3">No results found.</p>
 								) : (
 									<div
 										className="p-1"

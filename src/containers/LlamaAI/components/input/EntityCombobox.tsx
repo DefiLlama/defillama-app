@@ -66,7 +66,7 @@ export function EntityComboboxPopover({
 					</Ariakit.ComboboxItem>
 				))
 			) : (
-				<div className="px-3 py-2 text-sm text-[#666] dark:text-[#999]">Loading…</div>
+				<p className="px-3 py-2 text-sm text-[#666] dark:text-[#999]">Loading…</p>
 			)}
 		</Ariakit.ComboboxPopover>
 	)

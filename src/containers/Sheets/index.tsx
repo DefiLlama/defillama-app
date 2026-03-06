@@ -297,7 +297,7 @@ const ShowcaseSection = ({
 			className={`grid grid-cols-1 items-center gap-8 md:gap-[60px] ${reversed ? 'md:grid-cols-[45fr_55fr]' : 'md:grid-cols-[55fr_45fr]'}`}
 		>
 			<div className={reversed ? 'md:order-2' : ''}>
-				<div className="mb-3 text-[13px] font-semibold tracking-[2px] text-[#2172E5] uppercase">{overline}</div>
+				<p className="mb-3 text-[13px] font-semibold tracking-[2px] text-[#2172E5] uppercase">{overline}</p>
 				<h2 className="mb-3.5 text-[28px] leading-[1.25] font-bold tracking-[-0.02em]">{heading}</h2>
 				<p className="mb-6 text-[15px] leading-relaxed text-[#b4b7bc]">{description}</p>
 				<ul className="flex flex-col gap-3">
@@ -348,7 +348,7 @@ const MockTable = ({
 			{formulaBar && (
 				<div className="grid grid-cols-[28px_1fr] border-b border-[#39393E]/40">
 					<div className="border-r border-[#39393E]/40 bg-[#222429]/30 px-2.5 py-2" />
-					<div className="flex items-center px-2.5 py-2 font-mono text-[11px]">{highlightFormula(formulaBar)}</div>
+					<p className="flex items-center px-2.5 py-2 font-mono text-[11px]">{highlightFormula(formulaBar)}</p>
 				</div>
 			)}
 			{headers && (
