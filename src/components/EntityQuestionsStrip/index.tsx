@@ -25,7 +25,7 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 
 	const handleClick = (question: string) => {
 		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('entity-question-click', {
+			;(window as any).umami.track('llamaai-entity-question-click', {
 				entitySlug,
 				entityType,
 				question: question.slice(0, 50),

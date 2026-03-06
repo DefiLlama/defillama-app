@@ -242,7 +242,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 	return (
 		<>
 			<button
-				data-umami-event="csv-download"
+				data-umami-event="export-csv"
 				data-umami-event-page={router.pathname}
 				className={
 					replaceClassName

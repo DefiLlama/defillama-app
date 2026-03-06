@@ -424,6 +424,8 @@ const TemplatesSection = () => (
 					href={tpl.href}
 					target="_blank"
 					rel="noopener noreferrer"
+					data-umami-event="sheets-template-click"
+					data-umami-event-template={tpl.title}
 					className="flex flex-col gap-2.5 rounded-2xl border border-[#39393E]/40 bg-[#1a1b1f] p-7 transition-all hover:border-[#2172E5] hover:shadow-[0_4px_20px_rgba(33,114,229,0.15)]"
 				>
 					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2172E5]/10 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:fill-none [&>svg]:stroke-[#2172E5] [&>svg]:[stroke-width:1.8] [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]">
@@ -474,6 +476,7 @@ export default function SheetsContainer() {
 					<div className="mt-1 flex flex-col gap-3 sm:flex-row">
 						<button
 							onClick={onGoogleSheetsButtonClick}
+							data-umami-event="sheets-google-sheets-click"
 							className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1a3a2a] px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-px hover:bg-[#224a35] hover:shadow-[0_4px_16px_rgba(52,168,83,0.2)]"
 						>
 							<img src="/assets/google-sheets.svg" alt="" className="h-[18px] w-[18px]" />
@@ -481,6 +484,7 @@ export default function SheetsContainer() {
 						</button>
 						<button
 							onClick={onExcelButtonClick}
+							data-umami-event="sheets-excel-addin-click"
 							className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#162e22] px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-px hover:bg-[#1e3d2d] hover:shadow-[0_4px_16px_rgba(33,115,70,0.2)]"
 						>
 							<img src="/assets/microsoft-excel-v2.svg" alt="" className="h-[18px] w-[18px]" />

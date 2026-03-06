@@ -85,7 +85,7 @@ export function AddToDashboardButton({
 			onClick={handleClick}
 			disabled={loaders.userLoading || disabled || !hasConfig}
 			className={baseClassName}
-			data-umami-event="add-to-dashboard-click"
+			data-umami-event="dashboard-add-chart"
 			title="Add to Custom Dashboard"
 		>
 			<Icon name="plus" className="h-3 w-3" />

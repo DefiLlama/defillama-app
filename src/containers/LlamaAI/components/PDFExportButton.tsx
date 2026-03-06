@@ -160,7 +160,7 @@ export function PDFExportButton({
 		<>
 			<Tooltip content="Download PDF">
 				<button
-					data-umami-event="pdf-export"
+					data-umami-event="export-pdf"
 					className={
 						className ??
 						'flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)'

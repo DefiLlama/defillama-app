@@ -42,7 +42,7 @@ export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _res
 
 					<BasicLink
 						href="/subscription"
-						data-umami-event="research-limit-upgrade"
+						data-umami-event="subscribe-research-limit-upgrade"
 						className="mx-auto flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-6 py-3.5 text-center text-base font-semibold text-white transition-colors hover:bg-[#4A4AF0]"
 						onClick={dialogStore.hide}
 					>

@@ -27,6 +27,9 @@ function AuthContent() {
 
 	useEffect(() => {
 		if (isAuthenticated && !isSubscriptionLoading) {
+			;(window as any).umami.track('sheets-auth-sign-in', {
+				user_id: user?.id
+			})
 			// google sheets auth, requiring redirect url
 			if (redirectUrl) {
 				router.push({
