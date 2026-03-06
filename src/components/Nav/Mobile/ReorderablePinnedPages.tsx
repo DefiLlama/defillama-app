@@ -1,6 +1,12 @@
-import { DndContext, type DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { restrictToParentElement, restrictToVerticalAxis } from '@dnd-kit/modifiers'
-import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	useSortable,
+	verticalListSortingStrategy
+} from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type * as React from 'react'
 import { Icon } from '~/components/Icon'
@@ -11,7 +17,10 @@ import type { TNavLink } from '../types'
 const VERTICAL_SORTING_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
 export default function ReorderablePinnedPages({ pinnedPages }: { pinnedPages: Array<TNavLink> }) {
-	const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
+	const sensors = useSensors(
+		useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+	)
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		const { active, over } = event
@@ -22,8 +31,7 @@ export default function ReorderablePinnedPages({ pinnedPages }: { pinnedPages: A
 
 		if (oldIndex === -1 || newIndex === -1) return
 
-		const reordered = arrayMove(pinnedPages, oldIndex, newIndex)
-		mutatePinnedMetrics(() => reordered.map(({ route }) => route))
+		mutatePinnedMetrics((currentRoutes) => arrayMove(currentRoutes, oldIndex, newIndex))
 	}
 
 	const sortableItems = pinnedPages.map(({ route }) => route)

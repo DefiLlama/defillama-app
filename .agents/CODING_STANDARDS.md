@@ -245,8 +245,8 @@ Always run all of these before considering work complete:
 
 ```bash
 bun run format                # Format code
-bun run ts                    # TypeScript errors
 bun run lint                  # Linting errors
+bun run ts                    # TypeScript errors
 
 # Strict mode for specific folders:
 npx tsc -p tsconfig.strict.json --skipLibCheck 2>&1 | grep "containers/FolderName"
