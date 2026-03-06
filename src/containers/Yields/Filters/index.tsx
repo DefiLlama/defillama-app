@@ -88,7 +88,7 @@ function SavedFilters({ currentFilters }) {
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}`}
 							onClick={() => handleLoad(name)}
-							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							{name}
 							<button

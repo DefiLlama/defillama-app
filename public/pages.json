@@ -310,18 +310,6 @@
       "oldName": "DEXs"
     },
     {
-      "name": "Normalized Volume by Protocol",
-      "route": "/normalized-volume",
-      "category": "Volume",
-      "description": "Volume of genuine trading activity in perp exchanges, adjusted to exclude wash trading and non-economic volume",
-      "totalTrackedKey": "normalizedVolume.protocols",
-      "keys": [
-        "derivatives",
-        "futures"
-      ],
-      "tab": "Protocols"
-    },
-    {
       "name": "Bridge Aggregator Volume by Protocol",
       "route": "/bridge-aggregators",
       "category": "Volume",
@@ -340,18 +328,6 @@
       "tab": "Chains",
       "oldCategory": "Volume",
       "oldName": "DEXs (Chains)"
-    },
-    {
-      "name": "Normalized Volume by Chain",
-      "route": "/normalized-volume/chains",
-      "category": "Volume",
-      "description": "Sum of genuine trading activity volume in perp exchanges on the chain, adjusted to exclude wash trading and non-economic volume",
-      "totalTrackedKey": "normalizedVolume.chains",
-      "keys": [
-        "derivatives",
-        "futures"
-      ],
-      "tab": "Chains"
     },
     {
       "name": "DEX Aggregator Volume by Protocol",
@@ -396,6 +372,30 @@
       "tab": "Protocols",
       "oldCategory": "Volume",
       "oldName": "Perps Aggregators"
+    },
+    {
+      "name": "Normalized Volume by Protocol",
+      "route": "/normalized-volume",
+      "category": "Volume",
+      "description": "Volume of genuine trading activity in perp exchanges, adjusted to exclude wash trading and non-economic volume",
+      "totalTrackedKey": "normalizedVolume.protocols",
+      "keys": [
+        "derivatives",
+        "futures"
+      ],
+      "tab": "Protocols"
+    },
+    {
+      "name": "Normalized Volume by Chain",
+      "route": "/normalized-volume/chains",
+      "category": "Volume",
+      "description": "Sum of genuine trading activity volume in perp exchanges on the chain, adjusted to exclude wash trading and non-economic volume",
+      "totalTrackedKey": "normalizedVolume.chains",
+      "keys": [
+        "derivatives",
+        "futures"
+      ],
+      "tab": "Chains"
     },
     {
       "name": "Options Premium Volume by Protocol",

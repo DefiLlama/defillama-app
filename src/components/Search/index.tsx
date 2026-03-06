@@ -339,7 +339,7 @@ const SearchItem = ({
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex flex-wrap items-center gap-2 px-2 py-2 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
+			className="flex flex-wrap items-center gap-2 px-2 py-2 cv-auto-40 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
 			render={
 				<BasicLink
 					href={route.route}

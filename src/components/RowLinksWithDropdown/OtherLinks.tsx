@@ -123,7 +123,7 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 				}
 			}}
 			render={<Ariakit.ComboboxItem value={label} setValueOnClick={false} />}
-			className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md data-active-item:bg-(--primary-hover)"
+			className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md data-active-item:bg-(--primary-hover)"
 		>
 			<span>{label}</span>
 			{loading ? <LoadingSpinner size={12} /> : null}

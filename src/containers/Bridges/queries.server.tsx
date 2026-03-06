@@ -112,9 +112,7 @@ function buildVolumeDataByChain({
 }): BridgePageData['volumeDataByChain'] {
 	const volumeDataByChain: BridgePageData['volumeDataByChain'] = {}
 	const volumeOnAllChains: VolumeByDate = {}
-	const normalizeDailyBridgePoints = (
-		points: BridgeVolumeChartPoint[]
-	): BridgeVolumeChartPoint[] => {
+	const normalizeDailyBridgePoints = (points: BridgeVolumeChartPoint[]): BridgeVolumeChartPoint[] => {
 		const byDay = new Map<number, BridgeVolumeChartPoint>()
 		for (const point of points) {
 			const utcDay = Math.floor(Number(point.date) / 86400) * 86400
