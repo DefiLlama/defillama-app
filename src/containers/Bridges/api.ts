@@ -5,6 +5,7 @@ import type {
 	RawBridgeDayStatsResponse,
 	RawBridgeLargeTransactionsResponse,
 	RawBridgesResponse,
+	RawBridgeTxCountsResponse,
 	RawBridgeTransactionsResponse,
 	RawBridgeVolumeBySlugResponse,
 	RawBridgeVolumeResponse,
@@ -14,6 +15,7 @@ import type {
 const BRIDGEDAYSTATS_API = `${BRIDGES_SERVER_URL}/bridgedaystats`
 const BRIDGES_API = `${BRIDGES_SERVER_URL}/bridges`
 const BRIDGELARGETX_API = `${BRIDGES_SERVER_URL}/largetransactions`
+const BRIDGETXCOUNT_API = `${BRIDGES_SERVER_URL}/bridgetxcounts`
 const BRIDGETX_API = `${BRIDGES_SERVER_URL}/transactions`
 const BRIDGEVOLUME_API = `${BRIDGES_SERVER_URL}/bridgevolume`
 const BRIDGEVOLUME_API_SLUG = `${BRIDGES_SERVER_URL}/bridgevolume/slug`
@@ -103,6 +105,14 @@ export function fetchBridgeLargeTransactions(
 	const chainOrAll = chain ? encodeURIComponent(chain) : 'all'
 	const url = `${BRIDGELARGETX_API}/${chainOrAll}?starttimestamp=${encodeURIComponent(String(startTimestamp))}&endtimestamp=${encodeURIComponent(String(endTimestamp))}`
 	return fetchJson<RawBridgeLargeTransactionsResponse | BridgeApiErrorEnvelope>(url).then((response) =>
+		unwrapBridgeResponse(url, response)
+	)
+}
+
+export function fetchBridgeTxCounts(chain?: string): Promise<RawBridgeTxCountsResponse> {
+	const chainOrAll = chain ? encodeURIComponent(chain) : 'all'
+	const url = `${BRIDGETXCOUNT_API}/${chainOrAll}`
+	return fetchJson<RawBridgeTxCountsResponse | BridgeApiErrorEnvelope>(url).then((response) =>
 		unwrapBridgeResponse(url, response)
 	)
 }

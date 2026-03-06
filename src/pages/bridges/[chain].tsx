@@ -47,7 +47,7 @@ export const getStaticProps = withPerformanceLogging(
 		const canonicalChain = metadataCache.bridgeChainSlugToName?.[chainSlug] ?? params.chain
 
 		try {
-			const data = await getBridgeOverviewPageData(canonicalChain)
+			const data = await getBridgeOverviewPageData(canonicalChain, { includeBridgeTxCounts: true })
 
 			if (!data) {
 				if (!isKnownChainRoute) {

@@ -16,6 +16,7 @@ export interface RawBridgeInfo {
 	destinationChain: string
 	url?: string
 	slug?: string
+	txsPrevDay?: number | null
 }
 
 export interface RawBridgeChainInfo {
@@ -116,3 +117,16 @@ export interface RawBridgeNetflowEntry {
 
 export type RawBridgeNetflowsResponse = RawBridgeNetflowEntry[]
 export type BridgeNetflowPeriod = 'day' | 'week' | 'month'
+
+export interface RawBridgeTxCountInfo {
+	id: number
+	displayName: string
+	slug?: string
+	txsPrevDay: number
+	depositTxs24h: number
+	withdrawTxs24h: number
+}
+
+export interface RawBridgeTxCountsResponse {
+	bridges: RawBridgeTxCountInfo[]
+}
