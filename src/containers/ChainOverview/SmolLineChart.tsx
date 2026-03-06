@@ -115,8 +115,8 @@ export function SmolLineChart({
 						ref={tooltipRef}
 						className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
 					>
-						<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily')}</div>
-						<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+						<p>{formatTooltipChartDate(series[hoveredIndex][0], 'daily')}</p>
+						<p style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
 							<span
 								style={{
 									display: 'inline-block',
@@ -127,7 +127,7 @@ export function SmolLineChart({
 								}}
 							/>
 							${formattedNum(series[hoveredIndex][1])}
-						</div>
+						</p>
 					</div>
 				)}
 			</div>

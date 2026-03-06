@@ -452,9 +452,9 @@ export function MetricSentenceBuilder({
 							/>
 						</div>
 						<div className="p-1.5">
-							{baseMetricTypes.length === 0 && <div className="px-2 py-3 text-sm pro-text3">No metrics available.</div>}
+							{baseMetricTypes.length === 0 && <p className="px-2 py-3 text-sm pro-text3">No metrics available.</p>}
 							{baseMetricTypes.length > 0 && filteredMetrics.length === 0 && (
-								<div className="px-2 py-3 text-sm pro-text3">No metrics match that search.</div>
+								<p className="px-2 py-3 text-sm pro-text3">No metrics match that search.</p>
 							)}
 							{filteredMetrics.map((value) => {
 								const label = CHART_TYPES[value as keyof typeof CHART_TYPES]?.title || value
@@ -591,7 +591,7 @@ export function MetricSentenceBuilder({
 												</div>
 											</ComboboxList>
 										) : (
-											<div className="px-2 py-6 text-center text-sm text-(--text-tertiary)">No chains found.</div>
+											<p className="px-2 py-6 text-center text-sm text-(--text-tertiary)">No chains found.</p>
 										)
 									) : filteredProtocolOptions.length > 0 ? (
 										<ComboboxList ref={protocolListRef} className="thin-scrollbar max-h-[240px] overflow-y-auto">
@@ -651,7 +651,7 @@ export function MetricSentenceBuilder({
 											</div>
 										</ComboboxList>
 									) : (
-										<div className="px-2 py-6 text-center text-sm text-(--text-tertiary)">No protocols found.</div>
+										<p className="px-2 py-6 text-center text-sm text-(--text-tertiary)">No protocols found.</p>
 									)}
 								</div>
 							</div>

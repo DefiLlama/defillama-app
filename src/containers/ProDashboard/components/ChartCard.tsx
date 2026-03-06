@@ -80,7 +80,7 @@ function ChartRenderer({
 	}
 
 	if (!data || data.length === 0) {
-		return <div className="flex flex-1 items-center justify-center text-(--text-form)">No data available</div>
+		return <p className="flex flex-1 items-center justify-center text-(--text-form)">No data available</p>
 	}
 
 	const valueSymbol =

@@ -36,9 +36,9 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 						/>
 						<div className="flex flex-col gap-1">
 							<div className="-mt-0.5 flex flex-wrap items-center gap-2 text-xs">
-							<h2 className="text-sm font-medium">
-								{session.mode === 'create' ? 'Initial Generation' : 'Iteration'} #{sessions.length - index}
-							</h2>
+								<h2 className="text-sm font-medium">
+									{session.mode === 'create' ? 'Initial Generation' : 'Iteration'} #{sessions.length - index}
+								</h2>
 								<p className="text-(--text-form)">{new Date(session.timestamp).toLocaleDateString()}</p>
 								{session.rating !== undefined && session.rating !== -1 && (
 									<p className="flex items-center gap-1">

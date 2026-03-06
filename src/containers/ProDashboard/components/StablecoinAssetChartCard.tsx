@@ -276,12 +276,12 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 
 			{latestCirculating !== null && chartType === 'totalCirc' && (
 				<div className="mb-2 flex gap-4">
-					<div className="flex flex-col">
+					<p className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Total Circulating</span>
 						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#3e79cc' }}>
 							{formattedNum(latestCirculating, true)}
 						</span>
-					</div>
+					</p>
 				</div>
 			)}
 

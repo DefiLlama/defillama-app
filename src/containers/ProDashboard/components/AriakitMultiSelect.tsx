@@ -90,7 +90,7 @@ export function AriakitMultiSelect({
 						<div className="p-1">
 							<div className="thin-scrollbar max-h-[280px] overflow-y-auto">
 								{options.length === 0 && (
-									<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
+									<p className="px-3 py-2 text-center text-xs pro-text3">No options available.</p>
 								)}
 								{options.map((option) => {
 									const isActive = selectedValues.includes(option.value)

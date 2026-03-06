@@ -866,7 +866,7 @@ export function YieldsChartTab({
 										/>
 									)}
 									<div className="min-w-0">
-										<div className="text-sm font-semibold pro-text1">{selectedYieldPool.name}</div>
+										<p className="text-sm font-semibold pro-text1">{selectedYieldPool.name}</p>
 										<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
 											<span>{selectedYieldPool.project}</span>
 											<span>•</span>
@@ -941,7 +941,7 @@ export function YieldsChartTab({
 							</div>
 
 							<div className="grid grid-cols-[1fr_100px_100px_80px] gap-2 border-b border-(--cards-border) bg-(--cards-bg-alt)/50 px-3 py-2 text-[11px] font-medium">
-								<div className="pro-text3">Pool</div>
+								<p className="pro-text3">Pool</p>
 								<button
 									onClick={() => toggleSort('tvl')}
 									className={`flex items-center justify-end gap-1 ${
@@ -970,7 +970,7 @@ export function YieldsChartTab({
 										className={sortColumn === 'apy' ? 'opacity-100' : 'opacity-30'}
 									/>
 								</button>
-								<div className="text-right pro-text3">Category</div>
+								<p className="text-right pro-text3">Category</p>
 							</div>
 
 							<div ref={poolListRef} className="thin-scrollbar h-[240px] overflow-y-auto">
@@ -1207,7 +1207,7 @@ export function YieldsChartTab({
 							<div className="flex h-[280px] items-center justify-center bg-(--cards-bg) text-center pro-text3">
 								<div>
 									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
-									<div className="text-xs">Select a yield pool to see preview</div>
+									<p className="text-xs">Select a yield pool to see preview</p>
 								</div>
 							</div>
 						)}

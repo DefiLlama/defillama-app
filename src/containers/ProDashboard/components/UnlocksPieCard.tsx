@@ -113,7 +113,7 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 						<PieChart chartData={chartData} stackColors={stackColors} valueSymbol={valueSymbol} />
 					</Suspense>
 				) : (
-					<div className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</div>
+					<p className="flex h-[320px] items-center justify-center text-center pro-text3">No unlocks data.</p>
 				)}
 			</div>
 		</div>

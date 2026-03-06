@@ -35,7 +35,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 					: 'border-(--cards-border) bg-(--cards-bg)'
 			}`}
 		>
-			<div className="flex flex-col gap-1">
+			<p className="flex flex-col gap-1">
 				<span
 					className={`font-medium ${
 						isBoolean
@@ -48,7 +48,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 					{label}
 				</span>
 				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
-			</div>
+			</p>
 			{isBoolean ? (
 				<Icon
 					name={positive ? 'check-circle' : 'x'}
@@ -79,14 +79,14 @@ const KYCItem = ({
 				required ? 'border-amber-600/30 bg-amber-600/10' : 'border-green-600/30 bg-green-600/10'
 			}`}
 		>
-			<div className="flex flex-col gap-1">
+			<p className="flex flex-col gap-1">
 				<span
 					className={`font-medium ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 				>
 					{label}
 				</span>
 				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
-			</div>
+			</p>
 			<Icon
 				name={required ? 'alert-triangle' : 'check-circle'}
 				className={`h-5 w-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
@@ -203,7 +203,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-2">
 					<h1 className="text-xl font-bold">{displayName}</h1>
-					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
+					{asset.ticker ? <p className="text-(--text-disabled)">({asset.ticker})</p> : null}
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					{asset.website ? (

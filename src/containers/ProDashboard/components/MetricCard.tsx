@@ -207,7 +207,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 
 		return (
 			<div className="flex h-full flex-1 flex-col items-center justify-center gap-3 text-center">
-				<div className="text-4xl leading-tight font-semibold">{displayValue}</div>
+				<p className="text-4xl leading-tight font-semibold">{displayValue}</p>
 				{chartSeries.length > 1 && (
 					<Suspense fallback={<div className="h-16 w-full max-w-[280px]" />}>
 						<div className="w-full max-w-[280px]">
@@ -220,15 +220,15 @@ export function MetricCard({ metric }: MetricCardProps) {
 					</Suspense>
 				)}
 				{deltaText && metric.aggregator !== 'growth' && (
-					<div
+					<p
 						className={`text-xs font-semibold tracking-wide uppercase ${
 							deltaPositive ? 'text-(--success)' : deltaNegative ? 'text-(--error)' : 'text-(--text-form)'
 						}`}
 					>
 						{deltaText}
-					</div>
+					</p>
 				)}
-				<div className="max-w-[420px] text-sm text-(--text-secondary)">{summaryText}</div>
+				<p className="max-w-[420px] text-sm text-(--text-secondary)">{summaryText}</p>
 			</div>
 		)
 	}, [
@@ -258,7 +258,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 					)}
 					<div className="flex flex-col">
 						<h2 className="text-base leading-tight font-semibold text-(--text-primary)">{displayTitle}</h2>
-						{hasCustomLabel && <div className="text-[11px] leading-tight pro-text3">{baseTitle}</div>}
+						{hasCustomLabel && <p className="text-[11px] leading-tight pro-text3">{baseTitle}</p>}
 					</div>
 				</div>
 				{!isReadOnly && (

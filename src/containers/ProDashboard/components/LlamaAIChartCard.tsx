@@ -42,7 +42,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	}
 
 	if (!data) {
-		return <div className="flex min-h-[300px] items-center justify-center text-(--text-form)">Chart not found</div>
+		return <p className="flex min-h-[300px] items-center justify-center text-(--text-form)">Chart not found</p>
 	}
 
 	return (

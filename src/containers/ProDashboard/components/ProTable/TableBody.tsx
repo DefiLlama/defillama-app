@@ -26,7 +26,7 @@ export function TableBody({ table, isLoading, isEmptyProtocols, moveColumnUp, mo
 				style={{ height: '100%' }}
 			>
 				<div className="flex h-32 items-center justify-center">
-					<div className="text-(--text-tertiary)">Loading table...</div>
+					<p className="text-(--text-tertiary)">Loading table...</p>
 				</div>
 			</div>
 		)

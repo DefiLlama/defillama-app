@@ -69,9 +69,7 @@ export function AriakitSelect({
 						style={{ width: 'var(--popover-anchor-width)' }}
 					>
 						<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1">
-							{options.length === 0 && (
-								<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
-							)}
+							{options.length === 0 && <p className="px-3 py-2 text-center text-xs pro-text3">No options available.</p>}
 							{options.map((option) => {
 								const isActive = option.value === selectedValue
 								return (
