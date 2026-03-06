@@ -61,19 +61,16 @@ export const MobileSearch = () => {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
-	const [mounted, setMounted] = useState(false)
-	const [showResults, setShowResults] = useState(false)
-	const dialogStore = Ariakit.useDialogStore({ setMounted })
 	const [searchValue, setSearchValue] = useState('')
-
-	useEffect(() => {
-		if (mounted) {
-			startTransition(() => setShowResults(true))
-		} else {
-			setShowResults(false)
-			setSearchValue('')
+	const [mounted, setMounted] = useState(false)
+	const dialogStore = Ariakit.useDialogStore({
+		setMounted(value) {
+			setMounted(value)
+			if (!value) {
+				setSearchValue('')
+			}
 		}
-	}, [mounted])
+	})
 
 	return (
 		<>
@@ -103,6 +100,7 @@ export const MobileSearch = () => {
 					portal
 				>
 					<Ariakit.ComboboxProvider
+						value={searchValue}
 						setValue={(value) => {
 							startTransition(() => {
 								setSearchValue(value)
@@ -120,7 +118,7 @@ export const MobileSearch = () => {
 						</span>
 
 						<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
-							{showResults ? (
+							{mounted ? (
 								<MobileSearchResults searchValue={searchValue} onSelect={() => dialogStore.setOpen(false)} />
 							) : null}
 						</Ariakit.ComboboxList>
@@ -190,14 +188,21 @@ function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; o
 	)
 }
 
+function getPreHydrationInputValue() {
+	if (typeof window === 'undefined') return ''
+	return (document.getElementById('desktop-search-input') as HTMLInputElement | null)?.value ?? ''
+}
+
 export const DesktopSearch = () => {
 	const router = useRouter()
 
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
-	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
+
+	const [searchValue, setSearchValue] = useState(getPreHydrationInputValue)
+	const [open, setOpen] = useState(() => searchValue.length > 0)
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
@@ -214,15 +219,13 @@ export const DesktopSearch = () => {
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
-
-	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (
 		<>
 			<Ariakit.ComboboxProvider
-				resetValueOnHide
+				value={searchValue}
 				setValue={(value) => {
 					startTransition(() => {
 						setSearchValue(value)
@@ -246,6 +249,7 @@ export const DesktopSearch = () => {
 						)}
 					</button>
 					<Ariakit.Combobox
+						id="desktop-search-input"
 						placeholder="Search..."
 						autoSelect
 						ref={inputField}
