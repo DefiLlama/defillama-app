@@ -239,7 +239,7 @@ export function LinkToMetricOrToolPage({
 	const isCurrentPage = useRouter().pathname === page.route
 
 	const handleClick = (e: React.MouseEvent) => {
-		if (isCurrentPage && dialogStore) {
+		if (isCurrentPage && dialogStore && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
 			e.preventDefault()
 			dialogStore.hide()
 		}
