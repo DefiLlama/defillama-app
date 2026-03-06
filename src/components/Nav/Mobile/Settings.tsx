@@ -29,7 +29,7 @@ export function Settings({ metricFilters = EMPTY_FILTERS }: { metricFilters?: { 
 					<Icon name="x" className="h-5 w-5" />
 				</Ariakit.PopoverDismiss>
 
-				<h1 className="mx-3 my-2 text-(--text-secondary)">Settings</h1>
+				<h2 className="mx-3 my-2 text-(--text-secondary)">Settings</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				{metricFilters.map((option) => (
 					<Ariakit.SelectItem

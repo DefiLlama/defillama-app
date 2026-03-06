@@ -85,6 +85,7 @@ export function RWAPlatformsTable({
 				placeholder="Search platforms..."
 				columnToSearch="platform"
 				header="Platforms"
+				headingAs="h1"
 				columnSizes={columnSizes}
 				csvFileName="rwa-platforms"
 				sortingState={[{ id: 'onChainMcap', desc: true }]}

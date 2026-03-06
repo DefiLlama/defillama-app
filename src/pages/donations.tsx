@@ -61,7 +61,7 @@ function DonationsPage({ protocols }) {
 	return (
 		<Layout
 			title="Support DefiLlama - Donations & Contributions"
-			description={`Donate to DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Why donate? DefiLlama is an open-source project that runs no ads and provides all data for free. We have no revenue and are supported by donations.`}
 			canonicalUrl={`/donations`}
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
@@ -73,7 +73,7 @@ function DonationsPage({ protocols }) {
 				</p>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Direct donation</h1>
+				<h2 className="text-lg font-semibold">Direct donation</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
 					<p>You can send us any token, on any network, to the following address:</p>
@@ -83,7 +83,7 @@ function DonationsPage({ protocols }) {
 				</div>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Affiliate links</h1>
+				<h2 className="text-lg font-semibold">Affiliate links</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-3">
 					<p>
@@ -106,7 +106,7 @@ function DonationsPage({ protocols }) {
 				</div>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Use of funds</h1>
+				<h2 className="text-lg font-semibold">Use of funds</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
 					<p>Funds are only used for 2 purposes:</p>

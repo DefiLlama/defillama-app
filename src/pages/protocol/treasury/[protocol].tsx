@@ -78,7 +78,7 @@ function TokensBreakdownPieChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Tokens Breakdown</h1>
+				<h2 className="mr-auto text-base font-semibold">Tokens Breakdown</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -118,7 +118,7 @@ function HistoricalTreasuryChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Historical Treasury</h1>
+				<h2 className="mr-auto text-base font-semibold">Historical Treasury</h2>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -165,7 +165,7 @@ function TokensMultiSeriesChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}

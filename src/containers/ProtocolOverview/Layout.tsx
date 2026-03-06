@@ -38,7 +38,8 @@ const tabs = {
 const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
 	unlocks: '/unlocks',
 	governance: '/governance',
-	forks: '/forks'
+	forks: '/forks',
+	tokenRights: '/protocol/token-rights'
 }
 
 export function ProtocolOverviewLayout({

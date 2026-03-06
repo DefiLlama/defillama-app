@@ -328,14 +328,21 @@ export function AdapterByChain(props: IProps) {
 			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
-						{props.chain !== 'All' && (
+						{props.chain !== 'All' ? (
 							<h1 className="flex flex-nowrap items-center gap-2">
 								<TokenLogo name={props.chain} kind="chain" size={24} alt={`Logo of ${props.chain}`} />
 								<span className="text-xl font-semibold">{props.chain}</span>
 							</h1>
-						)}
+						) : props.total24h != null ? (
+							<div className="flex flex-col">
+								<h1 className="text-(--text-label)">{metricName} (24h)</h1>
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+									{formattedNum(props.total24h, true)}
+								</p>
+							</div>
+						) : null}
 
-						{props.total24h != null ? (
+						{props.chain !== 'All' && props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
 									{(() => {

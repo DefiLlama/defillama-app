@@ -545,14 +545,14 @@ export const IncomeStatement = ({
 						<img
 							src="/assets/defillama-dark-neutral.webp"
 							alt="defillama"
-							height={40}
+							height={53}
 							width={155}
 							className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-30 dark:hidden"
 						/>
 						<img
 							src="/assets/defillama-light-neutral.webp"
 							alt="defillama"
-							height={40}
+							height={53}
 							width={155}
 							className="absolute left-1/2 hidden -translate-x-1/2 -translate-y-1/2 opacity-30 dark:block"
 						/>

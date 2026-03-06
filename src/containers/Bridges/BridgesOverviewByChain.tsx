@@ -254,10 +254,10 @@ export function BridgesOverviewByChain({
 
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
-					<h1 className="flex flex-col">
-						<span className="text-(--text-label)">Total volume (24h)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(dayTotalVolume, true)}</span>
-					</h1>
+					<div className="flex flex-col">
+						<h1 className="text-(--text-label)">Total volume (24h)</h1>
+						<p className="font-jetbrains text-2xl font-semibold">{formattedNum(dayTotalVolume, true)}</p>
+					</div>
 					<p className="hidden flex-col md:flex">
 						<span className="text-(--text-label)">Total volume (7d)</span>
 						<span className="font-jetbrains text-2xl font-semibold">{formattedNum(weekTotalVolume, true)}</span>

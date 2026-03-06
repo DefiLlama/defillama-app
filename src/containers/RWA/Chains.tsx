@@ -219,6 +219,7 @@ export function RWAChainsTable({
 				placeholder="Search chains..."
 				columnToSearch="chain"
 				header="Chains"
+				headingAs="h1"
 				columnSizes={columnSizes}
 				csvFileName={csvFileName}
 				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}

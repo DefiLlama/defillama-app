@@ -28,6 +28,7 @@ interface ITableWithSearchBaseProps {
 	placeholder?: string
 	columnToSearch?: string
 	header?: string | null
+	headingAs?: 'h1' | 'h2'
 	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
 	sortingState?: SortingState
@@ -54,6 +55,7 @@ export function TableWithSearch({
 	columnToSearch,
 	customFilters = null,
 	header = null,
+	headingAs: HeadingTag = 'h2',
 	columnSizes = null,
 	columnOrders = null,
 	sortingState = EMPTY_SORTING,
@@ -101,7 +103,7 @@ export function TableWithSearch({
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				{header ? <h1 className="mr-auto text-lg font-semibold">{header}</h1> : null}
+				{header ? <HeadingTag className="mr-auto text-lg font-semibold">{header}</HeadingTag> : null}
 				{columnToSearch ? (
 					<label className={`relative w-full sm:max-w-70 ${header ? '' : 'mr-auto'}`}>
 						<span className="sr-only">{placeholder}</span>

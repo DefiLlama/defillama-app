@@ -245,6 +245,7 @@ export const ForksOverview = ({
 							placeholder="Search protocols..."
 							columnToSearch="name"
 							header="Protocol Rankings"
+							headingAs="h1"
 							csvFileName="forks-overview"
 							sortingState={DEFAULT_SORTING_STATE}
 						/>
