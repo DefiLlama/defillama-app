@@ -233,7 +233,17 @@ export function LinkToMetricOrToolPage({
 }) {
 	const isPinned = pinnedRoutes.has(page.route)
 
+	const dialogStore = Ariakit.useDialogContext()
+
 	const isExternalLink = page.route.startsWith('http')
+	const isCurrentPage = useRouter().pathname === page.route
+
+	const handleClick = (e: React.MouseEvent) => {
+		if (isCurrentPage && dialogStore && e.button === 0 && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+			e.preventDefault()
+			dialogStore.hide()
+		}
+	}
 
 	return (
 		<div
@@ -245,6 +255,7 @@ export function LinkToMetricOrToolPage({
 				href={page.route}
 				target={isExternalLink ? '_blank' : undefined}
 				rel={isExternalLink ? 'noopener noreferrer' : undefined}
+				onClick={handleClick}
 			>
 				<span className="flex w-full flex-wrap items-center gap-1">
 					<span className="font-medium">{page.name}</span>
