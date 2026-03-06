@@ -1058,11 +1058,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									researchUsage={null}
 									onOpenAlerts={alertsModalStore.show}
 								/>
-								<RecommendedPrompts
-									onSubmit={handleSubmit}
-									isPending={isStreaming}
-									isResearchMode={isResearchMode}
-								/>
+								<RecommendedPrompts onSubmit={handleSubmit} isPending={isStreaming} isResearchMode={isResearchMode} />
 							</>
 						)}
 					</div>

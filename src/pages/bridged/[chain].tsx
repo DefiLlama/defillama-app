@@ -12,7 +12,7 @@ export const getStaticProps = withPerformanceLogging(
 	'bridged/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
 		if (!params?.chain) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const { chain } = params

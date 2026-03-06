@@ -19,13 +19,7 @@ interface PromptCarouselProps {
 	error?: Error | null
 }
 
-export function PromptCarousel({
-	categories,
-	onSubmit,
-	isPending,
-	isLoading,
-	error
-}: PromptCarouselProps) {
+export function PromptCarousel({ categories, onSubmit, isPending, isLoading, error }: PromptCarouselProps) {
 	const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0)
 	const [currentPage, setCurrentPage] = useState(0)
 

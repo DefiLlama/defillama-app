@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/fees/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].fees) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
@@ -199,6 +199,7 @@ export const getStaticProps = withPerformanceLogging(
 		return {
 			props: {
 				name: protocolData.name,
+				deprecated: protocolData.deprecated ?? false,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
@@ -436,8 +437,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							adapterType="fees"
 							breakdownNames={props.protocolChains}
 							metadata={{
-								bribeRevenue: props.bribeRevenue ?? false,
-								tokenTax: props.tokenTax ?? false
+								bribeRevenue: !!props.bribeRevenue,
+								tokenTax: !!props.tokenTax
 							}}
 							title="Fees by chain"
 						/>
@@ -451,8 +452,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							adapterType="fees"
 							breakdownNames={props.protocolFeesVersions}
 							metadata={{
-								bribeRevenue: props.bribeRevenue ?? false,
-								tokenTax: props.tokenTax ?? false
+								bribeRevenue: !!props.bribeRevenue,
+								tokenTax: !!props.tokenTax
 							}}
 							title="Fees by protocol version"
 						/>
@@ -469,7 +470,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									dataType="dailyRevenue"
 									breakdownNames={props.protocolChains}
 									metadata={{
-										bribeRevenue: props.metrics.bribeRevenue ?? false,
+										bribeRevenue: props.metrics.bribes ?? false,
 										tokenTax: props.metrics.tokenTax ?? false
 									}}
 									title="Revenue by chain"
@@ -485,7 +486,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 								dataType="dailyRevenue"
 								breakdownNames={props.protocolRevenueVersions}
 								metadata={{
-									bribeRevenue: props.metrics.bribeRevenue ?? false,
+									bribeRevenue: props.metrics.bribes ?? false,
 									tokenTax: props.metrics.tokenTax ?? false
 								}}
 								title="Revenue by protocol version"

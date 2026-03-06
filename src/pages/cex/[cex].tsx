@@ -12,7 +12,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return { props: data, revalidate: maxAgeForNext([22]) }

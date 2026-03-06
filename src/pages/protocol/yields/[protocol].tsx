@@ -7,6 +7,7 @@ import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useVolatility } from '~/containers/Yields/queries/client'
 import { YieldsPoolsTable } from '~/containers/Yields/Tables/Pools'
+import type { IYieldTableRow } from '~/containers/Yields/Tables/types'
 import { slug } from '~/utils'
 import { sluggifyProtocol } from '~/utils/cache-client'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -14,16 +15,12 @@ import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_TOGGLE_OPTIONS = []
-type ProtocolYieldPoolRow = {
-	apy: number | null
-	configID: string
-} & Record<string, unknown>
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/yields/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -38,13 +35,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].yields) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
@@ -54,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 		const otherProtocolsSet = new Set((protocolData.otherProtocols ?? []).map((op) => sluggifyProtocol(op)))
 
 		let poolsError: string | null = null
-		let poolsList: ProtocolYieldPoolRow[] = []
+		let poolsList: IYieldTableRow[] = []
 		try {
 			const { getYieldPageData } = await import('~/containers/Yields/queries/index')
 			const yieldsData = await getYieldPageData()

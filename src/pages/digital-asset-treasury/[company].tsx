@@ -11,13 +11,13 @@ export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasury/[company]',
 	async ({ params }: GetStaticPropsContext<{ company: string }>) => {
 		if (!params?.company) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const props = await getDATCompanyData(params.company)
 
 		if (!props) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {

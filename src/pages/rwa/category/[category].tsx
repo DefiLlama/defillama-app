@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging(
 	`rwa/category/[category]`,
 	async ({ params }: GetStaticPropsContext<{ category: string }>) => {
 		if (!params?.category) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const categorySlug = rwaSlug(params.category)
@@ -45,13 +45,13 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 		if (!categoryName) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const props = await getRWAAssetsOverview({ category: categorySlug, rwaList })
 
 		if (!props) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {

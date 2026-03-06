@@ -40,7 +40,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
@@ -57,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {
