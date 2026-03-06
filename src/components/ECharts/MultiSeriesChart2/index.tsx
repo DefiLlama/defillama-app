@@ -443,7 +443,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		selectedCharts,
 		dataset,
 		exportButtons,
-		title
+		title,
+		headingAs
 	} = props
 
 	const id = useId()
@@ -897,6 +898,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
 						exportButtons={
 							<ChartExportButtons

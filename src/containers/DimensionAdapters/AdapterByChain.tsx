@@ -340,7 +340,9 @@ export function AdapterByChain(props: IProps) {
 									{formattedNum(props.total24h, true)}
 								</p>
 							</div>
-						) : null}
+						) : (
+							<h1 className="text-(--text-label)">{metricName}</h1>
+						)}
 
 						{props.chain !== 'All' && props.total24h != null ? (
 							<p className="flex flex-col">

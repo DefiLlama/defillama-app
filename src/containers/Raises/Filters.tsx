@@ -23,7 +23,7 @@ interface IDropdownMenusProps {
 }
 
 export function RaisesFilters(props: IDropdownMenusProps) {
-	const HeadingTag = props.headingAs ?? 'h1'
+	const HeadingTag = props.headingAs ?? 'h2'
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 			<HeadingTag className="text-lg font-semibold">{props.header}</HeadingTag>

@@ -19,6 +19,7 @@ export default function BarChart({
 	stacks,
 	valueSymbol = '',
 	title,
+	headingAs,
 	color,
 	hideDefaultLegend = false,
 	customLegendName,
@@ -273,6 +274,7 @@ export default function BarChart({
 				title || showLegend || !hideDownloadButton ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						customComponents={
 							customLegendName && customLegendOptions?.length > 1 ? (
 								<SelectWithCombobox

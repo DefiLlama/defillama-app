@@ -20,6 +20,7 @@ export default function AreaChart({
 	stackColors,
 	valueSymbol = '',
 	title,
+	headingAs,
 	color,
 	hallmarks,
 	customLegendName,
@@ -427,6 +428,7 @@ export default function AreaChart({
 				showHeader ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						customComponents={
 							customLegendName && customLegendOptions?.length > 1 ? (
 								<SelectWithCombobox

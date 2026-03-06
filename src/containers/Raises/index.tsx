@@ -63,6 +63,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			</Announcement>
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}
+				headingAs="h1"
 				rounds={rounds}
 				selectedRounds={selectedRounds}
 				sectors={sectors}
