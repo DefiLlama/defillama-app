@@ -16,7 +16,7 @@ export const getStaticProps = withPerformanceLogging(
 	'unlocks/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const metadataModule = await import('~/utils/metadata')

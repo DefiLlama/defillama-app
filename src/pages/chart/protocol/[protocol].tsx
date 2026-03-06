@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging(
 	'chart/protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocol = params.protocol
@@ -39,7 +39,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const data = await getProtocolOverviewPageData({
@@ -51,7 +51,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return { props: data, revalidate: maxAgeForNext([22]) }

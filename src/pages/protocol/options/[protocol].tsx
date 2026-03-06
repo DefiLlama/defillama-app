@@ -30,7 +30,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/options/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -45,7 +45,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || (!metadata[1].optionsPremiumVolume && !metadata[1].optionsNotionalVolume)) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const [protocolData, premiumVolumeData, notionalVolumeData] = await Promise.all([
@@ -118,6 +118,7 @@ export const getStaticProps = withPerformanceLogging(
 		return {
 			props: {
 				name: protocolData.name,
+				deprecated: protocolData.deprecated ?? false,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
