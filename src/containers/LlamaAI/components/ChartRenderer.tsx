@@ -109,6 +109,11 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 			config.type === 'combo'
 		let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
 
+		if (adaptedChart.props) {
+			const { title: _title, ...restProps } = adaptedChart.props as any
+			adaptedChart = { ...adaptedChart, props: restProps }
+		}
+
 		if (config.type === 'pie' && chartState.percentage) {
 			const pieData = (adaptedChart.props as any).chartData || []
 			const total = pieData.reduce((sum: number, item: any) => sum + item.value, 0)
@@ -270,7 +275,7 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 		}
 
 		const chartToolbar = (
-			<div className="flex items-center justify-end gap-1 p-2 pt-0">
+			<>
 				{sessionId ? (
 					<AddToDashboardButton
 						chartConfig={null}
@@ -279,7 +284,7 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 					/>
 				) : null}
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
-			</div>
+			</>
 		)
 
 		if (!hasData) {
@@ -301,7 +306,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 				if (isTimeSeriesChart) {
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
-							{chartToolbar}
 							<BarChart
 								key={chartKey}
 								chartData={adaptedChart.data}
@@ -346,7 +350,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 					}
 					chartContent = (
 						<Suspense fallback={<div className="h-[338px]" />}>
-							{chartToolbar}
 							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
 						</Suspense>
 					)
@@ -359,7 +362,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 				const hbarValues = hbarData.map(([, val]) => val)
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						{chartToolbar}
 						<HBarChart
 							key={chartKey}
 							categories={hbarCategories}
@@ -375,7 +377,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 			case 'area':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						{chartToolbar}
 						<AreaChart
 							key={chartKey}
 							chartData={adaptedChart.data}
@@ -390,7 +391,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 			case 'multi-series':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						{chartToolbar}
 						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
 					</Suspense>
 				)
@@ -399,7 +399,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 			case 'pie':
 				chartContent = (
 					<Suspense fallback={<div className="h-[338px]" />}>
-						{chartToolbar}
 						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} />
 					</Suspense>
 				)
@@ -408,7 +407,6 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 			case 'scatter':
 				chartContent = (
 					<Suspense fallback={<div className="h-[360px]" />}>
-						{chartToolbar}
 						<ScatterChart
 							key={chartKey}
 							{...(adaptedChart.props as IScatterChartProps)}
@@ -430,26 +428,26 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 
 		return (
 			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
-				{config.displayOptions ? (
-					<ChartControls
-						displayOptions={config.displayOptions}
-						stacked={chartState.stacked}
-						percentage={chartState.percentage}
-						cumulative={chartState.cumulative}
-						grouping={chartState.grouping}
-						dataLength={dataLength}
-						showHallmarks={chartState.showHallmarks}
-						hasHallmarks={!!config.hallmarks?.length}
-						showLabels={chartState.showLabels}
-						isScatter={adaptedChart.chartType === 'scatter'}
-						onStackedChange={handleStackedChange}
-						onPercentageChange={handlePercentageChange}
-						onCumulativeChange={handleCumulativeChange}
-						onGroupingChange={handleGroupingChange}
-						onHallmarksChange={handleHallmarksChange}
-						onLabelsChange={handleLabelsChange}
-					/>
-				) : null}
+				<ChartControls
+					displayOptions={config.displayOptions}
+					stacked={chartState.stacked}
+					percentage={chartState.percentage}
+					cumulative={chartState.cumulative}
+					grouping={chartState.grouping}
+					dataLength={dataLength}
+					showHallmarks={chartState.showHallmarks}
+					hasHallmarks={!!config.hallmarks?.length}
+					showLabels={chartState.showLabels}
+					isScatter={adaptedChart.chartType === 'scatter'}
+					onStackedChange={handleStackedChange}
+					onPercentageChange={handlePercentageChange}
+					onCumulativeChange={handleCumulativeChange}
+					onGroupingChange={handleGroupingChange}
+					onHallmarksChange={handleHallmarksChange}
+					onLabelsChange={handleLabelsChange}
+				>
+					{chartToolbar}
+				</ChartControls>
 				{chartContent}
 			</div>
 		)

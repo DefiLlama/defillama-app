@@ -45,6 +45,7 @@ interface ChartControlsProps {
 	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter') => void
 	onHallmarksChange: (showHallmarks: boolean) => void
 	onLabelsChange: (showLabels: boolean) => void
+	children?: React.ReactNode
 }
 
 export function ChartControls({
@@ -63,11 +64,10 @@ export function ChartControls({
 	onCumulativeChange,
 	onGroupingChange,
 	onHallmarksChange,
-	onLabelsChange
+	onLabelsChange,
+	children
 }: ChartControlsProps) {
-	if (!displayOptions) return null
-
-	const { canStack, canShowPercentage, canShowCumulative, supportsGrouping } = displayOptions
+	const { canStack, canShowPercentage, canShowCumulative, supportsGrouping } = displayOptions || {}
 
 	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = [
 		'day',
@@ -77,19 +77,13 @@ export function ChartControls({
 	]
 
 	const showGrouping = supportsGrouping && groupingOptions.length > 1
+	const hasControls =
+		showGrouping || canShowCumulative || (canStack && !cumulative) || canShowPercentage || hasHallmarks || isScatter
 
-	if (
-		!showGrouping &&
-		!canShowCumulative &&
-		!(canStack && !cumulative) &&
-		!canShowPercentage &&
-		!hasHallmarks &&
-		!isScatter
-	)
-		return null
+	if (!hasControls && !children) return null
 
 	return (
-		<div className="mb-2 flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 p-2 pt-0 dark:border-gray-700">
+		<div className="flex flex-wrap items-center justify-end gap-1 p-2 pt-0">
 			{showGrouping ? (
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{groupingOptions.map((interval) => (
@@ -175,6 +169,7 @@ export function ChartControls({
 					variant="pro"
 				/>
 			) : null}
+			{children}
 		</div>
 	)
 }
