@@ -21,6 +21,9 @@ export function useDashboardEngagement(dashboardId: string | null) {
 					return { ...oldData, ...data }
 				}
 			)
+		},
+		onError: (error: unknown) => {
+			console.log('Failed to track dashboard view:', error)
 		}
 	})
 
@@ -48,8 +51,8 @@ export function useDashboardEngagement(dashboardId: string | null) {
 			)
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to update like')
+		onError: (error: unknown) => {
+			toast.error(error instanceof Error ? error.message : 'Failed to update like')
 		}
 	})
 

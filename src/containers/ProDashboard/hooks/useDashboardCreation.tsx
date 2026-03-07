@@ -61,9 +61,9 @@ export const useDashboardCreation = () => {
 			toast.success('Dashboard created successfully')
 			router.push(`/pro/${dashboard.id}`)
 		},
-		onError: (error: Error) => {
+		onError: (error: unknown) => {
 			console.log('Error creating dashboard:', error)
-			toast.error('Failed to create dashboard. Please try again.')
+			toast.error(error instanceof Error ? error.message : 'Failed to create dashboard. Please try again.')
 		}
 	})
 

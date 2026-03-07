@@ -111,8 +111,8 @@ export function useDashboardDiscovery(params: SearchParams) {
 			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard-search'] }, updateLikeCount)
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to update like')
+		onError: (error: unknown) => {
+			toast.error(error instanceof Error ? error.message : 'Failed to update like')
 		}
 	})
 
