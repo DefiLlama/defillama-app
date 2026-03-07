@@ -25,14 +25,14 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, b
 						<Icon name="chevron-right" height={16} width={16} className="text-(--text-tertiary)" />
 					)}
 					<h3 className="text-sm font-semibold text-(--text-primary)">{title}</h3>
-					{badge !== undefined && (
+					{badge !== undefined ? (
 						<span className="rounded bg-(--primary)/10 px-1.5 py-0.5 text-[10px] font-medium text-(--primary)">
 							{badge}
 						</span>
-					)}
+					) : null}
 				</div>
 			</button>
-			{isExpanded && <div className="border-t border-(--cards-border) px-3 py-2.5">{children}</div>}
+			{isExpanded ? <div className="border-t border-(--cards-border) px-3 py-2.5">{children}</div> : null}
 		</div>
 	)
 }

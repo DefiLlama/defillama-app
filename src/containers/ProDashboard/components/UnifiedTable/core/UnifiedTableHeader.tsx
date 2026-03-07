@@ -101,12 +101,12 @@ export const UnifiedTableHeader = React.memo(function UnifiedTableHeader({
 					<h3 className="text-base font-semibold text-(--text-primary)">{title}</h3>
 					<div className="flex flex-wrap gap-2 text-xs text-(--text-secondary)">
 						<span>{scopeDescription}</span>
-						{rowHeadersSummary && (
+						{rowHeadersSummary ? (
 							<>
 								<span>•</span>
 								<span>Grouped by {rowHeadersSummary}</span>
 							</>
-						)}
+						) : null}
 					</div>
 				</div>
 				<div className="flex flex-wrap items-center justify-end gap-2">

@@ -74,7 +74,7 @@ export const MobileSearch = () => {
 
 	return (
 		<>
-			{!hideLlamaAiButtonOnRoutes.has(router.pathname) && (
+			{!hideLlamaAiButtonOnRoutes.has(router.pathname) ? (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
@@ -86,7 +86,7 @@ export const MobileSearch = () => {
 					</svg>
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
-			)}
+			) : null}
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 					<span className="sr-only">Search</span>
@@ -310,7 +310,7 @@ export const DesktopSearch = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{!hideLlamaAiButtonOnRoutes.has(router.pathname) && (
+			{!hideLlamaAiButtonOnRoutes.has(router.pathname) ? (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
@@ -322,7 +322,7 @@ export const DesktopSearch = () => {
 					</svg>
 					<span className="whitespace-nowrap">Ask LlamaAI</span>
 				</BasicLink>
-			)}
+			) : null}
 		</>
 	)
 }
@@ -370,7 +370,7 @@ const SearchItem = ({
 					<span className="text-(--text-form)">{route.subName}</span>
 				</>
 			) : null}
-			{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
+			{route.deprecated ? <span className="text-xs text-(--error)">(Deprecated)</span> : null}
 			{route.hideType ? null : recent ? (
 				<Icon name="clock" height={12} width={12} className="ml-auto" />
 			) : (

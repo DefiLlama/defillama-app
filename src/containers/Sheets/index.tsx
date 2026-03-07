@@ -345,13 +345,13 @@ const MockTable = ({
 
 	return (
 		<div className="overflow-hidden rounded-xl border border-[#39393E]/40 bg-[#1a1b1f] shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
-			{formulaBar && (
+			{formulaBar ? (
 				<div className="grid grid-cols-[28px_1fr] border-b border-[#39393E]/40">
 					<div className="border-r border-[#39393E]/40 bg-[#222429]/30 px-2.5 py-2" />
 					<p className="flex items-center px-2.5 py-2 font-mono text-[11px]">{highlightFormula(formulaBar)}</p>
 				</div>
-			)}
-			{headers && (
+			) : null}
+			{headers ? (
 				<div
 					className="border-b border-[#39393E]/40 bg-[#222429]/40"
 					style={{ display: 'grid', gridTemplateColumns: gridCols }}
@@ -368,7 +368,7 @@ const MockTable = ({
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 			{rows.map((row) => (
 				<div
 					key={row.num}
@@ -389,7 +389,7 @@ const MockTable = ({
 					))}
 				</div>
 			))}
-			{footer && (
+			{footer ? (
 				<div className="border-t border-[#39393E]/40" style={{ display: 'grid', gridTemplateColumns: gridCols }}>
 					<div className="flex items-center justify-center border-r border-[#39393E]/40 bg-[#222429]/30 px-2.5 py-[7px] font-mono text-[10px] text-[#8a8c90]">
 						{footer.num}
@@ -404,7 +404,7 @@ const MockTable = ({
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -552,9 +552,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		})
 
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		const fileName = `${
-			builder.name || config.metric
-		}_${config.chains.join('-')}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${
+		const fileName = `${builder.name || config.metric}_${config.chains.join(
+			'-'
+		)}_${config.categories.length > 0 ? config.categories.join('-') + '_' : ''}${
 			config.chainCategories && config.chainCategories.length > 0 ? config.chainCategories.join('-') + '_' : ''
 		}${
 			config.protocolCategories && config.protocolCategories.length > 0 ? config.protocolCategories.join('-') + '_' : ''
@@ -635,7 +635,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								? `${(config.protocol && (getProtocolInfo(config.protocol)?.name || config.protocol)) || 'All Protocols'} ${config.metric} by Chain`
 								: `${config.metric} by Protocol`)}
 					</h2>
-					{!isReadOnly && chartSeries.length > 0 && config.chartType !== 'treemap' && (
+					{!isReadOnly && chartSeries.length > 0 && config.chartType !== 'treemap' ? (
 						<div className="flex overflow-hidden rounded-md border border-(--form-control-border)">
 							{groupingOptions.map((option, index) => (
 								<button
@@ -651,8 +651,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								</button>
 							))}
 						</div>
-					)}
-					{!isReadOnly && (
+					) : null}
+					{!isReadOnly ? (
 						<Select
 							allValues={CHART_TYPE_OPTIONS}
 							selectedValues={config.chartType}
@@ -671,8 +671,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							labelType="none"
 							variant="pro"
 						/>
-					)}
-					{!isReadOnly && config.chartType === 'treemap' && !isTvlChart && (
+					) : null}
+					{!isReadOnly && config.chartType === 'treemap' && !isTvlChart ? (
 						<Select
 							allValues={TREEMAP_VALUE_OPTIONS}
 							selectedValues={treemapMode}
@@ -681,8 +681,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							labelType="none"
 							variant="pro"
 						/>
-					)}
-					{!isReadOnly && config.chartType !== 'treemap' && (
+					) : null}
+					{!isReadOnly && config.chartType !== 'treemap' ? (
 						<Select
 							allValues={VALUE_TYPE_OPTIONS}
 							selectedValues={config.displayAs === 'percentage' ? '% Percentage' : '$ Absolute'}
@@ -693,8 +693,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							labelType="none"
 							variant="pro"
 						/>
-					)}
-					{chartSeries.length > 0 && (
+					) : null}
+					{chartSeries.length > 0 ? (
 						<button
 							type="button"
 							onClick={() => setShowColors((prev) => !prev)}
@@ -708,21 +708,21 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 						>
 							Colors
 						</button>
-					)}
+					) : null}
 					{!isReadOnly &&
-						(config.mode !== 'protocol' || !(config.chainCategories && config.chainCategories.length > 0)) && (
-							<Select
-								allValues={hideOthersOptions}
-								selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
-								setSelectedValues={(value) => {
-									handleHideOthersChange(builder.id, value !== 'All')
-								}}
-								label={config.hideOthers ? `Top ${config.limit}` : 'All'}
-								labelType="none"
-								variant="pro"
-							/>
-						)}
-					{!isReadOnly && (
+					(config.mode !== 'protocol' || !(config.chainCategories && config.chainCategories.length > 0)) ? (
+						<Select
+							allValues={hideOthersOptions}
+							selectedValues={config.hideOthers ? `Top ${config.limit}` : 'All'}
+							setSelectedValues={(value) => {
+								handleHideOthersChange(builder.id, value !== 'All')
+							}}
+							label={config.hideOthers ? `Top ${config.limit}` : 'All'}
+							labelType="none"
+							variant="pro"
+						/>
+					) : null}
+					{!isReadOnly ? (
 						<button
 							type="button"
 							onClick={() => setShowDuplicateConfirm(true)}
@@ -731,8 +731,8 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							<Icon name="copy" height={14} width={14} />
 							<span>Duplicate</span>
 						</button>
-					)}
-					{chartSeries.length > 0 && (
+					) : null}
+					{chartSeries.length > 0 ? (
 						<>
 							<ChartPngExportButton
 								chartInstance={chartInstance}
@@ -747,9 +747,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 								className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
-					)}
+					) : null}
 				</div>
-				{effectiveShowColors && chartSeries.length > 0 && (
+				{effectiveShowColors && chartSeries.length > 0 ? (
 					<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 						<span className="shrink-0 text-xs font-medium text-(--text-label)">Series Colors</span>
 						{chartSeries.map((series: any) => {
@@ -799,7 +799,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 							Reset All
 						</button>
 					</div>
-				)}
+				) : null}
 				{(() => {
 					const parts: string[] = []
 					if (config.mode === 'protocol') {

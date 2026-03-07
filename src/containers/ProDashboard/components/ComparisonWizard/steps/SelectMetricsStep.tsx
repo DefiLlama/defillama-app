@@ -33,7 +33,7 @@ export function SelectMetricsStep() {
 						<p className="text-xs text-(--text-tertiary)">Based on data availability for your selected {typeLabel}</p>
 					</div>
 				</div>
-				{invalidMetrics.length > 0 && (
+				{invalidMetrics.length > 0 ? (
 					<button
 						type="button"
 						onClick={() => setShowInvalid(!showInvalid)}
@@ -41,7 +41,7 @@ export function SelectMetricsStep() {
 					>
 						{showInvalid ? 'Hide' : 'Show'} unavailable ({invalidMetrics.length})
 					</button>
-				)}
+				) : null}
 			</div>
 
 			<div className="flex items-center justify-between">
@@ -49,7 +49,7 @@ export function SelectMetricsStep() {
 					{state.selectedMetrics.length} metric{state.selectedMetrics.length !== 1 ? 's' : ''} selected
 				</span>
 				<div className="flex items-center gap-3">
-					{state.selectedMetrics.length < validMetrics.length && (
+					{state.selectedMetrics.length < validMetrics.length ? (
 						<button
 							type="button"
 							onClick={() => actions.selectAllMetrics(validMetrics.map((m) => m.metric))}
@@ -57,8 +57,8 @@ export function SelectMetricsStep() {
 						>
 							Select all
 						</button>
-					)}
-					{state.selectedMetrics.length > 0 && (
+					) : null}
+					{state.selectedMetrics.length > 0 ? (
 						<button
 							type="button"
 							onClick={() => actions.clearMetrics()}
@@ -66,7 +66,7 @@ export function SelectMetricsStep() {
 						>
 							Clear
 						</button>
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -85,7 +85,7 @@ export function SelectMetricsStep() {
 				</div>
 			</div>
 
-			{displayedMetrics.length === 0 && (
+			{displayedMetrics.length === 0 ? (
 				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-8 text-center">
 					<Icon name="alert-triangle" height={32} width={32} className="mx-auto mb-3 text-amber-500" />
 					<p className="font-medium text-(--text-primary)">No metrics available</p>
@@ -93,7 +93,7 @@ export function SelectMetricsStep() {
 						The selected {typeLabel} don't have enough common metrics to compare. Try selecting different {typeLabel}.
 					</p>
 				</div>
-			)}
+			) : null}
 
 			<p
 				className={`text-center text-sm text-amber-500 ${

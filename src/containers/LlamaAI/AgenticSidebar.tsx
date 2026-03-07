@@ -221,7 +221,7 @@ export function AgenticSidebar({
 				)}
 			</div>
 
-			{onOpenSettings && (
+			{onOpenSettings ? (
 				<div className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
 					<button
 						onClick={onOpenSettings}
@@ -229,14 +229,14 @@ export function AgenticSidebar({
 					>
 						<div className="relative">
 							<Icon name="settings" height={14} width={14} />
-							{hasCustomInstructions && (
+							{hasCustomInstructions ? (
 								<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
-							)}
+							) : null}
 						</div>
 						<span>Settings</span>
 					</button>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

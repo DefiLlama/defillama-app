@@ -189,19 +189,19 @@ export function AriakitVirtualizedSelect({
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 																{option.label}
 															</span>
-															{option.isChild && (
+															{option.isChild ? (
 																<span className="text-[10px] text-(--text-tertiary)">Child protocol</span>
-															)}
-															{option.description && (
+															) : null}
+															{option.description ? (
 																<span className="truncate text-[10px] text-(--text-tertiary)">
 																	{option.description}
 																</span>
-															)}
+															) : null}
 														</div>
 													</div>
-													{isActive && (
+													{isActive ? (
 														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-													)}
+													) : null}
 												</button>
 											)
 										})}

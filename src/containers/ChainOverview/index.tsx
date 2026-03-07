@@ -14,14 +14,14 @@ export function ChainOverview(props: IChainOverviewData) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
-			{props.metadata.name !== 'All' && (
+			{props.metadata.name !== 'All' ? (
 				<EntityQuestionsStrip
 					questions={props.entityQuestions || []}
 					entitySlug={slug(props.metadata.name)}
 					entityType="chain"
 					entityName={props.metadata.name}
 				/>
-			)}
+			) : null}
 			{props.isDataAvailable ? (
 				<>
 					<Stats {...props} />

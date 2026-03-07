@@ -311,9 +311,9 @@ export function UnlocksChartTab({
 					/>
 				</div>
 
-				{hasSelection && !isLoading && availableChartTypes.size === 0 && (
+				{hasSelection && !isLoading && availableChartTypes.size === 0 ? (
 					<p className="text-xs pro-text3">No unlocks data available for this protocol.</p>
-				)}
+				) : null}
 			</div>
 
 			<div className="overflow-hidden rounded-lg border pro-border">

@@ -255,7 +255,7 @@ export const UpcomingEvent = ({
 				<LineTag className="flex items-center justify-between gap-2 text-sm">
 					<span className="flex items-center gap-1.5">
 						{item.name}
-						{isOngoing && ' (Ongoing)'}
+						{isOngoing ? ' (Ongoing)' : null}
 						<Ariakit.TooltipProvider>
 							<Ariakit.TooltipAnchor>
 								<Icon
@@ -420,8 +420,8 @@ export const UpcomingEvent = ({
 						</span>
 						<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 							<span>
-								{unlockPercent && `${formattedNum(unlockPercent)}%`}
-								{unlockPercentFloat && ` (${formattedNum(unlockPercentFloat)}% of float)`}
+								{unlockPercent ? `${formattedNum(unlockPercent)}%` : null}
+								{unlockPercentFloat ? ` (${formattedNum(unlockPercentFloat)}% of float)` : null}
 							</span>
 							<span>
 								{formattedNum(totalAmount)} {tokenSymbol}
@@ -430,7 +430,7 @@ export const UpcomingEvent = ({
 					</span>
 				</Ariakit.Hovercard>
 			</Ariakit.HovercardProvider>
-			{timeLeft > 0 && (
+			{timeLeft > 0 ? (
 				<div className="flex flex-col items-center">
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
@@ -440,7 +440,7 @@ export const UpcomingEvent = ({
 					/>
 					<span className="invisible mt-1 text-xs leading-none font-medium text-(--text-meta) select-none">Sec</span>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

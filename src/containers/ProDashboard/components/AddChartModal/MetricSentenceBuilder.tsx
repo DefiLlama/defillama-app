@@ -106,7 +106,7 @@ const TokenButton = forwardRef<HTMLButtonElement, TokenButtonProps>(function Tok
 		>
 			<span className="max-w-[100px] truncate sm:max-w-[180px]">{label}</span>
 			<Icon name="chevron-down" width={10} height={10} className="shrink-0 opacity-70 sm:h-3 sm:w-3" />
-			{secondary && <span className="sr-only">{secondary}</span>}
+			{secondary ? <span className="sr-only">{secondary}</span> : null}
 		</button>
 	)
 })
@@ -452,10 +452,12 @@ export function MetricSentenceBuilder({
 							/>
 						</div>
 						<div className="p-1.5">
-							{baseMetricTypes.length === 0 && <p className="px-2 py-3 text-sm pro-text3">No metrics available.</p>}
-							{baseMetricTypes.length > 0 && filteredMetrics.length === 0 && (
+							{baseMetricTypes.length === 0 ? (
+								<p className="px-2 py-3 text-sm pro-text3">No metrics available.</p>
+							) : null}
+							{baseMetricTypes.length > 0 && filteredMetrics.length === 0 ? (
 								<p className="px-2 py-3 text-sm pro-text3">No metrics match that search.</p>
-							)}
+							) : null}
 							{filteredMetrics.map((value) => {
 								const label = CHART_TYPES[value as keyof typeof CHART_TYPES]?.title || value
 								const isActive = value === metricType
@@ -469,7 +471,7 @@ export function MetricSentenceBuilder({
 										}`}
 									>
 										<span>{label}</span>
-										{isActive && <Icon name="check" width={14} height={14} />}
+										{isActive ? <Icon name="check" width={14} height={14} /> : null}
 									</button>
 								)
 							})}
@@ -584,7 +586,7 @@ export function MetricSentenceBuilder({
 																	) : null}
 																	<span className="truncate">{option.label}</span>
 																</div>
-																{isActive && <Icon name="check" width={14} height={14} />}
+																{isActive ? <Icon name="check" width={14} height={14} /> : null}
 															</ComboboxItem>
 														)
 													})}
@@ -639,12 +641,12 @@ export function MetricSentenceBuilder({
 																	>
 																		{option.label}
 																	</span>
-																	{option.isChild && (
+																	{option.isChild ? (
 																		<span className="text-[11px] text-(--text-tertiary)">Child protocol</span>
-																	)}
+																	) : null}
 																</div>
 															</div>
-															{isActive && <Icon name="check" width={14} height={14} />}
+															{isActive ? <Icon name="check" width={14} height={14} /> : null}
 														</ComboboxItem>
 													)
 												})}

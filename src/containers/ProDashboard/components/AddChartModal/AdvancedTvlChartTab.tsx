@@ -339,15 +339,17 @@ export function AdvancedTvlChartTab({
 					</div>
 				</Tooltip>
 
-				{hasProtocolSelection && isAddlLoading && <p className="text-xs pro-text3">Loading available chart types...</p>}
+				{hasProtocolSelection && isAddlLoading ? (
+					<p className="text-xs pro-text3">Loading available chart types...</p>
+				) : null}
 
-				{hasProtocolSelection && !isAddlLoading && (
+				{hasProtocolSelection && !isAddlLoading ? (
 					<div className="text-xs pro-text3">
 						<p>
 							Available charts: <span className="font-semibold pro-text1">{availableChartTypes.size}</span>
 						</p>
 					</div>
-				)}
+				) : null}
 			</div>
 
 			<div className="overflow-hidden rounded-lg border pro-border">

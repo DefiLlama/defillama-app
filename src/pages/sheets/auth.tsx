@@ -71,7 +71,7 @@ function AuthContent() {
 								<Icon name="check" height={24} width={24} className="text-green-500" />
 							</div>
 							<h2 className="mb-2 text-2xl font-bold text-white">Successfully logged in.</h2>
-							{user?.email && <p className="text-sm text-[#8a8c90]">Signed in as {user.email}</p>}
+							{user?.email ? <p className="text-sm text-[#8a8c90]">Signed in as {user.email}</p> : null}
 							<p className="mt-2 text-sm text-[#8a8c90]">
 								You should be automatically redirected to finish the authentication process.
 							</p>

@@ -28,7 +28,7 @@ export const TagGroup = ({
 
 	return (
 		<div className={clsx(container, className)} style={style} {...props}>
-			{label && <p className="pr-1 pl-3">{label}</p>}
+			{label ? <p className="pr-1 pl-3">{label}</p> : null}
 			{values.map((value) => {
 				return (
 					<button

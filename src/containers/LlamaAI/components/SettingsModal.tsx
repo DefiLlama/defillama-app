@@ -101,7 +101,7 @@ export const SettingsModal = memo(function SettingsModal({
 					<div className="flex flex-col gap-1.5 px-5 py-4">
 						<div className="flex items-center justify-between">
 							<label className="text-sm font-medium text-[#1a1a1a] dark:text-white">Custom Instructions</label>
-							{draft.trim().length > 0 && (
+							{draft.trim().length > 0 ? (
 								<button
 									type="button"
 									onClick={handleClear}
@@ -109,7 +109,7 @@ export const SettingsModal = memo(function SettingsModal({
 								>
 									Clear
 								</button>
-							)}
+							) : null}
 						</div>
 						<p className="text-xs text-[#777] dark:text-[#919296]">
 							Tell LlamaAI how to respond. These apply to every conversation.

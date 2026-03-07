@@ -440,7 +440,7 @@ export function CustomColumnPanel({
 							/>
 
 							{/* Autocomplete dropdown */}
-							{showAutocomplete && filteredSuggestions.length > 0 && (
+							{showAutocomplete && filteredSuggestions.length > 0 ? (
 								<div
 									className="absolute z-50 mt-1 thin-scrollbar max-h-64 overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg"
 									style={{
@@ -476,13 +476,13 @@ export function CustomColumnPanel({
 											<span className="ml-auto truncate text-xs pro-text3">{suggestion.description}</span>
 										</button>
 									))}
-									{filteredSuggestions.length === 0 && autocompleteFilter && (
+									{filteredSuggestions.length === 0 && autocompleteFilter ? (
 										<div className="px-3 py-2 text-sm pro-text3">No suggestions found for "{autocompleteFilter}"</div>
-									)}
+									) : null}
 								</div>
-							)}
+							) : null}
 							{/* Live validation indicator */}
-							{newColumnExpression && (
+							{newColumnExpression ? (
 								<div className="absolute top-1/2 right-2 -translate-y-1/2 transform">
 									{liveValidation.isEmpty ? null : liveValidation.isValid ? (
 										<Icon name="check" height={16} width={16} className="text-(--success)" />
@@ -490,7 +490,7 @@ export function CustomColumnPanel({
 										<Icon name="x" height={16} width={16} className="text-(--error)" />
 									)}
 								</div>
-							)}
+							) : null}
 						</div>
 
 						<p className="mt-1 text-xs pro-text3">
@@ -499,7 +499,7 @@ export function CustomColumnPanel({
 						</p>
 
 						{/* Live Preview */}
-						{newColumnExpression && (
+						{newColumnExpression ? (
 							<div
 								className={`mt-2 rounded border p-2 text-xs ${
 									liveValidation.isValid
@@ -519,11 +519,11 @@ export function CustomColumnPanel({
 										<span className="text-red-700 dark:text-red-300">{liveValidation.error}</span>
 									)}
 								</div>
-								{liveValidation.isValid && (
+								{liveValidation.isValid ? (
 									<div className="mt-1 text-xs pro-text3">Using sample data: {sampleDataPreview}...</div>
-								)}
+								) : null}
 							</div>
-						)}
+						) : null}
 
 						{/* Quick Operator Buttons - Compact */}
 						<div className="mt-2 flex flex-wrap gap-1">
@@ -544,11 +544,11 @@ export function CustomColumnPanel({
 						</div>
 					</div>
 
-					{validationError && (
+					{validationError ? (
 						<div className="border border-(--error) bg-[oklch(0.94_0.01_71.72_/0.08)] p-2 text-xs text-(--error)">
 							{validationError}
 						</div>
-					)}
+					) : null}
 
 					<button
 						type="button"
@@ -591,7 +591,7 @@ export function CustomColumnPanel({
 			</div>
 
 			{/* Existing Custom Columns - Read Only */}
-			{customColumns.length > 0 && (
+			{customColumns.length > 0 ? (
 				<div className="space-y-3">
 					<h5 className="text-sm font-medium pro-text2">Custom Columns ({customColumns.length})</h5>
 					{customColumns.map((column) => (
@@ -609,9 +609,9 @@ export function CustomColumnPanel({
 									<div className="rounded-md border pro-border bg-(--bg-glass) px-2 py-1 text-xs pro-text2">
 										{column.expression}
 									</div>
-									{!column.isValid && column.errorMessage && (
+									{!column.isValid && column.errorMessage ? (
 										<p className="mt-1 text-xs text-(--error)">{column.errorMessage}</p>
-									)}
+									) : null}
 								</div>
 								<button
 									type="button"
@@ -626,7 +626,7 @@ export function CustomColumnPanel({
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 
 			{/* Examples */}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">

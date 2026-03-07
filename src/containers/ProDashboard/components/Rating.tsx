@@ -95,7 +95,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 							</button>
 						))}
 					</div>
-					{onDismiss && (
+					{onDismiss ? (
 						<button
 							type="button"
 							onClick={() => onDismiss(sessionId)}
@@ -105,19 +105,19 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 						>
 							<Icon name="x" height={16} width={16} />
 						</button>
-					)}
+					) : null}
 				</div>
 
 				<p className="text-sm text-(--text-label)">{currentTexts.subtitle}</p>
 
-				{prompt && (
+				{prompt ? (
 					<div className="flex flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
 						<p className="text-xs text-(--text-label)">Prompt used:</p>
 						<p className="text-center text-sm">{prompt}</p>
 					</div>
-				)}
+				) : null}
 
-				{rating > 0 && (
+				{rating > 0 ? (
 					<div className="flex w-full flex-col gap-1">
 						<label
 							htmlFor={bannerFeedbackId}
@@ -134,7 +134,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 							disabled={isSubmitting}
 						/>
 					</div>
-				)}
+				) : null}
 
 				<div className="mt-6 flex items-center justify-center gap-3">
 					<button
@@ -146,7 +146,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 						Skip
 					</button>
 
-					{rating > 0 && (
+					{rating > 0 ? (
 						<button
 							type="submit"
 							disabled={isSubmitting}
@@ -155,7 +155,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 							{isSubmitting ? <LoadingSpinner size={16} /> : <Icon name="sparkles" height={16} width={16} />}
 							Submit Rating
 						</button>
-					)}
+					) : null}
 				</div>
 			</form>
 		)
@@ -168,12 +168,12 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 			<h3 className="-mt-5 text-xl font-semibold">{currentTexts.title}</h3>
 			<p className="-mt-5 text-sm text-(--text-label)">{currentTexts.subtitle}</p>
 
-			{prompt && (
+			{prompt ? (
 				<div className="flex w-full max-w-xl flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
 					<h4 className="text-xs text-(--text-label)">Prompt used:</h4>
 					<p className="text-center text-sm">{prompt}</p>
 				</div>
-			)}
+			) : null}
 
 			<div className="flex items-center justify-center gap-2">
 				{[1, 2, 3, 4, 5].map((star) => (

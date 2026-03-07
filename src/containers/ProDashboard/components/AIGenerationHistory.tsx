@@ -40,7 +40,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 									{session.mode === 'create' ? 'Initial Generation' : 'Iteration'} #{sessions.length - index}
 								</h2>
 								<p className="text-(--text-form)">{new Date(session.timestamp).toLocaleDateString()}</p>
-								{session.rating !== undefined && session.rating !== -1 && (
+								{session.rating !== undefined && session.rating !== -1 ? (
 									<p className="flex items-center gap-1">
 										<span className="sr-only">Rating: </span>
 										{session.rating === -99 ? (
@@ -55,7 +55,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 											</>
 										)}
 									</p>
-								)}
+								) : null}
 							</div>
 							<p>
 								<span className="font-medium">Prompt: </span>

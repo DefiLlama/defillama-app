@@ -420,7 +420,7 @@ export function AddToDashboardModal({
 												isSelected ? 'bg-pro-blue-300 shadow-sm shadow-pro-blue-300/30' : 'border pro-border'
 											}`}
 										>
-											{isSelected && <Icon name="check" className="h-2.5 w-2.5 text-white" />}
+											{isSelected ? <Icon name="check" className="h-2.5 w-2.5 text-white" /> : null}
 										</div>
 										<span className="truncate">{dashboard.name}</span>
 									</button>
@@ -468,14 +468,14 @@ export function AddToDashboardModal({
 					</div>
 				) : null}
 
-				{unsupportedMetrics.length > 0 && (
+				{unsupportedMetrics.length > 0 ? (
 					<div className="mb-4 rounded-md border border-pro-gold-300/20 bg-pro-gold-300/5 px-3 py-2">
 						<p className="text-xs text-pro-gold-400 dark:text-pro-gold-200">
 							{unsupportedMetrics.length} metric{unsupportedMetrics.length > 1 ? 's' : ''} not supported:{' '}
 							{unsupportedMetrics.join(', ')}
 						</p>
 					</div>
-				)}
+				) : null}
 
 				<div className="flex gap-2.5 border-t pro-divider pt-4">
 					<Ariakit.DialogDismiss

@@ -115,7 +115,7 @@ export const AccountInfo = () => {
 				isLoading={loaders.logout}
 				subscription={subscription}
 			/>
-			{isLegacyApiSubscription && (
+			{isLegacyApiSubscription ? (
 				<div className="mb-4 flex w-full flex-col gap-3 rounded-lg border border-yellow-500 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 px-4 py-3 text-yellow-100 shadow-xs sm:flex-row sm:items-center sm:rounded-xl sm:px-6 sm:py-4">
 					<Icon name="alert-triangle" className="shrink-0 text-yellow-400" height={20} width={20} />
 					<span className="text-sm font-medium sm:text-base">
@@ -131,7 +131,7 @@ export const AccountInfo = () => {
 						and subscribe again after current subscription expires. This is required due to technical reasons.
 					</span>
 				</div>
-			)}
+			) : null}
 
 			<div className="space-y-6">
 				<AccountStatus
@@ -144,13 +144,13 @@ export const AccountInfo = () => {
 					getPortalSessionUrl={getPortalSessionUrl}
 				/>
 
-				{!isVerified && !isWalletUser && (
+				{!isVerified && !isWalletUser ? (
 					<EmailVerificationWarning
 						email={user.email}
 						onResendVerification={handleResendVerification}
 						isLoading={loaders.resendVerification}
 					/>
-				)}
+				) : null}
 
 				<SubscriberContent
 					credits={credits}

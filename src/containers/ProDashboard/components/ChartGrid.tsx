@@ -455,7 +455,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<Icon name="plus" height={14} width={14} />
 											<span className="sr-only">Expand width</span>
 										</Tooltip>
-										{onEditItem && (
+										{onEditItem ? (
 											<Tooltip
 												content="Edit item"
 												render={<button onClick={() => onEditItem(item)} />}
@@ -464,7 +464,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												<Icon name="pencil" height={14} width={14} />
 												<span className="sr-only">Edit item</span>
 											</Tooltip>
-										)}
+										) : null}
 										<Tooltip
 											content="Remove item"
 											render={<button onClick={() => handleDeleteClick(item.id)} />}
@@ -480,7 +480,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								</SortableItem>
 							)
 						})}
-						{currentRatingSession && !isReadOnly && (
+						{currentRatingSession && !isReadOnly ? (
 							<div className="col-span-full flex animate-ai-glow flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 								<Rating
 									sessionId={currentRatingSession.sessionId}
@@ -491,7 +491,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 									onSkip={handleRatingSkip}
 								/>
 							</div>
-						)}
+						) : null}
 						<button
 							onClick={onAddChartClick}
 							className="relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text) hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10"

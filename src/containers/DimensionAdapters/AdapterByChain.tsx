@@ -317,14 +317,14 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.entityQuestions && props.entityQuestions.length > 0 && (
+			{props.entityQuestions && props.entityQuestions.length > 0 ? (
 				<EntityQuestionsStrip
 					questions={props.entityQuestions}
 					entitySlug={pageSlugByType[props.type] || slug(props.type)}
 					entityType="page"
 					entityName={props.type}
 				/>
-			)}
+			) : null}
 			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
@@ -455,7 +455,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						variant="filter-responsive"
 					/>
-					{props.categories.length > 0 && (
+					{props.categories.length > 0 ? (
 						<SelectWithCombobox
 							allValues={props.categories}
 							selectedValues={selectedCategories}
@@ -466,7 +466,7 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							variant="filter-responsive"
 						/>
-					)}
+					) : null}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
 					<CSVDownloadButton
 						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols` })}
@@ -649,14 +649,14 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 							{value}
 						</BasicLink>
 
-						{row.original.chains && (
+						{row.original.chains ? (
 							<Tooltip
 								content={<ProtocolChainsComponent chains={row.original.chains} />}
 								className="text-[0.7rem] text-(--text-disabled)"
 							>
 								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 							</Tooltip>
-						)}
+						) : null}
 					</span>
 				</span>
 			)

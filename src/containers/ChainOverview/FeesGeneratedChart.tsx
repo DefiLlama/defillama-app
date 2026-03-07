@@ -69,13 +69,13 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 						</div>
 					))}
 				</div>
-				{hoveredIndex != null && (
+				{hoveredIndex != null ? (
 					<div
 						className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
 						style={{ left: `${((hoveredIndex + 0.5) / series.length) * 100}%` }}
 					/>
-				)}
-				{hoveredIndex != null && (
+				) : null}
+				{hoveredIndex != null ? (
 					<div
 						ref={tooltipRef}
 						className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
@@ -90,7 +90,7 @@ export function FeesGeneratedChart({ series }: { series: Array<[string, number, 
 							&nbsp;&nbsp;${formattedNum(series[hoveredIndex][1])}
 						</div>
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	)

@@ -46,13 +46,13 @@ export function SubscribeAPICard({
 					</span>
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
-				{billingInterval === 'year' && (
+				{billingInterval === 'year' ? (
 					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
-				)}
+				) : null}
 			</div>
-			{billingInterval === 'month' && (
+			{billingInterval === 'month' ? (
 				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
-			)}
+			) : null}
 			<ul className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<li className="flex flex-nowrap items-start gap-2.5">
 					<Icon name="check" height={16} width={16} className="relative top-1 shrink-0 text-green-400" />
@@ -90,7 +90,7 @@ export function SubscribeAPICard({
 				{active && !isLegacyActive ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center font-bold text-green-400">Current Plan</span>
-						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
+						{currentBillingInterval === 'month' || !currentBillingInterval ? (
 							<div className="flex flex-col gap-2">
 								<button
 									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
@@ -101,7 +101,7 @@ export function SubscribeAPICard({
 								</button>
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
-						)}
+						) : null}
 						{isCancelPending ? (
 							<p className="mt-2 text-center text-sm text-yellow-400">Cancellation scheduled</p>
 						) : onCancelSubscription ? (
@@ -117,33 +117,33 @@ export function SubscribeAPICard({
 					<div className="mt-2 flex flex-col gap-6">
 						<div className="flex flex-col items-center">
 							<div className={`grid w-full gap-3 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}>
-								{billingInterval === 'month' && (
+								{billingInterval === 'month' ? (
 									<PaymentButton paymentMethod="llamapay" type="api" billingInterval={billingInterval} />
-								)}
+								) : null}
 								<PaymentButton paymentMethod="stripe" type="api" billingInterval={billingInterval} />
 							</div>
 						</div>
 					</div>
 				) : (
 					<>
-						{context === 'page' && (
+						{context === 'page' ? (
 							<>
 								<SignInModal text="Already a subscriber? Sign In" />
 								<div
 									className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 								>
-									{billingInterval === 'month' && (
+									{billingInterval === 'month' ? (
 										<PaymentButton paymentMethod="llamapay" type="api" billingInterval={billingInterval} />
-									)}
+									) : null}
 									<PaymentButton paymentMethod="stripe" type="api" billingInterval={billingInterval} />
 								</div>
 							</>
-						)}
+						) : null}
 					</>
 				)}
 			</div>
 
-			{isUpgradeModalOpen && (
+			{isUpgradeModalOpen ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isUpgradeModalOpen}
@@ -153,7 +153,7 @@ export function SubscribeAPICard({
 						billingInterval="year"
 					/>
 				</Suspense>
-			)}
+			) : null}
 		</>
 	)
 }

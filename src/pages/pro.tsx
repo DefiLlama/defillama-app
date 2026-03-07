@@ -167,7 +167,7 @@ function ProContent({
 					>
 						Discover
 					</BasicLink>
-					{isAuthenticated && hasActiveSubscription && (
+					{isAuthenticated && hasActiveSubscription ? (
 						<BasicLink
 							href={`/pro?tab=my-dashboards`}
 							shallow
@@ -176,8 +176,8 @@ function ProContent({
 						>
 							My Dashboards
 						</BasicLink>
-					)}
-					{isAuthenticated && (
+					) : null}
+					{isAuthenticated ? (
 						<BasicLink
 							href={`/pro?tab=favorites`}
 							shallow
@@ -186,7 +186,7 @@ function ProContent({
 						>
 							Favorites
 						</BasicLink>
-					)}
+					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
@@ -224,11 +224,11 @@ function ProContent({
 			{activeTab === 'my-dashboards' ? (
 				<Suspense fallback={<></>}>
 					<>
-						{!isLoadingMyDashboards && (
+						{!isLoadingMyDashboards ? (
 							<p className="-mb-2 text-xs text-(--text-label)">
 								Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
 							</p>
-						)}
+						) : null}
 
 						<DashboardList
 							dashboards={myDashboards}
@@ -237,7 +237,7 @@ function ProContent({
 							onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
 						/>
 
-						{myDashboardsTotalPages > 1 && (
+						{myDashboardsTotalPages > 1 ? (
 							<div className="mt-4 flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => goToPage(1)}
@@ -284,7 +284,7 @@ function ProContent({
 									<Icon name="chevrons-right" height={16} width={16} />
 								</button>
 							</div>
-						)}
+						) : null}
 					</>
 				</Suspense>
 			) : activeTab === 'favorites' ? (

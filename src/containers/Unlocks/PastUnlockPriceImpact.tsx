@@ -241,14 +241,16 @@ export const PastUnlockPriceImpact: React.FC<PastUnlockPriceImpactProps> = ({
 									</span>
 									<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 										<span>
-											{impact.maxSupply &&
-												`${formattedNum((impact.unlockBreakdown.reduce((acc, item) => acc + item.amount, 0) / impact.maxSupply) * 100)}%`}
-											{impact.mcap &&
-												` (${formattedNum(
-													(impact.unlockBreakdown.reduce((acc, item) => acc + item.amount * impact.price, 0) /
-														impact.mcap) *
-														100
-												)}% of float)`}
+											{impact.maxSupply
+												? `${formattedNum((impact.unlockBreakdown.reduce((acc, item) => acc + item.amount, 0) / impact.maxSupply) * 100)}%`
+												: null}
+											{impact.mcap
+												? ` (${formattedNum(
+														(impact.unlockBreakdown.reduce((acc, item) => acc + item.amount * impact.price, 0) /
+															impact.mcap) *
+															100
+													)}% of float)`
+												: null}
 										</span>
 										<span>
 											{formattedNum(impact.unlockBreakdown.reduce((acc, item) => acc + item.amount, 0))} {impact.symbol}

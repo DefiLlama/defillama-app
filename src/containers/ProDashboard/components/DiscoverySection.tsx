@@ -85,7 +85,7 @@ export function DiscoverySection({
 							</span>
 							{title}
 						</h3>
-						{subtitle && <p className="ml-9 text-xs text-(--text-label)">{subtitle}</p>}
+						{subtitle ? <p className="ml-9 text-xs text-(--text-label)">{subtitle}</p> : null}
 					</div>
 				</div>
 				<div className="flex gap-4 overflow-hidden">
@@ -116,7 +116,7 @@ export function DiscoverySection({
 						</span>
 						{title}
 					</h3>
-					{subtitle && <p className="ml-9 text-xs text-(--text-label)">{subtitle}</p>}
+					{subtitle ? <p className="ml-9 text-xs text-(--text-label)">{subtitle}</p> : null}
 				</div>
 				<BasicLink
 					href={seeAllHref}
@@ -128,7 +128,7 @@ export function DiscoverySection({
 			</div>
 
 			<div className="group relative">
-				{canScrollLeft && (
+				{canScrollLeft ? (
 					<>
 						<div className="pointer-events-none absolute inset-y-0 left-0 z-5 hidden w-16 bg-linear-to-r from-(--app-bg) to-transparent md:block" />
 						<button
@@ -138,7 +138,7 @@ export function DiscoverySection({
 							<Icon name="chevron-left" height={20} width={20} />
 						</button>
 					</>
-				)}
+				) : null}
 
 				<div
 					ref={scrollContainerRef}
@@ -155,7 +155,7 @@ export function DiscoverySection({
 					))}
 				</div>
 
-				{canScrollRight && dashboards.length > 3 && (
+				{canScrollRight && dashboards.length > 3 ? (
 					<>
 						<div className="pointer-events-none absolute inset-y-0 right-0 z-5 hidden w-16 bg-linear-to-l from-(--app-bg) to-transparent md:block" />
 						<button
@@ -165,7 +165,7 @@ export function DiscoverySection({
 							<Icon name="chevron-right" height={20} width={20} />
 						</button>
 					</>
-				)}
+				) : null}
 			</div>
 		</div>
 	)

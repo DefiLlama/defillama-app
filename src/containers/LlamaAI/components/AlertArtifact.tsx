@@ -173,7 +173,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<option value="weekly">Weekly</option>
 				</select>
 
-				{frequency === 'weekly' && (
+				{frequency === 'weekly' ? (
 					<select
 						value={dayOfWeek}
 						onChange={(e) => setDayOfWeek(Number(e.target.value))}
@@ -186,7 +186,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 							</option>
 						))}
 					</select>
-				)}
+				) : null}
 
 				<span className="text-sm text-(--text3)">at</span>
 
@@ -206,12 +206,12 @@ export const AlertArtifact = memo(function AlertArtifact({
 				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
 			</div>
 
-			{!saved && (
+			{!saved ? (
 				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
 					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
 					<span>Action required — confirm your alert settings and save</span>
 				</p>
-			)}
+			) : null}
 
 			<button
 				onClick={handleSave}

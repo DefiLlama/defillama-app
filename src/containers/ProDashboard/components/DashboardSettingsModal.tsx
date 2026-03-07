@@ -170,9 +170,9 @@ function DashboardSettingsModalInner({
 										Private
 									</button>
 								</div>
-								{localVisibility === 'public' && (
+								{localVisibility === 'public' ? (
 									<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
-								)}
+								) : null}
 							</div>
 
 							<div>
@@ -199,7 +199,7 @@ function DashboardSettingsModalInner({
 
 								<p className="mt-2 text-xs pro-text3">Press Enter to add tag</p>
 
-								{localTags.length > 0 && (
+								{localTags.length > 0 ? (
 									<div className="mt-3 flex flex-wrap gap-2">
 										{localTags.map((tag) => (
 											<span
@@ -219,7 +219,7 @@ function DashboardSettingsModalInner({
 											</span>
 										))}
 									</div>
-								)}
+								) : null}
 							</div>
 
 							<div>
@@ -243,7 +243,7 @@ function DashboardSettingsModalInner({
 								</p>
 							</div>
 
-							{onDelete && dashboardId && (
+							{onDelete && dashboardId ? (
 								<div className="border-t border-(--cards-border) pt-6">
 									<p className="mb-3 block text-sm font-medium pro-text1 text-red-500">Danger Zone</p>
 									<p className="mb-4 text-sm pro-text3">Once you delete a dashboard, there is no going back.</p>
@@ -257,7 +257,7 @@ function DashboardSettingsModalInner({
 										<span>Delete Dashboard</span>
 									</button>
 								</div>
-							)}
+							) : null}
 						</div>
 
 						<div className="mt-8 flex gap-3">

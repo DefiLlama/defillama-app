@@ -457,7 +457,7 @@ export function VirtualTable({
 													}
 												>
 													{value}
-													{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
+													{header.column.getCanSort() ? <SortIcon dir={header.column.getIsSorted()} /> : null}
 												</HeaderWithTooltip>
 											)}
 										</span>

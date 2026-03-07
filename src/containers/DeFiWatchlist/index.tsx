@@ -111,7 +111,7 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 					filteredProtocols={protocolsTableData as any}
 					filteredChains={chainsTableData}
 				/>
-				{protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />}
+				{protocolsTableData.length > 0 ? <TopMovers protocols={protocolsTableData} /> : null}
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex flex-wrap items-center gap-2 p-2">
 						<div className="mr-auto">
@@ -387,30 +387,30 @@ function PortfolioNotifications({
 					</p>
 				</div>
 
-				{preferences?.settings && (
+				{preferences?.settings ? (
 					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
 						<div className="space-y-1 text-xs text-(--text-secondary)">
-							{protocolsCount > 0 && (
+							{protocolsCount > 0 ? (
 								<p>
 									<span className="font-medium">Tracking {protocolsCount} protocol(s)</span>
 									{' - '}
 									<span>{protocolsFirstMetrics}</span>
 								</p>
-							)}
-							{chainsCount > 0 && (
+							) : null}
+							{chainsCount > 0 ? (
 								<p>
 									<span className="font-medium">Tracking {chainsCount} chain(s)</span>
 									{' - '}
 									<span>{chainsFirstMetrics}</span>
 								</p>
-							)}
+							) : null}
 							<div className="mt-1 text-xs opacity-75">
 								<Icon name="calendar" height={12} width={12} className="mr-1 inline" />
 								Delivered weekly to your email
 							</div>
 						</div>
 					</div>
-				)}
+				) : null}
 
 				<div className="flex flex-wrap items-center gap-2">
 					<button
@@ -422,9 +422,9 @@ function PortfolioNotifications({
 						<span>{preferences ? 'Update settings' : 'Set up notifications'}</span>
 					</button>
 
-					{preferences && (
+					{preferences ? (
 						<>
-							{preferences.active && (
+							{preferences.active ? (
 								<button
 									onClick={handleDisableNotifications}
 									disabled={loaders.userLoading || isUpdatingStatus}
@@ -434,8 +434,8 @@ function PortfolioNotifications({
 									<Icon name="pause" height={14} width={14} />
 									<span>{isUpdatingStatus ? 'Disabling...' : 'Disable'}</span>
 								</button>
-							)}
-							{!preferences.active && (
+							) : null}
+							{!preferences.active ? (
 								<button
 									onClick={() => updateStatus({ portfolioName: selectedPortfolio, active: true })}
 									disabled={loaders.userLoading || isUpdatingStatus}
@@ -445,7 +445,7 @@ function PortfolioNotifications({
 									<Icon name="check-circle" height={14} width={14} />
 									<span>{isUpdatingStatus ? 'Enabling...' : 'Enable'}</span>
 								</button>
-							)}
+							) : null}
 							<button
 								onClick={handleDeleteNotifications}
 								disabled={loaders.userLoading || isDeleting}
@@ -456,7 +456,7 @@ function PortfolioNotifications({
 								<span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
 							</button>
 						</>
-					)}
+					) : null}
 				</div>
 			</div>
 			{shouldRenderModal ? (
@@ -470,8 +470,8 @@ function PortfolioNotifications({
 					<div>
 						<h2 className="text-lg font-medium">
 							Email Notification Settings
-							{preferences &&
-								(preferences.active ? (
+							{preferences ? (
+								preferences.active ? (
 									<span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-normal text-green-700 dark:bg-green-900/30 dark:text-green-400">
 										<Icon name="check" height={12} width={12} />
 										Active
@@ -481,7 +481,8 @@ function PortfolioNotifications({
 										<Icon name="pause" height={12} width={12} />
 										Disabled
 									</span>
-								))}
+								)
+							) : null}
 						</h2>
 						<p className="mt-1 text-xs text-(--text-secondary)">
 							Configure weekly email alerts for "{selectedPortfolio}" portfolio
@@ -573,7 +574,7 @@ function PortfolioNotifications({
 						<div className="flex items-center gap-2">
 							{preferences ? (
 								<>
-									{preferences.active && (
+									{preferences.active ? (
 										<button
 											type="button"
 											onClick={handleDisableNotifications}
@@ -583,7 +584,7 @@ function PortfolioNotifications({
 											<Icon name="pause" height={14} width={14} />
 											<span>{isUpdatingStatus ? 'Disabling...' : 'Disable'}</span>
 										</button>
-									)}
+									) : null}
 									<button
 										type="button"
 										onClick={handleDeleteNotifications}
@@ -670,7 +671,7 @@ function PortfolioSelection() {
 					<Icon name="folder-plus" height={14} width={14} />
 					<span>New</span>
 				</button>
-				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
+				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME ? (
 					<button
 						onClick={handleRemovePortfolio}
 						className="flex items-center gap-1 rounded-md border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 focus-visible:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
@@ -679,7 +680,7 @@ function PortfolioSelection() {
 						<Icon name="trash-2" height={14} width={14} />
 						<span>Delete</span>
 					</button>
-				)}
+				) : null}
 			</div>
 		</div>
 	)
@@ -775,7 +776,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 					<span className="text-xs font-medium text-(--error)">Negative</span>
 				</label>
 
-				{availableChains.length > 0 && (
+				{availableChains.length > 0 ? (
 					<SelectWithCombobox
 						allValues={chainOptions}
 						selectedValues={selectedChains}
@@ -789,7 +790,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 						variant="filter"
 						portal
 					/>
-				)}
+				) : null}
 			</div>
 
 			<div className="grid grid-cols-1 gap-4 p-3 pt-1 sm:grid-cols-3">

@@ -343,21 +343,21 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<h3 className="text-sm font-semibold pro-text1">{chartTypeLabel}</h3>
 					<p className="text-xs pro-text2">{chainLabel} Stablecoins</p>
 				</div>
-				{hasChartData && (
+				{hasChartData ? (
 					<div className="flex gap-2">
-						{chartType !== 'pie' && (
+						{chartType !== 'pie' ? (
 							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
-						)}
+						) : null}
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
-				)}
+				) : null}
 			</div>
 
-			{latestMcap !== null && chartType === 'totalMcap' && (
+			{latestMcap !== null && chartType === 'totalMcap' ? (
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Total Market Cap</span>
@@ -366,7 +366,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 						</span>
 					</div>
 				</div>
-			)}
+			) : null}
 
 			<div className="flex-1">
 				<Suspense

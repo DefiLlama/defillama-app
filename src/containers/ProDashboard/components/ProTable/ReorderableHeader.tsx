@@ -43,14 +43,14 @@ export const ReorderableHeader = React.memo(function ReorderableHeader({
 				}
 			}}
 		>
-			{onMoveUp && (
+			{onMoveUp ? (
 				<div
 					className={`absolute top-0 bottom-0 left-0 flex items-center justify-start ${
 						canMoveUp ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
 					} transition-opacity`}
 					style={{ marginLeft: '-8px' }}
 				>
-					{canMoveUp && (
+					{canMoveUp ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
@@ -61,23 +61,23 @@ export const ReorderableHeader = React.memo(function ReorderableHeader({
 						>
 							<Icon name="chevron-left" height={10} width={10} />
 						</button>
-					)}
+					) : null}
 				</div>
-			)}
+			) : null}
 
 			<div className="flex flex-1 items-center justify-center gap-1 px-3">
 				{children}
-				{canSort && <SortIcon dir={isSorted} />}
+				{canSort ? <SortIcon dir={isSorted} /> : null}
 			</div>
 
-			{onMoveDown && (
+			{onMoveDown ? (
 				<div
 					className={`absolute top-0 right-0 bottom-0 flex items-center justify-end ${
 						canMoveDown ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
 					} transition-opacity`}
 					style={{ marginRight: '-8px' }}
 				>
-					{canMoveDown && (
+					{canMoveDown ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
@@ -88,9 +88,9 @@ export const ReorderableHeader = React.memo(function ReorderableHeader({
 						>
 							<Icon name="chevron-right" height={10} width={10} />
 						</button>
-					)}
+					) : null}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 })

@@ -59,7 +59,9 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 					>
 						{pool}
 					</BasicLink>
-					{row.original.poolMeta && <span className="text-xs text-(--text-secondary)">{row.original.poolMeta}</span>}
+					{row.original.poolMeta ? (
+						<span className="text-xs text-(--text-secondary)">{row.original.poolMeta}</span>
+					) : null}
 				</span>
 			)
 		},
@@ -142,9 +144,9 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			return (
 				<span className="flex items-center justify-end gap-1">
 					{value ? <PercentChange percent={value} noSign /> : '-'}
-					{symbols && symbols.length > 0 && (
+					{symbols && symbols.length > 0 ? (
 						<span className="text-xs text-(--text-secondary)">({symbols.join(', ')})</span>
-					)}
+					) : null}
 				</span>
 			)
 		},

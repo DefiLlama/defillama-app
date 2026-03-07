@@ -135,7 +135,7 @@ export default function YieldBorrow(data) {
 						</label>
 					) : null}
 				</div>
-				{(borrowToken || collateralToken) && <PoolsList pools={filteredPools} />}
+				{borrowToken || collateralToken ? <PoolsList pools={filteredPools} /> : null}
 			</div>
 		</Layout>
 	)

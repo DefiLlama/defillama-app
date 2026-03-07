@@ -43,13 +43,13 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
-						{coinSymbol && coinSymbol !== '-' && <span className="text-(--text-tertiary)"> ({coinSymbol})</span>}
+						{coinSymbol && coinSymbol !== '-' ? <span className="text-(--text-tertiary)"> ({coinSymbol})</span> : null}
 					</BasicLink>
-					{row.original.walletsLink && (
+					{row.original.walletsLink ? (
 						<a href={row.original.walletsLink} target="_blank" rel="noopener noreferrer" className="ml-1">
 							<Icon name="external-link" height={14} width={14} />
 						</a>
-					)}
+					) : null}
 				</span>
 			)
 		},

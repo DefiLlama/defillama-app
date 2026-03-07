@@ -244,11 +244,11 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 				</div>
 
 				<div className="thin-scrollbar max-h-[calc(85vh-73px)] overflow-y-auto">
-					{alertsError && (
+					{alertsError ? (
 						<div className="px-5 py-3 text-xs text-red-500">
 							{alertsError instanceof Error ? alertsError.message : 'Failed to fetch alerts'}
 						</div>
-					)}
+					) : null}
 					{isLoading ? (
 						<div className="flex items-center justify-center py-16">
 							<LoadingSpinner size={24} />
@@ -477,7 +477,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</button>
 					</div>
 				</div>
-				{deleteErrorMessage && <p className="text-center text-xs text-red-500">{deleteErrorMessage}</p>}
+				{deleteErrorMessage ? <p className="text-center text-xs text-red-500">{deleteErrorMessage}</p> : null}
 			</div>
 		)
 	}
@@ -488,9 +488,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
 						<h3 className="truncate text-sm font-medium text-black dark:text-white">{alert.title}</h3>
-						{alert.last_run_status === 'error' && (
+						{alert.last_run_status === 'error' ? (
 							<span className="shrink-0 rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] text-red-500">Error</span>
-						)}
+						) : null}
 					</div>
 					<p className="mt-0.5 text-xs text-[#666] dark:text-[#919296]">
 						{formatScheduleExpression(alert.schedule_expression)}
@@ -536,9 +536,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				</div>
 			</div>
 
-			{toggleErrorMessage && !isEditing && <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p>}
+			{toggleErrorMessage && !isEditing ? <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p> : null}
 
-			{isEditing && (
+			{isEditing ? (
 				<div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
 					<input
 						value={title}
@@ -555,7 +555,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							<option value="daily">Daily</option>
 							<option value="weekly">Weekly</option>
 						</select>
-						{frequency === 'weekly' && (
+						{frequency === 'weekly' ? (
 							<select
 								value={dayOfWeek}
 								onChange={(e) => setDayOfWeek(Number(e.target.value))}
@@ -567,7 +567,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 									</option>
 								))}
 							</select>
-						)}
+						) : null}
 						<span className="text-sm text-(--text3)">at</span>
 						<select
 							key={`hour-${timezone}`}
@@ -624,9 +624,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							Save
 						</button>
 					</div>
-					{updateErrorMessage && <p className="text-center text-xs text-red-500">{updateErrorMessage}</p>}
+					{updateErrorMessage ? <p className="text-center text-xs text-red-500">{updateErrorMessage}</p> : null}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 })

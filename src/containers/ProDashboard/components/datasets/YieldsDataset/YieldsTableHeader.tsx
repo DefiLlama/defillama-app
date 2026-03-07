@@ -89,11 +89,11 @@ export function YieldsTableHeader({
 					>
 						<Icon name="align-left" height={14} width={14} />
 						Filters
-						{activeFilterCount > 0 && (
+						{activeFilterCount > 0 ? (
 							<span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--primary) text-xs text-white">
 								{activeFilterCount}
 							</span>
-						)}
+						) : null}
 						<Icon name={showFiltersPanel ? 'chevron-up' : 'chevron-down'} height={12} width={12} />
 					</button>
 					<button

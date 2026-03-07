@@ -360,7 +360,7 @@ const ChartByType = ({
 	return (
 		<>
 			<div className="flex flex-wrap items-center justify-end gap-1 p-2 pb-0">
-				{title && <h2 className="mr-auto text-base font-semibold">{title}</h2>}
+				{title ? <h2 className="mr-auto text-base font-semibold">{title}</h2> : null}
 				<div className="ml-auto flex flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{INTERVALS_LIST.map((dataInterval) => (
 						<Tooltip
@@ -389,7 +389,7 @@ const ChartByType = ({
 					filename={title ? title : `${protocolName}-${chartType}`}
 					title={title}
 				/>
-				{chartBuilderConfig && <AddToDashboardButton chartConfig={chartBuilderConfig} smol />}
+				{chartBuilderConfig ? <AddToDashboardButton chartConfig={chartBuilderConfig} smol /> : null}
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2

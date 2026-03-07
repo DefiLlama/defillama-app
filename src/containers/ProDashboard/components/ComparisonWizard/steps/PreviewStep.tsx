@@ -160,7 +160,7 @@ export function PreviewStep() {
 							Add
 						</button>
 					</div>
-					{state.tags.length > 0 && (
+					{state.tags.length > 0 ? (
 						<div className="mt-1.5 flex flex-wrap gap-1">
 							{state.tags.map((tag) => (
 								<span
@@ -178,7 +178,7 @@ export function PreviewStep() {
 								</span>
 							))}
 						</div>
-					)}
+					) : null}
 				</div>
 
 				<div>
@@ -228,13 +228,13 @@ export function PreviewStep() {
 										onChange={() => actions.toggleMetricForCard(metric)}
 										className="sr-only"
 									/>
-									{isSelected && <Icon name="check" height={10} width={10} />}
+									{isSelected ? <Icon name="check" height={10} width={10} /> : null}
 									{label}
 								</label>
 							)
 						})}
 					</div>
-					{state.metricsForCards.length > 0 && (
+					{state.metricsForCards.length > 0 ? (
 						<div className="mt-2 flex items-center gap-2 border-t border-(--cards-border) pt-2">
 							<AriakitSelect
 								options={AGGREGATOR_OPTIONS}
@@ -249,7 +249,7 @@ export function PreviewStep() {
 								className="min-w-[60px]"
 							/>
 						</div>
-					)}
+					) : null}
 				</div>
 
 				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-3">
@@ -279,9 +279,9 @@ export function PreviewStep() {
 						<div className="flex items-center justify-between">
 							<span className="text-(--text-tertiary)">Output</span>
 							<span className="font-medium text-(--primary)">
-								{metricCardsCount > 0 && `${metricCardsCount} cards + `}
+								{metricCardsCount > 0 ? `${metricCardsCount} cards + ` : null}
 								{state.selectedMetrics.length} charts
-								{state.includeTable && ' + 1 table'}
+								{state.includeTable ? ' + 1 table' : null}
 							</span>
 						</div>
 					</div>

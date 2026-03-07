@@ -49,11 +49,11 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		<div className="flex flex-col gap-2 p-2">
 			<div className="flex items-center justify-between">
 				<h3 className="font-medium">{config.title || data.title}</h3>
-				{!data.dataFreshness?.isFresh && data.dataFreshness?.cachedAt && (
+				{!data.dataFreshness?.isFresh && data.dataFreshness?.cachedAt ? (
 					<span className="text-xs text-(--text-form)">
 						Updated {new Date(data.dataFreshness.cachedAt).toLocaleDateString()}
 					</span>
-				)}
+				) : null}
 			</div>
 			<ChartRenderer charts={[data.chartConfig]} chartData={data.chartData} />
 		</div>

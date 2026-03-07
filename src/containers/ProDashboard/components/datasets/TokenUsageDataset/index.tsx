@@ -416,15 +416,15 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							</div>
 						))}
 
-						{tokenSymbols.length <= 2 && (
+						{tokenSymbols.length <= 2 ? (
 							<div className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">Total Combined</div>
 								<div className="text-lg font-semibold pro-text1">{formattedNum(totalAmount, true)}</div>
 								<div className="text-xs text-(--text-tertiary)">All tokens</div>
 							</div>
-						)}
+						) : null}
 
-						{tokenSymbols.length <= 3 && (
+						{tokenSymbols.length <= 3 ? (
 							<div className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">Unique Protocols</div>
 								<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
@@ -435,10 +435,10 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									})()}
 								</div>
 							</div>
-						)}
+						) : null}
 					</div>
 
-					{protocolOverlap && (
+					{protocolOverlap ? (
 						<div className="mb-4 border border-(--divider) p-3">
 							<div className="mb-2 text-xs text-(--text-tertiary)">Protocol Distribution</div>
 							<div className="flex flex-wrap items-center gap-4">
@@ -473,7 +473,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								<div className="ml-auto text-sm text-(--text-tertiary)">Total: {protocolCount} protocols</div>
 							</div>
 						</div>
-					)}
+					) : null}
 				</>
 			)}
 
@@ -533,7 +533,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 											includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
 										}`}
 									>
-										{includeCex && (
+										{includeCex ? (
 											<svg
 												className="h-3 w-3 text-white"
 												fill="currentColor"
@@ -547,7 +547,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 													clipRule="evenodd"
 												/>
 											</svg>
-										)}
+										) : null}
 									</div>
 								</div>
 								<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
@@ -624,7 +624,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				</table>
 			</div>
 
-			{table.getPageCount() > 1 && (
+			{table.getPageCount() > 1 ? (
 				<div className="mt-2 flex w-full items-center justify-between px-2 py-2">
 					<div className="flex items-center gap-2">
 						<button
@@ -671,7 +671,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						))}
 					</select>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

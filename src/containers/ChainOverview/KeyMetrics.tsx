@@ -203,7 +203,7 @@ function DexsVolume({ dexs }: { dexs: IChainOverviewData['dexs'] }) {
 					value={formattedNum(dexs.total7d, true)}
 				/>
 			) : null}
-			{dexs.change_7dover7d != null && (
+			{dexs.change_7dover7d != null ? (
 				<ChainSubMetricRow
 					label="Weekly Change"
 					tooltip={definitions.dexs.chain['change7dover7d']}
@@ -213,7 +213,7 @@ function DexsVolume({ dexs }: { dexs: IChainOverviewData['dexs'] }) {
 						</span>
 					}
 				/>
-			)}
+			) : null}
 			{dexs.dexsDominance != null ? (
 				<ChainSubMetricRow label="DEX vs CEX dominance" value={`${dexs.dexsDominance}%`} />
 			) : null}

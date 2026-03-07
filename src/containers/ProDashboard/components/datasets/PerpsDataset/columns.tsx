@@ -12,7 +12,7 @@ export const perpsDatasetColumns: ColumnDef<any>[] = [
 		cell: ({ row }) => {
 			return (
 				<div className="flex items-center gap-3">
-					{row.original.logo && (
+					{row.original.logo ? (
 						<img
 							src={row.original.logo}
 							alt={row.original.name}
@@ -23,7 +23,7 @@ export const perpsDatasetColumns: ColumnDef<any>[] = [
 								e.currentTarget.style.display = 'none'
 							}}
 						/>
-					)}
+					) : null}
 					<span className="font-medium pro-text1">{row.original.name}</span>
 				</div>
 			)

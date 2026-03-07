@@ -151,7 +151,7 @@ export default function YieldPlots(data) {
 				>
 					Full explanation of methodology
 				</button>
-				{methodologyActivated && methodologyMessage}
+				{methodologyActivated ? methodologyMessage : null}
 			</p>
 			<YieldPage {...data} />
 		</Layout>

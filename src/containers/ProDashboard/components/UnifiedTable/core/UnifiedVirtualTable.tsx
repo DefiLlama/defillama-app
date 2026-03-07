@@ -119,9 +119,9 @@ export function UnifiedVirtualTable({
 											{header.isPlaceholder ? null : (
 												<HeaderWithTooltip content={meta?.headerHelperText}>{value}</HeaderWithTooltip>
 											)}
-											{!header.isPlaceholder && header.column.getCanSort() && (
+											{!header.isPlaceholder && header.column.getCanSort() ? (
 												<SortIcon dir={header.column.getIsSorted()} />
-											)}
+											) : null}
 										</button>
 									</div>
 								)

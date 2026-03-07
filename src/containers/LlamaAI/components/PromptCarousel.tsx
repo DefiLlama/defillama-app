@@ -118,7 +118,7 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 					</button>
 				))}
 			</div>
-			{totalPages > 1 && (
+			{totalPages > 1 ? (
 				<div className="mt-2.5 flex items-center justify-center gap-3">
 					<button
 						onClick={handlePreviousPage}
@@ -149,7 +149,7 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 						<Icon name="chevron-right" height={11} width={11} />
 					</button>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -172,9 +172,9 @@ function Header({
 				<span className="text-[11px] font-medium tracking-wide text-[#a0a0a0] uppercase dark:text-[#505050]">
 					{category.name}
 				</span>
-				{totalCategories > 1 && <span className="ml-0.5 text-[10px] text-[#d0d0d0] dark:text-[#353535]">·</span>}
+				{totalCategories > 1 ? <span className="ml-0.5 text-[10px] text-[#d0d0d0] dark:text-[#353535]">·</span> : null}
 			</div>
-			{totalCategories > 1 && (
+			{totalCategories > 1 ? (
 				<div className="flex items-center gap-0.5">
 					<button
 						onClick={onPreviousCategory}
@@ -193,7 +193,7 @@ function Header({
 						<Icon name="chevron-right" height={11} width={11} />
 					</button>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

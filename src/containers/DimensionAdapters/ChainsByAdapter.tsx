@@ -107,7 +107,7 @@ export function ChainsByAdapter(props: IProps) {
 
 	return (
 		<>
-			{props.type === 'Fees' && (
+			{props.type === 'Fees' ? (
 				<Announcement notCancellable>
 					<span>Are we missing any protocol?</span>{' '}
 					<a
@@ -119,8 +119,10 @@ export function ChainsByAdapter(props: IProps) {
 						Request it here!
 					</a>
 				</Announcement>
-			)}
-			{props.adapterType !== 'fees' && <ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />}
+			) : null}
+			{props.adapterType !== 'fees' ? (
+				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />
+			) : null}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
 					<label className="relative mr-auto w-full sm:max-w-[280px]">

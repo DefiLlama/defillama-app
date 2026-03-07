@@ -602,7 +602,7 @@ export function ColumnManager({
 							{selectedColumns.length}
 						</span>
 					</div>
-					{selectedColumns.length > 0 && (
+					{selectedColumns.length > 0 ? (
 						<button
 							type="button"
 							onClick={handleClearAll}
@@ -610,7 +610,7 @@ export function ColumnManager({
 						>
 							Clear all
 						</button>
-					)}
+					) : null}
 				</div>
 
 				<DndContext
@@ -657,7 +657,7 @@ export function ColumnManager({
 				<p className="mt-2 text-[10px] text-(--text-tertiary)">Drag to reorder. First column pinned left.</p>
 			</section>
 
-			{sorting !== undefined && onSortingChange && (
+			{sorting !== undefined && onSortingChange ? (
 				<SortingSection
 					currentSortColumn={currentSortColumn}
 					isDescending={isDescending}
@@ -666,7 +666,7 @@ export function ColumnManager({
 					onDirectionChange={handleSortDirectionChange}
 					onReset={onSortingReset}
 				/>
-			)}
+			) : null}
 
 			<section className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3">
 				<button
@@ -682,11 +682,11 @@ export function ColumnManager({
 						<span className="text-xs font-semibold text-(--text-primary)">
 							{editingId ? 'Edit Custom Column' : 'Custom Column'}
 						</span>
-						{(customColumns?.length ?? 0) > 0 && (
+						{(customColumns?.length ?? 0) > 0 ? (
 							<span className="rounded bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-medium text-purple-500">
 								{customColumns?.length}
 							</span>
-						)}
+						) : null}
 					</div>
 					<Icon
 						name="chevron-down"
@@ -709,16 +709,16 @@ export function ColumnManager({
 					))}
 				</div>
 
-				{customColumnExpanded && (
+				{customColumnExpanded ? (
 					<div className="mt-3 space-y-3 border-t border-(--cards-border) pt-3">
-						{editingId && (
+						{editingId ? (
 							<div className="flex items-center justify-between">
 								<span className="text-xs text-(--text-secondary)">Editing: {customName || 'Custom Column'}</span>
 								<button type="button" onClick={handleCancelEdit} className="text-xs text-(--primary) hover:underline">
 									Cancel
 								</button>
 							</div>
-						)}
+						) : null}
 
 						<div className="flex gap-2">
 							<input
@@ -747,7 +747,7 @@ export function ColumnManager({
 											: 'border-(--cards-border) focus:border-(--primary)'
 								}`}
 							/>
-							{customExpression && (
+							{customExpression ? (
 								<div className="absolute top-1/2 right-2 -translate-y-1/2">
 									{expressionValidation.isValid ? (
 										<Icon name="check" height={12} width={12} className="text-green-500" />
@@ -755,8 +755,8 @@ export function ColumnManager({
 										<Icon name="x" height={12} width={12} className="text-red-500" />
 									)}
 								</div>
-							)}
-							{showAutocomplete && filteredSuggestions.length > 0 && (
+							) : null}
+							{showAutocomplete && filteredSuggestions.length > 0 ? (
 								<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
 									{filteredSuggestions.map((suggestion, index) => (
 										<button
@@ -784,7 +784,7 @@ export function ColumnManager({
 										</button>
 									))}
 								</div>
-							)}
+							) : null}
 						</div>
 						<p className="text-[9px] text-(--text-tertiary)">Ctrl+Space to show all · ↑↓ navigate · Enter select</p>
 
@@ -834,7 +834,7 @@ export function ColumnManager({
 							</div>
 						</div>
 
-						{customExpression && (
+						{customExpression ? (
 							<div
 								className={`rounded-md border p-2 text-xs ${
 									expressionValidation.isValid ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'
@@ -848,7 +848,7 @@ export function ColumnManager({
 										<span className="text-red-500">{expressionValidation.error || 'Invalid'}</span>
 									)}
 								</div>
-								{usedVariables.length > 0 && (
+								{usedVariables.length > 0 ? (
 									<div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 border-t border-green-500/20 pt-1">
 										{usedVariables.map((v) => (
 											<span key={v.key} className="text-[10px] text-(--text-tertiary)">
@@ -856,9 +856,9 @@ export function ColumnManager({
 											</span>
 										))}
 									</div>
-								)}
+								) : null}
 							</div>
-						)}
+						) : null}
 
 						<button
 							type="button"
@@ -869,9 +869,9 @@ export function ColumnManager({
 							{editingId ? 'Update Column' : 'Add Custom Column'}
 						</button>
 					</div>
-				)}
+				) : null}
 
-				{(customColumns?.length ?? 0) > 0 && (
+				{(customColumns?.length ?? 0) > 0 ? (
 					<div className="mt-3 space-y-1.5 border-t border-(--cards-border) pt-3">
 						{customColumns?.map((col) => (
 							<div
@@ -909,7 +909,7 @@ export function ColumnManager({
 							</div>
 						))}
 					</div>
-				)}
+				) : null}
 			</section>
 
 			<section className="flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg)">
@@ -972,7 +972,7 @@ export function ColumnManager({
 													: 'border-(--cards-border) group-hover:border-(--primary)/50'
 											}`}
 										>
-											{isSelected && <Icon name="check" width={8} height={8} />}
+											{isSelected ? <Icon name="check" width={8} height={8} /> : null}
 										</div>
 										<span
 											className={`flex-1 truncate text-xs ${isSelected ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'}`}
@@ -1035,7 +1035,7 @@ function SortableChip({
 			<span className="max-w-[80px] truncate font-medium text-(--text-primary)" title={label}>
 				{label}
 			</span>
-			{isFirst && <Icon name="pin" width={8} height={8} className="text-(--primary)" />}
+			{isFirst ? <Icon name="pin" width={8} height={8} className="text-(--primary)" /> : null}
 			<button
 				type="button"
 				onClick={(e) => {
@@ -1110,9 +1110,9 @@ function SortingSection({
 								}`}
 							>
 								<span>No sorting</span>
-								{!currentSortColumn && (
+								{!currentSortColumn ? (
 									<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
-								)}
+								) : null}
 							</button>
 							{selectableColumns.map((col) => {
 								const isActive = col.id === currentSortColumn
@@ -1131,9 +1131,9 @@ function SortingSection({
 										}`}
 									>
 										<span className="truncate">{col.header}</span>
-										{isActive && (
+										{isActive ? (
 											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
-										)}
+										) : null}
 									</button>
 								)
 							})}
@@ -1170,11 +1170,11 @@ function SortingSection({
 						Desc
 					</button>
 				</div>
-				{onReset && (
+				{onReset ? (
 					<button type="button" onClick={onReset} className="text-[10px] text-(--primary) hover:underline">
 						Reset
 					</button>
-				)}
+				) : null}
 			</div>
 		</section>
 	)

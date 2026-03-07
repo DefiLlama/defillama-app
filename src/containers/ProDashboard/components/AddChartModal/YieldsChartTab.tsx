@@ -577,7 +577,7 @@ export function YieldsChartTab({
 														}}
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
-															{iconUrl && (
+															{iconUrl ? (
 																<img
 																	src={iconUrl}
 																	alt={option.label}
@@ -585,18 +585,18 @@ export function YieldsChartTab({
 																	height={20}
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
 																/>
-															)}
+															) : null}
 															<span className="truncate">{option.label}</span>
 														</div>
-														{isActive && (
+														{isActive ? (
 															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-														)}
+														) : null}
 													</button>
 												)
 											})}
 										</div>
 									</div>
-									{selectedYieldChains.length > 0 && (
+									{selectedYieldChains.length > 0 ? (
 										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 											<span className="text-[11px] font-medium text-(--text-secondary)">
 												{selectedYieldChains.length} selected
@@ -609,7 +609,7 @@ export function YieldsChartTab({
 												Clear
 											</button>
 										</div>
-									)}
+									) : null}
 								</div>
 							</Popover>
 						</div>
@@ -686,7 +686,7 @@ export function YieldsChartTab({
 														}}
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
-															{iconUrl && (
+															{iconUrl ? (
 																<img
 																	src={iconUrl}
 																	alt={option.label}
@@ -694,18 +694,18 @@ export function YieldsChartTab({
 																	height={20}
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
 																/>
-															)}
+															) : null}
 															<span className="truncate">{option.label}</span>
 														</div>
-														{isActive && (
+														{isActive ? (
 															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-														)}
+														) : null}
 													</button>
 												)
 											})}
 										</div>
 									</div>
-									{selectedYieldProjects.length > 0 && (
+									{selectedYieldProjects.length > 0 ? (
 										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 											<span className="text-[11px] font-medium text-(--text-secondary)">
 												{selectedYieldProjects.length} selected
@@ -718,7 +718,7 @@ export function YieldsChartTab({
 												Clear
 											</button>
 										</div>
-									)}
+									) : null}
 								</div>
 							</Popover>
 						</div>
@@ -794,15 +794,15 @@ export function YieldsChartTab({
 														}}
 													>
 														<span className="truncate">{option.label}</span>
-														{isActive && (
+														{isActive ? (
 															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-														)}
+														) : null}
 													</button>
 												)
 											})}
 										</div>
 									</div>
-									{selectedYieldTokens.length > 0 && (
+									{selectedYieldTokens.length > 0 ? (
 										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 											<span className="text-[11px] font-medium text-(--text-secondary)">
 												{selectedYieldTokens.length} selected
@@ -818,7 +818,7 @@ export function YieldsChartTab({
 												Clear
 											</button>
 										</div>
-									)}
+									) : null}
 								</div>
 							</Popover>
 						</div>
@@ -856,7 +856,7 @@ export function YieldsChartTab({
 						<div className="overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 							<div className="flex items-center justify-between px-3 py-2.5">
 								<div className="flex items-center gap-3">
-									{selectedPoolData && (
+									{selectedPoolData ? (
 										<img
 											src={getItemIconUrl('protocol', null, selectedPoolData.project)}
 											alt={selectedPoolData.project}
@@ -864,14 +864,14 @@ export function YieldsChartTab({
 											height={32}
 											className="h-8 w-8 rounded-full object-cover ring-1 ring-(--cards-border)"
 										/>
-									)}
+									) : null}
 									<div className="min-w-0">
 										<p className="text-sm font-semibold pro-text1">{selectedYieldPool.name}</p>
 										<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
 											<span>{selectedYieldPool.project}</span>
 											<span>•</span>
 											<span>{selectedYieldPool.chain}</span>
-											{selectedPoolData && (
+											{selectedPoolData ? (
 												<>
 													<span>•</span>
 													<span className="font-medium text-(--text-secondary)">
@@ -882,7 +882,7 @@ export function YieldsChartTab({
 														APY: {selectedPoolData.apy?.toFixed(2) || '0.00'}%
 													</span>
 												</>
-											)}
+											) : null}
 										</div>
 									</div>
 								</div>
@@ -929,7 +929,7 @@ export function YieldsChartTab({
 										{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''}
 									</span>
 								</div>
-								{selectedYieldPool && (
+								{selectedYieldPool ? (
 									<button
 										type="button"
 										onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: false })}
@@ -937,7 +937,7 @@ export function YieldsChartTab({
 									>
 										Cancel
 									</button>
-								)}
+								) : null}
 							</div>
 
 							<div className="grid grid-cols-[1fr_100px_100px_80px] gap-2 border-b border-(--cards-border) bg-(--cards-bg-alt)/50 px-3 py-2 text-[11px] font-medium">
@@ -1014,7 +1014,7 @@ export function YieldsChartTab({
 													}}
 												>
 													<div className="flex min-w-0 items-center gap-2">
-														{iconUrl && (
+														{iconUrl ? (
 															<img
 																src={iconUrl}
 																alt={pool.project}
@@ -1022,7 +1022,7 @@ export function YieldsChartTab({
 																height={24}
 																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
 															/>
-														)}
+														) : null}
 														<div className="min-w-0">
 															<div className={`truncate font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
 																{pool.pool}
@@ -1041,19 +1041,19 @@ export function YieldsChartTab({
 														<div className={`font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
 															{pool.apy?.toFixed(2) || '0.00'}%
 														</div>
-														{pool.apyMean30d != null && (
+														{pool.apyMean30d != null ? (
 															<div className="text-[10px] text-(--text-tertiary)">
 																30d: {pool.apyMean30d.toFixed(2)}%
 															</div>
-														)}
+														) : null}
 													</div>
 
 													<div className="text-right">
-														{pool.category && (
+														{pool.category ? (
 															<span className="inline-block truncate rounded bg-(--cards-bg-alt) px-1.5 py-0.5 text-[10px] text-(--text-tertiary)">
 																{pool.category}
 															</span>
-														)}
+														) : null}
 													</div>
 												</button>
 											)
@@ -1073,7 +1073,7 @@ export function YieldsChartTab({
 						</div>
 
 						{/* Chart Type Pills */}
-						{selectedYieldPool && (
+						{selectedYieldPool ? (
 							<div className="flex flex-wrap gap-1.5 border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
 								{availableChartTypes.map((type) => {
 									const isLoading =
@@ -1093,12 +1093,12 @@ export function YieldsChartTab({
 											}`}
 										>
 											{type.label}
-											{isLoading && '...'}
+											{isLoading ? '...' : null}
 										</button>
 									)
 								})}
 							</div>
-						)}
+						) : null}
 
 						{selectedYieldPool ? (
 							<div className="bg-(--cards-bg) p-3">
@@ -1109,23 +1109,23 @@ export function YieldsChartTab({
 								</div>
 
 								{selectedYieldChartType === 'tvl-apy' &&
-									latestYieldData.apy !== null &&
-									latestYieldData.tvl !== null && (
-										<div className="mb-3 flex gap-4">
-											<div className="flex flex-col">
-												<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
-												<span className="font-jetbrains text-base font-semibold" style={{ color: '#cc3e82' }}>
-													{latestYieldData.apy}%
-												</span>
-											</div>
-											<div className="flex flex-col">
-												<span className="text-[10px] pro-text3 uppercase">TVL</span>
-												<span className="font-jetbrains text-base font-semibold" style={{ color: '#3e79cc' }}>
-													{formattedNum(latestYieldData.tvl, true)}
-												</span>
-											</div>
+								latestYieldData.apy !== null &&
+								latestYieldData.tvl !== null ? (
+									<div className="mb-3 flex gap-4">
+										<div className="flex flex-col">
+											<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
+											<span className="font-jetbrains text-base font-semibold" style={{ color: '#cc3e82' }}>
+												{latestYieldData.apy}%
+											</span>
 										</div>
-									)}
+										<div className="flex flex-col">
+											<span className="text-[10px] pro-text3 uppercase">TVL</span>
+											<span className="font-jetbrains text-base font-semibold" style={{ color: '#3e79cc' }}>
+												{formattedNum(latestYieldData.tvl, true)}
+											</span>
+										</div>
+									</div>
+								) : null}
 
 								<div className="h-[280px]">
 									{isPreviewLoading ? (
@@ -1140,7 +1140,7 @@ export function YieldsChartTab({
 												</div>
 											}
 										>
-											{selectedYieldChartType === 'tvl-apy' && (
+											{selectedYieldChartType === 'tvl-apy' ? (
 												<MultiSeriesChart2
 													height="280px"
 													dataset={yieldsChartDataset}
@@ -1149,8 +1149,8 @@ export function YieldsChartTab({
 													valueSymbol=""
 													alwaysShowTooltip={false}
 												/>
-											)}
-											{selectedYieldChartType === 'supply-apy' && (
+											) : null}
+											{selectedYieldChartType === 'supply-apy' ? (
 												<BarChart
 													height="280px"
 													chartData={supplyApyBarData}
@@ -1159,8 +1159,8 @@ export function YieldsChartTab({
 													title="Supply APY"
 													valueSymbol="%"
 												/>
-											)}
-											{selectedYieldChartType === 'supply-apy-7d' && (
+											) : null}
+											{selectedYieldChartType === 'supply-apy-7d' ? (
 												<AreaChart
 													height="280px"
 													chartData={supplyApy7dData}
@@ -1168,8 +1168,8 @@ export function YieldsChartTab({
 													valueSymbol="%"
 													color={CHART_COLORS[0]}
 												/>
-											)}
-											{selectedYieldChartType === 'borrow-apy' && (
+											) : null}
+											{selectedYieldChartType === 'borrow-apy' ? (
 												<BarChart
 													height="280px"
 													chartData={borrowApyBarData}
@@ -1178,8 +1178,8 @@ export function YieldsChartTab({
 													title="Borrow APY"
 													valueSymbol="%"
 												/>
-											)}
-											{selectedYieldChartType === 'net-borrow-apy' && (
+											) : null}
+											{selectedYieldChartType === 'net-borrow-apy' ? (
 												<AreaChart
 													height="280px"
 													chartData={netBorrowApyData}
@@ -1187,8 +1187,8 @@ export function YieldsChartTab({
 													valueSymbol="%"
 													color={CHART_COLORS[0]}
 												/>
-											)}
-											{selectedYieldChartType === 'pool-liquidity' && (
+											) : null}
+											{selectedYieldChartType === 'pool-liquidity' ? (
 												<AreaChart
 													height="280px"
 													chartData={poolLiquidityData}
@@ -1198,7 +1198,7 @@ export function YieldsChartTab({
 													valueSymbol="$"
 													stackColors={liquidityChartColors}
 												/>
-											)}
+											) : null}
 										</Suspense>
 									)}
 								</div>

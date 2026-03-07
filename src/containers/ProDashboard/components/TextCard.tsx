@@ -8,7 +8,7 @@ interface TextCardProps {
 export function TextCard({ text }: TextCardProps) {
 	return (
 		<div className="prose prose-sm flex thin-scrollbar flex-col gap-2 overflow-y-auto p-4 prose-invert">
-			{text.title && <h2 className="text-lg font-semibold text-(--text-primary)">{text.title}</h2>}
+			{text.title ? <h2 className="text-lg font-semibold text-(--text-primary)">{text.title}</h2> : null}
 
 			<ReactMarkdown
 				components={{

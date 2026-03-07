@@ -274,8 +274,8 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						) : (
 							<span className="w-4" />
 						)}
-						{display.header !== 'category' &&
-							(shouldShowProtocolLogo || shouldShowChainIcon ? (
+						{display.header !== 'category' ? (
+							shouldShowProtocolLogo || shouldShowChainIcon ? (
 								shouldShowChainIcon ? (
 									<TokenLogo name={display.label} kind="chain" alt={`Logo of ${display.label}`} size={24} />
 								) : (
@@ -287,11 +287,12 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 								)
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
-							))}
+							)
+						) : null}
 						<span className="font-medium text-(--text-primary)">{display.label}</span>
-						{protocolCountValue && protocolCountValue > 1 && (
+						{protocolCountValue && protocolCountValue > 1 ? (
 							<span className="text-xs text-(--text-tertiary)">{protocolCountValue} protocols</span>
-						)}
+						) : null}
 					</div>
 				)
 			}

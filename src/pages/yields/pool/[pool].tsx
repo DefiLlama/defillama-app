@@ -324,12 +324,12 @@ const PageView = (_props) => {
 							<span className="font-semibold">30d Avg APY</span>
 							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
-						{poolConfigId && (
+						{poolConfigId ? (
 							<p className="flex items-center justify-between gap-1">
 								<span className="font-semibold">Yield Score</span>
 								<StabilityCell cv30d={cv30d} apyMedian30d={apyMedian30d} apyStd30d={apyStd30d} />
 							</p>
-						)}
+						) : null}
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
 							<span className="ml-auto font-jetbrains text-(--apy-blue)">

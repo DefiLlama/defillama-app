@@ -208,7 +208,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 		return (
 			<div className="flex h-full flex-1 flex-col items-center justify-center gap-3 text-center">
 				<p className="text-4xl leading-tight font-semibold">{displayValue}</p>
-				{chartSeries.length > 1 && (
+				{chartSeries.length > 1 ? (
 					<Suspense fallback={<div className="h-16 w-full max-w-[280px]" />}>
 						<div className="w-full max-w-[280px]">
 							{chartType === 'bar' ? (
@@ -218,8 +218,8 @@ export function MetricCard({ metric }: MetricCardProps) {
 							)}
 						</div>
 					</Suspense>
-				)}
-				{deltaText && metric.aggregator !== 'growth' && (
+				) : null}
+				{deltaText && metric.aggregator !== 'growth' ? (
 					<p
 						className={`text-xs font-semibold tracking-wide uppercase ${
 							deltaPositive ? 'text-(--success)' : deltaNegative ? 'text-(--error)' : 'text-(--text-form)'
@@ -227,7 +227,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 					>
 						{deltaText}
 					</p>
-				)}
+				) : null}
 				<p className="max-w-[420px] text-sm text-(--text-secondary)">{summaryText}</p>
 			</div>
 		)
@@ -258,14 +258,14 @@ export function MetricCard({ metric }: MetricCardProps) {
 					)}
 					<div className="flex flex-col">
 						<h2 className="text-base leading-tight font-semibold text-(--text-primary)">{displayTitle}</h2>
-						{hasCustomLabel && <p className="text-[11px] leading-tight pro-text3">{baseTitle}</p>}
+						{hasCustomLabel ? <p className="text-[11px] leading-tight pro-text3">{baseTitle}</p> : null}
 					</div>
 				</div>
-				{!isReadOnly && (
+				{!isReadOnly ? (
 					<div className="text-[11px] tracking-wide text-(--text-form)">
 						{windowBadge} · {aggregatorBadge}
 					</div>
-				)}
+				) : null}
 			</div>
 
 			<div className="flex h-full flex-1 items-center justify-center pt-4">{content}</div>

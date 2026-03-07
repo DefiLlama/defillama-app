@@ -68,11 +68,11 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 			>
 				<Icon name="search" height={12} width={12} />
 				<span>Research</span>
-				{researchUsage && researchUsage.limit > 0 && researchUsage.period !== 'unlimited' && (
+				{researchUsage && researchUsage.limit > 0 && researchUsage.period !== 'unlimited' ? (
 					<span className="text-[10px] opacity-70">
 						{researchUsage.remainingUsage}/{researchUsage.limit}
 					</span>
-				)}
+				) : null}
 			</Tooltip>
 		</div>
 	)
