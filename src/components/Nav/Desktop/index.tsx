@@ -85,11 +85,11 @@ export function DesktopNav({
 												<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
 											</summary>
 											<div className="border-l border-black/20 pl-2 dark:border-white/20">
-												{pages.map(({ name, route }) => (
+												{pages.map(({ name: pageName, route: pageRoute }) => (
 													<LinkToPage
-														key={`old-desktop-nav-${name}-${route}`}
-														route={route}
-														name={name}
+														key={`old-desktop-nav-${pageName}-${pageRoute}`}
+														route={pageRoute}
+														name={pageName}
 														asPath={asPath}
 													/>
 												))}

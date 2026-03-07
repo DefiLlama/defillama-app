@@ -123,8 +123,8 @@ export const getLiquidationsCsvData = async (symbol: string) => {
 		'timestamp'
 	].join(',')
 	const csvData = allAssetPositions
-		.map(({ symbol, chain, protocol, liqPrice, collateralValue, collateralAmount, owner }) => {
-			return `${symbol.toUpperCase()},${chain},${protocol},${liqPrice},${collateralValue},${collateralAmount},${owner},${timestamp}`
+		.map(({ symbol: assetSymbol, chain, protocol, liqPrice, collateralValue, collateralAmount, owner }) => {
+			return `${assetSymbol.toUpperCase()},${chain},${protocol},${liqPrice},${collateralValue},${collateralAmount},${owner},${timestamp}`
 		})
 		.reduce((acc, curr) => acc + '\n' + curr, csvHeader)
 

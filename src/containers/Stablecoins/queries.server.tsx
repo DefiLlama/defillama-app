@@ -454,7 +454,7 @@ export const getStablecoinAssetPageData = async (
 		const chainCirculatings = chainsUnique
 			.map((chainName, i) => {
 				const circulating = readStablecoinNumericFromChart(chainsData[i], 0, 'circulating', pegType)
-				const unreleased = readStablecoinNumericFromChart(chainsData[i], 0, 'unreleased', pegType)
+				const chainUnreleased = readStablecoinNumericFromChart(chainsData[i], 0, 'unreleased', pegType)
 				const bridgedTo = readStablecoinNumericFromChart(chainsData[i], 0, 'bridgedTo', pegType)
 				const bridges = readStablecoinBridgesFromChart(chainsData[i], 0, 'bridgedTo')
 				const circulatingPrevDay = readStablecoinNumericFromChart(chainsData[i], 1, 'circulating', pegType)
@@ -466,7 +466,7 @@ export const getStablecoinAssetPageData = async (
 
 				return {
 					circulating,
-					unreleased,
+					unreleased: chainUnreleased,
 					change_1d,
 					change_7d,
 					change_1m,

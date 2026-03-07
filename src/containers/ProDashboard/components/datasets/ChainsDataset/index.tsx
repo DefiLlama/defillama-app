@@ -209,10 +209,10 @@ export function ChainsDataset({
 	const applyPreset = (preset: string) => {
 		const presetColumns = CHAIN_COLUMN_PRESETS[preset as keyof typeof CHAIN_COLUMN_PRESETS]
 		if (presetColumns) {
-			const allColumns = instance.getAllColumns()
+			const tableColumns = instance.getAllColumns()
 			const newVisibility: Record<string, boolean> = {}
 
-			for (const column of allColumns) {
+			for (const column of tableColumns) {
 				newVisibility[column.id] = presetColumns.includes(column.id)
 			}
 
@@ -238,14 +238,14 @@ export function ChainsDataset({
 			setColumnVisibility(newVisibility)
 
 			if (newVisibility[columnId] !== false && !columnOrder.includes(columnId)) {
-				const allColumns = instance.getAllLeafColumns().map((d) => d.id)
-				const originalIndex = allColumns.indexOf(columnId)
+				const leafColumnIds = instance.getAllLeafColumns().map((d) => d.id)
+				const originalIndex = leafColumnIds.indexOf(columnId)
 
 				const newOrder = [...columnOrder]
 				let insertIndex = newOrder.length
 
-				for (let i = originalIndex + 1; i < allColumns.length; i++) {
-					const colId = allColumns[i]
+				for (let i = originalIndex + 1; i < leafColumnIds.length; i++) {
+					const colId = leafColumnIds[i]
 					const orderIndex = newOrder.indexOf(colId)
 					if (orderIndex !== -1) {
 						insertIndex = orderIndex
@@ -319,9 +319,9 @@ export function ChainsDataset({
 		} else if (!hasCurrentVisibility && selectedPreset === 'essential') {
 			const presetColumns = CHAIN_COLUMN_PRESETS.essential
 			if (presetColumns) {
-				const allColumns = instance.getAllColumns()
+				const tableColumns = instance.getAllColumns()
 				const newVisibility: Record<string, boolean> = {}
-				for (const column of allColumns) {
+				for (const column of tableColumns) {
 					newVisibility[column.id] = presetColumns.includes(column.id)
 				}
 				setColumnVisibility(newVisibility)

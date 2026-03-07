@@ -201,7 +201,7 @@ export const useUnifiedTableWizard = (presetId?: string, existingConfig?: Unifie
 		[]
 	)
 	const setFilters = useCallback((filters: TableFilters) => dispatch({ type: 'SET_FILTERS', filters }), [])
-	const setPreset = useCallback((presetId: string) => dispatch({ type: 'SET_PRESET', presetId }), [])
+	const setPreset = useCallback((nextPresetId: string) => dispatch({ type: 'SET_PRESET', presetId: nextPresetId }), [])
 	const setColumns = useCallback(
 		(columnOrder: ColumnOrderState, columnVisibility: VisibilityState) =>
 			dispatch({ type: 'SET_COLUMNS', columnOrder, columnVisibility }),

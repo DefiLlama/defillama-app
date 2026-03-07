@@ -86,12 +86,18 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const columnOptions = uniqueCategories.map((cat) => ({ name: cat, key: cat }))
 
 	const router = useRouter()
-	const { chain, excludeChain, column, excludeColumn } = router.query
+	const { chain: chainQuery, excludeChain, column, excludeColumn } = router.query
 	const { selectedChains, selectedColumns, columnVisibility } = React.useMemo(() => {
 		const excludeChainSet = parseExcludeParam(excludeChain)
 		const excludeColumnSet = parseExcludeParam(excludeColumn)
 
-		let selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
+		let selectedChains = chainQuery
+			? Array.isArray(chainQuery)
+				? chainQuery
+				: chainQuery == 'All'
+					? chains
+					: [chainQuery]
+			: chains
 		// Filter out excludes
 		selectedChains = excludeChainSet.size > 0 ? selectedChains.filter((c) => !excludeChainSet.has(c)) : selectedChains
 
@@ -112,7 +118,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			columnVisibility[col] = selectedColumnsSet.has(col)
 		}
 		return { selectedChains, selectedColumns, columnVisibility }
-	}, [chain, excludeChain, column, excludeColumn, chains, uniqueCategories])
+	}, [chainQuery, excludeChain, column, excludeColumn, chains, uniqueCategories])
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [

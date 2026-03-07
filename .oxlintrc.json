@@ -8,6 +8,7 @@
 	"rules": {
 		"eslint/no-var": "off",
 		"eslint/prefer-const": "off",
+		"eslint/no-shadow": ["error", { "ignoreOnInitialization": true }],
 		"typescript/no-explicit-any": "off",
 		"typescript/no-empty-object-type": "off",
 		"react/no-unescaped-entities": "off",

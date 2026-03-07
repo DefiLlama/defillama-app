@@ -47,12 +47,12 @@ const TIME_LABEL_TO_KEY = {
 type TimeLabelKey = keyof typeof TIME_LABEL_TO_KEY
 type TimeValueKey = (typeof TIME_LABEL_TO_KEY)[TimeLabelKey]
 
-const timeOptions: TimeLabelKey[] = ['All', '7D', '30D', '90D', '1Y']
+const defaultTimeOptions: TimeLabelKey[] = ['All', '7D', '30D', '90D', '1Y']
 const isTimeLabelKey = (value: string): value is TimeLabelKey => value in TIME_LABEL_TO_KEY
 
 function buildKeyToLabel(): Record<TimeValueKey, TimeLabelKey> {
 	const result: Partial<Record<TimeValueKey, TimeLabelKey>> = {}
-	for (const label of timeOptions) {
+	for (const label of defaultTimeOptions) {
 		result[TIME_LABEL_TO_KEY[label]] = label
 	}
 	return result as Record<TimeValueKey, TimeLabelKey>
@@ -121,7 +121,7 @@ export function HacksFilters({
 						selectedClassifications={selectedClassifications}
 						techniqueOptions={techniqueOptions}
 						selectedTechniques={selectedTechniques}
-						timeOptions={timeOptions}
+						timeOptions={defaultTimeOptions}
 						selectedTimeLabel={selectedTimeLabel}
 						setSelectedTime={setSelectedTime}
 						hasActiveFilters={hasActiveFilters}

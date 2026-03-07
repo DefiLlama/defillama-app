@@ -395,7 +395,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	>({
 		mutationFn: async ({
 			alertId,
-			title,
+			title: nextTitle,
 			alertConfig
 		}: {
 			alertId: string
@@ -409,7 +409,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					title,
+					title: nextTitle,
 					alertConfig
 				})
 			})
@@ -419,7 +419,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 			return alertConfig
 		},
-		onSuccess: (_data, { alertId, title, alertConfig }) => {
+		onSuccess: (_data, { alertId, title: nextTitle, alertConfig }) => {
 			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
@@ -427,7 +427,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					: `Daily at ${alertConfig.hour}:00 ${tzLabel}`
 			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
 				if (!old) return []
-				return old.map((item) => (item.id === alertId ? { ...item, title, schedule_expression: newExpression } : item))
+				return old.map((item) =>
+					item.id === alertId ? { ...item, title: nextTitle, schedule_expression: newExpression } : item
+				)
 			})
 			setIsEditing(false)
 		},

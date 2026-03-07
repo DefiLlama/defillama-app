@@ -122,14 +122,16 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 						onSubmit={(e) => {
 							e.preventDefault()
 							const form = e.target as HTMLFormElement
-							const startDate = form.startDate?.value
-							const endDate = form.endDate?.value
+							const startDateInput = form.startDate?.value
+							const endDateInput = form.endDate?.value
 							const startHour = parseInt(form.startHour?.value ?? '0', 10)
 							const endHour = parseInt(form.endHour?.value ?? '0', 10)
 
 							// Create timestamps in milliseconds
-							const startTimestamp = new Date(`${startDate}T${startHour.toString().padStart(2, '0')}:00:00Z`).getTime()
-							const endTimestamp = new Date(`${endDate}T${endHour.toString().padStart(2, '0')}:00:00Z`).getTime()
+							const startTimestamp = new Date(
+								`${startDateInput}T${startHour.toString().padStart(2, '0')}:00:00Z`
+							).getTime()
+							const endTimestamp = new Date(`${endDateInput}T${endHour.toString().padStart(2, '0')}:00:00Z`).getTime()
 
 							router.push(
 								{

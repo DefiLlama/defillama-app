@@ -74,8 +74,8 @@ export function YieldsDataset({
 		}, [handleTableColumnsChange, uniqueTableId]),
 		onFiltersChange: React.useMemo(() => {
 			if (!uniqueTableId) return undefined
-			return (filters: YieldsFilters) => {
-				handleTableFiltersChange(uniqueTableId, filters)
+			return (nextFilters: YieldsFilters) => {
+				handleTableFiltersChange(uniqueTableId, nextFilters)
 			}
 		}, [handleTableFiltersChange, uniqueTableId])
 	})

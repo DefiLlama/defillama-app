@@ -25,8 +25,8 @@ export function useGetLiteDashboards() {
 				const data = await dashboardAPI.listLiteDashboards(authorizedFetch)
 				setStorageItem('lite-dashboards', JSON.stringify(data))
 				return data
-			} catch (error) {
-				console.log('Failed to load lite dashboards:', error)
+			} catch (err) {
+				console.log('Failed to load lite dashboards:', err)
 				setStorageItem('lite-dashboards', '[]')
 
 				return []

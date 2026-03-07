@@ -277,10 +277,10 @@ function TVL(props: IKeyMetricsProps) {
 			value: tvl
 		})
 
-		for (const [chain, tvl] of tvlByChain ?? []) {
+		for (const [chain, chainTvl] of tvlByChain ?? []) {
 			metrics.push({
 				name: chain,
-				value: tvl
+				value: chainTvl
 			})
 		}
 

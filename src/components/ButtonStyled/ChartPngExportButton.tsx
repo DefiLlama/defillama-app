@@ -400,8 +400,8 @@ async function renderClonedChartExport(
 				// drawable area and doesn't get clipped on the left.
 				const left = parsePixelValue(series.left) ?? 0
 				const right = parsePixelValue(series.right) ?? 0
-				const availableWidth = Math.max(1, IMAGE_EXPORT_WIDTH - left - right)
-				const nextCenterX = Math.round(left + availableWidth / 2)
+				const drawableWidth = Math.max(1, IMAGE_EXPORT_WIDTH - left - right)
+				const nextCenterX = Math.round(left + drawableWidth / 2)
 				const nextCenterY = Array.isArray(series.center) && series.center.length > 1 ? series.center[1] : '50%'
 
 				return {

@@ -36,7 +36,7 @@ type TimeFrameOption = (typeof timeFrameOptions)[number]
 
 export function DashboardDiscovery() {
 	const router = useRouter()
-	const { view, tag, sortBy, query, page, limit, timeFrame } = router.query
+	const { view, tag: tagQuery, sortBy, query, page: pageQuery, limit, timeFrame } = router.query
 	const pushProQuery = (updates: Record<string, string | number | string[] | undefined>) =>
 		pushShallowQuery(router, updates, '/pro')
 
@@ -51,7 +51,7 @@ export function DashboardDiscovery() {
 		itemsPerPage
 	} = useMemo(() => {
 		const viewMode = typeof view === 'string' && viewModes.includes(view as ViewMode) ? (view as ViewMode) : 'grid'
-		const selectedTags = tag ? (typeof tag === 'string' ? [tag] : tag) : []
+		const selectedTags = tagQuery ? (typeof tagQuery === 'string' ? [tagQuery] : tagQuery) : []
 		const selectedSortBy =
 			typeof sortBy === 'string'
 				? (sortOptions.find((option) => option.key === sortBy) ?? sortOptions[0])
@@ -61,7 +61,7 @@ export function DashboardDiscovery() {
 				? (timeFrameOptions.find((option) => option.key === timeFrame) ?? timeFrameOptions[1])
 				: timeFrameOptions[1]
 		const searchQuery = typeof query === 'string' ? query : ''
-		const selectedPage = typeof page === 'string' && !Number.isNaN(Number(page)) ? parseInt(page) : 1
+		const selectedPage = typeof pageQuery === 'string' && !Number.isNaN(Number(pageQuery)) ? parseInt(pageQuery) : 1
 
 		let itemsPerPage = DEFAULT_PAGE_LIMIT
 		if (typeof limit === 'string' && !Number.isNaN(Number(limit))) {
@@ -71,7 +71,7 @@ export function DashboardDiscovery() {
 			}
 		}
 
-		const isBrowseMode = !query && !tag && !sortBy && !page
+		const isBrowseMode = !query && !tagQuery && !sortBy && !pageQuery
 
 		return {
 			isBrowseMode,
@@ -83,7 +83,7 @@ export function DashboardDiscovery() {
 			selectedPage,
 			itemsPerPage
 		}
-	}, [view, tag, sortBy, query, page, limit, timeFrame])
+	}, [view, tagQuery, sortBy, query, pageQuery, limit, timeFrame])
 
 	const { dashboards, isLoading, totalPages, totalItems } = useDashboardDiscovery({
 		query: searchQuery,

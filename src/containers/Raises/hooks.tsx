@@ -154,8 +154,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }: Us
 
 				let raiseIncludesChain = false
 
-				for (const chain of raise.chains) {
-					if (selectedChainsSet!.has(chain)) {
+				for (const raiseChain of raise.chains) {
+					if (selectedChainsSet!.has(raiseChain)) {
 						raiseIncludesChain = true
 						break
 					}
@@ -241,8 +241,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }: Us
 		for (const category in raisesByCategory) {
 			finalRaisesByCategory.push({ name: category, value: raisesByCategory[category] })
 		}
-		for (const round in investmentByRounds) {
-			finalInvestmentByRounds.push({ name: round, value: investmentByRounds[round] })
+		for (const roundLabel in investmentByRounds) {
+			finalInvestmentByRounds.push({ name: roundLabel, value: investmentByRounds[roundLabel] })
 		}
 		for (const date in fundingRoundsByMonth) {
 			finalFundingRoundsByMonth.push([new Date(date).getTime(), fundingRoundsByMonth[date]])

@@ -235,7 +235,7 @@ export const useGroupAndFormatChains = ({
 				continue
 			}
 
-			const subChains = data.filter((chain) => subChainsList.has(chain.name))
+			const subChains = data.filter((childChain) => subChainsList.has(childChain.name))
 			const subRows = [chain].concat(subChains)
 
 			const {
@@ -253,36 +253,36 @@ export const useGroupAndFormatChains = ({
 				chainAssets,
 				nftVolume
 			} = subRows.reduce(
-				(acc, chain) => {
-					acc.tvl += chain.tvl
-					acc.tvlPrevDay += chain.tvlPrevDay
-					acc.tvlPrevWeek += chain.tvlPrevWeek
-					acc.tvlPrevMonth += chain.tvlPrevMonth
-					acc.mcap += chain.mcap
-					acc.stablesMcap += chain.stablesMcap
-					acc.users += chain.users
-					acc.totalVolume24h += chain.totalVolume24h
-					acc.totalFees24h += chain.totalFees24h
-					acc.totalRevenue24h += chain.totalRevenue24h
-					acc.totalAppRevenue24h += chain.totalAppRevenue24h
+				(acc, rowChain) => {
+					acc.tvl += rowChain.tvl
+					acc.tvlPrevDay += rowChain.tvlPrevDay
+					acc.tvlPrevWeek += rowChain.tvlPrevWeek
+					acc.tvlPrevMonth += rowChain.tvlPrevMonth
+					acc.mcap += rowChain.mcap
+					acc.stablesMcap += rowChain.stablesMcap
+					acc.users += rowChain.users
+					acc.totalVolume24h += rowChain.totalVolume24h
+					acc.totalFees24h += rowChain.totalFees24h
+					acc.totalRevenue24h += rowChain.totalRevenue24h
+					acc.totalAppRevenue24h += rowChain.totalAppRevenue24h
 					acc.chainAssets = {
 						total: {
-							total: +(acc.chainAssets.total?.total ?? 0) + +(chain.chainAssets?.total?.total ?? 0)
+							total: +(acc.chainAssets.total?.total ?? 0) + +(rowChain.chainAssets?.total?.total ?? 0)
 						},
 						canonical: {
-							total: +(acc.chainAssets.canonical?.total ?? 0) + +(chain.chainAssets?.canonical?.total ?? 0)
+							total: +(acc.chainAssets.canonical?.total ?? 0) + +(rowChain.chainAssets?.canonical?.total ?? 0)
 						},
 						ownTokens: {
-							total: +(acc.chainAssets.ownTokens?.total ?? 0) + +(chain.chainAssets?.ownTokens?.total ?? 0)
+							total: +(acc.chainAssets.ownTokens?.total ?? 0) + +(rowChain.chainAssets?.ownTokens?.total ?? 0)
 						},
 						native: {
-							total: +(acc.chainAssets.native?.total ?? 0) + +(chain.chainAssets?.native?.total ?? 0)
+							total: +(acc.chainAssets.native?.total ?? 0) + +(rowChain.chainAssets?.native?.total ?? 0)
 						},
 						thirdParty: {
-							total: +(acc.chainAssets.thirdParty?.total ?? 0) + +(chain.chainAssets?.thirdParty?.total ?? 0)
+							total: +(acc.chainAssets.thirdParty?.total ?? 0) + +(rowChain.chainAssets?.thirdParty?.total ?? 0)
 						}
 					}
-					acc.nftVolume += chain.nftVolume
+					acc.nftVolume += rowChain.nftVolume
 					return acc
 				},
 				{

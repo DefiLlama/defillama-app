@@ -287,9 +287,9 @@ export function postRuntimeLogs(log: string, options?: RuntimeLogOptions): void 
 		if (recentErrors.size >= DEDUP_MAX_ENTRIES) {
 			const toDelete = recentErrors.size - DEDUP_MAX_ENTRIES + 100
 			let deleted = 0
-			for (const key of recentErrors.keys()) {
+			for (const dedupKey of recentErrors.keys()) {
 				if (deleted >= toDelete) break
-				recentErrors.delete(key)
+				recentErrors.delete(dedupKey)
 				deleted++
 			}
 		}

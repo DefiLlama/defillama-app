@@ -47,8 +47,8 @@ export function SelectItemsStep() {
 				})
 			)
 			const chainsInCategory = new Map<string, Set<string>>()
-			for (const { category, chains } of results) {
-				chainsInCategory.set(category, new Set(chains))
+			for (const { category, chains: categoryChains } of results) {
+				chainsInCategory.set(category, new Set(categoryChains))
 			}
 			return chainsInCategory
 		},
@@ -60,10 +60,10 @@ export function SelectItemsStep() {
 		if (state.comparisonType === 'chains') {
 			return [...chains]
 				.sort((a, b) => (b.tvl || 0) - (a.tvl || 0))
-				.map((chain) => ({
-					value: chain.name,
-					label: chain.name,
-					logo: `https://icons.llamao.fi/icons/chains/rsz_${chain.name.toLowerCase().replace(/\s+/g, '-')}?w=48&h=48`
+				.map((chainItem) => ({
+					value: chainItem.name,
+					label: chainItem.name,
+					logo: `https://icons.llamao.fi/icons/chains/rsz_${chainItem.name.toLowerCase().replace(/\s+/g, '-')}?w=48&h=48`
 				}))
 		}
 

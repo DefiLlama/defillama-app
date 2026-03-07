@@ -448,10 +448,10 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			savedProtocols: new Set(Object.values(watchlist[selectedPortfolio] ?? {})) as Set<string>,
 			addPortfolio: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
-				const newWatchlist = { ...watchlist, [name]: { ...(watchlist[name] ?? {}) } }
+				const newWatchlist = { ...currentWatchlist, [name]: { ...(currentWatchlist[name] ?? {}) } }
 				writeAppStorage({
 					...(currentStore as AppStorage),
 					[watchlistKey]: newWatchlist,
@@ -460,10 +460,10 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			},
 			removePortfolio: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
-				const newWatchlist = { ...watchlist }
+				const newWatchlist = { ...currentWatchlist }
 				delete newWatchlist[name]
 
 				let hasKeys = false
@@ -490,16 +490,16 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			},
 			addProtocol: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
 				const currentSelectedPortfolio =
 					(currentStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 				const newWatchlist = {
-					...watchlist,
+					...currentWatchlist,
 					[currentSelectedPortfolio]: {
-						...watchlist[currentSelectedPortfolio],
+						...currentWatchlist[currentSelectedPortfolio],
 						[slug(name)]: name
 					}
 				}
@@ -511,15 +511,15 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			},
 			removeProtocol: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
 				const currentSelectedPortfolio =
 					(currentStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 				const newWatchlist = {
-					...watchlist,
-					[currentSelectedPortfolio]: { ...watchlist[currentSelectedPortfolio] }
+					...currentWatchlist,
+					[currentSelectedPortfolio]: { ...currentWatchlist[currentSelectedPortfolio] }
 				}
 				delete newWatchlist[currentSelectedPortfolio][slug(name)]
 

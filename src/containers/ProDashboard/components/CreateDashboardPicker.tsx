@@ -60,8 +60,8 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 	const chainCategoryData = useMemo<ChainCategoryData>(() => {
 		const chainsInCategory = new Map<string, Set<string>>()
 		if (chainCategoriesData) {
-			for (const { category, chains } of chainCategoriesData) {
-				chainsInCategory.set(category, new Set(chains))
+			for (const { category, chains: categoryChains } of chainCategoriesData) {
+				chainsInCategory.set(category, new Set(categoryChains))
 			}
 		}
 		return { chainsInCategory }

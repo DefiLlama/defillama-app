@@ -9,7 +9,7 @@ export default async function roundupMarkdown(req: NextApiRequest, res: NextApiR
 			method: 'GET',
 			headers: headers,
 			redirect: 'follow'
-		}).then((res) => res.json())
+		}).then((response) => response.json())
 
 		const index = data.findIndex((d) => d.content.startsWith('Daily news round-up with the')) ?? null
 

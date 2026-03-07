@@ -91,7 +91,7 @@ export default function BarChart({
 		const chartColor = color || stringToColour()
 
 		if (!stackKeys || stackKeys.length === 0) {
-			const series = {
+			const baseSeries = {
 				name: '',
 				type: 'bar',
 				stack: 'stackA',
@@ -106,15 +106,15 @@ export default function BarChart({
 			}
 
 			for (const [date, value] of chartData ?? []) {
-				series.data.push([+date * 1e3, value])
+				baseSeries.data.push([+date * 1e3, value])
 			}
 
-			return series
+			return baseSeries
 		} else {
-			const series = {}
+			const stackedSeries = {}
 
 			for (const stack of selectedStacks) {
-				series[stack] = {
+				stackedSeries[stack] = {
 					name: stack,
 					type: 'bar',
 					large: true,
@@ -138,11 +138,11 @@ export default function BarChart({
 
 			for (const { date, ...item } of chartData) {
 				for (const stack of selectedStacks) {
-					series[stack]?.data?.push([+date * 1e3, item[stack] || 0])
+					stackedSeries[stack]?.data?.push([+date * 1e3, item[stack] || 0])
 				}
 			}
 
-			return Object.values(series).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
+			return Object.values(stackedSeries).map((s: any) => (s.data.length === 0 ? { ...s, large: false } : s))
 		}
 	}, [chartData, color, defaultStacks, stackColors, stackKeys, selectedStacks])
 

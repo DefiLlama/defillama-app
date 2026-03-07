@@ -223,13 +223,13 @@ const ChainProtocolsTableInner = ({
 
 						return <span className="flex items-center">{formatValue(value, usedFormat)}</span>
 					},
-					sortingFn: (rowA, rowB, columnId) => {
+					sortingFn: (rowA, rowB, sortColumnId) => {
 						const usedFormat = col.determinedFormat || col.formatType
-						const sortEntry = sortingRef.current.find((s) => s.id === columnId)
+						const sortEntry = sortingRef.current.find((s) => s.id === sortColumnId)
 						const desc = sortEntry?.desc ?? true
 
-						let a = rowA.getValue(columnId)
-						let b = rowB.getValue(columnId)
+						let a = rowA.getValue(sortColumnId)
+						let b = rowB.getValue(sortColumnId)
 
 						if (a === null && b !== null) {
 							return desc ? -1 : 1

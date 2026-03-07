@@ -200,7 +200,7 @@ export const getDimensionsSplitData = async ({
 	const data = {
 		totalDataChartBreakdown: Array.from(aggregatedBreakdown.entries())
 			.sort(([a], [b]) => a - b)
-			.map(([timestamp, protocols]) => [timestamp, Object.fromEntries(protocols.entries())])
+			.map(([timestamp, protocolEntries]) => [timestamp, Object.fromEntries(protocolEntries.entries())])
 	}
 
 	if (!data.totalDataChartBreakdown || !Array.isArray(data.totalDataChartBreakdown)) {
@@ -325,14 +325,14 @@ export const getDimensionsSplitData = async ({
 	const timestampTopTotals: Map<number, number> = new Map()
 
 	for (const item of data.totalDataChartBreakdown as any[]) {
-		const [timestamp, protocols] = item
-		if (!protocols) continue
+		const [timestamp, protocolBreakdown] = item
+		if (!protocolBreakdown) continue
 
 		let dayTotal = 0
 		let topTotal = 0
 
-		for (const protocolName in protocols) {
-			const value = protocols[protocolName]
+		for (const protocolName in protocolBreakdown) {
+			const value = protocolBreakdown[protocolName]
 			if (categoriesSet.size > 0 && (protocolCategories.size > 0 || protocolCategoriesBySlug.size > 0)) {
 				const cat = getCategory(protocolName)
 				if (categoryFilterMode === 'exclude') {

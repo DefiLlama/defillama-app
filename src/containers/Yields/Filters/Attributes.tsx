@@ -216,9 +216,9 @@ export function YieldAttributes({ pathname, nestedMenu }: { pathname: string; ne
 			excludeQueryKey="excludeAttribute"
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
-				for (const attribute of values) {
-					if (!prevSet.has(attribute)) {
-						trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, { attribute })
+				for (const attributeKey of values) {
+					if (!prevSet.has(attributeKey)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_ATTRIBUTE, { attribute: attributeKey })
 					}
 				}
 				prevSelectionRef.current = new Set(values)

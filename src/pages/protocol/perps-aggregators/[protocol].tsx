@@ -103,7 +103,7 @@ export const getStaticProps = withPerformanceLogging(
 				perpAggregatorVolume,
 				chart,
 				protocolChains: adapterData?.chains ?? [],
-				protocolVersions: linkedProtocolsWithAdapterData?.map((protocol) => protocol.displayName) ?? [],
+				protocolVersions: linkedProtocolsWithAdapterData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView: adapterData?.defaultChartView ?? 'daily',
 				seoTitle,

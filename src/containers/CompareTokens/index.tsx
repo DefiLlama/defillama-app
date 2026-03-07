@@ -133,7 +133,7 @@ export function CompareTokens({
 			coins.length === 2
 				? () =>
 						Promise.all([
-							fetchCoinPrices(coins.map((c) => `coingecko:${c}`)).then((coins) => ({ coins })),
+							fetchCoinPrices(coins.map((c) => `coingecko:${c}`)).then((fetchedCoins) => ({ coins: fetchedCoins })),
 							fetchJson<SupplyResponse>(`${CACHE_SERVER}/supply/${coins[0]}`),
 							fetchJson<SupplyResponse>(`${CACHE_SERVER}/supply/${coins[1]}`)
 						])
