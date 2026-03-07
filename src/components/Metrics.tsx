@@ -43,6 +43,12 @@ const metricsByCategory = trending.concat(
 )
 
 const TABS = ['All', 'Protocols', 'Chains'] as const
+type Tab = (typeof TABS)[number]
+type PinIconStyle = React.CSSProperties & { '--icon-fill': string }
+
+function isTab(value: string): value is Tab {
+	return value === 'All' || value === 'Protocols' || value === 'Chains'
+}
 
 export function Metrics({
 	canDismiss = false,
@@ -51,7 +57,7 @@ export function Metrics({
 	canDismiss?: boolean
 	hasScrolledToCategoryRef?: React.RefObject<string>
 }) {
-	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
+	const [tab, setTab] = useState<Tab>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -148,7 +154,10 @@ export function Metrics({
 					<h2 className="text-2xl font-bold">Metrics</h2>
 					<TagGroup
 						selectedValue={tab}
-						setValue={(value) => startTransition(() => setTab(value as (typeof TABS)[number]))}
+						setValue={(value) => {
+							if (!isTab(value)) return
+							startTransition(() => setTab(value))
+						}}
 						values={TABS}
 					/>
 					{canDismiss ? (
@@ -232,6 +241,7 @@ export function LinkToMetricOrToolPage({
 	pinnedRoutes: Set<string>
 }) {
 	const isPinned = pinnedRoutes.has(page.route)
+	const pinStyle: PinIconStyle = { '--icon-fill': isPinned ? 'white' : 'none' }
 
 	const dialogStore = Ariakit.useDialogContext()
 
@@ -307,7 +317,7 @@ export function LinkToMetricOrToolPage({
 				}
 				className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-1.5 text-white group-hover:block group-data-[pinned=true]:block"
 			>
-				<Icon name="pin" height={14} width={14} style={{ '--icon-fill': isPinned ? 'white' : 'none' } as any} />
+				<Icon name="pin" height={14} width={14} style={pinStyle} />
 			</Tooltip>
 		</div>
 	)

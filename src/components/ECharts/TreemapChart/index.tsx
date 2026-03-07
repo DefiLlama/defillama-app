@@ -31,10 +31,14 @@ const visualMaxBound = 40
 
 function normalizeTreemapValue(rawValue: unknown): Array<number | null> {
 	if (Array.isArray(rawValue)) {
-		const value = [...rawValue] as Array<number | null>
+		const value: Array<number | null> = rawValue.map((item) => {
+			if (item == null) return null
+			const parsed = typeof item === 'number' ? item : Number(item)
+			return Number.isFinite(parsed) ? parsed : null
+		})
 		while (value.length < 3) value.push(null)
 
-		const n0 = typeof value[0] === 'number' ? value[0] : Number(value[0])
+		const n0 = typeof value[0] === 'number' ? value[0] : Number(value[0] ?? 0)
 		value[0] = Number.isFinite(n0) ? n0 : 0
 
 		for (let idx = 1; idx <= 2; idx++) {
@@ -104,7 +108,8 @@ function addColorGradientField(chartDataTree) {
 }
 
 function formatRwaUpperLabel(params: { name?: unknown; value?: unknown }) {
-	const name = typeof params?.name === 'string' ? params.name : String(params?.name ?? '')
+	const name =
+		typeof params?.name === 'string' ? params.name : typeof params?.name === 'number' ? String(params.name) : ''
 	const normalizedValue = normalizeTreemapValue(params?.value)
 	const shareRaw = normalizedValue[1]
 	const share = typeof shareRaw === 'number' && Number.isFinite(shareRaw) ? Number(shareRaw.toFixed(2)) : null

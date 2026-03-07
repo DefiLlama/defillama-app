@@ -11,6 +11,8 @@ import type { LlamaAIChartConfig } from '~/containers/ProDashboard/types'
 import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardItemsUtils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
+import { getFormString } from '~/utils/formData'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
@@ -65,12 +67,7 @@ function invalidateDashboardQueries(queryClient: QueryClient) {
 }
 
 function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
-	if (typeof window === 'undefined') return
-	const maybeUmami = Reflect.get(window, 'umami')
-	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
-	const maybeTrack = Reflect.get(maybeUmami, 'track')
-	if (typeof maybeTrack !== 'function') return
-	Reflect.apply(maybeTrack, maybeUmami, ['dashboard-add-chart-submit', { type }])
+	trackUmamiEvent('dashboard-add-chart-submit', { type })
 }
 
 function safeTrackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
@@ -323,8 +320,8 @@ export function AddToDashboardModal({
 			if (isSubmitting) return
 
 			const formData = new FormData(event.currentTarget)
-			const nextDashboardName = `${formData.get('newDashboardName') ?? ''}`.trim()
-			const nextChartName = `${formData.get('chartName') ?? ''}`.trim()
+			const nextDashboardName = getFormString(formData, 'newDashboardName').trim()
+			const nextChartName = getFormString(formData, 'chartName').trim()
 
 			if (isCreatingNew && !nextDashboardName) {
 				toast.error('Please enter a dashboard name')

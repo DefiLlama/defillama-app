@@ -43,8 +43,10 @@ export const MultiSelectCombobox = ({
 		setTimeout(() => {
 			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
 			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
+				const firstNewItem = items.item(previousCount)
+				if (firstNewItem instanceof HTMLElement) {
+					firstNewItem.focus()
+				}
 			}
 		}, 0)
 	}

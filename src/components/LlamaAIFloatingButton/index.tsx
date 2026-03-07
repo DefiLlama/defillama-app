@@ -5,6 +5,7 @@ import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestion
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
 import type { FormSubmitEvent } from '~/types/forms'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
 const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
@@ -123,9 +124,7 @@ export function LlamaAIFloatingButton() {
 			const prompt = value.trim()
 			if (!prompt) return
 
-			if (typeof window !== 'undefined' && (window as any).umami) {
-				;(window as any).umami.track('llamaai-fab-submit', { page: router.asPath })
-			}
+			trackUmamiEvent('llamaai-fab-submit', { page: router.asPath })
 
 			setPendingPrompt(prompt)
 			setPendingPageContext({
@@ -154,9 +153,7 @@ export function LlamaAIFloatingButton() {
 	)
 
 	const handleButtonClick = useCallback(() => {
-		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('llamaai-fab-click', { page: router.asPath })
-		}
+		trackUmamiEvent('llamaai-fab-click', { page: router.asPath })
 		setIsOpen(true)
 	}, [router.asPath])
 

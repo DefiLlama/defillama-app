@@ -92,7 +92,13 @@ async function loadCircularIcon(url: string): Promise<string | null> {
 		const blob = await response.blob()
 		const base64 = await new Promise<string>((resolve, reject) => {
 			const reader = new FileReader()
-			reader.onloadend = () => resolve(reader.result as string)
+			reader.onloadend = () => {
+				if (typeof reader.result === 'string') {
+					resolve(reader.result)
+					return
+				}
+				reject(new Error('Failed to convert icon to base64'))
+			}
 			reader.onerror = reject
 			reader.readAsDataURL(blob)
 		})
@@ -306,7 +312,7 @@ async function renderClonedChartExport(
 		}
 
 		// Legend layout calculations
-		const legendConfig = currentOptions.legend as any
+		const legendConfig = currentOptions.legend
 		const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
 
 		const legendItemGap = 20
@@ -491,16 +497,16 @@ async function renderClonedChartExport(
 				if (timeoutId) {
 					clearTimeout(timeoutId)
 				}
-				tempChart.off('rendered', handler as any)
+				tempChart.off('rendered', handler)
 				resolve()
 			}
 
 			timeoutId = setTimeout(() => {
-				tempChart.off('rendered', handler as any)
+				tempChart.off('rendered', handler)
 				resolve()
 			}, 1500)
 
-			tempChart.on('rendered', handler as any)
+			tempChart.on('rendered', handler)
 		})
 
 		const dataURL = await getChartPngDataURL(tempChart, {

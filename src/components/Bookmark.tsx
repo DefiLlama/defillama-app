@@ -11,6 +11,8 @@ interface IBookmarkProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	isChain?: boolean
 }
 
+type BookmarkStyle = React.CSSProperties & { '--fill-icon': string }
+
 export function Bookmark({ readableName, configID, isChain, ...props }: IBookmarkProps) {
 	const router = useRouter()
 
@@ -48,10 +50,12 @@ export function Bookmark({ readableName, configID, isChain, ...props }: IBookmar
 				}
 			}
 
+	const buttonStyle: BookmarkStyle = { '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' }
+
 	return (
 		<button
 			onClick={onClick}
-			style={{ '--fill-icon': isSaved ? 'var(--text-primary)' : 'none' } as React.CSSProperties}
+			style={buttonStyle}
 			{...props}
 			className="-left-0.5 shrink-0 data-[bookmark=true]:absolute data-[lgonly=true]:hidden lg:data-[lgonly=true]:inline-block"
 		>

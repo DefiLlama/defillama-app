@@ -2,6 +2,16 @@ import Head from 'next/head'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 
+const FEES_PAGE_TYPE = String(ADAPTER_TYPES.FEES)
+const VOLUME_PAGE_TYPES = new Set<string>([
+	String(ADAPTER_TYPES.DEXS),
+	String(ADAPTER_TYPES.AGGREGATORS),
+	String(ADAPTER_TYPES.PERPS),
+	String(ADAPTER_TYPES.PERPS_AGGREGATOR),
+	String(ADAPTER_TYPES.OPTIONS),
+	String(ADAPTER_TYPES.BRIDGE_AGGREGATORS)
+])
+
 interface ILinkPreviewCardProps {
 	cardName?: string
 	chain?: string
@@ -55,6 +65,7 @@ export const LinkPreviewCard = ({
 		cardSrc.pathname = `${encodeURIComponent(text)}.jpeg`
 
 		cardSrc.searchParams.append('theme', 'dark')
+		const pageTypeValue = typeof pageType === 'string' ? pageType : ''
 
 		let valueHeader: string
 		if (nftPage) {
@@ -69,16 +80,9 @@ export const LinkPreviewCard = ({
 			} else {
 				valueHeader = `Next Unlock`
 			}
-		} else if (pageType === ADAPTER_TYPES.FEES) {
+		} else if (pageTypeValue === FEES_PAGE_TYPE) {
 			valueHeader = '24h fees'
-		} else if (
-			pageType === ADAPTER_TYPES.DEXS ||
-			pageType === ADAPTER_TYPES.AGGREGATORS ||
-			pageType === ADAPTER_TYPES.PERPS ||
-			pageType === ADAPTER_TYPES.PERPS_AGGREGATOR ||
-			pageType === ADAPTER_TYPES.OPTIONS ||
-			pageType === ADAPTER_TYPES.BRIDGE_AGGREGATORS
-		) {
+		} else if (VOLUME_PAGE_TYPES.has(pageTypeValue)) {
 			valueHeader = '24h volume'
 		} else {
 			valueHeader = isCEX ? 'Total Assets' : 'Total Value Locked'

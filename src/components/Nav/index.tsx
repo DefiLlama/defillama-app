@@ -1,12 +1,32 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
+import { isIconName } from '~/components/Icon'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import { DesktopNav } from './Desktop'
 import { MobileNav } from './Mobile'
-import type { TNavLinks, TOldNavLink } from './types'
+import type { TNavLink, TNavLinks, TOldNavLink } from './types'
+
+function normalizeNavPage(page: {
+	name: string
+	route: string
+	icon?: unknown
+	isNew?: boolean
+	umamiEvent?: string
+}): TNavLink {
+	return {
+		name: page.name,
+		route: page.route,
+		...(isIconName(page.icon) ? { icon: page.icon } : {}),
+		...(page.isNew ? { isNew: page.isNew } : {}),
+		...(page.umamiEvent ? { umamiEvent: page.umamiEvent } : {})
+	}
+}
+
+const mainPages = (defillamaPages['Main'] ?? []).map(normalizeNavPage)
+const premiumPages = (defillamaPages['Premium'] ?? []).map(normalizeNavPage)
 
 const footerCategories = ['More', 'About Us'] as const
 const footerLinks = footerCategories.map((category) => ({
@@ -17,7 +37,7 @@ const footerLinks = footerCategories.map((category) => ({
 const routeToPageMap = new Map<string, { name: string; route: string }>()
 for (const pages of Object.values(defillamaPages as Record<string, Array<{ name: string; route: string }>>)) {
 	for (const page of pages) {
-		routeToPageMap.set(page.route, page)
+		routeToPageMap.set(page.route, { name: page.name, route: page.route })
 	}
 }
 
@@ -38,31 +58,19 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 	}, {})
 )
 
-function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
+export function Nav({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { hasActiveSubscription } = useAuthContext()
 
 	const mainLinks = useMemo(() => {
-		const otherMainPages = [
-			{ name: 'Chains', route: '/chains', icon: 'globe' },
-			{ name: 'Yields', route: '/yields', icon: 'percent' },
-			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
-			{ name: 'RWA', route: '/rwa', icon: 'banknote', isNew: true },
-			{ name: 'Support', route: '/support', icon: 'headset' },
-			{ name: 'API', route: 'https://api-docs.defillama.com', icon: 'code' }
-		]
-		const premiumPages = [
-			{ name: 'Pricing', route: '/subscription', icon: 'user' },
-			{ name: 'LlamaAI', route: hasActiveSubscription ? '/ai/chat' : '/ai', icon: '' },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
-			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
-			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity', umamiEvent: 'nav-llamafeed-click' }
-		]
+		const premium = premiumPages.map((p) =>
+			p.name === 'LlamaAI' && hasActiveSubscription ? { ...p, route: '/ai/chat' } : p
+		)
 		return [
-			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
-			{ category: 'Premium', pages: premiumPages }
+			{ category: 'Main', pages: mainPages },
+			{ category: 'Premium', pages: premium }
 		]
 	}, [hasActiveSubscription])
 
@@ -112,5 +120,3 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		</>
 	)
 }
-
-export const Nav = NavComponent

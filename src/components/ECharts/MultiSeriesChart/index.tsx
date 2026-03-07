@@ -38,6 +38,7 @@ interface IMultiSeriesChartProps {
 }
 
 const EMPTY_ARRAY = []
+const VALID_GROUP_BY = new Set<IMultiSeriesChartProps['groupBy']>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
 
 export default function MultiSeriesChart({
 	series,
@@ -60,10 +61,7 @@ export default function MultiSeriesChart({
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
 		xAxisType,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly')
-				: 'daily',
+		groupBy: groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
 		showAggregateInTooltip
@@ -176,10 +174,13 @@ export default function MultiSeriesChart({
 
 		if (needMultipleAxes) {
 			const axisCount = Math.max(uniqueMetricTypes.length, maxExplicitAxisIndex + 1, 2)
+			const yAxisBase = yAxis && typeof yAxis === 'object' ? yAxis : {}
+			const axisLabelRaw = Reflect.get(yAxisBase, 'axisLabel')
+			const yAxisAxisLabel = axisLabelRaw && typeof axisLabelRaw === 'object' ? axisLabelRaw : {}
 			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
-				...yAxis,
+				...yAxisBase,
 				axisLabel: {
-					...(yAxis as any).axisLabel,
+					...yAxisAxisLabel,
 					margin: 4,
 					formatter: (value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol)
 				},

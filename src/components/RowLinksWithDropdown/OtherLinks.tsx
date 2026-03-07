@@ -36,8 +36,10 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 		setTimeout(() => {
 			const items = comboboxRef.current?.querySelectorAll('[role="menuitem"]')
 			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
+				const firstNewItem = items.item(previousCount)
+				if (firstNewItem instanceof HTMLElement) {
+					firstNewItem.focus()
+				}
 			}
 		}, 0)
 	}

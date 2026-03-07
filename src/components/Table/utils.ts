@@ -168,8 +168,10 @@ export function useSortColumnSizesAndOrders({
 	}, [instance, columnSizes, columnOrders, width])
 }
 
+const CSV_PRIMITIVE_TYPES = new Set(['string', 'number', 'boolean'])
+
 function isCsvPrimitive(value: unknown): value is string | number | boolean {
-	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+	return CSV_PRIMITIVE_TYPES.has(typeof value)
 }
 
 export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {

@@ -13,7 +13,7 @@ export const updateQueryFromSelected = (
 	includeKey: string,
 	excludeKey: ExcludeQueryKey,
 	allKeys: string[],
-	values: string[] | string | 'None' | null,
+	values: string[] | string | null,
 	defaultSelectedValues?: string[]
 ) => {
 	const updates: Record<string, string | string[] | undefined> = {}

@@ -54,6 +54,7 @@ export function Select({
 	unmountOnHide = true
 }: ISelect) {
 	const router = useRouter()
+	const labelText = typeof label === 'string' ? label : typeof label === 'number' ? String(label) : 'Select'
 
 	const getOptionKey = React.useCallback((option: string | { key: string }) => {
 		return typeof option === 'string' ? option : option.key
@@ -214,7 +215,7 @@ export function Select({
 		>
 			<Ariakit.Select
 				className={SELECT_TRIGGER_VARIANTS[variant ?? 'default']}
-				aria-label={`${label} dropdown`}
+				aria-label={`${labelText} dropdown`}
 				{...triggerProps}
 			>
 				{labelType === 'smol' ? (
@@ -270,7 +271,7 @@ export function Select({
 
 						{allValues.slice(0, viewableMatches).map((option) => (
 							<Ariakit.SelectItem
-								key={`${label}-${getOptionKey(option)}`}
+								key={getOptionKey(option)}
 								value={getOptionKey(option)}
 								setValueOnClick={!showCheckboxes}
 								hideOnClick={!showCheckboxes}
