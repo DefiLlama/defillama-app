@@ -78,19 +78,18 @@ export function Select({
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues: (values: string[] | string) => void = includeQueryKey
 		? (values: string[] | string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues)
 		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues)
 		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
-		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
+		? () => updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues)
 		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), [value], defaultSelectedValues)
 		: (value: string) => setSelectedValuesFromState([value])
 	const toggleMultiValue = (value: string) => {
 		const currentValues = Array.isArray(selectedValues) ? selectedValues : selectedValues ? [selectedValues] : []

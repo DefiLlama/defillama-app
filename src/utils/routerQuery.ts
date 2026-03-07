@@ -67,7 +67,7 @@ export function getQueryValue(query: ParsedUrlQuery, key: string): string | null
 	const value = query[key]
 	if (!value) return null
 	if (Array.isArray(value)) return value[0] ?? null
-	return value as string
+	return value
 }
 
 // ============================================================================

@@ -1,5 +1,5 @@
 import { useMutation, type UseMutationResult, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { RecordAuthResponse, RecordModel } from 'pocketbase'
+import type { RecordAuthResponse } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
@@ -160,9 +160,9 @@ interface AuthContextType {
 		},
 		unknown
 	>
-	signInWithGithubMutation: UseMutationResult<RecordAuthResponse<RecordModel>, Error, void, unknown>
+	signInWithGithubMutation: UseMutationResult<RecordAuthResponse, Error, void>
 	addWallet: (address: string, signMessageFunction: any, onSuccess?: () => void) => Promise<void>
-	resetPasswordMutation: UseMutationResult<void, Error, string, unknown>
+	resetPasswordMutation: UseMutationResult<void, Error, string>
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
 	addEmail: (email: string) => Promise<void>

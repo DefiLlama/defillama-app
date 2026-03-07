@@ -307,9 +307,9 @@ export const formattedNum = (number: unknown, symbol: boolean | string = false):
 		})}`
 	}
 
-	return `${num.toLocaleString(undefined, {
+	return num.toLocaleString(undefined, {
 		maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
-	})}`
+	})
 }
 
 export function chainIconUrl(chain: unknown): string {
@@ -672,14 +672,6 @@ export async function batchFetchHistoricalPrices(
 		const response = await fetchJson<BatchHistoricalResponse>(
 			`https://coins.llama.fi/batchHistorical?coins=${JSON.stringify(batchReqs)}&searchWidth=6h`
 		)
-
-		for (const coinId of batch) {
-			if (response.coins[coinId[0]]?.prices) {
-				response.coins[coinId[0]].prices = response.coins[coinId[0]].prices!.map((price) => ({
-					...price
-				}))
-			}
-		}
 
 		Object.assign(results, response.coins)
 	}
