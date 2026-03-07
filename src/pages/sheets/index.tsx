@@ -29,7 +29,7 @@ export default function Sheets() {
 							</BasicLink>
 							<BasicLink
 								href="https://docs.llama.fi/spreadsheet-functions/templates"
-								data-umami-event="sheets-templates-click"
+								data-umami-event="sheets-templates-click-header"
 								className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-[#b4b7bc] transition-colors hover:bg-[#222429] hover:text-white"
 							>
 								Templates

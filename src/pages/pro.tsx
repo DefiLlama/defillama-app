@@ -163,7 +163,7 @@ function ProContent({
 						href={`/pro?tab=discover`}
 						shallow
 						data-active={activeTab === 'discover'}
-						data-umami-event="dashboard-open"
+						data-umami-event="dashboard-open-discover"
 						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 					>
 						Discover
@@ -173,7 +173,7 @@ function ProContent({
 							href={`/pro?tab=my-dashboards`}
 							shallow
 							data-active={activeTab === 'my-dashboards'}
-							data-umami-event="dashboard-open"
+							data-umami-event="dashboard-open-my-dashboards"
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							My Dashboards
@@ -184,7 +184,7 @@ function ProContent({
 							href={`/pro?tab=favorites`}
 							shallow
 							data-active={activeTab === 'favorites'}
-							data-umami-event="dashboard-open"
+							data-umami-event="dashboard-open-favorites"
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							Favorites

@@ -357,7 +357,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 				page: router?.asPath
 			})
 		}
-	}, [dialogStore, router])
+	}, [dialogStore, router?.asPath])
 
 	const finalReturnUrl = returnUrl ?? router.asPath
 
