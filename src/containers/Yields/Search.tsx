@@ -121,7 +121,7 @@ interface IInputProps {
 function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) {
 	return (
 		<>
-			<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
+			<button onClick={() => setOpen((prev) => !prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 				{open ? (
 					<>
 						<span className="sr-only">Close Search</span>

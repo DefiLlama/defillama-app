@@ -60,8 +60,8 @@ export function useDashboardAPI() {
 			if (!isAuthenticated) return []
 			try {
 				return await dashboardAPI.listDashboards(authorizedFetch)
-			} catch (error) {
-				console.log('Failed to load dashboards:', error)
+			} catch (err) {
+				console.log('Failed to load dashboards:', err)
 				return []
 			}
 		},
@@ -87,8 +87,8 @@ export function useDashboardAPI() {
 			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			router.push(`/pro/${dashboard.id}`)
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to create dashboard')
+		onError: (err: any) => {
+			toast.error(err.message || 'Failed to create dashboard')
 		}
 	})
 
@@ -116,8 +116,8 @@ export function useDashboardAPI() {
 			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
 			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to save dashboard')
+		onError: (err: any) => {
+			toast.error(err.message || 'Failed to save dashboard')
 		}
 	})
 
@@ -137,8 +137,8 @@ export function useDashboardAPI() {
 				router.push('/pro')
 			}
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to delete dashboard')
+		onError: (err: any) => {
+			toast.error(err.message || 'Failed to delete dashboard')
 		}
 	})
 
@@ -147,8 +147,8 @@ export function useDashboardAPI() {
 			try {
 				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
 				return dashboard
-			} catch (error: any) {
-				console.log('Failed to load dashboard:', error)
+			} catch (err: any) {
+				console.log('Failed to load dashboard:', err)
 				return null
 			}
 		},
