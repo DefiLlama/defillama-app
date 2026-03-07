@@ -4,6 +4,7 @@ import type { NextRouter } from 'next/router'
 import { useMemo } from 'react'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from '~/utils/async'
+import { getErrorMessage } from '~/utils/error'
 import {
 	toNonEmptyArrayParam,
 	parseExcludeParam,
@@ -1184,6 +1185,6 @@ export function useRwaChartDataset({
 	return {
 		chartDatasetByMode: filteredDataset ?? emptyChartDatasets(),
 		isChartLoading: isLoading,
-		chartError: error ? (error instanceof Error ? error.message : String(error)) : null
+		chartError: error ? getErrorMessage(error) : null
 	}
 }

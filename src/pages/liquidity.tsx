@@ -4,6 +4,7 @@ export default function Liquidity() {
 			title="Token Liquidity"
 			className="col-span-full -mb-4 h-screen w-full border-0"
 			src="https://swap.defillama.com/token-liquidity"
+			sandbox="allow-scripts"
 		/>
 	)
 }

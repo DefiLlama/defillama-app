@@ -13,6 +13,7 @@ import type { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { getErrorMessage } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
 import type { ADAPTER_TYPES } from './constants'
@@ -318,7 +319,7 @@ function useAdapterByChainBreakdownChartData({
 		enabled
 	})
 
-	const breakdownError = error ? (error instanceof Error ? error.message : String(error)) : null
+	const breakdownError = error ? getErrorMessage(error) : null
 
 	return React.useMemo(() => {
 		if (!data || data.length === 0) {

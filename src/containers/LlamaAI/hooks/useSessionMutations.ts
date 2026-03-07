@@ -3,6 +3,7 @@ import { useCallback } from 'react'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
+import { getErrorMessage } from '~/utils/error'
 import type { ChatSession } from './useChatHistory'
 import { SESSIONS_QUERY_KEY, type SessionListData } from './useSessionList'
 
@@ -181,7 +182,7 @@ export function useSessionMutations() {
 					streaming: result.streaming
 				}
 			} catch (error) {
-				console.log('Failed to restore session:', error)
+				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
 				return {
 					messages: [],
 					pagination: {
@@ -208,7 +209,7 @@ export function useSessionMutations() {
 					}
 				}
 			} catch (error) {
-				console.log('Failed to load more messages:', error)
+				console.error('[llama-ai] [loadMoreMessages] failed:', getErrorMessage(error))
 				return {
 					messages: [],
 					pagination: {

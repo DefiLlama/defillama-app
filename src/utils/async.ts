@@ -1,3 +1,4 @@
+import { normalizeError } from './error'
 import { fetchWithPoolingOnServer, type FetchWithPoolingOnServerOptions } from './http-client'
 
 // ─────────────────────────────────────────────────────────────
@@ -360,7 +361,7 @@ export async function fetchJson<T = any>(
 
 			return data
 		} catch (err) {
-			lastErr = err instanceof Error ? err : new Error(String(err))
+			lastErr = normalizeError(err)
 			// Common case: API returned HTML (starts with "<") but we tried to parse JSON.
 			// We don't have the body here, but the SyntaxError message is a strong signal.
 			if (/unexpected token\s*</i.test(lastErr.message)) {
@@ -385,7 +386,7 @@ export async function fetchJson<T = any>(
 		throw new Error(`${sanitizedUrl}: Unknown fetch error`)
 	}
 	if (lastErr.message.startsWith(`${sanitizedUrl}:`)) {
-		throw lastErr
+		throw Object.assign(new Error(lastErr.message), { stack: lastErr.stack })
 	}
 	throw new Error(`${sanitizedUrl}: ${lastErr.message}`)
 }

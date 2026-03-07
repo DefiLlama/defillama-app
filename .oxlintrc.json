@@ -6,18 +6,17 @@
 		"suspicious": "error"
 	},
 	"rules": {
-		"eslint/prefer-const": "off",
 		"eslint/no-shadow": ["error", { "ignoreOnInitialization": true }],
-		"eslint/no-unused-vars": "off",
+		"eslint/no-throw-literal": "error",
+		"eslint/prefer-const": "off",
 		"eslint/preserve-caught-error": "off",
-		"typescript/no-unused-vars": "warn",
 		"typescript/no-extraneous-class": "off",
+		"typescript/no-unused-vars": "warn",
 		"react/react-in-jsx-scope": "off",
-		"react/iframe-missing-sandbox": "off",
 		"react/rules-of-hooks": "error",
-		"nextjs/no-img-element": "off",
+		"nextjs/no-duplicate-head": "off",
 		"nextjs/no-html-link-for-pages": "off",
-		"nextjs/no-duplicate-head": "off"
+		"nextjs/no-img-element": "off"
 	},
 	"ignorePatterns": ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "public/**", ".agents/**"]
 }

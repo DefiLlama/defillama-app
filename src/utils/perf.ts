@@ -3,6 +3,7 @@ import type { GetStaticProps, GetStaticPropsContext } from 'next'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { postRuntimeLogs, sleep, getJitteredDelay, isTransientError, getEnvNumber } from './async'
 import { getCache, type RedisCachePayload, setCache, setPageBuildTimes } from './cache-client'
+import { normalizeError, getErrorMessage } from './error'
 import { fetchWithPoolingOnServer } from './http-client'
 
 const REDIS_URL = process.env.REDIS_URL as string
@@ -30,7 +31,7 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 
 				return props
 			} catch (error) {
-				lastError = error instanceof Error ? error : new Error(String(error))
+				lastError = normalizeError(error)
 				const canRetry = attempt < MAX_PAGE_BUILD_RETRIES - 1 && isTransientError(lastError)
 
 				if (canRetry) {
@@ -50,7 +51,7 @@ export const withPerformanceLogging = <T extends { [key: string]: any }, P exten
 				` [${lastError?.message}]`,
 			{ level: 'error', forceConsole: true }
 		)
-		throw lastError
+		throw lastError ?? new Error(`${filename}: Unknown build error`)
 	}
 }
 
@@ -117,7 +118,8 @@ export const fetchOverCache = async (url: RequestInfo | URL, options?: FetchOver
 					'Content-Type': ContentType
 				})
 			}
-		} catch {
+		} catch (err) {
+			postRuntimeLogs(`[fetchOverCache] [error] [504] < ${url} > ${getErrorMessage(err)}`, { level: 'error' })
 			StatusCode = 504
 			responseInit = {
 				status: StatusCode,

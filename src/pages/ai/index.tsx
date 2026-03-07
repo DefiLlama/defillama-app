@@ -249,6 +249,7 @@ export default function LlamaAIGetStarted() {
 										<iframe
 											src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
 											title="LlamaAI Demo"
+											sandbox="allow-scripts allow-presentation"
 											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 											referrerPolicy="strict-origin-when-cross-origin"
 											allowFullScreen

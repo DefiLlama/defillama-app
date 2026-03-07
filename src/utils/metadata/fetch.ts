@@ -1,3 +1,4 @@
+import { getErrorMessage } from '~/utils/error'
 import type { ITokenListEntry } from './types'
 
 type RawBridgeInfo = {
@@ -65,7 +66,7 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 		throw new Error(
 			`Failed to parse JSON for URL: ${urlToLog} (status ${res.status}, content-type ${contentType}). Body preview: "${previewResponseBody(
 				body
-			)}". Original error: ${error instanceof Error ? error.message : String(error)}`
+			)}". Original error: ${getErrorMessage(error)}`
 		)
 	}
 }

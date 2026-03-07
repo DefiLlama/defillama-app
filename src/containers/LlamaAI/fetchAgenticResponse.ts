@@ -1,4 +1,5 @@
 import { MCP_SERVER } from '~/constants'
+import { getErrorMessage } from '~/utils/error'
 import type { ChartConfiguration, AlertProposedData, ToolExecution } from './types'
 
 export interface CsvExport {
@@ -219,7 +220,8 @@ export async function checkActiveExecution(
 		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
 		if (!res.ok) return { active: false }
 		return res.json()
-	} catch {
+	} catch (err) {
+		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
 		return { active: false }
 	}
 }

@@ -210,16 +210,6 @@
       "oldName": "Holders Revenue"
     },
     {
-      "name": "Fees by Chain",
-      "route": "/fees/chains",
-      "category": "Fees & Revenue",
-      "description": "Total fees paid by users when using the chain",
-      "totalTrackedKey": "chainFees.chains",
-      "tab": "Chains",
-      "oldCategory": "Fees & Revenue",
-      "oldName": "Fees (Chains)"
-    },
-    {
       "name": "Revenue by Chain",
       "route": "/revenue/chains",
       "category": "Fees & Revenue",
@@ -228,6 +218,16 @@
       "tab": "Chains",
       "oldCategory": "Fees & Revenue",
       "oldName": "Revenue (Chains)"
+    },
+    {
+      "name": "Fees by Chain",
+      "route": "/fees/chains",
+      "category": "Fees & Revenue",
+      "description": "Total fees paid by users when using the chain",
+      "totalTrackedKey": "chainFees.chains",
+      "tab": "Chains",
+      "oldCategory": "Fees & Revenue",
+      "oldName": "Fees (Chains)"
     },
     {
       "name": "Earnings by Protocol",

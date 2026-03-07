@@ -4,6 +4,7 @@ import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentive
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { chainIconUrl, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
+import { getErrorMessage } from '~/utils/error'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import {
 	fetchAdapterChainChartData,
@@ -706,7 +707,7 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(String(error))
+		postRuntimeLogs(getErrorMessage(error))
 		throw error
 	}
 }
@@ -894,7 +895,7 @@ export const getChainsByAdapterPageData = async ({
 			allChains: chains.map((c) => c.name)
 		}
 	} catch (error) {
-		postRuntimeLogs(String(error))
+		postRuntimeLogs(getErrorMessage(error))
 		throw error
 	}
 }
@@ -951,7 +952,7 @@ export const getChainsByREVPageData = async ({
 
 		return { chains: chains.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0)) }
 	} catch (error) {
-		postRuntimeLogs(String(error))
+		postRuntimeLogs(getErrorMessage(error))
 		throw error
 	}
 }
@@ -980,7 +981,7 @@ export async function getDimensionAdapterOverviewOfAllChains({
 
 		return chains
 	} catch (error) {
-		postRuntimeLogs(String(error))
+		postRuntimeLogs(getErrorMessage(error))
 		throw error
 	}
 }

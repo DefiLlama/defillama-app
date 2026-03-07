@@ -1,6 +1,7 @@
 import { CACHE_SERVER, COINS_SERVER_URL, CONFIG_API, DATASETS_SERVER_URL, SERVER_URL } from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
+import { getErrorMessage } from '~/utils/error'
 import type {
 	CgMarketsQueryParams,
 	CgChartResponse,
@@ -189,9 +190,7 @@ export async function fetchChainMcaps(chains: Array<ChainGeckoPair>): Promise<Re
 			}),
 		(batch, err) => {
 			postRuntimeLogs(
-				`Failed to fetch mcaps for batch (${batch.map(([_, geckoId]) => geckoId).join(', ')}): ${
-					err instanceof Error ? err.message : String(err)
-				}`
+				`Failed to fetch mcaps for batch (${batch.map(([_, geckoId]) => geckoId).join(', ')}): ${getErrorMessage(err)}`
 			)
 			return {}
 		}
@@ -240,7 +239,7 @@ export async function fetchCoinPrices(
 			postRuntimeLogs(
 				`Failed to fetch prices for batch: ${batch.join(', ')} (searchWidth=${options?.searchWidth ?? 'default'})`
 			)
-			postRuntimeLogs(err instanceof Error ? err.message : String(err))
+			postRuntimeLogs(getErrorMessage(err))
 			return {}
 		}
 	)
