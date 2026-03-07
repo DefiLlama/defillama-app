@@ -575,6 +575,10 @@ function ChartRendererImpl({
 						</button>
 					))}
 				</div>
+			) : charts[0]?.title ? (
+				<div className="-mt-2 border-b border-[#e6e6e6] px-3 py-2 dark:border-[#222324]">
+					<span className="text-base font-semibold">{charts[0].title}</span>
+				</div>
 			) : null}
 			{charts.map((chart, index) => (
 				<SingleChart
