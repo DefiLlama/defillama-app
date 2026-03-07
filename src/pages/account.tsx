@@ -56,7 +56,7 @@ export default function Account() {
 					<AccountInfo />
 				</div>
 
-				{showSuccessModal && (
+				{showSuccessModal ? (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
 						<div className="relative w-full max-w-md rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl">
 							<div className="flex flex-col items-center gap-6 py-6">
@@ -76,7 +76,7 @@ export default function Account() {
 							</div>
 						</div>
 					</div>
-				)}
+				) : null}
 			</SubscribeLayout>
 		</WalletProvider>
 	)

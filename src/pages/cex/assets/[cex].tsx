@@ -40,7 +40,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
@@ -57,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {
@@ -113,7 +113,7 @@ function ChainsChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Chains</h1>
+				<h2 className="mr-auto text-base font-semibold">Chains</h2>
 				{allChains.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allChains}
@@ -164,7 +164,7 @@ function TokenValuesUSDChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Token Values (USD)</h1>
+				<h2 className="mr-auto text-base font-semibold">Token Values (USD)</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -217,7 +217,7 @@ function TokensBreakdownPieChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Tokens Breakdown</h1>
+				<h2 className="mr-auto text-base font-semibold">Tokens Breakdown</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -261,7 +261,7 @@ function TokenBalancesRawChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Token Balances (Raw Quantities)</h1>
+				<h2 className="mr-auto text-base font-semibold">Token Balances (Raw Quantities)</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -299,7 +299,7 @@ function USDInflowsChartCard({ protocolName, dataset }: { protocolName: string; 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">USD Inflows</h1>
+				<h2 className="mr-auto text-base font-semibold">USD Inflows</h2>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -338,7 +338,7 @@ function InflowsByTokenChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Inflows by Token</h1>
+				<h2 className="mr-auto text-base font-semibold">Inflows by Token</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}

@@ -77,7 +77,7 @@ export const CsvExportDropdown = memo(function CsvExportDropdown({
 					disabled ? 'cursor-not-allowed opacity-60' : ''
 				}`}
 			/>
-			{isOpen && (
+			{isOpen ? (
 				<div className="absolute top-full right-0 z-50 mt-1 min-w-[180px] rounded-md border border-(--cards-border) bg-(--cards-bg) py-1 shadow-lg">
 					{exportOptions.map((level) => (
 						<button
@@ -91,7 +91,7 @@ export const CsvExportDropdown = memo(function CsvExportDropdown({
 						</button>
 					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 })

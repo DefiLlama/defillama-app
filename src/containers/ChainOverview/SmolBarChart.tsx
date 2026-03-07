@@ -71,42 +71,42 @@ export function SmolBarChart({
 				<div className="flex items-end" style={{ height: posHeight }}>
 					{bars.map((bar, i) => (
 						<div key={i} className="flex h-full flex-1 items-end justify-center">
-							{!bar.isNegative && (
+							{!bar.isNegative ? (
 								<div
 									className="min-h-px w-[70%] min-w-[2px]"
 									style={{ height: `${bar.heightPct}%`, backgroundColor: bar.fill }}
 								/>
-							)}
+							) : null}
 						</div>
 					))}
 				</div>
-				{hasNegative && (
+				{hasNegative ? (
 					<div className="flex items-start" style={{ height: negHeight }}>
 						{bars.map((bar, i) => (
 							<div key={i} className="flex h-full flex-1 items-start justify-center">
-								{bar.isNegative && (
+								{bar.isNegative ? (
 									<div
 										className="min-h-px w-[70%] min-w-[2px]"
 										style={{ height: `${bar.heightPct}%`, backgroundColor: bar.fill }}
 									/>
-								)}
+								) : null}
 							</div>
 						))}
 					</div>
-				)}
-				{hoveredIndex != null && (
+				) : null}
+				{hoveredIndex != null ? (
 					<div
 						className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
 						style={{ left: `${((hoveredIndex + 0.5) / series.length) * 100}%` }}
 					/>
-				)}
-				{hoveredIndex != null && (
+				) : null}
+				{hoveredIndex != null ? (
 					<div
 						ref={tooltipRef}
 						className="pointer-events-none fixed z-10 rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[14px] leading-normal whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
 					>
-						<div>{formatTooltipChartDate(series[hoveredIndex][0], groupBy ?? 'daily')}</div>
-						<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+						<p>{formatTooltipChartDate(series[hoveredIndex][0], groupBy ?? 'daily')}</p>
+						<p style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
 							<span
 								style={{
 									display: 'inline-block',
@@ -117,9 +117,9 @@ export function SmolBarChart({
 								}}
 							/>
 							{formattedNum(series[hoveredIndex][1], true)}
-						</div>
+						</p>
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	)

@@ -79,24 +79,24 @@ export function YieldFilterDropdowns({
 
 	return (
 		<>
-			{tokensList && tokensList.length > 0 && (
+			{tokensList && tokensList.length > 0 ? (
 				<FilterByToken
 					tokensList={tokensList}
 					selectedTokens={selectedTokens ?? EMPTY_TOKENS}
 					nestedMenu={nestedMenu}
 				/>
-			)}
+			) : null}
 
-			{chainList && chainList.length > 0 && (
+			{chainList && chainList.length > 0 ? (
 				<FilterByChain
 					chainList={chainList}
 					selectedChains={selectedChains ?? EMPTY_CHAINS}
 					evmChains={evmChains}
 					nestedMenu={nestedMenu}
 				/>
-			)}
+			) : null}
 
-			{projectList && projectList.length > 0 && (
+			{projectList && projectList.length > 0 ? (
 				<YieldProjects
 					projectList={projectList}
 					selectedProjects={selectedProjects ?? EMPTY_PROJECTS}
@@ -105,9 +105,9 @@ export function YieldFilterDropdowns({
 					includeQueryKey="project"
 					excludeQueryKey="excludeProject"
 				/>
-			)}
+			) : null}
 
-			{lendingProtocols && lendingProtocols.length > 0 && (
+			{lendingProtocols && lendingProtocols.length > 0 ? (
 				<YieldProjects
 					projectList={lendingProtocols}
 					selectedProjects={selectedLendingProtocols ?? EMPTY_PROJECTS}
@@ -116,9 +116,9 @@ export function YieldFilterDropdowns({
 					includeQueryKey="lendingProtocol"
 					excludeQueryKey="excludeLendingProtocol"
 				/>
-			)}
+			) : null}
 
-			{farmProtocols && farmProtocols.length > 0 && (
+			{farmProtocols && farmProtocols.length > 0 ? (
 				<YieldProjects
 					projectList={farmProtocols}
 					selectedProjects={selectedFarmProtocols ?? EMPTY_PROJECTS}
@@ -127,19 +127,19 @@ export function YieldFilterDropdowns({
 					includeQueryKey="farmProtocol"
 					excludeQueryKey="excludeFarmProtocol"
 				/>
-			)}
+			) : null}
 
-			{categoryList && categoryList.length > 0 && (
+			{categoryList && categoryList.length > 0 ? (
 				<FiltersByCategory
 					categoryList={categoryList}
 					selectedCategories={selectedCategories ?? EMPTY_CATEGORIES}
 					nestedMenu={nestedMenu}
 				/>
-			)}
+			) : null}
 
-			{attributes && <YieldAttributes pathname={pathname || router.pathname} nestedMenu={nestedMenu} />}
+			{attributes ? <YieldAttributes pathname={pathname || router.pathname} nestedMenu={nestedMenu} /> : null}
 
-			{tvlRange && (
+			{tvlRange ? (
 				<TVLRange
 					nestedMenu={nestedMenu}
 					variant="secondary"
@@ -158,11 +158,11 @@ export function YieldFilterDropdowns({
 						}
 					}}
 				/>
-			)}
+			) : null}
 
-			{apyRange && <APYRange nestedMenu={nestedMenu} placement="bottom-start" />}
+			{apyRange ? <APYRange nestedMenu={nestedMenu} placement="bottom-start" /> : null}
 
-			{availableRange && <AvailableRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" />}
+			{availableRange ? <AvailableRange nestedMenu={nestedMenu} variant="secondary" placement="bottom-start" /> : null}
 
 			{enabledColumns && enabledColumns.length > 0 ? (
 				<ColumnFilters enabledColumns={enabledColumns} nestedMenu={nestedMenu} />

@@ -90,7 +90,7 @@ export function ChartControls({
 
 	return (
 		<div className="mb-2 flex flex-wrap items-center justify-end gap-2 border-b border-gray-200 p-2 pt-0 dark:border-gray-700">
-			{showGrouping && (
+			{showGrouping ? (
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{groupingOptions.map((interval) => (
 						<Tooltip
@@ -105,9 +105,9 @@ export function ChartControls({
 						</Tooltip>
 					))}
 				</div>
-			)}
+			) : null}
 
-			{canShowCumulative && (
+			{canShowCumulative ? (
 				<Select
 					allValues={CUMULATIVE_DISPLAY_OPTIONS}
 					selectedValues={cumulative ? 'Cumulative' : 'Individual'}
@@ -121,9 +121,9 @@ export function ChartControls({
 					labelType="none"
 					variant="pro"
 				/>
-			)}
+			) : null}
 
-			{canStack && !cumulative && (
+			{canStack && !cumulative ? (
 				<Select
 					allValues={STACKING_DISPLAY_OPTIONS}
 					selectedValues={stacked ? 'Stacked' : 'Separate'}
@@ -135,9 +135,9 @@ export function ChartControls({
 					labelType="none"
 					variant="pro"
 				/>
-			)}
+			) : null}
 
-			{canShowPercentage && (
+			{canShowPercentage ? (
 				<Select
 					allValues={VALUE_TYPE_OPTIONS}
 					selectedValues={percentage ? '% Percentage' : '$ Absolute'}
@@ -148,9 +148,9 @@ export function ChartControls({
 					labelType="none"
 					variant="pro"
 				/>
-			)}
+			) : null}
 
-			{hasHallmarks && (
+			{hasHallmarks ? (
 				<Select
 					allValues={HALLMARK_OPTIONS}
 					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
@@ -161,9 +161,9 @@ export function ChartControls({
 					labelType="none"
 					variant="pro"
 				/>
-			)}
+			) : null}
 
-			{isScatter && (
+			{isScatter ? (
 				<Select
 					allValues={LABEL_OPTIONS}
 					selectedValues={showLabels ? 'Show' : 'Hide'}
@@ -174,7 +174,7 @@ export function ChartControls({
 					labelType="none"
 					variant="pro"
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -178,10 +178,10 @@ export function IncludeExcludeTokens({
 				className="relative hidden flex-col rounded-md bg-(--btn-bg) text-xs data-[alwaysdisplay=true]:flex sm:flex"
 				{...props}
 			>
-				{(tokensToInclude.length > 0 ||
-					tokensToExclude.length > 0 ||
-					tokensThatMatchExactly.length > 0 ||
-					pairTokens.length > 0) && (
+				{tokensToInclude.length > 0 ||
+				tokensToExclude.length > 0 ||
+				tokensThatMatchExactly.length > 0 ||
+				pairTokens.length > 0 ? (
 					<div className="flex flex-wrap items-center gap-4 p-2">
 						{tokensToInclude.map((token) => (
 							<button
@@ -227,7 +227,7 @@ export function IncludeExcludeTokens({
 							</button>
 						))}
 					</div>
-				)}
+				) : null}
 				<Ariakit.DialogDisclosure className="flex items-center gap-2 p-2">
 					<Icon name="search" height={16} width={16} />
 					<span>Search by token or pair (e.g. USDC-ETH)</span>
@@ -314,13 +314,13 @@ export function IncludeExcludeTokens({
 											}}
 											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
-											{(token?.logo || token?.fallbackLogo) && (
+											{token?.logo || token?.fallbackLogo ? (
 												<TokenLogo
 													src={token?.logo}
 													fallbackSrc={token?.fallbackLogo}
 													alt={`Logo of ${token.symbol}`}
 												/>
-											)}
+											) : null}
 											<span>{`${token.symbol}`}</span>
 											<div className="mt-1 flex w-full flex-nowrap items-center gap-1 sm:mt-0 sm:ml-auto sm:w-min">
 												<button
@@ -449,13 +449,13 @@ export function IncludeExcludeTokens({
 											}}
 											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
-											{(token?.logo || token?.fallbackLogo) && (
+											{token?.logo || token?.fallbackLogo ? (
 												<TokenLogo
 													src={token?.logo}
 													fallbackSrc={token?.fallbackLogo}
 													alt={`Logo of ${token.symbol}`}
 												/>
-											)}
+											) : null}
 											<span>{`${token.symbol}`}</span>
 										</Ariakit.ComboboxItem>
 									))}

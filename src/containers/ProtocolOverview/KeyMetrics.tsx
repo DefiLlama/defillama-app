@@ -10,7 +10,42 @@ import { getAdjustedTotals, getPrimaryValueLabelType } from './helpers'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import type { IProtocolOverviewPageData } from './types'
 
-export interface IKeyMetricsProps extends IProtocolOverviewPageData {
+type KeyMetricsRequiredFields = Pick<IProtocolOverviewPageData, 'name' | 'metrics'>
+
+type KeyMetricsOptionalFields = Partial<
+	Pick<
+		IProtocolOverviewPageData,
+		| 'category'
+		| 'hasKeyMetrics'
+		| 'oracleTvs'
+		| 'currentTvlByChain'
+		| 'openSmolStatsSummaryByDefault'
+		| 'token'
+		| 'tokenCGData'
+		| 'tokenLiquidity'
+		| 'outstandingFDV'
+		| 'dexVolume'
+		| 'dexAggregatorVolume'
+		| 'perpVolume'
+		| 'perpAggregatorVolume'
+		| 'bridgeAggregatorVolume'
+		| 'optionsPremiumVolume'
+		| 'optionsNotionalVolume'
+		| 'openInterest'
+		| 'fees'
+		| 'revenue'
+		| 'holdersRevenue'
+		| 'bribeRevenue'
+		| 'tokenTax'
+		| 'incentives'
+		| 'bridgeVolume'
+		| 'expenses'
+		| 'treasury'
+		| 'raises'
+	>
+>
+
+export interface IKeyMetricsProps extends KeyMetricsRequiredFields, KeyMetricsOptionalFields {
 	formatPrice: (value: number | string | null) => string | number | null
 	tvl?: number
 	tvlByChain?: [string, number][]
@@ -614,7 +649,7 @@ const SmolStats = ({
 	)
 }
 
-const Treasury = (props: IProtocolOverviewPageData) => {
+const Treasury = (props: IKeyMetricsProps) => {
 	if (!props.treasury) return null
 	return (
 		<MetricSection
@@ -861,7 +896,7 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 	)
 }
 
-const Raises = (props: IProtocolOverviewPageData) => {
+const Raises = (props: IKeyMetricsProps) => {
 	if (!props.raises || props.raises.length === 0) return null
 	return (
 		<MetricSection

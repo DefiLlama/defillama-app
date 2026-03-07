@@ -102,6 +102,7 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 			placeholder="Search..."
 			columnToSearch="Name"
 			header="Total Value Lost in Hacks"
+			headingAs="h1"
 			compact
 			customFilters={() => (
 				<Select

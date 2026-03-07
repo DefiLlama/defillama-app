@@ -33,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/stablecoins/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
@@ -50,7 +50,7 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {
@@ -508,7 +508,7 @@ export default function CEXStablecoins(props: {
 							<span className="text-sm text-(--text-label)">Total Stablecoin in CEX</span>
 							<span className="text-sm font-medium">{currentTotal ? formattedNum(currentTotal, true) : '-'}</span>
 						</div>
-						{stablecoinBreakdown && stablecoinBreakdown.length > 0 && (
+						{stablecoinBreakdown && stablecoinBreakdown.length > 0 ? (
 							<>
 								<div className="flex items-baseline gap-1.5">
 									<span className="text-sm text-(--text-label)">Dominant Backing Type</span>
@@ -528,7 +528,7 @@ export default function CEXStablecoins(props: {
 									<span className="text-sm font-medium">{data.stablecoinTokensUnique?.length || 0}</span>
 								</div>
 							</>
-						)}
+						) : null}
 					</div>
 
 					<div className="grid grid-cols-2 gap-2">

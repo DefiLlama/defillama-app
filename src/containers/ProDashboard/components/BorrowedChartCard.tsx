@@ -246,18 +246,18 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 					<h3 className="text-sm font-semibold pro-text1">{chartTypeLabel}</h3>
 					<p className="text-xs pro-text2">{protocolName}</p>
 				</div>
-				{hasChartData && (
+				{hasChartData ? (
 					<div className="flex gap-2">
-						{chartType !== 'tokensBorrowedPie' && (
+						{chartType !== 'tokensBorrowedPie' ? (
 							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
-						)}
+						) : null}
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
-				)}
+				) : null}
 			</div>
 
 			<div className="flex-1">{chartContent}</div>

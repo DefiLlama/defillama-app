@@ -60,11 +60,11 @@ export const PaymentButton = ({
 				className={`group flex w-full items-center justify-center gap-2 rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] py-3 text-sm font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 sm:py-3.5 dark:border-[#5C5CF9] dark:bg-[#5C5CF9] dark:hover:bg-[#4A4AF0] ${type === 'api' && !isStripe ? 'shadow-[0px_0px_32px_0px_#5C5CF980]' : ''}`}
 				data-umami-event={`subscribe-${paymentMethod}-${type ?? ''}`}
 			>
-				{icon && <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" />}
+				{icon ? <Icon name={icon} height={14} width={14} className="sm:h-4 sm:w-4" /> : null}
 				<span className="wrap-break-word">{text}</span>
 			</button>
 
-			{isStripe && (
+			{isStripe ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isCheckoutModalOpen}
@@ -74,7 +74,7 @@ export const PaymentButton = ({
 						billingInterval={billingInterval}
 					/>
 				</Suspense>
-			)}
+			) : null}
 		</>
 	)
 }

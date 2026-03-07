@@ -63,7 +63,7 @@ export function TablePagination({ table }: TablePaginationProps) {
 			) : null}
 			{shouldShowPageSizes ? (
 				<div className="flex items-center">
-					<div className="mr-2 text-xs">Per page</div>
+					<span className="mr-2 text-xs">Per page</span>
 					<TagGroup selectedValue={String(pageSize)} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 				</div>
 			) : null}

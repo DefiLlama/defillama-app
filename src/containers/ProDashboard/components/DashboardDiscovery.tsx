@@ -133,7 +133,7 @@ export function DashboardDiscovery() {
 	return (
 		<>
 			<div className="flex flex-col gap-1">
-				{!isBrowseMode && (
+				{!isBrowseMode ? (
 					<nav className="flex items-center gap-1 text-sm">
 						<button
 							onClick={() => {
@@ -156,12 +156,12 @@ export function DashboardDiscovery() {
 							{selectedSortBy.key === 'trending' ? ` (${selectedTimeFrame.name})` : ''}
 						</span>
 					</nav>
-				)}
+				) : null}
 
 				<div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
 					<DashboardSearch defaultValue={searchQuery} />
 
-					{!isBrowseMode && (
+					{!isBrowseMode ? (
 						<div className="ml-auto flex flex-wrap items-center gap-4">
 							<Select
 								allValues={itemsPerPageOptions}
@@ -206,7 +206,7 @@ export function DashboardDiscovery() {
 								}}
 								aria-label="Sort by"
 							/>
-							{selectedSortBy.key === 'trending' && (
+							{selectedSortBy.key === 'trending' ? (
 								<Select
 									allValues={timeFrameOptions}
 									selectedValues={selectedTimeFrame.key}
@@ -229,7 +229,7 @@ export function DashboardDiscovery() {
 									}}
 									aria-label="Time frame"
 								/>
-							)}
+							) : null}
 
 							<div className="flex items-center rounded-md border border-(--form-control-border) bg-(--cards-bg)">
 								<button
@@ -254,10 +254,10 @@ export function DashboardDiscovery() {
 								</button>
 							</div>
 						</div>
-					)}
+					) : null}
 				</div>
 
-				{selectedTags.length > 0 && (
+				{selectedTags.length > 0 ? (
 					<div className="mt-2 flex items-center gap-3 text-xs">
 						<h2 className="font-medium text-(--text-label)">Active filters:</h2>
 						<div className="flex flex-wrap gap-2">
@@ -294,7 +294,7 @@ export function DashboardDiscovery() {
 							Clear all
 						</button>
 					</div>
-				)}
+				) : null}
 			</div>
 
 			{isBrowseMode ? (
@@ -319,7 +319,7 @@ export function DashboardDiscovery() {
 						</p>
 					</div>
 
-					{(searchQuery || selectedTags.length > 0) && (
+					{searchQuery || selectedTags.length > 0 ? (
 						<div className="flex flex-col items-center gap-3">
 							<p className="text-sm font-medium text-(--text-label)">Try these popular tags:</p>
 							<div className="flex flex-wrap justify-center gap-2">
@@ -334,7 +334,7 @@ export function DashboardDiscovery() {
 								))}
 							</div>
 						</div>
-					)}
+					) : null}
 
 					<div className="mt-2 flex items-center gap-3">
 						<div className="h-px w-12 bg-(--cards-border)" />
@@ -366,7 +366,7 @@ export function DashboardDiscovery() {
 						))}
 					</div>
 
-					{totalPages > 1 && (
+					{totalPages > 1 ? (
 						<div className="flex flex-col items-center gap-4">
 							<div className="flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
@@ -430,7 +430,7 @@ export function DashboardDiscovery() {
 								Page {selectedPage} of {totalPages}
 							</p>
 						</div>
-					)}
+					) : null}
 				</>
 			)}
 		</>

@@ -572,11 +572,11 @@ const columns: ColumnDef<IProtocol>[] = [
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
-					{value === 'SyncDEX Finance' && (
+					{value === 'SyncDEX Finance' ? (
 						<Tooltip content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip>
-					)}
+					) : null}
 				</span>
 			)
 		},

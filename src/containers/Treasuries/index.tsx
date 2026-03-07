@@ -29,6 +29,7 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 			columnToSearch={'name'}
 			placeholder={'Search projects...'}
 			header={'Treasuries'}
+			headingAs="h1"
 			sortingState={sortingState}
 			csvFileName="treasuries"
 		/>

@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext } from 'next'
+import type { GetStaticPropsContext, GetStaticPropsResult } from 'next'
 import { TemporarilyDisabledPage } from '~/components/TemporarilyDisabledPage'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgesOverviewByChain } from '~/containers/Bridges/BridgesOverviewByChain'
@@ -25,9 +25,9 @@ type BridgesPageProps =
 
 export const getStaticProps = withPerformanceLogging(
 	'bridges/[chain]',
-	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
+	async ({ params }: GetStaticPropsContext<{ chain: string }>): Promise<GetStaticPropsResult<BridgesPageProps>> => {
 		if (!params?.chain) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		await refreshMetadataIfStale()
@@ -47,7 +47,7 @@ export const getStaticProps = withPerformanceLogging(
 		const canonicalChain = metadataCache.bridgeChainSlugToName?.[chainSlug] ?? params.chain
 
 		try {
-			const data = await getBridgeOverviewPageData(canonicalChain)
+			const data = await getBridgeOverviewPageData(canonicalChain, { includeBridgeTxCounts: true })
 
 			if (!data) {
 				if (!isKnownChainRoute) {
@@ -58,11 +58,7 @@ export const getStaticProps = withPerformanceLogging(
 				}
 
 				return {
-					props: {
-						state: 'disabled',
-						chainSlug,
-						chainLabel: canonicalChain
-					} satisfies BridgesPageProps,
+					props: { state: 'disabled', chainSlug, chainLabel: canonicalChain },
 					revalidate: maxAgeForNext([22])
 				}
 			}
@@ -78,11 +74,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 
 			return {
-				props: {
-					state: 'ready',
-					data,
-					chainSlug
-				} satisfies BridgesPageProps,
+				props: { state: 'ready', data, chainSlug },
 				revalidate: maxAgeForNext([22])
 			}
 		} catch (error) {
@@ -96,11 +88,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 
 			return {
-				props: {
-					state: 'disabled',
-					chainSlug,
-					chainLabel: canonicalChain
-				} satisfies BridgesPageProps,
+				props: { state: 'disabled', chainSlug, chainLabel: canonicalChain },
 				revalidate: maxAgeForNext([22])
 			}
 		}

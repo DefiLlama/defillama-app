@@ -10,6 +10,7 @@ import {
 	fetchBridges,
 	fetchBridgeLargeTransactions,
 	fetchBridgeNetflows,
+	fetchBridgeTxCounts,
 	fetchBridgeVolumeAll,
 	fetchBridgeVolumeByChain
 } from './api'
@@ -111,6 +112,19 @@ function buildVolumeDataByChain({
 }): BridgePageData['volumeDataByChain'] {
 	const volumeDataByChain: BridgePageData['volumeDataByChain'] = {}
 	const volumeOnAllChains: VolumeByDate = {}
+	const normalizeDailyBridgePoints = (points: BridgeVolumeChartPoint[]): BridgeVolumeChartPoint[] => {
+		const byDay = new Map<number, BridgeVolumeChartPoint>()
+		for (const point of points) {
+			const utcDay = Math.floor(Number(point.date) / 86400) * 86400
+			const existing = byDay.get(utcDay) ?? { date: utcDay, Deposited: 0, Withdrawn: 0 }
+			byDay.set(utcDay, {
+				date: utcDay,
+				Deposited: existing.Deposited + Number(point.Deposited ?? 0),
+				Withdrawn: existing.Withdrawn + Number(point.Withdrawn ?? 0)
+			})
+		}
+		return Array.from(byDay.values()).sort((a, b) => a.date - b.date)
+	}
 
 	for (let index = 0; index < volume.length; index++) {
 		const chainVolume = volume[index]
@@ -131,11 +145,13 @@ function buildVolumeDataByChain({
 			}
 		}
 
-		volumeDataByChain[chains[index]] = chartData
+		volumeDataByChain[chains[index]] = normalizeDailyBridgePoints(chartData)
 	}
 
 	volumeDataByChain['All Chains'] =
-		destinationChain !== 'false' ? (volumeDataByChain?.[destinationChain] ?? []) : Object.values(volumeOnAllChains)
+		destinationChain !== 'false'
+			? normalizeDailyBridgePoints(volumeDataByChain?.[destinationChain] ?? [])
+			: normalizeDailyBridgePoints(Object.values(volumeOnAllChains))
 
 	return volumeDataByChain
 }
@@ -380,17 +396,33 @@ const getLargeTransactionsData = async (chain: string, startTimestamp: number, e
 	})
 }
 
-export async function getBridgeOverviewPageData(chain) {
-	const [{ bridges, chains }, { chainCoingeckoIds }] = await Promise.all([
+const getBridgeTxCounts = async (chain?: string) => {
+	return retryAsync(() => fetchBridgeTxCounts(chain || undefined), {
+		context: `fetchBridgeTxCounts(${chain || 'all'})`,
+		fallback: { bridges: [] }
+	})
+}
+
+export async function getBridgeOverviewPageData(chain, options: { includeBridgeTxCounts?: boolean } = {}) {
+	const includeBridgeTxCounts = options.includeBridgeTxCounts ?? false
+	const [{ bridges, chains }, { chainCoingeckoIds }, bridgeTxCountsResponse] = await Promise.all([
 		getBridges(),
-		fetchJson<LlamaConfigResponse>(CONFIG_API)
+		fetchJson<LlamaConfigResponse>(CONFIG_API),
+		includeBridgeTxCounts ? getBridgeTxCounts(chain) : Promise.resolve({ bridges: [] })
 	])
+	const bridgeTxCountsById = new Map(
+		(bridgeTxCountsResponse.bridges ?? []).map((bridge) => [Number(bridge.id), bridge.txsPrevDay ?? null])
+	)
+	const bridgesWithTxCounts = bridges.map((bridge) => ({
+		...bridge,
+		txsPrevDay: bridgeTxCountsById.get(Number(bridge.id)) ?? null
+	}))
 
 	let chartDataByBridge: Array<Array<{ date: string; volume: number; txs: number }>> = []
 	let bridgeNames: string[] = []
 	const bridgeNameToChartDataIndex: Record<string, number> = {}
 	chartDataByBridge = await Promise.all(
-		bridges.map(async (elem, i) => {
+		bridgesWithTxCounts.map(async (elem, i) => {
 			bridgeNames.push(elem.displayName)
 			bridgeNameToChartDataIndex[elem.displayName] = i
 			const charts: RawBridgeVolumePoint[] = await retryAsync(
@@ -466,7 +498,7 @@ export async function getBridgeOverviewPageData(chain) {
 		: []
 
 	const { bridges: filteredBridges, messagingProtocols } = formatBridgesData({
-		bridges,
+		bridges: bridgesWithTxCounts,
 		chartDataByBridge,
 		bridgeNameToChartDataIndex,
 		chain

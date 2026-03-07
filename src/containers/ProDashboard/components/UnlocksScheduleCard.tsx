@@ -102,7 +102,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 				<div className="flex flex-col gap-1">
 					<h3 className="text-sm font-semibold pro-text1">{protocolName} Unlocks Schedule </h3>
 				</div>
-				{hasChartData && (
+				{hasChartData ? (
 					<div className="flex gap-2">
 						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
@@ -111,9 +111,9 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
-				)}
+				) : null}
 			</div>
-			{hasChartData && stacks.length > 1 && (
+			{hasChartData && stacks.length > 1 ? (
 				<div className="mb-2 flex justify-end">
 					<SelectWithCombobox
 						allValues={stacks}
@@ -125,7 +125,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 						portal
 					/>
 				</div>
-			)}
+			) : null}
 			<div>
 				{hasChartData ? (
 					<Suspense fallback={<div className="min-h-[360px]" />}>

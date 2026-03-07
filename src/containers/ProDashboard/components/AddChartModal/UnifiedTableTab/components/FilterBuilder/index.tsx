@@ -338,11 +338,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					<div className="flex items-center gap-1.5">
 						<Icon name="check" className="h-3 w-3" />
 						<span className="truncate text-xs font-semibold">{config.label}</span>
-						{config.description && (
+						{config.description ? (
 							<Tooltip content={config.description} placement="top">
 								<Icon name="circle-help" className="h-3 w-3 opacity-50" />
 							</Tooltip>
-						)}
+						) : null}
 						{categoryBadge}
 					</div>
 					<span className="truncate text-[11px] opacity-80">{displayValue}</span>
@@ -367,11 +367,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					<div className="flex min-w-0 flex-col gap-0.5">
 						<div className="flex items-center gap-1.5">
 							<span className="truncate text-xs font-semibold">{config.label}</span>
-							{config.description && (
+							{config.description ? (
 								<Tooltip content={config.description} placement="top">
 									<Icon name="circle-help" className="h-3 w-3 opacity-50" />
 								</Tooltip>
-							)}
+							) : null}
 							{categoryBadge}
 						</div>
 						<span className="truncate text-[11px] opacity-80">{displayValue}</span>
@@ -396,11 +396,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 				<div className="flex items-center justify-between gap-2">
 					<div className="flex min-w-0 items-center gap-1.5">
 						<span className="truncate text-xs font-semibold">{config.label}</span>
-						{config.description && (
+						{config.description ? (
 							<Tooltip content={config.description} placement="top">
 								<Icon name="circle-help" className="h-3 w-3 opacity-50" />
 							</Tooltip>
-						)}
+						) : null}
 						{categoryBadge}
 					</div>
 					<button type="button" onClick={onRemove} className="rounded p-0.5 opacity-60 hover:opacity-100">
@@ -408,7 +408,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 					</button>
 				</div>
 				<div className="flex items-center gap-1.5">
-					{prefix && <span className="text-[10px] opacity-70">{prefix}</span>}
+					{prefix ? <span className="text-[10px] opacity-70">{prefix}</span> : null}
 					<input
 						type="text"
 						inputMode="decimal"
@@ -418,7 +418,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						placeholder="e.g. 10, 1k, 1m"
 						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
-					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
+					{suffix ? <span className="text-[10px] opacity-70">{suffix}</span> : null}
 				</div>
 				<button
 					type="button"
@@ -471,7 +471,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 			</Ariakit.SelectProvider>
 			{isBetween ? (
 				<div className="flex items-center gap-1.5">
-					{prefix && <span className="text-[10px] opacity-70">{prefix}</span>}
+					{prefix ? <span className="text-[10px] opacity-70">{prefix}</span> : null}
 					<input
 						type="text"
 						inputMode="decimal"
@@ -491,11 +491,11 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						placeholder="Max"
 						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
-					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
+					{suffix ? <span className="text-[10px] opacity-70">{suffix}</span> : null}
 				</div>
 			) : (
 				<div className="flex items-center gap-1.5">
-					{prefix && <span className="text-[10px] opacity-70">{prefix}</span>}
+					{prefix ? <span className="text-[10px] opacity-70">{prefix}</span> : null}
 					<input
 						type="text"
 						inputMode="decimal"
@@ -505,7 +505,7 @@ function FilterItemEditor({ filter, onUpdate, onRemove, isEditing, onStartEdit, 
 						placeholder="e.g. 10, 1k, 1m"
 						className="h-6 flex-1 rounded border border-current/20 bg-black/30 px-2 text-[11px] outline-hidden placeholder:opacity-50 focus:border-current/50"
 					/>
-					{suffix && <span className="text-[10px] opacity-70">{suffix}</span>}
+					{suffix ? <span className="text-[10px] opacity-70">{suffix}</span> : null}
 				</div>
 			)}
 			<button
@@ -706,7 +706,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						aria-label="Search filters"
 						className="h-8 w-full rounded-md border border-(--cards-border) bg-(--cards-bg2) pr-8 pl-8 text-xs text-(--text-primary) outline-hidden transition-colors focus:border-(--primary)"
 					/>
-					{search && (
+					{search ? (
 						<button
 							type="button"
 							onClick={() => setSearch('')}
@@ -714,7 +714,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						>
 							<Icon name="x" className="h-3 w-3 text-(--text-tertiary)" />
 						</button>
-					)}
+					) : null}
 				</div>
 				<div className="flex thin-scrollbar max-h-[260px] flex-col gap-1.5 overflow-y-auto pr-1">
 					{filteredCategories.map(({ category, label, filters: categoryFilters }) => {
@@ -740,7 +740,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 										className={`h-3.5 w-3.5 text-(--text-tertiary) transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
 									/>
 								</button>
-								{isExpanded && availableFilters.length > 0 && (
+								{isExpanded && availableFilters.length > 0 ? (
 									<div className="border-t border-(--cards-border) bg-(--cards-bg) p-1">
 										{availableFilters.map((filter) => (
 											<button
@@ -751,11 +751,11 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 											>
 												<div className="flex items-center gap-1.5">
 													<span className="truncate text-xs text-(--text-primary)">{filter.label}</span>
-													{filter.description && (
+													{filter.description ? (
 														<Tooltip content={filter.description} placement="right">
 															<Icon name="circle-help" className="h-3 w-3 text-(--text-tertiary) opacity-50" />
 														</Tooltip>
-													)}
+													) : null}
 												</div>
 												<Icon
 													name="plus"
@@ -764,11 +764,11 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 											</button>
 										))}
 									</div>
-								)}
+								) : null}
 							</div>
 						)
 					})}
-					{filteredCategories.length === 0 && (
+					{filteredCategories.length === 0 ? (
 						<div className="flex items-center justify-between rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg2) px-3 py-3 text-[11px] text-(--text-tertiary)">
 							<span>No filters match "{search}".</span>
 							<button
@@ -779,7 +779,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 								Clear search
 							</button>
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -788,7 +788,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 					<div className="flex items-center gap-2">
 						<span className="text-xs font-medium text-(--text-secondary)">Active ({allActiveFilters.length})</span>
 					</div>
-					{allActiveFilters.length > 0 && (
+					{allActiveFilters.length > 0 ? (
 						<button
 							type="button"
 							onClick={handleClearAll}
@@ -796,7 +796,7 @@ export function FilterBuilder({ filters, onFiltersChange }: FilterBuilderProps) 
 						>
 							Clear all
 						</button>
-					)}
+					) : null}
 				</div>
 				<div className="grid thin-scrollbar max-h-[260px] grid-cols-[repeat(auto-fit,minmax(220px,1fr))] items-start gap-1.5 overflow-y-auto pr-1">
 					{allActiveFilters.length === 0 ? (

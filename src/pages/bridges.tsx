@@ -5,7 +5,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridges', async () => {
-	const props = await getBridgeOverviewPageData(null)
+	const props = await getBridgeOverviewPageData(null, { includeBridgeTxCounts: true })
 
 	/*
 	const backgroundColor = await getPeggedColor({

@@ -1,4 +1,4 @@
-import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
+import type { GetStaticPropsContext, GetStaticPropsResult, InferGetStaticPropsType } from 'next'
 import { TemporarilyDisabledPage } from '~/components/TemporarilyDisabledPage'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BridgeProtocolOverview } from '~/containers/Bridges/BridgeProtocolOverview'
@@ -22,9 +22,9 @@ type BridgePageProps =
 
 export const getStaticProps = withPerformanceLogging(
 	'bridge/[bridge]',
-	async ({ params }: GetStaticPropsContext<{ bridge: string }>) => {
+	async ({ params }: GetStaticPropsContext<{ bridge: string }>): Promise<GetStaticPropsResult<BridgePageProps>> => {
 		if (!params?.bridge) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		await refreshMetadataIfStale()
@@ -53,20 +53,13 @@ export const getStaticProps = withPerformanceLogging(
 				}
 
 				return {
-					props: {
-						state: 'disabled',
-						bridgeSlug: bridge
-					} satisfies BridgePageProps,
+					props: { state: 'disabled', bridgeSlug: bridge },
 					revalidate: maxAgeForNext([22])
 				}
 			}
 
 			return {
-				props: {
-					state: 'ready',
-					data,
-					bridgeSlug: bridge
-				} satisfies BridgePageProps,
+				props: { state: 'ready', data, bridgeSlug: bridge },
 				revalidate: maxAgeForNext([22])
 			}
 		} catch (error) {
@@ -80,10 +73,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 
 			return {
-				props: {
-					state: 'disabled',
-					bridgeSlug: bridge
-				} satisfies BridgePageProps,
+				props: { state: 'disabled', bridgeSlug: bridge },
 				revalidate: maxAgeForNext([22])
 			}
 		}

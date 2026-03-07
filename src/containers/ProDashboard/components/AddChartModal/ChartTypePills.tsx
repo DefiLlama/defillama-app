@@ -127,7 +127,7 @@ export function ChartTypePills({
 									}`}
 								>
 									<span>{option.label}</span>
-									{isSelected && <Icon name="check" height={14} width={14} className="text-(--old-blue)" />}
+									{isSelected ? <Icon name="check" height={14} width={14} className="text-(--old-blue)" /> : null}
 								</Ariakit.SelectItem>
 							)
 						})}

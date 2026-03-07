@@ -85,7 +85,7 @@ export function BridgeChainSelector({ options, currentChain, handleClick }: IPro
 									<Ariakit.SelectItem
 										key={`bridge-chain-${option.name}`}
 										value={option.name}
-										className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+										className="group flex shrink-0 cursor-pointer items-center gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 										render={<Ariakit.ComboboxItem />}
 									>
 										<span>{option.name}</span>

@@ -35,7 +35,7 @@ export function ImageUpload({
 				onChange={handleImageSelect}
 				className="hidden"
 			/>
-			{selectedImages.length > 0 && (
+			{selectedImages.length > 0 ? (
 				<div className="flex flex-wrap gap-2">
 					{selectedImages.map(({ file, url }, idx) => (
 						<div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg">
@@ -53,7 +53,7 @@ export function ImageUpload({
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 		</>
 	)

@@ -154,8 +154,8 @@ function Support() {
 					</button>
 				</div>
 
-				{showForm &&
-					(isSubmitted ? (
+				{showForm ? (
+					isSubmitted ? (
 						<SuccessScreen setIsSubmitted={setIsSubmitted} />
 					) : (
 						<form
@@ -205,9 +205,10 @@ function Support() {
 							>
 								{isPending ? 'Submitting...' : 'Submit'}
 							</button>
-							{error && <small className="text-center text-red-500">{error.message}</small>}
+							{error ? <small className="text-center text-red-500">{error.message}</small> : null}
 						</form>
-					))}
+					)
+				) : null}
 
 				<p className="text-center text-sm text-gray-500">
 					Contacting us via these channels ensures a much faster response compared to discord

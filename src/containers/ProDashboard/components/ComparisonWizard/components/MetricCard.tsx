@@ -30,7 +30,7 @@ export function MetricCard({ metric, isSelected, onToggle, disabled, itemLabel =
 					isSelected ? 'border-(--primary) bg-(--primary)' : 'border-(--form-control-border) bg-(--bg-input)'
 				}`}
 			>
-				{isSelected && <Icon name="check" height={10} width={10} className="text-white" />}
+				{isSelected ? <Icon name="check" height={10} width={10} className="text-white" /> : null}
 			</div>
 
 			<div className="min-w-0 flex-1">

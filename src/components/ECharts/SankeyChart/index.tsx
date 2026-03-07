@@ -21,6 +21,7 @@ export default function SankeyChart({
 	nodes,
 	links,
 	title,
+	headingAs,
 	valueSymbol = '$',
 	nodeColors,
 	nodeAlign = 'justify',
@@ -215,6 +216,7 @@ export default function SankeyChart({
 				title || enableImageExport ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						className="mb-2 flex items-center justify-end gap-2"
 						exportButtons={
 							enableImageExport ? (

@@ -271,13 +271,13 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 
 		const chartToolbar = (
 			<div className="flex items-center justify-end gap-1 p-2 pt-0">
-				{sessionId && (
+				{sessionId ? (
 					<AddToDashboardButton
 						chartConfig={null}
 						llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
 						smol
 					/>
-				)}
+				) : null}
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />
 			</div>
 		)
@@ -430,7 +430,7 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 
 		return (
 			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
-				{config.displayOptions && (
+				{config.displayOptions ? (
 					<ChartControls
 						displayOptions={config.displayOptions}
 						stacked={chartState.stacked}
@@ -449,7 +449,7 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 						onHallmarksChange={handleHallmarksChange}
 						onLabelsChange={handleLabelsChange}
 					/>
-				)}
+				) : null}
 				{chartContent}
 			</div>
 		)
@@ -559,7 +559,7 @@ function ChartRendererImpl({
 
 	return (
 		<div ref={containerRef} className="flex flex-col gap-2 rounded-md border border-(--old-blue) pt-2">
-			{hasMultipleCharts && (
+			{hasMultipleCharts ? (
 				<div className="-mt-2 flex border-b border-[#e6e6e6] dark:border-[#222324]">
 					{charts.map((chart, index) => (
 						<button
@@ -575,7 +575,7 @@ function ChartRendererImpl({
 						</button>
 					))}
 				</div>
-			)}
+			) : null}
 			{charts.map((chart, index) => (
 				<SingleChart
 					key={chart.id}

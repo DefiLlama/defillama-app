@@ -138,52 +138,53 @@ export function UnconstrainedSmolLineChart({
 						vectorEffect="non-scaling-stroke"
 					/>
 				</svg>
-				{hoveredIndex != null && (
+				{hoveredIndex != null ? (
 					<div
 						className="pointer-events-none absolute top-0 h-full border-l border-dashed border-[#ccc] dark:border-[#555]"
 						style={{ left: `${series.length === 1 ? 50 : (hoveredIndex / (series.length - 1)) * 100}%` }}
 					/>
-				)}
-				{hoveredIndex != null &&
-					createPortal(
-						<div
-							ref={tooltipRef}
-							className="pointer-events-none fixed z-[1000] rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[12px] leading-[1.4] whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
-						>
-							<div>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</div>
-							<div className="flex items-center gap-1">
-								<span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: stroke }} />
-								Price: ${formattedNum(series[hoveredIndex][1])}
-							</div>
-							<div className="mt-1 opacity-80">
-								{dayPosition === 0 ? (
-									lastEvent && lastEvent.length > 0 ? (
-										<UnlockEventTooltip lastEvent={lastEvent} unlockValue={unlockValue} stroke={stroke} />
-									) : null
-								) : (
-									<span>
-										Day {dayPosition != null && dayPosition > 0 ? '+' : ''}
-										{dayPosition} from unlock
-									</span>
-								)}
-							</div>
-							{percentChange != null && (
-								<div
-									style={{
-										color:
-											percentChange >= 0
-												? COLOR_MAP.green[isThemeDark ? 'dark' : 'light']
-												: COLOR_MAP.red[isThemeDark ? 'dark' : 'light']
-									}}
-									className="opacity-80"
-								>
-									{percentChange >= 0 ? '+' : ''}
-									{percentChange.toFixed(1)}% from unlock
+				) : null}
+				{hoveredIndex != null
+					? createPortal(
+							<div
+								ref={tooltipRef}
+								className="pointer-events-none fixed z-[1000] rounded border border-[#ccc] bg-white px-[10px] py-[5px] text-[12px] leading-[1.4] whitespace-nowrap text-[#666] shadow-md dark:border-[#555] dark:bg-[#1a1a1a] dark:text-[#d1d5db]"
+							>
+								<p>{formatTooltipChartDate(series[hoveredIndex][0], 'daily', true)}</p>
+								<p className="flex items-center gap-1">
+									<span className="inline-block h-[10px] w-[10px] rounded-full" style={{ backgroundColor: stroke }} />
+									Price: ${formattedNum(series[hoveredIndex][1])}
+								</p>
+								<div className="mt-1 opacity-80">
+									{dayPosition === 0 ? (
+										lastEvent && lastEvent.length > 0 ? (
+											<UnlockEventTooltip lastEvent={lastEvent} unlockValue={unlockValue} stroke={stroke} />
+										) : null
+									) : (
+										<span>
+											Day {dayPosition != null && dayPosition > 0 ? '+' : ''}
+											{dayPosition} from unlock
+										</span>
+									)}
 								</div>
-							)}
-						</div>,
-						document.body
-					)}
+								{percentChange != null ? (
+									<div
+										style={{
+											color:
+												percentChange >= 0
+													? COLOR_MAP.green[isThemeDark ? 'dark' : 'light']
+													: COLOR_MAP.red[isThemeDark ? 'dark' : 'light']
+										}}
+										className="opacity-80"
+									>
+										{percentChange >= 0 ? '+' : ''}
+										{percentChange.toFixed(1)}% from unlock
+									</div>
+								) : null}
+							</div>,
+							document.body
+						)
+					: null}
 			</div>
 		</div>
 	)
@@ -217,11 +218,11 @@ function UnlockEventTooltip({
 			<div className="flex items-center gap-1" style={{ color: stroke }}>
 				Unlocked: {formattedNum(totalAmount * unlockValue, true)}
 			</div>
-			{uniqueCategories.length > 0 && (
+			{uniqueCategories.length > 0 ? (
 				<div className="text-[11px] text-[#666666]">
 					Categories: {uniqueCategories.map((cat) => cat.charAt(0).toUpperCase() + cat.slice(1)).join(', ')}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

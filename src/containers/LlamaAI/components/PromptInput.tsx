@@ -267,7 +267,7 @@ export function PromptInput({
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 					/>
-					{onOpenAlerts && (
+					{onOpenAlerts ? (
 						<Tooltip
 							content="Manage Alerts"
 							render={<button type="button" onClick={onOpenAlerts} />}
@@ -276,7 +276,7 @@ export function PromptInput({
 							<Icon name="calendar-plus" height={14} width={14} />
 							<span className="sr-only">Manage Alerts</span>
 						</Tooltip>
-					)}
+					) : null}
 				</div>
 				<div className="flex items-center gap-2">
 					<ImageUploadButton onClick={imageUpload.openFilePicker} />

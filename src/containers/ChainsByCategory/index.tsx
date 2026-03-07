@@ -38,9 +38,9 @@ export function ChainsByCategory({
 	return (
 		<>
 			<RowLinksWithDropdown links={allCategories} activeLink={categoryName} />
-			{entityQuestions?.length > 0 && (
+			{entityQuestions?.length > 0 ? (
 				<EntityQuestionsStrip questions={entityQuestions} entitySlug="chains" entityType="page" entityName="Chains" />
-			)}
+			) : null}
 
 			<div className="flex flex-col gap-2 xl:flex-row">
 				<div className="relative isolate flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">

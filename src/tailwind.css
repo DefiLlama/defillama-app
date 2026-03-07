@@ -447,6 +447,21 @@
 	@apply border border-pro-blue-100 text-pro-blue-400 hover:bg-pro-blue-300/20 focus-visible:bg-pro-blue-300/20 dark:border-pro-blue-300/20 dark:text-pro-blue-200 hover:dark:bg-pro-blue-300/30 focus-visible:dark:bg-pro-blue-300/30;
 }
 
+@utility cv-auto-40 {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 40px;
+}
+
+@utility cv-auto-37 {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 37px;
+}
+
+@utility cv-auto-30 {
+	content-visibility: auto;
+	contain-intrinsic-size: auto 30px;
+}
+
 /* --------------------------------- Base --------------------------------- */
 @layer base {
 	@font-face {

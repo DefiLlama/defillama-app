@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/unlocks/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -32,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].emissions) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
@@ -43,7 +43,7 @@ export const getStaticProps = withPerformanceLogging(
 			metadataCache.tokenlist
 		)
 		if (!emissions) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const seoTitle = `${protocolData.name} Token Unlocks & Vesting - DefiLlama`
 		const seoDescription = `Track ${protocolData.name}${tokenSymbol ? ` (${tokenSymbol})` : ''} token unlock schedule, vesting timelines, and upcoming emission events on DefiLlama.`

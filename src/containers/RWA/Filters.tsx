@@ -192,7 +192,7 @@ function AttributesFilter({
 				label={<span className="block text-left">{subMenuLabel}</span>}
 				render={<button type="button" />}
 				menuPortal={usePortal}
-				className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
+				className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover) sm:rounded-none"
 			>
 				{ATTRIBUTE_FILTER_STATES.map((state) => {
 					const isSelected = filter.selectedStates.includes(state)
@@ -205,7 +205,7 @@ function AttributesFilter({
 								event.stopPropagation()
 								filter.onUpdateStates(toggleAttributeFilterState(filter.selectedStates, state))
 							}}
-							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							<span>{ATTRIBUTE_FILTER_STATE_LABELS[state]}</span>
 							<span className="flex h-3.5 w-3.5 items-center justify-center">

@@ -14,7 +14,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -31,7 +31,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const data = await getProtocolOverviewPageData({
@@ -43,7 +43,7 @@ export const getStaticProps = withPerformanceLogging(
 		})
 
 		if (!data) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(normalizedName, 'protocol')

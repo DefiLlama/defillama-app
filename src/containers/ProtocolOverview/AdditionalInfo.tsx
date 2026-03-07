@@ -81,6 +81,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					<svg width={72} height={18}>
 						<use href={`/assets/dlnews.svg#dlnews-logo`} />
 					</svg>
+					<span className="sr-only">Visit DL News</span>
 				</a>
 			</div>
 

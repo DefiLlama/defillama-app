@@ -317,25 +317,34 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.entityQuestions && props.entityQuestions.length > 0 && (
+			{props.entityQuestions && props.entityQuestions.length > 0 ? (
 				<EntityQuestionsStrip
 					questions={props.entityQuestions}
 					entitySlug={pageSlugByType[props.type] || slug(props.type)}
 					entityType="page"
 					entityName={props.type}
 				/>
-			)}
+			) : null}
 			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
-						{props.chain !== 'All' && (
+						{props.chain !== 'All' ? (
 							<h1 className="flex flex-nowrap items-center gap-2">
 								<TokenLogo name={props.chain} kind="chain" size={24} alt={`Logo of ${props.chain}`} />
 								<span className="text-xl font-semibold">{props.chain}</span>
 							</h1>
+						) : props.total24h != null ? (
+							<div className="flex flex-col">
+								<h1 className="text-(--text-label)">{metricName} (24h)</h1>
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+									{formattedNum(props.total24h, true)}
+								</p>
+							</div>
+						) : (
+							<h1 className="text-(--text-label)">{metricName}</h1>
 						)}
 
-						{props.total24h != null ? (
+						{props.chain !== 'All' && props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
 									{(() => {
@@ -446,7 +455,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						variant="filter-responsive"
 					/>
-					{props.categories.length > 0 && (
+					{props.categories.length > 0 ? (
 						<SelectWithCombobox
 							allValues={props.categories}
 							selectedValues={selectedCategories}
@@ -457,7 +466,7 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							variant="filter-responsive"
 						/>
-					)}
+					) : null}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
 					<CSVDownloadButton
 						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols` })}
@@ -640,14 +649,14 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 							{value}
 						</BasicLink>
 
-						{row.original.chains && (
+						{row.original.chains ? (
 							<Tooltip
 								content={<ProtocolChainsComponent chains={row.original.chains} />}
 								className="text-[0.7rem] text-(--text-disabled)"
 							>
 								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 							</Tooltip>
-						)}
+						) : null}
 					</span>
 				</span>
 			)

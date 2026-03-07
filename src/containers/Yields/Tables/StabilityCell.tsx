@@ -150,18 +150,18 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 				{label} <span className="opacity-70">{cv30d.toFixed(2)}</span>
 			</span>
 			<div className="flex flex-col gap-0.5">
-				{apyMedian30d != null && (
+				{apyMedian30d != null ? (
 					<div className="flex justify-between gap-4">
 						<span className="opacity-70">Median APY</span>
 						<span>{formatPct(apyMedian30d)}</span>
 					</div>
-				)}
-				{apyStd30d != null && (
+				) : null}
+				{apyStd30d != null ? (
 					<div className="flex justify-between gap-4">
 						<span className="opacity-70">Standard Deviation (σ)</span>
 						<span>{formatPct(apyStd30d)}</span>
 					</div>
-				)}
+				) : null}
 			</div>
 			<span className="text-[10px] opacity-50">Score = σ / avg · lower is more stable</span>
 		</div>

@@ -322,7 +322,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 				</form>
 			</div>
 
-			{transactions.length > 0 && (
+			{transactions.length > 0 ? (
 				<TableWithSearch
 					data={tableData}
 					columns={bridgeTransactionsColumns}
@@ -335,7 +335,7 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}`}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }

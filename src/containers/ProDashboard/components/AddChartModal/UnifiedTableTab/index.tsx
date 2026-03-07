@@ -508,7 +508,7 @@ function TabContent({
 
 				<CollapsibleSection title="Data Views" badge={activePreset?.name} className="shadow-sm">
 					<div className="flex flex-col gap-3">
-						{recommendedPresets.length > 0 && (
+						{recommendedPresets.length > 0 ? (
 							<div className="flex flex-col gap-2">
 								<div className="flex items-center justify-between">
 									<h4 className="text-xs font-semibold text-(--text-secondary)">Recommended Data Views</h4>
@@ -520,7 +520,7 @@ function TabContent({
 									presets={recommendedPresets}
 								/>
 							</div>
-						)}
+						) : null}
 						<div className="flex flex-col gap-2">
 							<h4 className="text-xs font-semibold text-(--text-secondary)">All Data Views</h4>
 							{otherPresets.length > 0 ? (
@@ -720,7 +720,7 @@ function TabContent({
 	return (
 		<div className="flex flex-col">
 			<header className="flex shrink-0 flex-col gap-1 pb-3">
-				{!isEditingUnifiedTable && (
+				{!isEditingUnifiedTable ? (
 					<button
 						type="button"
 						onClick={() => setShowTypeSelector(true)}
@@ -729,10 +729,10 @@ function TabContent({
 						<span>←</span>
 						<span>Back to table type selection</span>
 					</button>
-				)}
+				) : null}
 			</header>
 
-			{availableTabs.length > 0 && (
+			{availableTabs.length > 0 ? (
 				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
 					{availableTabs.map((tab) => {
 						const isActive = tab.key === effectiveActiveTab
@@ -764,7 +764,7 @@ function TabContent({
 						)
 					})}
 				</div>
-			)}
+			) : null}
 
 			<div
 				className="thin-scrollbar flex-1 overflow-y-auto pr-1"

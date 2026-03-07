@@ -91,7 +91,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 						{dashboard.data.dashboardName || 'Untitled Dashboard'}
 					</h2>
 
-					{viewMode !== 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+					{viewMode !== 'grid' ? <Tags dashboard={dashboard} onTagClick={onTagClick} /> : null}
 
 					{onDelete ? (
 						<>
@@ -117,7 +117,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 					) : null}
 				</div>
 
-				{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+				{viewMode === 'grid' ? <Tags dashboard={dashboard} onTagClick={onTagClick} /> : null}
 
 				{dashboard.description ? (
 					<p className="mt-0.5 line-clamp-2 text-sm leading-snug text-(--text-label) opacity-80">
@@ -193,11 +193,11 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 					{tag}
 				</button>
 			))}
-			{dashboard.tags.length > 2 && (
+			{dashboard.tags.length > 2 ? (
 				<span className="rounded-full bg-(--bg-hover) px-2 py-1 text-xs text-(--text-label)">
 					+{dashboard.tags.length - 2}
 				</span>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -29,7 +29,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/dexs/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -44,7 +44,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].dexs) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const [protocolData, adapterData] = await Promise.all([
@@ -81,7 +81,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 
-		let chart = (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value])
+		let chart = (adapterData.totalDataChart ?? []).map(([date, value]) => [+date * 1e3, value] as [number, number])
 		const nonZeroIndex = chart.findIndex(([_date, value]) => value > 0)
 		if (nonZeroIndex !== -1) {
 			chart = chart.slice(nonZeroIndex)
@@ -89,6 +89,7 @@ export const getStaticProps = withPerformanceLogging(
 		return {
 			props: {
 				name: protocolData.name,
+				deprecated: protocolData.deprecated ?? false,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,

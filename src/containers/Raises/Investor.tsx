@@ -142,6 +142,7 @@ export const InvestorContainer = ({
 
 			<RaisesFilters
 				header={'Raises'}
+				headingAs="h2"
 				rounds={rounds}
 				selectedRounds={selectedRounds}
 				sectors={sectors}

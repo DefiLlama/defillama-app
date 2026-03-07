@@ -1000,8 +1000,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	return (
 		<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
-			{!readOnly &&
-				(sidebarVisible ? (
+			{!readOnly ? (
+				sidebarVisible ? (
 					<>
 						<AgenticSidebar
 							sessions={sessions}
@@ -1023,7 +1023,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					</>
 				) : (
 					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-				))}
+				)
+			) : null}
 
 			<div
 				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
@@ -1043,7 +1044,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								{readOnly ? sessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 							</h1>
 						</div>
-						{!readOnly && (
+						{!readOnly ? (
 							<>
 								<PromptInput
 									handleSubmit={handleSubmit}
@@ -1058,13 +1059,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									researchUsage={null}
 									onOpenAlerts={alertsModalStore.show}
 								/>
-								<RecommendedPrompts
-									onSubmit={handleSubmit}
-									isPending={isStreaming}
-									isResearchMode={isResearchMode}
-								/>
+								<RecommendedPrompts onSubmit={handleSubmit} isPending={isStreaming} isResearchMode={isResearchMode} />
 							</>
-						)}
+						) : null}
 					</div>
 				) : (
 					<>
@@ -1072,11 +1069,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
 								<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
 									<div className="flex flex-col gap-2.5">
-										{paginationState.isLoadingMore && (
+										{paginationState.isLoadingMore ? (
 											<div className="flex justify-center py-2">
 												<span className="text-xs text-[#666] dark:text-[#919296]">Loading older messages...</span>
 											</div>
-										)}
+										) : null}
 										{messages.map((msg, i) => {
 											const nextMsg = messages[i + 1]
 											const nextUser = nextMsg?.role === 'user' ? nextMsg.content : undefined
@@ -1096,11 +1093,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 										})}
 
 										{isStreaming &&
-											activeToolCalls.length === 0 &&
-											spawnProgress.size === 0 &&
-											!streamingText &&
-											!streamingThinking &&
-											streamingCharts.length === 0 && <TypingIndicator />}
+										activeToolCalls.length === 0 &&
+										spawnProgress.size === 0 &&
+										!streamingText &&
+										!streamingThinking &&
+										streamingCharts.length === 0 ? (
+											<TypingIndicator />
+										) : null}
 
 										{spawnProgress.size > 0 ? (
 											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
@@ -1112,7 +1111,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											/>
 										)}
 
-										{streamingDraft && (
+										{streamingDraft ? (
 											<MessageBubble
 												key={streamingDraft.id || 'streaming-draft'}
 												message={streamingDraft}
@@ -1123,12 +1122,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 												readOnly={readOnly}
 												isLlama={isLlama}
 											/>
-										)}
+										) : null}
 
-										{error && (
+										{error ? (
 											<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
 												<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-												{lastFailedPrompt && (
+												{lastFailedPrompt ? (
 													<button
 														onClick={() => {
 															setError(null)
@@ -1138,9 +1137,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 													>
 														Retry
 													</button>
-												)}
+												) : null}
 											</div>
-										)}
+										) : null}
 									</div>
 								</div>
 								<div ref={messagesEndRef} />
@@ -1160,7 +1159,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							</Tooltip>
 						</div>
 
-						{!readOnly && (
+						{!readOnly ? (
 							<div className="relative mx-auto w-full max-w-3xl pb-2.5">
 								<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 								<PromptInput
@@ -1177,20 +1176,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 									onOpenAlerts={alertsModalStore.show}
 								/>
 							</div>
-						)}
+						) : null}
 					</>
 				)}
 			</div>
-			{!readOnly && rateLimitDetails && (
+			{!readOnly && rateLimitDetails ? (
 				<ResearchLimitModal
 					dialogStore={researchModalStore}
 					period={rateLimitDetails.period}
 					limit={rateLimitDetails.limit}
 					resetTime={rateLimitDetails.resetTime}
 				/>
-			)}
-			{!readOnly && <AlertsModal dialogStore={alertsModalStore} />}
-			{!readOnly && (
+			) : null}
+			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
+			{!readOnly ? (
 				<SettingsModal
 					dialogStore={settingsModalStore}
 					customInstructions={customInstructions}
@@ -1199,7 +1198,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					onEnableMemoryChange={setEnableMemory}
 					fetchFn={authorizedFetch}
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -1292,7 +1291,7 @@ const SpawnProgressCard = memo(function SpawnProgressCard({
 				</svg>
 			</button>
 
-			{isExpanded && (
+			{isExpanded ? (
 				<div className="flex flex-col gap-1 border-t border-[#e6e6e6] pt-2 dark:border-[#222324]">
 					{agentList.map((a) => (
 						<div key={a.id} className="flex items-center gap-2 pl-1">
@@ -1332,22 +1331,22 @@ const SpawnProgressCard = memo(function SpawnProgressCard({
 							)}
 							<span className="text-xs text-[#666] dark:text-[#919296]">
 								{a.id}
-								{a.status === 'tool_call' && a.tool && (
+								{a.status === 'tool_call' && a.tool ? (
 									<span className="opacity-60"> — {TOOL_LABELS[a.tool] || a.tool}</span>
-								)}
-								{a.status === 'completed' && (
+								) : null}
+								{a.status === 'completed' ? (
 									<span className="opacity-60">
 										{' '}
 										— Complete ({a.toolCount} tools{a.chartCount ? `, ${a.chartCount} charts` : ''})
 									</span>
-								)}
-								{a.status === 'started' && <span className="opacity-60"> — Starting...</span>}
-								{a.status === 'error' && <span className="opacity-60"> — Error</span>}
+								) : null}
+								{a.status === 'started' ? <span className="opacity-60"> — Starting...</span> : null}
+								{a.status === 'error' ? <span className="opacity-60"> — Error</span> : null}
 							</span>
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 })
@@ -1704,7 +1703,7 @@ function InlineContent({
 							isStreaming={isStreaming}
 						/>
 					)}
-			{isStreaming && text && <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />}
+			{isStreaming && text ? <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" /> : null}
 			{unreferencedCharts.map((entry, i) => (
 				<ChartRenderer
 					key={`chart-${entry.chart.id || i}`}
@@ -1727,7 +1726,7 @@ function InlineContent({
 					savedAlertIds={savedAlertIds}
 				/>
 			))}
-			{toolExecutions && toolExecutions.length > 0 && <ToolExecutionPanel toolExecutions={toolExecutions} />}
+			{toolExecutions && toolExecutions.length > 0 ? <ToolExecutionPanel toolExecutions={toolExecutions} /> : null}
 		</div>
 	)
 }
@@ -1763,13 +1762,13 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 				</span>
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">{totalTime}ms</span>
 			</button>
-			{isExpanded && (
+			{isExpanded ? (
 				<div className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 dark:border-[#222324]">
 					{toolExecutions.map((exec, i) => (
 						<ToolExecutionRow key={i} execution={exec} />
 					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -1798,16 +1797,16 @@ function ToolExecutionRow({ execution }: { execution: ToolExecution }) {
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">
 					{execution.executionTimeMs}ms
 				</span>
-				{execution.resultCount != null && (
+				{execution.resultCount != null ? (
 					<span className="text-[10px] text-[#999] dark:text-[#666]">{execution.resultCount} rows</span>
-				)}
+				) : null}
 			</button>
-			{showPreview && execution.sqlQuery && (
+			{showPreview && execution.sqlQuery ? (
 				<pre className="mt-1 mb-1 overflow-x-auto rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 font-mono text-[10px] text-[#444] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#bbb]">
 					{execution.sqlQuery}
 				</pre>
-			)}
-			{showPreview && execution.resultPreview && execution.resultPreview.length > 0 && (
+			) : null}
+			{showPreview && execution.resultPreview && execution.resultPreview.length > 0 ? (
 				<div className="mt-1 mb-1 overflow-x-auto rounded border border-[#e6e6e6] bg-[#fafafa] p-1 dark:border-[#333] dark:bg-[#1a1a1a]">
 					<table className="text-[10px]">
 						<thead>
@@ -1832,9 +1831,11 @@ function ToolExecutionRow({ execution }: { execution: ToolExecution }) {
 						</tbody>
 					</table>
 				</div>
-			)}
-			{showPreview && execution.toolData && <ToolDataView name={execution.name} data={execution.toolData} />}
-			{!execution.success && execution.error && <p className="mt-0.5 text-[10px] text-red-500">{execution.error}</p>}
+			) : null}
+			{showPreview && execution.toolData ? <ToolDataView name={execution.name} data={execution.toolData} /> : null}
+			{!execution.success && execution.error ? (
+				<p className="mt-0.5 text-[10px] text-red-500">{execution.error}</p>
+			) : null}
 		</div>
 	)
 }
@@ -1847,14 +1848,14 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
 				{Object.entries(results).map(([term, val]: any) => (
 					<div key={term} className="flex items-center gap-2 text-[10px]">
-						{term !== '_single' && <span className="font-medium text-[#666] dark:text-[#999]">{term}:</span>}
+						{term !== '_single' ? <span className="font-medium text-[#666] dark:text-[#999]">{term}:</span> : null}
 						{val.topMatch ? (
 							<span className="text-[#444] dark:text-[#bbb]">
 								{val.topMatch.slug}{' '}
 								<span className="text-[#999]">
 									({val.topMatch.type}, {Math.round(val.topMatch.confidence * 100)}%)
 								</span>
-								{val.matchCount > 1 && <span className="text-[#999]"> +{val.matchCount - 1} more</span>}
+								{val.matchCount > 1 ? <span className="text-[#999]"> +{val.matchCount - 1} more</span> : null}
 							</span>
 						) : (
 							<span className="text-[#999]">no match</span>
@@ -1889,9 +1890,9 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 		return (
 			<div className="mt-1 mb-1 text-[10px] text-[#444] dark:text-[#bbb]">
 				<span className="font-medium">{data.skill}</span>
-				{data.unlockedTools?.length > 0 && (
+				{data.unlockedTools?.length > 0 ? (
 					<span className="text-[#999]"> → unlocked: {data.unlockedTools.join(', ')}</span>
-				)}
+				) : null}
 			</div>
 		)
 	}
@@ -1910,10 +1911,10 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 		)
 	}
 	if (name === 'web_search') {
-		return <div className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</div>
+		return <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</span>
 	}
 	if (name === 'x_search') {
-		return <div className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</div>
+		return <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</span>
 	}
 	return null
 }
@@ -1999,14 +2000,14 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 				<span className={`inline-block transition-transform duration-150 ${isOpen ? 'rotate-90' : ''}`}>&#9656;</span>
 				<span>Reasoning</span>
 			</button>
-			{isOpen && (
+			{isOpen ? (
 				<div
 					ref={contentRef}
 					className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-[11px] leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
 				>
 					{thinking}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -2049,8 +2050,8 @@ function ToolProgressIndicator({
 					<span className="text-base font-semibold text-[#555] dark:text-[#919296]">LlamaAI is thinking...</span>
 					<span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
 				</div>
-				{thinking && <ThinkingPanel thinking={thinking} defaultOpen />}
-				{isCompacting && (
+				{thinking ? <ThinkingPanel thinking={thinking} defaultOpen /> : null}
+				{isCompacting ? (
 					<div className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
 						<Icon
 							name="layers"
@@ -2061,8 +2062,8 @@ function ToolProgressIndicator({
 						/>
 						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory...</span>
 					</div>
-				)}
-				{toolCalls.length > 0 && (
+				) : null}
+				{toolCalls.length > 0 ? (
 					<div className="flex flex-col gap-1.5">
 						{toolCalls.map((tc) => {
 							const meta = TOOL_ICONS[tc.name] || { icon: 'sparkles', color: '#919296' }
@@ -2080,7 +2081,7 @@ function ToolProgressIndicator({
 							)
 						})}
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	)
@@ -2112,7 +2113,7 @@ function MessageBubble({
 	if (message.role === 'user') {
 		return (
 			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 break-words dark:bg-[#222425]">
-				{message.images && message.images.length > 0 && (
+				{message.images && message.images.length > 0 ? (
 					<div className="mb-2.5 flex flex-wrap gap-3">
 						{message.images.map((img) => (
 							<button
@@ -2125,7 +2126,7 @@ function MessageBubble({
 							</button>
 						))}
 					</div>
-				)}
+				) : null}
 				<p>{message.content}</p>
 				<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
 			</div>
@@ -2136,7 +2137,7 @@ function MessageBubble({
 
 	return (
 		<div>
-			{message.thinking && <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} />}
+			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				text={message.content || ''}
 				chartSets={message.charts || []}
@@ -2152,7 +2153,7 @@ function MessageBubble({
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
 			/>
-			{message.id && !parentIsStreaming && !isDraft && (
+			{message.id && !parentIsStreaming && !isDraft ? (
 				<ResponseControls
 					messageId={message.id}
 					content={message.content}
@@ -2160,7 +2161,7 @@ function MessageBubble({
 					readOnly={readOnly}
 					charts={chartList}
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }

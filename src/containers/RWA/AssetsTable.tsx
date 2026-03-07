@@ -172,11 +172,11 @@ const columns: ColumnDef<AssetRow>[] = [
 							</>
 						) : (
 							<>
-								{info.row.original.assetName && (
+								{info.row.original.assetName ? (
 									<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
 										{info.row.original.assetName}
 									</span>
-								)}
+								) : null}
 							</>
 						)}
 					</span>

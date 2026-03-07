@@ -218,9 +218,9 @@ export function ChainChartPanel({
 					title={imageExportTitle}
 					iconUrl={metadata.name !== 'All' ? chainIconUrl(metadata.name) : undefined}
 				/>
-				{canAddToDashboard && (
+				{canAddToDashboard ? (
 					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />
-				)}
+				) : null}
 			</div>
 
 			<div className="relative flex min-h-[360px] flex-col">

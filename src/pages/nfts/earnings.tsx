@@ -37,6 +37,7 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
+				headingAs="h1"
 				csvFileName="nft-earnings"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>

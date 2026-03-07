@@ -172,7 +172,7 @@ function ProDashboardContent() {
 						</span>
 						<p className="text-sm text-(--text-form)">{dashboardDescription}</p>
 					</div>
-					{dashboardTags.length > 0 && (
+					{dashboardTags.length > 0 ? (
 						<div className="flex flex-nowrap items-start gap-1 text-(--text-disabled)">
 							<Tooltip content="Tags">
 								<Icon name="tag" height={16} width={16} className="mt-1" />
@@ -185,7 +185,7 @@ function ProDashboardContent() {
 								))}
 							</div>
 						</div>
-					)}
+					) : null}
 				</div>
 				<div className="col-span-full flex flex-col gap-2 md:col-span-4 md:gap-4">
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -238,11 +238,11 @@ function ProDashboardContent() {
 				</div>
 			</div>
 
-			{currentDashboard?.aiGenerated && (
+			{currentDashboard?.aiGenerated ? (
 				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
-			)}
+			) : null}
 
-			{currentRatingSession && !isReadOnly && (
+			{currentRatingSession && !isReadOnly ? (
 				<Suspense fallback={<></>}>
 					<Rating
 						sessionId={currentRatingSession.sessionId}
@@ -254,9 +254,9 @@ function ProDashboardContent() {
 						onDismiss={dismissRating}
 					/>
 				</Suspense>
-			)}
+			) : null}
 
-			{!isReadOnly && (
+			{!isReadOnly ? (
 				<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 					<Tooltip
 						content={!hasChartItems ? 'Add chart items to enable time period selection' : null}
@@ -287,7 +287,7 @@ function ProDashboardContent() {
 						</div>
 					</Tooltip>
 					<div className="order-3 flex items-center gap-2">
-						{dashboardId && (
+						{dashboardId ? (
 							<button
 								onClick={() => setShowSettingsModal(true)}
 								className="hidden rounded-md pro-glass pro-hover-bg p-2 transition-colors md:flex"
@@ -295,8 +295,8 @@ function ProDashboardContent() {
 							>
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
 							</button>
-						)}
-						{items.length > 0 && (
+						) : null}
+						{items.length > 0 ? (
 							<button
 								className="hidden animate-ai-glow items-center gap-2 rounded-md pro-btn-blue-outline px-4 py-2 text-base whitespace-nowrap md:flex"
 								onClick={() => setShowIterateDashboardModal(true)}
@@ -305,8 +305,8 @@ function ProDashboardContent() {
 								<Icon name="sparkles" height={16} width={16} />
 								Edit with LlamaAI
 							</button>
-						)}
-						{canUndo && (
+						) : null}
+						{canUndo ? (
 							<button
 								className="hidden items-center gap-2 rounded-md border pro-border pro-hover-bg px-4 py-2 text-base whitespace-nowrap pro-text2 transition-colors hover:pro-text1 md:flex"
 								onClick={undoAIGeneration}
@@ -315,7 +315,7 @@ function ProDashboardContent() {
 								<Icon name="arrow-left" height={16} width={16} />
 								Undo
 							</button>
-						)}
+						) : null}
 
 						<button
 							className="hidden items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-base whitespace-nowrap md:flex"
@@ -327,9 +327,9 @@ function ProDashboardContent() {
 						</button>
 					</div>
 				</div>
-			)}
+			) : null}
 
-			{items.length > 0 && <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} />}
+			{items.length > 0 ? <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} /> : null}
 
 			<Suspense fallback={<></>}>
 				<AddChartModal
@@ -343,13 +343,13 @@ function ProDashboardContent() {
 				/>
 			</Suspense>
 
-			{!protocolsLoading && items.length === 0 && (
+			{!protocolsLoading && items.length === 0 ? (
 				<EmptyState
 					onAddChart={openAddModal}
 					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
 					isReadOnly={isReadOnly}
 				/>
-			)}
+			) : null}
 
 			<Suspense fallback={<></>}>
 				<DashboardSettingsModal

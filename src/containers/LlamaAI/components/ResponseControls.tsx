@@ -245,7 +245,7 @@ export function ResponseControls({
 	return (
 		<>
 			<div className="-my-0.5 flex items-center justify-end gap-1">
-				{content && (
+				{content ? (
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}
 						render={<button onClick={handleCopy} />}
@@ -257,8 +257,8 @@ export function ResponseControls({
 							<Icon name="clipboard" height={14} width={14} />
 						)}
 					</Tooltip>
-				)}
-				{content && sessionId && !readOnly && (
+				) : null}
+				{content && sessionId && !readOnly ? (
 					<PDFExportButton
 						sessionId={sessionId}
 						messageId={messageId}
@@ -266,8 +266,8 @@ export function ResponseControls({
 						exportType="single_message"
 						className="flex items-center gap-1 rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					/>
-				)}
-				{!readOnly && (
+				) : null}
+				{!readOnly ? (
 					<>
 						<Tooltip
 							content={isRatedAsGood ? 'Rated as good' : 'Rate as good'}
@@ -286,8 +286,8 @@ export function ResponseControls({
 							<span className="sr-only">Thumbs Down</span>
 						</Tooltip>
 					</>
-				)}
-				{sessionId && !readOnly && (
+				) : null}
+				{sessionId && !readOnly ? (
 					<Tooltip
 						content="Share"
 						render={
@@ -302,8 +302,8 @@ export function ResponseControls({
 						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}
 						<span className="sr-only">Share</span>
 					</Tooltip>
-				)}
-				{!readOnly && (
+				) : null}
+				{!readOnly ? (
 					<Tooltip
 						content="Provide Feedback"
 						render={<button onClick={handleOpenGeneralFeedback} disabled={showFeedback || !!submittedRating} />}
@@ -312,7 +312,7 @@ export function ResponseControls({
 						<Icon name="message-square-warning" height={14} width={14} />
 						<span className="sr-only">Provide Feedback</span>
 					</Tooltip>
-				)}
+				) : null}
 			</div>
 			<FeedbackDialog
 				open={showFeedback}

@@ -215,7 +215,7 @@ export function SelectItemsStep() {
 									key={item.value}
 									className="flex shrink-0 items-center gap-2 rounded-full border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1 pr-1 pl-2 text-sm"
 								>
-									{item.logo && (
+									{item.logo ? (
 										<img
 											src={item.logo}
 											alt={item.label}
@@ -223,7 +223,7 @@ export function SelectItemsStep() {
 											height={20}
 											className="h-5 w-5 rounded-full object-cover"
 										/>
-									)}
+									) : null}
 									<span className="whitespace-nowrap text-(--text-primary)">{item.label}</span>
 									<button
 										type="button"
@@ -238,9 +238,9 @@ export function SelectItemsStep() {
 							<span className="text-sm text-(--text-tertiary)">No {typeLabel.toLowerCase()} selected</span>
 						)}
 					</div>
-					{state.selectedItems.length > 2 && (
+					{state.selectedItems.length > 2 ? (
 						<div className="pointer-events-none absolute top-0 right-0 h-full w-8 bg-gradient-to-l from-(--cards-bg) to-transparent" />
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -329,7 +329,7 @@ export function SelectItemsStep() {
 													: 'border-(--form-control-border) bg-(--bg-input)'
 											}`}
 										>
-											{isSelected && <Icon name="check" height={10} width={10} className="text-white" />}
+											{isSelected ? <Icon name="check" height={10} width={10} className="text-white" /> : null}
 										</div>
 
 										<img

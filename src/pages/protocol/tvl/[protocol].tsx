@@ -34,7 +34,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/tvl/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -49,13 +49,13 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].tvl) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
@@ -137,7 +137,7 @@ function ChainsChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allValues}
@@ -193,7 +193,7 @@ function TokenLineChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allValues}
@@ -247,7 +247,7 @@ function TokensBreakdownPieChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -287,7 +287,7 @@ function USDInflowsChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -329,7 +329,7 @@ function InflowsByTokenChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allValues}

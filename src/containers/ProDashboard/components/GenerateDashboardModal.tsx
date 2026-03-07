@@ -299,7 +299,7 @@ export function GenerateDashboardModal({
 
 				<form onSubmit={handleGenerate}>
 					<div className="space-y-6">
-						{mode === 'create' && (
+						{mode === 'create' ? (
 							<div>
 								<label htmlFor="generate-dashboard-name" className="mb-3 block text-sm font-medium pro-text1">
 									Dashboard Name
@@ -315,7 +315,7 @@ export function GenerateDashboardModal({
 									required
 								/>
 							</div>
-						)}
+						) : null}
 
 						<div>
 							<label htmlFor="generate-dashboard-description" className="mb-3 block text-sm font-medium pro-text1">
@@ -348,7 +348,7 @@ export function GenerateDashboardModal({
 							</p>
 						</div>
 
-						{mode === 'create' && (
+						{mode === 'create' ? (
 							<div>
 								<p id="generate-dashboard-visibility" className="mb-3 block text-sm font-medium pro-text1">
 									Visibility
@@ -377,13 +377,13 @@ export function GenerateDashboardModal({
 										Private
 									</button>
 								</div>
-								{visibility === 'public' && (
+								{visibility === 'public' ? (
 									<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
-								)}
+								) : null}
 							</div>
-						)}
+						) : null}
 
-						{mode === 'create' && (
+						{mode === 'create' ? (
 							<div>
 								<label htmlFor="generate-dashboard-tag-input" className="mb-3 block text-sm font-medium pro-text1">
 									Tags
@@ -412,7 +412,7 @@ export function GenerateDashboardModal({
 
 								<p className="mt-2 text-xs pro-text3">Press Enter to add tag</p>
 
-								{tags.length > 0 && (
+								{tags.length > 0 ? (
 									<div className="mt-3 flex flex-wrap gap-2">
 										{tags.map((tag) => (
 											<span
@@ -431,9 +431,9 @@ export function GenerateDashboardModal({
 											</span>
 										))}
 									</div>
-								)}
+								) : null}
 							</div>
-						)}
+						) : null}
 					</div>
 
 					<div className="mt-8 flex gap-3">

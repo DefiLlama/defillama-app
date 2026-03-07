@@ -190,7 +190,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 				onTouchMove={onTouchMove}
 				onTouchEnd={onTouchEnd}
 			>
-				{totalPages > 1 && (
+				{totalPages > 1 ? (
 					<button
 						onClick={handlePrevPage}
 						className="hidden shrink-0 rounded-md p-1.5 text-(--text-primary) hover:bg-(--bg-secondary) md:block"
@@ -198,7 +198,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 					>
 						<Icon name="arrow-left" height={16} width={16} />
 					</button>
-				)}
+				) : null}
 				<div className="flex flex-1 items-center justify-start overflow-hidden">
 					<div style={contentStyle}>
 						{currentItems.map((item: React.ReactNode, index: number) => (
@@ -208,7 +208,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 						))}
 					</div>
 				</div>
-				{totalPages > 1 && (
+				{totalPages > 1 ? (
 					<button
 						onClick={handleNextPage}
 						className="hidden shrink-0 rounded-md p-1.5 text-(--text-primary) hover:bg-(--bg-secondary) md:block"
@@ -216,10 +216,10 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 					>
 						<Icon name="arrow-right" height={16} width={16} />
 					</button>
-				)}
+				) : null}
 			</div>
 
-			{totalPages > 1 && (
+			{totalPages > 1 ? (
 				<div className="flex items-center justify-center gap-2">
 					<button
 						onClick={handlePrevPage}
@@ -241,7 +241,7 @@ export const Pagination = ({ items, startIndex = 0 }: PaginationProps) => {
 						<Icon name="arrow-right" height={14} width={14} />
 					</button>
 				</div>
-			)}
+			) : null}
 		</>
 	)
 }

@@ -33,7 +33,7 @@ export function TabNavigation({ selectedMainTab, editItem, onTabChange }: TabNav
 						<span className="lg:hidden">{tab.mobileLabel}</span>
 						<span className="hidden lg:inline">
 							{tab.label}
-							{tab.subtitle && <span className="ml-1 text-xs opacity-70">{tab.subtitle}</span>}
+							{tab.subtitle ? <span className="ml-1 text-xs opacity-70">{tab.subtitle}</span> : null}
 						</span>
 					</button>
 				))}

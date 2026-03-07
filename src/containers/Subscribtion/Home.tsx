@@ -91,7 +91,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					/>
 				</div>
 				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
-				{!isSubscribed && (
+				{!isSubscribed ? (
 					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
 						<p className="text-center text-[#919296]">
 							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
@@ -132,9 +132,9 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							</div>
 						)}
 					</div>
-				)}
+				) : null}
 
-				{isAuthenticated && !user?.verified && !isWalletUser && user?.email && (
+				{isAuthenticated && !user?.verified && !isWalletUser && user?.email ? (
 					<div className="mx-auto w-full max-w-3xl">
 						<EmailVerificationWarning
 							email={user.email}
@@ -142,7 +142,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							isLoading={loaders.resendVerification}
 						/>
 					</div>
-				)}
+				) : null}
 
 				<div
 					className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
@@ -152,7 +152,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					}}
 				/>
 
-				{isAuthenticated && isSubscribed && (
+				{isAuthenticated && isSubscribed ? (
 					<div className="mx-auto mt-6 mb-6 flex w-full max-w-[600px] flex-col items-center gap-4">
 						<div className="flex flex-col items-center gap-4 rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
 							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
@@ -168,7 +168,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							</button>
 						</div>
 					</div>
-				)}
+				) : null}
 
 				<div className="relative">
 					<div className="relative z-10 mb-6 flex items-center justify-center">
@@ -232,7 +232,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 						</span>
 					</div>
 
-					{isAuthenticated && user && !isSubscribed && (
+					{isAuthenticated && user && !isSubscribed ? (
 						<div className="relative z-10 mt-8 w-full">
 							<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
 								<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
@@ -248,7 +248,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 								getPortalSessionUrl={getPortalSessionUrl}
 							/>
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 			<div className="mx-auto mb-[64px] flex w-full max-w-6xl flex-col items-center justify-center gap-[64px] px-5 xl:max-w-7xl 2xl:max-w-[1440px]">
@@ -289,9 +289,9 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					<img src="/assets/trusts-llama/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
 				</div>
 			</div>
-			{returnUrl && (
+			{returnUrl ? (
 				<ReturnModal isOpen={showReturnModal} onClose={() => setShowReturnModal(false)} returnUrl={returnUrl} />
-			)}
+			) : null}
 		</>
 	)
 }

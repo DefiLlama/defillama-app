@@ -260,30 +260,30 @@ export function StablecoinAssetChartCard({ config }: StablecoinAssetChartCardPro
 						{displayName} {stablecoinSymbol ? `(${stablecoinSymbol})` : ''}
 					</p>
 				</div>
-				{hasChartData && (
+				{hasChartData ? (
 					<div className="flex gap-2">
-						{chartType !== 'chainPie' && (
+						{chartType !== 'chainPie' ? (
 							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
-						)}
+						) : null}
 						<ProTableCSVButton
 							onClick={handleCsvExport}
 							smol
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
-				)}
+				) : null}
 			</div>
 
-			{latestCirculating !== null && chartType === 'totalCirc' && (
+			{latestCirculating !== null && chartType === 'totalCirc' ? (
 				<div className="mb-2 flex gap-4">
-					<div className="flex flex-col">
+					<p className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Total Circulating</span>
 						<span className="font-jetbrains text-sm font-semibold" style={{ color: '#3e79cc' }}>
 							{formattedNum(latestCirculating, true)}
 						</span>
-					</div>
+					</p>
 				</div>
-			)}
+			) : null}
 
 			<div className="flex-1">{chartContent}</div>
 		</div>

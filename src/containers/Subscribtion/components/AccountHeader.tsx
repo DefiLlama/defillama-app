@@ -20,7 +20,7 @@ export const AccountHeader = ({ isSubscribed, onLogout, isLoading, subscription 
 			</h1>
 
 			<div className="flex items-center gap-3">
-				{isSubscribed && (
+				{isSubscribed ? (
 					<div className="relative flex items-center gap-2 overflow-hidden rounded-full border border-[#5C5CF9]/20 bg-linear-to-r from-[#5C5CF9]/10 to-[#4335A8]/10 px-4 py-1.5 text-[#5C5CF9] shadow-[0_0_10px_rgba(92,92,249,0.15)] transition-shadow duration-300 group-hover:shadow-[0_0_15px_rgba(92,92,249,0.25)]">
 						<div className="absolute inset-0 h-full w-full animate-shimmer bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.1)_50%,transparent_75%)] bg-size-[250%_250%] opacity-0 transition-opacity group-hover:opacity-100"></div>
 						<Icon name="bookmark" height={14} width={14} className="text-[#5C5CF9]" />
@@ -28,7 +28,7 @@ export const AccountHeader = ({ isSubscribed, onLogout, isLoading, subscription 
 							{subscription?.type === 'llamafeed' ? 'Pro subscription' : 'API subscription'}
 						</span>
 					</div>
-				)}
+				) : null}
 				<button
 					className="group/btn flex items-center gap-2 rounded-lg border border-[#39393E] bg-[#222429]/70 px-4 py-2 text-sm text-[#b4b7bc] shadow-md transition-all duration-200 hover:border-[#5C5CF9]/30 hover:bg-[#222429] hover:text-white hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
 					onClick={onLogout}

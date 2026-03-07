@@ -12,14 +12,14 @@ const pageName = ['Protocols TVS', 'by', 'Oracle']
 
 export const getStaticProps = withPerformanceLogging('oracles/[oracle]', async ({ params }) => {
 	if (!params?.oracle) {
-		return { notFound: true, props: null }
+		return { notFound: true }
 	}
 
 	const oracle = Array.isArray(params.oracle) ? params.oracle[0] : params.oracle
 	const data = await getOracleDetailPageData({ oracle })
 
 	if (!data) {
-		return { notFound: true, props: null }
+		return { notFound: true }
 	}
 
 	return {

@@ -131,13 +131,13 @@ export function Stats(props: IStatsProps) {
 					props.hideChart ? 'xl:col-span-full' : 'xl:col-span-1'
 				}`}
 			>
-				{props.metadata.name !== 'All' && (
+				{props.metadata.name !== 'All' ? (
 					<h1 className="flex flex-nowrap items-center gap-2 *:last:ml-auto">
 						<TokenLogo name={props.metadata.name} kind="chain" size={24} alt={`Logo of ${props.metadata.name}`} />
 						<span className="text-xl font-semibold">{props.metadata.name}</span>
 						<Bookmark readableName={props.metadata.name} isChain />
 					</h1>
-				)}
+				) : null}
 				{props.protocols.length > 0 ? (
 					<div className="flex flex-nowrap items-end justify-between gap-8">
 						{props.metadata.name === 'All' ? (

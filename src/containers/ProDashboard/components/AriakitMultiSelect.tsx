@@ -57,12 +57,12 @@ export function AriakitMultiSelect({
 		<div className={className}>
 			<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
-				{selectedValues.length > 0 && (
+				{selectedValues.length > 0 ? (
 					<span className="ml-1 text-xs pro-text3">
 						({selectedValues.length}
-						{maxSelections < 100 && `/${maxSelections}`})
+						{maxSelections < 100 ? `/${maxSelections}` : null})
 					</span>
-				)}
+				) : null}
 			</label>
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
@@ -89,9 +89,9 @@ export function AriakitMultiSelect({
 					>
 						<div className="p-1">
 							<div className="thin-scrollbar max-h-[280px] overflow-y-auto">
-								{options.length === 0 && (
-									<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
-								)}
+								{options.length === 0 ? (
+									<p className="px-3 py-2 text-center text-xs pro-text3">No options available.</p>
+								) : null}
 								{options.map((option) => {
 									const isActive = selectedValues.includes(option.value)
 									const isDisabled = option.disabled || (!isActive && isMaxReached)
@@ -118,14 +118,14 @@ export function AriakitMultiSelect({
 													isActive ? 'border-(--primary) bg-(--primary)' : 'border pro-border'
 												}`}
 											>
-												{isActive && <Icon name="check" width={10} height={10} className="text-white" />}
+												{isActive ? <Icon name="check" width={10} height={10} className="text-white" /> : null}
 											</div>
 											<span className="truncate">{option.label}</span>
 										</button>
 									)
 								})}
 							</div>
-							{selectedValues.length > 0 && (
+							{selectedValues.length > 0 ? (
 								<div className="mt-1 border-t pro-border pt-1">
 									<button
 										type="button"
@@ -135,7 +135,7 @@ export function AriakitMultiSelect({
 										Clear all
 									</button>
 								</div>
-							)}
+							) : null}
 						</div>
 					</Popover>
 				</>

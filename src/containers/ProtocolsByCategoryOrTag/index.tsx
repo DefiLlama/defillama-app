@@ -219,7 +219,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 						<h1 className="text-lg font-semibold">{`${categoryPresentation.headingLabel} on ${props.chain}`}</h1>
 					)}
 					<div className="mb-auto flex flex-1 flex-col gap-2">
-						{props.charts.dataset?.source.length > 0 && (
+						{props.charts.dataset?.source.length > 0 ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								{props.effectiveCategory === 'RWA' ? (
 									<Tooltip
@@ -241,8 +241,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									{formattedNum(charts.dataset?.source[charts.dataset?.source.length - 1]?.TVL, true)}
 								</span>
 							</p>
-						)}
-						{props.optionsPremium7d != null && (
+						) : null}
+						{props.optionsPremium7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={definitions.optionsPremium.chain['7d']}
@@ -252,8 +252,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.optionsPremium7d, true)}</span>
 							</p>
-						)}
-						{props.optionsNotional7d != null && (
+						) : null}
+						{props.optionsNotional7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={definitions.optionsNotional.chain['7d']}
@@ -263,8 +263,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.optionsNotional7d, true)}</span>
 							</p>
-						)}
-						{props.fees7d != null && (
+						) : null}
+						{props.fees7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={definitions.fees.chain['7d']}
@@ -274,8 +274,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.fees7d, true)}</span>
 							</p>
-						)}
-						{props.revenue7d != null && (
+						) : null}
+						{props.revenue7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={definitions.revenue.chain['7d']}
@@ -285,8 +285,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.revenue7d, true)}</span>
 							</p>
-						)}
-						{props.dexVolume7d != null && (
+						) : null}
+						{props.dexVolume7d != null ? (
 							<>
 								{props.effectiveCategory === 'Dexs' ? (
 									<p className="flex flex-wrap items-center justify-between gap-4 text-base">
@@ -320,8 +320,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 									</p>
 								)}
 							</>
-						)}
-						{props.perpVolume7d != null && (
+						) : null}
+						{props.perpVolume7d != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={definitions.perps.protocol['7d']}
@@ -331,8 +331,8 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.perpVolume7d, true)}</span>
 							</p>
-						)}
-						{props.openInterest != null && (
+						) : null}
+						{props.openInterest != null ? (
 							<p className="flex flex-wrap items-center justify-between gap-4 text-base">
 								<Tooltip
 									content={definitions.openInterest.common}
@@ -342,7 +342,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 								</Tooltip>
 								<span className="text-right font-jetbrains">{formattedNum(props.openInterest, true)}</span>
 							</p>
-						)}
+						) : null}
 					</div>
 				</div>
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -593,7 +593,7 @@ const rwaAssetClassColumn = (category: string): Column => ({
 				>
 					{info.row.original.tags[0]}
 				</BasicLink>
-				{info.row.original.tags.length > 1 && (
+				{info.row.original.tags.length > 1 ? (
 					<Tooltip
 						content={
 							<span className="flex flex-col gap-1">
@@ -613,7 +613,7 @@ const rwaAssetClassColumn = (category: string): Column => ({
 							{`+${info.row.original.tags.length - 1}`}
 						</span>
 					</Tooltip>
-				)}
+				) : null}
 			</span>
 		)
 	},

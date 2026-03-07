@@ -72,7 +72,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 						tvlByChain={tvlByChain}
 						oracleTvsByChain={oracleTvsByChain}
 						formatPrice={formatPrice}
-						h1ClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
+						headingAs="h1"
+						headingClassName="flex flex-wrap items-center gap-2 text-xl *:last:ml-auto"
 					/>
 					<KeyMetrics
 						{...props}
@@ -92,7 +93,8 @@ export const ProtocolOverview = (props: IProtocolOverviewPageData) => {
 								tvlByChain={tvlByChain}
 								oracleTvsByChain={oracleTvsByChain}
 								formatPrice={formatPrice}
-								h1ClassName="flex flex-wrap items-center gap-2 text-xl"
+								headingAs="div"
+								headingClassName="flex flex-wrap items-center gap-2 text-xl"
 							/>
 						</div>
 						<Suspense
@@ -135,7 +137,8 @@ function ProtocolHeader({
 	tvlByChain,
 	oracleTvsByChain,
 	formatPrice,
-	h1ClassName
+	headingAs: Tag = 'h1',
+	headingClassName
 }: {
 	props: IProtocolOverviewPageData
 	oracleTvs: number
@@ -143,11 +146,12 @@ function ProtocolHeader({
 	tvlByChain: [string, number][]
 	oracleTvsByChain: [string, number][]
 	formatPrice: (value?: number | string | null) => string | number | null
-	h1ClassName: string
+	headingAs?: 'h1' | 'div'
+	headingClassName: string
 }) {
 	return (
 		<>
-			<h1 className={h1ClassName}>
+			<Tag className={headingClassName}>
 				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<span className="font-bold">{props.name}</span>
 				{props.token?.symbol && props.token.symbol !== '-' ? (
@@ -159,7 +163,7 @@ function ProtocolHeader({
 					</Tooltip>
 				) : null}
 				<Bookmark readableName={props.name} />
-			</h1>
+			</Tag>
 			{props.oracleTvs ? (
 				<PrimaryValue
 					hasTvl={true}

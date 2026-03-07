@@ -35,7 +35,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 					: 'border-(--cards-border) bg-(--cards-bg)'
 			}`}
 		>
-			<div className="flex flex-col gap-1">
+			<p className="flex flex-col gap-1">
 				<span
 					className={`font-medium ${
 						isBoolean
@@ -47,8 +47,8 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 				>
 					{label}
 				</span>
-				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
-			</div>
+				{description ? <span className="text-sm text-(--text-disabled)">{description}</span> : null}
+			</p>
 			{isBoolean ? (
 				<Icon
 					name={positive ? 'check-circle' : 'x'}
@@ -79,14 +79,14 @@ const KYCItem = ({
 				required ? 'border-amber-600/30 bg-amber-600/10' : 'border-green-600/30 bg-green-600/10'
 			}`}
 		>
-			<div className="flex flex-col gap-1">
+			<p className="flex flex-col gap-1">
 				<span
 					className={`font-medium ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 				>
 					{label}
 				</span>
-				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
-			</div>
+				{description ? <span className="text-sm text-(--text-disabled)">{description}</span> : null}
+			</p>
 			<Icon
 				name={required ? 'alert-triangle' : 'check-circle'}
 				className={`h-5 w-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
@@ -203,7 +203,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-2">
 					<h1 className="text-xl font-bold">{displayName}</h1>
-					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
+					{asset.ticker ? <p className="text-(--text-disabled)">({asset.ticker})</p> : null}
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					{asset.website ? (
@@ -432,10 +432,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										{asset.assetClass.map((ac, idx) => (
 											<span key={ac} className="flex items-center gap-0.5">
 												{ac}
-												{asset.assetClassDescriptions?.[ac] && (
+												{asset.assetClassDescriptions?.[ac] ? (
 													<QuestionHelper text={asset.assetClassDescriptions[ac]} />
-												)}
-												{idx < asset.assetClass!.length - 1 && ','}
+												) : null}
+												{idx < asset.assetClass!.length - 1 ? ',' : null}
 											</span>
 										))}
 									</span>
@@ -461,7 +461,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								<span className={`flex items-center gap-1 font-medium ${asset.trueRWA ? 'text-(--success)' : ''}`}>
 									{asset.rwaClassification || '-'}
-									{asset.rwaClassificationDescription && <QuestionHelper text={asset.rwaClassificationDescription} />}
+									{asset.rwaClassificationDescription ? (
+										<QuestionHelper text={asset.rwaClassificationDescription} />
+									) : null}
 								</span>
 							</p>
 							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -473,15 +475,15 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								<span className="flex items-center gap-1 font-medium">
 									{asset.accessModel || '-'}
-									{asset.accessModelDescription && <QuestionHelper text={asset.accessModelDescription} />}
+									{asset.accessModelDescription ? <QuestionHelper text={asset.accessModelDescription} /> : null}
 								</span>
 							</p>
-							{asset.parentPlatform && (
+							{asset.parentPlatform ? (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 									<span className="text-(--text-label)">Parent Platform</span>
 									<span className="font-medium">{asset.parentPlatform}</span>
 								</p>
-							)}
+							) : null}
 						</div>
 					</SectionCard>
 
@@ -541,7 +543,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								<span className="font-medium">{asset.issuer || '-'}</span>
 							</p>
-							{asset.isin && (
+							{asset.isin ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
 										content={definitions.isin.description}
@@ -551,8 +553,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									</Tooltip>
 									<span className="font-mono font-medium">{asset.isin}</span>
 								</p>
-							)}
-							{asset.issuerRegistryInfo && asset.issuerRegistryInfo.length > 0 && (
+							) : null}
+							{asset.issuerRegistryInfo && asset.issuerRegistryInfo.length > 0 ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
 										content={definitions.registryInformation.description}
@@ -562,7 +564,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									</Tooltip>
 									<span className="font-medium">{asset.issuerRegistryInfo.join('; ')}</span>
 								</p>
-							)}
+							) : null}
 							{asset.issuerSourceLink ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
@@ -671,7 +673,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			) : null}
 
 			{/* Chain Availability (moved to last) */}
-			{asset.chain && asset.chain.length > 0 && (
+			{asset.chain && asset.chain.length > 0 ? (
 				<SectionCard title="Chains">
 					<div className="mt-1 grid grid-cols-2 gap-1.5 xl:grid-cols-3 2xl:grid-cols-4">
 						{asset.chain.map((chain) => (
@@ -684,7 +686,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						))}
 					</div>
 				</SectionCard>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -688,7 +688,7 @@ export function UnifiedChartTab({
 						className="w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 
-					{(selectedChartTab === 'chain' || selectedChartTab === 'protocol') && bulkChartType && (
+					{(selectedChartTab === 'chain' || selectedChartTab === 'protocol') && bulkChartType ? (
 						<div className="shrink-0">
 							<span className="mb-2 block text-xs font-medium pro-text2">Change All Chart Types</span>
 							<ChartTypePills
@@ -699,7 +699,7 @@ export function UnifiedChartTab({
 								mode={selectedChartTab as 'chain' | 'protocol'}
 							/>
 						</div>
-					)}
+					) : null}
 
 					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 						{composerItems.length > 0 ? (
@@ -711,7 +711,7 @@ export function UnifiedChartTab({
 						)}
 					</div>
 
-					{composerItems.length > 0 && (
+					{composerItems.length > 0 ? (
 						<div className="flex thin-scrollbar shrink-0 items-center gap-2 overflow-x-auto py-1">
 							{composerItems.map((item) => (
 								<div
@@ -736,7 +736,7 @@ export function UnifiedChartTab({
 								</div>
 							))}
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 		</div>

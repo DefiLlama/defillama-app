@@ -399,11 +399,11 @@ export const SignInForm = ({
 							) : null}
 						</div>
 
-						{pendingActionMessage && (
+						{pendingActionMessage ? (
 							<div className="mt-3 mb-3 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-2.5 sm:mt-4 sm:mb-4 sm:p-3">
 								<p className="text-center text-xs text-[#b4b7bc] sm:text-sm">{pendingActionMessage}</p>
 							</div>
-						)}
+						) : null}
 					</>
 				) : (
 					<form className="flex flex-col gap-4" onSubmit={handleForgotPassword}>
@@ -505,7 +505,7 @@ export const SignInForm = ({
 								}}
 							/>
 						</div>
-						{emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
+						{emailError ? <p className="mt-1 text-xs text-red-500">{emailError}</p> : null}
 					</div>
 
 					<div className="space-y-1.5">
@@ -537,7 +537,7 @@ export const SignInForm = ({
 								}}
 							/>
 						</div>
-						{passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
+						{passwordError ? <p className="mt-1 text-xs text-red-500">{passwordError}</p> : null}
 					</div>
 
 					<div className="space-y-1.5">
@@ -562,7 +562,7 @@ export const SignInForm = ({
 								}}
 							/>
 						</div>
-						{confirmPasswordError && <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p>}
+						{confirmPasswordError ? <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p> : null}
 					</div>
 
 					<label className="flex items-center gap-2">

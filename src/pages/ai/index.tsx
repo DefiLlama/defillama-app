@@ -377,9 +377,9 @@ export default function LlamaAIGetStarted() {
 													</span>
 													<span className="text-[10px] font-medium text-[#22c55e]">ok</span>
 													<span className="text-[10px] text-[#999] tabular-nums dark:text-[#666]">{tool.time}</span>
-													{tool.detail && (
+													{tool.detail ? (
 														<span className="text-[10px] text-[#999] tabular-nums dark:text-[#666]">{tool.detail}</span>
-													)}
+													) : null}
 												</div>
 											)
 										})}

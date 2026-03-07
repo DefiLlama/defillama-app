@@ -39,7 +39,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					{row.subRows?.length > 0 && (
+					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-0.5"
 							{...{
@@ -58,7 +58,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 								</>
 							)}
 						</button>
-					)}
+					) : null}
 
 					{isSubRow ? (
 						<>
@@ -157,7 +157,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 		accessorKey: 'mcaptvl',
 		cell: ({ getValue }) => {
 			const value = getValue()
-			return <>{value != null && formattedNum(value, false)}</>
+			return <>{value != null ? formattedNum(value, false) : null}</>
 		},
 		size: 195,
 		meta: {

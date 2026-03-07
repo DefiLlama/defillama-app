@@ -56,18 +56,18 @@ function SubscribeProCardContent({
 					</span>
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
-				{showTrialAvailable && (
+				{showTrialAvailable ? (
 					<div className="flex items-center">
 						<span className="text-sm font-bold">Free 7-day trial available</span>
 					</div>
-				)}
-				{billingInterval === 'year' && (
+				) : null}
+				{billingInterval === 'year' ? (
 					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
-				)}
+				) : null}
 			</div>
-			{billingInterval === 'month' && (
+			{billingInterval === 'month' ? (
 				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
-			)}
+			) : null}
 			<div className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<h3 className="font-semibold">Access to:</h3>
 				<ul className="flex flex-col gap-3">
@@ -245,7 +245,7 @@ export function SubscribeProCard({
 				{active ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center font-bold text-green-400">Current Plan</span>
-						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
+						{currentBillingInterval === 'month' || !currentBillingInterval ? (
 							<div className="flex flex-col gap-2">
 								<button
 									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
@@ -256,15 +256,15 @@ export function SubscribeProCard({
 								</button>
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
-						)}
-						{isTrial && (
+						) : null}
+						{isTrial ? (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#5C5CF9] px-4 py-2 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 								onClick={() => setIsEndingTrialModalOpen(true)}
 							>
 								Upgrade to Full Access
 							</button>
-						)}
+						) : null}
 						{isCancelPending ? (
 							<p className="mt-2 text-center text-sm text-yellow-400">Cancellation scheduled</p>
 						) : onCancelSubscription ? (
@@ -279,7 +279,7 @@ export function SubscribeProCard({
 				) : (
 					<>
 						<SignInModal text="Already a subscriber? Sign In" />
-						{isAuthenticated && isTrialAvailable && (
+						{isAuthenticated && isTrialAvailable ? (
 							<div className="flex flex-col gap-1.5">
 								<button
 									onClick={() => setIsTrialModalOpen(true)}
@@ -289,22 +289,22 @@ export function SubscribeProCard({
 									<QuestionHelper text="CSV downloads are disabled during the trial period." />
 								</button>
 							</div>
-						)}
+						) : null}
 						<div
 							className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 						>
 							{context === 'account' ? (
 								<>
-									{billingInterval === 'month' && (
+									{billingInterval === 'month' ? (
 										<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
-									)}
+									) : null}
 									<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
 								</>
 							) : (
 								<>
-									{billingInterval === 'month' && (
+									{billingInterval === 'month' ? (
 										<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
-									)}
+									) : null}
 									<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
 								</>
 							)}
@@ -312,7 +312,7 @@ export function SubscribeProCard({
 					</>
 				)}
 			</div>
-			{isUpgradeModalOpen && (
+			{isUpgradeModalOpen ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isUpgradeModalOpen}
@@ -322,8 +322,8 @@ export function SubscribeProCard({
 						billingInterval="year"
 					/>
 				</Suspense>
-			)}
-			{isTrialModalOpen && (
+			) : null}
+			{isTrialModalOpen ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isTrialModalOpen}
@@ -334,7 +334,7 @@ export function SubscribeProCard({
 						isTrial
 					/>
 				</Suspense>
-			)}
+			) : null}
 			<EndTrialModal isOpen={isEndingTrialModalOpen} onClose={() => setIsEndingTrialModalOpen(false)} />
 		</>
 	)
@@ -394,14 +394,14 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 										Unlock Pro Features
 									</BasicLink>
 
-									{!isAuthenticated && (
+									{!isAuthenticated ? (
 										<button
 											className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
 											onClick={() => setIsSignInModalOpen(true)}
 										>
 											Already a subscriber? Sign In
 										</button>
-									)}
+									) : null}
 								</div>
 							</>
 						)}

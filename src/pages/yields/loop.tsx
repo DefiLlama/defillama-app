@@ -84,7 +84,7 @@ export default function YieldBorrow(data) {
 				>
 					Example
 				</button>
-				{methodologyActivated && methodologyMessage}
+				{methodologyActivated ? methodologyMessage : null}
 			</p>
 			<YieldPageLoop {...data} />
 		</Layout>

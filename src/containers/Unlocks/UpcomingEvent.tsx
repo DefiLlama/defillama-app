@@ -63,7 +63,7 @@ const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: Calend
 							rel="noopener noreferrer"
 						/>
 					}
-					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--bg-border) px-3 py-2 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+					className="flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--bg-border) px-3 py-2 cv-auto-37 first-of-type:rounded-t-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
 					<Icon name="external-link" width={16} height={16} />
 					Google Calendar
@@ -75,7 +75,7 @@ const CalendarButton = ({ event, tokenName, tokenValue, isProtocolPage }: Calend
 							href={`/api/calendar/${tokenName}?timestamp=${event.timestamp}&value=${tokenValue ?? ''}&name=${tokenName}`}
 						/>
 					}
-					className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+					className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 				>
 					<Icon name="download-cloud" width={16} height={16} />
 					Other Calendars Apps
@@ -255,7 +255,7 @@ export const UpcomingEvent = ({
 				<LineTag className="flex items-center justify-between gap-2 text-sm">
 					<span className="flex items-center gap-1.5">
 						{item.name}
-						{isOngoing && ' (Ongoing)'}
+						{isOngoing ? ' (Ongoing)' : null}
 						<Ariakit.TooltipProvider>
 							<Ariakit.TooltipAnchor>
 								<Icon
@@ -420,8 +420,8 @@ export const UpcomingEvent = ({
 						</span>
 						<span className="flex items-center justify-between gap-2 text-xs text-(--text-meta)">
 							<span>
-								{unlockPercent && `${formattedNum(unlockPercent)}%`}
-								{unlockPercentFloat && ` (${formattedNum(unlockPercentFloat)}% of float)`}
+								{unlockPercent ? `${formattedNum(unlockPercent)}%` : null}
+								{unlockPercentFloat ? ` (${formattedNum(unlockPercentFloat)}% of float)` : null}
 							</span>
 							<span>
 								{formattedNum(totalAmount)} {tokenSymbol}
@@ -430,7 +430,7 @@ export const UpcomingEvent = ({
 					</span>
 				</Ariakit.Hovercard>
 			</Ariakit.HovercardProvider>
-			{timeLeft > 0 && (
+			{timeLeft > 0 ? (
 				<div className="flex flex-col items-center">
 					<CalendarButton
 						event={{ timestamp, noOfTokens, symbol: symbol || '', description: '' }}
@@ -440,7 +440,7 @@ export const UpcomingEvent = ({
 					/>
 					<span className="invisible mt-1 text-xs leading-none font-medium text-(--text-meta) select-none">Sec</span>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

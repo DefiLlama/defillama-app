@@ -69,7 +69,7 @@ export const IconsRow = ({ items = EMPTY_ITEMS, align = 'end' }: IIconsRowProps)
 			{visibleItems.map((item) => (
 				<IconItemLogo key={item.label} item={item} />
 			))}
-			{!!hiddenItems.length && items.length > 2 && (
+			{!!hiddenItems.length && items.length > 2 ? (
 				<Ariakit.HovercardProvider>
 					<Ariakit.HovercardAnchor
 						render={<button />}
@@ -87,7 +87,7 @@ export const IconsRow = ({ items = EMPTY_ITEMS, align = 'end' }: IIconsRowProps)
 						))}
 					</Ariakit.Hovercard>
 				</Ariakit.HovercardProvider>
-			)}
+			) : null}
 		</div>
 	)
 }

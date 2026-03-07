@@ -88,7 +88,7 @@ function SavedFilters({ currentFilters }) {
 						<Ariakit.MenuItem
 							key={`custom-filter-${name}`}
 							onClick={() => handleLoad(name)}
-							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="flex shrink-0 cursor-pointer items-center justify-between gap-4 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							{name}
 							<button
@@ -104,7 +104,7 @@ function SavedFilters({ currentFilters }) {
 							</button>
 						</Ariakit.MenuItem>
 					))}
-					{savedFiltersEntries.length === 0 && <p className="p-4 text-center text-xs">No saved filters</p>}
+					{savedFiltersEntries.length === 0 ? <p className="p-4 text-center text-xs">No saved filters</p> : null}
 				</Ariakit.Menu>
 			</Ariakit.MenuProvider>
 		</div>
@@ -148,12 +148,12 @@ export function YieldFiltersV2({
 				<SavedFilters currentFilters={query} />
 			</div>
 			<div className="flex flex-col gap-3 rounded-b-md p-3">
-				{showPresetFilters && (
+				{showPresetFilters ? (
 					<>
 						<PresetFilters />
 						<div className="border-t border-(--form-control-border)" />
 					</>
-				)}
+				) : null}
 				{strategyInputsData ? (
 					<StrategySearch lend={lend} borrow={borrow} searchData={strategyInputsData} ltvPlaceholder={ltvPlaceholder} />
 				) : null}

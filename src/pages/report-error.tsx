@@ -92,7 +92,7 @@ function ReportError() {
 					>
 						{isPending ? 'Submitting...' : 'Report'}
 					</button>
-					{error && <small className="text-center text-red-500">{error.message}</small>}
+					{error ? <small className="text-center text-red-500">{error.message}</small> : null}
 				</form>
 				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-center text-base font-medium">

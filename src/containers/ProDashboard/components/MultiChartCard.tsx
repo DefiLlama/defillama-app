@@ -543,9 +543,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-2">
-					<h1 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h1>
+					<h2 className="text-base font-semibold">{multi.name || `Multi-Chart (${multi.items.length})`}</h2>
 				</div>
-				{!isReadOnly && allChartsGroupable && hasAnyData && (
+				{!isReadOnly && allChartsGroupable && hasAnyData ? (
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 						{groupingOptions.map((dataInterval) => (
 							<Tooltip
@@ -560,9 +560,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							</Tooltip>
 						))}
 					</div>
-				)}
+				) : null}
 
-				{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType && (
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && allChartsAreBarType ? (
 					<Select
 						allValues={CUMULATIVE_DISPLAY_OPTIONS}
 						selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
@@ -576,8 +576,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						labelType="none"
 						variant="pro"
 					/>
-				)}
-				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && !showTreemap && (
+				) : null}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && canStack && !showCumulative && !showTreemap ? (
 					<Select
 						allValues={STACKING_DISPLAY_OPTIONS}
 						selectedValues={showStacked ? 'Stacked' : 'Separate'}
@@ -589,8 +589,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						labelType="none"
 						variant="pro"
 					/>
-				)}
-				{!isReadOnly && hasAnyData && !hasMultipleMetrics && !showTreemap && (
+				) : null}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics && !showTreemap ? (
 					<Select
 						allValues={VALUE_TYPE_OPTIONS}
 						selectedValues={showPercentage ? '% Percentage' : '$ Absolute'}
@@ -602,8 +602,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						labelType="none"
 						variant="pro"
 					/>
-				)}
-				{!isReadOnly && hasAnyData && !hasMultipleMetrics && (
+				) : null}
+				{!isReadOnly && hasAnyData && !hasMultipleMetrics ? (
 					<Select
 						allValues={CHART_LAYOUT_OPTIONS}
 						selectedValues={showTreemap ? 'treemap' : 'chart'}
@@ -614,8 +614,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						labelType="none"
 						variant="pro"
 					/>
-				)}
-				{!isReadOnly && (
+				) : null}
+				{!isReadOnly ? (
 					<button
 						type="button"
 						onClick={() => setShowDuplicateConfirm(true)}
@@ -624,8 +624,8 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 						<Icon name="copy" height={14} width={14} />
 						<span>Duplicate</span>
 					</button>
-				)}
-				{series.length > 0 && (
+				) : null}
+				{series.length > 0 ? (
 					<>
 						<ChartPngExportButton
 							chartInstance={chartInstance}
@@ -639,17 +639,17 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</>
-				)}
+				) : null}
 			</div>
 
-			{loadingItems.length > 0 && failedItems.length < multi.items.length && (
+			{loadingItems.length > 0 && failedItems.length < multi.items.length ? (
 				<div className="flex items-center gap-1.5 px-1 text-xs text-(--text-form) md:px-3">
 					<div className="h-3 w-3 animate-spin rounded-full border-2 border-(--text-form) border-t-transparent" />
 					<span>
 						{validItems.length}/{multi.items.length - failedItems.length}
 					</span>
 				</div>
-			)}
+			) : null}
 
 			{!hasAnyData && isAllLoading ? (
 				<div className="flex flex-1 flex-col items-center justify-center">

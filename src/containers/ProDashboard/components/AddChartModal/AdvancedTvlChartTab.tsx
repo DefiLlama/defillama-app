@@ -339,21 +339,21 @@ export function AdvancedTvlChartTab({
 					</div>
 				</Tooltip>
 
-				{hasProtocolSelection && isAddlLoading && (
-					<div className="text-xs pro-text3">Loading available chart types...</div>
-				)}
+				{hasProtocolSelection && isAddlLoading ? (
+					<p className="text-xs pro-text3">Loading available chart types...</p>
+				) : null}
 
-				{hasProtocolSelection && !isAddlLoading && (
+				{hasProtocolSelection && !isAddlLoading ? (
 					<div className="text-xs pro-text3">
 						<p>
 							Available charts: <span className="font-semibold pro-text1">{availableChartTypes.size}</span>
 						</p>
 					</div>
-				)}
+				) : null}
 			</div>
 
 			<div className="overflow-hidden rounded-lg border pro-border">
-				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
+				<h4 className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</h4>
 
 				{hasProtocolSelection ? (
 					<div className="bg-(--cards-bg) p-3">
@@ -370,7 +370,7 @@ export function AdvancedTvlChartTab({
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
 						<div>
 							<Icon name="trending-up" height={32} width={32} className="mx-auto mb-1" />
-							<div className="text-xs">Select a protocol to see available TVL charts</div>
+							<p className="text-xs">Select a protocol to see available TVL charts</p>
 						</div>
 					</div>
 				)}

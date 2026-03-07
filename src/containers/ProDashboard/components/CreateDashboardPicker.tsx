@@ -360,9 +360,9 @@ function CreateDashboardModalContent({
 							Private
 						</button>
 					</div>
-					{visibility === 'public' && (
+					{visibility === 'public' ? (
 						<p className="mt-2 text-sm text-(--text-tertiary)">Public dashboards are visible in the Discover tab</p>
-					)}
+					) : null}
 				</div>
 
 				<div>
@@ -387,7 +387,7 @@ function CreateDashboardModalContent({
 						</button>
 					</div>
 					<p className="mt-2 text-xs text-(--text-tertiary)">Press Enter to add tag</p>
-					{tags.length > 0 && (
+					{tags.length > 0 ? (
 						<div className="mt-3 flex flex-wrap gap-2">
 							{tags.map((tag) => (
 								<span
@@ -406,7 +406,7 @@ function CreateDashboardModalContent({
 								</span>
 							))}
 						</div>
-					)}
+					) : null}
 				</div>
 
 				<div>

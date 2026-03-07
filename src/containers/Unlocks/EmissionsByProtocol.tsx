@@ -153,7 +153,7 @@ export function EmissionsByProtocol({
 
 	return (
 		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
-			{!isEmissionsPage && <h3>Emissions</h3>}
+			{!isEmissionsPage ? <h3>Emissions</h3> : null}
 			<ChartContainer
 				key={chartKey}
 				data={data}
@@ -384,7 +384,7 @@ function TokenHeader({
 								color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
 							}}
 						>
-							{percentChange > 0 && '+'}
+							{percentChange > 0 ? '+' : null}
 							{percentChange}%
 						</span>
 					) : null}
@@ -965,7 +965,7 @@ const ChartContainer = ({
 			) : null}
 
 			<div className="flex flex-col gap-2">
-				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
+				{categoriesFromData.length > 0 && rawChartData.length > 0 ? (
 					<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 							<h3 className="mr-auto text-base font-semibold">Schedule</h3>
@@ -1036,10 +1036,10 @@ const ChartContainer = ({
 							</Suspense>
 						)}
 					</div>
-				)}
+				) : null}
 
 				<div className="grid grid-cols-2 gap-2">
-					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
+					{data.pieChartData?.[dataType] && data.stackColors[dataType] ? (
 						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
@@ -1059,9 +1059,9 @@ const ChartContainer = ({
 								/>
 							</Suspense>
 						</div>
-					)}
+					) : null}
 
-					{unlockedPercent > 0 && (
+					{unlockedPercent > 0 ? (
 						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
@@ -1077,7 +1077,7 @@ const ChartContainer = ({
 								/>
 							</Suspense>
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 

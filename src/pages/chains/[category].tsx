@@ -15,7 +15,7 @@ export const getStaticProps = withPerformanceLogging(
 	'chains/[category]',
 	async ({ params }: GetStaticPropsContext<{ category: string }>) => {
 		if (!params?.category) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const { category } = params

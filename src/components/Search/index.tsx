@@ -53,7 +53,7 @@ interface ISearchItem {
 	subName?: string
 }
 
-const hideLlamaAI = new Set(['/ai'])
+const hideLlamaAiButtonOnRoutes = new Set(['/ai'])
 
 export const MobileSearch = () => {
 	const router = useRouter()
@@ -61,23 +61,20 @@ export const MobileSearch = () => {
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
-	const [mounted, setMounted] = useState(false)
-	const [showResults, setShowResults] = useState(false)
-	const dialogStore = Ariakit.useDialogStore({ setMounted })
 	const [searchValue, setSearchValue] = useState('')
-
-	useEffect(() => {
-		if (mounted) {
-			startTransition(() => setShowResults(true))
-		} else {
-			setShowResults(false)
-			setSearchValue('')
+	const [mounted, setMounted] = useState(false)
+	const dialogStore = Ariakit.useDialogStore({
+		setMounted(value) {
+			setMounted(value)
+			if (!value) {
+				setSearchValue('')
+			}
 		}
-	}, [mounted])
+	})
 
 	return (
 		<>
-			{!hideLlamaAI.has(router.pathname) && (
+			{!hideLlamaAiButtonOnRoutes.has(router.pathname) ? (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative -my-0.5 overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] p-3 text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:hidden"
@@ -89,7 +86,7 @@ export const MobileSearch = () => {
 					</svg>
 					<span className="sr-only">Ask LlamaAI</span>
 				</BasicLink>
-			)}
+			) : null}
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.DialogDisclosure className="-my-0.5 rounded-md bg-[#445ed0] p-3 text-white shadow lg:hidden">
 					<span className="sr-only">Search</span>
@@ -103,6 +100,7 @@ export const MobileSearch = () => {
 					portal
 				>
 					<Ariakit.ComboboxProvider
+						value={searchValue}
 						setValue={(value) => {
 							startTransition(() => {
 								setSearchValue(value)
@@ -120,7 +118,7 @@ export const MobileSearch = () => {
 						</span>
 
 						<Ariakit.ComboboxList className="flex flex-col gap-1" alwaysVisible>
-							{showResults ? (
+							{mounted ? (
 								<MobileSearchResults searchValue={searchValue} onSelect={() => dialogStore.setOpen(false)} />
 							) : null}
 						</Ariakit.ComboboxList>
@@ -190,14 +188,21 @@ function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; o
 	)
 }
 
+function getPreHydrationInputValue() {
+	if (typeof window === 'undefined') return ''
+	return (document.getElementById('desktop-search-input') as HTMLInputElement | null)?.value ?? ''
+}
+
 export const DesktopSearch = () => {
 	const router = useRouter()
 
 	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 
-	const [open, setOpen] = useState(false)
 	const inputField = useRef<HTMLInputElement>(null)
+
+	const [searchValue, setSearchValue] = useState(getPreHydrationInputValue)
+	const [open, setOpen] = useState(() => searchValue.length > 0)
 	useEffect(() => {
 		function focusSearchBar(e: KeyboardEvent) {
 			if ((e.ctrlKey || e.metaKey) && e.code === 'KeyK') {
@@ -214,22 +219,25 @@ export const DesktopSearch = () => {
 
 	const { defaultSearchList, recentSearchList, isLoadingDefaultSearchList, errorDefaultSearchList } =
 		useDefaultSearchList()
-
-	const [searchValue, setSearchValue] = useState('')
 	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useSearch(debouncedSearchValue)
 
 	return (
 		<>
 			<Ariakit.ComboboxProvider
-				resetValueOnHide
+				value={searchValue}
 				setValue={(value) => {
 					startTransition(() => {
 						setSearchValue(value)
 					})
 				}}
 				open={open}
-				setOpen={setOpen}
+				setOpen={(value) => {
+					setOpen(value)
+					if (!value) {
+						setSearchValue('')
+					}
+				}}
 			>
 				<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
 					<button onClick={(prev) => setOpen(!prev)} className="absolute top-0 bottom-0 left-2 my-auto opacity-50">
@@ -246,6 +254,7 @@ export const DesktopSearch = () => {
 						)}
 					</button>
 					<Ariakit.Combobox
+						id="desktop-search-input"
 						placeholder="Search..."
 						autoSelect
 						ref={inputField}
@@ -301,7 +310,7 @@ export const DesktopSearch = () => {
 					</Ariakit.ComboboxList>
 				</Ariakit.ComboboxPopover>
 			</Ariakit.ComboboxProvider>
-			{!hideLlamaAI.has(router.pathname) && (
+			{!hideLlamaAiButtonOnRoutes.has(router.pathname) ? (
 				<BasicLink
 					href={isClient && hasActiveSubscription ? '/ai/chat' : '/ai'}
 					className="llamaai-glow relative mr-auto hidden items-center justify-between gap-[10px] overflow-hidden rounded-md bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-4 py-2 text-xs font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] lg:flex"
@@ -313,7 +322,7 @@ export const DesktopSearch = () => {
 					</svg>
 					<span className="whitespace-nowrap">Ask LlamaAI</span>
 				</BasicLink>
-			)}
+			) : null}
 		</>
 	)
 }
@@ -330,7 +339,7 @@ const SearchItem = ({
 	const router = useRouter()
 	return (
 		<Ariakit.ComboboxItem
-			className="flex flex-wrap items-center gap-2 px-2 py-2 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
+			className="flex flex-wrap items-center gap-2 px-2 py-2 cv-auto-40 hover:bg-(--link-bg) focus-visible:bg-(--link-bg) data-active-item:bg-(--link-bg) lg:px-4"
 			render={
 				<BasicLink
 					href={route.route}
@@ -346,6 +355,8 @@ const SearchItem = ({
 				onSelect?.()
 			}}
 			value={route.route}
+			setValueOnClick={false}
+			hideOnClick
 		>
 			{route.logo ? (
 				<img src={route.logo} alt={route.name} className="h-6 w-6 rounded-full" loading="lazy" />
@@ -359,7 +370,7 @@ const SearchItem = ({
 					<span className="text-(--text-form)">{route.subName}</span>
 				</>
 			) : null}
-			{route.deprecated && <span className="text-xs text-(--error)">(Deprecated)</span>}
+			{route.deprecated ? <span className="text-xs text-(--error)">(Deprecated)</span> : null}
 			{route.hideType ? null : recent ? (
 				<Icon name="clock" height={12} width={12} className="ml-auto" />
 			) : (

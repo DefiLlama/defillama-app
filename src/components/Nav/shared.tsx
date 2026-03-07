@@ -9,7 +9,8 @@ export function LinkToPage({
 	freeTrial,
 	isNew,
 	asPath,
-	umamiEvent
+	umamiEvent,
+	onClick
 }: {
 	route: string
 	name: string
@@ -19,6 +20,7 @@ export function LinkToPage({
 	isNew?: boolean
 	asPath: string
 	umamiEvent?: string
+	onClick?: () => void
 }) {
 	const cleanAsPath = asPath.split('/?')[0].split('?')[0]
 	const isActive = cleanAsPath === route || cleanAsPath.startsWith(route + '/')
@@ -31,7 +33,8 @@ export function LinkToPage({
 			data-umami-event={umamiEvent}
 			target={isExternal ? '_blank' : undefined}
 			rel={isExternal ? 'noopener noreferrer' : undefined}
-			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+			className="group/link -ml-1.5 flex flex-1 items-center gap-3 rounded-md p-1.5 cv-auto-30 hover:bg-black/5 focus-visible:bg-black/5 data-[linkactive=true]:bg-(--link-active-bg) data-[linkactive=true]:text-white dark:hover:bg-white/10 dark:focus-visible:bg-white/10"
+			onClick={onClick}
 		>
 			<NavItemContent name={name} icon={icon} attention={attention} freeTrial={freeTrial} isNew={isNew} />
 		</BasicLink>
@@ -65,7 +68,7 @@ export function NavItemContent({
 				{attention ? (
 					<span
 						aria-hidden
-						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--app-bg)]"
+						className="inline-block h-2 w-2 shrink-0 rounded-full bg-(--error) shadow-[0_0_0_2px_var(--bg-main)]"
 					/>
 				) : null}
 				{freeTrial ? (

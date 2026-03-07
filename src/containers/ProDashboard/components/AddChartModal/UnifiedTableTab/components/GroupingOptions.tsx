@@ -79,7 +79,7 @@ export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptio
 									/>
 								) : null}
 								<span className="text-[10px] font-semibold text-(--text-primary)">{option.label}</span>
-								{active && <Icon name="check" height={11} width={11} className="text-(--primary)" />}
+								{active ? <Icon name="check" height={11} width={11} className="text-(--primary)" /> : null}
 							</span>
 							<p className="text-[10px] leading-tight text-(--text-secondary)">{option.description}</p>
 						</button>

@@ -122,9 +122,9 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 						<div className="flex items-start justify-between gap-2">
 							<h4 className="line-clamp-1 font-medium pro-text1">{chart.title}</h4>
 							<div className="flex shrink-0 items-center gap-1">
-								{selectedChart?.id === chart.id && (
+								{selectedChart?.id === chart.id ? (
 									<Icon name="check" height={16} width={16} className="text-(--primary)" />
-								)}
+								) : null}
 								<button
 									onClick={(e) => {
 										e.stopPropagation()
@@ -137,7 +137,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 							</div>
 						</div>
 						<p className="line-clamp-2 text-xs pro-text3">{chart.original_query}</p>
-						{chart.session_id && (
+						{chart.session_id ? (
 							<a
 								href={`/ai/chat/${chart.session_id}`}
 								target="_blank"
@@ -147,16 +147,16 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 							>
 								View chat →
 							</a>
-						)}
+						) : null}
 					</button>
 				))}
 			</div>
 
-			{filteredCharts?.length === 0 && searchQuery && (
+			{filteredCharts?.length === 0 && searchQuery ? (
 				<p className="py-8 text-center text-sm pro-text3">No charts match your search</p>
-			)}
+			) : null}
 
-			{deleteConfirmId && (
+			{deleteConfirmId ? (
 				<div
 					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
 					role="presentation"
@@ -188,7 +188,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 						</div>
 					</div>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

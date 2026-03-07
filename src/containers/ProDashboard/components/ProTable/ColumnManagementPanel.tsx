@@ -159,15 +159,15 @@ const ColumnButton = React.memo(function ColumnButton({
 					<div className="flex items-center gap-2">
 						<Icon name="check" height={12} width={12} className="text-(--success)" />
 						<span className="text-xs pro-text1">{column.name}</span>
-						{isCustom && <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span>}
-						{column.key?.endsWith('_share') && (
+						{isCustom ? <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span> : null}
+						{column.key?.endsWith('_share') ? (
 							<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 								%
 							</span>
-						)}
+						) : null}
 					</div>
 					<div className="flex items-center gap-1">
-						{moveColumnUp && !isFirst && (
+						{moveColumnUp && !isFirst ? (
 							<button
 								onClick={() => moveColumnUp(column.key)}
 								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -175,8 +175,8 @@ const ColumnButton = React.memo(function ColumnButton({
 							>
 								<Icon name="chevron-up" height={10} width={10} />
 							</button>
-						)}
-						{moveColumnDown && !isLast && (
+						) : null}
+						{moveColumnDown && !isLast ? (
 							<button
 								onClick={() => moveColumnDown(column.key)}
 								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -184,7 +184,7 @@ const ColumnButton = React.memo(function ColumnButton({
 							>
 								<Icon name="chevron-down" height={10} width={10} />
 							</button>
-						)}
+						) : null}
 						<button
 							onClick={() => toggleColumnVisibility(column.key, false)}
 							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -205,11 +205,11 @@ const ColumnButton = React.memo(function ColumnButton({
 			>
 				<Icon name="plus" height={10} width={10} className="pro-text3" />
 				<span className="text-xs pro-text1">{column.name}</span>
-				{column.key?.endsWith('_share') && (
+				{column.key?.endsWith('_share') ? (
 					<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 						%
 					</span>
-				)}
+				) : null}
 			</button>
 		</Tooltip>
 	)
@@ -348,16 +348,16 @@ export function ColumnManagementPanel({
 						>
 							<span className="flex items-center gap-1">
 								Saved Views
-								{customViews.length > 0 && (
+								{customViews.length > 0 ? (
 									<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-[10px] text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 										{customViews.length}
 									</span>
-								)}
+								) : null}
 							</span>
 						</button>
 					</div>
 				</div>
-				{activeTab === 'columns' && (
+				{activeTab === 'columns' ? (
 					<div className="flex items-center gap-2">
 						<button
 							onClick={() => {
@@ -375,10 +375,10 @@ export function ColumnManagementPanel({
 							Hide All
 						</button>
 					</div>
-				)}
+				) : null}
 			</div>
 
-			{activeTab === 'columns' && (
+			{activeTab === 'columns' ? (
 				<>
 					{/* Search Columns */}
 					<div className="relative mb-3">
@@ -466,18 +466,18 @@ export function ColumnManagementPanel({
 						</div>
 					</div>
 				</>
-			)}
+			) : null}
 
-			{activeTab === 'custom' && onAddCustomColumn && onRemoveCustomColumn && onUpdateCustomColumn && (
+			{activeTab === 'custom' && onAddCustomColumn && onRemoveCustomColumn && onUpdateCustomColumn ? (
 				<CustomColumnPanel
 					customColumns={customColumns}
 					onAddCustomColumn={onAddCustomColumn}
 					onRemoveCustomColumn={onRemoveCustomColumn}
 					onUpdateCustomColumn={onUpdateCustomColumn}
 				/>
-			)}
+			) : null}
 
-			{activeTab === 'views' && (
+			{activeTab === 'views' ? (
 				<div className="space-y-4">
 					{customViews.length === 0 ? (
 						<div className="py-8 text-center pro-text3">
@@ -500,17 +500,17 @@ export function ColumnManagementPanel({
 									<button onClick={() => onLoadView?.(view.id)} className="flex flex-1 flex-col items-start gap-1">
 										<div className="flex items-center gap-2">
 											<span className="text-sm font-medium pro-text1">{view.name}</span>
-											{activeViewId === view.id && (
+											{activeViewId === view.id ? (
 												<span className="rounded-md bg-pro-green-100 px-1.5 py-0.5 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
 													Active
 												</span>
-											)}
+											) : null}
 										</div>
 										<div className="flex items-center gap-3 text-xs pro-text3">
 											<span>{view.columnOrder?.length || 0} columns</span>
-											{view.customColumns && view.customColumns.length > 0 && (
+											{view.customColumns && view.customColumns.length > 0 ? (
 												<span>{view.customColumns.length} custom columns</span>
-											)}
+											) : null}
 											<span>Created {new Date(view.createdAt).toLocaleDateString()}</span>
 										</div>
 									</button>
@@ -533,7 +533,7 @@ export function ColumnManagementPanel({
 						</div>
 					)}
 				</div>
-			)}
+			) : null}
 
 			<div className="mt-4 flex items-center justify-between border-t pro-divider pt-3 text-xs">
 				<span className="pro-text3">

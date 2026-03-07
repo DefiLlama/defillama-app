@@ -309,7 +309,7 @@ export function SimpleTableConfig({
 						onSearchChange={setTokenSearchInput}
 						renderIcon={(option) => option.logo || null}
 					/>
-					{selectedTokens.length > 0 && (
+					{selectedTokens.length > 0 ? (
 						<div className="mt-2 flex flex-wrap gap-2">
 							{selectedTokens.map((token) => {
 								const option = tokenOptionMap.get(token)
@@ -342,7 +342,7 @@ export function SimpleTableConfig({
 								)
 							})}
 						</div>
-					)}
+					) : null}
 					<button
 						type="button"
 						className="flex w-full items-center gap-2 rounded-md border pro-border pro-hover-bg px-3 py-1.5 text-left pro-text2 transition-colors hover:pro-text1"
@@ -357,7 +357,7 @@ export function SimpleTableConfig({
 										: 'pro-border bg-transparent'
 								}`}
 							>
-								{includeCex && (
+								{includeCex ? (
 									<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 										<path
 											fillRule="evenodd"
@@ -365,7 +365,7 @@ export function SimpleTableConfig({
 											clipRule="evenodd"
 										/>
 									</svg>
-								)}
+								) : null}
 							</div>
 						</div>
 						<span className="text-sm font-medium pro-text2">Include CEXs</span>

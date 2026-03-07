@@ -190,7 +190,7 @@ export function SelectWithCombobox({
 									key={getOptionKey(option)}
 									render={<Ariakit.SelectItem value={getOptionKey(option)} />}
 									hideOnClick={false}
-									className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+									className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									{isStringValue(option) ? (
 										<span>{option}</span>
@@ -316,7 +316,7 @@ export function SelectWithCombobox({
 										<Ariakit.SelectItem
 											key={`${label}-${getOptionKey(option)}`}
 											value={getOptionKey(option)}
-											className="group flex shrink-0 cursor-pointer items-center justify-start gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+											className="group flex shrink-0 cursor-pointer items-center justify-start gap-2 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{isStringValue(option) ? (

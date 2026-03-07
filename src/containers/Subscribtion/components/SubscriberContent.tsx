@@ -160,7 +160,7 @@ export const SubscriberContent = ({
 				</div>
 			</div>
 
-			{(hasApiSubscription || hasLegacySubscription) && (
+			{hasApiSubscription || hasLegacySubscription ? (
 				<div className="relative overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-xl">
 					<div className="absolute -inset-1 -z-10 bg-linear-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 blur-[100px]"></div>
 
@@ -389,9 +389,9 @@ export const SubscriberContent = ({
 						)}
 					</div>
 				</div>
-			)}
+			) : null}
 
-			{(hasApiSubscription || hasProSubscription) && (
+			{hasApiSubscription || hasProSubscription ? (
 				<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
 					<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
 						<div className="flex items-center gap-2.5 sm:gap-3">
@@ -492,7 +492,7 @@ export const SubscriberContent = ({
 										</p>
 									</div>
 
-									{hasApiSubscription && (
+									{hasApiSubscription ? (
 										<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
 											<p className="mb-1 text-xs text-[#8a8c90]">Overage</p>
 											<p className="flex text-sm font-medium sm:text-base">
@@ -503,48 +503,46 @@ export const SubscriberContent = ({
 												/>
 											</p>
 										</div>
-									)}
+									) : null}
 								</div>
 
 								{hasProSubscription &&
-									(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) && (
-										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-												</div>
-												<div className="flex-1">
-													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade Pro to Yearly</h4>
-													<p className="text-xs text-[#8a8c90] sm:text-sm">
-														Switch to annual billing and save 2 months.
-													</p>
-												</div>
+								(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) ? (
+									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
 											</div>
-											<button
-												onClick={() => {
-													setUpgradeType('llamafeed')
-													setIsUpgradeModalOpen(true)
-												}}
-												disabled={loading === 'stripe'}
-												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-											>
-												{loading === 'stripe' ? (
-													<>
-														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-														<span>Processing...</span>
-													</>
-												) : (
-													<>
-														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-														<span className="sm:hidden">Upgrade to Yearly</span>
-													</>
-												)}
-											</button>
+											<div className="flex-1">
+												<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade Pro to Yearly</h4>
+												<p className="text-xs text-[#8a8c90] sm:text-sm">Switch to annual billing and save 2 months.</p>
+											</div>
 										</div>
-									)}
+										<button
+											onClick={() => {
+												setUpgradeType('llamafeed')
+												setIsUpgradeModalOpen(true)
+											}}
+											disabled={loading === 'stripe'}
+											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+										>
+											{loading === 'stripe' ? (
+												<>
+													<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+													<span>Processing...</span>
+												</>
+											) : (
+												<>
+													<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+													<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+													<span className="sm:hidden">Upgrade to Yearly</span>
+												</>
+											)}
+										</button>
+									</div>
+								) : null}
 
-								{hasApiSubscription && !apiSubscription?.overage && (
+								{hasApiSubscription && !apiSubscription?.overage ? (
 									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
 										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
 											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
@@ -575,51 +573,49 @@ export const SubscriberContent = ({
 											)}
 										</button>
 									</div>
-								)}
+								) : null}
 								{hasApiSubscription &&
-									(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
-										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-												</div>
-												<div className="flex-1">
-													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
-													<p className="text-xs text-[#8a8c90] sm:text-sm">
-														Switch to annual billing and save 2 months.
-													</p>
-												</div>
+								(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) ? (
+									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
 											</div>
-											<button
-												onClick={() => {
-													setUpgradeType('api')
-													setIsUpgradeModalOpen(true)
-												}}
-												disabled={loading === 'stripe'}
-												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-											>
-												{loading === 'stripe' ? (
-													<>
-														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-														<span>Processing...</span>
-													</>
-												) : (
-													<>
-														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-														<span className="sm:hidden">Upgrade to Yearly</span>
-													</>
-												)}
-											</button>
+											<div className="flex-1">
+												<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
+												<p className="text-xs text-[#8a8c90] sm:text-sm">Switch to annual billing and save 2 months.</p>
+											</div>
 										</div>
-									)}
+										<button
+											onClick={() => {
+												setUpgradeType('api')
+												setIsUpgradeModalOpen(true)
+											}}
+											disabled={loading === 'stripe'}
+											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+										>
+											{loading === 'stripe' ? (
+												<>
+													<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+													<span>Processing...</span>
+												</>
+											) : (
+												<>
+													<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+													<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+													<span className="sm:hidden">Upgrade to Yearly</span>
+												</>
+											)}
+										</button>
+									</div>
+								) : null}
 							</div>
 						</div>
 					</div>
 				</div>
-			)}
+			) : null}
 
-			{isUpgradeModalOpen && upgradeType && (
+			{isUpgradeModalOpen && upgradeType ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isUpgradeModalOpen}
@@ -632,9 +628,9 @@ export const SubscriberContent = ({
 						billingInterval="year"
 					/>
 				</Suspense>
-			)}
+			) : null}
 
-			{isCancelModalOpen && (
+			{isCancelModalOpen ? (
 				<CancelSubscriptionModal
 					isOpen={isCancelModalOpen}
 					onClose={() => {
@@ -643,7 +639,7 @@ export const SubscriberContent = ({
 					cancelSubscription={cancelSubscription}
 					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
 				/>
-			)}
+			) : null}
 		</>
 	)
 }

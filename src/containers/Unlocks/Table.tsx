@@ -255,7 +255,7 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
-				<h1 className="mr-auto text-lg font-semibold">Token Unlocks</h1>
+				<h2 className="mr-auto text-lg font-semibold">Token Unlocks</h2>
 
 				<button
 					onClick={() => setQueryParam('watchlist', showOnlyWatchlist ? undefined : 'true')}

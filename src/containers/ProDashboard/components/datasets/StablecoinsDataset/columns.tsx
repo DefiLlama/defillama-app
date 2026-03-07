@@ -38,7 +38,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
-						{symbol && symbol !== '-' && <span className="text-(--text-tertiary)"> ({symbol})</span>}
+						{symbol && symbol !== '-' ? <span className="text-(--text-tertiary)"> ({symbol})</span> : null}
 					</BasicLink>
 				</span>
 			)
@@ -54,7 +54,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<span className="flex items-center gap-1">
-					{pegDeviation && Math.abs(pegDeviation) >= 0.5 && (
+					{pegDeviation && Math.abs(pegDeviation) >= 0.5 ? (
 						<Tooltip content={`${pegDeviation > 0 ? '+' : ''}${pegDeviation.toFixed(2)}% from peg`}>
 							<Icon
 								name="alert-triangle"
@@ -63,7 +63,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 								className={pegDeviation > 0 ? 'text-(--success)' : 'text-(--error)'}
 							/>
 						</Tooltip>
-					)}
+					) : null}
 					<span>${value?.toFixed(4) || '0.0000'}</span>
 				</span>
 			)
@@ -145,7 +145,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 				<Tooltip content={chains.join(', ')}>
 					<span className="text-sm text-(--text-secondary)">
 						{displayChains.join(', ')}
-						{remainingCount > 0 && ` +${remainingCount}`}
+						{remainingCount > 0 ? ` +${remainingCount}` : null}
 					</span>
 				</Tooltip>
 			)

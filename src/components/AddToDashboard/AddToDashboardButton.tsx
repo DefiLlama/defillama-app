@@ -89,14 +89,14 @@ export function AddToDashboardButton({
 			title="Add to Custom Dashboard"
 		>
 			<Icon name="plus" className="h-3 w-3" />
-			{!smol && variant === 'button' && <span>Add to Dashboard</span>}
+			{!smol && variant === 'button' ? <span>Add to Dashboard</span> : null}
 		</button>
 	)
 
 	return (
 		<>
 			{button}
-			{isClient && hasConfig && (
+			{isClient && hasConfig ? (
 				<>
 					<AddToDashboardModal
 						dialogStore={dashboardDialogStore}
@@ -110,7 +110,7 @@ export function AddToDashboardButton({
 						</Suspense>
 					) : null}
 				</>
-			)}
+			) : null}
 		</>
 	)
 }

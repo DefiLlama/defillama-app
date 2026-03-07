@@ -55,9 +55,9 @@ const DemoChartCard = ({ chart }: { chart: ChartConfig }) => {
 				<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-(--old-blue) text-xs text-white">
 					{itemName.charAt(0).toUpperCase()}
 				</div>
-				<h1 className="text-base font-semibold">
+				<h2 className="text-base font-semibold">
 					{itemName} {chartTypeDetails.title}
-				</h1>
+				</h2>
 			</div>
 			<div className="flex-1">
 				{chartTypeDetails.chartType === 'bar' ? (
@@ -154,7 +154,7 @@ const DemoMultiChartCard = ({ multi }: { multi: MultiChartConfig }) => {
 
 	return (
 		<div className="flex min-h-[400px] flex-col p-1 md:min-h-[416px]">
-			<h1 className="p-1 text-base font-semibold md:p-3">{multi.name}</h1>
+			<h2 className="p-1 text-base font-semibold md:p-3">{multi.name}</h2>
 			<div className="flex-1">
 				<React.Suspense fallback={<></>}>
 					<MultiSeriesChart series={series} valueSymbol="$" hideDataZoom={true} chartOptions={chartOptions} />

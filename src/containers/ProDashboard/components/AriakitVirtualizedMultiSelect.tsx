@@ -95,12 +95,12 @@ export function AriakitVirtualizedMultiSelect({
 		<div className={className}>
 			<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
 				{label}
-				{selectedValues.length > 0 && (
+				{selectedValues.length > 0 ? (
 					<span className="ml-1 text-xs pro-text3">
 						({selectedValues.length}
-						{maxSelections < 100 && `/${maxSelections}`})
+						{maxSelections < 100 ? `/${maxSelections}` : null})
 					</span>
-				)}
+				) : null}
 			</label>
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
@@ -145,7 +145,7 @@ export function AriakitVirtualizedMultiSelect({
 								className="thin-scrollbar max-h-[280px] overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/30"
 							>
 								{filteredOptions.length === 0 ? (
-									<div className="px-3 py-2 text-center text-xs pro-text3">No results found.</div>
+									<p className="px-3 py-2 text-center text-xs pro-text3">No results found.</p>
 								) : (
 									<div
 										key={`virtual-${filteredOptions.length}`}
@@ -187,7 +187,7 @@ export function AriakitVirtualizedMultiSelect({
 													}}
 												>
 													<div className={`flex min-w-0 items-center gap-2 ${option.isChild ? 'pl-4' : ''}`}>
-														{iconUrl && (
+														{iconUrl ? (
 															<img
 																src={iconUrl}
 																alt={option.label}
@@ -197,26 +197,26 @@ export function AriakitVirtualizedMultiSelect({
 																	option.isChild ? 'opacity-70' : ''
 																}`}
 															/>
-														)}
+														) : null}
 														<div className="flex min-w-0 flex-col gap-0.5">
 															<span className={`truncate ${option.isChild ? 'text-(--text-secondary)' : ''}`}>
 																{option.label}
 															</span>
-															{option.isChild && (
+															{option.isChild ? (
 																<span className="text-[10px] leading-none text-(--text-tertiary)">Child protocol</span>
-															)}
+															) : null}
 														</div>
 													</div>
-													{isActive && (
+													{isActive ? (
 														<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-													)}
+													) : null}
 												</button>
 											)
 										})}
 									</div>
 								)}
 							</div>
-							{selectedValues.length > 0 && (
+							{selectedValues.length > 0 ? (
 								<div className="mt-2 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 									<div className="flex items-center gap-2">
 										<div className="flex h-5 w-5 items-center justify-center rounded-full bg-(--primary)/15">
@@ -234,7 +234,7 @@ export function AriakitVirtualizedMultiSelect({
 										Clear All
 									</button>
 								</div>
-							)}
+							) : null}
 						</div>
 					</Popover>
 				</>
