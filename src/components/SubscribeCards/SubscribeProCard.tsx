@@ -353,9 +353,11 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 
 	useEffect(() => {
 		if (dialogStore?.getState()?.open && typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('subscribe-modal-open')
+			;(window as any).umami.track('subscribe-modal-open', {
+				page: router?.asPath
+			})
 		}
-	}, [dialogStore])
+	}, [dialogStore, router?.asPath])
 
 	const finalReturnUrl = returnUrl ?? router.asPath
 

@@ -70,7 +70,7 @@ function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
 	if (typeof maybeUmami !== 'object' || maybeUmami === null) return
 	const maybeTrack = Reflect.get(maybeUmami, 'track')
 	if (typeof maybeTrack !== 'function') return
-	Reflect.apply(maybeTrack, maybeUmami, ['add-to-dashboard-submit', { type }])
+	Reflect.apply(maybeTrack, maybeUmami, ['dashboard-add-chart-submit', { type }])
 }
 
 function safeTrackAddToDashboardSubmit(type: AddToDashboardSubmitType) {

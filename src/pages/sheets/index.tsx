@@ -22,12 +22,14 @@ export default function Sheets() {
 						<nav className="flex items-center gap-1.5">
 							<BasicLink
 								href="https://docs.llama.fi/spreadsheet-functions/function-reference"
+								data-umami-event="sheets-functions-reference-click"
 								className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-[#b4b7bc] transition-colors hover:bg-[#222429] hover:text-white"
 							>
 								Functions Reference
 							</BasicLink>
 							<BasicLink
 								href="https://docs.llama.fi/spreadsheet-functions/templates"
+								data-umami-event="sheets-templates-click-header"
 								className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-[#b4b7bc] transition-colors hover:bg-[#222429] hover:text-white"
 							>
 								Templates
