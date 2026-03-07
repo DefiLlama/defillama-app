@@ -6,12 +6,15 @@
 		"suspicious": "error"
 	},
 	"rules": {
+		"eslint/eqeqeq": ["warn", "always", { "null": "ignore" }],
+		"eslint/no-fallthrough": "warn",
 		"eslint/no-shadow": ["error", { "ignoreOnInitialization": true }],
 		"eslint/no-throw-literal": "error",
 		"eslint/prefer-const": "off",
 		"eslint/preserve-caught-error": "off",
 		"typescript/no-extraneous-class": "off",
 		"typescript/no-unused-vars": "warn",
+		"react/jsx-no-target-blank": "warn",
 		"react/react-in-jsx-scope": "off",
 		"react/rules-of-hooks": "error",
 		"nextjs/no-duplicate-head": "off",

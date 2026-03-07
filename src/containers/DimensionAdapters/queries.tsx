@@ -82,7 +82,7 @@ export async function getAdapterProtocolOverview({
 	excludeTotalDataChart: boolean
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }) {
-	if (protocol == 'All') throw new Error('Protocol cannot be All')
+	if (protocol.toLowerCase() === 'all') throw new Error('Protocol cannot be All')
 
 	const [overviewData, totalDataChart] = await Promise.all([
 		fetchAdapterProtocolMetrics({ adapterType, protocol, dataType }),

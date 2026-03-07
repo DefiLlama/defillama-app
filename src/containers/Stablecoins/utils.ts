@@ -381,7 +381,7 @@ export const buildStablecoinChartData = ({
 
 						unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
 
-						if (stackedDatasetObject[date] == undefined) {
+						if (stackedDatasetObject[date] == null) {
 							stackedDatasetObject[date] = {}
 						}
 						const unreleasedValue =
@@ -682,7 +682,7 @@ export const formatPeggedChainsData = ({
 			: null
 
 		let mcaptvl = mcap && latestChainTVL ? +(formatNum(mcap / latestChainTVL) ?? 0) : null
-		if (mcaptvl == 0) {
+		if (mcaptvl === 0) {
 			mcaptvl = null
 		}
 

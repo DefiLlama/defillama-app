@@ -458,7 +458,7 @@ export async function getProtocolsByCategoryOrTag(
 	const parentProtocolsStore: Record<string, Array<ProtocolTableRow>> = {}
 
 	for (const protocol of protocols) {
-		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category == category
+		const isProtocolInCategoryOrTag = tag ? (protocol.tags ?? []).includes(tag) : protocol.category === category
 		if (!isProtocolInCategoryOrTag) continue
 
 		let tvl: number | null = null
@@ -645,17 +645,18 @@ export async function getProtocolsByCategoryOrTag(
 			tvl,
 			...(effectiveCategory && ['Lending'].includes(effectiveCategory) ? { borrowed, supplied, suppliedTvl } : {}),
 			extraTvls,
-			fees: fees.total24h == 0 && fees.total7d == 0 && fees.total30d == 0 ? null : fees,
-			revenue: revenue.total24h == 0 && revenue.total7d == 0 && revenue.total30d == 0 ? null : revenue,
-			dexVolume: dexVolume.total24h == 0 && dexVolume.total7d == 0 && dexVolume.total30d == 0 ? null : dexVolume,
-			perpVolume: perpVolume.total24h == 0 && perpVolume.total7d == 0 && perpVolume.total30d == 0 ? null : perpVolume,
-			openInterest: openInterest.total24h == 0 ? null : openInterest,
+			fees: fees.total24h === 0 && fees.total7d === 0 && fees.total30d === 0 ? null : fees,
+			revenue: revenue.total24h === 0 && revenue.total7d === 0 && revenue.total30d === 0 ? null : revenue,
+			dexVolume: dexVolume.total24h === 0 && dexVolume.total7d === 0 && dexVolume.total30d === 0 ? null : dexVolume,
+			perpVolume:
+				perpVolume.total24h === 0 && perpVolume.total7d === 0 && perpVolume.total30d === 0 ? null : perpVolume,
+			openInterest: openInterest.total24h === 0 ? null : openInterest,
 			optionsPremium:
-				optionsPremium.total24h == 0 && optionsPremium.total7d == 0 && optionsPremium.total30d == 0
+				optionsPremium.total24h === 0 && optionsPremium.total7d === 0 && optionsPremium.total30d === 0
 					? null
 					: optionsPremium,
 			optionsNotional:
-				optionsNotional.total24h == 0 && optionsNotional.total7d == 0 && optionsNotional.total30d == 0
+				optionsNotional.total24h === 0 && optionsNotional.total7d === 0 && optionsNotional.total30d === 0
 					? null
 					: optionsNotional,
 			subRows: childProtocols.toSorted((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)),

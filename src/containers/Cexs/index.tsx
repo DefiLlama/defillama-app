@@ -25,7 +25,7 @@ const getOutflowsByTimerange = async (
 
 			const cexsApiResults = await Promise.allSettled(
 				cexData.map(async (c) => {
-					if (c.slug === undefined) {
+					if (c.slug == null) {
 						return [null, null] as const
 					} else {
 						const res = await fetchCexInflows(c.slug, startTime / 1e3, endTime / 1e3, c.coin ?? '')
@@ -111,7 +111,7 @@ const columns: ColumnDef<ICex>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					{row.original.slug === undefined ? (
+					{row.original.slug == null ? (
 						getValue<string>()
 					) : (
 						<BasicLink
@@ -158,7 +158,7 @@ const columns: ColumnDef<ICex>[] = [
 			if (value == null) return null
 
 			const helperText =
-				coinSymbol === undefined
+				coinSymbol == null
 					? `Original TVL doesn't contain any coin issued by this CEX`
 					: `This excludes all TVL from ${coinSymbol}, which is a token issued by this CEX`
 
@@ -290,7 +290,7 @@ const columns: ColumnDef<ICex>[] = [
 		accessorKey: 'lastAuditDate',
 		cell: ({ getValue }) => {
 			const value = getValue<number | undefined>()
-			return <>{value === undefined ? null : toNiceDayMonthAndYear(value)}</>
+			return <>{value == null ? null : toNiceDayMonthAndYear(value)}</>
 		},
 		size: 130,
 		meta: {
@@ -305,7 +305,7 @@ const columns: ColumnDef<ICex>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<>
-				{getValue() === undefined ? null : (
+				{getValue() == null ? null : (
 					<a
 					href={getValue() as string}
 					target="_blank"
@@ -329,7 +329,7 @@ const columns: ColumnDef<ICex>[] = [
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<>
-				{getValue() === undefined ? (
+				{getValue() == null ? (
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
 					<a

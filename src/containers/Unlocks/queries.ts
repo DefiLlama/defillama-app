@@ -525,8 +525,8 @@ const getAllProtocolEmissionsWithHistory = async ({
 				const x = a.events?.[0]?.timestamp
 				const y = b.events?.[0]?.timestamp
 				if (x === y) return 0
-				if (x === null || x === undefined) return 1
-				if (y === null || y === undefined) return -1
+				if (x == null) return 1
+				if (y == null) return -1
 				return x < y ? -1 : 1
 			})
 	} catch (e) {
@@ -583,22 +583,22 @@ export const getAllProtocolEmissions = async ({
 				for (const e of events) {
 					const ts = e?.timestamp
 					if (typeof ts !== 'number' || !Number.isFinite(ts)) continue
-					if (earliestEvent === undefined || ts < earliestEvent) earliestEvent = ts
+					if (earliestEvent == null || ts < earliestEvent) earliestEvent = ts
 
 					const cat = e?.category
 					if (cat === 'noncirculating' || cat === 'farming') continue
 
 					// Keep consistent with UI timestamps (rounded) to align with `lastEvent` later.
 					const roundedTs = roundToNearestHalfHour(ts)
-					if (roundedTs < weekAgoSec && (lastPastEvent === undefined || roundedTs > lastPastEvent)) {
+					if (roundedTs < weekAgoSec && (lastPastEvent == null || roundedTs > lastPastEvent)) {
 						lastPastEvent = roundedTs
 					}
 				}
 
-				if (lastPastEvent === undefined) continue
+				if (lastPastEvent == null) continue
 
 				lastPastTimestampByCoinKey.set(coinKey, lastPastEvent)
-				if (earliestEvent !== undefined && lastPastEvent === roundToNearestHalfHour(earliestEvent)) continue
+				if (earliestEvent != null && lastPastEvent === roundToNearestHalfHour(earliestEvent)) continue
 
 				const anchor = Math.floor(lastPastEvent / 86400) * 86400
 				const timestamps: number[] = []
@@ -705,10 +705,10 @@ export const getAllProtocolEmissions = async ({
 			}
 
 			// nulls sort after anything else
-			if (x === null || x === undefined) {
+			if (x == null) {
 				return 1
 			}
-			if (y === null || y === undefined) {
+			if (y == null) {
 				return -1
 			}
 

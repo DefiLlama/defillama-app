@@ -271,7 +271,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 
 				for (const [timestamp, price] of smallerSeries.entries()) {
 					const otherPrice = largerSeries.get(timestamp)
-					if (otherPrice === undefined) continue
+					if (otherPrice == null) continue
 					if (smallerSeries === bucketed0) {
 						prices0.push(price)
 						prices1.push(otherPrice)

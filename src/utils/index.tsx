@@ -558,7 +558,7 @@ export const formatPercentage = (value: number): string => {
 
 	const decimals = value.toString().split('.')?.[1]?.slice(0, 5)?.split('') ?? []
 	for (const x of decimals) {
-		if (!stop && x == '0') {
+		if (!stop && x === '0') {
 			zeroes += 1
 		} else {
 			stop = true

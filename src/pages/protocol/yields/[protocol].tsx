@@ -75,7 +75,7 @@ export const getStaticProps = withPerformanceLogging(
 			poolsError = 'Failed to fetch'
 		}
 
-		const projectYields = poolsList.filter((pool) => pool.apy != 0)
+		const projectYields = poolsList.filter((pool) => pool.apy !== 0)
 
 		return {
 			props: {

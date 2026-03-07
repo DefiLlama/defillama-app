@@ -94,7 +94,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		let selectedChains = chainQuery
 			? Array.isArray(chainQuery)
 				? chainQuery
-				: chainQuery == 'All'
+				: chainQuery === 'All'
 					? chains
 					: [chainQuery]
 			: chains
@@ -104,7 +104,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		let selectedColumns = column
 			? Array.isArray(column)
 				? column
-				: column == 'All'
+				: column === 'All'
 					? uniqueCategories
 					: [column]
 			: uniqueCategories

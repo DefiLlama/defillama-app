@@ -1074,7 +1074,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.dexs?.change_7dover7d, {
 				id: 'dex_volume_change_7d',
 				header: 'Spot Change 7d',
-				cell: ({ getValue }) => (getValue() != 0 ? <PercentChange percent={getValue()} /> : null),
+				cell: ({ getValue }) => (getValue() !== 0 ? <PercentChange percent={getValue()} /> : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.dexs.protocol['change7d']

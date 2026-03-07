@@ -1385,15 +1385,17 @@ function ActionButtonGroup({
 						return (
 							<a
 								key={j}
-								href={href.startsWith('http') ? href : `https://defillama.com${href}`}
-								target={href.startsWith('http') ? '_blank' : undefined}
-								rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-								onClick={(e) => {
-									if (!href.startsWith('http')) {
-										e.preventDefault()
-										Router.push(href)
-									}
-								}}
+								{...(href.startsWith('http')
+									? { href, target: '_blank', rel: 'noopener noreferrer' }
+									: {
+											href: `https://defillama.com${href}`,
+											onClick: (e) => {
+												if (!href.startsWith('http')) {
+													e.preventDefault()
+													Router.push(href)
+												}
+											}
+										})}
 								className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/[0.03] px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/[0.08] active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/[0.03] dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/[0.08]"
 							>
 								{action.label}
@@ -1480,15 +1482,17 @@ function ActionButtonGroup({
 					return (
 						<a
 							key={j}
-							href={href.startsWith('http') ? href : `https://defillama.com${href}`}
-							target={href.startsWith('http') ? '_blank' : undefined}
-							rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-							onClick={(e) => {
-								if (!href.startsWith('http')) {
-									e.preventDefault()
-									Router.push(href)
-								}
-							}}
+							{...(href.startsWith('http')
+								? { href, target: '_blank', rel: 'noopener noreferrer' }
+								: {
+										href: `https://defillama.com${href}`,
+										onClick: (e) => {
+											if (!href.startsWith('http')) {
+												e.preventDefault()
+												Router.push(href)
+											}
+										}
+									})}
 							className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/10 bg-[#2172e5]/[0.04] px-3 py-1.5 text-xs font-medium text-[#2172e5]/55 transition-all duration-150 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/[0.08] hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/[0.05] dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/[0.10] dark:hover:text-[#4190f7]/75"
 						>
 							{action.label}
