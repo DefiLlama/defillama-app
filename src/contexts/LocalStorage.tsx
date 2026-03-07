@@ -172,7 +172,7 @@ export type AppStorage = SettingsStore & {
 	tableViews?: CustomView[]
 }
 
-const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.key) as ChainsCategoryGroupKey[]
+const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.key)
 const CHAINS_CATEGORY_GROUP_KEYS_SET = new Set<string>(CHAINS_CATEGORY_GROUP_KEYS)
 export const TVL_SETTINGS_KEYS = valuesOf(TVL_SETTINGS)
 export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
@@ -259,7 +259,7 @@ const updateSetting = (key: string) => {
 	url.searchParams.set(key, newState.toString())
 	window.history.pushState({}, '', url)
 
-	writeAppStorage({ ...(current as AppStorage), [key]: newState })
+	writeAppStorage({ ...current, [key]: newState })
 }
 
 export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boolean>>) => {
@@ -278,7 +278,7 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 
 	window.history.pushState({}, '', url)
 
-	writeAppStorage({ ...(current as AppStorage), ...keys })
+	writeAppStorage({ ...current, ...keys })
 }
 
 type TSETTINGTYPE =
@@ -453,7 +453,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				}
 				const newWatchlist = { ...currentWatchlist, [name]: { ...(currentWatchlist[name] ?? {}) } }
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist,
 					[selectedPortfolioKey]: name
 				})
@@ -476,7 +476,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				}
 
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist,
 					[selectedPortfolioKey]: DEFAULT_PORTFOLIO_NAME
 				})
@@ -484,7 +484,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			setSelectedPortfolio: (name: string) => {
 				const currentStore = readAppStorage()
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[selectedPortfolioKey]: name
 				})
 			},
@@ -505,7 +505,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				}
 
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist
 				})
 			},
@@ -524,7 +524,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				delete newWatchlist[currentSelectedPortfolio][slug(name)]
 
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist
 				})
 			}

@@ -6,7 +6,7 @@ interface NestedMenuItemProps extends Ariakit.MenuItemProps {
 }
 
 export function NestedMenuItem({ ref, ...props }: NestedMenuItemProps) {
-	return <Ariakit.MenuItem ref={ref} {...props} className={`${props.className ?? ''}`} />
+	return <Ariakit.MenuItem ref={ref} {...props} className={props.className ?? ''} />
 }
 
 interface NestedMenuProps extends Ariakit.MenuButtonProps<'div'> {

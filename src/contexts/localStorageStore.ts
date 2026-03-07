@@ -243,7 +243,7 @@ export function useStorageItem(key: string, fallback: null): string | null
 export function useStorageItem(key: string, fallback: string | null): string | null {
 	return useSyncExternalStore(
 		getOrCreateSubscriber(key),
-		() => getStorageItem(key, fallback as string) ?? fallback,
+		() => getStorageItem(key, fallback) ?? fallback,
 		() => fallback
 	)
 }

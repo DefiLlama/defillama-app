@@ -66,7 +66,6 @@ type Name =
 	| 'chat'
 	| 'earth'
 	| 'twitter'
-	| 'file-text'
 	| 'flame'
 	| 'house'
 	| 'pencil-ruler'
