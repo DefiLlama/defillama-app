@@ -40,7 +40,7 @@ export function useGetLiteDashboards() {
 	return {
 		data: liteDashboards,
 		isLoading: liteDashboards.length === 0 && isLoading,
-		error: error as Error | null
+		error
 	}
 }
 

@@ -45,7 +45,7 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 	return {
 		dashboards: data?.items ?? EMPTY_DASHBOARDS,
 		isLoading,
-		error: error as Error | null,
+		error,
 		page: data?.page || page,
 		totalPages: data?.totalPages || 1,
 		totalItems: data?.totalItems || 0,
