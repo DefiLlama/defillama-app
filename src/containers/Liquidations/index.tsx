@@ -295,7 +295,7 @@ export const LiquidationsContainer = (props: {
 						<button
 							data-active={stackBy === 'protocols'}
 							onClick={() => {
-								pushShallowQuery(router, { stackBy: 'protocols' })
+								void pushShallowQuery(router, { stackBy: 'protocols' })
 							}}
 							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 						>
@@ -305,7 +305,7 @@ export const LiquidationsContainer = (props: {
 						<button
 							data-active={stackBy === 'chains'}
 							onClick={() => {
-								pushShallowQuery(router, { stackBy: 'chains' })
+								void pushShallowQuery(router, { stackBy: 'chains' })
 							}}
 							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 						>

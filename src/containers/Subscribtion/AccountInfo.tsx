@@ -41,22 +41,26 @@ export const AccountInfo = () => {
 	const isVerified = user?.verified
 	const handleEmailChange = async (e: FormSubmitEvent) => {
 		e.preventDefault()
-		if (isWalletUser) {
-			await addEmail(newEmail)
-		} else {
-			changeEmail(newEmail)
+		try {
+			if (isWalletUser) {
+				await addEmail(newEmail)
+			} else {
+				changeEmail(newEmail)
+			}
+			setNewEmail('')
+			setShowEmailForm(false)
+		} catch {
+			// mutation error is already surfaced by react-query's onError
 		}
-		setNewEmail('')
-		setShowEmailForm(false)
 	}
 
-	const handleResendVerification = async () => {
+	const handleResendVerification = () => {
 		if (user?.email) {
 			resendVerification(user.email)
 		}
 	}
 
-	const handleLogout = async () => {
+	const handleLogout = () => {
 		try {
 			logout()
 		} catch (error) {
@@ -160,7 +164,9 @@ export const AccountInfo = () => {
 					isPortalSessionLoading={isPortalSessionLoading}
 					apiSubscription={apiSubscription}
 					llamafeedSubscription={llamafeedSubscription}
-					enableOverage={enableOverage}
+					enableOverage={() => {
+						void enableOverage()
+					}}
 					isEnableOverageLoading={isEnableOverageLoading}
 					usageStats={usageStats}
 					isUsageStatsLoading={isUsageStatsLoading}
@@ -173,7 +179,7 @@ export const AccountInfo = () => {
 			<EmailChangeModal
 				isOpen={showEmailForm}
 				onClose={() => setShowEmailForm(false)}
-				onSubmit={handleEmailChange}
+				onSubmit={(e) => void handleEmailChange(e)}
 				email={newEmail}
 				onEmailChange={setNewEmail}
 				isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}

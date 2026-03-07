@@ -147,7 +147,7 @@ export function StripeCheckoutModal({
 	const result = subscriptionMutation.data
 	const errorMessage = subscriptionMutation.error?.message ?? null
 
-	if (!stripeInstance) {
+	if (stripeInstance == null) {
 		return (
 			<Ariakit.DialogProvider open={isOpen} setOpen={() => handleClose()}>
 				<Ariakit.Dialog className="dialog gap-4 md:max-w-[600px]" portal unmountOnHide>

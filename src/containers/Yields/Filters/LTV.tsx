@@ -7,7 +7,7 @@ export function LTV({ placeholder }: { placeholder: string }) {
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const setLTV = (value) => {
-		pushShallowQuery(router, { customLTV: value || undefined })
+		void pushShallowQuery(router, { customLTV: value || undefined })
 	}
 
 	const onChange = (e) => {

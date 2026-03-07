@@ -295,7 +295,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
 					const pg = paginationRef.current
 					if (scrollTop <= 50 && pg.hasMore && !pg.isLoadingMore) {
-						loadMoreRef.current()
+						void loadMoreRef.current()
 					}
 					ticking = false
 				})
@@ -395,7 +395,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	const handleNewChat = useCallback(() => {
 		if (initialSessionId) {
-			Router.push('/ai/chat', undefined, { shallow: true })
+			void Router.push('/ai/chat', undefined, { shallow: true })
 			return
 		}
 		abortControllerRef.current?.abort()
@@ -956,7 +956,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	useEffect(() => {
 		if (initialSessionId) {
-			handleSessionSelectRef.current(initialSessionId)
+			void handleSessionSelectRef.current(initialSessionId)
 		}
 	}, [initialSessionId])
 
@@ -1008,7 +1008,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							isLoading={isLoadingSessions}
 							currentSessionId={sessionId}
 							restoringSessionId={restoringSessionId}
-							onSessionSelect={handleSessionSelect}
+							onSessionSelect={(nextSessionId) => {
+								void handleSessionSelect(nextSessionId)
+							}}
 							onNewChat={handleNewChat}
 							handleSidebarToggle={handleSidebarToggle}
 							onDelete={deleteSession}
@@ -1392,7 +1394,7 @@ function ActionButtonGroup({
 											onClick: (e) => {
 												if (!href.startsWith('http')) {
 													e.preventDefault()
-													Router.push(href)
+													void Router.push(href)
 												}
 											}
 										})}
@@ -1489,7 +1491,7 @@ function ActionButtonGroup({
 										onClick: (e) => {
 											if (!href.startsWith('http')) {
 												e.preventDefault()
-												Router.push(href)
+												void Router.push(href)
 											}
 										}
 									})}

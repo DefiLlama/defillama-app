@@ -30,14 +30,14 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 			trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, eventData)
 		}
 
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			minApy: minApy || undefined,
 			maxApy: maxApy || undefined
 		})
 	}
 
 	const handleClear = () => {
-		pushShallowQuery(router, { minApy: undefined, maxApy: undefined })
+		void pushShallowQuery(router, { minApy: undefined, maxApy: undefined })
 	}
 
 	const minApy = readSingleQueryValue(router.query.minApy)

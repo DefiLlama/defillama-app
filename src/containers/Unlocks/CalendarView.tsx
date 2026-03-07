@@ -47,7 +47,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 
 	const setQueryParams = React.useCallback(
 		(updates: Record<string, string | undefined>) => {
-			pushShallowQuery(router, updates)
+			void pushShallowQuery(router, updates)
 		},
 		[router]
 	)
@@ -192,7 +192,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						</button>
 					</div>
 					<button
-						onClick={() => router.push({ pathname: router.pathname }, undefined, { shallow: true })}
+						onClick={() => {
+							void router.push({ pathname: router.pathname }, undefined, { shallow: true })
+						}}
 						className="shrink-0 rounded-md border border-(--form-control-border) px-2.5 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						Reset

@@ -87,7 +87,7 @@ export async function refreshMetadataIfStale(): Promise<void> {
 		return
 	}
 
-	if (refreshInFlight) {
+	if (refreshInFlight !== null) {
 		// Another refresh is already running; wait for it
 		return refreshInFlight
 	}

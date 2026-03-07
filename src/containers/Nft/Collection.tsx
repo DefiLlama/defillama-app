@@ -106,7 +106,9 @@ export function NFTCollectionContainer() {
 							label="Include Outliers"
 							value="showMcapChart"
 							checked={includeOutliers}
-							onChange={() => pushShallowQuery(router, { includeOutliers: !includeOutliers })}
+							onChange={() => {
+								void pushShallowQuery(router, { includeOutliers: !includeOutliers })
+							}}
 						/>
 					</div>
 					<React.Suspense fallback={<></>}>

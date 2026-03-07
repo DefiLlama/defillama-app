@@ -48,7 +48,7 @@ export const PaymentButton = ({
 			setIsCheckoutModalOpen(true)
 		} else {
 			// For crypto payments, use the legacy flow
-			handleSubscribe(paymentMethod, type, undefined, billingInterval, false)
+			void handleSubscribe(paymentMethod, type, undefined, billingInterval, false)
 		}
 	}
 

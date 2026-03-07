@@ -68,7 +68,7 @@ export function useStreamNotification() {
 		if (Notification.permission === 'granted') {
 			showNotification()
 		} else if (Notification.permission === 'default') {
-			Notification.requestPermission().then((permission) => {
+			void Notification.requestPermission().then((permission) => {
 				if (permission === 'granted') showNotification()
 			})
 		}
@@ -95,7 +95,7 @@ export function useStreamNotification() {
 		}
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'default') {
-			Notification.requestPermission().then((permission) => {
+			void Notification.requestPermission().then((permission) => {
 				if (permission === 'denied') {
 					console.log('Notification permission was denied by user')
 				}

@@ -101,7 +101,7 @@ export function ColumnFilters({ nestedMenu, enabledColumns }: IColumnFiltersProp
 		}
 		prevSelectionRef.current = new Set(newOptions)
 
-		router.push(
+		void router.push(
 			{
 				pathname: router.pathname,
 				query: { ...queries, ...optionsObj }

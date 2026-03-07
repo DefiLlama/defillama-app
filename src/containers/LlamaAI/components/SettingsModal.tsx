@@ -50,7 +50,7 @@ export const SettingsModal = memo(function SettingsModal({
 		onCustomInstructionsChange(trimmed)
 		localStorage.setItem(STORAGE_KEY, trimmed)
 		if (fetchFn) {
-			saveSettingsToServer(fetchFn, { customInstructions: trimmed })
+			void saveSettingsToServer(fetchFn, { customInstructions: trimmed })
 		}
 	}, [draft, onCustomInstructionsChange, fetchFn])
 
@@ -63,7 +63,7 @@ export const SettingsModal = memo(function SettingsModal({
 		onCustomInstructionsChange('')
 		localStorage.removeItem(STORAGE_KEY)
 		if (fetchFn) {
-			saveSettingsToServer(fetchFn, { customInstructions: '' })
+			void saveSettingsToServer(fetchFn, { customInstructions: '' })
 		}
 	}, [onCustomInstructionsChange, fetchFn])
 
@@ -73,7 +73,7 @@ export const SettingsModal = memo(function SettingsModal({
 		onEnableMemoryChange(next)
 		localStorage.setItem(MEMORY_STORAGE_KEY, String(next))
 		if (fetchFn) {
-			saveSettingsToServer(fetchFn, { enableMemory: next })
+			void saveSettingsToServer(fetchFn, { enableMemory: next })
 		}
 	}, [memoryDraft, onEnableMemoryChange, fetchFn])
 

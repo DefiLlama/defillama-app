@@ -142,7 +142,7 @@ const formatChartData = (
 }
 
 const updateRoute = (key: string, val: string | string[], router: NextRouter) => {
-	router.push(
+	void router.push(
 		{
 			query: {
 				...router.query,
@@ -366,7 +366,7 @@ function useChainsChartFilterState() {
 		)
 		const selectedSet = new Set(valuesArray)
 
-		router.push(
+		void router.push(
 			{
 				query: {
 					chains: router.query.chains,

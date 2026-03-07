@@ -94,9 +94,11 @@ export default function Tokens() {
 									label="Include CEXs"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
-									onChange={() =>
-										pushShallowQuery(router, { includecex: !includeCentraliseExchanges ? 'true' : undefined })
-									}
+									onChange={() => {
+										void pushShallowQuery(router, {
+											includecex: !includeCentraliseExchanges ? 'true' : undefined
+										})
+									}}
 								/>
 								<CSVDownloadButton
 									prepareCsv={() =>
@@ -247,7 +249,7 @@ const Search = () => {
 								key={`token-usage-${tokenResult.name}`}
 								value={tokenResult.name}
 								onClick={() => {
-									pushShallowQuery(router, { token: tokenResult.name }).then(() => {
+									void pushShallowQuery(router, { token: tokenResult.name }).then(() => {
 										setOpen(false)
 									})
 								}}

@@ -196,7 +196,9 @@ function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
 			</div>
 			<div className="mt-2 flex flex-col gap-3">
 				<button
-					onClick={handleEndTrial}
+					onClick={() => {
+						void handleEndTrial()
+					}}
 					disabled={isEndTrialLoading}
 					className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
 				>

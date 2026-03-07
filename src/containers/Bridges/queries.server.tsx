@@ -441,7 +441,7 @@ export async function getBridgeOverviewPageData(chain, options: { includeBridgeT
 	)
 
 	// order of chains will update every 24 hrs, can consider changing metric sorted by here
-	const chainList = await chains
+	const chainList = chains
 		.sort((a, b) => {
 			return b.lastDailyVolume - a.lastDailyVolume
 		})
@@ -549,7 +549,7 @@ export async function getBridgeChainsPageData() {
 	}
 
 	// order of chains will update every 24 hrs, can consider changing metric sorted by here
-	const chainList = await chains
+	const chainList = chains
 		.sort((a, b) => {
 			return b.volumePrevDay - a.volumePrevDay
 		})

@@ -87,10 +87,10 @@ export const AdapterByChainChart = ({
 	}, [metricDimensions, chartViewMode, breakdownChartData, selectedProtocols, breakdownProtocolDimensions])
 
 	const onChangeChartInterval = (nextInterval: AdapterByChainInterval) => {
-		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+		void pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
 	}
 	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
-		pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
+		void pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
 	}
 
 	const isBreakdownMode = chartViewMode === 'Breakdown' && breakdownChartData != null
@@ -400,10 +400,10 @@ export const ChainsByAdapterChart = ({
 	const deferredChartData = React.useDeferredValue(chainsByAdapterChartData)
 
 	const onChangeChartInterval = (nextInterval: ChainsByAdapterInterval) => {
-		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+		void pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
 	}
 	const onChangeChartType = (nextChartType: ChainsByAdapterChartType) => {
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			chartType: nextChartType === 'Volume' ? undefined : nextChartType,
 			groupBy: nextChartType === 'Dominance' ? undefined : readSingleQueryValue(router.query.groupBy)
 		})

@@ -119,7 +119,7 @@ export function PresetFilters({ className }: PresetFiltersProps) {
 			}
 			// If clicking active preset, just clear (already done above)
 
-			router.push({ pathname, query: newQuery }, undefined, { shallow: true })
+			void router.push({ pathname, query: newQuery }, undefined, { shallow: true })
 		},
 		[activePresets, query, pathname, router]
 	)

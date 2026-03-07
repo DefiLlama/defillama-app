@@ -81,7 +81,9 @@ export const CopyDashboardLinkButton = ({
 								className="flex-1 rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs"
 							/>
 							<button
-								onClick={handleCopyLink}
+								onClick={() => {
+									void handleCopyLink()
+								}}
 								className="flex items-center gap-1.5 rounded-md border pro-border pro-hover-bg px-2.5 py-1.5 text-xs pro-text2 transition-colors hover:pro-text1"
 								title="Copy link"
 							>

@@ -361,7 +361,7 @@ function ResetAllStablecoinFilters({ pathname }: { pathname: string; nestedMenu:
 	return (
 		<button
 			onClick={() => {
-				router.push(pathname, undefined, { shallow: true })
+				void router.push(pathname, undefined, { shallow: true })
 			}}
 			disabled={!hasActiveQueryFilters}
 			className="relative flex cursor-pointer flex-nowrap items-center justify-between gap-2 rounded-md border border-(--form-control-border) px-2 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) disabled:cursor-not-allowed disabled:opacity-40"

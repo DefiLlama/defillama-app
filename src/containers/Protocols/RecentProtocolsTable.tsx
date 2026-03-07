@@ -523,7 +523,7 @@ function HideForkedProtocols() {
 	const toHide = !(hideForks && typeof hideForks === 'string' && hideForks === 'true')
 
 	const hide = () => {
-		pushShallowQuery(router, { hideForks: toHide })
+		void pushShallowQuery(router, { hideForks: toHide })
 	}
 	return <Switch label="Hide Forked Protocols" value="hideForks" checked={!toHide} onChange={hide} />
 }

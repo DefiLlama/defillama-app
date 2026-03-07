@@ -35,7 +35,7 @@ function AuthContent() {
 			} catch {}
 			// google sheets auth, requiring redirect url
 			if (redirectUrl) {
-				router.push({
+				void router.push({
 					pathname: redirectUrl as string,
 					query: {
 						...router.query,

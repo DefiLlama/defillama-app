@@ -24,7 +24,7 @@ interface PromptInputProps {
 		prompt: string,
 		preResolvedEntities?: Array<{ term: string; slug: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
-	) => void
+	) => void | Promise<void>
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	isPending: boolean
 	handleStopRequest?: () => void
@@ -168,7 +168,7 @@ export function PromptInput({
 			}
 			revokeImageUrls(imagesToSend)
 		} else {
-			handleSubmit(promptValue, finalEntities)
+			void handleSubmit(promptValue, finalEntities)
 		}
 	}
 
@@ -182,7 +182,7 @@ export function PromptInput({
 			event.preventDefault()
 			if (isStreaming) return
 			const promptValue = promptInputRef.current?.value ?? ''
-			submitForm(promptValue)
+			void submitForm(promptValue)
 		}
 	}
 
@@ -202,7 +202,7 @@ export function PromptInput({
 		e.preventDefault()
 		const form = e.currentTarget
 		const promptValue = (form.elements.namedItem('prompt') as HTMLTextAreaElement | null)?.value ?? ''
-		submitForm(promptValue)
+		void submitForm(promptValue)
 	}
 
 	const handleFormClick = (e: React.MouseEvent<HTMLFormElement>) => {

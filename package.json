@@ -12,9 +12,7 @@
 		"build": "bun run build:metadata && bunx next build",
 		"start": "./scripts/prestart.sh & bunx next start",
 		"format": "oxfmt --write",
-		"format:check": "oxfmt --check",
 		"lint": "oxlint",
-		"lint:fix": "oxlint --fix",
 		"ts": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -62,6 +60,7 @@
 		"babel-plugin-react-compiler": "1.0.0",
 		"oxfmt": "0.36.0",
 		"oxlint": "1.51.0",
+		"oxlint-tsgolint": "^0.16.0",
 		"postcss": "8.5.8",
 		"tailwindcss": "4.2.1",
 		"typescript": "5.9.3"

@@ -168,7 +168,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 									<button
 										key={`add-metric-${chart}`}
 										onClick={() => {
-											pushShallowQuery(router, {
+											void pushShallowQuery(router, {
 												[protocolCharts[chart]]:
 													toggledMetrics[protocolCharts[chart]] === 'true'
 														? (getQueryValueOnRemove(defaultEnabledCharts[chart] === true) ?? undefined)
@@ -191,7 +191,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 								{props.hallmarks?.length > 0 || props.rangeHallmarks?.length > 0 ? (
 									<button
 										onClick={() => {
-											pushShallowQuery(router, {
+											void pushShallowQuery(router, {
 												events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
 											}).then(() => {
 												metricsDialogStore.toggle()
@@ -222,7 +222,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 							value={tchart}
 							checked={true}
 							onChange={() => {
-								pushShallowQuery(router, {
+								void pushShallowQuery(router, {
 									[protocolCharts[tchart]]: getQueryValueOnRemove(defaultEnabledCharts[tchart] === true) ?? undefined
 								})
 							}}
@@ -246,7 +246,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 							value="events"
 							checked={true}
 							onChange={() => {
-								pushShallowQuery(router, {
+								void pushShallowQuery(router, {
 									events: toggledMetrics.events === 'true' ? (getQueryValueOnRemove(true) ?? undefined) : 'true'
 								})
 							}}
@@ -275,7 +275,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 										(denom.symbol === 'USD' && !toggledMetrics.denomination)
 									}
 									onClick={() => {
-										pushShallowQuery(router, {
+										void pushShallowQuery(router, {
 											denomination: denom.symbol === 'USD' ? undefined : denom.symbol
 										})
 									}}
@@ -294,7 +294,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 									data-active={groupBy === dataInterval}
 									onClick={() => {
-										pushShallowQuery(router, {
+										void pushShallowQuery(router, {
 											groupBy: dataInterval
 										})
 									}}

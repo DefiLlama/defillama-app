@@ -303,7 +303,7 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 								value={unixToDateString(filters.minLastRoundTime)}
 								onChange={handleDateChange}
 								max={new Date().toISOString().split('T')[0]}
-								onFocus={async (e) => {
+								onFocus={(e) => {
 									try {
 										e.target.showPicker()
 									} catch {}
@@ -322,7 +322,12 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 						<h2 className="text-lg font-semibold">Project Information</h2>
 
-						<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+						<form
+							onSubmit={(e) => {
+								void handleSubmit(e)
+							}}
+							className="flex flex-col gap-4"
+						>
 							<label className="flex flex-col gap-1 text-sm">
 								<span className="">Project Name:</span>
 								<input

@@ -11,14 +11,14 @@ export function useRangeFilter(minKey: string, maxKey: string) {
 		const minVal = (form.elements.namedItem('min') as HTMLInputElement | null)?.value
 		const maxVal = (form.elements.namedItem('max') as HTMLInputElement | null)?.value
 
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			[minKey]: minVal || undefined,
 			[maxKey]: maxVal || undefined
 		})
 	}
 
 	const handleClear = () => {
-		pushShallowQuery(router, { [minKey]: undefined, [maxKey]: undefined })
+		void pushShallowQuery(router, { [minKey]: undefined, [maxKey]: undefined })
 	}
 
 	const minRaw = readSingleQueryValue(router.query[minKey] as string | string[] | undefined)

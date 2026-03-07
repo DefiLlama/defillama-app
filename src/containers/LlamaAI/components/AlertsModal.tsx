@@ -346,7 +346,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 
@@ -380,7 +380,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			setIsDeleting(false)
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 
@@ -434,7 +434,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			setIsEditing(false)
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 

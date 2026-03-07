@@ -92,7 +92,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
@@ -264,7 +264,7 @@ function useStablecoinData(protocolName: string) {
 			tokenBreakdownDataUpdatedAt,
 			stablecoinsListUpdatedAt
 		],
-		queryFn: async () => {
+		queryFn: () => {
 			if (!tokenBreakdownData || tokenBreakdownData.length === 0) return null
 			if (!peggedAssets || peggedAssets.length === 0) return null
 

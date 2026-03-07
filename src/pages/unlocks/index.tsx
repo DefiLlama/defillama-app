@@ -115,7 +115,7 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 
 	const updateQueryParam = React.useCallback(
 		(key: string, value: string, defaultValue: string) => {
-			pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
+			void pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
 		},
 		[router]
 	)

@@ -345,14 +345,14 @@ function PortfolioNotifications({
 		})
 	}
 
-	const handleDisableNotifications = async () => {
-		updateStatus({ portfolioName: selectedPortfolio, active: false }).then(() => {
+	const handleDisableNotifications = () => {
+		void updateStatus({ portfolioName: selectedPortfolio, active: false }).then(() => {
 			dialogStore.hide()
 		})
 	}
 
-	const handleDeleteNotifications = async () => {
-		deletePreferences({ portfolioName: selectedPortfolio }).then(() => {
+	const handleDeleteNotifications = () => {
+		void deletePreferences({ portfolioName: selectedPortfolio }).then(() => {
 			dialogStore.hide()
 		})
 	}
@@ -437,7 +437,9 @@ function PortfolioNotifications({
 							) : null}
 							{!preferences.active ? (
 								<button
-									onClick={() => updateStatus({ portfolioName: selectedPortfolio, active: true })}
+									onClick={() => {
+										void updateStatus({ portfolioName: selectedPortfolio, active: true })
+									}}
 									disabled={loaders.userLoading || isUpdatingStatus}
 									className="flex items-center gap-2 rounded-md border border-green-200 px-2 py-1.5 text-xs text-green-600 hover:bg-green-50 focus-visible:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 dark:focus-visible:bg-green-900/20"
 									title="Re-enable notifications"
@@ -497,7 +499,7 @@ function PortfolioNotifications({
 					store={formStore}
 					onSubmit={(e) => {
 						e.preventDefault()
-						handleFormSubmit()
+						void handleFormSubmit()
 					}}
 					className="max-h-[calc(70dvh-140px)] overflow-y-auto"
 				>

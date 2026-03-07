@@ -140,7 +140,9 @@ const TokenPnlContent = ({
 					{error instanceof Error ? error.message : 'Something went wrong fetching price data.'}
 				</span>
 				<button
-					onClick={onRetry}
+					onClick={() => {
+						void onRetry()
+					}}
 					className="rounded-md border border-red-500/40 bg-transparent px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10"
 				>
 					Retry
@@ -429,13 +431,13 @@ export function TokenPnl({ coinsData }: { coinsData: IResponseCGMarketsAPI[] }) 
 			handleEndDateChange(value)
 		}
 		const unixValue = dateStringToUnix(value)
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			[isStart ? 'start' : 'end']: unixValue ?? undefined
 		})
 	}
 
 	const updateCoin = (coinId: string) => {
-		pushShallowQuery(router, { coin: [coinId] })
+		void pushShallowQuery(router, { coin: [coinId] })
 		dialogStore.toggle()
 	}
 

@@ -27,7 +27,7 @@ export function TVLRange({
 
 		onValueChange?.(minTvl ? Number(minTvl) : null, maxTvl ? Number(maxTvl) : null)
 
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			minTvl: minTvl || undefined,
 			maxTvl: maxTvl || undefined
 		})
@@ -38,7 +38,7 @@ export function TVLRange({
 
 	const handleClear = () => {
 		onValueChange?.(null, null)
-		pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
+		void pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

@@ -153,7 +153,7 @@ export default function Protocols({ emissions }) {
 					<Ariakit.SelectProvider
 						value={selectedOptions}
 						setValue={(newOptions) => {
-							pushShallowQuery(router, { type: newOptions })
+							void pushShallowQuery(router, { type: newOptions })
 						}}
 					>
 						<Ariakit.Select className="flex cursor-pointer flex-nowrap items-center gap-2 rounded-md bg-(--btn-bg) px-3 py-2 text-xs text-(--text-primary) hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg)">
@@ -187,7 +187,7 @@ export default function Protocols({ emissions }) {
 							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
 								<button
 									onClick={() => {
-										pushShallowQuery(router, { type: 'None' })
+										void pushShallowQuery(router, { type: 'None' })
 									}}
 									className="p-3"
 								>
@@ -195,7 +195,7 @@ export default function Protocols({ emissions }) {
 								</button>
 								<button
 									onClick={() => {
-										pushShallowQuery(router, { type: 'All' })
+										void pushShallowQuery(router, { type: 'All' })
 									}}
 									className="p-3"
 								>

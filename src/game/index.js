@@ -9,7 +9,7 @@ const Game = () => {
 				window.eval(data)
 			}, 1)
 		}
-		startGame()
+		void startGame()
 	}, [])
 
 	return (

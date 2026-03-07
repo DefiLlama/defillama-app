@@ -195,7 +195,7 @@ export const useSubscribe = () => {
 			}
 
 			queryClient.setQueryData(['subscription', userId], defaultInactiveSubscription)
-			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+			void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 
 			const result = await createSubscription
 				.mutateAsync(subscriptionData)
@@ -243,7 +243,7 @@ export const useSubscribe = () => {
 
 	useEffect(() => {
 		if (subscriptionData?.status === 'active' && !user?.has_active_subscription) {
-			queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
+			void queryClient.invalidateQueries({ queryKey: ['auth', 'status'] })
 		}
 	}, [subscriptionData?.status, user?.has_active_subscription, queryClient])
 
@@ -447,7 +447,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: () => {
 			toast.success('Overage has been enabled successfully')
-			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
+			void queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
 		},
 		onError: (error) => {
 			console.log('Failed to enable overage:', error)
@@ -485,7 +485,7 @@ export const useSubscribe = () => {
 		},
 		onSuccess: () => {
 			toast.success('Subscription scheduled for cancellation')
-			queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
+			void queryClient.invalidateQueries({ queryKey: ['subscription', user?.id] })
 		},
 		onError: (error) => {
 			console.log('Cancel subscription error:', error)

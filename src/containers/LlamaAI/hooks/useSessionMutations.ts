@@ -29,7 +29,7 @@ export function useSessionMutations() {
 			}
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
 
@@ -94,7 +94,7 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			// Always invalidate after mutation settles (success or error)
-			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
 
@@ -141,7 +141,7 @@ export function useSessionMutations() {
 		},
 		onSettled: () => {
 			// Always invalidate after mutation settles (success or error)
-			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
 

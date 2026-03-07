@@ -202,7 +202,7 @@ export function CompareTokens({
 					<button
 						onClick={() => {
 							if (coins.length > 1) {
-								pushShallowQuery(router, { coin: [coins[1], coins[0]] })
+								void pushShallowQuery(router, { coin: [coins[1], coins[0]] })
 							}
 						}}
 						className="flex shrink-0 items-center justify-center p-1"
@@ -265,7 +265,7 @@ export function CompareTokens({
 								<Ariakit.MenuItem
 									key={item.value}
 									onClick={() => {
-										pushShallowQuery(router, { type: item.value })
+										void pushShallowQuery(router, { type: item.value })
 									}}
 									className="flex shrink-0 cursor-pointer items-center justify-between gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
@@ -332,7 +332,7 @@ export function CompareTokens({
 					selectCoin={(coin) => {
 						const newCoins = coins.slice()
 						newCoins[isModalOpen - 1] = coin.id
-						pushShallowQuery(router, { coin: newCoins })
+						void pushShallowQuery(router, { coin: newCoins })
 						setModalOpen(0)
 						dialogStore.toggle()
 					}}

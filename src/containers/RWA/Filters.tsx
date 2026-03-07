@@ -496,7 +496,7 @@ function Filters({
 					for (const key of RESETTABLE_QUERY_KEYS) {
 						resetUpdates[key] = undefined
 					}
-					pushShallowQuery(router, resetUpdates)
+					void pushShallowQuery(router, resetUpdates)
 				}}
 				disabled={!hasActiveFilters}
 				className={

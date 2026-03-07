@@ -28,11 +28,14 @@ export const getStaticPaths = async () => {
 	}
 
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-	const chains = await getDimensionAdapterOverviewOfAllChains({
-		adapterType,
-		dataType,
-		chainMetadata: metadataCache.chainMetadata
-	}).catch(() => ({}))
+	let chains: Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }> = {}
+	try {
+		chains = getDimensionAdapterOverviewOfAllChains({
+			adapterType,
+			dataType,
+			chainMetadata: metadataCache.chainMetadata
+		})
+	} catch {}
 	const paths = Object.entries(chains)
 		.sort(([, a], [, b]) => (b?.['24h'] ?? 0) - (a?.['24h'] ?? 0))
 		.slice(0, 10)

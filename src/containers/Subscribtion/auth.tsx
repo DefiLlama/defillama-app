@@ -83,7 +83,7 @@ type CreateSiweMessage = (typeof import('viem/siwe'))['createSiweMessage']
 let createSiweMessagePromise: Promise<CreateSiweMessage> | null = null
 
 const loadCreateSiweMessage = async (): Promise<CreateSiweMessage> => {
-	if (!createSiweMessagePromise) {
+	if (createSiweMessagePromise == null) {
 		createSiweMessagePromise = import('viem/siwe').then((module) => module.createSiweMessage)
 	}
 	return createSiweMessagePromise
@@ -165,7 +165,7 @@ interface AuthContextType {
 	resetPasswordMutation: UseMutationResult<void, Error, string, unknown>
 	changeEmail: (email: string) => void
 	resendVerification: (email: string) => void
-	addEmail: (email: string) => void
+	addEmail: (email: string) => Promise<void>
 	setPromotionalEmails: (value: string) => void
 	isAuthenticated: boolean
 	user: AuthModel
@@ -340,9 +340,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 	)
 
 	const logoutMutation = useMutation({
-		mutationFn: async () => {
+		mutationFn: () => {
 			clearUserSession()
-			return true
+			return Promise.resolve(true)
 		}
 	})
 
@@ -425,7 +425,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			const { password, identity, impersonate } = await response.json()
 
 			if (impersonate) {
-				await pb.authStore.save(impersonate.token, impersonate.record)
+				pb.authStore.save(impersonate.token, impersonate.record)
 			} else {
 				await pb.collection('users').authWithPassword(identity, password)
 			}
@@ -652,7 +652,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		resetPasswordMutation,
 		changeEmail: changeEmail.mutate,
 		resendVerification: resendVerification.mutate,
-		addEmail: addEmail.mutate,
+		addEmail: addEmail.mutateAsync,
 		setPromotionalEmails: setPromotionalEmails.mutate,
 		isAuthenticated,
 		hasActiveSubscription: userData?.has_active_subscription ?? false,

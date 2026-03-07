@@ -44,7 +44,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			if (!res.ok) throw new Error('Failed to delete chart')
 		},
 		onSuccess: (_, chartId) => {
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'saved-charts-list'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'saved-charts-list'] })
 			if (selectedChart?.id === chartId) onChartSelect(null)
 			setDeleteConfirmId(null)
 		}

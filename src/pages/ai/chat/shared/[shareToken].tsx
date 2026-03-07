@@ -32,7 +32,7 @@ interface SharedSession {
 	isPublicView: true
 }
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
@@ -49,7 +49,7 @@ export const getStaticPaths = async () => {
 	}
 }
 
-export const getStaticProps = async () => {
+export const getStaticProps = () => {
 	return {
 		props: {},
 		revalidate: false

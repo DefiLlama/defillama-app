@@ -105,11 +105,11 @@ export function RWAChainsTable({
 	const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
+		void pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
 	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
+		void pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
 	}, [includeGovernance, router])
 
 	const data = useMemo(() => {

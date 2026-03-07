@@ -59,9 +59,9 @@ function getConfigName(config: DashboardChartConfig | null, llamaAIChart?: Llama
 }
 
 function invalidateDashboardQueries(queryClient: QueryClient) {
-	queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
-	queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
-	queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
+	void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+	void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+	void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 }
 
 function trackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
@@ -81,7 +81,7 @@ function safeTrackAddToDashboardSubmit(type: AddToDashboardSubmitType) {
 	}
 }
 
-function showViewToast(message: string, href: string, onNavigate: (href: string) => void) {
+function showViewToast(message: string, href: string, onNavigate: (href: string) => void | Promise<boolean>) {
 	toast.success(
 		(t) => (
 			<div>
@@ -91,7 +91,7 @@ function showViewToast(message: string, href: string, onNavigate: (href: string)
 					className="underline"
 					onClick={() => {
 						toast.dismiss(t.id)
-						onNavigate(href)
+						void onNavigate(href)
 					}}
 				>
 					View →

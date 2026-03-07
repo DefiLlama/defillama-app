@@ -4,7 +4,6 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
-const EMPTY_TAGS: string[] = []
 
 interface SearchParams {
 	query?: string
@@ -15,6 +14,29 @@ interface SearchParams {
 	page?: number
 	limit?: number
 }
+
+const POPULAR_TAGS = [
+	'analytics',
+	'finance',
+	'marketing',
+	'hr',
+	'sales',
+	'kpi',
+	'metrics',
+	'reporting',
+	'real-time',
+	'daily',
+	'weekly',
+	'monthly',
+	'revenue',
+	'costs',
+	'performance',
+	'trends',
+	'defi',
+	'trading',
+	'portfolio',
+	'risk'
+]
 
 export function useDashboardDiscovery(params: SearchParams) {
 	const queryClient = useQueryClient()
@@ -61,35 +83,6 @@ export function useDashboardDiscovery(params: SearchParams) {
 		enabled: isSearchMode
 	})
 
-	const { data: popularTagsData } = useQuery({
-		queryKey: ['pro-dashboard', 'popular-tags'],
-		queryFn: async () => {
-			return [
-				'analytics',
-				'finance',
-				'marketing',
-				'hr',
-				'sales',
-				'kpi',
-				'metrics',
-				'reporting',
-				'real-time',
-				'daily',
-				'weekly',
-				'monthly',
-				'revenue',
-				'costs',
-				'performance',
-				'trends',
-				'defi',
-				'trading',
-				'portfolio',
-				'risk'
-			]
-		},
-		staleTime: 1000 * 60 * 60
-	})
-
 	const likeMutation = useMutation({
 		mutationFn: async (dashboardId: string) => {
 			if (!isAuthenticated) {
@@ -118,17 +111,15 @@ export function useDashboardDiscovery(params: SearchParams) {
 
 	const activeQuery = isSearchMode ? searchQuery : discoverQuery
 	const data = activeQuery.data
-	const dashboards = data?.items ?? EMPTY_DASHBOARDS
-	const popularTags = popularTagsData ?? EMPTY_TAGS
 
 	return {
-		dashboards,
+		dashboards: data?.items ?? EMPTY_DASHBOARDS,
 		isLoading: activeQuery.isLoading,
 		error: activeQuery.error as Error | null,
 		totalPages: data?.totalPages || 1,
 		totalItems: data?.totalItems || 0,
 		currentPage: data?.page || 1,
-		popularTags,
+		popularTags: POPULAR_TAGS,
 		likeDashboard: likeMutation.mutate,
 		isLiking: likeMutation.isPending
 	}

@@ -49,9 +49,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			pushShallowQuery(router, updates)
+			void pushShallowQuery(router, updates)
 		} else {
-			pushShallowQuery(router, updates).then(() => {
+			void pushShallowQuery(router, updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -66,9 +66,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			pushShallowQuery(router, { excludeToken: tokenQueryParams })
+			void pushShallowQuery(router, { excludeToken: tokenQueryParams })
 		} else {
-			pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
+			void pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -90,9 +90,9 @@ export function IncludeExcludeTokens({
 		}
 
 		if (action === 'delete') {
-			pushShallowQuery(router, updates)
+			void pushShallowQuery(router, updates)
 		} else {
-			pushShallowQuery(router, updates).then(() => {
+			void pushShallowQuery(router, updates).then(() => {
 				dialogStore.toggle()
 			})
 		}
@@ -138,7 +138,7 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_PAIR, { pair })
 		}
 
-		pushShallowQuery(router, { token_pair: pairQueryParams })
+		void pushShallowQuery(router, { token_pair: pairQueryParams })
 	}
 
 	const tokensComboboxRef = useRef<HTMLDivElement>(null)

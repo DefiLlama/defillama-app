@@ -297,7 +297,11 @@ export function GenerateDashboardModal({
 					</Ariakit.DialogDismiss>
 				</div>
 
-				<form onSubmit={handleGenerate}>
+				<form
+					onSubmit={(e) => {
+						void handleGenerate(e)
+					}}
+				>
 					<div className="space-y-6">
 						{mode === 'create' ? (
 							<div>

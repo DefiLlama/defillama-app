@@ -195,7 +195,7 @@ function ProDashboardContent() {
 									<button
 										onClick={() => {
 											if (hasActiveSubscription) {
-												copyDashboard()
+												void copyDashboard()
 											} else {
 												subscribeModalStore.show()
 											}
@@ -309,7 +309,9 @@ function ProDashboardContent() {
 						{canUndo ? (
 							<button
 								className="hidden items-center gap-2 rounded-md border pro-border pro-hover-bg px-4 py-2 text-base whitespace-nowrap pro-text2 transition-colors hover:pro-text1 md:flex"
-								onClick={undoAIGeneration}
+								onClick={() => {
+									void undoAIGeneration()
+								}}
 								title="Undo AI changes"
 							>
 								<Icon name="arrow-left" height={16} width={16} />
@@ -364,20 +366,29 @@ function ProDashboardContent() {
 					onVisibilityChange={setDashboardVisibility}
 					onTagsChange={setDashboardTags}
 					onDescriptionChange={setDashboardDescription}
-					onSave={saveDashboard}
+					onSave={(overrides) => {
+						void saveDashboard(overrides)
+					}}
 					onDelete={deleteDashboard}
 				/>
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardPicker dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
+				<CreateDashboardPicker
+					dialogStore={createDashboardDialogStore}
+					onCreate={(data) => {
+						void handleCreateDashboard(data)
+					}}
+				/>
 			</Suspense>
 
 			<Suspense fallback={<></>}>
 				<GenerateDashboardModal
 					isOpen={showGenerateDashboardModal}
 					onClose={() => setShowGenerateDashboardModal(false)}
-					onGenerate={handleGenerateDashboard}
+					onGenerate={(prompt) => {
+						void handleGenerateDashboard(prompt)
+					}}
 				/>
 			</Suspense>
 
@@ -394,7 +405,9 @@ function ProDashboardContent() {
 						items,
 						aiGenerated: currentDashboard?.aiGenerated
 					}}
-					onGenerate={handleIterateDashboard}
+					onGenerate={(prompt) => {
+						void handleIterateDashboard(prompt)
+					}}
 				/>
 			</Suspense>
 

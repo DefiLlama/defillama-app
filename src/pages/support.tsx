@@ -25,7 +25,7 @@ function Support() {
 	const [chatLoading, setChatLoading] = React.useState(false)
 	const frontChatInitialized = React.useRef(false)
 
-	const onSubmit = async (e) => {
+	const onSubmit = (e) => {
 		e.preventDefault()
 
 		const form = e.target as HTMLFormElement

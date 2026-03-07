@@ -9,8 +9,8 @@ interface RatingProps {
 	mode: 'create' | 'iterate'
 	variant: 'banner' | 'inline'
 	prompt?: string
-	onRate: (sessionId: string, rating: number, feedback?: string) => void
-	onSkip: (sessionId: string) => void
+	onRate: (sessionId: string, rating: number, feedback?: string) => void | Promise<void>
+	onSkip: (sessionId: string) => void | Promise<void>
 	onDismiss?: (sessionId: string) => void
 }
 
@@ -45,8 +45,8 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 		setIsSubmitting(false)
 	}
 
-	const handleSkip = async () => {
-		onSkip(sessionId)
+	const handleSkip = () => {
+		void onSkip(sessionId)
 	}
 
 	const texts = {
@@ -68,7 +68,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 	if (variant === 'banner') {
 		return (
 			<form
-				onSubmit={handleSubmit}
+				onSubmit={(e) => void handleSubmit(e)}
 				className="relative isolate col-span-full flex animate-ai-glow flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4"
 			>
 				<div className="flex items-center gap-4">
@@ -98,7 +98,9 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 					{onDismiss ? (
 						<button
 							type="button"
-							onClick={() => onDismiss(sessionId)}
+							onClick={() => {
+								void onDismiss(sessionId)
+							}}
 							className="ml-auto rounded-md p-2 hover:bg-red-500/10 hover:text-(--error)"
 							disabled={isSubmitting}
 							title="Dismiss"
@@ -162,7 +164,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 	}
 
 	return (
-		<form onSubmit={handleSubmit} className="contents">
+		<form onSubmit={(e) => void handleSubmit(e)} className="contents">
 			<Icon name="sparkles" height={24} width={24} className="shrink-0 text-pro-blue-400 dark:text-pro-blue-200" />
 
 			<h3 className="-mt-5 text-xl font-semibold">{currentTexts.title}</h3>

@@ -73,7 +73,7 @@ const updateNumberRangeQuery = (
 ) => {
 	const parsedMin = parseNumberInput(minValue)
 	const parsedMax = parseNumberInput(maxValue)
-	pushShallowQuery(router, {
+	void pushShallowQuery(router, {
 		[minKey]: parsedMin == null ? undefined : String(parsedMin),
 		[maxKey]: parsedMax == null ? undefined : String(parsedMax)
 	})
@@ -86,7 +86,7 @@ const updateAttributeFilterStatesQuery = (queryKey: string, values: RWAAttribute
 	}
 
 	const normalizedStates = RWA_ATTRIBUTE_FILTER_STATES.filter((value) => selectedSet.has(value))
-	pushShallowQuery(router, {
+	void pushShallowQuery(router, {
 		[queryKey]:
 			normalizedStates.length === RWA_ATTRIBUTE_FILTER_STATES.length
 				? undefined
@@ -393,11 +393,11 @@ export const useRWATableQueryParams = ({
 		)
 
 	const setIncludeStablecoins = (value: boolean) => {
-		pushShallowQuery(router, { includeStablecoins: value ? 'true' : 'false' })
+		void pushShallowQuery(router, { includeStablecoins: value ? 'true' : 'false' })
 	}
 
 	const setIncludeGovernance = (value: boolean) => {
-		pushShallowQuery(router, { includeGovernance: value ? 'true' : 'false' })
+		void pushShallowQuery(router, { includeGovernance: value ? 'true' : 'false' })
 	}
 
 	const setRedeemableStates = (values: RWAAttributeFilterState[]) =>

@@ -70,7 +70,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 		setLocalEndDate('')
 		setLocalStartHour('0')
 		setLocalEndHour('0')
-		router.push(
+		void router.push(
 			{
 				pathname: '/cexs'
 			},
@@ -133,7 +133,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 							).getTime()
 							const endTimestamp = new Date(`${endDateInput}T${endHour.toString().padStart(2, '0')}:00:00Z`).getTime()
 
-							router.push(
+							void router.push(
 								{
 									pathname: '/cexs',
 									query: { startDate: startTimestamp, endDate: endTimestamp }

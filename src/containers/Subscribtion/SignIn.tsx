@@ -138,7 +138,7 @@ export const SignInForm = ({
 		try {
 			await login(email, password)
 			if (returnUrl) {
-				router.push(returnUrl)
+				void router.push(returnUrl)
 			}
 			dialogStore.hide()
 		} catch (error) {
@@ -187,7 +187,7 @@ export const SignInForm = ({
 			setTurnstileToken('')
 
 			if (returnUrl) {
-				router.push(returnUrl)
+				void router.push(returnUrl)
 			}
 
 			dialogStore.hide()
@@ -228,7 +228,7 @@ export const SignInForm = ({
 			try {
 				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction: signMessageAsync })
 				if (returnUrl) {
-					router.push(returnUrl)
+					void router.push(returnUrl)
 				}
 				dialogStore.hide()
 			} catch (error) {
@@ -278,7 +278,7 @@ export const SignInForm = ({
 			<Ariakit.TabPanel tabId="signin">
 				{flow !== 'forgot' ? (
 					<>
-						<form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleEmailSignIn}>
+						<form className="flex flex-col gap-3 sm:gap-4" onSubmit={(e) => void handleEmailSignIn(e)}>
 							<div className="space-y-1">
 								<label htmlFor={signInEmailInputId} className="text-xs font-medium text-[#b4b7bc] sm:text-sm">
 									Email
@@ -370,7 +370,7 @@ export const SignInForm = ({
 						<div className="flex w-full flex-col gap-2 sm:gap-3">
 							<button
 								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-								onClick={handleWalletSignIn}
+								onClick={() => void handleWalletSignIn()}
 								disabled={signInWithEthereumMutation.isPending}
 							>
 								<Icon name="wallet" height={16} width={16} />
@@ -385,7 +385,9 @@ export const SignInForm = ({
 
 							<button
 								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-								onClick={() => signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())}
+								onClick={() => {
+									void signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())
+								}}
 								disabled={signInWithGithubMutation.isPending}
 							>
 								<Icon name="github" height={16} width={16} />
@@ -406,7 +408,7 @@ export const SignInForm = ({
 						) : null}
 					</>
 				) : (
-					<form className="flex flex-col gap-4" onSubmit={handleForgotPassword}>
+					<form className="flex flex-col gap-4" onSubmit={(e) => void handleForgotPassword(e)}>
 						<div className="mb-1">
 							<p className="rounded-lg border border-[#39393E] bg-[#222429] p-3 text-xs text-[#b4b7bc]">
 								Enter your email address and we'll send you a link to reset your password.
@@ -482,7 +484,7 @@ export const SignInForm = ({
 				)}
 			</Ariakit.TabPanel>
 			<Ariakit.TabPanel tabId="signup">
-				<form className="flex flex-col gap-4" onSubmit={handleEmailSignUp}>
+				<form className="flex flex-col gap-4" onSubmit={(e) => void handleEmailSignUp(e)}>
 					<div className="space-y-1.5">
 						<label htmlFor={signUpEmailInputId} className="text-sm font-medium text-[#b4b7bc]">
 							Email

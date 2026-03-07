@@ -13,7 +13,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 const adapterType = ADAPTER_TYPES.FEES
 const type = 'P/F'
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)

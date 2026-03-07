@@ -86,7 +86,7 @@ export function FilterByToken({ tokensList = EMPTY_ARRAY, selectedTokens, nested
 			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
 		}
 
-		pushShallowQuery(router, updates)
+		void pushShallowQuery(router, updates)
 	}
 
 	return (

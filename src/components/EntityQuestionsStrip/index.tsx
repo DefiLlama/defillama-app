@@ -40,7 +40,7 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 				entityType,
 				route: router.asPath
 			})
-			router.push('/ai/chat')
+			void router.push('/ai/chat')
 		} else {
 			subscribeModalStore.show()
 		}

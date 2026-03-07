@@ -144,7 +144,7 @@ function ProContent({
 			})
 		}
 		createDashboardDialogStore.show()
-		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+		void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
 
 		return () => {
 			cancelled = true
@@ -239,7 +239,13 @@ function ProContent({
 							dashboards={myDashboards}
 							isLoading={isLoadingMyDashboards}
 							onCreateNew={() => createDashboardDialogStore.show()}
-							onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
+							onDeleteDashboard={
+								isAuthenticated
+									? (dashboardId) => {
+											void handleDeleteDashboard(dashboardId)
+										}
+									: undefined
+							}
 						/>
 
 						{myDashboardsTotalPages > 1 ? (
@@ -305,7 +311,9 @@ function ProContent({
 			<Suspense fallback={<></>}>
 				<CreateDashboardPicker
 					dialogStore={createDashboardDialogStore}
-					onCreate={handleCreateDashboard}
+					onCreate={(data) => {
+						void handleCreateDashboard(data)
+					}}
 					comparisonPreset={comparisonPreset}
 				/>
 			</Suspense>
@@ -314,7 +322,9 @@ function ProContent({
 				<GenerateDashboardModal
 					isOpen={showGenerateDashboardModal}
 					onClose={() => setShowGenerateDashboardModal(false)}
-					onGenerate={handleGenerateDashboard}
+					onGenerate={(prompt) => {
+						void handleGenerateDashboard(prompt)
+					}}
 				/>
 			</Suspense>
 

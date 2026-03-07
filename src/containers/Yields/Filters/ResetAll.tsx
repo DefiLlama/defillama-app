@@ -12,7 +12,7 @@ export function ResetAllYieldFilters({
 	const router = useRouter()
 
 	const handleClick = () => {
-		router.push(pathname, undefined, { shallow: true })
+		void router.push(pathname, undefined, { shallow: true })
 		resetContext?.()
 	}
 

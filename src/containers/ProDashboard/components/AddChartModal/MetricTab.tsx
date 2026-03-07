@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import type { Chain, MetricAggregator, MetricChartType, Protocol } from '../../types'
+import type { MetricAggregator, MetricChartType } from '../../types'
 import { MetricCard } from '../MetricCard'
 import { MetricSentenceBuilder } from './MetricSentenceBuilder'
 
@@ -45,9 +45,8 @@ export function MetricTab(props: MetricTabProps) {
 		onChartTypeChange
 	} = props
 
-	const { protocols, chains } = useProDashboardCatalog()
-	const protocolList = protocols as Protocol[]
-	const chainList = chains as Chain[]
+	const { protocols: protocolList, chains: chainList } = useProDashboardCatalog()
+
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 
 	const availableTypes = useMemo(() => {

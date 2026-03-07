@@ -82,10 +82,10 @@ export function useDashboardAPI() {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
-			router.push(`/pro/${dashboard.id}`)
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
+			void router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (err: unknown) => {
 			toast.error(err instanceof Error ? err.message : 'Failed to create dashboard')
@@ -112,9 +112,9 @@ export function useDashboardAPI() {
 		},
 		onSuccess: (dashboard: Dashboard, variables) => {
 			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard', variables.id], exact: false }, dashboard)
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 		},
 		onError: (err: unknown) => {
 			toast.error(err instanceof Error ? err.message : 'Failed to save dashboard')
@@ -127,14 +127,14 @@ export function useDashboardAPI() {
 			return await dashboardAPI.deleteDashboard(id, authorizedFetch)
 		},
 		onSuccess: (_, deletedId) => {
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
 			if (currentDashboardId === deletedId) {
-				router.push('/pro')
+				void router.push('/pro')
 			}
 		},
 		onError: (err: unknown) => {
@@ -157,7 +157,7 @@ export function useDashboardAPI() {
 
 	// Navigate to a dashboard
 	const navigateToDashboard = (id: string) => {
-		router.push(`/pro/${id}`)
+		void router.push(`/pro/${id}`)
 	}
 
 	// Delete dashboard (confirmation handled in UI)

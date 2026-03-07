@@ -91,7 +91,7 @@ export function ChainChartPanel({
 	const imageExportTitle = metadata.name === 'All' ? 'All Chains' : metadata.name
 
 	const updateGroupBy = (newGroupBy: string) => {
-		pushShallowQuery(router, { groupBy: newGroupBy })
+		void pushShallowQuery(router, { groupBy: newGroupBy })
 	}
 
 	return (
@@ -116,7 +116,7 @@ export function ChainChartPanel({
 										<button
 											key={`add-chain-metric-${chainCharts[tchart]}`}
 											onClick={() => {
-												pushShallowQuery(router, {
+												void pushShallowQuery(router, {
 													[chainCharts[tchart]]: toggledCharts.includes(tchart) ? 'false' : 'true'
 												})
 												metricsDialogStore.toggle()
@@ -153,7 +153,7 @@ export function ChainChartPanel({
 								value={tchart}
 								checked={true}
 								onChange={() => {
-									pushShallowQuery(router, {
+									void pushShallowQuery(router, {
 										[chainCharts[tchart]]: toggledCharts.includes(tchart) ? 'false' : 'true'
 									})
 								}}
@@ -186,7 +186,9 @@ export function ChainChartPanel({
 								key={`denom-${denom}`}
 								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 								data-active={denomination === denom}
-								onClick={() => pushShallowQuery(router, { currency: denom })}
+								onClick={() => {
+									void pushShallowQuery(router, { currency: denom })
+								}}
 							>
 								{denom}
 							</button>

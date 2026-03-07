@@ -227,7 +227,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 	const setPeriod = (nextPeriod: Period) => {
 		if (nextPeriod === period) return
 
-		pushShallowQuery(router, { period: nextPeriod })
+		void pushShallowQuery(router, { period: nextPeriod })
 	}
 	const minReturnPoints = MIN_RETURN_POINTS_BY_PERIOD[period]
 	const coins = useMemo(() => Object.values(selectedCoins).filter(Boolean), [selectedCoins])
@@ -334,7 +334,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 
 	const removeCoin = (coinId: string) => {
 		const updatedCoins = queryCoins.filter((c) => c !== coinId)
-		pushShallowQuery(router, { coin: updatedCoins.length > 0 ? updatedCoins : undefined })
+		void pushShallowQuery(router, { coin: updatedCoins.length > 0 ? updatedCoins : undefined })
 	}
 
 	return (
@@ -458,7 +458,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 					selectedCoins={selectedCoins}
 					selectCoin={(coin) => {
 						const updatedCoins = queryCoins.includes(coin.id) ? queryCoins : [...queryCoins, coin.id]
-						pushShallowQuery(router, { coin: updatedCoins }).then(() => {
+						void pushShallowQuery(router, { coin: updatedCoins }).then(() => {
 							dialogStore.hide()
 						})
 					}}

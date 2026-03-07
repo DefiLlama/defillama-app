@@ -60,7 +60,7 @@ export function RWAOverviewBreakdownChart({
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onSelectChartType = (nextChartType: RWAChartMetricKey) => {
-		pushShallowQuery(router, { chartType: nextChartType === DEFAULT_CHART_TYPE ? undefined : nextChartType })
+		void pushShallowQuery(router, { chartType: nextChartType === DEFAULT_CHART_TYPE ? undefined : nextChartType })
 	}
 
 	return (

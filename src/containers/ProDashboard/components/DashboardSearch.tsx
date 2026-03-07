@@ -24,7 +24,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 			clearTimeout(timeoutRef.current)
 		}
 		timeoutRef.current = setTimeout(() => {
-			pushShallowQuery(
+			void pushShallowQuery(
 				router,
 				{
 					page: undefined,
@@ -43,7 +43,7 @@ export function DashboardSearch({ defaultValue }: { defaultValue?: string }) {
 		if (timeoutRef.current) {
 			clearTimeout(timeoutRef.current)
 		}
-		pushShallowQuery(
+		void pushShallowQuery(
 			router,
 			{
 				page: undefined,

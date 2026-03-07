@@ -59,7 +59,7 @@ export const useDashboardCreation = () => {
 		},
 		onSuccess: (dashboard) => {
 			toast.success('Dashboard created successfully')
-			router.push(`/pro/${dashboard.id}`)
+			void router.push(`/pro/${dashboard.id}`)
 		},
 		onError: (error: unknown) => {
 			console.log('Error creating dashboard:', error)

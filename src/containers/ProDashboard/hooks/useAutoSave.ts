@@ -70,7 +70,7 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 		const token = pb.authStore.token
 
 		if (pending && token) {
-			fetch(`${AUTH_SERVER}/dashboards/${pending.dashboardId}`, {
+			void fetch(`${AUTH_SERVER}/dashboards/${pending.dashboardId}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',

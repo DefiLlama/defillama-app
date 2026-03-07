@@ -37,8 +37,9 @@ type TimeFrameOption = (typeof timeFrameOptions)[number]
 export function DashboardDiscovery() {
 	const router = useRouter()
 	const { view, tag: tagQuery, sortBy, query, page: pageQuery, limit, timeFrame } = router.query
-	const pushProQuery = (updates: Record<string, string | number | string[] | undefined>) =>
-		pushShallowQuery(router, updates, '/pro')
+	const pushProQuery = (updates: Record<string, string | number | string[] | undefined>) => {
+		void pushShallowQuery(router, updates, '/pro')
+	}
 
 	const {
 		isBrowseMode,
@@ -137,7 +138,7 @@ export function DashboardDiscovery() {
 					<nav className="flex items-center gap-1 text-sm">
 						<button
 							onClick={() => {
-								router.push(
+								void router.push(
 									{
 										pathname: '/pro',
 										query: { tab: 'discover' }

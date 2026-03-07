@@ -33,7 +33,7 @@ export const updateQueryFromSelected = (
 		if (defaultIsAll) {
 			setOrDelete(includeKey, null)
 			setOrDelete(excludeKey, null)
-			pushShallowQuery(router, updates)
+			void pushShallowQuery(router, updates)
 			return
 		}
 		nextValues = allKeys
@@ -43,7 +43,7 @@ export const updateQueryFromSelected = (
 	if (nextValues === 'None' || (Array.isArray(nextValues) && nextValues.length === 0)) {
 		setOrDelete(includeKey, 'None')
 		setOrDelete(excludeKey, null)
-		pushShallowQuery(router, updates)
+		void pushShallowQuery(router, updates)
 		return
 	}
 
@@ -52,12 +52,12 @@ export const updateQueryFromSelected = (
 		if (defaultSelected?.length === 1 && defaultSelected[0] === nextValues) {
 			setOrDelete(includeKey, null)
 			setOrDelete(excludeKey, null)
-			pushShallowQuery(router, updates)
+			void pushShallowQuery(router, updates)
 			return
 		}
 		setOrDelete(includeKey, nextValues)
 		setOrDelete(excludeKey, null)
-		pushShallowQuery(router, updates)
+		void pushShallowQuery(router, updates)
 		return
 	}
 
@@ -72,7 +72,7 @@ export const updateQueryFromSelected = (
 	if (isDefaultSelection) {
 		setOrDelete(includeKey, null)
 		setOrDelete(excludeKey, null)
-		pushShallowQuery(router, updates)
+		void pushShallowQuery(router, updates)
 		return
 	}
 
@@ -89,5 +89,5 @@ export const updateQueryFromSelected = (
 		setOrDelete(includeKey, selected.length === 1 ? selected[0] : selected)
 	}
 
-	pushShallowQuery(router, updates)
+	void pushShallowQuery(router, updates)
 }

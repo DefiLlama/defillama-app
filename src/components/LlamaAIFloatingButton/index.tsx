@@ -133,7 +133,7 @@ export function LlamaAIFloatingButton() {
 				entityType: entityContext?.entityType,
 				route: router.asPath
 			})
-			router.push('/ai/chat')
+			void router.push('/ai/chat')
 			setIsOpen(false)
 			setValue('')
 		},

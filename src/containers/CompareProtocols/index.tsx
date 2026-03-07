@@ -148,7 +148,7 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 					placeholder="Select Protocols..."
 					selectedValues={selectedProtocolsNames}
 					setSelectedValues={(values) => {
-						pushShallowQuery(router, { protocol: values.length > 0 ? values : undefined })
+						void pushShallowQuery(router, { protocol: values.length > 0 ? values : undefined })
 					}}
 				/>
 			</div>

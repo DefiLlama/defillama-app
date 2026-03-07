@@ -203,7 +203,7 @@ const ActiveInvestors = ({ investors }: IInvestorsPageData) => {
 								className="shrink-0 px-2 py-1.5 text-xs font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 								data-active={dataInterval.value === selectedPeriod}
 								onClick={() => {
-									pushShallowQuery(router, { period: dataInterval.value })
+									void pushShallowQuery(router, { period: dataInterval.value })
 								}}
 								key={`deals-period-${dataInterval.value}`}
 							>

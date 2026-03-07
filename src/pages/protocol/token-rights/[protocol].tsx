@@ -134,7 +134,7 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],

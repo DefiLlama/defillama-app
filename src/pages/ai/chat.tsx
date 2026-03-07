@@ -14,7 +14,7 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
-export const getStaticProps = withPerformanceLogging('LlamaAi', async () => {
+export const getStaticProps = withPerformanceLogging('LlamaAi', () => {
 	return {
 		props: {},
 		revalidate: maxAgeForNext([22])

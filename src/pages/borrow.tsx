@@ -71,7 +71,7 @@ export default function YieldBorrow(data) {
 		const newBorrow = collateralToken ?? ''
 		const newCollateral = borrowToken ?? ''
 
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			borrow: newBorrow || undefined,
 			collateral: newCollateral || undefined
 		})
@@ -129,7 +129,9 @@ export default function YieldBorrow(data) {
 							<input
 								type="checkbox"
 								checked={includeIncentives}
-								onChange={() => pushShallowQuery(router, { incentives: includeIncentives ? undefined : 'true' })}
+								onChange={() => {
+									void pushShallowQuery(router, { incentives: includeIncentives ? undefined : 'true' })
+								}}
 							/>
 							<span className="text-base">Include Incentives</span>
 						</label>
@@ -155,7 +157,7 @@ const TokensSelect = ({
 	const router = useRouter()
 
 	const onChange = (value) => {
-		pushShallowQuery(router, { [queryParam]: value || undefined }, '/borrow')
+		void pushShallowQuery(router, { [queryParam]: value || undefined }, '/borrow')
 	}
 
 	const selectedValue: string = getQueryValue(router.query, queryParam) ?? ''

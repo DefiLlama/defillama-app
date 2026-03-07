@@ -747,16 +747,20 @@ export const getChainsByAdapterPageData = async ({
 			enabled: boolean
 			adapterType: `${ADAPTER_TYPES}`
 			dataType: `${ADAPTER_DATA_TYPES}`
-		}) =>
-			enabled
-				? getDimensionAdapterOverviewOfAllChains({
+		}) => {
+			if (!enabled) return Promise.resolve({})
+			try {
+				return Promise.resolve(
+					getDimensionAdapterOverviewOfAllChains({
 						adapterType: overviewAdapterType,
 						dataType: overviewDataType,
 						chainMetadata
-					}).catch(() => {
-						return {}
 					})
-				: Promise.resolve({})
+				)
+			} catch {
+				return Promise.resolve({})
+			}
+		}
 
 		const [chainsData, rawChartData, bribesData, tokenTaxesData, openInterestData, activeLiquidityData]: [
 			Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }>,
@@ -957,7 +961,7 @@ export const getChainsByREVPageData = async ({
 	}
 }
 
-export async function getDimensionAdapterOverviewOfAllChains({
+export function getDimensionAdapterOverviewOfAllChains({
 	adapterType,
 	dataType,
 	chainMetadata

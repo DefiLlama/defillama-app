@@ -162,7 +162,7 @@ const Row = ({ data, lend, setOpen }) => {
 					token: data.symbol,
 					type: lend ? 'lend' : 'borrow'
 				})
-				pushShallowQuery(router, {
+				void pushShallowQuery(router, {
 					[targetParam]: data.symbol
 				}).then(() => {
 					setLoading(false)

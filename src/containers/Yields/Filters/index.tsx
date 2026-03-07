@@ -29,7 +29,7 @@ function SavedFilters({ currentFilters }) {
 		const filters = savedFilters[name]
 		if (filters) {
 			trackYieldsEvent(YIELDS_EVENTS.SAVED_FILTER_LOAD, { filter: name })
-			router.push(
+			void router.push(
 				{
 					pathname: router.pathname,
 					query: filters

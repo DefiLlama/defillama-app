@@ -122,7 +122,7 @@ function Filters({
 			<button
 				onClick={() => {
 					// Clear only query params while keeping the route.
-					pushShallowQuery(
+					void pushShallowQuery(
 						router,
 						{
 							investor: undefined,

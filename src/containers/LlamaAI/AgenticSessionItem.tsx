@@ -56,7 +56,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 			return response.json()
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
 
@@ -64,7 +64,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
-		Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
+		void Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 		if (document.documentElement.clientWidth < 1024) {
 			handleSidebarToggle()
 		}
@@ -99,7 +99,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 		return (
 			<form
 				ref={formRef}
-				onSubmit={handleSave}
+				onSubmit={(e) => void handleSave(e)}
 				className="group relative -mx-1.5 flex items-center gap-0.5 rounded-sm text-xs hover:bg-[#f7f7f7] data-[active=true]:bg-(--old-blue) data-[active=true]:text-white dark:hover:bg-[#222324]"
 				style={style}
 			>
@@ -182,23 +182,25 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							<Icon name="x" className="h-5 w-5" />
 						</Ariakit.PopoverDismiss>
 						<Ariakit.MenuItem
-							onClick={async () => {
-								try {
-									if (session.isPublic) {
-										if (session.shareToken) {
-											await navigator.clipboard.writeText(
-												`${window.location.origin}/ai/chat/shared/${session.shareToken}`
-											)
-											setIsCopyingLink(true)
-											setTimeout(() => {
-												setIsCopyingLink(false)
-											}, 500)
+							onClick={() => {
+								void (async () => {
+									try {
+										if (session.isPublic) {
+											if (session.shareToken) {
+												await navigator.clipboard.writeText(
+													`${window.location.origin}/ai/chat/shared/${session.shareToken}`
+												)
+												setIsCopyingLink(true)
+												setTimeout(() => {
+													setIsCopyingLink(false)
+												}, 500)
+											}
 										}
+									} catch (error) {
+										console.error(error)
+										toast.error('Failed to copy link')
 									}
-								} catch (error) {
-									console.error(error)
-									toast.error('Failed to copy link')
-								}
+								})()
 							}}
 							hideOnClick={false}
 							disabled={!session.isPublic || !session.shareToken || isTogglingVisibility}
@@ -233,7 +235,9 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 							{session.isPublic ? 'Make Private' : 'Make Public'}
 						</Ariakit.MenuItem>
 						<Ariakit.MenuItem
-							onClick={handleDelete}
+							onClick={() => {
+								void handleDelete()
+							}}
 							disabled={isUpdatingTitle || isDeleting || isRestoring || isTogglingVisibility}
 							data-deleting={isDeleting}
 							className="flex shrink-0 cursor-pointer items-center gap-2 overflow-hidden border-b border-(--form-control-border) px-3 py-2 text-ellipsis whitespace-nowrap cv-auto-37 first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-red-500/10 hover:text-(--error) focus-visible:bg-red-500/10 focus-visible:text-(--error) data-active-item:bg-red-500/10 data-active-item:text-(--error) data-[deleting=true]:bg-red-500/10 data-[deleting=true]:text-(--error)"

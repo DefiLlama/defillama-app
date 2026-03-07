@@ -86,7 +86,12 @@ export function Flag({
 						For lending protocols TVL doesn't include borrowed coins by default
 					</p>
 				) : null}
-				<form onSubmit={onSubmit} className="flex flex-col gap-2 p-3 sm:p-0">
+				<form
+					onSubmit={(e) => {
+						void onSubmit(e)
+					}}
+					className="flex flex-col gap-2 p-3 sm:p-0"
+				>
 					<label className="flex flex-col gap-1">
 						<span>Protocol</span>
 						<input

@@ -16,20 +16,25 @@ if (typeof window === 'undefined' && USE_REDIS) {
 	const redisUrl = IS_RUNTIME ? REDIS_URL : EXT_REDIS_URL
 
 	if (redisUrl) {
-		import('ioredis').then((Redis) => {
-			console.log('[cache] [connecting to redis]', redisUrl)
+		import('ioredis')
+			.then((Redis) => {
+				console.log('[cache] [connecting to redis]', redisUrl)
 
-			try {
-				redis = new Redis.default(redisUrl)
-				redis.on('connect', () => console.log('[cache] [redis] connected'))
-				redis.on('error', (error) => {
-					console.log('[cache] [redis error]', redisUrl)
-					console.log(error)
-				})
-			} catch (e) {
-				console.log('[cache] [redis connection error]', e)
-			}
-		})
+				try {
+					redis = new Redis.default(redisUrl)
+					redis.on('connect', () => console.log('[cache] [redis] connected'))
+					redis.on('error', (error) => {
+						console.log('[cache] [redis error]', redisUrl)
+						console.log(error)
+					})
+				} catch (e) {
+					console.log('[cache] [redis connection error]', e)
+				}
+			})
+			.catch((error) => {
+				console.log('[cache] [redis import error]', redisUrl)
+				console.log(error)
+			})
 	}
 }
 
@@ -104,7 +109,7 @@ export const setPageBuildTimes = async (pageUrl: string, cacheObject: unknown) =
 	}
 }
 
-export const isCpusHot = async () => {
+export const isCpusHot = () => {
 	return false
 	/*
 	if (!redis) {

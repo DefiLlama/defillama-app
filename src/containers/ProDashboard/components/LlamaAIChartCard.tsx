@@ -34,7 +34,12 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 			<div className="flex min-h-[300px] flex-col items-center justify-center gap-2">
 				<Icon name="alert-triangle" height={24} width={24} className="text-[#F2994A]" />
 				<p className="text-(--text-form)">Failed to load chart</p>
-				<button className="text-sm text-(--link-text) hover:underline" onClick={() => refetch()}>
+				<button
+					className="text-sm text-(--link-text) hover:underline"
+					onClick={() => {
+						void refetch()
+					}}
+				>
 					Try again
 				</button>
 			</div>

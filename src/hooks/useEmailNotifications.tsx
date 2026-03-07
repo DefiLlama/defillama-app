@@ -159,7 +159,7 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			await handleSimpleFetchResponse(response)
 		},
 		onSuccess: (_, variables) => {
-			queryClient.invalidateQueries({
+			void queryClient.invalidateQueries({
 				queryKey: ['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName]
 			})
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')

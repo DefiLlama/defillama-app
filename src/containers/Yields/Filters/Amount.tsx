@@ -6,7 +6,7 @@ export function InputFilter({ placeholder, filterKey }: { placeholder: string; f
 	const ref = React.useRef(null)
 
 	const set = (value) => {
-		router.push(
+		void router.push(
 			{
 				pathname: router.pathname,
 				query: {

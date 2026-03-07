@@ -211,7 +211,7 @@ export const SubscriberContent = ({
 											<button
 												className="group rounded-lg p-2 text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/5 hover:text-[#4A4AF0]"
 												onClick={() => {
-													navigator.clipboard.writeText(apiKey)
+													void navigator.clipboard.writeText(apiKey)
 													toast.success('API key copied to clipboard')
 												}}
 												aria-label="Copy API key to clipboard"
@@ -249,7 +249,7 @@ export const SubscriberContent = ({
 											<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-[#181a1f]/90 opacity-0 backdrop-blur-xs transition-opacity group-hover:opacity-100">
 												<button
 													onClick={() => {
-														navigator.clipboard.writeText(apiKey)
+														void navigator.clipboard.writeText(apiKey)
 														toast.success('API key copied to clipboard')
 													}}
 													className="flex items-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2 text-white shadow-lg"
@@ -434,9 +434,13 @@ export const SubscriberContent = ({
 										<button
 											onClick={
 												hasProSubscription
-													? () => handleManageSubscription('llamafeed')
+													? () => {
+															void handleManageSubscription('llamafeed')
+														}
 													: hasApiSubscription
-														? () => handleManageSubscription('api')
+														? () => {
+																void handleManageSubscription('api')
+															}
 														: undefined
 											}
 											disabled={isPortalSessionLoading}
@@ -711,7 +715,9 @@ const CancelSubscriptionModal = ({
 					</div>
 					<div className="flex flex-col gap-3">
 						<button
-							onClick={handleConfirmCancel}
+							onClick={() => {
+								void handleConfirmCancel()
+							}}
 							disabled={isCancelSubscriptionLoading}
 							className="w-full rounded-lg bg-red-500 px-4 py-3 font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
 						>

@@ -37,7 +37,7 @@ export function useMyDashboards({ page, limit, enabled = true }: UseMyDashboards
 
 	const goToPage = useCallback(
 		(newPage: number) => {
-			pushShallowQuery(router, { tab: 'my-dashboards', page: newPage }, '/pro')
+			void pushShallowQuery(router, { tab: 'my-dashboards', page: newPage }, '/pro')
 		},
 		[router]
 	)

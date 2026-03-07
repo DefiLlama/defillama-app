@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging('forks/[fork]', async ({ pa
 	}
 })
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)

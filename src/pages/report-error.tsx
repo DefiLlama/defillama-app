@@ -17,7 +17,7 @@ async function reportError(report: any) {
 
 function ReportError() {
 	const { mutateAsync, isPending, error } = useMutation({ mutationFn: reportError })
-	const onSubmit = async (e) => {
+	const onSubmit = (e) => {
 		e.preventDefault()
 
 		const form = e.target as HTMLFormElement

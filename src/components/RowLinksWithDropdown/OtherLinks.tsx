@@ -116,7 +116,7 @@ const Item = ({ label, to }: { label: string; to: string }) => {
 					window.open(to)
 				} else {
 					setLoading(true)
-					router.push(to).then(() => {
+					void router.push(to).then(() => {
 						setLoading(false)
 					})
 					// window.open(to, '_self')

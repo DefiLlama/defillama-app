@@ -73,7 +73,7 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 	const router = useRouter()
 
 	const setQueryParam = (key: string, value: string | undefined) => {
-		pushShallowQuery(router, { [key]: value })
+		void pushShallowQuery(router, { [key]: value })
 	}
 
 	const unlockTypesParam = readSingleQueryValue(router.query.unlockTypes)
@@ -101,14 +101,14 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 		const form = e.currentTarget
 		const minUnlockValueInput = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
 		const maxUnlockValueInput = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			minUnlockValue: minUnlockValueInput || undefined,
 			maxUnlockValue: maxUnlockValueInput || undefined
 		})
 	}
 
 	const handleUnlockValueClear = () => {
-		pushShallowQuery(router, { minUnlockValue: undefined, maxUnlockValue: undefined })
+		void pushShallowQuery(router, { minUnlockValue: undefined, maxUnlockValue: undefined })
 	}
 
 	const handleUnlockPercSubmit = (e: FormSubmitEvent) => {
@@ -116,14 +116,14 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 		const form = e.currentTarget
 		const minUnlockPerc = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
 		const maxUnlockPerc = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			minUnlockPerc: minUnlockPerc || undefined,
 			maxUnlockPerc: maxUnlockPerc || undefined
 		})
 	}
 
 	const handleUnlockPercClear = () => {
-		pushShallowQuery(router, { minUnlockPerc: undefined, maxUnlockPerc: undefined })
+		void pushShallowQuery(router, { minUnlockPerc: undefined, maxUnlockPerc: undefined })
 	}
 
 	const rawColumnsInStorage = useStorageItem(optionsKey, defaultColumns)

@@ -68,13 +68,13 @@ export function YieldFilterDropdowns({
 		const nextAttributes = isBadDebtToggled
 			? safeSelectedAttributes.filter((attribute) => attribute !== BAD_DEBT_KEY)
 			: [...safeSelectedAttributes, BAD_DEBT_KEY]
-		pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
+		void pushShallowQuery(router, { attribute: nextAttributes }, effectivePathname)
 	}
 	const toggleExcludeRewardApyFilter = () => {
-		pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
+		void pushShallowQuery(router, { excludeRewardApy: !shouldExlcudeRewardApy ? 'true' : undefined }, effectivePathname)
 	}
 	const toggleIncludeLsdApyFilter = () => {
-		pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
+		void pushShallowQuery(router, { includeLsdApy: !shouldIncludeLsdApy ? 'true' : undefined }, effectivePathname)
 	}
 
 	return (

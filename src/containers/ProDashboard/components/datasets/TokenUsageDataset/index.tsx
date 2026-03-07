@@ -335,7 +335,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<p className="mb-2 text-sm pro-text2">Failed to load token usage data</p>
 					<button
-						onClick={() => refetch()}
+						onClick={() => {
+							void refetch()
+						}}
 						className="rounded-sm bg-(--primary) px-4 py-2 text-white hover:bg-(--primary-hover)"
 					>
 						Try again

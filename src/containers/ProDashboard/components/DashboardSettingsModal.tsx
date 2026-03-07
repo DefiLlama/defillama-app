@@ -278,7 +278,9 @@ function DashboardSettingsModalInner({
 			<ConfirmationModal
 				isOpen={showDeleteConfirm}
 				onClose={() => setShowDeleteConfirm(false)}
-				onConfirm={handleConfirmDelete}
+				onConfirm={() => {
+					void handleConfirmDelete()
+				}}
 				title="Delete Dashboard"
 				message="Are you sure you want to delete this dashboard? This action cannot be undone."
 				confirmText="Delete"

@@ -958,7 +958,9 @@ const ChartContainer = ({
 			{data.chartData?.realtime?.length > 0 ? (
 				<TagGroup
 					selectedValue={dataType}
-					setValue={(period) => setQueryParam('dataType', period === 'documented' ? undefined : period)}
+					setValue={(period) => {
+						void setQueryParam('dataType', period === 'documented' ? undefined : period)
+					}}
 					values={DATA_TYPES}
 					className="ml-auto"
 				/>
@@ -973,7 +975,9 @@ const ChartContainer = ({
 								<Switch
 									label="Group Allocation"
 									value="group-allocation"
-									onChange={() => setQueryParam('groupAllocation', allocationMode === 'current' ? 'true' : undefined)}
+									onChange={() => {
+										void setQueryParam('groupAllocation', allocationMode === 'current' ? 'true' : undefined)
+									}}
 									help="Group token allocations into standardized categories."
 									checked={allocationMode === 'standard'}
 								/>
@@ -981,21 +985,27 @@ const ChartContainer = ({
 							<Switch
 								label="Bar Chart"
 								value="bar-chart"
-								onChange={() => setQueryParam('chartType', chartType === 'line' ? 'bar' : undefined)}
+								onChange={() => {
+									void setQueryParam('chartType', chartType === 'line' ? 'bar' : undefined)
+								}}
 								checked={chartType === 'bar'}
 							/>
 							{resolvedGeckoId ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
-									onChange={() => setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')}
+									onChange={() => {
+										void setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')
+									}}
 									checked={isPriceAndMcapRequested}
 									isLoading={isPriceAndMcapLoading}
 								/>
 							) : null}
 							<TagGroup
 								selectedValue={timeGrouping}
-								setValue={(v) => setQueryParam('groupBy', v === 'D' ? undefined : v)}
+								setValue={(v) => {
+									void setQueryParam('groupBy', v === 'D' ? undefined : v)
+								}}
 								values={TIME_GROUPINGS}
 							/>
 							<SelectWithCombobox

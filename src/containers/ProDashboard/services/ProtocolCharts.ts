@@ -41,7 +41,7 @@ async function getCachedLiquidityTokens() {
 	if (liquidityTokensCache && Date.now() - liquidityTokensCache.ts < LIQUIDITY_TOKENS_TTL_MS) {
 		return liquidityTokensCache.data
 	}
-	if (liquidityTokensPromise) {
+	if (liquidityTokensPromise != null) {
 		return liquidityTokensPromise
 	}
 	liquidityTokensPromise = fetchProtocolLiquidityTokens()

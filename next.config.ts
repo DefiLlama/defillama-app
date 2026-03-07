@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
 	reactCompiler: true,
 	// Increase timeout for static page generation (default is 60 seconds)
 	staticPageGenerationTimeout: 300, // 5 minutes
-	async redirects() {
+	redirects() {
 		return [
 			{
 				source: '/home',
@@ -591,7 +591,7 @@ const nextConfig: NextConfig = {
 			}
 		]
 	},
-	async headers() {
+	headers() {
 		return [
 			{
 				source: '/chart/:slug*', // Matches all /chart pages

@@ -92,7 +92,7 @@ export function FilterByChain({
 			}
 
 			if (finalValues.length === 0) {
-				pushShallowQuery(router, {
+				void pushShallowQuery(router, {
 					chain: 'None',
 					excludeChain: undefined
 				})
@@ -100,14 +100,14 @@ export function FilterByChain({
 			}
 			if (finalValues.length === chainList.length) {
 				// All selected - remove chain params (default = all)
-				pushShallowQuery(router, {
+				void pushShallowQuery(router, {
 					chain: undefined,
 					excludeChain: undefined
 				})
 				return
 			}
 			if (finalValues.includes('ALL_EVM')) {
-				pushShallowQuery(router, {
+				void pushShallowQuery(router, {
 					chain: 'ALL_EVM',
 					excludeChain: undefined
 				})
@@ -117,14 +117,14 @@ export function FilterByChain({
 			// Specific chains selected - use include or exclude based on which is shorter
 			const excluded = chainList.filter((c) => !finalValues.includes(c))
 			if (excluded.length < finalValues.length) {
-				pushShallowQuery(router, {
+				void pushShallowQuery(router, {
 					chain: undefined,
 					excludeChain: excluded.length === 1 ? excluded[0] : excluded
 				})
 				return
 			}
 
-			pushShallowQuery(router, {
+			void pushShallowQuery(router, {
 				chain: finalValues.length === 1 ? finalValues[0] : finalValues,
 				excludeChain: undefined
 			})

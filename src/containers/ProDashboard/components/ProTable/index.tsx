@@ -121,9 +121,15 @@ export function ProtocolsByChainTable({
 				downloadCSV={downloadCSV}
 				colSpan={colSpan}
 				customViews={currentCustomViews}
-				onSaveView={saveCustomView}
-				onLoadView={loadCustomView}
-				onDeleteView={deleteCustomView}
+				onSaveView={(...args) => {
+					void saveCustomView(...args)
+				}}
+				onLoadView={(...args) => {
+					void loadCustomView(...args)
+				}}
+				onDeleteView={(...args) => {
+					void deleteCustomView(...args)
+				}}
 			/>
 
 			<ColumnManagementPanel
@@ -142,8 +148,12 @@ export function ProtocolsByChainTable({
 				onRemoveCustomColumn={removeCustomColumn}
 				onUpdateCustomColumn={updateCustomColumn}
 				customViews={currentCustomViews}
-				onLoadView={loadCustomView}
-				onDeleteView={deleteCustomView}
+				onLoadView={(...args) => {
+					void loadCustomView(...args)
+				}}
+				onDeleteView={(...args) => {
+					void deleteCustomView(...args)
+				}}
 				activeViewId={activePreset}
 			/>
 

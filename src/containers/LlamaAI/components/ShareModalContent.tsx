@@ -56,7 +56,9 @@ export function ShareModalContent({ shareData }: ShareModalContentProps) {
 						className="flex-1 rounded border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 text-sm dark:border-[#222324]"
 					/>
 					<button
-						onClick={handleCopy}
+						onClick={() => {
+							void handleCopy()
+						}}
 						data-umami-event="llamaai-copy-share-link"
 						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 					>

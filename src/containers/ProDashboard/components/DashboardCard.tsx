@@ -10,7 +10,7 @@ import { ConfirmationModal } from './ConfirmationModal'
 interface DashboardCardProps {
 	dashboard: Dashboard
 	onTagClick?: (tag: string) => void
-	onDelete?: (dashboardId: string) => void
+	onDelete?: (dashboardId: string) => void | Promise<void>
 	isDeleting?: boolean
 	viewMode?: 'grid' | 'list'
 	className?: string
@@ -167,7 +167,9 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			<ConfirmationModal
 				isOpen={showDeleteConfirm}
 				onClose={() => setShowDeleteConfirm(false)}
-				onConfirm={handleConfirmDelete}
+				onConfirm={() => {
+					void handleConfirmDelete()
+				}}
 				title="Delete Dashboard"
 				message="Are you sure you want to delete this dashboard? This action cannot be undone."
 				confirmText="Delete"

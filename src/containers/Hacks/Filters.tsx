@@ -82,7 +82,7 @@ export function HacksFilters({
 
 	const setSelectedTime = (label: TimeLabelKey): void => {
 		const key = TIME_LABEL_TO_KEY[label]
-		pushShallowQuery(router, { time: key && key !== 'all' ? key : undefined })
+		void pushShallowQuery(router, { time: key && key !== 'all' ? key : undefined })
 	}
 
 	const hasActiveFilters =
@@ -94,7 +94,7 @@ export function HacksFilters({
 		maxLostVal != null
 
 	const onClearAll = (): void => {
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			chain: undefined,
 			tech: undefined,
 			class: undefined,

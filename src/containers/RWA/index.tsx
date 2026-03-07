@@ -58,7 +58,7 @@ type RWAOverviewMode = 'chain' | 'category' | 'platform'
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
 	const pushShallowMergedQuery = (patch: Record<string, string | string[] | undefined>) => {
-		pushShallowQuery(router, patch)
+		void pushShallowQuery(router, patch)
 	}
 	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
@@ -443,7 +443,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					return
 				}
 
-				pushShallowQuery(router, {
+				void pushShallowQuery(router, {
 					chartView: undefined,
 					nonTimeSeriesChartBreakdown: undefined,
 					pieChartBreakdown: undefined
@@ -524,7 +524,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 						nextParentGrouping: nextTreemapParentGrouping,
 						currentNestedBy: treemapNestedBy
 					})
-					pushShallowQuery(router, {
+					void pushShallowQuery(router, {
 						treemapNestedBy: nextTreemapNestedBy,
 						nonTimeSeriesChartBreakdown: nextNonTimeSeriesChartBreakdown ?? undefined
 					})

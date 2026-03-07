@@ -611,7 +611,9 @@ export function ChartPngExportButton({
 				data-umami-event="export-image"
 				data-umami-event-page={router.pathname}
 				className={className}
-				onClick={handleImageExport}
+				onClick={() => {
+					void handleImageExport()
+				}}
 				data-loading={isLoading}
 				disabled={isLoading}
 				title="Download chart as image"

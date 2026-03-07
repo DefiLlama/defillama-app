@@ -144,7 +144,7 @@ const Row = ({ name, setOpen }: { name: string; setOpen: (open: boolean) => void
 			onClick={(_e) => {
 				setLoading(true)
 
-				router.push(`/raises/${slug(name.toLowerCase())}`).then(() => {
+				void router.push(`/raises/${slug(name.toLowerCase())}`).then(() => {
 					setLoading(false)
 					setOpen(false)
 				})

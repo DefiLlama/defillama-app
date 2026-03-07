@@ -178,7 +178,7 @@ export function ResponseControls({
 		onSuccess: (data) => {
 			if (data.shareToken) {
 				const shareLink = `${window.location.origin}/ai/chat/shared/${data.shareToken}`
-				navigator.clipboard.writeText(shareLink)
+				void navigator.clipboard.writeText(shareLink)
 				dispatch({ type: 'setShowShareModal', value: true })
 			}
 		},
@@ -248,7 +248,13 @@ export function ResponseControls({
 				{content ? (
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}
-						render={<button onClick={handleCopy} />}
+						render={
+							<button
+								onClick={() => {
+									void handleCopy()
+								}}
+							/>
+						}
 						className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					>
 						{copied ? (

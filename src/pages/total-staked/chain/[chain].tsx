@@ -7,7 +7,7 @@ import { slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],

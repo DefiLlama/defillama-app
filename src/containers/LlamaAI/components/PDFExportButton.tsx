@@ -165,7 +165,9 @@ export function PDFExportButton({
 						className ??
 						'flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)'
 					}
-					onClick={handlePDFExport}
+					onClick={() => {
+						void handlePDFExport()
+					}}
 					disabled={loading}
 				>
 					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={14} width={14} />}
