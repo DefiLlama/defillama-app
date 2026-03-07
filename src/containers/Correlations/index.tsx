@@ -343,9 +343,9 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
 				<TagGroup
 					selectedValue={period}
-					setValue={(period) => {
-						if (isPeriod(period)) {
-							setPeriod(period)
+					setValue={(nextPeriodValue) => {
+						if (isPeriod(nextPeriodValue)) {
+							setPeriod(nextPeriodValue)
 						}
 					}}
 					values={PERIODS}

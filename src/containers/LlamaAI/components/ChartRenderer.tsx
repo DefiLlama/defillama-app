@@ -341,8 +341,8 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 									const xValue = params[0]?.value?.[0]
 									const yValue = params[0]?.value?.[1]
 									const seriesName = params[0]?.seriesName
-									const valueSymbol = config.valueSymbol || '$'
-									const formattedValue = formatTooltipValue(yValue, valueSymbol)
+									const tooltipValueSymbol = config.valueSymbol || '$'
+									const formattedValue = formatTooltipValue(yValue, tooltipValueSymbol)
 									return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
 								}
 							}
@@ -574,9 +574,9 @@ function ChartRendererImpl({
 					))}
 				</div>
 			) : charts[0]?.title ? (
-				<div className="-mt-2 border-b border-[#e6e6e6] px-3 py-2 dark:border-[#222324]">
-					<span className="text-base font-semibold">{charts[0].title}</span>
-				</div>
+				<p className="-mt-2 border-b border-[#e6e6e6] px-3 py-2 text-base font-semibold dark:border-[#222324]">
+					{charts[0].title}
+				</p>
 			) : null}
 			{charts.map((chart, index) => (
 				<SingleChart

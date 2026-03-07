@@ -172,24 +172,24 @@ export const applyProtocolTvlSettings = ({
 			if (protocol.childProtocols) {
 				const childProtocols: IProtocol['childProtocols'] = []
 				for (const child of protocol.childProtocols) {
-					let strikeTvl = child.strikeTvl ?? false
+					let childStrikeTvl = child.strikeTvl ?? false
 					const childDefaultTvl: MutableProtocolTvlEntry = { ...(child.tvl?.default ?? nullTvlEntry) }
 
-					if (strikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
-						strikeTvl = false
+					if (childStrikeTvl && (extraTvlsEnabled['liquidstaking'] || extraTvlsEnabled['doublecounted'])) {
+						childStrikeTvl = false
 					}
 
 					if (child.tvl) {
 						processTvl(child.tvl, childDefaultTvl)
 					}
 
-					const tvlChange = {
+					const childTvlChange = {
 						change1d: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevDay),
 						change7d: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevWeek),
 						change1m: getPercentChange(childDefaultTvl.tvl, childDefaultTvl.tvlPrevMonth)
 					}
 
-					const mcaptvl =
+					const childMcapTvl =
 						child.mcap != null && childDefaultTvl.tvl ? +(child.mcap / childDefaultTvl.tvl).toFixed(2) : null
 
 					if (
@@ -199,10 +199,10 @@ export const applyProtocolTvlSettings = ({
 						const normalizedChildDefaultTvl = coerceTvlDefaults(childDefaultTvl)
 						childProtocols.push({
 							...child,
-							strikeTvl,
+							strikeTvl: childStrikeTvl,
 							tvl: child.tvl == null ? null : ({ default: normalizedChildDefaultTvl } as IProtocol['tvl']),
-							tvlChange,
-							mcaptvl
+							tvlChange: childTvlChange,
+							mcaptvl: childMcapTvl
 						})
 					}
 				}

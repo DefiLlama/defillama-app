@@ -365,24 +365,24 @@ const getChainVolumeData = async (chain: string, chainCoingeckoIds: Record<strin
 				throwOnFailure: true,
 				onFailureError: () => new Error(`bridge volume for chain ${chain} is broken`)
 			})
-			const formattedChart = chart.map((chart) => {
+			const formattedChart = chart.map((point) => {
 				// This is confusing, stats from the endpoint use "deposit" to mean deposit in bridge contract,
 				// i.e., a withdrawal from the chain. Will eventually change that.
 				return {
-					date: chart.date,
-					Deposits: chart.depositUSD,
-					Withdrawals: -chart.withdrawUSD
+					date: point.date,
+					Deposits: point.depositUSD,
+					Withdrawals: -point.withdrawUSD
 				}
 			})
 			return { formatted: formattedChart, raw: chart }
 		} else return { formatted: null, raw: [] }
 	} else {
 		const chart: RawBridgeVolumePoint[] = await fetchBridgeVolumeAll()
-		const formattedChart = chart.map((chart) => {
+		const formattedChart = chart.map((point) => {
 			return {
-				date: chart.date,
-				volume: (chart.withdrawUSD + chart.depositUSD) / 2,
-				txs: chart.depositTxs + chart.withdrawTxs
+				date: point.date,
+				volume: (point.withdrawUSD + point.depositUSD) / 2,
+				txs: point.depositTxs + point.withdrawTxs
 			}
 		})
 		return { formatted: formattedChart, raw: chart }
@@ -445,7 +445,7 @@ export async function getBridgeOverviewPageData(chain, options: { includeBridgeT
 		.sort((a, b) => {
 			return b.lastDailyVolume - a.lastDailyVolume
 		})
-		.map((chain) => chain.name)
+		.map((chainItem) => chainItem.name)
 
 	const chainVolumePromise = getChainVolumeData(chain, chainCoingeckoIds)
 

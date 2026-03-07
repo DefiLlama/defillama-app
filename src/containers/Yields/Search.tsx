@@ -53,9 +53,9 @@ export function YieldsSearch({
 		<div className="relative flex flex-col rounded-md">
 			<Ariakit.ComboboxProvider
 				defaultValue={value ?? ''}
-				setValue={(value) => {
+				setValue={(nextValue) => {
 					React.startTransition(() => {
-						setSearchValue(value)
+						setSearchValue(nextValue)
 					})
 				}}
 				open={open}
@@ -121,7 +121,7 @@ interface IInputProps {
 function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) {
 	return (
 		<>
-			<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
+			<button onClick={() => setOpen((prev) => !prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 				{open ? (
 					<>
 						<span className="sr-only">Close Search</span>

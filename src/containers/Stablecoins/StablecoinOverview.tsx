@@ -201,10 +201,10 @@ export const PeggedAssetInfo = ({
 				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...chainsUnique]
 			},
-			areaCharts: chainsUnique.map((name) => ({
+			areaCharts: chainsUnique.map((chainName) => ({
 				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
+				name: chainName,
+				encode: { x: 'timestamp', y: chainName },
 				stack: 'chains'
 			}))
 		}),
@@ -231,10 +231,10 @@ export const PeggedAssetInfo = ({
 					.filter((row): row is Record<string, number> => row != null),
 				dimensions: ['timestamp', ...chainsUnique]
 			},
-			dominanceCharts: chainsUnique.map((name) => ({
+			dominanceCharts: chainsUnique.map((chainName) => ({
 				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
+				name: chainName,
+				encode: { x: 'timestamp', y: chainName },
 				stack: 'dominance'
 			}))
 		}),

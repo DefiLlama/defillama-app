@@ -456,7 +456,7 @@ async function fetchStablecoinsChartData(items: DashboardItemConfig[]): Promise<
 							date: chart.date,
 							mcap: chart.totalCirculatingUSD
 						}))
-						.filter((i: any) => i.mcap !== undefined)
+						.filter((chartPoint: any) => chartPoint.mcap !== undefined)
 
 					if (formattedCharts.length > 0) {
 						lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)

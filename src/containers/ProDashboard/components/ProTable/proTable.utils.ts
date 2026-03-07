@@ -416,7 +416,12 @@ export const formatProtocolsList = ({
 			}
 
 			for (const prop in extraTvl ?? {}) {
-				const { tvl, tvlPrevDay, tvlPrevWeek, tvlPrevMonth } = extraTvl?.[prop] ?? {}
+				const {
+					tvl: extraTvlValue,
+					tvlPrevDay: extraTvlPrevDay,
+					tvlPrevWeek: extraTvlPrevWeek,
+					tvlPrevMonth: extraTvlPrevMonth
+				} = extraTvl?.[prop] ?? {}
 				if (
 					prop === 'doublecounted' &&
 					!extraTvlsEnabled['doublecounted'] &&
@@ -431,17 +436,17 @@ export const formatProtocolsList = ({
 						prop.toLowerCase() !== 'liquidstaking'
 					) {
 						// check if final tvls are null, if they are null and tvl exist on selected option, convert to 0 and add them
-						if (tvl != null) {
-							finalTvl = (finalTvl || 0) + tvl
+						if (extraTvlValue != null) {
+							finalTvl = (finalTvl || 0) + extraTvlValue
 						}
-						if (tvlPrevDay != null) {
-							finalTvlPrevDay = (finalTvlPrevDay || 0) + tvlPrevDay
+						if (extraTvlPrevDay != null) {
+							finalTvlPrevDay = (finalTvlPrevDay || 0) + extraTvlPrevDay
 						}
-						if (tvlPrevWeek != null) {
-							finalTvlPrevWeek = (finalTvlPrevWeek || 0) + tvlPrevWeek
+						if (extraTvlPrevWeek != null) {
+							finalTvlPrevWeek = (finalTvlPrevWeek || 0) + extraTvlPrevWeek
 						}
-						if (tvlPrevMonth != null) {
-							finalTvlPrevMonth = (finalTvlPrevMonth || 0) + tvlPrevMonth
+						if (extraTvlPrevMonth != null) {
+							finalTvlPrevMonth = (finalTvlPrevMonth || 0) + extraTvlPrevMonth
 						}
 					}
 				}

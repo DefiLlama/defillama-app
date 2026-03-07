@@ -1044,16 +1044,26 @@ export const useFetchProtocolChartData = ({
 		}
 
 		if (extraTvlCharts.charts.staking && isStakingTvlToggled) {
-			const chartData = Object.entries(extraTvlCharts.charts.staking).map(
+			const stakingChartData = Object.entries(extraTvlCharts.charts.staking).map(
 				([date, value]) => [+date * 1e3, value] as [number, number]
 			)
-			charts['Staking'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
+			charts['Staking'] = formatLineChart({
+				data: stakingChartData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory
+			})
 		}
 		if (extraTvlCharts.charts.borrowed && isBorrowedTvlToggled) {
-			const chartData = Object.entries(extraTvlCharts.charts.borrowed).map(
+			const borrowedChartData = Object.entries(extraTvlCharts.charts.borrowed).map(
 				([date, value]) => [+date * 1e3, value] as [number, number]
 			)
-			charts['Borrowed'] = formatLineChart({ data: chartData, groupBy, dateInMs: true, denominationPriceHistory })
+			charts['Borrowed'] = formatLineChart({
+				data: borrowedChartData,
+				groupBy,
+				dateInMs: true,
+				denominationPriceHistory
+			})
 		}
 
 		if (medianAPYData)

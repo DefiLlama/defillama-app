@@ -21,19 +21,20 @@ export function useSessionList() {
 		queryFn: async (): Promise<SessionListData> => {
 			try {
 				if (!user) return { sessions: [], usage: null }
-				const data = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
+				const responseData = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
 				const existingData = queryClient.getQueryData([SESSIONS_QUERY_KEY, user.id]) as SessionListData | undefined
 				const existingSessions = existingData?.sessions || []
 				const fakeSessions = existingSessions.filter(
-					(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
+					(session) =>
+						!responseData.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
 				)
 
 				return {
-					sessions: [...fakeSessions, ...data.sessions],
-					usage: data.usage?.research_report || null
+					sessions: [...fakeSessions, ...responseData.sessions],
+					usage: responseData.usage?.research_report || null
 				}
 			} catch (error) {
 				console.log('Failed to fetch sessions:', error)

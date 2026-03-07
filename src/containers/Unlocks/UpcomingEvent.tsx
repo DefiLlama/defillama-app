@@ -184,7 +184,7 @@ export const UpcomingEvent = ({
 	const tokenSymbol = symbol ? symbol.toUpperCase() : ''
 	const { currentUnlockBreakdown, totalAmount, tokenValue, unlockPercent, unlockPercentFloat } = useMemo(() => {
 		const breakdown: UnlockBreakdown[] = event
-			.map(({ description, noOfTokens, timestamp, unlockType, rateDurationDays }) => {
+			.map(({ description, noOfTokens: eventNoOfTokens, timestamp: eventTimestamp, unlockType, rateDurationDays }) => {
 				const regex =
 					/(?:of (.+?) tokens (?:will be|were) unlocked)|(?:will (?:increase|decrease) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})|(?:from (.+?) on {timestamp})|(?:was (?:increased|decreased) from \{tokens\[0\]\} to \{tokens\[1\]\} tokens per week from (.+?) on {timestamp})/
 				const matches = (description || '').match(regex)
@@ -193,11 +193,11 @@ export const UpcomingEvent = ({
 				let perDayAmount: number, totalAmount: number, displayUnit: string
 				if (unlockType === 'linear') {
 					const isIncrease = (description || '').toLowerCase().includes('increase')
-					perDayAmount = (isIncrease ? noOfTokens[1] : noOfTokens[0]) / 7
+					perDayAmount = (isIncrease ? eventNoOfTokens[1] : eventNoOfTokens[0]) / 7
 					totalAmount = perDayAmount * (rateDurationDays || 1)
 					displayUnit = 'per day'
 				} else {
-					perDayAmount = totalAmount = noOfTokens.reduce((sum: number, amount: number) => sum + amount, 0)
+					perDayAmount = totalAmount = eventNoOfTokens.reduce((sum: number, amount: number) => sum + amount, 0)
 					displayUnit = ''
 				}
 				const isLinearPerDay = unlockType === 'linear' && displayUnit === 'per day'
@@ -205,14 +205,14 @@ export const UpcomingEvent = ({
 				const totalUsdValue = price ? totalAmount * price : null
 				const percentage = maxSupply ? (totalAmount / maxSupply) * 100 : null
 				const percentageFloat = totalUsdValue && mcap ? (totalUsdValue / mcap) * 100 : null
-				const endTime = unlockType === 'linear' ? timestamp + (rateDurationDays || 0) * 86400 : null
+				const endTime = unlockType === 'linear' ? eventTimestamp + (rateDurationDays || 0) * 86400 : null
 
 				return {
 					name: eventName,
 					perDayAmount,
 					totalAmount,
 					displayUnit,
-					timestamp,
+					timestamp: eventTimestamp,
 					unlockType: unlockType || 'cliff',
 					endTime,
 					usdValue,

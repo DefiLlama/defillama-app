@@ -17,9 +17,13 @@ export function IncludeExcludeTokens({
 }) {
 	const router = useRouter()
 
-	const { token, excludeToken, exactToken, token_pair, attribute } = router.query
+	const { token: includeTokenQuery, excludeToken, exactToken, token_pair, attribute } = router.query
 
-	const tokensToInclude = token ? (typeof token === 'string' ? [token] : [...token]) : []
+	const tokensToInclude = includeTokenQuery
+		? typeof includeTokenQuery === 'string'
+			? [includeTokenQuery]
+			: [...includeTokenQuery]
+		: []
 	const tokensToExclude = excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : [...excludeToken]) : []
 	const tokensThatMatchExactly = exactToken ? (typeof exactToken === 'string' ? [exactToken] : [...exactToken]) : []
 	const pairTokens = token_pair ? (typeof token_pair === 'string' ? [token_pair] : [...token_pair]) : []

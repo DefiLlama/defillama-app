@@ -25,11 +25,11 @@ export function CompareProtocols({ protocols, protocolsList }: CompareProtocolsP
 
 	const [extraTvlEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const { protocol } = router.query
+	const { protocol: protocolQuery } = router.query
 
 	const selectedProtocols = React.useMemo(() => {
-		return protocol ? (typeof protocol === 'string' ? [protocol] : [...protocol]) : []
-	}, [protocol])
+		return protocolQuery ? (typeof protocolQuery === 'string' ? [protocolQuery] : [...protocolQuery]) : []
+	}, [protocolQuery])
 
 	const results = useQueries({
 		queries: selectedProtocols.map((protocol) => ({

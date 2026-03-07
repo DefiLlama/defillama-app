@@ -598,7 +598,7 @@ export const getAdapterByChainPageData = async ({
 		chain,
 		chains: [
 			{ label: 'All', to: `/${route}` },
-			...data.allChains.map((chain) => ({ label: chain, to: `/${route}/chain/${slug(chain)}` }))
+			...data.allChains.map((chainName) => ({ label: chainName, to: `/${route}/chain/${slug(chainName)}` }))
 		],
 		protocols: finalProtocols,
 		categories: adapterType === 'fees' ? Array.from(categories).sort() : [],
@@ -740,8 +740,8 @@ export const getChainsByAdapterPageData = async ({
 
 		const getOptionalOverview = ({
 			enabled,
-			adapterType,
-			dataType
+			adapterType: overviewAdapterType,
+			dataType: overviewDataType
 		}: {
 			enabled: boolean
 			adapterType: `${ADAPTER_TYPES}`
@@ -749,8 +749,8 @@ export const getChainsByAdapterPageData = async ({
 		}) =>
 			enabled
 				? getDimensionAdapterOverviewOfAllChains({
-						adapterType,
-						dataType,
+						adapterType: overviewAdapterType,
+						dataType: overviewDataType,
 						chainMetadata
 					}).catch(() => {
 						return {}

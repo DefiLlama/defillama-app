@@ -235,7 +235,9 @@ export async function getExtraTvlByChain({
 			chainTvls: Array<{ name: string; extraTvl?: Record<string, { tvl: number }> }>
 		}>()
 			.then((data) =>
-				(data?.chainTvls ?? []).flatMap((chain) => (chain.extraTvl?.[config.chartKey]?.tvl ? [chain.name] : []))
+				(data?.chainTvls ?? []).flatMap((chainData) =>
+					chainData.extraTvl?.[config.chartKey]?.tvl ? [chainData.name] : []
+				)
 			)
 			.catch((err) => {
 				postRuntimeLogs(`${config.label} chains list: ${chain}: ${err instanceof Error ? err.message : err}`)

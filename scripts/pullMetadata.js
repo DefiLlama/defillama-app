@@ -117,14 +117,14 @@ async function pullData() {
 				.sort((a, b) => b[1] - a[1])
 				.map(([category]) => category)
 
-			const pagesByGroup = [...topCategories, ...otherCategories, 'Others'].reduce((acc, category) => {
+			const pagesByGroup = [...topCategories, ...otherCategories, 'Others'].reduce((acc, categoryName) => {
 				const pages = items
-					.filter((item) => (item.category || 'Others') === category)
+					.filter((item) => (item.category || 'Others') === categoryName)
 					.sort((a, b) => (tastyMetrics[b.route] ?? 0) - (tastyMetrics[a.route] ?? 0))
-					.map(({ name, route, category, description, ...others }) => ({
+					.map(({ name, route, category: pageCategory, description, ...others }) => ({
 						name: name,
 						route: route,
-						category: category ?? 'Others',
+						category: pageCategory ?? 'Others',
 						description: description ?? '',
 						...others
 					}))

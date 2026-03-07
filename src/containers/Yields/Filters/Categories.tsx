@@ -33,9 +33,9 @@ export function FiltersByCategory({
 			excludeQueryKey="excludeCategory"
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
-				for (const category of values) {
-					if (!prevSet.has(category)) {
-						trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, { category })
+				for (const categoryValue of values) {
+					if (!prevSet.has(categoryValue)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_CATEGORY, { category: categoryValue })
 					}
 				}
 				prevSelectionRef.current = new Set(values)

@@ -79,11 +79,11 @@ export function Menu({
 												<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
 											</summary>
 											<div className="border-l border-black/20 pl-2 dark:border-white/20">
-												{pages.map(({ name, route }) => (
+												{pages.map(({ name: pageName, route: pageRoute }) => (
 													<LinkToPage
-														route={route}
-														name={name}
-														key={`mobile-nav-old-${name}-${route}`}
+														route={pageRoute}
+														name={pageName}
+														key={`mobile-nav-old-${pageName}-${pageRoute}`}
 														asPath={asPath}
 														onClick={handleClose}
 													/>

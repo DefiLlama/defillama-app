@@ -197,16 +197,16 @@ const Search = () => {
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
-			setValue={(value) => {
+			setValue={(nextValue) => {
 				startTransition(() => {
-					setSearchValue(value)
+					setSearchValue(nextValue)
 				})
 			}}
 			open={open}
 			setOpen={setOpen}
 		>
 			<span className="relative isolate w-full lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
+				<button onClick={() => setOpen((prev) => !prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -242,12 +242,12 @@ const Search = () => {
 					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				) : (
 					<Ariakit.ComboboxList ref={comboboxRef}>
-						{data.map((data) => (
+						{data.map((tokenResult) => (
 							<Ariakit.ComboboxItem
-								key={`token-usage-${data.name}`}
-								value={data.name}
+								key={`token-usage-${tokenResult.name}`}
+								value={tokenResult.name}
 								onClick={() => {
-									pushShallowQuery(router, { token: data.name }).then(() => {
+									pushShallowQuery(router, { token: tokenResult.name }).then(() => {
 										setOpen(false)
 									})
 								}}
@@ -256,8 +256,10 @@ const Search = () => {
 								setValueOnClick={true}
 								className="flex cursor-pointer items-center gap-4 px-3 py-2 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
-								{data?.logo ? <TokenLogo src={data?.logo} alt={`Logo of ${data?.name ?? ''}`} /> : null}
-								<span>{data.name}</span>
+								{tokenResult?.logo ? (
+									<TokenLogo src={tokenResult?.logo} alt={`Logo of ${tokenResult?.name ?? ''}`} />
+								) : null}
+								<span>{tokenResult.name}</span>
 							</Ariakit.ComboboxItem>
 						))}
 					</Ariakit.ComboboxList>

@@ -75,7 +75,7 @@ export default function AreaChart({
 		const chartColor = color || stringToColour()
 
 		if (!chartsStack || chartsStack.length === 0) {
-			const series = {
+			const lineSeries = {
 				name: '',
 				type: 'line',
 				stack: 'value',
@@ -163,17 +163,17 @@ export default function AreaChart({
 			}
 
 			for (const [date, value] of chartData ?? []) {
-				series.data.push([+date * 1e3, value])
+				lineSeries.data.push([+date * 1e3, value])
 			}
 
-			return series
+			return lineSeries
 		} else {
-			const series = {}
-			let index = 0
+			const stackedSeries = {}
+			let seriesIndex = 0
 			for (const token of chartsStack) {
 				const stackColor = stackColors?.[token]
 
-				series[token] = {
+				stackedSeries[token] = {
 					name: token,
 					type: 'line',
 					emphasis: {
@@ -183,7 +183,7 @@ export default function AreaChart({
 					symbol: 'none',
 					connectNulls,
 					itemStyle: {
-						color: stackColor ? stackColor : index === 0 ? chartColor : null
+						color: stackColor ? stackColor : seriesIndex === 0 ? chartColor : null
 					},
 					stack: isStackedChart ? 'Total' : undefined,
 					lineStyle: undefined,
@@ -196,7 +196,7 @@ export default function AreaChart({
 										? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 												{
 													offset: 0,
-													color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
+													color: stackColor ? stackColor : seriesIndex === 0 ? chartColor : 'transparent'
 												},
 												{
 													offset: 1,
@@ -244,7 +244,7 @@ export default function AreaChart({
 										])
 									}
 								: {
-										data: hallmarks.map(([date, event], index) => [
+										data: hallmarks.map(([date, event], hallmarkIndex) => [
 											{
 												name: event,
 												xAxis: +date * 1e3,
@@ -260,13 +260,13 @@ export default function AreaChart({
 												name: 'end',
 												xAxis: +date * 1e3,
 												yAxis: 'max',
-												y: Math.max(hallmarks.length * 40 - index * 40, 40)
+												y: Math.max(hallmarks.length * 40 - hallmarkIndex * 40, 40)
 											}
 										])
 									}
 					})
 				}
-				index++
+				seriesIndex++
 			}
 
 			const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
@@ -280,24 +280,24 @@ export default function AreaChart({
 				}
 
 				for (const stack of chartsStack) {
-					if ((legendOptionsSet && customLegendName ? legendOptionsSet.has(stack) : true) && series[stack]) {
+					if ((legendOptionsSet && customLegendName ? legendOptionsSet.has(stack) : true) && stackedSeries[stack]) {
 						const rawValue = item[stack] || 0
 
 						const value = expandTo100Percent ? (sumOfTheDay ? (rawValue / sumOfTheDay) * 100 : 0) : rawValue
 						if (expandTo100Percent) {
-							series[stack].stack = 'A'
-							series[stack].areaStyle = {}
-							series[stack].lineStyle = {
-								...series[stack].lineStyle,
+							stackedSeries[stack].stack = 'A'
+							stackedSeries[stack].areaStyle = {}
+							stackedSeries[stack].lineStyle = {
+								...stackedSeries[stack].lineStyle,
 								width: 0
 							}
 						}
-						series[stack].data.push([+date * 1e3, value])
+						stackedSeries[stack].data.push([+date * 1e3, value])
 					}
 				}
 			}
 
-			return Object.values(series)
+			return Object.values(stackedSeries)
 		}
 	}, [
 		chartData,

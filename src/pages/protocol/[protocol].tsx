@@ -82,7 +82,7 @@ export async function getStaticPaths() {
 			break
 		}
 	}
-	const paths: string[] = Array.from(slugs).map((slug) => `/protocol/${slug}`)
+	const paths: string[] = Array.from(slugs).map((protocolSlug) => `/protocol/${protocolSlug}`)
 
 	return { paths, fallback: 'blocking' }
 }

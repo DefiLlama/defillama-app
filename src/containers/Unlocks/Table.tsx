@@ -99,11 +99,11 @@ export const UnlocksTable = ({ protocols, showOnlyWatchlist, savedProtocols }: I
 	const handleUnlockValueSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		const form = e.currentTarget
-		const minUnlockValue = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
-		const maxUnlockValue = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
+		const minUnlockValueInput = (form.elements.namedItem('min') as HTMLInputElement | null)?.value ?? ''
+		const maxUnlockValueInput = (form.elements.namedItem('max') as HTMLInputElement | null)?.value ?? ''
 		pushShallowQuery(router, {
-			minUnlockValue: minUnlockValue || undefined,
-			maxUnlockValue: maxUnlockValue || undefined
+			minUnlockValue: minUnlockValueInput || undefined,
+			maxUnlockValue: maxUnlockValueInput || undefined
 		})
 	}
 

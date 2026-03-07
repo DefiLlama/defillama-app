@@ -114,8 +114,8 @@ export const formatChainsData = ({
 		const charts = chartDataByChain[chartIndex] ?? null
 
 		const prevDayData =
-			prevDayDataByChain?.find(({ name }) => {
-				return name === chain.name
+			prevDayDataByChain?.find(({ name: chainName }) => {
+				return chainName === chain.name
 			}) ?? null
 		const prevDayChart = charts?.[charts.length - 1]
 		const totalTokensDeposited = prevDayData?.totalTokensDeposited

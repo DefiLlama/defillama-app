@@ -393,8 +393,8 @@ async function getDimensionsProtocolChainData(
 		let colorIndex = 0
 
 		for (const chain of chainDataMap.keys()) {
-			const data = chainDataMap.get(chain)!
-			const sortedData = data.toSorted((a, b) => a[0] - b[0])
+			const chainSeriesData = chainDataMap.get(chain)!
+			const sortedData = chainSeriesData.toSorted((a, b) => a[0] - b[0])
 			series.push({
 				name: chain,
 				data: filterOutToday(sortedData),
@@ -979,9 +979,9 @@ async function getAllProtocolsTopChainsDimensionsData(
 			if (hasProtocolCategoryFilter) {
 				const breakdownSeries = Array.isArray(j?.totalDataChartBreakdown) ? j.totalDataChartBreakdown : []
 				if (breakdownSeries.length > 0) {
-					const filteredPairs = breakdownSeries.map(([timestamp, protocols]) => [
+					const filteredPairs = breakdownSeries.map(([timestamp, protocolsAtTimestamp]) => [
 						Number(timestamp),
-						aggregateProtocolsForTimestamp(protocols)
+						aggregateProtocolsForTimestamp(protocolsAtTimestamp)
 					])
 					normalized = filterOutToday(normalizeDailyPairs(filteredPairs))
 				}
@@ -1003,9 +1003,9 @@ async function getAllProtocolsTopChainsDimensionsData(
 		if (hasProtocolCategoryFilter) {
 			const totalBreakdown = Array.isArray(overview?.totalDataChartBreakdown) ? overview.totalDataChartBreakdown : []
 			if (totalBreakdown.length > 0) {
-				const filteredTotal = totalBreakdown.map(([timestamp, protocols]) => [
+				const filteredTotal = totalBreakdown.map(([timestamp, protocolsAtTimestamp]) => [
 					Number(timestamp),
-					aggregateProtocolsForTimestamp(protocols)
+					aggregateProtocolsForTimestamp(protocolsAtTimestamp)
 				])
 				totalNormalized = filterOutToday(normalizeDailyPairs(filteredTotal))
 			}

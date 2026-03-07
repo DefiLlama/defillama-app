@@ -221,7 +221,7 @@ export const BridgeInfo = ({
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<TagGroup
 							selectedValue={chartType}
-							setValue={(chartType) => setChartType(chartType as ChartType)}
+							setValue={(nextChartType) => setChartType(nextChartType as ChartType)}
 							values={chartTypes}
 							className="mr-auto"
 						/>

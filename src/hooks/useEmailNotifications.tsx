@@ -130,9 +130,9 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], data)
 			toast.success('Notification preferences saved successfully')
 		},
-		onError: (error) => {
-			console.error('Error saving notification preferences:', error)
-			toast.error(getUserFacingErrorMessage(error, 'Failed to save notification preferences'))
+		onError: (err) => {
+			console.error('Error saving notification preferences:', err)
+			toast.error(getUserFacingErrorMessage(err, 'Failed to save notification preferences'))
 		}
 	})
 
@@ -164,9 +164,9 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			})
 			toast.success(variables.active ? 'Notification preferences enabled' : 'Notification preferences disabled')
 		},
-		onError: (error) => {
-			console.error('Error updating notification status:', error)
-			toast.error(getUserFacingErrorMessage(error, 'Failed to update notification status'))
+		onError: (err) => {
+			console.error('Error updating notification status:', err)
+			toast.error(getUserFacingErrorMessage(err, 'Failed to update notification status'))
 		}
 	})
 
@@ -195,9 +195,9 @@ export const useEmailNotifications = (portfolioName?: string) => {
 			queryClient.setQueryData(['notifications', 'preferences', pb.authStore.record?.id, variables.portfolioName], null)
 			toast.success('Notification preferences deleted')
 		},
-		onError: (error) => {
-			console.error('Error deleting notification preferences:', error)
-			toast.error(getUserFacingErrorMessage(error, 'Failed to delete notifications'))
+		onError: (err) => {
+			console.error('Error deleting notification preferences:', err)
+			toast.error(getUserFacingErrorMessage(err, 'Failed to delete notifications'))
 		}
 	})
 

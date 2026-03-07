@@ -213,8 +213,9 @@ export const getStaticProps = withPerformanceLogging(
 				charts,
 				defaultCharts,
 				protocolChains: feesData?.chains ?? [],
-				protocolFeesVersions: linkedProtocolsWithFeesData?.map((protocol) => protocol.displayName) ?? [],
-				protocolRevenueVersions: linkedProtocolsWithRevenueData?.map((protocol) => protocol.displayName) ?? [],
+				protocolFeesVersions: linkedProtocolsWithFeesData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
+				protocolRevenueVersions:
+					linkedProtocolsWithRevenueData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView:
 					feesData?.defaultChartView ??

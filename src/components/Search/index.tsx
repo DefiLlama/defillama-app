@@ -240,7 +240,10 @@ export const DesktopSearch = () => {
 				}}
 			>
 				<span className="relative isolate hidden w-full lg:inline-block lg:max-w-[50vw]">
-					<button onClick={(prev) => setOpen(!prev)} className="absolute top-0 bottom-0 left-2 my-auto opacity-50">
+					<button
+						onClick={() => setOpen((prev) => !prev)}
+						className="absolute top-0 bottom-0 left-2 my-auto opacity-50"
+					>
 						{open ? (
 							<>
 								<span className="sr-only">Close Search</span>
