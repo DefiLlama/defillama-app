@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { isIconName } from '~/components/Icon'
 import { useGetLiteDashboards } from '~/containers/ProDashboard/hooks/useDashboardAPI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useStorageItem } from '~/contexts/localStorageStore'
@@ -9,39 +8,41 @@ import { DesktopNav } from './Desktop'
 import { MobileNav } from './Mobile'
 import type { TNavLink, TNavLinks, TOldNavLink } from './types'
 
-function normalizeNavPage(page: {
+type DefillamaPage = {
 	name: string
 	route: string
-	icon?: unknown
-	isNew?: unknown
-	umamiEvent?: unknown
-}): TNavLink {
-	return {
-		name: page.name,
-		route: page.route,
-		...(isIconName(page.icon) ? { icon: page.icon } : {}),
-		...(typeof page.isNew === 'boolean' ? { isNew: page.isNew } : {}),
-		...(typeof page.umamiEvent === 'string' && page.umamiEvent.trim() !== '' ? { umamiEvent: page.umamiEvent } : {})
-	}
+	icon?: TNavLink['icon']
+	isNew?: boolean
+	umamiEvent?: string
+	oldCategory?: string
+	oldName?: string
 }
 
-const mainPages = (defillamaPages['Main'] ?? []).map(normalizeNavPage)
-const premiumPages = (defillamaPages['Premium'] ?? []).map(normalizeNavPage)
+type DefillamaPages = Record<string, DefillamaPage[]> & {
+	Main?: TNavLink[]
+	Premium?: TNavLink[]
+	Metrics: Array<DefillamaPage & { oldCategory?: string; oldName?: string }>
+	Tools: Array<DefillamaPage & { oldCategory?: string; oldName?: string }>
+	Hidden?: Array<Pick<DefillamaPage, 'name' | 'route'>>
+}
+
+const pages = defillamaPages as DefillamaPages
+
+const mainPages = pages.Main ?? []
+const premiumPages = pages.Premium ?? []
 
 const footerCategories = ['More', 'About Us'] as const
 const footerLinks = footerCategories.map((category) => ({
 	category,
-	pages: defillamaPages[category] ?? []
+	pages: (pages[category] ?? []) as TNavLink[]
 })) as TNavLinks
 
 // Skip "Hidden" so hidden page names (e.g. "Subscribe to DefiLlama") don't overwrite
 // visible labels, and first-match-wins prevents later duplicates from replacing earlier ones.
 const routeToPageMap = new Map<string, { name: string; route: string }>()
-for (const [category, pages] of Object.entries(
-	defillamaPages as Record<string, Array<{ name: string; route: string }>>
-)) {
+for (const [category, categoryPages] of Object.entries(pages)) {
 	if (category === 'Hidden') continue
-	for (const page of pages) {
+	for (const page of categoryPages) {
 		if (!routeToPageMap.has(page.route)) {
 			routeToPageMap.set(page.route, { name: page.name, route: page.route })
 		}
@@ -49,7 +50,7 @@ for (const [category, pages] of Object.entries(
 }
 
 const oldMetricLinks: Array<TOldNavLink> = Object.values(
-	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce<Record<string, TOldNavLink>>((acc, curr) => {
+	[...pages.Metrics, ...pages.Tools].reduce<Record<string, TOldNavLink>>((acc, curr) => {
 		if (curr.oldCategory) {
 			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
 			const groupedMetric = acc[curr.oldCategory]

@@ -14,10 +14,6 @@ import type { IBarChartProps } from '../types'
 import { useDefaults } from '../useDefaults'
 import { mergeDeep, stringToColour } from '../utils'
 
-function isBarGroupBy(value: IBarChartProps['groupBy']): value is 'daily' | 'weekly' | 'monthly' {
-	return value === 'daily' || value === 'weekly' || value === 'monthly'
-}
-
 export default function BarChart({
 	chartData,
 	stacks,
@@ -85,7 +81,7 @@ export default function BarChart({
 		hideLegend,
 		tooltipOrderBottomUp,
 		isThemeDark,
-		groupBy: isBarGroupBy(groupBy) ? groupBy : 'daily'
+		groupBy: groupBy ?? 'daily'
 	})
 
 	const series = useMemo(() => {

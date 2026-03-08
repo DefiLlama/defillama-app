@@ -55,12 +55,6 @@ function formatAxisLabel(value: number, symbol: string): string {
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
 
-const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
-
-function coerceGroupBy(groupBy: IMultiSeriesChart2Props['groupBy']): GroupBy {
-	return groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily'
-}
-
 function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['hallmarks']>, isThemeDark: boolean) {
 	const labelColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 
@@ -452,7 +446,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const groupBySafe = coerceGroupBy(groupBy)
+	const groupBySafe: GroupBy = groupBy ?? 'daily'
 
 	const defaultChartSettings = useMemo(() => {
 		const themeColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'

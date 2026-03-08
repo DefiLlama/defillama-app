@@ -12,14 +12,15 @@ interface IFormattedNameProps extends WrapperProps {
 	text: string
 }
 
-type FormattedNameStyle = CSSProperties & { '--text-size': string | number; '--weight': number }
-
 export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400, link }: IFormattedNameProps) => {
 	if (!text) {
 		return null
 	}
 
-	const textStyle: FormattedNameStyle = { '--text-size': fontSize ?? 'inherit', '--weight': fontWeight }
+	const textStyle: CSSProperties & Record<'--text-size' | '--weight', string | number> = {
+		'--text-size': fontSize ?? 'inherit',
+		'--weight': fontWeight
+	}
 
 	if (typeof maxCharacters === 'number' && text.length > maxCharacters) {
 		return (

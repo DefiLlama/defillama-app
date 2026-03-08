@@ -6,6 +6,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface INameYieldPoolProps {
 	value: string
@@ -53,9 +54,8 @@ export function NameYieldPool({
 				href={url}
 				target="_blank"
 				rel="noopener noreferrer"
-				data-umami-event="yields-pool-external-link"
-				data-umami-event-pool={value}
 				className="hidden shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover) lg:flex"
+				onClick={() => trackUmamiEvent('yields-pool-external-link', { pool: value })}
 			>
 				<Icon name="arrow-up-right" height={14} width={14} />
 				<span className="sr-only">open in new tab</span>
@@ -88,7 +88,14 @@ const LinkWrapper = ({ url, children, showTooltip }) => {
 			<>
 				{url ? (
 					<Tooltip
-						render={<a href={url} target="_blank" rel="noopener noreferrer" data-umami-event="yields-pool-click" />}
+						render={
+							<a
+								href={url}
+								target="_blank"
+								rel="noopener noreferrer"
+								onClick={() => trackUmamiEvent('yields-pool-click')}
+							/>
+						}
 						className="flex shrink! items-center overflow-hidden font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 						content={children}
 						data-fullwidth

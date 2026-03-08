@@ -17,7 +17,7 @@ const extractSelectedValues = (selection: unknown): string[] => {
 	const values: string[] = []
 	for (const option of selection) {
 		if (typeof option !== 'object' || option === null) continue
-		const value = Reflect.get(option, 'value')
+		const value = (option as { value?: unknown }).value
 		if (typeof value === 'string') {
 			values.push(value)
 		}
@@ -33,9 +33,9 @@ type ProtocolSelectionOption = {
 
 const isProtocolSelectionOption = (value: unknown): value is ProtocolSelectionOption => {
 	if (typeof value !== 'object' || value === null) return false
-	const optionValue = Reflect.get(value, 'value')
-	const optionLabel = Reflect.get(value, 'label')
-	const optionIsChild = Reflect.get(value, 'isChild')
+	const optionValue = (value as { value?: unknown }).value
+	const optionLabel = (value as { label?: unknown }).label
+	const optionIsChild = (value as { isChild?: unknown }).isChild
 	if (typeof optionValue !== 'string' || typeof optionLabel !== 'string') return false
 	return optionIsChild === undefined || typeof optionIsChild === 'boolean'
 }
@@ -73,10 +73,10 @@ const resolveProtocolSelection = ({
 		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
 	}
 
-	const action = Reflect.get(actionMeta, 'action')
+	const action = (actionMeta as { action?: unknown }).action
 	if (action === 'clear') return []
 
-	const option = Reflect.get(actionMeta, 'option')
+	const option = (actionMeta as { option?: unknown }).option
 	if (!isProtocolSelectionOption(option) || option.isChild) {
 		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
 	}

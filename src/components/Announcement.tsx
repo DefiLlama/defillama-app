@@ -36,8 +36,6 @@ const getAnnouncementKey = (router: NextRouter) => {
 	else return 'defi'
 }
 
-type AnnouncementStyle = React.CSSProperties & { '--link-bg': string }
-
 function parseAnnouncementValue(store: string): string | undefined {
 	let parsed: unknown
 	try {
@@ -46,7 +44,7 @@ function parseAnnouncementValue(store: string): string | undefined {
 		return undefined
 	}
 	if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return undefined
-	const value = Reflect.get(parsed, 'value')
+	const value = (parsed as { value?: unknown }).value
 	return typeof value === 'string' ? value : undefined
 }
 
@@ -81,7 +79,9 @@ export function Announcement({
 		return null
 	}
 
-	const wrapperStyle: AnnouncementStyle = { '--link-bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' }
+	const wrapperStyle: React.CSSProperties & Record<'--link-bg', string> = {
+		'--link-bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)'
+	}
 
 	return (
 		<div

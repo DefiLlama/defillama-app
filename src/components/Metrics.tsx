@@ -44,7 +44,6 @@ const metricsByCategory = trending.concat(
 
 const TABS = ['All', 'Protocols', 'Chains'] as const
 type Tab = (typeof TABS)[number]
-type PinIconStyle = React.CSSProperties & { '--icon-fill': string }
 
 function isTab(value: string): value is Tab {
 	return value === 'All' || value === 'Protocols' || value === 'Chains'
@@ -241,7 +240,9 @@ export function LinkToMetricOrToolPage({
 	pinnedRoutes: Set<string>
 }) {
 	const isPinned = pinnedRoutes.has(page.route)
-	const pinStyle: PinIconStyle = { '--icon-fill': isPinned ? 'white' : 'none' }
+	const pinStyle: React.CSSProperties & Record<'--icon-fill', string> = {
+		'--icon-fill': isPinned ? 'white' : 'none'
+	}
 
 	const dialogStore = Ariakit.useDialogContext()
 

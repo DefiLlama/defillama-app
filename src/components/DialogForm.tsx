@@ -1,7 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { useRef } from 'react'
 import { Icon } from '~/components/Icon'
-import { getFormString } from '~/utils/formData'
 
 export function DialogForm({
 	open,
@@ -42,7 +41,8 @@ export function DialogForm({
 					e.preventDefault()
 					const form = e.target as HTMLFormElement
 					const formData = new FormData(form)
-					const name = getFormString(formData, 'name')
+					const nameValue = formData.get('name')
+					const name = typeof nameValue === 'string' ? nameValue : ''
 					onSubmit(name)
 					setOpen(false)
 					form.reset()

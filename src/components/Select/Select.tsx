@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { NestedMenu, NestedMenuItem } from '~/components/NestedMenu'
 import { Tooltip } from '~/components/Tooltip'
+import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
 import { updateQueryFromSelected } from './query'
 import type { ExcludeQueryKey, SelectValues, SelectTriggerVariant } from './types'
 import { SELECT_TRIGGER_VARIANTS } from './types'
@@ -45,22 +46,27 @@ interface ISelectWithStateSingle extends ISelectBase {
 
 type ISelect = ISelectWithUrlParams | ISelectWithStateArray | ISelectWithStateSingle
 
-export function Select({
-	allValues,
-	selectedValues,
-	setSelectedValues: setSelectedValuesProp,
-	label,
-	nestedMenu,
-	labelType = 'regular',
-	variant,
-	triggerProps,
-	portal,
-	placement = 'bottom-start',
-	includeQueryKey,
-	excludeQueryKey,
-	defaultSelectedValues,
-	unmountOnHide = true
-}: ISelect) {
+function isUrlSelect(props: ISelect): props is ISelectWithUrlParams {
+	return typeof props.includeQueryKey === 'string'
+}
+
+function isMultiStateSelect(props: ISelect): props is ISelectWithStateArray {
+	return !isUrlSelect(props) && Array.isArray(props.selectedValues)
+}
+
+export function Select(props: ISelect) {
+	const {
+		allValues,
+		selectedValues,
+		label,
+		nestedMenu,
+		labelType = 'regular',
+		variant,
+		triggerProps,
+		portal,
+		placement = 'bottom-start',
+		unmountOnHide = true
+	} = props
 	const router = useRouter()
 	const labelText = typeof label === 'string' ? label : typeof label === 'number' ? String(label) : 'Select'
 
@@ -72,34 +78,85 @@ export function Select({
 		return typeof option !== 'string'
 	}, [])
 
-	const setSelectedValuesFromState = React.useCallback(
-		(values: string[] | string) => {
-			if (setSelectedValuesProp) {
-				;(setSelectedValuesProp as (values: string[] | string) => void)(values)
-			}
-		},
-		[setSelectedValuesProp]
-	)
-
 	// Helper to extract keys from allValues
 	const getAllKeys = React.useCallback(() => allValues.map((v) => (typeof v === 'string' ? v : v.key)), [allValues])
 
-	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
-	const setSelectedValues: (values: string[] | string) => void = includeQueryKey
-		? (values: string[] | string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues)
-		: setSelectedValuesFromState
-	const clearAll = includeQueryKey
-		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues)
-		: () => setSelectedValuesFromState([])
-	const toggleAll = includeQueryKey
-		? () => updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues)
-		: () => setSelectedValuesFromState(getAllKeys())
-	const selectOnlyOne = includeQueryKey
-		? (value: string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), [value], defaultSelectedValues)
-		: (value: string) => setSelectedValuesFromState([value])
+	const setSelectedValues = React.useCallback(
+		(values: string[] | string) => {
+			if (isUrlSelect(props)) {
+				updateQueryFromSelected(
+					router,
+					props.includeQueryKey,
+					props.excludeQueryKey,
+					getAllKeys(),
+					values,
+					props.defaultSelectedValues
+				)
+				return
+			}
+			if (isMultiStateSelect(props)) {
+				props.setSelectedValues(Array.isArray(values) ? values : values ? [values] : [])
+				return
+			}
+			props.setSelectedValues(typeof values === 'string' ? values : (values[0] ?? ''))
+		},
+		[getAllKeys, props, router]
+	)
+	const clearAll = React.useCallback(() => {
+		if (isUrlSelect(props)) {
+			updateQueryFromSelected(
+				router,
+				props.includeQueryKey,
+				props.excludeQueryKey,
+				getAllKeys(),
+				'None',
+				props.defaultSelectedValues
+			)
+			return
+		}
+		if (isMultiStateSelect(props)) {
+			props.setSelectedValues([])
+			return
+		}
+		props.setSelectedValues('')
+	}, [getAllKeys, props, router])
+	const toggleAll = React.useCallback(() => {
+		if (isUrlSelect(props)) {
+			updateQueryFromSelected(
+				router,
+				props.includeQueryKey,
+				props.excludeQueryKey,
+				getAllKeys(),
+				null,
+				props.defaultSelectedValues
+			)
+			return
+		}
+		if (isMultiStateSelect(props)) {
+			props.setSelectedValues(getAllKeys())
+		}
+	}, [getAllKeys, props, router])
+	const selectOnlyOne = React.useCallback(
+		(value: string) => {
+			if (isUrlSelect(props)) {
+				updateQueryFromSelected(
+					router,
+					props.includeQueryKey,
+					props.excludeQueryKey,
+					getAllKeys(),
+					[value],
+					props.defaultSelectedValues
+				)
+				return
+			}
+			if (isMultiStateSelect(props)) {
+				props.setSelectedValues([value])
+				return
+			}
+			props.setSelectedValues(value)
+		},
+		[getAllKeys, props, router]
+	)
 	const toggleMultiValue = (value: string) => {
 		const currentValues = Array.isArray(selectedValues) ? selectedValues : selectedValues ? [selectedValues] : []
 		if (currentValues.includes(value)) {
@@ -122,17 +179,7 @@ export function Select({
 		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
-
-		// Focus on the first newly loaded item after a brief delay
-		setTimeout(() => {
-			const items = selectRef.current?.querySelectorAll('[role="option"]')
-			if (items && items.length > previousCount) {
-				const firstNewItem = items.item(previousCount)
-				if (firstNewItem instanceof HTMLElement) {
-					firstNewItem.focus()
-				}
-			}
-		}, 0)
+		focusFirstNewItem(selectRef, '[role="option"]', previousCount)
 	}
 
 	if (nestedMenu) {
@@ -199,11 +246,7 @@ export function Select({
 							setValueOnClick={false}
 							hideOnClick={false}
 							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-							onClick={(e) => {
-								e.preventDefault()
-								e.stopPropagation()
-								setViewableMatches((prev) => prev + 20)
-							}}
+							onClick={handleSeeMore}
 						>
 							See more...
 						</Ariakit.SelectItem>

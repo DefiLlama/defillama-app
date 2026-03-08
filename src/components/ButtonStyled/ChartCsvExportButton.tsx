@@ -1,7 +1,7 @@
 import type * as echarts from 'echarts/core'
 import { useCallback } from 'react'
 import { toNiceCsvDate } from '~/utils'
-import { type CsvCell, toCsvCell } from '~/utils/csvCell'
+import type { CsvCell } from '~/utils/csvCell'
 import { CSVDownloadButton } from './CsvButton'
 
 function isRecord(x: unknown): x is Record<string, unknown> {
@@ -27,6 +27,11 @@ function coerceXKey(x: unknown): string | number | null {
 	if (!trimmed) return x
 	const asNum = Number(trimmed)
 	return Number.isFinite(asNum) ? asNum : x
+}
+
+function toChartCsvCell(value: unknown): CsvCell {
+	if (typeof value === 'number') return Number.isFinite(value) ? value : ''
+	return typeof value === 'string' || typeof value === 'boolean' ? value : ''
 }
 
 function getDatasetFromOption(option: any): { dimensions: string[] | null; source: unknown[] | null } {
@@ -92,16 +97,16 @@ function buildCsvRowsFromDataset(dimensions: string[] | null, source: unknown[] 
 
 			if (isRecord(row)) {
 				tsRaw = row.timestamp
-				values = seriesDims.map((k) => toCsvCell(row[k]))
+				values = seriesDims.map((k) => toChartCsvCell(row[k]))
 			} else if (Array.isArray(row)) {
 				tsRaw = tsIndex >= 0 ? row[tsIndex] : ''
-				values = seriesIndexes.map((idx) => toCsvCell(idx >= 0 ? row[idx] : ''))
+				values = seriesIndexes.map((idx) => toChartCsvCell(idx >= 0 ? row[idx] : ''))
 			} else {
 				continue
 			}
 
 			const tsSeconds = normalizeEpochSeconds(tsRaw)
-			rows.push([toCsvCell(tsRaw), tsSeconds != null ? toNiceCsvDate(tsSeconds) : '', ...values])
+			rows.push([toChartCsvCell(tsRaw), tsSeconds != null ? toNiceCsvDate(tsSeconds) : '', ...values])
 		}
 		return rows
 	}
@@ -109,11 +114,11 @@ function buildCsvRowsFromDataset(dimensions: string[] | null, source: unknown[] 
 	rows.push([...dims])
 	for (const row of dataRows) {
 		if (isRecord(row)) {
-			rows.push(dims.map((k) => toCsvCell(row[k])))
+			rows.push(dims.map((k) => toChartCsvCell(row[k])))
 			continue
 		}
 		if (Array.isArray(row)) {
-			rows.push(dims.map((_, idx) => toCsvCell(row[idx])))
+			rows.push(dims.map((_, idx) => toChartCsvCell(row[idx])))
 			continue
 		}
 	}
@@ -163,7 +168,7 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 			if (xKey == null) continue
 
 			const existing = rowsByX.get(xKey) ?? {}
-			existing[name] = toCsvCell(y)
+			existing[name] = toChartCsvCell(y)
 			rowsByX.set(xKey, existing)
 		}
 	}
@@ -184,9 +189,9 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 		const record = rowsByX.get(xKey) ?? {}
 		const tsSeconds = includeDate ? normalizeEpochSeconds(xKey) : null
 		rows.push([
-			toCsvCell(xKey),
+			toChartCsvCell(xKey),
 			...(includeDate ? [tsSeconds != null ? toNiceCsvDate(tsSeconds) : ''] : []),
-			...seriesNames.map((name) => toCsvCell(record[name]))
+			...seriesNames.map((name) => toChartCsvCell(record[name]))
 		])
 	}
 

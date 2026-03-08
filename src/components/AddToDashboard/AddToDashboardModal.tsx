@@ -12,7 +12,6 @@ import { addItemToDashboard } from '~/containers/ProDashboard/utils/dashboardIte
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import type { FormSubmitEvent } from '~/types/forms'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { getFormString } from '~/utils/formData'
 import type { DashboardChartConfig, LlamaAIChartInput } from './AddToDashboardButton'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
@@ -320,8 +319,10 @@ export function AddToDashboardModal({
 			if (isSubmitting) return
 
 			const formData = new FormData(event.currentTarget)
-			const nextDashboardName = getFormString(formData, 'newDashboardName').trim()
-			const nextChartName = getFormString(formData, 'chartName').trim()
+			const nextDashboardNameValue = formData.get('newDashboardName')
+			const nextChartNameValue = formData.get('chartName')
+			const nextDashboardName = (typeof nextDashboardNameValue === 'string' ? nextDashboardNameValue : '').trim()
+			const nextChartName = (typeof nextChartNameValue === 'string' ? nextChartNameValue : '').trim()
 
 			if (isCreatingNew && !nextDashboardName) {
 				toast.error('Please enter a dashboard name')

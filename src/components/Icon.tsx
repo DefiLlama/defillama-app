@@ -104,12 +104,6 @@ const ICON_NAMES = [
 
 type Name = (typeof ICON_NAMES)[number]
 
-const ICON_NAME_SET: ReadonlySet<string> = new Set(ICON_NAMES)
-
-export function isIconName(value: unknown): value is Name {
-	return typeof value === 'string' && ICON_NAME_SET.has(value)
-}
-
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
 }

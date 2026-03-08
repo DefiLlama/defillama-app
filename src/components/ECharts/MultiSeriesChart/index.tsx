@@ -38,7 +38,6 @@ interface IMultiSeriesChartProps {
 }
 
 const EMPTY_ARRAY = []
-const VALID_GROUP_BY = new Set<IMultiSeriesChartProps['groupBy']>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
 
 export default function MultiSeriesChart({
 	series,
@@ -61,7 +60,7 @@ export default function MultiSeriesChart({
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
 		xAxisType,
-		groupBy: groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily',
+		groupBy: groupBy ?? 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
 		showAggregateInTooltip

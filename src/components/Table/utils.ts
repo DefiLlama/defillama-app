@@ -1,6 +1,7 @@
 import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react-table'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import type { CsvCell } from '~/utils/csvCell'
 
 type BreakpointMap<T> = Record<number, T>
 export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
@@ -168,8 +169,6 @@ export function useSortColumnSizesAndOrders({
 	}, [instance, columnSizes, columnOrders, width])
 }
 
-import { type CsvCell, isCsvCell } from '~/utils/csvCell'
-
 export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {
 	filename: string
 	rows: Array<Array<CsvCell>>
@@ -191,8 +190,18 @@ export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>;
 		columns.map((column) => {
 			const value = row.getValue(column.id)
 			if (value == null) return ''
-			if (isCsvCell(value)) return value
-			if (Array.isArray(value)) return value.filter(isCsvCell).join(', ')
+			if (typeof value === 'number') return Number.isFinite(value) ? value : ''
+			if (typeof value === 'string' || typeof value === 'boolean') return value
+			if (Array.isArray(value)) {
+				return value
+					.filter(
+						(item): item is CsvCell =>
+							(typeof item === 'number' && Number.isFinite(item)) ||
+							typeof item === 'string' ||
+							typeof item === 'boolean'
+					)
+					.join(', ')
+			}
 			return ''
 		})
 	)

@@ -23,13 +23,11 @@ export function useUmamiIdentityTracker() {
 				return true
 			}
 
-			const maybeUmami = Reflect.get(window, 'umami')
-			if (typeof maybeUmami !== 'object' || maybeUmami === null) return false
-			const maybeIdentify = Reflect.get(maybeUmami, 'identify')
-			if (typeof maybeIdentify !== 'function') return false
+			const umami = window.umami
+			if (!umami) return false
 			if (lastIdentifiedIdRef.current === distinctId) return true
 
-			Reflect.apply(maybeIdentify, maybeUmami, [distinctId])
+			umami.identify(distinctId)
 			lastIdentifiedIdRef.current = distinctId
 			return true
 		}
