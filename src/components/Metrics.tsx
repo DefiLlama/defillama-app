@@ -225,7 +225,7 @@ export function LinkToMetricOrToolPage({
 	pinnedRoutes
 }: {
 	page: IPage
-	totalTrackedByMetric: any
+	totalTrackedByMetric: Record<string, unknown> | undefined
 	pinnedRoutes: Set<string>
 }) {
 	const isPinned = pinnedRoutes.has(page.route)
@@ -326,8 +326,13 @@ export function usePinnedRoutes(): Set<string> {
 	}, [raw])
 }
 
-const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
-	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
+const getTotalTracked = (totalTrackedByMetric: Record<string, unknown>, totalTrackedKey: string): string | null => {
+	const value = totalTrackedKey
+		.split('.')
+		.reduce<unknown>(
+			(obj, key) => (obj && typeof obj === 'object' ? (obj as Record<string, unknown>)[key] : undefined),
+			totalTrackedByMetric
+		)
 	if (!value) return null
 	return `${value} tracked`
 }

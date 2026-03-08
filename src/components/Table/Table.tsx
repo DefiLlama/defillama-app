@@ -9,7 +9,7 @@ import { SortIcon } from '~/components/Table/SortIcon'
 import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
 
-interface ITableProps<T extends RowData = any> {
+interface ITableProps<T extends RowData = RowData> {
 	instance: Table<T>
 	skipVirtualization?: boolean
 	rowSize?: number
@@ -23,8 +23,8 @@ interface ITableProps<T extends RowData = any> {
 
 const isGroupingColumn = (columnId?: string) => typeof columnId === 'string' && columnId.startsWith('__group_')
 
-interface TableRowProps {
-	row: Row<any>
+interface TableRowProps<T extends RowData = RowData> {
+	row: Row<T>
 	index: number
 	virtualRow?: VirtualItem
 	gridTemplateColumns: string
@@ -38,7 +38,7 @@ interface TableRowProps {
 	compact: boolean
 }
 
-function TableRow({
+function TableRow<T extends RowData>({
 	row: rowToRender,
 	index: i,
 	virtualRow,
@@ -51,7 +51,7 @@ function TableRow({
 	stripedBg,
 	isChainPage,
 	compact
-}: TableRowProps) {
+}: TableRowProps<T>) {
 	const trStyle: React.CSSProperties = {
 		display: 'grid',
 		gridTemplateColumns,
@@ -64,7 +64,7 @@ function TableRow({
 					left: 0,
 					width: '100%',
 					height: `${virtualRow.size}px`,
-					opacity: rowToRender.original.disabled ? 0.3 : 1,
+					opacity: (rowToRender.original as Record<string, unknown>)?.disabled ? 0.3 : 1,
 					transform: `translateY(${virtualRow.start - scrollMargin}px)`
 				})
 	}
@@ -121,7 +121,7 @@ function TableRow({
 	)
 }
 
-export function VirtualTable({
+export function VirtualTable<T extends RowData>({
 	instance,
 	skipVirtualization,
 	columnResizeMode: _columnResizeMode,
@@ -131,7 +131,7 @@ export function VirtualTable({
 	useStickyHeader = true,
 	scrollMargin,
 	...props
-}: ITableProps) {
+}: ITableProps<T>) {
 	const router = useRouter()
 	const isSmallScreen = useMedia('(max-width: 768px)')
 	const tableContainerRef = useRef<HTMLTableSectionElement>(null)

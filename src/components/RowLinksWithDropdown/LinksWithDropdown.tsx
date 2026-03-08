@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
+import { type HTMLAttributes, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 import { BasicLink } from '~/components/Link'
 import { useIsClient } from '~/hooks/useIsClient'
 import { OtherLinks } from './OtherLinks'
@@ -278,7 +278,11 @@ export function LinksWithDropdown({
 	)
 }
 
-function LinkItem({ option, isActive, ...props }: { option: ILink; isActive: boolean; [key: string]: any }) {
+function LinkItem({
+	option,
+	isActive,
+	...props
+}: { option: ILink; isActive: boolean } & HTMLAttributes<HTMLAnchorElement>) {
 	return (
 		<BasicLink
 			href={option.to}
