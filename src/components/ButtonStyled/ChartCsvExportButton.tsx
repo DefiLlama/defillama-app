@@ -29,10 +29,6 @@ function coerceXKey(x: unknown): string | number | null {
 	return Number.isFinite(asNum) ? asNum : x
 }
 
-function getRecordValue(record: Record<string, unknown>, key: string): unknown {
-	return Reflect.get(record, key)
-}
-
 function getDatasetFromOption(option: any): { dimensions: string[] | null; source: unknown[] | null } {
 	const ds = option?.dataset
 	const datasetObj = Array.isArray(ds) ? ds[0] : ds
@@ -96,10 +92,10 @@ function buildCsvRowsFromDataset(dimensions: string[] | null, source: unknown[] 
 
 			if (isRecord(row)) {
 				tsRaw = row.timestamp
-				values = seriesDims.map((k) => toCsvCell(getRecordValue(row, k)))
+				values = seriesDims.map((k) => toCsvCell(row[k]))
 			} else if (Array.isArray(row)) {
 				tsRaw = tsIndex >= 0 ? row[tsIndex] : ''
-				values = seriesIndexes.map((idx) => toCsvCell((idx >= 0 ? row[idx] : '') ?? ''))
+				values = seriesIndexes.map((idx) => toCsvCell(idx >= 0 ? row[idx] : ''))
 			} else {
 				continue
 			}
@@ -113,11 +109,11 @@ function buildCsvRowsFromDataset(dimensions: string[] | null, source: unknown[] 
 	rows.push([...dims])
 	for (const row of dataRows) {
 		if (isRecord(row)) {
-			rows.push(dims.map((k) => toCsvCell(getRecordValue(row, k))))
+			rows.push(dims.map((k) => toCsvCell(row[k])))
 			continue
 		}
 		if (Array.isArray(row)) {
-			rows.push(dims.map((_, idx) => toCsvCell(row[idx] ?? '')))
+			rows.push(dims.map((_, idx) => toCsvCell(row[idx])))
 			continue
 		}
 	}
@@ -151,13 +147,13 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 				x = point[0]
 				y = point[1]
 			} else if (isRecord(point) && 'value' in point) {
-				const v = Reflect.get(point, 'value')
+				const v = point['value']
 				if (Array.isArray(v)) {
 					x = v[0]
 					y = v[1]
 				} else {
 					y = v
-					if ('name' in point) x = Reflect.get(point, 'name')
+					if ('name' in point) x = point['name']
 				}
 			} else {
 				y = point
@@ -167,7 +163,7 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 			if (xKey == null) continue
 
 			const existing = rowsByX.get(xKey) ?? {}
-			existing[name] = toCsvCell(y ?? '')
+			existing[name] = toCsvCell(y)
 			rowsByX.set(xKey, existing)
 		}
 	}
@@ -190,7 +186,7 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 		rows.push([
 			toCsvCell(xKey),
 			...(includeDate ? [tsSeconds != null ? toNiceCsvDate(tsSeconds) : ''] : []),
-			...seriesNames.map((name) => toCsvCell(record[name] ?? ''))
+			...seriesNames.map((name) => toCsvCell(record[name]))
 		])
 	}
 

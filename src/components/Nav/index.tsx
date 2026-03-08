@@ -69,6 +69,10 @@ function normalizeAiRoute(route: string, hasActiveSubscription: boolean): string
 	return route === '/ai' && hasActiveSubscription ? '/ai/chat' : route
 }
 
+function canonicalAiRoute(route: string): string {
+	return route === '/ai/chat' ? '/ai' : route
+}
+
 export function Nav({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
@@ -102,7 +106,7 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 			const parsed = JSON.parse(pinnedMetrics)
 			if (!Array.isArray(parsed) || parsed.length === 0) return []
 			return parsed.flatMap((metric: string) => {
-				const page = routeToPageMap.get(metric)
+				const page = routeToPageMap.get(metric) ?? routeToPageMap.get(canonicalAiRoute(metric))
 				if (!page) return []
 				const route = normalizeAiRoute(page.route, hasActiveSubscription)
 				return [route !== page.route ? { ...page, route } : page]

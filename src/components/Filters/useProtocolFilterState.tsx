@@ -20,9 +20,9 @@ export function useProtocolsFilterState(options: { key: string; name: string }[]
 		return filters.filter((key) => (isTvlSettingsKey(key) ? extraTvlsEnabled[key] : extraFeesEnabled[key]))
 	}, [extraTvlsEnabled, extraFeesEnabled, options])
 
-	const setSelectedValues = (values: string | string[]) => {
+	const setSelectedValues = (values: string[]) => {
 		const newValues: Partial<Record<TvlSettingsKey | FeesSettingKey, boolean>> = {}
-		const selectedValuesSet = new Set(Array.isArray(values) ? values : [values])
+		const selectedValuesSet = new Set(values)
 		for (const o of options) {
 			if (!isMetricSettingKey(o.key)) continue
 			newValues[o.key] = selectedValuesSet.has(o.key)

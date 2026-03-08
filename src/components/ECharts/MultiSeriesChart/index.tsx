@@ -174,11 +174,12 @@ export default function MultiSeriesChart({
 
 		if (needMultipleAxes) {
 			const axisCount = Math.max(uniqueMetricTypes.length, maxExplicitAxisIndex + 1, 2)
-			const yAxisBase = yAxis && typeof yAxis === 'object' ? yAxis : {}
-			const axisLabelRaw = Reflect.get(yAxisBase, 'axisLabel')
-			const yAxisAxisLabel = axisLabelRaw && typeof axisLabelRaw === 'object' ? axisLabelRaw : {}
-			// Preserve a caller-provided formatter (e.g. custom %/K/M/B) instead of always overriding it
-			const existingFormatter = typeof yAxisAxisLabel.formatter === 'function' ? yAxisAxisLabel.formatter : null
+			const yAxisBase = yAxis && typeof yAxis === 'object' ? (Array.isArray(yAxis) ? yAxis[0] || {} : yAxis) : {}
+			const yAxisAxisLabel = yAxisBase.axisLabel && typeof yAxisBase.axisLabel === 'object' ? yAxisBase.axisLabel : {}
+			const existingFormatter =
+				typeof yAxisAxisLabel.formatter === 'function' || typeof yAxisAxisLabel.formatter === 'string'
+					? yAxisAxisLabel.formatter
+					: null
 			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
 				...yAxisBase,
 				axisLabel: {

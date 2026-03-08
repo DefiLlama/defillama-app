@@ -19,7 +19,7 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 		return null
 	}
 
-	const textStyle: FormattedNameStyle = { '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 }
+	const textStyle: FormattedNameStyle = { '--text-size': fontSize ?? 'inherit', '--weight': fontWeight }
 
 	if (typeof maxCharacters === 'number' && text.length > maxCharacters) {
 		return (
