@@ -1103,7 +1103,8 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			({
 				monthly: {},
 				quarterly: {},
-				yearly: {}
+				yearly: {},
+				cumulative: {}
 			} as IncomeStatementData)
 
 		type PeriodEntry = Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number }
@@ -1151,6 +1152,46 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 					}
 				}
 			}
+		}
+
+		const cumulativePeriod: PeriodEntry = {}
+		let latestMonthlyTimestamp = 0
+
+		for (const period in aggregatesMap.monthly ?? {}) {
+			const periodData = aggregatesMap.monthly[period]
+			latestMonthlyTimestamp = Math.max(latestMonthlyTimestamp, Number(periodData?.timestamp ?? 0))
+
+			for (const label in periodData) {
+				if (label === 'timestamp') continue
+
+				const entry = periodData[label] as { value: number; 'by-label': Record<string, number> } | undefined
+				if (!entry) continue
+
+				const cumulativeEntry = cumulativePeriod[label] as
+					| { value: number; 'by-label': Record<string, number> }
+					| undefined
+
+				if (!cumulativeEntry) {
+					cumulativePeriod[label] = {
+						value: 0,
+						'by-label': {}
+					}
+				}
+
+				;(cumulativePeriod[label] as { value: number; 'by-label': Record<string, number> }).value += entry.value ?? 0
+
+				for (const breakdownLabel in entry['by-label'] ?? {}) {
+					const breakdowns = (cumulativePeriod[label] as { value: number; 'by-label': Record<string, number> })[
+						'by-label'
+					]
+					breakdowns[breakdownLabel] = (breakdowns[breakdownLabel] ?? 0) + (entry['by-label'][breakdownLabel] ?? 0)
+				}
+			}
+		}
+
+		if (Object.keys(cumulativePeriod).length > 0) {
+			cumulativePeriod.timestamp = latestMonthlyTimestamp
+			aggregatesMap.cumulative = { cumulative: cumulativePeriod }
 		}
 
 		const finalLabelsByType: Record<string, Array<string>> = {}
