@@ -109,8 +109,8 @@ export default function PieChart({
 			}
 
 		const fontSize = typeof legendTextStyle?.fontSize === 'number' ? legendTextStyle.fontSize : 12
-		const fontFamilyRaw = Reflect.get(legendTextStyle ?? {}, 'fontFamily')
-		const fontWeightRaw = Reflect.get(legendTextStyle ?? {}, 'fontWeight')
+		const fontFamilyRaw = legendTextStyle?.fontFamily
+		const fontWeightRaw = legendTextStyle?.fontWeight
 		const fontFamily = typeof fontFamilyRaw === 'string' ? fontFamilyRaw : 'sans-serif'
 		const fontWeight = typeof fontWeightRaw === 'number' ? fontWeightRaw : 400
 		// Keep this small so we don't over-truncate names.
@@ -246,9 +246,10 @@ export default function PieChart({
 
 	const isChartDisposed = (inst: echarts.ECharts | null) => {
 		if (!inst) return true
-		const maybeIsDisposed = Reflect.get(inst, 'isDisposed')
-		if (typeof maybeIsDisposed !== 'function') return false
-		return Boolean(Reflect.apply(maybeIsDisposed, inst, []))
+		if (typeof inst.isDisposed !== 'function') {
+			throw new Error('ECharts instance missing isDisposed method')
+		}
+		return inst.isDisposed()
 	}
 
 	const computePieCenterPx = (inst: echarts.ECharts, reserved: number) => {

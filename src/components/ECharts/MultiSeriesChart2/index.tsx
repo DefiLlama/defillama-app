@@ -21,7 +21,7 @@ import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
-import { asTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
+import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -305,9 +305,9 @@ function buildMultiYAxis({
 }
 
 function getAxisValueFromTooltipParams(first: any): number {
-	const dataObj = asTooltipDataRecord(first?.data)
-	if (dataObj && 'timestamp' in dataObj) {
-		const ts = Number(dataObj.timestamp)
+	const data = first?.data
+	if (isTooltipDataRecord(data) && 'timestamp' in data) {
+		const ts = Number(data.timestamp)
 		if (Number.isFinite(ts)) return ts
 	}
 
@@ -332,13 +332,9 @@ function getAxisValueFromTooltipParams(first: any): number {
 }
 
 function getTooltipRawYValue(item: any, seriesName: string): any {
-	// ECharts can provide:
-	// - item.data as object (dataset.source object rows)  <-- our canonical format
-	// - item.value as array/number (fallbacks for safety)
-	const dataObj = asTooltipDataRecord(item?.data)
+	const data = item?.data
 
-	// 1) Object-row dataset: `data[seriesName]` is the most reliable.
-	if (dataObj && seriesName in dataObj) return dataObj[seriesName]
+	if (isTooltipDataRecord(data) && seriesName in data) return data[seriesName]
 
 	// 2) Fallback: value array (e.g. [ts, y]).
 	if (Array.isArray(item?.value)) {

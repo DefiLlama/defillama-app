@@ -3,6 +3,7 @@ import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
 import type { FormSubmitEvent } from '~/types/forms'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { useEntityCombobox } from '../hooks/useEntityCombobox'
 import { useImageUpload, fileToBase64 } from '../hooks/useImageUpload'
 import { setInputSize, syncHighlightScroll } from '../utils/scrollUtils'
@@ -45,9 +46,7 @@ interface PromptInputProps {
 }
 
 const trackSubmit = () => {
-	if (typeof window !== 'undefined' && (window as any).umami) {
-		;(window as any).umami.track('llamaai-prompt-submit')
-	}
+	trackUmamiEvent('llamaai-prompt-submit')
 }
 
 export function PromptInput({

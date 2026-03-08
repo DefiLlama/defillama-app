@@ -10,7 +10,7 @@ function getPercentChangeDisplay(percent: unknown, noSign?: boolean): PercentCha
 	}
 
 	const parsedPercent =
-		typeof percent === 'number' ? percent : typeof percent === 'string' ? Number.parseFloat(percent) : Number.NaN
+		typeof percent === 'number' ? percent : typeof percent === 'string' ? Number(percent) : Number.NaN
 	if (!Number.isFinite(parsedPercent)) {
 		return null
 	}

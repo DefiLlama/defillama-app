@@ -36,7 +36,7 @@ const getAnnouncementKey = (router: NextRouter) => {
 	else return 'defi'
 }
 
-type AnnouncementStyle = React.CSSProperties & { '--bg': string }
+type AnnouncementStyle = React.CSSProperties & { '--link-bg': string }
 
 function parseAnnouncementValue(store: string): string | undefined {
 	let parsed: unknown
@@ -81,7 +81,7 @@ export function Announcement({
 		return null
 	}
 
-	const wrapperStyle: AnnouncementStyle = { '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' }
+	const wrapperStyle: AnnouncementStyle = { '--link-bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' }
 
 	return (
 		<div

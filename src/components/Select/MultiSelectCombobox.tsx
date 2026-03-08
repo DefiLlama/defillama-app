@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
 import type { MultiSelectOption } from './types'
 
 export const MultiSelectCombobox = ({
@@ -38,17 +39,7 @@ export const MultiSelectCombobox = ({
 		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
-
-		// Focus on the first newly loaded item after a brief delay
-		setTimeout(() => {
-			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
-			if (items && items.length > previousCount) {
-				const firstNewItem = items.item(previousCount)
-				if (firstNewItem instanceof HTMLElement) {
-					firstNewItem.focus()
-				}
-			}
-		}, 0)
+		focusFirstNewItem(comboboxRef, '[role="option"]', previousCount)
 	}
 
 	return (

@@ -35,9 +35,14 @@ const footerLinks = footerCategories.map((category) => ({
 })) as TNavLinks
 
 const routeToPageMap = new Map<string, { name: string; route: string }>()
-for (const pages of Object.values(defillamaPages as Record<string, Array<{ name: string; route: string }>>)) {
+for (const [category, pages] of Object.entries(
+	defillamaPages as Record<string, Array<{ name: string; route: string }>>
+)) {
+	if (category === 'Hidden') continue
 	for (const page of pages) {
-		routeToPageMap.set(page.route, { name: page.name, route: page.route })
+		if (!routeToPageMap.has(page.route)) {
+			routeToPageMap.set(page.route, { name: page.name, route: page.route })
+		}
 	}
 }
 
@@ -66,7 +71,7 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 
 	const mainLinks = useMemo(() => {
 		const premium = premiumPages.map((p) =>
-			p.name === 'LlamaAI' && hasActiveSubscription ? { ...p, route: '/ai/chat' } : p
+			p.route === '/ai' && hasActiveSubscription ? { ...p, route: '/ai/chat' } : p
 		)
 		return [
 			{ category: 'Main', pages: mainPages },

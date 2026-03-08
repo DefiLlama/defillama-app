@@ -177,12 +177,14 @@ export default function MultiSeriesChart({
 			const yAxisBase = yAxis && typeof yAxis === 'object' ? yAxis : {}
 			const axisLabelRaw = Reflect.get(yAxisBase, 'axisLabel')
 			const yAxisAxisLabel = axisLabelRaw && typeof axisLabelRaw === 'object' ? axisLabelRaw : {}
+			const existingFormatter = typeof yAxisAxisLabel.formatter === 'function' ? yAxisAxisLabel.formatter : null
 			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
 				...yAxisBase,
 				axisLabel: {
 					...yAxisAxisLabel,
 					margin: 4,
-					formatter: (value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol)
+					formatter:
+						existingFormatter ?? ((value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol))
 				},
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
 				offset: index === 2 ? 40 : 0

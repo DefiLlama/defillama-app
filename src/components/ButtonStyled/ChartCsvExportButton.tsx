@@ -4,7 +4,6 @@ import { toNiceCsvDate } from '~/utils'
 import { CSVDownloadButton } from './CsvButton'
 
 type CsvCell = string | number | boolean
-const CSV_CELL_TYPES = new Set(['string', 'number', 'boolean'])
 
 function isRecord(x: unknown): x is Record<string, unknown> {
 	return !!x && typeof x === 'object' && !Array.isArray(x)
@@ -32,7 +31,8 @@ function coerceXKey(x: unknown): string | number | null {
 }
 
 function isCsvCell(value: unknown): value is CsvCell {
-	return CSV_CELL_TYPES.has(typeof value)
+	if (typeof value === 'number') return Number.isFinite(value)
+	return typeof value === 'string' || typeof value === 'boolean'
 }
 
 function toCsvCell(value: unknown): CsvCell {

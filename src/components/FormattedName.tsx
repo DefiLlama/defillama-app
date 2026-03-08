@@ -18,8 +18,9 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 		return null
 	}
 
+	const textStyle: FormattedNameStyle = { '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 }
+
 	if (typeof maxCharacters === 'number' && text.length > maxCharacters) {
-		const textStyle: FormattedNameStyle = { '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 }
 		return (
 			<Tooltip content={text}>
 				<span
@@ -32,7 +33,6 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 			</Tooltip>
 		)
 	}
-	const textStyle: FormattedNameStyle = { '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 }
 
 	return (
 		<span

@@ -2,14 +2,14 @@ import Head from 'next/head'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
 
-const FEES_PAGE_TYPE = String(ADAPTER_TYPES.FEES)
+const FEES_PAGE_TYPE: string = ADAPTER_TYPES.FEES
 const VOLUME_PAGE_TYPES = new Set<string>([
-	String(ADAPTER_TYPES.DEXS),
-	String(ADAPTER_TYPES.AGGREGATORS),
-	String(ADAPTER_TYPES.PERPS),
-	String(ADAPTER_TYPES.PERPS_AGGREGATOR),
-	String(ADAPTER_TYPES.OPTIONS),
-	String(ADAPTER_TYPES.BRIDGE_AGGREGATORS)
+	ADAPTER_TYPES.DEXS,
+	ADAPTER_TYPES.AGGREGATORS,
+	ADAPTER_TYPES.PERPS,
+	ADAPTER_TYPES.PERPS_AGGREGATOR,
+	ADAPTER_TYPES.OPTIONS,
+	ADAPTER_TYPES.BRIDGE_AGGREGATORS
 ])
 
 interface ILinkPreviewCardProps {

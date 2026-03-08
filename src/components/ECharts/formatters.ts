@@ -11,8 +11,12 @@ type TooltipGroupBy = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 
 
 type TooltipRow = { marker: string; name: string; value: number }
 
+export function isTooltipDataRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
 export function asTooltipDataRecord(value: unknown): Record<string, unknown> | null {
-	if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+	if (!isTooltipDataRecord(value)) return null
 	return { ...value }
 }
 
