@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -98,7 +98,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-const columns: ColumnDef<{
+type SafeHarborRow = {
 	name: string
 	url: string
 	chains: string[]
@@ -108,14 +108,17 @@ const columns: ColumnDef<{
 	fees: number
 	revenue: number
 	dexVolume: number
-}>[] = [
-	{
+}
+
+const columnHelper = createColumnHelper<SafeHarborRow>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -172,42 +175,37 @@ const columns: ColumnDef<{
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('fees', {
 		header: '24h Fees',
-		accessorKey: 'fees',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('revenue', {
 		header: '24h Revenue',
-		accessorKey: 'revenue',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('dexVolume', {
 		header: '24h DEX Volume',
-		accessorKey: 'dexVolume',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('url', {
 		header: 'Agreement',
-		accessorKey: 'url',
 		enableSorting: false,
 		cell: ({ row }) => (
 			<a
@@ -223,5 +221,5 @@ const columns: ColumnDef<{
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]

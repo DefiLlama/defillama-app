@@ -1,7 +1,7 @@
 import {
-	type ColumnDef,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -34,18 +34,18 @@ type BridgesLargeTxsTableProps = {
 	csvFileName?: string
 }
 
-const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
-	{
+const columnHelper = createColumnHelper<LargeTxsData>()
+
+const largeTxsColumn = [
+	columnHelper.accessor('date', {
 		header: 'Timestamp',
-		accessorKey: 'date',
-		cell: (info) => <>{toNiceDayAndHour(info.getValue() as number)}</>,
+		cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('bridge', {
 		header: 'Bridge',
-		accessorKey: 'bridge',
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const linkValue = slug(value)
 			return (
 				<BasicLink
@@ -57,12 +57,11 @@ const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
 			)
 		},
 		size: 180
-	},
-	{
+	}),
+	columnHelper.accessor('isDeposit', {
 		header: 'Deposit/Withdrawal',
-		accessorKey: 'isDeposit',
 		cell: ({ getValue }) => {
-			const value = getValue() as boolean
+			const value = getValue()
 			return (
 				<span className={`${value ? 'text-(--error)' : 'text-(--success)'}`}>{value ? 'Withdrawal' : 'Deposit'}</span>
 			)
@@ -71,12 +70,11 @@ const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('symbol', {
 		header: 'Token',
-		accessorKey: 'symbol',
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const splitValue = value.split('#')
 			const [symbol, token] = splitValue
 			const { blockExplorerLink } = getBlockExplorer(token)
@@ -92,27 +90,25 @@ const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
 						<Icon name="external-link" height={10} width={10} />
 					</a>
 				)
-			} else return <>Not found</>
+			} else return 'Not found'
 		},
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('usdValue', {
 		header: 'Value',
-		accessorKey: 'usdValue',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('txHash', {
 		header: 'Explorer Link',
-		accessorKey: 'txHash',
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const { blockExplorerLink } = getBlockExplorerForTx(value)
 			if (value) {
 				return (
@@ -126,13 +122,13 @@ const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
 						<Icon name="external-link" height={10} width={10} />
 					</a>
 				)
-			} else return <>Not found</>
+			} else return 'Not found'
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	}
+	})
 ]
 
 const largeTxsColumnOrders: ColumnOrdersByBreakpoint = {

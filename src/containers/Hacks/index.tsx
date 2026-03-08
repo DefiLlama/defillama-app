@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -373,40 +373,32 @@ export const HacksContainer = ({
 	)
 }
 
-const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
-	{
+const columnHelper = createColumnHelper<IHacksPageData['data'][0]>()
+
+const hacksColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		size: 200
-	},
-	{
-		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue<number>())}</>,
+	}),
+	columnHelper.accessor('date', {
+		cell: ({ getValue }) => toNiceDayMonthAndYear(getValue()),
 		size: 120,
-		header: 'Date',
-		accessorKey: 'date'
-	},
-	{
+		header: 'Date'
+	}),
+	columnHelper.accessor('amount', {
 		header: 'Amount lost',
-		accessorKey: 'amount',
-		cell: ({ getValue }) => {
-			const val = getValue<number | null>()
-			return <>{val != null ? formattedNum(val, true) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<IconsRow items={toChainIconItems(getValue<string[]>(), (chain) => chainHref('/chain', chain))} />
-		),
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
 		size: 60
-	},
-	{
+	}),
+	columnHelper.accessor('classification', {
 		header: 'Classification',
-		accessorKey: 'classification',
 		enableSorting: false,
 		size: 140,
 		meta: {
@@ -414,43 +406,39 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<string>()
+			const value = getValue()
 			return (
 				<Tooltip content={value} className="inline text-ellipsis">
 					{value}
 				</Tooltip>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('technique', {
 		header: 'Technique',
-		accessorKey: 'technique',
 		enableSorting: false,
 		size: 200,
 		cell: ({ getValue }) => {
-			const value = getValue<string>()
+			const value = getValue()
 			return (
 				<Tooltip content={value} className="inline text-ellipsis">
 					{value}
 				</Tooltip>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('language', {
 		header: 'Language',
-		accessorKey: 'language',
-		cell: ({ getValue }) => <>{getValue<string>()}</>,
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('link', {
 		header: 'Link',
-		accessorKey: 'link',
 		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<a
 				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
-				href={getValue<string>()}
+				href={getValue()}
 				target="_blank"
 				rel="noopener noreferrer"
 			>
@@ -458,5 +446,5 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				<span className="sr-only">open in new tab</span>
 			</a>
 		)
-	}
+	})
 ]

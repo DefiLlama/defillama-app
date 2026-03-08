@@ -54,7 +54,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 		header: 'Total Hacked',
 		accessorFn: (row) => row.totalHacked,
 		id: 'Total Hacked',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center'
 		}
@@ -63,7 +63,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 		header: 'Returned Funds',
 		accessorFn: (row) => row.returnedFunds,
 		id: 'Returned Funds',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center'
 		}
@@ -72,7 +72,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 		header: 'Net User Loss',
 		accessorFn: (row) => row.totalHacked - row.returnedFunds,
 		id: 'Net User Loss',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center',
 			headerHelperText: 'Total Hacked - Returned Funds'

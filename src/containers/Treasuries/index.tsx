@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
@@ -7,6 +7,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, getDominancePercent } from '~/utils'
 import type { ITreasuryRow } from './types'
+
+const columnHelper = createColumnHelper<ITreasuryRow>()
 
 export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boolean }) {
 	const tableColumns = useMemo(
@@ -36,13 +38,12 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 	)
 }
 
-const columns: ColumnDef<ITreasuryRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const name = getValue<string>().split(' (treasury)')[0]
+			const name = getValue().split(' (treasury)')[0]
 			const slug = row.original.slug.split('-(treasury)')[0]
 
 			return (
@@ -59,14 +60,13 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('tokenBreakdowns', {
+		id: 'tokenBreakdowns',
 		header: 'Breakdown',
-		accessorKey: 'tokenBreakdowns',
-		id: 'tokenBreakdowns0',
 		enableSorting: false,
 		cell: (info) => {
-			const breakdown = info.getValue<ITreasuryRow['tokenBreakdowns']>()
+			const breakdown = info.getValue()
 			const entries = Object.entries(breakdown) as Array<[keyof ITreasuryRow['tokenBreakdowns'], number]>
 			let totalBreakdown = 0
 
@@ -83,7 +83,7 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 			const dominance = Array.from(breakdownDominance.entries()).sort((a, b) => b[1] - a[1])
 
 			if (totalBreakdown < 1) {
-				return <></>
+				return null
 			}
 
 			return (
@@ -110,91 +110,69 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Stablecoins',
-		accessorKey: 'stablecoins',
+	}),
+	columnHelper.accessor('stablecoins', {
 		id: 'stablecoins',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Stablecoins',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 115,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Majors (BTC, ETH)',
-		accessorKey: 'majors',
+	}),
+	columnHelper.accessor('majors', {
 		id: 'majors',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Majors (BTC, ETH)',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 160,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('ownTokens', {
 		header: 'Own Tokens',
-		accessorKey: 'ownTokens',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Others',
-		accessorKey: 'others',
+	}),
+	columnHelper.accessor('others', {
 		id: 'others',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Others',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Total excl. own tokens',
-		accessorKey: 'coreTvl',
+	}),
+	columnHelper.accessor('coreTvl', {
 		id: 'coreTvl',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Total excl. own tokens',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 185,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Total Treasury',
-		accessorKey: 'tvl',
+	}),
+	columnHelper.accessor('tvl', {
 		id: 'tvl',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Total Treasury',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 135,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Mcap',
-		accessorKey: 'mcap',
+	}),
+	columnHelper.accessor('mcap', {
 		id: 'mcap',
-		cell: (info) => {
-			const value = info.getValue<number | null>()
-			return <>{value === null ? null : formattedNum(value, true)}</>
-		},
+		header: 'Mcap',
+		cell: (info) => (info.getValue() === null ? null : formattedNum(info.getValue(), true)),
 		size: 128,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const BREAKDOWN_COLORS: Record<string, string> = {

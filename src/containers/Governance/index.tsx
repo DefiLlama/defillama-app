@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -65,49 +65,47 @@ export default function Governance({ data }: { data: GovernanceOverviewItem[] })
 	)
 }
 
-const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
-	{
+const columnHelper = createColumnHelper<GovernanceOverviewItem>()
+
+const governanceColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo name={getValue() as string} kind="token" data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly />
 					<BasicLink
-						href={`/governance/${slug(getValue())}`}
+						href={`/governance/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string>()}
+						{value}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('proposalsCount', {
 		header: 'Proposals',
-		accessorKey: 'proposalsCount',
 		size: 100,
 		meta: { align: 'end' }
-	},
-	{
-		accessorKey: 'successfulProposals',
+	}),
+	columnHelper.accessor('successfulProposals', {
 		header: 'Successful Proposals',
 		size: 180,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('proposalsInLast30Days', {
 		header: 'Proposals in last 30 days',
-		accessorKey: 'proposalsInLast30Days',
 		size: 200,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('successfulProposalsInLast30Days', {
 		header: 'Successful Proposals in last 30 days',
-		accessorKey: 'successfulProposalsInLast30Days',
 		size: 280,
 		meta: { align: 'end' }
-	}
+	})
 ]

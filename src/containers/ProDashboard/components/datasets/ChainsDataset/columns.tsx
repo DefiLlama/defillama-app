@@ -1,12 +1,35 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 
-export const chainsDatasetColumns: ColumnDef<any>[] = [
-	{
+export interface ChainsDatasetRow {
+	name: string
+	protocols?: number
+	users?: number
+	change_1d?: number
+	change_7d?: number
+	change_1m?: number
+	tvl?: number
+	bridgedTvl?: number
+	stablesMcap?: number
+	totalVolume24h?: number
+	totalVolume30d?: number
+	totalFees24h?: number
+	totalFees30d?: number
+	totalAppRevenue24h?: number
+	totalAppRevenue30d?: number
+	totalRevenue30d?: number
+	mcaptvl?: number
+	mcap?: number
+	nftVolume?: number
+}
+
+const columnHelper = createColumnHelper<ChainsDatasetRow>()
+
+export const chainsDatasetColumns = [
+	columnHelper.accessor('name', {
 		header: 'Chain',
-		accessorKey: 'name',
 		size: 200,
 		enableGlobalFilter: true,
 		cell: ({ row }) => {
@@ -17,176 +40,158 @@ export const chainsDatasetColumns: ColumnDef<any>[] = [
 				</div>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('protocols', {
 		header: 'Protocols',
-		accessorKey: 'protocols',
 		size: 100,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text1">{value || 0}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('users', {
 		header: 'Active Addresses',
-		accessorKey: 'users',
 		size: 130,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text1">{value ? formattedNum(value) : ''}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
 		size: 90,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return (
 				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
 					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
 		size: 90,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return (
 				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
 					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m Change',
-		accessorKey: 'change_1m',
 		size: 90,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return (
 				<span className={`${value > 0 ? 'text-(--success)' : value < 0 ? 'text-(--error)' : 'pro-text2'}`}>
 					{value ? <PercentChange percent={value} fontWeight={100} /> : '-'}
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'DeFi TVL',
-		accessorKey: 'tvl',
 		size: 140,
-		cell: ({ getValue }) => <span className="pro-text1">{formattedNum(getValue() as number, true)}</span>
-	},
-	{
+		cell: ({ getValue }) => <span className="pro-text1">{formattedNum(getValue(), true)}</span>
+	}),
+	columnHelper.accessor('bridgedTvl', {
 		header: 'Bridged TVL',
-		accessorKey: 'bridgedTvl',
 		size: 120,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('stablesMcap', {
 		header: 'Stables',
-		accessorKey: 'stablesMcap',
 		size: 120,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalVolume24h', {
 		header: '24h DEXs Volume',
-		accessorKey: 'totalVolume24h',
 		size: 150,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalVolume30d', {
 		header: '30d DEXs Volume',
-		accessorKey: 'totalVolume30d',
 		size: 150,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalFees24h', {
 		header: '24h Chain Fees',
-		accessorKey: 'totalFees24h',
 		size: 130,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalFees30d', {
 		header: '30d Chain Fees',
-		accessorKey: 'totalFees30d',
 		size: 130,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalAppRevenue24h', {
 		header: '24h App Revenue',
-		accessorKey: 'totalAppRevenue24h',
 		size: 120,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalAppRevenue30d', {
 		header: '30d App Revenue',
-		accessorKey: 'totalAppRevenue30d',
 		size: 140,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalRevenue30d', {
 		header: '30d Chain Revenue',
-		accessorKey: 'totalRevenue30d',
 		size: 140,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap / DeFi TVL',
-		accessorKey: 'mcaptvl',
 		size: 120,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? value.toFixed(2) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
 		size: 140,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('nftVolume', {
 		header: 'NFT Volume',
-		accessorKey: 'nftVolume',
 		size: 120,
 		cell: ({ getValue }) => {
-			const value = getValue() as number
+			const value = getValue()
 			return <span className="pro-text2">{value ? formattedNum(value, true) : '-'}</span>
 		}
-	}
+	})
 ]

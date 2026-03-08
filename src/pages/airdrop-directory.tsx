@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { getAirdropDirectoryData } from '~/containers/Protocols/queries'
@@ -13,22 +13,22 @@ interface IAirdropRow {
 	page: string
 }
 
-const columns: ColumnDef<IAirdropRow>[] = [
-	{
+const columnHelper = createColumnHelper<IAirdropRow>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('page', {
 		header: 'Claim Page',
-		accessorKey: 'page',
 		size: 100,
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
-					href={getValue() as string}
+					href={getValue()}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
@@ -37,7 +37,7 @@ const columns: ColumnDef<IAirdropRow>[] = [
 					<span className="sr-only">open in new tab</span>
 				</a>
 			) : null
-	}
+	})
 ]
 
 export const getStaticProps = withPerformanceLogging('airdrop-directory', async () => {

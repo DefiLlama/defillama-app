@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { IconsRow } from '~/components/IconsRow'
@@ -206,10 +206,11 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 	)
 }
 
-const columns: ColumnDef<IETFSnapshotRow>[] = [
-	{
+const columnHelper = createColumnHelper<IETFSnapshotRow>()
+
+const columns = [
+	columnHelper.accessor('ticker', {
 		header: 'Ticker',
-		accessorKey: 'ticker',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -219,36 +220,33 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 						href={row.original.url}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string | null>()}
+						{getValue()}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('issuer', {
 		header: 'Issuer',
-		accessorKey: 'issuer',
 		meta: {
 			align: 'end'
 		},
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor('chain', {
 		header: 'Coin',
-		accessorKey: 'chain',
 		enableSorting: true,
-		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue<string[]>())} />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue())} />,
 		meta: {
 			align: 'end'
 		},
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor('flows', {
 		header: 'Flows',
-		accessorKey: 'flows',
 		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
+			const value = getValue()
 			const formattedValue = value != null ? formattedNum(value, true) : null
 
 			return (
@@ -265,29 +263,21 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('aum', {
 		header: 'AUM',
-		accessorKey: 'aum',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? formattedNum(value, true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('volume', {
 		header: 'Volume',
-		accessorKey: 'volume',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? formattedNum(value, true) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	}
+	})
 ]

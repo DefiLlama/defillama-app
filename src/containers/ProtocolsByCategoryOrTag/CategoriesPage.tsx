@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
@@ -14,17 +14,17 @@ import { categoriesPageExcludedExtraTvls } from './constants'
 import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
+const columnHelper = createColumnHelper<IProtocolsCategoriesTableRow>()
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
-	{
+const categoriesColumns = [
+	columnHelper.accessor('name', {
 		header: 'Category',
-		accessorKey: 'name',
 		enableSorting: false,
 		size: 240,
 		cell: ({ getValue, row }) => {
-			const categoryName = getValue<string>()
+			const categoryName = getValue()
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
@@ -58,89 +58,70 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('protocols', {
 		header: 'Protocols',
-		accessorKey: 'protocols',
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Combined TVL',
+	}),
+	columnHelper.accessor((row) => row.tvl, {
 		id: 'tvl',
-		accessorFn: (row) => row.tvl,
+		header: 'Combined TVL',
 		size: 135,
 		meta: {
 			align: 'end'
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<number>()
+			const value = getValue()
 			return formattedNum(value, true)
 		}
-	},
-	{
-		header: '1d TVL Change',
+	}),
+	columnHelper.accessor((row) => row.change_1d, {
 		id: 'change_1d',
-		accessorFn: (row) => row.change_1d,
+		header: '1d TVL Change',
 		size: 140,
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue<number | null>()} />
-			</>
-		)
-	},
-	{
-		header: '7d TVL Change',
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor((row) => row.change_7d, {
 		id: 'change_7d',
-		accessorFn: (row) => row.change_7d,
+		header: '7d TVL Change',
 		size: 140,
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue<number | null>()} />
-			</>
-		)
-	},
-	{
-		header: '1m TVL Change',
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor((row) => row.change_1m, {
 		id: 'change_1m',
-		accessorFn: (row) => row.change_1m,
+		header: '1m TVL Change',
 		size: 140,
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue<number | null>()} />
-			</>
-		)
-	},
-	{
-		header: 'Combined 24h Revenue',
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor((row) => row.revenue, {
 		id: 'revenue',
-		accessorFn: (row) => row.revenue,
+		header: 'Combined 24h Revenue',
 		size: 200,
 		meta: {
 			align: 'end'
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<number>()
+			const value = getValue()
 			return formattedNum(value, true)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('description', {
 		header: 'Description',
-		accessorKey: 'description',
 		enableSorting: false,
 		size: 1600
-	}
+	})
 ]
 
 export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {

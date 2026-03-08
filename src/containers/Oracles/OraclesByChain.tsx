@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { IconsRow } from '~/components/IconsRow'
@@ -213,14 +213,14 @@ export const OraclesByChain = ({
 }
 
 type IOracleTableRow = OraclesByChainPageData['tableData'][number]
+const columnHelper = createColumnHelper<IOracleTableRow>()
 
-const columns: ColumnDef<IOracleTableRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const name = getValue<string>()
+			const name = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<BasicLink
@@ -232,10 +232,9 @@ const columns: ColumnDef<IOracleTableRow>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
 		size: 200,
 		cell: ({ row }) => {
@@ -250,27 +249,22 @@ const columns: ColumnDef<IOracleTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Chains secured by the oracle'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('protocolsSecured', {
 		header: 'Protocols',
-		accessorKey: 'protocolsSecured',
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVS',
-		accessorKey: 'tvl',
 		enableSorting: true,
 		size: 140,
-		cell: ({ getValue }) => {
-			const value = getValue<number>()
-			return <span>{formattedNum(value, true)}</span>
-		},
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total Value Secured by the Oracle'
 		}
-	}
+	})
 ]

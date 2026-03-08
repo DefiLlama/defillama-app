@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
@@ -160,13 +160,14 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 
 // ── Table columns ───────────────────────────────────────────────────────
 
-const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
-	{
+const columnHelper = createColumnHelper<IDATOverviewPageProps['institutions'][0]>()
+
+const overviewColumns = [
+	columnHelper.accessor('name', {
 		header: 'Institution',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const name = getValue<string>()
+			const name = getValue()
 
 			return (
 				<span className="relative flex items-center gap-2">
@@ -185,70 +186,60 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		meta: {
 			align: 'start'
 		}
-	},
-	{
-		header: 'Assets',
-		id: 'holdings',
-		accessorFn: (row) =>
-			row.holdings.map((asset) => `${asset.name} (${(Number(asset.dominance) || 0).toFixed(2)}%)`).join(', '),
-		enableSorting: false,
-		cell: (info) => {
-			const assetBreakdown = info.row.original.holdings
+	}),
+	columnHelper.accessor(
+		(row) => row.holdings.map((asset) => `${asset.name} (${(Number(asset.dominance) || 0).toFixed(2)}%)`).join(', '),
+		{
+			id: 'holdings',
+			header: 'Assets',
+			enableSorting: false,
+			cell: (info) => {
+				const assetBreakdown = info.row.original.holdings
 
-			return (
-				<Tooltip
-					content={<AssetTooltipContent assetBreakdown={assetBreakdown} protocolName={info.row.original.name} />}
-					render={<button />}
-					className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white"
-				>
-					{assetBreakdown.map((asset) => {
-						return (
-							<div
-								key={asset.name + asset.dominance + info.row.original.name}
-								style={{ width: `${asset.dominance}%`, background: asset.color }}
-								className="h-5"
-							/>
-						)
-					})}
-				</Tooltip>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end'
+				return (
+					<Tooltip
+						content={<AssetTooltipContent assetBreakdown={assetBreakdown} protocolName={info.row.original.name} />}
+						render={<button />}
+						className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white"
+					>
+						{assetBreakdown.map((asset) => {
+							return (
+								<div
+									key={asset.name + asset.dominance + info.row.original.name}
+									style={{ width: `${asset.dominance}%`, background: asset.color }}
+									className="h-5"
+								/>
+							)
+						})}
+					</Tooltip>
+				)
+			},
+			size: 120,
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
+	),
+	columnHelper.accessor('totalCost', {
 		header: 'Cost Basis',
-		accessorKey: 'totalCost',
-		cell: ({ getValue }) => {
-			const totalCost = getValue<number>()
-			if (totalCost == null) return null
-			return <>{formattedNum(totalCost, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalUsdValue', {
 		header: "Today's Holdings Value",
-		accessorKey: 'totalUsdValue',
-		cell: ({ getValue }) => {
-			const totalUsdValue = getValue<number>()
-			if (totalUsdValue == null) return null
-			return <>{formattedNum(totalUsdValue, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 196,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('price', {
 		header: 'Stock Price',
-		accessorKey: 'price',
 		cell: ({ getValue, row }) => {
-			const price = getValue<number>()
+			const price = getValue()
 			if (price == null) return null
 			const priceChange24h = row.original.priceChange24h
 			if (priceChange24h == null) return <>{formattedNum(price, true)}</>
@@ -272,52 +263,37 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('realized_mNAV', {
 		header: 'Realized mNAV',
-		accessorKey: 'realized_mNAV',
-		cell: ({ getValue }) => {
-			const realized_mNAV = getValue<number>()
-			if (realized_mNAV == null) return null
-			return <>{formattedNum(realized_mNAV, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value based only on the current outstanding common shares, with no dilution considered.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('realistic_mNAV', {
 		header: 'Realistic mNAV',
-		accessorKey: 'realistic_mNAV',
-		cell: ({ getValue }) => {
-			const realistic_mNAV = getValue<number>()
-			if (realistic_mNAV == null) return null
-			return <>{formattedNum(realistic_mNAV, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('max_mNAV', {
 		header: 'Max mNAV',
-		accessorKey: 'max_mNAV',
-		cell: ({ getValue }) => {
-			const max_mNAV = getValue<number>()
-			if (max_mNAV == null) return null
-			return <>{formattedNum(max_mNAV, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)'
 		}
-	}
+	})
 ]
 
 // ── Tooltip helpers ─────────────────────────────────────────────────────

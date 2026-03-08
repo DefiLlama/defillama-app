@@ -1,5 +1,5 @@
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -17,13 +17,13 @@ type BridgeAddressesTableRow = {
 	withdrawn?: number
 	txs?: number
 }
+const columnHelper = createColumnHelper<BridgeAddressesTableRow>()
 
-const bridgeAddressesColumn: ColumnDef<BridgeAddressesTableRow>[] = [
-	{
+const bridgeAddressesColumn = [
+	columnHelper.accessor('address', {
 		header: 'Address',
-		accessorKey: 'address',
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const formattedValue = value.split(':')[1]
 			const { blockExplorerLink } = getBlockExplorerForAddress(value)
 			if (value) {
@@ -35,13 +35,13 @@ const bridgeAddressesColumn: ColumnDef<BridgeAddressesTableRow>[] = [
 						<Icon name="external-link" height={10} width={10} />
 					</a>
 				)
-			} else return <>Not found</>
+			} else return 'Not found'
 		},
 		size: 120
-	},
-	{
-		header: 'Chain',
+	}),
+	columnHelper.display({
 		id: 'chainName',
+		header: 'Chain',
 		cell: ({ row }) => {
 			const value = row.original.address
 			const { chainName } = getBlockExplorerForAddress(value)
@@ -51,33 +51,30 @@ const bridgeAddressesColumn: ColumnDef<BridgeAddressesTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('deposited', {
 		header: 'Deposited',
-		accessorKey: 'deposited',
-		cell: (info) => formattedNum(info.getValue() ?? 0, true),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('withdrawn', {
 		header: 'Withdrawn',
-		accessorKey: 'withdrawn',
-		cell: (info) => formattedNum(info.getValue() ?? 0, true),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('txs', {
 		header: 'Total Transactions',
-		accessorKey: 'txs',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 export function BridgeAddressesTable({ data }: { data: BridgeAddressesTableRow[] }) {

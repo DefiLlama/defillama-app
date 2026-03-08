@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -41,13 +41,14 @@ type BridgesTableProps = {
 	csvFileName?: string
 }
 
-const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<BridgesTableRow>()
+
+const bridgesColumn = [
+	columnHelper.accessor('displayName', {
 		header: 'Name',
-		accessorKey: 'displayName',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const linkValue = slug(value)
 			const rowValues = row.original
 			const icon = rowValues.icon
@@ -76,68 +77,56 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => `/bridges/${slug(chain)}`)} />
-		),
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => `/bridges/${slug(chain)}`)} />,
 		size: 200,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Chains are ordered by bridge volume on each chain'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('lastDailyVolume', {
 		header: '24h Volume',
-		accessorKey: 'lastDailyVolume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('weeklyVolume', {
 		header: '7d Volume',
-		accessorKey: 'weeklyVolume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('monthlyVolume', {
 		header: '1m Volume',
-		accessorKey: 'monthlyVolume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('txsPrevDay', {
 		header: '24h # of Txs',
-		accessorKey: 'txsPrevDay',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 // key: min width of window/screen

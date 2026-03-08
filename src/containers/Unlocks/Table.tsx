@@ -1,6 +1,7 @@
 import {
 	type ColumnFiltersState,
 	type ColumnSizingState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -9,7 +10,6 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
@@ -43,6 +43,7 @@ interface IUnlocksTableProps {
 	showOnlyWatchlist: boolean
 	savedProtocols: Set<string>
 }
+const columnHelper = createColumnHelper<IEmission>()
 
 const UNLOCK_TYPES = [
 	'publicSale',
@@ -387,10 +388,9 @@ interface IEmission {
 	}>
 }
 
-const emissionsColumns: ColumnDef<IEmission>[] = [
-	{
+const emissionsColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		filterFn: (row, _columnId, filterValue) => {
 			const searchValue = String(filterValue ?? '')
 				.toLowerCase()
@@ -419,24 +419,24 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 			)
 		},
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row.tPrice != null ? +row.tPrice : undefined), {
+		id: 'tPrice',
 		header: 'Price',
-		accessorKey: 'tPrice',
-		accessorFn: (row) => (row.tPrice != null ? +row.tPrice : undefined),
 		cell: ({ row }) => {
 			const value = row.original.tPrice
-			return <div className="flex h-full items-center justify-end">{value != null ? '$' + value.toFixed(2) : ''}</div>
+			return (
+				<div className="flex h-full items-center justify-end">{value != null ? formattedNum(value, true) : ''}</div>
+			)
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 80
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row.mcap != null ? +row.mcap : undefined), {
+		id: 'mcap',
 		header: 'MCap',
-		accessorKey: 'mcap',
-		accessorFn: (row) => (row.mcap != null ? +row.mcap : undefined),
 		cell: ({ row }) => {
 			const value = row.original.mcap
 			if (value == null) return null
@@ -446,45 +446,46 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 			align: 'end'
 		},
 		size: 120
-	},
-	{
-		header: 'Total Unlocked',
-		id: 'totalLocked',
-		accessorFn: (row) => {
+	}),
+	columnHelper.accessor(
+		(row) => {
 			const rawPctUnlocked = row.maxSupply ? 100 - (row.totalLocked / row.maxSupply) * 100 : 0
 			return Number.isFinite(rawPctUnlocked) ? Math.max(0, Math.min(100, rawPctUnlocked)) : 0
 		},
-		cell: ({ row }) => {
-			const maxSupply = row.original.maxSupply
-			const totalLocked = row.original.totalLocked
-			const rawPctUnlocked = maxSupply ? 100 - (totalLocked / maxSupply) * 100 : 0
-			const pctUnlocked = Number.isFinite(rawPctUnlocked) ? Math.max(0, Math.min(100, rawPctUnlocked)) : 0
+		{
+			id: 'totalLocked',
+			header: 'Total Unlocked',
+			cell: ({ row }) => {
+				const maxSupply = row.original.maxSupply
+				const totalLocked = row.original.totalLocked
+				const rawPctUnlocked = maxSupply ? 100 - (totalLocked / maxSupply) * 100 : 0
+				const pctUnlocked = Number.isFinite(rawPctUnlocked) ? Math.max(0, Math.min(100, rawPctUnlocked)) : 0
 
-			return (
-				<div className="flex h-full w-full flex-col items-end justify-center gap-2 px-2">
-					<span className="text-sm leading-none font-semibold text-(--link-text) tabular-nums">
-						{formattedNum(pctUnlocked)}%
-					</span>
-					<div className="h-2 w-full rounded-full bg-(--bg-tertiary)">
-						<div
-							className="h-2 rounded-full bg-(--link-text)"
-							style={{
-								width: `${pctUnlocked}%`
-							}}
-						/>
+				return (
+					<div className="flex h-full w-full flex-col items-end justify-center gap-2 px-2">
+						<span className="text-sm leading-none font-semibold text-(--link-text) tabular-nums">
+							{formattedNum(pctUnlocked)}%
+						</span>
+						<div className="h-2 w-full rounded-full bg-(--bg-tertiary)">
+							<div
+								className="h-2 rounded-full bg-(--link-text)"
+								style={{
+									width: `${pctUnlocked}%`
+								}}
+							/>
+						</div>
 					</div>
-				</div>
-			)
-		},
-		size: 140,
-		meta: {
-			align: 'end'
+				)
+			},
+			size: 140,
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
-		header: 'Prev. Unlock Analysis',
+	),
+	columnHelper.accessor((row) => (row.historicalPrice ? row.historicalPrice : undefined), {
 		id: 'prevUnlock',
-		accessorFn: (row) => (row.historicalPrice ? row.historicalPrice : undefined),
+		header: 'Prev. Unlock Analysis',
 		cell: ({ row }) => {
 			const historicalPrice = row.original.historicalPrice
 			if (!historicalPrice?.length) {
@@ -517,34 +518,35 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 				"Price trend shown from 7 days before to 7 days after the most recent major unlock event. Doesn't include Non-Circulating and Farming emissions."
 		},
 		size: 180
-	},
-	{
-		header: '7d Post Unlock',
-		id: 'postUnlock',
-		accessorFn: (row) => {
+	}),
+	columnHelper.accessor(
+		(row) => {
 			if (!row.historicalPrice?.length || row.historicalPrice.length < 8) return undefined
 			const priceAtUnlock = row.historicalPrice[7][1]
 			const priceAfter7d = row.historicalPrice[row.historicalPrice.length - 1][1]
 			return ((priceAfter7d - priceAtUnlock) / priceAtUnlock) * 100
 		},
-		cell: ({ getValue }) => {
-			const value = getValue<number | undefined>()
-			return (
-				<div className="flex h-full items-center justify-end">
-					{value != null ? <PercentChange percent={value} /> : ''}
-				</div>
-			)
-		},
-		meta: {
-			align: 'end',
-			headerHelperText: 'Price change 7 days after the most recent major unlock event'
-		},
-		size: 140
-	},
-	{
-		header: 'Daily Unlocks',
+		{
+			id: 'postUnlock',
+			header: '7d Post Unlock',
+			cell: ({ getValue }) => {
+				const value = getValue()
+				return (
+					<div className="flex h-full items-center justify-end">
+						{value != null ? <PercentChange percent={value} /> : ''}
+					</div>
+				)
+			},
+			meta: {
+				align: 'end',
+				headerHelperText: 'Price change 7 days after the most recent major unlock event'
+			},
+			size: 140
+		}
+	),
+	columnHelper.accessor((row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined), {
 		id: 'nextEvent',
-		accessorFn: (row) => (row.tPrice && row.unlocksPerDay ? +row.tPrice * row.unlocksPerDay : undefined),
+		header: 'Daily Unlocks',
 		cell: ({ row }) => {
 			if (!row.original.unlocksPerDay) return <div className="flex h-full items-center justify-end"></div>
 			const value =
@@ -560,39 +562,42 @@ const emissionsColumns: ColumnDef<IEmission>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
-const upcomingEventColumn = (nowSec: number): ColumnDef<IEmission> => ({
-	header: 'Next Event',
-	id: 'upcomingEvent',
-	accessorFn: (row) => {
-		const { timestamp } = row.upcomingEvent?.[0] || {}
-		if (!timestamp || timestamp < nowSec) return undefined
-		return timestamp
-	},
-	cell: ({ row }) => {
-		if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
-		const { timestamp } = row.original.upcomingEvent[0]
-		if (!timestamp || timestamp < nowSec) return null
+const upcomingEventColumn = (nowSec: number) =>
+	columnHelper.accessor(
+		(row) => {
+			const { timestamp } = row.upcomingEvent?.[0] || {}
+			if (!timestamp || timestamp < nowSec) return undefined
+			return timestamp
+		},
+		{
+			id: 'upcomingEvent',
+			header: 'Next Event',
+			cell: ({ row }) => {
+				if (!Array.isArray(row.original.upcomingEvent) || !row.original.upcomingEvent.length) return null
+				const { timestamp } = row.original.upcomingEvent[0]
+				if (!timestamp || timestamp < nowSec) return null
 
-		return (
-			<UpcomingEvent
-				{...{
-					noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
-					timestamp,
-					event: row.original.upcomingEvent.map((event) => ({
-						...event,
-						timestamp: event.timestamp ?? timestamp
-					})),
-					price: row.original.tPrice,
-					symbol: row.original.tSymbol,
-					mcap: row.original.mcap,
-					maxSupply: row.original.maxSupply,
-					name: row.original.name
-				}}
-			/>
-		)
-	},
-	size: 400
-})
+				return (
+					<UpcomingEvent
+						{...{
+							noOfTokens: row.original.upcomingEvent.map((x) => x.noOfTokens),
+							timestamp,
+							event: row.original.upcomingEvent.map((event) => ({
+								...event,
+								timestamp: event.timestamp ?? timestamp
+							})),
+							price: row.original.tPrice,
+							symbol: row.original.tSymbol,
+							mcap: row.original.mcap,
+							maxSupply: row.original.maxSupply,
+							name: row.original.name
+						}}
+					/>
+				)
+			},
+			size: 400
+		}
+	)

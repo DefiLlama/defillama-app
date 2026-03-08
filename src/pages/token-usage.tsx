@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -26,6 +26,14 @@ import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
+
+type TokenUsagePageRow = {
+	name: string
+	amountUsd: number
+	category?: string
+}
+
+const columnHelper = createColumnHelper<TokenUsagePageRow>()
 
 export default function Tokens() {
 	const router = useRouter()
@@ -142,13 +150,12 @@ const fetchProtocols = async (tokenSymbol) => {
 	}
 }
 
-const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className="flex items-center gap-2">
@@ -161,23 +168,21 @@ const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('category', {
 		header: 'Category',
-		accessorKey: 'category',
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('amountUsd', {
 		header: 'Amount',
-		accessorKey: 'amountUsd',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const Search = () => {

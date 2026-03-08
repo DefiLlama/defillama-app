@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -24,12 +24,12 @@ import { formattedNum } from '~/utils'
 
 type StablecoinByChainRow = ReturnType<typeof useGroupBridgeData>[number]
 type BridgeInfoCell = StablecoinByChainRow['bridgeInfo']
+const columnHelper = createColumnHelper<StablecoinByChainRow>()
 
-const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
-	{
-		header: 'Name',
+const stablecoinsByChainColumns = [
+	columnHelper.accessor((row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`, {
 		id: 'name',
-		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
+		header: 'Name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const isSubRow = row.original.name.startsWith('Bridged from')
@@ -63,7 +63,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 					{isSubRow ? (
 						<>
 							<span>-</span>
-							<span>{getValue() as string}</span>
+							<span>{getValue()}</span>
 						</>
 					) : (
 						<>
@@ -73,7 +73,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 								href={`/stablecoins/${row.original.name}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 							>
-								{getValue() as string}
+								{getValue()}
 							</BasicLink>
 						</>
 					)}
@@ -81,10 +81,9 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('bridgeInfo', {
 		header: 'Bridge',
-		accessorKey: 'bridgeInfo',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			const value = getValue() as BridgeInfoCell
@@ -105,63 +104,46 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('bridgedAmount', {
 		header: 'Bridged Amount',
-		accessorKey: 'bridgedAmount',
 		size: 145,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 110,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 110,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m Change',
-		accessorKey: 'change_1m',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 110,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('circulating', {
 		header: 'Total Circulating',
-		accessorKey: 'circulating',
-		cell: (info) => <>{formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue()),
 		size: 145,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const assetsByChainColumnOrders: ColumnOrdersByBreakpoint = {

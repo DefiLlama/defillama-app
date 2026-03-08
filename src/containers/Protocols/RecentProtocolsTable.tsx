@@ -1,7 +1,7 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnSizingState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -38,6 +38,7 @@ type RecentProtocolTableRow = IRecentProtocol & {
 	change_1m: number | null
 	mcaptvl: number | null
 }
+const columnHelper = createColumnHelper<RecentProtocolTableRow>()
 
 function normaliseCategoryFilterValues(values: unknown): string[] {
 	if (Array.isArray(values)) {
@@ -200,13 +201,12 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
-	{
+const protocolsColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue<string>()
+			const value = getValue()
 
 			return (
 				<span
@@ -273,10 +273,9 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('category', {
 		header: 'Category',
-		accessorKey: 'category',
 		filterFn: (row, columnId, filterValue) => {
 			const selectedCategories = normaliseCategoryFilterValues(filterValue)
 			if (selectedCategories.length === 0) return false
@@ -289,7 +288,7 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 			return false
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<string | null>()
+			const value = getValue()
 			return value ? (
 				<BasicLink
 					href={getCategoryRoute(slug(value))}
@@ -302,68 +301,51 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 			)
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVL',
-		accessorKey: 'tvl',
 		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue()} />
-			</>
-		),
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
-		accessorKey: 'change_7d',
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue()} />
-			</>
-		),
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 7 days'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
-		accessorKey: 'change_1m',
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue()} />
-			</>
-		),
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 30 days'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap/TVL',
-		accessorKey: 'mcaptvl',
 		cell: (info) => <>{info.getValue() ?? null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const columnSizes = {
@@ -470,22 +452,21 @@ function ProtocolTvlCell({ value, rowValues }: { value: unknown; rowValues: Prot
 	)
 }
 
-const listedAtColumn: ColumnDef<RecentProtocolTableRow> = {
+const listedAtColumn = columnHelper.accessor('listedAt', {
 	header: 'Listed At',
-	accessorKey: 'listedAt',
 	cell: ({ getValue }) => {
-		const listedAt = getValue<number | null>()
+		const listedAt = getValue()
 		return listedAt != null ? toNiceDaysAgo(listedAt) : ''
 	},
 	size: 120,
 	meta: {
 		align: 'end'
 	}
-}
+})
 
 const hiddenRecentColumns = new Set(['volume_7d', 'fees_7d', 'revenue_7d'])
 
-const recentlyListedProtocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
+const recentlyListedProtocolsColumns = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
 	...protocolsColumns.slice(3, -1).filter((column) => {
@@ -494,20 +475,19 @@ const recentlyListedProtocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 	})
 ]
 
-const airdropsColumns: ColumnDef<RecentProtocolTableRow>[] = [
+const airdropsColumns = [
 	...protocolsColumns.slice(0, 3),
-	{
+	columnHelper.accessor('totalRaised', {
 		header: 'Total Money Raised',
-		accessorKey: 'totalRaised',
 		cell: ({ getValue }) => {
-			const totalRaised = getValue<number | null>()
+			const totalRaised = getValue()
 			return <>{totalRaised != null ? formattedNum(totalRaised, true) : ''}</>
 		},
 		size: 168,
 		meta: {
 			align: 'end'
 		}
-	},
+	}),
 	listedAtColumn,
 	...protocolsColumns.slice(3, -1).filter((column) => {
 		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined

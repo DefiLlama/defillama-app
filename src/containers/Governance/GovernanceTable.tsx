@@ -1,6 +1,7 @@
 import {
-	type ColumnDef,
+	type CellContext,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -84,7 +85,7 @@ export function GovernanceTable({
 	)
 }
 
-const TitleCell = ({ info }: { info: { row: { original: GovernanceProposal }; getValue: () => unknown } }) => {
+const TitleCell = ({ info }: { info: CellContext<GovernanceProposal, string> }) => {
 	const title = formatText(String(info.getValue()), 40)
 	if (!info.row.original.link) return <>{title}</>
 	return (
@@ -94,95 +95,85 @@ const TitleCell = ({ info }: { info: { row: { original: GovernanceProposal }; ge
 	)
 }
 
-const ControversyCell = ({ info }: { info: { getValue: () => unknown } }) => {
+const ControversyCell = ({ info }: { info: CellContext<GovernanceProposal, number | null | undefined> }) => {
 	const value = info.getValue()
 	const numericValue = Number(value)
 	return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) : ''}</>
 }
 
-const DateCell = ({ info }: { info: { getValue: () => unknown } }) => {
+const DateCell = ({ info }: { info: CellContext<GovernanceProposal, number | null | undefined> }) => {
 	const timestamp = Number(info.getValue())
 	return <>{Number.isFinite(timestamp) ? toNiceDayMonthAndYear(timestamp) : ''}</>
 }
 
-const proposalsCompoundColumns: ColumnDef<GovernanceProposal>[] = [
-	{
+const columnHelper = createColumnHelper<GovernanceProposal>()
+
+const proposalsCompoundColumns = [
+	columnHelper.accessor('title', {
 		header: 'Title',
-		accessorKey: 'title',
 		enableSorting: false,
 		cell: (info) => <TitleCell info={info} />
-	},
-	{
+	}),
+	columnHelper.accessor('start', {
 		header: 'Start',
-		accessorKey: 'start',
 		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('end', {
 		header: 'End',
-		accessorKey: 'end',
 		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('state', {
 		header: 'State',
-		accessorKey: 'state',
 		cell: (info) => String(info.getValue() ?? ''),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('scores_total', {
 		header: 'Votes',
-		accessorKey: 'scores_total',
 		cell: (info) => formattedNum(info.getValue()),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
-		accessorKey: 'score_curve',
 		cell: (info) => <ControversyCell info={info} />,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
-	}
+	})
 ]
 
-const proposalsSnapshotColumns: ColumnDef<GovernanceProposal>[] = [
-	{
+const proposalsSnapshotColumns = [
+	columnHelper.accessor('title', {
 		header: 'Title',
-		accessorKey: 'title',
 		enableSorting: false,
 		cell: (info) => <TitleCell info={info} />
-	},
-	{
+	}),
+	columnHelper.accessor('start', {
 		header: 'Start',
-		accessorKey: 'start',
 		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('end', {
 		header: 'End',
-		accessorKey: 'end',
 		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
-	},
-	{
-		header: 'State',
+	}),
+	columnHelper.accessor((row) => (row.state === 'closed' ? 0 : 1), {
 		id: 'state',
-		accessorFn: (row) => (row.state === 'closed' ? 0 : 1),
+		header: 'State',
 		cell: (info) => (
 			<span data-isactive={info.getValue() !== 0} className="text-(--error) data-[isactive=true]:text-(--success)">
 				{info.getValue() === 0 ? 'Closed' : 'Active'}
 			</span>
 		),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('scores_total', {
 		header: 'Votes',
-		accessorKey: 'scores_total',
 		cell: (info) => formattedNum(info.getValue()),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('winningChoice', {
 		header: 'Winning Choice',
-		accessorKey: 'winningChoice',
 		cell: (info) => {
 			const choice = info.getValue() ?? ''
 			const winningPerc = info.row.original.winningPerc ?? ''
@@ -191,16 +182,14 @@ const proposalsSnapshotColumns: ColumnDef<GovernanceProposal>[] = [
 		},
 		enableSorting: false,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
-		accessorKey: 'score_curve',
 		cell: (info) => <ControversyCell info={info} />,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
-	},
-	{
+	}),
+	columnHelper.accessor('discussion', {
 		header: 'Discussion',
-		accessorKey: 'discussion',
 		enableSorting: false,
 		cell: (info) =>
 			info.getValue() ? (
@@ -209,46 +198,40 @@ const proposalsSnapshotColumns: ColumnDef<GovernanceProposal>[] = [
 				</a>
 			) : null,
 		meta: { align: 'end' }
-	}
+	})
 ]
 
-const proposalsTallyColumns: ColumnDef<GovernanceProposal>[] = [
-	{
+const proposalsTallyColumns = [
+	columnHelper.accessor('title', {
 		header: 'Title',
-		accessorKey: 'title',
 		enableSorting: false,
 		cell: (info) => <TitleCell info={info} />
-	},
-	{
+	}),
+	columnHelper.accessor('start', {
 		header: 'Start',
-		accessorKey: 'start',
 		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('end', {
 		header: 'End',
-		accessorKey: 'end',
 		cell: (info) => <DateCell info={info} />,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('state', {
 		header: 'State',
-		accessorKey: 'state',
 		cell: (info) => String(info.getValue() ?? ''),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('scores_total', {
 		header: 'Votes',
-		accessorKey: 'scores_total',
 		cell: (info) => formattedNum(info.getValue()),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('score_curve', {
 		header: 'Controversy',
-		accessorKey: 'score_curve',
 		cell: (info) => <ControversyCell info={info} />,
 		meta: { align: 'end', headerHelperText: 'It is calculated by number of votes * how close result is to 50%' }
-	}
+	})
 ]
 
 const formatText = (text: string, length: number) => {

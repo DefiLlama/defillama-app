@@ -1,5 +1,5 @@
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -43,13 +43,14 @@ type ProtocolRow = ProtocolBaseRow & {
 	mcaptvl: number | null
 }
 
-const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
-	{
+const columnHelper = createColumnHelper<ProtocolRow>()
+
+const topGainersAndLosersColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span
@@ -67,54 +68,42 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 			)
 		},
 		size: 260
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => (
-			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => chainHref('/chain', chain))} />
-		),
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
 		meta: {
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => {
-			return <>{formattedNum(getValue(), true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue()} />
-			</>
-		),
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap/TVL',
-		accessorKey: 'mcaptvl',
-		cell: (info) => info.getValue<number | null>(),
+		cell: (info) => info.getValue(),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 function TopGainersAndLosersTable({ data, sortingState }: { data: Array<ProtocolRow>; sortingState: SortingState }) {

@@ -26,7 +26,12 @@ import { parseExcludeParam } from '~/utils/routerQuery'
 
 const excludeChainsStatic = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
-const COLUMN_HELPER = createColumnHelper<any>()
+
+type TopProtocolsRow = {
+	chain: string
+} & Record<string, string | undefined>
+
+const COLUMN_HELPER = createColumnHelper<TopProtocolsRow>()
 
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
 	const { protocols, chains } = await fetchProtocols().then(
@@ -146,7 +151,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		]
 
 		const categoryColumns = uniqueCategories.map((cat) =>
-			columnHelper.accessor(cat, {
+			columnHelper.accessor((row) => row[cat], {
+				id: cat,
 				header: cat,
 				enableSorting: false,
 				cell: (info) => {

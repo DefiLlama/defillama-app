@@ -2,15 +2,6 @@ import type { IProtocolMetricsV2 } from '~/containers/ProtocolOverview/api.types
 import { postRuntimeLogs } from '~/utils/async'
 import type { IProtocolWarningBanner } from './api.types'
 
-export const formatRaisedAmount = (n: number) => {
-	if (n === 0) return null
-
-	if (n >= 1e3) {
-		return `$${(n / 1e3).toLocaleString(undefined, { maximumFractionDigits: 2 })}b`
-	}
-	return `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}m`
-}
-
 export const getProtocolWarningBanners = (protocolData: IProtocolMetricsV2) => {
 	// Helper function to check if a date is in valid format
 	const isValidDateFormat = (date: unknown): boolean => {

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -33,6 +33,8 @@ interface ITrendingContracts {
 	txns_percentage_growth: number
 	name?: string
 }
+
+const columnHelper = createColumnHelper<ITrendingContracts>()
 
 async function getContracts(chain: string, time: string) {
 	return await fetchJson(
@@ -136,93 +138,73 @@ export default function TrendingContracts() {
 	)
 }
 
-const columns = (chain: string) =>
-	[
-		{
-			header: 'Contract',
-			accessorKey: 'contract',
-			cell: (info) => {
-				const value = info.getValue() as string
-				const name = info.row.original.name
-				return (
-					<a
-						href={`https://${
-							chain === 'ethereum'
-								? 'etherscan.io'
-								: chain === 'arbitrum'
-									? 'arbiscan.io'
-									: chain === 'optimism'
-										? 'optimistic.etherscan.io'
-										: chain === 'base'
-											? 'basescan.org'
-											: 'polygonscan.com'
-						}/address/${value}`}
-						target="_blank"
-						rel="noopener noreferrer"
-						style={{ textDecoration: 'underline' }}
-					>
-						{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
-					</a>
-				)
-			},
-			enableSorting: false
+const columns = (chain: string) => [
+	columnHelper.accessor('contract', {
+		header: 'Contract',
+		cell: (info) => {
+			const value = info.getValue()
+			const name = info.row.original.name
+			return (
+				<a
+					href={`https://${
+						chain === 'ethereum'
+							? 'etherscan.io'
+							: chain === 'arbitrum'
+								? 'arbiscan.io'
+								: chain === 'optimism'
+									? 'optimistic.etherscan.io'
+									: chain === 'base'
+										? 'basescan.org'
+										: 'polygonscan.com'
+					}/address/${value}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					style={{ textDecoration: 'underline' }}
+				>
+					{name ?? value.slice(0, 4) + '...' + value.slice(-4)}
+				</a>
+			)
 		},
-		{
-			header: 'Transactions',
-			accessorKey: 'txns',
-			meta: {
-				align: 'end'
-			}
-		},
-		{
-			header: 'Tx Growth',
-			accessorKey: 'txns_percentage_growth',
-			cell: (info) => (
-				<>
-					<PercentChange percent={info.getValue()} />
-				</>
-			),
-			meta: {
-				align: 'end'
-			}
-		},
-		{
-			header: 'Active Accounts',
-			accessorKey: 'active_accounts',
-			meta: {
-				align: 'end'
-			}
-		},
-		{
-			header: 'Account Growth',
-			accessorKey: 'accounts_percentage_growth',
-			cell: (info) => (
-				<>
-					<PercentChange percent={info.getValue()} />
-				</>
-			),
-			meta: {
-				align: 'end'
-			}
-		},
-		{
-			header: 'Gas Spent',
-			accessorKey: 'gas_spend',
-			cell: (info) => <>{(info.getValue() as number)?.toFixed(2)} ETH</>,
-			meta: {
-				align: 'end'
-			}
-		},
-		{
-			header: 'Gas Growth',
-			accessorKey: 'gas_spend_percentage_growth',
-			cell: (info) => (
-				<>
-					<PercentChange percent={info.getValue()} />
-				</>
-			),
-			meta: {
-				align: 'end'
-			}
+		enableSorting: false
+	}),
+	columnHelper.accessor('txns', {
+		header: 'Transactions',
+		meta: {
+			align: 'end'
 		}
-	] as ColumnDef<ITrendingContracts>[]
+	}),
+	columnHelper.accessor('txns_percentage_growth', {
+		header: 'Tx Growth',
+		cell: (info) => <PercentChange percent={info.getValue()} />,
+		meta: {
+			align: 'end'
+		}
+	}),
+	columnHelper.accessor('active_accounts', {
+		header: 'Active Accounts',
+		meta: {
+			align: 'end'
+		}
+	}),
+	columnHelper.accessor('accounts_percentage_growth', {
+		header: 'Account Growth',
+		cell: (info) => <PercentChange percent={info.getValue()} />,
+		meta: {
+			align: 'end'
+		}
+	}),
+	columnHelper.accessor('gas_spend', {
+		header: 'Gas Spent',
+		cell: (info) => <>{info.getValue()?.toFixed(2)} ETH</>,
+		meta: {
+			align: 'end'
+		}
+	}),
+	columnHelper.accessor('gas_spend_percentage_growth', {
+		header: 'Gas Growth',
+		cell: (info) => <PercentChange percent={info.getValue()} />,
+		meta: {
+			align: 'end'
+		}
+	})
+]

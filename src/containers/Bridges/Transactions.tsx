@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -36,91 +36,83 @@ interface TransformedTransaction {
 	tx_hash: string
 }
 
-const bridgeTransactionsColumns: ColumnDef<TransformedTransaction>[] = [
-	{
+const columnHelper = createColumnHelper<TransformedTransaction>()
+
+const bridgeTransactionsColumns = [
+	columnHelper.accessor('date', {
 		header: 'Date',
-		accessorKey: 'date',
 		cell: ({ getValue }) => getValue(),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('bridge_name', {
 		header: 'Bridge',
-		accessorKey: 'bridge_name',
 		cell: ({ getValue }) => getValue(),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('chain', {
 		header: 'Chain',
-		accessorKey: 'chain',
 		cell: ({ getValue }) => getValue(),
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('type', {
 		header: 'Type',
-		accessorKey: 'type',
 		cell: ({ getValue }) => (
-			<span className={getValue() === 'deposit' ? 'text-green-600' : 'text-red-600'}>{getValue() as string}</span>
+			<span className={getValue() === 'deposit' ? 'text-green-600' : 'text-red-600'}>{getValue()}</span>
 		),
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('token', {
 		header: 'Token',
-		accessorKey: 'token',
 		cell: ({ getValue }) => getValue(),
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('amount', {
 		header: 'Amount',
-		accessorKey: 'amount',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('usd_value', {
 		header: 'USD Value',
-		accessorKey: 'usd_value',
 		cell: ({ getValue }) => {
-			const value = parseFloat(getValue() as string)
-			return isNaN(value) ? getValue() : `$${value.toLocaleString()}`
+			const value = parseFloat(String(getValue()))
+			return Number.isNaN(value) ? getValue() : `$${value.toLocaleString()}`
 		},
 		size: 120,
 		meta: {
 			align: 'end' as const
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tx_from', {
 		header: 'From',
-		accessorKey: 'tx_from',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('tx_to', {
 		header: 'To',
-		accessorKey: 'tx_to',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('tx_hash', {
 		header: 'Hash',
-		accessorKey: 'tx_hash',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	}
+	})
 ]
 
 const transformTransactionForTable = (tx: BridgeTransaction): TransformedTransaction => {

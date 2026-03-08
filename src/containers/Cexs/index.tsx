@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import toast from 'react-hot-toast'
@@ -102,39 +102,39 @@ export const Cexs = ({ cexs }: { cexs: Array<ICex> }) => {
 	)
 }
 
-const columns: ColumnDef<ICex>[] = [
-	{
+const columnHelper = createColumnHelper<ICex>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					{row.original.slug == null ? (
-						getValue<string>()
+						getValue()
 					) : (
 						<BasicLink
 							href={`/cex/${slug(row.original.slug)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue<string>()}
+							{getValue()}
 						</BasicLink>
 					)}
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('currentTvl', {
 		header: 'Assets',
-		accessorKey: 'currentTvl',
 		cell: (info) => {
 			if (info.row.original.slug == null) {
 				return (
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
-			const value = info.getValue<number | null>()
+			const value = info.getValue()
 			return <>{value != null ? formattedNum(value, true) : null}</>
 		},
 		size: 120,
@@ -143,10 +143,9 @@ const columns: ColumnDef<ICex>[] = [
 			headerHelperText:
 				'This excludes IOU assets issued by the CEX that are already counted on another chain, such as Binance-pegged BTC in BSC, which is already counted in Bitcoin chain'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('cleanAssetsTvl', {
 		header: 'Clean Assets',
-		accessorKey: 'cleanAssetsTvl',
 		cell: (info) => {
 			const coinSymbol = info.row.original.coinSymbol
 			if (info.row.original.slug == null) {
@@ -154,7 +153,7 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has not published a list of all hot and cold wallets" className="ml-auto" />
 				)
 			}
-			const value = info.getValue<number | null>()
+			const value = info.getValue()
 			if (value == null) return null
 
 			const helperText =
@@ -174,13 +173,12 @@ const columns: ColumnDef<ICex>[] = [
 			align: 'end',
 			headerHelperText: 'TVL of the CEX excluding all assets issued by itself, such as their own token'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('inflows_24h', {
 		header: '24h Inflows',
-		accessorKey: 'inflows_24h',
 		size: 120,
 		cell: (info) => {
-			const value = info.getValue<number | null>()
+			const value = info.getValue()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -190,13 +188,12 @@ const columns: ColumnDef<ICex>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('inflows_1w', {
 		header: '7d Inflows',
-		accessorKey: 'inflows_1w',
 		size: 120,
 		cell: (info) => {
-			const value = info.getValue<number | null>()
+			const value = info.getValue()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -206,13 +203,12 @@ const columns: ColumnDef<ICex>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('inflows_1m', {
 		header: '1m Inflows',
-		accessorKey: 'inflows_1m',
 		size: 120,
 		cell: (info) => {
-			const value = info.getValue<number | null>()
+			const value = info.getValue()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -222,50 +218,40 @@ const columns: ColumnDef<ICex>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('spotVolume', {
 		header: 'Spot Volume',
-		accessorKey: 'spotVolume',
-		cell: (info) => {
-			const value = info.getValue<number | null>()
-			return value != null ? formattedNum(value, true) : null
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 125,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('oi', {
 		header: '24h Open Interest',
-		accessorKey: 'oi',
-		cell: (info) => {
-			const value = info.getValue<number | null>()
-			return value != null ? formattedNum(value, true) : null
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 160,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('leverage', {
 		header: 'Avg Leverage',
-		accessorKey: 'leverage',
 		cell: (info) => {
-			const value = info.getValue<number | null>()
+			const value = info.getValue()
 			return value != null ? Number(Number(value).toFixed(2)) + 'x' : null
 		},
 		size: 130,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => row.customRange ?? undefined, {
+		id: 'customRange',
 		header: 'Custom range Inflows',
-		accessorKey: 'customRange',
-		accessorFn: (row) => row.customRange ?? undefined,
 		size: 200,
 		cell: (info) => {
-			const value = info.getValue<number | undefined>()
+			const value = info.getValue()
 			return (
 				<span className={value == null ? '' : value < 0 ? 'text-(--error)' : value > 0 ? 'text-(--success)' : ''}>
 					{value != null ? formattedNum(value, true) : ''}
@@ -275,28 +261,25 @@ const columns: ColumnDef<ICex>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('auditor', {
 		header: 'Auditor',
-		accessorKey: 'auditor',
-		cell: ({ getValue }) => <>{getValue<string | null>() ?? null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('lastAuditDate', {
 		header: 'Last audit date',
-		accessorKey: 'lastAuditDate',
 		cell: ({ getValue }) => {
-			const value = getValue<number | undefined>()
+			const value = getValue()
 			return <>{value == null ? null : toNiceDayMonthAndYear(value)}</>
 		},
 		size: 130,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 	/*
 	{
 		header: 'Audit link',
@@ -307,7 +290,7 @@ const columns: ColumnDef<ICex>[] = [
 			<>
 				{getValue() == null ? null : (
 					<a
-					href={getValue() as string}
+					href={getValue()}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-1.5"
@@ -333,7 +316,7 @@ const columns: ColumnDef<ICex>[] = [
 					<QuestionHelper text="This CEX has no published their wallet addresses" />
 				) : (
 					<a
-					href={getValue() as string}
+					href={getValue()}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="shrink-0 rounded-md  bg-(--link-button) hover:bg-(--link-button-hover) p-1.5"

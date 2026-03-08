@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
@@ -33,6 +33,7 @@ const MultiSeriesChart2 = React.lazy(
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
+const columnHelper = createColumnHelper<IPctChangeRow>()
 
 // for linechart
 function calculateDenominatedChange(data: TimeSeriesEntry[] | undefined, denominatedCoin: string): TimeSeriesEntry[] {
@@ -420,10 +421,9 @@ export const CategoryPerformanceContainer = ({
 	)
 }
 
-const CoinPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
-	{
+const CoinPerformanceColumn = [
+	columnHelper.accessor('name', {
 		header: 'Coin',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -434,54 +434,46 @@ const CoinPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 						target="_blank"
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string | null>()}
+						{getValue()}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('change', {
 		header: 'Δ%',
-		accessorKey: 'change',
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue<number | null>()} />
-			</>
-		),
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('volume1D', {
 		header: '24h Volume',
-		accessorKey: 'volume1D',
 		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
+			const value = getValue()
 			return <>{value != null ? formattedNum(value, true) : null}</>
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	}
+	})
 ]
 
-const CategoryPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
-	{
+const CategoryPerformanceColumn = [
+	columnHelper.accessor('name', {
 		header: 'Category',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -493,62 +485,51 @@ const CategoryPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 							target="_blank"
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue<string | null>()}
+							{getValue()}
 						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/narrative-tracker/${row.original.id}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue<string | null>()}
+							{getValue()}
 						</BasicLink>
 					)}
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('change', {
 		header: 'Δ%',
-		accessorKey: 'change',
-		cell: ({ getValue }) => (
-			<>
-				<PercentChange percent={getValue<number | null>()} />
-			</>
-		),
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('volume1D', {
 		header: '24h Volume',
-		accessorKey: 'volume1D',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? formattedNum(value, true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('nbCoins', {
 		header: '# of Coins',
-		accessorKey: 'nbCoins',
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	}
+	})
 ]

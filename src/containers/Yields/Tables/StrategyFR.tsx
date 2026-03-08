@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { PercentChange, formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
@@ -20,10 +20,12 @@ const FundingRateTooltipContent = ({ afr, afr7d, afr30d }: { afr: number; afr7d:
 	)
 }
 
-const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<IYieldsStrategyTableRow>()
+
+const columns = [
+	columnHelper.accessor((row) => (row as any).strategy as string, {
+		id: 'strategy',
 		header: 'Strategy',
-		accessorKey: 'strategy',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const name = `Long ${row.original.symbol} | Short ${row.original.symbolPerp}`
@@ -54,10 +56,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			)
 		},
 		size: 400
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).strategyAPY as number | null, {
+		id: 'strategyAPY',
 		header: 'Strategy APY',
-		accessorKey: 'strategyAPY',
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
@@ -71,10 +73,9 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Farm APY + Funding APY'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apy', {
 		header: 'Farm APY',
-		accessorKey: 'apy',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
@@ -99,10 +100,9 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Annualised Farm Yield'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('afr', {
 		header: 'Funding APY',
-		accessorKey: 'afr',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
@@ -144,32 +144,31 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			headerHelperText:
 				'Annualised Funding Yield based on previous settled Funding Rate. Hover for detailed breakdown of different APY windows using 7day or 30day paid Funding Rate sums'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).fr8hCurrent as number | string, {
+		id: 'fr8hCurrent',
 		header: 'Funding Rate',
-		accessorKey: 'fr8hCurrent',
 		enableSorting: true,
-		cell: ({ getValue }) => getValue() + '%',
+		cell: (info) => `${info.getValue()}%`,
 		size: 145,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Current (predicted) Funding Rate'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).fundingRate7dAverage as number | string, {
+		id: 'fundingRate7dAverage',
 		header: 'Avg Funding Rate',
-		accessorKey: 'fundingRate7dAverage',
 		enableSorting: true,
-		cell: ({ getValue }) => getValue() + '%',
+		cell: (info) => `${info.getValue()}%`,
 		size: 175,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Average of previously settled funding rates from the last 7 days'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvlUsd', {
 		header: 'Farm TVL',
-		accessorKey: 'tvlUsd',
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.tvlUsd
@@ -187,10 +186,9 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('openInterest', {
 		header: 'Open Interest',
-		accessorKey: 'openInterest',
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.openInterest
@@ -209,7 +207,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const columnOrders: ColumnOrdersByBreakpoint = {

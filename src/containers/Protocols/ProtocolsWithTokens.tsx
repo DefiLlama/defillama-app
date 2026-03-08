@@ -1,4 +1,4 @@
-import type { ColumnDef, SortingState } from '@tanstack/react-table'
+import { type ColumnDef, createColumnHelper, type SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
@@ -142,15 +142,15 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRow>[] {
+const columnHelper = createColumnHelper<ITokenMetricProtocolRow>()
+
+function defaultColumns(type: TokenMetricType) {
 	return [
-		{
-			id: 'name',
+		columnHelper.accessor('name', {
 			header: 'Name',
-			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const value = getValue<string>()
+				const value = getValue()
 
 				const basePath = chainLikeCategories.has(row.original.category ?? '') ? 'chain' : 'protocol'
 				const chartKey =
@@ -212,86 +212,79 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 				)
 			},
 			size: 280
-		},
-		{
-			id: 'category',
+		}),
+		columnHelper.accessor('category', {
 			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
 			enableSorting: false,
 			cell: ({ getValue }) => {
-				const value = getValue<string | null>()
-				return value ? (
+				const value = getValue()
+				if (!value) return null
+				return (
 					<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium text-(--link-text)">
 						{value}
 					</BasicLink>
-				) : (
-					''
 				)
 			},
 			size: 128,
 			meta: {
 				align: 'end'
 			}
-		}
+		})
 	]
 }
 
-const mcapColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const mcapColumns = [
 	...defaultColumns('mcap'),
-	{
+	columnHelper.accessor('value', {
 		id: 'mcap',
 		header: 'Market Cap',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 128
-	}
+	})
 ]
 
-const fdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const fdvColumns = [
 	...defaultColumns('fdv'),
-	{
+	columnHelper.accessor('value', {
 		id: 'fdv',
 		header: 'FDV',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 128
-	}
+	})
 ]
 
-const priceColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const priceColumns = [
 	...defaultColumns('price'),
-	{
+	columnHelper.accessor('value', {
 		id: 'price',
 		header: 'Token Price',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 128
-	}
+	})
 ]
 
-const outstandingFdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const outstandingFdvColumns = [
 	...defaultColumns('outstanding-fdv'),
-	{
+	columnHelper.accessor('value', {
 		id: 'outstanding-fdv',
 		header: 'Outstanding FDV',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Token price multiplied by outstanding supply.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
 		},
 		size: 128
-	}
+	})
 ]
 
 function getMetricNameAndColumns(type: TokenMetricType): {
