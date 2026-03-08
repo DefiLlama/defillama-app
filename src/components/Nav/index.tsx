@@ -21,8 +21,8 @@ type DefillamaPage = {
 type DefillamaPages = Record<string, DefillamaPage[]> & {
 	Main?: TNavLink[]
 	Premium?: TNavLink[]
-	Metrics: Array<DefillamaPage & { oldCategory?: string; oldName?: string }>
-	Tools: Array<DefillamaPage & { oldCategory?: string; oldName?: string }>
+	Metrics: DefillamaPage[]
+	Tools: DefillamaPage[]
 	Hidden?: Array<Pick<DefillamaPage, 'name' | 'route'>>
 }
 

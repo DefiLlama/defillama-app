@@ -1,4 +1,4 @@
-import { type HTMLAttributes, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
+import { type AnchorHTMLAttributes, useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 import { BasicLink } from '~/components/Link'
 import { useIsClient } from '~/hooks/useIsClient'
 import { OtherLinks } from './OtherLinks'
@@ -282,7 +282,7 @@ function LinkItem({
 	option,
 	isActive,
 	...props
-}: { option: ILink; isActive: boolean } & HTMLAttributes<HTMLAnchorElement>) {
+}: { option: ILink; isActive: boolean } & AnchorHTMLAttributes<HTMLAnchorElement>) {
 	return (
 		<BasicLink
 			href={option.to}

@@ -35,6 +35,7 @@ interface ITableWithSearchBaseProps<T extends RowData> {
 	sortingState?: SortingState
 	rowSize?: number | null
 	compact?: boolean
+	getSubRows?: (row: T) => T[] | undefined
 }
 
 type ITableWithSearchProps<T extends RowData = RowData> = ITableWithSearchBaseProps<T> &
@@ -62,7 +63,8 @@ export function TableWithSearch<T extends RowData>({
 	sortingState = EMPTY_SORTING,
 	rowSize = null,
 	compact = false,
-	csvFileName = null
+	csvFileName = null,
+	getSubRows: getSubRowsProp
 }: ITableWithSearchProps<T>) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
@@ -86,7 +88,12 @@ export function TableWithSearch<T extends RowData>({
 		enableSortingRemoval: false,
 		filterFromLeafRows: true,
 		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
-		getSubRows: (row) => (row as Record<string, unknown>).subRows as T[] | undefined,
+		getSubRows:
+			getSubRowsProp ??
+			((row) => {
+				const sub = (row as Record<string, unknown>).subRows
+				return Array.isArray(sub) ? (sub as T[]) : undefined
+			}),
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
