@@ -51,7 +51,7 @@ for (const [category, categoryPages] of Object.entries(pages)) {
 
 const oldMetricLinks: Array<TOldNavLink> = Object.values(
 	[...pages.Metrics, ...pages.Tools].reduce<Record<string, TOldNavLink>>((acc, curr) => {
-		if (curr.oldCategory) {
+		if (curr.oldCategory && curr.oldName) {
 			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
 			const groupedMetric = acc[curr.oldCategory]
 			if (!groupedMetric.pages) {
