@@ -19,6 +19,23 @@ const formatIncomeValue = (value: number): string => abbreviateNumber(value, 2, 
 type IncomeStatementGroupBy = (typeof incomeStatementGroupByOptions)[number]
 type IncomeStatementGroupKey = 'monthly' | 'quarterly' | 'yearly' | 'cumulative'
 
+const getPeriodHeader = (
+	key: string,
+	groupKey: IncomeStatementGroupKey,
+	timestamp = 0
+): { key: string; label: string; timestamp: number } => ({
+	key,
+	label:
+		groupKey === 'cumulative'
+			? 'Total'
+			: groupKey === 'monthly'
+				? dayjs.utc(key).format('MMM YYYY')
+				: groupKey === 'quarterly'
+					? key.split('-').reverse().join(' ')
+					: key,
+	timestamp
+})
+
 type IncomeStatementView = 'table' | 'sankey' | 'both'
 
 interface IncomeStatementProps {
@@ -81,17 +98,8 @@ export const IncomeStatement = ({
 				const periodData = groupData[key] as
 					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
 					| undefined
-				tableHeaders.push([
-					key,
-					groupKey === 'cumulative'
-						? 'Total'
-						: groupKey === 'monthly'
-							? dayjs.utc(key).format('MMM YYYY')
-							: groupKey === 'quarterly'
-								? key.split('-').reverse().join(' ')
-								: key,
-					periodData?.timestamp ?? 0
-				])
+				const header = getPeriodHeader(key, groupKey, periodData?.timestamp ?? 0)
+				tableHeaders.push([header.key, header.label, header.timestamp])
 
 				grossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? {
 					value: 0,
@@ -166,17 +174,8 @@ export const IncomeStatement = ({
 				const periodData = sankeyGroupData[key] as
 					| (Record<string, { value: number; 'by-label': Record<string, number> }> & { timestamp?: number })
 					| undefined
-				sankeyHeaders.push([
-					key,
-					sankeyGroupKey === 'cumulative'
-						? 'Total'
-						: sankeyGroupKey === 'monthly'
-							? dayjs.utc(key).format('MMM YYYY')
-							: sankeyGroupKey === 'quarterly'
-								? key.split('-').reverse().join(' ')
-								: key,
-					periodData?.timestamp ?? 0
-				])
+				const header = getPeriodHeader(key, sankeyGroupKey, periodData?.timestamp ?? 0)
+				sankeyHeaders.push([header.key, header.label, header.timestamp])
 
 				sankeyGrossProtocolRevenueData[key] = periodData?.['Gross Protocol Revenue'] ?? { value: 0, 'by-label': {} }
 
