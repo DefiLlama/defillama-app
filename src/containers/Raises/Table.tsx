@@ -41,6 +41,7 @@ export const raisesColumns = [
 		cell: (info) => toNiceDayMonthYear(info.getValue())
 	}),
 	columnHelper.accessor((row) => formatRaiseAmount(row.amount), {
+		id: 'amount',
 		header: 'Amount Raised',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 140
@@ -81,6 +82,7 @@ export const raisesColumns = [
 		)
 	}),
 	columnHelper.accessor((row) => formatRaiseAmount(row.valuation), {
+		id: 'valuation',
 		header: 'Valuation',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 100
