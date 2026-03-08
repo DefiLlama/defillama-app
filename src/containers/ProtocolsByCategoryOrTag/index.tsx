@@ -737,7 +737,7 @@ const perpVolume24hColumn = columnHelper.accessor((protocol) => protocol.perpVol
 			)
 		}
 
-		return info.getValue() != null ? formattedNum(info.getValue(), true) : null
+		return formattedNum(info.getValue(), true)
 	},
 	meta: {
 		align: 'end',
@@ -785,7 +785,7 @@ const perpVolume7dColumn = columnHelper.accessor((protocol) => protocol.perpVolu
 			)
 		}
 
-		return info.getValue() != null ? formattedNum(info.getValue(), true) : null
+		return formattedNum(info.getValue(), true)
 	},
 	meta: {
 		align: 'end',
@@ -822,7 +822,7 @@ const perpVolume30dColumn = columnHelper.accessor((protocol) => protocol.perpVol
 			)
 		}
 
-		return info.getValue() != null ? formattedNum(info.getValue(), true) : null
+		return formattedNum(info.getValue(), true)
 	},
 	meta: {
 		align: 'end',
@@ -939,7 +939,7 @@ const lendingColumns = [
 	columnHelper.accessor((protocol) => protocol.suppliedTvl, {
 		id: 'supplied/tvl',
 		header: 'Supplied/TVL',
-		cell: (info) => <>{info.getValue() ?? null}</>,
+		cell: (info) => info.getValue(),
 		meta: {
 			align: 'end',
 			headerHelperText: '(Total amount supplied / Total value locked) ratio'

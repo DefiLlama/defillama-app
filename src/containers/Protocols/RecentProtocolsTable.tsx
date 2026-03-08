@@ -464,15 +464,10 @@ const listedAtColumn = columnHelper.accessor('listedAt', {
 	}
 })
 
-const hiddenRecentColumns = new Set(['volume_7d', 'fees_7d', 'revenue_7d'])
-
 const recentlyListedProtocolsColumns = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((column) => {
-		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
-		return typeof accessorKey !== 'string' || !hiddenRecentColumns.has(accessorKey)
-	})
+	...protocolsColumns.slice(3, -1)
 ]
 
 const airdropsColumns = [
@@ -489,10 +484,7 @@ const airdropsColumns = [
 		}
 	}),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((column) => {
-		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
-		return typeof accessorKey !== 'string' || !hiddenRecentColumns.has(accessorKey)
-	})
+	...protocolsColumns.slice(3, -1)
 ]
 
 function HideForkedProtocols() {

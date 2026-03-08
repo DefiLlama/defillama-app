@@ -1,6 +1,7 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
+	type Table,
 	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
@@ -130,6 +131,36 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
+const prepareRaisesCsv = (instance: Table<IRaise>) => {
+	const csv = prepareTableCsv({ instance, filename: 'raises' })
+	if (csv.rows.length === 0) return csv
+
+	const headers = csv.rows[0] as string[]
+	const dateIdx = headers.indexOf('Date')
+	const newHeaders = [...headers]
+
+	if (dateIdx !== -1) {
+		newHeaders.splice(dateIdx, 1, 'Timestamp', 'Date')
+	}
+
+	return {
+		...csv,
+		rows: [
+			newHeaders,
+			...csv.rows.slice(1).map((row) => {
+				const newRow = [...row]
+				if (dateIdx !== -1 && typeof newRow[dateIdx] === 'number') {
+					const ts = newRow[dateIdx] as number
+					const d = new Date(ts * 1000)
+					const formatted = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+					newRow.splice(dateIdx, 1, ts, formatted)
+				}
+				return newRow
+			})
+		]
+	}
+}
+
 export function RaisesTable({ raises }: { raises: IRaise[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
@@ -192,7 +223,7 @@ export function RaisesTable({ raises }: { raises: IRaise[] }) {
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'raises' })} smol />
+				<CSVDownloadButton prepareCsv={() => prepareRaisesCsv(instance)} smol />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

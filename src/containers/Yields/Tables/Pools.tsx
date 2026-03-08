@@ -877,7 +877,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 	const resolvedColumns = useMemo(() => {
 		if (hasActiveSubscription) return columns
 		return columns.map((col) => {
-			if ('accessorKey' in col && col.accessorKey === 'cv30d') {
+			const columnId = col.id ?? ('accessorKey' in col ? col.accessorKey : undefined)
+			if (columnId === 'cv30d') {
 				return { ...col, enableSorting: false }
 			}
 			return col

@@ -267,11 +267,14 @@ const columns = [
 	}),
 	columnHelper.accessor(
 		(asset) =>
-			Number.isNaN(Number(asset.defiActiveTvl?.total)) || Number.isNaN(Number(asset.activeMcap?.total))
+			Number.isNaN(Number(asset.defiActiveTvl?.total)) ||
+			Number.isNaN(Number(asset.activeMcap?.total)) ||
+			Number(asset.activeMcap?.total) === 0
 				? null
-				: formatNum((Number(asset.defiActiveTvl?.total) / Number(asset.activeMcap?.total)) * 100, 2),
+				: (Number(asset.defiActiveTvl.total) / Number(asset.activeMcap.total)) * 100,
 		{
-			cell: (info) => (info.getValue() != null ? `${info.getValue()}%` : null),
+			header: 'Utilization',
+			cell: (info) => (info.getValue() != null ? `${formatNum(info.getValue(), 2)}%` : null),
 			id: 'utilization',
 			size: 120,
 			meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }

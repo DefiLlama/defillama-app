@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchJson } from '~/utils/async'
-import type { ChainsDatasetRow } from './columns'
+import type { ChainsDatasetRow } from './types'
 
 export function useChainsData(category?: string) {
 	const queryParams = category ? `?category=${encodeURIComponent(category)}` : ''

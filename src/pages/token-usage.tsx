@@ -22,7 +22,7 @@ import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
@@ -31,6 +31,9 @@ type TokenUsagePageRow = {
 	name: string
 	amountUsd: number
 	category?: string
+	logo?: string
+	slug?: string
+	misrepresentedTokens?: boolean
 }
 
 const columnHelper = createColumnHelper<TokenUsagePageRow>()
@@ -137,7 +140,7 @@ export default function Tokens() {
 	)
 }
 
-const fetchProtocols = async (tokenSymbol) => {
+const fetchProtocols = async (tokenSymbol: string | null): Promise<TokenUsagePageRow[] | null> => {
 	if (!tokenSymbol) return null
 	try {
 		const data = await fetchProtocolsByToken(tokenSymbol)
@@ -154,17 +157,24 @@ const columns = [
 	columnHelper.accessor('name', {
 		header: 'Name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
+		cell: ({ getValue, row }) => {
 			const value = getValue()
+			const href = row.original.slug ? `/protocol/${row.original.slug}` : null
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
-					<BasicLink
-						href={`/protocol/${slug(value)}`}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>{`${value}`}</BasicLink>
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${value}`} />
+					{href ? (
+						<BasicLink
+							href={href}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{value}
+						</BasicLink>
+					) : (
+						<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">{value}</span>
+					)}
 				</span>
 			)
 		}

@@ -20,7 +20,8 @@ import { LoadingSpinner } from '../../LoadingSpinner'
 import { TableBody } from '../../ProTable/TableBody'
 import { ChainsTableHeader } from './ChainsTableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
-import { type ChainsDatasetRow, chainsDatasetColumns } from './columns'
+import { chainsDatasetColumns } from './columns'
+import type { ChainsDatasetRow } from './types'
 import { useChainsData } from './useChainsData'
 
 const EMPTY_DATA: ChainsDatasetRow[] = []
@@ -463,7 +464,7 @@ export function ChainsDataset({
 			/>
 
 			<div className="min-h-0 flex-1">
-				<TableBody table={instance as any} />
+				<TableBody<ChainsDatasetRow> table={instance} />
 			</div>
 
 			<div className="mt-3 flex w-full flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2">

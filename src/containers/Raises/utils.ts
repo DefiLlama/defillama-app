@@ -106,9 +106,5 @@ export function getRaisesFiltersList({ raises, investorName }: GetRaisesFiltersL
 export const formatRaiseAmount = (n: unknown): number | null => {
 	if (n == null) return null
 	if (Number.isNaN(Number(n))) return null
-	const num = Number(n)
-	if (num >= 1e3) {
-		return (num / 1e3) * 1e9 // billions
-	}
-	return num * 1e6 // millions
+	return Number(n) * 1e6
 }

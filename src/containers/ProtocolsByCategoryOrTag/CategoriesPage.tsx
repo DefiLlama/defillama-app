@@ -66,8 +66,7 @@ const categoriesColumns = [
 			align: 'end'
 		}
 	}),
-	columnHelper.accessor((row) => row.tvl, {
-		id: 'tvl',
+	columnHelper.accessor('tvl', {
 		header: 'Combined TVL',
 		size: 135,
 		meta: {
@@ -78,8 +77,7 @@ const categoriesColumns = [
 			return formattedNum(value, true)
 		}
 	}),
-	columnHelper.accessor((row) => row.change_1d, {
-		id: 'change_1d',
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
 		size: 140,
 		meta: {
@@ -87,8 +85,7 @@ const categoriesColumns = [
 		},
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />
 	}),
-	columnHelper.accessor((row) => row.change_7d, {
-		id: 'change_7d',
+	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
 		size: 140,
 		meta: {
@@ -96,8 +93,7 @@ const categoriesColumns = [
 		},
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />
 	}),
-	columnHelper.accessor((row) => row.change_1m, {
-		id: 'change_1m',
+	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
 		size: 140,
 		meta: {
@@ -105,8 +101,7 @@ const categoriesColumns = [
 		},
 		cell: ({ getValue }) => <PercentChange percent={getValue()} />
 	}),
-	columnHelper.accessor((row) => row.revenue, {
-		id: 'revenue',
+	columnHelper.accessor('revenue', {
 		header: 'Combined 24h Revenue',
 		size: 200,
 		meta: {

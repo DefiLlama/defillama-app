@@ -97,12 +97,15 @@ const TitleCell = ({ info }: { info: CellContext<GovernanceProposal, string> }) 
 
 const ControversyCell = ({ info }: { info: CellContext<GovernanceProposal, number | null | undefined> }) => {
 	const value = info.getValue()
+	if (value == null) return ''
 	const numericValue = Number(value)
 	return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) : ''}</>
 }
 
 const DateCell = ({ info }: { info: CellContext<GovernanceProposal, number | null | undefined> }) => {
-	const timestamp = Number(info.getValue())
+	const value = info.getValue()
+	if (value == null) return ''
+	const timestamp = Number(value)
 	return <>{Number.isFinite(timestamp) ? toNiceDayMonthAndYear(timestamp) : ''}</>
 }
 

@@ -667,9 +667,8 @@ const NameColumn = (type: IProps['type']) =>
 		size: 280
 	})
 
-const categoryColumn = (align: 'center' | 'end' = 'end') =>
-	columnHelper.accessor((protocol) => protocol.category, {
-		id: 'category',
+const categoryColumn = (align?: 'center') =>
+	columnHelper.accessor('category', {
 		header: 'Category',
 		enableSorting: false,
 		cell: ({ getValue }) =>
@@ -681,9 +680,7 @@ const categoryColumn = (align: 'center' | 'end' = 'end') =>
 				''
 			),
 		size: 128,
-		meta: {
-			align
-		}
+		meta: align ? { align } : undefined
 	})
 
 const definitionColumn = columnHelper.accessor((protocol) => protocol.methodology ?? null, {
@@ -1080,10 +1077,12 @@ const getColumnsByType = (isChain: boolean = false) => {
 			NameColumn('Perp Aggregator Volume'),
 			centeredMetricColumn(
 				'total24h',
-				<>
-					<span className="md:hidden">Perp Agg Vol 24h</span>
-					<span className="hidden md:block">Perp Aggregator Volume 24h</span>
-				</>,
+				() => (
+					<>
+						<span className="md:hidden">Perp Agg Vol 24h</span>
+						<span className="hidden md:block">Perp Aggregator Volume 24h</span>
+					</>
+				),
 				(protocol) => protocol.total24h,
 				definitions.perpsAggregators.protocol['24h'],
 				160,
@@ -1098,10 +1097,12 @@ const getColumnsByType = (isChain: boolean = false) => {
 			),
 			centeredMetricColumn(
 				'total30d',
-				<>
-					<span className="md:hidden">Perp Agg Vol 30d</span>
-					<span className="hidden md:block">Perp Aggregator Volume 30d</span>
-				</>,
+				() => (
+					<>
+						<span className="md:hidden">Perp Agg Vol 30d</span>
+						<span className="hidden md:block">Perp Aggregator Volume 30d</span>
+					</>
+				),
 				(protocol) => protocol.total30d,
 				definitions.perpsAggregators.protocol['30d'],
 				160,
@@ -1112,10 +1113,12 @@ const getColumnsByType = (isChain: boolean = false) => {
 			NameColumn('Bridge Aggregator Volume'),
 			centeredMetricColumn(
 				'total24h',
-				<>
-					<span className="md:hidden">Bridge Agg Vol 24h</span>
-					<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
-				</>,
+				() => (
+					<>
+						<span className="md:hidden">Bridge Agg Vol 24h</span>
+						<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
+					</>
+				),
 				(protocol) => protocol.total24h,
 				definitions.bridgeAggregators.chain['24h'],
 				160,
@@ -1130,10 +1133,12 @@ const getColumnsByType = (isChain: boolean = false) => {
 			),
 			centeredMetricColumn(
 				'total30d',
-				<>
-					<span className="md:hidden">Bridge Agg Vol 30d</span>
-					<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
-				</>,
+				() => (
+					<>
+						<span className="md:hidden">Bridge Agg Vol 30d</span>
+						<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
+					</>
+				),
 				(protocol) => protocol.total30d,
 				definitions.bridgeAggregators.chain['30d'],
 				160,
@@ -1144,10 +1149,12 @@ const getColumnsByType = (isChain: boolean = false) => {
 			NameColumn('DEX Aggregator Volume'),
 			centeredMetricColumn(
 				'total24h',
-				<>
-					<span className="md:hidden">DEX Agg Vol 24h</span>
-					<span className="hidden md:block">DEX Aggregator Volume 24h</span>
-				</>,
+				() => (
+					<>
+						<span className="md:hidden">DEX Agg Vol 24h</span>
+						<span className="hidden md:block">DEX Aggregator Volume 24h</span>
+					</>
+				),
 				(protocol) => protocol.total24h,
 				definitions.dexAggregators.protocol['24h'],
 				160,
@@ -1162,10 +1169,12 @@ const getColumnsByType = (isChain: boolean = false) => {
 			),
 			centeredMetricColumn(
 				'total30d',
-				<>
-					<span className="md:hidden">DEX Agg Vol 30d</span>
-					<span className="hidden md:block">DEX Aggregator Volume 30d</span>
-				</>,
+				() => (
+					<>
+						<span className="md:hidden">DEX Agg Vol 30d</span>
+						<span className="hidden md:block">DEX Aggregator Volume 30d</span>
+					</>
+				),
 				(protocol) => protocol.total30d,
 				definitions.dexAggregators.protocol['30d'],
 				160,

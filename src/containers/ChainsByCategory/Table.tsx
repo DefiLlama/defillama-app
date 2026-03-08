@@ -328,33 +328,41 @@ const columns = [
 			id: 'chainAssets',
 			header: 'Bridged TVL',
 			cell: ({ row }) => {
-				const chainAssets: any = row.original.chainAssets
-				if (!chainAssets?.total?.total) return null
+				const originalChainAssets = row.original.chainAssets
+				const total = originalChainAssets?.total
+				if (total == null) return null
+
+				const normalizedChainAssets = {
+					...originalChainAssets,
+					total: typeof total === 'object' ? total.total : String(total)
+				}
+
+				if (!normalizedChainAssets.total) return null
 
 				const chainAssetsBreakdown = (
 					<div className="flex w-52 flex-col gap-1">
-						{chainAssets.native ? (
+						{normalizedChainAssets.native ? (
 							<div className="flex items-center justify-between gap-1">
 								<span>Native:</span>
-								<span>{formattedNum(+chainAssets.native, true)}</span>
+								<span>{formattedNum(+normalizedChainAssets.native, true)}</span>
 							</div>
 						) : null}
-						{chainAssets.canonical ? (
+						{normalizedChainAssets.canonical ? (
 							<div className="flex items-center justify-between gap-1">
 								<span>Canonical:</span>
-								<span>{formattedNum(+chainAssets.canonical, true)}</span>
+								<span>{formattedNum(+normalizedChainAssets.canonical, true)}</span>
 							</div>
 						) : null}
-						{chainAssets.ownTokens ? (
+						{normalizedChainAssets.ownTokens ? (
 							<div className="flex items-center justify-between gap-1">
 								<span>Own Tokens:</span>
-								<span>{formattedNum(+chainAssets.ownTokens, true)}</span>
+								<span>{formattedNum(+normalizedChainAssets.ownTokens, true)}</span>
 							</div>
 						) : null}
-						{chainAssets.thirdParty ? (
+						{normalizedChainAssets.thirdParty ? (
 							<div className="flex items-center justify-between gap-1">
 								<span>Third Party:</span>
-								<span>{formattedNum(+chainAssets.thirdParty, true)}</span>
+								<span>{formattedNum(+normalizedChainAssets.thirdParty, true)}</span>
 							</div>
 						) : null}
 					</div>
@@ -362,7 +370,7 @@ const columns = [
 
 				return (
 					<Tooltip content={chainAssetsBreakdown} className="justify-end">
-						{formattedNum(+chainAssets.total?.total, true)}
+						{formattedNum(+normalizedChainAssets.total, true)}
 					</Tooltip>
 				)
 			},
@@ -441,6 +449,14 @@ const columns = [
 	})
 ]
 
-const columnOptions = columns.map((c: any) => ({ name: c.header, key: c.accessorKey }))
+const getColumnKey = (column: (typeof columns)[number]) =>
+	column.id ?? ('accessorKey' in column ? column.accessorKey : '')
+
+const columnOptions = columns
+	.map((column) => ({
+		name: typeof column.header === 'string' ? column.header : getColumnKey(column),
+		key: getColumnKey(column)
+	}))
+	.filter((c) => c.key !== '')
 
 const defaultColumns = JSON.stringify(Object.fromEntries(columnOptions.map((c) => [c.key, true])))
