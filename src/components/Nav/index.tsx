@@ -34,6 +34,8 @@ const footerLinks = footerCategories.map((category) => ({
 	pages: defillamaPages[category] ?? []
 })) as TNavLinks
 
+// Skip "Hidden" so hidden page names (e.g. "Subscribe to DefiLlama") don't overwrite
+// visible labels, and first-match-wins prevents later duplicates from replacing earlier ones.
 const routeToPageMap = new Map<string, { name: string; route: string }>()
 for (const [category, pages] of Object.entries(
 	defillamaPages as Record<string, Array<{ name: string; route: string }>>
@@ -70,6 +72,7 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 	const { hasActiveSubscription } = useAuthContext()
 
 	const mainLinks = useMemo(() => {
+		// Match by route (not p.name) so a display-name change doesn't break this
 		const premium = premiumPages.map((p) =>
 			p.route === '/ai' && hasActiveSubscription ? { ...p, route: '/ai/chat' } : p
 		)

@@ -31,6 +31,7 @@ function coerceXKey(x: unknown): string | number | null {
 }
 
 function isCsvCell(value: unknown): value is CsvCell {
+	// typeof NaN/Infinity === 'number', so we must use Number.isFinite to reject them
 	if (typeof value === 'number') return Number.isFinite(value)
 	return typeof value === 'string' || typeof value === 'boolean'
 }
