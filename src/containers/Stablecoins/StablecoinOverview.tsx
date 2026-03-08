@@ -42,6 +42,7 @@ const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
 }
 
 const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
+type ChartType = (typeof CHART_TYPE_VALUES)[number]
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 export default function PeggedContainer(props: PeggedAssetPageProps) {
@@ -88,12 +89,11 @@ export const PeggedAssetInfo = ({
 
 	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? '')
 
-	const [chartType, setChartType] = React.useState('Pie')
+	const [chartType, setChartType] = React.useState<ChartType>('Pie')
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onChartTypeChange = React.useCallback(
-		(nextChartType: string) => {
-			// Clear previous refs immediately to avoid exporting a stale chart
+		(nextChartType: ChartType) => {
 			handleChartReady(null)
 			setChartType(nextChartType)
 		},

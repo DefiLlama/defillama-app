@@ -2,17 +2,17 @@ import clsx from 'clsx'
 import * as React from 'react'
 import { TAG_GROUP_VARIANTS, type TagGroupVariant } from './Select/types'
 
-interface IProps<T extends string = string> extends React.ComponentProps<'div'> {
-	selectedValue: T
-	setValue: (period: T) => void
-	values: readonly T[]
+interface IProps<V extends readonly string[] = readonly string[]> extends React.ComponentProps<'div'> {
+	selectedValue: V[number] | null
+	setValue: (value: V[number]) => void
+	values: V
 	style?: Record<string, string>
 	variant?: TagGroupVariant
 	label?: string
-	disabledValues?: readonly T[]
+	disabledValues?: readonly V[number][]
 }
 
-export function TagGroup<T extends string = string>({
+export function TagGroup<V extends readonly string[]>({
 	selectedValue,
 	setValue,
 	values,
@@ -22,7 +22,7 @@ export function TagGroup<T extends string = string>({
 	label,
 	disabledValues,
 	...props
-}: IProps<T>) {
+}: IProps<V>) {
 	const disabledValuesSet = React.useMemo(() => (disabledValues ? new Set(disabledValues) : null), [disabledValues])
 	const { container, button } = TAG_GROUP_VARIANTS[variant]
 

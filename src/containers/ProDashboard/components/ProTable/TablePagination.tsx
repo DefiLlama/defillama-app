@@ -12,6 +12,14 @@ interface TablePaginationProps {
 const PAGINATION_VALUES = ['Previous', 'Next'] as const
 const PAGE_SIZES = ['10', '30', '50'] as const
 
+type PaginationAction = (typeof PAGINATION_VALUES)[number]
+type PageSize = (typeof PAGE_SIZES)[number]
+
+const toPageSize = (n: number): PageSize => {
+	const s = String(n)
+	return (PAGE_SIZES as readonly string[]).includes(s) ? (s as PageSize) : PAGE_SIZES[0]
+}
+
 export function TablePagination({ table }: TablePaginationProps) {
 	const rowCount = table?.getRowCount() ?? 0
 	const canNextPage = table?.getCanNextPage() ?? false
@@ -21,14 +29,14 @@ export function TablePagination({ table }: TablePaginationProps) {
 	const shouldShowPageSizes = rowCount > 10
 
 	const disabledValues = React.useMemo(() => {
-		const values: string[] = []
+		const values: PaginationAction[] = []
 		if (!canNextPage) values.push('Next')
 		if (!canPreviousPage) values.push('Previous')
 		return values
 	}, [canNextPage, canPreviousPage])
 
 	const handlePaginationAction = React.useCallback(
-		(val: string) => {
+		(val: PaginationAction) => {
 			if (!table) return
 			if (val === 'Next' && canNextPage) {
 				table.nextPage()
@@ -42,7 +50,7 @@ export function TablePagination({ table }: TablePaginationProps) {
 	)
 
 	const handlePageSizeChange = React.useCallback(
-		(val: string) => {
+		(val: PageSize) => {
 			if (!table) return
 			table.setPageSize(Number(val))
 		},
@@ -55,7 +63,7 @@ export function TablePagination({ table }: TablePaginationProps) {
 		<div className="mt-2 flex w-full items-center justify-between">
 			{shouldShowPagination ? (
 				<TagGroup
-					selectedValue=""
+					selectedValue={null}
 					setValue={handlePaginationAction}
 					values={PAGINATION_VALUES}
 					disabledValues={disabledValues}
@@ -64,7 +72,7 @@ export function TablePagination({ table }: TablePaginationProps) {
 			{shouldShowPageSizes ? (
 				<div className="flex items-center">
 					<span className="mr-2 text-xs">Per page</span>
-					<TagGroup selectedValue={String(pageSize)} values={PAGE_SIZES} setValue={handlePageSizeChange} />
+					<TagGroup selectedValue={toPageSize(pageSize)} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 				</div>
 			) : null}
 		</div>

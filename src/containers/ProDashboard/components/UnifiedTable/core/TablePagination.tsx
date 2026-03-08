@@ -12,27 +12,35 @@ interface UnifiedTablePaginationProps {
 const PAGE_SIZES = ['10', '30', '50'] as const
 const PAGINATION_VALUES = ['Previous', 'Next'] as const
 
+type PaginationAction = (typeof PAGINATION_VALUES)[number]
+type PageSize = (typeof PAGE_SIZES)[number]
+
+const toPageSize = (n: number): PageSize => {
+	const s = String(n)
+	return (PAGE_SIZES as readonly string[]).includes(s) ? (s as PageSize) : PAGE_SIZES[0]
+}
+
 export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 	const canPreviousPage = table.getCanPreviousPage()
 	const canNextPage = table.getCanNextPage()
-	const pageSize = String(table.getState().pagination.pageSize)
+	const validPageSize = toPageSize(table.getState().pagination.pageSize)
 
 	const disabledValues = React.useMemo(() => {
-		const values: string[] = []
+		const values: PaginationAction[] = []
 		if (!canPreviousPage) values.push('Previous')
 		if (!canNextPage) values.push('Next')
 		return values
 	}, [canNextPage, canPreviousPage])
 
 	const handlePageSizeChange = React.useCallback(
-		(val: string) => {
+		(val: PageSize) => {
 			table.setPageSize(Number(val))
 		},
 		[table]
 	)
 
 	const handlePaginationChange = React.useCallback(
-		(val: string) => {
+		(val: PaginationAction) => {
 			if (val === 'Next') {
 				if (canNextPage) table.nextPage()
 				return
@@ -47,7 +55,7 @@ export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 	if (!canPreviousPage && !canNextPage) {
 		return (
 			<div className="mt-2 flex w-full items-center justify-end">
-				<TagGroup selectedValue={pageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
+				<TagGroup selectedValue={validPageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 			</div>
 		)
 	}
@@ -62,7 +70,7 @@ export function UnifiedTablePagination({ table }: UnifiedTablePaginationProps) {
 			/>
 			<div className="flex items-center">
 				<span className="mr-2 text-xs">Per page</span>
-				<TagGroup selectedValue={pageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
+				<TagGroup selectedValue={validPageSize} values={PAGE_SIZES} setValue={handlePageSizeChange} />
 			</div>
 		</div>
 	)

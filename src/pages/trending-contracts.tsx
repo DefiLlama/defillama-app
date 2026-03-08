@@ -74,8 +74,8 @@ async function getContracts(chain: string, time: string) {
 export default function TrendingContracts() {
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'gas_spend' }])
 
-	const [value, setValue] = useState('1d')
-	const [chain, setChain] = useState('Ethereum')
+	const [value, setValue] = useState<(typeof TIME_VALUES)[number]>('1d')
+	const [chain, setChain] = useState<(typeof CHAIN_VALUES)[number]>('Ethereum')
 
 	const time = useDeferredValue(value)
 
@@ -115,10 +115,10 @@ export default function TrendingContracts() {
 			<div className="flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center gap-5 p-3">
 					<h1 className="mr-auto text-xl font-semibold">Trending Contracts</h1>
-					<TagGroup selectedValue={value} setValue={(val: string) => setValue(val)} values={TIME_VALUES} />
+					<TagGroup selectedValue={value} setValue={setValue} values={TIME_VALUES} />
 					<TagGroup
 						selectedValue={chain}
-						setValue={(val: string) => startTransition(() => setChain(val))}
+						setValue={(val) => startTransition(() => setChain(val))}
 						values={CHAIN_VALUES}
 					/>
 				</div>
