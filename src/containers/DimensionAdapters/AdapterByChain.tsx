@@ -11,7 +11,7 @@ import {
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { startTransition, useMemo, useState } from 'react'
+import { startTransition, useMemo, useState, type ReactNode } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
@@ -128,12 +128,16 @@ const getProtocolsByCategory = (
 
 export function AdapterByChain(props: IProps) {
 	const router = useRouter()
+	const isChain = props.chain !== 'All'
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 	const categoryParam = router.query.category
 	const excludeCategoryParam = router.query.excludeCategory
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
+	const columnsByType = useMemo(() => getColumnsByType(isChain), [isChain])
+	const tableColumns = useMemo(() => columnsByType[props.type], [columnsByType, props.type])
+	const columnsOptions = useMemo(() => getColumnsOptions(props.type, columnsByType), [props.type, columnsByType])
 
-	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
+	const { selectedCategories, protocols } = useMemo(() => {
 		const excludeSet = parseExcludeParam(excludeCategoryParam)
 
 		let selectedCategories =
@@ -248,8 +252,7 @@ export function AdapterByChain(props: IProps) {
 
 		return {
 			selectedCategories,
-			protocols: finalProtocols,
-			columnsOptions: getColumnsOptions(props.type)
+			protocols: finalProtocols
 		}
 	}, [
 		categoryParam,
@@ -258,7 +261,6 @@ export function AdapterByChain(props: IProps) {
 		props.categories,
 		props.protocols,
 		props.adapterType,
-		props.type,
 		enabledSettings.bribes,
 		enabledSettings.tokentax
 	])
@@ -270,7 +272,7 @@ export function AdapterByChain(props: IProps) {
 
 	const instance = useReactTable({
 		data: protocols,
-		columns: getColumnsByType(props.chain !== 'All')[props.type] as any,
+		columns: tableColumns,
 		state: {
 			sorting,
 			columnFilters,
@@ -533,7 +535,7 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 	'Perp Volume': 'perpsVolume'
 }
 
-const getColumnsOptions = (type: IProps['type']) =>
+const getColumnsOptions = (type: IProps['type'], columnsByType: ReturnType<typeof getColumnsByType>) =>
 	columnsByType[type].map((c) => {
 		let headerName: string
 		if (typeof c.header === 'function') {
@@ -697,7 +699,7 @@ const definitionColumn = columnHelper.accessor((protocol) => protocol.methodolog
 
 const centeredMetricColumn = (
 	id: string,
-	header: any,
+	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
 	size: number,
@@ -717,7 +719,7 @@ const centeredMetricColumn = (
 
 const endMetricColumn = (
 	id: string,
-	header: any,
+	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
 	size: number
@@ -735,7 +737,7 @@ const endMetricColumn = (
 
 const doubleCountedMetricColumn = (
 	id: string,
-	header: any,
+	header: string | (() => ReactNode),
 	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
 	headerHelperText: string,
 	size: number,
@@ -1049,40 +1051,35 @@ const getColumnsByType = (isChain: boolean = false) => {
 				'Normalized Volume 24h',
 				(protocol) => protocol.total24h,
 				definitions.normalizedVolume.protocol['24h'],
-				160
+				180
 			),
 			doubleCountedMetricColumn(
 				'activeLiquidity',
 				'Active Liquidity',
 				(protocol) => protocol.activeLiquidity,
 				definitions.activeLiquidity.protocol,
-				160
+				180
 			),
 			reportedPerpVolumeColumn(
 				'total7d',
 				'Normalized Volume 7d',
 				(protocol) => protocol.total7d,
 				definitions.normalizedVolume.protocol['7d'],
-				160
+				180
 			),
 			reportedPerpVolumeColumn(
 				'total30d',
 				'Normalized Volume 30d',
 				(protocol) => protocol.total30d,
 				definitions.normalizedVolume.protocol['30d'],
-				160
+				180
 			)
 		],
 		'Perp Aggregator Volume': [
 			NameColumn('Perp Aggregator Volume'),
 			centeredMetricColumn(
 				'total24h',
-				() => (
-					<>
-						<span className="md:hidden">Perp Agg Vol 24h</span>
-						<span className="hidden md:block">Perp Aggregator Volume 24h</span>
-					</>
-				),
+				'Perp Agg Vol 24h',
 				(protocol) => protocol.total24h,
 				definitions.perpsAggregators.protocol['24h'],
 				160,
@@ -1090,19 +1087,14 @@ const getColumnsByType = (isChain: boolean = false) => {
 			),
 			centeredMetricColumn(
 				'total7d',
-				'Perp Aggregator Volume 7d',
+				'Perp Agg Volume 7d',
 				(protocol) => protocol.total7d,
 				definitions.perpsAggregators.protocol['7d'],
 				160
 			),
 			centeredMetricColumn(
 				'total30d',
-				() => (
-					<>
-						<span className="md:hidden">Perp Agg Vol 30d</span>
-						<span className="hidden md:block">Perp Aggregator Volume 30d</span>
-					</>
-				),
+				'Perp Agg Vol 30d',
 				(protocol) => protocol.total30d,
 				definitions.perpsAggregators.protocol['30d'],
 				160,
@@ -1113,12 +1105,7 @@ const getColumnsByType = (isChain: boolean = false) => {
 			NameColumn('Bridge Aggregator Volume'),
 			centeredMetricColumn(
 				'total24h',
-				() => (
-					<>
-						<span className="md:hidden">Bridge Agg Vol 24h</span>
-						<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
-					</>
-				),
+				'Bridge Agg Vol 24h',
 				(protocol) => protocol.total24h,
 				definitions.bridgeAggregators.chain['24h'],
 				160,
@@ -1133,12 +1120,7 @@ const getColumnsByType = (isChain: boolean = false) => {
 			),
 			centeredMetricColumn(
 				'total30d',
-				() => (
-					<>
-						<span className="md:hidden">Bridge Agg Vol 30d</span>
-						<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
-					</>
-				),
+				'Bridge Agg Vol 30d',
 				(protocol) => protocol.total30d,
 				definitions.bridgeAggregators.chain['30d'],
 				160,
@@ -1149,12 +1131,7 @@ const getColumnsByType = (isChain: boolean = false) => {
 			NameColumn('DEX Aggregator Volume'),
 			centeredMetricColumn(
 				'total24h',
-				() => (
-					<>
-						<span className="md:hidden">DEX Agg Vol 24h</span>
-						<span className="hidden md:block">DEX Aggregator Volume 24h</span>
-					</>
-				),
+				'DEX Agg Vol 24h',
 				(protocol) => protocol.total24h,
 				definitions.dexAggregators.protocol['24h'],
 				160,
@@ -1169,12 +1146,7 @@ const getColumnsByType = (isChain: boolean = false) => {
 			),
 			centeredMetricColumn(
 				'total30d',
-				() => (
-					<>
-						<span className="md:hidden">DEX Agg Vol 30d</span>
-						<span className="hidden md:block">DEX Aggregator Volume 30d</span>
-					</>
-				),
+				'DEX Agg Vol 30d',
 				(protocol) => protocol.total30d,
 				definitions.dexAggregators.protocol['30d'],
 				160,
@@ -1210,5 +1182,3 @@ const getColumnsByType = (isChain: boolean = false) => {
 		'P/S': [NameColumn('Revenue'), categoryColumn('center'), pfOrPsColumn('P/S', definitions.revenue.protocol['ps'])]
 	}
 }
-
-const columnsByType = getColumnsByType()

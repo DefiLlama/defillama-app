@@ -54,8 +54,10 @@ export default function Tokens() {
 
 	const filteredProtocols = useMemo(() => {
 		return (
-			protocols?.filter((protocol) =>
-				!protocol.misrepresentedTokens && protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true
+			protocols?.filter(
+				(protocol) =>
+					!protocol.misrepresentedTokens &&
+					(protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true)
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
