@@ -173,7 +173,7 @@ export interface IProtocolOverviewPageData {
 	governanceApis: Array<string> | null
 	incomeStatement?: {
 		data: Record<
-			'monthly' | 'quarterly' | 'yearly',
+			'monthly' | 'quarterly' | 'yearly' | 'cumulative',
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
