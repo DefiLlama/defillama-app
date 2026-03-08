@@ -1181,7 +1181,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				;(cumulativePeriod[label] as { value: number; 'by-label': Record<string, number> }).value += entry.value ?? 0
 
 				for (const breakdownLabel in entry['by-label'] ?? {}) {
-					const breakdowns = (cumulativePeriod[label] as { value: number; 'by-label': Record<string, number> })['by-label']
+					const breakdowns = (cumulativePeriod[label] as { value: number; 'by-label': Record<string, number> })[
+						'by-label'
+					]
 					breakdowns[breakdownLabel] = (breakdowns[breakdownLabel] ?? 0) + (entry['by-label'][breakdownLabel] ?? 0)
 				}
 			}
