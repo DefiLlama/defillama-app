@@ -598,6 +598,16 @@ const nextConfig: NextConfig = {
 				source: '/dat',
 				destination: '/digital-asset-treasuries',
 				permanent: true
+			},
+			{
+				source: '/protocol/eigenlayer',
+				destination: '/protocol/eigencloud',
+				permanent: true
+			},
+			{
+				source: '/protocol/mexc',
+				destination: '/cex/mexc',
+				permanent: true
 			}
 		]
 	},
