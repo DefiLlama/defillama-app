@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import type { InferGetStaticPropsType } from 'next'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -50,6 +50,10 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 const pageName = ['Protocols', 'ranked by', 'Expenses']
 const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 
+type ExpenseRow = InferGetStaticPropsType<typeof getStaticProps>['expenses'][number]
+
+const columnHelper = createColumnHelper<ExpenseRow>()
+
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
@@ -72,58 +76,53 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	)
 }
 
-const columns: ColumnDef<any>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo name={getValue() as string} kind="token" data-lgonly alt={`Logo of ${getValue()}`} />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
-						href={`/protocol/${slug(getValue() as string)}`}
+						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string}
+						{value}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('headcount', {
 		header: 'Headcount',
-		accessorKey: 'headcount',
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('sumAnnualUsdExpenses', {
 		header: 'Annual Expenses',
-		accessorKey: 'sumAnnualUsdExpenses',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedNum(getValue(), true) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('sources', {
 		header: 'Source',
-		accessorKey: 'sources',
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
 					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-					href={getValue()[0] as string}
+					href={getValue()[0]}
 					target="_blank"
 					rel="noopener noreferrer"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} className="shrink-0" />
 				</a>
 			) : null
-	}
+	})
 ]

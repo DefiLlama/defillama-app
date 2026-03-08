@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -22,10 +22,21 @@ import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
+
+type TokenUsagePageRow = {
+	name: string
+	amountUsd: number
+	category?: string
+	logo?: string
+	slug?: string
+	misrepresentedTokens?: boolean
+}
+
+const columnHelper = createColumnHelper<TokenUsagePageRow>()
 
 export default function Tokens() {
 	const router = useRouter()
@@ -43,8 +54,10 @@ export default function Tokens() {
 
 	const filteredProtocols = useMemo(() => {
 		return (
-			protocols?.filter((protocol) =>
-				!protocol.misrepresentedTokens && protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true
+			protocols?.filter(
+				(protocol) =>
+					!protocol.misrepresentedTokens &&
+					(protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true)
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
@@ -129,7 +142,7 @@ export default function Tokens() {
 	)
 }
 
-const fetchProtocols = async (tokenSymbol) => {
+const fetchProtocols = async (tokenSymbol: string | null): Promise<TokenUsagePageRow[] | null> => {
 	if (!tokenSymbol) return null
 	try {
 		const data = await fetchProtocolsByToken(tokenSymbol)
@@ -142,42 +155,46 @@ const fetchProtocols = async (tokenSymbol) => {
 	}
 }
 
-const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as string
+		cell: ({ getValue, row }) => {
+			const value = getValue()
+			const href = row.original.slug ? `/protocol/${row.original.slug}` : null
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
-					<BasicLink
-						href={`/protocol/${slug(value)}`}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>{`${value}`}</BasicLink>
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${value}`} />
+					{href ? (
+						<BasicLink
+							href={href}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{value}
+						</BasicLink>
+					) : (
+						<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">{value}</span>
+					)}
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('category', {
 		header: 'Category',
-		accessorKey: 'category',
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('amountUsd', {
 		header: 'Amount',
-		accessorKey: 'amountUsd',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const Search = () => {

@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { lazy, Suspense } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -112,18 +112,19 @@ const METRIC_CHART_PARAMS: Record<ExtraTvlMetric, string> = {
 	pool2: 'pool2=true'
 }
 
-function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[] {
+const columnHelper = createColumnHelper<IExtraTvlProtocolRow>()
+
+function buildColumns(metric: ExtraTvlMetric) {
 	const metricInfo = METRIC_LABELS[metric]
 	const chartParam = METRIC_CHART_PARAMS[metric]
 
 	return [
-		{
+		columnHelper.accessor('name', {
 			id: 'name',
 			header: 'Name',
-			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const value = getValue<string>()
+				const value = getValue()
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
@@ -171,50 +172,42 @@ function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[]
 				)
 			},
 			size: 280
-		},
-		{
+		}),
+		columnHelper.accessor('category', {
 			id: 'category',
 			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
 			enableSorting: false,
 			cell: ({ getValue }) => {
-				const value = getValue<string | null>()
-				return value ? (
+				const value = getValue()
+				if (!value) return null
+				return (
 					<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium text-(--link-text)">
 						{value}
 					</BasicLink>
-				) : (
-					''
 				)
 			},
 			size: 128,
 			meta: {
 				align: 'end'
 			}
-		},
-		{
+		}),
+		columnHelper.accessor('value', {
 			id: 'value',
 			header: metricInfo.header,
-			accessorFn: (protocol) => protocol.value,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 			meta: {
 				align: 'end',
 				headerHelperText: metricInfo.headerHelperText
 			},
 			size: 128
-		},
-		{
+		}),
+		columnHelper.accessor('change_1m', {
 			header: 'Change 30d',
-			accessorKey: 'change_1m',
-			cell: (info) => (
-				<>
-					<PercentChange percent={info.getValue()} />
-				</>
-			),
+			cell: (info) => <PercentChange percent={info.getValue()} />,
 			size: 110,
 			meta: {
 				align: 'end'
 			}
-		}
+		})
 	]
 }

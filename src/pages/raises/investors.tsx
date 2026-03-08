@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -28,6 +28,8 @@ interface INormalizedInvestor extends IInvestorTimespan {
 	name: string
 }
 
+const columnHelper = createColumnHelper<INormalizedInvestor>()
+
 export const getStaticProps = withPerformanceLogging('raises/active-investors', async () => {
 	const data = await getInvestorsPageData()
 
@@ -39,81 +41,70 @@ export const getStaticProps = withPerformanceLogging('raises/active-investors', 
 
 const pageName = ['Investors']
 
-const columns: ColumnDef<INormalizedInvestor>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Investor',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
 				<BasicLink
-					href={`/raises/${slug(getValue() as string)}`}
+					href={`/raises/${slug(getValue())}`}
 					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 				>
-					{getValue() as string}
+					{getValue()}
 				</BasicLink>
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('deals', {
 		header: 'Deals',
-		accessorKey: 'deals',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Median Amount',
+	}),
+	columnHelper.accessor((row) => (row.medianAmount ? row.medianAmount * 1e6 : null), {
 		id: 'medianAmount',
-		accessorFn: (row) => (row.medianAmount ? row.medianAmount * 1e6 : null),
-		cell: ({ getValue }) => {
-			return <>{(getValue() as number) ? formattedNum(getValue() as number, true) : null}</>
-		},
+		header: 'Median Amount',
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 140,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue() as Array<string>)} />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue())} />,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
+	}),
 
-	{
+	columnHelper.accessor('topCategory', {
 		header: 'Top Project Category',
-		accessorKey: 'topCategory',
 		enableSorting: false,
 		size: 180
-	},
-	{
+	}),
+	columnHelper.accessor('topRound', {
 		header: 'Top Round Type',
-		accessorKey: 'topRound',
 		enableSorting: false,
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('projects', {
 		header: 'Projects',
-		accessorKey: 'projects',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			return (
-				<Tooltip content={getValue() as string}>
-					<span className="line-clamp-1 min-w-0 overflow-x-hidden text-ellipsis whitespace-normal">
-						{getValue() as string}
-					</span>
+				<Tooltip content={getValue()}>
+					<span className="line-clamp-1 min-w-0 overflow-x-hidden text-ellipsis whitespace-normal">{getValue()}</span>
 				</Tooltip>
 			)
 		},
 		size: 240
-	}
+	})
 ]
 
 const allPeriods = [

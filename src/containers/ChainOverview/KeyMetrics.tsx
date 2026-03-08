@@ -7,9 +7,9 @@ import {
 	SubMetricRow as ChainSubMetricRow
 } from '~/components/MetricPrimitives'
 import { Tooltip } from '~/components/Tooltip'
-import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
 import { definitions } from '~/public/definitions'
 import { formattedNum, slug } from '~/utils'
+import { formatRaiseAmount } from '../Raises/utils'
 import { KeyMetricsPngExportButton } from './KeyMetricsPngExport'
 import type { IChainOverviewData } from './types'
 
@@ -323,12 +323,14 @@ function TreasurySection({ treasury }: { treasury: IChainOverviewData['treasury'
 function RaisesSection({ chainRaises }: { chainRaises: IChainOverviewData['chainRaises'] }) {
 	if (!chainRaises || chainRaises.length === 0) return null
 	const sortedRaises = [...chainRaises].sort((a, b) => a.date - b.date)
-
+	const totalRaised = chainRaises.reduce((sum, r) => sum + Number(r.amount), 0)
+	const totalRaisedFormatted = formatRaiseAmount(totalRaised)
+	if (totalRaisedFormatted == null) return null
 	return (
 		<ChainMetricSection
 			label="Total Raised"
 			tooltip="Sum of all money raised by the chain, including VC funding rounds, public sales and ICOs."
-			value={formatRaisedAmount(chainRaises.reduce((sum, r) => sum + Number(r.amount), 0))}
+			value={formattedNum(totalRaisedFormatted, true)}
 		>
 			{sortedRaises.map((raise) => (
 				<p

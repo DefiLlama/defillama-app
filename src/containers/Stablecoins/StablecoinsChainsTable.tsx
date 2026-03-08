@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -24,14 +24,14 @@ import { formattedNum, slug } from '~/utils'
 
 type StablecoinsByChainRow = ReturnType<typeof useGroupChainsPegged>[number]
 type DominanceCell = NonNullable<StablecoinsByChainRow['dominance']>
+const columnHelper = createColumnHelper<StablecoinsByChainRow>()
 
-const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
-	{
+const stablecoinsByChainColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const isSubRow = value.startsWith('Bridged from')
 
 			return (
@@ -81,89 +81,79 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Stables Mcap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 132,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Dominant Stablecoin',
-		id: 'dominance',
-		accessorFn: (row) => {
+	}),
+	columnHelper.accessor(
+		(row) => {
 			const value = row.dominance
 			if (!value) return ''
 			return `${value.name}${value.value != null ? `: ${value.value}%` : ''}`
 		},
-		enableSorting: false,
-		cell: ({ row }) => {
-			const value = row.original.dominance as DominanceCell | null
+		{
+			id: 'dominance',
+			header: 'Dominant Stablecoin',
+			enableSorting: false,
+			cell: ({ row }) => {
+				const value = row.original.dominance as DominanceCell | null
 
-			if (!value) {
-				return null
+				if (!value) {
+					return null
+				}
+
+				return (
+					<div className="flex w-full items-center justify-end gap-1">
+						<span>{`${value.name}${value.value ? ':' : ''}`}</span>
+						<span>
+							<PercentChange percent={value.value} noSign />
+						</span>
+					</div>
+				)
+			},
+			size: 170,
+			meta: {
+				align: 'end'
 			}
-
-			return (
-				<div className="flex w-full items-center justify-end gap-1">
-					<span>{`${value.name}${value.value ? ':' : ''}`}</span>
-					<span>
-						<PercentChange percent={value.value} noSign />
-					</span>
-				</div>
-			)
-		},
-		size: 170,
-		meta: {
-			align: 'end'
 		}
-	},
-	{
+	),
+	columnHelper.accessor('minted', {
 		header: 'Total Mcap Issued On',
-		accessorKey: 'minted',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 180,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('bridgedTo', {
 		header: 'Total Mcap Bridged To',
-		accessorKey: 'bridgedTo',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 185,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Stables Mcap / DeFi Tvl',
-		accessorKey: 'mcaptvl',
-		cell: ({ getValue }) => {
-			const value = getValue()
-			return <>{value != null ? formattedNum(value, false) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 195,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[] }) {

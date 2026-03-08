@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -57,12 +57,12 @@ type StablecoinsTableInputRow = {
 	subRows?: StablecoinsTableInputRow[]
 }
 type StablecoinRow = ReturnType<typeof useCalcCirculating<StablecoinsTableInputRow>>[number]
+const columnHelper = createColumnHelper<StablecoinRow>()
 
-const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
-	{
-		header: 'Name',
+const stablecoinsColumns = [
+	columnHelper.accessor((row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`, {
 		id: 'name',
-		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
+		header: 'Name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -74,9 +74,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 							href={`/stablecoin/${slug(row.original.name)}`}
 							className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">
-								{getValue() as string}
-							</span>
+							<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{getValue()}</span>
 							<Tooltip content="Deprecated" className="text-(--error)">
 								<Icon name="alert-triangle" height={14} width={14} />
 							</Tooltip>
@@ -86,31 +84,29 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 							href={`/stablecoin/${slug(row.original.name)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string}
+							{getValue()}
 						</BasicLink>
 					)}
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<IconsRow items={toChainIconItems(getValue() as Array<string>, (chain) => chainHref('/stablecoins', chain))} />
+			<IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/stablecoins', chain))} />
 		),
 		size: 200,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Chains are ordered by stablecoin issuance on each chain'
 		}
-	},
-	{
-		header: '% Off Peg',
+	}),
+	columnHelper.accessor((row) => (row.yieldBearing ? null : row.pegDeviation), {
 		id: 'pegDeviation',
-		accessorFn: (row) => (row.yieldBearing ? null : row.pegDeviation),
+		header: '% Off Peg',
 		size: 120,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -128,11 +124,10 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: '1m % Off Peg',
+	}),
+	columnHelper.accessor((row) => (row.yieldBearing ? null : row.pegDeviation_1m), {
 		id: 'pegDeviation_1m',
-		accessorFn: (row) => (row.yieldBearing ? null : row.pegDeviation_1m),
+		header: '1m % Off Peg',
 		size: 132,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -151,10 +146,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 			align: 'end',
 			headerHelperText: 'Shows greatest % price deviation from peg over the past month'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('price', {
 		header: 'Price',
-		accessorKey: 'price',
 		size: 110,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -169,10 +163,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
 		cell: (info) =>
 			info.row.original.change_1d_nol != null ? (
 				<Tooltip
@@ -190,10 +183,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
 		cell: (info) =>
 			info.row.original.change_7d_nol != null ? (
 				<Tooltip
@@ -211,10 +203,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m Change',
-		accessorKey: 'change_1m',
 		cell: (info) =>
 			info.row.original.change_1m_nol != null ? (
 				<Tooltip
@@ -232,16 +223,15 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const assetsColumnOrders: ColumnOrdersByBreakpoint = {

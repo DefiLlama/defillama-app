@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -225,12 +225,14 @@ const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
-const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
-	{
+const columnHelper = createColumnHelper<IFormattedDataWithExtraTvl>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
+			const value = getValue()
 			return (
 				<span
 					className="relative flex items-center gap-2"
@@ -256,215 +258,205 @@ const columns: ColumnDef<IFormattedDataWithExtraTvl>[] = [
 							)}
 						</button>
 					) : (
-						<Bookmark readableName={getValue() as string} isChain data-bookmark className="absolute -left-0.5" />
+						<Bookmark readableName={value} isChain data-bookmark className="absolute -left-0.5" />
 					)}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo name={getValue() as string} kind="chain" alt={`Logo of ${getValue()}`} />
+					<TokenLogo name={value} kind="chain" alt={`Logo of ${value}`} />
 					<BasicLink
-						href={`/chain/${slug(getValue() as string)}`}
+						href={`/chain/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string | null}
+						{value}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('protocols', {
 		header: 'Protocols',
-		accessorKey: 'protocols',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'DeFi TVL',
-		accessorKey: 'tvl',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		accessorKey: 'change_1d',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
-		accessorKey: 'change_7d',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 7 days'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
-		accessorKey: 'change_1m',
-		cell: (info) => (
-			<>
-				<PercentChange percent={info.getValue()} />
-			</>
-		),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 30 days'
 		}
-	},
-	{
-		header: 'Bridged TVL',
-		accessorKey: 'chainAssets',
-		accessorFn: (row) => {
+	}),
+	columnHelper.accessor(
+		(row) => {
 			const total = row.chainAssets?.total
 			if (total == null) return undefined
 			const raw = typeof total === 'object' ? (total as { total: string }).total : String(total)
 			return raw ? +(+raw).toFixed(2) : undefined
 		},
-		cell: ({ row }) => {
-			const chainAssets: any = row.original.chainAssets
-			if (!chainAssets?.total?.total) return null
+		{
+			id: 'chainAssets',
+			header: 'Bridged TVL',
+			cell: ({ row }) => {
+				const originalChainAssets = row.original.chainAssets
+				const total = originalChainAssets?.total
+				if (total == null) return null
 
-			const chainAssetsBreakdown = (
-				<div className="flex w-52 flex-col gap-1">
-					{chainAssets.native ? (
-						<div className="flex items-center justify-between gap-1">
-							<span>Native:</span>
-							<span>{formattedNum(+chainAssets.native, true)}</span>
-						</div>
-					) : null}
-					{chainAssets.canonical ? (
-						<div className="flex items-center justify-between gap-1">
-							<span>Canonical:</span>
-							<span>{formattedNum(+chainAssets.canonical, true)}</span>
-						</div>
-					) : null}
-					{chainAssets.ownTokens ? (
-						<div className="flex items-center justify-between gap-1">
-							<span>Own Tokens:</span>
-							<span>{formattedNum(+chainAssets.ownTokens, true)}</span>
-						</div>
-					) : null}
-					{chainAssets.thirdParty ? (
-						<div className="flex items-center justify-between gap-1">
-							<span>Third Party:</span>
-							<span>{formattedNum(+chainAssets.thirdParty, true)}</span>
-						</div>
-					) : null}
-				</div>
-			)
+				const normalizedChainAssets = {
+					...originalChainAssets,
+					total: typeof total === 'object' ? total.total : String(total)
+				}
 
-			return (
-				<Tooltip content={chainAssetsBreakdown} className="justify-end">
-					{formattedNum(+chainAssets.total?.total, true)}
-				</Tooltip>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Value of all tokens held on the chain'
+				if (!normalizedChainAssets.total) return null
+
+				const chainAssetsBreakdown = (
+					<div className="flex w-52 flex-col gap-1">
+						{normalizedChainAssets.native ? (
+							<div className="flex items-center justify-between gap-1">
+								<span>Native:</span>
+								<span>{formattedNum(+normalizedChainAssets.native, true)}</span>
+							</div>
+						) : null}
+						{normalizedChainAssets.canonical ? (
+							<div className="flex items-center justify-between gap-1">
+								<span>Canonical:</span>
+								<span>{formattedNum(+normalizedChainAssets.canonical, true)}</span>
+							</div>
+						) : null}
+						{normalizedChainAssets.ownTokens ? (
+							<div className="flex items-center justify-between gap-1">
+								<span>Own Tokens:</span>
+								<span>{formattedNum(+normalizedChainAssets.ownTokens, true)}</span>
+							</div>
+						) : null}
+						{normalizedChainAssets.thirdParty ? (
+							<div className="flex items-center justify-between gap-1">
+								<span>Third Party:</span>
+								<span>{formattedNum(+normalizedChainAssets.thirdParty, true)}</span>
+							</div>
+						) : null}
+					</div>
+				)
+
+				return (
+					<Tooltip content={chainAssetsBreakdown} className="justify-end">
+						{formattedNum(+normalizedChainAssets.total, true)}
+					</Tooltip>
+				)
+			},
+			size: 120,
+			meta: {
+				align: 'end',
+				headerHelperText: 'Value of all tokens held on the chain'
+			}
 		}
-	},
-	{
+	),
+	columnHelper.accessor('stablesMcap', {
 		header: 'Stables MCap',
-		accessorKey: 'stablesMcap',
-		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 128,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of market cap of all stablecoins on the chain'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalVolume24h', {
 		header: '24h DEXs Volume',
-		accessorKey: 'totalVolume24h',
 		enableSorting: true,
-		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 152,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of 24h volume on all DEXs on the chain. Updated daily at 00:00UTC'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalFees24h', {
 		header: `24h Chain Fees`,
-		accessorKey: 'totalFees24h',
 		enableSorting: true,
-		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.fees.chain['24h']
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalAppRevenue24h', {
 		header: `24h App Revenue`,
-		accessorKey: 'totalAppRevenue24h',
 		enableSorting: true,
-		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 180,
 		meta: {
 			align: 'end',
 			headerHelperText: definitions.appRevenue.chain['24h']
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('users', {
 		header: 'Active Addresses',
-		accessorKey: 'users',
-		cell: (info) => <>{+info?.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
+		cell: (info) => <>{info.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
 		size: 180,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Active addresses in the last 24h'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap / DeFi TVL',
-		accessorKey: 'mcaptvl',
-		cell: (info) => {
-			return <>{(info.getValue() ?? null) as string | null}</>
-		},
+		cell: (info) => (info.getValue() != null ? String(info.getValue()) : null),
 		size: 148,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Market cap / DeFi TVL ratio'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('nftVolume', {
 		header: '24h NFT Volume',
-		accessorKey: 'nftVolume',
-		cell: (info) => <>{info.getValue() != null ? `$${formattedNum(info.getValue())}` : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 148,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of 24h volume on all NFTs on the chain. Updated daily at 00:00UTC'
 		}
-	}
+	})
 ]
 
-const columnOptions = columns.map((c: any) => ({ name: c.header, key: c.accessorKey }))
+const getColumnKey = (column: (typeof columns)[number]) =>
+	column.id ?? ('accessorKey' in column ? column.accessorKey : '')
+
+const columnOptions = columns
+	.map((column) => ({
+		name: typeof column.header === 'string' ? column.header : getColumnKey(column),
+		key: getColumnKey(column)
+	}))
+	.filter((c) => c.key !== '')
 
 const defaultColumns = JSON.stringify(Object.fromEntries(columnOptions.map((c) => [c.key, true])))

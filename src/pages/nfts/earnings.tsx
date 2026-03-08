@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { FallbackLogo, TokenLogo } from '~/components/TokenLogo'
@@ -23,7 +23,6 @@ const pageName = ['Earnings', 'by', 'NFTs']
 const DEFAULT_SORTING_STATE = [{ id: 'totalEarnings', desc: true }]
 
 function Earnings({ earnings }) {
-	//x
 	return (
 		<Layout
 			title="NFT Creator Earnings & Royalties - DefiLlama"
@@ -59,13 +58,14 @@ interface IEarnings {
 	totalEarnings: number | null
 }
 
-const earningsColumns: ColumnDef<IEarnings>[] = [
-	{
+const columnHelper = createColumnHelper<IEarnings>()
+
+const earningsColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
@@ -115,52 +115,40 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('totalMintEarnings', {
 		header: 'Mint Earnings',
-		accessorKey: 'totalMintEarnings',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('totalRoyaltyEarnings', {
 		header: 'Lifetime Royalty Earnings',
-		accessorKey: 'totalRoyaltyEarnings',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('total30d', {
 		header: 'Royalties 30d',
-		accessorKey: 'total30d',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 80
-	},
-	{
+	}),
+	columnHelper.accessor('totalEarnings', {
 		header: 'Total Lifetime Earnings',
-		accessorKey: 'totalEarnings',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'mint + royalties'
 		},
 		size: 120
-	}
+	})
 ]
 
 export default Earnings

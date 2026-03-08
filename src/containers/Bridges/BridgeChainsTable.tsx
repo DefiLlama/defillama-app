@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -30,13 +30,14 @@ type BridgeChainsTableRow = {
 	topTokenWithdrawnSymbol?: string
 }
 
-const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<BridgeChainsTableRow>()
+
+const bridgeChainsColumn = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -51,91 +52,78 @@ const bridgeChainsColumn: ColumnDef<BridgeChainsTableRow>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('prevDayNetFlow', {
 		header: '24h Net Flow',
-		accessorKey: 'prevDayNetFlow',
 		cell: (info) => {
-			const value = info.getValue() as any
-			if (value) {
-				return (
-					<span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
-				)
-			}
-			return <>$0</>
+			const value = info.getValue()
+			if (value == null) return null
+			if (value === 0) return <>$0</>
+			return <span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
 		},
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('prevDayUsdDeposits', {
 		header: '24h Deposits',
-		accessorKey: 'prevDayUsdDeposits',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('prevDayUsdWithdrawals', {
 		header: '24h Withdrawals',
-		accessorKey: 'prevDayUsdWithdrawals',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('prevWeekNetFlow', {
 		header: '7d Net Flow',
-		accessorKey: 'prevWeekNetFlow',
 		cell: (info) => {
-			const value = info.getValue() as any
-			if (value) {
-				return (
-					<span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
-				)
-			}
-			return <>$0</>
+			const value = info.getValue()
+			if (value == null) return null
+			if (value === 0) return <>$0</>
+			return <span className={`${value > 0 ? 'text-(--success)' : 'text-(--error)'}`}>{formattedNum(value, true)}</span>
 		},
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('prevWeekUsdDeposits', {
 		header: '7d Deposits',
-		accessorKey: 'prevWeekUsdDeposits',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('prevWeekUsdWithdrawals', {
 		header: '7d Withdrawals',
-		accessorKey: 'prevWeekUsdWithdrawals',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('topTokenWithdrawnSymbol', {
 		header: '24h Top Deposit',
-		accessorKey: 'topTokenWithdrawnSymbol',
 		cell: ({ getValue }) => {
-			const value = getValue() as string
-			if (value) {
-				return <>{value}</>
-			} else return <>Not found</>
+			const value = getValue()
+			if (value == null) return null
+			if (value === '') return 'Not found'
+			return value
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 145
-	}
+	})
 ]
 
 const bridgeChainsColumnOrders: ColumnOrdersByBreakpoint = {

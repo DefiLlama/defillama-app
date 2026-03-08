@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { BasicLink } from '~/components/Link'
@@ -24,13 +24,14 @@ interface IForksRow {
 	ftot: number | null
 }
 
-const forksColumn: ColumnDef<IForksRow>[] = [
-	{
+const columnHelper = createColumnHelper<IForksRow>()
+
+const forksColumn = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const name = getValue<string>()
+			const name = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -44,27 +45,21 @@ const forksColumn: ColumnDef<IForksRow>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('forkedProtocols', {
 		header: 'Forked Protocols',
-		accessorKey: 'forkedProtocols',
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'Forks TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('ftot', {
 		header: 'Forks TVL / Original TVL',
-		accessorKey: 'ftot',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? `${formattedNum(value)}%` : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? `${formattedNum(info.getValue())}%` : null),
 		meta: { align: 'end' }
-	}
+	})
 ]
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]

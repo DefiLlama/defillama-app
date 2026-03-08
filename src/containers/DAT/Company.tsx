@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -315,99 +315,76 @@ export function DATCompany(props: IDATCompanyPageProps) {
 }
 
 type TransactionRow = IDATCompanyPageProps['transactions'][number]
+const columnHelper = createColumnHelper<TransactionRow>()
 
-const columns: ColumnDef<TransactionRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('assetName', {
 		header: 'Asset',
-		accessorKey: 'assetName',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue<string>()}</>
-		}
-	},
-	{
-		header: 'Amount',
-		id: 'amount',
-		accessorFn: (row) => {
+		cell: (info) => info.getValue()
+	}),
+	columnHelper.accessor(
+		(row) => {
 			return row.type === 'sale' ? -Number(row.amount) : Number(row.amount)
 		},
-		cell: ({ getValue, row }) => {
-			const value = getValue<number>()
-			return (
-				<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
-					{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)} ${row.original.assetTicker}`}
-				</span>
-			)
-		},
-		meta: {
-			align: 'end'
+		{
+			id: 'amount',
+			header: 'Amount',
+			cell: ({ getValue, row }) => {
+				const value = getValue()
+				return (
+					<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
+						{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)} ${row.original.assetTicker}`}
+					</span>
+				)
+			},
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
+	),
+	columnHelper.accessor('avg_price', {
 		header: 'Avg Purchase Price',
-		accessorKey: 'avg_price',
-		cell: ({ getValue }) => {
-			const v = getValue<string | null>()
-			if (v == null) return null
-			return <>{formattedNum(v, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('usd_value', {
 		header: 'USD Value',
-		accessorKey: 'usd_value',
-		cell: ({ getValue }) => {
-			const v = getValue<string | null>()
-			if (v == null) return null
-			return <>{formattedNum(v, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('report_date', {
 		header: 'Report Date',
-		accessorKey: 'report_date',
-		cell: ({ getValue }) => {
-			const v = getValue<string | null>()
-			if (v == null) return null
-			return <>{dayjs(v).format('MMM D, YYYY')}</>
-		},
+		cell: (info) => (info.getValue() != null ? dayjs(info.getValue()).format('MMM D, YYYY') : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('type', {
 		header: 'Type',
-		accessorKey: 'type',
-		cell: ({ getValue }) => {
-			return <>{getType(getValue<string>())}</>
-		},
+		cell: (info) => getType(info.getValue()),
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('source_type', {
 		header: 'Source Type',
-		accessorKey: 'source_type',
-		cell: ({ getValue }) => {
-			return <>{getSourceType(getValue<string>())}</>
-		},
+		cell: (info) => getSourceType(info.getValue()),
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('source_url', {
 		header: 'Source URL',
-		accessorKey: 'source_url',
 		cell: ({ getValue }) => {
-			const url = getValue<string>()
+			const url = getValue()
 			if (!url) return null
-
 			return (
 				<a
 					className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
@@ -421,12 +398,11 @@ const columns: ColumnDef<TransactionRow>[] = [
 			)
 		},
 		enableSorting: false
-	},
-	{
+	}),
+	columnHelper.accessor('source_note', {
 		header: 'Source Note',
-		accessorKey: 'source_note',
 		cell: ({ getValue }) => {
-			const v = getValue<string>()
+			const v = getValue()
 			return (
 				<Tooltip className="inline overflow-hidden text-ellipsis whitespace-nowrap" content={v}>
 					{v}
@@ -435,7 +411,7 @@ const columns: ColumnDef<TransactionRow>[] = [
 		},
 		enableSorting: false,
 		size: 1000
-	}
+	})
 ]
 
 /** Narrow an unknown echarts tooltip param to a record, or return undefined. */

@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -60,6 +60,15 @@ export const getStaticProps = withPerformanceLogging('calendar', async () => {
 		revalidate: maxAgeForNext([22])
 	}
 })
+
+type CalendarRow = {
+	name: string
+	timestamp: number
+	type: string
+	link?: string
+}
+
+const columnHelper = createColumnHelper<CalendarRow>()
 
 const options = ['Unlock', 'Close', 'Macro', 'Crypto']
 
@@ -238,10 +247,9 @@ export default function Protocols({ emissions }) {
 	)
 }
 
-export const calendarColumns: ColumnDef<any>[] = [
-	{
+export const calendarColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -252,30 +260,28 @@ export const calendarColumns: ColumnDef<any>[] = [
 							href={`/unlocks/${slug(row.original.link)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string}
+							{getValue()}
 						</BasicLink>
 					) : (
-						(getValue() as string)
+						getValue()
 					)}
 				</span>
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('type', {
 		header: 'Type',
-		accessorKey: 'type',
 		size: 100
-	},
-	{
-		header: 'Date',
+	}),
+	columnHelper.accessor('timestamp', {
 		id: 'timestamp',
-		accessorKey: 'timestamp',
+		header: 'Date',
 		cell: ({ getValue, row }) => {
-			return <SimpleUpcomingEvent timestamp={(getValue() as number) / 1e3} name={row.original.name} />
+			return <SimpleUpcomingEvent timestamp={getValue() / 1e3} name={row.original.name} />
 		},
 		size: 800
-	}
+	})
 ]
 
 const SimpleUpcomingEvent = ({ timestamp, name }) => {

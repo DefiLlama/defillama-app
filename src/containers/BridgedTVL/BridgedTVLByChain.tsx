@@ -1,5 +1,5 @@
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -40,20 +40,18 @@ const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSer
 
 const INFLOWS_TOOLTIP_FORMATTER_USD = createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: '$' })
 
-const bridgedChainColumns: ColumnDef<BridgedChainRow>[] = [
-	{
+const columnHelper = createColumnHelper<BridgedChainRow>()
+
+const bridgedChainColumns = [
+	columnHelper.accessor('name', {
 		header: 'Token',
-		accessorKey: 'name',
 		enableSorting: false
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row.value ? +row.value : undefined), {
+		id: 'value',
 		header: 'Total Bridged',
-		accessorKey: 'value',
-		accessorFn: (row) => (row.value ? +row.value : undefined),
-		cell: ({ getValue }) => {
-			return <>{formattedNum(getValue(), true)}</>
-		}
-	}
+		cell: (info) => formattedNum(info.getValue(), true)
+	})
 ]
 
 export function BridgedTVLByChain({

@@ -1,12 +1,12 @@
 import {
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -47,10 +47,11 @@ const EthValueCell = ({ value }: { value: unknown }) =>
 		</span>
 	) : null
 
-const columns: ColumnDef<INftCollection>[] = [
-	{
+const columnHelper = createColumnHelper<INftCollection>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const item = row.original
@@ -66,77 +67,69 @@ const columns: ColumnDef<INftCollection>[] = [
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('floorPrice', {
 		header: 'Floor Price',
-		accessorKey: 'floorPrice',
 		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('floorPricePctChange1Day', {
 		header: '1d Change',
-		accessorKey: 'floorPricePctChange1Day',
 		size: 120,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('floorPricePctChange7Day', {
 		header: '7d Change',
-		accessorKey: 'floorPricePctChange7Day',
 		size: 120,
 		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('volume1d', {
 		header: 'Volume 1d',
-		accessorKey: 'volume1d',
 		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('volume7d', {
 		header: 'Volume 7d',
-		accessorKey: 'volume7d',
 		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('sales1d', {
 		header: 'Sales 1d',
-		accessorKey: 'sales1d',
 		size: 120,
-		cell: (info) => <>{info.getValue() != null ? String(info.getValue()) : null}</>,
+		cell: (info) => (info.getValue() != null ? info.getValue() : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalSupply', {
 		header: 'Total Supply',
-		accessorKey: 'totalSupply',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('onSaleCount', {
 		header: 'On Sale',
-		accessorKey: 'onSaleCount',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {

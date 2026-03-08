@@ -40,5 +40,6 @@ export function useBreakpointWidth(): number {
 	if (isMd) return 768
 	if (isSm) return 640
 	if (isXsPlus) return 480
+
 	return 0
 }

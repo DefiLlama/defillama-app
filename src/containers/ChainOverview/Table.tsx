@@ -551,14 +551,13 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	</span>
 )
 
-const columns: ColumnDef<IProtocol>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
@@ -613,14 +612,13 @@ const columns: ColumnDef<IProtocol>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('category', {
 		id: 'category',
 		header: 'Category',
-		accessorKey: 'category',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const category = getValue() as string | undefined
+			const category = getValue()
 
 			if (!category) return ''
 
@@ -636,7 +634,7 @@ const columns: ColumnDef<IProtocol>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
+	}),
 	columnHelper.group({
 		id: 'tvl',
 		header: 'TVL',
@@ -948,7 +946,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.fees?.pf, {
 				id: 'pf',
 				header: 'P/F',
-				cell: (info) => (info.getValue() != null ? info.getValue() + 'x' : null),
+				cell: (info) => (info.getValue() != null ? `${info.getValue()}x` : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.fees.protocol['pf']
@@ -958,7 +956,7 @@ const columns: ColumnDef<IProtocol>[] = [
 			columnHelper.accessor((row) => row.revenue?.ps, {
 				id: 'ps',
 				header: 'P/S',
-				cell: (info) => (info.getValue() != null ? info.getValue() + 'x' : null),
+				cell: (info) => (info.getValue() != null ? `${info.getValue()}x` : null),
 				meta: {
 					align: 'end',
 					headerHelperText: definitions.revenue.protocol['ps']
@@ -1011,7 +1009,6 @@ const columns: ColumnDef<IProtocol>[] = [
 					id: 'earnings_30d',
 					header: 'Earnings 30d',
 					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-
 					meta: {
 						align: 'end',
 						headerHelperText: definitions.earnings.protocol['30d']
@@ -1029,7 +1026,6 @@ const columns: ColumnDef<IProtocol>[] = [
 					id: 'earnings_1y',
 					header: 'Earnings 1Y',
 					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-
 					meta: {
 						align: 'end',
 						headerHelperText: definitions.earnings.protocol['1y']
@@ -1047,7 +1043,6 @@ const columns: ColumnDef<IProtocol>[] = [
 					id: 'average_earnings_1y',
 					header: 'Monthly Avg 1Y Earnings',
 					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-
 					meta: {
 						align: 'end',
 						headerHelperText: definitions.earnings.protocol['monthlyAverage1y']
@@ -1065,7 +1060,6 @@ const columns: ColumnDef<IProtocol>[] = [
 					id: 'cumulativeEarnings',
 					header: 'Cumulative Earnings',
 					cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
-
 					meta: {
 						align: 'end',
 						headerHelperText: definitions.earnings.protocol['cumulative']

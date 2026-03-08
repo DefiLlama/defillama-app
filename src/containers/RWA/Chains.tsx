@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
@@ -13,21 +13,24 @@ import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
 
-const columns: ColumnDef<{
+type RWAChainsTableRow = {
 	chain: string
 	totalOnChainMcap: number
 	totalActiveMcap: number
 	totalDefiActiveTvl: number
 	totalAssetIssuers: number
 	totalAssetCount: number
-}>[] = [
-	{
+}
+
+const columnHelper = createColumnHelper<RWAChainsTableRow>()
+
+const columns = [
+	columnHelper.accessor('chain', {
 		id: 'chain',
 		header: 'Name',
-		accessorKey: 'chain',
 		enableSorting: false,
 		cell: (info) => {
-			const chain = info.getValue() as string
+			const chain = info.getValue()
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -42,47 +45,42 @@ const columns: ColumnDef<{
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('totalAssetIssuers', {
 		id: 'totalAssetIssuers',
 		header: definitions.totalAssetIssuers.label,
-		accessorKey: 'totalAssetIssuers',
-		cell: (info) => formattedNum(info.getValue() as number, false),
+		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
 		size: 168
-	},
-	{
+	}),
+	columnHelper.accessor('totalAssetCount', {
 		id: 'totalAssetCount',
 		header: definitions.totalAssetCount.label,
-		accessorKey: 'totalAssetCount',
-		cell: (info) => formattedNum(info.getValue() as number, false),
+		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 148
-	},
-	{
+	}),
+	columnHelper.accessor('totalDefiActiveTvl', {
 		id: 'totalDefiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
-		accessorKey: 'totalDefiActiveTvl',
-		cell: (info) => formattedNum(info.getValue() as number, true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
 		size: 148
-	},
-	{
+	}),
+	columnHelper.accessor('totalActiveMcap', {
 		id: 'totalActiveMcap',
 		header: definitions.totalActiveMcap.label,
-		accessorKey: 'totalActiveMcap',
-		cell: (info) => formattedNum(info.getValue() as number, true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
 		size: 228
-	},
-	{
+	}),
+	columnHelper.accessor('totalOnChainMcap', {
 		id: 'totalOnChainMcap',
 		header: definitions.totalOnChainMcap.label,
-		accessorKey: 'totalOnChainMcap',
-		cell: (info) => formattedNum(info.getValue() as number, true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
-	}
+	})
 ]
 
 const columnSizes: ColumnSizesByBreakpoint = {

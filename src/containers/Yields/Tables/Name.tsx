@@ -4,8 +4,9 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formatRaisedAmount } from '~/containers/ProtocolOverview/utils'
+import { formatRaiseAmount } from '~/containers/Raises/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import { formattedNum } from '~/utils'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface INameYieldPoolProps {
@@ -140,11 +141,12 @@ function AirdropIndicator({
 	raiseValuation?: number | null
 	className?: string
 }) {
+	const raiseValuationFormatted = formatRaiseAmount(raiseValuation)
 	const tooltipContent =
-		raiseValuation != null ? (
+		raiseValuationFormatted != null ? (
 			<span className="flex flex-col gap-1">
 				<span>Potential Airdrop</span>
-				<span className="border-t border-current/20 pt-1">Last Valuation: {formatRaisedAmount(raiseValuation)}</span>
+				<span className="border-t border-current/20 pt-1">Last Valuation: {formattedNum(raiseValuationFormatted)}</span>
 			</span>
 		) : (
 			'Potential Airdrop'

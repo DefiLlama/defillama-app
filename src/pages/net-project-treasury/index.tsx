@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -19,6 +19,7 @@ export const getStaticProps = withPerformanceLogging(`net-project-treasury/index
 
 const pageName = ['Protocols', 'ranked by', 'Net Project Treasury']
 const DEFAULT_SORTING_STATE = [{ id: 'netTreasury', desc: true }]
+const columnHelper = createColumnHelper<INetProjectTreasury>()
 
 const NetProjectTreasuries = (props) => {
 	return (
@@ -42,14 +43,12 @@ const NetProjectTreasuries = (props) => {
 	)
 }
 
-const columns: ColumnDef<INetProjectTreasury>[] = [
-	{
-		id: 'name',
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className="relative flex items-center gap-2">
@@ -69,18 +68,16 @@ const columns: ColumnDef<INetProjectTreasury>[] = [
 			)
 		},
 		size: 280
-	},
-	{
-		id: 'netTreasury',
+	}),
+	columnHelper.accessor('netTreasury', {
 		header: 'Net Treasury',
-		accessorFn: (protocol) => protocol.netTreasury,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end',
 			headerHelperText: "Value of tokens owned by a protocol, excluding it's own token"
 		},
 		size: 128
-	}
+	})
 ]
 
 export default NetProjectTreasuries

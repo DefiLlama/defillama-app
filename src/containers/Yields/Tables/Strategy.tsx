@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
@@ -10,10 +10,12 @@ import { NameYieldPool, PoolStrategyRoute } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsStrategyTableRow } from './types'
 
-const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<IYieldsStrategyTableRow>()
+
+const columns = [
+	columnHelper.accessor((row) => (row as any).strategy as string, {
+		id: 'strategy',
 		header: 'Strategy',
-		accessorKey: 'strategy',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol} ➞ ${row.original.farmSymbol}`
@@ -45,10 +47,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			)
 		},
 		size: 400
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).totalApy as number | null, {
+		id: 'totalApy',
 		header: 'Strategy APY',
-		accessorKey: 'totalApy',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const TooltipContent = () => {
@@ -87,10 +89,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Total Strategy APY defined as: Supply APY + Borrow APY * LTV + Farm APY * LTV'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).delta as number | null, {
+		id: 'delta',
 		header: 'Delta',
-		accessorKey: 'delta',
 		enableSorting: true,
 		cell: (info) => {
 			return <ColoredAPY data-variant="borrow">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
@@ -100,10 +102,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'APY Increase by following this strategy compared to just supplying the collateral token'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).borrowAvailableUsd as number | null, {
+		id: 'borrowAvailableUsd',
 		header: 'Available',
-		accessorKey: 'borrowAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.borrow.totalAvailableUsd
@@ -122,10 +124,9 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Available Borrow Liquidity for the debt token'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('farmTvlUsd', {
 		header: 'Farm TVL',
-		accessorKey: 'farmTvlUsd',
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.farmTvlUsd
@@ -144,10 +145,10 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Total Value Locked for the farm token in the last part of the strategy'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+		id: 'ltv',
 		header: 'LTV',
-		accessorKey: 'ltv',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -165,7 +166,7 @@ const columns: ColumnDef<IYieldsStrategyTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
-	}
+	})
 ]
 
 const columnOrders: ColumnOrdersByBreakpoint = {

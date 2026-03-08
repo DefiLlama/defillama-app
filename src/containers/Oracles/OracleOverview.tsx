@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
@@ -16,6 +16,7 @@ import type { OracleOverviewPageData } from './types'
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 type IProtocolTableRow = OracleOverviewPageData['protocolTableData'][number]
+const columnHelper = createColumnHelper<IProtocolTableRow>()
 
 const DEFAULT_PROTOCOL_TABLE_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
@@ -49,14 +50,13 @@ export const OracleOverview = ({
 	chain = null
 }: OracleOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const protocolColumns = useMemo<ColumnDef<IProtocolTableRow>[]>(
+	const protocolColumns = useMemo(
 		() => [
-			{
+			columnHelper.accessor('name', {
 				header: 'Name',
-				accessorKey: 'name',
 				enableSorting: false,
 				cell: ({ getValue }) => {
-					const name = getValue<string>()
+					const name = getValue()
 					return (
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -72,19 +72,17 @@ export const OracleOverview = ({
 						</span>
 					)
 				}
-			},
-			{
+			}),
+			columnHelper.accessor('category', {
 				header: 'Category',
-				accessorKey: 'category',
 				enableSorting: false,
-				cell: ({ getValue }) => getValue<string | null>() ?? 'Unknown',
+				cell: ({ getValue }) => getValue() ?? 'Unknown',
 				meta: {
 					align: 'center'
 				}
-			},
-			{
+			}),
+			columnHelper.accessor('tvl', {
 				header: 'TVL',
-				accessorKey: 'tvl',
 				enableSorting: true,
 				cell: ({ row }) => {
 					const strikeText = getStrikeTvlText({ row: row.original, extraTvlsEnabled })
@@ -98,7 +96,7 @@ export const OracleOverview = ({
 				meta: {
 					align: 'center'
 				}
-			}
+			})
 		],
 		[extraTvlsEnabled]
 	)

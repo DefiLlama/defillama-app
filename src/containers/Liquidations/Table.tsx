@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getSortedRowModel,
@@ -206,23 +206,24 @@ const NameCell = (props: { value: string }) => {
 	return <ChainName {...props} />
 }
 
-const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
-	{
+const protocolsColumnHelper = createColumnHelper<ILiquidableProtocolRow>()
+const positionsColumnHelper = createColumnHelper<ILiquidablePositionsRow>()
+
+const liquidatableProtocolsColumns = [
+	protocolsColumnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return <NameCell value={value} />
 		},
 		size: 160
-	},
-	{
+	}),
+	protocolsColumnHelper.accessor('changes24h', {
 		header: '24h Change',
-		accessorKey: 'changes24h',
 		cell: (info) => {
-			const value = info.getValue() as number | null
+			const value = info.getValue()
 
 			if (value == null || value === 0) {
 				return <span>-</span>
@@ -252,56 +253,45 @@ const liquidatableProtocolsColumns: ColumnDef<ILiquidableProtocolRow>[] = [
 			align: 'end',
 			headerHelperText: 'Liquidatable amount change in the last 24 hours.'
 		}
-	},
-	{
+	}),
+	protocolsColumnHelper.accessor('liquidableAmount', {
 		header: 'Liquidatable Amount',
-		accessorKey: 'liquidableAmount',
 		enableSorting: true,
-		cell: ({ getValue }) => formattedNum(getValue(), true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end',
 			headerHelperText: 'The USD value of all the collateral that would be sold if all positions went into liquidation.'
 		},
 		size: 200
-	},
-	{
+	}),
+	protocolsColumnHelper.accessor('dangerousAmount', {
 		header: 'Amount within -20%',
-		accessorKey: 'dangerousAmount',
 		enableSorting: true,
-		cell: ({ getValue }) => formattedNum(getValue(), true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Amount of liquidable positions that are within -20% of liquidation price.'
 		},
 		size: 200
-	}
+	})
 ]
 
-const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
-	{
+const liquidatablePositionsColumns = [
+	positionsColumnHelper.accessor('protocolName', {
 		header: 'Protocol',
-		accessorKey: 'protocolName',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as string
-			return <ProtocolName value={value} />
-		},
+		cell: ({ getValue }) => <ProtocolName value={getValue()} />,
 		size: 160
-	},
-	{
+	}),
+	positionsColumnHelper.accessor('chainName', {
 		header: 'Chain',
-		accessorKey: 'chainName',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as string
-			return <ChainName value={value} />
-		},
+		cell: ({ getValue }) => <ChainName value={getValue()} />,
 		size: 140
-	},
-	{
-		header: 'Owner',
+	}),
+	positionsColumnHelper.accessor((row) => row.owner?.displayName ?? '', {
 		id: 'owner',
-		accessorFn: (row) => row.owner?.displayName ?? '',
+		header: 'Owner',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const owner = row.original.owner
@@ -324,41 +314,25 @@ const liquidatablePositionsColumns: ColumnDef<ILiquidablePositionsRow>[] = [
 			)
 		},
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	positionsColumnHelper.accessor('value', {
 		header: 'Value in USD',
-		accessorKey: 'value',
-		cell: ({ getValue }) => {
-			const _value = (getValue() as number).toLocaleString()
-			return <span>${_value}</span>
-		},
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	positionsColumnHelper.accessor('amount', {
 		header: 'Token Amount',
-		accessorKey: 'amount',
-		cell: ({ getValue }) => {
-			const _value = (getValue() as number).toLocaleString()
-			return <span>{_value}</span>
-		},
+		cell: (info) => formattedNum(info.getValue()),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	positionsColumnHelper.accessor('liqPrice', {
 		header: 'Liquidation Price',
-		accessorKey: 'liqPrice',
-		cell: ({ getValue }) => {
-			const _value = (getValue() as number).toLocaleString()
-			return (
-				<span>
-					<b>${_value}</b>
-				</span>
-			)
-		},
+		cell: (info) => <b>{formattedNum(info.getValue(), true)}</b>,
 		meta: {
 			headerHelperText: 'Liquidation price in USD.',
 			align: 'end'
 		}
-	}
+	})
 ]
 
 function LiquidatableProtocolsTable({ data }: { data: ILiquidableProtocolRow[] }) {

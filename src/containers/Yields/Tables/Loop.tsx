@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
@@ -11,26 +11,21 @@ import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
 
-const columns: ColumnDef<IYieldTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<IYieldTableRow>()
+
+const columns = [
+	columnHelper.accessor('pool', {
+		id: 'pool',
 		header: 'Pool',
-		accessorKey: 'pool',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			return (
-				<NameYieldPool
-					value={getValue() as string}
-					configID={row.original.configID}
-					url={row.original.url}
-					borrow={true}
-				/>
-			)
+			return <NameYieldPool value={getValue()} configID={row.original.configID} url={row.original.url} borrow={true} />
 		},
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor('project', {
+		id: 'project',
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
-		accessorKey: 'project',
 		enableSorting: true,
 		cell: ({ row }) => (
 			<NameYield
@@ -42,22 +37,20 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			/>
 		),
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
+		id: 'chains',
 		header: 'Chain',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => (
-			<IconsRow items={toChainIconItems(info.getValue() as Array<string>, (chain) => yieldsChainHref(chain))} />
-		),
+		cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
 		meta: {
 			align: 'end'
 		},
 		size: 60
-	},
-	{
+	}),
+	columnHelper.accessor('loopApy', {
+		id: 'loopApy',
 		header: 'Loop APY',
-		accessorKey: 'loopApy',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
@@ -82,10 +75,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Leveraged APY consisting of deposit -> borrow (same asset, max LTV) -> deposit (same asset)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).netSupplyApy as number | null, {
+		id: 'netSupplyApy',
 		header: 'Supply APY',
-		accessorKey: 'netSupplyApy',
 		enableSorting: true,
 		cell: (info) => {
 			return <ColoredAPY data-variant="supply">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
@@ -95,10 +88,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Total net APY for supplying (Base + Reward)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('boost', {
+		id: 'boost',
 		header: 'Boost',
-		accessorKey: 'boost',
 		enableSorting: true,
 		cell: (info) => {
 			return <ColoredAPY data-variant="borrow">{formattedNum(info.getValue()) + 'x'}</ColoredAPY>
@@ -108,10 +101,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Loop APY / Supply APY'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+		id: 'ltv',
 		header: 'LTV',
-		accessorKey: 'ltv',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -129,10 +122,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalSupplyUsd', {
+		id: 'totalSupplyUsd',
 		header: 'Supplied',
-		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -149,10 +142,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalBorrowUsd', {
+		id: 'totalBorrowUsd',
 		header: 'Borrowed',
-		accessorKey: 'totalBorrowUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -170,10 +163,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
+		id: 'totalAvailableUsd',
 		header: 'Available',
-		accessorKey: 'totalAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -198,7 +191,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const columnOrders: ColumnOrdersByBreakpoint = {

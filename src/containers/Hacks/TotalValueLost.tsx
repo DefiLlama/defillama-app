@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -9,16 +9,16 @@ import { formattedNum } from '~/utils'
 import type { IProtocolTotalValueLostInHacksByProtocol } from './types'
 
 type ProtocolRow = IProtocolTotalValueLostInHacksByProtocol['protocols'][number]
+const columnHelper = createColumnHelper<ProtocolRow>()
 
 const DEFAULT_SORTING_STATE = [{ id: 'Net User Loss', desc: true }]
 
-const columns: Array<ColumnDef<ProtocolRow>> = [
-	{
-		header: 'Name',
-		accessorFn: (row) => row.name,
+const columns = [
+	columnHelper.accessor((row) => row.name, {
 		id: 'Name',
+		header: 'Name',
 		cell: ({ row, getValue }) => {
-			const name = String(getValue())
+			const name = getValue()
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					{row.subRows?.length > 0 ? (
@@ -49,35 +49,32 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 				</span>
 			)
 		}
-	},
-	{
-		header: 'Total Hacked',
-		accessorFn: (row) => row.totalHacked,
+	}),
+	columnHelper.accessor((row) => row.totalHacked, {
 		id: 'Total Hacked',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		header: 'Total Hacked',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center'
 		}
-	},
-	{
-		header: 'Returned Funds',
-		accessorFn: (row) => row.returnedFunds,
+	}),
+	columnHelper.accessor((row) => row.returnedFunds, {
 		id: 'Returned Funds',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		header: 'Returned Funds',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center'
 		}
-	},
-	{
-		header: 'Net User Loss',
-		accessorFn: (row) => row.totalHacked - row.returnedFunds,
+	}),
+	columnHelper.accessor((row) => row.totalHacked - row.returnedFunds, {
 		id: 'Net User Loss',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		header: 'Net User Loss',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center',
 			headerHelperText: 'Total Hacked - Returned Funds'
 		}
-	}
+	})
 ]
 
 const columnIds: string[] = columns.map((c) => c.id).filter((id): id is string => id != null)

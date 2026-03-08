@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
@@ -48,16 +48,11 @@ const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
 	)
 }
 
-const renderLSTPercentChangeCell: ColumnDef<ILSTTokenRow>['cell'] = ({ getValue }) => (
-	<>
-		<PercentChange percent={getValue<number | null>()} />
-	</>
-)
+const columnHelper = createColumnHelper<ILSTTokenRow>()
 
-const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
-	{
+const LSDColumn = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
@@ -70,66 +65,60 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string | null>()}
+						{getValue()}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEth', {
 		header: 'Staked ETH',
-		accessorKey: 'stakedEth',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>())}</>,
+		cell: (info) => formattedNum(info.getValue()),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEthInUsd', {
 		header: 'TVL',
-		accessorKey: 'stakedEthInUsd',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEthPctChange7d', {
 		header: '7d Change',
-		accessorKey: 'stakedEthPctChange7d',
-		cell: renderLSTPercentChangeCell,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEthPctChange30d', {
 		header: '30d Change',
-		accessorKey: 'stakedEthPctChange30d',
-		cell: renderLSTPercentChangeCell,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('marketShare', {
 		header: 'Market Share',
-		accessorKey: 'marketShare',
 		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
+			const value = getValue()
 			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 125
-	},
-	{
+	}),
+	columnHelper.accessor('lsdSymbol', {
 		header: 'LST',
-		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
-			const value = getValue<string | null>()
+			const value = getValue()
 			const stringValue = typeof value === 'string' ? value : ''
 			if (!row.original.pegInfo) return stringValue
 			return (
@@ -143,10 +132,9 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('ethPeg', {
 		header: 'ETH Peg',
-		accessorKey: 'ethPeg',
 		cell: ({ getValue, row }) => {
 			return (
 				<Tooltip
@@ -158,7 +146,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 					}
 					className="justify-end"
 				>
-					{getValue<number | null>() != null ? <PercentChange percent={getValue<number | null>()} /> : null}
+					{getValue() != null ? <PercentChange percent={getValue()} /> : null}
 				</Tooltip>
 			)
 		},
@@ -168,17 +156,16 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 				'Market Rate (pulled from 1inch) divided by Expected Rate. Hover for Market Rate and Expected Rate Info.'
 		},
 		size: 115
-	},
-	{
+	}),
+	columnHelper.accessor('mcapOverTvl', {
 		header: 'Mcap/TVL',
-		accessorKey: 'mcapOverTvl',
 		cell: ({ getValue, row }) => {
 			return (
 				<Tooltip
 					content={<McapTooltipContent mcap={row.original.mcap ?? 0} tvl={row.original.stakedEthInUsd} />}
 					className="justify-end"
 				>
-					{getValue<string | null>() ?? null}
+					{getValue() ?? null}
 				</Tooltip>
 			)
 		},
@@ -186,32 +173,24 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('apy', {
 		header: 'LST APR',
-		accessorKey: 'apy',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? value.toFixed(2) + '%' : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? `${info.getValue().toFixed(2)}%` : null),
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('fee', {
 		header: 'Fee',
-		accessorKey: 'fee',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? value.toFixed(2) + '%' : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? `${info.getValue().toFixed(2)}%` : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Protocol Fee'
 		},
 		size: 90
-	}
+	})
 ]
 
 export const LSTOverview = ({

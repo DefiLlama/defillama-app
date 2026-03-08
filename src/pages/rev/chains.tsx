@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -26,6 +26,8 @@ export const getStaticProps = withPerformanceLogging(`${adapterType}/chains`, as
 const pageName = ['Chains', 'ranked by', 'REV']
 const DEFAULT_SORTING_STATE = [{ id: 'total24h', desc: true }]
 
+const columnHelper = createColumnHelper<IChainsByREVPageData['chains'][0]>()
+
 const REVByChain = (props: IChainsByREVPageData) => {
 	return (
 		<Layout
@@ -50,14 +52,12 @@ const REVByChain = (props: IChainsByREVPageData) => {
 	)
 }
 
-const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
-	{
-		id: 'name',
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorFn: (chain) => chain.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className="relative flex items-center gap-2">
@@ -77,29 +77,25 @@ const columns: ColumnDef<IChainsByREVPageData['chains'][0]>[] = [
 			)
 		},
 		size: 280
-	},
-	{
-		id: 'total24h',
+	}),
+	columnHelper.accessor('total24h', {
 		header: 'REV 24h',
-		accessorFn: (chain) => chain.total24h,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'center',
 			headerHelperText: definitions.rev.chain['24h']
 		},
 		size: 128
-	},
-	{
-		id: 'total30d',
+	}),
+	columnHelper.accessor('total30d', {
 		header: 'REV 30d',
-		accessorFn: (chain) => chain.total30d,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'center',
 			headerHelperText: definitions.rev.chain['30d']
 		},
 		size: 128
-	}
+	})
 ]
 
 export default REVByChain
