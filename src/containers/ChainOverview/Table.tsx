@@ -47,12 +47,22 @@ type ChainProtocolsTableProps = {
 	borderless?: boolean
 }
 
+type TableCategory = (typeof TABLE_CATEGORIES_VALUES)[number]
+type TablePeriod = (typeof TABLE_PERIODS_VALUES)[number]
+type TableFilterState = TableCategory | TablePeriod
+type FilterKey = 'category' | 'period'
+type FilterStateByKey = {
+	category: TableCategory
+	period: TablePeriod
+}
+
 type ChainProtocolsTableInnerProps = ChainProtocolsTableProps & {
-	filterState: string | null
+	filterState: TableFilterState | null
 }
 
 export const ChainProtocolsTable = (props: ChainProtocolsTableProps) => {
-	const filterState = useStorageItem(tableFilterStateKey, null)
+	const rawFilterState = useStorageItem(tableFilterStateKey, null)
+	const filterState = isTableFilterState(rawFilterState) ? rawFilterState : null
 
 	return <ChainProtocolsTableInner {...props} filterState={filterState} key={`filter-state-${filterState}`} />
 }
@@ -296,26 +306,31 @@ const ChainProtocolsTableInner = ({
 		getExpandedRowModel: getExpandedRowModel()
 	})
 
-	const setFilter = (key) => (newState) => {
-		const newColumns = Object.fromEntries(
-			columnOptions.map((column) => [
-				column.key,
-				['name', 'category'].includes(column.key) ? true : column[key] === newState
-			])
-		)
+	const selectedCategory = isTableCategory(filterState) ? filterState : null
+	const selectedPeriod = isTablePeriod(filterState) ? filterState : null
 
-		if (columnsInStorage === JSON.stringify(newColumns)) {
-			toggleAllColumns()
-			setStorageItem(tableFilterStateKey, 'null')
-			instance.setSorting([{ id: 'tvl', desc: true }])
-			// window.dispatchEvent(new Event('storage'))
-		} else {
-			setStorageItem(tableColumnOptionsKey, JSON.stringify(newColumns))
-			setStorageItem(tableFilterStateKey, newState)
-			instance.setSorting([{ id: MAIN_COLUMN_BY_CATEGORY[newState] ?? 'tvl', desc: true }])
-			// window.dispatchEvent(new Event('storage'))
+	const setFilter =
+		<K extends FilterKey>(key: K) =>
+		(newState: FilterStateByKey[K]) => {
+			const newColumns = Object.fromEntries(
+				columnOptions.map((column) => [
+					column.key,
+					['name', 'category'].includes(column.key) ? true : column[key] === newState
+				])
+			)
+
+			if (columnsInStorage === JSON.stringify(newColumns)) {
+				toggleAllColumns()
+				setStorageItem(tableFilterStateKey, 'null')
+				instance.setSorting([{ id: 'tvl', desc: true }])
+				// window.dispatchEvent(new Event('storage'))
+			} else {
+				setStorageItem(tableColumnOptionsKey, JSON.stringify(newColumns))
+				setStorageItem(tableFilterStateKey, newState)
+				instance.setSorting([{ id: isTableCategory(newState) ? MAIN_COLUMN_BY_CATEGORY[newState] : 'tvl', desc: true }])
+				// window.dispatchEvent(new Event('storage'))
+			}
 		}
-	}
 	const chainQuery = router.query.chain
 	const activeChain = Array.isArray(chainQuery) ? chainQuery[0] : chainQuery
 
@@ -328,13 +343,13 @@ const ChainProtocolsTableInner = ({
 
 				<TagGroup
 					setValue={setFilter('category')}
-					selectedValue={filterState}
+					selectedValue={selectedCategory}
 					values={TABLE_CATEGORIES_VALUES}
 					variant="responsive"
 				/>
 				<TagGroup
 					setValue={setFilter('period')}
-					selectedValue={filterState}
+					selectedValue={selectedPeriod}
 					values={TABLE_PERIODS_VALUES}
 					variant="responsive"
 				/>
@@ -401,8 +416,25 @@ enum TABLE_PERIODS {
 	ONE_MONTH = '1m'
 }
 
-const TABLE_CATEGORIES_VALUES = Object.values(TABLE_CATEGORIES) as Array<string>
-const TABLE_PERIODS_VALUES = Object.values(TABLE_PERIODS) as Array<string>
+const TABLE_CATEGORIES_VALUES = [
+	TABLE_CATEGORIES.FEES,
+	TABLE_CATEGORIES.REVENUE,
+	TABLE_CATEGORIES.VOLUME,
+	TABLE_CATEGORIES.TVL
+] as const
+const TABLE_PERIODS_VALUES = [TABLE_PERIODS.ONE_DAY, TABLE_PERIODS.SEVEN_DAYS, TABLE_PERIODS.ONE_MONTH] as const
+
+function isTableCategory(value: string | null): value is TableCategory {
+	return value != null && (TABLE_CATEGORIES_VALUES as readonly string[]).includes(value)
+}
+
+function isTablePeriod(value: string | null): value is TablePeriod {
+	return value != null && (TABLE_PERIODS_VALUES as readonly string[]).includes(value)
+}
+
+function isTableFilterState(value: string | null): value is TableFilterState {
+	return isTableCategory(value) || isTablePeriod(value)
+}
 
 const columnOptions = [
 	{ name: 'Name', key: 'name' },

@@ -52,7 +52,7 @@ function getSourceType(sourceType: string): string {
 }
 
 export function DATCompany(props: IDATCompanyPageProps) {
-	const [selectedAsset, setSelectedAsset] = useState<string>(props.assets[0] ?? '')
+	const [selectedAsset, setSelectedAsset] = useState<string | null>(() => props.assets[0] ?? null)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const chartData = useMemo(() => {
 		return props.chartByAsset.find((asset) => asset.ticker === selectedAsset)
