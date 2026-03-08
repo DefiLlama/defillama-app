@@ -13,15 +13,15 @@ function normalizeNavPage(page: {
 	name: string
 	route: string
 	icon?: unknown
-	isNew?: boolean
-	umamiEvent?: string
+	isNew?: unknown
+	umamiEvent?: unknown
 }): TNavLink {
 	return {
 		name: page.name,
 		route: page.route,
 		...(isIconName(page.icon) ? { icon: page.icon } : {}),
-		...(page.isNew ? { isNew: page.isNew } : {}),
-		...(page.umamiEvent ? { umamiEvent: page.umamiEvent } : {})
+		...(typeof page.isNew === 'boolean' ? { isNew: page.isNew } : {}),
+		...(typeof page.umamiEvent === 'string' && page.umamiEvent.trim() !== '' ? { umamiEvent: page.umamiEvent } : {})
 	}
 }
 
@@ -65,6 +65,10 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 	}, {})
 )
 
+function normalizeAiRoute(route: string, hasActiveSubscription: boolean): string {
+	return route === '/ai' && hasActiveSubscription ? '/ai/chat' : route
+}
+
 export function Nav({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
@@ -72,10 +76,10 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 	const { hasActiveSubscription } = useAuthContext()
 
 	const mainLinks = useMemo(() => {
-		// Match by route (not p.name) so a display-name change doesn't break this
-		const premium = premiumPages.map((p) =>
-			p.route === '/ai' && hasActiveSubscription ? { ...p, route: '/ai/chat' } : p
-		)
+		const premium = premiumPages.map((p) => {
+			const route = normalizeAiRoute(p.route, hasActiveSubscription)
+			return route !== p.route ? { ...p, route } : p
+		})
 		return [
 			{ category: 'Main', pages: mainPages },
 			{ category: 'Premium', pages: premium }
@@ -99,12 +103,14 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 			if (!Array.isArray(parsed) || parsed.length === 0) return []
 			return parsed.flatMap((metric: string) => {
 				const page = routeToPageMap.get(metric)
-				return page ? [page] : []
+				if (!page) return []
+				const route = normalizeAiRoute(page.route, hasActiveSubscription)
+				return [route !== page.route ? { ...page, route } : page]
 			})
 		} catch {
 			return []
 		}
-	}, [pinnedMetrics])
+	}, [pinnedMetrics, hasActiveSubscription])
 
 	return (
 		<>

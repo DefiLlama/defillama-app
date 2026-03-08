@@ -1,9 +1,8 @@
 import type * as echarts from 'echarts/core'
 import { useCallback } from 'react'
 import { toNiceCsvDate } from '~/utils'
+import { type CsvCell, toCsvCell } from '~/utils/csvCell'
 import { CSVDownloadButton } from './CsvButton'
-
-type CsvCell = string | number | boolean
 
 function isRecord(x: unknown): x is Record<string, unknown> {
 	return !!x && typeof x === 'object' && !Array.isArray(x)
@@ -28,16 +27,6 @@ function coerceXKey(x: unknown): string | number | null {
 	if (!trimmed) return x
 	const asNum = Number(trimmed)
 	return Number.isFinite(asNum) ? asNum : x
-}
-
-function isCsvCell(value: unknown): value is CsvCell {
-	// typeof NaN/Infinity === 'number', so we must use Number.isFinite to reject them
-	if (typeof value === 'number') return Number.isFinite(value)
-	return typeof value === 'string' || typeof value === 'boolean'
-}
-
-function toCsvCell(value: unknown): CsvCell {
-	return isCsvCell(value) ? value : ''
 }
 
 function getRecordValue(record: Record<string, unknown>, key: string): unknown {
@@ -187,7 +176,7 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 
 	const xKeys = Array.from(rowsByX.keys())
 	const allNumeric = xKeys.every((k) => typeof k === 'number')
-	const sorted = allNumeric ? xKeys.toSorted((a, b) => Number(a) - Number(b)) : xKeys
+	const sorted = allNumeric ? Array.from(xKeys).sort((a, b) => Number(a) - Number(b)) : xKeys
 
 	const maybeFirstTsSeconds = normalizeEpochSeconds(sorted[0])
 	const includeDate = maybeFirstTsSeconds != null

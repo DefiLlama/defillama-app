@@ -168,15 +168,11 @@ export function useSortColumnSizesAndOrders({
 	}, [instance, columnSizes, columnOrders, width])
 }
 
-const CSV_PRIMITIVE_TYPES = new Set(['string', 'number', 'boolean'])
-
-function isCsvPrimitive(value: unknown): value is string | number | boolean {
-	return CSV_PRIMITIVE_TYPES.has(typeof value)
-}
+import { type CsvCell, isCsvCell } from '~/utils/csvCell'
 
 export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {
 	filename: string
-	rows: Array<Array<string | number | boolean>>
+	rows: Array<Array<CsvCell>>
 } {
 	const columns = instance.getVisibleLeafColumns().filter((column) => !column.columnDef.meta?.hidden)
 	const tableRows = instance.getRowModel().rows
@@ -191,12 +187,12 @@ export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>;
 		return column.columnDef.id ?? column.id
 	})
 
-	const rows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
+	const rows: Array<Array<CsvCell>> = tableRows.map((row) =>
 		columns.map((column) => {
 			const value = row.getValue(column.id)
 			if (value == null) return ''
-			if (isCsvPrimitive(value)) return value
-			if (Array.isArray(value)) return value.filter(isCsvPrimitive).join(', ')
+			if (isCsvCell(value)) return value
+			if (Array.isArray(value)) return value.filter(isCsvCell).join(', ')
 			return ''
 		})
 	)

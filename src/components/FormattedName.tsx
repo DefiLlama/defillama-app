@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { Tooltip } from '~/components/Tooltip'
 
 interface WrapperProps {
@@ -11,7 +12,7 @@ interface IFormattedNameProps extends WrapperProps {
 	text: string
 }
 
-type FormattedNameStyle = React.CSSProperties & { '--text-size': string | number; '--weight': number }
+type FormattedNameStyle = CSSProperties & { '--text-size': string | number; '--weight': number }
 
 export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400, link }: IFormattedNameProps) => {
 	if (!text) {

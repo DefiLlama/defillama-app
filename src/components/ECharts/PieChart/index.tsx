@@ -112,7 +112,7 @@ export default function PieChart({
 		const fontFamilyRaw = legendTextStyle?.fontFamily
 		const fontWeightRaw = legendTextStyle?.fontWeight
 		const fontFamily = typeof fontFamilyRaw === 'string' ? fontFamilyRaw : 'sans-serif'
-		const fontWeight = typeof fontWeightRaw === 'number' ? fontWeightRaw : 400
+		const fontWeight = typeof fontWeightRaw === 'number' || typeof fontWeightRaw === 'string' ? fontWeightRaw : 400
 		// Keep this small so we don't over-truncate names.
 		const iconAndPaddingPx = 22
 		const fallbackWidth = (text: string) => text.length * fontSize * 0.58
@@ -247,7 +247,10 @@ export default function PieChart({
 	const isChartDisposed = (inst: echarts.ECharts | null) => {
 		if (!inst) return true
 		if (typeof inst.isDisposed !== 'function') {
-			throw new Error('ECharts instance missing isDisposed method')
+			if (process.env.NODE_ENV === 'development') {
+				console.warn('ECharts instance missing isDisposed method — treating as disposed')
+			}
+			return true
 		}
 		return inst.isDisposed()
 	}

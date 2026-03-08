@@ -65,7 +65,7 @@ export const LinkPreviewCard = ({
 		cardSrc.pathname = `${encodeURIComponent(text)}.jpeg`
 
 		cardSrc.searchParams.append('theme', 'dark')
-		const pageTypeValue = typeof pageType === 'string' ? pageType : ''
+		const pageTypeValue = pageType ?? ''
 
 		let valueHeader: string
 		if (nftPage) {
