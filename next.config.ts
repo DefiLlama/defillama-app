@@ -15,72 +15,82 @@ const nextConfig: NextConfig = {
 			},
 			{
 				source: '/chain/Binance',
-				destination: '/chain/BSC',
+				destination: '/chain/bsc',
 				permanent: true
 			},
 			{
 				source: '/chain/Kucoin',
-				destination: '/chain/KCC',
+				destination: '/chain/kcc',
 				permanent: true
 			},
 			{
 				source: '/chain/Cosmos',
-				destination: '/chain/CosmosHub',
+				destination: '/chain/cosmosHub',
 				permanent: true
 			},
 			{
 				source: '/chain/Terra',
-				destination: '/chain/Terra Classic',
+				destination: '/chain/terra-classic',
 				permanent: true
 			},
 			{
 				source: '/chain/Nova',
-				destination: '/chain/Nova Network',
+				destination: '/chain/nova-network',
 				permanent: true
 			},
 			{
 				source: '/chain/Milkomeda',
-				destination: '/chain/Milkomeda C1',
+				destination: '/chain/milkomeda-c1',
 				permanent: true
 			},
 			{
 				source: '/chain/Elrond',
-				destination: '/chain/MultiversX',
+				destination: '/chain/multiversx',
 				permanent: true
 			},
 			{
 				source: '/chain/RSK',
-				destination: '/chain/Rootstock',
+				destination: '/chain/rootstock',
 				permanent: true
 			},
 			{
 				source: '/chain/OKExChain',
-				destination: '/chain/OKTChain',
+				destination: '/chain/oktchain',
 				permanent: true
 			},
 			{
 				source: '/chain/Map',
-				destination: '/chain/MAP Protocol',
+				destination: '/chain/map-protocol',
 				permanent: true
 			},
 			{
 				source: '/chain/Pulse',
-				destination: '/chain/PulseChain',
+				destination: '/chain/pulsechain',
 				permanent: true
 			},
 			{
 				source: '/chain/WEMIX',
-				destination: '/chain/WEMIX3.0',
+				destination: '/chain/wemix3.0',
 				permanent: true
 			},
 			{
 				source: '/chain/Umee',
-				destination: '/chain/UX',
+				destination: '/chain/ux',
 				permanent: true
 			},
 			{
 				source: '/chain/TomoChain',
-				destination: '/chain/Viction',
+				destination: '/chain/viction',
+				permanent: true
+			},
+			{
+				source: '/chain/EOS',
+				destination: '/chain/vaulta',
+				permanent: true
+			},
+			{
+				source: '/chain/Klaytn',
+				destination: '/chain/kaia',
 				permanent: true
 			},
 			{
@@ -165,7 +175,7 @@ const nextConfig: NextConfig = {
 			},
 			{
 				source: '/chain/Optimism',
-				destination: '/chain/OP%20Mainnet',
+				destination: '/chain/op-mainnet',
 				permanent: true
 			},
 
