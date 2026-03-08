@@ -64,7 +64,7 @@ export const formatBarChart = ({
 			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
 		})
 	} else {
-		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+		return data.map(([date, value]) => [dateInMs ? +date : +date * 1e3, value])
 	}
 }
 
@@ -116,7 +116,7 @@ export const formatLineChart = ({
 			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
 		})
 	} else {
-		return dateInMs ? (data as Array<[number, number]>) : data.map(([date, value]) => [+date * 1e3, value])
+		return data.map(([date, value]) => [dateInMs ? +date : +date * 1e3, value])
 	}
 }
 

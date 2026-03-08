@@ -12,8 +12,6 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
-const EMPTY_ARRAY: string[] = []
-
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({
 		default: m.SubscribeProModal
@@ -49,7 +47,7 @@ export function AddToDashboardButton({
 	chartConfig,
 	multiChart,
 	llamaAIChart,
-	unsupportedMetrics = EMPTY_ARRAY,
+	unsupportedMetrics,
 	variant = 'button',
 	className,
 	smol,

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
 import { setPendingPrompt, setPendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface Props {
 	questions: string[]
@@ -24,15 +25,13 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 	if (!questions?.length) return null
 
 	const handleClick = (question: string) => {
-		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('llamaai-entity-question-click', {
-				entitySlug,
-				entityType,
-				question: question.slice(0, 50),
-				page: router.asPath,
-				hasSub: isAuthenticated && hasActiveSubscription
-			})
-		}
+		trackUmamiEvent('llamaai-entity-question-click', {
+			entitySlug,
+			entityType,
+			question: question.slice(0, 50),
+			page: router.asPath,
+			hasSub: isAuthenticated && hasActiveSubscription
+		})
 		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
 			setPendingPrompt(question)
 			setPendingPageContext({

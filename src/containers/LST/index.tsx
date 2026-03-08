@@ -388,7 +388,7 @@ export const LSTOverview = ({
 							<div className="flex items-center justify-end gap-2 p-2 pb-0">
 								<TagGroup
 									selectedValue={groupBy}
-									setValue={(period) => setGroupBy(period as GroupByType)}
+									setValue={(period) => setGroupBy(period)}
 									values={GROUP_BY}
 									className="mr-auto"
 								/>

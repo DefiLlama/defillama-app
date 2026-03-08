@@ -48,8 +48,6 @@ type TimeLabelKey = keyof typeof TIME_LABEL_TO_KEY
 type TimeValueKey = (typeof TIME_LABEL_TO_KEY)[TimeLabelKey]
 
 const defaultTimeOptions: TimeLabelKey[] = ['All', '7D', '30D', '90D', '1Y']
-const isTimeLabelKey = (value: string): value is TimeLabelKey => value in TIME_LABEL_TO_KEY
-
 function buildKeyToLabel(): Record<TimeValueKey, TimeLabelKey> {
 	const result: Partial<Record<TimeValueKey, TimeLabelKey>> = {}
 	for (const label of defaultTimeOptions) {
@@ -208,13 +206,7 @@ const Filters = ({
 			/>
 
 			<div className="px-3 py-2 md:ml-auto md:flex-row md:items-center md:px-0 md:py-0">
-				<TagGroup
-					setValue={(label) => {
-						if (isTimeLabelKey(label)) setSelectedTime(label)
-					}}
-					selectedValue={selectedTimeLabel}
-					values={timeOptions}
-				/>
+				<TagGroup setValue={setSelectedTime} selectedValue={selectedTimeLabel} values={timeOptions} />
 			</div>
 			<button
 				onClick={onClearAll}

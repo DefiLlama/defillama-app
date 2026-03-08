@@ -221,12 +221,12 @@ export const BridgeInfo = ({
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<TagGroup
 							selectedValue={chartType}
-							setValue={(nextChartType) => setChartType(nextChartType as ChartType)}
+							setValue={(v) => setChartType(v)}
 							values={chartTypes}
 							className="mr-auto"
 						/>
 						{chartType === 'Volume' || chartType === 'Inflows' ? (
-							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v as any)} values={GROUP_BY_VALUES} />
+							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v)} values={GROUP_BY_VALUES} />
 						) : null}
 						<ChartExportButtons
 							chartInstance={exportChartInstance}

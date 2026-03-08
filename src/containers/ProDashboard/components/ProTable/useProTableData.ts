@@ -29,12 +29,12 @@ const isObject = (value: unknown): value is Record<string, unknown> => typeof va
 
 const isProtocolRow = (value: unknown): value is IProtocolRow => {
 	if (!isObject(value)) return false
-	return typeof Reflect.get(value, 'name') === 'string'
+	return typeof value.name === 'string'
 }
 
 const isParentProtocol = (value: unknown): value is IParentProtocol => {
 	if (!isObject(value)) return false
-	return typeof Reflect.get(value, 'id') === 'string' && typeof Reflect.get(value, 'name') === 'string'
+	return typeof value.id === 'string' && typeof value.name === 'string'
 }
 
 const normalizeProtocolRows = (value: unknown): IProtocolRow[] => {

@@ -4,6 +4,7 @@ import {
 	type ColumnOrderState,
 	type ColumnSizingState,
 	type ExpandedState,
+	type RowData,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -22,9 +23,9 @@ const EMPTY_SORTING: SortingState = []
 
 type CustomFiltersProp = React.ReactNode | (() => React.ReactNode)
 
-interface ITableWithSearchBaseProps {
-	data: any[]
-	columns: ColumnDef<any>[]
+interface ITableWithSearchBaseProps<T extends RowData> {
+	data: T[]
+	columns: ColumnDef<T>[]
 	placeholder?: string
 	columnToSearch?: string
 	header?: string | null
@@ -34,9 +35,10 @@ interface ITableWithSearchBaseProps {
 	sortingState?: SortingState
 	rowSize?: number | null
 	compact?: boolean
+	getSubRows?: (row: T) => T[] | undefined
 }
 
-type ITableWithSearchProps = ITableWithSearchBaseProps &
+type ITableWithSearchProps<T extends RowData = RowData> = ITableWithSearchBaseProps<T> &
 	(
 		| {
 				csvFileName: string
@@ -48,7 +50,7 @@ type ITableWithSearchProps = ITableWithSearchBaseProps &
 		  }
 	)
 
-export function TableWithSearch({
+export function TableWithSearch<T extends RowData>({
 	data,
 	columns,
 	placeholder,
@@ -61,8 +63,9 @@ export function TableWithSearch({
 	sortingState = EMPTY_SORTING,
 	rowSize = null,
 	compact = false,
-	csvFileName = null
-}: ITableWithSearchProps) {
+	csvFileName = null,
+	getSubRows: getSubRowsProp
+}: ITableWithSearchProps<T>) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>(sortingState)
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -85,7 +88,12 @@ export function TableWithSearch({
 		enableSortingRemoval: false,
 		filterFromLeafRows: true,
 		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
-		getSubRows: (row: any) => row.subRows,
+		getSubRows:
+			getSubRowsProp ??
+			((row) => {
+				const sub = (row as Record<string, unknown>).subRows
+				return Array.isArray(sub) ? (sub as T[]) : undefined
+			}),
 		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),

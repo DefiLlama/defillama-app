@@ -341,16 +341,7 @@ export default function Correlations({ coinsData }: CorrelationsProps) {
 		<>
 			<div className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h1 className="text-xl font-semibold">Correlations Matrix</h1>
-				<TagGroup
-					selectedValue={period}
-					setValue={(nextPeriodValue) => {
-						if (isPeriod(nextPeriodValue)) {
-							setPeriod(nextPeriodValue)
-						}
-					}}
-					values={PERIODS}
-					className="ml-auto"
-				/>
+				<TagGroup selectedValue={period} setValue={setPeriod} values={PERIODS} className="ml-auto" />
 			</div>
 
 			<div className="flex flex-col items-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">

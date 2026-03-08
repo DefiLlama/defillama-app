@@ -35,7 +35,9 @@ enum TABLE_PERIODS {
 
 const expressionParser = new Parser()
 
-export const protocolsByChainTableColumns = [
+type MetricColumnDef = { name: string; key: keyof IProtocolRow; category?: TABLE_CATEGORIES; period?: TABLE_PERIODS }
+
+export const protocolsByChainTableColumns: MetricColumnDef[] = [
 	{ name: 'Name', key: 'name' },
 	{ name: 'Category', key: 'category' },
 	{ name: 'Oracles', key: 'oracles' },
@@ -1420,7 +1422,7 @@ export function useProTableColumns({
 				accessorFn: (row) => {
 					const context: Record<string, number> = {}
 					for (const baseColumn of protocolsByChainTableColumns) {
-						const value = Reflect.get(row, baseColumn.key)
+						const value = row[baseColumn.key]
 						const numericValue = coerceToNumber(value)
 						if (numericValue !== null) {
 							context[baseColumn.key] = numericValue
@@ -1462,7 +1464,7 @@ export function useProTableColumns({
 		}
 		for (const protocol of protocols) {
 			for (const metric of USD_METRIC_KEYS) {
-				const value = Reflect.get(protocol, metric)
+				const value = protocol[metric]
 				if (typeof value === 'number' && value > 0) {
 					nextTotals[metric] += value
 				}
@@ -1477,7 +1479,7 @@ export function useProTableColumns({
 				id: `${metric.key}_share`,
 				header: metric.name,
 				accessorFn: (row) => {
-					const value = Reflect.get(row, metric.key)
+					const value = row[metric.key]
 					const total = totals[metric.key]
 					if (typeof value === 'number' && value > 0 && typeof total === 'number' && total > 0) {
 						return (value / total) * 100

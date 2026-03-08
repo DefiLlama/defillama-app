@@ -71,10 +71,11 @@ export interface ISingleSeriesChartProps extends Omit<
 	symbolOnChart?: 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none'
 }
 
-export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
+export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent' | 'groupBy'> {
 	stacks?: {
 		[stack: string]: string
 	}
+	groupBy?: 'daily' | 'weekly' | 'monthly'
 	orientation?: 'vertical' | 'horizontal'
 }
 

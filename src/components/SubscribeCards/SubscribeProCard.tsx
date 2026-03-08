@@ -9,6 +9,7 @@ import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { QuestionHelper } from '../QuestionHelper'
 
 const StripeCheckoutModal = lazy(() =>
@@ -354,8 +355,8 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
 	useEffect(() => {
-		if (dialogStore?.getState()?.open && typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('subscribe-modal-open', {
+		if (dialogStore?.getState()?.open) {
+			trackUmamiEvent('subscribe-modal-open', {
 				page: router?.asPath
 			})
 		}

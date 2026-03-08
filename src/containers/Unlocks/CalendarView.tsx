@@ -202,9 +202,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</div>
 				<TagGroup
 					selectedValue={viewMode}
-					setValue={(value: string) => {
-						const newValue = value as (typeof VIEW_MODES)[number]
-						setQueryParams({ view: newValue === 'Month' ? undefined : newValue })
+					setValue={(value) => {
+						setQueryParams({ view: value === 'Month' ? undefined : value })
 					}}
 					values={[...VIEW_MODES]}
 					className="ml-auto"

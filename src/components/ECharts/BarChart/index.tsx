@@ -81,10 +81,7 @@ export default function BarChart({
 		hideLegend,
 		tooltipOrderBottomUp,
 		isThemeDark,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly')
-				: 'daily'
+		groupBy: groupBy ?? 'daily'
 	})
 
 	const series = useMemo(() => {

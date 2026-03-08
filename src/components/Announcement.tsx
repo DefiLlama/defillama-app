@@ -36,6 +36,18 @@ const getAnnouncementKey = (router: NextRouter) => {
 	else return 'defi'
 }
 
+function parseAnnouncementValue(store: string): string | undefined {
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(store)
+	} catch {
+		return undefined
+	}
+	if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return undefined
+	const value = (parsed as { value?: unknown }).value
+	return typeof value === 'string' ? value : undefined
+}
+
 export function Announcement({
 	children,
 	notCancellable,
@@ -60,22 +72,21 @@ export function Announcement({
 
 	let announcementValue: string | undefined
 	if (typeof store === 'string') {
-		try {
-			const parsed = JSON.parse(store) as { value?: string }
-			announcementValue = parsed?.value
-		} catch {
-			announcementValue = undefined
-		}
+		announcementValue = parseAnnouncementValue(store)
 	}
 
 	if (!notCancellable && announcementValue === routeAnnouncementValue) {
 		return null
 	}
 
+	const wrapperStyle: React.CSSProperties & Record<'--link-bg', string> = {
+		'--link-bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)'
+	}
+
 	return (
 		<div
 			className="flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm"
-			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as React.CSSProperties}
+			style={wrapperStyle}
 		>
 			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (

@@ -1,7 +1,7 @@
 'use no memo'
 
 import type { SortingState } from '@tanstack/react-table'
-import type { ColumnPresetDefinition } from './proTable.types'
+import type { IProtocolRow, ColumnPresetDefinition } from './proTable.types'
 
 export const DEFAULT_SORTING: SortingState = [{ id: 'tvl', desc: true }]
 
@@ -266,7 +266,7 @@ export const USD_METRIC_KEYS = [
 	'options_volume_24h',
 	'options_volume_7d',
 	'options_volume_30d'
-] as const
+] as const satisfies readonly (keyof IProtocolRow)[]
 
 export const SHARE_METRIC_DEFINITIONS = [
 	{ key: 'tvl', name: 'TVL % Share' },
@@ -297,7 +297,7 @@ export const SHARE_METRIC_DEFINITIONS = [
 	{ key: 'options_volume_24h', name: 'Options Volume 24h % Share' },
 	{ key: 'options_volume_7d', name: 'Options Volume 7d % Share' },
 	{ key: 'options_volume_30d', name: 'Options Volume 30d % Share' }
-] as const
+] as const satisfies readonly { key: keyof IProtocolRow; name: string }[]
 
 export const buildColumnVisibilityMap = (
 	allColumnIds: string[],

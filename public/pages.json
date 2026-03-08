@@ -902,6 +902,64 @@
       "name": "Tools",
       "route": "/tools",
       "icon": "pencil-ruler"
+    },
+    {
+      "name": "Chains",
+      "route": "/chains",
+      "icon": "earth"
+    },
+    {
+      "name": "Yields",
+      "route": "/yields",
+      "icon": "percent"
+    },
+    {
+      "name": "Stablecoins",
+      "route": "/stablecoins",
+      "icon": "dollar-sign"
+    },
+    {
+      "name": "RWA",
+      "route": "/rwa",
+      "icon": "banknote",
+      "isNew": true
+    },
+    {
+      "name": "Support",
+      "route": "/support",
+      "icon": "headset"
+    },
+    {
+      "name": "API",
+      "route": "https://api-docs.defillama.com",
+      "icon": "code"
+    }
+  ],
+  "Premium": [
+    {
+      "name": "Pricing",
+      "route": "/subscription",
+      "icon": "users"
+    },
+    {
+      "name": "LlamaAI",
+      "route": "/ai"
+    },
+    {
+      "name": "Custom Dashboards",
+      "route": "/pro",
+      "icon": "blocks"
+    },
+    {
+      "name": "Sheets",
+      "route": "/sheets",
+      "icon": "sheets"
+    },
+    {
+      "name": "LlamaFeed",
+      "route": "https://llamafeed.io",
+      "icon": "activity",
+      "umamiEvent": "nav-llamafeed-click"
     }
   ],
   "More": [

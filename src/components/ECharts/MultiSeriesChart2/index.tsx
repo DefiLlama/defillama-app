@@ -21,7 +21,7 @@ import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
-import { formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
+import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -54,12 +54,6 @@ function formatAxisLabel(value: number, symbol: string): string {
 }
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
-
-const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
-
-function coerceGroupBy(groupBy: IMultiSeriesChart2Props['groupBy']): GroupBy {
-	return groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily'
-}
 
 function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['hallmarks']>, isThemeDark: boolean) {
 	const labelColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -305,12 +299,9 @@ function buildMultiYAxis({
 }
 
 function getAxisValueFromTooltipParams(first: any): number {
-	const dataObj =
-		first?.data && typeof first.data === 'object' && !Array.isArray(first.data)
-			? (first.data as Record<string, any>)
-			: null
-	if (dataObj && 'timestamp' in dataObj) {
-		const ts = Number(dataObj.timestamp)
+	const data = first?.data
+	if (isTooltipDataRecord(data) && 'timestamp' in data) {
+		const ts = Number(data.timestamp)
 		if (Number.isFinite(ts)) return ts
 	}
 
@@ -335,14 +326,9 @@ function getAxisValueFromTooltipParams(first: any): number {
 }
 
 function getTooltipRawYValue(item: any, seriesName: string): any {
-	// ECharts can provide:
-	// - item.data as object (dataset.source object rows)  <-- our canonical format
-	// - item.value as array/number (fallbacks for safety)
-	const dataObj =
-		item?.data && typeof item.data === 'object' && !Array.isArray(item.data) ? (item.data as Record<string, any>) : null
+	const data = item?.data
 
-	// 1) Object-row dataset: `data[seriesName]` is the most reliable.
-	if (dataObj && seriesName in dataObj) return dataObj[seriesName]
+	if (isTooltipDataRecord(data) && seriesName in data) return data[seriesName]
 
 	// 2) Fallback: value array (e.g. [ts, y]).
 	if (Array.isArray(item?.value)) {
@@ -460,7 +446,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const groupBySafe = coerceGroupBy(groupBy)
+	const groupBySafe: GroupBy = groupBy ?? 'daily'
 
 	const defaultChartSettings = useMemo(() => {
 		const themeColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -613,7 +599,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const seriesSymbols = useMemo(() => {
 		const map = new Map<string, string>()
 		for (const chart of effectiveCharts ?? []) {
-			const sym = 'valueSymbol' in chart ? (chart.valueSymbol as string | undefined) : undefined
+			const sym = 'valueSymbol' in chart ? chart.valueSymbol : undefined
 			if (sym) map.set(chart.name, sym)
 		}
 		return map.size > 0 ? map : undefined
@@ -677,7 +663,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 						type: 'scroll',
 						orient: l?.orient ?? 'horizontal',
 						pageButtonPosition: l?.pageButtonPosition ?? 'end',
-						top: (l as any)?.top ?? 0,
+						top: l?.top ?? 0,
 						left: l?.left ?? 12,
 						right: l?.right ?? 12
 					}))
@@ -685,11 +671,11 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 					? {
 							...legend,
 							type: 'scroll',
-							orient: (legend as any)?.orient ?? 'horizontal',
-							pageButtonPosition: (legend as any)?.pageButtonPosition ?? 'end',
-							top: (legend as any)?.top ?? 0,
-							left: (legend as any)?.left ?? 12,
-							right: (legend as any)?.right ?? 12
+							orient: legend?.orient ?? 'horizontal',
+							pageButtonPosition: legend?.pageButtonPosition ?? 'end',
+							top: legend?.top ?? 0,
+							left: legend?.left ?? 12,
+							right: legend?.right ?? 12
 						}
 					: undefined
 
@@ -767,7 +753,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		const baseTooltip = mergedChartSettings.tooltip ?? {}
 		const customTooltipFormatter = chartOptions?.tooltip?.formatter
-		const enterable = typeof (baseTooltip as any)?.enterable === 'boolean' ? (baseTooltip as any).enterable : false
+		const enterable = typeof baseTooltip?.enterable === 'boolean' ? baseTooltip.enterable : false
 		const baseExtraCssText = typeof baseTooltip?.extraCssText === 'string' ? baseTooltip.extraCssText : ''
 		const extraCssText = [
 			baseExtraCssText,

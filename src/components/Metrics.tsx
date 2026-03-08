@@ -43,6 +43,7 @@ const metricsByCategory = trending.concat(
 )
 
 const TABS = ['All', 'Protocols', 'Chains'] as const
+type Tab = (typeof TABS)[number]
 
 export function Metrics({
 	canDismiss = false,
@@ -51,7 +52,7 @@ export function Metrics({
 	canDismiss?: boolean
 	hasScrolledToCategoryRef?: React.RefObject<string>
 }) {
-	const [tab, setTab] = useState<(typeof TABS)[number]>('All')
+	const [tab, setTab] = useState<Tab>('All')
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -146,11 +147,7 @@ export function Metrics({
 			<div className="flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="flex items-center gap-2">
 					<h2 className="text-2xl font-bold">Metrics</h2>
-					<TagGroup
-						selectedValue={tab}
-						setValue={(value) => startTransition(() => setTab(value as (typeof TABS)[number]))}
-						values={TABS}
-					/>
+					<TagGroup selectedValue={tab} setValue={(value) => startTransition(() => setTab(value))} values={TABS} />
 					{canDismiss ? (
 						<Ariakit.DialogDismiss
 							className="-my-2 ml-auto rounded-lg p-2 text-(--text-tertiary) hover:bg-(--divider) hover:text-(--text-primary)"
@@ -228,10 +225,13 @@ export function LinkToMetricOrToolPage({
 	pinnedRoutes
 }: {
 	page: IPage
-	totalTrackedByMetric: any
+	totalTrackedByMetric: Record<string, unknown> | undefined
 	pinnedRoutes: Set<string>
 }) {
 	const isPinned = pinnedRoutes.has(page.route)
+	const pinStyle: React.CSSProperties & Record<'--icon-fill', string> = {
+		'--icon-fill': isPinned ? 'white' : 'none'
+	}
 
 	const dialogStore = Ariakit.useDialogContext()
 
@@ -307,7 +307,7 @@ export function LinkToMetricOrToolPage({
 				}
 				className="absolute top-1 right-1 hidden rounded-md bg-(--old-blue) p-1.5 text-white group-hover:block group-data-[pinned=true]:block"
 			>
-				<Icon name="pin" height={14} width={14} style={{ '--icon-fill': isPinned ? 'white' : 'none' } as any} />
+				<Icon name="pin" height={14} width={14} style={pinStyle} />
 			</Tooltip>
 		</div>
 	)
@@ -326,8 +326,13 @@ export function usePinnedRoutes(): Set<string> {
 	}, [raw])
 }
 
-const getTotalTracked = (totalTrackedByMetric: any, totalTrackedKey: string) => {
-	const value = totalTrackedKey.split('.').reduce((obj, key) => obj?.[key], totalTrackedByMetric)
+const getTotalTracked = (totalTrackedByMetric: Record<string, unknown>, totalTrackedKey: string): string | null => {
+	const value = totalTrackedKey
+		.split('.')
+		.reduce<unknown>(
+			(obj, key) => (obj && typeof obj === 'object' ? (obj as Record<string, unknown>)[key] : undefined),
+			totalTrackedByMetric
+		)
 	if (!value) return null
 	return `${value} tracked`
 }

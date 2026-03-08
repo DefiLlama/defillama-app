@@ -1,5 +1,8 @@
 import { Icon } from '~/components/Icon'
+import type { IIcon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+
+type NavIconName = IIcon['name']
 
 export function LinkToPage({
 	route,
@@ -14,7 +17,7 @@ export function LinkToPage({
 }: {
 	route: string
 	name: string
-	icon?: string
+	icon?: NavIconName
 	attention?: boolean
 	freeTrial?: boolean
 	isNew?: boolean
@@ -49,7 +52,7 @@ export function NavItemContent({
 	isNew
 }: {
 	name: string
-	icon?: string
+	icon?: NavIconName
 	attention?: boolean
 	freeTrial?: boolean
 	isNew?: boolean
@@ -57,7 +60,7 @@ export function NavItemContent({
 	return (
 		<>
 			{icon ? (
-				<Icon name={icon as any} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
+				<Icon name={icon} className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle" />
 			) : name === 'LlamaAI' ? (
 				<svg className="h-4 w-4 shrink-0 group-hover/link:animate-wiggle">
 					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />

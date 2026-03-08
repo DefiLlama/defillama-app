@@ -4,6 +4,7 @@ import { useRouter } from 'next/router'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
 
 interface IProps {
 	options: { label: string; to: string }[]
@@ -31,15 +32,7 @@ export function OtherLinks({ options, name, isActive, className }: IProps) {
 		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
-
-		// Focus on the first newly loaded item after a brief delay
-		setTimeout(() => {
-			const items = comboboxRef.current?.querySelectorAll('[role="menuitem"]')
-			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
-			}
-		}, 0)
+		focusFirstNewItem(comboboxRef, '[role="menuitem"]', previousCount)
 	}
 
 	return (

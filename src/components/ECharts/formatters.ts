@@ -11,11 +11,17 @@ type TooltipGroupBy = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 
 
 type TooltipRow = { marker: string; name: string; value: number }
 
+export function isTooltipDataRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function asTooltipDataRecord(value: unknown): Record<string, unknown> | null {
+	if (!isTooltipDataRecord(value)) return null
+	return { ...value }
+}
+
 function getAxisValueFromTooltipParams(first: any): number {
-	const dataObj =
-		first?.data && typeof first.data === 'object' && !Array.isArray(first.data)
-			? (first.data as Record<string, any>)
-			: null
+	const dataObj = asTooltipDataRecord(first?.data)
 	if (dataObj && 'timestamp' in dataObj) {
 		const ts = Number(dataObj.timestamp)
 		if (Number.isFinite(ts)) return ts
@@ -42,8 +48,7 @@ function getAxisValueFromTooltipParams(first: any): number {
 }
 
 function getTooltipRawYValue(item: any, seriesName: string): any {
-	const dataObj =
-		item?.data && typeof item.data === 'object' && !Array.isArray(item.data) ? (item.data as Record<string, any>) : null
+	const dataObj = asTooltipDataRecord(item?.data)
 
 	// 1) Object-row dataset: `data[seriesName]` is the most reliable.
 	if (dataObj && seriesName in dataObj) return dataObj[seriesName]
@@ -197,10 +202,7 @@ export function formatTvlApyTooltip(params: any) {
 	if (items.length === 0) return ''
 
 	const first = items[0]
-	const dataObj =
-		first?.data && typeof first.data === 'object' && !Array.isArray(first.data)
-			? (first.data as Record<string, any>)
-			: null
+	const dataObj = asTooltipDataRecord(first?.data)
 	const timestamp = dataObj?.timestamp ?? first?.axisValue
 	const chartdate =
 		typeof timestamp === 'number' && Number.isFinite(timestamp) ? formatTooltipChartDate(timestamp, 'daily') : ''
@@ -210,10 +212,7 @@ export function formatTvlApyTooltip(params: any) {
 			const name = item?.seriesName
 			if (!name) return null
 
-			const itemData =
-				item?.data && typeof item.data === 'object' && !Array.isArray(item.data)
-					? (item.data as Record<string, any>)
-					: null
+			const itemData = asTooltipDataRecord(item?.data)
 			const rawValue = itemData ? itemData[name] : item?.value?.[1]
 			const value = rawValue == null ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
 			if (value == null || Number.isNaN(value)) return null

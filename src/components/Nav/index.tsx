@@ -6,24 +6,52 @@ import { useStorageItem } from '~/contexts/localStorageStore'
 import defillamaPages from '~/public/pages.json'
 import { DesktopNav } from './Desktop'
 import { MobileNav } from './Mobile'
-import type { TNavLinks, TOldNavLink } from './types'
+import type { TNavLink, TNavLinks, TOldNavLink } from './types'
+
+type DefillamaPage = {
+	name: string
+	route: string
+	icon?: TNavLink['icon']
+	isNew?: boolean
+	umamiEvent?: string
+	oldCategory?: string
+	oldName?: string
+}
+
+type DefillamaPages = Record<string, DefillamaPage[]> & {
+	Main?: TNavLink[]
+	Premium?: TNavLink[]
+	Metrics: DefillamaPage[]
+	Tools: DefillamaPage[]
+	Hidden?: Array<Pick<DefillamaPage, 'name' | 'route'>>
+}
+
+const pages = defillamaPages as DefillamaPages
+
+const mainPages = pages.Main ?? []
+const premiumPages = pages.Premium ?? []
 
 const footerCategories = ['More', 'About Us'] as const
 const footerLinks = footerCategories.map((category) => ({
 	category,
-	pages: defillamaPages[category] ?? []
+	pages: (pages[category] ?? []) as TNavLink[]
 })) as TNavLinks
 
-const routeToPageMap = new Map<string, { name: string; route: string }>()
-for (const pages of Object.values(defillamaPages as Record<string, Array<{ name: string; route: string }>>)) {
-	for (const page of pages) {
-		routeToPageMap.set(page.route, page)
+// Skip "Hidden" so hidden page names (e.g. "Subscribe to DefiLlama") don't overwrite
+// visible labels, and first-match-wins prevents later duplicates from replacing earlier ones.
+const routeToPageMap = new Map<string, DefillamaPage>()
+for (const [category, categoryPages] of Object.entries(pages)) {
+	if (category === 'Hidden') continue
+	for (const page of categoryPages) {
+		if (!routeToPageMap.has(page.route)) {
+			routeToPageMap.set(page.route, page)
+		}
 	}
 }
 
 const oldMetricLinks: Array<TOldNavLink> = Object.values(
-	[...defillamaPages['Metrics'], ...defillamaPages['Tools']].reduce<Record<string, TOldNavLink>>((acc, curr) => {
-		if (curr.oldCategory) {
+	[...pages.Metrics, ...pages.Tools].reduce<Record<string, TOldNavLink>>((acc, curr) => {
+		if (curr.oldCategory && curr.oldName) {
 			acc[curr.oldCategory] = acc[curr.oldCategory] || { name: curr.oldCategory, pages: [] }
 			const groupedMetric = acc[curr.oldCategory]
 			if (!groupedMetric.pages) {
@@ -38,31 +66,28 @@ const oldMetricLinks: Array<TOldNavLink> = Object.values(
 	}, {})
 )
 
-function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
+function normalizeAiRoute(route: string, hasActiveSubscription: boolean): string {
+	return route === '/ai' && hasActiveSubscription ? '/ai/chat' : route
+}
+
+function canonicalAiRoute(route: string): string {
+	return route === '/ai/chat' ? '/ai' : route
+}
+
+export function Nav({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
 
 	const { hasActiveSubscription } = useAuthContext()
 
 	const mainLinks = useMemo(() => {
-		const otherMainPages = [
-			{ name: 'Chains', route: '/chains', icon: 'globe' },
-			{ name: 'Yields', route: '/yields', icon: 'percent' },
-			{ name: 'Stablecoins', route: '/stablecoins', icon: 'dollar-sign' },
-			{ name: 'RWA', route: '/rwa', icon: 'banknote', isNew: true },
-			{ name: 'Support', route: '/support', icon: 'headset' },
-			{ name: 'API', route: 'https://api-docs.defillama.com', icon: 'code' }
-		]
-		const premiumPages = [
-			{ name: 'Pricing', route: '/subscription', icon: 'user' },
-			{ name: 'LlamaAI', route: hasActiveSubscription ? '/ai/chat' : '/ai', icon: '' },
-			{ name: 'Custom Dashboards', route: '/pro', icon: 'blocks' },
-			{ name: 'Sheets', route: '/sheets', icon: 'sheets' },
-			{ name: 'LlamaFeed', route: 'https://llamafeed.io', icon: 'activity', umamiEvent: 'nav-llamafeed-click' }
-		]
+		const premium = premiumPages.map((p) => {
+			const route = normalizeAiRoute(p.route, hasActiveSubscription)
+			return route !== p.route ? { ...p, route } : p
+		})
 		return [
-			{ category: 'Main', pages: defillamaPages['Main'].concat(otherMainPages) },
-			{ category: 'Premium', pages: premiumPages }
+			{ category: 'Main', pages: mainPages },
+			{ category: 'Premium', pages: premium }
 		]
 	}, [hasActiveSubscription])
 
@@ -82,13 +107,15 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 			const parsed = JSON.parse(pinnedMetrics)
 			if (!Array.isArray(parsed) || parsed.length === 0) return []
 			return parsed.flatMap((metric: string) => {
-				const page = routeToPageMap.get(metric)
-				return page ? [page] : []
+				const page = routeToPageMap.get(metric) ?? routeToPageMap.get(canonicalAiRoute(metric))
+				if (!page) return []
+				const route = normalizeAiRoute(page.route, hasActiveSubscription)
+				return [route !== page.route ? { ...page, route } : page]
 			})
 		} catch {
 			return []
 		}
-	}, [pinnedMetrics])
+	}, [pinnedMetrics, hasActiveSubscription])
 
 	return (
 		<>
@@ -112,5 +139,3 @@ function NavComponent({ metricFilters }: { metricFilters?: { name: string; key: 
 		</>
 	)
 }
-
-export const Nav = NavComponent

@@ -1,6 +1,7 @@
 import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react-table'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import type { CsvCell } from '~/utils/csvCell'
 
 type BreakpointMap<T> = Record<number, T>
 export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
@@ -168,13 +169,9 @@ export function useSortColumnSizesAndOrders({
 	}, [instance, columnSizes, columnOrders, width])
 }
 
-function isCsvPrimitive(value: unknown): value is string | number | boolean {
-	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
-}
-
 export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {
 	filename: string
-	rows: Array<Array<string | number | boolean>>
+	rows: Array<Array<CsvCell>>
 } {
 	const columns = instance.getVisibleLeafColumns().filter((column) => !column.columnDef.meta?.hidden)
 	const tableRows = instance.getRowModel().rows
@@ -189,12 +186,22 @@ export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>;
 		return column.columnDef.id ?? column.id
 	})
 
-	const rows: Array<Array<string | number | boolean>> = tableRows.map((row) =>
+	const rows: Array<Array<CsvCell>> = tableRows.map((row) =>
 		columns.map((column) => {
 			const value = row.getValue(column.id)
 			if (value == null) return ''
-			if (isCsvPrimitive(value)) return value
-			if (Array.isArray(value)) return value.filter(isCsvPrimitive).join(', ')
+			if (typeof value === 'number') return Number.isFinite(value) ? value : ''
+			if (typeof value === 'string' || typeof value === 'boolean') return value
+			if (Array.isArray(value)) {
+				return value
+					.filter(
+						(item): item is CsvCell =>
+							(typeof item === 'number' && Number.isFinite(item)) ||
+							typeof item === 'string' ||
+							typeof item === 'boolean'
+					)
+					.join(', ')
+			}
 			return ''
 		})
 	)

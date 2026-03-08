@@ -49,10 +49,10 @@ const areVisibilityEqual = (a: Record<string, boolean>, b: Record<string, boolea
 
 const isCustomColumn = (value: unknown): value is CustomColumn => {
 	if (typeof value !== 'object' || value === null) return false
-	const id = Reflect.get(value, 'id')
-	const name = Reflect.get(value, 'name')
-	const expression = Reflect.get(value, 'expression')
-	const isValid = Reflect.get(value, 'isValid')
+	const id = (value as { id?: unknown }).id
+	const name = (value as { name?: unknown }).name
+	const expression = (value as { expression?: unknown }).expression
+	const isValid = (value as { isValid?: unknown }).isValid
 	return (
 		typeof id === 'string' && typeof name === 'string' && typeof expression === 'string' && typeof isValid === 'boolean'
 	)
@@ -76,12 +76,12 @@ const isBooleanRecord = (value: unknown): value is Record<string, boolean> => {
 
 const isCustomView = (value: unknown): value is CustomView => {
 	if (typeof value !== 'object' || value === null) return false
-	const id = Reflect.get(value, 'id')
-	const name = Reflect.get(value, 'name')
-	const columnOrder = Reflect.get(value, 'columnOrder')
-	const columnVisibility = Reflect.get(value, 'columnVisibility')
-	const createdAt = Reflect.get(value, 'createdAt')
-	const customColumns = Reflect.get(value, 'customColumns')
+	const id = (value as { id?: unknown }).id
+	const name = (value as { name?: unknown }).name
+	const columnOrder = (value as { columnOrder?: unknown }).columnOrder
+	const columnVisibility = (value as { columnVisibility?: unknown }).columnVisibility
+	const createdAt = (value as { createdAt?: unknown }).createdAt
+	const customColumns = (value as { customColumns?: unknown }).customColumns
 
 	const validCustomColumns =
 		customColumns === undefined ||
@@ -165,7 +165,7 @@ export function useProTable(
 		if (!state.activeDatasetMetric) return finalProtocolsList
 
 		return finalProtocolsList.filter((protocol) => {
-			const value = Reflect.get(protocol, state.activeDatasetMetric)
+			const value = protocol[state.activeDatasetMetric as keyof typeof protocol]
 			return typeof value === 'number' && value > 0
 		})
 	}, [finalProtocolsList, state.activeDatasetMetric])
@@ -432,7 +432,8 @@ export function useProTable(
 	const { userConfig, saveUserConfig } = useUserConfig()
 
 	const customViews = React.useMemo(() => {
-		const tableViews = userConfig && typeof userConfig === 'object' ? Reflect.get(userConfig, 'tableViews') : null
+		const tableViews =
+			userConfig && typeof userConfig === 'object' ? (userConfig as { tableViews?: unknown }).tableViews : null
 		if (!Array.isArray(tableViews)) return []
 		return tableViews.filter((view): view is CustomView => isCustomView(view))
 	}, [userConfig])

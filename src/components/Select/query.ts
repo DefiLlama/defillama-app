@@ -13,6 +13,7 @@ export const updateQueryFromSelected = (
 	includeKey: string,
 	excludeKey: ExcludeQueryKey,
 	allKeys: string[],
+	// 'None' is a sentinel meaning "nothing selected" — keep it explicit in the type
 	values: string[] | string | 'None' | null,
 	defaultSelectedValues?: string[]
 ) => {

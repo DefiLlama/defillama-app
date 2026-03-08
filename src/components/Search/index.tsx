@@ -190,7 +190,8 @@ function MobileSearchResults({ searchValue, onSelect }: { searchValue: string; o
 
 function getPreHydrationInputValue() {
 	if (typeof window === 'undefined') return ''
-	return (document.getElementById('desktop-search-input') as HTMLInputElement | null)?.value ?? ''
+	const el = document.getElementById('desktop-search-input')
+	return el instanceof HTMLInputElement ? el.value : ''
 }
 
 export const DesktopSearch = () => {

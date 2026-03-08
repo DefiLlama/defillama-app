@@ -60,10 +60,7 @@ export default function MultiSeriesChart({
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
 		xAxisType,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly', 'yearly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly')
-				: 'daily',
+		groupBy: groupBy ?? 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
 		showAggregateInTooltip
@@ -176,12 +173,19 @@ export default function MultiSeriesChart({
 
 		if (needMultipleAxes) {
 			const axisCount = Math.max(uniqueMetricTypes.length, maxExplicitAxisIndex + 1, 2)
+			const yAxisBase = yAxis && typeof yAxis === 'object' ? (Array.isArray(yAxis) ? yAxis[0] || {} : yAxis) : {}
+			const yAxisAxisLabel = yAxisBase.axisLabel && typeof yAxisBase.axisLabel === 'object' ? yAxisBase.axisLabel : {}
+			const existingFormatter =
+				typeof yAxisAxisLabel.formatter === 'function' || typeof yAxisAxisLabel.formatter === 'string'
+					? yAxisAxisLabel.formatter
+					: null
 			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
-				...yAxis,
+				...yAxisBase,
 				axisLabel: {
-					...(yAxis as any).axisLabel,
+					...yAxisAxisLabel,
 					margin: 4,
-					formatter: (value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol)
+					formatter:
+						existingFormatter ?? ((value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol))
 				},
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
 				offset: index === 2 ? 40 : 0

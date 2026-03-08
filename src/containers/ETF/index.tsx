@@ -171,7 +171,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-2">
 					<div className="flex flex-wrap justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
-						<TagGroup setValue={(val) => setGroupBy(val as GroupBy)} values={GROUP_BY_LIST} selectedValue={groupBy} />
+						<TagGroup setValue={(val) => setGroupBy(val)} values={GROUP_BY_LIST} selectedValue={groupBy} />
 						<Select
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}

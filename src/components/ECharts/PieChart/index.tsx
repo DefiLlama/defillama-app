@@ -109,18 +109,26 @@ export default function PieChart({
 			}
 
 		const fontSize = typeof legendTextStyle?.fontSize === 'number' ? legendTextStyle.fontSize : 12
-		const fontFamily = (legendTextStyle as any)?.fontFamily || 'sans-serif'
-		const fontWeight = (legendTextStyle as any)?.fontWeight || 400
+		const fontFamilyRaw = legendTextStyle?.fontFamily
+		const fontWeightRaw = legendTextStyle?.fontWeight
+		const fontFamily = typeof fontFamilyRaw === 'string' ? fontFamilyRaw : 'sans-serif'
+		const fontWeight = typeof fontWeightRaw === 'number' || typeof fontWeightRaw === 'string' ? fontWeightRaw : 400
 		// Keep this small so we don't over-truncate names.
 		const iconAndPaddingPx = 22
+		const fallbackWidth = (text: string) => text.length * fontSize * 0.58
+		const measureCtx =
+			typeof document === 'undefined'
+				? null
+				: (() => {
+						const canvas = document.createElement('canvas')
+						return canvas.getContext('2d')
+					})()
+		if (measureCtx) {
+			measureCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
+		}
 
 		const safeMeasure = (text: string) => {
-			if (typeof document === 'undefined') return text.length * fontSize * 0.58
-			const canvas = document.createElement('canvas')
-			const ctx = canvas.getContext('2d')
-			if (!ctx) return text.length * fontSize * 0.58
-			ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
-			return ctx.measureText(text).width
+			return measureCtx ? measureCtx.measureText(text).width : fallbackWidth(text)
 		}
 
 		const truncateToWidth = (text: string, maxWidthPx: number) => {
@@ -172,7 +180,7 @@ export default function PieChart({
 		return {
 			legendBoxWidth: boxWidth,
 			legendLabelByName: out,
-			legendAlign: (needsTruncation ? 'left' : 'right') as 'left' | 'right'
+			legendAlign: needsTruncation ? 'left' : 'right'
 		}
 	}, [showLegend, isSmall, legendPosition, legendTextStyle, toRight, chartData, percentByName])
 
@@ -238,8 +246,13 @@ export default function PieChart({
 
 	const isChartDisposed = (inst: echarts.ECharts | null) => {
 		if (!inst) return true
-		if (typeof (inst as any).isDisposed !== 'function') return false
-		return (inst as any).isDisposed()
+		if (typeof inst.isDisposed !== 'function') {
+			if (process.env.NODE_ENV === 'development') {
+				console.warn('ECharts instance missing isDisposed method — treating as disposed')
+			}
+			return true
+		}
+		return inst.isDisposed()
 	}
 
 	const computePieCenterPx = (inst: echarts.ECharts, reserved: number) => {
