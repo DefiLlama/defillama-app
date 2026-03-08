@@ -65,7 +65,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
 						width="0.875rem"
 						className="text-(--text-form)/20 group-hover:text-(--text-form)/30"
 					>
-						<path d="M4 4L12 12M12 4L4 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+						<path
+							d="M4 4L12 12M12 4L4 12"
+							stroke="oklch(0.584 0.236 29.6 / 40%)"
+							strokeWidth="1.5"
+							strokeLinecap="round"
+						/>
 					</svg>
 				)}
 			</div>

@@ -1,5 +1,6 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { Announcement } from '~/components/Announcement'
 import { ChartCsvExportButton } from '~/components/ButtonStyled/ChartCsvExportButton'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { ChartRestoreButton } from '~/components/ButtonStyled/ChartRestoreButton'
@@ -600,6 +601,9 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 
 	return (
 		<>
+			{/* <Announcement>
+				Stablecoins, Governance are not included by default. To include them, toggle the corresponding filters.
+			</Announcement> */}
 			<RowLinksWithDropdown links={navLinks} activeLink={selectedModeLabel} />
 			<RWAOverviewFilters
 				enabled={showFilters}

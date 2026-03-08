@@ -25,6 +25,10 @@ const ANNOUNCEMENT = {
 	options: {
 		key: 'options-daily--data-explanation',
 		value: 'optionsDailyData'
+	},
+	rwa: {
+		key: 'rwa-stablecoins-governance-explanation',
+		value: 'rwaStablecoinsGovernanceExplanation'
 	}
 }
 
