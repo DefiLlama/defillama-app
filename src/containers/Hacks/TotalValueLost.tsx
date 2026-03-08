@@ -83,7 +83,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 const columnIds: string[] = columns.map((c) => c.id).filter((id): id is string => id != null)
 
 export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
-	const [selectedColumns, setSelectedColumns] = React.useState<Array<string> | string>([
+	const [selectedColumns, setSelectedColumns] = React.useState<string[]>([
 		'Name',
 		'Total Hacked',
 		'Returned Funds',
@@ -91,8 +91,7 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 	])
 
 	const filteredColumns = React.useMemo(() => {
-		const selected = Array.isArray(selectedColumns) ? selectedColumns : [selectedColumns]
-		return columns.filter((c) => c.id != null && selected.includes(c.id))
+		return columns.filter((c) => c.id != null && selectedColumns.includes(c.id))
 	}, [selectedColumns])
 
 	return (

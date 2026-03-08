@@ -29,13 +29,21 @@ interface ISelectWithUrlParams extends ISelectBase {
 	setSelectedValues?: never
 }
 
-interface ISelectWithState extends ISelectBase {
+interface ISelectWithStateArray extends ISelectBase {
 	includeQueryKey?: never
 	excludeQueryKey?: never
-	setSelectedValues: React.Dispatch<React.SetStateAction<Array<string> | string>>
+	selectedValues: Array<string>
+	setSelectedValues: (values: Array<string>) => void
 }
 
-type ISelect = ISelectWithUrlParams | ISelectWithState
+interface ISelectWithStateSingle extends ISelectBase {
+	includeQueryKey?: never
+	excludeQueryKey?: never
+	selectedValues: string
+	setSelectedValues: (value: string) => void
+}
+
+type ISelect = ISelectWithUrlParams | ISelectWithStateArray | ISelectWithStateSingle
 
 export function Select({
 	allValues,
@@ -67,7 +75,7 @@ export function Select({
 	const setSelectedValuesFromState = React.useCallback(
 		(values: string[] | string) => {
 			if (setSelectedValuesProp) {
-				setSelectedValuesProp(values)
+				;(setSelectedValuesProp as (values: string[] | string) => void)(values)
 			}
 		},
 		[setSelectedValuesProp]
