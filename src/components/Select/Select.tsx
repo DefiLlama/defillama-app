@@ -173,13 +173,15 @@ export function Select(props: ISelect) {
 	const selectedCount = canSelectOnlyOne ? (selectedValues ? 1 : 0) : selectedValues.length
 
 	const selectRef = React.useRef<HTMLDivElement>(null)
+	const nestedMenuRef = React.useRef<HTMLDivElement>(null)
 
 	const handleSeeMore = (e: React.MouseEvent<HTMLDivElement>) => {
 		e.preventDefault()
 		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
-		focusFirstNewItem(selectRef, '[role="option"]', previousCount)
+		const containerRef = nestedMenuRef.current ? nestedMenuRef : selectRef
+		focusFirstNewItem(containerRef, '[role="option"]', previousCount)
 	}
 
 	if (nestedMenu) {
@@ -191,66 +193,68 @@ export function Select(props: ISelect) {
 				}}
 			>
 				<NestedMenu label={label} render={<Ariakit.Select />}>
-					{showCheckboxes ? (
-						<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
-							<button onClick={clearAll} className="p-3">
-								Deselect All
-							</button>
-							<button onClick={toggleAll} className="p-3">
-								Select All
-							</button>
-						</span>
-					) : null}
-					{allValues.slice(0, viewableMatches).map((option) => (
-						<NestedMenuItem
-							key={getOptionKey(option)}
-							render={
-								<Ariakit.SelectItem
-									value={getOptionKey(option)}
-									setValueOnClick={!showCheckboxes}
-									hideOnClick={!showCheckboxes}
-									onClick={
-										showCheckboxes
-											? (event) => {
-													event.preventDefault()
-													event.stopPropagation()
-													toggleMultiValue(getOptionKey(option))
-												}
-											: undefined
-									}
-								/>
-							}
-							hideOnClick={false}
-							className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
-						>
-							{typeof option === 'string' ? (
-								<span>{option}</span>
-							) : isSelectOption(option) && option.help ? (
-								<Tooltip content={option.help}>
-									<span className="mr-1">{option.name}</span>
-									<Icon name="help-circle" height={15} width={15} />
-								</Tooltip>
-							) : (
-								<span>{isSelectOption(option) ? option.name : option}</span>
-							)}
-							{showCheckboxes ? (
-								<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
-							) : (
-								<Ariakit.SelectItemCheck className="ml-auto" />
-							)}
-						</NestedMenuItem>
-					))}
-					{allValues.length > viewableMatches ? (
-						<Ariakit.SelectItem
-							value="__see_more__"
-							setValueOnClick={false}
-							hideOnClick={false}
-							className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
-							onClick={handleSeeMore}
-						>
-							See more...
-						</Ariakit.SelectItem>
-					) : null}
+					<div ref={nestedMenuRef}>
+						{showCheckboxes ? (
+							<span className="sticky top-0 z-1 flex flex-wrap justify-between gap-1 border-b border-(--form-control-border) bg-(--bg-main) text-xs text-(--link)">
+								<button onClick={clearAll} className="p-3">
+									Deselect All
+								</button>
+								<button onClick={toggleAll} className="p-3">
+									Select All
+								</button>
+							</span>
+						) : null}
+						{allValues.slice(0, viewableMatches).map((option) => (
+							<NestedMenuItem
+								key={getOptionKey(option)}
+								render={
+									<Ariakit.SelectItem
+										value={getOptionKey(option)}
+										setValueOnClick={!showCheckboxes}
+										hideOnClick={!showCheckboxes}
+										onClick={
+											showCheckboxes
+												? (event) => {
+														event.preventDefault()
+														event.stopPropagation()
+														toggleMultiValue(getOptionKey(option))
+													}
+												: undefined
+										}
+									/>
+								}
+								hideOnClick={false}
+								className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							>
+								{typeof option === 'string' ? (
+									<span>{option}</span>
+								) : isSelectOption(option) && option.help ? (
+									<Tooltip content={option.help}>
+										<span className="mr-1">{option.name}</span>
+										<Icon name="help-circle" height={15} width={15} />
+									</Tooltip>
+								) : (
+									<span>{isSelectOption(option) ? option.name : option}</span>
+								)}
+								{showCheckboxes ? (
+									<Ariakit.SelectItemCheck className="ml-auto flex h-3 w-3 shrink-0 items-center justify-center rounded-xs border border-[#28a2b5]" />
+								) : (
+									<Ariakit.SelectItemCheck className="ml-auto" />
+								)}
+							</NestedMenuItem>
+						))}
+						{allValues.length > viewableMatches ? (
+							<Ariakit.SelectItem
+								value="__see_more__"
+								setValueOnClick={false}
+								hideOnClick={false}
+								className="w-full cursor-pointer px-3 py-4 text-(--link) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-active-item:bg-(--link-hover-bg)"
+								onClick={handleSeeMore}
+							>
+								See more...
+							</Ariakit.SelectItem>
+						) : null}
+					</div>
 				</NestedMenu>
 			</Ariakit.SelectProvider>
 		)

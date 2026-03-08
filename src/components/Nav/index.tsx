@@ -39,12 +39,12 @@ const footerLinks = footerCategories.map((category) => ({
 
 // Skip "Hidden" so hidden page names (e.g. "Subscribe to DefiLlama") don't overwrite
 // visible labels, and first-match-wins prevents later duplicates from replacing earlier ones.
-const routeToPageMap = new Map<string, { name: string; route: string }>()
+const routeToPageMap = new Map<string, DefillamaPage>()
 for (const [category, categoryPages] of Object.entries(pages)) {
 	if (category === 'Hidden') continue
 	for (const page of categoryPages) {
 		if (!routeToPageMap.has(page.route)) {
-			routeToPageMap.set(page.route, { name: page.name, route: page.route })
+			routeToPageMap.set(page.route, page)
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 import * as Ariakit from '@ariakit/react'
 import * as React from 'react'
+import type { ActionMeta, MultiValue } from 'react-select'
 import { Icon } from '~/components/Icon'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import type { TableFilters } from '../../types'
@@ -11,33 +12,12 @@ import type { IProtocolRow } from './proTable.types'
 
 const EMPTY_FILTERS: string[] = []
 
-const extractSelectedValues = (selection: unknown): string[] => {
-	if (!Array.isArray(selection)) return []
+type SelectOption = { value: string; label: string }
 
-	const values: string[] = []
-	for (const option of selection) {
-		if (typeof option !== 'object' || option === null) continue
-		const value = (option as { value?: unknown }).value
-		if (typeof value === 'string') {
-			values.push(value)
-		}
-	}
-	return values
-}
+type ProtocolSelectionOption = SelectOption & { isChild?: boolean }
 
-type ProtocolSelectionOption = {
-	value: string
-	label: string
-	isChild?: boolean
-}
-
-const isProtocolSelectionOption = (value: unknown): value is ProtocolSelectionOption => {
-	if (typeof value !== 'object' || value === null) return false
-	const optionValue = (value as { value?: unknown }).value
-	const optionLabel = (value as { label?: unknown }).label
-	const optionIsChild = (value as { isChild?: unknown }).isChild
-	if (typeof optionValue !== 'string' || typeof optionLabel !== 'string') return false
-	return optionIsChild === undefined || typeof optionIsChild === 'boolean'
+const extractSelectedValues = (selection: MultiValue<SelectOption>): string[] => {
+	return selection.map((option) => option.value)
 }
 
 const expandSelectedProtocols = (selectedProtocols: string[], parentToChildrenMap: Map<string, string[]>): string[] => {
@@ -61,23 +41,18 @@ const resolveProtocolSelection = ({
 	parentToChildrenMap,
 	currentSelection
 }: {
-	selection: unknown
-	actionMeta: unknown
+	selection: MultiValue<ProtocolSelectionOption>
+	actionMeta: ActionMeta<ProtocolSelectionOption>
 	parentToChildrenMap: Map<string, string[]>
 	currentSelection: string[]
 }): string[] => {
 	const selectedValues = extractSelectedValues(selection)
 	const selectedValueSet = new Set(currentSelection)
 
-	if (typeof actionMeta !== 'object' || actionMeta === null) {
-		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
-	}
+	if (actionMeta.action === 'clear') return []
 
-	const action = (actionMeta as { action?: unknown }).action
-	if (action === 'clear') return []
-
-	const option = (actionMeta as { option?: unknown }).option
-	if (!isProtocolSelectionOption(option) || option.isChild) {
+	const option = actionMeta.option
+	if (!option || option.isChild) {
 		return expandSelectedProtocols(selectedValues, parentToChildrenMap)
 	}
 
@@ -276,7 +251,7 @@ function ProtocolFilterDialogContent({
 							options={oracleOptions}
 							value={oraclesValue}
 							onChange={(selection) => {
-								setSelectedOracles(extractSelectedValues(selection))
+								setSelectedOracles(extractSelectedValues(selection as MultiValue<SelectOption>))
 							}}
 							placeholder="Select oracles..."
 							styles={reactSelectStyles}
@@ -295,7 +270,7 @@ function ProtocolFilterDialogContent({
 							options={includeCategoryOptions}
 							value={includeCategoryValue}
 							onChange={(selection) => {
-								setSelectedCategories(extractSelectedValues(selection))
+								setSelectedCategories(extractSelectedValues(selection as MultiValue<SelectOption>))
 							}}
 							placeholder="Select categories to include..."
 							styles={reactSelectStyles}
@@ -314,7 +289,7 @@ function ProtocolFilterDialogContent({
 							options={excludeCategoryOptions}
 							value={excludeCategoryValue}
 							onChange={(selection) => {
-								setSelectedExcludedCategories(extractSelectedValues(selection))
+								setSelectedExcludedCategories(extractSelectedValues(selection as MultiValue<SelectOption>))
 							}}
 							placeholder="Select categories to exclude..."
 							styles={reactSelectStyles}
@@ -335,8 +310,8 @@ function ProtocolFilterDialogContent({
 							onChange={(selection, actionMeta) => {
 								setSelectedProtocols((currentSelection) =>
 									resolveProtocolSelection({
-										selection,
-										actionMeta,
+										selection: selection as MultiValue<ProtocolSelectionOption>,
+										actionMeta: actionMeta as ActionMeta<ProtocolSelectionOption>,
 										parentToChildrenMap,
 										currentSelection
 									})

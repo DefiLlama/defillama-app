@@ -231,13 +231,13 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
 						<TagGroup
 							selectedValue={timePeriod}
-							setValue={(value: TimePeriod) => updateQueryParam('chartGroup', value, 'Weekly')}
-							values={TIME_PERIODS as unknown as string[]}
+							setValue={(value) => updateQueryParam('chartGroup', value, 'Weekly')}
+							values={TIME_PERIODS}
 						/>
 						<TagGroup
 							selectedValue={viewMode}
-							setValue={(value: ViewMode) => updateQueryParam('chartView', value, 'Total View')}
-							values={VIEW_MODES as unknown as string[]}
+							setValue={(value) => updateQueryParam('chartView', value, 'Total View')}
+							values={VIEW_MODES}
 						/>
 						<ChartExportButtons
 							chartInstance={exportChartInstance}

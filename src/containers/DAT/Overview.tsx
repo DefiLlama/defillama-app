@@ -17,10 +17,6 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
 type GroupByType = (typeof GROUP_BY)[number]
 
-function isGroupByType(value: string): value is GroupByType {
-	return (GROUP_BY as readonly string[]).includes(value)
-}
-
 /** Narrow an unknown echarts tooltip param to a record, or return undefined. */
 function asRecord(value: unknown): Record<string, unknown> | undefined {
 	return typeof value === 'object' && value != null ? (value as Record<string, unknown>) : undefined
@@ -130,9 +126,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
 					<TagGroup
 						selectedValue={groupBy}
-						setValue={(period) => {
-							if (isGroupByType(period)) startTransition(() => setGroupBy(period))
-						}}
+						setValue={(period) => startTransition(() => setGroupBy(period))}
 						values={GROUP_BY}
 						className="ml-auto"
 					/>

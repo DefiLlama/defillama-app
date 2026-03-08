@@ -198,12 +198,7 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex items-center justify-between gap-2 p-2">
-					<TagGroup
-						selectedValue={viewType}
-						setValue={(period) => setViewType(period as ViewType)}
-						values={VIEW_TYPES}
-						className="ml-auto"
-					/>
+					<TagGroup selectedValue={viewType} setValue={(v) => setViewType(v)} values={VIEW_TYPES} className="ml-auto" />
 				</div>
 				<div className="grid grid-cols-1 *:col-span-1 xl:min-h-[398px] xl:grid-cols-2">
 					<React.Suspense fallback={<div className="h-[398px] w-full" />}>

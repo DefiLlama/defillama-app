@@ -339,11 +339,11 @@ export const CategoryPerformanceContainer = ({
 				</div>
 
 				<div className="flex items-center justify-end gap-2 p-2">
-					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val) => setGroupBy(val as Period)} />
+					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val) => setGroupBy(val)} />
 					<TagGroup
 						values={DENOMS}
 						selectedValue={groupByDenom}
-						setValue={(val) => setGroupByDenom(val as Denom)}
+						setValue={(val) => setGroupByDenom(val)}
 						label="Denom (vs):"
 						disabledValues={disabledDenoms}
 					/>

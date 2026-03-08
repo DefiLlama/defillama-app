@@ -46,10 +46,6 @@ type YearDataMap = {
 const TIME_VIEWS = ['Month', 'Current Year', 'All Years'] as const
 type TimeView = (typeof TIME_VIEWS)[number]
 
-function isTimeView(value: string): value is TimeView {
-	return value === 'Month' || value === 'Current Year' || value === 'All Years'
-}
-
 export default function UnlocksTreemapChart({ unlocksData, height = '600px', filterYear }: UnlocksTreemapProps) {
 	const id = useId()
 	const [isDark] = useDarkModeManager()
@@ -449,10 +445,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 
 				<TagGroup
 					selectedValue={timeView}
-					setValue={(period) => {
-						if (!isTimeView(period)) return
-						startTransition(() => setTimeView(period))
-					}}
+					setValue={(period) => startTransition(() => setTimeView(period))}
 					values={TIME_VIEWS}
 				/>
 			</div>
