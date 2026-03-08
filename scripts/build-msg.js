@@ -59,7 +59,6 @@ const uploadBuildLog = async () => {
 	}
 }
 
-const BUILD_STATUS_DASHBOARD = process.env.BUILD_STATUS_DASHBOARD
 const BUILD_STATUS_WEBHOOK = process.env.BUILD_STATUS_WEBHOOK
 
 // Comma-separated Discord user IDs to ping on build failure (e.g. "123456789,987654321")
@@ -138,11 +137,9 @@ const sendMessages = async () => {
 		console.log('Build log upload skipped')
 	}
 
-	if (BUILD_STATUS !== '0') {
-		const llamaMessage = ['Build failed.', BUILD_STATUS_DASHBOARD || null].filter(Boolean).join('\n')
-		const failContent = userMentions ? `${userMentions}\n\`\`\`${llamaMessage}\`\`\`` : `\`\`\`${llamaMessage}\`\`\``
+	if (BUILD_STATUS !== '0' && userMentions) {
 		await postWebhook({
-			content: failContent,
+			content: userMentions,
 			allowed_mentions: { parse: ['users'] }
 		})
 	}
