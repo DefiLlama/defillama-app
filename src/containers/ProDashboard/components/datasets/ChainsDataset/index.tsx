@@ -3,7 +3,6 @@ import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
-	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getPaginationRowModel,
@@ -21,11 +20,9 @@ import { TableBody } from '../../ProTable/TableBody'
 import { ChainsTableHeader } from './ChainsTableHeader'
 import { ColumnManagementPanel } from './ColumnManagementPanel'
 import { chainsDatasetColumns } from './columns'
-import type { ChainsDatasetRow } from './types'
 import { useChainsData } from './useChainsData'
 
-const EMPTY_DATA: ChainsDatasetRow[] = []
-const columnHelper = createColumnHelper<ChainsDatasetRow>()
+const EMPTY_DATA: any[] = []
 const CHAIN_COLUMN_PRESETS: Record<string, string[]> = {
 	essential: ['name', 'protocols', 'users', 'change_1d', 'change_7d', 'tvl', 'stablesMcap'],
 	defi: [
@@ -149,42 +146,39 @@ export function ChainsDataset({
 		]
 
 		return shareMetrics.map(
-			(metric): ColumnDef<ChainsDatasetRow> =>
-				columnHelper.accessor(
-					(row) => {
-						const value = row[metric.key as keyof ChainsDatasetRow]
-						const total = totals[metric.key]
+			(metric): ColumnDef<any> => ({
+				id: `${metric.key}_share`,
+				header: metric.name,
+				size: 120,
+				accessorFn: (row) => {
+					const value = row[metric.key]
+					const total = totals[metric.key]
 
-						if (typeof value === 'number' && value > 0 && total > 0) {
-							return (value / total) * 100
-						}
-						return null
-					},
-					{
-						id: `${metric.key}_share`,
-						header: metric.name,
-						size: 120,
-						cell: ({ getValue }) => {
-							const value = getValue()
-							if (value == null) return <span className="pro-text2">-</span>
-
-							return <span className="pro-text2">{value.toFixed(2)}%</span>
-						},
-						sortingFn: (rowA, rowB, columnId) => {
-							const a = rowA.getValue(columnId) as number | null
-							const b = rowB.getValue(columnId) as number | null
-							if (a === null && b !== null) return 1
-							if (a !== null && b === null) return -1
-							if (a === null && b === null) return 0
-							return (a ?? 0) - (b ?? 0)
-						}
+					if (typeof value === 'number' && value > 0 && total > 0) {
+						return (value / total) * 100
 					}
-				)
+					return null
+				},
+				cell: ({ getValue }) => {
+					const value = getValue() as number | null
+					if (value == null) return <span className="pro-text2">-</span>
+
+					return <span className="pro-text2">{value.toFixed(2)}%</span>
+				},
+				sortingFn: (rowA, rowB, columnId) => {
+					const a = rowA.getValue(columnId) as number | null
+					const b = rowB.getValue(columnId) as number | null
+					if (a === null && b !== null) return 1
+					if (a !== null && b === null) return -1
+					if (a === null && b === null) return 0
+					return (a ?? 0) - (b ?? 0)
+				}
+			})
 		)
 	}, [totals])
 
 	const allColumns = React.useMemo(() => {
-		return [...chainsDatasetColumns, ...percentageShareColumns]
+		return [...chainsDatasetColumns, ...percentageShareColumns] as ColumnDef<any>[]
 	}, [percentageShareColumns])
 
 	const instance = useReactTable({
@@ -464,7 +458,7 @@ export function ChainsDataset({
 			/>
 
 			<div className="min-h-0 flex-1">
-				<TableBody<ChainsDatasetRow> table={instance} />
+				<TableBody table={instance} />
 			</div>
 
 			<div className="mt-3 flex w-full flex-wrap items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-3 py-2">
