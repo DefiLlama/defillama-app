@@ -23,7 +23,11 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
 import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
-import { ConversationView, LoadingConversationState } from '~/containers/LlamaAI/components/ConversationView'
+import {
+	ConversationView,
+	EmptyConversationErrorState,
+	LoadingConversationState
+} from '~/containers/LlamaAI/components/ConversationView'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
@@ -1145,6 +1149,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			>
 				{restoringSessionId && !hasMessages ? (
 					<LoadingConversationState />
+				) : !hasMessages && visibleError ? (
+					<EmptyConversationErrorState message={visibleError} />
 				) : !hasMessages && !visibleError ? (
 					<ChatLanding
 						readOnly={readOnly}

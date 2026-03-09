@@ -215,6 +215,14 @@ export function LoadingConversationState() {
 	)
 }
 
+export function EmptyConversationErrorState({ message }: { message: string }) {
+	return (
+		<div className="flex flex-1 items-center justify-center">
+			<p className="text-sm text-red-700 dark:text-red-300">{message}</p>
+		</div>
+	)
+}
+
 function hasStreamingCharts(charts?: ChartSet[]) {
 	return Boolean(charts && charts.length > 0)
 }
