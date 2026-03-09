@@ -219,11 +219,15 @@ export interface ICandlestickChartProps {
 
 export interface IMultiSeriesChartProps {
 	series?: Array<{
-		data: Array<[number, number]>
+		data: Array<[number | string, number | null]>
 		type: 'line' | 'bar'
 		name: string
 		color: string
 		logo?: string
+		stack?: string
+		areaStyle?: unknown
+		metricType?: string
+		yAxisIndex?: number
 	}>
 	chartOptions?: {
 		[key: string]: {

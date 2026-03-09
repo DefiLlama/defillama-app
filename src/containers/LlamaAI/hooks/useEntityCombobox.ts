@@ -23,6 +23,10 @@ interface SelectedEntity {
 	type: string
 }
 
+function escapeRegExp(value: string) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdit }: UseEntityComboboxOptions) {
 	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
 	const [searchTerm, setSearchTerm] = useState('')
@@ -187,20 +191,24 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 	// Convert the current entity set back into the prompt payload expected by submit handlers.
 	const getFinalEntities = () => {
 		return selectedEntities
-			.filter(({ term }) => currentValue.includes(term))
-			.map(({ term, slug }) => ({
+			.filter(({ term }) => {
+				const escapedTerm = escapeRegExp(term)
+				return new RegExp(`(^|[^A-Za-z0-9_])${escapedTerm}(?=$|[^A-Za-z0-9_])`, 'i').test(currentValue)
+			})
+			.map(({ term, slug, type }) => ({
 				term,
-				slug
+				slug,
+				type
 			}))
 	}
 
 	// Restore entity metadata after a failed prompt is retried back into the input.
-	const restoreEntities = useCallback((entities?: Array<{ term: string; slug: string }>) => {
+	const restoreEntities = useCallback((entities?: Array<{ term: string; slug: string; type?: string }>) => {
 		setSelectedEntities(
-			entities?.map(({ term, slug }) => ({
+			entities?.map(({ term, slug, type }) => ({
 				term,
 				slug,
-				type: ''
+				type: type ?? ''
 			})) ?? []
 		)
 	}, [])

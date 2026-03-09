@@ -42,7 +42,7 @@ interface ConversationViewProps {
 	scrollToBottom: () => void
 	handleSubmit: (
 		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 	) => void

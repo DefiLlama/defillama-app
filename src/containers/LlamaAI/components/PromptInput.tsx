@@ -33,7 +33,7 @@ function revokeImageUrls(images: Array<{ url: string }>) {
 interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 	) => void | Promise<void>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
@@ -44,7 +44,7 @@ interface PromptInputProps {
 	restoreRequest?: {
 		key: number
 		text: string
-		entities?: Array<{ term: string; slug: string }>
+		entities?: Array<{ term: string; slug: string; type?: string }>
 	} | null
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
@@ -230,10 +230,11 @@ export function PromptInput({
 	}, [])
 
 	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ url: string }>) => {
-		if (valueRef.current !== promptValue) return false
+		const currentValue = valueRef.current
+		const currentUrls = [...selectedImageUrlsRef.current]
+		if (currentValue !== promptValue) return false
 
 		const submittedUrls = imagesToSend.map(({ url }) => url)
-		const currentUrls = selectedImageUrlsRef.current
 		if (submittedUrls.length !== currentUrls.length) return false
 
 		for (let index = 0; index < submittedUrls.length; index++) {

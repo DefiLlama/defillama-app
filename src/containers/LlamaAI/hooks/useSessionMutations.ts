@@ -28,7 +28,7 @@ export function useSessionMutations() {
 				return response
 			} catch (error) {
 				console.log('Failed to create session:', error)
-				throw new Error('Failed to create session')
+				throw new Error(`Failed to create session: ${getErrorMessage(error)}`)
 			}
 		},
 		onSuccess: () => {
@@ -53,7 +53,7 @@ export function useSessionMutations() {
 				return response
 			} catch (error) {
 				console.log('Failed to restore session:', error)
-				throw new Error('Failed to restore session')
+				throw new Error(`Failed to restore session: ${getErrorMessage(error)}`)
 			}
 		}
 	})
@@ -72,7 +72,7 @@ export function useSessionMutations() {
 				return response
 			} catch (error) {
 				console.log('Failed to delete session:', error)
-				throw new Error('Failed to delete session')
+				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
 			}
 		},
 		onMutate: async (sessionId) => {
@@ -216,13 +216,14 @@ export function useSessionMutations() {
 				}
 			} catch (error) {
 				console.error('[llama-ai] [loadMoreMessages] failed:', getErrorMessage(error))
-				throw new Error('Failed to load older messages')
+				throw new Error(`Failed to load older messages: ${getErrorMessage(error)}`)
 			}
 		},
 		[restoreSessionMutation]
 	)
 
 	return {
+		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,

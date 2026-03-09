@@ -491,7 +491,16 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 		}
 
 		const validSeries = series.filter((s) => s.data && s.data.length > 0)
-		const chartSeries = validSeries as unknown as IMultiSeriesChartProps['series']
+		const chartSeries: NonNullable<IMultiSeriesChartProps['series']> = validSeries.map((seriesItem) => {
+			return {
+				data: seriesItem.data,
+				type: seriesItem.type,
+				name: seriesItem.name,
+				color: seriesItem.color,
+				metricType: seriesItem.metricType,
+				yAxisIndex: seriesItem.yAxisIndex
+			}
+		})
 		const yAxisSymbols = config.axes.yAxes?.map((axis) => axis.valueSymbol ?? config.valueSymbol ?? '$') ?? []
 
 		const multiSeriesProps: Partial<IMultiSeriesChartProps> = {

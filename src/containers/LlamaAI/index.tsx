@@ -114,6 +114,11 @@ interface SessionRestoreResult {
 	pagination?: { hasMore?: boolean; cursor?: number | null }
 }
 
+interface RestoreSessionSnapshotResult {
+	restored: boolean
+	recoveredResponse: boolean
+}
+
 interface UsageLimitError extends Error {
 	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT'
 	details?: Partial<RateLimitDetails>
@@ -222,7 +227,7 @@ function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: numb
 } {
 	return {
 		hasMore: pagination?.hasMore || false,
-		cursor: pagination?.cursor || null,
+		cursor: pagination?.cursor ?? null,
 		isLoadingMore: false
 	}
 }
@@ -517,8 +522,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const { notify, requestPermission } = useStreamNotification()
 	const alertsModalStore = Ariakit.useDialogStore()
 	const settingsModalStore = Ariakit.useDialogStore()
-	const subscribeModalStore = Ariakit.useDialogStore()
 	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderSubscribeModal,
+		setOpen: setShouldRenderSubscribeModal
+	})
 
 	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -830,7 +838,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			resetStream?: boolean
 			onTemporaryDisconnect?: (error: Error, streamBuffer: StreamBuffer) => void
 		}) => {
-			const { active } = await checkActiveExecution(targetSessionId, authorizedFetchStrict)
+			const { active } = await checkActiveExecution(targetSessionId, authorizedFetch)
 			if (!active) return false
 
 			setViewError(null)
@@ -876,7 +884,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				sessionId: targetSessionId,
 				callbacks,
 				abortSignal: controller.signal,
-				fetchFn: authorizedFetchStrict
+				fetchFn: authorizedFetch
 			})
 				.catch((resumeError: Error) => {
 					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
@@ -913,19 +921,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 			return true
 		},
-		[authorizedFetchStrict, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
+		[authorizedFetch, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
 	)
 
 	const restoreSessionSnapshot = useCallback(
-		async (targetSessionId: string) => {
+		async (targetSessionId: string, expectedRequestId: number): Promise<RestoreSessionSnapshotResult> => {
 			const result = await restoreSession(targetSessionId).catch(() => null as SessionRestoreResult | null)
-			if (!result) return false
+			if (!result || activeRequestIdRef.current !== expectedRequestId) {
+				return { restored: false, recoveredResponse: false }
+			}
 
 			const restored: Message[] = (result.messages || []).map((message) => ({
 				...mapPersistedMessage(message),
 				alerts: buildRestoredAlert(message),
 				savedAlertIds: message.savedAlertIds
 			}))
+			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
 
 			setMessages(restored)
 			setSessionId(targetSessionId)
@@ -937,7 +948,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setShowScrollToBottom(false)
 			setPaginationState({
 				hasMore: result.pagination?.hasMore || false,
-				cursor: result.pagination?.cursor || null,
+				cursor: result.pagination?.cursor ?? null,
 				isLoadingMore: false
 			})
 			setViewError(null)
@@ -945,7 +956,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			dispatchStream({ type: 'SET_ERROR', value: null })
 			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 			dispatchStream({ type: 'RESET_RECOVERY' })
-			return true
+			return { restored: true, recoveredResponse }
 		},
 		[restoreSession, sessions]
 	)
@@ -1017,7 +1028,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				return
 			}
 
-			const didRestore = await restoreSessionSnapshot(currentController.sessionId)
+			const { restored: didRestore } = await restoreSessionSnapshot(
+				currentController.sessionId,
+				activeRequestIdRef.current
+			)
 			if (didRestore) {
 				dispatchStream({ type: 'RESET_STREAM' })
 				clearRecoveryController()
@@ -1169,7 +1183,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
-			const restoredOk = await restoreSessionSnapshot(selectedSessionId)
+			const { restored: restoredOk } = await restoreSessionSnapshot(selectedSessionId, requestId)
 
 			if (!restoredOk) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1216,7 +1230,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleSubmit = useCallback(
 		(
 			prompt: string,
-			entities?: Array<{ term: string; slug: string }>,
+			entities?: Array<{ term: string; slug: string; type?: string }>,
 			images?: Array<{ data: string; mimeType: string; filename?: string }>,
 			pageContext?: ChatPageContext,
 			isSuggestedQuestion?: boolean
@@ -1413,8 +1427,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				await abortActiveRequest()
 				const didResume = await resumeRunningExecution({ targetSessionId: sessionId })
 				if (didResume) return
-				const didRestore = await restoreSessionSnapshot(sessionId)
-				if (didRestore) return
+				const restoreResult = await restoreSessionSnapshot(sessionId, activeRequestIdRef.current)
+				if (restoreResult.restored) return
 			}
 			handleSubmit(
 				lastFailedRequest.prompt,
@@ -1497,21 +1511,28 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	if (!user && !readOnly) {
 		return (
-			<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-				<p className="flex items-center gap-1 text-center">
-					Please{' '}
-					<button
-						onClick={() => {
-							if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
-							subscribeModalStore.show()
-						}}
-						className="underline"
-					>
-						log in
-					</button>{' '}
-					to use LlamaAI.
-				</p>
-			</div>
+			<>
+				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+					<p className="flex items-center gap-1 text-center">
+						Please{' '}
+						<button
+							onClick={() => {
+								if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
+								subscribeModalStore.show()
+							}}
+							className="underline"
+						>
+							log in
+						</button>{' '}
+						to use LlamaAI.
+					</p>
+				</div>
+				{shouldRenderSubscribeModal ? (
+					<Suspense fallback={<></>}>
+						<SubscribeProModal dialogStore={subscribeModalStore} />
+					</Suspense>
+				) : null}
+			</>
 		)
 	}
 

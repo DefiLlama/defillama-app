@@ -39,6 +39,8 @@ export function useStreamNotification() {
 			isHiddenRef.current = document.hidden
 			if (!document.hidden) clearBadge()
 		}
+		isHiddenRef.current = document.hidden
+		if (!document.hidden) clearBadge()
 		document.addEventListener('visibilitychange', handler)
 		return () => document.removeEventListener('visibilitychange', handler)
 	}, [clearBadge])
@@ -62,14 +64,14 @@ export function useStreamNotification() {
 			icon: '/favicon-badge.png'
 		})
 		void notification
-		playSound()
-	}, [playSound])
+	}, [])
 
 	// Notify only when the page is hidden; foreground completions do not need browser-level alerts.
 	const notify = useCallback(() => {
 		if (!isHiddenRef.current) return
 
 		setBadge()
+		playSound()
 
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'granted') {
@@ -79,7 +81,7 @@ export function useStreamNotification() {
 				if (permission === 'granted') showNotification()
 			})
 		}
-	}, [showNotification, setBadge])
+	}, [playSound, setBadge, showNotification])
 
 	// Prime both audio playback and notification permission early from an explicit user gesture.
 	const requestPermission = useCallback(() => {

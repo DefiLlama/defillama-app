@@ -8,7 +8,7 @@ interface ChatLandingProps {
 	title: string
 	handleSubmit: (
 		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 	) => void | Promise<void>
 	promptInputRef: RefObject<HTMLTextAreaElement | null>

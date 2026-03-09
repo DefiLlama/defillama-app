@@ -1,5 +1,5 @@
 declare module 'textarea-caret' {
-	interface CaretCoordinates {
+	export interface CaretCoordinates {
 		top: number
 		left: number
 		height: number

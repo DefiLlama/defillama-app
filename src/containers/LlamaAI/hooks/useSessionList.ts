@@ -44,7 +44,7 @@ export function useSessionList() {
 				}
 			} catch (error) {
 				console.log('Failed to fetch sessions:', error)
-				throw new Error('Failed to fetch sessions')
+				throw new Error(`Failed to fetch sessions: ${error instanceof Error ? error.message : String(error)}`)
 			}
 		},
 		enabled: isAuthenticated && !!user,

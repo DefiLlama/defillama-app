@@ -53,13 +53,13 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 				}),
 				'Failed to update session visibility'
 			)
-			if (!response.ok) {
-				toast.error('Failed to make session public')
-				throw new Error('Failed to make session public')
-			}
 			return response.json()
 		},
 		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+		},
+		onError: () => {
+			toast.error(`Failed to make session ${session.isPublic ? 'private' : 'public'}`)
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})

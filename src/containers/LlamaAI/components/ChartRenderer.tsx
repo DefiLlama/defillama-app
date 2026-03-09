@@ -321,7 +321,7 @@ function renderChartContent(config: ChartConfiguration, adaptedChart: any, chart
 			)
 		}
 		case 'line':
-		case 'area':
+		case 'area': {
 			const { chartData: _chartData, ...areaChartProps } = adaptedChart.props as IChartProps
 			return (
 				<Suspense fallback={<div className="h-[338px]" />}>
@@ -334,6 +334,7 @@ function renderChartContent(config: ChartConfiguration, adaptedChart: any, chart
 					/>
 				</Suspense>
 			)
+		}
 		case 'multi-series':
 			return (
 				<Suspense fallback={<div className="h-[338px]" />}>

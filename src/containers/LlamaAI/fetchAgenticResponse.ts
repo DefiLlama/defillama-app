@@ -136,6 +136,7 @@ interface AgenticErrorResponse {
 	code?: string
 	content?: string
 	error?: string
+	message?: string
 	details?: RateLimitErrorDetails
 }
 
@@ -145,12 +146,27 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
-	entities?: Array<{ term: string; slug: string }>
+	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
 	isSuggestedQuestion?: boolean
 	fetchFn?: typeof fetch
+}
+
+async function getResponseErrorMessage(response: Response, fallback: string) {
+	const contentType = response.headers.get('content-type') || ''
+
+	if (contentType.includes('application/json')) {
+		const errorData = (await response.json().catch(() => null)) as AgenticErrorResponse | null
+		const detailedMessage = errorData?.error || errorData?.message || errorData?.content
+		if (detailedMessage) return `${fallback}: ${detailedMessage}`
+	}
+
+	const text = await response.text().catch(() => '')
+	if (text) return `${fallback}: ${text}`
+
+	return fallback
 }
 
 // Parse the backend SSE stream line-by-line and fan each event out to the UI callbacks.
@@ -269,7 +285,7 @@ export async function fetchAgenticResponse({
 		sessionId?: string
 		researchMode?: true
 		timezone?: string
-		entities?: Array<{ term: string; slug: string }>
+		entities?: Array<{ term: string; slug: string; type?: string }>
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
@@ -355,7 +371,22 @@ export async function checkActiveExecution(
 ): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string }> {
 	try {
 		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
-		if (!res.ok) return { active: false }
+		if (!res) {
+			throw new Error('Failed to check active execution: no response received')
+		}
+		if (res.status === 404) {
+			const payload = (await res.json().catch(() => null)) as {
+				active?: boolean
+				status?: string
+				eventCount?: number
+				messageId?: string
+			} | null
+			return payload?.active === false ? { active: false, ...payload } : { active: false }
+		}
+		if (!res.ok) {
+			const statusLabel = `${res.status} ${res.statusText}`.trim()
+			throw new Error(await getResponseErrorMessage(res, `Failed to check active execution (${statusLabel})`))
+		}
 		return (await res.json()) as { active: boolean; status?: string; eventCount?: number; messageId?: string }
 	} catch (err) {
 		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
@@ -380,7 +411,8 @@ export async function resumeAgenticStream({
 	})
 
 	if (!res.ok) {
-		throw new Error('No active execution')
+		const statusLabel = `${res.status} ${res.statusText}`.trim()
+		throw new Error(await getResponseErrorMessage(res, `Failed to resume active execution (${statusLabel})`))
 	}
 
 	if (!res.body) {

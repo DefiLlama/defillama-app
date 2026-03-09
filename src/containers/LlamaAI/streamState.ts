@@ -10,7 +10,7 @@ export interface ChatPageContext {
 
 export interface FailedRequest {
 	prompt: string
-	entities?: Array<{ term: string; slug: string }>
+	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: ChatPageContext
 }

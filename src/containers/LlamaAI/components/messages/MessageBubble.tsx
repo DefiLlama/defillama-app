@@ -394,7 +394,7 @@ function InlineContent({
 									.some((nextPart) => 'content' in nextPart && nextPart.content)
 								return (
 									<MarkdownRenderer
-										key={getKey(`text-${part.content.slice(0, 50)}`)}
+										key={getKey(`text-${partIndex}`)}
 										content={part.content}
 										citations={isLastText && citations.length > 0 ? citations : undefined}
 										isStreaming={isStreaming}
