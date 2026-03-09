@@ -178,14 +178,14 @@ export default function ScatterChart({
 			tooltipFormatter || (isYieldData ? yieldTooltipFormatter : genericTooltipFormatter)
 
 		const option = {
-			title: {
-				text: title || 'APY Average vs Volatility',
+			title: title ? {
+				text: title,
 				textStyle: {
 					fontFamily: 'sans-serif',
 					fontWeight: 600,
 					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 				}
-			},
+			} : undefined,
 			grid: {
 				right: 12,
 				bottom: 12,
@@ -215,7 +215,7 @@ export default function ScatterChart({
 				{
 					type: 'value',
 					scale: true,
-					name: xAxisLabel || 'APY Standard Deviation',
+					name: xAxisLabel || '',
 					nameLocation: 'middle',
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
@@ -239,7 +239,7 @@ export default function ScatterChart({
 				{
 					type: 'value',
 					scale: true,
-					name: yAxisLabel || 'APY Geometric Average',
+					name: yAxisLabel || '',
 					nameLocation: 'middle',
 					nameTextStyle: {
 						fontFamily: 'sans-serif',
