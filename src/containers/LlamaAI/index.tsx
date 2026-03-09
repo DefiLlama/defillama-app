@@ -2,7 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
 import { lazy, memo, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
+import { consumePendingPrompt, consumePendingPageContext, consumePendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
@@ -648,7 +648,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			prompt: string,
 			_entities?: Array<{ term: string; slug: string }>,
 			images?: Array<{ data: string; mimeType: string; filename?: string }>,
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
+			isSuggestedQuestion?: boolean
 		) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming) return
@@ -702,6 +703,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				images: images?.length ? images : undefined,
 				pageContext,
 				customInstructions: customInstructions || undefined,
+				isSuggestedQuestion,
 				abortSignal: controller.signal,
 				fetchFn: authorizedFetch,
 				callbacks: {
@@ -943,9 +945,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const submitPendingPromptEvent = useEffectEvent(
 		(
 			prompt: string,
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
+			isSuggestedQuestion?: boolean
 		) => {
-			handleSubmit(prompt, undefined, undefined, pageContext)
+			handleSubmit(prompt, undefined, undefined, pageContext, isSuggestedQuestion)
 		}
 	)
 
@@ -957,8 +960,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		if (initialSessionId || sharedSession) return
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
+		const isSuggested = consumePendingSuggestedFlag()
 		if (pendingPrompt) {
-			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined)
+			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
 		}
 	}, [initialSessionId, sharedSession])
 
