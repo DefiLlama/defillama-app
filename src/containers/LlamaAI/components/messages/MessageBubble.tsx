@@ -357,14 +357,13 @@ function InlineContent({
 								const entry = chartIndex.get(part.chartId)
 								if (entry) {
 									return (
-										<div key={getKey(`inline-chart-${part.chartId}`)} className="my-2">
-											<ChartRenderer
-												charts={[entry.chart]}
-												chartData={entry.chartData}
-												sessionId={sessionId}
-												fetchFn={fetchFn}
-											/>
-										</div>
+										<ChartRenderer
+											charts={[entry.chart]}
+											chartData={entry.chartData}
+											sessionId={sessionId}
+											fetchFn={fetchFn}
+											key={getKey(`inline-chart-${part.chartId}`)}
+										/>
 									)
 								}
 
@@ -372,7 +371,7 @@ function InlineContent({
 									return (
 										<div
 											key={getKey(`chart-loading-${part.chartId}`)}
-											className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+											className="my-4 flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
 										>
 											<p className="text-sm text-gray-500">Loading chart...</p>
 										</div>
