@@ -52,6 +52,12 @@ interface MarkdownRendererProps {
 }
 
 type EntityLinkProps = ComponentPropsWithoutRef<'a'>
+type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
+type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
+type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
+type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
+type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
+type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
 
 function TableWrapper({
 	children,
@@ -171,7 +177,7 @@ export function MarkdownRenderer({
 
 	const markdownComponents = useMemo<Components>(
 		() => ({
-			a: (props: EntityLinkProps) => {
+			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
 				const textChild = getSingleTextChild(props.children)
 				if (!props.href && textChild && processedData.linkMap.has(textChild)) {
 					const llamaUrl = processedData.linkMap.get(textChild)
@@ -179,12 +185,12 @@ export function MarkdownRenderer({
 				}
 				return EntityLinkRenderer(props)
 			},
-			table: ({ children, ...props }: ComponentPropsWithoutRef<'table'>) => (
+			table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
 				<TableWrapper isStreaming={isStreaming} tableProps={props}>
 					{children}
 				</TableWrapper>
 			),
-			th: ({ children, ...props }: ComponentPropsWithoutRef<'th'>) => (
+			th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
 				<th
 					{...props}
 					className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
@@ -192,7 +198,7 @@ export function MarkdownRenderer({
 					{children}
 				</th>
 			),
-			td: ({ children, ...props }: ComponentPropsWithoutRef<'td'>) => (
+			td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
 				<td
 					{...props}
 					className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
@@ -200,12 +206,12 @@ export function MarkdownRenderer({
 					{children}
 				</td>
 			),
-			ul: ({ children, ...props }: ComponentPropsWithoutRef<'ul'>) => (
+			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
 				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
 					{children}
 				</ul>
 			),
-			ol: ({ children, ...props }: ComponentPropsWithoutRef<'ol'>) => (
+			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
 				<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
 					{children}
 				</ol>

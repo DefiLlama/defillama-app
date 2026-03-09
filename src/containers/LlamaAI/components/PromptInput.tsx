@@ -85,6 +85,8 @@ export function PromptInput({
 	const [submitError, setSubmitError] = useState<string | null>(null)
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
+	const valueRef = useRef(value)
+	const selectedImageUrlsRef = useRef<string[]>([])
 
 	// Route all programmatic prompt edits through one helper so caret restoration stays consistent.
 	const applyPromptEdit = useCallback(
@@ -151,6 +153,14 @@ export function PromptInput({
 		} catch {}
 		pendingSelectionRef.current = null
 	}, [value, promptInputRef])
+
+	useEffect(() => {
+		valueRef.current = value
+	}, [value])
+
+	useEffect(() => {
+		selectedImageUrlsRef.current = imageUpload.selectedImages.map(({ url }) => url)
+	}, [imageUpload.selectedImages])
 
 	// Handle restore request (e.g., failed submission retry)
 	useEffect(() => {
@@ -219,6 +229,20 @@ export function PromptInput({
 		return Promise.all(imagePromises)
 	}, [])
 
+	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ url: string }>) => {
+		if (valueRef.current !== promptValue) return false
+
+		const submittedUrls = imagesToSend.map(({ url }) => url)
+		const currentUrls = selectedImageUrlsRef.current
+		if (submittedUrls.length !== currentUrls.length) return false
+
+		for (let index = 0; index < submittedUrls.length; index++) {
+			if (submittedUrls[index] !== currentUrls[index]) return false
+		}
+
+		return true
+	}, [])
+
 	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
 		if (!promptValue.trim()) return
@@ -233,7 +257,9 @@ export function PromptInput({
 				const images = await prepareImagesForSubmit(imagesToSend)
 				await Promise.resolve(handleSubmit(promptValue, finalEntities, images))
 				setSubmitError(null)
-				resetInput(imagesToSend)
+				if (shouldResetSubmittedDraft(promptValue, imagesToSend)) {
+					resetInput(imagesToSend)
+				}
 				return
 			} catch (error) {
 				console.error('Submission failed', error)
