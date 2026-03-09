@@ -49,7 +49,7 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 							{researchUsage?.period === 'unlimited'
 								? 'Unlimited reports'
 								: researchUsage?.period === 'blocked'
-									? 'Sign in to use research'
+									? 'Subscribe to Pro to use research'
 									: researchUsage
 										? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : ''}`
 										: '5 reports/day · Free trial: 3 total'}
