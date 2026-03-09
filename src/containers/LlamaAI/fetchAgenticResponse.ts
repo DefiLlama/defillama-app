@@ -21,7 +21,7 @@ export interface SpawnProgressData {
 
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
-	onCharts: (charts: ChartConfiguration[], chartData: Record<string, any[]>) => void
+	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
 	onProgress: (toolName: string) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string) => void
@@ -37,12 +37,117 @@ export interface AgenticSSECallbacks {
 	onDone: () => void
 }
 
+interface SessionEvent {
+	type: 'session'
+	sessionId: string
+}
+
+interface ToolCallEvent {
+	type: 'tool_call'
+	name: string
+}
+
+interface ResponseChunkEvent {
+	type: 'response_chunk'
+	content: string
+}
+
+interface ChartsEvent {
+	type: 'charts'
+	charts?: ChartConfiguration[]
+	chartData?: Record<string, unknown[]>
+}
+
+interface CsvExportEvent {
+	type: 'csv_export'
+	exports?: CsvExport[]
+}
+
+interface AlertProposedEvent extends AlertProposedData {
+	type: 'alert_proposed'
+}
+
+interface CompactionEvent {
+	type: 'compaction'
+	status: 'started' | 'completed'
+	messagesBefore: number
+	messagesAfter?: number
+}
+
+interface ThinkingEvent {
+	type: 'thinking'
+	content: string
+}
+
+interface CitationsEvent {
+	type: 'citations'
+	citations?: string[]
+}
+
+interface TitleEvent {
+	type: 'title'
+	content: string
+}
+
+interface MessageIdEvent {
+	type: 'message_id'
+	messageId: string
+}
+
+interface ErrorEvent {
+	type: 'error'
+	content?: string
+}
+
+interface DoneEvent {
+	type: 'done'
+}
+
+type AgenticSSEEvent =
+	| SessionEvent
+	| ToolCallEvent
+	| ResponseChunkEvent
+	| ChartsEvent
+	| CsvExportEvent
+	| AlertProposedEvent
+	| ({ type: 'spawn_progress' } & SpawnProgressData)
+	| CompactionEvent
+	| ({ type: 'tool_execution' } & ToolExecution)
+	| ThinkingEvent
+	| CitationsEvent
+	| TitleEvent
+	| MessageIdEvent
+	| ErrorEvent
+	| DoneEvent
+
+interface RateLimitErrorDetails {
+	period?: string
+	limit?: number
+	resetTime?: string | null
+}
+
+interface RateLimitError extends Error {
+	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT'
+	details?: RateLimitErrorDetails
+	upgradeUrl?: string
+}
+
+interface AgenticErrorResponse {
+	code?: string
+	content?: string
+	error?: string
+	message?: string
+	details?: RateLimitErrorDetails
+	upgradeUrl?: string
+}
+
 interface FetchAgenticResponseParams {
 	message: string
 	sessionId?: string | null
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	entities?: Array<{ term: string; slug: string; type?: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
@@ -50,6 +155,22 @@ interface FetchAgenticResponseParams {
 	fetchFn?: typeof fetch
 }
 
+async function getResponseErrorMessage(response: Response, fallback: string) {
+	const contentType = response.headers.get('content-type') || ''
+	const text = await response.text().catch(() => '')
+	if (contentType.includes('application/json') && text) {
+		try {
+			const errorData = JSON.parse(text) as AgenticErrorResponse
+			const detailedMessage = errorData.error || errorData.message || errorData.content
+			if (detailedMessage) return `${fallback}: ${detailedMessage}`
+		} catch {}
+	}
+	if (text) return `${fallback}: ${text}`
+
+	return fallback
+}
+
+// Parse the backend SSE stream line-by-line and fan each event out to the UI callbacks.
 function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
@@ -81,7 +202,7 @@ function parseSSEStream(
 					if (!line.startsWith('data: ')) continue
 
 					try {
-						const data = JSON.parse(line.slice(6))
+						const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
 
 						switch (data.type) {
 							case 'session':
@@ -149,6 +270,7 @@ export async function fetchAgenticResponse({
 	callbacks,
 	abortSignal,
 	researchMode,
+	entities,
 	images,
 	pageContext,
 	customInstructions,
@@ -157,7 +279,19 @@ export async function fetchAgenticResponse({
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
 
-	const requestBody: any = {
+	// Only include optional request fields when they are explicitly enabled for this prompt.
+	const requestBody: {
+		message: string
+		stream: true
+		sessionId?: string
+		researchMode?: true
+		timezone?: string
+		entities?: Array<{ term: string; slug: string; type?: string }>
+		images?: Array<{ data: string; mimeType: string; filename?: string }>
+		pageContext?: { entitySlug?: string; entityType?: string; route: string }
+		customInstructions?: string
+		isSuggestedQuestion?: true
+	} = {
 		message,
 		stream: true
 	}
@@ -166,13 +300,19 @@ export async function fetchAgenticResponse({
 		requestBody.sessionId = sessionId
 	}
 
+	// Research mode is an opt-in backend feature, so only send the flag when enabled.
 	if (researchMode) {
 		requestBody.researchMode = true
 	}
 
+	// Timezone helps the backend answer scheduling/date questions in the user's local context.
 	try {
 		requestBody.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 	} catch {}
+
+	if (entities && entities.length > 0) {
+		requestBody.entities = entities
+	}
 
 	if (images && images.length > 0) {
 		requestBody.images = images
@@ -197,16 +337,17 @@ export async function fetchAgenticResponse({
 		signal: abortSignal
 	})
 
+	// Map backend usage-limit and concurrency responses into UI-specific error shapes.
 	if (!response.ok) {
-		const errorData = await response.json().catch(() => null)
+		const errorData = (await response.json().catch(() => null)) as AgenticErrorResponse | null
 		if (response.status === 403 && errorData?.code === 'FREE_QUESTION_LIMIT') {
-			const err: any = new Error(errorData.content || 'Upgrade required')
+			const err = new Error(errorData.content || 'Upgrade required') as RateLimitError
 			err.code = 'FREE_QUESTION_LIMIT'
 			err.upgradeUrl = errorData.upgradeUrl
 			throw err
 		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {
-			const err: any = new Error(errorData.content || 'Usage limit exceeded')
+			const err = new Error(errorData.content || 'Usage limit exceeded') as RateLimitError
 			err.code = 'USAGE_LIMIT_EXCEEDED'
 			err.details = errorData.details
 			throw err
@@ -224,20 +365,50 @@ export async function fetchAgenticResponse({
 	return parseSSEStream(response.body.getReader(), callbacks, abortSignal)
 }
 
+// Probe whether a restored session still has a live execution that needs to be resumed client-side.
 export async function checkActiveExecution(
 	sessionId: string,
 	fetchFn?: typeof fetch
 ): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string }> {
 	try {
 		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
-		if (!res.ok) return { active: false }
-		return res.json()
+		if (!res) {
+			throw new Error('Failed to check active execution: no response received')
+		}
+		if (res.status === 404) {
+			const payload = (await res.json().catch(() => null)) as {
+				active?: boolean
+				status?: string
+				eventCount?: number
+				messageId?: string
+			} | null
+			return payload?.active === false ? { active: false, ...payload } : { active: false }
+		}
+		if (!res.ok) {
+			const statusLabel = `${res.status} ${res.statusText}`.trim()
+			throw new Error(await getResponseErrorMessage(res, `Failed to check active execution (${statusLabel})`))
+		}
+		return (await res.json()) as { active: boolean; status?: string; eventCount?: number; messageId?: string }
 	} catch (err) {
 		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
-		return { active: false }
+		const status =
+			typeof err === 'object' && err !== null
+				? 'status' in err && typeof err.status === 'number'
+					? err.status
+					: 'response' in err &&
+						  typeof err.response === 'object' &&
+						  err.response !== null &&
+						  'status' in err.response &&
+						  typeof err.response.status === 'number'
+						? err.response.status
+						: null
+				: null
+		if (status === 404) return { active: false }
+		throw err
 	}
 }
 
+// Reattach the client to an existing server-side execution for a restored session.
 export async function resumeAgenticStream({
 	sessionId,
 	callbacks,
@@ -254,7 +425,8 @@ export async function resumeAgenticStream({
 	})
 
 	if (!res.ok) {
-		throw new Error('No active execution')
+		const statusLabel = `${res.status} ${res.statusText}`.trim()
+		throw new Error(await getResponseErrorMessage(res, `Failed to resume active execution (${statusLabel})`))
 	}
 
 	if (!res.body) {

@@ -9,6 +9,7 @@ import { AgenticSessionItem } from './AgenticSessionItem'
 interface AgenticSidebarProps {
 	sessions: ChatSession[]
 	isLoading: boolean
+	loadError?: string | null
 	currentSessionId: string | null
 	restoringSessionId: string | null
 	onSessionSelect: (sessionId: string) => void
@@ -43,6 +44,7 @@ type VirtualItem =
 export function AgenticSidebar({
 	sessions,
 	isLoading,
+	loadError = null,
 	currentSessionId,
 	restoringSessionId,
 	onSessionSelect,
@@ -168,6 +170,10 @@ export function AgenticSidebar({
 					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						<LoadingSpinner size={12} />
 					</div>
+				) : loadError ? (
+					<p className="rounded-sm border border-dashed border-red-300 bg-red-50 p-4 text-center text-xs text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+						{loadError}
+					</p>
 				) : sessions.length === 0 ? (
 					<p className="rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						You don't have any chats yet

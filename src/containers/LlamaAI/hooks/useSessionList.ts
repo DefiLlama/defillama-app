@@ -4,6 +4,7 @@ import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import type { ChatSession, ResearchUsage } from '../types'
+import { assertResponse } from '../utils/assertResponse'
 
 export interface SessionListData {
 	sessions: ChatSession[]
@@ -16,12 +17,17 @@ export function useSessionList() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const queryClient = useQueryClient()
 
-	const { data = { sessions: [], usage: null }, isLoading } = useQuery({
+	const {
+		data = { sessions: [], usage: null },
+		isLoading,
+		error: queryError
+	} = useQuery({
 		queryKey: [SESSIONS_QUERY_KEY, user?.id],
 		queryFn: async (): Promise<SessionListData> => {
 			try {
 				if (!user) return { sessions: [], usage: null }
 				const responseData = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
+					.then((response) => assertResponse(response, 'Failed to fetch sessions'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
@@ -38,7 +44,7 @@ export function useSessionList() {
 				}
 			} catch (error) {
 				console.log('Failed to fetch sessions:', error)
-				throw new Error('Failed to fetch sessions')
+				throw new Error(`Failed to fetch sessions: ${error instanceof Error ? error.message : String(error)}`)
 			}
 		},
 		enabled: isAuthenticated && !!user,
@@ -72,6 +78,7 @@ export function useSessionList() {
 		sessions: data.sessions,
 		researchUsage: data.usage,
 		isLoading,
+		error: queryError instanceof Error ? queryError.message : null,
 		moveSessionToTop
 	}
 }

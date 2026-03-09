@@ -15,11 +15,12 @@ export default function SessionPage() {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const router = useRouter()
 	const { sessionId } = router.query
+	const resolvedSessionId = typeof sessionId === 'string' ? sessionId : null
 	const isClient = useIsClient()
 	const { user, loaders } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 
-	if (!isClient || loaders.userLoading) {
+	if (!isClient || loaders.userLoading || !router.isReady || !resolvedSessionId) {
 		return (
 			<Layout
 				title="LlamaAI - DefiLlama"
@@ -70,7 +71,7 @@ export default function SessionPage() {
 			title="LlamaAI - DefiLlama"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
-			<AgenticChat initialSessionId={sessionId as string} key={`session-${sessionId}`} />
+			<AgenticChat initialSessionId={resolvedSessionId} key={`session-${resolvedSessionId}`} />
 		</Layout>
 	)
 }

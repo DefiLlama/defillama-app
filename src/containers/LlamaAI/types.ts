@@ -96,16 +96,23 @@ export interface AlertProposedData {
 	next_run_at: string
 }
 
+export type JsonPrimitive = string | number | boolean | null
+export type JsonValue = JsonPrimitive | JsonObject | JsonValue[]
+
+export interface JsonObject {
+	[key: string]: JsonValue
+}
+
 export interface ToolExecution {
 	name: string
 	executionTimeMs: number
 	success: boolean
 	error?: string
-	resultPreview?: any[]
+	resultPreview?: JsonObject[]
 	resultCount?: number
 	resultId?: string
 	sqlQuery?: string
-	toolData?: Record<string, any>
+	toolData?: JsonObject
 }
 
 export interface AlertIntent {
@@ -116,7 +123,7 @@ export interface AlertIntent {
 	dayOfWeek?: number
 	toolExecutions: Array<{
 		toolName: string
-		arguments: Record<string, any>
+		arguments: JsonObject
 		sqlQuery: string | null
 	}>
 }

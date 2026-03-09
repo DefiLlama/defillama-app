@@ -5,6 +5,7 @@ import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import type { AlertIntent } from '../types'
+import { assertResponse } from '../utils/assertResponse'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (
@@ -87,7 +88,9 @@ export const AlertArtifact = memo(function AlertArtifact({
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
-			}).then(handleSimpleFetchResponse)
+			})
+				.then((response) => assertResponse(response, 'Failed to save alert'))
+				.then(handleSimpleFetchResponse)
 		},
 		onSuccess: () => {
 			setSaved(true)
@@ -197,7 +200,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					{Array.from({ length: 24 }, (_, i) => (
-						<option key={`hour-${i}`} value={i}>
+						<option key={`alert-hour-${i}`} value={i}>
 							{i.toString().padStart(2, '0')}:00
 						</option>
 					))}

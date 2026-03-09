@@ -178,14 +178,16 @@ export default function ScatterChart({
 			tooltipFormatter || (isYieldData ? yieldTooltipFormatter : genericTooltipFormatter)
 
 		const option = {
-			title: title ? {
-				text: title,
-				textStyle: {
-					fontFamily: 'sans-serif',
-					fontWeight: 600,
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
-				}
-			} : undefined,
+			title: title
+				? {
+						text: title,
+						textStyle: {
+							fontFamily: 'sans-serif',
+							fontWeight: 600,
+							color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
+						}
+					}
+				: undefined,
 			grid: {
 				right: 12,
 				bottom: 12,

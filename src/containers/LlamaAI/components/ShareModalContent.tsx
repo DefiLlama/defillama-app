@@ -3,8 +3,13 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 
+export interface ShareData {
+	isPublic: boolean
+	shareToken?: string
+}
+
 interface ShareModalContentProps {
-	shareData?: { isPublic: boolean; shareToken?: string }
+	shareData?: ShareData
 }
 
 export function ShareModalContent({ shareData }: ShareModalContentProps) {

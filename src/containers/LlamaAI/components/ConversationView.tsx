@@ -9,13 +9,13 @@ import {
 	ToolProgressIndicator,
 	TypingIndicator
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
-import type { ChartSet, Message, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type { RecoveryState } from '~/containers/LlamaAI/streamState'
+import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 
 interface ConversationViewProps {
 	readOnly: boolean
 	messages: Message[]
 	sessionId: string | null
-	fetchFn: typeof fetch
 	isLlama: boolean
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
@@ -29,17 +29,19 @@ interface ConversationViewProps {
 		cursor: number | null
 		isLoadingMore: boolean
 	}
+	paginationError: string | null
+	recovery: RecoveryState
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
-	scrollContainerRef: RefObject<HTMLDivElement>
-	messagesEndRef: RefObject<HTMLDivElement>
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	scrollContainerRef: RefObject<HTMLDivElement | null>
+	messagesEndRef: RefObject<HTMLDivElement | null>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	showScrollToBottom: boolean
 	scrollToBottom: () => void
 	handleSubmit: (
 		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>,
 		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
 	) => void
@@ -47,6 +49,7 @@ interface ConversationViewProps {
 	handleActionClick: (message: string) => void
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	researchUsage?: ResearchUsage | null
 	onOpenAlerts: () => void
 }
 
@@ -54,7 +57,6 @@ export function ConversationView({
 	readOnly,
 	messages,
 	sessionId,
-	fetchFn,
 	isLlama,
 	isStreaming,
 	activeToolCalls,
@@ -64,6 +66,8 @@ export function ConversationView({
 	streamingDraft,
 	isCompacting,
 	paginationState,
+	paginationError,
+	recovery,
 	error,
 	lastFailedPrompt,
 	onRetryLastFailedPrompt,
@@ -77,6 +81,7 @@ export function ConversationView({
 	handleActionClick,
 	isResearchMode,
 	setIsResearchMode,
+	researchUsage,
 	onOpenAlerts
 }: ConversationViewProps) {
 	return (
@@ -91,6 +96,12 @@ export function ConversationView({
 								</div>
 							) : null}
 
+							{paginationError ? (
+								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
+									<p className="text-xs text-red-700 dark:text-red-300">{paginationError}</p>
+								</div>
+							) : null}
+
 							{messages.map((message, index) => {
 								const nextMessage = messages[index + 1]
 								const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
@@ -100,7 +111,6 @@ export function ConversationView({
 										key={message.id || `msg-${index}`}
 										message={message}
 										sessionId={sessionId}
-										fetchFn={fetchFn}
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
@@ -134,13 +144,24 @@ export function ConversationView({
 									message={streamingDraft}
 									sessionId={sessionId}
 									isDraft
-									fetchFn={fetchFn}
 									readOnly={readOnly}
 									isLlama={isLlama}
 								/>
 							) : null}
 
-							{error ? (
+							{recovery.status === 'reconnecting' ? (
+								<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+									<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+									<p className="text-sm text-amber-800 dark:text-amber-200">
+										Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
+									</p>
+									<p className="text-xs text-amber-700 dark:text-amber-300">
+										Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+									</p>
+								</div>
+							) : null}
+
+							{recovery.status !== 'reconnecting' && error ? (
 								<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
 									<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
 									{lastFailedPrompt ? (
@@ -187,7 +208,7 @@ export function ConversationView({
 						placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
-						researchUsage={null}
+						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
 					/>
 				</div>
@@ -203,6 +224,14 @@ export function LoadingConversationState() {
 				Loading
 				<LoadingDots />
 			</p>
+		</div>
+	)
+}
+
+export function EmptyConversationErrorState({ message }: { message: string }) {
+	return (
+		<div className="flex flex-1 items-center justify-center">
+			<p className="text-sm text-red-700 dark:text-red-300">{message}</p>
 		</div>
 	)
 }

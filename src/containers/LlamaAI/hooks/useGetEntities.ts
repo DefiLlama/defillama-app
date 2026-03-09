@@ -3,7 +3,7 @@ import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useDebouncedValue } from '~/hooks/useDebounce'
 import { fetchJson } from '~/utils/async'
 
-interface EntityResult {
+export interface EntityResult {
 	id: string
 	name: string
 	logo: string | null

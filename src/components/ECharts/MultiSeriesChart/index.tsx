@@ -10,7 +10,7 @@ import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{
-		data: Array<[number, number]>
+		data: Array<[number | string, number | null]>
 		type: 'line' | 'bar'
 		name: string
 		color: string
@@ -80,7 +80,10 @@ export default function MultiSeriesChart({
 					itemStyle: {
 						color: serie.color
 					},
-					data: serie.data?.map(([x, y]: [any, number]) => (xAxisType === 'time' ? [+x * 1e3, y] : [x, y])) || [],
+					data:
+						serie.data?.map(([x, y]: [number | string, number | null]) =>
+							xAxisType === 'time' ? [+x * 1e3, y] : [x, y]
+						) || [],
 					metricType: serie.metricType,
 					yAxisIndex: serie.yAxisIndex,
 					...(serie.logo && {

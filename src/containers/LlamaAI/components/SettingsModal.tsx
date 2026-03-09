@@ -166,7 +166,7 @@ export const SettingsModal = memo(function SettingsModal({
 								</p>
 							</div>
 							<div
-								className={`relative ml-3 h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
+								className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
 									memoryDraft ? 'bg-[#1853A8] dark:bg-[#4B86DB]' : 'bg-[#d1d1d1] dark:bg-[#555]'
 								}`}
 							>

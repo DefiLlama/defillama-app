@@ -5,12 +5,14 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import type { ChatSession } from '../types'
+import { assertResponse } from '../utils/assertResponse'
 import { SESSIONS_QUERY_KEY, type SessionListData } from './useSessionList'
 
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
 
+	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
 			try {
@@ -19,13 +21,14 @@ export function useSessionMutations() {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ sessionId, title })
 				})
+					.then((res) => assertResponse(res, 'Failed to create session'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
 				return response
 			} catch (error) {
 				console.log('Failed to create session:', error)
-				throw new Error('Failed to create session')
+				throw new Error(`Failed to create session: ${getErrorMessage(error)}`)
 			}
 		},
 		onSuccess: () => {
@@ -33,6 +36,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Shared restore mutation backs both full-session restore and paginated older-message loading.
 	const restoreSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
 			try {
@@ -42,30 +46,30 @@ export function useSessionMutations() {
 
 				const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
 				const response = await authorizedFetch(url)
+					.then((res) => assertResponse(res, 'Failed to restore session'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
 				return response
 			} catch (error) {
 				console.log('Failed to restore session:', error)
-				throw new Error('Failed to restore session')
+				throw new Error(`Failed to restore session: ${getErrorMessage(error)}`)
 			}
 		}
 	})
 
+	// Delete from both the backend and the optimistic sidebar/session cache.
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
 			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
+				await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
+					.then((res) => assertResponse(res, 'Failed to delete session'))
 					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-
-				return response
 			} catch (error) {
 				console.log('Failed to delete session:', error)
-				throw new Error('Failed to delete session')
+				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
 			}
 		},
 		onMutate: async (sessionId) => {
@@ -98,6 +102,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
 			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/title`, {
@@ -105,6 +110,7 @@ export function useSessionMutations() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
 			})
+				.then((res) => assertResponse(res, 'Failed to update session title'))
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
 
@@ -145,6 +151,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Insert a temporary session into the cache so first-message submits have a stable local target.
 	const createFakeSession = useCallback(() => {
 		const sessionId = crypto.randomUUID()
 		const title = 'New Chat'
@@ -167,6 +174,7 @@ export function useSessionMutations() {
 		return sessionId
 	}, [user, queryClient])
 
+	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
 		async (sessionId: string, limit: number = 10) => {
 			try {
@@ -174,7 +182,7 @@ export function useSessionMutations() {
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
-						hasMore: result.hasMore || false,
+						hasMore: result.hasMore ?? false,
 						isLoadingMore: false,
 						cursor: result.nextCursor,
 						totalMessages: result.totalMessages
@@ -183,18 +191,13 @@ export function useSessionMutations() {
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
-				return {
-					messages: [],
-					pagination: {
-						hasMore: false,
-						isLoadingMore: false
-					}
-				}
+				throw error instanceof Error ? error : new Error('Failed to restore session')
 			}
 		},
 		[restoreSessionMutation]
 	)
 
+	// Reuse the restore endpoint to fetch older history pages for infinite scroll.
 	const loadMoreMessages = useCallback(
 		async (sessionId: string, cursor: number) => {
 			try {
@@ -202,7 +205,7 @@ export function useSessionMutations() {
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
-						hasMore: result.hasMore || false,
+						hasMore: result.hasMore ?? false,
 						isLoadingMore: false,
 						cursor: result.nextCursor,
 						totalMessages: result.totalMessages
@@ -210,19 +213,14 @@ export function useSessionMutations() {
 				}
 			} catch (error) {
 				console.error('[llama-ai] [loadMoreMessages] failed:', getErrorMessage(error))
-				return {
-					messages: [],
-					pagination: {
-						hasMore: false,
-						isLoadingMore: false
-					}
-				}
+				throw new Error(`Failed to load older messages: ${getErrorMessage(error)}`)
 			}
 		},
 		[restoreSessionMutation]
 	)
 
 	return {
+		createSession: createSessionMutation.mutateAsync,
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,

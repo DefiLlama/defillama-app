@@ -13,7 +13,7 @@ interface ImageUploadProps {
 	previewImage: string | null
 	setPreviewImage: (url: string | null) => void
 	removeImage: (idx: number) => void
-	fileInputRef: RefObject<HTMLInputElement>
+	fileInputRef: RefObject<HTMLInputElement | null>
 	handleImageSelect: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 

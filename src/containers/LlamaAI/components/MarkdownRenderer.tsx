@@ -1,5 +1,7 @@
+import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { useMemo, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
+import type { Components } from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -10,7 +12,7 @@ import { getEntityUrl } from '../utils/entityLinks'
 import { extractLlamaLinks, parseArtifactPlaceholders, processCitationMarkers } from '../utils/markdownHelpers'
 import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
-import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
+import { CSVExportArtifact, type CSVExport } from './CSVExportArtifact'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
@@ -49,13 +51,23 @@ interface MarkdownRendererProps {
 	artifactIndex?: Map<string, ChartItem | CsvItem>
 }
 
-interface EntityLinkProps {
-	href?: string
-	children?: any
-	[key: string]: any
-}
+type EntityLinkProps = ComponentPropsWithoutRef<'a'>
+type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
+type MarkdownTableProps = ComponentPropsWithoutRef<'table'> & { node?: unknown }
+type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
+type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
+type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
+type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
 
-function TableWrapper({ children, isStreaming = false }: { children: React.ReactNode; isStreaming: boolean }) {
+function TableWrapper({
+	children,
+	isStreaming = false,
+	tableProps
+}: {
+	children: ReactNode
+	isStreaming: boolean
+	tableProps?: ComponentPropsWithoutRef<'table'>
+}) {
 	const tableRef = useRef<HTMLDivElement>(null)
 
 	const prepareCsv = () => {
@@ -90,7 +102,10 @@ function TableWrapper({ children, isStreaming = false }: { children: React.React
 				)}
 			</div>
 			<div ref={tableRef} className="overflow-x-auto">
-				<table className="table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324]">
+				<table
+					{...tableProps}
+					className={`table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`}
+				>
 					{children}
 				</table>
 			</div>
@@ -130,6 +145,19 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 	)
 }
 
+function getSingleTextChild(children: ReactNode): string | null {
+	return typeof children === 'string' ? children : null
+}
+
+function getChartRenderData(
+	chart: ChartConfiguration,
+	chartData: MarkdownRendererProps['chartData'] | ChartItem['chartData']
+) {
+	if (!chartData) return []
+	if (Array.isArray(chartData)) return chartData
+	return chartData[chart.datasetName || chart.id] || []
+}
+
 export function MarkdownRenderer({
 	content,
 	citations,
@@ -156,30 +184,49 @@ export function MarkdownRenderer({
 		return { content: processedContent, linkMap }
 	}, [content, citations])
 
-	const markdownComponents = useMemo(
+	const hasInlineArtifacts = inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
+
+	const markdownComponents = useMemo<Components>(
 		() => ({
-			a: (props: any) => {
-				if (!props.href && props.children && processedData.linkMap.has(props.children)) {
-					const llamaUrl = processedData.linkMap.get(props.children)
+			a: ({ node: _node, ...props }: MarkdownAnchorProps) => {
+				const textChild = getSingleTextChild(props.children)
+				if (!props.href && textChild && processedData.linkMap.has(textChild)) {
+					const llamaUrl = processedData.linkMap.get(textChild)
 					return EntityLinkRenderer({ ...props, href: llamaUrl })
 				}
 				return EntityLinkRenderer(props)
 			},
-			table: ({ children }: { children: React.ReactNode }) => (
-				<TableWrapper isStreaming={isStreaming}>{children}</TableWrapper>
+			table: ({ children, node: _node, ...props }: MarkdownTableProps) => (
+				<TableWrapper isStreaming={isStreaming} tableProps={props}>
+					{children}
+				</TableWrapper>
 			),
-			th: ({ children }: { children: React.ReactNode }) => (
-				<th className="border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324]">
+			th: ({ children, node: _node, ...props }: MarkdownCellProps) => (
+				<th
+					{...props}
+					className={`border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 whitespace-nowrap dark:border-[#222324] ${props.className ?? ''}`}
+				>
 					{children}
 				</th>
 			),
-			td: ({ children }: { children: React.ReactNode }) => (
-				<td className="border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C]">
+			td: ({ children, node: _node, ...props }: MarkdownDataCellProps) => (
+				<td
+					{...props}
+					className={`border border-[#e6e6e6] bg-white px-3 py-2 whitespace-nowrap dark:border-[#222324] dark:bg-[#181A1C] ${props.className ?? ''}`}
+				>
 					{children}
 				</td>
 			),
-			ul: ({ children }: { children: React.ReactNode }) => <ul className="grid list-disc gap-1 pl-4">{children}</ul>,
-			ol: ({ children }: { children: React.ReactNode }) => <ol className="grid list-decimal gap-1 pl-4">{children}</ol>
+			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
+				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
+					{children}
+				</ul>
+			),
+			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
+				<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
+					{children}
+				</ol>
+			)
 		}),
 		[isStreaming, processedData.linkMap]
 	)
@@ -195,24 +242,23 @@ export function MarkdownRenderer({
 		</ReactMarkdown>
 	)
 
+	if (!processedData.content.trim() && (!citations || citations.length === 0)) {
+		return null
+	}
+
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
-			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
+			{hasInlineArtifacts
 				? contentParts.map((part, partIndex) => {
 						if (part.type === 'chart' && part.chartId) {
-							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.chartId)
 							if (artifactItem?.type === 'chart') {
 								const chartItem = artifactItem as ChartItem
-								// Normalize chartData to array format for ChartRenderer
-								const normalizedData = Array.isArray(chartItem.chartData)
-									? chartItem.chartData
-									: chartItem.chartData?.[chartItem.chart.id] || []
 								return (
 									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chartItem.chart]}
-											chartData={normalizedData}
+											chartData={getChartRenderData(chartItem.chart, chartItem.chartData)}
 											isLoading={false}
 											resizeTrigger={inlineChartConfig?.resizeTrigger}
 										/>
@@ -220,15 +266,13 @@ export function MarkdownRenderer({
 								)
 							}
 
-							// Legacy: O(n) lookup via charts array (backward compatibility)
 							const chart = charts?.find((c) => c.id === part.chartId)
 							if (chart && inlineChartConfig) {
-								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
 								return (
 									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chart]}
-											chartData={data}
+											chartData={getChartRenderData(chart, chartData)}
 											isLoading={false}
 											resizeTrigger={inlineChartConfig.resizeTrigger}
 										/>
@@ -248,7 +292,8 @@ export function MarkdownRenderer({
 							return null
 						}
 						if (part.type === 'csv' && part.csvId) {
-							// New: O(1) lookup via artifactIndex
+							if (isStreaming) return null
+
 							const artifactItem = artifactIndex?.get(part.csvId)
 							if (artifactItem?.type === 'csv') {
 								const csvItem = artifactItem as CsvItem
@@ -266,15 +311,8 @@ export function MarkdownRenderer({
 								)
 							}
 
-							// Legacy: O(n) lookup via csvExports array (backward compatibility)
 							const csvExport = csvExports?.find((e) => e.id === part.csvId)
-							if (csvExport) {
-								return <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} />
-							}
-							if (isStreaming || (!artifactIndex && !csvExports)) {
-								return <CSVExportLoading key={`csv-loading-${part.csvId}`} />
-							}
-							return null
+							return csvExport ? <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} /> : null
 						}
 						if (part.type === 'alert' && part.alertId) {
 							if (inlineChartConfig?.alertIntent) {
@@ -293,7 +331,8 @@ export function MarkdownRenderer({
 							}
 							return null
 						}
-						if (part.content.trim()) {
+						if (part.type === 'text') {
+							if (!part.content.trim()) return null
 							return renderMarkdownSection(
 								processCitationMarkers(part.content, citations),
 								`text-${partIndex}-${part.content.slice(0, 50)}`
@@ -324,23 +363,28 @@ export function MarkdownRenderer({
 						<Icon name="chevron-down" height={14} width={14} />
 					</summary>
 					<div className="flex flex-col gap-2.5 pt-2.5">
-						{citations.map((url, index) => {
-							const normalizedUrl = normalizeSourceUrl(url)
-							return (
-								<a
-									key={`citation-${index}-${normalizedUrl}`}
-									href={normalizedUrl}
-									target="_blank"
-									rel="noopener noreferrer"
-									className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
-								>
-									<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
-										{index + 1}
-									</span>
-									<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
-								</a>
-							)
-						})}
+						{(() => {
+							const occurrenceCounts = new Map<string, number>()
+							return citations.map((url, index) => {
+								const normalizedUrl = normalizeSourceUrl(url)
+								const occurrenceIndex = occurrenceCounts.get(normalizedUrl) || 0
+								occurrenceCounts.set(normalizedUrl, occurrenceIndex + 1)
+								return (
+									<a
+										key={`citation-${normalizedUrl}-${occurrenceIndex}`}
+										href={normalizedUrl}
+										target="_blank"
+										rel="noopener noreferrer"
+										className={`group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]`}
+									>
+										<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+											{index + 1}
+										</span>
+										<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
+									</a>
+								)
+							})
+						})()}
 					</div>
 				</details>
 			) : null}

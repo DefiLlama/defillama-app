@@ -9,7 +9,7 @@ import { useEffect, type RefObject } from 'react'
  * @param enabled - Whether the hook is active (default: true)
  */
 export function useClickOutside<T extends HTMLElement = HTMLElement>(
-	ref: RefObject<T>,
+	ref: RefObject<T | null>,
 	handler: (event: MouseEvent | TouchEvent) => void,
 	enabled: boolean = true
 ) {

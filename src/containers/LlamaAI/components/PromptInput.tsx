@@ -23,6 +23,7 @@ import { InputTextarea } from './input/InputTextarea'
 import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
 import { SubmitButton } from './input/SubmitButton'
 
+// Browser object URLs are only needed for local previews, so clean them up after use.
 function revokeImageUrls(images: Array<{ url: string }>) {
 	for (let i = 0; i < images.length; i++) {
 		URL.revokeObjectURL(images[i].url)
@@ -32,10 +33,10 @@ function revokeImageUrls(images: Array<{ url: string }>) {
 interface PromptInputProps {
 	handleSubmit: (
 		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 	) => void | Promise<void>
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
@@ -43,7 +44,7 @@ interface PromptInputProps {
 	restoreRequest?: {
 		key: number
 		text: string
-		entities?: Array<{ term: string; slug: string }>
+		entities?: Array<{ term: string; slug: string; type?: string }>
 	} | null
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
@@ -81,9 +82,13 @@ export function PromptInput({
 	onOpenAlerts
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
+	const [submitError, setSubmitError] = useState<string | null>(null)
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
+	const valueRef = useRef(value)
+	const selectedImageUrlsRef = useRef<string[]>([])
 
+	// Route all programmatic prompt edits through one helper so caret restoration stays consistent.
 	const applyPromptEdit = useCallback(
 		({
 			nextValue,
@@ -124,8 +129,12 @@ export function PromptInput({
 	const isMobile = useMedia('(max-width: 640px)')
 	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
-	const highlightedHtml = highlightWord(value, Array.from(entityCombobox.entitiesRef.current))
+	const sanitizedHighlightedHtml = highlightWord(
+		value,
+		entityCombobox.selectedEntities.map(({ term }) => term)
+	)
 
+	// Resize the textarea and restore the intended selection after controlled prompt updates.
 	useLayoutEffect(() => {
 		const textarea = promptInputRef.current
 		if (!textarea) return
@@ -144,6 +153,14 @@ export function PromptInput({
 		} catch {}
 		pendingSelectionRef.current = null
 	}, [value, promptInputRef])
+
+	useEffect(() => {
+		valueRef.current = value
+	}, [value])
+
+	useEffect(() => {
+		selectedImageUrlsRef.current = imageUpload.selectedImages.map(({ url }) => url)
+	}, [imageUpload.selectedImages])
 
 	// Handle restore request (e.g., failed submission retry)
 	useEffect(() => {
@@ -177,51 +194,92 @@ export function PromptInput({
 		}
 	}, [droppedFiles, promptInputRef])
 
-	const resetInput = (shouldRevoke = true) => {
+	const resetInput = (imagesToRevoke?: Array<{ url: string }>) => {
 		applyPromptEdit({
 			nextValue: '',
 			selectionStart: 0,
 			selectionEnd: 0
 		})
-		imageUpload.clearImages(shouldRevoke)
+		imageUpload.setPreviewImage(null)
+		if (imagesToRevoke && imagesToRevoke.length > 0) {
+			imageUpload.clearImages(false)
+			revokeImageUrls(imagesToRevoke)
+		} else {
+			imageUpload.clearImages(true)
+		}
 		entityCombobox.resetCombobox()
 	}
 
+	const clearSubmitError = useCallback(() => {
+		setSubmitError((current) => (current ? null : current))
+	}, [])
+
+	const prepareImagesForSubmit = useCallback(async (imagesToSend: Array<{ file: File; url: string }>) => {
+		const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
+		for (let i = 0; i < imagesToSend.length; i++) {
+			const file = imagesToSend[i].file
+			imagePromises.push(
+				fileToBase64(file).then((data) => ({
+					data,
+					mimeType: file.type,
+					filename: file.name
+				}))
+			)
+		}
+		return Promise.all(imagePromises)
+	}, [])
+
+	const shouldResetSubmittedDraft = useCallback((promptValue: string, imagesToSend: Array<{ url: string }>) => {
+		const currentValue = valueRef.current
+		const currentUrls = [...selectedImageUrlsRef.current]
+		if (currentValue !== promptValue) return false
+
+		const submittedUrls = imagesToSend.map(({ url }) => url)
+		if (submittedUrls.length !== currentUrls.length) return false
+
+		for (let index = 0; index < submittedUrls.length; index++) {
+			if (submittedUrls[index] !== currentUrls[index]) return false
+		}
+
+		return true
+	}, [])
+
+	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
+		if (!promptValue.trim()) return
+
 		trackSubmit()
 		const finalEntities = entityCombobox.getFinalEntities()
 		const imagesToSend = [...imageUpload.selectedImages]
 		const hasImages = imagesToSend.length > 0
 
-		resetInput(!hasImages)
-
 		if (hasImages) {
-			const processAndSubmitImages = async () => {
-				const imagePromises: Promise<{ data: string; mimeType: string; filename: string }>[] = []
-				for (let i = 0; i < imagesToSend.length; i++) {
-					const file = imagesToSend[i].file
-					imagePromises.push(
-						fileToBase64(file).then((data) => ({
-							data,
-							mimeType: file.type,
-							filename: file.name
-						}))
-					)
-				}
-				const images = await Promise.all(imagePromises)
-				await handleSubmit(promptValue, finalEntities, images)
-			}
 			try {
-				await processAndSubmitImages()
+				const images = await prepareImagesForSubmit(imagesToSend)
+				await Promise.resolve(handleSubmit(promptValue, finalEntities, images))
+				setSubmitError(null)
+				if (shouldResetSubmittedDraft(promptValue, imagesToSend)) {
+					resetInput(imagesToSend)
+				}
+				return
 			} catch (error) {
 				console.error('Submission failed', error)
+				setSubmitError('Failed to submit your prompt. Please try again.')
 			}
-			revokeImageUrls(imagesToSend)
-		} else {
-			void handleSubmit(promptValue, finalEntities)
+			return
+		}
+
+		try {
+			await Promise.resolve(handleSubmit(promptValue, finalEntities))
+			setSubmitError(null)
+			resetInput()
+		} catch (error) {
+			console.error('Submission failed', error)
+			setSubmitError('Failed to submit your prompt. Please try again.')
 		}
 	}
 
+	// Let the combobox own navigation keys first, then submit on Enter when no suggestion is active.
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		// First let entity combobox handle the event
 		entityCombobox.handleKeyDown(event)
@@ -235,26 +293,52 @@ export function PromptInput({
 		}
 	}
 
+	// Keep the mirrored highlight layer and combobox trigger detection in sync with textarea edits.
 	const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+		clearSubmitError()
 		applyPromptEdit({ nextValue: event.target.value })
 		entityCombobox.handleChange(event.target)
 	}
 
+	// Reposition the suggestion popover and highlighted overlay whenever the textarea scrolls.
 	const handleScroll = () => {
 		syncHighlightScroll(promptInputRef, highlightRef)
 		entityCombobox.handleScroll()
 	}
 
+	// Route native form submits through the same submit helper used by the Enter key path.
 	const handleFormSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		void submitForm(value)
 	}
 
-	const handleFormClick = (e: React.MouseEvent<HTMLFormElement>) => {
-		const target = e.target as HTMLElement
-		if (!target.closest('button, textarea, input, [role="option"]')) {
+	// Clicking empty space inside the composer should still focus the textarea.
+	const handleFormPointerDown = (event: React.PointerEvent<HTMLFormElement>) => {
+		const target = event.target as HTMLElement
+		if (target.closest('button, textarea, input, [role="option"]')) return
+		requestAnimationFrame(() => {
 			promptInputRef.current?.focus()
-		}
+		})
+	}
+
+	const handleImageRemove = (idx: number) => {
+		clearSubmitError()
+		imageUpload.removeImage(idx)
+	}
+
+	const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		clearSubmitError()
+		imageUpload.handleImageSelect(event)
+	}
+
+	const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+		clearSubmitError()
+		imageUpload.handlePaste(event)
+	}
+
+	const handleDrop = (event: React.DragEvent<HTMLFormElement>) => {
+		clearSubmitError()
+		imageUpload.handleDrop(event)
 	}
 
 	return (
@@ -263,9 +347,9 @@ export function PromptInput({
 			onDragEnter={imageUpload.handleDragEnter}
 			onDragLeave={imageUpload.handleDragLeave}
 			onDragOver={(e) => e.preventDefault()}
-			onDrop={imageUpload.handleDrop}
+			onDrop={handleDrop}
 			onSubmit={handleFormSubmit}
-			onClick={handleFormClick}
+			onPointerDown={handleFormPointerDown}
 		>
 			<DragOverlay isDragging={imageUpload.isDragging} externalDragging={externalDragging} />
 
@@ -273,9 +357,9 @@ export function PromptInput({
 				selectedImages={imageUpload.selectedImages}
 				previewImage={imageUpload.previewImage}
 				setPreviewImage={imageUpload.setPreviewImage}
-				removeImage={imageUpload.removeImage}
+				removeImage={handleImageRemove}
 				fileInputRef={imageUpload.fileInputRef}
-				handleImageSelect={imageUpload.handleImageSelect}
+				handleImageSelect={handleImageSelect}
 			/>
 
 			<InputTextarea
@@ -283,14 +367,14 @@ export function PromptInput({
 				promptInputRef={promptInputRef}
 				highlightRef={highlightRef}
 				value={value}
-				highlightedHtml={highlightedHtml}
+				sanitizedHighlightedHtml={sanitizedHighlightedHtml}
 				placeholder={finalPlaceholder}
 				isPending={isPending}
 				isStreaming={isStreaming}
 				onScroll={handleScroll}
 				onChange={handleChange}
 				onKeyDown={handleKeyDown}
-				onPaste={imageUpload.handlePaste}
+				onPaste={handlePaste}
 				onCompositionStart={entityCombobox.handleCompositionStart}
 				onCompositionEnd={entityCombobox.handleCompositionEnd}
 			/>
@@ -305,6 +389,8 @@ export function PromptInput({
 				isFetching={entityCombobox.isFetching}
 				onItemClick={entityCombobox.selectEntity}
 			/>
+
+			{submitError ? <p className="text-xs text-red-700 dark:text-red-300">{submitError}</p> : null}
 
 			<div className="flex flex-wrap items-center justify-between gap-4 p-0">
 				<div className="flex items-center gap-2">

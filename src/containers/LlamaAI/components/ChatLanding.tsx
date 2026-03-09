@@ -1,20 +1,24 @@
-import type { Dispatch, RefObject, SetStateAction } from 'react'
+import { useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { RecommendedPrompts } from '~/containers/LlamaAI/components/RecommendedPrompts'
+import type { ResearchUsage } from '~/containers/LlamaAI/types'
 
 interface ChatLandingProps {
 	readOnly: boolean
 	title: string
 	handleSubmit: (
 		prompt: string,
-		preResolvedEntities?: Array<{ term: string; slug: string }>,
-		images?: Array<{ data: string; mimeType: string; filename?: string }>
+		preResolvedEntities?: Array<{ term: string; slug: string; type?: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
+		isSuggestedQuestion?: boolean
 	) => void | Promise<void>
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	handleStopRequest: () => void
 	isStreaming: boolean
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	researchUsage?: ResearchUsage | null
 	onOpenAlerts: () => void
 }
 
@@ -27,8 +31,14 @@ export function ChatLanding({
 	isStreaming,
 	isResearchMode,
 	setIsResearchMode,
+	researchUsage,
 	onOpenAlerts
 }: ChatLandingProps) {
+	const handleSuggestedSubmit = useCallback(
+		(prompt: string) => handleSubmit(prompt, undefined, undefined, undefined, true),
+		[handleSubmit]
+	)
+
 	return (
 		<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 			<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
@@ -47,10 +57,14 @@ export function ChatLanding({
 						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
-						researchUsage={null}
+						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
 					/>
-					<RecommendedPrompts onSubmit={handleSubmit} isPending={isStreaming} isResearchMode={isResearchMode} />
+					<RecommendedPrompts
+						onSubmit={handleSuggestedSubmit}
+						isPending={isStreaming}
+						isResearchMode={isResearchMode}
+					/>
 				</>
 			) : null}
 		</div>

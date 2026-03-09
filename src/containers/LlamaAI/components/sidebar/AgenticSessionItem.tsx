@@ -11,6 +11,7 @@ import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { assertResponse } from '../../utils/assertResponse'
 
 interface AgenticSessionItemProps {
 	session: ChatSession
@@ -46,16 +47,19 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 
 	const { mutate: toggleVisibility, isPending: isTogglingVisibility } = useMutation({
 		mutationFn: async () => {
-			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
-				method: 'PUT'
-			})
-			if (!response.ok) {
-				toast.error('Failed to make session public')
-				throw new Error('Failed to make session public')
-			}
+			const response = assertResponse(
+				await authorizedFetch(`${MCP_SERVER}/user/sessions/${session.sessionId}/share`, {
+					method: 'PUT'
+				}),
+				'Failed to update session visibility'
+			)
 			return response.json()
 		},
 		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+		},
+		onError: () => {
+			toast.error(`Failed to make session ${session.isPublic ? 'private' : 'public'}`)
 			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
 		}
 	})
