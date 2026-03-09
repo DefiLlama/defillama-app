@@ -255,7 +255,6 @@ function InlineContent({
 	toolExecutions,
 	isStreaming = false,
 	sessionId,
-	fetchFn,
 	onActionClick,
 	nextUserMessage
 }: {
@@ -269,7 +268,6 @@ function InlineContent({
 	toolExecutions?: ToolExecution[]
 	isStreaming?: boolean
 	sessionId?: string | null
-	fetchFn?: typeof fetch
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 }) {
@@ -370,7 +368,6 @@ function InlineContent({
 											charts={[entry.chart]}
 											chartData={entry.chartData}
 											sessionId={sessionId}
-											fetchFn={fetchFn}
 											key={getKey(`inline-chart-${part.chartId}`)}
 										/>
 									)
@@ -430,7 +427,6 @@ function InlineContent({
 					charts={[entry.chart]}
 					chartData={entry.chartData}
 					sessionId={sessionId}
-					fetchFn={fetchFn}
 				/>
 			))}
 
@@ -663,7 +659,6 @@ export function MessageBubble({
 	message,
 	sessionId,
 	isDraft = false,
-	fetchFn,
 	readOnly = false,
 	isLlama = false,
 	onActionClick,
@@ -672,7 +667,6 @@ export function MessageBubble({
 	message: Message
 	sessionId: string | null
 	isDraft?: boolean
-	fetchFn?: typeof fetch
 	readOnly?: boolean
 	isLlama?: boolean
 	onActionClick?: (message: string) => void
@@ -720,7 +714,6 @@ export function MessageBubble({
 				toolExecutions={isLlama ? message.toolExecutions : undefined}
 				isStreaming={isDraft}
 				sessionId={sessionId}
-				fetchFn={fetchFn}
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
 			/>

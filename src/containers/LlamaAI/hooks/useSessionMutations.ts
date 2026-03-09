@@ -62,14 +62,11 @@ export function useSessionMutations() {
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
 			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
+				await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
 					.then((res) => assertResponse(res, 'Failed to delete session'))
 					.then(handleSimpleFetchResponse)
-					.then((res) => res.json())
-
-				return response
 			} catch (error) {
 				console.log('Failed to delete session:', error)
 				throw new Error(`Failed to delete session: ${getErrorMessage(error)}`)
@@ -208,7 +205,7 @@ export function useSessionMutations() {
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
-						hasMore: result.hasMore || false,
+						hasMore: result.hasMore ?? false,
 						isLoadingMore: false,
 						cursor: result.nextCursor,
 						totalMessages: result.totalMessages

@@ -49,7 +49,10 @@ export function useStreamNotification() {
 		isHiddenRef.current = document.hidden
 		if (!document.hidden) clearBadge()
 		document.addEventListener('visibilitychange', handler)
-		return () => document.removeEventListener('visibilitychange', handler)
+		return () => {
+			document.removeEventListener('visibilitychange', handler)
+			if (hasBadgeRef.current) clearBadge()
+		}
 	}, [clearBadge])
 
 	// Reset and replay the short audio cue when a background response completes.
@@ -109,6 +112,11 @@ export function useStreamNotification() {
 					audioRef.current.volume = vol
 				})
 				.catch((error) => {
+					if (audioRef.current) {
+						audioRef.current.pause()
+						audioRef.current.currentTime = 0
+						audioRef.current.volume = vol
+					}
 					// Expected when autoplay is blocked - silently ignore
 					if (error.name !== 'NotAllowedError') {
 						console.log('Failed to initialize audio:', error)

@@ -16,7 +16,6 @@ interface ConversationViewProps {
 	readOnly: boolean
 	messages: Message[]
 	sessionId: string | null
-	fetchFn: typeof fetch
 	isLlama: boolean
 	isStreaming: boolean
 	activeToolCalls: ToolCall[]
@@ -58,7 +57,6 @@ export function ConversationView({
 	readOnly,
 	messages,
 	sessionId,
-	fetchFn,
 	isLlama,
 	isStreaming,
 	activeToolCalls,
@@ -113,7 +111,6 @@ export function ConversationView({
 										key={message.id || `msg-${index}`}
 										message={message}
 										sessionId={sessionId}
-										fetchFn={fetchFn}
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
@@ -147,7 +144,6 @@ export function ConversationView({
 									message={streamingDraft}
 									sessionId={sessionId}
 									isDraft
-									fetchFn={fetchFn}
 									readOnly={readOnly}
 									isLlama={isLlama}
 								/>

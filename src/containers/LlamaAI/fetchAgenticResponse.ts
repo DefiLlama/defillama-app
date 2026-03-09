@@ -391,7 +391,20 @@ export async function checkActiveExecution(
 		return (await res.json()) as { active: boolean; status?: string; eventCount?: number; messageId?: string }
 	} catch (err) {
 		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
-		return { active: false }
+		const status =
+			typeof err === 'object' && err !== null
+				? 'status' in err && typeof err.status === 'number'
+					? err.status
+					: 'response' in err &&
+						  typeof err.response === 'object' &&
+						  err.response !== null &&
+						  'status' in err.response &&
+						  typeof err.response.status === 'number'
+						? err.response.status
+						: null
+				: null
+		if (status === 404) return { active: false }
+		throw err
 	}
 }
 

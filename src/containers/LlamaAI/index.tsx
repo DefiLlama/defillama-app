@@ -839,7 +839,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			resetStream?: boolean
 			onTemporaryDisconnect?: (error: Error, streamBuffer: StreamBuffer) => void
 		}) => {
-			const { active } = await checkActiveExecution(targetSessionId, authorizedFetch)
+			let activeExecution: Awaited<ReturnType<typeof checkActiveExecution>>
+			try {
+				activeExecution = await checkActiveExecution(targetSessionId, authorizedFetch)
+			} catch (checkActiveExecutionError) {
+				const checkError =
+					checkActiveExecutionError instanceof Error
+						? checkActiveExecutionError
+						: new Error(getErrorMessage(checkActiveExecutionError))
+				if (onTemporaryDisconnect && isTemporaryConnectivityError(checkError)) {
+					onTemporaryDisconnect(checkError, buffer)
+					return false
+				}
+				dispatchStream({ type: 'SET_ERROR', value: checkError.message })
+				return false
+			}
+			const { active } = activeExecution
 			if (!active) return false
 
 			setViewError(null)
@@ -1605,7 +1620,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						readOnly={readOnly}
 						messages={effectiveMessages}
 						sessionId={effectiveSessionId}
-						fetchFn={authorizedFetchStrict}
 						isLlama={isLlama}
 						isStreaming={isStreaming}
 						activeToolCalls={activeToolCalls}

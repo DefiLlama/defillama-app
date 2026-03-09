@@ -26,7 +26,6 @@ interface ChartRendererProps {
 	chartTypes?: string[]
 	resizeTrigger?: number
 	sessionId?: string | null
-	fetchFn?: typeof fetch
 }
 
 interface SingleChartProps {
@@ -34,7 +33,6 @@ interface SingleChartProps {
 	data: any[]
 	isActive: boolean
 	sessionId?: string | null
-	fetchFn?: typeof fetch
 }
 
 type ChartState = {
@@ -520,14 +518,9 @@ export function ChartRenderer({
 	hasError = false,
 	chartTypes,
 	resizeTrigger = 0,
-	sessionId,
-	fetchFn
+	sessionId
 }: ChartRendererProps) {
-	return (
-		<ChartRendererMemoized
-			{...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId, fetchFn }}
-		/>
-	)
+	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId }} />
 }
 
 // Memoized chart renderer coordinates tab state, resize handling, and loading/error placeholders.
@@ -538,8 +531,7 @@ function ChartRendererImpl({
 	hasError = false,
 	chartTypes,
 	resizeTrigger = 0,
-	sessionId,
-	fetchFn
+	sessionId
 }: ChartRendererProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
@@ -619,7 +611,6 @@ function ChartRendererImpl({
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					sessionId={sessionId}
-					fetchFn={fetchFn}
 				/>
 			))}
 		</div>
