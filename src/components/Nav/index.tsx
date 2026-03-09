@@ -74,6 +74,15 @@ function canonicalAiRoute(route: string): string {
 	return route === '/ai/chat' ? '/ai' : route
 }
 
+function parsePinnedMetrics(value: string): string[] {
+	try {
+		const parsed = JSON.parse(value)
+		return Array.isArray(parsed) ? parsed : []
+	} catch {
+		return []
+	}
+}
+
 export function Nav({ metricFilters }: { metricFilters?: { name: string; key: string }[] }) {
 	const { asPath } = useRouter()
 	const { data: liteDashboards } = useGetLiteDashboards()
@@ -102,19 +111,15 @@ export function Nav({ metricFilters }: { metricFilters?: { name: string; key: st
 	const pinnedMetrics = useStorageItem('pinned-metrics', '[]')
 
 	const pinnedPages = useMemo(() => {
-		if (!pinnedMetrics) return []
-		try {
-			const parsed = JSON.parse(pinnedMetrics)
-			if (!Array.isArray(parsed) || parsed.length === 0) return []
-			return parsed.flatMap((metric: string) => {
-				const page = routeToPageMap.get(metric) ?? routeToPageMap.get(canonicalAiRoute(metric))
-				if (!page) return []
-				const route = normalizeAiRoute(page.route, hasActiveSubscription)
-				return [route !== page.route ? { ...page, route } : page]
-			})
-		} catch {
-			return []
-		}
+		const parsed = pinnedMetrics ? parsePinnedMetrics(pinnedMetrics) : []
+		if (parsed.length === 0) return []
+
+		return parsed.flatMap((metric: string) => {
+			const page = routeToPageMap.get(metric) ?? routeToPageMap.get(canonicalAiRoute(metric))
+			if (!page) return []
+			const route = normalizeAiRoute(page.route, hasActiveSubscription)
+			return [route !== page.route ? { ...page, route } : page]
+		})
 	}, [pinnedMetrics, hasActiveSubscription])
 
 	return (

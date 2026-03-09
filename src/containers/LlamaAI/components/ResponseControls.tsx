@@ -244,7 +244,7 @@ export function ResponseControls({
 
 	return (
 		<>
-			<div className="-my-0.5 flex items-center justify-end gap-1">
+			<div className="flex items-center justify-end gap-1">
 				{content ? (
 					<Tooltip
 						content={copied ? 'Copied' : 'Copy'}

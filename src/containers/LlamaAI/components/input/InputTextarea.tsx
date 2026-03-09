@@ -6,6 +6,7 @@ interface InputTextareaProps {
 	promptInputRef: RefObject<HTMLTextAreaElement>
 	highlightRef: RefObject<HTMLDivElement>
 	value: string
+	highlightedHtml: string
 	placeholder: string
 	isPending: boolean
 	isStreaming?: boolean
@@ -22,6 +23,7 @@ export function InputTextarea({
 	promptInputRef,
 	highlightRef,
 	value,
+	highlightedHtml,
 	placeholder,
 	isPending,
 	isStreaming,
@@ -45,6 +47,7 @@ export function InputTextarea({
 				render={
 					<textarea
 						ref={promptInputRef}
+						value={value}
 						rows={1}
 						maxLength={8000}
 						placeholder={placeholder}
@@ -56,7 +59,7 @@ export function InputTextarea({
 						onCompositionStart={onCompositionStart}
 						onCompositionEnd={onCompositionEnd}
 						name="prompt"
-						className="relative z-1 block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto border-0 bg-transparent p-0 leading-normal wrap-break-word whitespace-pre-wrap text-transparent caret-black outline-hidden placeholder:text-[#666] max-sm:text-base dark:caret-white placeholder:dark:text-[#919296]"
+						className="relative z-1 block thin-scrollbar min-h-4 w-full resize-none overflow-x-hidden overflow-y-auto overscroll-contain border-0 bg-transparent p-0 leading-normal wrap-break-word whitespace-pre-wrap text-black caret-black outline-hidden placeholder:text-[#666] max-sm:text-base dark:text-white dark:caret-white placeholder:dark:text-[#919296]"
 						autoCorrect="on"
 						autoCapitalize="none"
 						autoComplete="off"
@@ -66,8 +69,10 @@ export function InputTextarea({
 				disabled={isPending && !isStreaming}
 			/>
 			<div
-				className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto p-0 leading-normal wrap-break-word whitespace-pre-wrap max-sm:text-base"
+				aria-hidden="true"
+				className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto overscroll-contain p-0 leading-normal wrap-break-word whitespace-pre-wrap max-sm:text-base"
 				ref={highlightRef}
+				dangerouslySetInnerHTML={{ __html: highlightedHtml }}
 			/>
 		</div>
 	)

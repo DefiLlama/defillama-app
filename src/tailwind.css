@@ -674,16 +674,12 @@
 		@apply block max-w-full;
 	}
 
-	details {
-		@apply select-none;
-	}
-
 	details summary::-webkit-details-marker {
 		@apply hidden;
 	}
 
 	summary {
-		@apply cursor-pointer list-none;
+		@apply cursor-pointer list-none select-none;
 	}
 
 	#table-header {
@@ -708,8 +704,18 @@
 		clip-path: inset(0% round 50%);
 	}
 
+	.highlighted-text {
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		user-select: none;
+	}
+
 	.highlighted-text .highlight {
-		@apply bg-(--link-bg) text-(--link-text);
+		@apply bg-(--link-bg);
+		color: transparent;
+		-webkit-text-fill-color: transparent;
+		box-decoration-break: clone;
+		-webkit-box-decoration-break: clone;
 	}
 
 	.message-sent::before {

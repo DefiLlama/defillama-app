@@ -1,4 +1,13 @@
-import { type Dispatch, type RefObject, type SetStateAction, useEffect, useRef, useState } from 'react'
+import {
+	type Dispatch,
+	type RefObject,
+	type SetStateAction,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { useMedia } from '~/hooks/useMedia'
@@ -49,6 +58,12 @@ const trackSubmit = () => {
 	trackUmamiEvent('llamaai-prompt-submit')
 }
 
+interface PendingSelection {
+	selectionStart: number
+	selectionEnd: number
+	focus?: boolean
+}
+
 export function PromptInput({
 	handleSubmit,
 	promptInputRef,
@@ -67,6 +82,32 @@ export function PromptInput({
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const highlightRef = useRef<HTMLDivElement>(null)
+	const pendingSelectionRef = useRef<PendingSelection | null>(null)
+
+	const applyPromptEdit = useCallback(
+		({
+			nextValue,
+			selectionStart,
+			selectionEnd,
+			focus = false
+		}: {
+			nextValue: string
+			selectionStart?: number
+			selectionEnd?: number
+			focus?: boolean
+		}) => {
+			pendingSelectionRef.current =
+				selectionStart == null
+					? null
+					: {
+							selectionStart,
+							selectionEnd: selectionEnd ?? selectionStart,
+							focus
+						}
+			setValue(nextValue)
+		},
+		[]
+	)
 
 	// Image upload handling
 	const imageUpload = useImageUpload({ droppedFiles, clearDroppedFiles })
@@ -74,44 +115,60 @@ export function PromptInput({
 	// Entity combobox handling
 	const entityCombobox = useEntityCombobox({
 		promptInputRef,
-		highlightRef,
-		setValue
+		currentValue: value,
+		applyPromptEdit
 	})
+	const { clearSearch, restoreEntities } = entityCombobox
 
 	// Mobile placeholder handling
 	const isMobile = useMedia('(max-width: 640px)')
 	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
+	const highlightedHtml = highlightWord(value, Array.from(entityCombobox.entitiesRef.current))
+
+	useLayoutEffect(() => {
+		const textarea = promptInputRef.current
+		if (!textarea) return
+
+		setInputSize(promptInputRef, highlightRef)
+
+		const pendingSelection = pendingSelectionRef.current
+		if (!pendingSelection) return
+
+		if (pendingSelection.focus) {
+			textarea.focus()
+		}
+
+		try {
+			textarea.setSelectionRange(pendingSelection.selectionStart, pendingSelection.selectionEnd)
+		} catch {}
+		pendingSelectionRef.current = null
+	}, [value, promptInputRef])
 
 	// Handle restore request (e.g., failed submission retry)
 	useEffect(() => {
 		if (!restoreRequest) return
-		const textarea = promptInputRef.current
-		if (!textarea) return
-		if (textarea.value.trim().length > 0) return
+		if (value.trim().length > 0) return
 
-		let cancelled = false
 		const { text, entities } = restoreRequest
+		let cancelled = false
 
-		entityCombobox.restoreEntities(entities)
-		entityCombobox.setIsProgrammaticUpdate(true)
-		textarea.value = text
 		queueMicrotask(() => {
 			if (cancelled) return
-			setValue(text)
+
+			restoreEntities(entities)
+			clearSearch()
+			applyPromptEdit({
+				nextValue: text,
+				selectionStart: text.length,
+				selectionEnd: text.length
+			})
 		})
-		setInputSize(promptInputRef, highlightRef)
-
-		if (highlightRef.current) {
-			highlightRef.current.innerHTML = highlightWord(text, Array.from(entityCombobox.entitiesRef.current))
-		}
-
-		entityCombobox.clearSearch()
 
 		return () => {
 			cancelled = true
 		}
-	}, [restoreRequest, entityCombobox, promptInputRef])
+	}, [restoreRequest, value, restoreEntities, clearSearch, applyPromptEdit])
 
 	// Focus input after external drop
 	useEffect(() => {
@@ -121,19 +178,13 @@ export function PromptInput({
 	}, [droppedFiles, promptInputRef])
 
 	const resetInput = (shouldRevoke = true) => {
-		setValue('')
+		applyPromptEdit({
+			nextValue: '',
+			selectionStart: 0,
+			selectionEnd: 0
+		})
 		imageUpload.clearImages(shouldRevoke)
 		entityCombobox.resetCombobox()
-		const textarea = promptInputRef.current
-		if (textarea) {
-			textarea.value = ''
-			textarea.style.height = ''
-		}
-		if (highlightRef.current) {
-			highlightRef.current.innerHTML = ''
-			highlightRef.current.textContent = ''
-			highlightRef.current.style.height = ''
-		}
 	}
 
 	const submitForm = async (promptValue: string) => {
@@ -180,16 +231,13 @@ export function PromptInput({
 		if (event.key === 'Enter' && !event.shiftKey && !entityCombobox.hasRenderedItems) {
 			event.preventDefault()
 			if (isStreaming) return
-			const promptValue = promptInputRef.current?.value ?? ''
-			void submitForm(promptValue)
+			void submitForm(value)
 		}
 	}
 
 	const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-		if (promptInputRef.current) {
-			setInputSize(promptInputRef, highlightRef)
-		}
-		entityCombobox.handleChange(event.target.value)
+		applyPromptEdit({ nextValue: event.target.value })
+		entityCombobox.handleChange(event.target)
 	}
 
 	const handleScroll = () => {
@@ -199,14 +247,12 @@ export function PromptInput({
 
 	const handleFormSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
-		const form = e.currentTarget
-		const promptValue = (form.elements.namedItem('prompt') as HTMLTextAreaElement | null)?.value ?? ''
-		void submitForm(promptValue)
+		void submitForm(value)
 	}
 
 	const handleFormClick = (e: React.MouseEvent<HTMLFormElement>) => {
 		const target = e.target as HTMLElement
-		if (!target.closest('button')) {
+		if (!target.closest('button, textarea, input, [role="option"]')) {
 			promptInputRef.current?.focus()
 		}
 	}
@@ -237,6 +283,7 @@ export function PromptInput({
 				promptInputRef={promptInputRef}
 				highlightRef={highlightRef}
 				value={value}
+				highlightedHtml={highlightedHtml}
 				placeholder={finalPlaceholder}
 				isPending={isPending}
 				isStreaming={isStreaming}

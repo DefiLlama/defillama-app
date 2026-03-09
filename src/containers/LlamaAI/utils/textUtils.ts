@@ -20,10 +20,11 @@ function escapeHtml(str: string): string {
 }
 
 export function highlightWord(text: string, words: string[]) {
-	if (!text || typeof text !== 'string') return text
-	if (!Array.isArray(words) || words.length === 0) return text
+	if (typeof text !== 'string') return ''
 
 	const escapedText = escapeHtml(text)
+
+	if (!text || !Array.isArray(words) || words.length === 0) return escapedText
 
 	const escapedWords: string[] = []
 	for (const word of words) {

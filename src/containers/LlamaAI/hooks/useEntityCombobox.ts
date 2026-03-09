@@ -1,8 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import { startTransition, type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
-import { setInputSize } from '../utils/scrollUtils'
-import { highlightWord } from '../utils/textUtils'
 import { useGetEntities } from './useGetEntities'
 import { detectTrigger, calculateComboboxPlacement } from './useTriggerDetection'
 
@@ -14,16 +12,21 @@ interface EntityData {
 
 interface UseEntityComboboxOptions {
 	promptInputRef: RefObject<HTMLTextAreaElement>
-	highlightRef: RefObject<HTMLDivElement>
-	setValue: (value: string) => void
+	currentValue: string
+	applyPromptEdit: (edit: {
+		nextValue: string
+		selectionStart?: number
+		selectionEnd?: number
+		focus?: boolean
+	}) => void
 }
 
-export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: UseEntityComboboxOptions) {
+export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdit }: UseEntityComboboxOptions) {
 	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
 	const [searchTerm, setSearchTerm] = useState('')
+	const [entityVersion, setEntityVersion] = useState(0)
 	const entitiesRef = useRef<Set<string>>(new Set())
 	const entitiesMapRef = useRef<Map<string, EntityData>>(new Map())
-	const isProgrammaticUpdateRef = useRef(false)
 	const isComposingRef = useRef(false)
 
 	const combobox = Ariakit.useComboboxStore()
@@ -83,26 +86,11 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		combobox.render()
 	}
 
-	const handleChange = (currentValue: string) => {
-		setValue(currentValue)
-
-		// Always update highlight (fast operation with cached regex)
-		if (highlightRef.current) {
-			highlightRef.current.innerHTML = highlightWord(currentValue, Array.from(entitiesRef.current))
-		}
-
-		if (isProgrammaticUpdateRef.current) {
-			isProgrammaticUpdateRef.current = false
-			return
-		}
-
+	const handleChange = (textarea: HTMLTextAreaElement) => {
 		// Skip trigger detection during IME composition (Japanese/Chinese/Korean input)
 		if (isComposingRef.current) {
 			return
 		}
-
-		const textarea = promptInputRef.current
-		if (!textarea) return
 
 		runTriggerDetection(textarea)
 	}
@@ -134,22 +122,17 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 					event.preventDefault()
 					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
 
-					textarea.value = newValue
-					setValue(newValue)
-					setInputSize(promptInputRef, highlightRef)
 					startTransition(() => setSearchTerm(''))
 					combobox.hide()
 
 					entitiesRef.current.delete(entityName)
 					entitiesMapRef.current.delete(entityName)
-
-					if (highlightRef.current) {
-						highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
-					}
-
-					setTimeout(() => {
-						textarea.setSelectionRange(entityIndex, entityIndex)
-					}, 0)
+					setEntityVersion((version) => version + 1)
+					applyPromptEdit({
+						nextValue: newValue,
+						selectionStart: entityIndex,
+						selectionEnd: entityIndex
+					})
 					return
 				}
 			}
@@ -173,32 +156,27 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		if (!textarea) return
 
 		const triggerState = detectTrigger(textarea)
+		if (triggerState.triggerOffset === -1) return
 
 		entitiesRef.current.add(name)
 		entitiesMapRef.current.set(name, { id, name, type })
+		setEntityVersion((version) => version + 1)
 
 		const getNewValue = replaceValue(triggerState.triggerOffset, triggerState.searchValue, name)
-		const newValue = getNewValue(textarea.value)
+		const newValue = getNewValue(currentValue)
+		const selectionStart = triggerState.triggerOffset + name.length + 1
 
 		startTransition(() => setSearchTerm(''))
 		combobox.hide()
-
-		isProgrammaticUpdateRef.current = true
-		textarea.value = newValue
-		setInputSize(promptInputRef, highlightRef)
-		setValue(newValue)
-
-		if (highlightRef.current) {
-			highlightRef.current.innerHTML = highlightWord(newValue, Array.from(entitiesRef.current))
-		}
-
-		setTimeout(() => {
-			textarea.focus()
-		}, 0)
+		applyPromptEdit({
+			nextValue: newValue,
+			selectionStart,
+			selectionEnd: selectionStart,
+			focus: true
+		})
 	}
 
 	const getFinalEntities = () => {
-		const currentValue = promptInputRef.current?.value ?? ''
 		return Array.from(entitiesRef.current)
 			.map((name) => {
 				const data = entitiesMapRef.current.get(name)
@@ -214,7 +192,7 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		}>
 	}
 
-	const restoreEntities = (entities?: Array<{ term: string; slug: string }>) => {
+	const restoreEntities = useCallback((entities?: Array<{ term: string; slug: string }>) => {
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
 		if (entities && entities.length > 0) {
@@ -223,14 +201,16 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 				entitiesMapRef.current.set(term, { id: slug, name: term, type: '' })
 			}
 		}
-	}
+		setEntityVersion((version) => version + 1)
+	}, [])
 
-	const resetCombobox = () => {
+	const resetCombobox = useCallback(() => {
 		startTransition(() => setSearchTerm(''))
 		combobox.hide()
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
-	}
+		setEntityVersion((version) => version + 1)
+	}, [combobox])
 
 	// IME composition handlers for Japanese/Chinese/Korean input
 	const handleCompositionStart = () => {
@@ -247,10 +227,6 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 
 	const hasRenderedItems = combobox.getState().renderedItems.length > 0
 
-	const setIsProgrammaticUpdate = useCallback((value: boolean) => {
-		isProgrammaticUpdateRef.current = value
-	}, [])
-
 	const clearSearch = useCallback(() => {
 		startTransition(() => setSearchTerm(''))
 		combobox.hide()
@@ -264,8 +240,8 @@ export function useEntityCombobox({ promptInputRef, highlightRef, setValue }: Us
 		isFetching,
 		isLoading,
 		isTriggerOnly,
+		entityVersion,
 		entitiesRef,
-		setIsProgrammaticUpdate,
 		hasRenderedItems,
 		handleScroll,
 		handleChange,

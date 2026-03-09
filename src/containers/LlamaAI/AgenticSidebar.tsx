@@ -62,25 +62,21 @@ export function AgenticSidebar({
 	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
 
 	const handleDelete = useCallback(
-		async (sessionId: string) => {
+		(sessionId: string) => {
 			setDeletingSessionId(sessionId)
-			try {
-				await onDelete(sessionId)
-			} finally {
+			return onDelete(sessionId).finally(() => {
 				setDeletingSessionId(null)
-			}
+			})
 		},
 		[onDelete]
 	)
 
 	const handleUpdateTitle = useCallback(
-		async (args: { sessionId: string; title: string }) => {
+		(args: { sessionId: string; title: string }) => {
 			setUpdatingTitleSessionId(args.sessionId)
-			try {
-				await onUpdateTitle(args)
-			} finally {
+			return onUpdateTitle(args).finally(() => {
 				setUpdatingTitleSessionId(null)
-			}
+			})
 		},
 		[onUpdateTitle]
 	)
