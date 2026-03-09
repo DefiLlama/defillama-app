@@ -1287,7 +1287,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						customInstructions: customInstructions || undefined,
 						isSuggestedQuestion,
 						abortSignal: controller.signal,
-						fetchFn: authorizedFetchStrict,
+						fetchFn: authorizedFetch,
 						callbacks: createAgenticCallbacks({
 							requestId,
 							activeRequestIdRef,
@@ -1398,7 +1398,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			isStreaming,
 			sessionId,
 			isResearchMode,
-			authorizedFetchStrict,
+			authorizedFetch,
 			createSession,
 			createFakeSession,
 			updateSessionTitle,
@@ -1441,7 +1441,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				const didResume = await resumeRunningExecution({ targetSessionId: sessionId })
 				if (didResume) return
 				const restoreResult = await restoreSessionSnapshot(sessionId, activeRequestIdRef.current)
-				if (restoreResult.restored) return
+				if (restoreResult.recoveredResponse) return
 			}
 			handleSubmit(
 				lastFailedRequest.prompt,
