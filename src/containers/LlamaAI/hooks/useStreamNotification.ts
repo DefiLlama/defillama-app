@@ -7,11 +7,13 @@ export function useStreamNotification() {
 	const hasBadgeRef = useRef(false)
 	const audioRef = useRef<HTMLAudioElement | null>(null)
 
+	// Preload the notification sound once so later completion notifications can play immediately.
 	useEffect(() => {
 		audioRef.current = new Audio('/assets/notification.mp3')
 		audioRef.current.load()
 	}, [])
 
+	// Restore the original tab title/favicon after the user returns to the tab.
 	const clearBadge = useCallback(() => {
 		if (!hasBadgeRef.current) return
 		hasBadgeRef.current = false
@@ -20,6 +22,7 @@ export function useStreamNotification() {
 		if (link && originalFaviconRef.current) link.href = originalFaviconRef.current
 	}, [])
 
+	// Mark the tab as unread while a completed response is waiting in a background tab.
 	const setBadge = useCallback(() => {
 		if (hasBadgeRef.current) return
 		hasBadgeRef.current = true
@@ -30,6 +33,7 @@ export function useStreamNotification() {
 		if (link) link.href = '/favicon-badge.png'
 	}, [])
 
+	// Track whether the page is hidden so notifications only fire when the user is away.
 	useEffect(() => {
 		const handler = () => {
 			isHiddenRef.current = document.hidden
@@ -39,6 +43,7 @@ export function useStreamNotification() {
 		return () => document.removeEventListener('visibilitychange', handler)
 	}, [clearBadge])
 
+	// Reset and replay the short audio cue when a background response completes.
 	const playSound = useCallback(() => {
 		if (!audioRef.current) return
 		audioRef.current.currentTime = 0
@@ -50,6 +55,7 @@ export function useStreamNotification() {
 		})
 	}, [])
 
+	// Use the browser notification API as a secondary signal when permission is available.
 	const showNotification = useCallback(() => {
 		const notification = new Notification('LlamaAI', {
 			body: 'Llama has answered your question!',
@@ -59,6 +65,7 @@ export function useStreamNotification() {
 		playSound()
 	}, [playSound])
 
+	// Notify only when the page is hidden; foreground completions do not need browser-level alerts.
 	const notify = useCallback(() => {
 		if (!isHiddenRef.current) return
 
@@ -74,6 +81,7 @@ export function useStreamNotification() {
 		}
 	}, [showNotification, setBadge])
 
+	// Prime both audio playback and notification permission early from an explicit user gesture.
 	const requestPermission = useCallback(() => {
 		if (audioRef.current) {
 			const vol = audioRef.current.volume

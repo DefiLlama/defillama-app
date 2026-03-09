@@ -12,6 +12,7 @@ export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
 
+	// Persist a newly-created chat session once the backend assigns it a real identity.
 	const createSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title?: string }) => {
 			try {
@@ -35,6 +36,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Shared restore mutation backs both full-session restore and paginated older-message loading.
 	const restoreSessionMutation = useMutation({
 		mutationFn: async ({ sessionId, limit, cursor }: { sessionId: string; limit?: number; cursor?: number }) => {
 			try {
@@ -56,6 +58,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Delete from both the backend and the optimistic sidebar/session cache.
 	const deleteSessionMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
 			try {
@@ -102,6 +105,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
 			const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/title`, {
@@ -150,6 +154,7 @@ export function useSessionMutations() {
 		}
 	})
 
+	// Insert a temporary session into the cache so first-message submits have a stable local target.
 	const createFakeSession = useCallback(() => {
 		const sessionId = crypto.randomUUID()
 		const title = 'New Chat'
@@ -172,6 +177,7 @@ export function useSessionMutations() {
 		return sessionId
 	}, [user, queryClient])
 
+	// Normalize the restore API payload into the shape the chat screen consumes.
 	const restoreSession = useCallback(
 		async (sessionId: string, limit: number = 10) => {
 			try {
@@ -194,6 +200,7 @@ export function useSessionMutations() {
 		[restoreSessionMutation]
 	)
 
+	// Reuse the restore endpoint to fetch older history pages for infinite scroll.
 	const loadMoreMessages = useCallback(
 		async (sessionId: string, cursor: number) => {
 			try {

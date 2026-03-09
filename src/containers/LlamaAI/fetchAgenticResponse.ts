@@ -152,6 +152,7 @@ interface FetchAgenticResponseParams {
 	fetchFn?: typeof fetch
 }
 
+// Parse the backend SSE stream line-by-line and fan each event out to the UI callbacks.
 function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
@@ -259,6 +260,7 @@ export async function fetchAgenticResponse({
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
 
+	// Only include optional request fields when they are explicitly enabled for this prompt.
 	const requestBody: {
 		message: string
 		stream: true
@@ -278,10 +280,12 @@ export async function fetchAgenticResponse({
 		requestBody.sessionId = sessionId
 	}
 
+	// Research mode is an opt-in backend feature, so only send the flag when enabled.
 	if (researchMode) {
 		requestBody.researchMode = true
 	}
 
+	// Timezone helps the backend answer scheduling/date questions in the user's local context.
 	try {
 		requestBody.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 	} catch {}
@@ -309,6 +313,7 @@ export async function fetchAgenticResponse({
 		signal: abortSignal
 	})
 
+	// Map backend usage-limit and concurrency responses into UI-specific error shapes.
 	if (!response.ok) {
 		const errorData = (await response.json().catch(() => null)) as AgenticErrorResponse | null
 		if (response.status === 403 && errorData?.code === 'FREE_QUESTION_LIMIT') {
@@ -336,6 +341,7 @@ export async function fetchAgenticResponse({
 	return parseSSEStream(response.body.getReader(), callbacks, abortSignal)
 }
 
+// Probe whether a restored session still has a live execution that needs to be resumed client-side.
 export async function checkActiveExecution(
 	sessionId: string,
 	fetchFn?: typeof fetch
@@ -350,6 +356,7 @@ export async function checkActiveExecution(
 	}
 }
 
+// Reattach the client to an existing server-side execution for a restored session.
 export async function resumeAgenticStream({
 	sessionId,
 	callbacks,

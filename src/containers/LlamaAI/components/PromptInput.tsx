@@ -23,6 +23,7 @@ import { InputTextarea } from './input/InputTextarea'
 import { ModeToggle, type ResearchUsage } from './input/ModeToggle'
 import { SubmitButton } from './input/SubmitButton'
 
+// Browser object URLs are only needed for local previews, so clean them up after use.
 function revokeImageUrls(images: Array<{ url: string }>) {
 	for (let i = 0; i < images.length; i++) {
 		URL.revokeObjectURL(images[i].url)
@@ -84,6 +85,7 @@ export function PromptInput({
 	const highlightRef = useRef<HTMLDivElement>(null)
 	const pendingSelectionRef = useRef<PendingSelection | null>(null)
 
+	// Route all programmatic prompt edits through one helper so caret restoration stays consistent.
 	const applyPromptEdit = useCallback(
 		({
 			nextValue,
@@ -126,6 +128,7 @@ export function PromptInput({
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
 	const sanitizedHighlightedHtml = highlightWord(value, Array.from(entityCombobox.entitiesRef.current))
 
+	// Resize the textarea and restore the intended selection after controlled prompt updates.
 	useLayoutEffect(() => {
 		const textarea = promptInputRef.current
 		if (!textarea) return
@@ -187,6 +190,7 @@ export function PromptInput({
 		entityCombobox.resetCombobox()
 	}
 
+	// Submit the prompt plus any selected entities/images, then clear the local composer state.
 	const submitForm = async (promptValue: string) => {
 		trackSubmit()
 		const finalEntities = entityCombobox.getFinalEntities()
@@ -222,6 +226,7 @@ export function PromptInput({
 		}
 	}
 
+	// Let the combobox own navigation keys first, then submit on Enter when no suggestion is active.
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		// First let entity combobox handle the event
 		entityCombobox.handleKeyDown(event)
@@ -235,21 +240,25 @@ export function PromptInput({
 		}
 	}
 
+	// Keep the mirrored highlight layer and combobox trigger detection in sync with textarea edits.
 	const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
 		applyPromptEdit({ nextValue: event.target.value })
 		entityCombobox.handleChange(event.target)
 	}
 
+	// Reposition the suggestion popover and highlighted overlay whenever the textarea scrolls.
 	const handleScroll = () => {
 		syncHighlightScroll(promptInputRef, highlightRef)
 		entityCombobox.handleScroll()
 	}
 
+	// Route native form submits through the same submit helper used by the Enter key path.
 	const handleFormSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		void submitForm(value)
 	}
 
+	// Clicking empty space inside the composer should still focus the textarea.
 	const handleFormPointerDown = (event: React.PointerEvent<HTMLFormElement>) => {
 		const target = event.target as HTMLElement
 		if (target.closest('button, textarea, input, [role="option"]')) return

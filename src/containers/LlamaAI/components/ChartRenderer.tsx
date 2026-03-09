@@ -75,6 +75,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 
 type TransformableChartType = Exclude<ChartConfiguration['type'], 'candlestick'>
 
+// Seed local chart controls from the backend-provided display defaults.
 function createInitialChartState(config: ChartConfiguration): ChartState {
 	return {
 		stacked: config.displayOptions?.defaultStacked || false,
@@ -86,12 +87,14 @@ function createInitialChartState(config: ChartConfiguration): ChartState {
 	}
 }
 
+// Titles are rendered by the chart shell, so remove adapter-level titles before passing props down.
 function removeAdaptedChartTitle(adaptedChart: any) {
 	if (!adaptedChart.props) return adaptedChart
 	const { title: _title, ...restProps } = adaptedChart.props
 	return { ...adaptedChart, props: restProps }
 }
 
+// Apply client-side controls like grouping, stacking, and percentage mode on top of adapted chart data.
 function applyChartStateToAdaptedChart(config: ChartConfiguration, adaptedChart: any, chartState: ChartState) {
 	if (config.type === 'pie' && chartState.percentage) {
 		const pieData = adaptedChart.props?.chartData || []
@@ -186,6 +189,7 @@ function applyChartStateToAdaptedChart(config: ChartConfiguration, adaptedChart:
 	}
 }
 
+// Export the currently rendered chart view rather than the untouched backend dataset.
 function prepareChartCsv(config: ChartConfiguration, adaptedChart: any) {
 	const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
 	const isTimeSeries = config.axes.x.type === 'time'
@@ -248,6 +252,7 @@ function prepareChartCsv(config: ChartConfiguration, adaptedChart: any) {
 	return { filename, rows: [] }
 }
 
+// Pick the concrete chart component that matches the normalized adapted chart payload.
 function renderChartContent(config: ChartConfiguration, adaptedChart: any, chartState: ChartState, chartKey: string) {
 	switch (adaptedChart.chartType) {
 		case 'bar': {
@@ -362,6 +367,7 @@ function renderChartContent(config: ChartConfiguration, adaptedChart: any, chart
 	}
 }
 
+// Build the render payload once so controls, chart content, and CSV export stay in sync.
 function buildChartPresentation(
 	config: ChartConfiguration,
 	data: any[],
@@ -405,6 +411,7 @@ function buildChartPresentation(
 	}
 }
 
+// Render one chart plus the local controls that transform its presentation client-side.
 function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
@@ -504,6 +511,7 @@ const ChartErrorPlaceholder = () => (
 	</div>
 )
 
+// Thin wrapper so the memoized implementation can keep a simple export signature.
 export function ChartRenderer({
 	charts,
 	chartData,
@@ -521,6 +529,7 @@ export function ChartRenderer({
 	)
 }
 
+// Memoized chart renderer coordinates tab state, resize handling, and loading/error placeholders.
 function ChartRendererImpl({
 	charts,
 	chartData,
@@ -534,6 +543,7 @@ function ChartRendererImpl({
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
+	// Watch container width changes and broadcast a resize event for the underlying chart libraries.
 	useEffect(() => {
 		const el = containerRef.current
 		if (!el) return
@@ -553,6 +563,7 @@ function ChartRendererImpl({
 		}
 	}, [])
 
+	// Some parent layout changes are signaled explicitly via `resizeTrigger`, so rebroadcast those too.
 	useEffect(() => {
 		if (resizeTrigger > 0) {
 			const timer = setTimeout(() => {

@@ -69,6 +69,7 @@ export type StreamAction =
 	| { type: 'SET_SPAWN_START_TIME'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
 
+// Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
 	isStreaming: false,
 	isCompacting: false,
@@ -84,6 +85,7 @@ const createEmptyRuntimeState = () => ({
 	spawnStartTime: 0
 })
 
+// Full stream state starts from the empty runtime snapshot plus error/retry metadata.
 export const createInitialStreamState = (): StreamState => ({
 	...createEmptyRuntimeState(),
 	error: null,
@@ -91,6 +93,7 @@ export const createInitialStreamState = (): StreamState => ({
 	rateLimitDetails: null
 })
 
+// Keep a mutable buffer while SSE events arrive, then commit it as one assistant message at the end.
 export const createStreamBuffer = (): StreamBuffer => ({
 	text: '',
 	charts: [],
@@ -103,6 +106,7 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	spawnStarted: false
 })
 
+// Drive the live streaming UI without mutating message history until the request is complete.
 export function streamReducer(state: StreamState, action: StreamAction): StreamState {
 	switch (action.type) {
 		case 'START_STREAM':
@@ -163,6 +167,7 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 	}
 }
 
+// Convert the buffered stream payload into the same message shape used for restored history.
 export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string): Message {
 	return {
 		role: 'assistant',

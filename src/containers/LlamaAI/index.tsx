@@ -121,6 +121,7 @@ interface UsageLimitError extends Error {
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
 
+// Normalize older persisted tool payloads that may still use `toolName`.
 function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 	return {
 		...tool,
@@ -128,6 +129,7 @@ function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
 	}
 }
 
+// Convert a persisted API message into the UI message shape used by the chat view.
 function mapPersistedMessage(message: PersistedMessage): Message {
 	return {
 		role: message.role,
@@ -144,11 +146,13 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 	}
 }
 
+// Map an entire persisted message list into renderable chat messages.
 function mapPersistedMessages(messages: PersistedMessage[] | undefined): Message[] {
 	if (!messages || messages.length === 0) return []
 	return messages.map(mapPersistedMessage)
 }
 
+// Capture the current scroll height so older messages can be prepended without jumping the viewport.
 function getScrollSnapshot(container: HTMLDivElement | null) {
 	return {
 		container,
@@ -156,17 +160,20 @@ function getScrollSnapshot(container: HTMLDivElement | null) {
 	}
 }
 
+// Wait for the next paint before measuring or restoring scroll positions.
 function waitForNextPaint() {
 	return new Promise<void>((resolve) => {
 		requestAnimationFrame(() => resolve())
 	})
 }
 
+// Restore the user's relative scroll position after older messages are added above.
 function restoreScrollPosition(snapshot: { container: HTMLDivElement | null; prevScrollHeight: number }) {
 	if (!snapshot.container) return
 	snapshot.container.scrollTop = snapshot.container.scrollHeight - snapshot.prevScrollHeight
 }
 
+// Keep pagination state shape consistent across restore and load-more responses.
 function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: number | null } | undefined): {
 	hasMore: boolean
 	cursor: number | null
@@ -179,6 +186,7 @@ function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: numb
 	}
 }
 
+// Shared/public sessions use a slightly different payload shape, so normalize them separately.
 function mapSharedSessionMessage(message: SharedSessionMessage): Message {
 	return {
 		role: message.role,
@@ -207,6 +215,7 @@ interface AgenticChatProps {
 	readOnly?: boolean
 }
 
+// Rebuild alert artifacts from persisted assistant metadata when restoring a session.
 function buildRestoredAlert(message: PersistedMessage): AlertProposedData[] | undefined {
 	if (!message.metadata?.alertIntent) return undefined
 
@@ -226,12 +235,14 @@ function buildRestoredAlert(message: PersistedMessage): AlertProposedData[] | un
 	]
 }
 
+// Consume the current streamed message id once the buffered assistant message is committed.
 function takeCurrentMessageId(ref: MutableRefObject<string | null>) {
 	const messageId = ref.current || undefined
 	ref.current = null
 	return messageId
 }
 
+// Shared session chart data may arrive as a flat array; remap it to the keyed shape the renderer expects.
 function normalizeSharedChartDataByChartId(
 	charts: ChartConfiguration[] | undefined,
 	chartData: SharedSessionMessage['chartData']
@@ -245,6 +256,7 @@ function normalizeSharedChartDataByChartId(
 	}
 }
 
+// Commit the in-memory streamed assistant payload only if anything meaningful was actually received.
 function appendBufferedAssistantMessage(
 	buffer: StreamBuffer,
 	currentMessageIdRef: MutableRefObject<string | null>,
@@ -267,6 +279,7 @@ function appendBufferedAssistantMessage(
 	appendMessage(buildAssistantMessage(buffer, takeCurrentMessageId(currentMessageIdRef)))
 }
 
+// Start tracking a new async request and mark it as the only request allowed to update UI state.
 function beginRequest(
 	activeRequestIdRef: MutableRefObject<number>,
 	activeRequestKindRef: MutableRefObject<RequestKind>,
@@ -281,10 +294,12 @@ function beginRequest(
 	return requestId
 }
 
+// Request callbacks use this guard to ignore stale async completions.
 function isActiveRequest(activeRequestIdRef: MutableRefObject<number>, requestId: number) {
 	return activeRequestIdRef.current === requestId
 }
 
+// Clear request bookkeeping once the current request fully settles.
 function completeRequest(
 	activeRequestIdRef: MutableRefObject<number>,
 	activeRequestKindRef: MutableRefObject<RequestKind>,
@@ -302,6 +317,7 @@ type RequestSettleState = {
 	resolve: () => void
 } | null
 
+// Create a promise that lets abort paths wait for the active request to finish its cleanup work.
 function createRequestSettleState(requestId: number): Exclude<RequestSettleState, null> {
 	let resolve = () => {}
 	const promise = new Promise<void>((done) => {
@@ -310,6 +326,7 @@ function createRequestSettleState(requestId: number): Exclude<RequestSettleState
 	return { requestId, promise, resolve }
 }
 
+// Build one callback bundle shared by live prompt submits and resumed server-side streams.
 function createAgenticCallbacks({
 	requestId,
 	activeRequestIdRef,
@@ -430,6 +447,7 @@ function createAgenticCallbacks({
 
 export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
 	const authorizedFetchStrict = useCallback<typeof fetch>(
 		async (input, init) => {
 			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
@@ -515,6 +533,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		rateLimitDetails
 	} = streamState
 
+	// Scroll the conversation viewport to the latest content and re-enable auto-follow mode.
 	const scrollToBottom = useCallback(() => {
 		if (scrollContainerRef.current) {
 			scrollContainerRef.current.scrollTo({
@@ -562,10 +581,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingToolExecutions
 	])
 
+	// Keep a ref copy of pagination state so the scroll listener can stay stable.
 	useEffect(() => {
 		paginationRef.current = paginationState
 	}, [paginationState])
 
+	// Hydrate per-user settings once auth is ready.
 	useEffect(() => {
 		if (!user) return
 		authorizedFetchStrict(`${MCP_SERVER}/user-settings`)
@@ -584,6 +605,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			.catch(() => {})
 	}, [user, authorizedFetchStrict])
 
+	// While streaming, keep the viewport pinned unless the user explicitly scrolled away from the bottom.
 	useEffect(() => {
 		if (!isStreaming) {
 			const timer = setTimeout(() => {
@@ -609,12 +631,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		return () => clearInterval(interval)
 	}, [isStreaming])
 
+	// Snap to the latest message when new content is appended and auto-scroll is still enabled.
 	useEffect(() => {
 		if (shouldAutoScrollRef.current && scrollContainerRef.current) {
 			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 		}
 	}, [effectiveMessages])
 
+	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || isStreaming) return
 
@@ -655,10 +679,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 	}, [sessionId, paginationState, loadMoreMessages, isStreaming])
 
+	// Expose the load-more callback through a stable event wrapper for the scroll listener.
 	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
 		void handleLoadMoreMessages()
 	})
 
+	// Manage user-driven scrolling, auto-scroll opt-out, the scroll-to-bottom affordance, and top pagination.
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
@@ -705,15 +731,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		}
 	}, [hasMessages])
 
+	// Trigger the sidebar open/close animation before toggling visibility.
 	const handleSidebarToggle = useCallback(() => {
 		setShouldAnimateSidebar(true)
 		toggleSidebar()
 	}, [toggleSidebar])
 
+	// Append one message to the live conversation state.
 	const appendMessage = useCallback((message: Message) => {
 		setMessages((prev) => [...prev, message])
 	}, [])
 
+	// Abort the active request and wait for its cleanup path to finish before starting another one.
 	const abortActiveRequest = useCallback(async () => {
 		const controller = abortControllerRef.current
 		const requestId = activeRequestIdRef.current
@@ -732,6 +761,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		activeRequestSettleRef.current = null
 	}, [])
 
+	// Reset transient streaming and error state without touching the actual message history.
 	const clearConversationRuntimeState = useCallback(() => {
 		setViewError(null)
 		setPaginationError(null)
@@ -741,6 +771,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
 	}, [])
 
+	// Start a brand-new chat, or route away from a session page back to the base chat route.
 	const handleNewChat = useCallback(async () => {
 		if (initialSessionId) {
 			void Router.push('/ai/chat', undefined, { shallow: true })
@@ -759,6 +790,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		promptInputRef.current?.focus()
 	}, [initialSessionId, abortActiveRequest, clearConversationRuntimeState])
 
+	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
 		async (selectedSessionId: string) => {
 			if (selectedSessionId === restoredSessionIdRef.current && selectedSessionId === sessionId) return
@@ -887,6 +919,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		]
 	)
 
+	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
 	const handleSubmit = useCallback(
 		(
 			prompt: string,
@@ -1049,11 +1082,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		]
 	)
 
+	// Stop the active streamed response while preserving already-buffered output.
 	const handleStopRequest = useCallback(() => {
 		void abortActiveRequest()
 		dispatchStream({ type: 'RESET_STREAM' })
 	}, [abortActiveRequest])
 
+	// Reuse the same submit path for assistant action buttons.
 	const handleActionClick = useCallback(
 		(message: string) => {
 			if (!isStreaming) handleSubmit(message)
@@ -1061,12 +1096,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[isStreaming, handleSubmit]
 	)
 
+	// Retry the last failed prompt submission with the same prompt, images, and page context.
 	const handleRetryLastFailedPrompt = useCallback(() => {
 		if (!lastFailedRequest) return
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		handleSubmit(lastFailedRequest.prompt, undefined, lastFailedRequest.images, lastFailedRequest.pageContext)
 	}, [lastFailedRequest, handleSubmit])
 
+	// Consume pending prompts injected by the floating button once the base chat page mounts.
 	const submitPendingPromptEvent = useEffectEvent(
 		(
 			prompt: string,
@@ -1077,6 +1114,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		}
 	)
 
+	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
 	useEffect(() => {
 		if (initialSessionId || sharedSession) return
 		const pendingPrompt = consumePendingPrompt()
@@ -1087,10 +1125,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		}
 	}, [initialSessionId, sharedSession])
 
+	// Mirror route param updates into a ref so the restore effect can consume them once.
 	useEffect(() => {
 		pendingInitialSessionIdRef.current = initialSessionId
 	}, [initialSessionId])
 
+	// Restore the requested session as soon as the routed session id becomes available.
 	useEffect(() => {
 		const nextSessionId = pendingInitialSessionIdRef.current
 		if (!nextSessionId) return
@@ -1100,6 +1140,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		void handleSessionSelect(nextSessionId)
 	}, [initialSessionId, handleSessionSelect])
 
+	// Shared/public sessions are read-only snapshots, so they should never create a fake local session.
 	useEffect(() => {
 		if (!sharedSession) return
 		isFirstMessageRef.current = false

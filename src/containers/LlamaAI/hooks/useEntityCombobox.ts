@@ -31,16 +31,19 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 
 	const hasMatches = !!matches && matches.length > 0
 
+	// Re-render Ariakit's popover positioning whenever the combobox state changes.
 	useEffect(() => {
 		combobox.render()
 	}, [combobox])
 
+	// Always hide the popover on unmount so stale UI never lingers across route changes.
 	useEffect(() => {
 		return () => {
 			combobox.hide()
 		}
 	}, [combobox])
 
+	// Keep the popover above or below the textarea depending on the available viewport space.
 	const updatePlacement = useCallback(
 		(textarea: HTMLTextAreaElement) => {
 			const nextPlacement = calculateComboboxPlacement(textarea, getAnchorRect)
@@ -51,6 +54,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		[combobox]
 	)
 
+	// Detect whether the caret is inside an entity trigger and update search / popover visibility together.
 	const runTriggerDetection = useCallback(
 		(textarea: HTMLTextAreaElement) => {
 			const triggerState = detectTrigger(textarea)
@@ -74,6 +78,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		[updatePlacement, combobox]
 	)
 
+	// Recalculate the anchor position when the textarea scrolls.
 	const handleScroll = () => {
 		const textarea = promptInputRef.current
 		if (textarea) {
@@ -82,6 +87,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		combobox.render()
 	}
 
+	// Skip trigger detection during IME composition so partially-composed text is not treated as a search.
 	const handleChange = (textarea: HTMLTextAreaElement) => {
 		// Skip trigger detection during IME composition (Japanese/Chinese/Korean input)
 		if (isComposingRef.current) {
@@ -91,6 +97,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		runTriggerDetection(textarea)
 	}
 
+	// Own keyboard behavior for entity deletion and tab-complete while the combobox is active.
 	const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		const textarea = promptInputRef.current
 		if (!textarea) return
@@ -147,6 +154,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		}
 	}
 
+	// Replace the active trigger token with the chosen entity label and keep metadata for later submission.
 	const selectEntity = ({ id, name, type }: EntityData) => {
 		const textarea = promptInputRef.current
 		if (!textarea) return
@@ -172,6 +180,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		})
 	}
 
+	// Convert the current entity set back into the prompt payload expected by submit handlers.
 	const getFinalEntities = () => {
 		return Array.from(entitiesRef.current)
 			.map((name) => {
@@ -188,6 +197,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		}>
 	}
 
+	// Restore entity metadata after a failed prompt is retried back into the input.
 	const restoreEntities = useCallback((entities?: Array<{ term: string; slug: string }>) => {
 		entitiesRef.current.clear()
 		entitiesMapRef.current.clear()
@@ -200,6 +210,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		setEntityVersion((version) => version + 1)
 	}, [])
 
+	// Fully clear combobox UI plus cached entity metadata when the input is reset.
 	const resetCombobox = useCallback(() => {
 		startTransition(() => setSearchTerm(''))
 		combobox.hide()
@@ -213,6 +224,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		isComposingRef.current = true
 	}
 
+	// Re-run trigger detection once IME composition commits the final text into the textarea.
 	const handleCompositionEnd = useCallback(() => {
 		isComposingRef.current = false
 		const textarea = promptInputRef.current
@@ -223,6 +235,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 
 	const hasRenderedItems = combobox.getState().renderedItems.length > 0
 
+	// Clear the current combobox search without touching already-selected entities.
 	const clearSearch = useCallback(() => {
 		startTransition(() => setSearchTerm(''))
 		combobox.hide()
