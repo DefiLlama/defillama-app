@@ -608,6 +608,11 @@ const nextConfig: NextConfig = {
 				source: '/protocol/mexc',
 				destination: '/cex/mexc',
 				permanent: true
+			},
+			{
+				source: '/category/RWA',
+				destination: '/rwa',
+				permanent: true
 			}
 		]
 	},
