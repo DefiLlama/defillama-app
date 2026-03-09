@@ -1163,7 +1163,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 						{!readOnly ? (
 							<div className="relative mx-auto w-full max-w-3xl pb-2.5">
-								<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+								<div className="absolute -top-8 right-0 left-0 h-9 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
 								<PromptInput
 									handleSubmit={handleSubmit}
 									promptInputRef={promptInputRef}
@@ -1398,7 +1398,7 @@ function ActionButtonGroup({
 												}
 											}
 										})}
-								className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/[0.03] px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/[0.08] active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/[0.03] dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/[0.08]"
+								className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/3 px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/8 active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/3 dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/8"
 							>
 								{action.label}
 								<svg
@@ -1459,7 +1459,7 @@ function ActionButtonGroup({
 							className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 ${
 								!isClicked
 									? onActionClick
-										? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/[0.06] active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/[0.06]'
+										? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/6 active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/6'
 										: 'border-[#e6e6e6] text-[#999] dark:border-[#333] dark:text-[#666]'
 									: clicked === action.message
 										? 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
@@ -1475,7 +1475,7 @@ function ActionButtonGroup({
 	}
 
 	return (
-		<div className="flex flex-wrap items-center gap-2 pt-1">
+		<div className="flex flex-wrap items-center gap-2">
 			{resolvedActions.map((action, j) => {
 				const isUrl = action.message.startsWith('url:')
 
@@ -1495,7 +1495,7 @@ function ActionButtonGroup({
 											}
 										}
 									})}
-							className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/10 bg-[#2172e5]/[0.04] px-3 py-1.5 text-xs font-medium text-[#2172e5]/55 transition-all duration-150 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/[0.08] hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/[0.05] dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/[0.10] dark:hover:text-[#4190f7]/75"
+							className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/10 bg-[#2172e5]/4 px-3 py-1.5 text-xs font-medium text-[#2172e5]/55 transition-all duration-150 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75"
 						>
 							{action.label}
 							<svg
@@ -1530,11 +1530,11 @@ function ActionButtonGroup({
 						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
 							!isClicked
 								? onActionClick
-									? 'border-[#2172e5]/10 bg-[#2172e5]/[0.04] text-[#2172e5]/55 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/[0.08] hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/[0.05] dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/[0.10] dark:hover:text-[#4190f7]/75'
-									: 'border-[#2172e5]/5 bg-[#2172e5]/[0.02] text-[#2172e5]/30 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/[0.02] dark:text-[#4190f7]/25'
+									? 'border-[#2172e5]/10 bg-[#2172e5]/4 text-[#2172e5]/55 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
+									: 'border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/30 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/25'
 								: clicked === action.message
-									? 'border-[#2172e5]/25 bg-[#2172e5]/[0.08] text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/[0.08] dark:text-[#4190f7]/70'
-									: 'pointer-events-none border-[#2172e5]/5 bg-[#2172e5]/[0.02] text-[#2172e5]/20 opacity-50 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/[0.02] dark:text-[#4190f7]/15'
+									? 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
+									: 'pointer-events-none border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/20 opacity-50 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/15'
 						}`}
 					>
 						{action.label}
@@ -1738,17 +1738,24 @@ function InlineContent({
 }
 
 function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[] }) {
-	const [isExpanded, setIsExpanded] = useState(false)
 	const totalTime = toolExecutions.reduce((sum, t) => sum + t.executionTimeMs, 0)
 	const successCount = toolExecutions.filter((t) => t.success).length
+	const detailsRef = useRef<HTMLDetailsElement>(null)
+	const contentRef = useRef<HTMLDivElement>(null)
 
 	return (
-		<div className="mt-1 rounded-lg border border-[#e6e6e6] bg-[var(--cards-bg)] dark:border-[#222324]">
-			<button
-				type="button"
-				onClick={() => setIsExpanded(!isExpanded)}
-				className="flex w-full items-center gap-2 px-3 py-2 text-left"
-			>
+		<details
+			ref={detailsRef}
+			className="group rounded-lg border border-[#e6e6e6] bg-(--cards-bg) dark:border-[#222324]"
+			onToggle={() => {
+				if (!detailsRef.current?.open) return
+
+				requestAnimationFrame(() => {
+					contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+				})
+			}}
+		>
+			<summary className="flex w-full items-center gap-2 px-3 py-2 text-left">
 				<svg
 					width="12"
 					height="12"
@@ -1756,7 +1763,7 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 					fill="none"
 					stroke="currentColor"
 					strokeWidth="2"
-					className={`shrink-0 text-[#999] transition-transform dark:text-[#666] ${isExpanded ? 'rotate-90' : ''}`}
+					className="shrink-0 text-[#999] transition-transform group-open:rotate-90 dark:text-[#666]"
 				>
 					<path d="M9 18l6-6-6-6" />
 				</svg>
@@ -1767,15 +1774,13 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 					{successCount}/{toolExecutions.length} ok
 				</span>
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">{totalTime}ms</span>
-			</button>
-			{isExpanded ? (
-				<div className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 dark:border-[#222324]">
-					{toolExecutions.map((exec, i) => (
-						<ToolExecutionRow key={i} execution={exec} />
-					))}
-				</div>
-			) : null}
-		</div>
+			</summary>
+			<div ref={contentRef} className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 dark:border-[#222324]">
+				{toolExecutions.map((exec, i) => (
+					<ToolExecutionRow key={i} execution={exec} />
+				))}
+			</div>
+		</details>
 	)
 }
 
@@ -1985,36 +1990,29 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 }
 
 function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
-	const [isOpen, setIsOpen] = useState(defaultOpen)
 	const contentRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		if (isOpen && contentRef.current) {
+		if (contentRef.current) {
 			contentRef.current.scrollTop = contentRef.current.scrollHeight
 		}
-	}, [thinking, isOpen])
+	}, [thinking])
 
 	if (!thinking) return null
 
 	return (
-		<div>
-			<button
-				type="button"
-				onClick={() => setIsOpen((v) => !v)}
-				className="flex items-center gap-1 text-[11px] text-[#555] dark:text-[#aaa]"
-			>
-				<span className={`inline-block transition-transform duration-150 ${isOpen ? 'rotate-90' : ''}`}>&#9656;</span>
+		<details className="group" open={defaultOpen}>
+			<summary className="flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]">
+				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
 				<span>Reasoning</span>
-			</button>
-			{isOpen ? (
-				<div
-					ref={contentRef}
-					className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-[11px] leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
-				>
-					{thinking}
-				</div>
-			) : null}
-		</div>
+			</summary>
+			<div
+				ref={contentRef}
+				className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
+			>
+				{thinking}
+			</div>
+		</details>
 	)
 }
 
@@ -2118,7 +2116,7 @@ function MessageBubble({
 
 	if (message.role === 'user') {
 		return (
-			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 break-words dark:bg-[#222425]">
+			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]">
 				{message.images && message.images.length > 0 ? (
 					<div className="mb-2.5 flex flex-wrap gap-3">
 						{message.images.map((img) => (
@@ -2142,7 +2140,7 @@ function MessageBubble({
 	const chartList = message.charts?.flatMap((set) => set.charts.map((c) => ({ id: c.id, title: c.title }))) ?? []
 
 	return (
-		<div>
+		<>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				text={message.content || ''}
@@ -2168,6 +2166,6 @@ function MessageBubble({
 					charts={chartList}
 				/>
 			) : null}
-		</div>
+		</>
 	)
 }
