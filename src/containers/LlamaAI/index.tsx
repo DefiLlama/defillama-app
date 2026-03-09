@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
-import { memo, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
@@ -20,6 +20,10 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
 import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import type { AlertProposedData, ChartSet, Message, SpawnAgentStatus, ToolCall, ToolExecution } from './types'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 
 function mapPersistedMessage(message: any): Message {
 	return {
@@ -148,6 +152,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const { notify, requestPermission } = useStreamNotification()
 	const alertsModalStore = Ariakit.useDialogStore()
 	const settingsModalStore = Ariakit.useDialogStore()
+	const subscribeModalStore = Ariakit.useDialogStore()
+	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
 
 	const [messages, setMessages] = useState<Message[]>([])
 	const [sessionId, setSessionId] = useState<string | null>(null)
@@ -842,6 +848,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						setIsStreaming(false)
 						return
 					}
+					if (err?.code === 'FREE_QUESTION_LIMIT') {
+						if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
+						subscribeModalStore.show()
+						setIsStreaming(false)
+						return
+					}
 					if (err?.code === 'USAGE_LIMIT_EXCEEDED') {
 						setRateLimitDetails({
 							period: err.details?.period || 'lifetime',
@@ -892,6 +904,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			updateSessionTitle,
 			moveSessionToTop,
 			researchModalStore,
+			subscribeModalStore,
+			shouldRenderSubscribeModal,
 			requestPermission,
 			notify,
 			customInstructions
@@ -1055,6 +1069,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				/>
 			) : null}
 			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
+			{shouldRenderSubscribeModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 			{!readOnly ? (
 				<SettingsModal
 					dialogStore={settingsModalStore}

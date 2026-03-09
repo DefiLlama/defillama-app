@@ -11,18 +11,19 @@ export async function fetchEntityQuestions(
 	context?: Record<string, any>
 ): Promise<EntityQuestionsResponse> {
 	try {
+		let data: EntityQuestionsResponse
 		if (context) {
-			const res = await fetchJson<EntityQuestionsResponse>(`${MCP_SERVER}/suggested-questions`, {
+			data = await fetchJson<EntityQuestionsResponse>(`${MCP_SERVER}/suggested-questions`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ entity: entitySlug, entityType, context })
 			})
-			return res
+		} else {
+			data = await fetchJson<EntityQuestionsResponse>(
+				`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
+			)
 		}
-		const data = await fetchJson<EntityQuestionsResponse>(
-			`${MCP_SERVER}/suggested-questions?entity=${encodeURIComponent(entitySlug)}&entityType=${encodeURIComponent(entityType)}`
-		)
-		return data
+		return { questions: data.questions ?? [], suggestGlobal: data.suggestGlobal ?? false }
 	} catch {
 		return { questions: [], suggestGlobal: false }
 	}

@@ -193,6 +193,12 @@ export async function fetchAgenticResponse({
 
 	if (!response.ok) {
 		const errorData = await response.json().catch(() => null)
+		if (response.status === 403 && errorData?.code === 'FREE_QUESTION_LIMIT') {
+			const err: any = new Error(errorData.content || 'Upgrade required')
+			err.code = 'FREE_QUESTION_LIMIT'
+			err.upgradeUrl = errorData.upgradeUrl
+			throw err
+		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {
 			const err: any = new Error(errorData.content || 'Usage limit exceeded')
 			err.code = 'USAGE_LIMIT_EXCEEDED'

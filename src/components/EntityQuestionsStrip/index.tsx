@@ -32,7 +32,7 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 			page: router.asPath,
 			hasSub: isAuthenticated && hasActiveSubscription
 		})
-		if (!loaders.userLoading && isAuthenticated && hasActiveSubscription) {
+		if (!loaders.userLoading && isAuthenticated) {
 			setPendingPrompt(question)
 			setPendingPageContext({
 				entitySlug,

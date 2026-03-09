@@ -1,7 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
-import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { AgenticChat } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -23,9 +21,8 @@ export const getStaticProps = withPerformanceLogging('LlamaAi', () => {
 
 export default function LlamaAIPage() {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const router = useRouter()
 	const isClient = useIsClient()
-	const { user, loaders, hasActiveSubscription } = useAuthContext()
+	const { user, loaders } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 
 	if (!isClient || loaders.userLoading) {
@@ -70,25 +67,6 @@ export default function LlamaAIPage() {
 						<SubscribeProModal dialogStore={subscribeModalStore} />
 					</Suspense>
 				) : null}
-			</Layout>
-		)
-	}
-
-	if (!hasActiveSubscription) {
-		return (
-			<Layout
-				title="LlamaAI - DefiLlama"
-				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-			>
-				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<p className="flex items-center gap-1 text-center">
-						Please{' '}
-						<BasicLink href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`} className="underline">
-							subscribe
-						</BasicLink>{' '}
-						to access this page.
-					</p>
-				</div>
 			</Layout>
 		)
 	}
