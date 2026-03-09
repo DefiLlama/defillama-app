@@ -8,6 +8,9 @@ import { toFilterPool } from './utils'
 
 interface IChartProps {
 	chartData: any
+	title?: string
+	xAxisLabel?: string
+	yAxisLabel?: string
 }
 
 interface ITreemapProps {
@@ -248,7 +251,7 @@ export const PlotsPage = ({
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
 				<div className="relative rounded-md bg-(--cards-bg) p-3">
-					<ScatterChart chartData={nonOutlierPoolsData} />
+					<ScatterChart chartData={nonOutlierPoolsData} title="APY Average vs Volatility" xAxisLabel="APY Standard Deviation" yAxisLabel="APY Geometric Average" />
 				</div>
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
