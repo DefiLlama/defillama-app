@@ -1107,8 +1107,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	if (!user && !readOnly) {
 		return (
-			<div className="flex flex-1 items-center justify-center">
-				<p className="text-sm text-[#666] dark:text-[#919296]">Please log in to use LlamaAI</p>
+			<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+				<p className="flex items-center gap-1 text-center">
+					Please{' '}
+					<button
+						onClick={() => {
+							if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
+							subscribeModalStore.show()
+						}}
+						className="underline"
+					>
+						log in
+					</button>{' '}
+					to use LlamaAI.
+				</p>
 			</div>
 		)
 	}
