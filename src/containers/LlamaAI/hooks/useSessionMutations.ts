@@ -5,6 +5,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
 import type { ChatSession } from '../types'
+import { assertResponse } from '../utils/assertResponse'
 import { SESSIONS_QUERY_KEY, type SessionListData } from './useSessionList'
 
 export function useSessionMutations() {
@@ -19,6 +20,7 @@ export function useSessionMutations() {
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ sessionId, title })
 				})
+					.then((res) => assertResponse(res, 'Failed to create session'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
@@ -42,6 +44,7 @@ export function useSessionMutations() {
 
 				const url = `${MCP_SERVER}/user/sessions/${sessionId}/restore${params.toString() ? `?${params}` : ''}`
 				const response = await authorizedFetch(url)
+					.then((res) => assertResponse(res, 'Failed to restore session'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
@@ -59,6 +62,7 @@ export function useSessionMutations() {
 				const response = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}`, {
 					method: 'DELETE'
 				})
+					.then((res) => assertResponse(res, 'Failed to delete session'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
@@ -105,6 +109,7 @@ export function useSessionMutations() {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ title })
 			})
+				.then((res) => assertResponse(res, 'Failed to update session title'))
 				.then(handleSimpleFetchResponse)
 				.then((res) => res.json())
 
@@ -183,13 +188,7 @@ export function useSessionMutations() {
 				}
 			} catch (error) {
 				console.error('[llama-ai] [restoreSession] failed:', getErrorMessage(error))
-				return {
-					messages: [],
-					pagination: {
-						hasMore: false,
-						isLoadingMore: false
-					}
-				}
+				throw error instanceof Error ? error : new Error('Failed to restore session')
 			}
 		},
 		[restoreSessionMutation]
@@ -210,13 +209,7 @@ export function useSessionMutations() {
 				}
 			} catch (error) {
 				console.error('[llama-ai] [loadMoreMessages] failed:', getErrorMessage(error))
-				return {
-					messages: [],
-					pagination: {
-						hasMore: false,
-						isLoadingMore: false
-					}
-				}
+				throw new Error('Failed to load older messages')
 			}
 		},
 		[restoreSessionMutation]

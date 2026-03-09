@@ -578,7 +578,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							{Array.from({ length: 24 }, (_, i) => (
-								<option key={`${timezone}-${i}`} value={i} disabled={blockedHours.includes(i)}>
+								<option key={`hour-${i}`} value={i} disabled={blockedHours.includes(i)}>
 									{i.toString().padStart(2, '0')}:00{blockedHours.includes(i) ? ' (blocked)' : ''}
 								</option>
 							))}

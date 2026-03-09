@@ -73,15 +73,340 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
-	const [chartState, dispatch] = useReducer(chartReducer, {
+type TransformableChartType = Exclude<ChartConfiguration['type'], 'candlestick'>
+
+function createInitialChartState(config: ChartConfiguration): ChartState {
+	return {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
 		cumulative: false,
-		grouping: 'day' as const,
+		grouping: 'day',
 		showHallmarks: true,
 		showLabels: config.displayOptions?.showLabels || false
-	})
+	}
+}
+
+function removeAdaptedChartTitle(adaptedChart: any) {
+	if (!adaptedChart.props) return adaptedChart
+	const { title: _title, ...restProps } = adaptedChart.props
+	return { ...adaptedChart, props: restProps }
+}
+
+function applyChartStateToAdaptedChart(config: ChartConfiguration, adaptedChart: any, chartState: ChartState) {
+	if (config.type === 'pie' && chartState.percentage) {
+		const pieData = adaptedChart.props?.chartData || []
+		const total = pieData.reduce((sum: number, item: { value: number }) => sum + item.value, 0)
+		const percentageData = pieData.map((item: { value: number }) => ({
+			...item,
+			value: total > 0 ? (item.value / total) * 100 : 0
+		}))
+		adaptedChart = {
+			...adaptedChart,
+			props: {
+				...adaptedChart.props,
+				chartData: percentageData,
+				valueSymbol: '%'
+			}
+		}
+	}
+
+	const isMultiSeries = adaptedChart.chartType === 'multi-series'
+	const shouldTransform =
+		isMultiSeries &&
+		(chartState.stacked || chartState.percentage || chartState.cumulative || chartState.grouping !== 'day')
+
+	if (shouldTransform) {
+		let transformedSeries = adaptedChart.props?.series || []
+		const chartType = config.type as TransformableChartType
+
+		if (chartState.grouping !== 'day' && config.displayOptions?.supportsGrouping) {
+			transformedSeries = ChartDataTransformer.groupByInterval(transformedSeries, chartState.grouping, chartType)
+		}
+
+		if (chartState.cumulative && config.displayOptions?.canShowCumulative) {
+			transformedSeries = ChartDataTransformer.applyCumulativeToSeries(transformedSeries)
+		}
+
+		if (chartState.stacked && config.displayOptions?.canStack && !chartState.percentage) {
+			transformedSeries = ChartDataTransformer.toStacked(transformedSeries, chartType)
+		}
+
+		if (chartState.percentage && config.displayOptions?.canShowPercentage) {
+			transformedSeries = ChartDataTransformer.toPercentage(transformedSeries, chartState.stacked)
+		}
+
+		adaptedChart = {
+			...adaptedChart,
+			props: {
+				...adaptedChart.props,
+				series: transformedSeries,
+				groupBy:
+					chartState.grouping === 'week'
+						? 'weekly'
+						: chartState.grouping === 'month'
+							? 'monthly'
+							: chartState.grouping === 'quarter'
+								? 'quarterly'
+								: 'daily'
+			}
+		}
+	}
+
+	const valueSymbol = chartState.percentage
+		? '%'
+		: config.valueSymbol || (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : undefined) || '$'
+
+	return {
+		...adaptedChart,
+		props: {
+			...adaptedChart.props,
+			valueSymbol,
+			...(!chartState.showHallmarks && { hallmarks: undefined }),
+			...(chartState.percentage && {
+				chartOptions: {
+					yAxis: {
+						max: 100,
+						min: 0,
+						axisLabel: {
+							formatter: '{value}%'
+						}
+					},
+					grid: {
+						top: 24,
+						right: 12,
+						bottom: 68,
+						left: 12
+					},
+					tooltip: {
+						valueFormatter: (value: number) => value.toFixed(2) + '%'
+					}
+				}
+			})
+		}
+	}
+}
+
+function prepareChartCsv(config: ChartConfiguration, adaptedChart: any) {
+	const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
+	const isTimeSeries = config.axes.x.type === 'time'
+	const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
+	const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
+
+	if (adaptedChart.chartType === 'multi-series') {
+		const seriesNames = adaptedChart.props.series.map((series: { name: string }) => series.name)
+		const rows: Array<Array<string | number | boolean>> = [
+			isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
+		]
+		const valuesByKey: Record<string | number, Record<string, number>> = {}
+		for (const series of adaptedChart.props.series ?? []) {
+			for (const [key, value] of series.data ?? []) {
+				valuesByKey[key] = valuesByKey[key] || {}
+				valuesByKey[key][series.name] = value
+			}
+		}
+		for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
+			const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
+			rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
+		}
+		return { filename, rows }
+	}
+
+	if (adaptedChart.chartType === 'pie') {
+		const rows: Array<Array<string | number | boolean>> = [['Name', 'Value']]
+		for (const item of adaptedChart.props.chartData ?? []) {
+			rows.push([item.name, item.value])
+		}
+		return { filename, rows }
+	}
+
+	if (adaptedChart.chartType === 'scatter') {
+		const xAxisLabel = config.axes.x.label || 'X'
+		const yAxisLabel = config.axes.yAxes?.[0]?.label || 'Y'
+		const rows: Array<Array<string | number | boolean>> = [[xAxisLabel, yAxisLabel, 'Entity']]
+		for (const point of adaptedChart.props.chartData ?? []) {
+			rows.push([point[0], point[1], point[2] ?? ''])
+		}
+		return { filename, rows }
+	}
+
+	if (['area', 'line', 'bar', 'hbar'].includes(adaptedChart.chartType)) {
+		const chartData = adaptedChart.data as Array<[string | number, number | null]>
+		if (isTimeSeries) {
+			const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', yLabel]]
+			for (const [ts, val] of chartData) {
+				rows.push([ts, new Date(+ts * 1e3).toLocaleDateString(), val ?? ''])
+			}
+			return { filename, rows }
+		}
+		const rows: Array<Array<string | number | boolean>> = [[xLabel, yLabel]]
+		for (const [category, val] of chartData) {
+			rows.push([category, val ?? ''])
+		}
+		return { filename, rows }
+	}
+
+	return { filename, rows: [] }
+}
+
+function renderChartContent(config: ChartConfiguration, adaptedChart: any, chartState: ChartState, chartKey: string) {
+	switch (adaptedChart.chartType) {
+		case 'bar': {
+			const isTimeSeriesChart = config.axes.x.type === 'time'
+			if (isTimeSeriesChart) {
+				const { chartData: _chartData, ...barChartProps } = adaptedChart.props as IBarChartProps
+				return (
+					<Suspense fallback={<div className="h-[338px]" />}>
+						<BarChart key={chartKey} chartData={adaptedChart.data} {...barChartProps} hideDownloadButton={true} />
+					</Suspense>
+				)
+			}
+
+			const seriesData = (adaptedChart.data as Array<[number, number]>).map(([x, y]) => [x, y] as [number, number])
+			const multiSeriesProps: import('~/components/ECharts/types').IMultiSeriesChartProps = {
+				series: [
+					{
+						data: seriesData,
+						type: 'bar',
+						name: config.series[0]?.name || 'Value',
+						color: config.series[0]?.styling?.color || '#1f77b4'
+					}
+				],
+				title: config.title,
+				valueSymbol: config.valueSymbol || '$',
+				height: '360px',
+				xAxisType: 'category' as const,
+				chartOptions: {
+					grid: {
+						bottom: 68,
+						left: 12,
+						right: 12
+					},
+					tooltip: {
+						formatter: (params: unknown) => {
+							if (!Array.isArray(params)) return ''
+							const firstParam = params[0] as { value?: [string | number, number]; seriesName?: string } | undefined
+							const xValue = firstParam?.value?.[0]
+							const yValue = firstParam?.value?.[1]
+							const seriesName = firstParam?.seriesName
+							const tooltipValueSymbol = config.valueSymbol || '$'
+							const formattedValue = typeof yValue === 'number' ? formatTooltipValue(yValue, tooltipValueSymbol) : '-'
+							return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
+						}
+					}
+				}
+			}
+			return (
+				<Suspense fallback={<div className="h-[338px]" />}>
+					<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
+				</Suspense>
+			)
+		}
+		case 'hbar': {
+			const hbarData = adaptedChart.data as Array<[string | number, number]>
+			return (
+				<Suspense fallback={<div className="h-[338px]" />}>
+					<HBarChart
+						key={chartKey}
+						categories={hbarData.map(([category]) => String(category))}
+						values={hbarData.map(([, value]) => value)}
+						valueSymbol={config.valueSymbol || '$'}
+						color={config.series[0]?.styling?.color || '#1f77b4'}
+					/>
+				</Suspense>
+			)
+		}
+		case 'line':
+		case 'area':
+			const { chartData: _chartData, ...areaChartProps } = adaptedChart.props as IChartProps
+			return (
+				<Suspense fallback={<div className="h-[338px]" />}>
+					<AreaChart
+						key={chartKey}
+						chartData={adaptedChart.data}
+						{...areaChartProps}
+						connectNulls={true}
+						hideDownloadButton={true}
+					/>
+				</Suspense>
+			)
+		case 'multi-series':
+			return (
+				<Suspense fallback={<div className="h-[338px]" />}>
+					<MultiSeriesChart key={chartKey} {...adaptedChart.props} connectNulls={true} />
+				</Suspense>
+			)
+		case 'pie':
+			return (
+				<Suspense fallback={<div className="h-[338px]" />}>
+					<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} />
+				</Suspense>
+			)
+		case 'scatter':
+			return (
+				<Suspense fallback={<div className="h-[360px]" />}>
+					<ScatterChart
+						key={chartKey}
+						{...(adaptedChart.props as IScatterChartProps)}
+						height="360px"
+						showLabels={chartState.showLabels}
+					/>
+				</Suspense>
+			)
+		default:
+			return (
+				<div className="flex flex-col items-center justify-center gap-2 rounded-md bg-red-50 p-1 py-8 text-red-700 dark:bg-red-900/10 dark:text-red-300">
+					<Icon name="alert-triangle" height={16} width={16} />
+					<p>Unsupported chart type: {adaptedChart.chartType}</p>
+				</div>
+			)
+	}
+}
+
+function buildChartPresentation(
+	config: ChartConfiguration,
+	data: any[],
+	chartState: ChartState,
+	sessionId?: string | null
+) {
+	const isMultiSeries =
+		(config.series && config.series.length > 1 && config.type !== 'scatter' && config.type !== 'pie') ||
+		config.type === 'combo'
+	let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
+
+	adaptedChart = removeAdaptedChartTitle(adaptedChart)
+	adaptedChart = applyChartStateToAdaptedChart(config, adaptedChart, chartState)
+
+	const multiSeriesProps = adaptedChart.props as { series?: Array<{ data?: Array<unknown> }> }
+	const dataLength =
+		adaptedChart.chartType === 'multi-series'
+			? multiSeriesProps.series?.[0]?.data?.length || 0
+			: adaptedChart.data?.length || data.length || 0
+	const hasData =
+		adaptedChart.chartType === 'multi-series'
+			? (multiSeriesProps.series?.length || 0) > 0
+			: adaptedChart.data.length > 0
+
+	return {
+		adaptedChart,
+		dataLength,
+		hasData,
+		chartToolbar: (
+			<>
+				{sessionId ? (
+					<AddToDashboardButton
+						chartConfig={null}
+						llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
+						smol
+					/>
+				) : null}
+				<CSVDownloadButton prepareCsv={() => prepareChartCsv(config, adaptedChart)} smol />
+			</>
+		)
+	}
+}
+
+function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
+	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
 	const handlePercentageChange = (percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })
 	const handleCumulativeChange = (cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })
@@ -104,187 +429,11 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 	}
 
 	try {
-		const isMultiSeries =
-			(config.series && config.series.length > 1 && config.type !== 'scatter' && config.type !== 'pie') ||
-			config.type === 'combo'
-		let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
-
-		if (adaptedChart.props) {
-			const { title: _title, ...restProps } = adaptedChart.props as any
-			adaptedChart = { ...adaptedChart, props: restProps }
-		}
-
-		if (config.type === 'pie' && chartState.percentage) {
-			const pieData = (adaptedChart.props as any).chartData || []
-			const total = pieData.reduce((sum: number, item: any) => sum + item.value, 0)
-			const percentageData = pieData.map((item: any) => ({
-				...item,
-				value: total > 0 ? (item.value / total) * 100 : 0
-			}))
-			adaptedChart = {
-				...adaptedChart,
-				props: {
-					...(adaptedChart.props as any),
-					chartData: percentageData,
-					valueSymbol: '%'
-				}
-			}
-		}
-
-		const dataLength = isMultiSeries
-			? (adaptedChart.props as any).series?.[0]?.data?.length || 0
-			: adaptedChart.data?.length || data?.length || 0
-
-		const shouldTransform =
-			isMultiSeries &&
-			(chartState.stacked || chartState.percentage || chartState.cumulative || chartState.grouping !== 'day')
-
-		if (shouldTransform) {
-			let transformedSeries = (adaptedChart.props as any).series || []
-
-			if (chartState.grouping !== 'day' && config.displayOptions?.supportsGrouping) {
-				transformedSeries = ChartDataTransformer.groupByInterval(transformedSeries, chartState.grouping, config.type)
-			}
-
-			if (chartState.cumulative && config.displayOptions?.canShowCumulative) {
-				transformedSeries = ChartDataTransformer.applyCumulativeToSeries(transformedSeries)
-			}
-
-			if (chartState.stacked && config.displayOptions?.canStack && !chartState.percentage) {
-				transformedSeries = ChartDataTransformer.toStacked(transformedSeries, config.type)
-			}
-
-			if (chartState.percentage && config.displayOptions?.canShowPercentage) {
-				transformedSeries = ChartDataTransformer.toPercentage(transformedSeries, chartState.stacked)
-			}
-
-			adaptedChart = {
-				...adaptedChart,
-				props: {
-					...(adaptedChart.props as any),
-					series: transformedSeries,
-					groupBy:
-						chartState.grouping === 'week'
-							? 'weekly'
-							: chartState.grouping === 'month'
-								? 'monthly'
-								: chartState.grouping === 'quarter'
-									? 'quarterly'
-									: 'daily'
-				}
-			}
-		}
-
-		const valueSymbol = chartState.percentage
-			? '%'
-			: config.valueSymbol || (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : undefined) || '$'
-		adaptedChart = {
-			...adaptedChart,
-			props: {
-				...(adaptedChart.props as any),
-				valueSymbol,
-				...(!chartState.showHallmarks && { hallmarks: undefined }),
-				...(chartState.percentage && {
-					chartOptions: {
-						yAxis: {
-							max: 100,
-							min: 0,
-							axisLabel: {
-								formatter: '{value}%'
-							}
-						},
-						grid: {
-							top: 24,
-							right: 12,
-							bottom: 68,
-							left: 12
-						},
-						tooltip: {
-							valueFormatter: (value: number) => value.toFixed(2) + '%'
-						}
-					}
-				})
-			}
-		}
-
-		const hasData =
-			adaptedChart.chartType === 'multi-series'
-				? (adaptedChart.props as any).series?.length > 0
-				: adaptedChart.data.length > 0
-
-		const prepareCsv = () => {
-			const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
-			const isTimeSeries = config.axes.x.type === 'time'
-			const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
-			const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
-
-			if (adaptedChart.chartType === 'multi-series') {
-				const seriesNames = (adaptedChart.props as any).series.map((s: any) => s.name)
-				const rows: Array<Array<string | number | boolean>> = [
-					isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
-				]
-				const valuesByKey: Record<string | number, Record<string, number>> = {}
-				for (const s of (adaptedChart.props as any).series ?? []) {
-					for (const [key, val] of s.data ?? []) {
-						valuesByKey[key] = valuesByKey[key] || {}
-						valuesByKey[key][s.name] = val
-					}
-				}
-				for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
-					const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
-					rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
-				}
-				return { filename, rows }
-			}
-
-			if (adaptedChart.chartType === 'pie') {
-				const rows: Array<Array<string | number | boolean>> = [['Name', 'Value']]
-				for (const item of (adaptedChart.props as any).chartData ?? []) {
-					rows.push([item.name, item.value])
-				}
-				return { filename, rows }
-			}
-
-			if (adaptedChart.chartType === 'scatter') {
-				const xAxisLabel = config.axes.x.label || 'X'
-				const yAxisLabel = config.axes.yAxes?.[0]?.label || 'Y'
-				const rows: Array<Array<string | number | boolean>> = [[xAxisLabel, yAxisLabel, 'Entity']]
-				for (const point of (adaptedChart.props as any).chartData ?? []) {
-					rows.push([point[0], point[1], point[2] ?? ''])
-				}
-				return { filename, rows }
-			}
-
-			if (['area', 'line', 'bar', 'hbar'].includes(adaptedChart.chartType)) {
-				const chartData = adaptedChart.data as Array<[string | number, number | null]>
-				if (isTimeSeries) {
-					const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', yLabel]]
-					for (const [ts, val] of chartData) {
-						rows.push([ts, new Date(+ts * 1e3).toLocaleDateString(), val ?? ''])
-					}
-					return { filename, rows }
-				}
-				const rows: Array<Array<string | number | boolean>> = [[xLabel, yLabel]]
-				for (const [category, val] of chartData) {
-					rows.push([category, val ?? ''])
-				}
-				return { filename, rows }
-			}
-
-			return { filename, rows: [] }
-		}
-
-		const chartToolbar = (
-			<>
-				{sessionId ? (
-					<AddToDashboardButton
-						chartConfig={null}
-						llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
-						smol
-					/>
-				) : null}
-				<CSVDownloadButton prepareCsv={prepareCsv} smol />
-			</>
+		const { adaptedChart, dataLength, hasData, chartToolbar } = buildChartPresentation(
+			config,
+			data,
+			chartState,
+			sessionId
 		)
 
 		if (!hasData) {
@@ -297,134 +446,7 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 		}
 
 		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}-${chartState.showHallmarks}`
-
-		let chartContent: React.ReactNode
-
-		switch (adaptedChart.chartType) {
-			case 'bar':
-				const isTimeSeriesChart = config.axes.x.type === 'time'
-				if (isTimeSeriesChart) {
-					chartContent = (
-						<Suspense fallback={<div className="h-[338px]" />}>
-							<BarChart
-								key={chartKey}
-								chartData={adaptedChart.data}
-								{...(adaptedChart.props as IBarChartProps)}
-								hideDownloadButton={true}
-							/>
-						</Suspense>
-					)
-				} else {
-					const seriesData = (adaptedChart.data as Array<[any, number]>).map(([x, y]) => [x, y])
-					const multiSeriesProps: any = {
-						series: [
-							{
-								data: seriesData,
-								type: 'bar',
-								name: config.series[0]?.name || 'Value',
-								color: config.series[0]?.styling?.color || '#1f77b4'
-							}
-						],
-						title: config.title,
-						valueSymbol: config.valueSymbol || '$',
-						height: '360px',
-						xAxisType: 'category',
-						chartOptions: {
-							grid: {
-								bottom: 68,
-								left: 12,
-								right: 12
-							},
-							tooltip: {
-								formatter: (params: any) => {
-									if (!Array.isArray(params)) return ''
-									const xValue = params[0]?.value?.[0]
-									const yValue = params[0]?.value?.[1]
-									const seriesName = params[0]?.seriesName
-									const tooltipValueSymbol = config.valueSymbol || '$'
-									const formattedValue = formatTooltipValue(yValue, tooltipValueSymbol)
-									return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
-								}
-							}
-						}
-					}
-					chartContent = (
-						<Suspense fallback={<div className="h-[338px]" />}>
-							<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
-						</Suspense>
-					)
-				}
-				break
-
-			case 'hbar':
-				const hbarData = adaptedChart.data as Array<[any, number]>
-				const hbarCategories = hbarData.map(([cat]) => cat)
-				const hbarValues = hbarData.map(([, val]) => val)
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<HBarChart
-							key={chartKey}
-							categories={hbarCategories}
-							values={hbarValues}
-							valueSymbol={config.valueSymbol || '$'}
-							color={config.series[0]?.styling?.color || '#1f77b4'}
-						/>
-					</Suspense>
-				)
-				break
-
-			case 'line':
-			case 'area':
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<AreaChart
-							key={chartKey}
-							chartData={adaptedChart.data}
-							{...(adaptedChart.props as IChartProps)}
-							connectNulls={true}
-							hideDownloadButton={true}
-						/>
-					</Suspense>
-				)
-				break
-
-			case 'multi-series':
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<MultiSeriesChart key={chartKey} {...(adaptedChart.props as any)} connectNulls={true} />
-					</Suspense>
-				)
-				break
-
-			case 'pie':
-				chartContent = (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} />
-					</Suspense>
-				)
-				break
-
-			case 'scatter':
-				chartContent = (
-					<Suspense fallback={<div className="h-[360px]" />}>
-						<ScatterChart
-							key={chartKey}
-							{...(adaptedChart.props as IScatterChartProps)}
-							height="360px"
-							showLabels={chartState.showLabels}
-						/>
-					</Suspense>
-				)
-				break
-
-			default:
-				chartContent = (
-					<div className="flex flex-col items-center justify-center gap-2 rounded-md bg-red-50 p-1 py-8 text-red-700 dark:bg-red-900/10 dark:text-red-300">
-						<Icon name="alert-triangle" height={16} width={16} />
-						<p>Unsupported chart type: {adaptedChart.chartType}</p>
-					</div>
-				)
-		}
+		const chartContent = renderChartContent(config, adaptedChart, chartState, chartKey)
 
 		return (
 			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>

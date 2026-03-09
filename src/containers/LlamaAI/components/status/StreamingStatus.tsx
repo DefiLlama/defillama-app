@@ -107,19 +107,26 @@ function formatTime(seconds: number) {
 }
 
 export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
+	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
-	const [isOpen, setIsOpen] = useState(defaultOpen)
+	const [toggleCount, setToggleCount] = useState(0)
 
 	useEffect(() => {
-		if (isOpen && contentRef.current) {
+		if (defaultOpen && detailsRef.current) {
+			detailsRef.current.open = true
+		}
+	}, [defaultOpen])
+
+	useEffect(() => {
+		if (detailsRef.current?.open && contentRef.current) {
 			contentRef.current.scrollTop = contentRef.current.scrollHeight
 		}
-	}, [thinking, isOpen])
+	}, [thinking, toggleCount])
 
 	if (!thinking) return null
 
 	return (
-		<details className="group" open={isOpen} onToggle={(event) => setIsOpen(event.currentTarget.open)}>
+		<details ref={detailsRef} className="group" onToggle={() => setToggleCount((count) => count + 1)}>
 			<summary className="flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]">
 				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
 				<span>Reasoning</span>

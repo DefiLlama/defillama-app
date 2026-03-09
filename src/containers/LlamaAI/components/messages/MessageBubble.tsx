@@ -28,6 +28,26 @@ function buildChartIndex(chartSets: ChartSet[]) {
 	return index
 }
 
+function createOccurrenceKeyFactory() {
+	const counts = new Map<string, number>()
+	return (baseKey: string) => {
+		const nextCount = counts.get(baseKey) || 0
+		counts.set(baseKey, nextCount + 1)
+		return nextCount === 0 ? baseKey : `${baseKey}-${nextCount}`
+	}
+}
+
+function getActionKey(action: { label: string; message: string }) {
+	return `${action.label}:${action.message}`
+}
+
+function getToolExecutionKey(execution: ToolExecution) {
+	return (
+		execution.resultId ||
+		`${execution.name}:${execution.executionTimeMs}:${execution.sqlQuery || ''}:${execution.error || ''}`
+	)
+}
+
 function ActionButtonGroup({
 	actions,
 	onActionClick,
@@ -42,6 +62,9 @@ function ActionButtonGroup({
 		label: action.label,
 		message: action.message.startsWith('confirm:') ? action.message.slice(8) : action.message
 	}))
+	const primaryActionKey = getActionKey(
+		resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0]
+	)
 	const alreadyClicked = nextUserMessage
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
 				?.message ?? null)
@@ -52,15 +75,16 @@ function ActionButtonGroup({
 	if (isDecisionGroup) {
 		return (
 			<div className="flex flex-wrap items-center gap-2.5">
-				{resolvedActions.map((action, index) => {
+				{resolvedActions.map((action) => {
 					const isUrl = action.message.startsWith('url:')
-					const isPrimary = index === 0 && !isUrl
+					const actionKey = getActionKey(action)
+					const isPrimary = !isUrl && actionKey === primaryActionKey
 
 					if (isUrl) {
 						const href = action.message.slice(4)
 						return (
 							<a
-								key={index}
+								key={actionKey}
 								{...(href.startsWith('http')
 									? { href, target: '_blank', rel: 'noopener noreferrer' }
 									: {
@@ -99,7 +123,7 @@ function ActionButtonGroup({
 					if (isPrimary) {
 						return (
 							<button
-								key={index}
+								key={actionKey}
 								type="button"
 								disabled={isClicked || !onActionClick}
 								onClick={handleClick}
@@ -120,7 +144,7 @@ function ActionButtonGroup({
 
 					return (
 						<button
-							key={index}
+							key={actionKey}
 							type="button"
 							disabled={isClicked || !onActionClick}
 							onClick={handleClick}
@@ -144,14 +168,15 @@ function ActionButtonGroup({
 
 	return (
 		<div className="flex flex-wrap items-center gap-2">
-			{resolvedActions.map((action, index) => {
+			{resolvedActions.map((action) => {
 				const isUrl = action.message.startsWith('url:')
+				const actionKey = getActionKey(action)
 
 				if (isUrl) {
 					const href = action.message.slice(4)
 					return (
 						<a
-							key={index}
+							key={actionKey}
 							{...(href.startsWith('http')
 								? { href, target: '_blank', rel: 'noopener noreferrer' }
 								: {
@@ -184,7 +209,7 @@ function ActionButtonGroup({
 
 				return (
 					<button
-						key={index}
+						key={actionKey}
 						type="button"
 						disabled={isClicked || !onActionClick}
 						onClick={() => {
@@ -313,71 +338,74 @@ function InlineContent({
 	return (
 		<div className="flex flex-col gap-2.5">
 			{hasInlineRefs
-				? groupedParts.map((part, index) => {
-						if ('actions' in part && part.type === 'action-group') {
-							const actionGroupKey = part.actions.map((action) => `${action.label}:${action.message}`).join('|')
-							return (
-								<ActionButtonGroup
-									key={`actions-${index}-${nextUserMessage ?? ''}-${actionGroupKey}`}
-									actions={part.actions}
-									onActionClick={onActionClick}
-									nextUserMessage={nextUserMessage}
-								/>
-							)
-						}
-
-						if (part.type === 'chart' && 'chartId' in part && part.chartId) {
-							const entry = chartIndex.get(part.chartId)
-							if (entry) {
+				? (() => {
+						const getKey = createOccurrenceKeyFactory()
+						return groupedParts.map((part, partIndex) => {
+							if ('actions' in part && part.type === 'action-group') {
+								const actionGroupKey = part.actions.map((action) => `${action.label}:${action.message}`).join('|')
 								return (
-									<div key={`inline-chart-${part.chartId}-${index}`} className="my-2">
-										<ChartRenderer
-											charts={[entry.chart]}
-											chartData={entry.chartData}
-											sessionId={sessionId}
-											fetchFn={fetchFn}
-										/>
-									</div>
+									<ActionButtonGroup
+										key={getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
+										actions={part.actions}
+										onActionClick={onActionClick}
+										nextUserMessage={nextUserMessage}
+									/>
 								)
 							}
 
-							if (isStreaming) {
+							if (part.type === 'chart' && 'chartId' in part && part.chartId) {
+								const entry = chartIndex.get(part.chartId)
+								if (entry) {
+									return (
+										<div key={getKey(`inline-chart-${part.chartId}`)} className="my-2">
+											<ChartRenderer
+												charts={[entry.chart]}
+												chartData={entry.chartData}
+												sessionId={sessionId}
+												fetchFn={fetchFn}
+											/>
+										</div>
+									)
+								}
+
+								if (isStreaming) {
+									return (
+										<div
+											key={getKey(`chart-loading-${part.chartId}`)}
+											className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+										>
+											<p className="text-sm text-gray-500">Loading chart...</p>
+										</div>
+									)
+								}
+
+								return null
+							}
+
+							if (part.type === 'csv' && 'csvId' in part && part.csvId) {
+								const csv = csvIndex.get(part.csvId)
+								return csv ? <CSVExportArtifact key={getKey(`inline-csv-${part.csvId}`)} csvExport={csv} /> : null
+							}
+
+							if ('content' in part && !part.content) return null
+
+							if ('content' in part) {
+								const isLastText = !groupedParts
+									.slice(partIndex + 1)
+									.some((nextPart) => 'content' in nextPart && nextPart.content)
 								return (
-									<div
-										key={`chart-loading-${part.chartId}-${index}`}
-										className="my-4 flex h-64 animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-									>
-										<p className="text-sm text-gray-500">Loading chart...</p>
-									</div>
+									<MarkdownRenderer
+										key={getKey(`text-${part.content.slice(0, 50)}`)}
+										content={part.content}
+										citations={isLastText && citations.length > 0 ? citations : undefined}
+										isStreaming={isStreaming}
+									/>
 								)
 							}
 
 							return null
-						}
-
-						if (part.type === 'csv' && 'csvId' in part && part.csvId) {
-							const csv = csvIndex.get(part.csvId)
-							return csv ? <CSVExportArtifact key={`inline-csv-${part.csvId}-${index}`} csvExport={csv} /> : null
-						}
-
-						if ('content' in part && !part.content) return null
-
-						if ('content' in part) {
-							const isLastText = !groupedParts
-								.slice(index + 1)
-								.some((nextPart) => 'content' in nextPart && nextPart.content)
-							return (
-								<MarkdownRenderer
-									key={`text-${index}`}
-									content={part.content}
-									citations={isLastText && citations.length > 0 ? citations : undefined}
-									isStreaming={isStreaming}
-								/>
-							)
-						}
-
-						return null
-					})
+						})
+					})()
 				: text && (
 						<MarkdownRenderer
 							content={text}
@@ -388,9 +416,9 @@ function InlineContent({
 
 			{isStreaming && text ? <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" /> : null}
 
-			{unreferencedCharts.map((entry, index) => (
+			{unreferencedCharts.map((entry) => (
 				<ChartRenderer
-					key={`chart-${entry.chart.id || index}`}
+					key={`chart-${entry.chart.id}`}
 					charts={[entry.chart]}
 					chartData={entry.chartData}
 					sessionId={sessionId}
@@ -461,8 +489,8 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 				ref={contentRef}
 				className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 select-text dark:border-[#222324]"
 			>
-				{toolExecutions.map((execution, index) => (
-					<ToolExecutionRow key={index} execution={execution} />
+				{toolExecutions.map((execution) => (
+					<ToolExecutionRow key={getToolExecutionKey(execution)} execution={execution} />
 				))}
 			</div>
 		</details>

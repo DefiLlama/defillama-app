@@ -48,5 +48,7 @@ export function highlightWord(text: string, words: string[]) {
 
 	// Reset lastIndex to avoid issues with global regex state
 	highlightRegexCache.regex.lastIndex = 0
+	// Safety contract: both the full text and every matched token are escaped first.
+	// The only HTML introduced here is the internal highlight span used by the input overlay.
 	return escapedText.replace(highlightRegexCache.regex, '<span class="highlight">$1</span>')
 }

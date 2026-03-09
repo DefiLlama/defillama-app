@@ -105,7 +105,7 @@ export function ChartControls({
 				<Select
 					allValues={CUMULATIVE_DISPLAY_OPTIONS}
 					selectedValues={cumulative ? 'Cumulative' : 'Individual'}
-					setSelectedValues={(value) => {
+					setSelectedValues={(value: string) => {
 						onCumulativeChange(value === 'Cumulative')
 						if (value === 'Cumulative') {
 							onStackedChange(false)
@@ -121,7 +121,7 @@ export function ChartControls({
 				<Select
 					allValues={STACKING_DISPLAY_OPTIONS}
 					selectedValues={stacked ? 'Stacked' : 'Separate'}
-					setSelectedValues={(value) => {
+					setSelectedValues={(value: string) => {
 						const isStacked = value === 'Stacked'
 						onStackedChange(isStacked)
 					}}
@@ -135,7 +135,7 @@ export function ChartControls({
 				<Select
 					allValues={VALUE_TYPE_OPTIONS}
 					selectedValues={percentage ? '% Percentage' : '$ Absolute'}
-					setSelectedValues={(value) => {
+					setSelectedValues={(value: string) => {
 						onPercentageChange(value === '% Percentage')
 					}}
 					label={percentage ? '% Percentage' : '$ Absolute'}
@@ -148,7 +148,7 @@ export function ChartControls({
 				<Select
 					allValues={HALLMARK_OPTIONS}
 					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
-					setSelectedValues={(value) => {
+					setSelectedValues={(value: string) => {
 						onHallmarksChange(value === 'Show Hallmarks')
 					}}
 					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
@@ -161,7 +161,7 @@ export function ChartControls({
 				<Select
 					allValues={LABEL_OPTIONS}
 					selectedValues={showLabels ? 'Show' : 'Hide'}
-					setSelectedValues={(value) => {
+					setSelectedValues={(value: string) => {
 						onLabelsChange(value === 'Show')
 					}}
 					label={showLabels ? 'Labels: On' : 'Labels: Off'}

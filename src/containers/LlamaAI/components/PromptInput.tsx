@@ -35,7 +35,7 @@ interface PromptInputProps {
 		preResolvedEntities?: Array<{ term: string; slug: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 	) => void | Promise<void>
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	isPending: boolean
 	handleStopRequest?: () => void
 	isStreaming?: boolean
@@ -124,7 +124,7 @@ export function PromptInput({
 	const isMobile = useMedia('(max-width: 640px)')
 	const mobilePlaceholder = placeholder.replace('Type @ to add a protocol, chain or stablecoin', '')
 	const finalPlaceholder = isMobile ? mobilePlaceholder : placeholder
-	const highlightedHtml = highlightWord(value, Array.from(entityCombobox.entitiesRef.current))
+	const sanitizedHighlightedHtml = highlightWord(value, Array.from(entityCombobox.entitiesRef.current))
 
 	useLayoutEffect(() => {
 		const textarea = promptInputRef.current
@@ -250,11 +250,12 @@ export function PromptInput({
 		void submitForm(value)
 	}
 
-	const handleFormClick = (e: React.MouseEvent<HTMLFormElement>) => {
-		const target = e.target as HTMLElement
-		if (!target.closest('button, textarea, input, [role="option"]')) {
+	const handleFormPointerDown = (event: React.PointerEvent<HTMLFormElement>) => {
+		const target = event.target as HTMLElement
+		if (target.closest('button, textarea, input, [role="option"]')) return
+		requestAnimationFrame(() => {
 			promptInputRef.current?.focus()
-		}
+		})
 	}
 
 	return (
@@ -265,7 +266,7 @@ export function PromptInput({
 			onDragOver={(e) => e.preventDefault()}
 			onDrop={imageUpload.handleDrop}
 			onSubmit={handleFormSubmit}
-			onClick={handleFormClick}
+			onPointerDown={handleFormPointerDown}
 		>
 			<DragOverlay isDragging={imageUpload.isDragging} externalDragging={externalDragging} />
 
@@ -283,7 +284,7 @@ export function PromptInput({
 				promptInputRef={promptInputRef}
 				highlightRef={highlightRef}
 				value={value}
-				highlightedHtml={highlightedHtml}
+				sanitizedHighlightedHtml={sanitizedHighlightedHtml}
 				placeholder={finalPlaceholder}
 				isPending={isPending}
 				isStreaming={isStreaming}

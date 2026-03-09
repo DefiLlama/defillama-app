@@ -32,9 +32,9 @@ interface ConversationViewProps {
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
-	scrollContainerRef: RefObject<HTMLDivElement>
-	messagesEndRef: RefObject<HTMLDivElement>
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	scrollContainerRef: RefObject<HTMLDivElement | null>
+	messagesEndRef: RefObject<HTMLDivElement | null>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	showScrollToBottom: boolean
 	scrollToBottom: () => void
 	handleSubmit: (

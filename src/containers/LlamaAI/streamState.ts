@@ -1,0 +1,180 @@
+import type { Dispatch } from 'react'
+import type { CsvExport } from './fetchAgenticResponse'
+import type { AlertProposedData, ChartSet, Message, SpawnAgentStatus, ToolCall, ToolExecution } from './types'
+
+export interface ChatPageContext {
+	entitySlug?: string
+	entityType?: 'protocol' | 'chain' | 'page'
+	route: string
+}
+
+export interface FailedRequest {
+	prompt: string
+	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	pageContext?: ChatPageContext
+}
+
+export interface RateLimitDetails {
+	period: string
+	limit: number
+	resetTime: string | null
+}
+
+export interface StreamState {
+	isStreaming: boolean
+	isCompacting: boolean
+	text: string
+	charts: ChartSet[]
+	csvExports: CsvExport[]
+	alerts: AlertProposedData[]
+	citations: string[]
+	toolExecutions: ToolExecution[]
+	thinking: string
+	activeToolCalls: ToolCall[]
+	spawnProgress: Map<string, SpawnAgentStatus>
+	spawnStartTime: number
+	error: string | null
+	lastFailedRequest: FailedRequest | null
+	rateLimitDetails: RateLimitDetails | null
+}
+
+export interface StreamBuffer {
+	text: string
+	charts: ChartSet[]
+	csvExports: CsvExport[]
+	alerts: AlertProposedData[]
+	citations: string[]
+	toolExecutions: ToolExecution[]
+	thinking: string
+	hasStartedText: boolean
+	spawnStarted: boolean
+}
+
+export type StreamAction =
+	| { type: 'START_STREAM' }
+	| { type: 'RESET_STREAM' }
+	| { type: 'SET_COMPACTING'; value: boolean }
+	| { type: 'SET_ERROR'; value: string | null }
+	| { type: 'SET_LAST_FAILED_REQUEST'; value: FailedRequest | null }
+	| { type: 'SET_RATE_LIMIT_DETAILS'; value: RateLimitDetails | null }
+	| { type: 'APPEND_TOKEN'; value: string }
+	| { type: 'APPEND_CHARTS'; value: ChartSet }
+	| { type: 'APPEND_CSV_EXPORTS'; value: CsvExport[] }
+	| { type: 'APPEND_ALERT'; value: AlertProposedData }
+	| { type: 'MERGE_CITATIONS'; value: string[] }
+	| { type: 'APPEND_TOOL_EXECUTION'; value: ToolExecution }
+	| { type: 'APPEND_THINKING'; value: string }
+	| { type: 'APPEND_TOOL_CALL'; value: ToolCall }
+	| { type: 'CLEAR_ACTIVITY' }
+	| { type: 'SET_SPAWN_START_TIME'; value: number }
+	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
+
+const createEmptyRuntimeState = () => ({
+	isStreaming: false,
+	isCompacting: false,
+	text: '',
+	charts: [] as ChartSet[],
+	csvExports: [] as CsvExport[],
+	alerts: [] as AlertProposedData[],
+	citations: [] as string[],
+	toolExecutions: [] as ToolExecution[],
+	thinking: '',
+	activeToolCalls: [] as ToolCall[],
+	spawnProgress: new Map<string, SpawnAgentStatus>(),
+	spawnStartTime: 0
+})
+
+export const createInitialStreamState = (): StreamState => ({
+	...createEmptyRuntimeState(),
+	error: null,
+	lastFailedRequest: null,
+	rateLimitDetails: null
+})
+
+export const createStreamBuffer = (): StreamBuffer => ({
+	text: '',
+	charts: [],
+	csvExports: [],
+	alerts: [],
+	citations: [],
+	toolExecutions: [],
+	thinking: '',
+	hasStartedText: false,
+	spawnStarted: false
+})
+
+export function streamReducer(state: StreamState, action: StreamAction): StreamState {
+	switch (action.type) {
+		case 'START_STREAM':
+			return {
+				...state,
+				...createEmptyRuntimeState(),
+				isStreaming: true,
+				error: null,
+				lastFailedRequest: null,
+				rateLimitDetails: null
+			}
+		case 'RESET_STREAM':
+			return { ...state, ...createEmptyRuntimeState() }
+		case 'SET_COMPACTING':
+			return { ...state, isCompacting: action.value }
+		case 'SET_ERROR':
+			return { ...state, error: action.value }
+		case 'SET_LAST_FAILED_REQUEST':
+			return { ...state, lastFailedRequest: action.value }
+		case 'SET_RATE_LIMIT_DETAILS':
+			return { ...state, rateLimitDetails: action.value }
+		case 'APPEND_TOKEN':
+			return { ...state, text: state.text + action.value }
+		case 'APPEND_CHARTS':
+			return { ...state, charts: [...state.charts, action.value] }
+		case 'APPEND_CSV_EXPORTS':
+			return { ...state, csvExports: [...state.csvExports, ...action.value] }
+		case 'APPEND_ALERT':
+			return { ...state, alerts: [...state.alerts, action.value] }
+		case 'MERGE_CITATIONS':
+			return { ...state, citations: [...new Set([...state.citations, ...action.value])] }
+		case 'APPEND_TOOL_EXECUTION':
+			return { ...state, toolExecutions: [...state.toolExecutions, action.value] }
+		case 'APPEND_THINKING':
+			return { ...state, thinking: state.thinking + action.value }
+		case 'APPEND_TOOL_CALL':
+			return { ...state, activeToolCalls: [...state.activeToolCalls, action.value] }
+		case 'CLEAR_ACTIVITY':
+			return {
+				...state,
+				activeToolCalls: [],
+				spawnProgress: new Map<string, SpawnAgentStatus>(),
+				spawnStartTime: 0
+			}
+		case 'SET_SPAWN_START_TIME':
+			return { ...state, spawnStartTime: action.value }
+		case 'UPSERT_SPAWN_PROGRESS': {
+			const next = new Map(state.spawnProgress)
+			const existing = next.get(action.value.id)
+			next.set(action.value.id, {
+				...existing,
+				...action.value
+			})
+			return { ...state, spawnProgress: next }
+		}
+		default:
+			return state
+	}
+}
+
+export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string): Message {
+	return {
+		role: 'assistant',
+		content: buffer.text || undefined,
+		charts: buffer.charts.length > 0 ? buffer.charts : undefined,
+		csvExports: buffer.csvExports.length > 0 ? buffer.csvExports : undefined,
+		alerts: buffer.alerts.length > 0 ? buffer.alerts : undefined,
+		citations: buffer.citations.length > 0 ? buffer.citations : undefined,
+		toolExecutions: buffer.toolExecutions.length > 0 ? buffer.toolExecutions : undefined,
+		thinking: buffer.thinking || undefined,
+		id: messageId
+	}
+}
+
+export type StreamDispatch = Dispatch<StreamAction>

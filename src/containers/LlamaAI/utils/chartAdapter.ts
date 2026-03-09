@@ -168,7 +168,7 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 		)
 
 		const pieData = Object.entries(aggregatedData)
-			.map(([name, value]: [string, number]) => ({ name, value }))
+			.map(([name, value]) => ({ name, value: Number(value) }))
 			.sort((a, b) => b.value - a.value)
 
 		const stackColors: Record<string, string> = {}
@@ -491,10 +491,11 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 		}
 
 		const validSeries = series.filter((s) => s.data && s.data.length > 0)
+		const chartSeries = validSeries as unknown as IMultiSeriesChartProps['series']
 		const yAxisSymbols = config.axes.yAxes?.map((axis) => axis.valueSymbol ?? config.valueSymbol ?? '$') ?? []
 
 		const multiSeriesProps: Partial<IMultiSeriesChartProps> = {
-			series: validSeries,
+			series: chartSeries,
 			title: config.title,
 			height: '360px',
 			hideDownloadButton: false,

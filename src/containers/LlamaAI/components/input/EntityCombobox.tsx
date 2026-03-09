@@ -6,13 +6,13 @@ import { getAnchorRect } from '../../utils/entitySuggestions'
 interface EntityMatch {
 	id: string
 	name: string
-	logo?: string
+	logo?: string | null
 	type: string
 }
 
 interface EntityComboboxPopoverProps {
 	combobox: Ariakit.ComboboxStore
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	matches: EntityMatch[] | undefined
 	hasMatches: boolean
 	isTriggerOnly: boolean

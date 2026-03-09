@@ -251,7 +251,12 @@ export const PlotsPage = ({
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>
 				<div className="relative rounded-md bg-(--cards-bg) p-3">
-					<ScatterChart chartData={nonOutlierPoolsData} title="APY Average vs Volatility" xAxisLabel="APY Standard Deviation" yAxisLabel="APY Geometric Average" />
+					<ScatterChart
+						chartData={nonOutlierPoolsData}
+						title="APY Average vs Volatility"
+						xAxisLabel="APY Standard Deviation"
+						yAxisLabel="APY Geometric Average"
+					/>
 				</div>
 			</React.Suspense>
 			<React.Suspense fallback={<></>}>

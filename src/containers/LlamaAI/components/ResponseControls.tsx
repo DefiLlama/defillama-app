@@ -8,10 +8,11 @@ import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
+import { assertResponse } from '../utils/assertResponse'
 import { convertLlamaLinksToDefillama } from '../utils/entityLinks'
 import { FeedbackForm } from './FeedbackForm'
 import { PDFExportButton } from './PDFExportButton'
-import { ShareModalContent } from './ShareModalContent'
+import { ShareModalContent, type ShareData } from './ShareModalContent'
 
 const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
 
@@ -115,7 +116,7 @@ const FeedbackDialog = memo(function FeedbackDialog({
 interface ShareDialogProps {
 	open: boolean
 	setOpen: (value: boolean) => void
-	shareData: any
+	shareData?: ShareData
 }
 
 const ShareDialog = memo(function ShareDialog({ open, setOpen, shareData }: ShareDialogProps) {
@@ -163,13 +164,14 @@ export function ResponseControls({
 		data: shareData,
 		mutate: shareSession,
 		isPending: isSharing
-	} = useMutation({
+	} = useMutation<ShareData>({
 		mutationFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/user/sessions/${sessionId}/share`, {
 				method: 'PUT',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ forcePublic: true })
 			})
+				.then((response) => assertResponse(response, 'Failed to share session'))
 				.then(handleSimpleFetchResponse)
 				.then((res: Response) => res.json())
 

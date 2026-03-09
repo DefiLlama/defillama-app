@@ -3,10 +3,10 @@ import type { RefObject } from 'react'
 
 interface InputTextareaProps {
 	combobox: Ariakit.ComboboxStore
-	promptInputRef: RefObject<HTMLTextAreaElement>
-	highlightRef: RefObject<HTMLDivElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
+	highlightRef: RefObject<HTMLDivElement | null>
 	value: string
-	highlightedHtml: string
+	sanitizedHighlightedHtml: string
 	placeholder: string
 	isPending: boolean
 	isStreaming?: boolean
@@ -23,7 +23,7 @@ export function InputTextarea({
 	promptInputRef,
 	highlightRef,
 	value,
-	highlightedHtml,
+	sanitizedHighlightedHtml,
 	placeholder,
 	isPending,
 	isStreaming,
@@ -72,7 +72,9 @@ export function InputTextarea({
 				aria-hidden="true"
 				className="highlighted-text pointer-events-none absolute top-0 right-0 bottom-0 left-0 z-0 thin-scrollbar min-h-4 overflow-x-hidden overflow-y-auto overscroll-contain p-0 leading-normal wrap-break-word whitespace-pre-wrap max-sm:text-base"
 				ref={highlightRef}
-				dangerouslySetInnerHTML={{ __html: highlightedHtml }}
+				// Safe here: highlightWord escapes user text and only injects internal highlight spans.
+				// eslint-disable-next-line react/no-danger
+				dangerouslySetInnerHTML={{ __html: sanitizedHighlightedHtml }}
 			/>
 		</div>
 	)

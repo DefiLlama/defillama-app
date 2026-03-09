@@ -1,17 +1,13 @@
 import * as Ariakit from '@ariakit/react'
 import { startTransition, type RefObject, useCallback, useEffect, useRef, useState } from 'react'
 import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
-import { useGetEntities } from './useGetEntities'
+import { useGetEntities, type EntityResult } from './useGetEntities'
 import { detectTrigger, calculateComboboxPlacement } from './useTriggerDetection'
 
-interface EntityData {
-	id: string
-	name: string
-	type: string
-}
+interface EntityData extends Pick<EntityResult, 'id' | 'name' | 'type'> {}
 
 interface UseEntityComboboxOptions {
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	currentValue: string
 	applyPromptEdit: (edit: {
 		nextValue: string
@@ -33,7 +29,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 
 	const { data: matches, isFetching, isLoading } = useGetEntities(searchTerm)
 
-	const hasMatches = matches && matches.length > 0
+	const hasMatches = !!matches && matches.length > 0
 
 	useEffect(() => {
 		combobox.render()

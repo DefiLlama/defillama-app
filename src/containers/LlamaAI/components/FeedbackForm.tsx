@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
+import { assertResponse } from '../utils/assertResponse'
 
 interface FeedbackFormProps {
 	messageId?: string
@@ -30,6 +31,7 @@ export function FeedbackForm({
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ rating, feedback })
 			})
+				.then((response) => assertResponse(response, 'Failed to submit feedback'))
 				.then(handleSimpleFetchResponse)
 				.then((res: Response) => res.json())
 
@@ -48,16 +50,12 @@ export function FeedbackForm({
 
 	const [feedbackText, setFeedbackText] = useState('')
 	const finalFeedbackText = useDeferredValue(feedbackText)
+	const handleSubmitFeedback = () => {
+		submitFeedback({ rating: selectedRating, feedback: feedbackText.trim() || undefined })
+	}
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault()
-				const form = e.target as HTMLFormElement
-				submitFeedback({ rating: selectedRating, feedback: form.feedback?.value?.trim() })
-			}}
-			className="flex flex-col gap-4"
-		>
+		<div className="flex flex-col gap-4">
 			<div className="flex flex-col gap-2">
 				<p className="m-0 text-sm font-medium">Rate this response</p>
 				<div className="flex gap-2">
@@ -92,11 +90,11 @@ export function FeedbackForm({
 			<label className="flex flex-col gap-2">
 				<span className="text-sm text-[#666] dark:text-[#919296]">Additional feedback (optional)</span>
 				<textarea
-					name="feedback"
 					placeholder="Share your thoughts..."
 					className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-3 dark:border-[#222324]"
 					rows={3}
 					maxLength={500}
+					value={feedbackText}
 					disabled={isSubmittingFeedback}
 					onChange={(e) => setFeedbackText(e.target.value)}
 				/>
@@ -111,7 +109,8 @@ export function FeedbackForm({
 						Cancel
 					</Ariakit.DialogDismiss>
 					<button
-						type="submit"
+						type="button"
+						onClick={handleSubmitFeedback}
 						disabled={isSubmittingFeedback || !selectedRating}
 						className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
 					>
@@ -119,6 +118,6 @@ export function FeedbackForm({
 					</button>
 				</div>
 			</div>
-		</form>
+		</div>
 	)
 }

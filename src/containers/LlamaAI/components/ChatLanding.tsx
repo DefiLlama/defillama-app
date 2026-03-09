@@ -10,7 +10,7 @@ interface ChatLandingProps {
 		preResolvedEntities?: Array<{ term: string; slug: string }>,
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 	) => void | Promise<void>
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	handleStopRequest: () => void
 	isStreaming: boolean
 	isResearchMode: boolean
