@@ -40,11 +40,17 @@ export const SettingsModal = memo(function SettingsModal({
 
 	useEffect(() => {
 		if (!isOpen) return
+		let cancelled = false
 
 		queueMicrotask(() => {
+			if (cancelled) return
 			setDraft(customInstructions)
 			setMemoryDraft(enableMemory)
 		})
+
+		return () => {
+			cancelled = true
+		}
 	}, [isOpen, customInstructions, enableMemory])
 
 	const save = useCallback(() => {

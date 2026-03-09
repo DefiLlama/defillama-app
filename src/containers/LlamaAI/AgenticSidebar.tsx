@@ -64,7 +64,7 @@ export function AgenticSidebar({
 	const handleDelete = useCallback(
 		(sessionId: string) => {
 			setDeletingSessionId(sessionId)
-			return Promise.resolve(onDelete(sessionId)).finally(() => {
+			return onDelete(sessionId).finally(() => {
 				setDeletingSessionId(null)
 			})
 		},
@@ -74,7 +74,7 @@ export function AgenticSidebar({
 	const handleUpdateTitle = useCallback(
 		(args: { sessionId: string; title: string }) => {
 			setUpdatingTitleSessionId(args.sessionId)
-			return Promise.resolve(onUpdateTitle(args)).finally(() => {
+			return onUpdateTitle(args).finally(() => {
 				setUpdatingTitleSessionId(null)
 			})
 		},
