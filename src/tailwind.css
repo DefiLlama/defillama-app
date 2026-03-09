@@ -674,16 +674,12 @@
 		@apply block max-w-full;
 	}
 
-	details {
-		@apply select-none;
-	}
-
 	details summary::-webkit-details-marker {
 		@apply hidden;
 	}
 
 	summary {
-		@apply cursor-pointer list-none;
+		@apply cursor-pointer list-none select-none;
 	}
 
 	#table-header {

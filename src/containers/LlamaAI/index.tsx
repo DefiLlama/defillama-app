@@ -135,6 +135,12 @@ function getScrollSnapshot(container: HTMLDivElement | null) {
 	}
 }
 
+function waitForNextPaint() {
+	return new Promise<void>((resolve) => {
+		requestAnimationFrame(() => resolve())
+	})
+}
+
 function restoreScrollPosition(snapshot: { container: HTMLDivElement | null; prevScrollHeight: number }) {
 	if (!snapshot.container) return
 	snapshot.container.scrollTop = snapshot.container.scrollHeight - snapshot.prevScrollHeight
@@ -378,9 +384,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore) return
 
-		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
 		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 		try {
+			await waitForNextPaint()
+			const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
 			const result = await loadMoreMessages(sessionId, paginationState.cursor!)
 			const older = mapPersistedMessages(result.messages)
 
@@ -1119,7 +1126,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 													key={msg.id || `msg-${i}`}
 													message={msg}
 													sessionId={effectiveSessionId}
-													isStreaming={isStreaming}
 													fetchFn={authorizedFetch}
 													readOnly={readOnly}
 													isLlama={isLlama}
@@ -1153,7 +1159,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 												key={streamingDraft.id || 'streaming-draft'}
 												message={streamingDraft}
 												sessionId={effectiveSessionId}
-												isStreaming={isStreaming}
 												isDraft
 												fetchFn={authorizedFetch}
 												readOnly={readOnly}
@@ -1769,7 +1774,9 @@ function InlineContent({
 					savedAlertIds={savedAlertIds}
 				/>
 			))}
-			{toolExecutions && toolExecutions.length > 0 ? <ToolExecutionPanel toolExecutions={toolExecutions} /> : null}
+			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
+				<ToolExecutionPanel toolExecutions={toolExecutions} />
+			) : null}
 		</div>
 	)
 }
@@ -1812,7 +1819,10 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 				</span>
 				<span className="font-mono text-[10px] text-[#999] tabular-nums dark:text-[#666]">{totalTime}ms</span>
 			</summary>
-			<div ref={contentRef} className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 dark:border-[#222324]">
+			<div
+				ref={contentRef}
+				className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 select-text dark:border-[#222324]"
+			>
 				{toolExecutions.map((exec, i) => (
 					<ToolExecutionRow key={i} execution={exec} />
 				))}
@@ -2028,17 +2038,18 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 
 function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
 	const contentRef = useRef<HTMLDivElement>(null)
+	const [isOpen, setIsOpen] = useState(defaultOpen)
 
 	useEffect(() => {
-		if (contentRef.current) {
+		if (isOpen && contentRef.current) {
 			contentRef.current.scrollTop = contentRef.current.scrollHeight
 		}
-	}, [thinking])
+	}, [thinking, isOpen])
 
 	if (!thinking) return null
 
 	return (
-		<details className="group" open={defaultOpen}>
+		<details className="group" open={isOpen} onToggle={(event) => setIsOpen(event.currentTarget.open)}>
 			<summary className="flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]">
 				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
 				<span>Reasoning</span>
@@ -2129,7 +2140,6 @@ function ToolProgressIndicator({
 function MessageBubble({
 	message,
 	sessionId,
-	isStreaming: parentIsStreaming,
 	isDraft = false,
 	fetchFn,
 	readOnly = false,
@@ -2139,7 +2149,6 @@ function MessageBubble({
 }: {
 	message: Message
 	sessionId: string | null
-	isStreaming: boolean
 	isDraft?: boolean
 	fetchFn?: typeof fetch
 	readOnly?: boolean
@@ -2192,7 +2201,7 @@ function MessageBubble({
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
 			/>
-			{message.id && !parentIsStreaming && !isDraft ? (
+			{message.id && !isDraft ? (
 				<ResponseControls
 					messageId={message.id}
 					content={message.content}
