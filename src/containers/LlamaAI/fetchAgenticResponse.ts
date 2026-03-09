@@ -46,6 +46,7 @@ interface FetchAgenticResponseParams {
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
+	isSuggestedQuestion?: boolean
 	fetchFn?: typeof fetch
 }
 
@@ -151,6 +152,7 @@ export async function fetchAgenticResponse({
 	images,
 	pageContext,
 	customInstructions,
+	isSuggestedQuestion,
 	fetchFn
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
@@ -182,6 +184,10 @@ export async function fetchAgenticResponse({
 
 	if (customInstructions) {
 		requestBody.customInstructions = customInstructions
+	}
+
+	if (isSuggestedQuestion) {
+		requestBody.isSuggestedQuestion = true
 	}
 
 	const response = await doFetch(`${MCP_SERVER}/agentic`, {

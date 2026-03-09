@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
-import { setPendingPrompt, setPendingPageContext } from '~/components/LlamaAIFloatingButton'
+import { setPendingPrompt, setPendingPageContext, setPendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -34,6 +34,7 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 		})
 		if (!loaders.userLoading && isAuthenticated) {
 			setPendingPrompt(question)
+			setPendingSuggestedFlag()
 			setPendingPageContext({
 				entitySlug,
 				entityType,

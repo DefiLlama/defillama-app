@@ -58,6 +58,21 @@ export function consumePendingPrompt(): string | null {
 	return prompt
 }
 
+const PENDING_SUGGESTED_KEY = 'llamaai-pending-suggested'
+
+export function setPendingSuggestedFlag() {
+	if (typeof window !== 'undefined') {
+		localStorage.setItem(PENDING_SUGGESTED_KEY, 'true')
+	}
+}
+
+export function consumePendingSuggestedFlag(): boolean {
+	if (typeof window === 'undefined') return false
+	const val = localStorage.getItem(PENDING_SUGGESTED_KEY)
+	if (val) localStorage.removeItem(PENDING_SUGGESTED_KEY)
+	return val === 'true'
+}
+
 export function setPendingPageContext(
 	context: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string } | null
 ) {
