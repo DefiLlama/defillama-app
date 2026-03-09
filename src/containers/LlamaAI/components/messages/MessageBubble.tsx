@@ -335,12 +335,14 @@ function InlineContent({
 	}, [chartIndex, referencedChartIds, isStreaming])
 
 	const unreferencedCsvs = useMemo(() => {
+		if (isStreaming) return []
+
 		const csvs: CsvExport[] = []
 		for (const [id, csv] of csvIndex) {
 			if (!referencedCsvIds.has(id)) csvs.push(csv)
 		}
 		return csvs
-	}, [csvIndex, referencedCsvIds])
+	}, [csvIndex, referencedCsvIds, isStreaming])
 
 	return (
 		<div className="flex flex-col gap-2.5">
@@ -388,6 +390,7 @@ function InlineContent({
 							}
 
 							if (part.type === 'csv' && 'csvId' in part && part.csvId) {
+								if (isStreaming) return null
 								const csv = csvIndex.get(part.csvId)
 								return csv ? <CSVExportArtifact key={getKey(`inline-csv-${part.csvId}`)} csvExport={csv} /> : null
 							}

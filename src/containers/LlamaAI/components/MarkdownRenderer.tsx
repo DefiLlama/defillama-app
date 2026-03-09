@@ -12,7 +12,7 @@ import { getEntityUrl } from '../utils/entityLinks'
 import { extractLlamaLinks, parseArtifactPlaceholders, processCitationMarkers } from '../utils/markdownHelpers'
 import { AlertArtifact, AlertArtifactLoading } from './AlertArtifact'
 import { ChartRenderer } from './ChartRenderer'
-import { CSVExportArtifact, CSVExportLoading, type CSVExport } from './CSVExportArtifact'
+import { CSVExportArtifact, type CSVExport } from './CSVExportArtifact'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
@@ -231,6 +231,10 @@ export function MarkdownRenderer({
 		</ReactMarkdown>
 	)
 
+	if (!processedData.content.trim() && (!citations || citations.length === 0)) {
+		return null
+	}
+
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
 			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
@@ -284,6 +288,8 @@ export function MarkdownRenderer({
 							return null
 						}
 						if (part.type === 'csv' && part.csvId) {
+							if (isStreaming) return null
+
 							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.csvId)
 							if (artifactItem?.type === 'csv') {
@@ -307,9 +313,7 @@ export function MarkdownRenderer({
 							if (csvExport) {
 								return <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} />
 							}
-							if (isStreaming || (!artifactIndex && !csvExports)) {
-								return <CSVExportLoading key={`csv-loading-${part.csvId}`} />
-							}
+							if (isStreaming || (!artifactIndex && !csvExports)) return null
 							return null
 						}
 						if (part.type === 'alert' && part.alertId) {
