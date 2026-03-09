@@ -1,0 +1,212 @@
+import type { Dispatch, RefObject, SetStateAction } from 'react'
+import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
+import { Tooltip } from '~/components/Tooltip'
+import { MessageBubble } from '~/containers/LlamaAI/components/messages/MessageBubble'
+import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
+import {
+	SpawnProgressCard,
+	ToolProgressIndicator,
+	TypingIndicator
+} from '~/containers/LlamaAI/components/status/StreamingStatus'
+import type { ChartSet, Message, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+
+interface ConversationViewProps {
+	readOnly: boolean
+	messages: Message[]
+	sessionId: string | null
+	fetchFn: typeof fetch
+	isLlama: boolean
+	isStreaming: boolean
+	activeToolCalls: ToolCall[]
+	spawnProgress: Map<string, SpawnAgentStatus>
+	spawnStartTime: number
+	streamingThinking: string
+	streamingDraft: Message | null
+	isCompacting: boolean
+	paginationState: {
+		hasMore: boolean
+		cursor: number | null
+		isLoadingMore: boolean
+	}
+	error: string | null
+	lastFailedPrompt: string | null
+	onRetryLastFailedPrompt: () => void
+	scrollContainerRef: RefObject<HTMLDivElement>
+	messagesEndRef: RefObject<HTMLDivElement>
+	promptInputRef: RefObject<HTMLTextAreaElement>
+	showScrollToBottom: boolean
+	scrollToBottom: () => void
+	handleSubmit: (
+		prompt: string,
+		preResolvedEntities?: Array<{ term: string; slug: string }>,
+		images?: Array<{ data: string; mimeType: string; filename?: string }>,
+		pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
+	) => void
+	handleStopRequest: () => void
+	handleActionClick: (message: string) => void
+	isResearchMode: boolean
+	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	onOpenAlerts: () => void
+}
+
+export function ConversationView({
+	readOnly,
+	messages,
+	sessionId,
+	fetchFn,
+	isLlama,
+	isStreaming,
+	activeToolCalls,
+	spawnProgress,
+	spawnStartTime,
+	streamingThinking,
+	streamingDraft,
+	isCompacting,
+	paginationState,
+	error,
+	lastFailedPrompt,
+	onRetryLastFailedPrompt,
+	scrollContainerRef,
+	messagesEndRef,
+	promptInputRef,
+	showScrollToBottom,
+	scrollToBottom,
+	handleSubmit,
+	handleStopRequest,
+	handleActionClick,
+	isResearchMode,
+	setIsResearchMode,
+	onOpenAlerts
+}: ConversationViewProps) {
+	return (
+		<>
+			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
+				<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
+					<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
+						<div className="flex flex-col gap-2.5">
+							{paginationState.isLoadingMore ? (
+								<div className="flex justify-center py-2">
+									<span className="text-xs text-[#666] dark:text-[#919296]">Loading older messages...</span>
+								</div>
+							) : null}
+
+							{messages.map((message, index) => {
+								const nextMessage = messages[index + 1]
+								const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
+
+								return (
+									<MessageBubble
+										key={message.id || `msg-${index}`}
+										message={message}
+										sessionId={sessionId}
+										fetchFn={fetchFn}
+										readOnly={readOnly}
+										isLlama={isLlama}
+										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
+										nextUserMessage={nextUserMessage}
+									/>
+								)
+							})}
+
+							{isStreaming &&
+							activeToolCalls.length === 0 &&
+							spawnProgress.size === 0 &&
+							!streamingDraft?.content &&
+							!streamingThinking &&
+							!hasStreamingCharts(streamingDraft?.charts) ? (
+								<TypingIndicator />
+							) : null}
+
+							{spawnProgress.size > 0 ? (
+								<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+							) : (
+								<ToolProgressIndicator
+									toolCalls={activeToolCalls}
+									thinking={streamingThinking}
+									isCompacting={isCompacting}
+								/>
+							)}
+
+							{streamingDraft ? (
+								<MessageBubble
+									key={streamingDraft.id || 'streaming-draft'}
+									message={streamingDraft}
+									sessionId={sessionId}
+									isDraft
+									fetchFn={fetchFn}
+									readOnly={readOnly}
+									isLlama={isLlama}
+								/>
+							) : null}
+
+							{error ? (
+								<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+									<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+									{lastFailedPrompt ? (
+										<button
+											onClick={onRetryLastFailedPrompt}
+											className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+										>
+											Retry
+										</button>
+									) : null}
+								</div>
+							) : null}
+						</div>
+					</div>
+					<div ref={messagesEndRef} />
+				</div>
+			</div>
+
+			<div
+				className={`pointer-events-none sticky z-10 mx-auto transition-opacity duration-200 ${
+					readOnly ? 'bottom-8 -mb-2' : 'bottom-32 -mb-8'
+				} ${showScrollToBottom ? 'opacity-100' : 'opacity-0'}`}
+			>
+				<Tooltip
+					content="Scroll to bottom"
+					render={<button onClick={scrollToBottom} />}
+					className="pointer-events-auto mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324]"
+				>
+					<Icon name="arrow-down" height={16} width={16} />
+					<span className="sr-only">Scroll to bottom</span>
+				</Tooltip>
+			</div>
+
+			{!readOnly ? (
+				<div className="relative mx-auto w-full max-w-3xl pb-2.5">
+					<div className="absolute -top-8 right-0 left-0 h-9 bg-linear-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
+					<PromptInput
+						handleSubmit={handleSubmit}
+						promptInputRef={promptInputRef}
+						isPending={false}
+						handleStopRequest={handleStopRequest}
+						isStreaming={isStreaming}
+						restoreRequest={null}
+						placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+						isResearchMode={isResearchMode}
+						setIsResearchMode={setIsResearchMode}
+						researchUsage={null}
+						onOpenAlerts={onOpenAlerts}
+					/>
+				</div>
+			) : null}
+		</>
+	)
+}
+
+export function LoadingConversationState() {
+	return (
+		<div className="flex flex-1 items-center justify-center">
+			<p className="flex items-center gap-1 text-[#666] dark:text-[#919296]">
+				Loading
+				<LoadingDots />
+			</p>
+		</div>
+	)
+}
+
+function hasStreamingCharts(charts?: ChartSet[]) {
+	return Boolean(charts && charts.length > 0)
+}

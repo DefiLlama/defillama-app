@@ -4,7 +4,7 @@ import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
-import type { ChatSession } from './useChatHistory'
+import type { ChatSession } from '../types'
 import { SESSIONS_QUERY_KEY, type SessionListData } from './useSessionList'
 
 export function useSessionMutations() {

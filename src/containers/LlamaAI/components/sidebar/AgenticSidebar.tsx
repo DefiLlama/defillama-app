@@ -3,7 +3,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import type { ChatSession } from '~/containers/LlamaAI/hooks/useChatHistory'
+import type { ChatSession } from '~/containers/LlamaAI/types'
 import { AgenticSessionItem } from './AgenticSessionItem'
 
 interface AgenticSidebarProps {

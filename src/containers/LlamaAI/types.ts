@@ -66,6 +66,23 @@ export interface CsvExport {
 	filename: string
 }
 
+export interface ChatSession {
+	sessionId: string
+	title: string
+	createdAt: string
+	lastActivity: string
+	isActive: boolean
+	isPublic?: boolean
+	shareToken?: string
+}
+
+export interface ResearchUsage {
+	remainingUsage: number
+	limit: number
+	period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
+	resetTime: string | null
+}
+
 export interface AlertProposedData {
 	alertId: string
 	title: string
@@ -159,4 +176,24 @@ export interface Message {
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
 	thinking?: string
+}
+
+export interface ChartSet {
+	charts: ChartConfiguration[]
+	chartData: Record<string, any[]>
+}
+
+export interface ToolCall {
+	id: number
+	name: string
+	label: string
+}
+
+export interface SpawnAgentStatus {
+	id: string
+	status: 'started' | 'tool_call' | 'completed' | 'error'
+	tool?: string
+	toolCount?: number
+	chartCount?: number
+	findingsPreview?: string
 }
