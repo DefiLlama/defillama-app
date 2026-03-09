@@ -93,7 +93,7 @@ export const SettingsModal = memo(function SettingsModal({
 				portal
 				unmountOnHide
 			>
-				<div className="flex items-center justify-between border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+				<header className="flex items-center justify-between border-b border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 					<div className="flex items-center gap-3">
 						<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-(--old-blue)/10 dark:bg-(--old-blue)/15">
 							<Icon name="settings" className="h-5 w-5 text-[#1853A8] dark:text-[#4B86DB]" />
@@ -103,12 +103,17 @@ export const SettingsModal = memo(function SettingsModal({
 					<Ariakit.DialogDismiss className="rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
 						<Icon name="x" className="h-5 w-5" />
 					</Ariakit.DialogDismiss>
-				</div>
+				</header>
 
 				<div className="thin-scrollbar max-h-[calc(85vh-73px)] overflow-y-auto">
-					<div className="flex flex-col gap-1.5 px-5 py-4">
+					<section className="flex flex-col gap-1.5 px-5 py-4">
 						<div className="flex items-center justify-between">
-							<label className="text-sm font-medium text-[#1a1a1a] dark:text-white">Custom Instructions</label>
+							<label
+								htmlFor="llamaai-custom-instructions"
+								className="text-sm font-medium text-[#1a1a1a] dark:text-white"
+							>
+								Custom Instructions
+							</label>
 							{draft.trim().length > 0 ? (
 								<button
 									type="button"
@@ -123,6 +128,7 @@ export const SettingsModal = memo(function SettingsModal({
 							Tell LlamaAI how to respond. These apply to every conversation.
 						</p>
 						<textarea
+							id="llamaai-custom-instructions"
 							value={draft}
 							onChange={(e) => setDraft(e.target.value.slice(0, MAX_LENGTH))}
 							onBlur={save}
@@ -137,14 +143,14 @@ export const SettingsModal = memo(function SettingsModal({
 							rows={4}
 						/>
 						<div className="flex items-center justify-between text-[11px] text-[#999] dark:text-[#666]">
-							<span>
+							<p className="m-0">
 								{draft.length}/{MAX_LENGTH}
-							</span>
-							<span className="hidden sm:inline">⌘+Enter to save &amp; close</span>
+							</p>
+							<p className="m-0 hidden sm:inline">⌘+Enter to save &amp; close</p>
 						</div>
-					</div>
+					</section>
 
-					<div className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+					<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
 						<button
 							type="button"
 							role="switch"
@@ -154,10 +160,10 @@ export const SettingsModal = memo(function SettingsModal({
 							className="flex w-full items-center justify-between"
 						>
 							<div className="flex flex-col gap-0.5 text-left">
-								<span className="text-sm font-medium text-[#1a1a1a] dark:text-white">Remember my preferences</span>
-								<span className="text-xs text-[#777] dark:text-[#919296]">
+								<p className="m-0 text-sm font-medium text-[#1a1a1a] dark:text-white">Remember my preferences</p>
+								<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
 									Let LlamaAI remember your preferences across conversations for personalized responses.
-								</span>
+								</p>
 							</div>
 							<div
 								className={`relative ml-3 h-5 w-9 flex-shrink-0 rounded-full transition-colors ${
@@ -171,7 +177,7 @@ export const SettingsModal = memo(function SettingsModal({
 								/>
 							</div>
 						</button>
-					</div>
+					</section>
 				</div>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>

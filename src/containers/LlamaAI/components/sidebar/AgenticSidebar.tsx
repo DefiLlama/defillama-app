@@ -3,7 +3,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
-import type { ChatSession } from '~/containers/LlamaAI/hooks/useChatHistory'
+import type { ChatSession } from '~/containers/LlamaAI/types'
 import { AgenticSessionItem } from './AgenticSessionItem'
 
 interface AgenticSidebarProps {
@@ -136,11 +136,11 @@ export function AgenticSidebar({
 	}, [])
 
 	return (
-		<div
+		<aside
 			ref={sidebarRef}
 			className={`relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
-			<div className="flex flex-col gap-2 p-4">
+			<header className="flex flex-col gap-2 p-4">
 				<Tooltip
 					content="Close Chat History"
 					render={<button onClick={handleSidebarToggle} />}
@@ -157,9 +157,13 @@ export function AgenticSidebar({
 					<Icon name="message-square-plus" height={16} width={16} />
 					<span>New Chat</span>
 				</button>
-			</div>
+			</header>
 
-			<div ref={scrollContainerRef} className="thin-scrollbar flex-1 overflow-auto p-4 pt-0 pr-1">
+			<nav
+				ref={scrollContainerRef}
+				className="thin-scrollbar flex-1 overflow-auto p-4 pt-0 pr-1"
+				aria-label="Chat history"
+			>
 				{isLoading ? (
 					<div className="flex items-center justify-center rounded-sm border border-dashed border-[#666]/50 p-4 text-center text-xs text-[#666] dark:border-[#919296]/50 dark:text-[#919296]">
 						<LoadingSpinner size={12} />
@@ -215,10 +219,10 @@ export function AgenticSidebar({
 						})}
 					</div>
 				)}
-			</div>
+			</nav>
 
 			{onOpenSettings ? (
-				<div className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
+				<footer className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
 					<button
 						onClick={onOpenSettings}
 						className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] hover:text-[#1a1a1a] dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
@@ -231,8 +235,8 @@ export function AgenticSidebar({
 						</div>
 						<span>Settings</span>
 					</button>
-				</div>
+				</footer>
 			) : null}
-		</div>
+		</aside>
 	)
 }

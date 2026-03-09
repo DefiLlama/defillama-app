@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { ChatSession, ResearchUsage } from './useChatHistory'
+import type { ChatSession, ResearchUsage } from '../types'
 
 export interface SessionListData {
 	sessions: ChatSession[]
