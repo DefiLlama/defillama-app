@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Router from 'next/router'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
 import { LoadingDots } from '~/components/Loaders'
@@ -104,6 +104,81 @@ function buildChartIndex(chartSets: ChartSet[]) {
 	return index
 }
 
+function mapPersistedMessage(message: any): Message {
+	return {
+		role: message.role as 'user' | 'assistant',
+		content: message.content,
+		charts:
+			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
+		citations: message.citations,
+		csvExports: message.csvExports,
+		images: message.images,
+		toolExecutions: message.metadata?.toolExecutions?.map((tool: any) => ({
+			...tool,
+			name: tool.name || tool.toolName
+		})),
+		thinking: message.metadata?.thinking,
+		id: message.messageId,
+		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
+	}
+}
+
+function mapPersistedMessages(messages: any[] | undefined): Message[] {
+	if (!messages || messages.length === 0) return []
+	return messages.map(mapPersistedMessage)
+}
+
+function getScrollSnapshot(container: HTMLDivElement | null) {
+	return {
+		container,
+		prevScrollHeight: container?.scrollHeight ?? 0
+	}
+}
+
+function restoreScrollPosition(snapshot: { container: HTMLDivElement | null; prevScrollHeight: number }) {
+	if (!snapshot.container) return
+	snapshot.container.scrollTop = snapshot.container.scrollHeight - snapshot.prevScrollHeight
+}
+
+function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: number | null } | undefined): {
+	hasMore: boolean
+	cursor: number | null
+	isLoadingMore: false
+} {
+	return {
+		hasMore: pagination?.hasMore || false,
+		cursor: pagination?.cursor || null,
+		isLoadingMore: false
+	}
+}
+
+function mapSharedSessionMessage(message: SharedSession['messages'][number]): Message {
+	return {
+		role: message.role,
+		content: message.content || undefined,
+		charts:
+			message.charts && message.chartData
+				? [
+						{
+							charts: message.charts,
+							chartData: (Array.isArray(message.chartData)
+								? { default: message.chartData }
+								: message.chartData) as Record<string, any[]>
+						}
+					]
+				: undefined,
+		csvExports: message.csvExports,
+		citations: message.citations,
+		images: message.images,
+		toolExecutions: message.metadata?.toolExecutions?.map((tool: any) => ({
+			...tool,
+			name: tool.name || tool.toolName
+		})),
+		thinking: message.metadata?.thinking,
+		id: message.messageId
+	}
+}
+
 function formatTime(seconds: number): string {
 	const m = Math.floor(seconds / 60)
 	const s = seconds % 60
@@ -169,8 +244,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [customInstructions, setCustomInstructions] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
 	)
-	const customInstructionsRef = useRef(customInstructions)
-	customInstructionsRef.current = customInstructions
 	const [enableMemory, setEnableMemory] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
 	)
@@ -215,7 +288,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		}
 	}, [])
 
-	const hasMessages = messages.length > 0 || isStreaming
+	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
+	const effectiveMessages = sharedMessages ?? messages
+	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
+	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
+	const hasMessages = effectiveMessages.length > 0 || isStreaming
 
 	const streamingDraft = useMemo((): Message | null => {
 		if (!isStreaming) return null
@@ -268,52 +345,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [user, authorizedFetch])
 
 	useEffect(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
-
-		let cooldownTimer: ReturnType<typeof setTimeout>
-		const onUserScrollIntent = () => {
-			shouldAutoScrollRef.current = false
-			userScrollCooldownRef.current = true
-			clearTimeout(cooldownTimer)
-			cooldownTimer = setTimeout(() => {
-				userScrollCooldownRef.current = false
-			}, 500)
-		}
-
-		let ticking = false
-		const onScroll = () => {
-			if (!ticking) {
-				ticking = true
-				requestAnimationFrame(() => {
-					const { scrollTop, scrollHeight, clientHeight } = container
-					const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
-					if (isAtBottom) {
-						shouldAutoScrollRef.current = true
-						userScrollCooldownRef.current = false
-					}
-					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
-					const pg = paginationRef.current
-					if (scrollTop <= 50 && pg.hasMore && !pg.isLoadingMore) {
-						void loadMoreRef.current()
-					}
-					ticking = false
-				})
-			}
-		}
-
-		container.addEventListener('wheel', onUserScrollIntent, { passive: true })
-		container.addEventListener('touchmove', onUserScrollIntent, { passive: true })
-		container.addEventListener('scroll', onScroll, { passive: true })
-		return () => {
-			clearTimeout(cooldownTimer)
-			container.removeEventListener('wheel', onUserScrollIntent)
-			container.removeEventListener('touchmove', onUserScrollIntent)
-			container.removeEventListener('scroll', onScroll)
-		}
-	}, [hasMessages])
-
-	useEffect(() => {
 		if (!isStreaming) {
 			const timer = setTimeout(() => {
 				requestAnimationFrame(() => {
@@ -342,51 +373,78 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		if (shouldAutoScrollRef.current && scrollContainerRef.current) {
 			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
 		}
-	}, [messages])
+	}, [effectiveMessages])
 
 	const handleLoadMoreMessages = useCallback(async () => {
 		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore) return
 
+		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
 		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 		try {
 			const result = await loadMoreMessages(sessionId, paginationState.cursor!)
-			const older: Message[] = (result.messages || []).map((m: any) => ({
-				role: m.role as 'user' | 'assistant',
-				content: m.content,
-				charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
-				citations: m.citations,
-				csvExports: m.csvExports,
-				toolExecutions: m.metadata?.toolExecutions?.map((t: any) => ({ ...t, name: t.name || t.toolName })),
-				thinking: m.metadata?.thinking,
-				id: m.messageId,
-				timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
-			}))
-
-			const container = scrollContainerRef.current
-			const prevScrollHeight = container?.scrollHeight || 0
+			const older = mapPersistedMessages(result.messages)
 
 			setMessages((prev) => [...older, ...prev])
 
 			requestAnimationFrame(() => {
-				if (container) {
-					container.scrollTop = container.scrollHeight - prevScrollHeight
-				}
+				restoreScrollPosition(scrollSnapshot)
 			})
 
-			setPaginationState({
-				hasMore: result.pagination?.hasMore || false,
-				cursor: result.pagination?.cursor || null,
-				isLoadingMore: false
-			})
+			setPaginationState(normalizePaginationState(result.pagination))
 		} catch {
 			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
 		}
 	}, [sessionId, paginationState, loadMoreMessages])
 
-	const loadMoreRef = useRef(handleLoadMoreMessages)
+	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
+		void handleLoadMoreMessages()
+	})
+
 	useEffect(() => {
-		loadMoreRef.current = handleLoadMoreMessages
-	}, [handleLoadMoreMessages])
+		const container = scrollContainerRef.current
+		if (!container) return
+
+		let cooldownTimer: ReturnType<typeof setTimeout>
+		const onUserScrollIntent = () => {
+			shouldAutoScrollRef.current = false
+			userScrollCooldownRef.current = true
+			clearTimeout(cooldownTimer)
+			cooldownTimer = setTimeout(() => {
+				userScrollCooldownRef.current = false
+			}, 500)
+		}
+
+		let ticking = false
+		const onScroll = () => {
+			if (!ticking) {
+				ticking = true
+				requestAnimationFrame(() => {
+					const { scrollTop, scrollHeight, clientHeight } = container
+					const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
+					if (isAtBottom) {
+						shouldAutoScrollRef.current = true
+						userScrollCooldownRef.current = false
+					}
+					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
+					const pg = paginationRef.current
+					if (scrollTop <= 50 && pg.hasMore && !pg.isLoadingMore) {
+						handleLoadMoreMessagesEvent()
+					}
+					ticking = false
+				})
+			}
+		}
+
+		container.addEventListener('wheel', onUserScrollIntent, { passive: true })
+		container.addEventListener('touchmove', onUserScrollIntent, { passive: true })
+		container.addEventListener('scroll', onScroll, { passive: true })
+		return () => {
+			clearTimeout(cooldownTimer)
+			container.removeEventListener('wheel', onUserScrollIntent)
+			container.removeEventListener('touchmove', onUserScrollIntent)
+			container.removeEventListener('scroll', onScroll)
+		}
+	}, [hasMessages])
 
 	const handleSidebarToggle = useCallback(() => {
 		setShouldAnimateSidebar(true)
@@ -423,216 +481,168 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}, [initialSessionId])
 
 	const handleSessionSelect = useCallback(
-		async (selectedSessionId: string) => {
+		(selectedSessionId: string) => {
 			if (selectedSessionId === sessionId) return
 			setError(null)
 			setRestoringSessionId(selectedSessionId)
 
-			try {
-				const result = await restoreSession(selectedSessionId)
-				const restored: Message[] = (result.messages || []).map((m: any) => ({
-					role: m.role as 'user' | 'assistant',
-					content: m.content,
-					charts: m.charts && m.chartData ? [{ charts: m.charts, chartData: m.chartData }] : undefined,
-					citations: m.citations,
-					csvExports: m.csvExports,
-					alerts: m.metadata?.alertIntent
-						? [
-								{
-									alertId: m.metadata?.savedAlertId || `restored_${m.messageId}`,
-									title: m.metadata?.alertIntent?.dataQuery || '',
-									alertIntent: {
-										frequency: m.metadata.alertIntent.frequency || 'daily',
-										hour: m.metadata.alertIntent.hour ?? 9,
-										timezone: m.metadata.alertIntent.timezone || 'UTC',
-										dayOfWeek: m.metadata.alertIntent.dayOfWeek
-									},
-									schedule_expression: '',
-									next_run_at: ''
-								}
-							]
-						: undefined,
-					savedAlertIds: m.savedAlertIds,
-					toolExecutions: m.metadata?.toolExecutions?.map((t: any) => ({ ...t, name: t.name || t.toolName })),
-					thinking: m.metadata?.thinking,
-					id: m.messageId,
-					timestamp: m.timestamp ? new Date(m.timestamp).getTime() : undefined
-				}))
+			return restoreSession(selectedSessionId)
+				.then(async (result) => {
+					const restored: Message[] = (result.messages || []).map((m: any) => ({
+						...mapPersistedMessage(m),
+						alerts: m.metadata?.alertIntent
+							? [
+									{
+										alertId: m.metadata?.savedAlertId || `restored_${m.messageId}`,
+										title: m.metadata?.alertIntent?.dataQuery || '',
+										alertIntent: {
+											frequency: m.metadata.alertIntent.frequency || 'daily',
+											hour: m.metadata.alertIntent.hour ?? 9,
+											timezone: m.metadata.alertIntent.timezone || 'UTC',
+											dayOfWeek: m.metadata.alertIntent.dayOfWeek
+										},
+										schedule_expression: '',
+										next_run_at: ''
+									}
+								]
+							: undefined,
+						savedAlertIds: m.savedAlertIds
+					}))
 
-				setMessages(restored)
-				setSessionId(selectedSessionId)
-				const match = sessions.find((s) => s.sessionId === selectedSessionId)
-				setSessionTitle(match?.title || null)
-				window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
-				isFirstMessageRef.current = false
-				shouldAutoScrollRef.current = true
-				setShowScrollToBottom(false)
-				setPaginationState({
-					hasMore: result.pagination?.hasMore || false,
-					cursor: result.pagination?.cursor || null,
-					isLoadingMore: false
-				})
-
-				const { active } = await checkActiveExecution(selectedSessionId, authorizedFetch)
-				if (active) {
-					setIsStreaming(true)
-					setStreamingText('')
-					setStreamingCharts([])
-					setStreamingCsvExports([])
-					setStreamingAlerts([])
-					setStreamingCitations([])
-					setStreamingToolExecutions([])
-					setStreamingThinking('')
-					setActiveToolCalls([])
-					setSpawnProgress(new Map())
-					setSpawnStartTime(0)
-
-					let accumulatedText = ''
-					let accumulatedCharts: ChartSet[] = []
-					let accumulatedCsvExports: CsvExport[] = []
-					let accumulatedAlerts: AlertProposedData[] = []
-					let accumulatedCitations: string[] = []
-					let accumulatedToolExecutions: ToolExecution[] = []
-					let accumulatedThinking = ''
-					let hasStartedText = false
-					let spawnStarted = false
-
-					const controller = new AbortController()
-					abortControllerRef.current = controller
-
-					const callbacks: AgenticSSECallbacks = {
-						onToken: (content) => {
-							if (!hasStartedText) {
-								hasStartedText = true
-								setActiveToolCalls([])
-								setSpawnProgress(new Map())
-								setSpawnStartTime(0)
-							}
-							accumulatedText += content
-							setStreamingText(accumulatedText)
-						},
-						onCharts: (charts, chartData) => {
-							setActiveToolCalls([])
-							accumulatedCharts = [...accumulatedCharts, { charts, chartData }]
-							setStreamingCharts(accumulatedCharts)
-						},
-						onCsvExport: (exports) => {
-							accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
-							setStreamingCsvExports(accumulatedCsvExports)
-						},
-						onAlertProposed: (data) => {
-							accumulatedAlerts = [...accumulatedAlerts, data]
-							setStreamingAlerts(accumulatedAlerts)
-						},
-						onCitations: (citations) => {
-							accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
-							setStreamingCitations(accumulatedCitations)
-						},
-						onProgress: (toolName) => {
-							const label = TOOL_LABELS[toolName] || toolName
-							const id = ++toolCallIdRef.current
-							setActiveToolCalls((prev) => [...prev, { id, name: toolName, label }])
-						},
-						onToolExecution: (data) => {
-							accumulatedToolExecutions = [...accumulatedToolExecutions, data]
-							setStreamingToolExecutions(accumulatedToolExecutions)
-						},
-						onThinking: (content) => {
-							accumulatedThinking += content
-							setStreamingThinking(accumulatedThinking)
-						},
-						onSpawnProgress: (data: SpawnProgressData) => {
-							if (data.status === 'started' && !spawnStarted) {
-								spawnStarted = true
-								setSpawnStartTime(Date.now())
-							}
-							setSpawnProgress((prev) => {
-								const next = new Map(prev)
-								const existing = prev.get(data.agentId)
-								next.set(data.agentId, {
-									...existing,
-									id: data.agentId,
-									status: data.status,
-									tool: data.tool ?? existing?.tool,
-									toolCount: data.toolCount ?? existing?.toolCount,
-									chartCount: data.chartCount ?? existing?.chartCount,
-									findingsPreview: data.findingsPreview ?? existing?.findingsPreview
-								})
-								return next
-							})
-						},
-						onCompaction: (data) => {
-							setIsCompacting(data.status === 'started')
-						},
-						onSessionId: () => {},
-						onMessageId: (messageId) => {
-							currentMessageIdRef.current = messageId
-						},
-						onTitle: (title) => {
-							setSessionTitle(title)
-							updateSessionTitle({ sessionId: selectedSessionId, title }).catch(() => {})
-							moveSessionToTop(selectedSessionId)
-						},
-						onError: (content) => {
-							setError(content)
-						},
-						onDone: () => {
-							const finalMessageId = currentMessageIdRef.current || undefined
-							currentMessageIdRef.current = null
-							setMessages((prev) => [
-								...prev,
-								{
-									role: 'assistant',
-									content: accumulatedText || undefined,
-									charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
-									csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
-									alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
-									citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
-									toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
-									thinking: accumulatedThinking || undefined,
-									id: finalMessageId
-								}
-							])
-							setStreamingText('')
-							setStreamingCharts([])
-							setStreamingCsvExports([])
-							setStreamingAlerts([])
-							setStreamingCitations([])
-							setStreamingToolExecutions([])
-							setStreamingThinking('')
-							setActiveToolCalls([])
-							setSpawnProgress(new Map())
-							setSpawnStartTime(0)
-							setIsStreaming(false)
-							notify()
-						}
-					}
-
-					resumeAgenticStream({
-						sessionId: selectedSessionId,
-						callbacks,
-						abortSignal: controller.signal,
-						fetchFn: authorizedFetch
+					setMessages(restored)
+					setSessionId(selectedSessionId)
+					const match = sessions.find((s) => s.sessionId === selectedSessionId)
+					setSessionTitle(match?.title || null)
+					window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
+					isFirstMessageRef.current = false
+					shouldAutoScrollRef.current = true
+					setShowScrollToBottom(false)
+					setPaginationState({
+						hasMore: result.pagination?.hasMore || false,
+						cursor: result.pagination?.cursor || null,
+						isLoadingMore: false
 					})
-						.catch((err: any) => {
-							if (err?.name === 'AbortError') {
-								if (accumulatedText || accumulatedCharts.length > 0) {
-									const messageId = currentMessageIdRef.current || undefined
-									currentMessageIdRef.current = null
-									setMessages((prev) => [
-										...prev,
-										{
-											role: 'assistant',
-											content: accumulatedText || undefined,
-											charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
-											csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
-											citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
-											toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
-											thinking: accumulatedThinking || undefined,
-											id: messageId
-										}
-									])
+
+					const { active } = await checkActiveExecution(selectedSessionId, authorizedFetch)
+					if (active) {
+						setIsStreaming(true)
+						setStreamingText('')
+						setStreamingCharts([])
+						setStreamingCsvExports([])
+						setStreamingAlerts([])
+						setStreamingCitations([])
+						setStreamingToolExecutions([])
+						setStreamingThinking('')
+						setActiveToolCalls([])
+						setSpawnProgress(new Map())
+						setSpawnStartTime(0)
+
+						let accumulatedText = ''
+						let accumulatedCharts: ChartSet[] = []
+						let accumulatedCsvExports: CsvExport[] = []
+						let accumulatedAlerts: AlertProposedData[] = []
+						let accumulatedCitations: string[] = []
+						let accumulatedToolExecutions: ToolExecution[] = []
+						let accumulatedThinking = ''
+						let hasStartedText = false
+						let spawnStarted = false
+
+						const controller = new AbortController()
+						abortControllerRef.current = controller
+
+						const callbacks: AgenticSSECallbacks = {
+							onToken: (content) => {
+								if (!hasStartedText) {
+									hasStartedText = true
+									setActiveToolCalls([])
+									setSpawnProgress(new Map())
+									setSpawnStartTime(0)
 								}
+								accumulatedText += content
+								setStreamingText(accumulatedText)
+							},
+							onCharts: (charts, chartData) => {
+								setActiveToolCalls([])
+								accumulatedCharts = [...accumulatedCharts, { charts, chartData }]
+								setStreamingCharts(accumulatedCharts)
+							},
+							onCsvExport: (exports) => {
+								accumulatedCsvExports = [...accumulatedCsvExports, ...exports]
+								setStreamingCsvExports(accumulatedCsvExports)
+							},
+							onAlertProposed: (data) => {
+								accumulatedAlerts = [...accumulatedAlerts, data]
+								setStreamingAlerts(accumulatedAlerts)
+							},
+							onCitations: (citations) => {
+								accumulatedCitations = [...new Set([...accumulatedCitations, ...citations])]
+								setStreamingCitations(accumulatedCitations)
+							},
+							onProgress: (toolName) => {
+								const label = TOOL_LABELS[toolName] || toolName
+								const id = ++toolCallIdRef.current
+								setActiveToolCalls((prev) => [...prev, { id, name: toolName, label }])
+							},
+							onToolExecution: (data) => {
+								accumulatedToolExecutions = [...accumulatedToolExecutions, data]
+								setStreamingToolExecutions(accumulatedToolExecutions)
+							},
+							onThinking: (content) => {
+								accumulatedThinking += content
+								setStreamingThinking(accumulatedThinking)
+							},
+							onSpawnProgress: (data: SpawnProgressData) => {
+								if (data.status === 'started' && !spawnStarted) {
+									spawnStarted = true
+									setSpawnStartTime(Date.now())
+								}
+								setSpawnProgress((prev) => {
+									const next = new Map(prev)
+									const existing = prev.get(data.agentId)
+									next.set(data.agentId, {
+										...existing,
+										id: data.agentId,
+										status: data.status,
+										tool: data.tool ?? existing?.tool,
+										toolCount: data.toolCount ?? existing?.toolCount,
+										chartCount: data.chartCount ?? existing?.chartCount,
+										findingsPreview: data.findingsPreview ?? existing?.findingsPreview
+									})
+									return next
+								})
+							},
+							onCompaction: (data) => {
+								setIsCompacting(data.status === 'started')
+							},
+							onSessionId: () => {},
+							onMessageId: (messageId) => {
+								currentMessageIdRef.current = messageId
+							},
+							onTitle: (title) => {
+								setSessionTitle(title)
+								updateSessionTitle({ sessionId: selectedSessionId, title }).catch(() => {})
+								moveSessionToTop(selectedSessionId)
+							},
+							onError: (content) => {
+								setError(content)
+							},
+							onDone: () => {
+								const finalMessageId = currentMessageIdRef.current || undefined
+								currentMessageIdRef.current = null
+								setMessages((prev) => [
+									...prev,
+									{
+										role: 'assistant',
+										content: accumulatedText || undefined,
+										charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+										csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+										alerts: accumulatedAlerts.length > 0 ? accumulatedAlerts : undefined,
+										citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
+										toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
+										thinking: accumulatedThinking || undefined,
+										id: finalMessageId
+									}
+								])
 								setStreamingText('')
 								setStreamingCharts([])
 								setStreamingCsvExports([])
@@ -644,19 +654,61 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								setSpawnProgress(new Map())
 								setSpawnStartTime(0)
 								setIsStreaming(false)
-								return
+								notify()
 							}
-							setIsStreaming(false)
+						}
+
+						void resumeAgenticStream({
+							sessionId: selectedSessionId,
+							callbacks,
+							abortSignal: controller.signal,
+							fetchFn: authorizedFetch
 						})
-						.finally(() => {
-							abortControllerRef.current = null
-						})
-				}
-			} catch {
-				setError('Failed to restore session')
-			} finally {
-				setRestoringSessionId(null)
-			}
+							.catch((err: any) => {
+								if (err?.name === 'AbortError') {
+									if (accumulatedText || accumulatedCharts.length > 0) {
+										const messageId = currentMessageIdRef.current || undefined
+										currentMessageIdRef.current = null
+										setMessages((prev) => [
+											...prev,
+											{
+												role: 'assistant',
+												content: accumulatedText || undefined,
+												charts: accumulatedCharts.length > 0 ? accumulatedCharts : undefined,
+												csvExports: accumulatedCsvExports.length > 0 ? accumulatedCsvExports : undefined,
+												citations: accumulatedCitations.length > 0 ? accumulatedCitations : undefined,
+												toolExecutions: accumulatedToolExecutions.length > 0 ? accumulatedToolExecutions : undefined,
+												thinking: accumulatedThinking || undefined,
+												id: messageId
+											}
+										])
+									}
+									setStreamingText('')
+									setStreamingCharts([])
+									setStreamingCsvExports([])
+									setStreamingAlerts([])
+									setStreamingCitations([])
+									setStreamingToolExecutions([])
+									setStreamingThinking('')
+									setActiveToolCalls([])
+									setSpawnProgress(new Map())
+									setSpawnStartTime(0)
+									setIsStreaming(false)
+									return
+								}
+								setIsStreaming(false)
+							})
+							.finally(() => {
+								abortControllerRef.current = null
+							})
+					}
+				})
+				.catch(() => {
+					setError('Failed to restore session')
+				})
+				.finally(() => {
+					setRestoringSessionId(null)
+				})
 		},
 		[sessionId, restoreSession, sessions, authorizedFetch, updateSessionTitle, moveSessionToTop, notify]
 	)
@@ -719,7 +771,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				researchMode: isResearchMode,
 				images: images?.length ? images : undefined,
 				pageContext,
-				customInstructions: customInstructionsRef.current || undefined,
+				customInstructions: customInstructions || undefined,
 				abortSignal: controller.signal,
 				fetchFn: authorizedFetch,
 				callbacks: {
@@ -913,7 +965,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			moveSessionToTop,
 			researchModalStore,
 			requestPermission,
-			notify
+			notify,
+			customInstructions
 		]
 	)
 
@@ -932,9 +985,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setSpawnStartTime(0)
 	}, [])
 
-	const handleSubmitRef = useRef(handleSubmit)
-	handleSubmitRef.current = handleSubmit
-
 	const handleActionClick = useCallback(
 		(message: string) => {
 			if (!isStreaming) handleSubmit(message)
@@ -942,51 +992,36 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[isStreaming, handleSubmit]
 	)
 
-	const handleSessionSelectRef = useRef(handleSessionSelect)
-	handleSessionSelectRef.current = handleSessionSelect
+	const submitPendingPromptEvent = useEffectEvent(
+		(
+			prompt: string,
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
+		) => {
+			handleSubmit(prompt, undefined, undefined, pageContext)
+		}
+	)
+
+	const selectInitialSessionEvent = useEffectEvent((nextSessionId: string) => {
+		void handleSessionSelect(nextSessionId)
+	})
 
 	useEffect(() => {
 		if (initialSessionId || sharedSession) return
 		const pendingPrompt = consumePendingPrompt()
 		const pendingPageContext = consumePendingPageContext()
 		if (pendingPrompt) {
-			handleSubmitRef.current(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
+			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined)
 		}
 	}, [initialSessionId, sharedSession])
 
 	useEffect(() => {
 		if (initialSessionId) {
-			void handleSessionSelectRef.current(initialSessionId)
+			selectInitialSessionEvent(initialSessionId)
 		}
 	}, [initialSessionId])
 
 	useEffect(() => {
 		if (!sharedSession) return
-		const mapped: Message[] = sharedSession.messages.map((m) => ({
-			role: m.role,
-			content: m.content || undefined,
-			charts:
-				m.charts && m.chartData
-					? [
-							{
-								charts: m.charts,
-								chartData: (Array.isArray(m.chartData) ? { default: m.chartData } : m.chartData) as Record<
-									string,
-									any[]
-								>
-							}
-						]
-					: undefined,
-			csvExports: m.csvExports,
-			citations: m.citations,
-			images: m.images,
-			toolExecutions: (m as any).metadata?.toolExecutions?.map((t: any) => ({ ...t, name: t.name || t.toolName })),
-			thinking: (m as any).metadata?.thinking,
-			id: m.messageId
-		}))
-		setMessages(mapped)
-		setSessionId(sharedSession.session.sessionId)
-		setSessionTitle(sharedSession.session.title)
 		isFirstMessageRef.current = false
 	}, [sharedSession])
 
@@ -1043,7 +1078,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 							<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 							<h1 className="text-center text-2xl font-semibold">
-								{readOnly ? sessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+								{readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
 							</h1>
 						</div>
 						{!readOnly ? (
@@ -1076,14 +1111,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 												<span className="text-xs text-[#666] dark:text-[#919296]">Loading older messages...</span>
 											</div>
 										) : null}
-										{messages.map((msg, i) => {
-											const nextMsg = messages[i + 1]
+										{effectiveMessages.map((msg, i) => {
+											const nextMsg = effectiveMessages[i + 1]
 											const nextUser = nextMsg?.role === 'user' ? nextMsg.content : undefined
 											return (
 												<MessageBubble
 													key={msg.id || `msg-${i}`}
 													message={msg}
-													sessionId={sessionId}
+													sessionId={effectiveSessionId}
 													isStreaming={isStreaming}
 													fetchFn={authorizedFetch}
 													readOnly={readOnly}
@@ -1117,7 +1152,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 											<MessageBubble
 												key={streamingDraft.id || 'streaming-draft'}
 												message={streamingDraft}
-												sessionId={sessionId}
+												sessionId={effectiveSessionId}
 												isStreaming={isStreaming}
 												isDraft
 												fetchFn={authorizedFetch}
@@ -1550,8 +1585,8 @@ function ActionButtonGroup({
 function InlineContent({
 	text,
 	chartSets,
-	csvExports = [],
-	alerts = [],
+	csvExports,
+	alerts,
 	savedAlertIds,
 	messageId,
 	citations,
@@ -1579,7 +1614,7 @@ function InlineContent({
 	const chartIndex = useMemo(() => buildChartIndex(chartSets), [chartSets])
 	const csvIndex = useMemo(() => {
 		const m = new Map<string, CsvExport>()
-		for (const csv of csvExports) m.set(csv.id, csv)
+		for (const csv of csvExports ?? []) m.set(csv.id, csv)
 		return m
 	}, [csvExports])
 
@@ -1724,7 +1759,7 @@ function InlineContent({
 			{unreferencedCsvs.map((csv) => (
 				<CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />
 			))}
-			{alerts.map((alert) => (
+			{alerts?.map((alert) => (
 				<AlertArtifact
 					key={alert.alertId}
 					alertId={alert.alertId}
@@ -2018,6 +2053,21 @@ function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; de
 	)
 }
 
+function ElapsedTimeLabel() {
+	const [elapsed, setElapsed] = useState(0)
+
+	useEffect(() => {
+		const startedAt = Date.now()
+		const interval = setInterval(() => {
+			setElapsed(Math.floor((Date.now() - startedAt) / 1000))
+		}, 1000)
+
+		return () => clearInterval(interval)
+	}, [])
+
+	return <span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
+}
+
 function ToolProgressIndicator({
 	toolCalls,
 	thinking,
@@ -2027,24 +2077,7 @@ function ToolProgressIndicator({
 	thinking?: string
 	isCompacting?: boolean
 }) {
-	const [elapsed, setElapsed] = useState(0)
-	const startTimeRef = useRef(0)
 	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting
-
-	useEffect(() => {
-		if (!hasActivity) {
-			startTimeRef.current = 0
-			setElapsed(0)
-			return
-		}
-		if (!startTimeRef.current) {
-			startTimeRef.current = Date.now()
-		}
-		const interval = setInterval(() => {
-			setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000))
-		}, 1000)
-		return () => clearInterval(interval)
-	}, [hasActivity])
 
 	if (!hasActivity) return null
 
@@ -2054,7 +2087,7 @@ function ToolProgressIndicator({
 			<div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
 				<div className="flex flex-col gap-0.5">
 					<span className="text-base font-semibold text-[#555] dark:text-[#919296]">LlamaAI is thinking...</span>
-					<span className="font-mono text-xs text-[#999] tabular-nums dark:text-[#666]">{elapsed}s</span>
+					<ElapsedTimeLabel />
 				</div>
 				{thinking ? <ThinkingPanel thinking={thinking} defaultOpen /> : null}
 				{isCompacting ? (

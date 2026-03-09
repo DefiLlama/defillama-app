@@ -39,10 +39,12 @@ export const SettingsModal = memo(function SettingsModal({
 	const [memoryDraft, setMemoryDraft] = useState(enableMemory)
 
 	useEffect(() => {
-		if (isOpen) {
+		if (!isOpen) return
+
+		queueMicrotask(() => {
 			setDraft(customInstructions)
 			setMemoryDraft(enableMemory)
-		}
+		})
 	}, [isOpen, customInstructions, enableMemory])
 
 	const save = useCallback(() => {

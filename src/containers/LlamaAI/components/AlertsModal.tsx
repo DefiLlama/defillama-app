@@ -205,7 +205,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
 	const {
-		data: alerts = [],
+		data: alerts,
 		isLoading,
 		error: alertsError
 	} = useQuery<Alert[]>({
@@ -253,7 +253,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 						<div className="flex items-center justify-center py-16">
 							<LoadingSpinner size={24} />
 						</div>
-					) : alerts.length === 0 ? (
+					) : !alerts || alerts.length === 0 ? (
 						alertsError ? null : (
 							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
 								<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">

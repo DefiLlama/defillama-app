@@ -151,14 +151,23 @@ export function PromptInput({
 		if (value.trim().length > 0) return
 
 		const { text, entities } = restoreRequest
+		let cancelled = false
 
-		restoreEntities(entities)
-		clearSearch()
-		applyPromptEdit({
-			nextValue: text,
-			selectionStart: text.length,
-			selectionEnd: text.length
+		queueMicrotask(() => {
+			if (cancelled) return
+
+			restoreEntities(entities)
+			clearSearch()
+			applyPromptEdit({
+				nextValue: text,
+				selectionStart: text.length,
+				selectionEnd: text.length
+			})
 		})
+
+		return () => {
+			cancelled = true
+		}
 	}, [restoreRequest, value, restoreEntities, clearSearch, applyPromptEdit])
 
 	// Focus input after external drop
