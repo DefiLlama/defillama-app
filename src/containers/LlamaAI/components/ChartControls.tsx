@@ -113,7 +113,7 @@ export function ChartControls({
 					}}
 					label={cumulative ? 'Cumulative' : 'Individual'}
 					labelType="none"
-					variant="pro"
+					variant="filter"
 				/>
 			) : null}
 
@@ -127,7 +127,7 @@ export function ChartControls({
 					}}
 					label={stacked ? 'Stacked' : 'Separate'}
 					labelType="none"
-					variant="pro"
+					variant="filter"
 				/>
 			) : null}
 
@@ -140,7 +140,7 @@ export function ChartControls({
 					}}
 					label={percentage ? '% Percentage' : '$ Absolute'}
 					labelType="none"
-					variant="pro"
+					variant="filter"
 				/>
 			) : null}
 
@@ -153,7 +153,7 @@ export function ChartControls({
 					}}
 					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
 					labelType="none"
-					variant="pro"
+					variant="filter"
 				/>
 			) : null}
 
@@ -166,7 +166,7 @@ export function ChartControls({
 					}}
 					label={showLabels ? 'Labels: On' : 'Labels: Off'}
 					labelType="none"
-					variant="pro"
+					variant="filter"
 				/>
 			) : null}
 			{children}

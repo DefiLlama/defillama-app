@@ -1149,7 +1149,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						</div>
 
 						<div
-							className={`pointer-events-none sticky bottom-32 z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : 'opacity-0'}`}
+							className={`pointer-events-none sticky z-10 mx-auto transition-opacity duration-200 ${
+								readOnly ? 'bottom-8 -mb-2' : 'bottom-32 -mb-8'
+							} ${showScrollToBottom ? 'opacity-100' : 'opacity-0'}`}
 						>
 							<Tooltip
 								content="Scroll to bottom"
