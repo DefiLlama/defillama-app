@@ -149,6 +149,15 @@ function getSingleTextChild(children: ReactNode): string | null {
 	return typeof children === 'string' ? children : null
 }
 
+function getChartRenderData(
+	chart: ChartConfiguration,
+	chartData: MarkdownRendererProps['chartData'] | ChartItem['chartData']
+) {
+	if (!chartData) return []
+	if (Array.isArray(chartData)) return chartData
+	return chartData[chart.datasetName || chart.id] || []
+}
+
 export function MarkdownRenderer({
 	content,
 	citations,
@@ -174,6 +183,8 @@ export function MarkdownRenderer({
 		const processedContent = processCitationMarkers(content, citations)
 		return { content: processedContent, linkMap }
 	}, [content, citations])
+
+	const hasInlineArtifacts = inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
 
 	const markdownComponents = useMemo<Components>(
 		() => ({
@@ -237,22 +248,17 @@ export function MarkdownRenderer({
 
 	return (
 		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
-			{inlineChartIds.size > 0 || inlineCsvIds.size > 0 || inlineAlertIds.size > 0
+			{hasInlineArtifacts
 				? contentParts.map((part, partIndex) => {
 						if (part.type === 'chart' && part.chartId) {
-							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.chartId)
 							if (artifactItem?.type === 'chart') {
 								const chartItem = artifactItem as ChartItem
-								// Normalize chartData to array format for ChartRenderer
-								const normalizedData = Array.isArray(chartItem.chartData)
-									? chartItem.chartData
-									: chartItem.chartData?.[chartItem.chart.id] || []
 								return (
 									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chartItem.chart]}
-											chartData={normalizedData}
+											chartData={getChartRenderData(chartItem.chart, chartItem.chartData)}
 											isLoading={false}
 											resizeTrigger={inlineChartConfig?.resizeTrigger}
 										/>
@@ -260,15 +266,13 @@ export function MarkdownRenderer({
 								)
 							}
 
-							// Legacy: O(n) lookup via charts array (backward compatibility)
 							const chart = charts?.find((c) => c.id === part.chartId)
 							if (chart && inlineChartConfig) {
-								const data = !chartData ? [] : Array.isArray(chartData) ? chartData : chartData[part.chartId] || []
 								return (
 									<div key={`chart-${part.chartId}`} className="my-4">
 										<ChartRenderer
 											charts={[chart]}
-											chartData={data}
+											chartData={getChartRenderData(chart, chartData)}
 											isLoading={false}
 											resizeTrigger={inlineChartConfig.resizeTrigger}
 										/>
@@ -290,7 +294,6 @@ export function MarkdownRenderer({
 						if (part.type === 'csv' && part.csvId) {
 							if (isStreaming) return null
 
-							// New: O(1) lookup via artifactIndex
 							const artifactItem = artifactIndex?.get(part.csvId)
 							if (artifactItem?.type === 'csv') {
 								const csvItem = artifactItem as CsvItem
@@ -308,13 +311,8 @@ export function MarkdownRenderer({
 								)
 							}
 
-							// Legacy: O(n) lookup via csvExports array (backward compatibility)
 							const csvExport = csvExports?.find((e) => e.id === part.csvId)
-							if (csvExport) {
-								return <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} />
-							}
-							if (isStreaming || (!artifactIndex && !csvExports)) return null
-							return null
+							return csvExport ? <CSVExportArtifact key={`csv-${part.csvId}`} csvExport={csvExport} /> : null
 						}
 						if (part.type === 'alert' && part.alertId) {
 							if (inlineChartConfig?.alertIntent) {
@@ -333,7 +331,8 @@ export function MarkdownRenderer({
 							}
 							return null
 						}
-						if (part.content.trim()) {
+						if (part.type === 'text') {
+							if (!part.content.trim()) return null
 							return renderMarkdownSection(
 								processCitationMarkers(part.content, citations),
 								`text-${partIndex}-${part.content.slice(0, 50)}`

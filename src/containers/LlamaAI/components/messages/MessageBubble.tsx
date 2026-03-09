@@ -141,7 +141,7 @@ function ActionButtonGroup({
 										? onActionClick
 											? 'bg-[#2172e5] text-white hover:bg-[#1b5fbd] active:scale-[0.97] dark:bg-[#4190f7] dark:hover:bg-[#3279de]'
 											: 'bg-[#e6e6e6] text-[#999] dark:bg-[#333] dark:text-[#666]'
-										: clicked === action.message
+										: clicked === action.compositeId
 											? 'bg-[#2172e5] text-white dark:bg-[#4190f7]'
 											: 'pointer-events-none bg-[#e6e6e6] text-[#999] opacity-50 dark:bg-[#333] dark:text-[#666]'
 								}`}
@@ -162,7 +162,7 @@ function ActionButtonGroup({
 									? onActionClick
 										? 'border-[#2172e5]/20 text-[#2172e5] hover:border-[#2172e5]/40 hover:bg-[#2172e5]/6 active:scale-[0.97] dark:border-[#4190f7]/20 dark:text-[#4190f7] dark:hover:border-[#4190f7]/40 dark:hover:bg-[#4190f7]/6'
 										: 'border-[#e6e6e6] text-[#999] dark:border-[#333] dark:text-[#666]'
-									: clicked === action.message
+									: clicked === action.compositeId
 										? 'border-[#2172e5] bg-[#2172e5]/10 text-[#2172e5] dark:border-[#4190f7] dark:bg-[#4190f7]/10 dark:text-[#4190f7]'
 										: 'pointer-events-none border-[#e6e6e6] text-[#999] opacity-50 dark:border-[#333] dark:text-[#666]'
 							}`}
@@ -231,7 +231,7 @@ function ActionButtonGroup({
 								? onActionClick
 									? 'border-[#2172e5]/10 bg-[#2172e5]/4 text-[#2172e5]/55 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
 									: 'border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/30 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/25'
-								: clicked === action.message
+								: clicked === action.compositeId
 									? 'border-[#2172e5]/25 bg-[#2172e5]/8 text-[#2172e5]/70 dark:border-[#4190f7]/25 dark:bg-[#4190f7]/8 dark:text-[#4190f7]/70'
 									: 'pointer-events-none border-[#2172e5]/5 bg-[#2172e5]/2 text-[#2172e5]/20 opacity-50 dark:border-[#4190f7]/5 dark:bg-[#4190f7]/2 dark:text-[#4190f7]/15'
 						}`}
@@ -346,81 +346,82 @@ function InlineContent({
 
 	return (
 		<div className="flex flex-col gap-2.5">
-			{hasInlineRefs
-				? (() => {
-						const getKey = createOccurrenceKeyFactory()
-						return groupedParts.map((part, partIndex) => {
-							if ('actions' in part && part.type === 'action-group') {
-								const actionGroupKey = part.actions.map((action) => `${action.label}:${action.message}`).join('|')
+			{hasInlineRefs ? (
+				(() => {
+					const getKey = createOccurrenceKeyFactory()
+					return groupedParts.map((part, partIndex) => {
+						if ('actions' in part && part.type === 'action-group') {
+							const actionGroupKey = part.actions.map((action) => `${action.label}:${action.message}`).join('|')
+							return (
+								<ActionButtonGroup
+									key={getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
+									actions={part.actions}
+									onActionClick={onActionClick}
+									nextUserMessage={nextUserMessage}
+								/>
+							)
+						}
+
+						if (part.type === 'chart' && part.chartId) {
+							if (isStreaming) {
 								return (
-									<ActionButtonGroup
-										key={getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
-										actions={part.actions}
-										onActionClick={onActionClick}
-										nextUserMessage={nextUserMessage}
-									/>
+									<div
+										key={getKey(`chart-loading-${part.chartId}`)}
+										className="my-4 flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
+									>
+										<p className="text-sm text-gray-500">Loading chart...</p>
+									</div>
 								)
 							}
 
-							if (part.type === 'chart' && 'chartId' in part && part.chartId) {
-								const entry = chartIndex.get(part.chartId)
-								if (entry) {
-									return (
-										<ChartRenderer
-											charts={[entry.chart]}
-											chartData={entry.chartData}
-											sessionId={sessionId}
-											key={getKey(`inline-chart-${part.chartId}`)}
-										/>
-									)
-								}
+							const entry = chartIndex.get(part.chartId)
 
-								if (isStreaming) {
-									return (
-										<div
-											key={getKey(`chart-loading-${part.chartId}`)}
-											className="my-4 flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-										>
-											<p className="text-sm text-gray-500">Loading chart...</p>
-										</div>
-									)
-								}
-
-								return null
-							}
-
-							if (part.type === 'csv' && 'csvId' in part && part.csvId) {
-								if (isStreaming) return null
-								const csv = csvIndex.get(part.csvId)
-								return csv ? <CSVExportArtifact key={getKey(`inline-csv-${part.csvId}`)} csvExport={csv} /> : null
-							}
-
-							if ('content' in part && !part.content) return null
-
-							if ('content' in part) {
-								const isLastText = !groupedParts
-									.slice(partIndex + 1)
-									.some((nextPart) => 'content' in nextPart && nextPart.content)
+							if (entry) {
 								return (
-									<MarkdownRenderer
-										key={getKey(`text-${partIndex}`)}
-										content={part.content}
-										citations={isLastText && citations.length > 0 ? citations : undefined}
-										isStreaming={isStreaming}
+									<ChartRenderer
+										charts={[entry.chart]}
+										chartData={entry.chartData}
+										sessionId={sessionId}
+										key={getKey(`inline-chart-${part.chartId}`)}
 									/>
 								)
 							}
 
 							return null
-						})
-					})()
-				: text && (
-						<MarkdownRenderer
-							content={text}
-							citations={citations.length > 0 ? citations : undefined}
-							isStreaming={isStreaming}
-						/>
-					)}
+						}
+
+						if (part.type === 'csv' && 'csvId' in part && part.csvId) {
+							if (isStreaming) return null
+							const csv = csvIndex.get(part.csvId)
+							return csv ? <CSVExportArtifact key={getKey(`inline-csv-${part.csvId}`)} csvExport={csv} /> : null
+						}
+
+						if ('content' in part && !part.content) return null
+
+						if ('content' in part) {
+							const isLastText = !groupedParts
+								.slice(partIndex + 1)
+								.some((nextPart) => 'content' in nextPart && nextPart.content)
+							return (
+								<MarkdownRenderer
+									key={getKey(`text-${partIndex}`)}
+									content={part.content}
+									citations={isLastText && citations.length > 0 ? citations : undefined}
+									isStreaming={isStreaming}
+								/>
+							)
+						}
+
+						return null
+					})
+				})()
+			) : text ? (
+				<MarkdownRenderer
+					content={text}
+					citations={citations.length > 0 ? citations : undefined}
+					isStreaming={isStreaming}
+				/>
+			) : null}
 
 			{isStreaming && text ? <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" /> : null}
 
