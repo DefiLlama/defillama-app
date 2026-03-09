@@ -45,6 +45,7 @@ import {
 	createStreamBuffer,
 	streamReducer,
 	type ChatPageContext,
+	type FailedRequest,
 	type RateLimitDetails,
 	type StreamBuffer,
 	type StreamDispatch
@@ -120,6 +121,46 @@ interface UsageLimitError extends Error {
 }
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+const RECOVERY_GRACE_MS = 8000
+const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 3000, 7000] as const
+const CONNECTIVITY_ERROR_PATTERNS = [
+	'failed to fetch',
+	'networkerror',
+	'network error',
+	'load failed',
+	'err_network_changed',
+	'network changed',
+	'err_name_not_resolved',
+	'name not resolved'
+] as const
+
+type RecoveryController = {
+	id: number
+	sessionId: string
+	startedAt: number
+	buffer: StreamBuffer
+	failedRequest: FailedRequest | null
+	lastErrorMessage: string | null
+	attemptCount: number
+	retryTimerIds: number[]
+	expiryTimerId: number | null
+	attemptInFlight: boolean
+	streamAttached: boolean
+}
+
+function getErrorMessage(error: unknown): string {
+	if (error instanceof Error) return error.message
+	return String(error)
+}
+
+function isTemporaryConnectivityError(error: unknown): boolean {
+	if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+		return true
+	}
+
+	const message = getErrorMessage(error).toLowerCase()
+	return CONNECTIVITY_ERROR_PATTERNS.some((pattern) => message.includes(pattern))
+}
 
 // Normalize older persisted tool payloads that may still use `toolName`.
 function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
@@ -504,6 +545,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const activeSessionIdRef = useRef<string | null>(null)
 	const activeRequestSettleRef = useRef<RequestSettleState>(null)
 	const restoredSessionIdRef = useRef<string | null>(null)
+	const recoveryIdRef = useRef(0)
+	const recoveryControllerRef = useRef<RecoveryController | null>(null)
+	const attemptRecoveryForControllerRef = useRef<(recoveryId: number) => void>(() => {})
 	const [paginationState, setPaginationState] = useState<{
 		hasMore: boolean
 		cursor: number | null
@@ -534,6 +578,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		activeToolCalls,
 		spawnProgress,
 		spawnStartTime,
+		recovery,
 		error,
 		lastFailedRequest,
 		rateLimitDetails
@@ -748,16 +793,42 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setMessages((prev) => [...prev, message])
 	}, [])
 
+	const clearRecoveryRetryTimers = useCallback((controller: RecoveryController) => {
+		for (const timerId of controller.retryTimerIds) {
+			window.clearTimeout(timerId)
+		}
+		controller.retryTimerIds = []
+	}, [])
+
+	const clearRecoveryController = useCallback(
+		(resetState: boolean = true) => {
+			const controller = recoveryControllerRef.current
+			if (controller) {
+				clearRecoveryRetryTimers(controller)
+				if (controller.expiryTimerId !== null) {
+					window.clearTimeout(controller.expiryTimerId)
+				}
+			}
+			recoveryControllerRef.current = null
+			if (resetState) {
+				dispatchStream({ type: 'RESET_RECOVERY' })
+			}
+		},
+		[clearRecoveryRetryTimers]
+	)
+
 	// Reattach to a server-side execution that is still running for the current session.
 	const resumeRunningExecution = useCallback(
 		async ({
 			targetSessionId,
 			buffer = createStreamBuffer(),
-			resetStream = true
+			resetStream = true,
+			onTemporaryDisconnect
 		}: {
 			targetSessionId: string
 			buffer?: StreamBuffer
 			resetStream?: boolean
+			onTemporaryDisconnect?: (error: Error, streamBuffer: StreamBuffer) => void
 		}) => {
 			const { active } = await checkActiveExecution(targetSessionId, authorizedFetchStrict)
 			if (!active) return false
@@ -766,6 +837,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setPaginationError(null)
 			dispatchStream({ type: 'SET_ERROR', value: null })
 			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+			dispatchStream({ type: 'RESET_RECOVERY' })
 
 			if (resetStream) {
 				dispatchStream({ type: 'START_STREAM' })
@@ -806,13 +878,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				abortSignal: controller.signal,
 				fetchFn: authorizedFetchStrict
 			})
-				.catch((err: Error) => {
+				.catch((resumeError: Error) => {
 					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
-					if (err?.name === 'AbortError') {
+					if (resumeError?.name === 'AbortError') {
 						appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 						dispatchStream({ type: 'RESET_STREAM' })
 						return
 					}
+					if (onTemporaryDisconnect && isTemporaryConnectivityError(resumeError)) {
+						onTemporaryDisconnect(resumeError, buffer)
+						return
+					}
+					clearRecoveryController()
 					dispatchStream({
 						type: 'SET_ERROR',
 						value: 'Lost connection while waiting for the running execution. Retry to reconnect.'
@@ -820,6 +897,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					dispatchStream({ type: 'RESET_STREAM' })
 				})
 				.finally(() => {
+					const recoveryController = recoveryControllerRef.current
+					if (recoveryController?.sessionId === targetSessionId && recoveryController.streamAttached) {
+						clearRecoveryController()
+					}
 					if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
 						abortControllerRef.current = null
 						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
@@ -832,39 +913,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 			return true
 		},
-		[authorizedFetchStrict, appendMessage, moveSessionToTop, notify, updateSessionTitle]
+		[authorizedFetchStrict, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
 	)
 
-	// Abort the active request and wait for its cleanup path to finish before starting another one.
-	const abortActiveRequest = useCallback(async () => {
-		const controller = abortControllerRef.current
-		const requestId = activeRequestIdRef.current
-		const settleState = activeRequestSettleRef.current
-
-		if (controller && settleState?.requestId === requestId) {
-			controller.abort()
-			await settleState.promise.catch(() => {})
-		}
-
-		activeRequestIdRef.current += 1
-		activeRequestKindRef.current = 'idle'
-		activeSessionIdRef.current = null
-		currentMessageIdRef.current = null
-		abortControllerRef.current = null
-		activeRequestSettleRef.current = null
-	}, [])
-
-	// Reset transient streaming and error state without touching the actual message history.
-	const clearConversationRuntimeState = useCallback(() => {
-		setViewError(null)
-		setPaginationError(null)
-		dispatchStream({ type: 'RESET_STREAM' })
-		dispatchStream({ type: 'SET_ERROR', value: null })
-		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
-		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
-	}, [])
-
-	// Refresh the current session from persisted server state without resubmitting the prompt.
 	const restoreSessionSnapshot = useCallback(
 		async (targetSessionId: string) => {
 			const result = await restoreSession(targetSessionId).catch(() => null as SessionRestoreResult | null)
@@ -893,10 +944,196 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setPaginationError(null)
 			dispatchStream({ type: 'SET_ERROR', value: null })
 			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+			dispatchStream({ type: 'RESET_RECOVERY' })
 			return true
 		},
 		[restoreSession, sessions]
 	)
+
+	const exhaustRecovery = useCallback(
+		(controller: RecoveryController) => {
+			if (recoveryControllerRef.current?.id !== controller.id) return
+			clearRecoveryController()
+			appendBufferedAssistantMessage(controller.buffer, currentMessageIdRef, appendMessage)
+			dispatchStream({ type: 'RESET_STREAM' })
+			dispatchStream({
+				type: 'SET_ERROR',
+				value: controller.lastErrorMessage || 'Failed to reconnect. Please try again.'
+			})
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: controller.failedRequest })
+		},
+		[appendMessage, clearRecoveryController]
+	)
+
+	const queueRecoveryAttempt = useCallback((recoveryId: number, delay: number) => {
+		return window.setTimeout(() => {
+			attemptRecoveryForControllerRef.current(recoveryId)
+		}, delay)
+	}, [])
+
+	const attemptRecoveryForController = useEffectEvent((recoveryId: number) => {
+		const controller = recoveryControllerRef.current
+		if (!controller || controller.id !== recoveryId || controller.attemptInFlight) return
+
+		controller.attemptInFlight = true
+		controller.attemptCount += 1
+		dispatchStream({
+			type: 'UPDATE_RECOVERY',
+			attemptCount: controller.attemptCount,
+			lastErrorMessage: controller.lastErrorMessage
+		})
+
+		void (async () => {
+			const currentController = recoveryControllerRef.current
+			if (!currentController || currentController.id !== recoveryId) return
+
+			const didResume = await resumeRunningExecution({
+				targetSessionId: currentController.sessionId,
+				buffer: currentController.buffer,
+				resetStream: false,
+				onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+					const latest = recoveryControllerRef.current
+					if (!latest || latest.id !== recoveryId) return
+					latest.streamAttached = false
+					latest.buffer = streamBuffer
+					latest.lastErrorMessage = getErrorMessage(disconnectError)
+					dispatchStream({
+						type: 'UPDATE_RECOVERY',
+						attemptCount: latest.attemptCount,
+						lastErrorMessage: latest.lastErrorMessage
+					})
+					if (Date.now() >= latest.startedAt + RECOVERY_GRACE_MS) {
+						exhaustRecovery(latest)
+						return
+					}
+					queueRecoveryAttempt(recoveryId, 250)
+				}
+			})
+			if (didResume) {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== recoveryId) return
+				latest.streamAttached = true
+				clearRecoveryRetryTimers(latest)
+				return
+			}
+
+			const didRestore = await restoreSessionSnapshot(currentController.sessionId)
+			if (didRestore) {
+				dispatchStream({ type: 'RESET_STREAM' })
+				clearRecoveryController()
+				return
+			}
+
+			const latest = recoveryControllerRef.current
+			if (!latest || latest.id !== recoveryId) return
+			if (Date.now() >= latest.startedAt + RECOVERY_GRACE_MS) {
+				exhaustRecovery(latest)
+			}
+		})().finally(() => {
+			const latest = recoveryControllerRef.current
+			if (!latest || latest.id !== recoveryId) return
+			latest.attemptInFlight = false
+		})
+	})
+
+	useEffect(() => {
+		attemptRecoveryForControllerRef.current = attemptRecoveryForController
+	}, [])
+
+	const startRecoveryCycle = useCallback(
+		({
+			targetSessionId,
+			buffer,
+			failedRequest,
+			error: recoveryError
+		}: {
+			targetSessionId: string
+			buffer: StreamBuffer
+			failedRequest: FailedRequest | null
+			error: Error
+		}) => {
+			const existing = recoveryControllerRef.current
+			if (existing?.sessionId === targetSessionId) {
+				existing.buffer = buffer
+				existing.failedRequest = failedRequest
+				existing.lastErrorMessage = getErrorMessage(recoveryError)
+				dispatchStream({
+					type: 'UPDATE_RECOVERY',
+					attemptCount: existing.attemptCount,
+					lastErrorMessage: existing.lastErrorMessage
+				})
+				return true
+			}
+
+			clearRecoveryController(false)
+
+			const startedAt = Date.now()
+			const controller: RecoveryController = {
+				id: recoveryIdRef.current + 1,
+				sessionId: targetSessionId,
+				startedAt,
+				buffer,
+				failedRequest,
+				lastErrorMessage: getErrorMessage(recoveryError),
+				attemptCount: 0,
+				retryTimerIds: [],
+				expiryTimerId: null,
+				attemptInFlight: false,
+				streamAttached: false
+			}
+			recoveryIdRef.current = controller.id
+			recoveryControllerRef.current = controller
+			dispatchStream({
+				type: 'START_RECOVERY',
+				startedAt,
+				lastErrorMessage: controller.lastErrorMessage
+			})
+
+			for (const delay of RECOVERY_ATTEMPT_DELAYS_MS) {
+				const timerId = queueRecoveryAttempt(controller.id, delay)
+				controller.retryTimerIds.push(timerId)
+			}
+
+			controller.expiryTimerId = window.setTimeout(() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== controller.id || latest.attemptInFlight || latest.streamAttached) return
+				exhaustRecovery(latest)
+			}, RECOVERY_GRACE_MS)
+			return true
+		},
+		[clearRecoveryController, exhaustRecovery, queueRecoveryAttempt]
+	)
+
+	// Abort the active request and wait for its cleanup path to finish before starting another one.
+	const abortActiveRequest = useCallback(async () => {
+		const controller = abortControllerRef.current
+		const requestId = activeRequestIdRef.current
+		const settleState = activeRequestSettleRef.current
+
+		if (controller && settleState?.requestId === requestId) {
+			controller.abort()
+			await settleState.promise.catch(() => {})
+		}
+
+		activeRequestIdRef.current += 1
+		activeRequestKindRef.current = 'idle'
+		activeSessionIdRef.current = null
+		currentMessageIdRef.current = null
+		abortControllerRef.current = null
+		activeRequestSettleRef.current = null
+		clearRecoveryController()
+	}, [clearRecoveryController])
+
+	// Reset transient streaming and error state without touching the actual message history.
+	const clearConversationRuntimeState = useCallback(() => {
+		clearRecoveryController()
+		setViewError(null)
+		setPaginationError(null)
+		dispatchStream({ type: 'RESET_STREAM' })
+		dispatchStream({ type: 'SET_ERROR', value: null })
+		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
+	}, [clearRecoveryController])
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
 	const handleNewChat = useCallback(async () => {
@@ -948,14 +1185,31 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 
-			const didResume = await resumeRunningExecution({ targetSessionId: selectedSessionId })
+			const didResume = await resumeRunningExecution({
+				targetSessionId: selectedSessionId,
+				onTemporaryDisconnect: (disconnectError, buffer) => {
+					startRecoveryCycle({
+						targetSessionId: selectedSessionId,
+						buffer,
+						failedRequest: null,
+						error: disconnectError
+					})
+				}
+			})
 			if (!isActiveRequest(activeRequestIdRef, requestId) && !didResume) return
 
 			if (!didResume) {
 				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			}
 		},
-		[sessionId, abortActiveRequest, clearConversationRuntimeState, restoreSessionSnapshot, resumeRunningExecution]
+		[
+			sessionId,
+			abortActiveRequest,
+			clearConversationRuntimeState,
+			restoreSessionSnapshot,
+			resumeRunningExecution,
+			startRecoveryCycle
+		]
 	)
 
 	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
@@ -1046,6 +1300,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					})
 						.catch(async (err: UsageLimitError) => {
 							if (!isActiveRequest(activeRequestIdRef, requestId)) return
+							const failedRequest: FailedRequest = {
+								prompt: trimmed,
+								entities: entities?.length ? entities : undefined,
+								images: images?.length ? images : undefined,
+								pageContext
+							}
 							if (err?.name === 'AbortError') {
 								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 								dispatchStream({ type: 'RESET_STREAM' })
@@ -1075,27 +1335,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							}
 							if (
 								currentSessionId &&
-								(await resumeRunningExecution({
+								isTemporaryConnectivityError(err) &&
+								startRecoveryCycle({
 									targetSessionId: currentSessionId,
 									buffer,
-									resetStream: false
-								}))
+									failedRequest,
+									error: err instanceof Error ? err : new Error(getErrorMessage(err))
+								})
 							) {
-								return
-							}
-							if (currentSessionId && (await restoreSessionSnapshot(currentSessionId))) {
-								dispatchStream({ type: 'RESET_STREAM' })
 								return
 							}
 							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
 							dispatchStream({
 								type: 'SET_LAST_FAILED_REQUEST',
-								value: {
-									prompt: trimmed,
-									entities: entities?.length ? entities : undefined,
-									images: images?.length ? images : undefined,
-									pageContext
-								}
+								value: failedRequest
 							})
 							appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
 							dispatchStream({ type: 'RESET_STREAM' })
@@ -1133,8 +1386,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			customInstructions,
 			appendMessage,
 			abortActiveRequest,
-			restoreSessionSnapshot,
-			resumeRunningExecution
+			startRecoveryCycle
 		]
 	)
 
@@ -1197,13 +1449,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
 	const reconnectVisibleExecutionEvent = useEffectEvent(() => {
-		if (!sessionId || readOnly || isStreaming || activeRequestKindRef.current !== 'idle') return
-		if (!error && !lastFailedRequest) return
-		void (async () => {
-			const didResume = await resumeRunningExecution({ targetSessionId: sessionId })
-			if (didResume) return
-			await restoreSessionSnapshot(sessionId)
-		})()
+		const controller = recoveryControllerRef.current
+		if (!controller || readOnly) return
+		attemptRecoveryForController(controller.id)
 	})
 
 	useEffect(() => {
@@ -1215,6 +1463,15 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 		document.addEventListener('visibilitychange', onVisibilityChange)
 		return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+	}, [])
+
+	useEffect(() => {
+		const onOnline = () => {
+			reconnectVisibleExecutionEvent()
+		}
+
+		window.addEventListener('online', onOnline)
+		return () => window.removeEventListener('online', onOnline)
 	}, [])
 
 	// Mirror route param updates into a ref so the restore effect can consume them once.
@@ -1325,6 +1582,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isCompacting={isCompacting}
 						paginationState={paginationState}
 						paginationError={paginationError}
+						recovery={recovery}
 						error={visibleError}
 						lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 						onRetryLastFailedPrompt={handleRetryLastFailedPrompt}

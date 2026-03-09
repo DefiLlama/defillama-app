@@ -21,6 +21,13 @@ export interface RateLimitDetails {
 	resetTime: string | null
 }
 
+export interface RecoveryState {
+	status: 'idle' | 'reconnecting'
+	startedAt: number | null
+	attemptCount: number
+	lastErrorMessage: string | null
+}
+
 export interface StreamState {
 	isStreaming: boolean
 	isCompacting: boolean
@@ -34,6 +41,7 @@ export interface StreamState {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	recovery: RecoveryState
 	error: string | null
 	lastFailedRequest: FailedRequest | null
 	rateLimitDetails: RateLimitDetails | null
@@ -69,6 +77,9 @@ export type StreamAction =
 	| { type: 'CLEAR_ACTIVITY' }
 	| { type: 'SET_SPAWN_START_TIME'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
+	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
+	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
+	| { type: 'RESET_RECOVERY' }
 
 // Reset only the in-flight runtime fields; persistent errors are layered on top separately.
 const createEmptyRuntimeState = () => ({
@@ -83,7 +94,13 @@ const createEmptyRuntimeState = () => ({
 	thinking: '',
 	activeToolCalls: [] as ToolCall[],
 	spawnProgress: new Map<string, SpawnAgentStatus>(),
-	spawnStartTime: 0
+	spawnStartTime: 0,
+	recovery: {
+		status: 'idle',
+		startedAt: null,
+		attemptCount: 0,
+		lastErrorMessage: null
+	} as RecoveryState
 })
 
 // Full stream state starts from the empty runtime snapshot plus error/retry metadata.
@@ -163,6 +180,36 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			})
 			return { ...state, spawnProgress: next }
 		}
+		case 'START_RECOVERY':
+			return {
+				...state,
+				recovery: {
+					status: 'reconnecting',
+					startedAt: action.startedAt,
+					attemptCount: 0,
+					lastErrorMessage: action.lastErrorMessage
+				}
+			}
+		case 'UPDATE_RECOVERY':
+			return {
+				...state,
+				recovery: {
+					...state.recovery,
+					status: 'reconnecting',
+					attemptCount: action.attemptCount,
+					lastErrorMessage: action.lastErrorMessage
+				}
+			}
+		case 'RESET_RECOVERY':
+			return {
+				...state,
+				recovery: {
+					status: 'idle',
+					startedAt: null,
+					attemptCount: 0,
+					lastErrorMessage: null
+				}
+			}
 		default:
 			return state
 	}
