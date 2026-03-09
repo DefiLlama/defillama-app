@@ -1,6 +1,7 @@
 import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { RecommendedPrompts } from '~/containers/LlamaAI/components/RecommendedPrompts'
+import type { ResearchUsage } from '~/containers/LlamaAI/types'
 
 interface ChatLandingProps {
 	readOnly: boolean
@@ -15,6 +16,7 @@ interface ChatLandingProps {
 	isStreaming: boolean
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	researchUsage?: ResearchUsage | null
 	onOpenAlerts: () => void
 }
 
@@ -27,6 +29,7 @@ export function ChatLanding({
 	isStreaming,
 	isResearchMode,
 	setIsResearchMode,
+	researchUsage,
 	onOpenAlerts
 }: ChatLandingProps) {
 	return (
@@ -47,7 +50,7 @@ export function ChatLanding({
 						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
-						researchUsage={null}
+						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
 					/>
 					<RecommendedPrompts onSubmit={handleSubmit} isPending={isStreaming} isResearchMode={isResearchMode} />

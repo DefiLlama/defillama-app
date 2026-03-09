@@ -456,7 +456,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		[authorizedFetch]
 	)
 	const isLlama = !!user?.flags?.is_llama
-	const { sessions, isLoading: isLoadingSessions, error: sessionListError, moveSessionToTop } = useSessionList()
+	const {
+		sessions,
+		researchUsage,
+		isLoading: isLoadingSessions,
+		error: sessionListError,
+		moveSessionToTop
+	} = useSessionList()
 	const {
 		createFakeSession,
 		restoreSession,
@@ -805,104 +811,101 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
+			const result = await restoreSession(selectedSessionId).catch(() => null as SessionRestoreResult | null)
 
-			try {
-				const result: SessionRestoreResult = await restoreSession(selectedSessionId)
-
-				if (!isActiveRequest(activeRequestIdRef, requestId)) return
-				const restored: Message[] = (result.messages || []).map((message) => ({
-					...mapPersistedMessage(message),
-					alerts: buildRestoredAlert(message),
-					savedAlertIds: message.savedAlertIds
-				}))
-
-				setMessages(restored)
-				setSessionId(selectedSessionId)
-				const match = sessions.find((s) => s.sessionId === selectedSessionId)
-				setSessionTitle(match?.title || null)
-				restoredSessionIdRef.current = selectedSessionId
-				window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
-				isFirstMessageRef.current = false
-				shouldAutoScrollRef.current = true
-				setShowScrollToBottom(false)
-				setPaginationState({
-					hasMore: result.pagination?.hasMore || false,
-					cursor: result.pagination?.cursor || null,
-					isLoadingMore: false
-				})
-				setRestoringSessionId(null)
-
-				const { active } = await checkActiveExecution(selectedSessionId, authorizedFetchStrict)
-				if (!isActiveRequest(activeRequestIdRef, requestId)) return
-
-				if (active) {
-					const resumeRequestId = beginRequest(
-						activeRequestIdRef,
-						activeRequestKindRef,
-						activeSessionIdRef,
-						'resume',
-						selectedSessionId
-					)
-					dispatchStream({ type: 'START_STREAM' })
-					currentMessageIdRef.current = null
-					const buffer = createStreamBuffer()
-					const controller = new AbortController()
-					abortControllerRef.current = controller
-					const settleState = createRequestSettleState(resumeRequestId)
-					activeRequestSettleRef.current = settleState
-
-					const callbacks = createAgenticCallbacks({
-						requestId: resumeRequestId,
-						activeRequestIdRef,
-						buffer,
-						dispatch: dispatchStream,
-						currentMessageIdRef,
-						toolCallIdRef,
-						appendMessage,
-						notify,
-						onTitle: (title) => {
-							setSessionTitle(title)
-							updateSessionTitle({ sessionId: selectedSessionId, title }).catch(() => {})
-							moveSessionToTop(selectedSessionId)
-						}
-					})
-
-					void resumeAgenticStream({
-						sessionId: selectedSessionId,
-						callbacks,
-						abortSignal: controller.signal,
-						fetchFn: authorizedFetchStrict
-					})
-						.catch((err: Error) => {
-							if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
-							if (err?.name === 'AbortError') {
-								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
-								dispatchStream({ type: 'RESET_STREAM' })
-								return
-							}
-							dispatchStream({ type: 'RESET_STREAM' })
-						})
-						.finally(() => {
-							if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
-								abortControllerRef.current = null
-								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
-							}
-							settleState.resolve()
-							if (activeRequestSettleRef.current?.requestId === resumeRequestId) {
-								activeRequestSettleRef.current = null
-							}
-						})
-				} else {
-					completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-				}
-			} catch {
+			if (!result) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
 				setViewError('Failed to restore session')
 				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
-			} finally {
-				if (isActiveRequest(activeRequestIdRef, requestId) || activeRequestKindRef.current === 'idle') {
-					setRestoringSessionId(null)
-				}
+				setRestoringSessionId(null)
+				return
+			}
+
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			const restored: Message[] = (result.messages || []).map((message) => ({
+				...mapPersistedMessage(message),
+				alerts: buildRestoredAlert(message),
+				savedAlertIds: message.savedAlertIds
+			}))
+
+			setMessages(restored)
+			setSessionId(selectedSessionId)
+			const match = sessions.find((s) => s.sessionId === selectedSessionId)
+			setSessionTitle(match?.title || null)
+			restoredSessionIdRef.current = selectedSessionId
+			window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
+			isFirstMessageRef.current = false
+			shouldAutoScrollRef.current = true
+			setShowScrollToBottom(false)
+			setPaginationState({
+				hasMore: result.pagination?.hasMore || false,
+				cursor: result.pagination?.cursor || null,
+				isLoadingMore: false
+			})
+			setRestoringSessionId(null)
+
+			const { active } = await checkActiveExecution(selectedSessionId, authorizedFetchStrict)
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+
+			if (active) {
+				const resumeRequestId = beginRequest(
+					activeRequestIdRef,
+					activeRequestKindRef,
+					activeSessionIdRef,
+					'resume',
+					selectedSessionId
+				)
+				dispatchStream({ type: 'START_STREAM' })
+				currentMessageIdRef.current = null
+				const buffer = createStreamBuffer()
+				const controller = new AbortController()
+				abortControllerRef.current = controller
+				const settleState = createRequestSettleState(resumeRequestId)
+				activeRequestSettleRef.current = settleState
+
+				const callbacks = createAgenticCallbacks({
+					requestId: resumeRequestId,
+					activeRequestIdRef,
+					buffer,
+					dispatch: dispatchStream,
+					currentMessageIdRef,
+					toolCallIdRef,
+					appendMessage,
+					notify,
+					onTitle: (title) => {
+						setSessionTitle(title)
+						updateSessionTitle({ sessionId: selectedSessionId, title }).catch(() => {})
+						moveSessionToTop(selectedSessionId)
+					}
+				})
+
+				void resumeAgenticStream({
+					sessionId: selectedSessionId,
+					callbacks,
+					abortSignal: controller.signal,
+					fetchFn: authorizedFetchStrict
+				})
+					.catch((err: Error) => {
+						if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
+						if (err?.name === 'AbortError') {
+							appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+							dispatchStream({ type: 'RESET_STREAM' })
+							return
+						}
+						dispatchStream({ type: 'RESET_STREAM' })
+					})
+					.finally(() => {
+						if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
+							abortControllerRef.current = null
+							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
+						}
+						settleState.resolve()
+						if (activeRequestSettleRef.current?.requestId === resumeRequestId) {
+							activeRequestSettleRef.current = null
+						}
+					})
+			} else {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			}
 		},
 		[
@@ -923,7 +926,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleSubmit = useCallback(
 		(
 			prompt: string,
-			_entities?: Array<{ term: string; slug: string }>,
+			entities?: Array<{ term: string; slug: string }>,
 			images?: Array<{ data: string; mimeType: string; filename?: string }>,
 			pageContext?: ChatPageContext,
 			isSuggestedQuestion?: boolean
@@ -932,9 +935,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			if (!trimmed || isStreaming || promptSubmissionLockRef.current) return
 			promptSubmissionLockRef.current = true
 
-			void (async () => {
-				try {
-					await abortActiveRequest()
+			void abortActiveRequest()
+				.then(() => {
 					setViewError(null)
 					setPaginationError(null)
 					requestPermission()
@@ -970,10 +972,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					const settleState = createRequestSettleState(requestId)
 					activeRequestSettleRef.current = settleState
 
-					fetchAgenticResponse({
+					void fetchAgenticResponse({
 						message: trimmed,
 						sessionId: currentSessionId,
 						researchMode: isResearchMode,
+						entities: entities?.length ? entities : undefined,
 						images: images?.length ? images : undefined,
 						pageContext,
 						customInstructions: customInstructions || undefined,
@@ -1039,6 +1042,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								type: 'SET_LAST_FAILED_REQUEST',
 								value: {
 									prompt: trimmed,
+									entities: entities?.length ? entities : undefined,
 									images: images?.length ? images : undefined,
 									pageContext
 								}
@@ -1058,10 +1062,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							}
 							promptSubmissionLockRef.current = false
 						})
-				} catch {
+				})
+				.catch(() => {
 					promptSubmissionLockRef.current = false
-				}
-			})()
+				})
 		},
 		[
 			isStreaming,
@@ -1100,7 +1104,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleRetryLastFailedPrompt = useCallback(() => {
 		if (!lastFailedRequest) return
 		dispatchStream({ type: 'SET_ERROR', value: null })
-		handleSubmit(lastFailedRequest.prompt, undefined, lastFailedRequest.images, lastFailedRequest.pageContext)
+		handleSubmit(
+			lastFailedRequest.prompt,
+			lastFailedRequest.entities,
+			lastFailedRequest.images,
+			lastFailedRequest.pageContext
+		)
 	}, [lastFailedRequest, handleSubmit])
 
 	// Consume pending prompts injected by the floating button once the base chat page mounts.
@@ -1214,6 +1223,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isStreaming={isStreaming}
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
+						researchUsage={researchUsage}
 						onOpenAlerts={alertsModalStore.show}
 					/>
 				) : (
@@ -1245,6 +1255,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						handleActionClick={handleActionClick}
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
+						researchUsage={researchUsage}
 						onOpenAlerts={alertsModalStore.show}
 					/>
 				)}

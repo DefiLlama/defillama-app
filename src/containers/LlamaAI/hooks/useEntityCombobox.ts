@@ -17,12 +17,16 @@ interface UseEntityComboboxOptions {
 	}) => void
 }
 
+interface SelectedEntity {
+	term: string
+	slug: string
+	type: string
+}
+
 export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdit }: UseEntityComboboxOptions) {
 	const [isTriggerOnly, setIsTriggerOnly] = useState(false)
 	const [searchTerm, setSearchTerm] = useState('')
-	const [entityVersion, setEntityVersion] = useState(0)
-	const entitiesRef = useRef<Set<string>>(new Set())
-	const entitiesMapRef = useRef<Map<string, EntityData>>(new Map())
+	const [selectedEntities, setSelectedEntities] = useState<SelectedEntity[]>([])
 	const isComposingRef = useRef(false)
 
 	const combobox = Ariakit.useComboboxStore()
@@ -116,7 +120,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 			const isBackspace = event.key === 'Backspace'
 			const checkPos = isBackspace ? selectionStart - 1 : selectionStart
 
-			for (const entityName of entitiesRef.current) {
+			for (const { term: entityName } of selectedEntities) {
 				const entityIndex = value.indexOf(entityName, Math.max(0, checkPos - entityName.length))
 				if (entityIndex === -1 || entityIndex > checkPos) continue
 
@@ -128,9 +132,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 					startTransition(() => setSearchTerm(''))
 					combobox.hide()
 
-					entitiesRef.current.delete(entityName)
-					entitiesMapRef.current.delete(entityName)
-					setEntityVersion((version) => version + 1)
+					setSelectedEntities((entities) => entities.filter(({ term }) => term !== entityName))
 					applyPromptEdit({
 						nextValue: newValue,
 						selectionStart: entityIndex,
@@ -162,9 +164,11 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		const triggerState = detectTrigger(textarea)
 		if (triggerState.triggerOffset === -1) return
 
-		entitiesRef.current.add(name)
-		entitiesMapRef.current.set(name, { id, name, type })
-		setEntityVersion((version) => version + 1)
+		setSelectedEntities((entities) => {
+			const next = entities.filter(({ term }) => term !== name)
+			next.push({ term: name, slug: id, type })
+			return next
+		})
 
 		const getNewValue = replaceValue(triggerState.triggerOffset, triggerState.searchValue, name)
 		const newValue = getNewValue(currentValue)
@@ -182,41 +186,30 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 
 	// Convert the current entity set back into the prompt payload expected by submit handlers.
 	const getFinalEntities = () => {
-		return Array.from(entitiesRef.current)
-			.map((name) => {
-				const data = entitiesMapRef.current.get(name)
-				if (!data) return null
-				return {
-					term: name,
-					slug: data.id
-				}
-			})
-			.filter((entity) => entity !== null && currentValue.includes(entity.term)) as Array<{
-			term: string
-			slug: string
-		}>
+		return selectedEntities
+			.filter(({ term }) => currentValue.includes(term))
+			.map(({ term, slug }) => ({
+				term,
+				slug
+			}))
 	}
 
 	// Restore entity metadata after a failed prompt is retried back into the input.
 	const restoreEntities = useCallback((entities?: Array<{ term: string; slug: string }>) => {
-		entitiesRef.current.clear()
-		entitiesMapRef.current.clear()
-		if (entities && entities.length > 0) {
-			for (const { term, slug } of entities) {
-				entitiesRef.current.add(term)
-				entitiesMapRef.current.set(term, { id: slug, name: term, type: '' })
-			}
-		}
-		setEntityVersion((version) => version + 1)
+		setSelectedEntities(
+			entities?.map(({ term, slug }) => ({
+				term,
+				slug,
+				type: ''
+			})) ?? []
+		)
 	}, [])
 
 	// Fully clear combobox UI plus cached entity metadata when the input is reset.
 	const resetCombobox = useCallback(() => {
 		startTransition(() => setSearchTerm(''))
 		combobox.hide()
-		entitiesRef.current.clear()
-		entitiesMapRef.current.clear()
-		setEntityVersion((version) => version + 1)
+		setSelectedEntities([])
 	}, [combobox])
 
 	// IME composition handlers for Japanese/Chinese/Korean input
@@ -249,8 +242,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		isFetching,
 		isLoading,
 		isTriggerOnly,
-		entityVersion,
-		entitiesRef,
+		selectedEntities,
 		hasRenderedItems,
 		handleScroll,
 		handleChange,

@@ -9,7 +9,7 @@ import {
 	ToolProgressIndicator,
 	TypingIndicator
 } from '~/containers/LlamaAI/components/status/StreamingStatus'
-import type { ChartSet, Message, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import type { ChartSet, Message, ResearchUsage, SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 
 interface ConversationViewProps {
 	readOnly: boolean
@@ -48,6 +48,7 @@ interface ConversationViewProps {
 	handleActionClick: (message: string) => void
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
+	researchUsage?: ResearchUsage | null
 	onOpenAlerts: () => void
 }
 
@@ -79,6 +80,7 @@ export function ConversationView({
 	handleActionClick,
 	isResearchMode,
 	setIsResearchMode,
+	researchUsage,
 	onOpenAlerts
 }: ConversationViewProps) {
 	return (
@@ -195,7 +197,7 @@ export function ConversationView({
 						placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
-						researchUsage={null}
+						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
 					/>
 				</div>

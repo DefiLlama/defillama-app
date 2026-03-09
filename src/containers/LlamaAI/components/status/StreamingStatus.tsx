@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
 
@@ -109,24 +109,40 @@ function formatTime(seconds: number) {
 export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
-	const [toggleCount, setToggleCount] = useState(0)
+
+	const scrollContentToBottom = useCallback(() => {
+		requestAnimationFrame(() => {
+			if (contentRef.current) {
+				contentRef.current.scrollTop = contentRef.current.scrollHeight
+			}
+		})
+	}, [])
 
 	useEffect(() => {
 		if (defaultOpen && detailsRef.current) {
 			detailsRef.current.open = true
+			scrollContentToBottom()
 		}
-	}, [defaultOpen])
+	}, [defaultOpen, scrollContentToBottom])
 
 	useEffect(() => {
-		if (detailsRef.current?.open && contentRef.current) {
-			contentRef.current.scrollTop = contentRef.current.scrollHeight
+		if (detailsRef.current?.open) {
+			scrollContentToBottom()
 		}
-	}, [thinking, toggleCount])
+	}, [thinking, scrollContentToBottom])
 
 	if (!thinking) return null
 
 	return (
-		<details ref={detailsRef} className="group" onToggle={() => setToggleCount((count) => count + 1)}>
+		<details
+			ref={detailsRef}
+			className="group"
+			onToggle={() => {
+				if (detailsRef.current?.open) {
+					scrollContentToBottom()
+				}
+			}}
+		>
 			<summary className="flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]">
 				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
 				<span>Reasoning</span>

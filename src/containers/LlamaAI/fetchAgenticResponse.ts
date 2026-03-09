@@ -145,6 +145,7 @@ interface FetchAgenticResponseParams {
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	researchMode?: boolean
+	entities?: Array<{ term: string; slug: string }>
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
@@ -252,6 +253,7 @@ export async function fetchAgenticResponse({
 	callbacks,
 	abortSignal,
 	researchMode,
+	entities,
 	images,
 	pageContext,
 	customInstructions,
@@ -267,6 +269,7 @@ export async function fetchAgenticResponse({
 		sessionId?: string
 		researchMode?: true
 		timezone?: string
+		entities?: Array<{ term: string; slug: string }>
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
@@ -289,6 +292,10 @@ export async function fetchAgenticResponse({
 	try {
 		requestBody.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 	} catch {}
+
+	if (entities && entities.length > 0) {
+		requestBody.entities = entities
+	}
 
 	if (images && images.length > 0) {
 		requestBody.images = images
