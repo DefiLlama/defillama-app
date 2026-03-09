@@ -9,8 +9,15 @@ export function useStreamNotification() {
 
 	// Preload the notification sound once so later completion notifications can play immediately.
 	useEffect(() => {
-		audioRef.current = new Audio('/assets/notification.mp3')
-		audioRef.current.load()
+		const audio = new Audio('/assets/notification.mp3')
+		audioRef.current = audio
+		audio.load()
+		return () => {
+			audio.pause()
+			audio.removeAttribute('src')
+			audio.load()
+			audioRef.current = null
+		}
 	}, [])
 
 	// Restore the original tab title/favicon after the user returns to the tab.
@@ -63,6 +70,11 @@ export function useStreamNotification() {
 			body: 'Llama has answered your question!',
 			icon: '/favicon-badge.png'
 		})
+		notification.onclick = () => {
+			window.focus()
+			window.parent?.focus?.()
+			notification.close()
+		}
 		void notification
 	}, [])
 

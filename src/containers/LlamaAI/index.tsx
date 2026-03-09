@@ -510,6 +510,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		moveSessionToTop
 	} = useSessionList()
 	const {
+		createSession,
 		createFakeSession,
 		restoreSession,
 		loadMoreMessages,
@@ -947,7 +948,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			shouldAutoScrollRef.current = true
 			setShowScrollToBottom(false)
 			setPaginationState({
-				hasMore: result.pagination?.hasMore || false,
+				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
 				isLoadingMore: false
 			})
@@ -1298,9 +1299,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							notify,
 							onSessionId: (id) => {
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
+								const previousSessionId = currentSessionId
 								setSessionId(id)
 								currentSessionId = id
 								activeSessionIdRef.current = id
+								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
+									void createSession({
+										sessionId: id,
+										title: sessionTitle ?? undefined
+									}).catch((createSessionError) => {
+										console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+									})
+								}
 							},
 							onTitle: (title) => {
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -1389,6 +1399,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			sessionId,
 			isResearchMode,
 			authorizedFetchStrict,
+			createSession,
 			createFakeSession,
 			updateSessionTitle,
 			moveSessionToTop,
@@ -1400,7 +1411,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			customInstructions,
 			appendMessage,
 			abortActiveRequest,
-			startRecoveryCycle
+			startRecoveryCycle,
+			sessionTitle,
+			sessions
 		]
 	)
 

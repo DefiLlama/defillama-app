@@ -41,6 +41,10 @@ function getActionKey(action: { label: string; message: string }) {
 	return `${action.label}:${action.message}`
 }
 
+function getIndexedActionKey(action: { label: string; message: string }, index: number) {
+	return `${getActionKey(action)}-${index}`
+}
+
 function getToolExecutionKey(execution: ToolExecution) {
 	return (
 		execution.resultId ||
@@ -58,16 +62,21 @@ function ActionButtonGroup({
 	nextUserMessage?: string
 }) {
 	const isDecisionGroup = actions.some((action) => action.message.startsWith('confirm:'))
-	const resolvedActions = actions.map((action) => ({
-		label: action.label,
-		message: action.message.startsWith('confirm:') ? action.message.slice(8) : action.message
-	}))
-	const primaryActionKey = getActionKey(
-		resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0]
-	)
+	const resolvedActions = actions.map((action, index) => {
+		const resolvedAction = {
+			label: action.label,
+			message: action.message.startsWith('confirm:') ? action.message.slice(8) : action.message
+		}
+		return {
+			...resolvedAction,
+			compositeId: getIndexedActionKey(resolvedAction, index)
+		}
+	})
+	const primaryActionKey = (resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0])
+		?.compositeId
 	const alreadyClicked = nextUserMessage
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
-				?.message ?? null)
+				?.compositeId ?? null)
 		: null
 	const [clicked, setClicked] = useState<string | null>(alreadyClicked)
 	const isClicked = clicked !== null
@@ -77,7 +86,7 @@ function ActionButtonGroup({
 			<div className="flex flex-wrap items-center gap-2.5">
 				{resolvedActions.map((action) => {
 					const isUrl = action.message.startsWith('url:')
-					const actionKey = getActionKey(action)
+					const actionKey = action.compositeId
 					const isPrimary = !isUrl && actionKey === primaryActionKey
 
 					if (isUrl) {
@@ -116,7 +125,7 @@ function ActionButtonGroup({
 
 					const handleClick = () => {
 						if (!onActionClick || isClicked) return
-						setClicked(action.message)
+						setClicked(action.compositeId)
 						onActionClick(action.message)
 					}
 
@@ -170,7 +179,7 @@ function ActionButtonGroup({
 		<div className="flex flex-wrap items-center gap-2">
 			{resolvedActions.map((action) => {
 				const isUrl = action.message.startsWith('url:')
-				const actionKey = getActionKey(action)
+				const actionKey = action.compositeId
 
 				if (isUrl) {
 					const href = action.message.slice(4)
@@ -214,7 +223,7 @@ function ActionButtonGroup({
 						disabled={isClicked || !onActionClick}
 						onClick={() => {
 							if (!onActionClick || isClicked) return
-							setClicked(action.message)
+							setClicked(action.compositeId)
 							onActionClick(action.message)
 						}}
 						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
@@ -281,7 +290,7 @@ function InlineContent({
 		}
 	}, [text])
 
-	const hasInlineRefs = !isStreaming && (referencedChartIds.size > 0 || referencedCsvIds.size > 0 || hasActions)
+	const hasInlineRefs = referencedChartIds.size > 0 || referencedCsvIds.size > 0 || hasActions
 
 	const groupedParts = useMemo(() => {
 		const result: Array<

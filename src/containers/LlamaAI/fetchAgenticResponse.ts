@@ -138,6 +138,7 @@ interface AgenticErrorResponse {
 	error?: string
 	message?: string
 	details?: RateLimitErrorDetails
+	upgradeUrl?: string
 }
 
 interface FetchAgenticResponseParams {
@@ -156,14 +157,14 @@ interface FetchAgenticResponseParams {
 
 async function getResponseErrorMessage(response: Response, fallback: string) {
 	const contentType = response.headers.get('content-type') || ''
-
-	if (contentType.includes('application/json')) {
-		const errorData = (await response.json().catch(() => null)) as AgenticErrorResponse | null
-		const detailedMessage = errorData?.error || errorData?.message || errorData?.content
-		if (detailedMessage) return `${fallback}: ${detailedMessage}`
-	}
-
 	const text = await response.text().catch(() => '')
+	if (contentType.includes('application/json') && text) {
+		try {
+			const errorData = JSON.parse(text) as AgenticErrorResponse
+			const detailedMessage = errorData.error || errorData.message || errorData.content
+			if (detailedMessage) return `${fallback}: ${detailedMessage}`
+		} catch {}
+	}
 	if (text) return `${fallback}: ${text}`
 
 	return fallback
@@ -342,7 +343,7 @@ export async function fetchAgenticResponse({
 		if (response.status === 403 && errorData?.code === 'FREE_QUESTION_LIMIT') {
 			const err = new Error(errorData.content || 'Upgrade required') as RateLimitError
 			err.code = 'FREE_QUESTION_LIMIT'
-			err.upgradeUrl = (errorData as AgenticErrorResponse & { upgradeUrl?: string }).upgradeUrl
+			err.upgradeUrl = errorData.upgradeUrl
 			throw err
 		}
 		if (response.status === 403 && errorData?.code === 'USAGE_LIMIT_EXCEEDED') {

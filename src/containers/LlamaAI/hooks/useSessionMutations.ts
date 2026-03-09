@@ -185,7 +185,7 @@ export function useSessionMutations() {
 				return {
 					messages: result.messages || result.conversationHistory || [],
 					pagination: {
-						hasMore: result.hasMore || false,
+						hasMore: result.hasMore ?? false,
 						isLoadingMore: false,
 						cursor: result.nextCursor,
 						totalMessages: result.totalMessages

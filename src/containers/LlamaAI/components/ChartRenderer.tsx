@@ -157,7 +157,7 @@ function applyChartStateToAdaptedChart(config: ChartConfiguration, adaptedChart:
 
 	const valueSymbol = chartState.percentage
 		? '%'
-		: config.valueSymbol || (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : undefined) || '$'
+		: (config.valueSymbol ?? (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : undefined))
 
 	return {
 		...adaptedChart,

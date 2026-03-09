@@ -20,11 +20,47 @@ interface UseEntityComboboxOptions {
 interface SelectedEntity {
 	term: string
 	slug: string
-	type: string
+	type?: string
 }
 
 function escapeRegExp(value: string) {
 	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function findEntityTermOccurrences(value: string, term: string) {
+	const regex = new RegExp(`(^|[^A-Za-z0-9_])(${escapeRegExp(term)})(?=$|[^A-Za-z0-9_])`, 'gi')
+	const matches: Array<{ start: number; end: number }> = []
+	let match: RegExpExecArray | null
+
+	while ((match = regex.exec(value)) !== null) {
+		const prefix = match[1] ?? ''
+		const matchedTerm = match[2] ?? term
+		const start = match.index + prefix.length
+		matches.push({ start, end: start + matchedTerm.length })
+	}
+
+	return matches
+}
+
+function resolveSelectedEntities(value: string, entities: SelectedEntity[]) {
+	const occurrencesByTerm = new Map<string, Array<{ start: number; end: number }>>()
+	const occurrenceIndexByTerm = new Map<string, number>()
+
+	return entities.flatMap((entity, selectedIndex) => {
+		let occurrences = occurrencesByTerm.get(entity.term)
+		if (!occurrences) {
+			occurrences = findEntityTermOccurrences(value, entity.term)
+			occurrencesByTerm.set(entity.term, occurrences)
+		}
+
+		const occurrenceIndex = occurrenceIndexByTerm.get(entity.term) ?? 0
+		occurrenceIndexByTerm.set(entity.term, occurrenceIndex + 1)
+
+		const occurrence = occurrences[occurrenceIndex]
+		if (!occurrence) return []
+
+		return [{ ...entity, ...occurrence, selectedIndex }]
+	})
 }
 
 export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdit }: UseEntityComboboxOptions) {
@@ -124,23 +160,19 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 			const isBackspace = event.key === 'Backspace'
 			const checkPos = isBackspace ? selectionStart - 1 : selectionStart
 
-			for (const { term: entityName } of selectedEntities) {
-				const entityIndex = value.indexOf(entityName, Math.max(0, checkPos - entityName.length))
-				if (entityIndex === -1 || entityIndex > checkPos) continue
-
-				const entityEnd = entityIndex + entityName.length
-				if (checkPos >= entityIndex && checkPos < entityEnd) {
+			for (const entity of resolveSelectedEntities(value, selectedEntities)) {
+				if (checkPos >= entity.start && checkPos < entity.end) {
 					event.preventDefault()
-					const newValue = value.slice(0, entityIndex) + value.slice(entityEnd)
+					const newValue = value.slice(0, entity.start) + value.slice(entity.end)
 
 					startTransition(() => setSearchTerm(''))
 					combobox.hide()
 
-					setSelectedEntities((entities) => entities.filter(({ term }) => term !== entityName))
+					setSelectedEntities((entities) => entities.filter((_, index) => index !== entity.selectedIndex))
 					applyPromptEdit({
 						nextValue: newValue,
-						selectionStart: entityIndex,
-						selectionEnd: entityIndex
+						selectionStart: entity.start,
+						selectionEnd: entity.start
 					})
 					return
 				}
@@ -169,7 +201,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 		if (triggerState.triggerOffset === -1) return
 
 		setSelectedEntities((entities) => {
-			const next = entities.filter(({ term }) => term !== name)
+			const next = entities.filter(({ slug }) => slug !== id)
 			next.push({ term: name, slug: id, type })
 			return next
 		})
@@ -190,16 +222,11 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 
 	// Convert the current entity set back into the prompt payload expected by submit handlers.
 	const getFinalEntities = () => {
-		return selectedEntities
-			.filter(({ term }) => {
-				const escapedTerm = escapeRegExp(term)
-				return new RegExp(`(^|[^A-Za-z0-9_])${escapedTerm}(?=$|[^A-Za-z0-9_])`, 'i').test(currentValue)
-			})
-			.map(({ term, slug, type }) => ({
-				term,
-				slug,
-				type
-			}))
+		return resolveSelectedEntities(currentValue, selectedEntities).map(({ term, slug, type }) => ({
+			term,
+			slug,
+			...(type ? { type } : {})
+		}))
 	}
 
 	// Restore entity metadata after a failed prompt is retried back into the input.
@@ -208,7 +235,7 @@ export function useEntityCombobox({ promptInputRef, currentValue, applyPromptEdi
 			entities?.map(({ term, slug, type }) => ({
 				term,
 				slug,
-				type: type ?? ''
+				type
 			})) ?? []
 		)
 	}, [])
