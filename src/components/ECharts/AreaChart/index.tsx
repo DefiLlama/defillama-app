@@ -33,7 +33,8 @@ export default function AreaChart({
 	isStackedChart,
 	hideGradient = false,
 	hideOthersInTooltip,
-	hideLegend = true,
+	hideDefaultLegend,
+	hideLegend: hideLegendProp,
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
@@ -45,6 +46,7 @@ export default function AreaChart({
 	...props
 }: IChartProps) {
 	const id = useId()
+	const hideLegend = hideLegendProp ?? hideDefaultLegend ?? true
 	const shouldEnableCSVDownload = !hideDownloadButton
 	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
 	const { chartInstance, handleChartReady } = useGetChartInstance()

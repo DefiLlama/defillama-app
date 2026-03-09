@@ -453,6 +453,7 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 	const successCount = toolExecutions.filter((execution) => execution.success).length
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
+	const getRowKey = createOccurrenceKeyFactory()
 
 	return (
 		<details
@@ -490,7 +491,7 @@ function ToolExecutionPanel({ toolExecutions }: { toolExecutions: ToolExecution[
 				className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 select-text dark:border-[#222324]"
 			>
 				{toolExecutions.map((execution) => (
-					<ToolExecutionRow key={getToolExecutionKey(execution)} execution={execution} />
+					<ToolExecutionRow key={getRowKey(getToolExecutionKey(execution))} execution={execution} />
 				))}
 			</div>
 		</details>
