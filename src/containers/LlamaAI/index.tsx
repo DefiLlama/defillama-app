@@ -467,6 +467,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		initialSessionId && !sharedSession ? initialSessionId : null
 	)
 	const [viewError, setViewError] = useState<string | null>(null)
+	const [paginationError, setPaginationError] = useState<string | null>(null)
 	const researchModalStore = Ariakit.useDialogStore()
 	const currentMessageIdRef = useRef<string | null>(null)
 	const pendingInitialSessionIdRef = useRef(initialSessionId)
@@ -620,14 +621,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			'pagination',
 			sessionId
 		)
-		setViewError(null)
+		setPaginationError(null)
 		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
 		await waitForNextPaint()
 		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
 		const result = await loadMoreMessages(sessionId, paginationState.cursor!).catch(() => {
 			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
 				setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
-				setViewError('Failed to load older messages')
+				setPaginationError('Failed to load older messages')
 			}
 			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return null
@@ -729,6 +730,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	const clearConversationRuntimeState = useCallback(() => {
 		setViewError(null)
+		setPaginationError(null)
 		dispatchStream({ type: 'RESET_STREAM' })
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
@@ -897,6 +899,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				try {
 					await abortActiveRequest()
 					setViewError(null)
+					setPaginationError(null)
 					requestPermission()
 					dispatchStream({ type: 'START_STREAM' })
 					currentMessageIdRef.current = null
@@ -1169,6 +1172,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						streamingDraft={streamingDraft}
 						isCompacting={isCompacting}
 						paginationState={paginationState}
+						paginationError={paginationError}
 						error={visibleError}
 						lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
 						onRetryLastFailedPrompt={handleRetryLastFailedPrompt}

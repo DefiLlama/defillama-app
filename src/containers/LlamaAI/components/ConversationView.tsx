@@ -29,6 +29,7 @@ interface ConversationViewProps {
 		cursor: number | null
 		isLoadingMore: boolean
 	}
+	paginationError: string | null
 	error: string | null
 	lastFailedPrompt: string | null
 	onRetryLastFailedPrompt: () => void
@@ -64,6 +65,7 @@ export function ConversationView({
 	streamingDraft,
 	isCompacting,
 	paginationState,
+	paginationError,
 	error,
 	lastFailedPrompt,
 	onRetryLastFailedPrompt,
@@ -88,6 +90,12 @@ export function ConversationView({
 							{paginationState.isLoadingMore ? (
 								<div className="flex justify-center py-2">
 									<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
+								</div>
+							) : null}
+
+							{paginationError ? (
+								<div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900 dark:bg-red-950">
+									<p className="text-xs text-red-700 dark:text-red-300">{paginationError}</p>
 								</div>
 							) : null}
 
