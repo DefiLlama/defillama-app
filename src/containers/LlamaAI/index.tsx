@@ -125,6 +125,12 @@ interface AgenticChatProps {
 	readOnly?: boolean
 }
 
+interface FailedRequest {
+	prompt: string
+	images?: Array<{ data: string; mimeType: string; filename?: string }>
+	pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
+}
+
 export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
 	const isLlama = !!user?.flags?.is_llama
@@ -168,7 +174,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [spawnStartTime, setSpawnStartTime] = useState(0)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(null)
-	const [lastFailedPrompt, setLastFailedPrompt] = useState<string | null>(null)
+	const [lastFailedRequest, setLastFailedRequest] = useState<FailedRequest | null>(null)
 	const [rateLimitDetails, setRateLimitDetails] = useState<{
 		period: string
 		limit: number
@@ -380,7 +386,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setSessionId(null)
 		setSessionTitle(null)
 		setError(null)
-		setLastFailedPrompt(null)
+		setLastFailedRequest(null)
 		setStreamingText('')
 		setStreamingCharts([])
 		setStreamingCsvExports([])
@@ -643,7 +649,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 			requestPermission()
 			setError(null)
-			setLastFailedPrompt(null)
+			setLastFailedRequest(null)
 			setIsStreaming(true)
 			setStreamingText('')
 			setStreamingCharts([])
@@ -847,7 +853,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						return
 					}
 					setError(err?.message || 'Failed to get response')
-					setLastFailedPrompt(trimmed)
+					setLastFailedRequest({
+						prompt: trimmed,
+						images: images?.length ? images : undefined,
+						pageContext
+					})
 					if (accumulatedText || accumulatedCharts.length > 0) {
 						setMessages((prev) => [
 							...prev,
@@ -911,10 +921,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	)
 
 	const handleRetryLastFailedPrompt = useCallback(() => {
-		if (!lastFailedPrompt) return
+		if (!lastFailedRequest) return
 		setError(null)
-		handleSubmit(lastFailedPrompt)
-	}, [lastFailedPrompt, handleSubmit])
+		handleSubmit(lastFailedRequest.prompt, undefined, lastFailedRequest.images, lastFailedRequest.pageContext)
+	}, [lastFailedRequest, handleSubmit])
 
 	const submitPendingPromptEvent = useEffectEvent(
 		(
@@ -990,7 +1000,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			<div
 				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
 			>
-				{initialSessionId && !hasMessages ? (
+				{restoringSessionId && !hasMessages ? (
 					<LoadingConversationState />
 				) : !hasMessages ? (
 					<ChatLanding
@@ -1020,7 +1030,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isCompacting={isCompacting}
 						paginationState={paginationState}
 						error={error}
-						lastFailedPrompt={lastFailedPrompt}
+						lastFailedPrompt={lastFailedRequest?.prompt ?? null}
 						onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
 						scrollContainerRef={scrollContainerRef}
 						messagesEndRef={messagesEndRef}

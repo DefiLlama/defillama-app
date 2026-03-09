@@ -322,7 +322,12 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 								{agent.status === 'completed' ? (
 									<span className="opacity-60">
 										{' '}
-										- Complete ({agent.toolCount} tools{agent.chartCount ? `, ${agent.chartCount} charts` : ''})
+										- Complete
+										{agent.toolCount != null || agent.chartCount != null ? ' (' : ''}
+										{agent.toolCount != null ? `${agent.toolCount} tools` : ''}
+										{agent.toolCount != null && agent.chartCount != null ? ', ' : ''}
+										{agent.chartCount != null ? `${agent.chartCount} charts` : ''}
+										{agent.toolCount != null || agent.chartCount != null ? ')' : ''}
 									</span>
 								) : null}
 								{agent.status === 'started' ? <span className="opacity-60"> - Starting...</span> : null}

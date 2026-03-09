@@ -40,7 +40,7 @@ export function ChatLanding({
 					<PromptInput
 						handleSubmit={handleSubmit}
 						promptInputRef={promptInputRef}
-						isPending={false}
+						isPending={isStreaming}
 						handleStopRequest={handleStopRequest}
 						isStreaming={isStreaming}
 						restoreRequest={null}

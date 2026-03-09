@@ -315,9 +315,10 @@ function InlineContent({
 			{hasInlineRefs
 				? groupedParts.map((part, index) => {
 						if ('actions' in part && part.type === 'action-group') {
+							const actionGroupKey = part.actions.map((action) => `${action.label}:${action.message}`).join('|')
 							return (
 								<ActionButtonGroup
-									key={`actions-${index}`}
+									key={`actions-${index}-${nextUserMessage ?? ''}-${actionGroupKey}`}
 									actions={part.actions}
 									onActionClick={onActionClick}
 									nextUserMessage={nextUserMessage}
