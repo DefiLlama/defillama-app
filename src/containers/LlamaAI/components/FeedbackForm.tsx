@@ -59,7 +59,7 @@ export function FeedbackForm({
 			className="flex flex-col gap-4"
 		>
 			<div className="flex flex-col gap-2">
-				<span className="text-sm font-medium">Rate this response</span>
+				<p className="m-0 text-sm font-medium">Rate this response</p>
 				<div className="flex gap-2">
 					<button
 						type="button"
@@ -102,7 +102,7 @@ export function FeedbackForm({
 				/>
 			</label>
 			<div className="flex items-center justify-between">
-				<span className="text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</span>
+				<p className="m-0 text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</p>
 				<div className="flex gap-3">
 					<Ariakit.DialogDismiss
 						disabled={isSubmittingFeedback}

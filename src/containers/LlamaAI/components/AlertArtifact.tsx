@@ -115,8 +115,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="text-sm font-medium text-(--text1)">Sign in to save alerts</span>
-					<span className="text-xs text-(--text3)">Scheduled alerts require authentication.</span>
+					<h3 className="m-0 text-sm font-medium text-(--text1)">Sign in to save alerts</h3>
+					<p className="m-0 text-xs text-(--text3)">Scheduled alerts require authentication.</p>
 				</div>
 			</div>
 		)
@@ -149,8 +149,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="text-sm font-medium text-(--text1)">Schedule Alert</span>
-					<span className="text-xs text-(--text3)">Get this data delivered to your inbox</span>
+					<h3 className="m-0 text-sm font-medium text-(--text1)">Schedule Alert</h3>
+					<p className="m-0 text-xs text-(--text3)">Get this data delivered to your inbox</p>
 				</div>
 			</div>
 
@@ -209,7 +209,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 			{!saved ? (
 				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
 					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
-					<span>Action required — confirm your alert settings and save</span>
+					Action required — confirm your alert settings and save
 				</p>
 			) : null}
 

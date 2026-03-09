@@ -173,16 +173,16 @@ export function ToolProgressIndicator({
 	if (!hasActivity) return null
 
 	return (
-		<div className="flex gap-3 py-1.5">
+		<section className="flex gap-3 py-1.5" aria-label="LlamaAI progress">
 			<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-16 w-16 shrink-0" />
 			<div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
 				<div className="flex flex-col gap-0.5">
-					<span className="text-base font-semibold text-[#555] dark:text-[#919296]">LlamaAI is thinking...</span>
+					<p className="m-0 text-base font-semibold text-[#555] dark:text-[#919296]">LlamaAI is thinking...</p>
 					<ElapsedTimeLabel />
 				</div>
 				{thinking ? <ThinkingPanel thinking={thinking} defaultOpen /> : null}
 				{isCompacting ? (
-					<div className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
+					<p className="m-0 flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
 						<Icon
 							name="layers"
 							height={14}
@@ -191,14 +191,14 @@ export function ToolProgressIndicator({
 							style={{ color: '#8b5cf6' }}
 						/>
 						<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">Optimizing context memory...</span>
-					</div>
+					</p>
 				) : null}
 				{toolCalls.length > 0 ? (
-					<div className="flex flex-col gap-1.5">
+					<ul className="flex flex-col gap-1.5">
 						{toolCalls.map((toolCall) => {
 							const meta = TOOL_ICONS[toolCall.name] || { icon: 'sparkles', color: '#919296' }
 							return (
-								<div key={toolCall.id} className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
+								<li key={toolCall.id} className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
 									<Icon
 										name={meta.icon as never}
 										height={14}
@@ -206,14 +206,14 @@ export function ToolProgressIndicator({
 										className="shrink-0 opacity-70"
 										style={{ color: meta.color }}
 									/>
-									<span className="text-xs font-medium text-[#444] dark:text-[#ccc]">{toolCall.label}</span>
-								</div>
+									<p className="m-0 text-xs font-medium text-[#444] dark:text-[#ccc]">{toolCall.label}</p>
+								</li>
 							)
 						})}
-					</div>
+					</ul>
 				) : null}
 			</div>
-		</div>
+		</section>
 	)
 }
 
@@ -240,7 +240,10 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 	const total = agentList.length
 
 	return (
-		<div className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]">
+		<section
+			className="flex flex-col gap-2 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-2 sm:p-3 dark:border-[#222324]"
+			aria-label="Parallel research progress"
+		>
 			<button
 				type="button"
 				onClick={() => setIsExpanded(!isExpanded)}
@@ -248,17 +251,17 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 			>
 				<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-6 w-6 shrink-0" />
 
-				<span className="flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
+				<p className="m-0 flex-1 truncate text-xs text-[#666] sm:text-sm dark:text-[#919296]">
 					Researching in parallel...
-				</span>
+				</p>
 
-				<span className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+				<p className="m-0 flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 text-[10px] text-[#666] sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
 					{completed}/{total} done
-				</span>
+				</p>
 
-				<span className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 font-mono text-[10px] text-[#666] tabular-nums sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
+				<time className="flex shrink-0 items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-1.5 py-0.5 font-mono text-[10px] text-[#666] tabular-nums sm:text-xs dark:bg-[rgba(145,146,150,0.12)] dark:text-[#919296]">
 					{formatTime(elapsed)}
-				</span>
+				</time>
 
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
@@ -277,9 +280,9 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 			</button>
 
 			{isExpanded ? (
-				<div className="flex flex-col gap-1 border-t border-[#e6e6e6] pt-2 dark:border-[#222324]">
+				<ul className="flex flex-col gap-1 border-t border-[#e6e6e6] pt-2 dark:border-[#222324]">
 					{agentList.map((agent) => (
-						<div key={agent.id} className="flex items-center gap-2 pl-1">
+						<li key={agent.id} className="flex items-center gap-2 pl-1">
 							{agent.status === 'completed' ? (
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -314,7 +317,7 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 							) : (
 								<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
 							)}
-							<span className="text-xs text-[#666] dark:text-[#919296]">
+							<p className="m-0 text-xs text-[#666] dark:text-[#919296]">
 								{agent.id}
 								{agent.status === 'tool_call' && agent.tool ? (
 									<span className="opacity-60"> - {TOOL_LABELS[agent.tool] || agent.tool}</span>
@@ -332,11 +335,11 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 								) : null}
 								{agent.status === 'started' ? <span className="opacity-60"> - Starting...</span> : null}
 								{agent.status === 'error' ? <span className="opacity-60"> - Error</span> : null}
-							</span>
-						</div>
+							</p>
+						</li>
 					))}
-				</div>
+				</ul>
 			) : null}
-		</div>
+		</section>
 	)
 })

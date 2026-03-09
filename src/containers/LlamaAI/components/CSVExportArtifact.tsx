@@ -23,8 +23,8 @@ export function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
 				<Icon name="file-text" className="h-5 w-5 text-[#2172E5]" />
 			</div>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				<span className="truncate text-sm font-medium text-(--text1)">{csvExport.title}</span>
-				<span className="text-xs text-(--text3)">{csvExport.rowCount.toLocaleString()} rows</span>
+				<p className="m-0 truncate text-sm font-medium text-(--text1)">{csvExport.title}</p>
+				<p className="m-0 text-xs text-(--text3)">{csvExport.rowCount.toLocaleString()} rows</p>
 			</div>
 			<div className="flex shrink-0 items-center gap-1.5 text-[#2172E5]">
 				<Icon name="download-paper" className="h-4 w-4" />
@@ -44,7 +44,7 @@ export function CSVExportLoading() {
 				<div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
 				<div className="h-3 w-20 rounded bg-gray-100 dark:bg-gray-800" />
 			</div>
-			<span className="text-xs text-gray-400">Generating...</span>
+			<p className="m-0 text-xs text-gray-400">Generating...</p>
 		</div>
 	)
 }

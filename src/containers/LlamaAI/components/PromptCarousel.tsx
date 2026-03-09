@@ -55,7 +55,7 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 
 	if (isLoading) {
 		return (
-			<div className="flex w-full flex-col pt-1">
+			<section className="flex w-full flex-col pt-1" aria-label="Prompt suggestions">
 				<Header
 					category={{ key: '', name: 'Suggestions', icon: 'help-circle', prompts: [] }}
 					totalCategories={0}
@@ -65,13 +65,13 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 				<div className="flex min-h-[120px] items-center justify-center">
 					<LoadingSpinner size={12} />
 				</div>
-			</div>
+			</section>
 		)
 	}
 
 	if (error || categories.length === 0) {
 		return (
-			<div className="flex w-full flex-col pt-1">
+			<section className="flex w-full flex-col pt-1" aria-label="Prompt suggestions">
 				<Header
 					category={{ key: '', name: 'Suggestions', icon: 'help-circle', prompts: [] }}
 					totalCategories={0}
@@ -80,44 +80,45 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 				/>
 				<div className="flex min-h-[80px] items-center justify-center gap-1.5 text-[11px] text-[#a0a0a0] dark:text-[#555]">
 					<Icon name="alert-triangle" height={11} width={11} className="opacity-60" />
-					<span>{error?.message ?? 'Unable to load suggestions'}</span>
+					<p className="m-0">{error?.message ?? 'Unable to load suggestions'}</p>
 				</div>
-			</div>
+			</section>
 		)
 	}
 
 	return (
-		<div className="flex w-full flex-col pt-1">
+		<section className="flex w-full flex-col pt-1" aria-label="Prompt suggestions">
 			<Header
 				category={currentCategory}
 				totalCategories={categories.length}
 				onPreviousCategory={handlePreviousCategory}
 				onNextCategory={handleNextCategory}
 			/>
-			<div className="flex flex-col">
+			<ul className="flex flex-col">
 				{visibleQuestions.map((question, idx) => (
-					<button
-						key={`${currentCategory.key}-${startIndex + idx}`}
-						onClick={() => handleClick(question)}
-						disabled={isPending}
-						className="group relative flex w-full items-baseline gap-2.5 py-[7px] text-left transition-colors duration-150 first:pt-0 disabled:pointer-events-none disabled:opacity-40"
-					>
-						<span className="absolute top-1 bottom-1 left-0 w-px bg-[#2563eb]/0 transition-colors duration-150 group-hover:bg-[#2563eb]/30 dark:group-hover:bg-[#60a5fa]/25" />
-						<span className="shrink-0 pt-px text-[10px] tracking-wide text-[#b0b0b0] transition-colors duration-150 group-hover:text-[#888] dark:text-[#505050] dark:group-hover:text-[#707070]">
-							{currentCategory.name}
-						</span>
-						<span className="flex-1 truncate text-[13px] leading-snug text-[#707070] transition-colors duration-150 group-hover:text-[#404040] dark:text-[#808080] dark:group-hover:text-[#b0b0b0]">
-							{question}
-						</span>
-						<Icon
-							name="arrow-right"
-							height={10}
-							width={10}
-							className="shrink-0 translate-x-0 text-[#2563eb]/50 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-[#60a5fa]/50"
-						/>
-					</button>
+					<li key={`${currentCategory.key}-${startIndex + idx}`}>
+						<button
+							onClick={() => handleClick(question)}
+							disabled={isPending}
+							className="group relative flex w-full items-baseline gap-2.5 py-[7px] text-left transition-colors duration-150 first:pt-0 disabled:pointer-events-none disabled:opacity-40"
+						>
+							<span className="absolute top-1 bottom-1 left-0 w-px bg-[#2563eb]/0 transition-colors duration-150 group-hover:bg-[#2563eb]/30 dark:group-hover:bg-[#60a5fa]/25" />
+							<span className="shrink-0 pt-px text-[10px] tracking-wide text-[#b0b0b0] transition-colors duration-150 group-hover:text-[#888] dark:text-[#505050] dark:group-hover:text-[#707070]">
+								{currentCategory.name}
+							</span>
+							<p className="m-0 flex-1 truncate text-[13px] leading-snug text-[#707070] transition-colors duration-150 group-hover:text-[#404040] dark:text-[#808080] dark:group-hover:text-[#b0b0b0]">
+								{question}
+							</p>
+							<Icon
+								name="arrow-right"
+								height={10}
+								width={10}
+								className="shrink-0 translate-x-0 text-[#2563eb]/50 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100 dark:text-[#60a5fa]/50"
+							/>
+						</button>
+					</li>
 				))}
-			</div>
+			</ul>
 			{totalPages > 1 ? (
 				<div className="mt-2.5 flex items-center justify-center gap-3">
 					<button
@@ -150,7 +151,7 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 					</button>
 				</div>
 			) : null}
-		</div>
+		</section>
 	)
 }
 
@@ -166,12 +167,12 @@ function Header({
 	onNextCategory: () => void
 }) {
 	return (
-		<div className="mb-2 flex items-center justify-between">
+		<header className="mb-2 flex items-center justify-between">
 			<div className="flex items-center gap-1.5">
 				<Icon name={category.icon} height={11} width={11} className="text-[#c0c0c0] dark:text-[#404040]" />
-				<span className="text-[11px] font-medium tracking-wide text-[#a0a0a0] uppercase dark:text-[#505050]">
+				<p className="m-0 text-[11px] font-medium tracking-wide text-[#a0a0a0] uppercase dark:text-[#505050]">
 					{category.name}
-				</span>
+				</p>
 				{totalCategories > 1 ? <span className="ml-0.5 text-[10px] text-[#d0d0d0] dark:text-[#353535]">·</span> : null}
 			</div>
 			{totalCategories > 1 ? (
@@ -194,6 +195,6 @@ function Header({
 					</button>
 				</div>
 			) : null}
-		</div>
+		</header>
 	)
 }

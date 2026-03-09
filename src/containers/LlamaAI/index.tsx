@@ -1077,7 +1077,10 @@ const ChatControls = memo(function ChatControls({
 	handleNewChat: () => void
 }) {
 	return (
-		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
+		<nav
+			className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
+			aria-label="Chat controls"
+		>
 			<Tooltip
 				content="Open Chat History"
 				render={<button onClick={handleSidebarToggle} />}
@@ -1094,6 +1097,6 @@ const ChatControls = memo(function ChatControls({
 				<Icon name="message-square-plus" height={16} width={16} />
 				<span className="sr-only">New Chat</span>
 			</Tooltip>
-		</div>
+		</nav>
 	)
 })

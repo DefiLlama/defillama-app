@@ -87,7 +87,7 @@ export function ConversationView({
 						<div className="flex flex-col gap-2.5">
 							{paginationState.isLoadingMore ? (
 								<div className="flex justify-center py-2">
-									<span className="text-xs text-[#666] dark:text-[#919296]">Loading older messages...</span>
+									<p className="m-0 text-xs text-[#666] dark:text-[#919296]">Loading older messages...</p>
 								</div>
 							) : null}
 
