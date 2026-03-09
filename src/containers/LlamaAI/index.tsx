@@ -748,6 +748,93 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setMessages((prev) => [...prev, message])
 	}, [])
 
+	// Reattach to a server-side execution that is still running for the current session.
+	const resumeRunningExecution = useCallback(
+		async ({
+			targetSessionId,
+			buffer = createStreamBuffer(),
+			resetStream = true
+		}: {
+			targetSessionId: string
+			buffer?: StreamBuffer
+			resetStream?: boolean
+		}) => {
+			const { active } = await checkActiveExecution(targetSessionId, authorizedFetchStrict)
+			if (!active) return false
+
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'SET_ERROR', value: null })
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+
+			if (resetStream) {
+				dispatchStream({ type: 'START_STREAM' })
+				currentMessageIdRef.current = null
+			}
+
+			const resumeRequestId = beginRequest(
+				activeRequestIdRef,
+				activeRequestKindRef,
+				activeSessionIdRef,
+				'resume',
+				targetSessionId
+			)
+			const controller = new AbortController()
+			abortControllerRef.current = controller
+			const settleState = createRequestSettleState(resumeRequestId)
+			activeRequestSettleRef.current = settleState
+
+			const callbacks = createAgenticCallbacks({
+				requestId: resumeRequestId,
+				activeRequestIdRef,
+				buffer,
+				dispatch: dispatchStream,
+				currentMessageIdRef,
+				toolCallIdRef,
+				appendMessage,
+				notify,
+				onTitle: (title) => {
+					setSessionTitle(title)
+					updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+					moveSessionToTop(targetSessionId)
+				}
+			})
+
+			void resumeAgenticStream({
+				sessionId: targetSessionId,
+				callbacks,
+				abortSignal: controller.signal,
+				fetchFn: authorizedFetchStrict
+			})
+				.catch((err: Error) => {
+					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
+					if (err?.name === 'AbortError') {
+						appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+						dispatchStream({ type: 'RESET_STREAM' })
+						return
+					}
+					dispatchStream({
+						type: 'SET_ERROR',
+						value: 'Lost connection while waiting for the running execution. Retry to reconnect.'
+					})
+					dispatchStream({ type: 'RESET_STREAM' })
+				})
+				.finally(() => {
+					if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
+						abortControllerRef.current = null
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
+					}
+					settleState.resolve()
+					if (activeRequestSettleRef.current?.requestId === resumeRequestId) {
+						activeRequestSettleRef.current = null
+					}
+				})
+
+			return true
+		},
+		[authorizedFetchStrict, appendMessage, moveSessionToTop, notify, updateSessionTitle]
+	)
+
 	// Abort the active request and wait for its cleanup path to finish before starting another one.
 	const abortActiveRequest = useCallback(async () => {
 		const controller = abortControllerRef.current
@@ -776,6 +863,40 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
 	}, [])
+
+	// Refresh the current session from persisted server state without resubmitting the prompt.
+	const restoreSessionSnapshot = useCallback(
+		async (targetSessionId: string) => {
+			const result = await restoreSession(targetSessionId).catch(() => null as SessionRestoreResult | null)
+			if (!result) return false
+
+			const restored: Message[] = (result.messages || []).map((message) => ({
+				...mapPersistedMessage(message),
+				alerts: buildRestoredAlert(message),
+				savedAlertIds: message.savedAlertIds
+			}))
+
+			setMessages(restored)
+			setSessionId(targetSessionId)
+			const match = sessions.find((session) => session.sessionId === targetSessionId)
+			setSessionTitle(match?.title || null)
+			restoredSessionIdRef.current = targetSessionId
+			isFirstMessageRef.current = false
+			shouldAutoScrollRef.current = true
+			setShowScrollToBottom(false)
+			setPaginationState({
+				hasMore: result.pagination?.hasMore || false,
+				cursor: result.pagination?.cursor || null,
+				isLoadingMore: false
+			})
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'SET_ERROR', value: null })
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+			return true
+		},
+		[restoreSession, sessions]
+	)
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
 	const handleNewChat = useCallback(async () => {
@@ -811,9 +932,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				'restore',
 				selectedSessionId
 			)
-			const result = await restoreSession(selectedSessionId).catch(() => null as SessionRestoreResult | null)
+			const restoredOk = await restoreSessionSnapshot(selectedSessionId)
 
-			if (!result) {
+			if (!restoredOk) {
 				if (!isActiveRequest(activeRequestIdRef, requestId)) return
 				setViewError('Failed to restore session')
 				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
@@ -822,104 +943,19 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			}
 
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
-			const restored: Message[] = (result.messages || []).map((message) => ({
-				...mapPersistedMessage(message),
-				alerts: buildRestoredAlert(message),
-				savedAlertIds: message.savedAlertIds
-			}))
-
-			setMessages(restored)
-			setSessionId(selectedSessionId)
-			const match = sessions.find((s) => s.sessionId === selectedSessionId)
-			setSessionTitle(match?.title || null)
-			restoredSessionIdRef.current = selectedSessionId
 			window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
-			isFirstMessageRef.current = false
-			shouldAutoScrollRef.current = true
-			setShowScrollToBottom(false)
-			setPaginationState({
-				hasMore: result.pagination?.hasMore || false,
-				cursor: result.pagination?.cursor || null,
-				isLoadingMore: false
-			})
 			setRestoringSessionId(null)
 
-			const { active } = await checkActiveExecution(selectedSessionId, authorizedFetchStrict)
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 
-			if (active) {
-				const resumeRequestId = beginRequest(
-					activeRequestIdRef,
-					activeRequestKindRef,
-					activeSessionIdRef,
-					'resume',
-					selectedSessionId
-				)
-				dispatchStream({ type: 'START_STREAM' })
-				currentMessageIdRef.current = null
-				const buffer = createStreamBuffer()
-				const controller = new AbortController()
-				abortControllerRef.current = controller
-				const settleState = createRequestSettleState(resumeRequestId)
-				activeRequestSettleRef.current = settleState
+			const didResume = await resumeRunningExecution({ targetSessionId: selectedSessionId })
+			if (!isActiveRequest(activeRequestIdRef, requestId) && !didResume) return
 
-				const callbacks = createAgenticCallbacks({
-					requestId: resumeRequestId,
-					activeRequestIdRef,
-					buffer,
-					dispatch: dispatchStream,
-					currentMessageIdRef,
-					toolCallIdRef,
-					appendMessage,
-					notify,
-					onTitle: (title) => {
-						setSessionTitle(title)
-						updateSessionTitle({ sessionId: selectedSessionId, title }).catch(() => {})
-						moveSessionToTop(selectedSessionId)
-					}
-				})
-
-				void resumeAgenticStream({
-					sessionId: selectedSessionId,
-					callbacks,
-					abortSignal: controller.signal,
-					fetchFn: authorizedFetchStrict
-				})
-					.catch((err: Error) => {
-						if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
-						if (err?.name === 'AbortError') {
-							appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
-							dispatchStream({ type: 'RESET_STREAM' })
-							return
-						}
-						dispatchStream({ type: 'RESET_STREAM' })
-					})
-					.finally(() => {
-						if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
-							abortControllerRef.current = null
-							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
-						}
-						settleState.resolve()
-						if (activeRequestSettleRef.current?.requestId === resumeRequestId) {
-							activeRequestSettleRef.current = null
-						}
-					})
-			} else {
+			if (!didResume) {
 				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			}
 		},
-		[
-			sessionId,
-			restoreSession,
-			sessions,
-			authorizedFetchStrict,
-			updateSessionTitle,
-			moveSessionToTop,
-			notify,
-			appendMessage,
-			abortActiveRequest,
-			clearConversationRuntimeState
-		]
+		[sessionId, abortActiveRequest, clearConversationRuntimeState, restoreSessionSnapshot, resumeRunningExecution]
 	)
 
 	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
@@ -1008,7 +1044,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							}
 						})
 					})
-						.catch((err: UsageLimitError) => {
+						.catch(async (err: UsageLimitError) => {
 							if (!isActiveRequest(activeRequestIdRef, requestId)) return
 							if (err?.name === 'AbortError') {
 								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
@@ -1035,6 +1071,20 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								dispatchStream({ type: 'RESET_STREAM' })
 								researchModalStore.show()
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+								return
+							}
+							if (
+								currentSessionId &&
+								(await resumeRunningExecution({
+									targetSessionId: currentSessionId,
+									buffer,
+									resetStream: false
+								}))
+							) {
+								return
+							}
+							if (currentSessionId && (await restoreSessionSnapshot(currentSessionId))) {
+								dispatchStream({ type: 'RESET_STREAM' })
 								return
 							}
 							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
@@ -1082,7 +1132,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			notify,
 			customInstructions,
 			appendMessage,
-			abortActiveRequest
+			abortActiveRequest,
+			restoreSessionSnapshot,
+			resumeRunningExecution
 		]
 	)
 
@@ -1104,13 +1156,22 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const handleRetryLastFailedPrompt = useCallback(() => {
 		if (!lastFailedRequest) return
 		dispatchStream({ type: 'SET_ERROR', value: null })
-		handleSubmit(
-			lastFailedRequest.prompt,
-			lastFailedRequest.entities,
-			lastFailedRequest.images,
-			lastFailedRequest.pageContext
-		)
-	}, [lastFailedRequest, handleSubmit])
+		void (async () => {
+			if (sessionId) {
+				await abortActiveRequest()
+				const didResume = await resumeRunningExecution({ targetSessionId: sessionId })
+				if (didResume) return
+				const didRestore = await restoreSessionSnapshot(sessionId)
+				if (didRestore) return
+			}
+			handleSubmit(
+				lastFailedRequest.prompt,
+				lastFailedRequest.entities,
+				lastFailedRequest.images,
+				lastFailedRequest.pageContext
+			)
+		})()
+	}, [abortActiveRequest, handleSubmit, lastFailedRequest, restoreSessionSnapshot, resumeRunningExecution, sessionId])
 
 	// Consume pending prompts injected by the floating button once the base chat page mounts.
 	const submitPendingPromptEvent = useEffectEvent(
@@ -1133,6 +1194,28 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
 		}
 	}, [initialSessionId, sharedSession])
+
+	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
+	const reconnectVisibleExecutionEvent = useEffectEvent(() => {
+		if (!sessionId || readOnly || isStreaming || activeRequestKindRef.current !== 'idle') return
+		if (!error && !lastFailedRequest) return
+		void (async () => {
+			const didResume = await resumeRunningExecution({ targetSessionId: sessionId })
+			if (didResume) return
+			await restoreSessionSnapshot(sessionId)
+		})()
+	})
+
+	useEffect(() => {
+		const onVisibilityChange = () => {
+			if (!document.hidden) {
+				reconnectVisibleExecutionEvent()
+			}
+		}
+
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		return () => document.removeEventListener('visibilitychange', onVisibilityChange)
+	}, [])
 
 	// Mirror route param updates into a ref so the restore effect can consume them once.
 	useEffect(() => {
