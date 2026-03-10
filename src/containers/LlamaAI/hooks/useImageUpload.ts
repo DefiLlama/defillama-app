@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import { errorToast } from '~/components/Toast'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface SelectedImage {
 	file: File
@@ -85,7 +86,10 @@ export function useImageUpload({
 
 	const handleImageSelect = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			if (e.target.files) addImages(Array.from(e.target.files))
+			if (e.target.files) {
+				trackUmamiEvent('llamaai-image-upload')
+				addImages(Array.from(e.target.files))
+			}
 			// Reset input to allow re-selecting the same file
 			e.currentTarget.value = ''
 		},
@@ -98,7 +102,10 @@ export function useImageUpload({
 				.filter((item) => item.type.startsWith('image/'))
 				.map((item) => item.getAsFile())
 				.filter(Boolean) as File[]
-			if (files.length) addImages(files)
+			if (files.length) {
+				trackUmamiEvent('llamaai-image-paste')
+				addImages(files)
+			}
 		},
 		[addImages]
 	)

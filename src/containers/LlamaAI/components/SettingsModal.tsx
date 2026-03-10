@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const STORAGE_KEY = 'llamaai-custom-instructions'
 const MEMORY_STORAGE_KEY = 'llamaai-enable-memory'
@@ -40,6 +41,7 @@ export const SettingsModal = memo(function SettingsModal({
 
 	useEffect(() => {
 		if (!isOpen) return
+		trackUmamiEvent('llamaai-settings-open')
 		let cancelled = false
 
 		queueMicrotask(() => {
@@ -55,6 +57,7 @@ export const SettingsModal = memo(function SettingsModal({
 
 	const save = useCallback(() => {
 		const trimmed = draft.trim()
+		trackUmamiEvent('llamaai-custom-instructions-save')
 		onCustomInstructionsChange(trimmed)
 		localStorage.setItem(STORAGE_KEY, trimmed)
 		if (fetchFn) {
@@ -77,6 +80,7 @@ export const SettingsModal = memo(function SettingsModal({
 
 	const handleMemoryToggle = useCallback(() => {
 		const next = !memoryDraft
+		trackUmamiEvent('llamaai-memory-toggle')
 		setMemoryDraft(next)
 		onEnableMemoryChange(next)
 		localStorage.setItem(MEMORY_STORAGE_KEY, String(next))

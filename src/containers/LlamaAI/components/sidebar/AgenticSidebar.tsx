@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { AgenticSessionItem } from './AgenticSessionItem'
 
 interface AgenticSidebarProps {
@@ -202,7 +203,10 @@ export function AgenticSidebar({
 				</Tooltip>
 
 				<button
-					onClick={onNewChat}
+					onClick={() => {
+						trackUmamiEvent('llamaai-new-chat')
+						onNewChat()
+					}}
 					className="flex items-center justify-center gap-2 rounded-sm border border-(--old-blue) bg-(--old-blue)/12 px-2 py-0.75 text-xs text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
 				>
 					<Icon name="message-square-plus" height={16} width={16} />

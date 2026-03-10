@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Icon, type IIcon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const ITEMS_PER_PAGE = 4
 
@@ -32,11 +33,13 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 	const visibleQuestions = questions.slice(startIndex, startIndex + ITEMS_PER_PAGE)
 
 	const handlePreviousCategory = () => {
+		trackUmamiEvent('llamaai-carousel-category-change')
 		setCurrentCategoryIndex((prev) => (prev - 1 + categories.length) % categories.length)
 		setCurrentPage(0)
 	}
 
 	const handleNextCategory = () => {
+		trackUmamiEvent('llamaai-carousel-category-change')
 		setCurrentCategoryIndex((prev) => (prev + 1) % categories.length)
 		setCurrentPage(0)
 	}
@@ -50,6 +53,7 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 	}
 
 	const handleClick = (question: string) => {
+		trackUmamiEvent('llamaai-suggested-prompt-click', { category: currentCategory?.name })
 		onSubmit(question)
 	}
 

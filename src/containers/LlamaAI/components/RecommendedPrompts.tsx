@@ -4,17 +4,17 @@ import { useSuggestedQuestions } from '../hooks/useSuggestedQuestions'
 import { PromptCarousel } from './PromptCarousel'
 
 const CATEGORY_KEY_MAP: Record<string, string> = {
-	find_alpha: 'Find Alpha',
-	analytics: 'Analytics',
-	speculative_guidance: 'Speculative Guidance',
-	learn: 'Learn',
-	research_report: 'Research Report'
+	find_alpha: 'Alpha Scanner',
+	analytics: 'Charts & Analytics',
+	speculative_guidance: 'Price Forecasts',
+	learn: 'Protocol Intel',
+	research_report: 'Deep Research'
 }
 
 const CATEGORY_ICON_MAP: Record<string, IIcon['name']> = {
-	find_alpha: 'trending-up',
+	find_alpha: 'search',
 	analytics: 'bar-chart-2',
-	speculative_guidance: 'dollar-sign',
+	speculative_guidance: 'trending-up',
 	learn: 'graduation-cap',
 	research_report: 'file-text'
 }
@@ -27,8 +27,8 @@ const fallbackPromptCategories: Array<{
 }> = [
 	{
 		key: 'find_alpha',
-		name: 'Find Alpha',
-		icon: 'trending-up',
+		name: 'Alpha Scanner',
+		icon: 'search',
 		prompts: [
 			'Which protocols have growing TVL and revenue but declining token prices?',
 			'What are the best stablecoin yields with at least $10M TVL?',
@@ -39,7 +39,7 @@ const fallbackPromptCategories: Array<{
 	},
 	{
 		key: 'analytics',
-		name: 'Analytics',
+		name: 'Charts & Analytics',
 		icon: 'bar-chart-2',
 		prompts: [
 			'Chart Pump.fun percentage share of total revenue across all launchpads',
@@ -51,8 +51,8 @@ const fallbackPromptCategories: Array<{
 	},
 	{
 		key: 'speculative_guidance',
-		name: 'Speculative Guidance',
-		icon: 'dollar-sign',
+		name: 'Price Forecasts',
+		icon: 'trending-up',
 		prompts: [
 			'Provide a price estimate for BTC using a blended methodology that includes technical indicators, Monte Carlo simulations, and time-series momentum with a 180-day lookback. Incorporate relevant prediction-market bets or implied probabilities where available, and conclude with a synthesized investment recommendation that integrates all signals.',
 			'Is the current market sentiment bullish or bearish based on Onchain data?',
@@ -62,7 +62,7 @@ const fallbackPromptCategories: Array<{
 	},
 	{
 		key: 'learn',
-		name: 'Learn',
+		name: 'Protocol Intel',
 		icon: 'graduation-cap',
 		prompts: [
 			'What are the technical differences btw Hyperliquid and Lighter?',
@@ -76,7 +76,7 @@ const fallbackPromptCategories: Array<{
 
 const fallbackResearchCategory = {
 	key: 'research_report',
-	name: 'Research Report',
+	name: 'Deep Research',
 	icon: 'file-text' as IIcon['name'],
 	prompts: [
 		'Analysis of prediction markets: Polymarket dominance and growth potential post-election cycle',

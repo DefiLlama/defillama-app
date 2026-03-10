@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface Alert {
 	id: string
@@ -204,6 +205,10 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
+	useEffect(() => {
+		if (isOpen) trackUmamiEvent('llamaai-alerts-open')
+	}, [isOpen])
+
 	const {
 		data: alerts,
 		isLoading,
@@ -317,6 +322,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		{ previous?: Alert[] }
 	>({
 		mutationFn: async ({ alertId, enabled }: { alertId: string; enabled: boolean }) => {
+			trackUmamiEvent('llamaai-alert-toggle')
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
@@ -352,6 +358,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 
 	const deleteAlertMutation = useMutation<string, Error, string, { previous?: Alert[] }>({
 		mutationFn: async (alertId: string) => {
+			trackUmamiEvent('llamaai-alert-delete')
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
