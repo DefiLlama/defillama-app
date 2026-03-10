@@ -1,6 +1,6 @@
 import { MCP_SERVER } from '~/constants'
+import type { AlertProposedData, ChartConfiguration, ToolExecution } from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
-import type { ChartConfiguration, AlertProposedData, ToolExecution } from './types'
 
 export interface CsvExport {
 	id: string

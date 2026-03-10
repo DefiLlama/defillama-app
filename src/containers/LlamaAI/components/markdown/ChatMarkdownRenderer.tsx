@@ -7,8 +7,8 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { getEntityUrl } from '../../utils/entityLinks'
-import { extractLlamaLinks, processCitationMarkers } from '../../utils/markdownHelpers'
+import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
+import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]

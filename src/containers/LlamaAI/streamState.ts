@@ -1,6 +1,13 @@
 import type { Dispatch } from 'react'
-import type { CsvExport } from './fetchAgenticResponse'
-import type { AlertProposedData, ChartSet, Message, SpawnAgentStatus, ToolCall, ToolExecution } from './types'
+import type { CsvExport } from '~/containers/LlamaAI/fetchAgenticResponse'
+import type {
+	AlertProposedData,
+	ChartSet,
+	Message,
+	SpawnAgentStatus,
+	ToolCall,
+	ToolExecution
+} from '~/containers/LlamaAI/types'
 
 export interface ChatPageContext {
 	entitySlug?: string

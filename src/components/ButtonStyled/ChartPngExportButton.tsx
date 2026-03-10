@@ -80,6 +80,41 @@ const hasSeriesType = (options: Record<string, any>, type: string) =>
 	Array.isArray(options.series) &&
 	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
 
+function sanitizeScatterSeriesForExport(options: Record<string, any>) {
+	if (!Array.isArray(options.series)) return options
+
+	options.series = options.series.map((series: any) => {
+		if (series?.type !== 'scatter') return series
+
+		const nextSeries = { ...series }
+		const nextData = Array.isArray(series.data)
+			? series.data.map((point: any) => {
+					if (point && typeof point === 'object' && !Array.isArray(point)) {
+						const nextPoint = { ...point }
+						const pointSymbol = typeof nextPoint.symbol === 'string' ? nextPoint.symbol : undefined
+						if (pointSymbol?.startsWith('image://')) {
+							delete nextPoint.symbol
+							nextPoint.symbolSize = typeof nextPoint.symbolSize === 'number' ? Math.min(nextPoint.symbolSize, 12) : 10
+						}
+						return nextPoint
+					}
+					return point
+				})
+			: series.data
+
+		const seriesSymbol = typeof nextSeries.symbol === 'string' ? nextSeries.symbol : undefined
+		if (seriesSymbol?.startsWith('image://')) {
+			delete nextSeries.symbol
+			nextSeries.symbolSize = typeof nextSeries.symbolSize === 'number' ? Math.min(nextSeries.symbolSize, 12) : 10
+		}
+
+		nextSeries.data = nextData
+		return nextSeries
+	})
+
+	return options
+}
+
 async function loadCircularIcon(url: string): Promise<string | null> {
 	const slugMatch = url.match(/\/protocols\/([^?]+)/)
 	const slug = slugMatch?.[1]
@@ -281,6 +316,8 @@ async function renderClonedChartExport(
 			})
 		}
 
+		sanitizeScatterSeriesForExport(currentOptions)
+
 		// Handle Sankey chart series - scale up labels for export
 		if (isSankeyChart && Array.isArray(currentOptions.series)) {
 			currentOptions.series = currentOptions.series.map((series: any) => {
@@ -354,7 +391,7 @@ async function renderClonedChartExport(
 		const titleHeight = title ? 36 : 0
 		const singleRowHeight = 32
 		const legendHeight = hasLegend ? singleRowHeight * legendRows : 0
-		const verticalGap = 16
+		const verticalGap = hasLegend ? 16 : 8
 		const titleWidth = title ? approximateTextWidth(title, 28) + (iconBase64 ? 40 : 0) : 0
 		const horizontalGap = 24
 		const canShareRow =
@@ -532,6 +569,7 @@ interface ChartPngExportButtonProps {
 	filename?: string
 	iconUrl?: string
 	expandLegend?: boolean
+	pngProfile?: 'default' | 'scatterWithImageSymbols' | 'treemap'
 }
 
 export function ChartPngExportButton({
@@ -541,7 +579,8 @@ export function ChartPngExportButton({
 	title,
 	filename,
 	iconUrl,
-	expandLegend
+	expandLegend,
+	pngProfile = 'default'
 }: ChartPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
@@ -568,7 +607,7 @@ export function ChartPngExportButton({
 			}
 			setIsLoading(true)
 
-			const isTreemapExport = hasSeriesType(_chartInstance.getOption(), 'treemap')
+			const isTreemapExport = pngProfile === 'treemap' || hasSeriesType(_chartInstance.getOption(), 'treemap')
 
 			let dataURL: string | null
 

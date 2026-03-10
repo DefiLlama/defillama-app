@@ -46,7 +46,8 @@ export default function ScatterChart({
 	height = '600px',
 	tooltipFormatter,
 	showLabels = false,
-	entityType = 'protocol'
+	entityType = 'protocol',
+	onReady
 }: IScatterChartProps) {
 	const id = useId()
 
@@ -61,6 +62,7 @@ export default function ScatterChart({
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
+		onReady?.(instance)
 
 		let series = []
 		const isYieldData = chartData.length > 0 && chartData[0].projectName !== undefined
@@ -277,9 +279,22 @@ export default function ScatterChart({
 
 		return () => {
 			chartRef.current = null
+			onReady?.(null)
 			instance.dispose()
 		}
-	}, [id, chartData, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
+	}, [
+		id,
+		chartData,
+		isDark,
+		tooltipFormatter,
+		xAxisLabel,
+		yAxisLabel,
+		valueSymbol,
+		title,
+		showLabels,
+		entityType,
+		onReady
+	])
 
 	return (
 		<div>

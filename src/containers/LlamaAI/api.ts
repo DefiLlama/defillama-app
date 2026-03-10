@@ -1,6 +1,6 @@
 import { MCP_SERVER } from '~/constants'
+import type { EntityQuestionsResponse } from '~/containers/LlamaAI/types'
 import { fetchJson } from '~/utils/async'
-import type { EntityQuestionsResponse } from './types'
 
 /**
  * Fetch suggested follow-up questions for an entity context.

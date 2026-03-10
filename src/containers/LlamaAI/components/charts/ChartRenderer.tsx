@@ -1,20 +1,27 @@
 import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { formatTooltipValue } from '~/components/ECharts/formatters'
-import type { IBarChartProps, IChartProps, IPieChartProps, IScatterChartProps } from '~/components/ECharts/types'
+import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
-import type { ChartConfiguration } from '../../types'
-import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../../utils/chartAdapter'
-import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '../../utils/chartComparison'
-import { ChartDataTransformer } from '../../utils/chartDataTransformer'
-import { ChartControls } from './ChartControls'
+import { ChartControls } from '~/containers/LlamaAI/components/charts/ChartControls'
+import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
+import { adaptCandlestickData, adaptChartData } from '~/containers/LlamaAI/utils/chartAdapter'
+import {
+	deriveCapabilities,
+	normalizeViewState,
+	type ChartViewState
+} from '~/containers/LlamaAI/utils/chartCapabilities'
+import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '~/containers/LlamaAI/utils/chartComparison'
+import { ChartDataTransformer } from '~/containers/LlamaAI/utils/chartDataTransformer'
+import { buildRenderPlan, type ChartRenderPlan } from '~/containers/LlamaAI/utils/chartRenderPlan'
+import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 
-const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
-const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
-const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
+const MultiSeriesChart2 = lazy(
+	() => import('~/components/ECharts/MultiSeriesChart2')
+) as React.FC<IMultiSeriesChart2Props>
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
@@ -36,24 +43,15 @@ interface SingleChartProps {
 	title?: string
 }
 
-type ChartState = {
-	stacked: boolean
-	percentage: boolean
-	cumulative: boolean
-	grouping: 'day' | 'week' | 'month' | 'quarter'
-	showHallmarks: boolean
-	showLabels: boolean
-}
-
 type ChartAction =
 	| { type: 'SET_STACKED'; payload: boolean }
 	| { type: 'SET_PERCENTAGE'; payload: boolean }
 	| { type: 'SET_CUMULATIVE'; payload: boolean }
-	| { type: 'SET_GROUPING'; payload: 'day' | 'week' | 'month' | 'quarter' }
+	| { type: 'SET_GROUPING'; payload: ChartViewState['grouping'] }
 	| { type: 'SET_HALLMARKS'; payload: boolean }
 	| { type: 'SET_LABELS'; payload: boolean }
 
-const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
+const chartReducer = (state: ChartViewState, action: ChartAction): ChartViewState => {
 	switch (action.type) {
 		case 'SET_STACKED':
 			return { ...state, stacked: action.payload }
@@ -72,10 +70,7 @@ const chartReducer = (state: ChartState, action: ChartAction): ChartState => {
 	}
 }
 
-type TransformableChartType = Exclude<ChartConfiguration['type'], 'candlestick'>
-
-// Seed local chart controls from the backend-provided display defaults.
-function createInitialChartState(config: ChartConfiguration): ChartState {
+function createInitialChartState(config: ChartConfiguration): ChartViewState {
 	return {
 		stacked: config.displayOptions?.defaultStacked || false,
 		percentage: config.displayOptions?.defaultPercentage || false,
@@ -86,338 +81,65 @@ function createInitialChartState(config: ChartConfiguration): ChartState {
 	}
 }
 
-// Titles are rendered by the chart shell, so remove adapter-level titles before passing props down.
-function removeAdaptedChartTitle(adaptedChart: any) {
-	if (!adaptedChart.props) return adaptedChart
+function removeAdaptedChartTitle<T extends AdaptedChartData>(adaptedChart: T): T {
+	if (!adaptedChart.props || !('title' in adaptedChart.props)) return adaptedChart
 	const { title: _title, ...restProps } = adaptedChart.props
-	return { ...adaptedChart, props: restProps }
+	return { ...adaptedChart, props: restProps as typeof adaptedChart.props } as T
 }
 
-// Apply client-side controls like grouping, stacking, and percentage mode on top of adapted chart data.
-function applyChartStateToAdaptedChart(config: ChartConfiguration, adaptedChart: any, chartState: ChartState) {
-	if (config.type === 'pie' && chartState.percentage) {
-		const pieData = adaptedChart.props?.chartData || []
-		const total = pieData.reduce((sum: number, item: { value: number }) => sum + item.value, 0)
-		const percentageData = pieData.map((item: { value: number }) => ({
-			...item,
-			value: total > 0 ? (item.value / total) * 100 : 0
-		}))
-		adaptedChart = {
-			...adaptedChart,
-			props: {
-				...adaptedChart.props,
-				chartData: percentageData,
-				valueSymbol: '%'
-			}
-		}
-	}
-
-	const isMultiSeries = adaptedChart.chartType === 'multi-series'
-	const shouldTransform =
-		isMultiSeries &&
-		(chartState.stacked || chartState.percentage || chartState.cumulative || chartState.grouping !== 'day')
-
-	if (shouldTransform) {
-		let transformedSeries = adaptedChart.props?.series || []
-		const chartType = config.type as TransformableChartType
-
-		if (chartState.grouping !== 'day' && config.displayOptions?.supportsGrouping) {
-			transformedSeries = ChartDataTransformer.groupByInterval(transformedSeries, chartState.grouping, chartType)
-		}
-
-		if (chartState.cumulative && config.displayOptions?.canShowCumulative) {
-			transformedSeries = ChartDataTransformer.applyCumulativeToSeries(transformedSeries)
-		}
-
-		if (chartState.stacked && config.displayOptions?.canStack && !chartState.percentage) {
-			transformedSeries = ChartDataTransformer.toStacked(transformedSeries, chartType)
-		}
-
-		if (chartState.percentage && config.displayOptions?.canShowPercentage) {
-			transformedSeries = ChartDataTransformer.toPercentage(transformedSeries, chartState.stacked)
-		}
-
-		adaptedChart = {
-			...adaptedChart,
-			props: {
-				...adaptedChart.props,
-				series: transformedSeries,
-				groupBy:
-					chartState.grouping === 'week'
-						? 'weekly'
-						: chartState.grouping === 'month'
-							? 'monthly'
-							: chartState.grouping === 'quarter'
-								? 'quarterly'
-								: 'daily'
-			}
-		}
-	}
-
-	const valueSymbol = chartState.percentage
-		? '%'
-		: (config.valueSymbol ?? (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : undefined))
-
-	return {
-		...adaptedChart,
-		props: {
-			...adaptedChart.props,
-			valueSymbol,
-			...(!chartState.showHallmarks && { hallmarks: undefined }),
-			...(chartState.percentage && {
-				chartOptions: {
-					yAxis: {
-						max: 100,
-						min: 0,
-						axisLabel: {
-							formatter: '{value}%'
-						}
-					},
-					grid: {
-						top: 24,
-						right: 12,
-						bottom: 68,
-						left: 12
-					},
-					tooltip: {
-						valueFormatter: (value: number) => value.toFixed(2) + '%'
-					}
-				}
-			})
-		}
-	}
+function buildChartPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): ChartRenderPlan {
+	// Pipeline order matters:
+	// adapt base data -> derive intrinsic capabilities -> normalize view state -> transform -> render plan.
+	const baseAdaptedChart = removeAdaptedChartTitle(adaptChartData(config, data))
+	const capabilities = deriveCapabilities(config, baseAdaptedChart)
+	const normalizedState = normalizeViewState(chartState, capabilities, config)
+	const transformedChart = ChartDataTransformer.applyViewState(baseAdaptedChart, normalizedState, capabilities)
+	return buildRenderPlan(config, transformedChart, normalizedState, capabilities)
 }
 
-// Export the currently rendered chart view rather than the untouched backend dataset.
-function prepareChartCsv(config: ChartConfiguration, adaptedChart: any) {
-	const filename = `${adaptedChart.title}-${adaptedChart.chartType}-${new Date().toISOString().split('T')[0]}.csv`
-	const isTimeSeries = config.axes.x.type === 'time'
-	const xLabel = config.axes.x.label || (isTimeSeries ? 'Date' : 'Category')
-	const yLabel = config.axes.yAxes?.[0]?.label || config.series?.[0]?.name || 'Value'
-
-	if (adaptedChart.chartType === 'multi-series') {
-		const seriesNames = adaptedChart.props.series.map((series: { name: string }) => series.name)
-		const rows: Array<Array<string | number | boolean>> = [
-			isTimeSeries ? ['Timestamp', 'Date', ...seriesNames] : [xLabel, ...seriesNames]
-		]
-		const valuesByKey: Record<string | number, Record<string, number>> = {}
-		for (const series of adaptedChart.props.series ?? []) {
-			for (const [key, value] of series.data ?? []) {
-				valuesByKey[key] = valuesByKey[key] || {}
-				valuesByKey[key][series.name] = value
-			}
-		}
-		for (const key of Object.keys(valuesByKey).sort((a, b) => +a - +b)) {
-			const base = isTimeSeries ? [key, new Date(+key * 1e3).toLocaleDateString()] : [key]
-			rows.push([...base, ...seriesNames.map((name: string) => valuesByKey[key][name] ?? '')])
-		}
-		return { filename, rows }
-	}
-
-	if (adaptedChart.chartType === 'pie') {
-		const rows: Array<Array<string | number | boolean>> = [['Name', 'Value']]
-		for (const item of adaptedChart.props.chartData ?? []) {
-			rows.push([item.name, item.value])
-		}
-		return { filename, rows }
-	}
-
-	if (adaptedChart.chartType === 'scatter') {
-		const xAxisLabel = config.axes.x.label || 'X'
-		const yAxisLabel = config.axes.yAxes?.[0]?.label || 'Y'
-		const rows: Array<Array<string | number | boolean>> = [[xAxisLabel, yAxisLabel, 'Entity']]
-		for (const point of adaptedChart.props.chartData ?? []) {
-			rows.push([point[0], point[1], point[2] ?? ''])
-		}
-		return { filename, rows }
-	}
-
-	if (['area', 'line', 'bar', 'hbar'].includes(adaptedChart.chartType)) {
-		const chartData = adaptedChart.data as Array<[string | number, number | null]>
-		if (isTimeSeries) {
-			const rows: Array<Array<string | number | boolean>> = [['Timestamp', 'Date', yLabel]]
-			for (const [ts, val] of chartData) {
-				rows.push([ts, new Date(+ts * 1e3).toLocaleDateString(), val ?? ''])
-			}
-			return { filename, rows }
-		}
-		const rows: Array<Array<string | number | boolean>> = [[xLabel, yLabel]]
-		for (const [category, val] of chartData) {
-			rows.push([category, val ?? ''])
-		}
-		return { filename, rows }
-	}
-
-	return { filename, rows: [] }
-}
-
-// Pick the concrete chart component that matches the normalized adapted chart payload.
-function renderChartContent(config: ChartConfiguration, adaptedChart: any, chartState: ChartState, chartKey: string) {
-	switch (adaptedChart.chartType) {
-		case 'bar': {
-			const isTimeSeriesChart = config.axes.x.type === 'time'
-			if (isTimeSeriesChart) {
-				const { chartData: _chartData, ...barChartProps } = adaptedChart.props as IBarChartProps
-				return (
-					<Suspense fallback={<div className="h-[338px]" />}>
-						<BarChart key={chartKey} chartData={adaptedChart.data} {...barChartProps} hideDownloadButton={true} />
-					</Suspense>
-				)
-			}
-
-			const seriesData = (adaptedChart.data as Array<[number, number]>).map(([x, y]) => [x, y] as [number, number])
-			const multiSeriesProps: import('~/components/ECharts/types').IMultiSeriesChartProps = {
-				series: [
-					{
-						data: seriesData,
-						type: 'bar',
-						name: config.series[0]?.name || 'Value',
-						color: config.series[0]?.styling?.color || '#1f77b4'
-					}
-				],
-				title: config.title,
-				valueSymbol: config.valueSymbol || '$',
-				height: '360px',
-				xAxisType: 'category' as const,
-				chartOptions: {
-					grid: {
-						bottom: 68,
-						left: 12,
-						right: 12
-					},
-					tooltip: {
-						formatter: (params: unknown) => {
-							if (!Array.isArray(params)) return ''
-							const firstParam = params[0] as { value?: [string | number, number]; seriesName?: string } | undefined
-							const xValue = firstParam?.value?.[0]
-							const yValue = firstParam?.value?.[1]
-							const seriesName = firstParam?.seriesName
-							const tooltipValueSymbol = config.valueSymbol || '$'
-							const formattedValue = typeof yValue === 'number' ? formatTooltipValue(yValue, tooltipValueSymbol) : '-'
-							return `<div style="margin-bottom: 4px; font-weight: 600;">${xValue}</div><div>${seriesName}: ${formattedValue}</div>`
-						}
-					}
-				}
-			}
+function renderChartContent(renderPlan: ChartRenderPlan, chartKey: string, onChartReady: (instance: any) => void) {
+	switch (renderPlan.rendererKind) {
+		case 'cartesian':
 			return (
 				<Suspense fallback={<div className="h-[338px]" />}>
-					<MultiSeriesChart key={chartKey} {...multiSeriesProps} />
+					<MultiSeriesChart2 key={chartKey} {...renderPlan.rendererProps} onReady={onChartReady} />
 				</Suspense>
 			)
-		}
-		case 'hbar': {
-			const hbarData = adaptedChart.data as Array<[string | number, number]>
+		case 'hbar':
 			return (
 				<Suspense fallback={<div className="h-[338px]" />}>
-					<HBarChart
-						key={chartKey}
-						categories={hbarData.map(([category]) => String(category))}
-						values={hbarData.map(([, value]) => value)}
-						valueSymbol={config.valueSymbol || '$'}
-						color={config.series[0]?.styling?.color || '#1f77b4'}
-					/>
-				</Suspense>
-			)
-		}
-		case 'line':
-		case 'area': {
-			const { chartData: _chartData, ...areaChartProps } = adaptedChart.props as IChartProps
-			return (
-				<Suspense fallback={<div className="h-[338px]" />}>
-					<AreaChart
-						key={chartKey}
-						chartData={adaptedChart.data}
-						{...areaChartProps}
-						connectNulls={true}
-						hideDownloadButton={true}
-					/>
-				</Suspense>
-			)
-		}
-		case 'multi-series':
-			return (
-				<Suspense fallback={<div className="h-[338px]" />}>
-					<MultiSeriesChart key={chartKey} {...adaptedChart.props} connectNulls={true} />
+					<HBarChart key={chartKey} {...renderPlan.rendererProps} onReady={onChartReady} />
 				</Suspense>
 			)
 		case 'pie':
 			return (
 				<Suspense fallback={<div className="h-[338px]" />}>
-					<PieChart key={chartKey} {...(adaptedChart.props as IPieChartProps)} />
+					<PieChart key={chartKey} {...renderPlan.rendererProps} onReady={onChartReady} />
 				</Suspense>
 			)
 		case 'scatter':
 			return (
 				<Suspense fallback={<div className="h-[360px]" />}>
-					<ScatterChart
-						key={chartKey}
-						{...(adaptedChart.props as IScatterChartProps)}
-						height="360px"
-						showLabels={chartState.showLabels}
-					/>
+					<ScatterChart key={chartKey} {...renderPlan.rendererProps} onReady={onChartReady} />
 				</Suspense>
 			)
 		default:
 			return (
 				<div className="flex flex-col items-center justify-center gap-2 rounded-md bg-red-50 p-1 py-8 text-red-700 dark:bg-red-900/10 dark:text-red-300">
 					<Icon name="alert-triangle" height={16} width={16} />
-					<p>Unsupported chart type: {adaptedChart.chartType}</p>
+					<p>Unsupported chart type</p>
 				</div>
 			)
 	}
 }
 
-// Build the render payload once so controls, chart content, and CSV export stay in sync.
-function buildChartPresentation(
-	config: ChartConfiguration,
-	data: any[],
-	chartState: ChartState,
-	sessionId?: string | null
-) {
-	const isMultiSeries =
-		(config.series && config.series.length > 1 && config.type !== 'scatter' && config.type !== 'pie') ||
-		config.type === 'combo'
-	let adaptedChart = isMultiSeries ? adaptMultiSeriesData(config, data) : adaptChartData(config, data)
-
-	adaptedChart = removeAdaptedChartTitle(adaptedChart)
-	adaptedChart = applyChartStateToAdaptedChart(config, adaptedChart, chartState)
-
-	const multiSeriesProps = adaptedChart.props as { series?: Array<{ data?: Array<unknown> }> }
-	const dataLength =
-		adaptedChart.chartType === 'multi-series'
-			? multiSeriesProps.series?.[0]?.data?.length || 0
-			: adaptedChart.data?.length || data.length || 0
-	const hasData =
-		adaptedChart.chartType === 'multi-series'
-			? (multiSeriesProps.series?.length || 0) > 0
-			: adaptedChart.data.length > 0
-
-	return {
-		adaptedChart,
-		dataLength,
-		hasData,
-		chartToolbar: (
-			<>
-				{sessionId ? (
-					<AddToDashboardButton
-						chartConfig={null}
-						llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
-						smol
-					/>
-				) : null}
-				<CSVDownloadButton prepareCsv={() => prepareChartCsv(config, adaptedChart)} smol />
-			</>
-		)
-	}
-}
-
-// Render one chart plus the local controls that transform its presentation client-side.
 function SingleChart({ config, data, isActive, sessionId, title }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
+	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
 	const handlePercentageChange = (percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })
 	const handleCumulativeChange = (cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })
-	const handleGroupingChange = (grouping: ChartState['grouping']) =>
+	const handleGroupingChange = (grouping: ChartViewState['grouping']) =>
 		dispatch({ type: 'SET_GROUPING', payload: grouping })
 	const handleHallmarksChange = (showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })
 	const handleLabelsChange = (showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels })
@@ -436,14 +158,9 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 	}
 
 	try {
-		const { adaptedChart, dataLength, hasData, chartToolbar } = buildChartPresentation(
-			config,
-			data,
-			chartState,
-			sessionId
-		)
+		const renderPlan = buildChartPresentation(config, data, chartState)
 
-		if (!hasData) {
+		if (!renderPlan.hasData) {
 			return (
 				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
 					<Icon name="bar-chart" height={16} width={16} />
@@ -452,23 +169,14 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 			)
 		}
 
-		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}-${chartState.showHallmarks}`
-		const chartContent = renderChartContent(config, adaptedChart, chartState, chartKey)
+		const normalizedState = renderPlan.controls.state
+		const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
+		const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
 
 		return (
 			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
 				<ChartControls
-					title={title}
-					displayOptions={config.displayOptions}
-					stacked={chartState.stacked}
-					percentage={chartState.percentage}
-					cumulative={chartState.cumulative}
-					grouping={chartState.grouping}
-					dataLength={dataLength}
-					showHallmarks={chartState.showHallmarks}
-					hasHallmarks={!!config.hallmarks?.length}
-					showLabels={chartState.showLabels}
-					isScatter={adaptedChart.chartType === 'scatter'}
+					controls={{ ...renderPlan.controls, title }}
 					onStackedChange={handleStackedChange}
 					onPercentageChange={handlePercentageChange}
 					onCumulativeChange={handleCumulativeChange}
@@ -476,7 +184,31 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 					onHallmarksChange={handleHallmarksChange}
 					onLabelsChange={handleLabelsChange}
 				>
-					{chartToolbar}
+					<>
+						{sessionId ? (
+							<AddToDashboardButton
+								chartConfig={null}
+								llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
+								smol
+							/>
+						) : null}
+						<ChartExportButtons
+							chartInstance={chartInstance}
+							filename={renderPlan.filename}
+							title={config.title}
+							smol
+							showCsv={!!renderPlan.exportModel}
+							prepareCsvDirect={
+								renderPlan.exportModel
+									? () => ({
+											filename: renderPlan.exportModel!.csvFilename,
+											rows: renderPlan.exportModel!.csvRows
+										})
+									: undefined
+							}
+							pngProfile={renderPlan.exportModel?.pngProfile}
+						/>
+					</>
 				</ChartControls>
 				{chartContent}
 			</div>
@@ -512,7 +244,6 @@ const ChartErrorPlaceholder = () => (
 	</div>
 )
 
-// Thin wrapper so the memoized implementation can keep a simple export signature.
 export function ChartRenderer({
 	charts,
 	chartData,
@@ -525,7 +256,6 @@ export function ChartRenderer({
 	return <ChartRendererMemoized {...{ charts, chartData, isLoading, hasError, chartTypes, resizeTrigger, sessionId }} />
 }
 
-// Memoized chart renderer coordinates tab state, resize handling, and loading/error placeholders.
 function ChartRendererImpl({
 	charts,
 	chartData,
@@ -538,7 +268,6 @@ function ChartRendererImpl({
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [activeTabIndex, setActiveTab] = useReducer((state: number, action: number) => action, 0)
 
-	// Watch container width changes and broadcast a resize event for the underlying chart libraries.
 	useEffect(() => {
 		const el = containerRef.current
 		if (!el) return
@@ -558,12 +287,10 @@ function ChartRendererImpl({
 		}
 	}, [])
 
-	// Some parent layout changes are signaled explicitly via `resizeTrigger`, so rebroadcast those too.
 	useEffect(() => {
 		if (resizeTrigger > 0) {
 			const timer = setTimeout(() => {
-				const event = new CustomEvent('chartResize')
-				window.dispatchEvent(event)
+				window.dispatchEvent(new CustomEvent('chartResize'))
 			}, 100)
 			return () => clearTimeout(timer)
 		}

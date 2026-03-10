@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { MCP_SERVER } from '~/constants'
+import type { ChatSession, ResearchUsage } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { ChatSession, ResearchUsage } from '../types'
-import { assertResponse } from '../utils/assertResponse'
 
 export interface SessionListData {
 	sessions: ChatSession[]

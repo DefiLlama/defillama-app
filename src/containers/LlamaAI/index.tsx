@@ -32,13 +32,16 @@ import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimi
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import {
+	checkActiveExecution,
+	fetchAgenticResponse,
+	resumeAgenticStream
+} from '~/containers/LlamaAI/fetchAgenticResponse'
+import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
-import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { fetchAgenticResponse, checkActiveExecution, resumeAgenticStream } from './fetchAgenticResponse'
-import type { SpawnProgressData, CsvExport, AgenticSSECallbacks } from './fetchAgenticResponse'
 import {
 	buildAssistantMessage,
 	createInitialStreamState,
@@ -49,9 +52,10 @@ import {
 	type RateLimitDetails,
 	type StreamBuffer,
 	type StreamDispatch
-} from './streamState'
-import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from './types'
-import { assertResponse } from './utils/assertResponse'
+} from '~/containers/LlamaAI/streamState'
+import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))

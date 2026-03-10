@@ -1,5 +1,5 @@
 import { Icon } from '~/components/Icon'
-import { ChatMarkdownRenderer } from './ChatMarkdownRenderer'
+import { ChatMarkdownRenderer } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 
 const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 

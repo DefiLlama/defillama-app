@@ -1,7 +1,7 @@
 import type { RefObject } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-import { ImagePreviewModal } from '../ImagePreviewModal'
+import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 
 interface SelectedImage {
 	file: File

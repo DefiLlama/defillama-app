@@ -6,16 +6,16 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { setPendingPrompt, setPendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
 import { SEO } from '~/components/SEO'
-import { SignInForm } from '~/containers/Subscribtion/SignIn'
-import { WalletProvider } from '~/layout/WalletProvider'
+import { MCP_SERVER } from '~/constants'
 import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import type { LandingQuestion } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { SignInForm } from '~/containers/Subscribtion/SignIn'
 import { useIsClient } from '~/hooks/useIsClient'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { MCP_SERVER } from '~/constants'
-import { withPerformanceLogging } from '~/utils/perf'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const EXAMPLE_CONVERSATIONS = [
 	{
@@ -175,15 +175,7 @@ const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
 	)
 }
 
-const CTAButton = ({
-	className = '',
-	label,
-	subscribeModalStore
-}: {
-	className?: string
-	label?: string
-	subscribeModalStore: Ariakit.DialogStore
-}) => {
+const CTAButton = ({ className = '', label }: { className?: string; label?: string }) => {
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
 	const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI for free'
 	const displayLabel = label ?? defaultLabel
@@ -211,7 +203,7 @@ const CTAButton = ({
 			}}
 			data-umami-event="llamaai-landing-cta-unsubscribed"
 			className={clsx(
-				'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)] cursor-pointer',
+				'animate-cta-glow llamaai-glow relative z-10 inline-flex cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
 				className
 			)}
 		>
@@ -266,7 +258,7 @@ function ExampleShowcase() {
 					<span className="mb-1 block text-[11px] font-bold tracking-wider text-[#C99A4A] uppercase dark:text-[#FDE0A9]">
 						{example.category}
 					</span>
-					<span className="text-[14px] font-medium leading-snug text-[#333] dark:text-[#e8e8ea]">
+					<span className="text-[14px] leading-snug font-medium text-[#333] dark:text-[#e8e8ea]">
 						&ldquo;{example.prompt}&rdquo;
 					</span>
 				</div>
@@ -468,7 +460,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 								AI-powered research: DeFi and TradFi data with live insights and actionable analysis.
 							</p>
 							<div className="relative z-20">
-								<CTAButton subscribeModalStore={subscribeModalStore} />
+								<CTAButton />
 								<TrialBadge />
 							</div>
 						</div>
@@ -789,7 +781,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 									<iframe
 										src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
 										title="LlamaAI Demo"
-										sandbox="allow-scripts allow-same-origin allow-presentation"
+										sandbox="allow-scripts allow-presentation"
 										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 										referrerPolicy="strict-origin-when-cross-origin"
 										allowFullScreen
@@ -902,7 +894,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 								<p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-[#555] md:text-base dark:text-[#9a9a9f]">
 									Research protocols, generate charts, and stay ahead of the market.
 								</p>
-								<CTAButton subscribeModalStore={subscribeModalStore} />
+								<CTAButton />
 								<TrialBadge centered />
 							</div>
 						</div>

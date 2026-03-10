@@ -3,9 +3,9 @@ import { type CSSProperties, useCallback, useEffect, useEffectEvent, useMemo, us
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
+import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { AgenticSessionItem } from './AgenticSessionItem'
 
 interface AgenticSidebarProps {
 	sessions: ChatSession[]

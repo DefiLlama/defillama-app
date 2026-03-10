@@ -1,4 +1,4 @@
-import type { ChartConfiguration } from '../types'
+import type { ChartConfiguration } from '~/containers/LlamaAI/types'
 
 /**
  * Compare two string arrays for equality.

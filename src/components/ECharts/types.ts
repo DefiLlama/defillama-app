@@ -286,6 +286,7 @@ export interface IScatterChartProps {
 	tooltipFormatter?: (params: EChartsFormatterParams) => string
 	showLabels?: boolean
 	entityType?: 'protocol' | 'chain'
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface ISankeyChartProps {

@@ -10,9 +10,9 @@ import { MCP_SERVER } from '~/constants'
 import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { assertResponse } from '../../utils/assertResponse'
 
 interface AgenticSessionItemProps {
 	session: ChatSession

@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
-import { fetchEntityQuestions } from '../api'
-import type { EntityQuestionsResponse } from '../types'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
+import type { EntityQuestionsResponse } from '~/containers/LlamaAI/types'
 
 /** Query key for entity-specific questions */
 const getEntityQuestionsQueryKey = (entitySlug: string, entityType: 'protocol' | 'chain' | 'page') =>

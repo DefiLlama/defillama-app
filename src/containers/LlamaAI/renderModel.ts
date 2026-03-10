@@ -1,5 +1,5 @@
-import type { AlertProposedData, ChartConfiguration, Message } from './types'
-import { parseArtifactPlaceholders } from './utils/markdownHelpers'
+import type { AlertProposedData, ChartConfiguration, Message } from '~/containers/LlamaAI/types'
+import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 export type ChartArtifactRecord = {
 	type: 'chart'

@@ -1,8 +1,8 @@
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
+import type { ChartControlsModel } from '~/containers/LlamaAI/utils/chartCapabilities'
 import { capitalizeFirstLetter } from '~/utils'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import type { ChartConfiguration } from '../../types'
 
 const CUMULATIVE_DISPLAY_OPTIONS = [
 	{ name: 'Show individual values', key: 'Individual' },
@@ -30,17 +30,7 @@ const LABEL_OPTIONS = [
 ]
 
 interface ChartControlsProps {
-	title?: string
-	displayOptions: ChartConfiguration['displayOptions']
-	stacked: boolean
-	percentage: boolean
-	cumulative: boolean
-	grouping: 'day' | 'week' | 'month' | 'quarter'
-	dataLength: number
-	showHallmarks: boolean
-	hasHallmarks: boolean
-	showLabels: boolean
-	isScatter: boolean
+	controls: ChartControlsModel
 	onStackedChange: (stacked: boolean) => void
 	onPercentageChange: (percentage: boolean) => void
 	onCumulativeChange: (cumulative: boolean) => void
@@ -51,17 +41,7 @@ interface ChartControlsProps {
 }
 
 export function ChartControls({
-	title,
-	displayOptions,
-	stacked,
-	percentage,
-	cumulative,
-	grouping,
-	dataLength,
-	showHallmarks,
-	hasHallmarks,
-	showLabels,
-	isScatter,
+	controls,
 	onStackedChange,
 	onPercentageChange,
 	onCumulativeChange,
@@ -70,36 +50,31 @@ export function ChartControls({
 	onLabelsChange,
 	children
 }: ChartControlsProps) {
-	const { canStack, canShowPercentage, canShowCumulative, supportsGrouping } = displayOptions || {}
-
-	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = [
-		'day',
-		...(dataLength >= 28 ? ['week' as const] : []),
-		...(dataLength >= 90 ? ['month' as const] : []),
-		...(dataLength >= 360 ? ['quarter' as const] : [])
-	]
-
-	const showGrouping = supportsGrouping && groupingOptions.length > 1
 	const hasControls =
-		showGrouping || canShowCumulative || (canStack && !cumulative) || canShowPercentage || hasHallmarks || isScatter
+		controls.showGrouping ||
+		controls.showCumulative ||
+		controls.showStack ||
+		controls.showPercentage ||
+		controls.showHallmarks ||
+		controls.showLabels
 
-	if (!hasControls && !children && !title) return null
+	if (!hasControls && !children && !controls.title) return null
 
 	return (
 		<div className="flex flex-wrap items-center justify-end gap-1 border-b border-[#e6e6e6] p-2 pt-0 dark:border-[#222324]">
-			{title ? <p className="mr-auto text-base font-semibold">{title}</p> : null}
-			{showGrouping ? (
+			{controls.title ? <p className="mr-auto text-base font-semibold">{controls.title}</p> : null}
+			{controls.showGrouping ? (
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{groupingOptions.map((interval) => (
+					{controls.groupingOptions.map((interval) => (
 						<Tooltip
 							content={capitalizeFirstLetter(interval)}
 							render={<button />}
 							className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
-							data-active={grouping === interval}
+							data-active={controls.state.grouping === interval}
 							onClick={() => {
-							trackUmamiEvent('llamaai-chart-control', { control: 'grouping', selection: interval })
-							onGroupingChange(interval)
-						}}
+								trackUmamiEvent('llamaai-chart-control', { control: 'grouping', selection: interval })
+								onGroupingChange(interval)
+							}}
 							key={`grouping-${interval}`}
 						>
 							{interval.slice(0, 1).toUpperCase()}
@@ -108,10 +83,10 @@ export function ChartControls({
 				</div>
 			) : null}
 
-			{canShowCumulative ? (
+			{controls.showCumulative ? (
 				<Select
 					allValues={CUMULATIVE_DISPLAY_OPTIONS}
-					selectedValues={cumulative ? 'Cumulative' : 'Individual'}
+					selectedValues={controls.state.cumulative ? 'Cumulative' : 'Individual'}
 					setSelectedValues={(value: string) => {
 						trackUmamiEvent('llamaai-chart-control', { control: 'cumulative', selection: value })
 						onCumulativeChange(value === 'Cumulative')
@@ -119,64 +94,64 @@ export function ChartControls({
 							onStackedChange(false)
 						}
 					}}
-					label={cumulative ? 'Cumulative' : 'Individual'}
+					label={controls.state.cumulative ? 'Cumulative' : 'Individual'}
 					labelType="none"
 					variant="filter"
 				/>
 			) : null}
 
-			{canStack && !cumulative ? (
+			{controls.showStack ? (
 				<Select
 					allValues={STACKING_DISPLAY_OPTIONS}
-					selectedValues={stacked ? 'Stacked' : 'Separate'}
+					selectedValues={controls.state.stacked ? 'Stacked' : 'Separate'}
 					setSelectedValues={(value: string) => {
 						trackUmamiEvent('llamaai-chart-control', { control: 'stacking', selection: value })
 						const isStacked = value === 'Stacked'
 						onStackedChange(isStacked)
 					}}
-					label={stacked ? 'Stacked' : 'Separate'}
+					label={controls.state.stacked ? 'Stacked' : 'Separate'}
 					labelType="none"
 					variant="filter"
 				/>
 			) : null}
 
-			{canShowPercentage ? (
+			{controls.showPercentage ? (
 				<Select
 					allValues={VALUE_TYPE_OPTIONS}
-					selectedValues={percentage ? '% Percentage' : '$ Absolute'}
+					selectedValues={controls.state.percentage ? '% Percentage' : '$ Absolute'}
 					setSelectedValues={(value: string) => {
 						trackUmamiEvent('llamaai-chart-control', { control: 'value-type', selection: value })
 						onPercentageChange(value === '% Percentage')
 					}}
-					label={percentage ? '% Percentage' : '$ Absolute'}
+					label={controls.state.percentage ? '% Percentage' : '$ Absolute'}
 					labelType="none"
 					variant="filter"
 				/>
 			) : null}
 
-			{hasHallmarks ? (
+			{controls.showHallmarks ? (
 				<Select
 					allValues={HALLMARK_OPTIONS}
-					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
+					selectedValues={controls.state.showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
 					setSelectedValues={(value: string) => {
 						trackUmamiEvent('llamaai-chart-control', { control: 'hallmarks', selection: value })
 						onHallmarksChange(value === 'Show Hallmarks')
 					}}
-					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
+					label={controls.state.showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
 					labelType="none"
 					variant="filter"
 				/>
 			) : null}
 
-			{isScatter ? (
+			{controls.showLabels ? (
 				<Select
 					allValues={LABEL_OPTIONS}
-					selectedValues={showLabels ? 'Show' : 'Hide'}
+					selectedValues={controls.state.showLabels ? 'Show' : 'Hide'}
 					setSelectedValues={(value: string) => {
 						trackUmamiEvent('llamaai-chart-control', { control: 'labels', selection: value })
 						onLabelsChange(value === 'Show')
 					}}
-					label={showLabels ? 'Labels: On' : 'Labels: Off'}
+					label={controls.state.showLabels ? 'Labels: On' : 'Labels: Off'}
 					labelType="none"
 					variant="filter"
 				/>

@@ -1,7 +1,6 @@
 import Router from 'next/router'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
@@ -15,6 +14,7 @@ import {
 	type MessageRenderBlock
 } from '~/containers/LlamaAI/renderModel'
 import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 function createOccurrenceKeyFactory() {
 	const counts = new Map<string, number>()
@@ -83,7 +83,12 @@ function ActionButtonGroup({
 							<a
 								key={actionKey}
 								{...(href.startsWith('http')
-									? { href, target: '_blank', rel: 'noopener noreferrer', onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label }) }
+									? {
+											href,
+											target: '_blank',
+											rel: 'noopener noreferrer',
+											onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label })
+										}
 									: {
 											href: `https://defillama.com${href}`,
 											onClick: (event: React.MouseEvent) => {
@@ -177,7 +182,12 @@ function ActionButtonGroup({
 						<a
 							key={actionKey}
 							{...(href.startsWith('http')
-								? { href, target: '_blank', rel: 'noopener noreferrer', onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label }) }
+								? {
+										href,
+										target: '_blank',
+										rel: 'noopener noreferrer',
+										onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label })
+									}
 								: {
 										href: `https://defillama.com${href}`,
 										onClick: (event: React.MouseEvent) => {
