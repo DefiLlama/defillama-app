@@ -125,13 +125,16 @@ function getSingleTextChild(children: ReactNode): string | null {
 
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
 	const sourceEntries = useMemo(() => {
-		const occurrenceCounts = new Map<string, number>()
-		return citations.map((url, index) => {
-			const normalizedUrl = normalizeSourceUrl(url)
-			const occurrenceIndex = occurrenceCounts.get(normalizedUrl) || 0
-			occurrenceCounts.set(normalizedUrl, occurrenceIndex + 1)
-			return { normalizedUrl, occurrenceIndex, citationNumber: index + 1 }
-		})
+		const seen = new Map<string, number>()
+		const unique: Array<{ normalizedUrl: string; citationNumber: number }> = []
+		for (let i = 0; i < citations.length; i++) {
+			const normalizedUrl = normalizeSourceUrl(citations[i])
+			if (!seen.has(normalizedUrl)) {
+				seen.set(normalizedUrl, i + 1)
+				unique.push({ normalizedUrl, citationNumber: i + 1 })
+			}
+		}
+		return unique
 	}, [citations])
 
 	if (!citations.length || isStreaming) {
@@ -160,9 +163,9 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 				<Icon name="chevron-down" height={14} width={14} />
 			</summary>
 			<div className="flex flex-col gap-2.5 pt-2.5">
-				{sourceEntries.map(({ normalizedUrl, occurrenceIndex, citationNumber }) => (
+				{sourceEntries.map(({ normalizedUrl, citationNumber }) => (
 					<a
-						key={`citation-${normalizedUrl}-${occurrenceIndex}`}
+						key={`citation-${citationNumber}`}
 						href={normalizedUrl}
 						target="_blank"
 						rel="noopener noreferrer"

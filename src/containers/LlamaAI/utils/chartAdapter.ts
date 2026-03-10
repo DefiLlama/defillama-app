@@ -173,7 +173,9 @@ const parseStrictDateLabelToMs = (timestamp: unknown): number | null => {
 		const month = Number(isoDateMatch[2])
 		const day = Number(isoDateMatch[3])
 		if (month < 1 || month > 12 || day < 1 || day > 31) return null
-		return Date.UTC(year, month - 1, day)
+		const d = new Date(Date.UTC(year, month - 1, day))
+		if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return null
+		return d.getTime()
 	}
 
 	if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {

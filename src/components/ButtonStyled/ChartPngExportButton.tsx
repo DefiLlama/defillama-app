@@ -493,7 +493,7 @@ async function renderClonedChartExport(
 		// force-show a legend, which could cause the exported image to show BOTH labels and
 		// legend at once, overlapping. Keep pie legend behavior consistent with the chart:
 		// only show a legend if the original chart did, and hide labels when a legend is shown.
-		if (isPieChart && shouldShowLegendForExport && Array.isArray(currentOptions.series)) {
+		if (isPieChart && hasLegend && Array.isArray(currentOptions.series)) {
 			currentOptions.series = currentOptions.series.map((series: any) => {
 				if (series?.type !== 'pie') return series
 

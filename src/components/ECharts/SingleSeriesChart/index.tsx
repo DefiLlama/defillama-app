@@ -134,6 +134,7 @@ export default function SingleSeriesChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const updateChartInstance = useEffectEvent((instance: echarts.ECharts | null) => {
+		if (instance === chartRef.current) return
 		chartRef.current = instance
 		onReady?.(instance)
 	})

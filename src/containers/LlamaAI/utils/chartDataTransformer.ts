@@ -68,8 +68,8 @@ function bucketTimestamp(timestampMs: number, interval: Exclude<GroupingInterval
 
 function aggregateSeriesValues(values: number[], metricClass: 'flow' | 'stock') {
 	if (values.length === 0) return undefined
-	if (metricClass === 'flow') return values.reduce((sum, value) => sum + value, 0)
-	return values.reduce((sum, value) => sum + value, 0) / values.length
+	if (metricClass === 'flow') return values.reduce((acc, value) => acc + value, 0)
+	return values.reduce((acc, value) => acc + value, 0) / values.length
 }
 
 function createRowWithSeriesValues(

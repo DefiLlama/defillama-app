@@ -172,7 +172,24 @@ const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
 }
 
 const CTAButton = ({ className = '', label }: { className?: string; label?: string }) => {
-	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+
+	if (loaders.userLoading) {
+		return (
+			<span
+				className={clsx(
+					'llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3 text-base font-semibold text-black opacity-70 shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)]',
+					className
+				)}
+			>
+				<svg className="h-4 w-4 shrink-0">
+					<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
+				</svg>
+				<span className="whitespace-nowrap">{label ?? 'LlamaAI'}</span>
+			</span>
+		)
+	}
+
 	const defaultLabel = isAuthenticated && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI for free'
 	const displayLabel = label ?? defaultLabel
 

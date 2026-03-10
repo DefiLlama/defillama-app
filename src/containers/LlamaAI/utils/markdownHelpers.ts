@@ -49,12 +49,9 @@ interface ActionPlaceholderData {
 	message: string
 }
 
-interface ArtifactMatch {
-	index: number
-	length: number
-	type: 'chart' | 'csv' | 'alert' | 'action'
-	id: string | ActionPlaceholderData
-}
+type ArtifactMatch =
+	| { index: number; length: number; type: 'chart' | 'csv' | 'alert'; id: string }
+	| { index: number; length: number; type: 'action'; id: ActionPlaceholderData }
 
 export type ContentPart =
 	| { type: 'text'; content: string }
@@ -108,15 +105,14 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		if (m.index > lastIndex) {
 			parts.push({ type: 'text', content: content.slice(lastIndex, m.index) })
 		}
-		if (m.type === 'chart') {
-			parts.push({ type: 'chart', chartId: m.id as string })
+		if (m.type === 'action') {
+			parts.push({ type: 'action', actionLabel: m.id.label, actionMessage: m.id.message })
+		} else if (m.type === 'chart') {
+			parts.push({ type: 'chart', chartId: m.id })
 		} else if (m.type === 'csv') {
-			parts.push({ type: 'csv', csvId: m.id as string })
-		} else if (m.type === 'action') {
-			const { label, message } = m.id as ActionPlaceholderData
-			parts.push({ type: 'action', actionLabel: label, actionMessage: message })
+			parts.push({ type: 'csv', csvId: m.id })
 		} else {
-			parts.push({ type: 'alert', alertId: m.id as string })
+			parts.push({ type: 'alert', alertId: m.id })
 		}
 		lastIndex = m.index + m.length
 	}

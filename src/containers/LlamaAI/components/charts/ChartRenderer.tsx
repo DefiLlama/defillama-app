@@ -1,4 +1,4 @@
-import { lazy, memo, Suspense, useCallback, useEffect, useReducer, useRef } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useMemo, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { Icon } from '~/components/Icon'
@@ -130,6 +130,59 @@ function renderChartContent(renderPlan: ChartRenderPlan, chartKey: string, onCha
 	}
 }
 
+function ChartExportButtonsSlot({
+	chartInstance,
+	exportModel,
+	renderPlan,
+	chartTitle,
+	sessionId,
+	config
+}: {
+	chartInstance: () => any
+	exportModel: ChartRenderPlan['exportModel']
+	renderPlan: ChartRenderPlan
+	chartTitle: string | undefined
+	sessionId?: string | null
+	config: ChartConfiguration
+}) {
+	const prepareCsvDirect = useMemo(
+		() => (exportModel ? () => ({ filename: exportModel.csvFilename, rows: exportModel.csvRows }) : undefined),
+		[exportModel]
+	)
+
+	return (
+		<>
+			{sessionId ? (
+				<AddToDashboardButton
+					chartConfig={null}
+					llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
+					smol
+				/>
+			) : null}
+			<ChartExportButtons
+				chartInstance={chartInstance}
+				filename={renderPlan.filename}
+				title={chartTitle}
+				smol
+				showCsv={!!exportModel}
+				prepareCsvDirect={prepareCsvDirect}
+				pngProfile={exportModel?.pngProfile}
+			/>
+		</>
+	)
+}
+
+type PresentationResult = { ok: true; plan: ChartRenderPlan } | { ok: false; error: unknown }
+
+function tryBuildPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): PresentationResult {
+	try {
+		return { ok: true, plan: buildChartPresentation(config, data, chartState) }
+	} catch (error) {
+		console.error('Chart render error:', error)
+		return { ok: false, error }
+	}
+}
+
 function SingleChart({ config, data, isActive, sessionId, title }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
@@ -158,6 +211,11 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 		[dispatch]
 	)
 
+	const presentation = useMemo(
+		() => (config.type === 'candlestick' ? null : tryBuildPresentation(config, data, chartState)),
+		[config, data, chartState]
+	)
+
 	if (!isActive) return null
 
 	if (config.type === 'candlestick') {
@@ -171,73 +229,60 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 		)
 	}
 
-	try {
-		const renderPlan = buildChartPresentation(config, data, chartState)
+	if (!presentation) {
+		return null
+	}
 
-		if (!renderPlan.hasData) {
-			return (
-				<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
-					<Icon name="bar-chart" height={16} width={16} />
-					<p>No data available for chart</p>
-				</div>
-			)
-		}
-
-		const normalizedState = renderPlan.controls.state
-		const exportModel = renderPlan.exportModel
-		const chartTitle = title ?? config.title
-		const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
-		const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
-
-		return (
-			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
-				<ChartControls
-					controls={{ ...renderPlan.controls, title }}
-					onStackedChange={handleStackedChange}
-					onPercentageChange={handlePercentageChange}
-					onCumulativeChange={handleCumulativeChange}
-					onGroupingChange={handleGroupingChange}
-					onHallmarksChange={handleHallmarksChange}
-					onLabelsChange={handleLabelsChange}
-				>
-					<>
-						{sessionId ? (
-							<AddToDashboardButton
-								chartConfig={null}
-								llamaAIChart={{ sessionId, chartId: config.id, title: config.title }}
-								smol
-							/>
-						) : null}
-						<ChartExportButtons
-							chartInstance={chartInstance}
-							filename={renderPlan.filename}
-							title={chartTitle}
-							smol
-							showCsv={!!exportModel}
-							prepareCsvDirect={
-								exportModel
-									? () => ({
-											filename: exportModel.csvFilename,
-											rows: exportModel.csvRows
-										})
-									: undefined
-							}
-							pngProfile={exportModel?.pngProfile}
-						/>
-					</>
-				</ChartControls>
-				{chartContent}
-			</div>
-		)
-	} catch (error) {
-		console.log('Chart render error:', error)
+	if (presentation.ok === false) {
+		const errorMsg = presentation.error instanceof Error ? presentation.error.message : 'Unknown error'
 		return (
 			<div className="flex flex-col items-center justify-center gap-2 rounded-md bg-red-50 p-1 py-8 text-red-700 dark:bg-red-900/10 dark:text-red-300">
 				<Icon name="alert-triangle" height={16} width={16} />
-				<p>{error instanceof Error ? error.message : 'Unknown error'}</p>
+				<p>{errorMsg}</p>
 			</div>
 		)
 	}
+
+	const renderPlan = presentation.plan
+
+	if (!renderPlan.hasData) {
+		return (
+			<div className="flex flex-col items-center justify-center gap-2 p-1 py-8 text-[#666] dark:text-[#919296]">
+				<Icon name="bar-chart" height={16} width={16} />
+				<p>No data available for chart</p>
+			</div>
+		)
+	}
+
+	const normalizedState = renderPlan.controls.state
+	const exportModel = renderPlan.exportModel
+	const chartTitle = title ?? config.title
+	const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
+	const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
+
+	return (
+		<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
+			<ChartControls
+				controls={{ ...renderPlan.controls, title }}
+				onStackedChange={handleStackedChange}
+				onPercentageChange={handlePercentageChange}
+				onCumulativeChange={handleCumulativeChange}
+				onGroupingChange={handleGroupingChange}
+				onHallmarksChange={handleHallmarksChange}
+				onLabelsChange={handleLabelsChange}
+			>
+				<ChartExportButtonsSlot
+					chartInstance={chartInstance}
+					exportModel={exportModel}
+					renderPlan={renderPlan}
+					chartTitle={chartTitle}
+					sessionId={sessionId}
+					config={config}
+				/>
+			</ChartControls>
+			{chartContent}
+		</div>
+	)
 }
 
 const ChartLoadingSpinner = () => <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-500"></div>
