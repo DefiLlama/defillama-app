@@ -179,13 +179,77 @@ function parseSSEStream(
 	const decoder = new TextDecoder()
 	let lineBuffer = ''
 
+	const handleLine = (line: string) => {
+		if (!line.startsWith('data: ')) return
+
+		try {
+			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
+
+			switch (data.type) {
+				case 'session':
+					callbacks.onSessionId(data.sessionId)
+					break
+				case 'tool_call':
+					callbacks.onProgress(data.name)
+					break
+				case 'response_chunk':
+					callbacks.onToken(data.content)
+					break
+				case 'charts':
+					callbacks.onCharts(data.charts || [], data.chartData || {})
+					break
+				case 'csv_export':
+					callbacks.onCsvExport?.(data.exports || [])
+					break
+				case 'alert_proposed':
+					callbacks.onAlertProposed?.(data)
+					break
+				case 'spawn_progress':
+					callbacks.onSpawnProgress(data)
+					break
+				case 'compaction':
+					callbacks.onCompaction?.(data)
+					break
+				case 'tool_execution':
+					callbacks.onToolExecution?.(data)
+					break
+				case 'thinking':
+					callbacks.onThinking?.(data.content)
+					break
+				case 'citations':
+					callbacks.onCitations(data.citations || [])
+					break
+				case 'title':
+					callbacks.onTitle?.(data.content)
+					break
+				case 'message_id':
+					callbacks.onMessageId?.(data.messageId)
+					break
+				case 'error':
+					callbacks.onError(data.content || 'Unknown error')
+					break
+				case 'done':
+					callbacks.onDone()
+					break
+			}
+		} catch (error) {
+			console.debug('[llama-ai] [sse] failed to parse event:', line, error)
+		}
+	}
+
 	const process = async () => {
 		try {
 			while (true) {
 				if (abortSignal?.aborted) break
 
 				const { done, value } = await reader.read()
-				if (done) break
+				if (done) {
+					// Some backends terminate the stream without a trailing newline, so flush the final buffered event on EOF.
+					if (lineBuffer.trim()) {
+						handleLine(lineBuffer.trim())
+					}
+					break
+				}
 
 				const chunk = decoder.decode(value, { stream: true })
 				lineBuffer += chunk
@@ -199,59 +263,7 @@ function parseSSEStream(
 				}
 
 				for (const line of lines) {
-					if (!line.startsWith('data: ')) continue
-
-					try {
-						const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
-
-						switch (data.type) {
-							case 'session':
-								callbacks.onSessionId(data.sessionId)
-								break
-							case 'tool_call':
-								callbacks.onProgress(data.name)
-								break
-							case 'response_chunk':
-								callbacks.onToken(data.content)
-								break
-							case 'charts':
-								callbacks.onCharts(data.charts || [], data.chartData || {})
-								break
-							case 'csv_export':
-								callbacks.onCsvExport?.(data.exports || [])
-								break
-							case 'alert_proposed':
-								callbacks.onAlertProposed?.(data)
-								break
-							case 'spawn_progress':
-								callbacks.onSpawnProgress(data)
-								break
-							case 'compaction':
-								callbacks.onCompaction?.(data)
-								break
-							case 'tool_execution':
-								callbacks.onToolExecution?.(data)
-								break
-							case 'thinking':
-								callbacks.onThinking?.(data.content)
-								break
-							case 'citations':
-								callbacks.onCitations(data.citations || [])
-								break
-							case 'title':
-								callbacks.onTitle?.(data.content)
-								break
-							case 'message_id':
-								callbacks.onMessageId?.(data.messageId)
-								break
-							case 'error':
-								callbacks.onError(data.content || 'Unknown error')
-								break
-							case 'done':
-								callbacks.onDone()
-								break
-						}
-					} catch {}
+					handleLine(line)
 				}
 			}
 		} finally {

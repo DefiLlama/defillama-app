@@ -1,32 +1,19 @@
 import Router from 'next/router'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { AlertArtifact } from '~/containers/LlamaAI/components/AlertArtifact'
-import { ChartRenderer } from '~/containers/LlamaAI/components/ChartRenderer'
+import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
+import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
-import { MarkdownRenderer } from '~/containers/LlamaAI/components/MarkdownRenderer'
+import { MarkdownRenderer } from '~/containers/LlamaAI/components/markdown/MarkdownRenderer'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import { ThinkingPanel, TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
-import type {
-	AlertProposedData,
-	ChartConfiguration,
-	ChartSet,
-	CsvExport,
-	Message,
-	ToolExecution
-} from '~/containers/LlamaAI/types'
-import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
-
-function buildChartIndex(chartSets: ChartSet[]) {
-	const index = new Map<string, { chart: ChartConfiguration; chartData: Record<string, any[]> }>()
-	for (const set of chartSets) {
-		for (const chart of set.charts) {
-			index.set(chart.id, { chart, chartData: set.chartData })
-		}
-	}
-	return index
-}
+import {
+	parseMessageToRenderModel,
+	type ArtifactRecord,
+	type MessageRenderBlock
+} from '~/containers/LlamaAI/renderModel'
+import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
 
 function createOccurrenceKeyFactory() {
 	const counts = new Map<string, number>()
@@ -244,210 +231,146 @@ function ActionButtonGroup({
 	)
 }
 
+function StreamingChartPlaceholder() {
+	return (
+		<div className="my-4 flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+			<p className="text-sm text-gray-500">Loading chart...</p>
+		</div>
+	)
+}
+
+function ArtifactBlockRenderer({
+	block,
+	artifact,
+	isStreaming,
+	sessionId
+}: {
+	block: Extract<MessageRenderBlock, { type: 'chart' | 'csv' | 'alert' }>
+	artifact?: ArtifactRecord
+	isStreaming: boolean
+	sessionId?: string | null
+}) {
+	if (block.type === 'chart') {
+		// Inline chart placeholders may arrive before the chart event, so keep rendering a skeleton until the artifact resolves.
+		if (!artifact) {
+			return isStreaming ? <StreamingChartPlaceholder /> : null
+		}
+		if (artifact.type !== 'chart') return null
+		return <ChartRenderer charts={artifact.charts} chartData={artifact.chartData} sessionId={sessionId} />
+	}
+
+	if (block.type === 'csv') {
+		if (!artifact || isStreaming) return null
+		if (artifact.type !== 'csv') return null
+		return (
+			<CSVExportArtifact
+				csvExport={{
+					id: artifact.id,
+					title: artifact.title,
+					url: artifact.url,
+					rowCount: artifact.rowCount,
+					filename: artifact.filename
+				}}
+			/>
+		)
+	}
+
+	if (!artifact) {
+		return isStreaming ? <AlertArtifactLoading /> : null
+	}
+	if (artifact.type !== 'alert') return null
+
+	return (
+		<AlertArtifact
+			alertId={artifact.id}
+			defaultTitle={artifact.title}
+			alertIntent={{ ...artifact.alert.alertIntent, detected: true, toolExecutions: [] }}
+			messageId={artifact.messageId}
+			savedAlertIds={artifact.savedAlertIds}
+		/>
+	)
+}
+
+function MessageContentBlock({
+	block,
+	artifact,
+	isStreaming,
+	sessionId,
+	onActionClick,
+	nextUserMessage,
+	getActionGroupKey
+}: {
+	block: MessageRenderBlock
+	artifact?: ArtifactRecord
+	isStreaming: boolean
+	sessionId?: string | null
+	onActionClick?: (message: string) => void
+	nextUserMessage?: string
+	getActionGroupKey: (actionGroupKey: string) => string
+}) {
+	if (block.type === 'action-group') {
+		const actionGroupKey = block.actions.map((action) => `${action.label}:${action.message}`).join('|')
+		return (
+			<ActionButtonGroup
+				key={getActionGroupKey(actionGroupKey)}
+				actions={block.actions}
+				onActionClick={onActionClick}
+				nextUserMessage={nextUserMessage}
+			/>
+		)
+	}
+
+	if (block.type === 'markdown') {
+		return (
+			<MarkdownRenderer
+				content={block.content}
+				citations={block.citations}
+				isStreaming={isStreaming}
+				showSources={block.showSources}
+			/>
+		)
+	}
+
+	return <ArtifactBlockRenderer block={block} artifact={artifact} isStreaming={isStreaming} sessionId={sessionId} />
+}
+
 function InlineContent({
-	text,
-	chartSets,
-	csvExports,
-	alerts,
-	savedAlertIds,
-	messageId,
-	citations,
+	message,
 	toolExecutions,
 	isStreaming = false,
 	sessionId,
 	onActionClick,
 	nextUserMessage
 }: {
-	text: string
-	chartSets: ChartSet[]
-	csvExports?: CsvExport[]
-	alerts?: AlertProposedData[]
-	savedAlertIds?: string[]
-	messageId?: string
-	citations: string[]
+	message: Message
 	toolExecutions?: ToolExecution[]
 	isStreaming?: boolean
 	sessionId?: string | null
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 }) {
-	const chartIndex = useMemo(() => buildChartIndex(chartSets), [chartSets])
-	const csvIndex = useMemo(() => {
-		const index = new Map<string, CsvExport>()
-		for (const csv of csvExports ?? []) index.set(csv.id, csv)
-		return index
-	}, [csvExports])
-
-	const { parts, referencedChartIds, referencedCsvIds, hasActions } = useMemo(() => {
-		const parsed = parseArtifactPlaceholders(text)
-		return {
-			parts: parsed.parts,
-			referencedChartIds: parsed.chartIds,
-			referencedCsvIds: parsed.csvIds,
-			hasActions: parsed.actionItems.length > 0
-		}
-	}, [text])
-
-	const hasInlineRefs = referencedChartIds.size > 0 || referencedCsvIds.size > 0 || hasActions
-
-	const groupedParts = useMemo(() => {
-		const result: Array<
-			(typeof parts)[number] | { type: 'action-group'; actions: Array<{ label: string; message: string }> }
-		> = []
-		let currentActionGroup: Array<{ label: string; message: string }> = []
-
-		for (let index = 0; index < parts.length; index++) {
-			const part = parts[index]
-			if (part.type === 'action' && part.actionLabel && part.actionMessage) {
-				currentActionGroup.push({ label: part.actionLabel, message: part.actionMessage })
-			} else if (
-				currentActionGroup.length > 0 &&
-				part.type === 'text' &&
-				!part.content.trim() &&
-				parts.slice(index + 1).some((nextPart) => nextPart.type === 'action')
-			) {
-				continue
-			} else {
-				if (currentActionGroup.length > 0) {
-					result.push({ type: 'action-group', actions: [...currentActionGroup] })
-					currentActionGroup = []
-				}
-				result.push(part)
-			}
-		}
-
-		if (currentActionGroup.length > 0) {
-			result.push({ type: 'action-group', actions: currentActionGroup })
-		}
-
-		return result
-	}, [parts])
-
-	const unreferencedCharts = useMemo(() => {
-		if (isStreaming) return []
-
-		const charts: { chart: ChartConfiguration; chartData: Record<string, any[]> }[] = []
-		for (const [id, entry] of chartIndex) {
-			if (!referencedChartIds.has(id)) charts.push(entry)
-		}
-
-		return charts
-	}, [chartIndex, referencedChartIds, isStreaming])
-
-	const unreferencedCsvs = useMemo(() => {
-		if (isStreaming) return []
-
-		const csvs: CsvExport[] = []
-		for (const [id, csv] of csvIndex) {
-			if (!referencedCsvIds.has(id)) csvs.push(csv)
-		}
-		return csvs
-	}, [csvIndex, referencedCsvIds, isStreaming])
+	const { artifactsById, blocks } = useMemo(() => parseMessageToRenderModel(message), [message])
+	const getKey = createOccurrenceKeyFactory()
 
 	return (
 		<div className="flex flex-col gap-2.5">
-			{hasInlineRefs ? (
-				(() => {
-					const getKey = createOccurrenceKeyFactory()
-					return groupedParts.map((part, partIndex) => {
-						if ('actions' in part && part.type === 'action-group') {
-							const actionGroupKey = part.actions.map((action) => `${action.label}:${action.message}`).join('|')
-							return (
-								<ActionButtonGroup
-									key={getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
-									actions={part.actions}
-									onActionClick={onActionClick}
-									nextUserMessage={nextUserMessage}
-								/>
-							)
-						}
+			{blocks.map((block) => (
+				<div key={block.key}>
+					<MessageContentBlock
+						block={block}
+						artifact={'artifactId' in block ? artifactsById.get(block.artifactId) : undefined}
+						isStreaming={isStreaming}
+						sessionId={sessionId}
+						onActionClick={onActionClick}
+						nextUserMessage={nextUserMessage}
+						getActionGroupKey={(actionGroupKey) => getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
+					/>
+				</div>
+			))}
 
-						if (part.type === 'chart' && part.chartId) {
-							if (isStreaming) {
-								return (
-									<div
-										key={getKey(`chart-loading-${part.chartId}`)}
-										className="my-4 flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800"
-									>
-										<p className="text-sm text-gray-500">Loading chart...</p>
-									</div>
-								)
-							}
-
-							const entry = chartIndex.get(part.chartId)
-
-							if (entry) {
-								return (
-									<ChartRenderer
-										charts={[entry.chart]}
-										chartData={entry.chartData}
-										sessionId={sessionId}
-										key={getKey(`inline-chart-${part.chartId}`)}
-									/>
-								)
-							}
-
-							return null
-						}
-
-						if (part.type === 'csv' && 'csvId' in part && part.csvId) {
-							if (isStreaming) return null
-							const csv = csvIndex.get(part.csvId)
-							return csv ? <CSVExportArtifact key={getKey(`inline-csv-${part.csvId}`)} csvExport={csv} /> : null
-						}
-
-						if ('content' in part && !part.content) return null
-
-						if ('content' in part) {
-							const isLastText = !groupedParts
-								.slice(partIndex + 1)
-								.some((nextPart) => 'content' in nextPart && nextPart.content)
-							return (
-								<MarkdownRenderer
-									key={getKey(`text-${partIndex}`)}
-									content={part.content}
-									citations={isLastText && citations.length > 0 ? citations : undefined}
-									isStreaming={isStreaming}
-								/>
-							)
-						}
-
-						return null
-					})
-				})()
-			) : text ? (
-				<MarkdownRenderer
-					content={text}
-					citations={citations.length > 0 ? citations : undefined}
-					isStreaming={isStreaming}
-				/>
+			{isStreaming && message.content ? (
+				<span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />
 			) : null}
-
-			{isStreaming && text ? <span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" /> : null}
-
-			{unreferencedCharts.map((entry) => (
-				<ChartRenderer
-					key={`chart-${entry.chart.id}`}
-					charts={[entry.chart]}
-					chartData={entry.chartData}
-					sessionId={sessionId}
-				/>
-			))}
-
-			{unreferencedCsvs.map((csv) => (
-				<CSVExportArtifact key={`csv-${csv.id}`} csvExport={csv} />
-			))}
-
-			{alerts?.map((alert) => (
-				<AlertArtifact
-					key={alert.alertId}
-					alertId={alert.alertId}
-					defaultTitle={alert.title}
-					alertIntent={{ ...alert.alertIntent, detected: true, toolExecutions: [] }}
-					messageId={messageId}
-					savedAlertIds={savedAlertIds}
-				/>
-			))}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
 				<ToolExecutionPanel toolExecutions={toolExecutions} />
@@ -708,13 +631,7 @@ export function MessageBubble({
 		<>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
-				text={message.content || ''}
-				chartSets={message.charts || []}
-				csvExports={message.csvExports}
-				alerts={readOnly ? undefined : message.alerts}
-				savedAlertIds={message.savedAlertIds}
-				messageId={message.id}
-				citations={message.citations || []}
+				message={readOnly ? { ...message, alerts: undefined } : message}
 				toolExecutions={isLlama ? message.toolExecutions : undefined}
 				isStreaming={isDraft}
 				sessionId={sessionId}

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
-import { ChartRenderer } from '~/containers/LlamaAI/components/ChartRenderer'
+import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import type { LlamaAIChartConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 

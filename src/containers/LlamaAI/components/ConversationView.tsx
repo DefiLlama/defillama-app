@@ -53,6 +53,33 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 }
 
+function ConversationMessageItem({
+	message,
+	nextUserMessage,
+	sessionId,
+	readOnly,
+	isLlama,
+	onActionClick
+}: {
+	message: Message
+	nextUserMessage?: string
+	sessionId: string | null
+	readOnly: boolean
+	isLlama: boolean
+	onActionClick?: (message: string) => void
+}) {
+	return (
+		<MessageBubble
+			message={message}
+			sessionId={sessionId}
+			readOnly={readOnly}
+			isLlama={isLlama}
+			onActionClick={onActionClick}
+			nextUserMessage={nextUserMessage}
+		/>
+	)
+}
+
 export function ConversationView({
 	readOnly,
 	messages,
@@ -107,14 +134,14 @@ export function ConversationView({
 								const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
 
 								return (
-									<MessageBubble
+									<ConversationMessageItem
 										key={message.id || `msg-${index}`}
 										message={message}
+										nextUserMessage={nextUserMessage}
 										sessionId={sessionId}
 										readOnly={readOnly}
 										isLlama={isLlama}
 										onActionClick={!readOnly && !isStreaming ? handleActionClick : undefined}
-										nextUserMessage={nextUserMessage}
 									/>
 								)
 							})}
