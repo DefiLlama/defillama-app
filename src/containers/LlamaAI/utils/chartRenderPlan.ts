@@ -66,12 +66,21 @@ export function buildRenderPlan(
 	const filename = getChartFilename(config.title)
 
 	switch (adaptedChart.chartType) {
-		case 'cartesian':
+		case 'cartesian': {
+			const usedLegacyMultiSeriesChart =
+				adaptedChart.seriesMeta.length > 1 ||
+				(adaptedChart.axisType === 'category' &&
+					adaptedChart.seriesMeta.length === 1 &&
+					adaptedChart.seriesMeta[0]?.baseType === 'bar')
+
 			return {
 				rendererKind: 'cartesian',
 				rendererProps: {
 					...adaptedChart.props,
-					solidChartAreaStyle: stylePolicy.solidAreaFill
+					solidChartAreaStyle: stylePolicy.solidAreaFill,
+					// Match legacy LlamaAI behavior only for charts that previously rendered through
+					// the old MultiSeriesChart component. Other cartesian charts keep MSC2 defaults.
+					hideDefaultLegend: usedLegacyMultiSeriesChart ? false : undefined
 				},
 				controls,
 				exportModel,
@@ -79,6 +88,7 @@ export function buildRenderPlan(
 				hasData: adaptedChart.rowCount > 0 && (adaptedChart.props.charts?.length ?? 0) > 0,
 				filename
 			}
+		}
 		case 'pie':
 			return {
 				rendererKind: 'pie',

@@ -795,12 +795,18 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			outerBoundsMode: 'same',
 			outerBoundsContain: 'axisLabel'
 		}
+		const finalGrid = mergedChartSettings.grid ? mergeDeep(baseGrid, mergedChartSettings.grid) : baseGrid
+		if (shouldHideDataZoom) {
+			// Caller-provided grid defaults often reserve slider space. When the zoom control is
+			// not rendered, force the compact bottom padding so charts do not keep a dead band.
+			finalGrid.bottom = 12
+		}
 
 		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
 			graphic,
 			tooltip: tooltipConfig,
-			grid: mergedChartSettings.grid ? mergeDeep(baseGrid, mergedChartSettings.grid) : baseGrid,
+			grid: finalGrid,
 			xAxis,
 			yAxis:
 				finalYAxis && finalYAxis.length > 0

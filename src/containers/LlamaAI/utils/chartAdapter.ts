@@ -106,29 +106,154 @@ const parseStringNumber = (value: any): number => {
 	return 0
 }
 
-const convertToTimestampMs = (timestamp: any): number => {
+const MONTH_NAME_TO_INDEX: Record<string, number> = {
+	jan: 0,
+	january: 0,
+	feb: 1,
+	february: 1,
+	mar: 2,
+	march: 2,
+	apr: 3,
+	april: 3,
+	may: 4,
+	jun: 5,
+	june: 5,
+	jul: 6,
+	july: 6,
+	aug: 7,
+	august: 7,
+	sep: 8,
+	sept: 8,
+	september: 8,
+	oct: 9,
+	october: 9,
+	nov: 10,
+	november: 10,
+	dec: 11,
+	december: 11
+}
+
+const DATE_LIKE_FIELD_RE = /(^|_)(date|day|month|time|timestamp)$/i
+
+const parseStrictDateLabelToMs = (timestamp: unknown): number | null => {
 	if (typeof timestamp === 'number') {
+		if (!Number.isFinite(timestamp)) return null
 		return timestamp.toString().length <= 10 ? timestamp * 1000 : timestamp
 	}
 
-	if (typeof timestamp === 'string') {
-		const date = new Date(timestamp)
-		if (!Number.isNaN(date.getTime())) {
-			return date.getTime()
-		}
-
-		const parsed = parseInt(timestamp)
-		if (!Number.isNaN(parsed)) {
-			return parsed.toString().length <= 10 ? parsed * 1000 : parsed
-		}
-	}
-
 	if (timestamp instanceof Date) {
-		return timestamp.getTime()
+		const value = timestamp.getTime()
+		return Number.isNaN(value) ? null : value
 	}
 
-	console.warn('Could not parse timestamp:', timestamp)
-	return Date.now()
+	if (typeof timestamp !== 'string') return null
+
+	const value = timestamp.trim()
+	if (!value) return null
+
+	if (/^\d{10}$/.test(value)) {
+		return Number(value) * 1000
+	}
+
+	if (/^\d{13}$/.test(value)) {
+		return Number(value)
+	}
+
+	const isoMonthMatch = value.match(/^(\d{4})-(\d{2})$/)
+	if (isoMonthMatch) {
+		const year = Number(isoMonthMatch[1])
+		const month = Number(isoMonthMatch[2])
+		if (month < 1 || month > 12) return null
+		return Date.UTC(year, month - 1, 1)
+	}
+
+	const isoDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+	if (isoDateMatch) {
+		const year = Number(isoDateMatch[1])
+		const month = Number(isoDateMatch[2])
+		const day = Number(isoDateMatch[3])
+		if (month < 1 || month > 12 || day < 1 || day > 31) return null
+		return Date.UTC(year, month - 1, day)
+	}
+
+	if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+		const date = new Date(value)
+		return Number.isNaN(date.getTime()) ? null : date.getTime()
+	}
+
+	const monthNameMatch = value.match(/^([A-Za-z]+)\s+(\d{4})$/)
+	if (monthNameMatch) {
+		const monthIndex = MONTH_NAME_TO_INDEX[monthNameMatch[1].toLowerCase()]
+		if (monthIndex == null) return null
+		return Date.UTC(Number(monthNameMatch[2]), monthIndex, 1)
+	}
+
+	return null
+}
+
+const looksLikeDateField = (field: string) => DATE_LIKE_FIELD_RE.test(field)
+
+function inferTimeSeriesAxis(
+	config: ChartConfiguration,
+	rawData: any[]
+): {
+	axisType: 'time' | 'category'
+	dimensionName: 'timestamp' | 'category'
+	normalizeXValue: (rawValue: unknown) => number | string | null
+	reason: 'declared-time' | 'promoted-date-category' | 'category'
+} {
+	if (config.axes.x.type === 'time') {
+		return {
+			axisType: 'time',
+			dimensionName: 'timestamp',
+			normalizeXValue: (rawValue) => parseStrictDateLabelToMs(rawValue),
+			reason: 'declared-time'
+		}
+	}
+
+	if (config.axes.x.type !== 'category' || !looksLikeDateField(config.axes.x.field)) {
+		return {
+			axisType: 'category',
+			dimensionName: 'category',
+			normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+			reason: 'category'
+		}
+	}
+
+	// Compatibility shim: some shared/generated payloads serialize monthly or daily dates
+	// as category labels. Promote only when every non-empty value parses cleanly.
+	const rawValues = rawData
+		.map((row) => row?.[config.axes.x.field])
+		.filter((value) => value != null && String(value).trim().length > 0)
+
+	if (rawValues.length === 0) {
+		return {
+			axisType: 'category',
+			dimensionName: 'category',
+			normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+			reason: 'category'
+		}
+	}
+
+	const parsedValues = rawValues.map((value) => parseStrictDateLabelToMs(value))
+	const allParsed = parsedValues.every((value) => value != null)
+	const uniqueTimestamps = new Set(parsedValues.filter((value): value is number => value != null))
+
+	if (allParsed && uniqueTimestamps.size >= 2) {
+		return {
+			axisType: 'time',
+			dimensionName: 'timestamp',
+			normalizeXValue: (rawValue) => parseStrictDateLabelToMs(rawValue),
+			reason: 'promoted-date-category'
+		}
+	}
+
+	return {
+		axisType: 'category',
+		dimensionName: 'category',
+		normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+		reason: 'category'
+	}
 }
 
 const BASE_TYPE_MAP: Record<string, 'line' | 'area' | 'bar'> = { area: 'area', bar: 'bar', line: 'line' }
@@ -379,8 +504,8 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 		if (!rawData || rawData.length === 0) throw new Error('No data provided')
 		if (!config.series?.length) throw new Error('No series configuration found')
 
-		const axisType = config.axes.x.type === 'time' ? 'time' : 'category'
-		const dimensionName = axisType === 'time' ? 'timestamp' : 'category'
+		const axisInference = inferTimeSeriesAxis(config, rawData)
+		const { axisType, dimensionName, normalizeXValue } = axisInference
 		const yAxisIdToIndex = new Map<string, number>()
 		const yAxisIndexToSymbol = new Map<number, string>()
 
@@ -423,13 +548,11 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 
 			const seenXValues = new Set<string | number>()
 			for (const row of filteredData) {
-				const xValue =
-					axisType === 'time'
-						? convertToTimestampMs(row[seriesConfig.dataMapping.xField])
-						: String(row[seriesConfig.dataMapping.xField] || 'Unknown')
+				const xValue = normalizeXValue(row[seriesConfig.dataMapping.xField])
 				const value = row[seriesConfig.dataMapping.yField]
 				const numericValue = value == null ? null : parseStringNumber(value)
 
+				if (xValue == null) continue
 				if (!isValidCartesianPoint(xValue, numericValue, baseType, axisType)) continue
 				if (seenXValues.has(xValue)) continue
 				seenXValues.add(xValue)
