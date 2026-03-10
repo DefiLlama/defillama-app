@@ -127,7 +127,7 @@ export const SignInForm = ({
 	const [confirmPasswordError, setConfirmPasswordError] = useState('')
 	const [turnstileToken, setTurnstileToken] = useState('')
 	const [emailError, setEmailError] = useState('')
-	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('initial')
+	const [promotionalEmails, setPromotionalEmails] = useState<PromotionalEmailsValue>('on')
 
 	const { login, signup, signInWithEthereumMutation, signInWithGithubMutation, resetPasswordMutation, loaders } =
 		useAuthContext()
