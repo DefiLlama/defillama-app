@@ -97,9 +97,9 @@ function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: Landing
 	}
 
 	return (
-		<section id="free-questions" className="relative z-10 mx-auto max-w-5xl px-4 pb-10 md:px-8">
+		<section id="free-questions" className="relative z-10 mx-auto max-w-5xl px-4 pb-20 md:px-8 md:pb-28">
 			<div className="mb-6 text-center">
-				<h2 className="mb-2 text-lg font-bold tracking-[-0.01em] text-black md:text-xl dark:text-white">
+				<h2 className="mb-2 text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:text-[2rem] dark:text-white">
 					Try LlamaAI for free
 				</h2>
 				<p className="text-sm text-[#666] dark:text-[#919296]">
