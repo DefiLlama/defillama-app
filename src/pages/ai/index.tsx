@@ -239,12 +239,11 @@ function ExampleShowcase() {
 	const resetInterval = useCallback(() => {
 		if (intervalRef.current) clearInterval(intervalRef.current)
 		intervalRef.current = setInterval(() => {
-			setCurrent((prev) => {
-				const next = (prev + 1) % EXAMPLE_CONVERSATIONS.length
-				setIsTransitioning(true)
-				setTimeout(() => setIsTransitioning(false), 200)
-				return next
-			})
+			setIsTransitioning(true)
+			setTimeout(() => {
+				setCurrent((prev) => (prev + 1) % EXAMPLE_CONVERSATIONS.length)
+				setIsTransitioning(false)
+			}, 200)
 		}, 6000)
 	}, [])
 
@@ -490,10 +489,34 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 				{/* Capability Strip */}
 				<section className="relative z-10 mx-auto max-w-5xl px-4 pb-10 md:px-8">
 					<div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[#E8E8E8] bg-[#E8E8E8] md:grid-cols-5 dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
-						{CAPABILITIES.map((cap) => (
+						{CAPABILITIES.slice(0, 3).map((cap) => (
 							<div
 								key={cap.label}
 								className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
+							>
+								<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
+								<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
+								<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
+							</div>
+						))}
+					</div>
+					<div className="mx-auto mt-px grid w-2/3 grid-cols-2 gap-px overflow-hidden rounded-b-xl border-x border-b border-[#E8E8E8] bg-[#E8E8E8] md:hidden dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
+						{CAPABILITIES.slice(3).map((cap) => (
+							<div
+								key={cap.label}
+								className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
+							>
+								<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
+								<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
+								<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
+							</div>
+						))}
+					</div>
+					<div className="hidden grid-cols-5 md:grid">
+						{CAPABILITIES.slice(3).map((cap) => (
+							<div
+								key={cap.label}
+								className="flex flex-col items-center gap-1.5 px-3 py-4 text-center"
 							>
 								<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
 								<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
@@ -505,131 +528,6 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 
 				{/* Free Questions */}
 				{isClient && <FreeQuestionsSection landingQuestions={landingQuestions} />}
-
-				{/* Divider */}
-				<div className="relative z-10 mx-auto max-w-4xl px-4 md:px-8">
-					<div className="h-px bg-linear-to-r from-transparent via-[#E8E8E8] to-transparent dark:via-[#2a2a2e]" />
-				</div>
-
-				{/* Examples */}
-				<section className="relative z-10 px-4 pt-20 pb-24 md:px-8 md:pt-28 md:pb-32">
-					<div className="mx-auto max-w-6xl">
-						<div className="mb-12 text-center md:mb-16">
-							<h2 className="mb-4 text-[2rem] font-extrabold tracking-[-0.02em] text-black md:text-[2.75rem] dark:text-white">
-								What can you do with LlamaAI?
-							</h2>
-							<p className="mx-auto max-w-lg text-lg text-[#666] dark:text-[#919296]">
-								Click any card to explore actual LlamaAI conversations — no account needed
-							</p>
-						</div>
-
-						<div className="grid gap-5 md:grid-cols-3">
-							{EXAMPLE_CONVERSATIONS.map((example, index) => (
-								<div key={example.id} className={clsx('flex flex-col', index === 1 && 'md:translate-y-8')}>
-									<h3 className="mb-3 text-sm font-bold tracking-wider text-[#C99A4A] uppercase md:text-base dark:text-[#FDE0A9]">
-										{example.category}
-									</h3>
-
-									<a
-										href={example.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										onClick={() => trackUmamiEvent('llamaai-landing-example-click', { example: example.id })}
-										className={clsx(
-											'group relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white transition-all duration-500',
-											'hover:-translate-y-2 hover:border-[#C99A4A]/40 hover:shadow-[0_24px_64px_rgba(253,224,169,0.25)]',
-											'dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30 dark:hover:shadow-[0_24px_64px_rgba(253,224,169,0.12)]'
-										)}
-									>
-										<div className="relative aspect-4/3 w-full overflow-hidden bg-[#131516]">
-											<img
-												src={`${example.screenshot}.png`}
-												alt=""
-												className="hidden h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-110 dark:block"
-											/>
-											<img
-												src={`${example.screenshot}-light.png`}
-												alt=""
-												className="block h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-110 dark:hidden"
-											/>
-											<div className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-all duration-500 group-hover:opacity-100">
-												<span className="flex translate-y-4 items-center gap-2 rounded-full bg-linear-to-r from-[#FDE0A9] to-[#F5D08C] px-6 py-3 text-sm font-semibold text-[#5C4A1F] shadow-[0_8px_32px_rgba(253,224,169,0.5)] transition-all duration-500 group-hover:translate-y-0">
-													View analysis
-													<Icon name="arrow-up-right" height={16} width={16} />
-												</span>
-											</div>
-										</div>
-
-										<div className="flex flex-1 flex-col p-5">
-											<p className="mb-3 line-clamp-2 text-base leading-snug font-semibold text-black dark:text-white">
-												&quot;{example.prompt}&quot;
-											</p>
-											<p className="mt-auto text-sm leading-relaxed text-[#777] dark:text-[#888]">
-												{example.description}
-											</p>
-										</div>
-									</a>
-								</div>
-							))}
-						</div>
-					</div>
-				</section>
-
-				{/* Demo Video */}
-				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
-					<div className="mx-auto max-w-5xl">
-						<div className="mb-6 text-center">
-							<h2 className="mb-3 text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:text-[2rem] dark:text-white">
-								See it in action
-							</h2>
-							<p className="text-base text-[#666] dark:text-[#919296]">Watch a full walkthrough of LlamaAI</p>
-						</div>
-						<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
-							<div className="relative aspect-video w-full">
-								{!isVideoPlaying ? (
-									<button
-										onClick={() => {
-											trackUmamiEvent('llamaai-landing-video-play')
-											setIsVideoPlaying(true)
-										}}
-										className="absolute inset-0 z-10 flex items-center justify-center"
-										aria-label="Play demo video"
-									>
-										<img
-											src="https://img.youtube.com/vi/rEJz1gfC0Oc/maxresdefault.jpg"
-											alt="LlamaAI Demo"
-											className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-										/>
-										<div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
-										<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
-											<svg
-												xmlns="http://www.w3.org/2000/svg"
-												viewBox="0 0 24 24"
-												fill="currentColor"
-												className="ml-1 h-6 w-6 text-[#1a1a1a] md:h-8 md:w-8"
-											>
-												<path d="M8 5.14v14l11-7-11-7z" />
-											</svg>
-										</div>
-										<span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm transition-all duration-300 group-hover:bg-black/80 md:bottom-6 md:px-4 md:py-2 md:text-sm">
-											Watch demo
-										</span>
-									</button>
-								) : (
-									<iframe
-										src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
-										title="LlamaAI Demo"
-										sandbox="allow-scripts allow-same-origin allow-presentation"
-										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-										referrerPolicy="strict-origin-when-cross-origin"
-										allowFullScreen
-										className="absolute inset-0 h-full w-full"
-									/>
-								)}
-							</div>
-						</div>
-					</div>
-				</section>
 
 				{/* Bento Grid */}
 				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
@@ -838,6 +736,62 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 										</div>
 									</div>
 								</div>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Demo Video */}
+				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
+					<div className="mx-auto max-w-5xl">
+						<div className="mb-6 text-center">
+							<h2 className="mb-3 text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:text-[2rem] dark:text-white">
+								See it in action
+							</h2>
+							<p className="text-base text-[#666] dark:text-[#919296]">Watch a full walkthrough of LlamaAI</p>
+						</div>
+						<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+							<div className="relative aspect-video w-full">
+								{!isVideoPlaying ? (
+									<button
+										onClick={() => {
+											trackUmamiEvent('llamaai-landing-video-play')
+											setIsVideoPlaying(true)
+										}}
+										className="absolute inset-0 z-10 flex items-center justify-center"
+										aria-label="Play demo video"
+									>
+										<img
+											src="https://img.youtube.com/vi/rEJz1gfC0Oc/maxresdefault.jpg"
+											alt="LlamaAI Demo"
+											className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+										/>
+										<div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
+										<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												viewBox="0 0 24 24"
+												fill="currentColor"
+												className="ml-1 h-6 w-6 text-[#1a1a1a] md:h-8 md:w-8"
+											>
+												<path d="M8 5.14v14l11-7-11-7z" />
+											</svg>
+										</div>
+										<span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm transition-all duration-300 group-hover:bg-black/80 md:bottom-6 md:px-4 md:py-2 md:text-sm">
+											Watch demo
+										</span>
+									</button>
+								) : (
+									<iframe
+										src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
+										title="LlamaAI Demo"
+										sandbox="allow-scripts allow-same-origin allow-presentation"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+										referrerPolicy="strict-origin-when-cross-origin"
+										allowFullScreen
+										className="absolute inset-0 h-full w-full"
+									/>
+								)}
 							</div>
 						</div>
 					</div>
