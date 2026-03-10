@@ -1,6 +1,6 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query'
 import { MCP_SERVER } from '~/constants'
-import type { SuggestedQuestionsResponse, LandingQuestionsResponse } from '../types'
+import type { LandingQuestionsResponse, SuggestedQuestionsResponse } from '~/containers/LlamaAI/types'
 
 /** Query key for suggested questions - use for cache invalidation */
 const SUGGESTED_QUESTIONS_QUERY_KEY = ['suggested-questions'] as const

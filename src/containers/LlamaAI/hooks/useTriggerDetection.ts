@@ -1,4 +1,4 @@
-import { getSearchValue, getTrigger, getTriggerOffset } from '../utils/entitySuggestions'
+import { getSearchValue, getTrigger, getTriggerOffset } from '~/containers/LlamaAI/utils/entitySuggestions'
 
 interface TriggerState {
 	isActive: boolean

@@ -12,7 +12,7 @@ const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
  * Validate and sanitize a URL for safe use in href attributes.
  * Returns null if the URL is unsafe or malformed.
  */
-function sanitizeUrl(url: string): string | null {
+export function sanitizeUrl(url: string): string | null {
 	if (!url || typeof url !== 'string') return null
 
 	// Trim whitespace
@@ -44,29 +44,24 @@ function sanitizeUrl(url: string): string | null {
 	}
 }
 
-interface ArtifactMatch {
-	index: number
-	length: number
-	type: 'chart' | 'csv' | 'alert' | 'action'
-	id: string
+interface ActionPlaceholderData {
+	label: string
+	message: string
 }
 
-interface ContentPart {
-	type: 'text' | 'chart' | 'csv' | 'alert' | 'action'
-	content: string
-	chartId?: string
-	csvId?: string
-	alertId?: string
-	actionLabel?: string
-	actionMessage?: string
-}
+type ArtifactMatch =
+	| { index: number; length: number; type: 'chart' | 'csv' | 'alert'; id: string }
+	| { index: number; length: number; type: 'action'; id: ActionPlaceholderData }
+
+export type ContentPart =
+	| { type: 'text'; content: string }
+	| { type: 'chart'; chartId: string }
+	| { type: 'csv'; csvId: string }
+	| { type: 'alert'; alertId: string }
+	| { type: 'action'; actionLabel: string; actionMessage: string }
 
 interface ParsedContent {
 	parts: ContentPart[]
-	chartIds: Set<string>
-	csvIds: Set<string>
-	alertIds: Set<string>
-	actionItems: Array<{ label: string; message: string }>
 }
 
 /**
@@ -79,25 +74,18 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
 	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
 	const parts: ContentPart[] = []
-	const chartIds = new Set<string>()
-	const csvIds = new Set<string>()
-	const alertIds = new Set<string>()
-	const actionItems: Array<{ label: string; message: string }> = []
 
 	const allMatches: ArtifactMatch[] = []
 
 	let match: RegExpExecArray | null
 	while ((match = chartPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'chart', id: match[1] })
-		chartIds.add(match[1])
 	}
 	while ((match = csvPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
-		csvIds.add(match[1])
 	}
 	while ((match = alertPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
-		alertIds.add(match[1])
 	}
 	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
 		const actionLabel = match[1].trim()
@@ -106,9 +94,8 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			index: match.index,
 			length: match[0].length,
 			type: 'action',
-			id: JSON.stringify({ label: actionLabel, message: actionMessage })
+			id: { label: actionLabel, message: actionMessage }
 		})
-		actionItems.push({ label: actionLabel, message: actionMessage })
 	}
 
 	allMatches.sort((a, b) => a.index - b.index)
@@ -118,15 +105,14 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		if (m.index > lastIndex) {
 			parts.push({ type: 'text', content: content.slice(lastIndex, m.index) })
 		}
-		if (m.type === 'chart') {
-			parts.push({ type: 'chart', content: '', chartId: m.id })
+		if (m.type === 'action') {
+			parts.push({ type: 'action', actionLabel: m.id.label, actionMessage: m.id.message })
+		} else if (m.type === 'chart') {
+			parts.push({ type: 'chart', chartId: m.id })
 		} else if (m.type === 'csv') {
-			parts.push({ type: 'csv', content: '', csvId: m.id })
-		} else if (m.type === 'action') {
-			const { label, message } = JSON.parse(m.id)
-			parts.push({ type: 'action', content: '', actionLabel: label, actionMessage: message })
+			parts.push({ type: 'csv', csvId: m.id })
 		} else {
-			parts.push({ type: 'alert', content: '', alertId: m.id })
+			parts.push({ type: 'alert', alertId: m.id })
 		}
 		lastIndex = m.index + m.length
 	}
@@ -139,7 +125,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		parts.push({ type: 'text', content })
 	}
 
-	return { parts, chartIds, csvIds, alertIds, actionItems }
+	return { parts }
 }
 
 /**

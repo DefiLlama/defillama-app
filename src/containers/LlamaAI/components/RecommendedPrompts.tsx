@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { type IIcon } from '~/components/Icon'
-import { useSuggestedQuestions } from '../hooks/useSuggestedQuestions'
-import { PromptCarousel } from './PromptCarousel'
+import { PromptCarousel } from '~/containers/LlamaAI/components/PromptCarousel'
+import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 
 const CATEGORY_KEY_MAP: Record<string, string> = {
 	find_alpha: 'Alpha Scanner',

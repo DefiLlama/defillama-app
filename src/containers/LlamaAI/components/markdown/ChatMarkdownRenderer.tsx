@@ -7,11 +7,12 @@ import remarkGfm from 'remark-gfm'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
-import { getEntityUrl } from '../../utils/entityLinks'
-import { extractLlamaLinks, processCitationMarkers } from '../../utils/markdownHelpers'
+import { getEntityUrl } from '~/containers/LlamaAI/utils/entityLinks'
+import { extractLlamaLinks, processCitationMarkers } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 const MARKDOWN_REMARK_PLUGINS: import('unified').PluggableList = [[remarkGfm, { singleTilde: false }]]
 const MARKDOWN_REHYPE_PLUGINS = [rehypeRaw]
+const SOURCE_URL_PREFIXES_TO_REPLACE = ['https://preview.dl.llama.fi', 'https://defillama2.llamao.fi'] as const
 
 type EntityLinkProps = ComponentPropsWithoutRef<'a'>
 type MarkdownAnchorProps = EntityLinkProps & { node?: unknown }
@@ -20,6 +21,15 @@ type MarkdownCellProps = ComponentPropsWithoutRef<'th'> & { node?: unknown }
 type MarkdownDataCellProps = ComponentPropsWithoutRef<'td'> & { node?: unknown }
 type MarkdownListProps = ComponentPropsWithoutRef<'ul'> & { node?: unknown }
 type MarkdownOrderedListProps = ComponentPropsWithoutRef<'ol'> & { node?: unknown }
+
+function normalizeSourceUrl(url: string) {
+	for (const prefix of SOURCE_URL_PREFIXES_TO_REPLACE) {
+		if (url.startsWith(prefix)) {
+			return `https://defillama.com${url.slice(prefix.length)}`
+		}
+	}
+	return url
+}
 
 function TableWrapper({
 	children,
@@ -113,6 +123,65 @@ function getSingleTextChild(children: ReactNode): string | null {
 	return typeof children === 'string' ? children : null
 }
 
+export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
+	const sourceEntries = useMemo(() => {
+		const seen = new Map<string, number>()
+		const unique: Array<{ normalizedUrl: string; citationNumber: number }> = []
+		for (let i = 0; i < citations.length; i++) {
+			const normalizedUrl = normalizeSourceUrl(citations[i])
+			if (!seen.has(normalizedUrl)) {
+				seen.set(normalizedUrl, i + 1)
+				unique.push({ normalizedUrl, citationNumber: i + 1 })
+			}
+		}
+		return unique
+	}, [citations])
+
+	if (!citations.length || isStreaming) {
+		return null
+	}
+
+	return (
+		<details className="flex flex-col text-sm">
+			<summary className="mr-auto flex items-center gap-1 rounded bg-[rgba(0,0,0,0.04)] px-2 py-1 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					strokeWidth="2"
+					strokeLinecap="round"
+					strokeLinejoin="round"
+				>
+					<path d="M9 17H7A5 5 0 0 1 7 7h2" />
+					<path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+					<line x1="8" x2="16" y1="12" y2="12" />
+				</svg>
+				<span>Sources</span>
+				<Icon name="chevron-down" height={14} width={14} />
+			</summary>
+			<div className="flex flex-col gap-2.5 pt-2.5">
+				{sourceEntries.map(({ normalizedUrl, citationNumber }) => (
+					<a
+						key={`citation-${citationNumber}`}
+						href={normalizedUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]"
+					>
+						<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+							{citationNumber}
+						</span>
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
+					</a>
+				))}
+			</div>
+		</details>
+	)
+}
+
 export function ChatMarkdownRenderer({
 	content,
 	citations,
@@ -173,17 +242,19 @@ export function ChatMarkdownRenderer({
 		[isStreaming, processedData.linkMap]
 	)
 
-	if (!processedData.content.trim() && (!citations || citations.length === 0)) {
+	if (!processedData.content.trim()) {
 		return null
 	}
 
 	return (
-		<ReactMarkdown
-			remarkPlugins={MARKDOWN_REMARK_PLUGINS}
-			rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
-			components={markdownComponents}
-		>
-			{processedData.content}
-		</ReactMarkdown>
+		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
+			<ReactMarkdown
+				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
+				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}
+				components={markdownComponents}
+			>
+				{processedData.content}
+			</ReactMarkdown>
+		</div>
 	)
 }

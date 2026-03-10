@@ -1,5 +1,5 @@
-import type { AlertProposedData, ChartConfiguration, Message } from './types'
-import { parseArtifactPlaceholders } from './utils/markdownHelpers'
+import type { AlertProposedData, ChartConfiguration, Message } from '~/containers/LlamaAI/types'
+import { parseArtifactPlaceholders } from '~/containers/LlamaAI/utils/markdownHelpers'
 
 export type ChartArtifactRecord = {
 	type: 'chart'
@@ -31,7 +31,8 @@ export type ArtifactRecord = ChartArtifactRecord | CsvArtifactRecord | AlertArti
 export type ArtifactRegistry = Map<string, ArtifactRecord>
 
 export type MessageRenderBlock =
-	| { type: 'markdown'; key: string; content: string; citations?: string[]; showSources: boolean }
+	| { type: 'markdown'; key: string; content: string; citations?: string[] }
+	| { type: 'sources'; key: string; citations: string[] }
 	| { type: 'chart'; key: string; artifactId: string }
 	| { type: 'csv'; key: string; artifactId: string }
 	| { type: 'alert'; key: string; artifactId: string }
@@ -102,7 +103,7 @@ export function parseMessageToRenderModel(message: Message): {
 	for (let index = 0; index < parsed.parts.length; index++) {
 		const part = parsed.parts[index]
 
-		if (part.type === 'action' && part.actionLabel && part.actionMessage) {
+		if (part.type === 'action') {
 			actionGroup.push({ label: part.actionLabel, message: part.actionMessage })
 			continue
 		}
@@ -124,13 +125,12 @@ export function parseMessageToRenderModel(message: Message): {
 				type: 'markdown',
 				key: `markdown-${markdownBlockIndex++}`,
 				content: part.content,
-				citations: message.citations,
-				showSources: false
+				citations: message.citations
 			})
 			continue
 		}
 
-		if (part.type === 'chart' && part.chartId) {
+		if (part.type === 'chart') {
 			usedArtifactIds.add(part.chartId)
 			blocks.push({
 				type: 'chart',
@@ -140,7 +140,7 @@ export function parseMessageToRenderModel(message: Message): {
 			continue
 		}
 
-		if (part.type === 'csv' && part.csvId) {
+		if (part.type === 'csv') {
 			usedArtifactIds.add(part.csvId)
 			blocks.push({
 				type: 'csv',
@@ -150,7 +150,7 @@ export function parseMessageToRenderModel(message: Message): {
 			continue
 		}
 
-		if (part.type === 'alert' && part.alertId) {
+		if (part.type === 'alert') {
 			usedArtifactIds.add(part.alertId)
 			blocks.push({
 				type: 'alert',
@@ -161,6 +161,25 @@ export function parseMessageToRenderModel(message: Message): {
 	}
 
 	flushActionGroup()
+
+	const citations = message.citations ?? []
+	let lastMarkdownIndex = -1
+	for (let index = blocks.length - 1; index >= 0; index--) {
+		if (blocks[index]?.type === 'markdown') {
+			lastMarkdownIndex = index
+			break
+		}
+	}
+
+	if (citations.length > 0) {
+		if (lastMarkdownIndex >= 0) {
+			blocks.splice(lastMarkdownIndex + 1, 0, {
+				type: 'sources',
+				key: `sources-${blocks.length}`,
+				citations
+			})
+		}
+	}
 
 	// Preserve current behavior for artifacts emitted out-of-band without an inline placeholder.
 	for (const [artifactId, artifact] of artifactsById) {
@@ -176,28 +195,11 @@ export function parseMessageToRenderModel(message: Message): {
 		blocks.push({ type: 'alert', key: `alert-${artifactId}-fallback`, artifactId })
 	}
 
-	let lastMarkdownIndex = -1
-	for (let index = blocks.length - 1; index >= 0; index--) {
-		if (blocks[index]?.type === 'markdown') {
-			lastMarkdownIndex = index
-			break
-		}
-	}
-
-	if (lastMarkdownIndex >= 0) {
-		blocks[lastMarkdownIndex] = {
-			...blocks[lastMarkdownIndex],
-			showSources: true
-		} as Extract<MessageRenderBlock, { type: 'markdown' }>
-	}
-
-	if (message.citations?.length && lastMarkdownIndex === -1) {
+	if (citations.length > 0 && lastMarkdownIndex === -1) {
 		blocks.push({
-			type: 'markdown',
-			key: `markdown-sources-${blocks.length}`,
-			content: '',
-			citations: message.citations,
-			showSources: true
+			type: 'sources',
+			key: `sources-${blocks.length}`,
+			citations
 		})
 	}
 

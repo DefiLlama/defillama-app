@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import type { ISingleSeriesChartProps } from '../types'
@@ -133,19 +133,14 @@ export default function SingleSeriesChart({
 	}, [chartData, color, hallmarks, isThemeDark, chartType, chartName, symbolOnChart])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const updateChartInstance = useEffectEvent((instance: echarts.ECharts | null) => {
+		if (instance === chartRef.current) return
+		chartRef.current = instance
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
-
-	const updateChartInstance = useCallback(
-		(instance: echarts.ECharts | null) => {
-			chartRef.current = instance
-			if (onReady) {
-				onReady(instance)
-			}
-		},
-		[onReady]
-	)
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -199,7 +194,7 @@ export default function SingleSeriesChart({
 		return () => {
 			updateChartInstance(null)
 		}
-	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom, updateChartInstance])
+	}, [id, defaultChartSettings, series, chartOptions, expandTo100Percent, hideDataZoom])
 
 	useEffect(() => {
 		return () => {
@@ -212,7 +207,7 @@ export default function SingleSeriesChart({
 			}
 			updateChartInstance(null)
 		}
-	}, [id, updateChartInstance])
+	}, [id])
 
 	return <div id={id} className="h-[360px]" style={height ? { height } : undefined}></div>
 }

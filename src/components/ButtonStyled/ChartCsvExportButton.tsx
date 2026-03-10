@@ -129,10 +129,40 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 	const seriesRaw = option?.series
 	const seriesArr: any[] = Array.isArray(seriesRaw) ? seriesRaw : seriesRaw ? [seriesRaw] : []
 	if (seriesArr.length === 0) return []
+	const isScatterChart = seriesArr.every((series) => series?.type === 'scatter')
 
 	const xAxisRaw = option?.xAxis
 	const xAxis = Array.isArray(xAxisRaw) ? xAxisRaw[0] : xAxisRaw
 	const xAxisData: unknown[] | null = Array.isArray(xAxis?.data) ? xAxis.data : null
+	const yAxisRaw = option?.yAxis
+	const yAxis = Array.isArray(yAxisRaw) ? yAxisRaw[0] : yAxisRaw
+	const yAxisData: unknown[] | null = Array.isArray(yAxis?.data) ? yAxis.data : null
+	const categoryAxisData = xAxisData ?? yAxisData
+
+	if (isScatterChart) {
+		const xHeader = typeof xAxis?.name === 'string' && xAxis.name ? xAxis.name : 'X'
+		const yHeader = typeof yAxis?.name === 'string' && yAxis.name ? yAxis.name : 'Y'
+		const rows: Array<Array<CsvCell>> = [[xHeader, yHeader, 'Entity']]
+
+		for (const series of seriesArr) {
+			const data: unknown[] = Array.isArray(series?.data) ? series.data : []
+			for (const point of data) {
+				let value: unknown = point
+				if (isRecord(point) && 'value' in point) {
+					value = point.value
+				}
+				if (!Array.isArray(value) || value.length < 2) continue
+
+				rows.push([
+					toChartCsvCell(value[0]),
+					toChartCsvCell(value[1]),
+					toChartCsvCell(typeof value[2] === 'string' ? value[2] : (series?.name ?? ''))
+				])
+			}
+		}
+
+		return rows
+	}
 
 	const seriesNames: string[] = []
 	const rowsByX = new Map<string | number, Record<string, CsvCell>>() // key type must be stable
@@ -145,7 +175,7 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 		const data: unknown[] = Array.isArray(series?.data) ? series.data : []
 		for (let i = 0; i < data.length; i++) {
 			const point = data[i]
-			let x: unknown = xAxisData?.[i]
+			let x: unknown = categoryAxisData?.[i]
 			let y: unknown = null
 
 			if (Array.isArray(point)) {
@@ -181,8 +211,8 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 
 	const maybeFirstTsSeconds = normalizeEpochSeconds(sorted[0])
 	const includeDate = maybeFirstTsSeconds != null
-
-	const header: Array<CsvCell> = includeDate ? ['x', 'Date', ...seriesNames] : ['x', ...seriesNames]
+	const headerLabel = xAxis?.type === 'category' || yAxis?.type === 'category' ? 'category' : 'x'
+	const header: Array<CsvCell> = includeDate ? [headerLabel, 'Date', ...seriesNames] : [headerLabel, ...seriesNames]
 	const rows: Array<Array<CsvCell>> = [header]
 
 	for (const xKey of sorted) {
@@ -224,6 +254,7 @@ interface ChartCsvExportButtonProps {
 	className?: string
 	smol?: boolean
 	filename?: string
+	prepareCsvDirect?: () => { filename: string; rows: Array<Array<CsvCell>> }
 }
 
 const DEFAULT_CLASSNAME =
@@ -233,15 +264,17 @@ export function ChartCsvExportButton({
 	chartInstance,
 	className = DEFAULT_CLASSNAME,
 	smol = true,
-	filename
+	filename,
+	prepareCsvDirect
 }: ChartCsvExportButtonProps) {
 	const prepareCsv = useCallback(() => {
+		if (prepareCsvDirect) return prepareCsvDirect()
 		const instance = chartInstance()
 		if (!instance) {
 			throw new Error('Failed to get chart instance')
 		}
 		return buildCsvFromChart({ instance, filenameBase: filename })
-	}, [chartInstance, filename])
+	}, [chartInstance, filename, prepareCsvDirect])
 
 	return (
 		<CSVDownloadButton prepareCsv={prepareCsv} replaceClassName className={className} smol={smol}>

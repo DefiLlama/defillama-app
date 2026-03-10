@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { MCP_SERVER } from '~/constants'
+import { SESSIONS_QUERY_KEY, type SessionListData } from '~/containers/LlamaAI/hooks/useSessionList'
+import type { ChatSession } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
-import type { ChatSession } from '../types'
-import { assertResponse } from '../utils/assertResponse'
-import { SESSIONS_QUERY_KEY, type SessionListData } from './useSessionList'
 
 export function useSessionMutations() {
 	const { user, authorizedFetch } = useAuthContext()

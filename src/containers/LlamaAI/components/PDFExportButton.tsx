@@ -9,9 +9,9 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 import { MCP_SERVER } from '~/constants'
+import { captureAllCharts, type CapturedChart } from '~/containers/LlamaAI/utils/chartCapture'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { captureAllCharts, type CapturedChart } from '../utils/chartCapture'
 
 const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
 

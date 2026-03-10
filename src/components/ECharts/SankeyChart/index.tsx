@@ -2,7 +2,7 @@ import { SankeyChart as ESankeyChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -45,6 +45,9 @@ export default function SankeyChart({
 		},
 		[valueSymbol]
 	)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -197,15 +200,15 @@ export default function SankeyChart({
 		})
 
 		handleChartReady(instance)
-		onReady?.(instance)
+		emitReady(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
-			onReady?.(null)
+			emitReady(null)
 		}
-	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, onReady, nodeMetadata, formatSankeyValue])
+	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata, formatSankeyValue])
 
 	return (
 		<ChartContainer

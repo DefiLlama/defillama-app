@@ -1,8 +1,8 @@
 import * as Ariakit from '@ariakit/react'
 import { startTransition, type RefObject, useCallback, useEffect, useRef, useState } from 'react'
-import { getAnchorRect, replaceValue } from '../utils/entitySuggestions'
-import { useGetEntities, type EntityResult } from './useGetEntities'
-import { detectTrigger, calculateComboboxPlacement } from './useTriggerDetection'
+import { useGetEntities, type EntityResult } from '~/containers/LlamaAI/hooks/useGetEntities'
+import { calculateComboboxPlacement, detectTrigger } from '~/containers/LlamaAI/hooks/useTriggerDetection'
+import { getAnchorRect, replaceValue } from '~/containers/LlamaAI/utils/entitySuggestions'
 
 interface EntityData extends Pick<EntityResult, 'id' | 'name' | 'type'> {}
 

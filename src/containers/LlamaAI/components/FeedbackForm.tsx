@@ -4,10 +4,10 @@ import { useDeferredValue, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { handleSimpleFetchResponse } from '~/utils/async'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
-import { assertResponse } from '../utils/assertResponse'
+import { handleSimpleFetchResponse } from '~/utils/async'
 
 interface FeedbackFormProps {
 	messageId?: string

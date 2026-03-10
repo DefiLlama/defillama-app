@@ -1,6 +1,6 @@
-import { LegendComponent } from 'echarts/components'
+import { LegendComponent, TitleComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 
-echarts.use([LegendComponent])
+echarts.use([LegendComponent, TitleComponent])
 
 export { echarts }

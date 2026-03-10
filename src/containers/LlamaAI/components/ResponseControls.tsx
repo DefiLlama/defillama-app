@@ -6,14 +6,14 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
+import { FeedbackForm } from '~/containers/LlamaAI/components/FeedbackForm'
+import { PDFExportButton } from '~/containers/LlamaAI/components/PDFExportButton'
+import { ShareModalContent, type ShareData } from '~/containers/LlamaAI/components/ShareModalContent'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
+import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import { assertResponse } from '../utils/assertResponse'
-import { convertLlamaLinksToDefillama } from '../utils/entityLinks'
-import { FeedbackForm } from './FeedbackForm'
-import { PDFExportButton } from './PDFExportButton'
-import { ShareModalContent, type ShareData } from './ShareModalContent'
 
 const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
 
@@ -303,13 +303,7 @@ export function ResponseControls({
 				{sessionId && !readOnly ? (
 					<Tooltip
 						content="Share"
-						render={
-							<button
-								onClick={handleShareSession}
-								disabled={isSharing || showShareModal}
-	
-							/>
-						}
+						render={<button onClick={handleShareSession} disabled={isSharing || showShareModal} />}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
 					>
 						{isSharing ? <LoadingSpinner size={14} /> : <Icon name="share" height={14} width={14} />}

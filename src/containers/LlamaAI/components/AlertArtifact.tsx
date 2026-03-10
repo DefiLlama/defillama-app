@@ -2,10 +2,10 @@ import { useMutation } from '@tanstack/react-query'
 import { memo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
+import type { AlertIntent } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { AlertIntent } from '../types'
-import { assertResponse } from '../utils/assertResponse'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (

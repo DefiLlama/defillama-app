@@ -80,6 +80,92 @@ const hasSeriesType = (options: Record<string, any>, type: string) =>
 	Array.isArray(options.series) &&
 	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
 
+function scaleMarkLineForExport(options: Record<string, any>) {
+	if (!Array.isArray(options.series)) return options
+
+	options.series = options.series.map((series: any) => {
+		if (!series?.markLine) return series
+
+		const nextSeries = { ...series }
+		const nextMarkLine = { ...series.markLine }
+		if (nextMarkLine.label) {
+			nextMarkLine.label = { ...nextMarkLine.label, fontSize: 24 }
+		}
+		if (nextMarkLine.lineStyle) {
+			nextMarkLine.lineStyle = {
+				...nextMarkLine.lineStyle,
+				width: Math.max(2, Number(nextMarkLine.lineStyle.width ?? 1) * 2)
+			}
+		}
+		if (Array.isArray(nextMarkLine.data)) {
+			nextMarkLine.data = nextMarkLine.data.map((segment: any) => {
+				if (!Array.isArray(segment)) return segment
+				return segment.map((point: any) => {
+					if (!point || typeof point !== 'object') return point
+
+					const nextPoint = { ...point }
+					if (nextPoint.label) {
+						nextPoint.label = { ...nextPoint.label, fontSize: 24 }
+					}
+					if (nextPoint.emphasis?.label) {
+						nextPoint.emphasis = {
+							...nextPoint.emphasis,
+							label: {
+								...nextPoint.emphasis.label,
+								fontSize: 24
+							}
+						}
+					}
+					if (typeof nextPoint.y === 'number') {
+						nextPoint.y = nextPoint.y * 2
+					}
+					return nextPoint
+				})
+			})
+		}
+
+		nextSeries.markLine = nextMarkLine
+		return nextSeries
+	})
+
+	return options
+}
+
+function sanitizeScatterSeriesForExport(options: Record<string, any>) {
+	if (!Array.isArray(options.series)) return options
+
+	options.series = options.series.map((series: any) => {
+		if (series?.type !== 'scatter') return series
+
+		const nextSeries = { ...series }
+		const nextData = Array.isArray(series.data)
+			? series.data.map((point: any) => {
+					if (point && typeof point === 'object' && !Array.isArray(point)) {
+						const nextPoint = { ...point }
+						const pointSymbol = typeof nextPoint.symbol === 'string' ? nextPoint.symbol : undefined
+						if (pointSymbol?.startsWith('image://')) {
+							delete nextPoint.symbol
+							nextPoint.symbolSize = typeof nextPoint.symbolSize === 'number' ? Math.min(nextPoint.symbolSize, 12) : 10
+						}
+						return nextPoint
+					}
+					return point
+				})
+			: series.data
+
+		const seriesSymbol = typeof nextSeries.symbol === 'string' ? nextSeries.symbol : undefined
+		if (seriesSymbol?.startsWith('image://')) {
+			delete nextSeries.symbol
+			nextSeries.symbolSize = typeof nextSeries.symbolSize === 'number' ? Math.min(nextSeries.symbolSize, 12) : 10
+		}
+
+		nextSeries.data = nextData
+		return nextSeries
+	})
+
+	return options
+}
+
 async function loadCircularIcon(url: string): Promise<string | null> {
 	const slugMatch = url.match(/\/protocols\/([^?]+)/)
 	const slug = slugMatch?.[1]
@@ -207,6 +293,7 @@ async function renderClonedChartExport(
 	expandLegend: boolean | undefined
 ): Promise<string> {
 	const { echarts: echartsCore } = await import('./chartExportEcharts')
+	const currentOptions = originalChart.getOption()
 
 	const tempChart = echartsCore.init(tempContainer, null, {
 		width: IMAGE_EXPORT_WIDTH,
@@ -215,14 +302,13 @@ async function renderClonedChartExport(
 	})
 
 	try {
-		// Get the current options from the original chart
-		const currentOptions = originalChart.getOption()
-
 		const iconBase64 = iconUrl ? await loadCircularIcon(iconUrl) : null
 
 		const isSankeyChart = hasSeriesType(currentOptions, 'sankey')
 		const isPieChart = hasSeriesType(currentOptions, 'pie')
 		const isTreemapChart = hasSeriesType(currentOptions, 'treemap')
+		const yAxisConfig = Array.isArray(currentOptions.yAxis) ? currentOptions.yAxis[0] : currentOptions.yAxis
+		const isHorizontalBarChart = hasSeriesType(currentOptions, 'bar') && yAxisConfig?.type === 'category'
 
 		// Treemap labels rely on local rich-text sizing. A global textStyle boost makes
 		// inline label text (e.g. "DeFi Active TVL") too large vs the value text.
@@ -254,6 +340,9 @@ async function renderClonedChartExport(
 						width: 2
 					}
 				}
+				if (isHorizontalBarChart && yAxis.type === 'category') {
+					yAxis.boundaryGap = ['4%', '4%']
+				}
 				return yAxis
 			})
 		}
@@ -280,6 +369,9 @@ async function renderClonedChartExport(
 				return graphic
 			})
 		}
+
+		sanitizeScatterSeriesForExport(currentOptions)
+		scaleMarkLineForExport(currentOptions)
 
 		// Handle Sankey chart series - scale up labels for export
 		if (isSankeyChart && Array.isArray(currentOptions.series)) {
@@ -338,10 +430,7 @@ async function renderClonedChartExport(
 			0
 		)
 
-		// If there is no legend on the original chart, we'll still be adding one
-		// below (scroll legend), so treat "has legend" based on either existing
-		// legend config or presence of series.
-		const hasLegend = shouldShowLegendForExport
+		const hasLegend = shouldShowLegendForExport && legendItems.length > 1
 
 		const availableWidth = IMAGE_EXPORT_WIDTH - 32
 		let legendRows = 1
@@ -387,11 +476,27 @@ async function renderClonedChartExport(
 			}
 		}
 
+		if (isHorizontalBarChart && Array.isArray(currentOptions.series)) {
+			const categoryCount = Array.isArray(yAxisConfig?.data) ? yAxisConfig.data.length : 0
+			const bottomPadding = expandLegend ? 32 : 16
+			const plotHeight = Math.max(1, IMAGE_EXPORT_HEIGHT - gridTop - bottomPadding)
+			const bandHeight = categoryCount > 0 ? plotHeight / categoryCount : plotHeight
+			const barStacks = new Set(
+				currentOptions.series.filter((s: any) => s?.type === 'bar').map((s: any) => s.stack ?? s.name ?? '')
+			)
+			const barSeriesCount = Math.max(1, barStacks.size)
+			const barWidth = Math.max(8, Math.min(80, Math.floor((bandHeight * 0.65) / barSeriesCount)))
+
+			currentOptions.series = currentOptions.series.map((series: any) =>
+				series?.type === 'bar' ? { ...series, barWidth } : series
+			)
+		}
+
 		// Pie charts frequently show labels when legend is hidden. The export code used to
 		// force-show a legend, which could cause the exported image to show BOTH labels and
 		// legend at once, overlapping. Keep pie legend behavior consistent with the chart:
 		// only show a legend if the original chart did, and hide labels when a legend is shown.
-		if (isPieChart && shouldShowLegendForExport && Array.isArray(currentOptions.series)) {
+		if (isPieChart && hasLegend && Array.isArray(currentOptions.series)) {
 			currentOptions.series = currentOptions.series.map((series: any) => {
 				if (series?.type !== 'pie') return series
 
@@ -465,8 +570,7 @@ async function renderClonedChartExport(
 		// Set options on the temporary chart with any modifications you want
 		tempChart.setOption(currentOptions)
 
-		// Only set legend for non-Sankey charts (Sankey doesn't use legends)
-		if (shouldShowLegendForExport) {
+		if (hasLegend) {
 			tempChart.setOption({
 				legend: {
 					show: true,
@@ -532,6 +636,7 @@ interface ChartPngExportButtonProps {
 	filename?: string
 	iconUrl?: string
 	expandLegend?: boolean
+	pngProfile?: 'default' | 'scatterWithImageSymbols' | 'treemap'
 }
 
 export function ChartPngExportButton({
@@ -541,7 +646,8 @@ export function ChartPngExportButton({
 	title,
 	filename,
 	iconUrl,
-	expandLegend
+	expandLegend,
+	pngProfile = 'default'
 }: ChartPngExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const router = useRouter()
@@ -568,7 +674,7 @@ export function ChartPngExportButton({
 			}
 			setIsLoading(true)
 
-			const isTreemapExport = hasSeriesType(_chartInstance.getOption(), 'treemap')
+			const isTreemapExport = pngProfile === 'treemap' || hasSeriesType(_chartInstance.getOption(), 'treemap')
 
 			let dataURL: string | null
 

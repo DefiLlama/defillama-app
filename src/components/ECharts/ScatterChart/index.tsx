@@ -12,7 +12,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { formattedNum } from '~/utils'
@@ -46,12 +46,16 @@ export default function ScatterChart({
 	height = '600px',
 	tooltipFormatter,
 	showLabels = false,
-	entityType = 'protocol'
+	entityType = 'protocol',
+	onReady
 }: IScatterChartProps) {
 	const id = useId()
 
 	const [isDark] = useDarkModeManager()
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -61,6 +65,7 @@ export default function ScatterChart({
 		if (!el) return
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
+		emitReady(instance)
 
 		let series = []
 		const isYieldData = chartData.length > 0 && chartData[0].projectName !== undefined
@@ -277,6 +282,7 @@ export default function ScatterChart({
 
 		return () => {
 			chartRef.current = null
+			emitReady(null)
 			instance.dispose()
 		}
 	}, [id, chartData, isDark, tooltipFormatter, xAxisLabel, yAxisLabel, valueSymbol, title, showLabels, entityType])
