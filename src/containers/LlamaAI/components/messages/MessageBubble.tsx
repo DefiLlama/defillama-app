@@ -1,5 +1,5 @@
 import Router from 'next/router'
-import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
@@ -120,23 +120,19 @@ function ActionButtonGroup({
 	const actionSignature = resolvedActions.map((action) => action.compositeId).join('|')
 	const primaryActionKey = (resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0])
 		?.compositeId
+	const optimisticScope = `${actionSignature}:${nextUserMessage ?? ''}`
 	const alreadyClicked = nextUserMessage
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
 				?.compositeId ?? null)
 		: null
-	const [optimisticClicked, setOptimisticClicked] = useState<string | null>(null)
-
-	useEffect(() => {
-		setOptimisticClicked(null)
-	}, [actionSignature, nextUserMessage])
-
-	const clicked = alreadyClicked ?? optimisticClicked
+	const [optimisticClicked, setOptimisticClicked] = useState<{ id: string; scope: string } | null>(null)
+	const clicked = alreadyClicked ?? (optimisticClicked?.scope === optimisticScope ? optimisticClicked.id : null)
 	const isClicked = clicked !== null
 
 	const handleActionClick = (action: { label: string; message: string; compositeId: string }) => {
 		if (!onActionClick || isClicked) return
 		trackUmamiEvent('llamaai-action-click', { label: action.label })
-		setOptimisticClicked(action.compositeId)
+		setOptimisticClicked({ id: action.compositeId, scope: optimisticScope })
 		onActionClick(action.message)
 	}
 
