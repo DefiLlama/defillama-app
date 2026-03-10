@@ -1,5 +1,6 @@
 export { StablecoinsDataset } from './StablecoinsDataset'
 export { CexDataset } from './CexDataset'
+export { CexAnalyticsDataset } from './CexAnalyticsDataset'
 export { RevenueDataset } from './RevenueDataset'
 export { HoldersRevenueDataset } from './HoldersRevenueDataset'
 export { EarningsDataset } from './EarningsDataset'

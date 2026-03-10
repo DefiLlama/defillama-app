@@ -16,7 +16,7 @@ import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
 	BridgeAggregatorsDataset,
-	CexDataset,
+	CexAnalyticsDataset,
 	ChainsDataset,
 	DexsDataset,
 	EarningsDataset,
@@ -258,7 +258,11 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 
 	if (item.kind === 'table') {
 		if (item.tableType === 'dataset') {
-			if (item.datasetType === 'cex') return <CexDataset />
+			if (item.datasetType === 'cex')
+				return (
+					<CexAnalyticsDataset config={{ ...item, datasetType: 'cex-analytics', cexAnalyticsView: 'comparison' }} />
+				)
+			if (item.datasetType === 'cex-analytics') return <CexAnalyticsDataset config={item} />
 			if (item.datasetType === 'revenue')
 				return <RevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
 			if (item.datasetType === 'holders-revenue')

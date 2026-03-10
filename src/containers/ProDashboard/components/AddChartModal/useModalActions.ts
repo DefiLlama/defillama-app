@@ -490,8 +490,23 @@ export function useModalActions(
 						...editItem,
 						kind: 'table',
 						tableType: 'dataset',
-						datasetType: 'cex',
-						chains: []
+						datasetType: 'cex-analytics',
+						chains: [],
+						cexAnalyticsView: 'comparison',
+						cexAnalyticsMetric: 'derivatives',
+						cexAnalyticsTopN: 8
+					} as ProtocolsTableConfig
+				} else if (state.selectedTableType === 'cex-analytics') {
+					newItem = {
+						...editItem,
+						kind: 'table',
+						tableType: 'dataset',
+						datasetType: 'cex-analytics',
+						chains: [],
+						cexAnalyticsView:
+							state.selectedCexAnalyticsView === 'starter' ? 'comparison' : state.selectedCexAnalyticsView,
+						cexAnalyticsMetric: state.selectedCexAnalyticsMetric,
+						cexAnalyticsTopN: state.selectedCexAnalyticsTopN
 					} as ProtocolsTableConfig
 				} else if (state.selectedTableType === 'revenue') {
 					newItem = {
@@ -781,7 +796,35 @@ export function useModalActions(
 				}
 			} else if (state.selectedMainTab === 'table') {
 				if (state.selectedTableType === 'cex') {
-					handleAddTable([], 'dataset', 'cex')
+					handleAddTable([], 'dataset', 'cex-analytics', undefined, undefined, undefined, undefined, 'comparison')
+				} else if (state.selectedTableType === 'cex-analytics') {
+					if (state.selectedCexAnalyticsView === 'starter') {
+						handleAddTable([], 'dataset', 'cex-analytics', undefined, undefined, undefined, undefined, 'summary')
+						handleAddTable([], 'dataset', 'cex-analytics', undefined, undefined, undefined, undefined, 'comparison')
+						handleAddTable(
+							[],
+							'dataset',
+							'cex-analytics',
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							'spot-vs-derivatives'
+						)
+					} else {
+						handleAddTable(
+							[],
+							'dataset',
+							'cex-analytics',
+							undefined,
+							undefined,
+							undefined,
+							undefined,
+							state.selectedCexAnalyticsView,
+							state.selectedCexAnalyticsMetric,
+							state.selectedCexAnalyticsTopN
+						)
+					}
 				} else if (state.selectedTableType === 'stablecoins' && state.selectedDatasetChain) {
 					handleAddTable([state.selectedDatasetChain], 'dataset', 'stablecoins', state.selectedDatasetChain)
 				} else if (state.selectedTableType === 'revenue') {

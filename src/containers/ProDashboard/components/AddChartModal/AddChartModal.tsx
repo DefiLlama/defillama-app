@@ -18,7 +18,7 @@ const EMPTY_CHART_TYPES: string[] = []
 const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
 	'protocols',
 	'stablecoins',
-	'cex',
+	'cex-analytics',
 	'token-usage',
 	'yields',
 	'trending-contracts',
@@ -195,12 +195,19 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onDatasetChainChange={actions.handleDatasetChainChange}
 							selectedDatasetTimeframe={state.selectedDatasetTimeframe}
 							onDatasetTimeframeChange={actions.setSelectedDatasetTimeframe}
+							selectedCexAnalyticsView={state.selectedCexAnalyticsView}
+							onCexAnalyticsViewChange={actions.setSelectedCexAnalyticsView}
+							selectedCexAnalyticsMetric={state.selectedCexAnalyticsMetric}
+							onCexAnalyticsMetricChange={actions.setSelectedCexAnalyticsMetric}
+							selectedCexAnalyticsTopN={state.selectedCexAnalyticsTopN}
+							onCexAnalyticsTopNChange={actions.setSelectedCexAnalyticsTopN}
 							selectedTokens={state.selectedTokens}
 							onTokensChange={actions.handleTokensChange}
 							includeCex={state.includeCex}
 							onIncludeCexChange={actions.setIncludeCex}
 							protocolsLoading={computed.protocolsLoading}
 							legacyTableTypes={legacyTableTypes}
+							isEditingItem={Boolean(editItem)}
 						/>
 					) : null}
 

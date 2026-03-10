@@ -9,6 +9,8 @@ export interface Chain {
 }
 
 export type StoredColSpan = 0.5 | 1 | 1.5 | 2
+export type CexAnalyticsView = 'summary' | 'comparison' | 'spot-vs-derivatives' | 'market-share'
+export type CexAnalyticsMetric = 'spot' | 'derivatives'
 
 export interface MultiChartConfig {
 	id: string
@@ -418,6 +420,7 @@ export interface ProtocolsTableConfig {
 	datasetType?:
 		| 'stablecoins'
 		| 'cex'
+		| 'cex-analytics'
 		| 'revenue'
 		| 'holders-revenue'
 		| 'earnings'
@@ -435,6 +438,9 @@ export interface ProtocolsTableConfig {
 	tokenSymbols?: string[]
 	includeCex?: boolean
 	datasetTimeframe?: string
+	cexAnalyticsView?: CexAnalyticsView
+	cexAnalyticsMetric?: CexAnalyticsMetric
+	cexAnalyticsTopN?: number
 }
 
 export interface CustomColumnDefinition {
@@ -648,6 +654,45 @@ export interface DexItem extends BaseDatasetItem {
 
 // oxlint-disable-next-line typescript/no-empty-object-type
 export interface AggregatorItem extends BaseDatasetItem {}
+
+export interface CexAnalyticsSnapshotRow {
+	venue: string
+	spotVolume24h: number
+	derivativesVolume24h: number
+	spotShare: number
+	derivativesShare: number
+	derivativesToSpotRatio: number | null
+	openInterest: number | null
+	avgLeverage: number | null
+	cleanTvl: number | null
+	volumeToTvl: number | null
+}
+
+export interface CexAnalyticsSummary {
+	totalSpotVolume: number
+	totalDerivativesVolume: number
+	totalOpenInterest: number
+	totalCleanTvl: number
+	weightedAvgLeverage: number | null
+	loadedAt: string | null
+}
+
+export interface CexAnalyticsSnapshotResponse {
+	rows: CexAnalyticsSnapshotRow[]
+	summary: CexAnalyticsSummary
+}
+
+export interface CexAnalyticsTotalsPoint {
+	date: number
+	spotVolume: number
+	derivativesVolume: number
+}
+
+export interface CexAnalyticsMarketSharePoint {
+	date: number
+	venue: string
+	share: number
+}
 
 // oxlint-disable-next-line no-unused-vars
 const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'

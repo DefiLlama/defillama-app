@@ -6,7 +6,13 @@ import {
 	UNIFIED_TABLE_PRESETS,
 	UNIFIED_TABLE_PRESETS_BY_ID
 } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
-import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import type {
+	CexAnalyticsMetric,
+	CexAnalyticsView,
+	TableFilters,
+	UnifiedRowHeaderType,
+	UnifiedTableConfig
+} from '~/containers/ProDashboard/types'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
@@ -41,12 +47,19 @@ interface UnifiedTableTabProps {
 	onDatasetChainChange: (value: string | null) => void
 	selectedDatasetTimeframe: string | null
 	onDatasetTimeframeChange: (timeframe: string) => void
+	selectedCexAnalyticsView: 'starter' | CexAnalyticsView
+	onCexAnalyticsViewChange: (view: 'starter' | CexAnalyticsView) => void
+	selectedCexAnalyticsMetric: CexAnalyticsMetric
+	onCexAnalyticsMetricChange: (metric: CexAnalyticsMetric) => void
+	selectedCexAnalyticsTopN: number
+	onCexAnalyticsTopNChange: (topN: number) => void
 	selectedTokens: string[]
 	onTokensChange: (tokens: string[]) => void
 	includeCex: boolean
 	onIncludeCexChange: (include: boolean) => void
 	protocolsLoading: boolean
 	legacyTableTypes?: CombinedTableType[]
+	isEditingItem?: boolean
 }
 
 const PROTOCOL_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol']
@@ -124,11 +137,11 @@ const TABLE_TYPE_CARDS: Array<{
 		tags: ['APY', 'TVL', 'IL Risk']
 	},
 	{
-		value: 'cex',
-		label: 'CEX',
-		description: 'Centralized exchange assets, flows, and trading metrics',
+		value: 'cex-analytics',
+		label: 'CEXs',
+		description: 'Spot volume, derivatives volume, open interest, leverage, and CEX efficiency.',
 		icon: 'credit-card',
-		tags: ['Assets', 'Flows', 'Volume']
+		tags: ['Spot', 'Derivatives', 'Open Interest', 'Leverage']
 	},
 	{
 		value: 'chains',
@@ -174,12 +187,19 @@ function TabContent({
 	onDatasetChainChange,
 	selectedDatasetTimeframe,
 	onDatasetTimeframeChange,
+	selectedCexAnalyticsView,
+	onCexAnalyticsViewChange,
+	selectedCexAnalyticsMetric,
+	onCexAnalyticsMetricChange,
+	selectedCexAnalyticsTopN,
+	onCexAnalyticsTopNChange,
 	selectedTokens,
 	onTokensChange,
 	includeCex,
 	onIncludeCexChange,
 	protocolsLoading,
-	legacyTableTypes
+	legacyTableTypes,
+	isEditingItem
 }: UnifiedTableTabProps) {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboardEditorActions()
 	const {
@@ -705,6 +725,12 @@ function TabContent({
 				onDatasetChainChange={onDatasetChainChange}
 				selectedDatasetTimeframe={selectedDatasetTimeframe}
 				onDatasetTimeframeChange={onDatasetTimeframeChange}
+				selectedCexAnalyticsView={selectedCexAnalyticsView}
+				onCexAnalyticsViewChange={onCexAnalyticsViewChange}
+				selectedCexAnalyticsMetric={selectedCexAnalyticsMetric}
+				onCexAnalyticsMetricChange={onCexAnalyticsMetricChange}
+				selectedCexAnalyticsTopN={selectedCexAnalyticsTopN}
+				onCexAnalyticsTopNChange={onCexAnalyticsTopNChange}
 				selectedTableType={selectedTableType}
 				onTableTypeChange={onTableTypeChange}
 				selectedTokens={selectedTokens}
@@ -713,6 +739,7 @@ function TabContent({
 				onIncludeCexChange={onIncludeCexChange}
 				legacyTableTypes={legacyTableTypes}
 				onBackToTypeSelector={handleBackToTypeSelector}
+				isEditing={isEditingItem}
 			/>
 		)
 	}

@@ -3,7 +3,9 @@ import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
 import { AriakitVirtualizedSelect } from '../../../AriakitVirtualizedSelect'
+import { CexAnalyticsDataset } from '../../../datasets/CexAnalyticsDataset'
 import { useTokenSearch } from '../../../datasets/TokenUsageDataset/useTokenSearch'
+import type { CexAnalyticsMetric, CexAnalyticsView, ProtocolsTableConfig } from '~/containers/ProDashboard/types'
 import type { CombinedTableType } from '../../types'
 
 interface SimpleTableConfigProps {
@@ -15,6 +17,12 @@ interface SimpleTableConfigProps {
 	onDatasetChainChange: (value: string | null) => void
 	selectedDatasetTimeframe: string | null
 	onDatasetTimeframeChange: (timeframe: string) => void
+	selectedCexAnalyticsView: 'starter' | CexAnalyticsView
+	onCexAnalyticsViewChange: (view: 'starter' | CexAnalyticsView) => void
+	selectedCexAnalyticsMetric: CexAnalyticsMetric
+	onCexAnalyticsMetricChange: (metric: CexAnalyticsMetric) => void
+	selectedCexAnalyticsTopN: number
+	onCexAnalyticsTopNChange: (topN: number) => void
 	selectedTableType: CombinedTableType
 	onTableTypeChange: (type: CombinedTableType) => void
 	selectedTokens: string[]
@@ -23,6 +31,7 @@ interface SimpleTableConfigProps {
 	onIncludeCexChange: (include: boolean) => void
 	legacyTableTypes?: CombinedTableType[]
 	onBackToTypeSelector: () => void
+	isEditing?: boolean
 }
 
 const tableTypeOptions: Array<{
@@ -39,10 +48,10 @@ const tableTypeOptions: Array<{
 		icon: '🌾'
 	},
 	{
-		value: 'cex',
-		label: 'CEX',
-		description: 'Centralized exchange assets, flows, and trading metrics',
-		icon: '🏦'
+		value: 'cex-analytics',
+		label: 'CEXs',
+		description: 'Spot volume, derivatives volume, open interest, leverage, and CEX efficiency',
+		icon: '📊'
 	},
 	{
 		value: 'chains',
@@ -139,6 +148,83 @@ const TRENDING_TIME_PERIOD_OPTIONS = [
 	{ value: '30d', label: '30 Days' }
 ]
 
+const CEX_ANALYTICS_VIEW_OPTIONS = [
+	{ value: 'starter', label: 'Starter Preset' },
+	{ value: 'summary', label: 'Summary Cards' },
+	{ value: 'comparison', label: 'Comparison Table' },
+	{ value: 'spot-vs-derivatives', label: 'Spot vs Derivatives Chart' },
+	{ value: 'market-share', label: 'Market Share Chart' }
+] as const
+
+const CEX_ANALYTICS_VIEW_OPTIONS_EDIT = CEX_ANALYTICS_VIEW_OPTIONS.filter((option) => option.value !== 'starter')
+
+const CEX_ANALYTICS_METRIC_OPTIONS = [
+	{ value: 'spot', label: 'Spot Volume' },
+	{ value: 'derivatives', label: 'Derivatives Volume' }
+] as const
+
+const CEX_ANALYTICS_TOP_N_OPTIONS = [
+	{ value: '5', label: 'Top 5' },
+	{ value: '8', label: 'Top 8' },
+	{ value: '10', label: 'Top 10' },
+	{ value: '12', label: 'Top 12' }
+] as const
+
+function CexAnalyticsPreview({
+	view,
+	metric,
+	topN
+}: {
+	view: 'starter' | CexAnalyticsView
+	metric: CexAnalyticsMetric
+	topN: number
+}) {
+	const previewItems = useMemo<ProtocolsTableConfig[]>(() => {
+		const createConfig = (previewView: CexAnalyticsView, idSuffix: string): ProtocolsTableConfig => ({
+			id: `cex-preview-${idSuffix}`,
+			kind: 'table',
+			tableType: 'dataset',
+			datasetType: 'cex-analytics',
+			chains: [],
+			cexAnalyticsView: previewView,
+			cexAnalyticsMetric: metric,
+			cexAnalyticsTopN: topN
+		})
+
+		if (view === 'starter') {
+			return [
+				createConfig('summary', 'summary'),
+				createConfig('comparison', 'comparison'),
+				createConfig('spot-vs-derivatives', 'spot-vs-derivatives')
+			]
+		}
+
+		return [createConfig(view, view)]
+	}, [metric, topN, view])
+
+	return (
+		<div className="flex flex-col gap-3">
+			<div className={`grid gap-4 ${view === 'starter' ? 'xl:grid-cols-2' : 'grid-cols-1'}`}>
+				{previewItems.map((config) => {
+					const isSummary = config.cexAnalyticsView === 'summary'
+					const heightClass = isSummary ? 'max-h-[240px]' : 'max-h-[420px]'
+
+					return (
+						<div
+							key={config.id}
+							className={`${view === 'starter' && isSummary ? 'xl:col-span-2' : ''} overflow-hidden rounded-xl border border-(--cards-border) bg-(--cards-bg-alt)`}
+						>
+							<div className={`${heightClass} overflow-auto`}>
+								<CexAnalyticsDataset config={config} />
+							</div>
+						</div>
+					)
+				})}
+			</div>
+		</div>
+	)
+}
+
 const EMPTY_LEGACY_TABLE_TYPES: CombinedTableType[] = []
 const EMPTY_TOKEN_OPTIONS: Array<{ value: string; label: string; logo?: string }> = []
 const CHAIN_CATEGORY_OPTIONS = [
@@ -160,6 +246,12 @@ export function SimpleTableConfig({
 	onDatasetChainChange,
 	selectedDatasetTimeframe,
 	onDatasetTimeframeChange,
+	selectedCexAnalyticsView,
+	onCexAnalyticsViewChange,
+	selectedCexAnalyticsMetric,
+	onCexAnalyticsMetricChange,
+	selectedCexAnalyticsTopN,
+	onCexAnalyticsTopNChange,
 	selectedTableType,
 	onTableTypeChange,
 	selectedTokens,
@@ -167,7 +259,8 @@ export function SimpleTableConfig({
 	includeCex,
 	onIncludeCexChange,
 	legacyTableTypes = EMPTY_LEGACY_TABLE_TYPES,
-	onBackToTypeSelector
+	onBackToTypeSelector,
+	isEditing = false
 }: SimpleTableConfigProps) {
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
 	const { data: tokenOptionsData, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
@@ -295,6 +388,41 @@ export function SimpleTableConfig({
 						onChange={(option) => onDatasetTimeframeChange(option.value)}
 						placeholder="Select time period..."
 					/>
+				</>
+			) : selectedTableType === 'cex-analytics' ? (
+				<>
+					<AriakitSelect
+						label="CEX View"
+						options={isEditing ? [...CEX_ANALYTICS_VIEW_OPTIONS_EDIT] : [...CEX_ANALYTICS_VIEW_OPTIONS]}
+						selectedValue={selectedCexAnalyticsView}
+						onChange={(option) => onCexAnalyticsViewChange(option.value as 'starter' | CexAnalyticsView)}
+						placeholder="Select CEX view..."
+					/>
+					{selectedCexAnalyticsView === 'market-share' ? (
+						<>
+							<AriakitSelect
+								label="Share Metric"
+								options={[...CEX_ANALYTICS_METRIC_OPTIONS]}
+								selectedValue={selectedCexAnalyticsMetric}
+								onChange={(option) => onCexAnalyticsMetricChange(option.value as CexAnalyticsMetric)}
+								placeholder="Select metric..."
+							/>
+							<AriakitSelect
+								label="Top CEXs"
+								options={[...CEX_ANALYTICS_TOP_N_OPTIONS]}
+								selectedValue={String(selectedCexAnalyticsTopN)}
+								onChange={(option) => onCexAnalyticsTopNChange(Number(option.value))}
+								placeholder="Select top N..."
+							/>
+						</>
+					) : null}
+					<div className="mt-1">
+						<CexAnalyticsPreview
+							view={selectedCexAnalyticsView}
+							metric={selectedCexAnalyticsMetric}
+							topN={selectedCexAnalyticsTopN}
+						/>
+					</div>
 				</>
 			) : selectedTableType === 'token-usage' ? (
 				<>

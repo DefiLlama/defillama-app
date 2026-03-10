@@ -21,6 +21,8 @@ import type { ProDashboardServerProps } from './queries.server'
 import type { TableServerData } from './server/tableQueries'
 import type { Dashboard } from './services/DashboardAPI'
 import type {
+	CexAnalyticsMetric,
+	CexAnalyticsView,
 	Chain,
 	ChartBuilderConfig,
 	ChartConfig,
@@ -191,6 +193,7 @@ interface ProDashboardEditorActionsContextType {
 		datasetType?:
 			| 'stablecoins'
 			| 'cex'
+			| 'cex-analytics'
 			| 'revenue'
 			| 'holders-revenue'
 			| 'earnings'
@@ -207,7 +210,10 @@ interface ProDashboardEditorActionsContextType {
 		datasetChain?: string,
 		tokenSymbol?: string | string[],
 		includeCex?: boolean,
-		datasetTimeframe?: string
+		datasetTimeframe?: string,
+		cexAnalyticsView?: CexAnalyticsView,
+		cexAnalyticsMetric?: CexAnalyticsMetric,
+		cexAnalyticsTopN?: number
 	) => void
 	handleAddMultiChart: (chartItems: ChartConfig[], name?: string) => void
 	handleAddText: (title: string | undefined, content: string) => void
