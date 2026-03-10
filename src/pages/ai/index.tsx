@@ -486,10 +486,11 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 					</div>
 				</section>
 
-				{/* Capability Strip */}
+				{/* Capability Strip - Desktop: single row of 5, Mobile: 3 top + 2 bottom centered */}
 				<section className="relative z-10 mx-auto max-w-5xl px-4 pb-10 md:px-8">
-					<div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[#E8E8E8] bg-[#E8E8E8] md:grid-cols-5 dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
-						{CAPABILITIES.slice(0, 3).map((cap) => (
+					{/* Desktop: all 5 in one row */}
+					<div className="hidden overflow-hidden rounded-xl border border-[#E8E8E8] bg-[#E8E8E8] md:grid md:grid-cols-5 md:gap-px dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
+						{CAPABILITIES.map((cap) => (
 							<div
 								key={cap.label}
 								className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
@@ -500,29 +501,32 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 							</div>
 						))}
 					</div>
-					<div className="mx-auto mt-px grid w-2/3 grid-cols-2 gap-px overflow-hidden rounded-b-xl border-x border-b border-[#E8E8E8] bg-[#E8E8E8] md:hidden dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
-						{CAPABILITIES.slice(3).map((cap) => (
-							<div
-								key={cap.label}
-								className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
-							>
-								<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
-								<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
-								<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
-							</div>
-						))}
-					</div>
-					<div className="hidden grid-cols-5 md:grid">
-						{CAPABILITIES.slice(3).map((cap) => (
-							<div
-								key={cap.label}
-								className="flex flex-col items-center gap-1.5 px-3 py-4 text-center"
-							>
-								<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
-								<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
-								<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
-							</div>
-						))}
+					{/* Mobile: top row of 3, bottom row of 2 centered */}
+					<div className="flex flex-col items-center md:hidden">
+						<div className="grid w-full grid-cols-3 gap-px overflow-hidden rounded-t-xl border-x border-t border-[#E8E8E8] bg-[#E8E8E8] dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
+							{CAPABILITIES.slice(0, 3).map((cap) => (
+								<div
+									key={cap.label}
+									className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
+								>
+									<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
+									<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
+									<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
+								</div>
+							))}
+						</div>
+						<div className="grid w-2/3 grid-cols-2 gap-px overflow-hidden rounded-b-xl border-x border-b border-[#E8E8E8] bg-[#E8E8E8] dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
+							{CAPABILITIES.slice(3).map((cap) => (
+								<div
+									key={cap.label}
+									className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
+								>
+									<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
+									<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
+									<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
+								</div>
+							))}
+						</div>
 					</div>
 				</section>
 
