@@ -188,7 +188,9 @@ export class ChartDataTransformer {
 				return {
 					name: meta.name,
 					data:
-						meta.baseType === 'bar'
+						// Aggregation semantics follow the data model, not the chart primitive.
+						// Flow metrics sum across the bucket; stock metrics keep the bucket snapshot.
+						meta.metricClass === 'flow'
 							? formatBarChart({ data, groupBy, dateInMs: true, denominationPriceHistory: null })
 							: formatLineChart({ data, groupBy, dateInMs: true, denominationPriceHistory: null })
 				}
