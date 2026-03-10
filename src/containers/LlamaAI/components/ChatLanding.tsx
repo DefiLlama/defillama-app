@@ -44,9 +44,6 @@ export function ChatLanding({
 			<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
 				<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 				<h1 className="text-center text-2xl font-semibold">{title}</h1>
-				<p className="text-center text-sm text-[#808080] dark:text-[#606060]">
-					Charts · Price Forecasts · Alerts · On-chain Analysis · Research Reports
-				</p>
 			</div>
 			{!readOnly ? (
 				<>
