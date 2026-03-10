@@ -1,9 +1,8 @@
+import type { PngExportProfile } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
 import type { AdaptedChartData, LlamaAICartesianDatasetRow } from '~/containers/LlamaAI/utils/chartAdapter'
 import { toNiceCsvDate } from '~/utils'
 import type { CsvCell } from '~/utils/csvCell'
-
-export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap'
 
 export interface ChartExportModel {
 	csvRows: CsvCell[][]

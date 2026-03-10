@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
+import type { CexAnalyticsMetric, CexAnalyticsView, ProtocolsTableConfig } from '~/containers/ProDashboard/types'
 import { getItemIconUrl } from '../../../../utils'
 import { AriakitSelect } from '../../../AriakitSelect'
 import { AriakitVirtualizedMultiSelect } from '../../../AriakitVirtualizedMultiSelect'
 import { AriakitVirtualizedSelect } from '../../../AriakitVirtualizedSelect'
 import { CexAnalyticsDataset } from '../../../datasets/CexAnalyticsDataset'
 import { useTokenSearch } from '../../../datasets/TokenUsageDataset/useTokenSearch'
-import type { CexAnalyticsMetric, CexAnalyticsView, ProtocolsTableConfig } from '~/containers/ProDashboard/types'
 import type { CombinedTableType } from '../../types'
 
 interface SimpleTableConfigProps {

@@ -13,9 +13,8 @@ import {
 } from '@tanstack/react-table'
 import { lazy, Suspense, useEffect, useMemo, useState, type FC, type ReactNode } from 'react'
 import { useTableSearch } from '~/components/Table/utils'
-import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import { useProDashboardTime } from '~/containers/ProDashboard/ProDashboardAPIContext'
+import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
 import type {
 	CexAnalyticsMarketSharePoint,
 	CexAnalyticsMetric,
@@ -23,6 +22,7 @@ import type {
 	CexAnalyticsTotalsPoint,
 	ProtocolsTableConfig
 } from '~/containers/ProDashboard/types'
+import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { formattedNum } from '~/utils'
 import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
@@ -140,7 +140,7 @@ function SummaryCards({ data }: { data: CexAnalyticsSnapshotResponse }) {
 					<p className="text-sm pro-text2">Snapshot metrics across centralized exchanges.</p>
 				</div>
 				{data.summary.loadedAt ? (
-					<span className="text-xs uppercase tracking-wide pro-text3">
+					<span className="text-xs tracking-wide pro-text3 uppercase">
 						Loaded {new Date(data.summary.loadedAt).toLocaleString()}
 					</span>
 				) : null}
@@ -148,7 +148,7 @@ function SummaryCards({ data }: { data: CexAnalyticsSnapshotResponse }) {
 			<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
 				{cards.map((card) => (
 					<div key={card.label} className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-3">
-						<p className="text-xs font-medium tracking-wide uppercase pro-text3">{card.label}</p>
+						<p className="text-xs font-medium tracking-wide pro-text3 uppercase">{card.label}</p>
 						<p className="mt-2 text-2xl font-semibold pro-text1">{card.value}</p>
 					</div>
 				))}

@@ -7,15 +7,68 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { downloadDataURL } from '~/utils/download'
 
+// --- Shared profile type (single source of truth) ---
+
+export type PngExportProfile = 'default' | 'scatterWithImageSymbols' | 'treemap'
+
+// --- Constants ---
+
 const IMAGE_EXPORT_WIDTH = 1280
 const IMAGE_EXPORT_HEIGHT = 720
 const TREEMAP_EXPORT_PORTRAIT_WIDTH = 720
 const TREEMAP_EXPORT_PORTRAIT_HEIGHT = 1280
+const EXPORT_FONT_SIZE = 24
+const LEGEND_ITEM_GAP = 20
+const LEGEND_ITEM_WIDTH = 48
+const BASE_TOP_PADDING = 16
+
+// --- Small utilities ---
+
 const approximateTextWidth = (text: string, fontSize: number) => {
 	if (!text) return 0
-	const averageCharWidthRatio = 0.6
-	return text.length * fontSize * averageCharWidthRatio
+	return text.length * fontSize * 0.6
 }
+
+const parsePixelValue = (value: unknown) => {
+	if (typeof value === 'number' && Number.isFinite(value)) return value
+	if (typeof value === 'string') {
+		const trimmed = value.trim()
+		if (trimmed.endsWith('px')) {
+			const parsed = Number.parseFloat(trimmed.slice(0, -2))
+			if (Number.isFinite(parsed)) return parsed
+		}
+	}
+	return null
+}
+
+const hasSeriesType = (options: Record<string, any>, type: string) =>
+	Array.isArray(options.series) &&
+	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
+
+// --- Series flags ---
+
+interface SeriesFlags {
+	isSankeyChart: boolean
+	isPieChart: boolean
+	isTreemapChart: boolean
+	isScatterChart: boolean
+	isHorizontalBarChart: boolean
+	yAxisConfig: any
+}
+
+function detectSeriesFlags(options: Record<string, any>): SeriesFlags {
+	const yAxisConfig = Array.isArray(options.yAxis) ? options.yAxis[0] : options.yAxis
+	return {
+		isSankeyChart: hasSeriesType(options, 'sankey'),
+		isPieChart: hasSeriesType(options, 'pie'),
+		isTreemapChart: hasSeriesType(options, 'treemap'),
+		isScatterChart: hasSeriesType(options, 'scatter'),
+		isHorizontalBarChart: hasSeriesType(options, 'bar') && yAxisConfig?.type === 'category',
+		yAxisConfig
+	}
+}
+
+// --- PNG rasterization ---
 
 /**
  * ECharts' SVG painter ignores the `type` param and always returns an SVG data URL
@@ -40,7 +93,6 @@ async function getChartPngDataURL(
 		return dataURL
 	}
 
-	// SVG renderer ignores the type param and returns SVG — rasterize to PNG manually
 	const img = new Image()
 	await new Promise<void>((resolve, reject) => {
 		img.onload = () => resolve()
@@ -64,107 +116,7 @@ async function getChartPngDataURL(
 	return canvas.toDataURL('image/png')
 }
 
-const parsePixelValue = (value: unknown) => {
-	if (typeof value === 'number' && Number.isFinite(value)) return value
-	if (typeof value === 'string') {
-		const trimmed = value.trim()
-		if (trimmed.endsWith('px')) {
-			const parsed = Number.parseFloat(trimmed.slice(0, -2))
-			if (Number.isFinite(parsed)) return parsed
-		}
-	}
-	return null
-}
-
-const hasSeriesType = (options: Record<string, any>, type: string) =>
-	Array.isArray(options.series) &&
-	options.series.some((s: any) => s != null && typeof s === 'object' && s.type === type)
-
-function scaleMarkLineForExport(options: Record<string, any>) {
-	if (!Array.isArray(options.series)) return options
-
-	options.series = options.series.map((series: any) => {
-		if (!series?.markLine) return series
-
-		const nextSeries = { ...series }
-		const nextMarkLine = { ...series.markLine }
-		if (nextMarkLine.label) {
-			nextMarkLine.label = { ...nextMarkLine.label, fontSize: 24 }
-		}
-		if (nextMarkLine.lineStyle) {
-			nextMarkLine.lineStyle = {
-				...nextMarkLine.lineStyle,
-				width: Math.max(2, Number(nextMarkLine.lineStyle.width ?? 1) * 2)
-			}
-		}
-		if (Array.isArray(nextMarkLine.data)) {
-			nextMarkLine.data = nextMarkLine.data.map((segment: any) => {
-				if (!Array.isArray(segment)) return segment
-				return segment.map((point: any) => {
-					if (!point || typeof point !== 'object') return point
-
-					const nextPoint = { ...point }
-					if (nextPoint.label) {
-						nextPoint.label = { ...nextPoint.label, fontSize: 24 }
-					}
-					if (nextPoint.emphasis?.label) {
-						nextPoint.emphasis = {
-							...nextPoint.emphasis,
-							label: {
-								...nextPoint.emphasis.label,
-								fontSize: 24
-							}
-						}
-					}
-					if (typeof nextPoint.y === 'number') {
-						nextPoint.y = nextPoint.y * 2
-					}
-					return nextPoint
-				})
-			})
-		}
-
-		nextSeries.markLine = nextMarkLine
-		return nextSeries
-	})
-
-	return options
-}
-
-function sanitizeScatterSeriesForExport(options: Record<string, any>) {
-	if (!Array.isArray(options.series)) return options
-
-	options.series = options.series.map((series: any) => {
-		if (series?.type !== 'scatter') return series
-
-		const nextSeries = { ...series }
-		const nextData = Array.isArray(series.data)
-			? series.data.map((point: any) => {
-					if (point && typeof point === 'object' && !Array.isArray(point)) {
-						const nextPoint = { ...point }
-						const pointSymbol = typeof nextPoint.symbol === 'string' ? nextPoint.symbol : undefined
-						if (pointSymbol?.startsWith('image://')) {
-							delete nextPoint.symbol
-							nextPoint.symbolSize = typeof nextPoint.symbolSize === 'number' ? Math.min(nextPoint.symbolSize, 12) : 10
-						}
-						return nextPoint
-					}
-					return point
-				})
-			: series.data
-
-		const seriesSymbol = typeof nextSeries.symbol === 'string' ? nextSeries.symbol : undefined
-		if (seriesSymbol?.startsWith('image://')) {
-			delete nextSeries.symbol
-			nextSeries.symbolSize = typeof nextSeries.symbolSize === 'number' ? Math.min(nextSeries.symbolSize, 12) : 10
-		}
-
-		nextSeries.data = nextData
-		return nextSeries
-	})
-
-	return options
-}
+// --- Icon loading ---
 
 async function loadCircularIcon(url: string): Promise<string | null> {
 	const slugMatch = url.match(/\/protocols\/([^?]+)/)
@@ -213,11 +165,364 @@ async function loadCircularIcon(url: string): Promise<string | null> {
 	}
 }
 
-/**
- * Export a treemap chart by capturing directly from the original ECharts instance.
- * This preserves the current zoom/drill-down state which getOption() loses.
- * The captured chart is composited onto a canvas with a title overlay.
- */
+// --- Axis scaling for export ---
+
+function scaleXAxisForExport(xAxis: any[]): any[] {
+	return xAxis.map((axis) => {
+		const scaled: any = {
+			...axis,
+			nameTextStyle: { ...(axis.nameTextStyle ?? {}), fontSize: EXPORT_FONT_SIZE },
+			axisLabel: { ...(axis.axisLabel ?? {}), fontSize: EXPORT_FONT_SIZE, inside: false, hideOverlap: true }
+		}
+		if (axis.name) {
+			scaled.nameGap = Math.max(axis.nameGap ?? 15, 36)
+		}
+		return scaled
+	})
+}
+
+function scaleYAxisForExport(yAxis: any[], isHorizontalBarChart: boolean): any[] {
+	return yAxis.map((axis) => {
+		const scaled: any = {
+			...axis,
+			nameTextStyle: { ...(axis.nameTextStyle ?? {}), fontSize: EXPORT_FONT_SIZE },
+			axisLabel: { ...(axis.axisLabel ?? {}), fontSize: EXPORT_FONT_SIZE, inside: false, hideOverlap: true },
+			axisLine: {
+				...(axis.axisLine ?? {}),
+				lineStyle: { ...(axis.axisLine?.lineStyle ?? {}), width: 2 }
+			}
+		}
+		if (axis.offset) {
+			scaled.offset = axis.offset * 2
+		}
+		if (axis.name) {
+			scaled.nameGap = Math.max(axis.nameGap ?? 15, 36)
+		}
+		if (isHorizontalBarChart && axis.type === 'category') {
+			scaled.boundaryGap = ['4%', '4%']
+		}
+		return scaled
+	})
+}
+
+// --- Graphic (watermark) scaling for export ---
+
+function scaleGraphicForExport(graphic: any[]): any[] {
+	return graphic.map((g) => {
+		if (!g.elements) return g
+		return {
+			...g,
+			elements: g.elements.map((element: any) => {
+				if (!element.style?.image?.startsWith('/assets/defillama-')) return element
+				const targetHeight = 80
+				const imageWidth = Math.round((389 / 133) * targetHeight)
+				return {
+					...element,
+					style: { ...element.style, height: targetHeight, width: imageWidth },
+					top: '320px',
+					left: `${(IMAGE_EXPORT_WIDTH - imageWidth) / 2}px`
+				}
+			})
+		}
+	})
+}
+
+// --- Legend item collection ---
+
+function collectLegendItems(options: Record<string, any>, isPieChart: boolean): string[] {
+	const legendConfig = options.legend
+	const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
+
+	if (legendArray.length > 0 && Array.isArray(legendArray[0]?.data)) {
+		return legendArray[0].data.filter((x: any) => typeof x === 'string')
+	}
+	if (isPieChart && Array.isArray(options.series)) {
+		return options.series
+			.filter((s: any) => s.type === 'pie')
+			.flatMap((s: any) => (Array.isArray(s.data) ? s.data.flatMap((d: any) => (d?.name ? [d.name] : [])) : []))
+	}
+	if (Array.isArray(options.series)) {
+		return options.series.flatMap((s: any) => (s.name ? [s.name] : []))
+	}
+	return []
+}
+
+function isLegendVisibleForExport(flags: SeriesFlags, options: Record<string, any>): boolean {
+	if (flags.isSankeyChart || flags.isTreemapChart) return false
+	if (flags.isPieChart) {
+		const legendConfig = options.legend
+		const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
+		return legendArray.length > 0 ? legendArray.some((l: any) => l?.show !== false) : false
+	}
+	return true
+}
+
+// --- Export layout computation ---
+
+interface ExportLayout {
+	gridTop: number
+	legendTop: number
+	canShareRow: boolean
+	hasLegend: boolean
+	legendRows: number
+	totalLegendWidth: number
+}
+
+function computeExportLayout(opts: {
+	title: string | undefined
+	legendItems: string[]
+	shouldShowLegend: boolean
+	hasIcon: boolean
+	expandLegend: boolean | undefined
+}): ExportLayout {
+	const { title, legendItems, shouldShowLegend, hasIcon, expandLegend } = opts
+
+	const totalLegendWidth = legendItems.reduce(
+		(total, name) => total + approximateTextWidth(name, EXPORT_FONT_SIZE) + LEGEND_ITEM_WIDTH + LEGEND_ITEM_GAP,
+		0
+	)
+
+	const hasLegend = shouldShowLegend && legendItems.length > 1
+	const availableWidth = IMAGE_EXPORT_WIDTH - 32
+	let legendRows = 1
+	if (expandLegend) {
+		legendRows = Math.max(1, Math.ceil(totalLegendWidth / availableWidth))
+	}
+
+	const titleHeight = title ? 36 : 0
+	const singleRowHeight = 32
+	const legendHeight = hasLegend ? singleRowHeight * legendRows : 0
+	const verticalGap = 16
+	const titleWidth = title ? approximateTextWidth(title, 28) + (hasIcon ? 40 : 0) : 0
+	const horizontalGap = 24
+	const canShareRow =
+		!!title &&
+		hasLegend &&
+		legendRows === 1 &&
+		totalLegendWidth > 0 &&
+		titleWidth + horizontalGap + totalLegendWidth <= availableWidth
+
+	const legendTop =
+		BASE_TOP_PADDING +
+		(canShareRow ? Math.max(0, (titleHeight - singleRowHeight) / 2) : title ? titleHeight + verticalGap : 0)
+	const gridTop =
+		BASE_TOP_PADDING +
+		(canShareRow
+			? Math.max(titleHeight, legendHeight) + verticalGap
+			: (title ? titleHeight + verticalGap : 0) +
+				(hasLegend ? legendHeight + verticalGap + (expandLegend ? 16 : 0) : 0))
+
+	return { gridTop, legendTop, canShareRow, hasLegend, legendRows, totalLegendWidth }
+}
+
+// --- Series adjustments for export ---
+
+function adjustSeriesForExport(opts: {
+	series: any[]
+	flags: SeriesFlags
+	layout: ExportLayout
+	isDark: boolean
+	title: string | undefined
+	expandLegend: boolean | undefined
+}): any[] {
+	const { flags, layout, isDark, title, expandLegend } = opts
+	let series = [...opts.series]
+
+	// Scatter: strip image:// symbols and scale labels for export
+	series = series.map((s) => {
+		if (s?.type !== 'scatter') return s
+		const next = { ...s }
+		if (Array.isArray(s.data)) {
+			next.data = s.data.map((point: any) => {
+				if (point && typeof point === 'object' && !Array.isArray(point)) {
+					const p = { ...point }
+					if (typeof p.symbol === 'string' && p.symbol.startsWith('image://')) {
+						delete p.symbol
+						p.symbolSize = typeof p.symbolSize === 'number' ? Math.min(p.symbolSize, 12) : 10
+					}
+					return p
+				}
+				return point
+			})
+		}
+		if (typeof next.symbol === 'string' && next.symbol.startsWith('image://')) {
+			delete next.symbol
+			next.symbolSize = typeof next.symbolSize === 'number' ? Math.min(next.symbolSize, 12) : 10
+		}
+		if (next.label) {
+			const labelFontSize = typeof next.label.fontSize === 'number' ? next.label.fontSize : 10
+			next.label = { ...next.label, fontSize: Math.round(labelFontSize * 2) }
+		}
+		return next
+	})
+
+	// MarkLine: scale labels and line widths for the larger export canvas
+	series = series.map((s) => {
+		if (!s?.markLine) return s
+		const next = { ...s }
+		const ml = { ...s.markLine }
+		if (ml.label) {
+			ml.label = { ...ml.label, fontSize: EXPORT_FONT_SIZE }
+		}
+		if (ml.lineStyle) {
+			ml.lineStyle = { ...ml.lineStyle, width: Math.max(2, Number(ml.lineStyle.width ?? 1) * 2) }
+		}
+		if (Array.isArray(ml.data)) {
+			ml.data = ml.data.map((segment: any) => {
+				if (!Array.isArray(segment)) return segment
+				return segment.map((point: any) => {
+					if (!point || typeof point !== 'object') return point
+					const p = { ...point }
+					if (p.label) {
+						p.label = { ...p.label, fontSize: EXPORT_FONT_SIZE }
+					}
+					if (p.emphasis?.label) {
+						p.emphasis = { ...p.emphasis, label: { ...p.emphasis.label, fontSize: EXPORT_FONT_SIZE } }
+					}
+					if (typeof p.y === 'number') {
+						p.y = p.y * 2
+					}
+					return p
+				})
+			})
+		}
+		next.markLine = ml
+		return next
+	})
+
+	// Sankey: scale labels and increase spacing for readability
+	if (flags.isSankeyChart) {
+		series = series.map((s) => {
+			if (s.type !== 'sankey') return s
+			return {
+				...s,
+				top: title ? 60 : 30,
+				label: {
+					...(s.label ?? {}),
+					fontSize: 18,
+					rich: {
+						name: {
+							fontSize: 18,
+							fontWeight: 'normal',
+							color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
+						},
+						desc: {
+							fontSize: 12,
+							color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
+						}
+					}
+				},
+				nodeGap: 28,
+				nodeWidth: 20
+			}
+		})
+	}
+
+	// HBar: scale bar widths to fill the fixed 720px canvas
+	if (flags.isHorizontalBarChart) {
+		const categoryCount = Array.isArray(flags.yAxisConfig?.data) ? flags.yAxisConfig.data.length : 0
+		const bottomPadding = expandLegend ? 32 : 16
+		const plotHeight = Math.max(1, IMAGE_EXPORT_HEIGHT - layout.gridTop - bottomPadding)
+		const bandHeight = categoryCount > 0 ? plotHeight / categoryCount : plotHeight
+		const barStacks = new Set(series.filter((s: any) => s?.type === 'bar').map((s: any) => s.stack ?? s.name ?? ''))
+		const barSeriesCount = Math.max(1, barStacks.size)
+		const barWidth = Math.max(8, Math.min(80, Math.floor((bandHeight * 0.65) / barSeriesCount)))
+		series = series.map((s) => (s?.type === 'bar' ? { ...s, barWidth } : s))
+	}
+
+	// Pie: recenter for the fixed export canvas and hide labels when legend is shown
+	if (flags.isPieChart && layout.hasLegend) {
+		series = series.map((s) => {
+			if (s?.type !== 'pie') return s
+			const existingLabelLayout = s.labelLayout
+			const nextLabelLayout =
+				typeof existingLabelLayout === 'function'
+					? existingLabelLayout
+					: { ...(existingLabelLayout ?? {}), hideOverlap: true }
+			const left = parsePixelValue(s.left) ?? 0
+			const right = parsePixelValue(s.right) ?? 0
+			const drawableWidth = Math.max(1, IMAGE_EXPORT_WIDTH - left - right)
+			const nextCenterX = Math.round(left + drawableWidth / 2)
+			const nextCenterY = Array.isArray(s.center) && s.center.length > 1 ? s.center[1] : '50%'
+			return {
+				...s,
+				center: [nextCenterX, nextCenterY],
+				avoidLabelOverlap: true,
+				labelLayout: nextLabelLayout,
+				label: { ...(s.label ?? {}), show: false },
+				labelLine: { ...(s.labelLine ?? {}), show: false }
+			}
+		})
+	}
+
+	// Treemap: push chart body below title area
+	if (flags.isTreemapChart) {
+		series = series.map((s) => {
+			if (s?.type !== 'treemap') return s
+			return {
+				...s,
+				top: layout.gridTop,
+				left: 16,
+				right: 16,
+				bottom: 16,
+				breadcrumb: { ...(s?.breadcrumb ?? {}), show: false }
+			}
+		})
+	}
+
+	return series
+}
+
+// --- Export title construction ---
+
+function buildExportTitle(opts: {
+	title: string | undefined
+	iconBase64: string | null
+	isDark: boolean
+}): Record<string, any> {
+	const { title, iconBase64, isDark } = opts
+	return {
+		text: iconBase64 ? `{icon|} ${title}` : title,
+		textStyle: {
+			fontSize: 28,
+			fontWeight: 600,
+			color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
+			rich: iconBase64
+				? {
+						icon: {
+							height: 32,
+							width: 32,
+							verticalAlign: 'middle',
+							backgroundColor: { image: iconBase64 }
+						}
+					}
+				: undefined
+		},
+		left: 14,
+		top: BASE_TOP_PADDING
+	}
+}
+
+// --- Chart render wait ---
+
+function waitForChartRender(chart: echarts.ECharts, timeoutMs = 1500): Promise<void> {
+	return new Promise<void>((resolve) => {
+		let timeoutId: ReturnType<typeof setTimeout> | null = null
+		const handler = () => {
+			if (timeoutId) clearTimeout(timeoutId)
+			chart.off('rendered', handler)
+			resolve()
+		}
+		timeoutId = setTimeout(() => {
+			chart.off('rendered', handler)
+			resolve()
+		}, timeoutMs)
+		chart.on('rendered', handler)
+	})
+}
+
+// --- Treemap direct export (preserves zoom/drill-down state) ---
+
 async function exportTreemapWithZoom(
 	chart: echarts.ECharts,
 	title: string | undefined,
@@ -250,11 +555,9 @@ async function exportTreemapWithZoom(
 
 		ctx.scale(dpr, dpr)
 
-		// Background
 		ctx.fillStyle = isDark ? '#0b1214' : '#ffffff'
 		ctx.fillRect(0, 0, exportWidth, exportHeight)
 
-		// Title
 		const titleText = title || ''
 		let chartTop = 12
 		if (titleText) {
@@ -264,7 +567,6 @@ async function exportTreemapWithZoom(
 			chartTop = 52
 		}
 
-		// Draw the captured chart image, scaled to fit the export canvas.
 		const chartAreaW = exportWidth - 24
 		const chartAreaH = exportHeight - chartTop - 12
 		const imgAspect = chartImg.width / chartImg.height
@@ -283,6 +585,8 @@ async function exportTreemapWithZoom(
 		return null
 	}
 }
+
+// --- Clone export orchestrator ---
 
 async function renderClonedChartExport(
 	tempContainer: HTMLDivElement,
@@ -303,327 +607,96 @@ async function renderClonedChartExport(
 
 	try {
 		const iconBase64 = iconUrl ? await loadCircularIcon(iconUrl) : null
+		const flags = detectSeriesFlags(currentOptions)
 
-		const isSankeyChart = hasSeriesType(currentOptions, 'sankey')
-		const isPieChart = hasSeriesType(currentOptions, 'pie')
-		const isTreemapChart = hasSeriesType(currentOptions, 'treemap')
-		const yAxisConfig = Array.isArray(currentOptions.yAxis) ? currentOptions.yAxis[0] : currentOptions.yAxis
-		const isHorizontalBarChart = hasSeriesType(currentOptions, 'bar') && yAxisConfig?.type === 'category'
-
-		// Treemap labels rely on local rich-text sizing. A global textStyle boost makes
-		// inline label text (e.g. "DeFi Active TVL") too large vs the value text.
-		if (!isTreemapChart) {
-			currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: 24 }
+		// Treemap labels rely on local rich-text sizing; a global boost makes them too large.
+		if (!flags.isTreemapChart) {
+			currentOptions.textStyle = { ...(currentOptions.textStyle ?? {}), fontSize: EXPORT_FONT_SIZE }
 		}
 
 		if (currentOptions.xAxis) {
-			// @ts-expect-error - all options are in array format
-			currentOptions.xAxis = currentOptions.xAxis.map((xAxis) => {
-				xAxis.nameTextStyle = { ...(xAxis.nameTextStyle ?? {}), fontSize: 24 }
-				xAxis.axisLabel = { ...(xAxis.axisLabel ?? {}), fontSize: 24 }
-				return xAxis
-			})
+			currentOptions.xAxis = scaleXAxisForExport(currentOptions.xAxis as any[])
 		}
-
 		if (currentOptions.yAxis) {
-			// @ts-expect-error - all options are in array format
-			currentOptions.yAxis = currentOptions.yAxis.map((yAxis) => {
-				yAxis.nameTextStyle = { ...(yAxis.nameTextStyle ?? {}), fontSize: 24 }
-				yAxis.axisLabel = { ...(yAxis.axisLabel ?? {}), fontSize: 24 }
-				if (yAxis.offset) {
-					yAxis.offset = yAxis.offset * 2
-				}
-				yAxis.axisLine = {
-					...(yAxis.axisLine ?? {}),
-					lineStyle: {
-						...(yAxis.axisLine?.lineStyle ?? {}),
-						width: 2
-					}
-				}
-				if (isHorizontalBarChart && yAxis.type === 'category') {
-					yAxis.boundaryGap = ['4%', '4%']
-				}
-				return yAxis
-			})
+			currentOptions.yAxis = scaleYAxisForExport(currentOptions.yAxis as any[], flags.isHorizontalBarChart)
 		}
-
 		if (currentOptions.graphic) {
-			// @ts-expect-error - all options are in array format
-			currentOptions.graphic = currentOptions.graphic.map((graphic) => {
-				if (graphic.elements) {
-					graphic.elements = graphic.elements.map((element: any) => {
-						if (element.style?.image?.startsWith('/assets/defillama-')) {
-							const originalWidth = 389
-							const originalHeight = 133
-							const targetHeight = 80
-							const imageWidth = Math.round((originalWidth / originalHeight) * targetHeight)
-							element.style.height = targetHeight
-							element.style.width = imageWidth
-							element.top = '320px'
-							element.left = `${(IMAGE_EXPORT_WIDTH - imageWidth) / 2}px`
-						}
-
-						return element
-					})
-				}
-				return graphic
-			})
+			currentOptions.graphic = scaleGraphicForExport(currentOptions.graphic as any[])
 		}
 
-		sanitizeScatterSeriesForExport(currentOptions)
-		scaleMarkLineForExport(currentOptions)
+		const legendItems = collectLegendItems(currentOptions, flags.isPieChart)
+		const showLegend = isLegendVisibleForExport(flags, currentOptions)
+		const layout = computeExportLayout({
+			title,
+			legendItems,
+			shouldShowLegend: showLegend,
+			hasIcon: !!iconBase64,
+			expandLegend
+		})
 
-		// Handle Sankey chart series - scale up labels for export
-		if (isSankeyChart && Array.isArray(currentOptions.series)) {
-			currentOptions.series = currentOptions.series.map((series: any) => {
-				if (series.type === 'sankey') {
-					return {
-						...series,
-						top: title ? 60 : 30, // Add top padding to avoid collision with title
-						label: {
-							...(series.label ?? {}),
-							fontSize: 18, // Slightly larger than default for export readability
-							rich: {
-								name: {
-									fontSize: 18,
-									fontWeight: 'normal',
-									color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.9)'
-								},
-								desc: {
-									fontSize: 12,
-									color: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)'
-								}
-							}
-						},
-						nodeGap: 28, // Slightly increase node gap for better spacing
-						nodeWidth: 20 // Slightly increase node width for better visibility
-					}
-				}
-				return series
-			})
-		}
+		currentOptions.series = adjustSeriesForExport({
+			series: (currentOptions.series as any[]) ?? [],
+			flags,
+			layout,
+			isDark,
+			title,
+			expandLegend
+		})
 
-		// Legend layout calculations
-		const legendConfig = currentOptions.legend
-		const legendArray = Array.isArray(legendConfig) ? legendConfig : legendConfig ? [legendConfig] : []
-
-		const legendItemGap = 20
-		const legendFontSize = 24
-		const legendItemWidth = 48
-		const originalLegendShow = legendArray.length > 0 ? legendArray.some((l: any) => l?.show !== false) : false
-		const shouldShowLegendForExport = !isSankeyChart && !isTreemapChart && (!isPieChart || originalLegendShow)
-
-		// Legend sizing needs legend item names, not series names (pie legend uses data item names).
-		const legendItems: string[] =
-			legendArray.length > 0 && Array.isArray(legendArray[0]?.data)
-				? legendArray[0].data.filter((x: any) => typeof x === 'string')
-				: isPieChart && Array.isArray(currentOptions.series)
-					? currentOptions.series
-							.filter((s: any) => s.type === 'pie')
-							.flatMap((s: any) => (Array.isArray(s.data) ? s.data.flatMap((d: any) => (d?.name ? [d.name] : [])) : []))
-					: Array.isArray(currentOptions.series)
-						? currentOptions.series.flatMap((s: any) => (s.name ? [s.name] : []))
-						: []
-
-		const totalLegendWidth = legendItems.reduce(
-			(total, name) => total + approximateTextWidth(name, legendFontSize) + legendItemWidth + legendItemGap,
-			0
-		)
-
-		const hasLegend = shouldShowLegendForExport && legendItems.length > 1
-
-		const availableWidth = IMAGE_EXPORT_WIDTH - 32
-		let legendRows = 1
-
-		if (expandLegend) {
-			legendRows = Math.max(1, Math.ceil(totalLegendWidth / availableWidth))
-		}
-
-		const baseTopPadding = 16
-		const titleHeight = title ? 36 : 0
-		const singleRowHeight = 32
-		const legendHeight = hasLegend ? singleRowHeight * legendRows : 0
-		const verticalGap = 16
-		const titleWidth = title ? approximateTextWidth(title, 28) + (iconBase64 ? 40 : 0) : 0
-		const horizontalGap = 24
-		const canShareRow =
-			!!title &&
-			hasLegend &&
-			legendRows === 1 &&
-			totalLegendWidth > 0 &&
-			titleWidth + horizontalGap + totalLegendWidth <= availableWidth
-
-		const legendTop =
-			baseTopPadding +
-			(canShareRow ? Math.max(0, (titleHeight - singleRowHeight) / 2) : title ? titleHeight + verticalGap : 0)
-		const gridTop =
-			baseTopPadding +
-			(canShareRow
-				? Math.max(titleHeight, legendHeight) + verticalGap
-				: (title ? titleHeight + verticalGap : 0) +
-					(hasLegend ? legendHeight + verticalGap + (expandLegend ? 16 : 0) : 0))
-
+		currentOptions.title = buildExportTitle({ title, iconBase64, isDark })
 		currentOptions.animation = false
-		// Only set grid for non-Sankey charts (Sankey doesn't use grid layout)
-		if (!isSankeyChart) {
+
+		if (!flags.isSankeyChart) {
+			const hasYAxisName = Array.isArray(currentOptions.yAxis) && currentOptions.yAxis.some((a: any) => !!a?.name)
+			const hasXAxisName = Array.isArray(currentOptions.xAxis) && currentOptions.xAxis.some((a: any) => !!a?.name)
+			const scatterLeftPad = flags.isScatterChart && hasYAxisName ? 48 : 16
+			const scatterBottomPad = flags.isScatterChart && hasXAxisName ? 48 : expandLegend ? 32 : 16
 			currentOptions.grid = {
-				left: 16,
-				bottom: expandLegend ? 32 : 16,
-				top: gridTop,
+				left: scatterLeftPad,
+				bottom: scatterBottomPad,
+				top: layout.gridTop,
 				right: 16,
 				outerBoundsMode: 'same',
 				outerBoundsContain: 'axisLabel'
 			}
 		}
 
-		if (isHorizontalBarChart && Array.isArray(currentOptions.series)) {
-			const categoryCount = Array.isArray(yAxisConfig?.data) ? yAxisConfig.data.length : 0
-			const bottomPadding = expandLegend ? 32 : 16
-			const plotHeight = Math.max(1, IMAGE_EXPORT_HEIGHT - gridTop - bottomPadding)
-			const bandHeight = categoryCount > 0 ? plotHeight / categoryCount : plotHeight
-			const barStacks = new Set(
-				currentOptions.series.filter((s: any) => s?.type === 'bar').map((s: any) => s.stack ?? s.name ?? '')
-			)
-			const barSeriesCount = Math.max(1, barStacks.size)
-			const barWidth = Math.max(8, Math.min(80, Math.floor((bandHeight * 0.65) / barSeriesCount)))
-
-			currentOptions.series = currentOptions.series.map((series: any) =>
-				series?.type === 'bar' ? { ...series, barWidth } : series
-			)
-		}
-
-		// Pie charts frequently show labels when legend is hidden. The export code used to
-		// force-show a legend, which could cause the exported image to show BOTH labels and
-		// legend at once, overlapping. Keep pie legend behavior consistent with the chart:
-		// only show a legend if the original chart did, and hide labels when a legend is shown.
-		if (isPieChart && hasLegend && Array.isArray(currentOptions.series)) {
-			currentOptions.series = currentOptions.series.map((series: any) => {
-				if (series?.type !== 'pie') return series
-
-				const existingLabelLayout = series.labelLayout
-				const nextLabelLayout =
-					typeof existingLabelLayout === 'function'
-						? existingLabelLayout
-						: { ...(existingLabelLayout ?? {}), hideOverlap: true }
-
-				// Runtime pie charts can set `center` in absolute pixels to fit responsive layouts.
-				// Recompute x-center for the fixed export canvas so the pie stays centered in its
-				// drawable area and doesn't get clipped on the left.
-				const left = parsePixelValue(series.left) ?? 0
-				const right = parsePixelValue(series.right) ?? 0
-				const drawableWidth = Math.max(1, IMAGE_EXPORT_WIDTH - left - right)
-				const nextCenterX = Math.round(left + drawableWidth / 2)
-				const nextCenterY = Array.isArray(series.center) && series.center.length > 1 ? series.center[1] : '50%'
-
-				return {
-					...series,
-					center: [nextCenterX, nextCenterY],
-					avoidLabelOverlap: true,
-					labelLayout: nextLabelLayout,
-					label: { ...(series.label ?? {}), show: false },
-					labelLine: { ...(series.labelLine ?? {}), show: false }
-				}
-			})
-		}
-
-		currentOptions.title = {
-			text: iconBase64 ? `{icon|} ${title}` : title,
-			textStyle: {
-				fontSize: 28,
-				fontWeight: 600,
-				color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)',
-				rich: iconBase64
-					? {
-							icon: {
-								height: 32,
-								width: 32,
-								verticalAlign: 'middle',
-								backgroundColor: {
-									image: iconBase64
-								}
-							}
-						}
-					: undefined
-			},
-			left: 14,
-			top: baseTopPadding
-		}
-
-		// Treemap export layout:
-		// - Keep equal horizontal and bottom padding
-		// - Push the chart body down to leave a clear gap under the title
-		if (isTreemapChart && Array.isArray(currentOptions.series)) {
-			currentOptions.series = currentOptions.series.map((series: any) => {
-				if (series?.type !== 'treemap') return series
-
-				return {
-					...series,
-					top: gridTop,
-					left: 16,
-					right: 16,
-					bottom: 16,
-					breadcrumb: { ...(series?.breadcrumb ?? {}), show: false }
-				}
-			})
-		}
-
-		// Set options on the temporary chart with any modifications you want
 		tempChart.setOption(currentOptions)
 
-		if (hasLegend) {
+		if (layout.hasLegend) {
 			tempChart.setOption({
 				legend: {
 					show: true,
 					textStyle: {
-						fontSize: 24,
+						fontSize: EXPORT_FONT_SIZE,
 						color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
 					},
 					itemHeight: 24,
 					itemWidth: 48,
-					itemGap: legendItemGap,
-					top: legendTop,
+					itemGap: LEGEND_ITEM_GAP,
+					top: layout.legendTop,
 					right: 16,
 					...(expandLegend
-						? { type: 'plain', padding: [0, 0, 0, 0], ...(canShareRow ? {} : { left: 16 }) }
+						? { type: 'plain', padding: [0, 0, 0, 0], ...(layout.canShareRow ? {} : { left: 16 }) }
 						: { type: 'scroll', padding: [0, 0, 0, 18] }),
 					pageButtonPosition: 'end'
 				}
 			})
 		}
 
-		// Wait for the chart (including async image loading) to finish rendering.
-		// In some cases (many series, large data) the render event may not fire reliably,
-		// so we also add a timeout fallback to avoid hanging forever.
-		await new Promise<void>((resolve) => {
-			let timeoutId: ReturnType<typeof setTimeout> | null = null
+		await waitForChartRender(tempChart)
 
-			const handler = () => {
-				if (timeoutId) {
-					clearTimeout(timeoutId)
-				}
-				tempChart.off('rendered', handler)
-				resolve()
-			}
-
-			timeoutId = setTimeout(() => {
-				tempChart.off('rendered', handler)
-				resolve()
-			}, 1500)
-
-			tempChart.on('rendered', handler)
-		})
-
-		const dataURL = await getChartPngDataURL(tempChart, {
+		return await getChartPngDataURL(tempChart, {
 			pixelRatio: 2,
 			backgroundColor: isDark ? '#0b1214' : '#ffffff',
 			excludeComponents: ['toolbox', 'dataZoom']
 		})
-
-		return dataURL
 	} finally {
 		tempChart.dispose()
 	}
 }
+
+// --- Component ---
 
 const DEFAULT_CLASSNAME =
 	'flex items-center justify-center gap-1 rounded-md border border-blue-500 px-2 py-1.5 text-xs text-blue-500 hover:bg-(--link-hover-bg) hover:text-black dark:hover:text-white focus-visible:bg-(--link-hover-bg) focus-visible:text-white disabled:text-(--text-disabled)'
@@ -636,7 +709,7 @@ interface ChartPngExportButtonProps {
 	filename?: string
 	iconUrl?: string
 	expandLegend?: boolean
-	pngProfile?: 'default' | 'scatterWithImageSymbols' | 'treemap'
+	pngProfile?: PngExportProfile
 }
 
 export function ChartPngExportButton({
