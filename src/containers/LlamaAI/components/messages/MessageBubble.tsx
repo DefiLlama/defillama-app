@@ -1,11 +1,11 @@
 import Router from 'next/router'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
-import { MarkdownRenderer } from '~/containers/LlamaAI/components/markdown/MarkdownRenderer'
+import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
 import { ThinkingPanel, TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import {
@@ -40,6 +40,63 @@ function getToolExecutionKey(execution: ToolExecution) {
 	)
 }
 
+function getActionHrefProps(href: string, label: string) {
+	if (href.startsWith('http')) {
+		return {
+			href,
+			target: '_blank' as const,
+			rel: 'noopener noreferrer',
+			onClick: () => trackUmamiEvent('llamaai-action-link-click', { label })
+		}
+	}
+
+	return {
+		href: `https://defillama.com${href}`,
+		onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => {
+			trackUmamiEvent('llamaai-action-link-click', { label })
+			event.preventDefault()
+			void Router.push(href)
+		}
+	}
+}
+
+function ActionLink({
+	action,
+	variant
+}: {
+	action: { label: string; message: string; compositeId: string }
+	variant: 'decision' | 'suggestion'
+}) {
+	const href = action.message.slice(4)
+
+	return (
+		<a
+			{...getActionHrefProps(href, action.label)}
+			className={
+				variant === 'decision'
+					? 'inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/3 px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/8 active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/3 dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/8'
+					: 'inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/10 bg-[#2172e5]/4 px-3 py-1.5 text-xs font-medium text-[#2172e5]/55 transition-all duration-150 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75'
+			}
+		>
+			{action.label}
+			<svg
+				width={variant === 'decision' ? '12' : '10'}
+				height={variant === 'decision' ? '12' : '10'}
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth="2"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+				className={variant === 'decision' ? undefined : 'opacity-60'}
+			>
+				<path d="M7 17L17 7" />
+				<path d="M7 7h10v10" />
+			</svg>
+		</a>
+	)
+}
+
 function ActionButtonGroup({
 	actions,
 	onActionClick,
@@ -60,14 +117,28 @@ function ActionButtonGroup({
 			compositeId: getIndexedActionKey(resolvedAction, index)
 		}
 	})
+	const actionSignature = resolvedActions.map((action) => action.compositeId).join('|')
 	const primaryActionKey = (resolvedActions.find((action) => !action.message.startsWith('url:')) || resolvedActions[0])
 		?.compositeId
 	const alreadyClicked = nextUserMessage
 		? (resolvedActions.find((action) => !action.message.startsWith('url:') && action.message === nextUserMessage)
 				?.compositeId ?? null)
 		: null
-	const [clicked, setClicked] = useState<string | null>(alreadyClicked)
+	const [optimisticClicked, setOptimisticClicked] = useState<string | null>(null)
+
+	useEffect(() => {
+		setOptimisticClicked(null)
+	}, [actionSignature, nextUserMessage])
+
+	const clicked = alreadyClicked ?? optimisticClicked
 	const isClicked = clicked !== null
+
+	const handleActionClick = (action: { label: string; message: string; compositeId: string }) => {
+		if (!onActionClick || isClicked) return
+		trackUmamiEvent('llamaai-action-click', { label: action.label })
+		setOptimisticClicked(action.compositeId)
+		onActionClick(action.message)
+	}
 
 	if (isDecisionGroup) {
 		return (
@@ -78,50 +149,7 @@ function ActionButtonGroup({
 					const isPrimary = !isUrl && actionKey === primaryActionKey
 
 					if (isUrl) {
-						const href = action.message.slice(4)
-						return (
-							<a
-								key={actionKey}
-								{...(href.startsWith('http')
-									? {
-											href,
-											target: '_blank',
-											rel: 'noopener noreferrer',
-											onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label })
-										}
-									: {
-											href: `https://defillama.com${href}`,
-											onClick: (event: React.MouseEvent) => {
-												trackUmamiEvent('llamaai-action-link-click', { label: action.label })
-												event.preventDefault()
-												void Router.push(href)
-											}
-										})}
-								className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/15 bg-[#2172e5]/3 px-4 py-2 text-sm font-medium text-[#2172e5] transition-all duration-150 hover:border-[#2172e5]/35 hover:bg-[#2172e5]/8 active:scale-[0.97] dark:border-[#4190f7]/15 dark:bg-[#4190f7]/3 dark:text-[#4190f7] dark:hover:border-[#4190f7]/35 dark:hover:bg-[#4190f7]/8"
-							>
-								{action.label}
-								<svg
-									width="12"
-									height="12"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									strokeWidth="2"
-									strokeLinecap="round"
-									strokeLinejoin="round"
-								>
-									<path d="M7 17L17 7" />
-									<path d="M7 7h10v10" />
-								</svg>
-							</a>
-						)
-					}
-
-					const handleClick = () => {
-						if (!onActionClick || isClicked) return
-						trackUmamiEvent('llamaai-action-click', { label: action.label })
-						setClicked(action.compositeId)
-						onActionClick(action.message)
+						return <ActionLink key={actionKey} action={action} variant="decision" />
 					}
 
 					if (isPrimary) {
@@ -130,7 +158,7 @@ function ActionButtonGroup({
 								key={actionKey}
 								type="button"
 								disabled={isClicked || !onActionClick}
-								onClick={handleClick}
+								onClick={() => handleActionClick(action)}
 								className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-150 ${
 									!isClicked
 										? onActionClick
@@ -151,7 +179,7 @@ function ActionButtonGroup({
 							key={actionKey}
 							type="button"
 							disabled={isClicked || !onActionClick}
-							onClick={handleClick}
+							onClick={() => handleActionClick(action)}
 							className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-150 ${
 								!isClicked
 									? onActionClick
@@ -177,44 +205,7 @@ function ActionButtonGroup({
 				const actionKey = action.compositeId
 
 				if (isUrl) {
-					const href = action.message.slice(4)
-					return (
-						<a
-							key={actionKey}
-							{...(href.startsWith('http')
-								? {
-										href,
-										target: '_blank',
-										rel: 'noopener noreferrer',
-										onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label })
-									}
-								: {
-										href: `https://defillama.com${href}`,
-										onClick: (event: React.MouseEvent) => {
-											trackUmamiEvent('llamaai-action-link-click', { label: action.label })
-											event.preventDefault()
-											void Router.push(href)
-										}
-									})}
-							className="inline-flex items-center gap-1.5 rounded-full border border-[#2172e5]/10 bg-[#2172e5]/4 px-3 py-1.5 text-xs font-medium text-[#2172e5]/55 transition-all duration-150 hover:border-[#2172e5]/20 hover:bg-[#2172e5]/8 hover:text-[#2172e5]/75 active:scale-[0.97] dark:border-[#4190f7]/10 dark:bg-[#4190f7]/5 dark:text-[#4190f7]/50 dark:hover:border-[#4190f7]/20 dark:hover:bg-[#4190f7]/10 dark:hover:text-[#4190f7]/75"
-						>
-							{action.label}
-							<svg
-								width="10"
-								height="10"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								strokeWidth="2"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								className="opacity-60"
-							>
-								<path d="M7 17L17 7" />
-								<path d="M7 7h10v10" />
-							</svg>
-						</a>
-					)
+					return <ActionLink key={actionKey} action={action} variant="suggestion" />
 				}
 
 				return (
@@ -222,12 +213,7 @@ function ActionButtonGroup({
 						key={actionKey}
 						type="button"
 						disabled={isClicked || !onActionClick}
-						onClick={() => {
-							if (!onActionClick || isClicked) return
-							trackUmamiEvent('llamaai-action-click', { label: action.label })
-							setClicked(action.compositeId)
-							onActionClick(action.message)
-						}}
+						onClick={() => handleActionClick(action)}
 						className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 ${
 							!isClicked
 								? onActionClick
@@ -312,8 +298,7 @@ function MessageContentBlock({
 	isStreaming,
 	sessionId,
 	onActionClick,
-	nextUserMessage,
-	getActionGroupKey
+	nextUserMessage
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -321,29 +306,17 @@ function MessageContentBlock({
 	sessionId?: string | null
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
-	getActionGroupKey: (actionGroupKey: string) => string
 }) {
 	if (block.type === 'action-group') {
-		const actionGroupKey = block.actions.map((action) => `${action.label}:${action.message}`).join('|')
-		return (
-			<ActionButtonGroup
-				key={getActionGroupKey(actionGroupKey)}
-				actions={block.actions}
-				onActionClick={onActionClick}
-				nextUserMessage={nextUserMessage}
-			/>
-		)
+		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
 	}
 
 	if (block.type === 'markdown') {
-		return (
-			<MarkdownRenderer
-				content={block.content}
-				citations={block.citations}
-				isStreaming={isStreaming}
-				showSources={block.showSources}
-			/>
-		)
+		return <ChatMarkdownRenderer content={block.content} citations={block.citations} isStreaming={isStreaming} />
+	}
+
+	if (block.type === 'sources') {
+		return <SourcesList citations={block.citations} isStreaming={isStreaming} />
 	}
 
 	return <ArtifactBlockRenderer block={block} artifact={artifact} isStreaming={isStreaming} sessionId={sessionId} />
@@ -365,7 +338,6 @@ function InlineContent({
 	nextUserMessage?: string
 }) {
 	const { artifactsById, blocks } = useMemo(() => parseMessageToRenderModel(message), [message])
-	const getKey = createOccurrenceKeyFactory()
 
 	return (
 		<div className="flex flex-col gap-2.5">
@@ -378,7 +350,6 @@ function InlineContent({
 						sessionId={sessionId}
 						onActionClick={onActionClick}
 						nextUserMessage={nextUserMessage}
-						getActionGroupKey={(actionGroupKey) => getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
 					/>
 				</div>
 			))}
@@ -511,8 +482,10 @@ function ToolExecutionRow({ execution }: { execution: ToolExecution }) {
 	)
 }
 
-function ToolDataView({ name, data }: { name: string; data: Record<string, any> }) {
-	if (name === 'resolve_entity') {
+type ToolDataRenderer = (data: Record<string, any>) => ReactNode | null
+
+const TOOL_DATA_RENDERERS: Record<string, ToolDataRenderer> = {
+	resolve_entity: (data) => {
 		const results = data.results || (data.topMatch ? { _single: data } : null)
 		if (!results) return null
 		return (
@@ -535,9 +508,9 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 				))}
 			</div>
 		)
-	}
-
-	if (name === 'generate_chart' && data.charts) {
+	},
+	generate_chart: (data) => {
+		if (!data.charts) return null
 		return (
 			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
 				{data.charts.map((chart: any) => (
@@ -550,28 +523,23 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 				))}
 			</div>
 		)
-	}
-
-	if (name === 'execute_code' && data.logs?.length) {
-		return (
+	},
+	execute_code: (data) =>
+		data.logs?.length ? (
 			<pre className="mt-1 mb-1 overflow-x-auto rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 font-mono text-[10px] text-[#444] dark:border-[#333] dark:bg-[#1a1a1a] dark:text-[#bbb]">
 				{data.logs.join('\n')}
 			</pre>
-		)
-	}
-
-	if (name === 'load_skill') {
-		return (
-			<div className="mt-1 mb-1 text-[10px] text-[#444] dark:text-[#bbb]">
-				<span className="font-medium">{data.skill}</span>
-				{data.unlockedTools?.length > 0 ? (
-					<span className="text-[#999]"> - unlocked: {data.unlockedTools.join(', ')}</span>
-				) : null}
-			</div>
-		)
-	}
-
-	if (name === 'spawn_agent' && data.agents) {
+		) : null,
+	load_skill: (data) => (
+		<div className="mt-1 mb-1 text-[10px] text-[#444] dark:text-[#bbb]">
+			<span className="font-medium">{data.skill}</span>
+			{data.unlockedTools?.length > 0 ? (
+				<span className="text-[#999]"> - unlocked: {data.unlockedTools.join(', ')}</span>
+			) : null}
+		</div>
+	),
+	spawn_agent: (data) => {
+		if (!data.agents) return null
 		return (
 			<div className="mt-1 mb-1 flex flex-col gap-0.5 rounded border border-[#e6e6e6] bg-[#fafafa] p-1.5 dark:border-[#333] dark:bg-[#1a1a1a]">
 				{data.agents.map((agent: any) => (
@@ -584,17 +552,13 @@ function ToolDataView({ name, data }: { name: string; data: Record<string, any> 
 				))}
 			</div>
 		)
-	}
+	},
+	web_search: (data) => <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</span>,
+	x_search: (data) => <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</span>
+}
 
-	if (name === 'web_search') {
-		return <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.citationCount} sources</span>
-	}
-
-	if (name === 'x_search') {
-		return <span className="mt-1 mb-1 text-[10px] text-[#999]">{data.tweetCount} tweets</span>
-	}
-
-	return null
+function ToolDataView({ name, data }: { name: string; data: Record<string, any> }) {
+	return TOOL_DATA_RENDERERS[name]?.(data) ?? null
 }
 
 export function MessageBubble({
