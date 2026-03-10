@@ -602,11 +602,12 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 			dimensions: [dimensionName, ...charts.map((chart) => chart.name)]
 		}
 
+		const hasDataZoom = axisType === 'time'
 		const chartOptions: Record<string, any> = {
 			grid: {
 				top: 24,
 				right: 12,
-				bottom: 68,
+				bottom: hasDataZoom ? 68 : 12,
 				left: 12
 			}
 		}
