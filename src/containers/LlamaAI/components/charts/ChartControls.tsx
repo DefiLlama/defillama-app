@@ -97,7 +97,7 @@ export function ChartControls({
 							className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
 							data-active={grouping === interval}
 							onClick={() => {
-							trackUmamiEvent('llamaai-chart-control', { control: 'grouping' })
+							trackUmamiEvent('llamaai-chart-control', { control: 'grouping', selection: interval })
 							onGroupingChange(interval)
 						}}
 							key={`grouping-${interval}`}
@@ -113,7 +113,7 @@ export function ChartControls({
 					allValues={CUMULATIVE_DISPLAY_OPTIONS}
 					selectedValues={cumulative ? 'Cumulative' : 'Individual'}
 					setSelectedValues={(value: string) => {
-						trackUmamiEvent('llamaai-chart-control', { control: 'cumulative' })
+						trackUmamiEvent('llamaai-chart-control', { control: 'cumulative', selection: value })
 						onCumulativeChange(value === 'Cumulative')
 						if (value === 'Cumulative') {
 							onStackedChange(false)
@@ -130,7 +130,7 @@ export function ChartControls({
 					allValues={STACKING_DISPLAY_OPTIONS}
 					selectedValues={stacked ? 'Stacked' : 'Separate'}
 					setSelectedValues={(value: string) => {
-						trackUmamiEvent('llamaai-chart-control', { control: 'stacking' })
+						trackUmamiEvent('llamaai-chart-control', { control: 'stacking', selection: value })
 						const isStacked = value === 'Stacked'
 						onStackedChange(isStacked)
 					}}
@@ -145,7 +145,7 @@ export function ChartControls({
 					allValues={VALUE_TYPE_OPTIONS}
 					selectedValues={percentage ? '% Percentage' : '$ Absolute'}
 					setSelectedValues={(value: string) => {
-						trackUmamiEvent('llamaai-chart-control', { control: 'value-type' })
+						trackUmamiEvent('llamaai-chart-control', { control: 'value-type', selection: value })
 						onPercentageChange(value === '% Percentage')
 					}}
 					label={percentage ? '% Percentage' : '$ Absolute'}
@@ -159,7 +159,7 @@ export function ChartControls({
 					allValues={HALLMARK_OPTIONS}
 					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
 					setSelectedValues={(value: string) => {
-						trackUmamiEvent('llamaai-chart-control', { control: 'hallmarks' })
+						trackUmamiEvent('llamaai-chart-control', { control: 'hallmarks', selection: value })
 						onHallmarksChange(value === 'Show Hallmarks')
 					}}
 					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
@@ -173,7 +173,7 @@ export function ChartControls({
 					allValues={LABEL_OPTIONS}
 					selectedValues={showLabels ? 'Show' : 'Hide'}
 					setSelectedValues={(value: string) => {
-						trackUmamiEvent('llamaai-chart-control', { control: 'labels' })
+						trackUmamiEvent('llamaai-chart-control', { control: 'labels', selection: value })
 						onLabelsChange(value === 'Show')
 					}}
 					label={showLabels ? 'Labels: On' : 'Labels: Off'}

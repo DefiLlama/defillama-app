@@ -322,7 +322,6 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 		{ previous?: Alert[] }
 	>({
 		mutationFn: async ({ alertId, enabled }: { alertId: string; enabled: boolean }) => {
-			trackUmamiEvent('llamaai-alert-toggle')
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
@@ -358,7 +357,6 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 
 	const deleteAlertMutation = useMutation<string, Error, string, { previous?: Alert[] }>({
 		mutationFn: async (alertId: string) => {
-			trackUmamiEvent('llamaai-alert-delete')
 			if (!authorizedFetch) {
 				throw new Error('Not authenticated')
 			}
@@ -534,7 +532,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<Icon name="trash-2" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={() => toggleAlertMutation.mutate({ alertId: alert.id, enabled: !alert.enabled })}
+						onClick={() => {
+							trackUmamiEvent('llamaai-alert-toggle')
+							toggleAlertMutation.mutate({ alertId: alert.id, enabled: !alert.enabled })
+						}}
 						className={`ml-1 flex h-7 w-12 items-center rounded-full px-0.5 transition-colors ${alert.enabled ? 'bg-[#2172E5]' : 'bg-[#ccc] dark:bg-[#444]'}`}
 						title={alert.enabled ? 'Disable' : 'Enable'}
 					>
@@ -615,13 +616,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							Cancel
 						</button>
 						<button
-							onClick={() =>
+							onClick={() => {
+								trackUmamiEvent('llamaai-alert-edit')
 								updateAlertMutation.mutate({
 									alertId: alert.id,
 									title,
 									alertConfig: { frequency, hour, dayOfWeek, timezone }
 								})
-							}
+							}}
 							disabled={updateAlertMutation.isPending || !title.trim()}
 							className="flex items-center gap-1.5 rounded-md bg-[#2172E5] px-3 py-1.5 text-xs text-white hover:bg-[#1a5cc7] disabled:opacity-50"
 						>

@@ -229,6 +229,7 @@ export function ResponseControls({
 	}, [handleOpenFeedbackWithRating])
 
 	const handleShareSession = useCallback(() => {
+		trackUmamiEvent('llamaai-share-conversation')
 		shareSession()
 	}, [shareSession])
 
@@ -306,7 +307,7 @@ export function ResponseControls({
 							<button
 								onClick={handleShareSession}
 								disabled={isSharing || showShareModal}
-								data-umami-event="llamaai-share-conversation"
+	
 							/>
 						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}

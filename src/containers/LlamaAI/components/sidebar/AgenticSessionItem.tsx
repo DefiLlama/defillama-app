@@ -152,6 +152,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 				type="button"
 				onClick={(e) => {
 					if (e.metaKey || e.ctrlKey) {
+						trackUmamiEvent('llamaai-session-click')
 						window.open(`/ai/chat/${session.sessionId}`, '_blank')
 						return
 					}

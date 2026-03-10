@@ -57,13 +57,14 @@ export const SettingsModal = memo(function SettingsModal({
 
 	const save = useCallback(() => {
 		const trimmed = draft.trim()
+		if (trimmed === customInstructions.trim()) return
 		trackUmamiEvent('llamaai-custom-instructions-save')
 		onCustomInstructionsChange(trimmed)
 		localStorage.setItem(STORAGE_KEY, trimmed)
 		if (fetchFn) {
 			void saveSettingsToServer(fetchFn, { customInstructions: trimmed })
 		}
-	}, [draft, onCustomInstructionsChange, fetchFn])
+	}, [draft, customInstructions, onCustomInstructionsChange, fetchFn])
 
 	useEffect(() => {
 		if (!isOpen && draft !== customInstructions) save()

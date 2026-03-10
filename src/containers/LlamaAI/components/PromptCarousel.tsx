@@ -53,7 +53,7 @@ export function PromptCarousel({ categories, onSubmit, isPending, isLoading, err
 	}
 
 	const handleClick = (question: string) => {
-		trackUmamiEvent('llamaai-suggested-prompt-click', { category: currentCategory?.name })
+		trackUmamiEvent('llamaai-suggested-prompt-click', { category: currentCategory?.name ?? '' })
 		onSubmit(question)
 	}
 

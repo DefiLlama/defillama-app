@@ -135,7 +135,10 @@ export function useImageUpload({
 			dragCounterRef.current = 0
 			setIsDragging(false)
 			const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
-			if (files.length) addImages(files)
+			if (files.length) {
+				trackUmamiEvent('llamaai-image-upload', { method: 'drag_and_drop', count: files.length })
+				addImages(files)
+			}
 		},
 		[addImages]
 	)
