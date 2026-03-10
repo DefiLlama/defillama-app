@@ -13,7 +13,7 @@ interface InputTextareaProps {
 	onScroll: () => void
 	onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
 	onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
-	onPaste: (e: React.ClipboardEvent) => void
+	onPaste: (e: React.ClipboardEvent<Element>) => void
 	onCompositionStart?: () => void
 	onCompositionEnd?: () => void
 }

@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -40,6 +40,55 @@ function getGroupName(lastActivity: string, now: number) {
 type VirtualItem =
 	| { type: 'header'; groupName: string; isFirst: boolean }
 	| { type: 'session'; session: ChatSession; groupName: string }
+
+function VirtualizedSidebarItem({
+	item,
+	itemStyle,
+	currentSessionId,
+	restoringSessionId,
+	deletingSessionId,
+	updatingTitleSessionId,
+	onSessionSelect,
+	onDelete,
+	onUpdateTitle,
+	handleSidebarToggle
+}: {
+	item: VirtualItem
+	itemStyle: CSSProperties
+	currentSessionId: string | null
+	restoringSessionId: string | null
+	deletingSessionId: string | null
+	updatingTitleSessionId: string | null
+	onSessionSelect: (sessionId: string) => void
+	onDelete: (sessionId: string) => Promise<void>
+	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
+	handleSidebarToggle: () => void
+}) {
+	if (item.type === 'header') {
+		return (
+			<div style={itemStyle}>
+				<h2 className={`text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}>
+					{item.groupName}
+				</h2>
+			</div>
+		)
+	}
+
+	return (
+		<AgenticSessionItem
+			session={item.session}
+			isActive={item.session.sessionId === currentSessionId}
+			onSessionSelect={onSessionSelect}
+			onDelete={onDelete}
+			onUpdateTitle={onUpdateTitle}
+			isRestoring={restoringSessionId === item.session.sessionId}
+			isDeleting={deletingSessionId === item.session.sessionId}
+			isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
+			handleSidebarToggle={handleSidebarToggle}
+			style={itemStyle}
+		/>
+	)
+}
 
 export function AgenticSidebar({
 	sessions,
@@ -188,8 +237,8 @@ export function AgenticSidebar({
 					>
 						{virtualizer.getVirtualItems().map((virtualItem) => {
 							const item = virtualItems[virtualItem.index]
-							const itemStyle = {
-								position: 'absolute' as const,
+							const itemStyle: CSSProperties = {
+								position: 'absolute',
 								top: 0,
 								left: 0,
 								width: '100%',
@@ -197,29 +246,23 @@ export function AgenticSidebar({
 								transform: `translateY(${virtualItem.start}px)`
 							}
 
-							if (item.type === 'header') {
-								return (
-									<div key={`header-${item.groupName}`} style={itemStyle}>
-										<h2 className={`text-xs text-[#666] dark:text-[#919296] ${item.isFirst ? 'pt-0' : 'pt-2.5'}`}>
-											{item.groupName}
-										</h2>
-									</div>
-								)
-							}
-
 							return (
-								<AgenticSessionItem
-									key={`session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`}
-									session={item.session}
-									isActive={item.session.sessionId === currentSessionId}
+								<VirtualizedSidebarItem
+									key={
+										item.type === 'header'
+											? `header-${item.groupName}`
+											: `session-${item.session.sessionId}-${item.session.isPublic}-${item.session.lastActivity}`
+									}
+									item={item}
+									itemStyle={itemStyle}
+									currentSessionId={currentSessionId}
+									restoringSessionId={restoringSessionId}
+									deletingSessionId={deletingSessionId}
+									updatingTitleSessionId={updatingTitleSessionId}
 									onSessionSelect={onSessionSelect}
 									onDelete={handleDelete}
 									onUpdateTitle={handleUpdateTitle}
-									isRestoring={restoringSessionId === item.session.sessionId}
-									isDeleting={deletingSessionId === item.session.sessionId}
-									isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
 									handleSidebarToggle={handleSidebarToggle}
-									style={itemStyle}
 								/>
 							)
 						})}

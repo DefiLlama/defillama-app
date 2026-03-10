@@ -11,7 +11,7 @@ import {
 	useReducer,
 	useRef,
 	useState,
-	type MutableRefObject
+	type RefObject
 } from 'react'
 import { Icon } from '~/components/Icon'
 import {
@@ -107,6 +107,7 @@ interface SharedSessionMessage {
 	chartData?: unknown[] | Record<string, unknown[]>
 	citations?: string[]
 	csvExports?: CsvExport[]
+	savedAlertIds?: string[]
 }
 
 interface SessionRestoreResult {
@@ -184,6 +185,11 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
 		citations: message.citations,
 		csvExports: message.csvExports,
+		alerts: buildRestoredAlerts({
+			messageId: message.messageId,
+			metadata: message.metadata
+		}),
+		savedAlertIds: message.savedAlertIds,
 		images: message.images,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
@@ -248,6 +254,11 @@ function mapSharedSessionMessage(message: SharedSessionMessage): Message {
 				: undefined,
 		csvExports: message.csvExports,
 		citations: message.citations,
+		alerts: buildRestoredAlerts({
+			messageId: message.messageId,
+			metadata: message.metadata
+		}),
+		savedAlertIds: message.savedAlertIds,
 		images: message.images,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
@@ -262,18 +273,24 @@ interface AgenticChatProps {
 }
 
 // Rebuild alert artifacts from persisted assistant metadata when restoring a session.
-function buildRestoredAlert(message: PersistedMessage): AlertProposedData[] | undefined {
-	if (!message.metadata?.alertIntent) return undefined
+function buildRestoredAlerts({
+	messageId,
+	metadata
+}: {
+	messageId?: string
+	metadata?: PersistedMessageMetadata
+}): AlertProposedData[] | undefined {
+	if (!metadata?.alertIntent) return undefined
 
 	return [
 		{
-			alertId: message.metadata.savedAlertId || `restored_${message.messageId}`,
-			title: message.metadata.alertIntent.dataQuery || '',
+			alertId: metadata.savedAlertId || `restored_${messageId}`,
+			title: metadata.alertIntent.dataQuery || '',
 			alertIntent: {
-				frequency: message.metadata.alertIntent.frequency || 'daily',
-				hour: message.metadata.alertIntent.hour ?? 9,
-				timezone: message.metadata.alertIntent.timezone || 'UTC',
-				dayOfWeek: message.metadata.alertIntent.dayOfWeek
+				frequency: metadata.alertIntent.frequency || 'daily',
+				hour: metadata.alertIntent.hour ?? 9,
+				timezone: metadata.alertIntent.timezone || 'UTC',
+				dayOfWeek: metadata.alertIntent.dayOfWeek
 			},
 			schedule_expression: '',
 			next_run_at: ''
@@ -282,7 +299,7 @@ function buildRestoredAlert(message: PersistedMessage): AlertProposedData[] | un
 }
 
 // Consume the current streamed message id once the buffered assistant message is committed.
-function takeCurrentMessageId(ref: MutableRefObject<string | null>) {
+function takeCurrentMessageId(ref: RefObject<string | null>) {
 	const messageId = ref.current || undefined
 	ref.current = null
 	return messageId
@@ -305,7 +322,7 @@ function normalizeSharedChartDataByChartId(
 // Commit the in-memory streamed assistant payload only if anything meaningful was actually received.
 function appendBufferedAssistantMessage(
 	buffer: StreamBuffer,
-	currentMessageIdRef: MutableRefObject<string | null>,
+	currentMessageIdRef: RefObject<string | null>,
 	appendMessage: (message: Message) => void
 ) {
 	const hasBufferedContent =
@@ -327,9 +344,9 @@ function appendBufferedAssistantMessage(
 
 // Start tracking a new async request and mark it as the only request allowed to update UI state.
 function beginRequest(
-	activeRequestIdRef: MutableRefObject<number>,
-	activeRequestKindRef: MutableRefObject<RequestKind>,
-	activeSessionIdRef: MutableRefObject<string | null>,
+	activeRequestIdRef: RefObject<number>,
+	activeRequestKindRef: RefObject<RequestKind>,
+	activeSessionIdRef: RefObject<string | null>,
 	kind: RequestKind,
 	sessionId: string | null
 ) {
@@ -341,15 +358,15 @@ function beginRequest(
 }
 
 // Request callbacks use this guard to ignore stale async completions.
-function isActiveRequest(activeRequestIdRef: MutableRefObject<number>, requestId: number) {
+function isActiveRequest(activeRequestIdRef: RefObject<number>, requestId: number) {
 	return activeRequestIdRef.current === requestId
 }
 
 // Clear request bookkeeping once the current request fully settles.
 function completeRequest(
-	activeRequestIdRef: MutableRefObject<number>,
-	activeRequestKindRef: MutableRefObject<RequestKind>,
-	activeSessionIdRef: MutableRefObject<string | null>,
+	activeRequestIdRef: RefObject<number>,
+	activeRequestKindRef: RefObject<RequestKind>,
+	activeSessionIdRef: RefObject<string | null>,
 	requestId: number
 ) {
 	if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -386,11 +403,11 @@ function createAgenticCallbacks({
 	notify
 }: {
 	requestId: number
-	activeRequestIdRef: MutableRefObject<number>
+	activeRequestIdRef: RefObject<number>
 	buffer: StreamBuffer
 	dispatch: StreamDispatch
-	currentMessageIdRef: MutableRefObject<string | null>
-	toolCallIdRef: MutableRefObject<number>
+	currentMessageIdRef: RefObject<string | null>
+	toolCallIdRef: RefObject<number>
 	onSessionId?: (sessionId: string) => void
 	onTitle?: (title: string) => void
 	appendMessage: (message: Message) => void
@@ -493,6 +510,18 @@ function createAgenticCallbacks({
 
 export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+	// Adapt the auth helper to the native fetch signature while preserving non-2xx responses for downstream error handling.
+	const authorizedFetchCompat = useCallback<typeof fetch>(
+		async (input, init) => {
+			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+			const response = await authorizedFetch(url, init)
+			if (!response) {
+				throw new Error('Authorized request failed')
+			}
+			return response
+		},
+		[authorizedFetch]
+	)
 	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
 	const authorizedFetchStrict = useCallback<typeof fetch>(
 		async (input, init) => {
@@ -841,7 +870,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		}) => {
 			let activeExecution: Awaited<ReturnType<typeof checkActiveExecution>>
 			try {
-				activeExecution = await checkActiveExecution(targetSessionId, authorizedFetch)
+				activeExecution = await checkActiveExecution(targetSessionId, authorizedFetchCompat)
 			} catch (checkActiveExecutionError) {
 				const checkError =
 					checkActiveExecutionError instanceof Error
@@ -900,7 +929,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				sessionId: targetSessionId,
 				callbacks,
 				abortSignal: controller.signal,
-				fetchFn: authorizedFetch
+				fetchFn: authorizedFetchCompat
 			})
 				.catch((resumeError: Error) => {
 					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
@@ -937,7 +966,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 			return true
 		},
-		[authorizedFetch, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
+		[authorizedFetchCompat, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
 	)
 
 	const restoreSessionSnapshot = useCallback(
@@ -947,11 +976,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				return { restored: false, recoveredResponse: false }
 			}
 
-			const restored: Message[] = (result.messages || []).map((message) => ({
-				...mapPersistedMessage(message),
-				alerts: buildRestoredAlert(message),
-				savedAlertIds: message.savedAlertIds
-			}))
+			const restored: Message[] = (result.messages || []).map(mapPersistedMessage)
 			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
 
 			setMessages(restored)
@@ -1302,7 +1327,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						customInstructions: customInstructions || undefined,
 						isSuggestedQuestion,
 						abortSignal: controller.signal,
-						fetchFn: authorizedFetch,
+						fetchFn: authorizedFetchCompat,
 						callbacks: createAgenticCallbacks({
 							requestId,
 							activeRequestIdRef,
@@ -1413,7 +1438,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			isStreaming,
 			sessionId,
 			isResearchMode,
-			authorizedFetch,
+			authorizedFetchCompat,
 			createSession,
 			createFakeSession,
 			updateSessionTitle,

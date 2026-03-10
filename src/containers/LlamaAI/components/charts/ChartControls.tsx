@@ -1,7 +1,7 @@
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
 import { capitalizeFirstLetter } from '~/utils'
-import type { ChartConfiguration } from '../types'
+import type { ChartConfiguration } from '../../types'
 
 const CUMULATIVE_DISPLAY_OPTIONS = [
 	{ name: 'Show individual values', key: 'Individual' },

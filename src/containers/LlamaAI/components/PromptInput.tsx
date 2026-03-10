@@ -331,7 +331,7 @@ export function PromptInput({
 		imageUpload.handleImageSelect(event)
 	}
 
-	const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+	const handlePaste = (event: React.ClipboardEvent<Element>) => {
 		clearSubmitError()
 		imageUpload.handlePaste(event)
 	}
