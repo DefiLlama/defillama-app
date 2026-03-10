@@ -8,6 +8,7 @@ import type { ChartConfiguration } from '../../types'
 import { adaptCandlestickData, adaptChartData, adaptMultiSeriesData } from '../../utils/chartAdapter'
 import { areChartDataEqual, areChartsEqual, areStringArraysEqual } from '../../utils/chartComparison'
 import { ChartDataTransformer } from '../../utils/chartDataTransformer'
+import styles from '../llamaai.module.css'
 import { ChartControls } from './ChartControls'
 
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -426,10 +427,13 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 	if (config.type === 'candlestick') {
 		const candlestickData = adaptCandlestickData(config, data)
 		return (
-			<div className="flex flex-col p-2" data-chart-id={config.id}>
-				<Suspense fallback={<div className="h-[480px]" />}>
-					<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
-				</Suspense>
+			<div className="flex flex-col" data-chart-id={config.id}>
+				{config.title ? <p className={`${styles.chartHeader} text-base font-semibold`}>{config.title}</p> : null}
+				<div className={styles.chartBody}>
+					<Suspense fallback={<div className="h-[480px]" />}>
+						<CandlestickChart data={candlestickData.data} indicators={candlestickData.indicators} />
+					</Suspense>
+				</div>
 			</div>
 		)
 	}
@@ -453,30 +457,39 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 
 		const chartKey = `${config.id}-${chartState.stacked}-${chartState.percentage}-${chartState.cumulative}-${chartState.grouping}-${chartState.showHallmarks}`
 		const chartContent = renderChartContent(config, adaptedChart, chartState, chartKey)
+		const chartHeader = (
+			<ChartControls
+				displayOptions={config.displayOptions}
+				stacked={chartState.stacked}
+				percentage={chartState.percentage}
+				cumulative={chartState.cumulative}
+				grouping={chartState.grouping}
+				dataLength={dataLength}
+				showHallmarks={chartState.showHallmarks}
+				hasHallmarks={!!config.hallmarks?.length}
+				showLabels={chartState.showLabels}
+				isScatter={adaptedChart.chartType === 'scatter'}
+				onStackedChange={handleStackedChange}
+				onPercentageChange={handlePercentageChange}
+				onCumulativeChange={handleCumulativeChange}
+				onGroupingChange={handleGroupingChange}
+				onHallmarksChange={handleHallmarksChange}
+				onLabelsChange={handleLabelsChange}
+				title={
+					config.title ? (
+						<p className="min-w-0 flex-1 text-base font-semibold text-(--text-primary)">{config.title}</p>
+					) : null
+				}
+				className="w-full gap-2.5"
+			>
+				{chartToolbar}
+			</ChartControls>
+		)
 
 		return (
-			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
-				<ChartControls
-					displayOptions={config.displayOptions}
-					stacked={chartState.stacked}
-					percentage={chartState.percentage}
-					cumulative={chartState.cumulative}
-					grouping={chartState.grouping}
-					dataLength={dataLength}
-					showHallmarks={chartState.showHallmarks}
-					hasHallmarks={!!config.hallmarks?.length}
-					showLabels={chartState.showLabels}
-					isScatter={adaptedChart.chartType === 'scatter'}
-					onStackedChange={handleStackedChange}
-					onPercentageChange={handlePercentageChange}
-					onCumulativeChange={handleCumulativeChange}
-					onGroupingChange={handleGroupingChange}
-					onHallmarksChange={handleHallmarksChange}
-					onLabelsChange={handleLabelsChange}
-				>
-					{chartToolbar}
-				</ChartControls>
-				{chartContent}
+			<div className="flex flex-col" data-chart-id={config.id}>
+				<div className={styles.chartHeader}>{chartHeader}</div>
+				<div className={styles.chartBody}>{chartContent}</div>
 			</div>
 		)
 	} catch (error) {
@@ -582,9 +595,9 @@ function ChartRendererImpl({
 	const hasMultipleCharts = charts.length > 1
 
 	return (
-		<div ref={containerRef} className="flex flex-col gap-2 rounded-md border border-(--old-blue) pt-2">
+		<div ref={containerRef} className={`${styles.chartShell} flex flex-col`}>
 			{hasMultipleCharts ? (
-				<div className="-mt-2 flex border-b border-[#e6e6e6] dark:border-[#222324]">
+				<div className={`${styles.chartHeader} flex px-1`}>
 					{charts.map((chart, index) => (
 						<button
 							key={`toggle-${chart.id}`}
@@ -599,10 +612,6 @@ function ChartRendererImpl({
 						</button>
 					))}
 				</div>
-			) : charts[0]?.title ? (
-				<p className="-mt-2 border-b border-[#e6e6e6] px-3 py-2 text-base font-semibold dark:border-[#222324]">
-					{charts[0].title}
-				</p>
 			) : null}
 			{charts.map((chart, index) => (
 				<SingleChart

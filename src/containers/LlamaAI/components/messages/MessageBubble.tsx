@@ -1,5 +1,5 @@
 import Router from 'next/router'
-import { useMemo, useRef, useState } from 'react'
+import { Fragment, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
@@ -233,7 +233,7 @@ function ActionButtonGroup({
 
 function StreamingChartPlaceholder() {
 	return (
-		<div className="my-4 flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
+		<div className="flex h-[360px] animate-pulse items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
 			<p className="text-sm text-gray-500">Loading chart...</p>
 		</div>
 	)
@@ -353,9 +353,9 @@ function InlineContent({
 	const getKey = createOccurrenceKeyFactory()
 
 	return (
-		<div className="flex flex-col gap-2.5">
+		<div className="flex flex-col gap-4">
 			{blocks.map((block) => (
-				<div key={block.key}>
+				<Fragment key={block.key}>
 					<MessageContentBlock
 						block={block}
 						artifact={'artifactId' in block ? artifactsById.get(block.artifactId) : undefined}
@@ -365,12 +365,8 @@ function InlineContent({
 						nextUserMessage={nextUserMessage}
 						getActionGroupKey={(actionGroupKey) => getKey(`actions-${nextUserMessage ?? ''}-${actionGroupKey}`)}
 					/>
-				</div>
+				</Fragment>
 			))}
-
-			{isStreaming && message.content ? (
-				<span className="inline-block h-4 w-0.5 animate-pulse bg-(--old-blue)" />
-			) : null}
 
 			{!isStreaming && toolExecutions && toolExecutions.length > 0 ? (
 				<ToolExecutionPanel toolExecutions={toolExecutions} />

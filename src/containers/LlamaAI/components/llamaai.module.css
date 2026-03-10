@@ -1,0 +1,141 @@
+/* Consistent vertical rhythm — !important needed to beat Streamdown's Tailwind utilities (e.g. mt-6 on headings) */
+.streamdownRoot :global([data-streamdown^='heading-']) {
+	margin-top: 1em !important;
+	margin-bottom: 0 !important;
+}
+
+.streamdownRoot :global(p),
+.streamdownRoot :global([data-streamdown='ordered-list']),
+.streamdownRoot :global([data-streamdown='unordered-list']),
+.streamdownRoot :global([data-streamdown='blockquote']),
+.streamdownRoot :global([data-streamdown='code-block']),
+.streamdownRoot :global([data-streamdown='table-wrapper']) {
+	margin-top: 0.5em !important;
+	margin-bottom: 0 !important;
+}
+
+.streamdownRoot :global([data-streamdown='list-item']) {
+	margin-top: 0.125em !important;
+	margin-bottom: 0 !important;
+}
+
+.streamdownRoot :global([data-streamdown='list-item']:first-child) {
+	margin-top: 0 !important;
+}
+
+/* Edge resets: prevent margins from stacking with InlineContent gap at block boundaries */
+.streamdownRoot :global(:first-child > :first-child) {
+	margin-top: 0 !important;
+}
+
+.streamdownRoot :global(:last-child > :last-child) {
+	margin-bottom: 0 !important;
+}
+
+.citationBadge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	vertical-align: baseline;
+	min-width: 18px;
+	height: 18px;
+	padding: 0 4px;
+	margin: 0 1px;
+	font-size: 11px;
+	font-weight: 500;
+	color: #1f67d2;
+	background-color: rgba(31, 103, 210, 0.08);
+	border: 1px solid rgba(31, 103, 210, 0.2);
+	border-radius: 4px;
+	text-decoration: none;
+	transition: all 0.2s;
+	cursor: pointer;
+}
+
+.citationBadge:hover {
+	background-color: rgba(31, 103, 210, 0.15);
+	border-color: rgba(31, 103, 210, 0.35);
+}
+
+.streamdownRoot :global([data-streamdown^='heading-']) .citationBadge {
+	position: relative;
+	top: -0.08em;
+}
+
+.entityLink {
+	vertical-align: baseline;
+}
+
+.chartShell {
+	overflow: hidden;
+	border: 1px solid var(--old-blue);
+	border-radius: 0.75rem;
+}
+
+.chartHeader {
+	padding: 0.625rem 0.75rem;
+	border-bottom: 1px solid #e6e6e6;
+}
+
+:global(html.dark) .chartHeader {
+	border-bottom-color: #222324;
+}
+
+.chartBody {
+	padding: 0.625rem;
+}
+
+.streamdownRoot :global([data-streamdown='table-wrapper']) {
+	gap: 0.625rem;
+	padding: 0.625rem;
+	border-color: var(--cards-border);
+	background-color: var(--cards-bg);
+	border-radius: 0.75rem;
+}
+
+:global([data-streamdown='table-fullscreen']) {
+	background: var(--app-bg);
+}
+
+.streamdownRoot :global([data-streamdown='table-wrapper']) > :last-child,
+:global([data-streamdown='table-fullscreen'] [data-streamdown='table']) {
+	border-color: var(--cards-border);
+	background-color: var(--app-bg);
+}
+
+.streamdownRoot :global([data-streamdown='table']) {
+	margin: 0;
+}
+
+.streamdownRoot :global([data-streamdown='table-header']) {
+	background-color: color-mix(in oklab, var(--cards-bg) 88%, white 2%);
+}
+
+.streamdownRoot :global([data-streamdown='table-header-cell']) {
+	color: var(--text-primary);
+}
+
+.streamdownRoot :global([data-streamdown='table-row']) {
+	border-color: var(--cards-border);
+}
+
+.streamdownRoot :global([data-streamdown='table-cell']) {
+	color: var(--text-primary);
+}
+
+.streamdownRoot :global([data-streamdown='table-wrapper'] .relative > div),
+:global([data-streamdown='table-fullscreen'] .relative > div) {
+	border-color: var(--cards-border);
+	background-color: var(--cards-bg);
+	color: var(--text-primary);
+}
+
+.streamdownRoot :global([data-streamdown='table-wrapper'] .relative > div > button),
+:global([data-streamdown='table-fullscreen'] .relative > div > button) {
+	color: var(--text-primary);
+}
+
+.streamdownRoot :global([data-streamdown='table-wrapper'] .relative > div > button:hover),
+:global([data-streamdown='table-fullscreen'] .relative > div > button:hover) {
+	background-color: var(--link-hover-bg);
+}

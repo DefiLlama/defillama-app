@@ -12,7 +12,7 @@ const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
  * Validate and sanitize a URL for safe use in href attributes.
  * Returns null if the URL is unsafe or malformed.
  */
-function sanitizeUrl(url: string): string | null {
+export function sanitizeUrl(url: string): string | null {
 	if (!url || typeof url !== 'string') return null
 
 	// Trim whitespace
@@ -63,10 +63,6 @@ interface ContentPart {
 
 interface ParsedContent {
 	parts: ContentPart[]
-	chartIds: Set<string>
-	csvIds: Set<string>
-	alertIds: Set<string>
-	actionItems: Array<{ label: string; message: string }>
 }
 
 /**
@@ -79,25 +75,18 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 	const alertPlaceholderPattern = /\[ALERT:([^\]]+)\]/g
 	const actionPlaceholderPattern = /\[ACTION:([^|\]]+)(?:\|([^\]]*))?\]/g
 	const parts: ContentPart[] = []
-	const chartIds = new Set<string>()
-	const csvIds = new Set<string>()
-	const alertIds = new Set<string>()
-	const actionItems: Array<{ label: string; message: string }> = []
 
 	const allMatches: ArtifactMatch[] = []
 
 	let match: RegExpExecArray | null
 	while ((match = chartPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'chart', id: match[1] })
-		chartIds.add(match[1])
 	}
 	while ((match = csvPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'csv', id: match[1] })
-		csvIds.add(match[1])
 	}
 	while ((match = alertPlaceholderPattern.exec(content)) !== null) {
 		allMatches.push({ index: match.index, length: match[0].length, type: 'alert', id: match[1] })
-		alertIds.add(match[1])
 	}
 	while ((match = actionPlaceholderPattern.exec(content)) !== null) {
 		const actionLabel = match[1].trim()
@@ -108,7 +97,6 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			type: 'action',
 			id: JSON.stringify({ label: actionLabel, message: actionMessage })
 		})
-		actionItems.push({ label: actionLabel, message: actionMessage })
 	}
 
 	allMatches.sort((a, b) => a.index - b.index)
@@ -139,11 +127,11 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 		parts.push({ type: 'text', content })
 	}
 
-	return { parts, chartIds, csvIds, alertIds, actionItems }
+	return { parts }
 }
 
 /**
- * Process citation markers in text and convert to HTML anchor tags.
+ * Process citation markers in text and convert to markdown links.
  * Supports ranges like [1-3] and comma-separated values like [1, 3, 5].
  */
 export function processCitationMarkers(text: string, citations?: string[]): string {
@@ -172,36 +160,30 @@ export function processCitationMarkers(text: string, citations?: string[]): stri
 			.map((num) => {
 				const idx = num - 1
 				const rawUrl = citations[idx]
+				const safeUrl = rawUrl ? sanitizeUrl(rawUrl) : null
 
-				if (!rawUrl) {
-					return `<span class="citation-badge">${num}</span>`
-				}
-
-				// Validate and sanitize the URL to prevent XSS
-				const safeUrl = sanitizeUrl(rawUrl)
-				if (safeUrl) {
-					return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="citation-badge">${num}</a>`
-				}
-
-				// URL is unsafe or malformed - render as non-clickable span
-				return `<span class="citation-badge">${num}</span>`
+				return safeUrl ? `[${num}](#citation-${num})` : `[${num}](#citation-missing-${num})`
 			})
 			.join('')
 	})
 }
 
-/**
- * Extract llama:// links from markdown content and build a map of text to URL.
- * Used for resolving entity links in markdown rendering.
- */
-export function extractLlamaLinks(content: string): Map<string, string> {
-	const linkMap = new Map<string, string>()
-	const llamaLinkPattern = /\[([^\]]+)\]\((llama:\/\/[^)]*)\)/g
+const LLAMA_LINK_PLACEHOLDER_PREFIX = '#llama-link-'
 
-	let match: RegExpExecArray | null
-	while ((match = llamaLinkPattern.exec(content)) !== null) {
-		linkMap.set(match[1], match[2])
+export function convertLlamaLinksToPlaceholders(content: string): string {
+	return content.replace(/\]\((llama:\/\/[^)\s]+)\)/g, (_, llamaUrl: string) => {
+		return `](${LLAMA_LINK_PLACEHOLDER_PREFIX}${encodeURIComponent(llamaUrl)})`
+	})
+}
+
+export function decodeLlamaLinkPlaceholder(href?: string): string | null {
+	if (!href?.startsWith(LLAMA_LINK_PLACEHOLDER_PREFIX)) {
+		return null
 	}
 
-	return linkMap
+	try {
+		return decodeURIComponent(href.slice(LLAMA_LINK_PLACEHOLDER_PREFIX.length))
+	} catch {
+		return null
+	}
 }

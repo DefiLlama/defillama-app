@@ -9,7 +9,7 @@ import { assertResponse } from '../utils/assertResponse'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (
-		<div className="my-2 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
+		<div className="flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
 			<div className="flex items-center gap-3">
 				<div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700" />
 				<div className="flex min-w-0 flex-1 flex-col gap-1.5">
@@ -113,7 +113,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 	if (!isAuthenticated) {
 		return (
-			<div className="my-2 flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
+			<div className="flex items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
 				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
 					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
 				</div>
@@ -127,7 +127,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 
 	return (
 		<div
-			className={`my-2 flex flex-col gap-3 rounded-lg border p-3 ${
+			className={`flex flex-col gap-3 rounded-lg border p-3 ${
 				saved
 					? 'border-[#e6e6e6] bg-white dark:border-[#222324] dark:bg-[#181A1C]'
 					: 'animate-[alertPulse_2s_ease-in-out_infinite] border-amber-500/50 bg-white dark:bg-[#181A1C]'

@@ -45,7 +45,9 @@ interface ChartControlsProps {
 	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter') => void
 	onHallmarksChange: (showHallmarks: boolean) => void
 	onLabelsChange: (showLabels: boolean) => void
+	title?: React.ReactNode
 	children?: React.ReactNode
+	className?: string
 }
 
 export function ChartControls({
@@ -65,7 +67,9 @@ export function ChartControls({
 	onGroupingChange,
 	onHallmarksChange,
 	onLabelsChange,
-	children
+	title,
+	children,
+	className
 }: ChartControlsProps) {
 	const { canStack, canShowPercentage, canShowCumulative, supportsGrouping } = displayOptions || {}
 
@@ -83,93 +87,96 @@ export function ChartControls({
 	if (!hasControls && !children) return null
 
 	return (
-		<div className="flex flex-wrap items-center justify-end gap-1 p-2 pt-0">
-			{showGrouping ? (
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{groupingOptions.map((interval) => (
-						<Tooltip
-							content={capitalizeFirstLetter(interval)}
-							render={<button />}
-							className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
-							data-active={grouping === interval}
-							onClick={() => onGroupingChange(interval)}
-							key={`grouping-${interval}`}
-						>
-							{interval.slice(0, 1).toUpperCase()}
-						</Tooltip>
-					))}
-				</div>
-			) : null}
+		<div className={`flex flex-wrap items-center justify-end gap-1 ${className ?? ''}`}>
+			{title ? <div className="mr-auto min-w-0 flex-1">{title}</div> : null}
+			<div className="ml-auto flex flex-wrap items-center justify-end gap-1">
+				{showGrouping ? (
+					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
+						{groupingOptions.map((interval) => (
+							<Tooltip
+								content={capitalizeFirstLetter(interval)}
+								render={<button />}
+								className="shrink-0 px-2 py-1 text-xs whitespace-nowrap hover:not-disabled:pro-btn-blue focus-visible:not-disabled:pro-btn-blue data-[active=true]:bg-(--old-blue) data-[active=true]:font-medium data-[active=true]:text-white"
+								data-active={grouping === interval}
+								onClick={() => onGroupingChange(interval)}
+								key={`grouping-${interval}`}
+							>
+								{interval.slice(0, 1).toUpperCase()}
+							</Tooltip>
+						))}
+					</div>
+				) : null}
 
-			{canShowCumulative ? (
-				<Select
-					allValues={CUMULATIVE_DISPLAY_OPTIONS}
-					selectedValues={cumulative ? 'Cumulative' : 'Individual'}
-					setSelectedValues={(value: string) => {
-						onCumulativeChange(value === 'Cumulative')
-						if (value === 'Cumulative') {
-							onStackedChange(false)
-						}
-					}}
-					label={cumulative ? 'Cumulative' : 'Individual'}
-					labelType="none"
-					variant="filter"
-				/>
-			) : null}
+				{canShowCumulative ? (
+					<Select
+						allValues={CUMULATIVE_DISPLAY_OPTIONS}
+						selectedValues={cumulative ? 'Cumulative' : 'Individual'}
+						setSelectedValues={(value: string) => {
+							onCumulativeChange(value === 'Cumulative')
+							if (value === 'Cumulative') {
+								onStackedChange(false)
+							}
+						}}
+						label={cumulative ? 'Cumulative' : 'Individual'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
 
-			{canStack && !cumulative ? (
-				<Select
-					allValues={STACKING_DISPLAY_OPTIONS}
-					selectedValues={stacked ? 'Stacked' : 'Separate'}
-					setSelectedValues={(value: string) => {
-						const isStacked = value === 'Stacked'
-						onStackedChange(isStacked)
-					}}
-					label={stacked ? 'Stacked' : 'Separate'}
-					labelType="none"
-					variant="filter"
-				/>
-			) : null}
+				{canStack && !cumulative ? (
+					<Select
+						allValues={STACKING_DISPLAY_OPTIONS}
+						selectedValues={stacked ? 'Stacked' : 'Separate'}
+						setSelectedValues={(value: string) => {
+							const isStacked = value === 'Stacked'
+							onStackedChange(isStacked)
+						}}
+						label={stacked ? 'Stacked' : 'Separate'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
 
-			{canShowPercentage ? (
-				<Select
-					allValues={VALUE_TYPE_OPTIONS}
-					selectedValues={percentage ? '% Percentage' : '$ Absolute'}
-					setSelectedValues={(value: string) => {
-						onPercentageChange(value === '% Percentage')
-					}}
-					label={percentage ? '% Percentage' : '$ Absolute'}
-					labelType="none"
-					variant="filter"
-				/>
-			) : null}
+				{canShowPercentage ? (
+					<Select
+						allValues={VALUE_TYPE_OPTIONS}
+						selectedValues={percentage ? '% Percentage' : '$ Absolute'}
+						setSelectedValues={(value: string) => {
+							onPercentageChange(value === '% Percentage')
+						}}
+						label={percentage ? '% Percentage' : '$ Absolute'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
 
-			{hasHallmarks ? (
-				<Select
-					allValues={HALLMARK_OPTIONS}
-					selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
-					setSelectedValues={(value: string) => {
-						onHallmarksChange(value === 'Show Hallmarks')
-					}}
-					label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
-					labelType="none"
-					variant="filter"
-				/>
-			) : null}
+				{hasHallmarks ? (
+					<Select
+						allValues={HALLMARK_OPTIONS}
+						selectedValues={showHallmarks ? 'Show Hallmarks' : 'Hide Hallmarks'}
+						setSelectedValues={(value: string) => {
+							onHallmarksChange(value === 'Show Hallmarks')
+						}}
+						label={showHallmarks ? 'Hallmarks: On' : 'Hallmarks: Off'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
 
-			{isScatter ? (
-				<Select
-					allValues={LABEL_OPTIONS}
-					selectedValues={showLabels ? 'Show' : 'Hide'}
-					setSelectedValues={(value: string) => {
-						onLabelsChange(value === 'Show')
-					}}
-					label={showLabels ? 'Labels: On' : 'Labels: Off'}
-					labelType="none"
-					variant="filter"
-				/>
-			) : null}
-			{children}
+				{isScatter ? (
+					<Select
+						allValues={LABEL_OPTIONS}
+						selectedValues={showLabels ? 'Show' : 'Hide'}
+						setSelectedValues={(value: string) => {
+							onLabelsChange(value === 'Show')
+						}}
+						label={showLabels ? 'Labels: On' : 'Labels: Off'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				{children}
+			</div>
 		</div>
 	)
 }

@@ -33,18 +33,3 @@ export function CSVExportArtifact({ csvExport }: CSVExportArtifactProps) {
 		</a>
 	)
 }
-
-export function CSVExportLoading() {
-	return (
-		<div className="my-2 flex animate-pulse items-center gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
-			<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800">
-				<Icon name="file-text" className="h-5 w-5 text-gray-400" />
-			</div>
-			<div className="flex min-w-0 flex-1 flex-col gap-1">
-				<div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
-				<div className="h-3 w-20 rounded bg-gray-100 dark:bg-gray-800" />
-			</div>
-			<p className="m-0 text-xs text-gray-400">Generating...</p>
-		</div>
-	)
-}

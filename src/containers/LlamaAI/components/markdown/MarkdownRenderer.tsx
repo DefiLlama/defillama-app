@@ -28,7 +28,7 @@ export function MarkdownRenderer({
 	}
 
 	return (
-		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
+		<div className="flex max-w-none flex-col gap-2.5 overflow-x-auto text-sm leading-normal">
 			{content.trim() ? (
 				<ChatMarkdownRenderer content={content} citations={citations} isStreaming={isStreaming} />
 			) : null}
