@@ -14,6 +14,7 @@ import {
 	type MessageRenderBlock
 } from '~/containers/LlamaAI/renderModel'
 import type { Message, ToolExecution } from '~/containers/LlamaAI/types'
+import { sanitizeUrl } from '~/containers/LlamaAI/utils/markdownHelpers'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 function createOccurrenceKeyFactory() {
@@ -40,13 +41,35 @@ function getToolExecutionKey(execution: ToolExecution) {
 	)
 }
 
+function sanitizeExternalActionHref(href: string) {
+	const safeHref = sanitizeUrl(href)
+	if (!safeHref) return null
+
+	try {
+		const parsed = new URL(safeHref)
+		return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.href : null
+	} catch {
+		return null
+	}
+}
+
 function getActionHrefProps(href: string, label: string) {
 	if (href.startsWith('http')) {
+		const safeHref = sanitizeExternalActionHref(href)
 		return {
-			href,
-			target: '_blank' as const,
-			rel: 'noopener noreferrer',
-			onClick: () => trackUmamiEvent('llamaai-action-link-click', { label })
+			href: safeHref ?? '#',
+			...(safeHref
+				? {
+						target: '_blank' as const,
+						rel: 'noopener noreferrer'
+					}
+				: {}),
+			onClick: (event: ReactMouseEvent<HTMLAnchorElement>) => {
+				if (!safeHref) {
+					event.preventDefault()
+				}
+				trackUmamiEvent('llamaai-action-link-click', { label })
+			}
 		}
 	}
 
@@ -60,6 +83,12 @@ function getActionHrefProps(href: string, label: string) {
 	}
 }
 
+function extractActionUrl(message: string) {
+	if (!message.startsWith('url:')) return null
+	const href = message.slice(4).trim()
+	return href.length > 0 ? href : null
+}
+
 function ActionLink({
 	action,
 	variant
@@ -67,7 +96,11 @@ function ActionLink({
 	action: { label: string; message: string; compositeId: string }
 	variant: 'decision' | 'suggestion'
 }) {
-	const href = action.message.slice(4)
+	const href = extractActionUrl(action.message)
+
+	if (!href) {
+		return <span className="inline-flex items-center gap-1.5 text-inherit">{action.label}</span>
+	}
 
 	return (
 		<a

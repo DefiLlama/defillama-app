@@ -1,7 +1,6 @@
-import { lazy, memo, Suspense, useEffect, useReducer, useRef } from 'react'
+import { lazy, memo, Suspense, useCallback, useEffect, useReducer, useRef } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { ChartControls } from '~/containers/LlamaAI/components/charts/ChartControls'
 import type { ChartConfiguration } from '~/containers/LlamaAI/types'
@@ -19,9 +18,7 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 
 const CandlestickChart = lazy(() => import('~/components/ECharts/CandlestickChart'))
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart'))
-const MultiSeriesChart2 = lazy(
-	() => import('~/components/ECharts/MultiSeriesChart2')
-) as React.FC<IMultiSeriesChart2Props>
+const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const PieChart = lazy(() => import('~/components/ECharts/PieChart'))
 const ScatterChart = lazy(() => import('~/components/ECharts/ScatterChart'))
 
@@ -84,7 +81,7 @@ function createInitialChartState(config: ChartConfiguration): ChartViewState {
 function removeAdaptedChartTitle<T extends AdaptedChartData>(adaptedChart: T): T {
 	if (!adaptedChart.props || !('title' in adaptedChart.props)) return adaptedChart
 	const { title: _title, ...restProps } = adaptedChart.props
-	return { ...adaptedChart, props: restProps as typeof adaptedChart.props } as T
+	return { ...adaptedChart, props: restProps } as T
 }
 
 function buildChartPresentation(config: ChartConfiguration, data: any[], chartState: ChartViewState): ChartRenderPlan {
@@ -136,13 +133,30 @@ function renderChartContent(renderPlan: ChartRenderPlan, chartKey: string, onCha
 function SingleChart({ config, data, isActive, sessionId, title }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
-	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
-	const handlePercentageChange = (percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })
-	const handleCumulativeChange = (cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative })
-	const handleGroupingChange = (grouping: ChartViewState['grouping']) =>
-		dispatch({ type: 'SET_GROUPING', payload: grouping })
-	const handleHallmarksChange = (showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks })
-	const handleLabelsChange = (showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels })
+	const handleStackedChange = useCallback(
+		(stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }),
+		[dispatch]
+	)
+	const handlePercentageChange = useCallback(
+		(percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage }),
+		[dispatch]
+	)
+	const handleCumulativeChange = useCallback(
+		(cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative }),
+		[dispatch]
+	)
+	const handleGroupingChange = useCallback(
+		(grouping: ChartViewState['grouping']) => dispatch({ type: 'SET_GROUPING', payload: grouping }),
+		[dispatch]
+	)
+	const handleHallmarksChange = useCallback(
+		(showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks }),
+		[dispatch]
+	)
+	const handleLabelsChange = useCallback(
+		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
+		[dispatch]
+	)
 
 	if (!isActive) return null
 
@@ -170,6 +184,8 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 		}
 
 		const normalizedState = renderPlan.controls.state
+		const exportModel = renderPlan.exportModel
+		const chartTitle = title ?? config.title
 		const chartKey = `${config.id}-${normalizedState.stacked}-${normalizedState.percentage}-${normalizedState.cumulative}-${normalizedState.grouping}-${normalizedState.showHallmarks}-${normalizedState.showLabels}`
 		const chartContent = renderChartContent(renderPlan, chartKey, handleChartReady)
 
@@ -195,18 +211,18 @@ function SingleChart({ config, data, isActive, sessionId, title }: SingleChartPr
 						<ChartExportButtons
 							chartInstance={chartInstance}
 							filename={renderPlan.filename}
-							title={config.title}
+							title={chartTitle}
 							smol
-							showCsv={!!renderPlan.exportModel}
+							showCsv={!!exportModel}
 							prepareCsvDirect={
-								renderPlan.exportModel
+								exportModel
 									? () => ({
-											filename: renderPlan.exportModel!.csvFilename,
-											rows: renderPlan.exportModel!.csvRows
+											filename: exportModel.csvFilename,
+											rows: exportModel.csvRows
 										})
 									: undefined
 							}
-							pngProfile={renderPlan.exportModel?.pngProfile}
+							pngProfile={exportModel?.pngProfile}
 						/>
 					</>
 				</ChartControls>

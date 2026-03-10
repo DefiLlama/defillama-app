@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -145,6 +145,9 @@ export default function BarChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const hasNotifiedReadyRef = useRef(false)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -165,8 +168,8 @@ export default function BarChart({
 			handleChartReady(instance)
 		}
 
-		if (onReady && instance && !hasNotifiedReadyRef.current) {
-			onReady(instance)
+		if (instance && !hasNotifiedReadyRef.current) {
+			emitReady(instance)
 			hasNotifiedReadyRef.current = true
 		}
 
@@ -226,14 +229,13 @@ export default function BarChart({
 		id,
 		orientation,
 		shouldEnableExport,
-		handleChartReady,
-		onReady
+		handleChartReady
 	])
 
 	useChartCleanup(id, () => {
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
-			onReady?.(null)
+			emitReady(null)
 			hasNotifiedReadyRef.current = false
 		}
 		if (shouldEnableExport) {

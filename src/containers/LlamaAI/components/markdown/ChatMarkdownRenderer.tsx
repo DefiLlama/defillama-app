@@ -124,6 +124,16 @@ function getSingleTextChild(children: ReactNode): string | null {
 }
 
 export function SourcesList({ citations, isStreaming = false }: { citations: string[]; isStreaming?: boolean }) {
+	const sourceEntries = useMemo(() => {
+		const occurrenceCounts = new Map<string, number>()
+		return citations.map((url, index) => {
+			const normalizedUrl = normalizeSourceUrl(url)
+			const occurrenceIndex = occurrenceCounts.get(normalizedUrl) || 0
+			occurrenceCounts.set(normalizedUrl, occurrenceIndex + 1)
+			return { normalizedUrl, occurrenceIndex, citationNumber: index + 1 }
+		})
+	}, [citations])
+
 	if (!citations.length || isStreaming) {
 		return null
 	}
@@ -150,28 +160,20 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 				<Icon name="chevron-down" height={14} width={14} />
 			</summary>
 			<div className="flex flex-col gap-2.5 pt-2.5">
-				{(() => {
-					const occurrenceCounts = new Map<string, number>()
-					return citations.map((url, index) => {
-						const normalizedUrl = normalizeSourceUrl(url)
-						const occurrenceIndex = occurrenceCounts.get(normalizedUrl) || 0
-						occurrenceCounts.set(normalizedUrl, occurrenceIndex + 1)
-						return (
-							<a
-								key={`citation-${normalizedUrl}-${occurrenceIndex}`}
-								href={normalizedUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								className="group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]"
-							>
-								<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
-									{index + 1}
-								</span>
-								<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
-							</a>
-						)
-					})
-				})()}
+				{sourceEntries.map(({ normalizedUrl, occurrenceIndex, citationNumber }) => (
+					<a
+						key={`citation-${normalizedUrl}-${occurrenceIndex}`}
+						href={normalizedUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						className="group flex items-start gap-2.5 rounded-lg border border-[#e6e6e6] p-2 hover:border-(--old-blue) hover:bg-(--old-blue)/12 focus-visible:border-(--old-blue) focus-visible:bg-(--old-blue)/12 dark:border-[#222324]"
+					>
+						<span className="rounded bg-[rgba(0,0,0,0.04)] px-1.5 text-(--old-blue) dark:bg-[rgba(145,146,150,0.12)]">
+							{citationNumber}
+						</span>
+						<span className="overflow-hidden text-ellipsis whitespace-nowrap">{normalizedUrl}</span>
+					</a>
+				))}
 			</div>
 		</details>
 	)

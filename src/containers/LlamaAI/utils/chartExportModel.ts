@@ -79,7 +79,7 @@ export function buildExportModel(config: ChartConfiguration, adaptedChart: Adapt
 				csvFilename,
 				pngProfile: 'default'
 			}
-		case 'pie':
+		case 'pie': {
 			const pieData = adaptedChart.props.chartData ?? []
 			const total = pieData.reduce((sum, item) => sum + item.value, 0)
 			return {
@@ -90,12 +90,13 @@ export function buildExportModel(config: ChartConfiguration, adaptedChart: Adapt
 				csvFilename,
 				pngProfile: 'default'
 			}
+		}
 		case 'scatter':
 			return {
 				csvRows: [
 					[adaptedChart.props.xAxisLabel || 'X', adaptedChart.props.yAxisLabel || 'Y', 'Entity'],
 					...((adaptedChart.props.chartData ?? []).flatMap((point) => {
-						if (!Array.isArray(point) || point.length < 2) return []
+						if (!Array.isArray(point) || point.length < 3) return []
 						return [[toCsvCell(point[0]), toCsvCell(point[1]), toCsvCell(point[2])]]
 					}) as CsvCell[][])
 				],

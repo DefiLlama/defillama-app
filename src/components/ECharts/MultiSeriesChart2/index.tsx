@@ -11,7 +11,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CHART_COLORS } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -492,7 +492,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			// When legends are enabled, we want consistent placement (top)
 			// so callers don't have to override per-chart.
 			top: 0,
-			left: 12,
 			right: 12,
 			textStyle: {
 				fontFamily: 'sans-serif',
@@ -620,6 +619,9 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 	const exportFilename = exportButtonsConfig?.filename || (title ? slug(title) : 'multi-series-chart')
 	const exportTitle = exportButtonsConfig?.pngTitle
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	useEffect(() => {
 		// create instance
@@ -631,9 +633,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			handleChartReady(instance)
 		}
 
-		if (onReady) {
-			onReady(instance)
-		}
+		emitReady(instance)
 
 		// avoid mutating memoized defaults
 		const mergedChartSettings: any = { ...defaultChartSettings }
@@ -664,7 +664,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 						orient: l?.orient ?? 'horizontal',
 						pageButtonPosition: l?.pageButtonPosition ?? 'end',
 						top: l?.top ?? 0,
-						left: l?.left ?? 12,
+						...(l?.left != null ? { left: l.left } : {}),
 						right: l?.right ?? 12
 					}))
 				: legend
@@ -674,7 +674,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 							orient: legend?.orient ?? 'horizontal',
 							pageButtonPosition: legend?.pageButtonPosition ?? 'end',
 							top: legend?.top ?? 0,
-							left: legend?.left ?? 12,
+							...(legend?.left != null ? { left: legend.left } : {}),
 							right: legend?.right ?? 12
 						}
 					: undefined
@@ -796,7 +796,8 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			outerBoundsContain: 'axisLabel'
 		}
 		const finalGrid = mergedChartSettings.grid ? mergeDeep(baseGrid, mergedChartSettings.grid) : baseGrid
-		if (shouldHideDataZoom) {
+		const hasExplicitGridBottom = mergedChartSettings.grid?.bottom != null
+		if (shouldHideDataZoom && !hasExplicitGridBottom) {
 			// Caller-provided grid defaults often reserve slider space. When the zoom control is
 			// not rendered, force the compact bottom padding so charts do not keep a dead band.
 			finalGrid.bottom = 12
@@ -846,9 +847,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				tooltipSizeCacheRef.current = null
 				instance.dispose()
 				handleChartReady(null)
-				if (onReady) {
-					onReady(null)
-				}
+				emitReady(null)
 			}
 		}
 
@@ -857,9 +856,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			tooltipSizeCacheRef.current = null
 			instance.dispose()
 			handleChartReady(null)
-			if (onReady) {
-				onReady(null)
-			}
+			emitReady(null)
 		}
 	}, [
 		id,
@@ -873,7 +870,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		datasetSource,
 		datasetDimensions,
 		valueSymbol,
-		onReady,
 		tooltipFormatter,
 		effectiveCharts,
 		handleChartReady,

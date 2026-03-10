@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { setPendingPrompt, setPendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
@@ -51,10 +51,6 @@ const CAPABILITIES = [
 	{ icon: 'calendar' as const, label: 'Scheduled Alerts', sub: 'Automated daily checks' },
 	{ icon: 'file-text' as const, label: 'Research Reports', sub: 'Multi-agent deep dives' }
 ]
-
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
 
 const FALLBACK_QUESTIONS: LandingQuestion[] = [
 	{ text: 'Which protocols have growing TVL but declining token prices right now?', tag: 'Find Alpha' },
@@ -365,9 +361,6 @@ export const getStaticProps = withPerformanceLogging('ai', async () => {
 })
 
 export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestions?: LandingQuestion[] }) {
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
-
 	const [isVideoPlaying, setIsVideoPlaying] = useState(false)
 
 	const isClient = useIsClient()
@@ -901,12 +894,6 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 					</div>
 				</section>
 			</div>
-
-			{shouldRenderModal ? (
-				<Suspense fallback={null}>
-					<SubscribeProModal dialogStore={subscribeModalStore} returnUrl="/ai/chat" />
-				</Suspense>
-			) : null}
 		</>
 	)
 }

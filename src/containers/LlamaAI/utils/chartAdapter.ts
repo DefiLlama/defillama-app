@@ -594,7 +594,7 @@ function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): Ad
 
 		const datasetSource =
 			axisType === 'time'
-				? Array.from(rowsByX.values()).toSorted((a, b) => Number(a[dimensionName] ?? 0) - Number(b[dimensionName] ?? 0))
+				? Array.from(rowsByX.values()).sort((a, b) => Number(a[dimensionName] ?? 0) - Number(b[dimensionName] ?? 0))
 				: categoryOrder.map((key) => rowsByX.get(key)!).filter(Boolean)
 
 		const dataset = {

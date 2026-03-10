@@ -14,9 +14,22 @@ const GROUP_BY_LABEL: Record<GroupingInterval, AdaptedLlamaAICartesianChart['pro
 
 function cloneChartOptions(chartOptions: AdaptedLlamaAICartesianChart['props']['chartOptions']) {
 	if (!chartOptions) return undefined
-	return Object.fromEntries(
-		Object.entries(chartOptions).map(([key, value]) => [key, Array.isArray(value) ? [...value] : { ...value }])
-	) as unknown as AdaptedLlamaAICartesianChart['props']['chartOptions']
+
+	const deepCloneValue = <T>(value: T): T => {
+		if (Array.isArray(value)) {
+			return value.map((item) => deepCloneValue(item)) as T
+		}
+
+		if (value && typeof value === 'object') {
+			return Object.fromEntries(
+				Object.entries(value).map(([key, nestedValue]) => [key, deepCloneValue(nestedValue)])
+			) as T
+		}
+
+		return value
+	}
+
+	return deepCloneValue(chartOptions)
 }
 
 function cloneCartesianChart(chart: AdaptedLlamaAICartesianChart): AdaptedLlamaAICartesianChart {

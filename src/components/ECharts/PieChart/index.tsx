@@ -2,7 +2,7 @@ import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -69,6 +69,9 @@ export default function PieChart({
 		exportButtonsConfig?.filename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = exportButtonsConfig?.pngTitle || title
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -274,15 +277,15 @@ export default function PieChart({
 		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 		handleChartReady(instance)
-		onReady?.(instance)
+		emitReady(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
-			onReady?.(null)
+			emitReady(null)
 		}
-	}, [id, handleChartReady, onReady])
+	}, [id, handleChartReady])
 
 	useEffect(() => {
 		const instance = chartRef.current

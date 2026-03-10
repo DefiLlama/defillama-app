@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -318,6 +318,9 @@ export default function AreaChart({
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
 	const hasNotifiedReadyRef = useRef(false)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -340,8 +343,8 @@ export default function AreaChart({
 			handleChartReady(instance)
 		}
 
-		if (onReady && isNewInstance) {
-			onReady(instance)
+		if (isNewInstance) {
+			emitReady(instance)
 			hasNotifiedReadyRef.current = true
 		}
 
@@ -401,14 +404,13 @@ export default function AreaChart({
 		id,
 		chartsStack,
 		shouldSyncChartInstance,
-		handleChartReady,
-		onReady
+		handleChartReady
 	])
 
 	useChartCleanup(id, () => {
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
-			onReady?.(null)
+			emitReady(null)
 			hasNotifiedReadyRef.current = false
 		}
 		if (shouldSyncChartInstance) {

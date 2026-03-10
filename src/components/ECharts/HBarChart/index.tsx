@@ -2,7 +2,7 @@ import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { formatTooltipValue } from '../formatters'
 import type { IHBarChartProps } from '../types'
@@ -26,6 +26,9 @@ export default function HBarChart({
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -36,7 +39,7 @@ export default function HBarChart({
 			instance = echarts.init(chartDom, null, { renderer: 'canvas' })
 		}
 		chartRef.current = instance
-		onReady?.(instance)
+		emitReady(instance)
 
 		const seriesData = values.map((v, i) => {
 			const item: { value: number; itemStyle?: { color: string } } = { value: v }
@@ -115,10 +118,10 @@ export default function HBarChart({
 		return () => {
 			observer.disconnect()
 			chartRef.current = null
-			onReady?.(null)
+			emitReady(null)
 			instance?.dispose()
 		}
-	}, [id, categories, values, valueSymbol, color, colors, isThemeDark, onReady])
+	}, [id, categories, values, valueSymbol, color, colors, isThemeDark])
 
 	return <div id={id} style={{ height }} />
 }

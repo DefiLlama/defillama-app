@@ -211,14 +211,7 @@ function buildCsvRowsFromSeriesFallback(option: any): Array<Array<CsvCell>> {
 
 	const maybeFirstTsSeconds = normalizeEpochSeconds(sorted[0])
 	const includeDate = maybeFirstTsSeconds != null
-	const headerLabel =
-		xAxis?.type === 'category'
-			? 'category'
-			: yAxis?.type === 'category'
-				? 'category'
-				: xAxis?.type === 'time'
-					? 'x'
-					: 'x'
+	const headerLabel = xAxis?.type === 'category' || yAxis?.type === 'category' ? 'category' : 'x'
 	const header: Array<CsvCell> = includeDate ? [headerLabel, 'Date', ...seriesNames] : [headerLabel, ...seriesNames]
 	const rows: Array<Array<CsvCell>> = [header]
 

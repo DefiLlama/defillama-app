@@ -12,7 +12,7 @@ const ALLOWED_PROTOCOLS = ['https:', 'http:', 'mailto:']
  * Validate and sanitize a URL for safe use in href attributes.
  * Returns null if the URL is unsafe or malformed.
  */
-function sanitizeUrl(url: string): string | null {
+export function sanitizeUrl(url: string): string | null {
 	if (!url || typeof url !== 'string') return null
 
 	// Trim whitespace
@@ -44,11 +44,16 @@ function sanitizeUrl(url: string): string | null {
 	}
 }
 
+interface ActionPlaceholderData {
+	label: string
+	message: string
+}
+
 interface ArtifactMatch {
 	index: number
 	length: number
 	type: 'chart' | 'csv' | 'alert' | 'action'
-	id: string
+	id: string | ActionPlaceholderData
 }
 
 export type ContentPart =
@@ -92,7 +97,7 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			index: match.index,
 			length: match[0].length,
 			type: 'action',
-			id: JSON.stringify({ label: actionLabel, message: actionMessage })
+			id: { label: actionLabel, message: actionMessage }
 		})
 	}
 
@@ -104,14 +109,14 @@ export function parseArtifactPlaceholders(content: string): ParsedContent {
 			parts.push({ type: 'text', content: content.slice(lastIndex, m.index) })
 		}
 		if (m.type === 'chart') {
-			parts.push({ type: 'chart', chartId: m.id })
+			parts.push({ type: 'chart', chartId: m.id as string })
 		} else if (m.type === 'csv') {
-			parts.push({ type: 'csv', csvId: m.id })
+			parts.push({ type: 'csv', csvId: m.id as string })
 		} else if (m.type === 'action') {
-			const { label, message } = JSON.parse(m.id)
+			const { label, message } = m.id as ActionPlaceholderData
 			parts.push({ type: 'action', actionLabel: label, actionMessage: message })
 		} else {
-			parts.push({ type: 'alert', alertId: m.id })
+			parts.push({ type: 'alert', alertId: m.id as string })
 		}
 		lastIndex = m.index + m.length
 	}
