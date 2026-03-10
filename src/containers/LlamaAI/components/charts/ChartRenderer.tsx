@@ -33,6 +33,7 @@ interface SingleChartProps {
 	data: any[]
 	isActive: boolean
 	sessionId?: string | null
+	title?: string
 }
 
 type ChartState = {
@@ -411,7 +412,7 @@ function buildChartPresentation(
 }
 
 // Render one chart plus the local controls that transform its presentation client-side.
-function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
+function SingleChart({ config, data, isActive, sessionId, title }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const handleStackedChange = (stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked })
 	const handlePercentageChange = (percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage })
@@ -457,6 +458,7 @@ function SingleChart({ config, data, isActive, sessionId }: SingleChartProps) {
 		return (
 			<div className="flex flex-col *:[2n-1]:m-2" data-chart-id={config.id}>
 				<ChartControls
+					title={title}
 					displayOptions={config.displayOptions}
 					stacked={chartState.stacked}
 					percentage={chartState.percentage}
@@ -599,10 +601,6 @@ function ChartRendererImpl({
 						</button>
 					))}
 				</div>
-			) : charts[0]?.title ? (
-				<p className="-mt-2 border-b border-[#e6e6e6] px-3 py-2 text-base font-semibold dark:border-[#222324]">
-					{charts[0].title}
-				</p>
 			) : null}
 			{charts.map((chart, index) => (
 				<SingleChart
@@ -611,6 +609,7 @@ function ChartRendererImpl({
 					data={Array.isArray(chartData) ? chartData : chartData?.[chart.datasetName || chart.id] || []}
 					isActive={!hasMultipleCharts || activeTabIndex === index}
 					sessionId={sessionId}
+					title={chart.title}
 				/>
 			))}
 		</div>

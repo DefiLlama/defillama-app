@@ -29,6 +29,7 @@ const LABEL_OPTIONS = [
 ]
 
 interface ChartControlsProps {
+	title?: string
 	displayOptions: ChartConfiguration['displayOptions']
 	stacked: boolean
 	percentage: boolean
@@ -49,6 +50,7 @@ interface ChartControlsProps {
 }
 
 export function ChartControls({
+	title,
 	displayOptions,
 	stacked,
 	percentage,
@@ -80,10 +82,11 @@ export function ChartControls({
 	const hasControls =
 		showGrouping || canShowCumulative || (canStack && !cumulative) || canShowPercentage || hasHallmarks || isScatter
 
-	if (!hasControls && !children) return null
+	if (!hasControls && !children && !title) return null
 
 	return (
-		<div className="flex flex-wrap items-center justify-end gap-1 p-2 pt-0">
+		<div className="flex flex-wrap items-center justify-end gap-1 border-b border-[#e6e6e6] p-2 pt-0 dark:border-[#222324]">
+			{title ? <p className="mr-auto text-base font-semibold">{title}</p> : null}
 			{showGrouping ? (
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 					{groupingOptions.map((interval) => (

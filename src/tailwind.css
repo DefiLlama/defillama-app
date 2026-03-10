@@ -892,6 +892,17 @@
 	margin-bottom: 0;
 }
 
+/* Align entity logos with text */
+.prose.llamaai-prose a img.inline-block {
+	vertical-align: -0.15em;
+}
+
+/* Scale entity logos to match heading font size */
+.prose.llamaai-prose :is(h1, h2, h3, h4, h5, h6) a img {
+	height: 1em;
+	width: 1em;
+}
+
 /* --------------------------- Citation Badge UI --------------------------- */
 .citation-badge {
 	display: inline-flex;

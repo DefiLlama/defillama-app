@@ -88,15 +88,17 @@ function EntityLinkRenderer({ href, children, ...props }: EntityLinkProps) {
 		return (
 			<a
 				href={entityUrl}
-				className="relative -bottom-0.5 inline-flex items-center gap-1 text-(--link-text) hover:underline"
+				className="text-(--link-text) hover:underline"
 				target="_blank"
 				rel="noreferrer noopener"
 				{...props}
 			>
 				{type !== 'pool' ? (
-					<TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />
+					<>
+						<TokenLogo name={slug} kind={type === 'chain' ? 'chain' : 'token'} alt={`Logo of ${slug}`} size={14} />{' '}
+					</>
 				) : null}
-				<span className="truncate">{children}</span>
+				{children}
 			</a>
 		)
 	}
