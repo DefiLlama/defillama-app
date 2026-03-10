@@ -6,6 +6,7 @@ import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { assertResponse } from '../utils/assertResponse'
 
 interface FeedbackFormProps {
@@ -51,6 +52,7 @@ export function FeedbackForm({
 	const [feedbackText, setFeedbackText] = useState('')
 	const finalFeedbackText = useDeferredValue(feedbackText)
 	const handleSubmitFeedback = () => {
+		trackUmamiEvent('llamaai-feedback-text-submit')
 		submitFeedback({ rating: selectedRating, feedback: feedbackText.trim() || undefined })
 	}
 

@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import type { RefObject } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { getAnchorRect } from '../../utils/entitySuggestions'
 
 interface EntityMatch {
@@ -55,7 +56,10 @@ export function EntityComboboxPopover({
 						key={id}
 						value={id}
 						focusOnHover
-						onClick={() => onItemClick({ id, name, type })}
+						onClick={() => {
+						trackUmamiEvent('llamaai-entity-select', { type })
+						onItemClick({ id, name, type })
+					}}
 						className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-active-item:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-active-item:bg-[#222324]"
 					>
 						{logo ? <TokenLogo src={logo} alt={`Logo of ${name}`} size={20} /> : null}

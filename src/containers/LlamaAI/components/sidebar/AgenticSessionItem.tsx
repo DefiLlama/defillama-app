@@ -11,6 +11,7 @@ import { useClickOutside } from '~/containers/LlamaAI/hooks/useClickOutside'
 import { SESSIONS_QUERY_KEY } from '~/containers/LlamaAI/hooks/useSessionList'
 import type { ChatSession } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { assertResponse } from '../../utils/assertResponse'
 
 interface AgenticSessionItemProps {
@@ -68,6 +69,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 
 	const handleSessionClick = (sessionId: string) => {
 		if (isActive) return
+		trackUmamiEvent('llamaai-session-click')
 		void Router.push(`/ai/chat/${sessionId}`, undefined, { shallow: true })
 		if (document.documentElement.clientWidth < 1024) {
 			handleSidebarToggle()
@@ -90,6 +92,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 
 	const handleDelete = async () => {
 		if (window.confirm('Are you sure you want to delete this chat?')) {
+			trackUmamiEvent('llamaai-session-delete')
 			try {
 				await onDelete(session.sessionId)
 				setIsEditing(false)
@@ -149,6 +152,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 				type="button"
 				onClick={(e) => {
 					if (e.metaKey || e.ctrlKey) {
+						trackUmamiEvent('llamaai-session-click')
 						window.open(`/ai/chat/${session.sessionId}`, '_blank')
 						return
 					}
@@ -194,6 +198,7 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 												await navigator.clipboard.writeText(
 													`${window.location.origin}/ai/chat/shared/${session.shareToken}`
 												)
+												trackUmamiEvent('llamaai-session-share')
 												setIsCopyingLink(true)
 												setTimeout(() => {
 													setIsCopyingLink(false)

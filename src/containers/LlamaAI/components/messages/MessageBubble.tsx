@@ -1,6 +1,7 @@
 import Router from 'next/router'
 import { useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { AlertArtifact, AlertArtifactLoading } from '~/containers/LlamaAI/components/AlertArtifact'
 import { ChartRenderer } from '~/containers/LlamaAI/components/charts/ChartRenderer'
 import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArtifact'
@@ -82,10 +83,11 @@ function ActionButtonGroup({
 							<a
 								key={actionKey}
 								{...(href.startsWith('http')
-									? { href, target: '_blank', rel: 'noopener noreferrer' }
+									? { href, target: '_blank', rel: 'noopener noreferrer', onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label }) }
 									: {
 											href: `https://defillama.com${href}`,
-											onClick: (event) => {
+											onClick: (event: React.MouseEvent) => {
+												trackUmamiEvent('llamaai-action-link-click', { label: action.label })
 												event.preventDefault()
 												void Router.push(href)
 											}
@@ -112,6 +114,7 @@ function ActionButtonGroup({
 
 					const handleClick = () => {
 						if (!onActionClick || isClicked) return
+						trackUmamiEvent('llamaai-action-click', { label: action.label })
 						setClicked(action.compositeId)
 						onActionClick(action.message)
 					}
@@ -174,10 +177,11 @@ function ActionButtonGroup({
 						<a
 							key={actionKey}
 							{...(href.startsWith('http')
-								? { href, target: '_blank', rel: 'noopener noreferrer' }
+								? { href, target: '_blank', rel: 'noopener noreferrer', onClick: () => trackUmamiEvent('llamaai-action-link-click', { label: action.label }) }
 								: {
 										href: `https://defillama.com${href}`,
-										onClick: (event) => {
+										onClick: (event: React.MouseEvent) => {
+											trackUmamiEvent('llamaai-action-link-click', { label: action.label })
 											event.preventDefault()
 											void Router.push(href)
 										}
@@ -210,6 +214,7 @@ function ActionButtonGroup({
 						disabled={isClicked || !onActionClick}
 						onClick={() => {
 							if (!onActionClick || isClicked) return
+							trackUmamiEvent('llamaai-action-click', { label: action.label })
 							setClicked(action.compositeId)
 							onActionClick(action.message)
 						}}

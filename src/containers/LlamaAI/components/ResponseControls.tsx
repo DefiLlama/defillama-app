@@ -7,6 +7,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { handleSimpleFetchResponse } from '~/utils/async'
 import { assertResponse } from '../utils/assertResponse'
 import { convertLlamaLinksToDefillama } from '../utils/entityLinks'
@@ -214,10 +215,12 @@ export function ResponseControls({
 	}, [])
 
 	const handleRateGood = useCallback(() => {
+		trackUmamiEvent('llamaai-feedback-submit', { rating: 'good' })
 		handleOpenFeedbackWithRating('good')
 	}, [handleOpenFeedbackWithRating])
 
 	const handleRateBad = useCallback(() => {
+		trackUmamiEvent('llamaai-feedback-submit', { rating: 'bad' })
 		handleOpenFeedbackWithRating('bad')
 	}, [handleOpenFeedbackWithRating])
 
@@ -226,11 +229,13 @@ export function ResponseControls({
 	}, [handleOpenFeedbackWithRating])
 
 	const handleShareSession = useCallback(() => {
+		trackUmamiEvent('llamaai-share-conversation')
 		shareSession()
 	}, [shareSession])
 
 	const handleCopy = useCallback(async () => {
 		if (!content) return
+		trackUmamiEvent('llamaai-copy-response')
 		try {
 			const convertedContent = convertLlamaLinksToDefillama(content)
 			await navigator.clipboard.writeText(convertedContent)
@@ -302,7 +307,7 @@ export function ResponseControls({
 							<button
 								onClick={handleShareSession}
 								disabled={isSharing || showShareModal}
-								data-umami-event="llamaai-share-conversation"
+	
 							/>
 						}
 						className={`rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white`}
