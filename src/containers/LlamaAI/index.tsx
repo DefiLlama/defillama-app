@@ -1418,8 +1418,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								return
 							}
 							if (err?.code === 'FREE_QUESTION_LIMIT') {
-								if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
-								subscribeModalStore.show()
+								appendMessage({
+									role: 'assistant',
+									content: err.message || "You've reached the free question limit. Subscribe for unlimited access."
+								})
 								dispatchStream({ type: 'RESET_STREAM' })
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
@@ -1485,8 +1487,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			updateSessionTitle,
 			moveSessionToTop,
 			researchModalStore,
-			subscribeModalStore,
-			shouldRenderSubscribeModal,
 			requestPermission,
 			notify,
 			customInstructions,

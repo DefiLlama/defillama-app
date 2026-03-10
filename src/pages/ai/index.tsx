@@ -1,12 +1,21 @@
 import * as Ariakit from '@ariakit/react'
 import clsx from 'clsx'
-import { lazy, Suspense, useState } from 'react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { setPendingPrompt, setPendingSuggestedFlag } from '~/components/LlamaAIFloatingButton'
 import { SEO } from '~/components/SEO'
+import { SignInForm } from '~/containers/Subscribtion/SignIn'
+import { WalletProvider } from '~/layout/WalletProvider'
 import { TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import type { LandingQuestion } from '~/containers/LlamaAI/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useIsClient } from '~/hooks/useIsClient'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
+import { MCP_SERVER } from '~/constants'
+import { withPerformanceLogging } from '~/utils/perf'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 
 const EXAMPLE_CONVERSATIONS = [
 	{
@@ -35,24 +44,134 @@ const EXAMPLE_CONVERSATIONS = [
 	}
 ] as const
 
+const CAPABILITIES = [
+	{ icon: 'bar-chart-2' as const, label: 'Charts & Analytics', sub: 'Auto-generated charts' },
+	{ icon: 'trending-up' as const, label: 'Price Forecasts', sub: 'Monte Carlo + technicals' },
+	{ icon: 'link' as const, label: 'On-chain Analysis', sub: 'Smart money & logs' },
+	{ icon: 'calendar' as const, label: 'Scheduled Alerts', sub: 'Automated daily checks' },
+	{ icon: 'file-text' as const, label: 'Research Reports', sub: 'Multi-agent deep dives' }
+]
+
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
-const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
-	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+const FALLBACK_QUESTIONS: LandingQuestion[] = [
+	{ text: 'Which protocols have growing TVL but declining token prices right now?', tag: 'Find Alpha' },
+	{ text: 'Build a conviction-scored trade thesis on ETH with technicals and on-chain data', tag: 'Trade Thesis' },
+	{ text: 'What are the best delta-neutral yield strategies for 10 ETH on Ethereum?', tag: 'Yield Strategy' },
+	{ text: 'Show me all USDC mint events on Ethereum this week', tag: 'On-Chain' },
+	{ text: 'Deep research report on the current state of restaking protocols', tag: 'Research' },
+	{ text: 'What tokens does vitalik.eth hold and what changed recently?', tag: 'Wallet Analysis' },
+	{ text: 'Compare Uniswap vs Curve vs Balancer fees and volume over the last 30 days', tag: 'Analytics' },
+	{ text: 'What are the latest crypto fundraising rounds this month?', tag: 'Raises' },
+	{ text: 'Price estimate for BTC using Monte Carlo simulation and prediction markets', tag: 'Forecasting' }
+]
+
+function FreeQuestionsSection({ landingQuestions }: { landingQuestions?: LandingQuestion[] }) {
+	const router = useRouter()
+	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
+	const [pendingQuestion, setPendingQuestion] = useState<LandingQuestion | null>(null)
+	const signInDialogStore = Ariakit.useDialogStore()
+
+	if (isAuthenticated && hasActiveSubscription) return null
+
+	const questions = landingQuestions?.length ? landingQuestions : FALLBACK_QUESTIONS
+	const displayed = questions.slice(0, 9)
+
+	const handleClick = (question: LandingQuestion) => {
+		trackUmamiEvent('llamaai-landing-free-question-click', {
+			tag: question.tag,
+			question: question.text.slice(0, 50)
+		})
+		if (!loaders.userLoading && isAuthenticated) {
+			setPendingPrompt(question.text)
+			setPendingSuggestedFlag()
+			void router.push('/ai/chat')
+		} else {
+			setPendingPrompt(question.text)
+			setPendingSuggestedFlag()
+			setPendingQuestion(question)
+			signInDialogStore.show()
+		}
+	}
 
 	return (
-		<>
-			{!isAuthenticated || !hasActiveSubscription ? (
-				<div className={clsx('mt-3 flex flex-col gap-1.5', centered ? 'items-center' : 'items-center md:items-start')}>
-					<span className="inline-flex items-center rounded-full border border-[#C99A4A]/40 bg-linear-to-r from-[#C99A4A]/10 via-[#C99A4A]/5 to-[#C99A4A]/10 px-3.5 py-2 text-[13px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/40 dark:from-[#FDE0A9]/10 dark:via-[#FDE0A9]/5 dark:to-[#FDE0A9]/10 dark:text-[#FDE0A9]">
-						7 days free · Cancel anytime
-					</span>
-					<span className="text-[13px] text-[#666] dark:text-[#919296]">No charge until trial ends</span>
-				</div>
-			) : null}
-		</>
+		<section id="free-questions" className="relative z-10 mx-auto max-w-5xl px-4 pb-10 md:px-8">
+			<div className="mb-6 text-center">
+				<h2 className="mb-2 text-lg font-bold tracking-[-0.01em] text-black md:text-xl dark:text-white">
+					Try LlamaAI for free
+				</h2>
+				<p className="text-sm text-[#666] dark:text-[#919296]">
+					Pick a question below to get a full AI-powered answer — 3 free per day.{' '}
+					{isAuthenticated ? null : (
+						<>
+							<button
+								onClick={() => signInDialogStore.show()}
+								className="font-medium text-[#C99A4A] underline decoration-[#C99A4A]/40 transition-colors hover:text-[#B8860B] dark:text-[#FDE0A9] dark:hover:text-[#FBEDCB]"
+							>
+								Sign in
+							</button>{' '}
+							to start.
+						</>
+					)}
+				</p>
+			</div>
+			<div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+				{displayed.map((q, i) => (
+					<button
+						key={i}
+						onClick={() => handleClick(q)}
+						className={clsx(
+							'group flex flex-col items-start gap-3 rounded-xl border border-[#E8E8E8] bg-white p-4 text-left transition-all duration-200',
+							'hover:-translate-y-0.5 hover:border-[#C99A4A]/50 hover:shadow-[0_8px_24px_rgba(253,224,169,0.15)]',
+							'dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30 dark:hover:shadow-[0_8px_24px_rgba(253,224,169,0.08)]'
+						)}
+					>
+						<span className="inline-block rounded-full border border-[#C99A4A]/30 bg-[#C99A4A]/8 px-2.5 py-0.5 text-[11px] font-semibold text-[#C99A4A] dark:border-[#FDE0A9]/30 dark:bg-[#FDE0A9]/8 dark:text-[#FDE0A9]">
+							{q.tag}
+						</span>
+						<span className="flex-1 text-[14px] leading-snug text-[#333] dark:text-[#e0e0e3]">{q.text}</span>
+						<span className="flex items-center gap-1 text-[13px] font-semibold text-[#C99A4A] opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:text-[#FDE0A9]">
+							Ask this
+							<Icon name="arrow-right" height={12} width={12} />
+						</span>
+					</button>
+				))}
+			</div>
+
+			<WalletProvider>
+				<Ariakit.Dialog
+					store={signInDialogStore}
+					className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
+					unmountOnHide
+				>
+					{pendingQuestion ? (
+						<p className="mb-4 rounded-lg bg-[#C99A4A]/10 px-3 py-2 text-center text-sm text-[#C99A4A]">
+							Sign in to ask: &ldquo;{pendingQuestion.text.slice(0, 60)}
+							{pendingQuestion.text.length > 60 ? '...' : ''}&rdquo;
+						</p>
+					) : null}
+					<SignInForm text="Sign in to try LlamaAI for free" dialogStore={signInDialogStore} returnUrl="/ai/chat" />
+				</Ariakit.Dialog>
+			</WalletProvider>
+		</section>
+	)
+}
+
+const TrialBadge = ({ centered = false }: { centered?: boolean }) => {
+	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
+	if (isAuthenticated && hasActiveSubscription) return null
+
+	return (
+		<p
+			className={clsx(
+				'mt-3 text-[13px] text-[#666] dark:text-[#919296]',
+				centered ? 'text-center' : 'text-center md:text-left'
+			)}
+		>
+			7-day free trial available
+		</p>
 	)
 }
 
@@ -84,11 +203,15 @@ const CTAButton = ({
 			<span className="whitespace-nowrap">{displayLabel}</span>
 		</BasicLink>
 	) : (
-		<button
-			onClick={() => subscribeModalStore.show()}
+		<a
+			href="#free-questions"
+			onClick={(e) => {
+				e.preventDefault()
+				document.getElementById('free-questions')?.scrollIntoView({ behavior: 'smooth' })
+			}}
 			data-umami-event="llamaai-landing-cta-unsubscribed"
 			className={clsx(
-				'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)]',
+				'animate-cta-glow llamaai-glow relative z-10 inline-flex items-center justify-center gap-2.5 overflow-hidden rounded-xl bg-[linear-gradient(93.94deg,#FDE0A9_24.73%,#FBEDCB_57.42%,#FDE0A9_99.73%)] px-6 py-3.5 text-base font-semibold text-black shadow-[0px_0px_30px_0px_rgba(253,224,169,0.5),0px_0px_1px_2px_rgba(255,255,255,0.1)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0px_0px_50px_0px_rgba(253,224,169,0.8)] cursor-pointer',
 				className
 			)}
 		>
@@ -96,11 +219,161 @@ const CTAButton = ({
 				<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 			</svg>
 			<span className="whitespace-nowrap">{displayLabel}</span>
-		</button>
+		</a>
 	)
 }
 
-export default function LlamaAIGetStarted() {
+function ExampleShowcase() {
+	const [current, setCurrent] = useState(0)
+	const [isTransitioning, setIsTransitioning] = useState(false)
+	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+	const goTo = useCallback((index: number) => {
+		setIsTransitioning(true)
+		setTimeout(() => {
+			setCurrent(index)
+			setIsTransitioning(false)
+		}, 200)
+	}, [])
+
+	const resetInterval = useCallback(() => {
+		if (intervalRef.current) clearInterval(intervalRef.current)
+		intervalRef.current = setInterval(() => {
+			setCurrent((prev) => {
+				const next = (prev + 1) % EXAMPLE_CONVERSATIONS.length
+				setIsTransitioning(true)
+				setTimeout(() => setIsTransitioning(false), 200)
+				return next
+			})
+		}, 6000)
+	}, [])
+
+	useEffect(() => {
+		resetInterval()
+		return () => {
+			if (intervalRef.current) clearInterval(intervalRef.current)
+		}
+	}, [resetInterval])
+
+	const example = EXAMPLE_CONVERSATIONS[current]
+
+	return (
+		<div>
+			<div className="mb-3 flex items-start gap-2.5 px-1">
+				<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E8E8E8] bg-[#FAFAFA] text-sm dark:border-[#2a2a2e] dark:bg-[#1e1f23]">
+					👤
+				</div>
+				<div>
+					<span className="mb-1 block text-[11px] font-bold tracking-wider text-[#C99A4A] uppercase dark:text-[#FDE0A9]">
+						{example.category}
+					</span>
+					<span className="text-[14px] font-medium leading-snug text-[#333] dark:text-[#e8e8ea]">
+						&ldquo;{example.prompt}&rdquo;
+					</span>
+				</div>
+			</div>
+
+			<a
+				href={example.url}
+				target="_blank"
+				rel="noopener noreferrer"
+				onClick={() => trackUmamiEvent('llamaai-landing-showcase-click', { example: example.id })}
+				className={clsx(
+					'group relative block overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.08)] transition-all duration-500',
+					'hover:-translate-y-1 hover:border-[#C99A4A]/40 hover:shadow-[0_24px_64px_rgba(253,224,169,0.2)]',
+					'dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)] dark:hover:border-[#FDE0A9]/30 dark:hover:shadow-[0_24px_64px_rgba(253,224,169,0.1)]'
+				)}
+			>
+				<div
+					className={clsx(
+						'relative aspect-4/3 w-full overflow-hidden bg-[#131516] transition-opacity duration-200',
+						isTransitioning ? 'opacity-0' : 'opacity-100'
+					)}
+				>
+					<img
+						src={`${example.screenshot}.png`}
+						alt={`LlamaAI ${example.category} example`}
+						className="hidden h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 dark:block"
+					/>
+					<img
+						src={`${example.screenshot}-light.png`}
+						alt={`LlamaAI ${example.category} example`}
+						className="block h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-105 dark:hidden"
+					/>
+					<div className="absolute inset-0 flex items-center justify-center bg-linear-to-t from-black/50 via-black/0 to-black/0 opacity-0 transition-all duration-500 group-hover:opacity-100">
+						<span className="flex translate-y-4 items-center gap-2 rounded-full bg-linear-to-r from-[#FDE0A9] to-[#F5D08C] px-5 py-2.5 text-sm font-semibold text-[#5C4A1F] shadow-[0_8px_32px_rgba(253,224,169,0.5)] transition-all duration-500 group-hover:translate-y-0">
+							View full conversation
+							<Icon name="arrow-up-right" height={14} width={14} />
+						</span>
+					</div>
+				</div>
+				<div className="flex items-center justify-between bg-white px-4 py-3 dark:bg-[#1e1f23]">
+					<span className="text-[13px] text-[#777] dark:text-[#919296]">{example.description}</span>
+					<span className="flex shrink-0 items-center gap-1 text-[13px] font-semibold text-[#C99A4A] transition-all group-hover:gap-2 dark:text-[#FDE0A9]">
+						View
+						<Icon name="arrow-up-right" height={12} width={12} />
+					</span>
+				</div>
+			</a>
+
+			<div className="mt-3 flex items-center justify-center gap-2">
+				{EXAMPLE_CONVERSATIONS.map((_, i) => (
+					<button
+						key={i}
+						onClick={() => {
+							goTo(i)
+							resetInterval()
+						}}
+						className={clsx(
+							'h-1.5 rounded-full transition-all duration-300',
+							i === current
+								? 'w-6 bg-[#C99A4A] dark:bg-[#FDE0A9]'
+								: 'w-1.5 bg-[#E8E8E8] hover:bg-[#ccc] dark:bg-[#2a2a2e] dark:hover:bg-[#404040]'
+						)}
+						aria-label={`Show example ${i + 1}`}
+					/>
+				))}
+			</div>
+		</div>
+	)
+}
+
+const CATEGORY_TAGS: Record<string, string> = {
+	find_alpha: 'Find Alpha',
+	analytics: 'Analytics',
+	speculative_guidance: 'Trade Thesis',
+	learn: 'Learn',
+	research_report: 'Research'
+}
+
+export const getStaticProps = withPerformanceLogging('ai', async () => {
+	let landingQuestions: LandingQuestion[] = []
+	try {
+		const res = await fetch(`${MCP_SERVER}/suggested-questions/landing`)
+		if (res.ok) {
+			const data = await res.json()
+			if (data?.questions?.length) {
+				landingQuestions = data.questions
+			} else if (data?.categories) {
+				const cats = Object.entries(data.categories) as [string, string[]][]
+				for (const [cat, questions] of cats) {
+					const tag = CATEGORY_TAGS[cat] || cat.replace(/_/g, ' ')
+					for (const q of questions.slice(0, 2)) {
+						landingQuestions.push({ text: q, tag })
+					}
+				}
+				landingQuestions = landingQuestions.sort(() => Math.random() - 0.5).slice(0, 9)
+			}
+		}
+	} catch {}
+
+	return {
+		props: { landingQuestions },
+		revalidate: maxAgeForNext([22])
+	}
+})
+
+export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestions?: LandingQuestion[] }) {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
 
@@ -154,8 +427,8 @@ export default function LlamaAIGetStarted() {
 				</header>
 
 				{/* Hero Section */}
-				<section className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-12 pb-24 md:px-8 md:pt-16 md:pb-36">
-					<div className="grid items-center gap-8 md:grid-cols-2 md:gap-10 lg:gap-16">
+				<section className="relative z-10 mx-auto w-full max-w-7xl px-4 pt-12 pb-16 md:px-8 md:pt-16 md:pb-20">
+					<div className="grid items-start gap-8 md:grid-cols-2 md:gap-10 lg:gap-16">
 						{/* Left: Text Content */}
 						<div
 							className={clsx(
@@ -164,9 +437,7 @@ export default function LlamaAIGetStarted() {
 								isClient ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
 							)}
 						>
-							{/* Llama Icon */}
 							<div className="relative mb-8">
-								{/* Outer glow */}
 								<span
 									className="absolute inset-0 -m-8 block rounded-full"
 									style={{
@@ -175,7 +446,6 @@ export default function LlamaAIGetStarted() {
 										opacity: 0.6
 									}}
 								/>
-								{/* Inner glow */}
 								<span
 									className="absolute inset-0 -m-4 block rounded-full"
 									style={{
@@ -204,65 +474,39 @@ export default function LlamaAIGetStarted() {
 							</div>
 						</div>
 
-						{/* Right: Video Preview Card */}
+						{/* Right: Rotating Showcase */}
 						<div
 							className={clsx(
-								'relative w-full',
+								'relative w-full pt-4',
 								'transition-all delay-200 duration-700',
 								isClient ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
 							)}
 						>
-							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
-								{/* Video content */}
-								<div className="relative aspect-video w-full">
-									{!isVideoPlaying ? (
-										<button
-											onClick={() => setIsVideoPlaying(true)}
-											className="absolute inset-0 z-10 flex items-center justify-center"
-											aria-label="Play demo video"
-										>
-											{/* Thumbnail */}
-											<img
-												src="https://img.youtube.com/vi/rEJz1gfC0Oc/maxresdefault.jpg"
-												alt="LlamaAI Demo"
-												className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-											/>
-											{/* Overlay gradient */}
-											<div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
-											{/* Play button */}
-											<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
-												<svg
-													xmlns="http://www.w3.org/2000/svg"
-													viewBox="0 0 24 24"
-													fill="currentColor"
-													className="ml-1 h-6 w-6 text-[#1a1a1a] md:h-8 md:w-8"
-												>
-													<path d="M8 5.14v14l11-7-11-7z" />
-												</svg>
-											</div>
-											{/* Watch demo text */}
-											<span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm transition-all duration-300 group-hover:bg-black/80 md:bottom-6 md:px-4 md:py-2 md:text-sm">
-												Watch demo
-											</span>
-										</button>
-									) : (
-										<iframe
-											src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
-											title="LlamaAI Demo"
-											sandbox="allow-scripts allow-presentation"
-											allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-											referrerPolicy="strict-origin-when-cross-origin"
-											allowFullScreen
-											className="absolute inset-0 h-full w-full"
-										/>
-									)}
-								</div>
-							</div>
+							<ExampleShowcase />
 						</div>
 					</div>
 				</section>
 
-				{/* Subtle section divider */}
+				{/* Capability Strip */}
+				<section className="relative z-10 mx-auto max-w-5xl px-4 pb-10 md:px-8">
+					<div className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border border-[#E8E8E8] bg-[#E8E8E8] md:grid-cols-5 dark:border-[#2a2a2e] dark:bg-[#2a2a2e]">
+						{CAPABILITIES.map((cap) => (
+							<div
+								key={cap.label}
+								className="flex flex-col items-center gap-1.5 bg-white px-3 py-4 text-center dark:bg-[#1e1f23]"
+							>
+								<Icon name={cap.icon} height={18} width={18} className="text-[#C99A4A] dark:text-[#FDE0A9]" />
+								<span className="text-[11px] font-semibold text-[#555] dark:text-[#a0a0a5]">{cap.label}</span>
+								<span className="text-[10px] text-[#999] dark:text-[#666]">{cap.sub}</span>
+							</div>
+						))}
+					</div>
+				</section>
+
+				{/* Free Questions */}
+				{isClient && <FreeQuestionsSection landingQuestions={landingQuestions} />}
+
+				{/* Divider */}
 				<div className="relative z-10 mx-auto max-w-4xl px-4 md:px-8">
 					<div className="h-px bg-linear-to-r from-transparent via-[#E8E8E8] to-transparent dark:via-[#2a2a2e]" />
 				</div>
@@ -275,14 +519,13 @@ export default function LlamaAIGetStarted() {
 								What can you do with LlamaAI?
 							</h2>
 							<p className="mx-auto max-w-lg text-lg text-[#666] dark:text-[#919296]">
-								Click any card to explore actual LlamaAI conversations
+								Click any card to explore actual LlamaAI conversations — no account needed
 							</p>
 						</div>
 
 						<div className="grid gap-5 md:grid-cols-3">
 							{EXAMPLE_CONVERSATIONS.map((example, index) => (
 								<div key={example.id} className={clsx('flex flex-col', index === 1 && 'md:translate-y-8')}>
-									{/* Category Header */}
 									<h3 className="mb-3 text-sm font-bold tracking-wider text-[#C99A4A] uppercase md:text-base dark:text-[#FDE0A9]">
 										{example.category}
 									</h3>
@@ -291,6 +534,7 @@ export default function LlamaAIGetStarted() {
 										href={example.url}
 										target="_blank"
 										rel="noopener noreferrer"
+										onClick={() => trackUmamiEvent('llamaai-landing-example-click', { example: example.id })}
 										className={clsx(
 											'group relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white transition-all duration-500',
 											'hover:-translate-y-2 hover:border-[#C99A4A]/40 hover:shadow-[0_24px_64px_rgba(253,224,169,0.25)]',
@@ -318,7 +562,7 @@ export default function LlamaAIGetStarted() {
 
 										<div className="flex flex-1 flex-col p-5">
 											<p className="mb-3 line-clamp-2 text-base leading-snug font-semibold text-black dark:text-white">
-												"{example.prompt}"
+												&quot;{example.prompt}&quot;
 											</p>
 											<p className="mt-auto text-sm leading-relaxed text-[#777] dark:text-[#888]">
 												{example.description}
@@ -331,14 +575,70 @@ export default function LlamaAIGetStarted() {
 					</div>
 				</section>
 
-				{/* Your Research Edge - Bento Grid */}
+				{/* Demo Video */}
+				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
+					<div className="mx-auto max-w-5xl">
+						<div className="mb-6 text-center">
+							<h2 className="mb-3 text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:text-[2rem] dark:text-white">
+								See it in action
+							</h2>
+							<p className="text-base text-[#666] dark:text-[#919296]">Watch a full walkthrough of LlamaAI</p>
+						</div>
+						<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:border-[#2a2a2e] dark:shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+							<div className="relative aspect-video w-full">
+								{!isVideoPlaying ? (
+									<button
+										onClick={() => {
+											trackUmamiEvent('llamaai-landing-video-play')
+											setIsVideoPlaying(true)
+										}}
+										className="absolute inset-0 z-10 flex items-center justify-center"
+										aria-label="Play demo video"
+									>
+										<img
+											src="https://img.youtube.com/vi/rEJz1gfC0Oc/maxresdefault.jpg"
+											alt="LlamaAI Demo"
+											className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+										/>
+										<div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-black/10 transition-opacity duration-300 group-hover:opacity-70" />
+										<div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-[#FDE0A9] to-[#C99A4A] shadow-[0_8px_32px_rgba(253,224,169,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_12px_48px_rgba(253,224,169,0.6)] md:h-20 md:w-20">
+											<svg
+												xmlns="http://www.w3.org/2000/svg"
+												viewBox="0 0 24 24"
+												fill="currentColor"
+												className="ml-1 h-6 w-6 text-[#1a1a1a] md:h-8 md:w-8"
+											>
+												<path d="M8 5.14v14l11-7-11-7z" />
+											</svg>
+										</div>
+										<span className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm transition-all duration-300 group-hover:bg-black/80 md:bottom-6 md:px-4 md:py-2 md:text-sm">
+											Watch demo
+										</span>
+									</button>
+								) : (
+									<iframe
+										src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
+										title="LlamaAI Demo"
+										sandbox="allow-scripts allow-same-origin allow-presentation"
+										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+										referrerPolicy="strict-origin-when-cross-origin"
+										allowFullScreen
+										className="absolute inset-0 h-full w-full"
+									/>
+								)}
+							</div>
+						</div>
+					</div>
+				</section>
+
+				{/* Bento Grid */}
 				<section className="relative z-10 px-4 pb-20 md:px-8 md:pb-28">
 					<div className="mx-auto max-w-5xl">
 						<h2 className="mb-8 text-center text-[1.75rem] font-extrabold tracking-[-0.02em] text-black md:mb-10 md:text-[2rem] dark:text-white">
 							Every metric. Every market. One conversation.
 						</h2>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-							{/* DeFi & TradFi - wide card, first */}
+							{/* DeFi & TradFi - wide card */}
 							<div className="group relative overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white p-6 pb-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C99A4A]/40 md:col-span-2 dark:border-[#2a2a2e] dark:bg-[#1e1f23] dark:hover:border-[#FDE0A9]/30">
 								<h3 className="mb-1.5 text-base font-bold text-[#C99A4A] dark:text-[#FDE0A9]">
 									DeFi, TradFi & Onchain
@@ -347,7 +647,6 @@ export default function LlamaAIGetStarted() {
 									DefiLlama's 5,000+ protocols paired with stocks, macro, and onchain data. Questions that used to need
 									multiple tools and tabs are now single prompts.
 								</p>
-								{/* Mini UI: tool calls panel */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="flex items-center justify-between border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
 										<span className="text-[11px] font-medium text-[#333] dark:text-[#ccc]">5 tool calls</span>
@@ -395,11 +694,9 @@ export default function LlamaAIGetStarted() {
 									Automate recurring prompts. Set up daily price checks, portfolio summaries, or custom data monitors on
 									your schedule.
 								</p>
-								{/* Mini UI: alert panel matching actual UI */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
 										<div className="flex items-center gap-2">
-											{/* Calendar icon */}
 											<div className="flex h-5 w-5 items-center justify-center rounded bg-[#C99A4A]/15 dark:bg-[#FDE0A9]/15">
 												<svg
 													xmlns="http://www.w3.org/2000/svg"
@@ -445,7 +742,6 @@ export default function LlamaAIGetStarted() {
 									LlamaAI learns what you care about and tailors responses to your style. Set custom instructions and
 									let memory build your profile across sessions.
 								</p>
-								{/* Mini UI: settings panel matching actual UI */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
 										<div className="flex items-center gap-2">
@@ -493,7 +789,6 @@ export default function LlamaAIGetStarted() {
 									Generate in-depth research reports on any protocol, sector, or trend. Multiple agents research in
 									parallel, then synthesize everything into a single exportable PDF.
 								</p>
-								{/* Mini UI: "Researching in parallel..." panel */}
 								<div className="overflow-hidden rounded-lg border border-[#E8E8E8] bg-[#FAFAFA] dark:border-[#2a2a2e] dark:bg-[#16171a]">
 									<div className="flex items-center gap-2.5 border-b border-[#E8E8E8] px-3 py-2 dark:border-[#2a2a2e]">
 										<span className="text-[13px]">🦙</span>
@@ -582,19 +877,19 @@ export default function LlamaAIGetStarted() {
 							</FAQ>
 							<FAQ question="Who has access?">
 								<p>
-									LlamaAI is included in all paid subscriptions along with the DefiLlama Pro features. Free users can
-									upgrade to use it.
+									LlamaAI is included in all paid subscriptions along with the DefiLlama Pro features. Signed-in users
+									can also try 3 free suggested questions per day.
 								</p>
 							</FAQ>
 							<FAQ question="What sort of prompts can it answer?">
 								<ul className="flex list-disc flex-col gap-1.5 pl-4">
-									<li>"Which protocols have growing TVL and revenue but declining token prices?"</li>
-									<li>"Give me a chart of total app revenue divided by category"</li>
-									<li>"What are the best stablecoin yields with at least $10M TVL?"</li>
-									<li>"Deep dive into Hyperliquid"</li>
-									<li>"What are the probabilities that ETH price will go lower?"</li>
-									<li>"What are the top tokens traded on CowSwap over the last 30 days?"</li>
-									<li>"How is AAPL performing relative to BTC this quarter?"</li>
+									<li>&quot;Which protocols have growing TVL and revenue but declining token prices?&quot;</li>
+									<li>&quot;Give me a chart of total app revenue divided by category&quot;</li>
+									<li>&quot;What are the best stablecoin yields with at least $10M TVL?&quot;</li>
+									<li>&quot;Deep dive into Hyperliquid&quot;</li>
+									<li>&quot;What are the probabilities that ETH price will go lower?&quot;</li>
+									<li>&quot;What are the top tokens traded on CowSwap over the last 30 days?&quot;</li>
+									<li>&quot;How is AAPL performing relative to BTC this quarter?&quot;</li>
 								</ul>
 							</FAQ>
 							<FAQ question="Can I export results?">

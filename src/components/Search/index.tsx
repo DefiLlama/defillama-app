@@ -84,7 +84,7 @@ export const MobileSearch = () => {
 					<svg className="h-4 w-4 shrink-0">
 						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
-					<span className="sr-only">Ask LlamaAI</span>
+					<span className="sr-only">{isClient && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
 				</BasicLink>
 			) : null}
 			<Ariakit.DialogProvider store={dialogStore}>
@@ -324,7 +324,7 @@ export const DesktopSearch = () => {
 					<svg className="h-4 w-4 shrink-0">
 						<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 					</svg>
-					<span className="whitespace-nowrap">Ask LlamaAI</span>
+					<span className="whitespace-nowrap">{isClient && hasActiveSubscription ? 'Ask LlamaAI' : 'Try LlamaAI'}</span>
 				</BasicLink>
 			) : null}
 		</>

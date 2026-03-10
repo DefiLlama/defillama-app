@@ -143,6 +143,20 @@ export interface SuggestedQuestionsResponse {
 	}
 }
 
+export interface LandingQuestion {
+	text: string
+	tag: string
+}
+
+export interface LandingQuestionsResponse {
+	questions: LandingQuestion[]
+	metadata?: {
+		generatedAt: string
+		cacheExpiresAt: string
+		totalQuestions: number
+	}
+}
+
 export interface EntityQuestionsResponse {
 	questions: string[]
 	suggestGlobal: boolean
