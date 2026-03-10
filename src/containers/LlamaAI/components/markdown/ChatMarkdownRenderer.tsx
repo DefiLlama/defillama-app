@@ -66,7 +66,7 @@ function TableWrapper({
 			<div ref={tableRef} className="overflow-x-auto">
 				<table
 					{...tableProps}
-					className={`table-auto border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`}
+					className={`w-full border-collapse border border-[#e6e6e6] text-sm dark:border-[#222324] ${tableProps?.className ?? ''}`}
 				>
 					{children}
 				</table>
