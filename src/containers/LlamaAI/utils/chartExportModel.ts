@@ -30,6 +30,11 @@ function toCsvCell(value: unknown): CsvCell {
 	return typeof value === 'string' || typeof value === 'boolean' ? value : ''
 }
 
+function formatPercent(value: number, total: number): string {
+	if (!Number.isFinite(value) || total <= 0) return '0%'
+	return `${((value / total) * 100).toFixed(2)}%`
+}
+
 function buildCartesianCsvRows(
 	config: ChartConfiguration,
 	adaptedChart: Extract<AdaptedChartData, { chartType: 'cartesian' }>
@@ -75,10 +80,12 @@ export function buildExportModel(config: ChartConfiguration, adaptedChart: Adapt
 				pngProfile: 'default'
 			}
 		case 'pie':
+			const pieData = adaptedChart.props.chartData ?? []
+			const total = pieData.reduce((sum, item) => sum + item.value, 0)
 			return {
 				csvRows: [
-					['Name', 'Value'],
-					...((adaptedChart.props.chartData ?? []).map((item) => [item.name, item.value]) as CsvCell[][])
+					['Name', 'Value', 'Percentage'],
+					...(pieData.map((item) => [item.name, item.value, formatPercent(item.value, total)]) as CsvCell[][])
 				],
 				csvFilename,
 				pngProfile: 'default'

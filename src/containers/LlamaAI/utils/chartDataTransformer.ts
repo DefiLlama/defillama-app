@@ -96,22 +96,6 @@ function createRowsFromFormattedSeries(
 	return Array.from(rowsByTimestamp.values()).sort((a, b) => Number(a.timestamp ?? 0) - Number(b.timestamp ?? 0))
 }
 
-function applyPiePercentage(adaptedChart: Extract<AdaptedChartData, { chartType: 'pie' }>) {
-	const pieData = adaptedChart.props.chartData || []
-	const total = pieData.reduce((sum, item) => sum + item.value, 0)
-	return {
-		...adaptedChart,
-		props: {
-			...adaptedChart.props,
-			chartData: pieData.map((item) => ({
-				...item,
-				value: total > 0 ? (item.value / total) * 100 : 0
-			})),
-			valueSymbol: '%'
-		}
-	} satisfies Extract<AdaptedChartData, { chartType: 'pie' }>
-}
-
 export class ChartDataTransformer {
 	static applyViewState(
 		adaptedChart: AdaptedChartData,
@@ -120,9 +104,7 @@ export class ChartDataTransformer {
 	): AdaptedChartData {
 		// Always transform from the immutable adapted chart. This avoids state toggles
 		// compounding on top of prior transformed output and drifting over time.
-		if (adaptedChart.chartType === 'pie') {
-			return state.percentage && capabilities.allowPercentage ? applyPiePercentage(adaptedChart) : adaptedChart
-		}
+		if (adaptedChart.chartType === 'pie') return adaptedChart
 
 		if (adaptedChart.chartType !== 'cartesian') {
 			return adaptedChart
@@ -248,6 +230,7 @@ export class ChartDataTransformer {
 	static applyCumulativeToSeries(chart: AdaptedLlamaAICartesianChart): AdaptedLlamaAICartesianChart {
 		const nextChart = cloneCartesianChart(chart)
 		if (!isTimeChart(nextChart)) return nextChart
+		const seriesCount = nextChart.seriesMeta.length
 
 		const formattedSeries = nextChart.seriesMeta.map((meta) => {
 			const data = nextChart.props.dataset.source.flatMap((row) => {
@@ -272,10 +255,14 @@ export class ChartDataTransformer {
 		nextChart.props.dataset.source = createRowsFromFormattedSeries(formattedSeries)
 		nextChart.props.charts =
 			nextChart.props.charts?.map((series) => {
+				const meta = nextChart.seriesMeta.find((item) => item.name === series.name)
 				const { hideAreaStyle: _hideAreaStyle, stack: _stack, ...rest } = series
 				return {
 					...rest,
-					type: 'bar' as const
+					type: 'line' as const,
+					// Single-series cumulative charts can use the default gradient area fill.
+					// For multi-series cumulative charts, keep plain lines to avoid overlapping filled areas.
+					...(meta?.baseType === 'bar' && seriesCount > 1 ? { hideAreaStyle: true } : {})
 				}
 			}) ?? []
 

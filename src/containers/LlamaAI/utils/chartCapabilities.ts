@@ -56,7 +56,7 @@ export function deriveCapabilities(config: ChartConfiguration, adaptedChart: Ada
 		case 'pie':
 			return {
 				allowStack: false,
-				allowPercentage: !!config.displayOptions?.canShowPercentage,
+				allowPercentage: false,
 				allowCumulative: false,
 				allowGrouping: false,
 				allowHallmarks: false,
