@@ -481,7 +481,10 @@ async function renderClonedChartExport(
 			const bottomPadding = expandLegend ? 32 : 16
 			const plotHeight = Math.max(1, IMAGE_EXPORT_HEIGHT - gridTop - bottomPadding)
 			const bandHeight = categoryCount > 0 ? plotHeight / categoryCount : plotHeight
-			const barSeriesCount = Math.max(1, currentOptions.series.filter((s: any) => s?.type === 'bar').length)
+			const barStacks = new Set(
+				currentOptions.series.filter((s: any) => s?.type === 'bar').map((s: any) => s.stack ?? s.name ?? '')
+			)
+			const barSeriesCount = Math.max(1, barStacks.size)
 			const barWidth = Math.max(8, Math.min(80, Math.floor((bandHeight * 0.65) / barSeriesCount)))
 
 			currentOptions.series = currentOptions.series.map((series: any) =>

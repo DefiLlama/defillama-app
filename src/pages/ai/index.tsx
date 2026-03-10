@@ -788,10 +788,10 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 										</span>
 									</button>
 								) : (
+									// oxlint-disable-next-line react/iframe-missing-sandbox -- YouTube embeds require allow-scripts + allow-same-origin which the rule forbids
 									<iframe
 										src="https://www.youtube.com/embed/rEJz1gfC0Oc?si=0DD5sxzyUpC7GO14&autoplay=1"
 										title="LlamaAI Demo"
-										sandbox="allow-scripts allow-presentation"
 										allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 										referrerPolicy="strict-origin-when-cross-origin"
 										allowFullScreen

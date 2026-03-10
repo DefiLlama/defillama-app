@@ -186,29 +186,26 @@ function tryBuildPresentation(config: ChartConfiguration, data: any[], chartStat
 function SingleChart({ config, data, isActive, sessionId, title }: SingleChartProps) {
 	const [chartState, dispatch] = useReducer(chartReducer, config, createInitialChartState)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
-	const handleStackedChange = useCallback(
-		(stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }),
-		[dispatch]
-	)
+	const handleStackedChange = useCallback((stacked: boolean) => dispatch({ type: 'SET_STACKED', payload: stacked }), [])
 	const handlePercentageChange = useCallback(
 		(percentage: boolean) => dispatch({ type: 'SET_PERCENTAGE', payload: percentage }),
-		[dispatch]
+		[]
 	)
 	const handleCumulativeChange = useCallback(
 		(cumulative: boolean) => dispatch({ type: 'SET_CUMULATIVE', payload: cumulative }),
-		[dispatch]
+		[]
 	)
 	const handleGroupingChange = useCallback(
 		(grouping: ChartViewState['grouping']) => dispatch({ type: 'SET_GROUPING', payload: grouping }),
-		[dispatch]
+		[]
 	)
 	const handleHallmarksChange = useCallback(
 		(showHallmarks: boolean) => dispatch({ type: 'SET_HALLMARKS', payload: showHallmarks }),
-		[dispatch]
+		[]
 	)
 	const handleLabelsChange = useCallback(
 		(showLabels: boolean) => dispatch({ type: 'SET_LABELS', payload: showLabels }),
-		[dispatch]
+		[]
 	)
 
 	const presentation = useMemo(
