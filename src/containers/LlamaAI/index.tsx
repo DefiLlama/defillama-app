@@ -74,6 +74,7 @@ interface PersistedMessageMetadata {
 	thinking?: string
 	alertIntent?: PersistedAlertIntent
 	savedAlertId?: string
+	savedAlertIds?: string[]
 }
 
 interface PersistedMessage {
@@ -187,7 +188,8 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 		csvExports: message.csvExports,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
-			metadata: message.metadata
+			metadata: message.metadata,
+			savedAlertIds: message.savedAlertIds
 		}),
 		savedAlertIds: message.savedAlertIds,
 		images: message.images,
@@ -256,7 +258,8 @@ function mapSharedSessionMessage(message: SharedSessionMessage): Message {
 		citations: message.citations,
 		alerts: buildRestoredAlerts({
 			messageId: message.messageId,
-			metadata: message.metadata
+			metadata: message.metadata,
+			savedAlertIds: message.savedAlertIds
 		}),
 		savedAlertIds: message.savedAlertIds,
 		images: message.images,
@@ -275,16 +278,20 @@ interface AgenticChatProps {
 // Rebuild alert artifacts from persisted assistant metadata when restoring a session.
 function buildRestoredAlerts({
 	messageId,
-	metadata
+	metadata,
+	savedAlertIds
 }: {
 	messageId?: string
 	metadata?: PersistedMessageMetadata
+	savedAlertIds?: string[]
 }): AlertProposedData[] | undefined {
 	if (!metadata?.alertIntent) return undefined
+	const persistedAlertId =
+		metadata.savedAlertIds?.[0] || savedAlertIds?.[0] || metadata.savedAlertId || `restored_${messageId}`
 
 	return [
 		{
-			alertId: metadata.savedAlertId || `restored_${messageId}`,
+			alertId: persistedAlertId,
 			title: metadata.alertIntent.dataQuery || '',
 			alertIntent: {
 				frequency: metadata.alertIntent.frequency || 'daily',
@@ -510,25 +517,59 @@ function createAgenticCallbacks({
 
 export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
 	const { authorizedFetch, user } = useAuthContext()
+
+	const getAuthorizedFetchInput = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
+		if (!(input instanceof Request)) {
+			const url = typeof input === 'string' ? input : input.toString()
+			return { url, init }
+		}
+
+		const mergedHeaders = new Headers(input.headers)
+		if (init?.headers) {
+			new Headers(init.headers).forEach((value, key) => {
+				mergedHeaders.set(key, value)
+			})
+		}
+
+		const mergedInit: RequestInit = {
+			method: init?.method ?? input.method,
+			headers: mergedHeaders,
+			body: init?.body ?? input.body,
+			cache: init?.cache ?? input.cache,
+			credentials: init?.credentials ?? input.credentials,
+			integrity: init?.integrity ?? input.integrity,
+			keepalive: init?.keepalive ?? input.keepalive,
+			mode: init?.mode ?? input.mode,
+			priority: init?.priority,
+			redirect: init?.redirect ?? input.redirect,
+			referrer: init?.referrer ?? input.referrer,
+			referrerPolicy: init?.referrerPolicy ?? input.referrerPolicy,
+			signal: init?.signal ?? input.signal,
+			window: init?.window
+		}
+
+		return { url: input.url, init: mergedInit }
+	}, [])
+
 	// Adapt the auth helper to the native fetch signature while preserving non-2xx responses for downstream error handling.
 	const authorizedFetchCompat = useCallback<typeof fetch>(
 		async (input, init) => {
-			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
-			const response = await authorizedFetch(url, init)
+			const request = getAuthorizedFetchInput(input, init)
+			const response = await authorizedFetch(request.url, request.init)
 			if (!response) {
 				throw new Error('Authorized request failed')
 			}
 			return response
 		},
-		[authorizedFetch]
+		[authorizedFetch, getAuthorizedFetchInput]
 	)
 	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
 	const authorizedFetchStrict = useCallback<typeof fetch>(
 		async (input, init) => {
-			const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
-			return assertResponse(await authorizedFetch(url, init), 'Authorized request failed')
+			const request = getAuthorizedFetchInput(input, init)
+			return assertResponse(await authorizedFetch(request.url, request.init), 'Authorized request failed')
 		},
-		[authorizedFetch]
+		[authorizedFetch, getAuthorizedFetchInput]
 	)
 	const isLlama = !!user?.flags?.is_llama
 	const {

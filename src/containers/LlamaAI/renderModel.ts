@@ -77,13 +77,6 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 	return artifacts
 }
 
-function getNextMarkdownBlockIndex(blocks: MessageRenderBlock[], startIndex: number) {
-	for (let index = startIndex + 1; index < blocks.length; index++) {
-		if (blocks[index]?.type === 'markdown') return index
-	}
-	return -1
-}
-
 export function parseMessageToRenderModel(message: Message): {
 	artifactsById: ArtifactRegistry
 	blocks: MessageRenderBlock[]
@@ -206,21 +199,6 @@ export function parseMessageToRenderModel(message: Message): {
 			citations: message.citations,
 			showSources: true
 		})
-	}
-
-	for (let index = 0; index < blocks.length; index++) {
-		const block = blocks[index]
-		if (block.type !== 'markdown') continue
-
-		// Keep the expandable source list attached to the last markdown block so split content still gets one source footer.
-		const nextMarkdownIndex = getNextMarkdownBlockIndex(blocks, index)
-		if (nextMarkdownIndex !== -1 && block.showSources) {
-			blocks[index] = { ...block, showSources: false }
-			blocks[nextMarkdownIndex] = {
-				...blocks[nextMarkdownIndex],
-				showSources: true
-			} as Extract<MessageRenderBlock, { type: 'markdown' }>
-		}
 	}
 
 	return { artifactsById, blocks }
