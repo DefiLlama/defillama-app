@@ -766,6 +766,12 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const titleMetrics: string[] = []
+	const chartLabelsForSeo = availableCharts.filter(
+		(chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)
+	)
+
+	let seoDescription = `Track ${name} on DefiLlama. Including ${chartLabelsForSeo.length ? chartLabelsForSeo.join(', ') : 'key onchain and financial stats'}`
+
 	if (availableCharts.includes(isCEX ? 'Total Assets' : 'TVL')) {
 		titleMetrics.push(isCEX ? 'Assets' : 'TVL')
 	}
@@ -780,17 +786,29 @@ export const getProtocolOverviewPageData = async ({
 	}
 	if (incomeStatement) {
 		titleMetrics.push('Income Statement')
+		seoDescription += `, Income Statement`
 	}
 	if (currentProtocolMetadata.tokenRights) {
 		titleMetrics.push('Token Rights')
+		seoDescription += `, Token Rights`
+	}
+	if (availableCharts.includes('Revenue') && availableCharts.includes('Incentives')) {
+		titleMetrics.push('Earnings')
+		seoDescription += `, Earnings`
 	}
 	if (incomeStatement) {
 		for (const label in incomeStatement.labelsByType) {
 			if (incomeStatement.labelsByType[label].includes('Token Buy Back')) {
 				titleMetrics.push('Token Buy Back')
+				seoDescription += `, Token Buy Back`
+
 				break
 			}
 		}
+	}
+	if (expenses) {
+		titleMetrics.push('Expenses')
+		seoDescription += `, Expenses`
 	}
 
 	const titleMetricSegment =
@@ -801,23 +819,6 @@ export const getProtocolOverviewPageData = async ({
 				: `${titleMetrics.slice(0, -1).join(', ')} & ${titleMetrics.at(-1)} Stats`
 	const baseTitle = `${name} ${titleMetricSegment} - DefiLlama`
 	const seoTitle = baseTitle.length < 30 ? `${baseTitle} - DeFi Dashboard & Crypto Analytics` : baseTitle
-
-	const chartLabelsForSeo = availableCharts.filter(
-		(chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)
-	)
-	let seoDescription = `Track ${name} on DefiLlama. Including ${chartLabelsForSeo.length ? chartLabelsForSeo.join(', ') : 'key onchain and financial stats'}`
-	if (expenses) {
-		seoDescription += `, Expenses`
-	}
-	if (revenueData && incentives) {
-		seoDescription += `, Earnings`
-	}
-	if (incomeStatement) {
-		seoDescription += `, Income Statement`
-	}
-	if (currentProtocolMetadata.tokenRights) {
-		seoDescription += `, Token Rights`
-	}
 
 	return {
 		id: String(protocolData.id),
