@@ -7,6 +7,7 @@ import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
+import { Tooltip } from '~/components/Tooltip'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
@@ -17,6 +18,56 @@ import { StabilityCell, StabilityHeader } from './StabilityCell'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
+
+function PegHealthIndicator({
+	deviation,
+	price
+}: {
+	deviation: number | null | undefined
+	price: number | null | undefined
+}) {
+	if (deviation == null) return <span className="block text-end text-xs text-(--text-disabled)">{'\u2014'}</span>
+	const abs = Math.abs(deviation)
+	// Positive deviations (above peg) cap at caution — red is reserved for below-peg risk
+	const status: 'healthy' | 'caution' | 'risk' =
+		abs <= 0.1 ? 'healthy' : deviation > 0 ? (abs <= 0.5 ? 'healthy' : 'caution') : abs <= 0.5 ? 'caution' : 'risk'
+	const statusConfig = {
+		healthy: {
+			label: 'On peg',
+			dotClass: 'bg-(--success)',
+			textClass: 'text-(--success)'
+		},
+		caution: {
+			label: 'Minor deviation',
+			dotClass: 'bg-(--warning)',
+			textClass: 'text-(--warning)'
+		},
+		risk: {
+			label: 'Depeg risk',
+			dotClass: 'bg-(--error)',
+			textClass: 'text-(--error)'
+		}
+	}
+	const cfg = statusConfig[status]
+	const sign = deviation >= 0 ? '+' : ''
+	const priceStr = price != null ? `$${price.toFixed(4)}` : null
+	const tooltipText = priceStr
+		? `${cfg.label} \u00b7 ${priceStr} (${sign}${deviation.toFixed(4)}%)`
+		: `${cfg.label} \u00b7 ${sign}${deviation.toFixed(4)}%`
+	return (
+		<div className="flex justify-end">
+			<Tooltip content={tooltipText}>
+				<span className="inline-flex items-center gap-1.5">
+				<span className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dotClass}`} />
+				<span className={`font-jetbrains text-xs tabular-nums ${cfg.textClass}`}>
+					{sign}
+					{deviation.toFixed(2)}%
+				</span>
+			</span>
+		</Tooltip>
+		</div>
+	)
+}
 
 const columnHelper = createColumnHelper<IYieldTableRow>()
 
@@ -237,6 +288,17 @@ const columns = [
 		meta: {
 			align: 'end',
 			headerHelperText: 'Measures yield consistency over the last 30 days.'
+		}
+	}),
+	columnHelper.accessor((row) => row.pegDeviation ?? undefined, {
+		id: 'pegDeviation',
+		header: 'Peg',
+		enableSorting: true,
+		cell: ({ row }) => <PegHealthIndicator deviation={row.original.pegDeviation} price={row.original.pegPrice} />,
+		size: 90,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Live peg deviation from $1.00 target price.'
 		}
 	}),
 	columnHelper.accessor('apyMedian30d', {
@@ -544,6 +606,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'apyChart30d',
@@ -573,6 +636,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'apyChart30d',
@@ -602,6 +666,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
@@ -631,6 +696,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
@@ -663,6 +729,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -692,6 +759,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -721,6 +789,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -750,6 +819,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -779,6 +849,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -808,6 +879,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -837,6 +909,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -874,6 +947,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 		showStdDev
 	} = router.query
 
+	const isStablecoinPage = router.pathname === '/yields/stablecoins'
+
 	const resolvedColumns = useMemo(() => {
 		if (hasActiveSubscription) return columns
 		return columns.map((col) => {
@@ -884,6 +959,11 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 			return col
 		})
 	}, [hasActiveSubscription])
+
+	// Stablecoin-specific columns only visible on /yields/stablecoins
+	const stablecoinColumnVisibility = {
+		pegDeviation: isStablecoinPage
+	}
 
 	const columnVisibility =
 		includeLsdApy === 'true'
@@ -906,7 +986,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					ltv: showLTV === 'true',
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
-					apyStd30d: hasActiveSubscription && showStdDev === 'true'
+					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					...stablecoinColumnVisibility
 				}
 			: {
 					apyBase7d: show7dBaseApy === 'true',
@@ -927,7 +1008,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					ltv: showLTV === 'true',
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
-					apyStd30d: hasActiveSubscription && showStdDev === 'true'
+					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					...stablecoinColumnVisibility
 				}
 
 	return (

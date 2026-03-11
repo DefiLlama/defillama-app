@@ -125,19 +125,44 @@ export async function getYieldPageData() {
 		p['rewardTokensNames'] = xy.filter((t) => t)
 	}
 
-	// build USD-pegged symbols list (min length 2)
+	// build USD-pegged symbols list (min length 2) + peg health data
 	try {
-		const stablecoins = await fetchStablecoinAssetsApi({ includePrices: false })
+		const stablecoins = await fetchStablecoinAssetsApi({ includePrices: true })
+		const peggedAssets = stablecoins?.peggedAssets || []
 		const usdPeggedSymbols = Array.from(
 			new Set(
-				(stablecoins?.peggedAssets || [])
+				peggedAssets
 					.filter((a) => a?.pegType === 'peggedUSD' && typeof a?.symbol === 'string' && a.symbol.length >= 2)
 					.map((a) => a.symbol.toLowerCase())
 			)
 		)
 		data['usdPeggedSymbols'] = usdPeggedSymbols
+
+		// Build stablecoin info map: symbol -> { price, pegDeviation }
+		// Used for peg health column
+		const stablecoinInfoBySymbol = new Map<string, { price: number | null; pegDeviation: number | null }>()
+		for (const a of peggedAssets) {
+			if (!a?.symbol || !a.pegType) continue
+			const symbol = a.symbol.toLowerCase()
+			const price = typeof a.price === 'number' ? a.price : typeof a.price === 'string' ? parseFloat(a.price) : null
+			const targetPrice = a.pegType === 'peggedUSD' ? 1 : null
+			// Yield-bearing / NAV-accruing tokens (e.g. USDY, USYC) intentionally drift above $1;
+			// showing peg deviation for them is misleading, so we null it out.
+			// Also exclude tokens priced above $1.05 — likely yield-bearing or non-standard tokens
+			// the API doesn't flag. No upper cap on downward depegs (e.g. USDC at $0.88 in March 2023).
+			const pegDeviation =
+				a.yieldBearing || price == null || targetPrice == null || !Number.isFinite(price) || price > 1.05
+					? null
+					: ((price - targetPrice) / targetPrice) * 100
+			// Only store first occurrence per symbol (largest stablecoin wins)
+			if (!stablecoinInfoBySymbol.has(symbol)) {
+				stablecoinInfoBySymbol.set(symbol, { price, pegDeviation })
+			}
+		}
+		data['stablecoinInfoBySymbol'] = Object.fromEntries(stablecoinInfoBySymbol)
 	} catch {
 		data['usdPeggedSymbols'] = []
+		data['stablecoinInfoBySymbol'] = {}
 	}
 
 	// fetch token categories for yields filtering (tokenized assets, meme tokens, etc.)
