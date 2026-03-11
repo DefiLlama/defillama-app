@@ -41,8 +41,8 @@ const pageName = ['Chains', 'ranked by', 'NFT Volume']
 export default function NftsOnAllChains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="NFTs Volume by Chain - DefiLlama"
-			description={`NFTs volume by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="NFT Volume by Chain - DefiLlama"
+			description="Compare NFT trading volume across blockchains on DefiLlama."
 			canonicalUrl={`/nfts/chains`}
 			pageName={pageName}
 		>

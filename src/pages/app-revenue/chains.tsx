@@ -30,8 +30,8 @@ const pageName = ['Chains', 'ranked by', type]
 const HoldersRevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="App Revenue by Chain - Application Revenue Across Chains - DefiLlama"
+			description="Compare application revenue across blockchains on DefiLlama."
 			canonicalUrl={`/app-revenue/chains`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in App Revenue"

@@ -93,8 +93,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const NotionalVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.chain} Options Notional Volume - DeFi Derivatives by Protocol - DefiLlama`}
+			description={`Track options notional volume on ${props.chain} by protocol on DefiLlama.`}
 			canonicalUrl={`/options/notional-volume/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>

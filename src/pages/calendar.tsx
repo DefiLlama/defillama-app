@@ -149,8 +149,8 @@ export default function Protocols({ emissions }) {
 
 	return (
 		<Layout
-			title={`Calendar - DefiLlama`}
-			description={`Crypto calendar on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Crypto Events Calendar - Token Unlocks & DeFi Milestones - DefiLlama"
+			description="Track upcoming crypto events, token unlocks, governance votes, and protocol milestones on DefiLlama."
 			canonicalUrl={`/calendar`}
 		>
 			<Announcement notCancellable>Want us to track other events? Tweet at @0xngmi on twitter!</Announcement>

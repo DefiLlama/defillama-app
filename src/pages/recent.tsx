@@ -19,8 +19,8 @@ const pageName = ['Recently Listed Protocols']
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Recently Listed Protocols - DefiLlama"
-			description={`Recently Listed Protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Recently Listed DeFi Protocols - DefiLlama"
+			description="Discover the newest DeFi protocols listed on DefiLlama with TVL, chain, and category data."
 			canonicalUrl={`/recent`}
 			pageName={pageName}
 		>

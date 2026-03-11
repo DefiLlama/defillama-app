@@ -112,8 +112,8 @@ export default function Protocols({ protocols }: { protocols: Array<{ name: stri
 
 	return (
 		<Layout
-			title={`Protocols Directory - DefiLlama`}
-			description={`Protocols website directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="DeFi Protocols Directory - Official Links - DefiLlama"
+			description="Browse the official websites and links for 7000+ DeFi protocols on DefiLlama."
 			canonicalUrl={`/directory`}
 		>
 			<Announcement notCancellable>

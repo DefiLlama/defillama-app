@@ -20,7 +20,7 @@ export default function TokenPnlPage({ coinsData }) {
 	return (
 		<Layout
 			title={`Token Profit & Loss (PnL) Tracker - DefiLlama`}
-			description={`Token PNL on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Calculate profit and loss for any DeFi token. Track entry price, current value, and returns on DefiLlama."
 			canonicalUrl={`/token-pnl`}
 			pageName={pageName}
 		>

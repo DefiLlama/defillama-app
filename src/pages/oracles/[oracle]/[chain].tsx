@@ -47,7 +47,7 @@ export default function OraclesOracleChainPage(props: InferGetStaticPropsType<ty
 	const canonicalUrl = props.oracle && props.chain ? `/oracles/${slug(props.oracle)}/${slug(props.chain)}` : '/oracles'
 	return (
 		<Layout
-			title={`${props.oracle ?? 'Oracles'} on ${props.chain ?? 'All Chains'} - DefiLlama`}
+			title={`${props.oracle ?? 'Oracles'} Oracle on ${props.chain ?? 'All Chains'} - DefiLlama`}
 			description={`Track total value secured by ${props.oracle ?? 'Oracles'} oracle on ${props.chain}. View protocol breakdown and TVS rankings on DefiLlama.`}
 			canonicalUrl={canonicalUrl}
 			metricFilters={tvlOptions}

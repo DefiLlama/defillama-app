@@ -8,6 +8,10 @@ export default function Sheets() {
 		<>
 			<Head>
 				<title>DefiLlama Sheets - DeFi Data in Google Sheets</title>
+				<meta
+					name="description"
+					content="Access DeFi data directly in Google Sheets. Pull TVL, fees, revenue, and token data with DefiLlama's Sheets integration."
+				/>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />

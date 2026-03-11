@@ -32,8 +32,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const NotionalVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Options Notional Volume Rankings - DeFi Derivatives Trading - DefiLlama"
+			description="Track options notional volume by DeFi protocol. Compare derivatives trading activity on DefiLlama."
 			canonicalUrl={`/options/notional-volume`}
 			pageName={pageName}
 		>

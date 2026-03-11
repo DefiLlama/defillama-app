@@ -25,8 +25,8 @@ const pageName = ['Chains', 'ranked by', type]
 const PerpsAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Perps Aggregator Volume by Chain - Futures Routing Activity - DefiLlama"
+			description="Compare perps aggregator volume across blockchains on DefiLlama."
 			canonicalUrl={`/perps-aggregators/chains`}
 			pageName={pageName}
 		>

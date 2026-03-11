@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
@@ -305,6 +306,15 @@ const PageView = (_props) => {
 
 	return (
 		<>
+			{poolName && projectName ? (
+				<Head>
+					<title>{`${poolName} on ${projectName} - Yield Pool - DefiLlama`}</title>
+					<meta
+						name="description"
+						content={`Track APY, TVL, and historical yield for ${poolName} on ${projectName} (${poolData.chain ?? ''}). DefiLlama yield analytics.`}
+					/>
+				</Head>
+			) : null}
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl font-bold">

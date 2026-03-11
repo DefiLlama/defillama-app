@@ -93,8 +93,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const PremiumVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol on ${props.chain} - DefiLlama`}
-			description={`${type} by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.chain} Options Premium Volume - DeFi Options by Protocol - DefiLlama`}
+			description={`Track options premium volume on ${props.chain} by protocol on DefiLlama.`}
 			canonicalUrl={`/options/premium-volume/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>

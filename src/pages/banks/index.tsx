@@ -80,7 +80,10 @@ const chartCharts: IMultiSeriesChart2Props['charts'] = [
 
 const Banks = () => {
 	return (
-		<Layout title="Bank Failures - DefiLlama">
+		<Layout
+			title="Bank Failures - DefiLlama"
+			description="Track historical bank failures with dates, assets, and resolution details on DefiLlama."
+		>
 			<div className="relative col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<React.Suspense fallback={<div className="min-h-[398px]" />}>
 					<MultiSeriesChart2

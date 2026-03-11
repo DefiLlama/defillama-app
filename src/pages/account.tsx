@@ -51,7 +51,10 @@ export default function Account() {
 
 	return (
 		<WalletProvider>
-			<SubscribeLayout>
+			<SubscribeLayout
+				title="My Account - DefiLlama Pro"
+				description="Manage your DefiLlama Pro subscription, billing, and account settings."
+			>
 				<div className="mx-auto w-full max-w-[1200px] px-5">
 					<AccountInfo />
 				</div>

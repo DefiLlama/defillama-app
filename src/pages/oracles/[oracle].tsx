@@ -46,7 +46,7 @@ export default function OraclesPage(props: InferGetStaticPropsType<typeof getSta
 	const canonicalUrl = props.oracle ? `/oracles/${slug(props.oracle)}` : '/oracles'
 	return (
 		<Layout
-			title={`${props.oracle ?? 'Oracles'} - DefiLlama`}
+			title={`${props.oracle ?? 'Oracles'} Oracle - DefiLlama`}
 			description={`Track total value secured by ${props.oracle ?? 'Oracles'} oracle across all chains. View protocol breakdown and TVS rankings on DefiLlama.`}
 			canonicalUrl={canonicalUrl}
 			metricFilters={tvlOptions}

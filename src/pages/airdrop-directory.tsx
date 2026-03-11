@@ -52,8 +52,8 @@ export const getStaticProps = withPerformanceLogging('airdrop-directory', async 
 export default function Airdrops({ airdrops }) {
 	return (
 		<Layout
-			title={`Airdrop Directory - DefiLlama`}
-			description={`Airdrop directory on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Crypto Airdrop Directory - DeFi Airdrops - DefiLlama"
+			description="Browse upcoming and past crypto airdrops across DeFi protocols on DefiLlama."
 			canonicalUrl={`/airdrop-directory`}
 		>
 			<TableWithSearch

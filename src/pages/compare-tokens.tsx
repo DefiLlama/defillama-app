@@ -23,8 +23,8 @@ export default function Compare({
 }) {
 	return (
 		<Layout
-			title={`Compare Tokens - DefiLlama`}
-			description={`Compare tokens with price, fdv, volume and other metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Compare Crypto Tokens - Price, FDV & Market Data - DefiLlama"
+			description="Compare crypto tokens side-by-side with price, FDV, volume, and other metrics on DefiLlama."
 			canonicalUrl={`/compare-tokens`}
 		>
 			<CompareTokens coinsData={coinsData} protocols={protocols} />

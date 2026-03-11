@@ -110,8 +110,8 @@ export default function TrendingContracts() {
 
 	return (
 		<Layout
-			title={`Trending Contracts - DefiLlama`}
-			description={`Trending Contracts on chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Trending Smart Contracts by Chain - DefiLlama"
+			description="Discover trending smart contracts across blockchains. See the most active contracts in real-time on DefiLlama."
 			canonicalUrl={`/trending-contracts`}
 		>
 			<div className="flex flex-1 flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">

@@ -19,8 +19,8 @@ const pageName = ['LSTs: Overview']
 export default function LSDs(props: LSTOverviewProps) {
 	return (
 		<Layout
-			title={`Liquid Staking Tokens - DefiLlama`}
-			description={`Total Value Locked ETH Liquid Staking Tokens. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Liquid Staking Tokens (LST) - TVL & APY Rankings - DefiLlama"
+			description="Compare liquid staking tokens by TVL, APY, and market share on DefiLlama."
 			canonicalUrl={`/lst`}
 			pageName={pageName}
 		>

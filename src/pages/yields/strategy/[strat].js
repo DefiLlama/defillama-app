@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useMemo } from 'react'
 import { LoadingDots } from '~/components/Loaders'
@@ -220,8 +221,22 @@ const PageView = () => {
 
 	const isLoading = fetchingLendData || fetchingBorrowData || fetchingFarmData || fetchingConfigData || fetchingConfig
 
+	const lendSymbol = configsMap.get(lendToken)?.symbol
+	const farmSymbol = configsMap.get(farmToken)?.symbol
+	const strategyTitle =
+		lendSymbol && farmSymbol ? `Yield Strategy: ${lendSymbol}/${farmSymbol} - DefiLlama` : 'Yield Strategy - DefiLlama'
+
 	return (
 		<>
+			{lendSymbol ? (
+				<Head>
+					<title>{strategyTitle}</title>
+					<meta
+						name="description"
+						content={`Explore this DeFi yield strategy with APY breakdowns and historical performance on DefiLlama.`}
+					/>
+				</Head>
+			) : null}
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 text-base xl:col-span-1">
 					<h1 className="text-xl font-bold">APY Breakdown:</h1>
