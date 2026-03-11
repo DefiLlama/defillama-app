@@ -827,7 +827,10 @@ const IncomeStatementByLabel = ({
 								type="button"
 								aria-expanded={isExpanded}
 								aria-label={`${isExpanded ? 'Hide' : 'Show'} ${label} breakdown`}
-								onClick={() => setIsExpanded((expanded) => !expanded)}
+								onClick={(e) => {
+									e.stopPropagation()
+									setIsExpanded((expanded) => !expanded)
+								}}
 								className="-ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--text-secondary) transition-transform hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 							>
 								<Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} height={14} width={14} />
