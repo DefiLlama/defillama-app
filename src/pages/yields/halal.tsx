@@ -131,7 +131,7 @@ export default function YieldPlots(data) {
 
 	return (
 		<Layout
-			title={`Halal DeFi Yield Opportunities - DefiLlama`}
+			title={`Halal DeFi Yield Opportunities - DefiLlama Yield`}
 			description={`Halal defi yields. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			canonicalUrl={`/yields/halal`}
 			pageName={pageName}

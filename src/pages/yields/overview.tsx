@@ -24,7 +24,7 @@ const pageName = ['Yields: Overview']
 export default function YieldPlots(data) {
 	return (
 		<Layout
-			title={`DeFi Yield Overview & Market Summary - DefiLlama`}
+			title={`Overview - DefiLlama Yield`}
 			description={`Overview of defi yields. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			canonicalUrl={`/yields/overview`}
 			pageName={pageName}

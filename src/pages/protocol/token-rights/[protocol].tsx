@@ -79,7 +79,7 @@ export const getStaticProps = withPerformanceLogging(
 
 		const computedMetrics = protocolData ? getProtocolMetricFlags({ protocolData, metadata: metadata[1] }) : null
 		const name = protocolData?.name ?? rawEntry['Protocol Name']
-		const seoTitle = `${name}${symbol ? ` (${symbol})` : ''} Token Rights & Utility - DefiLlama`
+		const seoTitle = `${name}${symbol ? ` (${symbol})` : ''} Token Rights & Utility`
 		const seoDescription = `Explore ${name}${symbol ? ` (${symbol})` : ''} token rights, holder benefits, governance power, and revenue distribution on DefiLlama.`
 		const metrics: IProtocolPageMetrics = {
 			...(computedMetrics ?? {

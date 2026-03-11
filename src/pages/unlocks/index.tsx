@@ -278,7 +278,7 @@ export default function Protocols({ data, generatedAtSec }: { data: any[]; gener
 
 	return (
 		<Layout
-			title="Token Unlocks Calendar - DeFi Vesting Schedule Tracker - DefiLlama"
+			title="Unlocks - DefiLlama"
 			description="Track upcoming token unlocks and vesting schedules for 500+ DeFi protocols. Monitor unlock dates, amounts, and price impact. Real-time token unlock calendar with 7-day and 30-day unlock analytics."
 			canonicalUrl={`/unlocks`}
 			pageName={pageName}

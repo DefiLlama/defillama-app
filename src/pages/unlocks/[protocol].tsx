@@ -43,7 +43,7 @@ export const getStaticProps = withPerformanceLogging(
 			}
 		}
 		const resolvedTokenSymbol = tokenSymbol ?? emissions.tokenPrice?.symbol ?? null
-		const seoTitle = `${emissions.name} Token Unlocks & Vesting Schedule - DefiLlama`
+		const seoTitle = `${emissions.name} Token Unlocks & Vesting Schedule`
 		const seoDescription = `View ${emissions.name}${resolvedTokenSymbol ? ` (${resolvedTokenSymbol})` : ''} token unlock schedule, vesting charts, and cliff events. Track upcoming emissions on DefiLlama.`
 
 		return {

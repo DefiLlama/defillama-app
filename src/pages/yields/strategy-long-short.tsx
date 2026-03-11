@@ -63,7 +63,7 @@ const pageName = ['Yields: Long/Short Strategies']
 export default function YieldStrategiesFR(data) {
 	return (
 		<Layout
-			title={`Yield Long/Short Strategies - DefiLlama Yield`}
+			title={`Long/Short Strategies - DefiLlama Yield`}
 			description={`Find strategies to maximize yield by long/shorting tokens. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
 			canonicalUrl={`/yields/strategy-long-short`}
 			pageName={pageName}

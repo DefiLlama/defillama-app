@@ -738,11 +738,11 @@ export function getProtocolCategoryPresentation({
 
 	const seoTitle = seoBaseTitle
 		? hasChain
-			? `${normalizedChain} ${seoBaseTitle} - DefiLlama`
-			: `${seoBaseTitle} - DefiLlama`
+			? `${normalizedChain} ${seoBaseTitle}`
+			: `${seoBaseTitle}`
 		: hasChain
-			? `${normalizedChain} ${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
-			: `${capitalizeFirstLetter(resolvedSeoLabel)} Rankings - DefiLlama`
+			? `${normalizedChain} ${capitalizeFirstLetter(resolvedSeoLabel)} Rankings`
+			: `${capitalizeFirstLetter(resolvedSeoLabel)} Rankings`
 
 	const MAX_DESC_LENGTH = 155
 	const baseDesc = hasChain

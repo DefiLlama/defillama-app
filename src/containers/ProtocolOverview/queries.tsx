@@ -786,33 +786,24 @@ export const getProtocolOverviewPageData = async ({
 	if (availableCharts.includes('DEX Volume') || availableCharts.includes('Perp Volume')) {
 		titleMetrics.push('Volume')
 	}
-	if (currentProtocolMetadata.tokenRights) {
-		titleMetrics.push('Token Rights')
-		seoDescription += `, Token Rights`
-	}
 	if (incomeStatement) {
 		titleMetrics.push('Income Statement')
 		seoDescription += `, Income Statement`
-	}
-	if (incomeStatement) {
 		for (const type in incomeStatement.labelsByType) {
 			const breakdowns = incomeStatement.labelsByType[type]?.map((label) =>
 				label === 'Token Buy Back' ? 'Token Buyback' : label
 			)
 			if (breakdowns?.length) {
 				seoDescription += `, ${type} (${breakdowns.join(', ')})`
-				if (breakdowns.includes('Token Buyback') && !titleMetrics.includes('Token Buyback')) {
-					titleMetrics.push('Token Buyback')
-				}
 			}
 		}
 	} else {
 		if (availableCharts.includes('Revenue') && availableCharts.includes('Incentives')) {
-			titleMetrics.push('Earnings')
+			// titleMetrics.push('Earnings')
 			seoDescription += `, Earnings`
 		}
 		if (expenses) {
-			titleMetrics.push('Expenses')
+			// titleMetrics.push('Expenses')
 			seoDescription += `, Expenses`
 		}
 	}
@@ -823,8 +814,7 @@ export const getProtocolOverviewPageData = async ({
 			: titleMetrics.length === 1
 				? `${titleMetrics[0]} Stats & Charts`
 				: `${titleMetrics.slice(0, -1).join(', ')} & ${titleMetrics.at(-1)}`
-	const baseTitle = `${name} ${titleMetricSegment} - DefiLlama`
-	const seoTitle = baseTitle.length < 30 ? `${baseTitle} - DeFi Dashboard & Crypto Analytics` : baseTitle
+	const seoTitle = `${name} ${titleMetricSegment}`
 
 	return {
 		id: String(protocolData.id),
