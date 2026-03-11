@@ -7,8 +7,8 @@ import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
+import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
@@ -26,32 +26,46 @@ function PegHealthIndicator({
 	deviation: number | null | undefined
 	price: number | null | undefined
 }) {
-	if (deviation == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
-	const colorClass = deviation > 0 ? 'text-(--success)' : deviation < 0 ? 'text-(--error)' : ''
-	const dotClass = deviation > 0 ? 'bg-(--success)' : deviation < 0 ? 'bg-(--error)' : 'bg-(--text-disabled)'
-	const sign = deviation > 0 ? '+' : ''
+	if (deviation == null) return <span className="block text-end text-xs text-(--text-disabled)">{'\u2014'}</span>
+	const abs = Math.abs(deviation)
+	// Positive deviations (above peg) cap at caution — red is reserved for below-peg risk
+	const status: 'healthy' | 'caution' | 'risk' =
+		abs <= 0.1 ? 'healthy' : deviation > 0 ? (abs <= 0.5 ? 'healthy' : 'caution') : abs <= 0.5 ? 'caution' : 'risk'
+	const statusConfig = {
+		healthy: {
+			label: 'On peg',
+			dotClass: 'bg-(--success)',
+			textClass: 'text-(--success)'
+		},
+		caution: {
+			label: 'Minor deviation',
+			dotClass: 'bg-(--warning)',
+			textClass: 'text-(--warning)'
+		},
+		risk: {
+			label: 'Depeg risk',
+			dotClass: 'bg-(--error)',
+			textClass: 'text-(--error)'
+		}
+	}
+	const cfg = statusConfig[status]
+	const sign = deviation >= 0 ? '+' : ''
 	const priceStr = price != null ? `$${price.toFixed(4)}` : null
-	const depeg = Math.abs(deviation) >= 2
-	const label = depeg
-		? 'Currently de-pegged by 2% or more'
-		: deviation > 0
-			? 'Above peg'
-			: deviation < 0
-				? 'Below peg'
-				: 'At peg'
 	const tooltipText = priceStr
-		? `${label} \u00b7 ${priceStr} (${sign}${deviation.toFixed(4)}%)`
-		: `${label} \u00b7 ${sign}${deviation.toFixed(4)}%`
+		? `${cfg.label} \u00b7 ${priceStr} (${sign}${deviation.toFixed(4)}%)`
+		: `${cfg.label} \u00b7 ${sign}${deviation.toFixed(4)}%`
 	return (
-		<Tooltip content={tooltipText} className="justify-end">
-			<span className="inline-flex items-center gap-1.5">
-				<span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} />
-				<span className={`tabular-nums ${colorClass}`}>
+		<div className="flex justify-end">
+			<Tooltip content={tooltipText}>
+				<span className="inline-flex items-center gap-1.5">
+				<span className={`inline-block h-1.5 w-1.5 rounded-full ${cfg.dotClass}`} />
+				<span className={`font-jetbrains text-xs tabular-nums ${cfg.textClass}`}>
 					{sign}
 					{deviation.toFixed(2)}%
 				</span>
 			</span>
 		</Tooltip>
+		</div>
 	)
 }
 
@@ -281,7 +295,7 @@ const columns = [
 		header: 'Peg',
 		enableSorting: true,
 		cell: ({ row }) => <PegHealthIndicator deviation={row.original.pegDeviation} price={row.original.pegPrice} />,
-		size: 100,
+		size: 90,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Live peg deviation from $1.00 target price.'
@@ -715,7 +729,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -745,7 +759,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -775,7 +789,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -805,7 +819,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -835,7 +849,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -865,7 +879,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -895,7 +909,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
-		pegDeviation: 100,
+		pegDeviation: 80,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,

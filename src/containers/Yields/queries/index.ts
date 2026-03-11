@@ -138,19 +138,23 @@ export async function getYieldPageData() {
 		)
 		data['usdPeggedSymbols'] = usdPeggedSymbols
 
-		// Peg health: symbol -> { price, pegDeviation }
+		// Build stablecoin info map: symbol -> { price, pegDeviation }
+		// Used for peg health column
 		const stablecoinInfoBySymbol = new Map<string, { price: number | null; pegDeviation: number | null }>()
 		for (const a of peggedAssets) {
-			if (!a?.symbol || a.pegType !== 'peggedUSD') continue
+			if (!a?.symbol || !a.pegType) continue
 			const symbol = a.symbol.toLowerCase()
 			const price = typeof a.price === 'number' ? a.price : typeof a.price === 'string' ? parseFloat(a.price) : null
 			const targetPrice = a.pegType === 'peggedUSD' ? 1 : null
-			// Skip yield-bearing tokens (NAV-accruing, not true pegs)
+			// Yield-bearing / NAV-accruing tokens (e.g. USDY, USYC) intentionally drift above $1;
+			// showing peg deviation for them is misleading, so we null it out.
+			// Also exclude tokens priced above $1.05 — likely yield-bearing or non-standard tokens
+			// the API doesn't flag. No upper cap on downward depegs (e.g. USDC at $0.88 in March 2023).
 			const pegDeviation =
-				a.yieldBearing || price == null || targetPrice == null || !Number.isFinite(price)
+				a.yieldBearing || price == null || targetPrice == null || !Number.isFinite(price) || price > 1.05
 					? null
 					: ((price - targetPrice) / targetPrice) * 100
-			// First occurrence wins (largest by market cap)
+			// Only store first occurrence per symbol (largest stablecoin wins)
 			if (!stablecoinInfoBySymbol.has(symbol)) {
 				stablecoinInfoBySymbol.set(symbol, { price, pegDeviation })
 			}
