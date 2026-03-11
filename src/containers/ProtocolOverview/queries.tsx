@@ -766,9 +766,11 @@ export const getProtocolOverviewPageData = async ({
 		}
 	}
 	const titleMetrics: string[] = []
-	const chartLabelsForSeo = availableCharts.filter(
-		(chart) => !['Successful Proposals', 'Total Proposals', 'Max Votes'].includes(chart)
-	)
+	const seoExcludedCharts = ['Successful Proposals', 'Total Proposals', 'Max Votes']
+	if (incomeStatement) {
+		seoExcludedCharts.push('Fees', 'Revenue', 'Incentives', 'Holders Revenue')
+	}
+	const chartLabelsForSeo = availableCharts.filter((chart) => !seoExcludedCharts.includes(chart))
 
 	let seoDescription = `Track ${name} on DefiLlama. Including ${chartLabelsForSeo.length ? chartLabelsForSeo.join(', ') : 'key onchain and financial stats'}`
 
@@ -784,31 +786,35 @@ export const getProtocolOverviewPageData = async ({
 	if (availableCharts.includes('DEX Volume') || availableCharts.includes('Perp Volume')) {
 		titleMetrics.push('Volume')
 	}
-	if (incomeStatement) {
-		titleMetrics.push('Income Statement')
-		seoDescription += `, Income Statement`
-	}
 	if (currentProtocolMetadata.tokenRights) {
 		titleMetrics.push('Token Rights')
 		seoDescription += `, Token Rights`
 	}
-	if (availableCharts.includes('Revenue') && availableCharts.includes('Incentives')) {
-		titleMetrics.push('Earnings')
-		seoDescription += `, Earnings`
+	if (incomeStatement) {
+		titleMetrics.push('Income Statement')
+		seoDescription += `, Income Statement`
 	}
 	if (incomeStatement) {
-		for (const label in incomeStatement.labelsByType) {
-			if (incomeStatement.labelsByType[label].includes('Token Buy Back')) {
-				titleMetrics.push('Token Buy Back')
-				seoDescription += `, Token Buy Back`
-
-				break
+		for (const type in incomeStatement.labelsByType) {
+			const breakdowns = incomeStatement.labelsByType[type]?.map((label) =>
+				label === 'Token Buy Back' ? 'Token Buyback' : label
+			)
+			if (breakdowns?.length) {
+				seoDescription += `, ${type} (${breakdowns.join(', ')})`
+				if (breakdowns.includes('Token Buyback') && !titleMetrics.includes('Token Buyback')) {
+					titleMetrics.push('Token Buyback')
+				}
 			}
 		}
-	}
-	if (expenses) {
-		titleMetrics.push('Expenses')
-		seoDescription += `, Expenses`
+	} else {
+		if (availableCharts.includes('Revenue') && availableCharts.includes('Incentives')) {
+			titleMetrics.push('Earnings')
+			seoDescription += `, Earnings`
+		}
+		if (expenses) {
+			titleMetrics.push('Expenses')
+			seoDescription += `, Expenses`
+		}
 	}
 
 	const titleMetricSegment =
@@ -816,7 +822,7 @@ export const getProtocolOverviewPageData = async ({
 			? 'Stats & Charts'
 			: titleMetrics.length === 1
 				? `${titleMetrics[0]} Stats & Charts`
-				: `${titleMetrics.slice(0, -1).join(', ')} & ${titleMetrics.at(-1)} Stats`
+				: `${titleMetrics.slice(0, -1).join(', ')} & ${titleMetrics.at(-1)}`
 	const baseTitle = `${name} ${titleMetricSegment} - DefiLlama`
 	const seoTitle = baseTitle.length < 30 ? `${baseTitle} - DeFi Dashboard & Crypto Analytics` : baseTitle
 
