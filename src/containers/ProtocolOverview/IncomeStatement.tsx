@@ -18,6 +18,14 @@ const EMPTY_BREAKDOWN_METHODOLOGY: Record<string, string> = {}
 const formatIncomeValue = (value: number): string => abbreviateNumber(value, 2, '$') ?? '$0'
 type IncomeStatementGroupBy = (typeof incomeStatementGroupByOptions)[number]
 type IncomeStatementGroupKey = 'monthly' | 'quarterly' | 'yearly' | 'cumulative'
+type IncomeStatementDataType =
+	| 'gross protocol revenue'
+	| 'cost of revenue'
+	| 'gross profit'
+	| 'incentives'
+	| 'earnings'
+	| 'token holder net income'
+	| 'others token holder flows'
 
 const getPeriodHeader = (
 	key: string,
@@ -453,6 +461,14 @@ export const IncomeStatement = ({
 		}
 	}, [sankeyPeriodOptions, validSankeyPeriod])
 
+	const hasAnyBreakdownRows =
+		grossProtocolRevenueByLabels.length > 0 ||
+		costOfRevenueByLabels.length > 0 ||
+		grossProfitByLabels.length > 0 ||
+		(hasIncentives && incentivesByLabels.length > 0) ||
+		tokenHolderNetIncomeByLabels.length > 0 ||
+		(incomeStatement?.hasOtherTokenHolderFlows && othersTokenHolderFlowsByLabels.length > 0)
+
 	const prepareTableCsv = () => {
 		const isCumulative = groupBy === 'Cumulative'
 		// Match the rendered table header row: blank top-left cell, then the period labels.
@@ -615,6 +631,7 @@ export const IncomeStatement = ({
 								tableHeaders={tableHeaders}
 								breakdownByLabels={grossProtocolRevenueByLabels}
 								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Gross Protocol Revenue'] ?? {}}
+								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
 							<IncomeStatementByLabel
 								protocolName={name}
@@ -626,6 +643,7 @@ export const IncomeStatement = ({
 								tableHeaders={tableHeaders}
 								breakdownByLabels={costOfRevenueByLabels}
 								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Cost Of Revenue'] ?? {}}
+								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
 							<IncomeStatementByLabel
 								protocolName={name}
@@ -637,6 +655,7 @@ export const IncomeStatement = ({
 								tableHeaders={tableHeaders}
 								breakdownByLabels={grossProfitByLabels}
 								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Gross Profit'] ?? {}}
+								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
 							{hasIncentives ? (
 								<IncomeStatementByLabel
@@ -649,6 +668,7 @@ export const IncomeStatement = ({
 									tableHeaders={tableHeaders}
 									breakdownByLabels={incentivesByLabels}
 									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Incentives'] ?? {}}
+									alignWithBreakdownRows={hasAnyBreakdownRows}
 								/>
 							) : null}
 							<IncomeStatementByLabel
@@ -661,6 +681,7 @@ export const IncomeStatement = ({
 								tableHeaders={tableHeaders}
 								breakdownByLabels={EMPTY_BREAKDOWN_LABELS}
 								breakdownMethodology={EMPTY_BREAKDOWN_METHODOLOGY}
+								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
 							<IncomeStatementByLabel
 								protocolName={name}
@@ -672,6 +693,7 @@ export const IncomeStatement = ({
 								tableHeaders={tableHeaders}
 								breakdownByLabels={tokenHolderNetIncomeByLabels}
 								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
+								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
 							{incomeStatement?.hasOtherTokenHolderFlows ? (
 								<IncomeStatementByLabel
@@ -684,6 +706,7 @@ export const IncomeStatement = ({
 									tableHeaders={tableHeaders}
 									breakdownByLabels={othersTokenHolderFlowsByLabels}
 									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Others Token Holder Flows'] ?? {}}
+									alignWithBreakdownRows={hasAnyBreakdownRows}
 								/>
 							) : null}
 						</tbody>
@@ -766,44 +789,64 @@ const IncomeStatementByLabel = ({
 	methodology,
 	tableHeaders,
 	breakdownByLabels,
-	breakdownMethodology
+	breakdownMethodology,
+	alignWithBreakdownRows
 }: {
 	protocolName: string
 	groupBy: IncomeStatementGroupBy
 	data: Record<string, { value: number; 'by-label': Record<string, number> }>
-	dataType:
-		| 'gross protocol revenue'
-		| 'cost of revenue'
-		| 'gross profit'
-		| 'incentives'
-		| 'earnings'
-		| 'token holder net income'
-		| 'others token holder flows'
+	dataType: IncomeStatementDataType
 	label: string
 	methodology: string
 	tableHeaders: [string, string, number][]
 	breakdownByLabels: string[]
 	breakdownMethodology: Record<string, string>
+	alignWithBreakdownRows: boolean
 }) => {
 	const isEarnings = dataType === 'earnings'
+	const hasBreakdownRows = breakdownByLabels.length > 0
 	const showComparison = groupBy !== 'Cumulative'
+	const [isExpanded, setIsExpanded] = useState(true)
 	return (
 		<>
 			<tr>
 				<th
 					className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap first:sticky first:left-0 first:z-10 dark:border-white/10`}
 				>
-					{methodology ? (
-						<Tooltip
-							content={methodology}
-							className="flex items-center justify-start gap-1 underline decoration-black/60 decoration-dotted dark:decoration-white/60"
-						>
-							{label}
-							<Icon name="help-circle" height={14} width={14} className="relative top-0.25 shrink-0" />
-						</Tooltip>
-					) : (
-						<>{label}</>
-					)}
+					<div
+						className="flex items-center gap-1"
+						onClick={(e) => {
+							if (hasBreakdownRows) {
+								e.stopPropagation()
+								setIsExpanded((expanded) => !expanded)
+							}
+						}}
+					>
+						{hasBreakdownRows ? (
+							<button
+								type="button"
+								aria-expanded={isExpanded}
+								aria-label={`${isExpanded ? 'Hide' : 'Show'} ${label} breakdown`}
+								onClick={() => setIsExpanded((expanded) => !expanded)}
+								className="-ml-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-(--text-secondary) transition-transform hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
+							>
+								<Icon name={isExpanded ? 'chevron-down' : 'chevron-right'} height={14} width={14} />
+							</button>
+						) : alignWithBreakdownRows ? (
+							<span aria-hidden="true" className="-ml-1 block h-5 w-5 shrink-0" />
+						) : null}
+						{methodology ? (
+							<Tooltip
+								content={methodology}
+								className="flex items-center justify-start gap-1 underline decoration-black/60 decoration-dotted dark:decoration-white/60"
+							>
+								{label}
+								<Icon name="help-circle" height={14} width={14} className="relative top-0.25 shrink-0" />
+							</Tooltip>
+						) : (
+							<>{label}</>
+						)}
+					</div>
 				</th>
 				{tableHeaders.map((header, i) => (
 					<td
@@ -830,12 +873,12 @@ const IncomeStatementByLabel = ({
 					</td>
 				))}
 			</tr>
-			{breakdownByLabels.length > 0 ? (
+			{hasBreakdownRows && isExpanded ? (
 				<>
 					{breakdownByLabels.map((breakdownlabel) => (
 						<tr key={`${protocolName}-${groupBy}-${dataType}-${breakdownlabel}`} className="text-(--text-secondary)">
 							<th
-								className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-4 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10`}
+								className={`w-[36%] overflow-hidden border border-black/10 bg-(--cards-bg) p-2 pl-9 text-left font-normal text-ellipsis whitespace-nowrap italic first:sticky first:left-0 first:z-10 dark:border-white/10`}
 							>
 								{breakdownMethodology[breakdownlabel] ? (
 									<Tooltip
@@ -898,14 +941,7 @@ const PerformanceTooltipContent = ({
 	currentValue: number | null
 	previousValue: number | null
 	groupBy: IncomeStatementGroupBy
-	dataType:
-		| 'gross protocol revenue'
-		| 'cost of revenue'
-		| 'gross profit'
-		| 'incentives'
-		| 'earnings'
-		| 'token holder net income'
-		| 'others token holder flows'
+	dataType: IncomeStatementDataType
 	label?: string
 }) => {
 	if (previousValue == null || currentValue == null) return null

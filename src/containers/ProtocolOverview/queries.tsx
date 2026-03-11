@@ -778,6 +778,21 @@ export const getProtocolOverviewPageData = async ({
 	if (availableCharts.includes('DEX Volume') || availableCharts.includes('Perp Volume')) {
 		titleMetrics.push('Volume')
 	}
+	if (incomeStatement) {
+		titleMetrics.push('Income Statement')
+	}
+	if (currentProtocolMetadata.tokenRights) {
+		titleMetrics.push('Token Rights')
+	}
+	if (incomeStatement) {
+		for (const label in incomeStatement.labelsByType) {
+			if (incomeStatement.labelsByType[label].includes('Token Buy Back')) {
+				titleMetrics.push('Token Buy Back')
+				break
+			}
+		}
+	}
+
 	const titleMetricSegment =
 		titleMetrics.length === 0
 			? 'Stats & Charts'
