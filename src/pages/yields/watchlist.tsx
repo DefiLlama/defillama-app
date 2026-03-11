@@ -19,7 +19,7 @@ export default function Portfolio({ pools }) {
 	return (
 		<Layout
 			title={`Your Saved DeFi Yield Pools - DefiLlama`}
-			description={`Saved Yields Pools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Track your saved DeFi yield pools in one place. Monitor APY changes, TVL, and performance for your bookmarked pools on DefiLlama."
 			canonicalUrl={`/yields/watchlist`}
 		>
 			<Announcement>{disclaimer}</Announcement>

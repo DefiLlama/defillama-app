@@ -68,7 +68,7 @@ export default function SafeHarborAgreements({ protocols }) {
 	return (
 		<Layout
 			title="Safe Harbor Agreements - DefiLlama"
-			description={`Safe Harbor Agreements by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Browse DeFi protocols with safe harbor agreements. Track which projects have adopted security frameworks to protect white-hat hackers."
 			canonicalUrl={`/safe-harbor-agreements`}
 			pageName={pageName}
 		>

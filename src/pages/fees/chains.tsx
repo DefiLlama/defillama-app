@@ -29,7 +29,7 @@ const pageName = ['Chains', 'ranked by', type]
 const FeesByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title="Fees by Blockchain - User Fees Generated Across All Chains - DefiLlama"
+			title="DeFi Fees by Chain - All Blockchains - DefiLlama"
 			description="Compare DeFi fees generated across all blockchains. Track total user fees on Ethereum, Solana, Base, Arbitrum, and 150+ chains. Real-time blockchain fee analytics by chain and category."
 			canonicalUrl={`/fees/chains`}
 			pageName={pageName}

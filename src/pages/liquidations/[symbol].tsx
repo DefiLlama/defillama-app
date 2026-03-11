@@ -76,7 +76,7 @@ const LiquidationsHomePage: NextPage<{
 	return (
 		<Layout
 			title={`${nameAndSymbol} Liquidation Levels - DefiLlama`}
-			description={`${nameAndSymbol} Liquidation Levels on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Track ${nameAndSymbol} liquidation levels across DeFi lending protocols. View at-risk positions and liquidation thresholds.`}
 			canonicalUrl={`/liquidations/${data.symbol.toLowerCase()}`}
 			pageName={pageName}
 		>

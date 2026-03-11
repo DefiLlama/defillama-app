@@ -8,7 +8,7 @@ export default function Roundup({ messages, date }: { messages: Array<string | A
 	return (
 		<Layout
 			title={`Llama News Round-Up - DefiLlama`}
-			description={`Llama News Round-Up on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Daily DeFi news roundup curated by the DefiLlama team. Stay updated on protocol launches, governance changes, and market developments."
 			canonicalUrl={`/roundup`}
 		>
 			<Announcement notCancellable>

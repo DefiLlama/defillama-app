@@ -22,7 +22,7 @@ const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
 export default function ProtocolsFdv(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="FDV Rankings - DeFi Protocol Fully Diluted Valuation - DefiLlama"
+			title="FDV Rankings - Fully Diluted Valuation - DefiLlama"
 			description="Track DeFi protocol FDV rankings across all chains. Compare fully diluted valuations for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto FDV analytics and token valuation data."
 			canonicalUrl={`/fdv`}
 			pageName={pageName}

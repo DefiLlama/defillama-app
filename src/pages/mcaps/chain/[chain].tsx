@@ -49,7 +49,7 @@ const pageName = ['Protocols', 'ranked by', 'Market Cap']
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.chain} Market Cap Rankings - Token Market Capitalization - DefiLlama`}
+			title={`${props.chain} Market Cap Rankings - DeFi Protocols - DefiLlama`}
 			description={`Track DeFi protocol market cap rankings on ${props.chain}. Compare token market capitalization for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto market cap analytics.`}
 			canonicalUrl={`/mcaps/chain/${slug(props.chain)}`}
 			pageName={pageName}

@@ -52,7 +52,7 @@ export default function YieldStrategies(data) {
 	return (
 		<Layout
 			title={`Delta Neutral Strategies - DefiLlama Yield`}
-			description={`Find strategies to neutralize delta exposure and maximize yield. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Find delta-neutral yield strategies across DeFi. Combine long and short positions to earn yield while minimizing price exposure."
 			canonicalUrl={`/yields/strategy`}
 			pageName={pageName}
 		>

@@ -64,7 +64,7 @@ export default function YieldStrategiesFR(data) {
 	return (
 		<Layout
 			title={`Long/Short Strategies - DefiLlama Yield`}
-			description={`Find strategies to maximize yield by long/shorting tokens. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Find long/short yield strategies across DeFi. Pair directional positions with yield farming to maximize returns."
 			canonicalUrl={`/yields/strategy-long-short`}
 			pageName={pageName}
 		>

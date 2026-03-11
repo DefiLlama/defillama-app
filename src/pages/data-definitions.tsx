@@ -24,7 +24,7 @@ const Definition = ({ header, id, children }: { header: string; id: string; chil
 export default function DataDefinitions() {
 	return (
 		<Layout
-			title="DeFi Data Definitions (TVL, Fees, Revenue, DEX Volume) - DefiLlama"
+			title="DeFi Data Definitions & Metrics Glossary - DefiLlama"
 			description={`Glossary of DeFi metrics: TVL, Fees, Revenue, FDV, DEX Volume, Stablecoin Market Cap, Treasuries and more.`}
 			canonicalUrl={`/data-definitions`}
 		>

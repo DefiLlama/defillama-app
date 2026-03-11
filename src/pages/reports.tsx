@@ -3,8 +3,8 @@ import Layout from '~/layout'
 export default function Protocols() {
 	return (
 		<Layout
-			title={`Reports - DefiLlama`}
-			description={`Reports on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`DeFi Research Reports & Analysis - DefiLlama`}
+			description="Read DeFi research reports and market analysis from DefiLlama. In-depth coverage of protocols, chains, and industry trends."
 			canonicalUrl={`/reports`}
 		>
 			<h1 className="text-center font-semibold">Reports</h1>

@@ -34,7 +34,7 @@ const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`Price to Sales Ratio (P/S) Rankings - DefiLlama`}
-			description={`P/S by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Compare DeFi protocols by Price to Sales (P/S) ratio. Identify undervalued and overvalued protocols based on revenue multiples."
 			canonicalUrl={`/ps`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Metrics"

@@ -81,7 +81,7 @@ const chartCharts: IMultiSeriesChart2Props['charts'] = [
 const Banks = () => {
 	return (
 		<Layout
-			title="Bank Failures - DefiLlama"
+			title="Historical Bank Failures Database - DefiLlama"
 			description="Track historical bank failures with dates, assets, and resolution details on DefiLlama."
 		>
 			<div className="relative col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">

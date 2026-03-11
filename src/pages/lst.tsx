@@ -19,7 +19,7 @@ const pageName = ['LSTs: Overview']
 export default function LSDs(props: LSTOverviewProps) {
 	return (
 		<Layout
-			title="Liquid Staking Tokens (LST) - TVL & APY Rankings - DefiLlama"
+			title="Liquid Staking (LST) Rankings - TVL & APY - DefiLlama"
 			description="Compare liquid staking tokens by TVL, APY, and market share on DefiLlama."
 			canonicalUrl={`/lst`}
 			pageName={pageName}

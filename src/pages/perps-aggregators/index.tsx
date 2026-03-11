@@ -30,7 +30,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const PerpsAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title="Perps Aggregator Rankings - Perpetual Futures Routing - DefiLlama"
+			title="Perps Aggregator Rankings - Futures Routing - DefiLlama"
 			description="Track perpetual futures aggregator volume by protocol. Compare perps routing activity on DefiLlama."
 			canonicalUrl={`/perps-aggregators`}
 			pageName={pageName}

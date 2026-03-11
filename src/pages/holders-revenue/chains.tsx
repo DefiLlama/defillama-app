@@ -25,7 +25,7 @@ const pageName = ['Chains', 'ranked by', type]
 const HoldersRevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title="Holders Revenue by Chain - Token Holder Earnings Across Chains - DefiLlama"
+			title="Holders Revenue by Chain - DefiLlama"
 			description="Compare token holder revenue across blockchains on DefiLlama."
 			canonicalUrl={`/holders-revenue/chains`}
 			pageName={pageName}

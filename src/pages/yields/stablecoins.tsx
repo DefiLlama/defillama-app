@@ -21,7 +21,7 @@ export default function YieldPlots(data) {
 	return (
 		<Layout
 			title={`Stablecoin Pools - DefiLlama Yield`}
-			description={`Stablecoin Pools by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Find the best stablecoin yield pools ranked by APY. Compare USDC, USDT, DAI, and other stablecoin farming opportunities across all chains."
 			canonicalUrl={`/yields/stablecoins`}
 			pageName={pageName}
 		>

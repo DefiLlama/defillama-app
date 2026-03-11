@@ -94,7 +94,7 @@ function Support() {
 	return (
 		<Layout
 			title="Help & Support - DefiLlama DeFi Analytics"
-			description={`Get support from DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Get help with DefiLlama. Find answers to common questions, report issues, or reach the team via Discord and Twitter."
 			canonicalUrl={`/support`}
 		>
 			{userHash ? (

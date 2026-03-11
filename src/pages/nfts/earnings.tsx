@@ -26,7 +26,7 @@ function Earnings({ earnings }) {
 	return (
 		<Layout
 			title="NFT Creator Earnings & Royalties - DefiLlama"
-			description={`NFT Earnings by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Track NFT creator earnings and royalty revenue by collection. Compare royalty income across top NFT collections on DefiLlama."
 			canonicalUrl={`/nfts/earnings`}
 			pageName={pageName}
 		>

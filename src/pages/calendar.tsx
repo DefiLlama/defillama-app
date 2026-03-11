@@ -149,7 +149,7 @@ export default function Protocols({ emissions }) {
 
 	return (
 		<Layout
-			title="Crypto Events Calendar - Token Unlocks & DeFi Milestones - DefiLlama"
+			title="Crypto Events & Token Unlocks Calendar - DefiLlama"
 			description="Track upcoming crypto events, token unlocks, governance votes, and protocol milestones on DefiLlama."
 			canonicalUrl={`/calendar`}
 		>

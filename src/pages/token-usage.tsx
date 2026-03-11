@@ -80,7 +80,7 @@ export default function Tokens() {
 	return (
 		<Layout
 			title="DeFi Token Usage Tracker - DefiLlama"
-			description={`Token usage in protocols. Checkout how a token is used in protocols on chain as well as CEXs. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Track how tokens are used across DeFi protocols and CEXs. View token utility, protocol integrations, and on-chain usage data."
 			canonicalUrl={`/token-usage`}
 			pageName={pageName}
 		>

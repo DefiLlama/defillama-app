@@ -1,8 +1,8 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
-import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { LocalLoader } from '~/components/Loaders'
+import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { YieldFiltersV2 } from './Filters'
 import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
@@ -295,7 +295,13 @@ const YieldPage = ({
 			/>
 
 			{questions?.length > 0 || isQuestionsLoading ? (
-				<EntityQuestionsStrip questions={questions ?? []} entitySlug="yields" entityType="page" entityName="Yields" isLoading={isQuestionsLoading} />
+				<EntityQuestionsStrip
+					questions={questions ?? []}
+					entitySlug="yields"
+					entityType="page"
+					entityName="Yields"
+					isLoading={isQuestionsLoading}
+				/>
 			) : null}
 
 			{loading ? (

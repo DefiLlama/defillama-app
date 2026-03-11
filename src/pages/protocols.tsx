@@ -23,7 +23,7 @@ export const getStaticProps = withPerformanceLogging('protocols', async () => {
 export default function Protocols({ protocols }) {
 	return (
 		<Layout
-			title="Protocols Rankings - DeFi TVL, Fees & Revenue Analytics - DefiLlama"
+			title="DeFi Protocol Rankings - TVL & Revenue - DefiLlama"
 			description="Complete directory of 7000+ DeFi protocols ranked by TVL, fees, and revenue. Track protocol metrics across Ethereum, Solana, Base, Arbitrum and all major chains. Filter by category, chain, and performance."
 			canonicalUrl={`/protocols`}
 		>
