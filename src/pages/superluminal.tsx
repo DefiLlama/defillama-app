@@ -1,6 +1,6 @@
 import { SEO } from '~/components/SEO'
-import { Logo } from '~/containers/SuperLuminal/Logo'
 import { isSuperLuminalEnabled } from '~/containers/SuperLuminal/config'
+import { Logo } from '~/containers/SuperLuminal/Logo'
 
 export default function SuperLuminalPage() {
 	if (!isSuperLuminalEnabled()) {

@@ -137,13 +137,13 @@ export default function BarChart({
 			if (xAxisType === 'category') {
 				for (const { name, ...item } of chartData) {
 					for (const stack of selectedStacks) {
-						series[stack]?.data?.push([name, item[stack] || 0])
+						stackedSeries[stack]?.data?.push([name, item[stack] || 0])
 					}
 				}
 			} else {
 				for (const { date, ...item } of chartData) {
 					for (const stack of selectedStacks) {
-						series[stack]?.data?.push([+date * 1e3, item[stack] || 0])
+						stackedSeries[stack]?.data?.push([+date * 1e3, item[stack] || 0])
 					}
 				}
 			}

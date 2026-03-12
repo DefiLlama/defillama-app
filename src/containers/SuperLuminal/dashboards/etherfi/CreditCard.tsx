@@ -92,13 +92,7 @@ export default function CreditCard() {
 				<CardSkeleton title="TVL" />
 			) : (
 				<ChartCard title="TVL">
-					<AreaChart
-						chartData={tvlChart}
-						stacks={['TVL']}
-						valueSymbol="$"
-						title=""
-						height="400px"
-					/>
+					<AreaChart chartData={tvlChart} stacks={['TVL']} valueSymbol="$" title="" height="400px" />
 				</ChartCard>
 			)}
 

@@ -4,7 +4,15 @@ import { lazy, useMemo, useState } from 'react'
 import type { IBarChartProps } from '~/components/ECharts/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum } from '~/utils'
-import { useStSyrupTxes, useSyrupTxes, useSyrupGlobals, useStSyrupState, useSyrupDripTxes, parseWad, parseTokenAmount } from './api'
+import {
+	useStSyrupTxes,
+	useSyrupTxes,
+	useSyrupGlobals,
+	useStSyrupState,
+	useSyrupDripTxes,
+	parseWad,
+	parseTokenAmount
+} from './api'
 import { ChartCard, CardSkeleton, KpiCard, KpiSkeleton, Pagination } from './shared'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
@@ -29,7 +37,12 @@ const txColumns: ColumnDef<TxRow>[] = [
 	{
 		header: 'Date',
 		accessorKey: 'timestamp',
-		cell: ({ getValue }) => new Date(getValue<number>() * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+		cell: ({ getValue }) =>
+			new Date(getValue<number>() * 1000).toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			}),
 		size: 140
 	},
 	{
@@ -37,7 +50,11 @@ const txColumns: ColumnDef<TxRow>[] = [
 		accessorKey: 'type',
 		cell: ({ getValue }) => {
 			const t = getValue<string>()
-			return <span className={t === 'deposit' ? 'text-green-500' : 'text-red-500'}>{t === 'deposit' ? 'Deposit' : 'Withdraw'}</span>
+			return (
+				<span className={t === 'deposit' ? 'text-green-500' : 'text-red-500'}>
+					{t === 'deposit' ? 'Deposit' : 'Withdraw'}
+				</span>
+			)
 		},
 		size: 100
 	},
@@ -63,7 +80,12 @@ const dripColumns: ColumnDef<DripRow>[] = [
 	{
 		header: 'Date',
 		accessorKey: 'timestamp',
-		cell: ({ getValue }) => new Date(getValue<number>() * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+		cell: ({ getValue }) =>
+			new Date(getValue<number>() * 1000).toLocaleDateString('en-US', {
+				month: 'short',
+				day: 'numeric',
+				year: 'numeric'
+			}),
 		size: 140
 	},
 	{
@@ -324,10 +346,10 @@ export default function SyrupActivity() {
 				</div>
 			</div>
 
-		{isLoading ? (
-			<CardSkeleton title="Monthly stSyrup Deposits vs Withdrawals" />
-		) : monthlyChart.length > 0 ? (
-			<ChartCard title="Monthly stSyrup Deposits vs Withdrawals">
+			{isLoading ? (
+				<CardSkeleton title="Monthly stSyrup Deposits vs Withdrawals" />
+			) : monthlyChart.length > 0 ? (
+				<ChartCard title="Monthly stSyrup Deposits vs Withdrawals">
 					<BarChart
 						chartData={monthlyChart}
 						stacks={{ Deposits: 'a', Withdrawals: 'b' }}
@@ -339,10 +361,10 @@ export default function SyrupActivity() {
 				</ChartCard>
 			) : null}
 
-		{isLoading ? (
-			<CardSkeleton title="Monthly Syrup Token Migrations" />
-		) : migrationChart.length > 0 ? (
-			<ChartCard title="Monthly Syrup Token Migrations">
+			{isLoading ? (
+				<CardSkeleton title="Monthly Syrup Token Migrations" />
+			) : migrationChart.length > 0 ? (
+				<ChartCard title="Monthly Syrup Token Migrations">
 					<BarChart
 						chartData={migrationChart}
 						stacks={{ 'Tokens Migrated': 'a' }}
@@ -373,12 +395,12 @@ export default function SyrupActivity() {
 					)}
 				</div>
 
-			{dripLoading ? (
-				<CardSkeleton title="Monthly Drip Claims" />
-			) : dripMonthlyChart.length > 0 ? (
-				<ChartCard title="Monthly Drip Claims">
-					<BarChart
-						chartData={dripMonthlyChart}
+				{dripLoading ? (
+					<CardSkeleton title="Monthly Drip Claims" />
+				) : dripMonthlyChart.length > 0 ? (
+					<ChartCard title="Monthly Drip Claims">
+						<BarChart
+							chartData={dripMonthlyChart}
 							stacks={{ Claimed: 'a' }}
 							stackColors={{ Claimed: '#FF7043' }}
 							title=""

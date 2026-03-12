@@ -48,7 +48,11 @@ export function Pagination<T>({ table }: { table: Table<T> }) {
 				{pageIndex * pageSize + 1}–{Math.min((pageIndex + 1) * pageSize, total)} of {total}
 			</span>
 			<div className="flex gap-2">
-				<button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} className="disabled:opacity-30">
+				<button
+					onClick={() => table.previousPage()}
+					disabled={!table.getCanPreviousPage()}
+					className="disabled:opacity-30"
+				>
 					← Prev
 				</button>
 				<button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} className="disabled:opacity-30">

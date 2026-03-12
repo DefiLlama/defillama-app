@@ -476,7 +476,8 @@
 }
 
 @keyframes sl-pulse-glow {
-	0%, 100% {
+	0%,
+	100% {
 		opacity: 0.5;
 		filter: drop-shadow(0 0 4px rgba(33, 114, 229, 0.1));
 	}
