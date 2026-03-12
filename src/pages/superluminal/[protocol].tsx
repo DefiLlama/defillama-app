@@ -36,7 +36,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
 	try {
 		const [serverData, customServerData] = await Promise.all([
-			getProDashboardServerData({ dashboardId: project.dashboardId, authToken }),
+			getProDashboardServerData({ dashboardId: project.dashboardId, authToken, skipTableData: true }),
 			fetchCustomServerData(project.dashboardId)
 		])
 
