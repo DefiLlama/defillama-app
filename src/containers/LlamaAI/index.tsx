@@ -133,6 +133,7 @@ interface UsageLimitError extends Error {
 }
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
 const RECOVERY_GRACE_MS = 8000
 const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 3000, 7000] as const
 const CONNECTIVITY_ERROR_PATTERNS = [
@@ -637,6 +638,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		cursor: number | null
 		isLoadingMore: boolean
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -645,6 +647,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const toolCallIdRef = useRef(0)
 	const promptSubmissionLockRef = useRef(false)
 	const isFirstMessageRef = useRef(true)
+	const promptTransitionTimerRef = useRef<number | null>(null)
 	const {
 		isStreaming,
 		isCompacting,
@@ -670,6 +673,41 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
+	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
+	const shouldAnimateLandingTransition =
+		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+	const shouldAnimateConversationTransition =
+		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+
+	const clearPromptTransitionTimer = useCallback(() => {
+		if (promptTransitionTimerRef.current !== null) {
+			window.clearTimeout(promptTransitionTimerRef.current)
+			promptTransitionTimerRef.current = null
+		}
+	}, [])
+
+	const resetPromptTransition = useCallback(() => {
+		clearPromptTransitionTimer()
+		setPromptTransitionMode('idle')
+	}, [clearPromptTransitionTimer])
+
+	const triggerPromptTransition = useCallback(
+		(mode: PromptTransitionMode) => {
+			clearPromptTransitionTimer()
+			setPromptTransitionMode(mode)
+			promptTransitionTimerRef.current = window.setTimeout(() => {
+				setPromptTransitionMode('idle')
+				promptTransitionTimerRef.current = null
+			}, 480)
+		},
+		[clearPromptTransitionTimer]
+	)
+
+	useEffect(() => {
+		return () => {
+			clearPromptTransitionTimer()
+		}
+	}, [clearPromptTransitionTimer])
 
 	const streamingDraft = useMemo((): Message | null => {
 		if (!isStreaming) return null
@@ -1134,13 +1172,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	// Reset transient streaming and error state without touching the actual message history.
 	const clearConversationRuntimeState = useCallback(() => {
 		clearRecoveryController()
+		resetPromptTransition()
 		setViewError(null)
 		setPaginationError(null)
 		dispatchStream({ type: 'RESET_STREAM' })
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
-	}, [clearRecoveryController])
+	}, [clearRecoveryController, resetPromptTransition])
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
 	const handleNewChat = useCallback(async () => {
@@ -1229,6 +1268,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming || promptSubmissionLockRef.current) return
+			triggerPromptTransition(shouldShowLanding ? 'landing' : 'conversation')
 			promptSubmissionLockRef.current = true
 
 			void abortActiveRequest()
@@ -1404,7 +1444,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			startRecoveryCycle,
 			sessionTitle,
 			sessions,
-			enableAutoScroll
+			enableAutoScroll,
+			shouldShowLanding,
+			triggerPromptTransition
 		]
 	)
 
@@ -1578,6 +1620,60 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					<LoadingConversationState />
 				) : !hasMessages && visibleError ? (
 					<EmptyConversationErrorState message={visibleError} />
+				) : shouldAnimateLandingTransition ? (
+					<div className="relative flex flex-1 overflow-hidden">
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
+						>
+							<ChatLanding
+								readOnly={readOnly}
+								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+								handleSubmit={handleSubmit}
+								promptInputRef={promptInputRef}
+								handleStopRequest={handleStopRequest}
+								isStreaming={isStreaming}
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={researchUsage}
+								onOpenAlerts={alertsModalStore.show}
+							/>
+						</div>
+						<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
+							<ConversationView
+								readOnly={readOnly}
+								messages={effectiveMessages}
+								sessionId={effectiveSessionId}
+								isLlama={isLlama}
+								isStreaming={isStreaming}
+								activeToolCalls={activeToolCalls}
+								spawnProgress={spawnProgress}
+								spawnStartTime={spawnStartTime}
+								streamingThinking={streamingThinking}
+								streamingDraft={streamingDraft}
+								isCompacting={isCompacting}
+								paginationState={paginationState}
+								paginationError={paginationError}
+								recovery={recovery}
+								error={visibleError}
+								lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
+								onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+								scrollContainerRef={scrollContainerRef}
+								messagesEndRef={messagesEndRef}
+								promptInputRef={promptInputRef}
+								showScrollToBottom={showScrollToBottom}
+								scrollToBottom={scrollToBottom}
+								handleSubmit={handleSubmit}
+								handleStopRequest={handleStopRequest}
+								handleActionClick={handleActionClick}
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={researchUsage}
+								animateActiveExchange={false}
+								onOpenAlerts={alertsModalStore.show}
+							/>
+						</div>
+					</div>
 				) : !hasMessages && !visibleError ? (
 					<ChatLanding
 						readOnly={readOnly}
@@ -1621,6 +1717,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
+						animateActiveExchange={shouldAnimateConversationTransition}
 						onOpenAlerts={alertsModalStore.show}
 					/>
 				)}

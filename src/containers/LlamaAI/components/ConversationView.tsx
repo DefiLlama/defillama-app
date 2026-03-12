@@ -50,6 +50,7 @@ interface ConversationViewProps {
 	isResearchMode: boolean
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
+	animateActiveExchange: boolean
 	onOpenAlerts: () => void
 }
 
@@ -113,6 +114,7 @@ export function ConversationView({
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
+	animateActiveExchange,
 	onOpenAlerts
 }: ConversationViewProps) {
 	// Keep the newest user prompt in the same block as the live response/status UI
@@ -160,7 +162,13 @@ export function ConversationView({
 							})}
 
 							{activeExchangeMessage ? (
-								<div className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS}`}>
+								<div
+									className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS} ${
+										animateActiveExchange
+											? 'motion-safe:animate-[llamaActiveExchangeEnter_0.42s_cubic-bezier(0.22,1,0.36,1)_both]'
+											: ''
+									}`}
+								>
 									<ConversationMessageItem
 										key={activeExchangeMessage.id || 'active-exchange-user'}
 										message={activeExchangeMessage}
