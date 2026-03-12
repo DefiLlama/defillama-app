@@ -118,35 +118,35 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 	return (
 		<>
 			<div className="mx-auto flex w-full max-w-2xl flex-col gap-2 overflow-x-auto p-3 sm:flex-row sm:flex-wrap sm:justify-center md:gap-4">
-				<div className="flex flex-1 flex-col gap-1">
-					<h2 className="text-xs font-medium text-(--text-secondary)">Time Period:</h2>
-					<TagGroup
-						selectedValue={timePeriod}
-						setValue={(period) => startTransition(() => setTimePeriod(period))}
-						values={TIME_PERIODS}
-						className="w-full *:flex-1"
-					/>
-				</div>
+			<fieldset className="flex flex-1 flex-col gap-1">
+				<legend className="text-xs font-medium text-(--text-secondary)">Time Period:</legend>
+				<TagGroup
+					selectedValue={timePeriod}
+					setValue={(period) => startTransition(() => setTimePeriod(period))}
+					values={TIME_PERIODS}
+					className="w-full *:flex-1"
+				/>
+			</fieldset>
 
-				<div className="flex flex-1 flex-col gap-1">
-					<h2 className="text-xs font-medium text-(--text-secondary)">View:</h2>
-					<TagGroup
-						selectedValue={viewType}
-						setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
-						values={VIEW_TYPES}
-						className="w-full *:flex-1"
-					/>
-				</div>
+			<fieldset className="flex flex-1 flex-col gap-1">
+				<legend className="text-xs font-medium text-(--text-secondary)">View:</legend>
+				<TagGroup
+					selectedValue={viewType}
+					setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
+					values={VIEW_TYPES}
+					className="w-full *:flex-1"
+				/>
+			</fieldset>
 
-				<div className="flex flex-1 flex-col gap-1">
-					<h2 className="text-xs font-medium text-(--text-secondary)">Metric:</h2>
-					<TagGroup
-						selectedValue={metricType}
-						setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
-						values={METRIC_TYPES}
-						className="w-full *:flex-1"
-					/>
-				</div>
+			<fieldset className="flex flex-1 flex-col gap-1">
+				<legend className="text-xs font-medium text-(--text-secondary)">Metric:</legend>
+				<TagGroup
+					selectedValue={metricType}
+					setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
+					values={METRIC_TYPES}
+					className="w-full *:flex-1"
+				/>
+			</fieldset>
 			</div>
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>

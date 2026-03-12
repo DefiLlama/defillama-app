@@ -137,37 +137,39 @@ export function Stats(props: IStatsProps) {
 				{props.protocols.length > 0 ? (
 					<div className="flex flex-nowrap items-end justify-between gap-8">
 						{props.metadata.name === 'All' ? (
-							<h1 className="flex flex-col">
+							<div className="flex flex-col">
 								<Tooltip
 									content={
 										props.metadata.name === 'All'
 											? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 											: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 									}
+									render={<h1 />}
 									className="inline text-(--text-label) underline decoration-dotted"
 								>
 									Total Value Locked in DeFi
 								</Tooltip>
-								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(totalValueUSD, true)}
-								</span>
-							</h1>
+								</p>
+							</div>
 						) : (
-							<h2 className="flex flex-col">
+							<div className="flex flex-col">
 								<Tooltip
 									content={
 										props.metadata.name === 'All'
 											? 'Sum of value of all coins held in smart contracts of all the protocols on all chains'
 											: 'Sum of value of all coins held in smart contracts of all the protocols on the chain'
 									}
+									render={<h2 />}
 									className="inline text-(--text-label) underline decoration-dotted"
 								>
 									Total Value Locked in DeFi
 								</Tooltip>
-								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(totalValueUSD, true)}
-								</span>
-							</h2>
+								</p>
+							</div>
 						)}
 						{change24h != null && valueChange24hUSD != null ? (
 							<Tooltip

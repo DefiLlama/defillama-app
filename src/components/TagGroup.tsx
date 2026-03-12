@@ -27,12 +27,14 @@ export function TagGroup<V extends readonly string[]>({
 	const { container, button } = TAG_GROUP_VARIANTS[variant]
 
 	return (
-		<div className={clsx(container, className)} style={style} {...props}>
+		<div role="radiogroup" className={clsx(container, className)} style={style} {...props}>
 			{label ? <p className="pr-1 pl-3">{label}</p> : null}
 			{values.map((value) => {
 				return (
 					<button
 						type="button"
+						role="radio"
+						aria-checked={value === selectedValue}
 						className={button}
 						disabled={disabledValuesSet?.has(value)}
 						data-active={value === selectedValue}
