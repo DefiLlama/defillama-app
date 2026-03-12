@@ -6,6 +6,7 @@ import { getProDashboardServerData } from '~/containers/ProDashboard/queries.ser
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { isSuperLuminalEnabled, SUPERLUMINAL_PROJECTS } from '~/containers/SuperLuminal/config'
 import { Logo } from '~/containers/SuperLuminal/Logo'
+import { fetchCustomServerData } from '~/containers/SuperLuminal/serverDataRegistry'
 
 const SuperLuminalDashboard = lazy(() => import('~/containers/SuperLuminal'))
 
@@ -37,11 +38,22 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 		}
 	}
 
-	return { props: { serverDataByDashboardId } }
+	let customServerData: Record<string, unknown> = {}
+	try {
+		const customResults = await Promise.all(
+			SUPERLUMINAL_PROJECTS.filter((p) => p.dashboardId).map((project) => fetchCustomServerData(project.dashboardId))
+		)
+		for (const data of customResults) {
+			customServerData = { ...customServerData, ...data }
+		}
+	} catch {}
+
+	return { props: { serverDataByDashboardId, customServerData } }
 }
 
 export default function SuperLuminalAllPage({
-	serverDataByDashboardId
+	serverDataByDashboardId,
+	customServerData
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	if (!isSuperLuminalEnabled()) {
 		return null
@@ -62,7 +74,7 @@ export default function SuperLuminalAllPage({
 					</div>
 				}
 			>
-				<SuperLuminalDashboard serverDataByDashboardId={serverDataByDashboardId} />
+				<SuperLuminalDashboard serverDataByDashboardId={serverDataByDashboardId} customServerData={customServerData} />
 			</Suspense>
 			<Toast />
 		</>
