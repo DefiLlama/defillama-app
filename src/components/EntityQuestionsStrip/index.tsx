@@ -44,6 +44,11 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 		} else {
 			setPendingPrompt(question)
 			setPendingSuggestedFlag()
+			setPendingPageContext({
+				entitySlug,
+				entityType,
+				route: router.asPath
+			})
 			setPendingQuestion(question)
 			signInDialogStore.show()
 		}
