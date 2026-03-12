@@ -615,6 +615,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [enableMemory, setEnableMemory] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
 	)
+	const [hackerMode, setHackerMode] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
+	)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
 		initialSessionId && !sharedSession ? initialSessionId : null
@@ -713,6 +716,11 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				if (typeof data?.settings?.enableMemory === 'boolean') {
 					setEnableMemory(data.settings.enableMemory)
 					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
+				}
+				if (typeof data?.settings?.hackerMode === 'boolean') {
+					setHackerMode(data.settings.hackerMode)
+					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
+					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
 				}
 			})
 			.catch(() => {})
@@ -1646,6 +1654,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					onCustomInstructionsChange={setCustomInstructions}
 					enableMemory={enableMemory}
 					onEnableMemoryChange={setEnableMemory}
+					hackerMode={hackerMode}
+					onHackerModeChange={setHackerMode}
 					fetchFn={authorizedFetchStrict}
 				/>
 			) : null}
