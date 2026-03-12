@@ -10,6 +10,7 @@ import {
 	SUPERLUMINAL_PROTOCOL_IDS
 } from '~/containers/SuperLuminal/config'
 import { Logo } from '~/containers/SuperLuminal/Logo'
+import { fetchCustomServerData } from '~/containers/SuperLuminal/serverDataRegistry'
 
 const SuperLuminalDashboard = lazy(() => import('~/containers/SuperLuminal'))
 
@@ -34,16 +35,27 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 	}
 
 	try {
-		const serverData = await getProDashboardServerData({ dashboardId: project.dashboardId, authToken })
-		return { props: { protocol, serverDataByDashboardId: { [project.dashboardId]: serverData } } }
+		const [serverData, customServerData] = await Promise.all([
+			getProDashboardServerData({ dashboardId: project.dashboardId, authToken }),
+			fetchCustomServerData(project.dashboardId)
+		])
+
+		return {
+			props: {
+				protocol,
+				serverDataByDashboardId: { [project.dashboardId]: serverData },
+				customServerData
+			}
+		}
 	} catch {
-		return { props: { protocol, serverDataByDashboardId: {} } }
+		return { props: { protocol, serverDataByDashboardId: {}, customServerData: {} } }
 	}
 }
 
 export default function SuperLuminalProtocolPage({
 	protocol,
-	serverDataByDashboardId
+	serverDataByDashboardId,
+	customServerData
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	if (!isSuperLuminalEnabled() || !protocol) {
 		return null
@@ -68,7 +80,7 @@ export default function SuperLuminalProtocolPage({
 					</div>
 				}
 			>
-				<SuperLuminalDashboard protocol={protocol} serverDataByDashboardId={serverDataByDashboardId} />
+				<SuperLuminalDashboard protocol={protocol} serverDataByDashboardId={serverDataByDashboardId} customServerData={customServerData} />
 			</Suspense>
 			<Toast />
 		</>
