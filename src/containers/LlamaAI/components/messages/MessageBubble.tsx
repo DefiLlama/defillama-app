@@ -366,10 +366,14 @@ function InlineContent({
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 }) {
-	const { artifactsById, blocks } = useMemo(() => parseMessageToRenderModel(message), [message])
+	const includeFallbackArtifacts = !isStreaming || !message.content?.trim()
+	const { artifactsById, blocks } = useMemo(
+		() => parseMessageToRenderModel(message, { includeFallbackArtifacts }),
+		[includeFallbackArtifacts, message]
+	)
 
 	return (
-		<div className="flex flex-col gap-2.5">
+		<div className="flex flex-col gap-2.5" style={isStreaming ? { overflowAnchor: 'none' } : undefined}>
 			{blocks.map((block) => (
 				<div key={block.key}>
 					<MessageContentBlock

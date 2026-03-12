@@ -38,6 +38,7 @@ import {
 	resumeAgenticStream
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
+import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -644,10 +645,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const toolCallIdRef = useRef(0)
 	const promptSubmissionLockRef = useRef(false)
 	const isFirstMessageRef = useRef(true)
-	const shouldAutoScrollRef = useRef(true)
-	const paginationRef = useRef(paginationState)
-	const userScrollCooldownRef = useRef(false)
-	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 	const {
 		isStreaming,
 		isCompacting,
@@ -666,19 +663,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		lastFailedRequest,
 		rateLimitDetails
 	} = streamState
-
-	// Scroll the conversation viewport to the latest content and re-enable auto-follow mode.
-	const scrollToBottom = useCallback(() => {
-		if (scrollContainerRef.current) {
-			scrollContainerRef.current.scrollTo({
-				top: scrollContainerRef.current.scrollHeight,
-				behavior: 'smooth'
-			})
-			shouldAutoScrollRef.current = true
-			userScrollCooldownRef.current = false
-			setShowScrollToBottom(false)
-		}
-	}, [])
 
 	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
 	const effectiveMessages = sharedMessages ?? messages
@@ -715,11 +699,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingToolExecutions
 	])
 
-	// Keep a ref copy of pagination state so the scroll listener can stay stable.
-	useEffect(() => {
-		paginationRef.current = paginationState
-	}, [paginationState])
-
 	// Hydrate per-user settings once auth is ready.
 	useEffect(() => {
 		if (!user) return
@@ -738,39 +717,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			})
 			.catch(() => {})
 	}, [user, authorizedFetchStrict])
-
-	// While streaming, keep the viewport pinned unless the user explicitly scrolled away from the bottom.
-	useEffect(() => {
-		if (!isStreaming) {
-			const timer = setTimeout(() => {
-				requestAnimationFrame(() => {
-					const c = scrollContainerRef.current
-					if (!c) return
-					const isAtBottom = Math.ceil(c.scrollTop + c.clientHeight) >= c.scrollHeight - 150
-					if (isAtBottom) {
-						shouldAutoScrollRef.current = true
-						setShowScrollToBottom(false)
-					} else if (c.scrollHeight > c.clientHeight) {
-						setShowScrollToBottom(true)
-					}
-				})
-			}, 100)
-			return () => clearTimeout(timer)
-		}
-		const interval = setInterval(() => {
-			if (shouldAutoScrollRef.current && scrollContainerRef.current) {
-				scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
-			}
-		}, 200)
-		return () => clearInterval(interval)
-	}, [isStreaming])
-
-	// Snap to the latest message when new content is appended and auto-scroll is still enabled.
-	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current) {
-			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
-		}
-	}, [effectiveMessages])
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
@@ -818,52 +764,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		void handleLoadMoreMessages()
 	})
 
-	// Manage user-driven scrolling, auto-scroll opt-out, the scroll-to-bottom affordance, and top pagination.
-	useEffect(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
-
-		let cooldownTimer: ReturnType<typeof setTimeout>
-		const onUserScrollIntent = () => {
-			shouldAutoScrollRef.current = false
-			userScrollCooldownRef.current = true
-			clearTimeout(cooldownTimer)
-			cooldownTimer = setTimeout(() => {
-				userScrollCooldownRef.current = false
-			}, 500)
-		}
-
-		let ticking = false
-		const onScroll = () => {
-			if (!ticking) {
-				ticking = true
-				requestAnimationFrame(() => {
-					const { scrollTop, scrollHeight, clientHeight } = container
-					const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
-					if (isAtBottom) {
-						shouldAutoScrollRef.current = true
-						userScrollCooldownRef.current = false
-					}
-					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
-					const pg = paginationRef.current
-					if (scrollTop <= 50 && pg.hasMore && !pg.isLoadingMore) {
-						handleLoadMoreMessagesEvent()
-					}
-					ticking = false
-				})
-			}
-		}
-
-		container.addEventListener('wheel', onUserScrollIntent, { passive: true })
-		container.addEventListener('touchmove', onUserScrollIntent, { passive: true })
-		container.addEventListener('scroll', onScroll, { passive: true })
-		return () => {
-			clearTimeout(cooldownTimer)
-			container.removeEventListener('wheel', onUserScrollIntent)
-			container.removeEventListener('touchmove', onUserScrollIntent)
-			container.removeEventListener('scroll', onScroll)
-		}
-	}, [hasMessages])
+	const { enableAutoScroll, scrollToBottom, showScrollToBottom } = useChatScroll({
+		scrollContainerRef,
+		isStreaming,
+		items: effectiveMessages,
+		hasMessages,
+		paginationState,
+		onLoadMoreMessages: handleLoadMoreMessagesEvent
+	})
 
 	// Trigger the sidebar open/close animation before toggling visibility.
 	const handleSidebarToggle = useCallback(() => {
@@ -1030,8 +938,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setSessionTitle(match?.title || null)
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
-			shouldAutoScrollRef.current = true
-			setShowScrollToBottom(false)
+			enableAutoScroll()
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
@@ -1044,7 +951,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			dispatchStream({ type: 'RESET_RECOVERY' })
 			return { restored: true, recoveredResponse }
 		},
-		[restoreSession, sessions]
+		[enableAutoScroll, restoreSession, sessions]
 	)
 
 	const exhaustRecovery = useCallback(
@@ -1248,11 +1155,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setSessionTitle(null)
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
-		shouldAutoScrollRef.current = true
-		setShowScrollToBottom(false)
+		enableAutoScroll()
 		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
-	}, [initialSessionId, abortActiveRequest, clearConversationRuntimeState])
+	}, [initialSessionId, abortActiveRequest, clearConversationRuntimeState, enableAutoScroll])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
@@ -1346,8 +1252,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						...prev,
 						{ role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }
 					])
-					shouldAutoScrollRef.current = true
-					setShowScrollToBottom(false)
+					enableAutoScroll()
 
 					const buffer = createStreamBuffer()
 					const controller = new AbortController()
@@ -1498,7 +1403,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			abortActiveRequest,
 			startRecoveryCycle,
 			sessionTitle,
-			sessions
+			sessions,
+			enableAutoScroll
 		]
 	)
 

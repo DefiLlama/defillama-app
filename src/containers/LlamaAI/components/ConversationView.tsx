@@ -155,25 +155,29 @@ export function ConversationView({
 								<TypingIndicator />
 							) : null}
 
-							{spawnProgress.size > 0 ? (
-								<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
-							) : (
-								<ToolProgressIndicator
-									toolCalls={activeToolCalls}
-									thinking={streamingThinking}
-									isCompacting={isCompacting}
-								/>
-							)}
+							<div style={{ overflowAnchor: 'none' }}>
+								{spawnProgress.size > 0 ? (
+									<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+								) : (
+									<ToolProgressIndicator
+										toolCalls={activeToolCalls}
+										thinking={streamingThinking}
+										isCompacting={isCompacting}
+									/>
+								)}
+							</div>
 
 							{streamingDraft ? (
-								<MessageBubble
-									key={streamingDraft.id || 'streaming-draft'}
-									message={streamingDraft}
-									sessionId={sessionId}
-									isDraft
-									readOnly={readOnly}
-									isLlama={isLlama}
-								/>
+								<div style={{ overflowAnchor: 'none' }}>
+									<MessageBubble
+										key={streamingDraft.id || 'streaming-draft'}
+										message={streamingDraft}
+										sessionId={sessionId}
+										isDraft
+										readOnly={readOnly}
+										isLlama={isLlama}
+									/>
+								</div>
 							) : null}
 
 							{recovery.status === 'reconnecting' ? (

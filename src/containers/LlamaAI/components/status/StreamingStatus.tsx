@@ -109,19 +109,27 @@ function formatTime(seconds: number) {
 export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
+	const shouldAutoScrollRef = useRef(true)
 
-	const scrollContentToBottom = useCallback(() => {
+	const syncAutoScrollIntent = useCallback(() => {
+		const content = contentRef.current
+		if (!content) return
+		shouldAutoScrollRef.current = Math.ceil(content.scrollTop + content.clientHeight) >= content.scrollHeight - 16
+	}, [])
+
+	const scrollContentToBottom = useCallback((force = false) => {
 		requestAnimationFrame(() => {
-			if (contentRef.current) {
-				contentRef.current.scrollTop = contentRef.current.scrollHeight
-			}
+			const content = contentRef.current
+			if (!content || (!force && !shouldAutoScrollRef.current)) return
+			content.scrollTop = content.scrollHeight
+			shouldAutoScrollRef.current = true
 		})
 	}, [])
 
 	useEffect(() => {
 		if (defaultOpen && detailsRef.current) {
 			detailsRef.current.open = true
-			scrollContentToBottom()
+			scrollContentToBottom(true)
 		}
 	}, [defaultOpen, scrollContentToBottom])
 
@@ -139,7 +147,7 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 			className="group"
 			onToggle={() => {
 				if (detailsRef.current?.open) {
-					scrollContentToBottom()
+					scrollContentToBottom(true)
 				}
 			}}
 		>
@@ -149,6 +157,7 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 			</summary>
 			<div
 				ref={contentRef}
+				onScroll={syncAutoScrollIntent}
 				className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
 			>
 				{thinking}
