@@ -19,7 +19,7 @@ const NOOP = () => {}
 
 const ALL_PROJECTS = [
 	...SUPERLUMINAL_PROJECTS.map((p) => ({ ...p, comingSoon: false })),
-	{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true }
+	{ id: 'your-project', name: 'Your Project', dashboardId: '', comingSoon: true, customOnly: false }
 ]
 
 const SKELETON_WIDTHS = [
@@ -182,6 +182,38 @@ function SuperLuminalContent({
 						{tab.source && tab.source !== 'DefiLlama' && (
 							<p className="mt-6 text-center text-xs text-(--text-disabled)">Data source: {tab.source}</p>
 						)}
+					</div>
+				)
+			})}
+		</>
+	)
+}
+
+function CustomOnlyContent({
+	tabs,
+	activeTab,
+	displayName
+}: {
+	tabs: DashboardTabConfig[]
+	activeTab: string
+	displayName: string
+}) {
+	return (
+		<>
+			<header className="hidden items-center gap-3 md:flex">
+				<h1 className="text-xl font-semibold tracking-tight pro-text1">
+					{tabs.find((t) => t.id === activeTab)?.label ?? displayName}
+				</h1>
+			</header>
+
+			{tabs.map((tab) => {
+				if (!tab.component) return null
+				const TabComponent = tab.component
+				return (
+					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
+						<Suspense fallback={<div className="min-h-[60vh]" />}>
+							<TabComponent />
+						</Suspense>
 					</div>
 				)
 			})}
@@ -363,6 +395,8 @@ function SuperLuminalShell({
 			<div className="flex flex-1 flex-col gap-4 p-5 md:ml-56">
 				{activeProjectConfig?.comingSoon ? (
 					<ProjectComingSoon />
+				) : activeProjectConfig?.customOnly ? (
+					<CustomOnlyContent tabs={tabs} activeTab={activeTab} displayName={displayName} />
 				) : (
 					<ProDashboardAPIProvider
 						key={dashboardId}
