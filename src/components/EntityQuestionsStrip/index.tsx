@@ -13,15 +13,14 @@ interface Props {
 	isLoading?: boolean
 }
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
+const SignInForm = lazy(() => import('~/containers/Subscribtion/SignIn').then((m) => ({ default: m.SignInForm })))
+const WalletProvider = lazy(() => import('~/layout/WalletProvider').then((m) => ({ default: m.WalletProvider })))
 
 export function EntityQuestionsStrip({ questions, entitySlug, entityType, entityName, isLoading }: Props) {
 	const router = useRouter()
 	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const [pendingQuestion, setPendingQuestion] = useState<string | null>(null)
+	const signInDialogStore = Ariakit.useDialogStore()
 
 	if (!isLoading && !questions?.length) return null
 
@@ -43,7 +42,10 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 			})
 			void router.push('/ai/chat')
 		} else {
-			subscribeModalStore.show()
+			setPendingPrompt(question)
+			setPendingSuggestedFlag()
+			setPendingQuestion(question)
+			signInDialogStore.show()
 		}
 	}
 
@@ -82,11 +84,41 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 					</div>
 				</div>
 			</div>
-			{shouldRenderModal ? (
-				<Suspense fallback={<></>}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
-			) : null}
+			<Suspense fallback={null}>
+				<WalletProvider>
+					<Ariakit.Dialog
+						store={signInDialogStore}
+						className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#2a2a2e] bg-[#1a1b1f] shadow-2xl max-sm:drawer max-sm:rounded-b-none"
+						unmountOnHide
+					>
+						{/* Branded header */}
+						<div className="shrink-0 border-b border-[#2a2a2e] px-5 pt-5 pb-4">
+							<div className="flex flex-col items-center gap-2.5 text-center">
+								<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-9 w-9" />
+								<div>
+									<p className="text-[15px] font-bold text-white">Try LlamaAI for free</p>
+									<p className="mt-0.5 text-[13px] text-[#919296]">
+										Sign in to get{' '}
+										<span className="font-semibold text-[#FDE0A9]">3 free AI-answered questions</span> per day
+									</p>
+								</div>
+							</div>
+							{pendingQuestion ? (
+								<div className="mt-3 rounded-lg border border-[#FDE0A9]/15 bg-[#FDE0A9]/5 px-3 py-2">
+									<p className="text-[12px] leading-relaxed text-[#c8c8cc]">
+										&ldquo;{pendingQuestion.length > 100 ? `${pendingQuestion.slice(0, 100)}...` : pendingQuestion}
+										&rdquo;
+									</p>
+								</div>
+							) : null}
+						</div>
+						{/* Sign-in form */}
+						<div className="p-4 sm:p-6">
+							<SignInForm dialogStore={signInDialogStore} returnUrl="/ai/chat" />
+						</div>
+					</Ariakit.Dialog>
+				</WalletProvider>
+			</Suspense>
 		</>
 	)
 }
