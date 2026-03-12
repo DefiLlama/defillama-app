@@ -48,7 +48,7 @@ export default function OraclesOracleChainPage(props: InferGetStaticPropsType<ty
 	return (
 		<Layout
 			title={`${props.oracle ?? 'Oracles'} Oracle on ${props.chain ?? 'All Chains'} - DefiLlama`}
-			description={`Track total value secured by ${props.oracle ?? 'Oracles'} oracle on ${props.chain}. View protocol breakdown and TVS rankings on DefiLlama.`}
+			description={`Track TVS for ${props.oracle ?? 'Oracles'} on ${props.chain}. Compare protocols secured, where failure would equal TVS.`}
 			canonicalUrl={canonicalUrl}
 			metricFilters={tvlOptions}
 			pageName={pageName}

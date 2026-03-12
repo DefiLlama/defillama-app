@@ -31,7 +31,7 @@ const PerpsAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title="Perps Aggregator Rankings - Futures Routing - DefiLlama"
-			description="Track perpetual futures aggregator volume by protocol. Compare perps routing activity on DefiLlama."
+			description="Track perps aggregator volume by protocol, the notional volume of leveraged trades routed through aggregators."
 			canonicalUrl={`/perps-aggregators`}
 			pageName={pageName}
 		>

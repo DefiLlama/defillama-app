@@ -40,7 +40,7 @@ export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 	return (
 		<Layout
 			title="RWA by Chain - Real World Assets Analytics - DefiLlama"
-			description={`An overview of Real World Asset (RWA) adoption across blockchains, with a breakdown of how RWAs are issued and used on each chain. DefiLlama remains committed to delivering accurate, transparent data without ads or sponsored content.`}
+			description="Compare RWA adoption across blockchains. Track Active Mcap, Onchain Mcap, and DeFi Active TVL by chain."
 			pageName={pageName}
 			canonicalUrl={`/rwa/chains`}
 		>

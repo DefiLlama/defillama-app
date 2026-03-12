@@ -33,7 +33,7 @@ const PremiumVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title="Options Premium Volume Rankings - DefiLlama"
-			description="Track options premium volume by DeFi protocol. Compare options trading activity across protocols on DefiLlama."
+			description="Track options premium volume by protocol, the value paid buying and selling options on DeFi exchanges."
 			canonicalUrl={`/options/premium-volume`}
 			pageName={pageName}
 		>

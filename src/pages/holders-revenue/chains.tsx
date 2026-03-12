@@ -26,7 +26,7 @@ const HoldersRevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title="Holders Revenue by Chain - DefiLlama"
-			description="Compare token holder revenue across blockchains on DefiLlama."
+			description="Compare holder revenue across chains, from buyback and burn, fee burning, and direct distributions to stakers."
 			canonicalUrl={`/holders-revenue/chains`}
 			pageName={pageName}
 		>

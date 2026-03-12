@@ -26,7 +26,7 @@ const PerpsAggregatorsByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title="Perps Aggregator Volume by Chain - DefiLlama"
-			description="Compare perps aggregator volume across blockchains on DefiLlama."
+			description="Compare perps aggregator volume by chain, the notional volume of leveraged trades routed through aggregators."
 			canonicalUrl={`/perps-aggregators/chains`}
 			pageName={pageName}
 		>

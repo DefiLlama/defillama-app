@@ -52,7 +52,7 @@ export default function YieldStrategies(data) {
 	return (
 		<Layout
 			title={`Delta Neutral Strategies - DefiLlama Yield`}
-			description="Find delta-neutral yield strategies across DeFi. Combine long and short positions to earn yield while minimizing price exposure."
+			description="Find delta-neutral lend-borrow-farm strategies. Compare APY, LTV, available liquidity, and farm TVL across DeFi."
 			canonicalUrl={`/yields/strategy`}
 			pageName={pageName}
 		>

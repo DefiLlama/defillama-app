@@ -82,7 +82,7 @@ const Banks = () => {
 	return (
 		<Layout
 			title="Historical Bank Failures Database - DefiLlama"
-			description="Track historical bank failures with dates, assets, and resolution details on DefiLlama."
+			description="Historical US bank failures database with closing dates, assets at failure, and inflation-adjusted annual totals."
 		>
 			<div className="relative col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<React.Suspense fallback={<div className="min-h-[398px]" />}>

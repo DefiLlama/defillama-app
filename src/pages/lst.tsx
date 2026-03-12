@@ -20,7 +20,7 @@ export default function LSDs(props: LSTOverviewProps) {
 	return (
 		<Layout
 			title="Liquid Staking (LST) Rankings - TVL & APY - DefiLlama"
-			description="Compare liquid staking tokens by TVL, APY, and market share on DefiLlama."
+			description="Compare liquid staking tokens by staked ETH, APR, market share, ETH peg, and fees. Track LST inflows and dominance."
 			canonicalUrl={`/lst`}
 			pageName={pageName}
 		>

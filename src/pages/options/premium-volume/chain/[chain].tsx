@@ -94,7 +94,7 @@ const PremiumVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title={`${props.chain} Options Premium Volume - DefiLlama`}
-			description={`Track options premium volume on ${props.chain} by protocol on DefiLlama.`}
+			description={`Track options premium volume on ${props.chain}, the value paid buying and selling options on DeFi exchanges.`}
 			canonicalUrl={`/options/premium-volume/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
