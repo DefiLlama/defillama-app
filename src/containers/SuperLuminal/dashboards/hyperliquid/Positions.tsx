@@ -7,11 +7,11 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import { TextLoader } from '../../Logo'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { VirtualTable } from '~/components/Table/Table'
 import { formattedNum } from '~/utils'
+import { TextLoader } from '../../Logo'
 import {
 	type HlpData,
 	type HlpFill,

@@ -142,9 +142,7 @@ export default function PoolsOverview() {
 	}, [pools, poolRows, isLoading])
 
 	const tvlChartData = useMemo(() => {
-		return poolRows
-			.filter((p) => p.tvlUsd >= 10000)
-			.map((p) => ({ name: p.name, TVL: p.tvlUsd }))
+		return poolRows.filter((p) => p.tvlUsd >= 10000).map((p) => ({ name: p.name, TVL: p.tvlUsd }))
 	}, [poolRows])
 
 	const utilizationChartData = useMemo(() => {

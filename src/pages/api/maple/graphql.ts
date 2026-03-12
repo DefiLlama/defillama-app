@@ -23,15 +23,18 @@ interface PaginatedQueryConfig {
 
 const PAGINATED_QUERIES: Record<string, PaginatedQueryConfig> = {
 	stSyrupTxes: {
-		queryFn: (first, skip) => `{ stSyrupTxes(first: ${first}, skip: ${skip}, orderBy: timestamp, orderDirection: desc) { id timestamp type sharesAmount assetsAmount account { id } } }`,
+		queryFn: (first, skip) =>
+			`{ stSyrupTxes(first: ${first}, skip: ${skip}, orderBy: timestamp, orderDirection: desc) { id timestamp type sharesAmount assetsAmount account { id } } }`,
 		entityKey: 'stSyrupTxes'
 	},
 	syrupTxes: {
-		queryFn: (first, skip) => `{ syrupTxes(first: ${first}, skip: ${skip}, orderBy: timestamp, orderDirection: desc) { id timestamp tokensMigrated account { id } } }`,
+		queryFn: (first, skip) =>
+			`{ syrupTxes(first: ${first}, skip: ${skip}, orderBy: timestamp, orderDirection: desc) { id timestamp tokensMigrated account { id } } }`,
 		entityKey: 'syrupTxes'
 	},
 	syrupDripTxes: {
-		queryFn: (first, skip) => `{ syrupDripTxes(first: ${first}, skip: ${skip}, orderBy: timestamp, orderDirection: desc) { id timestamp type amount account { id } } }`,
+		queryFn: (first, skip) =>
+			`{ syrupDripTxes(first: ${first}, skip: ${skip}, orderBy: timestamp, orderDirection: desc) { id timestamp type amount account { id } } }`,
 		entityKey: 'syrupDripTxes'
 	}
 }
@@ -53,12 +56,25 @@ function fetchWithCurl(query: string): Promise<unknown> {
 		writeFileSync(tmpFile, payload)
 
 		const chunks: Buffer[] = []
-		const proc = spawn('curl', ['-s', '-X', 'POST', MAPLE_GRAPHQL_URL, '-H', 'Content-Type: application/json', '-d', `@${tmpFile}`, '--max-time', '25'])
+		const proc = spawn('curl', [
+			'-s',
+			'-X',
+			'POST',
+			MAPLE_GRAPHQL_URL,
+			'-H',
+			'Content-Type: application/json',
+			'-d',
+			`@${tmpFile}`,
+			'--max-time',
+			'25'
+		])
 
 		proc.stdout.on('data', (chunk: Buffer) => chunks.push(chunk))
 
 		proc.on('close', (code) => {
-			try { unlinkSync(tmpFile) } catch {}
+			try {
+				unlinkSync(tmpFile)
+			} catch {}
 			if (code !== 0) return reject(new Error(`curl exited with code ${code}`))
 			try {
 				resolve(JSON.parse(Buffer.concat(chunks).toString()))
@@ -68,7 +84,9 @@ function fetchWithCurl(query: string): Promise<unknown> {
 		})
 
 		proc.on('error', (err) => {
-			try { unlinkSync(tmpFile) } catch {}
+			try {
+				unlinkSync(tmpFile)
+			} catch {}
 			reject(err)
 		})
 	})

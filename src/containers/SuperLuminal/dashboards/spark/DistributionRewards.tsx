@@ -43,16 +43,31 @@ function makeStacks(keys: string[]): Record<string, string> {
 }
 
 export default function DistributionRewards() {
-	const { chartData: actualRevData, keys: actualRevKeys, colors: actualRevColors, isLoading: actualRevLoading } =
-		useDistActualRevenue()
-	const { chartData: projData, keys: projKeys, colors: projColors, isLoading: projLoading } =
-		useDistRevenueProjection()
-	const { chartData: susdsTvlData, keys: susdsTvlKeys, colors: susdsTvlColors, isLoading: susdsTvlLoading } =
-		useDistSusdsTvl()
-	const { chartData: xrSusdsData, keys: xrSusdsKeys, colors: xrSusdsColors, isLoading: xrSusdsLoading } =
-		useDistXrSusds()
-	const { chartData: xrSusdcData, keys: xrSusdcKeys, colors: xrSusdcColors, isLoading: xrSusdcLoading } =
-		useDistXrSusdc()
+	const {
+		chartData: actualRevData,
+		keys: actualRevKeys,
+		colors: actualRevColors,
+		isLoading: actualRevLoading
+	} = useDistActualRevenue()
+	const { chartData: projData, keys: projKeys, colors: projColors, isLoading: projLoading } = useDistRevenueProjection()
+	const {
+		chartData: susdsTvlData,
+		keys: susdsTvlKeys,
+		colors: susdsTvlColors,
+		isLoading: susdsTvlLoading
+	} = useDistSusdsTvl()
+	const {
+		chartData: xrSusdsData,
+		keys: xrSusdsKeys,
+		colors: xrSusdsColors,
+		isLoading: xrSusdsLoading
+	} = useDistXrSusds()
+	const {
+		chartData: xrSusdcData,
+		keys: xrSusdcKeys,
+		colors: xrSusdcColors,
+		isLoading: xrSusdcLoading
+	} = useDistXrSusdc()
 	const {
 		chartData: stakedUsdsTvlData,
 		keys: stakedUsdsTvlKeys,
