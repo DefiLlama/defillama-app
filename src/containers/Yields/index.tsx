@@ -115,7 +115,7 @@ const YieldPage = ({
 			})
 
 			if (toFilter) {
-				// Look up peg info for the first stablecoin token in the pool symbol
+				// Match pool tokens to stablecoin peg data
 				const poolTokens = curr.symbol?.split('(')[0].split('-').map((s) => s.toLowerCase().trim()) || []
 				let pegInfo = null
 				for (const t of poolTokens) {
