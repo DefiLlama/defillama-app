@@ -11,6 +11,7 @@ import {
 import type { ProDashboardServerProps } from '~/containers/ProDashboard/queries.server'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SUPERLUMINAL_PROJECTS } from './config'
+import { CustomServerDataContext } from './CustomServerDataContext'
 import { Logo } from './Logo'
 import { type DashboardTabConfig, getDashboardModule } from './registry'
 
@@ -131,11 +132,14 @@ function SuperLuminalContent({
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
 
-	const initialTab = useRef(activeTab)
+	const prevTab = useRef(activeTab)
 
 	useEffect(() => {
-		if (activeTab !== initialTab.current) {
-			window.dispatchEvent(new Event('resize'))
+		if (activeTab !== prevTab.current) {
+			prevTab.current = activeTab
+			requestAnimationFrame(() => {
+				window.dispatchEvent(new Event('resize'))
+			})
 		}
 	}, [activeTab])
 
@@ -187,13 +191,16 @@ function SuperLuminalContent({
 
 function SuperLuminalShell({
 	protocol,
-	serverDataByDashboardId
+	serverDataByDashboardId,
+	customServerData
 }: {
 	protocol?: string
 	serverDataByDashboardId?: Record<string, ProDashboardServerProps>
+	customServerData?: Record<string, unknown>
 }) {
 	const [isDark, toggleTheme] = useDarkModeManager()
 
+	const isSingleProtocol = !!protocol
 	const visibleProjects = protocol ? ALL_PROJECTS.filter((p) => p.id === protocol) : ALL_PROJECTS
 	const defaultProject = visibleProjects[0]?.id ?? ALL_PROJECTS[0].id
 
@@ -211,6 +218,7 @@ function SuperLuminalShell({
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 
 	return (
+		<CustomServerDataContext.Provider value={customServerData ?? {}}>
 		<div className="superluminal-dashboard col-span-full flex min-h-screen flex-col pro-dashboard bg-(--app-bg) md:flex-row">
 			{sidebarOpen && <div className="fixed inset-0 z-20 bg-black/60 md:hidden" onClick={closeSidebar} />}
 
@@ -239,12 +247,13 @@ function SuperLuminalShell({
 				<nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
 					{visibleProjects.map((project) => {
 						const isActive = activeProject === project.id
-						const isExpanded = expandedProject === project.id && !project.comingSoon
+						const isExpanded = isSingleProtocol || (expandedProject === project.id && !project.comingSoon)
 
 						return (
 							<div key={project.id}>
 								<button
 									onClick={() => {
+										if (isSingleProtocol) return
 										if (isActive && !project.comingSoon) {
 											setExpandedProject(isExpanded ? null : project.id)
 										} else {
@@ -262,21 +271,23 @@ function SuperLuminalShell({
 											: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
 									}`}
 								>
-									<svg
-										width="12"
-										height="12"
-										viewBox="0 0 12 12"
-										fill="none"
-										className={`shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
-									>
-										<path
-											d="M4.5 2.5L8 6L4.5 9.5"
-											stroke="currentColor"
-											strokeWidth="1.5"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-										/>
-									</svg>
+									{!isSingleProtocol && (
+										<svg
+											width="12"
+											height="12"
+											viewBox="0 0 12 12"
+											fill="none"
+											className={`shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`}
+										>
+											<path
+												d="M4.5 2.5L8 6L4.5 9.5"
+												stroke="currentColor"
+												strokeWidth="1.5"
+												strokeLinecap="round"
+												strokeLinejoin="round"
+											/>
+										</svg>
+									)}
 									{project.name}
 									{project.comingSoon && (
 										<span className="ml-auto rounded-full bg-(--sl-btn-inactive-bg) px-1.5 py-0.5 text-[10px] font-normal text-(--text-tertiary)">
@@ -354,19 +365,26 @@ function SuperLuminalShell({
 				)}
 			</div>
 		</div>
+		</CustomServerDataContext.Provider>
 	)
 }
 
 export default function SuperLuminalDashboard({
 	protocol,
-	serverDataByDashboardId
+	serverDataByDashboardId,
+	customServerData
 }: {
 	protocol?: string
 	serverDataByDashboardId?: Record<string, ProDashboardServerProps>
+	customServerData?: Record<string, unknown>
 }) {
 	return (
 		<AppMetadataProvider>
-			<SuperLuminalShell protocol={protocol} serverDataByDashboardId={serverDataByDashboardId} />
+			<SuperLuminalShell
+				protocol={protocol}
+				serverDataByDashboardId={serverDataByDashboardId}
+				customServerData={customServerData}
+			/>
 		</AppMetadataProvider>
 	)
 }
