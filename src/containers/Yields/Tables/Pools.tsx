@@ -28,7 +28,7 @@ function PegHealthIndicator({
 }) {
 	if (deviation == null) return <span className="block text-end text-xs text-(--text-disabled)">{'\u2014'}</span>
 	const abs = Math.abs(deviation)
-	// Positive deviations (above peg) cap at caution — red is reserved for below-peg risk
+	// Above-peg caps at caution, red = below-peg only
 	const status: 'healthy' | 'caution' | 'risk' =
 		abs <= 0.1 ? 'healthy' : deviation > 0 ? (abs <= 0.5 ? 'healthy' : 'caution') : abs <= 0.5 ? 'caution' : 'risk'
 	const statusConfig = {
