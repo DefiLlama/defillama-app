@@ -28,7 +28,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 	const results = await Promise.allSettled(
 		SUPERLUMINAL_PROJECTS.filter((p) => p.dashboardId).map(async (project) => ({
 			dashboardId: project.dashboardId,
-			data: await getProDashboardServerData({ dashboardId: project.dashboardId, authToken })
+			data: await getProDashboardServerData({ dashboardId: project.dashboardId, authToken, skipTableData: true })
 		}))
 	)
 
