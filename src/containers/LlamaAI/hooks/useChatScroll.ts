@@ -14,6 +14,12 @@ interface UseChatScrollParams {
 	onLoadMoreMessages: () => void
 }
 
+type ScrollMode = 'attached' | 'detached' | 'reattaching'
+
+const ATTACHED_THRESHOLD_PX = 48
+const TOP_PAGINATION_THRESHOLD_PX = 50
+const STREAM_FOLLOW_INTERVAL_MS = 200
+
 export function useChatScroll({
 	scrollContainerRef,
 	isStreaming,
@@ -22,50 +28,60 @@ export function useChatScroll({
 	paginationState,
 	onLoadMoreMessages
 }: UseChatScrollParams) {
-	const BOTTOM_THRESHOLD_PX = 150
-	const SMOOTH_SCROLL_LOCK_MS = 400
-	const shouldAutoScrollRef = useRef(true)
-	const userDetachedFromBottomRef = useRef(false)
+	const modeRef = useRef<ScrollMode>('attached')
 	const paginationRef = useRef(paginationState)
-	const smoothScrollLockRef = useRef(false)
-	const smoothScrollLockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const paginationLoadInFlightRef = useRef(false)
 	const lastScrollTopRef = useRef(0)
 	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
-	const beginSmoothScrollLock = useCallback(() => {
-		smoothScrollLockRef.current = true
-		if (smoothScrollLockTimerRef.current) {
-			clearTimeout(smoothScrollLockTimerRef.current)
+	const syncScrollToBottomVisibility = useCallback((container: HTMLDivElement | null) => {
+		if (!container) {
+			setShowScrollToBottom(false)
+			return
 		}
-		smoothScrollLockTimerRef.current = setTimeout(() => {
-			smoothScrollLockRef.current = false
-			smoothScrollLockTimerRef.current = null
-		}, SMOOTH_SCROLL_LOCK_MS)
+
+		const hasScrollableContent = container.scrollHeight > container.clientHeight
+		setShowScrollToBottom(modeRef.current !== 'attached' && hasScrollableContent)
 	}, [])
 
-	const enableAutoScroll = useCallback(() => {
-		shouldAutoScrollRef.current = true
-		userDetachedFromBottomRef.current = false
-		setShowScrollToBottom(false)
-	}, [])
+	const setMode = useCallback(
+		(mode: ScrollMode, container: HTMLDivElement | null = scrollContainerRef.current) => {
+			modeRef.current = mode
+			syncScrollToBottomVisibility(container)
+		},
+		[scrollContainerRef, syncScrollToBottomVisibility]
+	)
+
+	const attach = useCallback(() => {
+		setMode('attached')
+	}, [setMode])
 
 	const scrollToBottom = useCallback(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
 
-		beginSmoothScrollLock()
+		const isAtBottom =
+			Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - ATTACHED_THRESHOLD_PX
+		if (isAtBottom) {
+			setMode('attached', container)
+			return
+		}
+
+		setMode('reattaching', container)
 		container.scrollTo({
 			top: container.scrollHeight,
 			behavior: 'smooth'
 		})
-		enableAutoScroll()
-	}, [beginSmoothScrollLock, enableAutoScroll, scrollContainerRef])
+	}, [scrollContainerRef, setMode])
 
 	useEffect(() => {
 		paginationRef.current = paginationState
+		if (!paginationState.isLoadingMore) {
+			paginationLoadInFlightRef.current = false
+		}
 	}, [paginationState])
 
-	// While streaming, keep the viewport pinned unless the user scrolls away.
+	// While streaming, keep the viewport pinned only when the mode is attached.
 	useEffect(() => {
 		if (!isStreaming) {
 			const timer = setTimeout(() => {
@@ -74,11 +90,11 @@ export function useChatScroll({
 					if (!container) return
 
 					const isAtBottom =
-						Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - BOTTOM_THRESHOLD_PX
-					if (isAtBottom) {
-						enableAutoScroll()
-					} else if (container.scrollHeight > container.clientHeight) {
-						setShowScrollToBottom(true)
+						Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - ATTACHED_THRESHOLD_PX
+					if (isAtBottom && modeRef.current !== 'reattaching') {
+						setMode('attached', container)
+					} else {
+						syncScrollToBottomVisibility(container)
 					}
 				})
 			}, 100)
@@ -89,29 +105,25 @@ export function useChatScroll({
 			const container = scrollContainerRef.current
 			if (!container) return
 
-			if (shouldAutoScrollRef.current && !smoothScrollLockRef.current) {
+			if (modeRef.current === 'attached' || modeRef.current === 'reattaching') {
 				container.scrollTop = container.scrollHeight
 			}
-		}, 200)
+		}, STREAM_FOLLOW_INTERVAL_MS)
 		return () => clearInterval(interval)
-	}, [enableAutoScroll, isStreaming, scrollContainerRef])
+	}, [isStreaming, scrollContainerRef, setMode, syncScrollToBottomVisibility])
 
-	// New content should scroll smoothly unless the user has opted out by scrolling up.
+	// New content should pin immediately only while attached.
 	useEffect(() => {
 		const container = scrollContainerRef.current
-		if (shouldAutoScrollRef.current && container) {
+		if (modeRef.current === 'attached' && container) {
 			requestAnimationFrame(() => {
 				const currentContainer = scrollContainerRef.current
-				if (currentContainer && shouldAutoScrollRef.current) {
-					beginSmoothScrollLock()
-					currentContainer.scrollTo({
-						top: currentContainer.scrollHeight,
-						behavior: 'smooth'
-					})
+				if (currentContainer && modeRef.current === 'attached') {
+					currentContainer.scrollTop = currentContainer.scrollHeight
 				}
 			})
 		}
-	}, [items, beginSmoothScrollLock, scrollContainerRef])
+	}, [items, scrollContainerRef])
 
 	// Track user intent, the scroll-to-bottom affordance, and top-of-thread pagination.
 	useEffect(() => {
@@ -125,9 +137,8 @@ export function useChatScroll({
 			const immediatePreviousScrollTop = lastScrollTopRef.current
 			const isImmediateScrollUp = immediateScrollTop < immediatePreviousScrollTop
 
-			if (!smoothScrollLockRef.current && isImmediateScrollUp) {
-				shouldAutoScrollRef.current = false
-				userDetachedFromBottomRef.current = true
+			if (isImmediateScrollUp && modeRef.current !== 'detached') {
+				setMode('detached', container)
 			}
 
 			if (ticking) return
@@ -136,30 +147,33 @@ export function useChatScroll({
 			requestAnimationFrame(() => {
 				const { scrollTop, scrollHeight, clientHeight } = container
 				const previousScrollTop = lastScrollTopRef.current
-				const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - BOTTOM_THRESHOLD_PX
+				const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - ATTACHED_THRESHOLD_PX
 				const isScrollingUp = scrollTop < previousScrollTop
 				const hasMoved = scrollTop !== previousScrollTop
 				const hasScrollableContent = scrollHeight > clientHeight
+				const currentMode = modeRef.current
 
-				if (!smoothScrollLockRef.current) {
-					if (isAtBottom && (!userDetachedFromBottomRef.current || !isScrollingUp)) {
-						enableAutoScroll()
-					} else if (hasMoved && isScrollingUp) {
-						shouldAutoScrollRef.current = false
-						userDetachedFromBottomRef.current = true
-					} else if (hasMoved && !isAtBottom && shouldAutoScrollRef.current) {
-						shouldAutoScrollRef.current = false
-						userDetachedFromBottomRef.current = true
-					}
-				} else if (isAtBottom) {
-					enableAutoScroll()
+				if (currentMode === 'reattaching' && isScrollingUp) {
+					setMode('detached', container)
+				} else if (currentMode === 'attached' && hasMoved && !isAtBottom) {
+					setMode('detached', container)
+				} else if (currentMode !== 'attached' && isAtBottom) {
+					setMode('attached', container)
+				} else {
+					setShowScrollToBottom(currentMode !== 'attached' && hasScrollableContent)
 				}
 
-				setShowScrollToBottom(!shouldAutoScrollRef.current && hasScrollableContent)
 				lastScrollTopRef.current = scrollTop
 
 				const currentPagination = paginationRef.current
-				if (scrollTop <= 50 && currentPagination.hasMore && !currentPagination.isLoadingMore) {
+				if (
+					scrollTop <= TOP_PAGINATION_THRESHOLD_PX &&
+					!isStreaming &&
+					currentPagination.hasMore &&
+					!currentPagination.isLoadingMore &&
+					!paginationLoadInFlightRef.current
+				) {
+					paginationLoadInFlightRef.current = true
 					onLoadMoreMessages()
 				}
 
@@ -169,31 +183,26 @@ export function useChatScroll({
 
 		container.addEventListener('scroll', onScroll, { passive: true })
 		return () => {
-			if (smoothScrollLockTimerRef.current) {
-				clearTimeout(smoothScrollLockTimerRef.current)
-				smoothScrollLockTimerRef.current = null
-			}
 			container.removeEventListener('scroll', onScroll)
 		}
-	}, [enableAutoScroll, hasMessages, onLoadMoreMessages, scrollContainerRef])
+	}, [hasMessages, isStreaming, onLoadMoreMessages, scrollContainerRef, setMode])
 
 	// Edge cases:
 	// 1. New prompt submitted into an older chat: if the user has not scrolled away,
 	//    pin immediately to the bottom after render so the active exchange is visible.
 	// 2. User scrolls up during a stream: disable follow mode immediately so the
 	//    viewport is not pulled back down while they are reading older messages.
-	// 3. User scrolls back near the bottom during a stream: resume follow mode
-	//    even if the stream is still growing the document between scroll events.
+	// 3. User scrolls back to the bottom during a stream: resume follow mode only
+	//    once the viewport is actually back within the strict bottom threshold.
 	// 4. Only the explicit scroll-to-bottom button uses smooth scrolling; automatic
-	//    follow uses direct scrollTop writes so programmatic movement is never
-	//    mistaken for user intent and broken by its own scroll events.
-	// 5. Near-bottom detection intentionally uses a 150px threshold rather than an
-	//    exact bottom match, because streaming tokens change scrollHeight under the
-	//    user and exact comparisons are too brittle on mobile momentum scroll.
-	// 6. Top-of-thread pagination still relies on the passive scroll listener, so
+	//    follow uses direct scrollTop writes and never changes mode on its own.
+	// 5. Top-of-thread pagination still relies on the passive scroll listener, so
 	//    these follow-mode guards should not suppress normal upward scroll events.
+	// 6. Pagination uses a synchronous in-flight ref so repeated scroll events at
+	//    the top cannot enqueue duplicate load-more requests for the same cursor
+	//    before React applies the loading state update.
 	return {
-		enableAutoScroll,
+		attach,
 		scrollToBottom,
 		showScrollToBottom
 	}

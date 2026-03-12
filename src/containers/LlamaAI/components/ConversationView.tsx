@@ -85,6 +85,100 @@ function ConversationMessageItem({
 	)
 }
 
+function ConversationLiveStatus({
+	isStreaming,
+	activeToolCalls,
+	spawnProgress,
+	spawnStartTime,
+	streamingThinking,
+	streamingDraft,
+	isCompacting,
+	recovery,
+	error,
+	lastFailedPrompt,
+	onRetryLastFailedPrompt,
+	isResearchMode,
+	sessionId,
+	readOnly,
+	isLlama
+}: {
+	isStreaming: boolean
+	activeToolCalls: ToolCall[]
+	spawnProgress: Map<string, SpawnAgentStatus>
+	spawnStartTime: number
+	streamingThinking: string
+	streamingDraft: Message | null
+	isCompacting: boolean
+	recovery: RecoveryState
+	error: string | null
+	lastFailedPrompt: string | null
+	onRetryLastFailedPrompt: () => void
+	isResearchMode: boolean
+	sessionId: string | null
+	readOnly: boolean
+	isLlama: boolean
+}) {
+	return (
+		<>
+			{isStreaming &&
+			activeToolCalls.length === 0 &&
+			spawnProgress.size === 0 &&
+			!streamingDraft?.content &&
+			!streamingThinking &&
+			!hasStreamingCharts(streamingDraft?.charts) ? (
+				<TypingIndicator />
+			) : null}
+
+			<div style={{ overflowAnchor: 'none' }}>
+				{spawnProgress.size > 0 ? (
+					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+				) : (
+					<ToolProgressIndicator toolCalls={activeToolCalls} thinking={streamingThinking} isCompacting={isCompacting} />
+				)}
+			</div>
+
+			{streamingDraft ? (
+				<div style={{ overflowAnchor: 'none' }}>
+					<MessageBubble
+						key={streamingDraft.id || 'streaming-draft'}
+						message={streamingDraft}
+						sessionId={sessionId}
+						isDraft
+						readOnly={readOnly}
+						isLlama={isLlama}
+					/>
+				</div>
+			) : null}
+
+			{recovery.status === 'reconnecting' ? (
+				<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+					<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+					<p className="text-sm text-amber-800 dark:text-amber-200">
+						Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
+					</p>
+					<p className="text-xs text-amber-700 dark:text-amber-300">
+						Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+					</p>
+				</div>
+			) : null}
+
+			{recovery.status !== 'reconnecting' && error ? (
+				<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+					<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+					{lastFailedPrompt ? (
+						<button
+							onClick={onRetryLastFailedPrompt}
+							className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+						>
+							Retry
+						</button>
+					) : null}
+				</div>
+			) : null}
+		</>
+	)
+}
+
 export function ConversationView({
 	readOnly,
 	messages,
@@ -145,12 +239,14 @@ export function ConversationView({
 							) : null}
 
 							{renderedMessages.map((message, index) => {
-								const nextMessage = renderedMessages[index + 1]
+								const originalIndex =
+									message.id != null ? messages.findIndex((candidate) => candidate.id === message.id) : index
+								const nextMessage = originalIndex >= 0 ? messages[originalIndex + 1] : undefined
 								const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
 
 								return (
 									<ConversationMessageItem
-										key={message.id || `msg-${index}`}
+										key={message.id || `msg-${originalIndex >= 0 ? originalIndex : index}`}
 										message={message}
 										nextUserMessage={nextUserMessage}
 										sessionId={sessionId}
@@ -177,128 +273,42 @@ export function ConversationView({
 										isLlama={isLlama}
 									/>
 
-									{isStreaming &&
-									activeToolCalls.length === 0 &&
-									spawnProgress.size === 0 &&
-									!streamingDraft?.content &&
-									!streamingThinking &&
-									!hasStreamingCharts(streamingDraft?.charts) ? (
-										<TypingIndicator />
-									) : null}
-
-									<div style={{ overflowAnchor: 'none' }}>
-										{spawnProgress.size > 0 ? (
-											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
-										) : (
-											<ToolProgressIndicator
-												toolCalls={activeToolCalls}
-												thinking={streamingThinking}
-												isCompacting={isCompacting}
-											/>
-										)}
-									</div>
-
-									{streamingDraft ? (
-										<div style={{ overflowAnchor: 'none' }}>
-											<MessageBubble
-												key={streamingDraft.id || 'streaming-draft'}
-												message={streamingDraft}
-												sessionId={sessionId}
-												isDraft
-												readOnly={readOnly}
-												isLlama={isLlama}
-											/>
-										</div>
-									) : null}
-
-									{recovery.status === 'reconnecting' ? (
-										<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-											<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
-											<p className="text-sm text-amber-800 dark:text-amber-200">
-												Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
-											</p>
-											<p className="text-xs text-amber-700 dark:text-amber-300">
-												Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
-											</p>
-										</div>
-									) : null}
-
-									{recovery.status !== 'reconnecting' && error ? (
-										<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-											<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-											{lastFailedPrompt ? (
-												<button
-													onClick={onRetryLastFailedPrompt}
-													className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
-												>
-													Retry
-												</button>
-											) : null}
-										</div>
-									) : null}
+									<ConversationLiveStatus
+										isStreaming={isStreaming}
+										activeToolCalls={activeToolCalls}
+										spawnProgress={spawnProgress}
+										spawnStartTime={spawnStartTime}
+										streamingThinking={streamingThinking}
+										streamingDraft={streamingDraft}
+										isCompacting={isCompacting}
+										recovery={recovery}
+										error={error}
+										lastFailedPrompt={lastFailedPrompt}
+										onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+										isResearchMode={isResearchMode}
+										sessionId={sessionId}
+										readOnly={readOnly}
+										isLlama={isLlama}
+									/>
 								</div>
 							) : (
-								<>
-									{isStreaming &&
-									activeToolCalls.length === 0 &&
-									spawnProgress.size === 0 &&
-									!streamingDraft?.content &&
-									!streamingThinking &&
-									!hasStreamingCharts(streamingDraft?.charts) ? (
-										<TypingIndicator />
-									) : null}
-
-									<div style={{ overflowAnchor: 'none' }}>
-										{spawnProgress.size > 0 ? (
-											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
-										) : (
-											<ToolProgressIndicator
-												toolCalls={activeToolCalls}
-												thinking={streamingThinking}
-												isCompacting={isCompacting}
-											/>
-										)}
-									</div>
-
-									{streamingDraft ? (
-										<div style={{ overflowAnchor: 'none' }}>
-											<MessageBubble
-												key={streamingDraft.id || 'streaming-draft'}
-												message={streamingDraft}
-												sessionId={sessionId}
-												isDraft
-												readOnly={readOnly}
-												isLlama={isLlama}
-											/>
-										</div>
-									) : null}
-
-									{recovery.status === 'reconnecting' ? (
-										<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-											<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
-											<p className="text-sm text-amber-800 dark:text-amber-200">
-												Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
-											</p>
-											<p className="text-xs text-amber-700 dark:text-amber-300">
-												Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
-											</p>
-										</div>
-									) : null}
-
-									{recovery.status !== 'reconnecting' && error ? (
-										<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-											<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-											{lastFailedPrompt ? (
-												<button
-													onClick={onRetryLastFailedPrompt}
-													className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
-												>
-													Retry
-												</button>
-											) : null}
-										</div>
-									) : null}
-								</>
+								<ConversationLiveStatus
+									isStreaming={isStreaming}
+									activeToolCalls={activeToolCalls}
+									spawnProgress={spawnProgress}
+									spawnStartTime={spawnStartTime}
+									streamingThinking={streamingThinking}
+									streamingDraft={streamingDraft}
+									isCompacting={isCompacting}
+									recovery={recovery}
+									error={error}
+									lastFailedPrompt={lastFailedPrompt}
+									onRetryLastFailedPrompt={onRetryLastFailedPrompt}
+									isResearchMode={isResearchMode}
+									sessionId={sessionId}
+									readOnly={readOnly}
+									isLlama={isLlama}
+								/>
 							)}
 						</div>
 					</div>

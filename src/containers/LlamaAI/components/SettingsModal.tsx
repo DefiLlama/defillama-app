@@ -216,11 +216,7 @@ export const SettingsModal = memo(function SettingsModal({
 								className="flex w-full items-center justify-between"
 							>
 								<div className="flex items-center gap-3 text-left">
-									<img
-										src="/assets/llamaai/hackerllama.webp"
-										alt="Hacker Llama"
-										className="h-9 w-9 rounded-lg"
-									/>
+									<img src="/assets/llamaai/hackerllama.webp" alt="Hacker Llama" className="h-9 w-9 rounded-lg" />
 									<div className="flex flex-col gap-0.5">
 										<p
 											className={`m-0 text-sm font-medium ${

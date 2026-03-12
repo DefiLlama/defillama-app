@@ -810,7 +810,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		void handleLoadMoreMessages()
 	})
 
-	const { enableAutoScroll, scrollToBottom, showScrollToBottom } = useChatScroll({
+	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
 		scrollContainerRef,
 		isStreaming,
 		items: effectiveMessages,
@@ -984,7 +984,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setSessionTitle(match?.title || null)
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
-			enableAutoScroll()
+			attach()
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
@@ -997,7 +997,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			dispatchStream({ type: 'RESET_RECOVERY' })
 			return { restored: true, recoveredResponse }
 		},
-		[enableAutoScroll, restoreSession, sessions]
+		[attach, restoreSession, sessions]
 	)
 
 	const exhaustRecovery = useCallback(
@@ -1202,10 +1202,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setSessionTitle(null)
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
-		enableAutoScroll()
+		attach()
 		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
-	}, [initialSessionId, abortActiveRequest, clearConversationRuntimeState, enableAutoScroll])
+	}, [initialSessionId, abortActiveRequest, attach, clearConversationRuntimeState])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
@@ -1300,7 +1300,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						...prev,
 						{ role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }
 					])
-					enableAutoScroll()
+					attach()
 
 					const buffer = createStreamBuffer()
 					const controller = new AbortController()
@@ -1452,7 +1452,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			startRecoveryCycle,
 			sessionTitle,
 			sessions,
-			enableAutoScroll,
+			attach,
 			shouldShowLanding,
 			triggerPromptTransition
 		]

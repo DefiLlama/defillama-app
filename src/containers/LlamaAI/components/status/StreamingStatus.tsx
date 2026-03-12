@@ -1,7 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',

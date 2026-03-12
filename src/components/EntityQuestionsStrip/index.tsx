@@ -98,8 +98,8 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 								<div>
 									<p className="text-[15px] font-bold text-white">Try LlamaAI for free</p>
 									<p className="mt-0.5 text-[13px] text-[#919296]">
-										Sign in to get{' '}
-										<span className="font-semibold text-[#FDE0A9]">3 free AI-answered questions</span> per day
+										Sign in to get <span className="font-semibold text-[#FDE0A9]">3 free AI-answered questions</span>{' '}
+										per day
 									</p>
 								</div>
 							</div>
