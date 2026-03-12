@@ -469,7 +469,9 @@
 	}
 
 	& [data-umami-event='csv-download'],
+	& [data-umami-event='export-csv'],
 	& [data-umami-event='image-export'],
+	& [data-umami-event='export-image'],
 	& [data-btn='colors'] {
 		display: none;
 	}
