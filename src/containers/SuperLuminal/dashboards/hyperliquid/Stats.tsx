@@ -7,11 +7,11 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
-import { TextLoader } from '../../Logo'
 import { BarChart, PieChart as EPieChart, ScatterChart as EScatterChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { TextLoader } from '../../Logo'
 
 echarts.use([CanvasRenderer, BarChart, EPieChart, EScatterChart, GridComponent, TooltipComponent])
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
