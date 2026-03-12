@@ -209,6 +209,7 @@ function SuperLuminalShell({
 	const [activeProject, setActiveProject] = useState(defaultProject)
 	const [expandedProject, setExpandedProject] = useState<string | null>(defaultProject)
 	const [sidebarOpen, setSidebarOpen] = useState(false)
+	const initialTabSet = useRef(false)
 
 	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
@@ -216,6 +217,13 @@ function SuperLuminalShell({
 	const dashboardId = activeProjectConfig?.dashboardId ?? visibleProjects[0]?.dashboardId ?? ALL_PROJECTS[0].dashboardId
 	const displayName = activeProjectConfig?.name ?? 'Dashboard'
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
+
+	useEffect(() => {
+		if (!initialTabSet.current && tabs.length > 0 && tabs[0].id !== 'dashboard') {
+			initialTabSet.current = true
+			setActiveTab(tabs[0].id)
+		}
+	}, [tabs])
 
 	return (
 		<CustomServerDataContext.Provider value={customServerData ?? {}}>
@@ -260,7 +268,8 @@ function SuperLuminalShell({
 											setActiveProject(project.id)
 											setExpandedProject(project.comingSoon ? expandedProject : project.id)
 											if (!project.comingSoon) {
-												setActiveTab('dashboard')
+												const projectTabs = tabsByProject[project.id]
+												setActiveTab(projectTabs?.[0]?.id ?? 'dashboard')
 											}
 											closeSidebar()
 										}
