@@ -53,6 +53,10 @@ interface ConversationViewProps {
 	onOpenAlerts: () => void
 }
 
+// Keep the active exchange tall enough that scrolling to its bottom places the
+// submitted prompt slightly below the top edge on both mobile and desktop.
+const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-262px)] lg:min-h-[calc(100dvh-225px)]'
+
 function ConversationMessageItem({
 	message,
 	nextUserMessage,
@@ -111,6 +115,15 @@ export function ConversationView({
 	researchUsage,
 	onOpenAlerts
 }: ConversationViewProps) {
+	// Keep the newest user prompt in the same block as the live response/status UI
+	// so the viewport-sized spacer applies to the whole active exchange.
+	const activeExchangeMessage =
+		messages[messages.length - 1]?.role === 'user' &&
+		(isStreaming || recovery.status === 'reconnecting' || Boolean(error))
+			? messages[messages.length - 1]
+			: null
+	const renderedMessages = activeExchangeMessage ? messages.slice(0, -1) : messages
+
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
@@ -129,8 +142,8 @@ export function ConversationView({
 								</div>
 							) : null}
 
-							{messages.map((message, index) => {
-								const nextMessage = messages[index + 1]
+							{renderedMessages.map((message, index) => {
+								const nextMessage = renderedMessages[index + 1]
 								const nextUserMessage = nextMessage?.role === 'user' ? nextMessage.content : undefined
 
 								return (
@@ -146,65 +159,139 @@ export function ConversationView({
 								)
 							})}
 
-							{isStreaming &&
-							activeToolCalls.length === 0 &&
-							spawnProgress.size === 0 &&
-							!streamingDraft?.content &&
-							!streamingThinking &&
-							!hasStreamingCharts(streamingDraft?.charts) ? (
-								<TypingIndicator />
-							) : null}
-
-							<div style={{ overflowAnchor: 'none' }}>
-								{spawnProgress.size > 0 ? (
-									<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
-								) : (
-									<ToolProgressIndicator
-										toolCalls={activeToolCalls}
-										thinking={streamingThinking}
-										isCompacting={isCompacting}
-									/>
-								)}
-							</div>
-
-							{streamingDraft ? (
-								<div style={{ overflowAnchor: 'none' }}>
-									<MessageBubble
-										key={streamingDraft.id || 'streaming-draft'}
-										message={streamingDraft}
+							{activeExchangeMessage ? (
+								<div className={`flex flex-col gap-2.5 ${ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS}`}>
+									<ConversationMessageItem
+										key={activeExchangeMessage.id || 'active-exchange-user'}
+										message={activeExchangeMessage}
 										sessionId={sessionId}
-										isDraft
 										readOnly={readOnly}
 										isLlama={isLlama}
 									/>
-								</div>
-							) : null}
 
-							{recovery.status === 'reconnecting' ? (
-								<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
-									<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
-									<p className="text-sm text-amber-800 dark:text-amber-200">
-										Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
-									</p>
-									<p className="text-xs text-amber-700 dark:text-amber-300">
-										Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
-									</p>
-								</div>
-							) : null}
+									{isStreaming &&
+									activeToolCalls.length === 0 &&
+									spawnProgress.size === 0 &&
+									!streamingDraft?.content &&
+									!streamingThinking &&
+									!hasStreamingCharts(streamingDraft?.charts) ? (
+										<TypingIndicator />
+									) : null}
 
-							{recovery.status !== 'reconnecting' && error ? (
-								<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
-									<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
-									{lastFailedPrompt ? (
-										<button
-											onClick={onRetryLastFailedPrompt}
-											className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
-										>
-											Retry
-										</button>
+									<div style={{ overflowAnchor: 'none' }}>
+										{spawnProgress.size > 0 ? (
+											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+										) : (
+											<ToolProgressIndicator
+												toolCalls={activeToolCalls}
+												thinking={streamingThinking}
+												isCompacting={isCompacting}
+											/>
+										)}
+									</div>
+
+									{streamingDraft ? (
+										<div style={{ overflowAnchor: 'none' }}>
+											<MessageBubble
+												key={streamingDraft.id || 'streaming-draft'}
+												message={streamingDraft}
+												sessionId={sessionId}
+												isDraft
+												readOnly={readOnly}
+												isLlama={isLlama}
+											/>
+										</div>
+									) : null}
+
+									{recovery.status === 'reconnecting' ? (
+										<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+											<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+											<p className="text-sm text-amber-800 dark:text-amber-200">
+												Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
+											</p>
+											<p className="text-xs text-amber-700 dark:text-amber-300">
+												Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+											</p>
+										</div>
+									) : null}
+
+									{recovery.status !== 'reconnecting' && error ? (
+										<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+											<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+											{lastFailedPrompt ? (
+												<button
+													onClick={onRetryLastFailedPrompt}
+													className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+												>
+													Retry
+												</button>
+											) : null}
+										</div>
 									) : null}
 								</div>
-							) : null}
+							) : (
+								<>
+									{isStreaming &&
+									activeToolCalls.length === 0 &&
+									spawnProgress.size === 0 &&
+									!streamingDraft?.content &&
+									!streamingThinking &&
+									!hasStreamingCharts(streamingDraft?.charts) ? (
+										<TypingIndicator />
+									) : null}
+
+									<div style={{ overflowAnchor: 'none' }}>
+										{spawnProgress.size > 0 ? (
+											<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+										) : (
+											<ToolProgressIndicator
+												toolCalls={activeToolCalls}
+												thinking={streamingThinking}
+												isCompacting={isCompacting}
+											/>
+										)}
+									</div>
+
+									{streamingDraft ? (
+										<div style={{ overflowAnchor: 'none' }}>
+											<MessageBubble
+												key={streamingDraft.id || 'streaming-draft'}
+												message={streamingDraft}
+												sessionId={sessionId}
+												isDraft
+												readOnly={readOnly}
+												isLlama={isLlama}
+											/>
+										</div>
+									) : null}
+
+									{recovery.status === 'reconnecting' ? (
+										<div className="flex flex-col gap-1 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950/30">
+											<p className="text-sm font-medium text-amber-900 dark:text-amber-100">Reconnecting...</p>
+											<p className="text-sm text-amber-800 dark:text-amber-200">
+												Trying to reconnect to the running {isResearchMode ? 'research session' : 'quick chat'}.
+											</p>
+											<p className="text-xs text-amber-700 dark:text-amber-300">
+												Attempt {Math.max(recovery.attemptCount, 1)}. Connection lost temporarily.
+											</p>
+										</div>
+									) : null}
+
+									{recovery.status !== 'reconnecting' && error ? (
+										<div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950">
+											<p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+											{lastFailedPrompt ? (
+												<button
+													onClick={onRetryLastFailedPrompt}
+													className="mt-1 w-fit rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+												>
+													Retry
+												</button>
+											) : null}
+										</div>
+									) : null}
+								</>
+							)}
 						</div>
 					</div>
 					<div ref={messagesEndRef} />
