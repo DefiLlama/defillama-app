@@ -7,6 +7,25 @@ interface SelectedImage {
 	url: string
 }
 
+const ACCEPTED_TYPES = new Set([
+	'image/png',
+	'image/jpeg',
+	'image/gif',
+	'image/webp',
+	'application/pdf',
+	'text/csv'
+])
+const IMAGE_MAX_SIZE = 10 * 1024 * 1024
+const FILE_MAX_SIZE = 30 * 1024 * 1024
+
+function isImageType(type: string) {
+	return type.startsWith('image/')
+}
+
+function maxSizeForType(type: string) {
+	return isImageType(type) ? IMAGE_MAX_SIZE : FILE_MAX_SIZE
+}
+
 interface UseImageUploadOptions {
 	maxImages?: number
 	maxSizeBytes?: number
@@ -28,13 +47,13 @@ export function useImageUpload({
 
 	const addImages = useCallback(
 		(files: File[]) => {
-			const valid = files.filter((f) => f.size <= maxSizeBytes && f.type.startsWith('image/'))
+			const valid = files.filter((f) => ACCEPTED_TYPES.has(f.type) && f.size <= maxSizeForType(f.type))
 			if (valid.length === 0) return
 
 			const newImages: SelectedImage[] = []
 			for (const file of valid) {
 				try {
-					const url = URL.createObjectURL(file)
+					const url = isImageType(file.type) ? URL.createObjectURL(file) : ''
 					newImages.push({ file, url })
 				} catch (error) {
 					console.error('Failed to create object URL for file:', file.name, error)
@@ -48,13 +67,12 @@ export function useImageUpload({
 				if (totalCount > maxImages) {
 					queueMicrotask(() => {
 						errorToast({
-							title: 'Image upload limit',
-							description: `You may upload only ${maxImages} images at a time`
+							title: 'File upload limit',
+							description: `You may upload only ${maxImages} files at a time`
 						})
 					})
-					// Revoke URLs for images that won't be used
 					for (const { url } of newImages.slice(maxImages - prev.length)) {
-						URL.revokeObjectURL(url)
+						if (url) URL.revokeObjectURL(url)
 					}
 				}
 				return [...prev, ...newImages].slice(0, maxImages)
@@ -66,7 +84,7 @@ export function useImageUpload({
 	const removeImage = useCallback((idx: number) => {
 		setSelectedImages((prev) => {
 			const removed = prev[idx]
-			if (removed) URL.revokeObjectURL(removed.url)
+			if (removed?.url) URL.revokeObjectURL(removed.url)
 			return prev.filter((_, i) => i !== idx)
 		})
 	}, [])
@@ -77,7 +95,7 @@ export function useImageUpload({
 		setSelectedImages((prev) => {
 			if (revokeUrls) {
 				for (const { url } of prev) {
-					URL.revokeObjectURL(url)
+					if (url) URL.revokeObjectURL(url)
 				}
 			}
 			return []
@@ -99,11 +117,11 @@ export function useImageUpload({
 	const handlePaste = useCallback(
 		(e: React.ClipboardEvent) => {
 			const files = Array.from(e.clipboardData.items)
-				.filter((item) => item.type.startsWith('image/'))
+				.filter((item) => ACCEPTED_TYPES.has(item.type))
 				.map((item) => item.getAsFile())
 				.filter(Boolean) as File[]
 			if (files.length) {
-				trackUmamiEvent('llamaai-image-paste')
+				trackUmamiEvent('llamaai-file-paste')
 				addImages(files)
 			}
 		},
@@ -134,9 +152,9 @@ export function useImageUpload({
 			e.stopPropagation()
 			dragCounterRef.current = 0
 			setIsDragging(false)
-			const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+			const files = Array.from(e.dataTransfer.files).filter((f) => ACCEPTED_TYPES.has(f.type))
 			if (files.length) {
-				trackUmamiEvent('llamaai-image-upload', { method: 'drag_and_drop', count: files.length })
+				trackUmamiEvent('llamaai-file-upload', { method: 'drag_and_drop', count: files.length })
 				addImages(files)
 			}
 		},

@@ -192,7 +192,7 @@ export interface Message {
 	citations?: string[]
 	alerts?: AlertProposedData[]
 	savedAlertIds?: string[]
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	images?: Array<{ url: string; mimeType: string; filename?: string; originalFilename?: string }>
 	id?: string
 	timestamp?: number
 	toolExecutions?: ToolExecution[]

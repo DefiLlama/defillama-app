@@ -618,16 +618,35 @@ export function MessageBubble({
 			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]">
 				{message.images && message.images.length > 0 ? (
 					<div className="mb-2.5 flex flex-wrap gap-3">
-						{message.images.map((image) => (
-							<button
-								key={`sent-image-${image.url}`}
-								type="button"
-								onClick={() => setPreviewImage(image.url)}
-								className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
-							>
-								<img src={image.url} alt={image.filename || 'Uploaded image'} className="h-full w-full object-cover" />
-							</button>
-						))}
+						{message.images.map((image) => {
+							const isImage = image.mimeType?.startsWith('image/')
+							const displayName = image.originalFilename || image.filename || 'File'
+							if (isImage) {
+								return (
+									<button
+										key={`sent-image-${image.url}`}
+										type="button"
+										onClick={() => setPreviewImage(image.url)}
+										className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
+									>
+										<img src={image.url} alt={displayName} className="h-full w-full object-cover" />
+									</button>
+								)
+							}
+							return (
+								<a
+									key={`sent-file-${image.url}`}
+									href={image.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex h-16 items-center gap-2 rounded-lg bg-black/10 px-3 hover:bg-black/15 dark:bg-white/10 dark:hover:bg-white/15"
+								>
+									<Icon name="file-text" height={18} width={18} />
+									<span className="max-w-[120px] truncate text-xs">{displayName}</span>
+									<Icon name="external-link" height={12} width={12} className="opacity-50" />
+								</a>
+							)
+						})}
 					</div>
 				) : null}
 				<p>{message.content}</p>
