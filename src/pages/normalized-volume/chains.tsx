@@ -26,7 +26,7 @@ const NormalizedVolumeByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title="Normalized DEX Volume by Chain - DefiLlama"
-			description="Compare normalized DEX volume across all blockchains with wash trading filtered out. Track genuine trading activity on Hyperliquid, zkLighter and more chains. Real-time authentic volume analytics by chain."
+			description="Compare normalized perp volume by chain with suspected wash trading filtered out. Track genuine trading activity after liquidity-based filtering."
 			canonicalUrl={`/normalized-volume/chains`}
 			pageName={pageName}
 		>

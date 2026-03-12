@@ -42,7 +42,7 @@ export default function NftsOnAllChains(props: InferGetStaticPropsType<typeof ge
 	return (
 		<Layout
 			title="NFT Volume by Chain - DefiLlama"
-			description="Compare NFT trading volume across blockchains on DefiLlama."
+			description="Compare NFT trading volume by chain. Track 24h volume rankings across blockchains."
 			canonicalUrl={`/nfts/chains`}
 			pageName={pageName}
 		>

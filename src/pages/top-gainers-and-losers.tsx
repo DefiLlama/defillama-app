@@ -209,7 +209,7 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 	return (
 		<Layout
 			title={`Top Gainers and Losers - DefiLlama`}
-			description={`Top Gainers and Losers by their TVL. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Track the top DeFi TVL gainers and losers by 24h change. Compare protocol TVL, 1d TVL change, chains, and Mcap/TVL."
 			canonicalUrl={`/top-gainers-and-losers`}
 		>
 			<h1 className="text-xl font-semibold">Top Gainers and Losers</h1>
