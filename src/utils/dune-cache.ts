@@ -1,6 +1,6 @@
-import Redis from 'ioredis'
-import { gzip, gunzip } from 'node:zlib'
 import { promisify } from 'node:util'
+import { gzip, gunzip } from 'node:zlib'
+import Redis from 'ioredis'
 
 const gzipAsync = promisify(gzip)
 const gunzipAsync = promisify(gunzip)

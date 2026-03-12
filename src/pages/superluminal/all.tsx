@@ -2,10 +2,10 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { Logo } from '~/containers/SuperLuminal/Logo'
-import { isSuperLuminalEnabled, SUPERLUMINAL_PROJECTS } from '~/containers/SuperLuminal/config'
 import { getProDashboardServerData } from '~/containers/ProDashboard/queries.server'
 import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
+import { isSuperLuminalEnabled, SUPERLUMINAL_PROJECTS } from '~/containers/SuperLuminal/config'
+import { Logo } from '~/containers/SuperLuminal/Logo'
 
 const SuperLuminalDashboard = lazy(() => import('~/containers/SuperLuminal'))
 
