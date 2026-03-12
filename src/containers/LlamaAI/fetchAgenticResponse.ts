@@ -33,6 +33,7 @@ export interface AgenticSSECallbacks {
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
 	onTitle?: (title: string) => void
 	onMessageId?: (messageId: string) => void
+	onTokenLimit?: () => void
 	onError: (content: string) => void
 	onDone: () => void
 }
@@ -94,6 +95,11 @@ interface MessageIdEvent {
 	messageId: string
 }
 
+interface TokenLimitEvent {
+	type: 'token_limit'
+	upgradeUrl?: string
+}
+
 interface ErrorEvent {
 	type: 'error'
 	content?: string
@@ -117,6 +123,7 @@ type AgenticSSEEvent =
 	| CitationsEvent
 	| TitleEvent
 	| MessageIdEvent
+	| TokenLimitEvent
 	| ErrorEvent
 	| DoneEvent
 
@@ -224,6 +231,9 @@ function parseSSEStream(
 					break
 				case 'message_id':
 					callbacks.onMessageId?.(data.messageId)
+					break
+				case 'token_limit':
+					callbacks.onTokenLimit?.()
 					break
 				case 'error':
 					callbacks.onError(data.content || 'Unknown error')

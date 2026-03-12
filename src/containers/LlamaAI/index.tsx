@@ -29,6 +29,7 @@ import {
 	LoadingConversationState
 } from '~/containers/LlamaAI/components/ConversationView'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
+import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
@@ -412,6 +413,7 @@ function createAgenticCallbacks({
 	toolCallIdRef,
 	onSessionId,
 	onTitle,
+	onTokenLimit,
 	appendMessage,
 	notify
 }: {
@@ -423,6 +425,7 @@ function createAgenticCallbacks({
 	toolCallIdRef: RefObject<number>
 	onSessionId?: (sessionId: string) => void
 	onTitle?: (title: string) => void
+	onTokenLimit?: () => void
 	appendMessage: (message: Message) => void
 	notify: () => void
 }): AgenticSSECallbacks {
@@ -507,6 +510,10 @@ function createAgenticCallbacks({
 		onTitle: (title) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTitle?.(title)
+		},
+		onTokenLimit: () => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onTokenLimit?.()
 		},
 		onError: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -610,6 +617,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [customInstructions, setCustomInstructions] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
 	)
@@ -917,6 +925,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				toolCallIdRef,
 				appendMessage,
 				notify,
+				onTokenLimit: () => setShowTokenLimitModal(true),
 				onTitle: (title) => {
 					setSessionTitle(title)
 					updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
@@ -1335,6 +1344,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							toolCallIdRef,
 							appendMessage,
 							notify,
+							onTokenLimit: () => setShowTokenLimitModal(true),
 							onSessionId: (id) => {
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
 								const previousSessionId = currentSessionId
@@ -1738,6 +1748,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			) : null}
+			{!readOnly ? <TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} /> : null}
 			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
 			{shouldRenderSubscribeModal ? (
 				<Suspense fallback={<></>}>
