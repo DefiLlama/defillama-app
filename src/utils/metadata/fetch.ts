@@ -105,7 +105,16 @@ export async function fetchCoreMetadata(): Promise<{
 			fetchJson(CHAINS_DATA_URL),
 			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
 			fetchJson(CEXS_DATA_URL),
-			fetchJson(RWA_LIST_DATA_URL),
+			fetchJson(RWA_LIST_DATA_URL).catch((error) => {
+				console.error('[metadata] failed to fetch RWA list, continuing with empty data:', error)
+				return {
+					tickers: [],
+					platforms: [],
+					chains: [],
+					categories: [],
+					idMap: {}
+				}
+			}),
 			fetchJson<Array<any>>(TOKENLIST_DATA_URL),
 			fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL).catch((error) => {
 				console.error('[metadata] failed to fetch bridge inventory, continuing with empty bridge slug caches:', error)
