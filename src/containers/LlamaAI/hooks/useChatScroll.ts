@@ -89,25 +89,29 @@ export function useChatScroll({
 			const container = scrollContainerRef.current
 			if (!container) return
 
-			if (shouldAutoScrollRef.current) {
+			if (shouldAutoScrollRef.current && !smoothScrollLockRef.current) {
 				container.scrollTop = container.scrollHeight
 			}
 		}, 200)
 		return () => clearInterval(interval)
 	}, [enableAutoScroll, isStreaming, scrollContainerRef])
 
-	// New content should pin immediately unless the user has opted out by scrolling up.
+	// New content should scroll smoothly unless the user has opted out by scrolling up.
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (shouldAutoScrollRef.current && container) {
 			requestAnimationFrame(() => {
 				const currentContainer = scrollContainerRef.current
 				if (currentContainer && shouldAutoScrollRef.current) {
-					currentContainer.scrollTop = currentContainer.scrollHeight
+					beginSmoothScrollLock()
+					currentContainer.scrollTo({
+						top: currentContainer.scrollHeight,
+						behavior: 'smooth'
+					})
 				}
 			})
 		}
-	}, [items, scrollContainerRef])
+	}, [items, beginSmoothScrollLock, scrollContainerRef])
 
 	// Track user intent, the scroll-to-bottom affordance, and top-of-thread pagination.
 	useEffect(() => {
