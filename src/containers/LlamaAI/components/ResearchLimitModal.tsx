@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
 import * as Ariakit from '@ariakit/react'
+import { useCallback, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 
 interface ResearchLimitModalProps {
 	dialogStore: Ariakit.DialogStore
@@ -27,22 +27,31 @@ export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _res
 		}
 	}, [endTrialSubscription])
 
-	const handleClose = useCallback(() => {
+	const resetUpgradeState = useCallback(() => {
 		setUpgraded(false)
+	}, [])
+
+	const handleClose = useCallback(() => {
+		resetUpgradeState()
 		dialogStore.hide()
-	}, [dialogStore])
+	}, [dialogStore, resetUpgradeState])
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<Ariakit.Dialog
+				onClose={resetUpgradeState}
 				className="dialog fixed inset-0 z-50 m-auto h-fit w-full max-w-md overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl dark:border-[#39393E] dark:bg-[#222429]"
 				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
 				portal
 				unmountOnHide
 			>
-				<Ariakit.DialogDismiss className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white">
+				<button
+					type="button"
+					onClick={handleClose}
+					className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-[#666] transition-colors hover:bg-[#f7f7f7] hover:text-black dark:text-gray-400 dark:hover:bg-gray-700/50 dark:hover:text-white"
+				>
 					<Icon name="x" className="h-5 w-5" />
-				</Ariakit.DialogDismiss>
+				</button>
 
 				<div className="relative z-10 px-8 py-10">
 					<div className="mb-6 flex justify-center">
@@ -60,8 +69,8 @@ export function ResearchLimitModal({ dialogStore, period, limit, resetTime: _res
 								<div className="flex items-start gap-3">
 									<Icon name="check" height={20} width={20} className="mt-0.5 shrink-0 text-green-500" />
 									<p className="text-sm text-[#666] dark:text-[#c5c5c5]">
-										Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few
-										minutes to apply.
+										Please wait a few minutes and refresh the page after upgrading, the upgrade might take a few minutes
+										to apply.
 									</p>
 								</div>
 							</div>

@@ -13,13 +13,27 @@ const ACCEPTED_TYPES = new Set([
 	'image/gif',
 	'image/webp',
 	'application/pdf',
-	'text/csv'
+	'text/csv',
+	'application/vnd.ms-excel'
 ])
+const ACCEPTED_EXTENSIONS = new Set(['.pdf', '.csv'])
 const IMAGE_MAX_SIZE = 10 * 1024 * 1024
 const FILE_MAX_SIZE = 30 * 1024 * 1024
 
 function isImageType(type: string) {
 	return type.startsWith('image/')
+}
+
+function hasAcceptedExtension(name: string) {
+	const lowerName = name.toLowerCase()
+	for (const extension of ACCEPTED_EXTENSIONS) {
+		if (lowerName.endsWith(extension)) return true
+	}
+	return false
+}
+
+function isAcceptedFile(file: File) {
+	return ACCEPTED_TYPES.has(file.type) || hasAcceptedExtension(file.name)
 }
 
 function maxSizeForType(type: string) {
@@ -35,7 +49,7 @@ interface UseImageUploadOptions {
 
 export function useImageUpload({
 	maxImages = 4,
-	maxSizeBytes = 10 * 1024 * 1024,
+	maxSizeBytes,
 	droppedFiles,
 	clearDroppedFiles
 }: UseImageUploadOptions = {}) {
@@ -44,10 +58,23 @@ export function useImageUpload({
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const dragCounterRef = useRef(0)
 	const fileInputRef = useRef<HTMLInputElement>(null)
+	const selectedImagesRef = useRef<SelectedImage[]>([])
+
+	useEffect(() => {
+		selectedImagesRef.current = selectedImages
+	}, [selectedImages])
+
+	useEffect(() => {
+		return () => {
+			for (const { url } of selectedImagesRef.current) {
+				if (url) URL.revokeObjectURL(url)
+			}
+		}
+	}, [])
 
 	const addImages = useCallback(
 		(files: File[]) => {
-			const valid = files.filter((f) => ACCEPTED_TYPES.has(f.type) && f.size <= maxSizeForType(f.type))
+			const valid = files.filter((f) => isAcceptedFile(f) && f.size <= (maxSizeBytes ?? maxSizeForType(f.type)))
 			if (valid.length === 0) return
 
 			const newImages: SelectedImage[] = []
@@ -117,9 +144,8 @@ export function useImageUpload({
 	const handlePaste = useCallback(
 		(e: React.ClipboardEvent) => {
 			const files = Array.from(e.clipboardData.items)
-				.filter((item) => ACCEPTED_TYPES.has(item.type))
 				.map((item) => item.getAsFile())
-				.filter(Boolean) as File[]
+				.filter((file): file is File => Boolean(file) && isAcceptedFile(file))
 			if (files.length) {
 				trackUmamiEvent('llamaai-file-paste')
 				addImages(files)
@@ -152,7 +178,7 @@ export function useImageUpload({
 			e.stopPropagation()
 			dragCounterRef.current = 0
 			setIsDragging(false)
-			const files = Array.from(e.dataTransfer.files).filter((f) => ACCEPTED_TYPES.has(f.type))
+			const files = Array.from(e.dataTransfer.files).filter(isAcceptedFile)
 			if (files.length) {
 				trackUmamiEvent('llamaai-file-upload', { method: 'drag_and_drop', count: files.length })
 				addImages(files)

@@ -39,8 +39,13 @@ export function ImageUpload({
 				<div className="flex flex-wrap gap-2">
 					{selectedImages.map(({ file, url }, idx) => {
 						const isImage = file.type.startsWith('image/')
+						const itemKey = url || `${file.name}-${file.size}-${file.lastModified}-${idx}`
 						return (
-							<div key={url || file.name} className="relative h-16 overflow-hidden rounded-lg" style={{ width: isImage ? '4rem' : 'auto' }}>
+							<div
+								key={itemKey}
+								className="relative h-16 overflow-hidden rounded-lg"
+								style={{ width: isImage ? '4rem' : 'auto' }}
+							>
 								{isImage ? (
 									<button type="button" onClick={() => setPreviewImage(url)} className="h-full w-full cursor-pointer">
 										<img src={url} alt={file.name} className="h-full w-full object-cover" />

@@ -29,10 +29,10 @@ import {
 	LoadingConversationState
 } from '~/containers/LlamaAI/components/ConversationView'
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
-import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import {
 	checkActiveExecution,
 	fetchAgenticResponse,
@@ -1748,7 +1748,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			) : null}
-			{!readOnly ? <TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} /> : null}
+			{!readOnly ? (
+				<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
+			) : null}
 			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
 			{shouldRenderSubscribeModal ? (
 				<Suspense fallback={<></>}>
