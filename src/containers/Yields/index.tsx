@@ -37,6 +37,7 @@ const YieldPage = ({
 	usdPeggedSymbols,
 	tokenCategories,
 	evmChains,
+	stablecoinInfoBySymbol,
 	entityQuestions: baseQuestions
 }) => {
 	const router = useRouter()
@@ -105,6 +106,8 @@ const YieldPage = ({
 		const selectedChainsSet = new Set(selectedChains)
 		const selectedCategoriesSet = new Set(selectedCategories)
 
+		const scInfo = stablecoinInfoBySymbol || {}
+
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
 				curr,
@@ -126,6 +129,21 @@ const YieldPage = ({
 			})
 
 			if (toFilter) {
+				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
+				const poolTokens = curr.symbol?.split('(')[0].split('-').map((s) => s.toLowerCase().trim()) || []
+				let pegInfo = null
+				let maxAbs = -1
+				for (const t of poolTokens) {
+					const info = scInfo[t]
+					if (info) {
+						const abs = info.pegDeviation != null ? Math.abs(info.pegDeviation) : -1
+						if (abs > maxAbs) {
+							maxAbs = abs
+							pegInfo = info
+						}
+					}
+				}
+
 				return acc.concat({
 					pool: curr.symbol,
 					configID: curr.pool,
@@ -166,7 +184,9 @@ const YieldPage = ({
 					poolMeta: curr.poolMeta,
 					apyMedian30d: volatility?.[curr.pool]?.[1] ?? null,
 					apyStd30d: volatility?.[curr.pool]?.[2] ?? null,
-					cv30d: volatility?.[curr.pool]?.[3] ?? null
+					cv30d: volatility?.[curr.pool]?.[3] ?? null,
+					pegDeviation: pegInfo?.pegDeviation ?? null,
+					pegPrice: pegInfo?.price ?? null
 				})
 			} else return acc
 		}, [])
@@ -187,7 +207,8 @@ const YieldPage = ({
 		pairTokens,
 		usdPeggedSymbols,
 		tokenCategories,
-		volatility
+		volatility,
+		stablecoinInfoBySymbol
 	])
 	const prepareCsv = () => {
 		const headers = [
