@@ -1,0 +1,536 @@
+import { SERVER_URL, V2_SERVER_URL, YIELDS_SERVER_URL, BRIDGES_SERVER_URL, RWA_SERVER_URL } from '~/constants'
+import { slug as toSlug } from '~/utils'
+
+export interface ChartDatasetDefinition {
+	slug: string
+	name: string
+	description: string
+	category: string
+	paramType: 'protocol' | 'chain'
+	paramLabel: string
+	optionsUrl: string
+	extractOptions: (json: any) => Array<{ label: string; value: string }>
+	buildUrl: (param: string) => string
+	extractRows: (json: any) => Array<Record<string, unknown>>
+	customFetch?: (param: string) => Promise<Array<Record<string, unknown>>>
+}
+
+const OVERVIEW_QS = 'excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true'
+
+const extractOverviewProtocolOptions = (json: any): Array<{ label: string; value: string }> => {
+	const protocols: any[] = json?.protocols ?? []
+	return protocols
+		.filter((p: any) => p?.name)
+		.sort((a: any, b: any) => (Number(b?.total24h) || 0) - (Number(a?.total24h) || 0))
+		.map((p: any) => ({ label: p.displayName || p.name, value: toSlug(p.name) }))
+}
+
+const extractOverviewChainOptions = (json: any): Array<{ label: string; value: string }> => {
+	const chains: string[] = json?.allChains ?? []
+	return chains
+		.filter(Boolean)
+		.map((c) => ({ label: c, value: toSlug(c) }))
+		.sort((a, b) => a.label.localeCompare(b.label))
+}
+
+const extractTimestampValuePairs = (json: any): Array<Record<string, unknown>> => {
+	if (!Array.isArray(json)) return []
+	return json
+		.filter((item: any) => Array.isArray(item) && item.length >= 2)
+		.map(([timestamp, value]: [number, number]) => ({
+			date: timestamp,
+			value
+		}))
+}
+
+const extractLiteChartRows = (json: any): Array<Record<string, unknown>> => {
+	if (Array.isArray(json)) {
+		return json
+			.filter((item: any) => item && typeof item === 'object' && item.date != null)
+			.map((item: any) => {
+				const row: Record<string, unknown> = { date: item.date }
+				for (const [key, val] of Object.entries(item)) {
+					if (key === 'date') continue
+					row[key] = val
+				}
+				return row
+			})
+	}
+	if (json && typeof json === 'object') {
+		const metrics = Object.keys(json).filter((k) => json[k] && typeof json[k] === 'object')
+		if (metrics.length === 0) return []
+		const timestampSet = new Set<string>()
+		for (const metric of metrics) {
+			for (const ts of Object.keys(json[metric])) timestampSet.add(ts)
+		}
+		return [...timestampSet]
+			.sort((a, b) => Number(a) - Number(b))
+			.map((ts) => {
+				const row: Record<string, unknown> = { date: Number(ts) }
+				for (const metric of metrics) {
+					row[metric] = json[metric][ts] ?? null
+				}
+				return row
+			})
+	}
+	return []
+}
+
+const extractBridgeVolumeRows = (json: any): Array<Record<string, unknown>> => {
+	if (!Array.isArray(json)) return []
+	return json
+		.filter((item: any) => item && item.date != null)
+		.map((item: any) => ({
+			date: item.date,
+			depositUSD: item.depositUSD ?? null,
+			withdrawUSD: item.withdrawUSD ?? null,
+			depositTxs: item.depositTxs ?? null,
+			withdrawTxs: item.withdrawTxs ?? null
+		}))
+}
+
+const extractYieldChartRows = (json: any): Array<Record<string, unknown>> => {
+	const data: any[] = json?.data ?? (Array.isArray(json) ? json : [])
+	return data
+		.filter((item: any) => item && item.timestamp != null)
+		.map((item: any) => ({
+			date: Math.floor(new Date(item.timestamp).getTime() / 1000),
+			tvlUsd: item.tvlUsd ?? null,
+			apy: item.apy ?? null,
+			apyBase: item.apyBase ?? null,
+			apyReward: item.apyReward ?? null
+		}))
+}
+
+const extractRWACategoryRows = (json: any): Array<Record<string, unknown>> => {
+	if (!Array.isArray(json)) return []
+	return json
+		.filter((item: any) => item && item.timestamp != null)
+		.map((item: any) => {
+			const row: Record<string, unknown> = { date: item.timestamp }
+			for (const [key, val] of Object.entries(item)) {
+				if (key === 'timestamp') continue
+				row[key] = val
+			}
+			return row
+		})
+}
+
+const extractRWATickerBreakdownRows = (json: any): Array<Record<string, unknown>> => {
+	if (!json || typeof json !== 'object' || Array.isArray(json)) return []
+	const onChainMcap: any[] = json.onChainMcap ?? []
+	if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
+	return onChainMcap
+		.filter((item: any) => item && item.timestamp != null)
+		.map((item: any) => {
+			const row: Record<string, unknown> = { date: item.timestamp }
+			for (const [key, val] of Object.entries(item)) {
+				if (key === 'timestamp') continue
+				row[key] = val
+			}
+			return row
+		})
+}
+
+function makeDimensionProtocolChart(opts: {
+	slug: string
+	name: string
+	description: string
+	category: string
+	adapterType: string
+	dataType?: string
+}): ChartDatasetDefinition {
+	const dtParam = opts.dataType ? `&dataType=${opts.dataType}` : ''
+	const dtChartParam = opts.dataType ? `?dataType=${opts.dataType}` : ''
+	return {
+		slug: opts.slug,
+		name: opts.name,
+		description: opts.description,
+		category: opts.category,
+		paramType: 'protocol',
+		paramLabel: 'Protocol',
+		optionsUrl: `${SERVER_URL}/overview/${opts.adapterType}?${OVERVIEW_QS}${dtParam}`,
+		extractOptions: extractOverviewProtocolOptions,
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/${opts.adapterType}/protocol/${param}${dtChartParam}`,
+		extractRows: extractTimestampValuePairs
+	}
+}
+
+function makeDimensionChainChart(opts: {
+	slug: string
+	name: string
+	description: string
+	category: string
+	adapterType: string
+	dataType?: string
+}): ChartDatasetDefinition {
+	const dtParam = opts.dataType ? `&dataType=${opts.dataType}` : ''
+	const dtChartParam = opts.dataType ? `?dataType=${opts.dataType}` : ''
+	return {
+		slug: opts.slug,
+		name: opts.name,
+		description: opts.description,
+		category: opts.category,
+		paramType: 'chain',
+		paramLabel: 'Chain',
+		optionsUrl: `${SERVER_URL}/overview/${opts.adapterType}?${OVERVIEW_QS}${dtParam}`,
+		extractOptions: extractOverviewChainOptions,
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/${opts.adapterType}/chain/${param}${dtChartParam}`,
+		extractRows: extractTimestampValuePairs
+	}
+}
+
+export const chartDatasets: ChartDatasetDefinition[] = [
+	{
+		slug: 'rwa-category-chart',
+		name: 'RWA by Category',
+		description: 'Historical Real World Asset breakdown by category (Tokenized Funds, Gold, Stocks, etc.)',
+		category: 'RWA',
+		paramType: 'chain',
+		paramLabel: 'Chain',
+		optionsUrl: `${RWA_SERVER_URL}/current?z=0`,
+		extractOptions: (json) => {
+			const allOption = { label: 'All Chains', value: 'all' }
+			if (!Array.isArray(json)) return [allOption]
+			const chainMcap = new Map<string, number>()
+			for (const item of json) {
+				const chains = item?.chain
+				const mcapData = item?.activeMcap
+				if (!Array.isArray(chains)) continue
+				for (const c of chains) {
+					if (typeof c !== 'string') continue
+					let mcap = 0
+					if (mcapData && typeof mcapData === 'object' && !Array.isArray(mcapData)) {
+						mcap = Number(mcapData[c]) || 0
+					}
+					chainMcap.set(c, (chainMcap.get(c) ?? 0) + mcap)
+				}
+			}
+			return [
+				allOption,
+				...[...chainMcap.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: c }))
+			]
+		},
+		buildUrl: (_param: string) => `${RWA_SERVER_URL}/chart/category-breakdown`,
+		extractRows: extractRWACategoryRows,
+		customFetch: async (param: string) => {
+			if (param === 'all') {
+				const resp = await fetch(`${RWA_SERVER_URL}/chart/category-breakdown`)
+				if (!resp.ok) return []
+				return extractRWACategoryRows(await resp.json())
+			}
+			const [tickerResp, assetsResp] = await Promise.all([
+				fetch(`${RWA_SERVER_URL}/chart/chain/${param}/ticker-breakdown`),
+				fetch(`${RWA_SERVER_URL}/current?z=0`)
+			])
+			if (!tickerResp.ok || !assetsResp.ok) return []
+			const tickerData = await tickerResp.json()
+			const assets: any[] = await assetsResp.json()
+			const tickerToCategory = new Map<string, string>()
+			if (Array.isArray(assets)) {
+				for (const a of assets) {
+					const ticker = a?.ticker
+					const cats = a?.category
+					if (typeof ticker === 'string' && Array.isArray(cats) && cats.length > 0) {
+						tickerToCategory.set(ticker, cats[0])
+					}
+				}
+			}
+			const onChainMcap: any[] = tickerData?.onChainMcap ?? []
+			if (!Array.isArray(onChainMcap) || onChainMcap.length === 0) return []
+			return onChainMcap
+				.filter((item: any) => item && item.timestamp != null)
+				.map((item: any) => {
+					const row: Record<string, unknown> = { date: item.timestamp }
+					const catTotals = new Map<string, number>()
+					for (const [key, val] of Object.entries(item)) {
+						if (key === 'timestamp') continue
+						const cat = tickerToCategory.get(key) ?? 'Other'
+						catTotals.set(cat, (catTotals.get(cat) ?? 0) + (Number(val) || 0))
+					}
+					for (const [cat, total] of catTotals) {
+						row[cat] = total
+					}
+					return row
+				})
+		}
+	},
+	{
+		slug: 'rwa-chain-chart',
+		name: 'RWA by Chain',
+		description: 'Historical per-ticker RWA on-chain mcap for a specific chain',
+		category: 'RWA',
+		paramType: 'chain',
+		paramLabel: 'Chain',
+		optionsUrl: `${RWA_SERVER_URL}/current?z=0`,
+		extractOptions: (json) => {
+			if (!Array.isArray(json)) return []
+			const chainMcap = new Map<string, number>()
+			for (const item of json) {
+				const chains = item?.chain
+				const mcapData = item?.activeMcap
+				if (!Array.isArray(chains)) continue
+				for (const c of chains) {
+					if (typeof c !== 'string') continue
+					let mcap = 0
+					if (mcapData && typeof mcapData === 'object' && !Array.isArray(mcapData)) {
+						mcap = Number(mcapData[c]) || 0
+					}
+					chainMcap.set(c, (chainMcap.get(c) ?? 0) + mcap)
+				}
+			}
+			return [...chainMcap.entries()].sort(([, a], [, b]) => b - a).map(([c]) => ({ label: c, value: c }))
+		},
+		buildUrl: (param: string) => `${RWA_SERVER_URL}/chart/chain/${param}/ticker-breakdown`,
+		extractRows: extractRWATickerBreakdownRows
+	},
+
+	{
+		slug: 'protocol-tvl-chart',
+		name: 'Protocol TVL',
+		description: 'Historical TVL timeseries for a specific protocol',
+		category: 'TVL',
+		paramType: 'protocol',
+		paramLabel: 'Protocol',
+		optionsUrl: `${SERVER_URL}/lite/protocols2?b=2`,
+		extractOptions: (json) => {
+			const protocols: any[] = json?.protocols ?? []
+			return protocols
+				.filter((p: any) => p?.name)
+				.sort((a: any, b: any) => (Number(b?.tvlUsd ?? b?.tvl) || 0) - (Number(a?.tvlUsd ?? a?.tvl) || 0))
+				.map((p: any) => ({ label: p.name, value: toSlug(p.name) }))
+		},
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/tvl/protocol/${param}`,
+		extractRows: extractTimestampValuePairs
+	},
+	{
+		slug: 'chain-tvl-chart',
+		name: 'Chain TVL',
+		description: 'Historical TVL timeseries for a specific chain',
+		category: 'TVL',
+		paramType: 'chain',
+		paramLabel: 'Chain',
+		optionsUrl: `${V2_SERVER_URL}/chains`,
+		extractOptions: (json) => {
+			if (!Array.isArray(json)) return []
+			return json
+				.filter((c: any) => c?.name)
+				.sort((a: any, b: any) => (Number(b?.tvl) || 0) - (Number(a?.tvl) || 0))
+				.map((c: any) => ({ label: c.name, value: c.name }))
+		},
+		buildUrl: (param: string) => `${SERVER_URL}/lite/charts/${param}`,
+		extractRows: extractLiteChartRows
+	},
+
+	makeDimensionProtocolChart({
+		slug: 'protocol-fees-chart',
+		name: 'Protocol Fees',
+		description: 'Historical daily fees for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-fees-chart',
+		name: 'Chain Fees',
+		description: 'Historical daily fees for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-revenue-chart',
+		name: 'Protocol Revenue',
+		description: 'Historical daily revenue for a specific protocol',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyRevenue'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-revenue-chart',
+		name: 'Chain Revenue',
+		description: 'Historical daily revenue for a specific chain',
+		category: 'Fees & Revenue',
+		adapterType: 'fees',
+		dataType: 'dailyRevenue'
+	}),
+
+	makeDimensionProtocolChart({
+		slug: 'protocol-dex-volume-chart',
+		name: 'Protocol DEX Volume',
+		description: 'Historical daily DEX trading volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'dexs'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-dex-volume-chart',
+		name: 'Chain DEX Volume',
+		description: 'Historical daily DEX trading volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'dexs'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-perps-volume-chart',
+		name: 'Protocol Perps Volume',
+		description: 'Historical daily perpetual derivatives volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'derivatives'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-perps-volume-chart',
+		name: 'Chain Perps Volume',
+		description: 'Historical daily perpetual derivatives volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'derivatives'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-options-premium-chart',
+		name: 'Protocol Options Premium Volume',
+		description: 'Historical daily options premium volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'options',
+		dataType: 'dailyPremiumVolume'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-options-premium-chart',
+		name: 'Chain Options Premium Volume',
+		description: 'Historical daily options premium volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'options',
+		dataType: 'dailyPremiumVolume'
+	}),
+	makeDimensionProtocolChart({
+		slug: 'protocol-aggregator-volume-chart',
+		name: 'Protocol Aggregator Volume',
+		description: 'Historical daily DEX aggregator volume for a specific protocol',
+		category: 'Volume',
+		adapterType: 'aggregators'
+	}),
+	makeDimensionChainChart({
+		slug: 'chain-aggregator-volume-chart',
+		name: 'Chain Aggregator Volume',
+		description: 'Historical daily DEX aggregator volume for a specific chain',
+		category: 'Volume',
+		adapterType: 'aggregators'
+	}),
+
+	{
+		slug: 'chain-bridge-volume-chart',
+		name: 'Chain Bridge Volume',
+		description: 'Historical bridge deposit/withdrawal volume for a specific chain',
+		category: 'Bridges',
+		paramType: 'chain',
+		paramLabel: 'Chain',
+		optionsUrl: `${BRIDGES_SERVER_URL}/bridges?includeChains=true`,
+		extractOptions: (json) => {
+			const chains: any[] = json?.chains ?? []
+			return chains
+				.filter((c: any) => c?.name)
+				.sort((a: any, b: any) => (Number(b?.lastDailyVolume) || 0) - (Number(a?.lastDailyVolume) || 0))
+				.map((c: any) => ({ label: c.name, value: c.name }))
+		},
+		buildUrl: (param: string) => `${BRIDGES_SERVER_URL}/bridgevolume/${param}`,
+		extractRows: extractBridgeVolumeRows
+	},
+
+	{
+		slug: 'yield-pool-chart',
+		name: 'Yield Pool History',
+		description: 'Historical APY and TVL for a specific yield pool',
+		category: 'Yields',
+		paramType: 'protocol',
+		paramLabel: 'Pool',
+		optionsUrl: `${YIELDS_SERVER_URL}/pools`,
+		extractOptions: (json) => {
+			const pools: any[] = json?.data ?? []
+			return pools
+				.filter((p: any) => p?.pool)
+				.sort((a: any, b: any) => (Number(b?.tvlUsd) || 0) - (Number(a?.tvlUsd) || 0))
+				.map((p: any) => ({
+					label: `${p.project ?? ''} - ${p.symbol ?? ''} (${p.chain ?? ''})`.trim(),
+					value: p.pool
+				}))
+		},
+		buildUrl: (param: string) => `${YIELDS_SERVER_URL}/chart/${param}`,
+		extractRows: extractYieldChartRows
+	},
+
+	{
+		slug: 'oracle-tvs-chart',
+		name: 'Oracle TVS',
+		description: 'Historical Total Value Secured for a specific oracle provider',
+		category: 'Oracles',
+		paramType: 'protocol',
+		paramLabel: 'Oracle',
+		optionsUrl: `${V2_SERVER_URL}/metrics/oracle`,
+		extractOptions: (json) => {
+			const tvs: Record<string, any> = json?.oraclesTVS ?? {}
+			return Object.entries(tvs)
+				.sort(([, a], [, b]) => (Number(b) || 0) - (Number(a) || 0))
+				.map(([name]) => ({ label: name, value: toSlug(name) }))
+		},
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/oracle/protocol/${param}`,
+		extractRows: extractTimestampValuePairs
+	},
+
+	{
+		slug: 'category-tvl-chart',
+		name: 'Category TVL',
+		description: 'Historical TVL for a specific protocol category',
+		category: 'Categories',
+		paramType: 'protocol',
+		paramLabel: 'Category',
+		optionsUrl: `${SERVER_URL}/categories`,
+		extractOptions: (json) => {
+			const categories = json?.categories
+			if (!categories || typeof categories !== 'object') return []
+			const keys = Array.isArray(categories)
+				? categories.filter((c: any) => typeof c === 'string')
+				: Object.keys(categories)
+			return keys
+				.sort((a: string, b: string) => a.localeCompare(b))
+				.map((c: string) => ({ label: c, value: toSlug(c) }))
+		},
+		buildUrl: (param: string) => `${SERVER_URL}/charts/categories/${param}`,
+		extractRows: extractLiteChartRows
+	}
+]
+
+export const chartDatasetsBySlug = new Map(chartDatasets.map((d) => [d.slug, d]))
+
+export const chartDatasetCategories = [...new Set(chartDatasets.map((d) => d.category))]
+
+export type ChartOptionsMap = Record<string, Array<{ label: string; value: string }>>
+
+export async function fetchAllChartOptions(): Promise<ChartOptionsMap> {
+	const urlToDatasets = new Map<string, ChartDatasetDefinition[]>()
+	for (const dataset of chartDatasets) {
+		const existing = urlToDatasets.get(dataset.optionsUrl) ?? []
+		existing.push(dataset)
+		urlToDatasets.set(dataset.optionsUrl, existing)
+	}
+
+	const result: ChartOptionsMap = {}
+
+	await Promise.all(
+		[...urlToDatasets.entries()].map(async ([url, datasets]) => {
+			try {
+				const response = await fetch(url)
+				if (!response.ok) {
+					for (const ds of datasets) result[ds.slug] = []
+					return
+				}
+				const json = await response.json()
+				for (const ds of datasets) {
+					try {
+						result[ds.slug] = ds.extractOptions(json)
+					} catch {
+						result[ds.slug] = []
+					}
+				}
+			} catch {
+				for (const ds of datasets) result[ds.slug] = []
+			}
+		})
+	)
+
+	return result
+}

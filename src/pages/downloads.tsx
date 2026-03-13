@@ -1,9 +1,25 @@
 import { DownloadsCatalog } from '~/containers/Downloads'
+import { fetchAllChartOptions, type ChartOptionsMap } from '~/containers/Downloads/chart-datasets'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
+import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Downloads']
 
-export default function DownloadsPage() {
+interface DownloadsPageProps {
+	chartOptionsMap: ChartOptionsMap
+}
+
+export const getStaticProps = withPerformanceLogging('downloads', async () => {
+	const chartOptionsMap = await fetchAllChartOptions()
+
+	return {
+		props: { chartOptionsMap },
+		revalidate: maxAgeForNext([22])
+	}
+})
+
+export default function DownloadsPage({ chartOptionsMap }: DownloadsPageProps) {
 	return (
 		<Layout
 			title="Downloads - DefiLlama"
@@ -11,7 +27,7 @@ export default function DownloadsPage() {
 			canonicalUrl="/downloads"
 			pageName={pageName}
 		>
-			<DownloadsCatalog />
+			<DownloadsCatalog chartOptionsMap={chartOptionsMap} />
 		</Layout>
 	)
 }

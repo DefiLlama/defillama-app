@@ -7,33 +7,25 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { downloadCSV } from '~/utils/download'
-import type { DatasetDefinition } from './datasets'
+import type { ChartDatasetDefinition } from './chart-datasets'
 
 const ROW_HEIGHT = 36
 const COLUMN_DETECTION_SAMPLE_SIZE = 200
 const COLUMN_WIDTH_SAMPLE_SIZE = 40
 const EMPTY_SELECTION = new Set<number>()
-const DATE_HEADER_PATTERN = /(date|time|timestamp|day|unlock)/i
-const PERCENT_HEADER_PATTERN = /(apy|pct|percent|change|rate|fee|mnav|ltv)/i
+const DATE_HEADER_PATTERN = /(date|time|timestamp|day)/i
+const PERCENT_HEADER_PATTERN = /(apy|pct|percent|change|rate|fee)/i
 const CURRENCY_HEADER_PATTERN =
-	/(usd|tvl|mcap|market.?cap|price|amount|volume|fees?|revenue|supply|borrow|debt|cost|aum|valuation|value|flow)/i
+	/(usd|tvl|mcap|market.?cap|price|amount|volume|fees?|revenue|supply|borrow|depositusd|withdrawusd|value|flow)/i
 
 const integerFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
 const decimalFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 })
 const preciseDecimalFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 })
-const compactNumberFormatter = new Intl.NumberFormat('en-US', {
-	notation: 'compact',
-	maximumFractionDigits: 2
-})
+const compactNumberFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 2 })
 const currencyFormatter = new Intl.NumberFormat('en-US', {
 	style: 'currency',
 	currency: 'USD',
 	maximumFractionDigits: 2
-})
-const preciseCurrencyFormatter = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD',
-	maximumFractionDigits: 6
 })
 const compactCurrencyFormatter = new Intl.NumberFormat('en-US', {
 	style: 'currency',
@@ -41,14 +33,14 @@ const compactCurrencyFormatter = new Intl.NumberFormat('en-US', {
 	notation: 'compact',
 	maximumFractionDigits: 2
 })
+const preciseCurrencyFormatter = new Intl.NumberFormat('en-US', {
+	style: 'currency',
+	currency: 'USD',
+	maximumFractionDigits: 6
+})
 const dateFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' })
-const dateTimeFormatter = new Intl.DateTimeFormat('en-US', { dateStyle: 'medium', timeStyle: 'short' })
 
-type PreviewRow = {
-	id: number
-	values: string[]
-}
-
+type PreviewRow = { id: number; values: string[] }
 type ColumnKind = 'text' | 'number' | 'currency' | 'percent' | 'date'
 type SortDirection = 'asc' | 'desc'
 
@@ -58,7 +50,6 @@ interface ColumnMeta {
 	kind: ColumnKind
 	align: 'start' | 'end'
 	width: number
-	hasTime: boolean
 }
 
 interface SortState {
@@ -121,25 +112,16 @@ function parseNumericValue(value: string): number | null {
 function parseDateValue(value: string, header: string): number | null {
 	const trimmed = value.trim()
 	if (!trimmed) return null
-	const numeric = parseNumericValue(trimmed)
-	if (numeric !== null && DATE_HEADER_PATTERN.test(header)) {
-		const digits = trimmed.replace(/\D/g, '')
-		if (digits.length === 10 || digits.length === 13) {
-			const millis = digits.length === 10 ? numeric * 1000 : numeric
-			const time = new Date(millis).getTime()
-			return Number.isNaN(time) ? null : time
-		}
-	}
 	if (!DATE_HEADER_PATTERN.test(header) && !/[-/:TZ]/i.test(trimmed)) return null
 	const parsed = Date.parse(trimmed)
 	return Number.isNaN(parsed) ? null : parsed
 }
 
 function detectColumnKind(header: string, values: string[]): ColumnKind {
-	const sample = values.filter((value) => value.trim()).slice(0, COLUMN_DETECTION_SAMPLE_SIZE)
+	const sample = values.filter((v) => v.trim()).slice(0, COLUMN_DETECTION_SAMPLE_SIZE)
 	if (sample.length === 0) return 'text'
-	const numericMatches = sample.filter((value) => parseNumericValue(value) !== null).length
-	const dateMatches = sample.filter((value) => parseDateValue(value, header) !== null).length
+	const numericMatches = sample.filter((v) => parseNumericValue(v) !== null).length
+	const dateMatches = sample.filter((v) => parseDateValue(v, header) !== null).length
 	const numericRatio = numericMatches / sample.length
 	const dateRatio = dateMatches / sample.length
 	if ((DATE_HEADER_PATTERN.test(header) && dateRatio >= 0.5) || dateRatio >= 0.9) return 'date'
@@ -151,15 +133,10 @@ function detectColumnKind(header: string, values: string[]): ColumnKind {
 	return 'text'
 }
 
-function detectHasTime(header: string, values: string[]): boolean {
-	if (/time|timestamp/i.test(header)) return true
-	return values.slice(0, COLUMN_DETECTION_SAMPLE_SIZE).some((value) => /T\d|:\d{2}/.test(value))
-}
-
 function getColumnWidth(header: string, kind: ColumnKind, values: string[], isFirst: boolean): number {
-	const sampleMaxLength = values.slice(0, COLUMN_WIDTH_SAMPLE_SIZE).reduce((max, value) => {
-		return Math.max(max, value.length)
-	}, header.length)
+	const sampleMaxLength = values
+		.slice(0, COLUMN_WIDTH_SAMPLE_SIZE)
+		.reduce((max, v) => Math.max(max, v.length), header.length)
 	if (kind === 'date') return isFirst ? 200 : 160
 	if (kind === 'currency' || kind === 'number' || kind === 'percent') return isFirst ? 200 : 140
 	const estimated = Math.max(140, Math.min(300, sampleMaxLength * 8 + 24))
@@ -167,51 +144,47 @@ function getColumnWidth(header: string, kind: ColumnKind, values: string[], isFi
 }
 
 function formatNumber(value: number): string {
-	const absoluteValue = Math.abs(value)
-	if (absoluteValue >= 1000000) return compactNumberFormatter.format(value)
+	const abs = Math.abs(value)
+	if (abs >= 1000000) return compactNumberFormatter.format(value)
 	if (Number.isInteger(value)) return integerFormatter.format(value)
-	if (absoluteValue >= 1) return decimalFormatter.format(value)
+	if (abs >= 1) return decimalFormatter.format(value)
 	return preciseDecimalFormatter.format(value)
 }
 
 function formatCurrency(value: number): string {
-	const absoluteValue = Math.abs(value)
-	if (absoluteValue >= 10000) return compactCurrencyFormatter.format(value)
-	if (absoluteValue >= 1) return currencyFormatter.format(value)
+	const abs = Math.abs(value)
+	if (abs >= 10000) return compactCurrencyFormatter.format(value)
+	if (abs >= 1) return currencyFormatter.format(value)
 	return preciseCurrencyFormatter.format(value)
-}
-
-function formatDate(value: number, hasTime: boolean): string {
-	return hasTime ? dateTimeFormatter.format(value) : dateFormatter.format(value)
 }
 
 function formatCellValue(value: string, column: ColumnMeta): string {
 	if (!value) return ''
 	if (column.kind === 'currency') {
-		const numeric = parseNumericValue(value)
-		return numeric === null ? value : formatCurrency(numeric)
+		const n = parseNumericValue(value)
+		return n === null ? value : formatCurrency(n)
 	}
 	if (column.kind === 'number') {
-		const numeric = parseNumericValue(value)
-		return numeric === null ? value : formatNumber(numeric)
+		const n = parseNumericValue(value)
+		return n === null ? value : formatNumber(n)
 	}
 	if (column.kind === 'percent') {
-		const numeric = parseNumericValue(value)
-		return numeric === null ? value : `${formatNumber(numeric)}%`
+		const n = parseNumericValue(value)
+		return n === null ? value : `${formatNumber(n)}%`
 	}
 	if (column.kind === 'date') {
-		const parsedDate = parseDateValue(value, column.header)
-		return parsedDate === null ? value : formatDate(parsedDate, column.hasTime)
+		const d = parseDateValue(value, column.header)
+		return d === null ? value : dateFormatter.format(d)
 	}
 	return value
 }
 
 function getCellTone(value: string, column: ColumnMeta): string {
 	if (column.kind !== 'percent') return ''
-	const numeric = parseNumericValue(value)
-	if (numeric === null) return ''
-	if (numeric > 0) return 'text-green-500'
-	if (numeric < 0) return 'text-red-500'
+	const n = parseNumericValue(value)
+	if (n === null) return ''
+	if (n > 0) return 'text-green-500'
+	if (n < 0) return 'text-red-500'
 	return ''
 }
 
@@ -220,59 +193,47 @@ function getInitialSortDirection(kind: ColumnKind): SortDirection {
 }
 
 function buildSelectedCsvRows(columns: ColumnMeta[], selected: Set<number>, rows: PreviewRow[]): string[][] {
-	const activeCols = columns.filter((c) => selected.has(c.index))
-	if (activeCols.length === 0) return []
-	return [activeCols.map((c) => c.header), ...rows.map((row) => activeCols.map((c) => row.values[c.index] ?? ''))]
+	const active = columns.filter((c) => selected.has(c.index))
+	if (active.length === 0) return []
+	return [active.map((c) => c.header), ...rows.map((row) => active.map((c) => row.values[c.index] ?? ''))]
 }
 
 function buildTsvString(columns: ColumnMeta[], selected: Set<number>, rows: PreviewRow[]): string {
-	const activeCols = columns.filter((c) => selected.has(c.index))
-	if (activeCols.length === 0) return ''
-	const header = activeCols.map((c) => c.header).join('\t')
-	const body = rows.map((row) => activeCols.map((c) => row.values[c.index] ?? '').join('\t')).join('\n')
+	const active = columns.filter((c) => selected.has(c.index))
+	if (active.length === 0) return ''
+	const header = active.map((c) => c.header).join('\t')
+	const body = rows.map((row) => active.map((c) => row.values[c.index] ?? '').join('\t')).join('\n')
 	return `${header}\n${body}`
 }
 
 interface Props {
-	dataset: DatasetDefinition
+	dataset: ChartDatasetDefinition
+	options: Array<{ label: string; value: string }>
 	authorizedFetch: (url: string, options?: any) => Promise<Response | null>
 	onClose: () => void
 	isTrial?: boolean
 }
 
-export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial }: Props) {
+export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, isTrial }: Props) {
 	const queryClient = useQueryClient()
+	const [selectedParam, setSelectedParam] = useState<{ label: string; value: string } | null>(null)
 	const [selectedColumns, setSelectedColumns] = useState<Set<number> | null>(null)
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
-	const [selectedChain, setSelectedChain] = useState<string | null>(null)
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
 
-	const { data: availableChains } = useQuery({
-		queryKey: ['downloads-chains', dataset.slug],
-		queryFn: async () => {
-			const response = await authorizedFetch(`/api/downloads/${dataset.slug}?mode=chains`)
-			if (!response || !response.ok) return []
-			const json = await response.json()
-			return (json?.chains as string[]) ?? []
-		},
-		staleTime: 10 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		enabled: !!dataset.chainFilterType
-	})
-
-	const chainQueryParam = selectedChain ? `?chain=${encodeURIComponent(selectedChain)}` : ''
-
 	const {
 		data: csvText,
-		isLoading: loading,
-		error
+		isLoading: dataLoading,
+		error: dataError
 	} = useQuery({
-		queryKey: ['downloads-preview', dataset.slug, selectedChain],
+		queryKey: ['chart-preview', dataset.slug, selectedParam?.value],
 		queryFn: async () => {
-			const response = await authorizedFetch(`/api/downloads/${dataset.slug}${chainQueryParam}`)
+			const response = await authorizedFetch(
+				`/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(selectedParam!.value)}`
+			)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)
 				throw new Error(errorData?.error ?? `Download failed (${response?.status})`)
@@ -284,7 +245,8 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		},
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: 1
+		retry: 1,
+		enabled: !!selectedParam
 	})
 
 	const { headers, rows } = useMemo(() => {
@@ -296,23 +258,19 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 		setSelectedColumns(null)
 		setSearch('')
 		setSortState(null)
-		setSelectedChain(null)
-	}, [dataset.slug])
+	}, [selectedParam])
 
 	useEffect(() => {
 		if (headers.length > 0 && selectedColumns === null) {
-			setSelectedColumns(new Set(headers.map((_, index) => index)))
-
-			if (dataset.defaultSortField && sortState === null) {
-				const sortIndex = headers.indexOf(dataset.defaultSortField)
-				if (sortIndex !== -1) {
-					const values = rows.map((row) => row.values[sortIndex] ?? '')
-					const kind = detectColumnKind(dataset.defaultSortField, values)
-					setSortState({ index: sortIndex, direction: getInitialSortDirection(kind) })
+			setSelectedColumns(new Set(headers.map((_, i) => i)))
+			if (sortState === null) {
+				const dateIndex = headers.indexOf('date')
+				if (dateIndex !== -1) {
+					setSortState({ index: dateIndex, direction: 'desc' })
 				}
 			}
 		}
-	}, [headers, selectedColumns, dataset.defaultSortField, rows, sortState])
+	}, [headers, selectedColumns, sortState])
 
 	const cols = selectedColumns ?? EMPTY_SELECTION
 
@@ -325,8 +283,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 				header,
 				kind,
 				align: kind === 'text' || kind === 'date' ? 'start' : 'end',
-				width: getColumnWidth(header, kind, values, index === 0),
-				hasTime: kind === 'date' ? detectHasTime(header, values) : false
+				width: getColumnWidth(header, kind, values, index === 0)
 			}
 		})
 	}, [headers, rows])
@@ -342,52 +299,48 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 
 	const sortedRows = useMemo(() => {
 		if (!sortState) return filteredRows
-		const activeColumn = columnMeta.find((column) => column.index === sortState.index)
+		const activeColumn = columnMeta.find((c) => c.index === sortState.index)
 		if (!activeColumn) return filteredRows
 		const dir = sortState.direction === 'asc' ? 1 : -1
 
-		return [...filteredRows].sort((leftRow, rightRow) => {
-			const a = leftRow.values[activeColumn.index] ?? ''
-			const b = rightRow.values[activeColumn.index] ?? ''
-
-			const aBlank = !a.trim()
-			const bBlank = !b.trim()
-			if (aBlank && bBlank) return leftRow.id - rightRow.id
+		return [...filteredRows].sort((a, b) => {
+			const av = a.values[activeColumn.index] ?? ''
+			const bv = b.values[activeColumn.index] ?? ''
+			const aBlank = !av.trim()
+			const bBlank = !bv.trim()
+			if (aBlank && bBlank) return a.id - b.id
 			if (aBlank) return 1
 			if (bBlank) return -1
 
 			if (activeColumn.kind === 'date') {
-				const aVal = parseDateValue(a, activeColumn.header)
-				const bVal = parseDateValue(b, activeColumn.header)
-				if (aVal === null && bVal === null) return leftRow.id - rightRow.id
-				if (aVal === null) return 1
-				if (bVal === null) return -1
-				const cmp = aVal - bVal
-				return cmp === 0 ? leftRow.id - rightRow.id : cmp * dir
+				const ad = parseDateValue(av, activeColumn.header)
+				const bd = parseDateValue(bv, activeColumn.header)
+				if (ad === null && bd === null) return a.id - b.id
+				if (ad === null) return 1
+				if (bd === null) return -1
+				const cmp = ad - bd
+				return cmp === 0 ? a.id - b.id : cmp * dir
 			}
 
 			if (activeColumn.kind === 'number' || activeColumn.kind === 'currency' || activeColumn.kind === 'percent') {
-				const aVal = parseNumericValue(a)
-				const bVal = parseNumericValue(b)
-				if (aVal === null && bVal === null) return leftRow.id - rightRow.id
-				if (aVal === null) return 1
-				if (bVal === null) return -1
-				const cmp = aVal - bVal
-				return cmp === 0 ? leftRow.id - rightRow.id : cmp * dir
+				const an = parseNumericValue(av)
+				const bn = parseNumericValue(bv)
+				if (an === null && bn === null) return a.id - b.id
+				if (an === null) return 1
+				if (bn === null) return -1
+				const cmp = an - bn
+				return cmp === 0 ? a.id - b.id : cmp * dir
 			}
 
-			const cmp = a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
-			return cmp === 0 ? leftRow.id - rightRow.id : cmp * dir
+			const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' })
+			return cmp === 0 ? a.id - b.id : cmp * dir
 		})
 	}, [columnMeta, filteredRows, sortState])
 
-	const tableWidth = useMemo(() => columnMeta.reduce((total, column) => total + column.width, 0), [columnMeta])
-	const gridTemplate = useMemo(
-		() => columnMeta.map((column) => `minmax(${column.width}px, 1fr)`).join(' '),
-		[columnMeta]
-	)
+	const tableWidth = useMemo(() => columnMeta.reduce((t, c) => t + c.width, 0), [columnMeta])
+	const gridTemplate = useMemo(() => columnMeta.map((c) => `minmax(${c.width}px, 1fr)`).join(' '), [columnMeta])
 
-	const hasData = !loading && !error && headers.length > 0
+	const hasData = !dataLoading && !dataError && headers.length > 0 && !!selectedParam
 
 	const updateScrollShadows = useCallback(() => {
 		const el = tableContainerRef.current
@@ -421,13 +374,10 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	})
 
 	const toggleColumn = useCallback((index: number) => {
-		setSelectedColumns((previous) => {
-			const next = new Set(previous ?? [])
-			if (next.has(index)) {
-				next.delete(index)
-			} else {
-				next.add(index)
-			}
+		setSelectedColumns((prev) => {
+			const next = new Set(prev ?? [])
+			if (next.has(index)) next.delete(index)
+			else next.add(index)
 			return next
 		})
 	}, [])
@@ -438,19 +388,16 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			setSelectedColumns(new Set())
 			setSortState(null)
 		} else {
-			setSelectedColumns(new Set(headers.map((_, index) => index)))
+			setSelectedColumns(new Set(headers.map((_, i) => i)))
 		}
 	}, [cols.size, headers])
 
 	const handleSort = useCallback((column: ColumnMeta) => {
-		setSortState((previous) => {
-			if (!previous || previous.index !== column.index) {
+		setSortState((prev) => {
+			if (!prev || prev.index !== column.index) {
 				return { index: column.index, direction: getInitialSortDirection(column.kind) }
 			}
-			return {
-				index: column.index,
-				direction: previous.direction === 'asc' ? 'desc' : 'asc'
-			}
+			return { index: column.index, direction: prev.direction === 'asc' ? 'desc' : 'asc' }
 		})
 	}, [])
 
@@ -464,9 +411,10 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 			toast.error('No rows to download')
 			return
 		}
-		downloadCSV(`${dataset.slug}.csv`, csvRows, { addTimestamp: false })
-		toast.success(`Downloaded ${dataset.slug}.csv`)
-	}, [dataset.slug, columnMeta, cols, sortedRows, selectedCount])
+		const filename = selectedParam ? `${dataset.slug}_${selectedParam.value}.csv` : `${dataset.slug}.csv`
+		downloadCSV(filename, csvRows, { addTimestamp: false })
+		toast.success(`Downloaded ${filename}`)
+	}, [dataset.slug, columnMeta, cols, sortedRows, selectedCount, selectedParam])
 
 	const handleCopy = useCallback(async () => {
 		if (selectedCount === 0) {
@@ -506,11 +454,13 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 						<div className="mr-auto min-w-0">
 							<h2 className="truncate text-base font-semibold">{dataset.name}</h2>
 							<p className="text-xs text-(--text-tertiary)">
-								{loading
-									? 'Loading...'
-									: error
-										? 'Error'
-										: `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`}
+								{!selectedParam
+									? `Select a ${dataset.paramLabel.toLowerCase()} to preview`
+									: dataLoading
+										? 'Loading...'
+										: dataError
+											? 'Error'
+											: `${sortedRows.length.toLocaleString()} rows · ${selectedCount}/${headers.length} cols selected`}
 							</p>
 						</div>
 
@@ -548,68 +498,81 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 						</button>
 					</div>
 
-					{hasData ? (
-						<div className="flex flex-wrap items-center gap-2 border-t border-(--divider) px-4 py-2">
-							<label className="relative min-w-0 flex-1">
-								<Icon
-									name="search"
-									height={14}
-									width={14}
-									className="absolute top-0 bottom-0 left-2.5 my-auto text-(--text-tertiary)"
-								/>
-								<input
-									value={search}
-									onChange={(event) => setSearch(event.currentTarget.value)}
-									placeholder="Filter rows..."
-									className="w-full min-w-32 rounded-md border border-(--divider) bg-transparent py-1.5 pr-2.5 pl-8 text-xs transition-colors outline-none placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/30 sm:w-48"
-								/>
-							</label>
+					<div className="flex flex-wrap items-center gap-2 border-t border-(--divider) px-4 py-2">
+						<OptionPickerPopover
+							label={dataset.paramLabel}
+							options={options}
+							selected={selectedParam}
+							onSelect={(opt) => {
+								setSelectedParam(opt)
+								setSelectedColumns(null)
+								setSortState(null)
+								setSearch('')
+							}}
+						/>
 
-							{dataset.chainFilterType && availableChains && availableChains.length > 0 ? (
-								<ChainPickerPopover
-									chains={availableChains}
-									selected={selectedChain}
-									onSelect={(chain) => {
-										setSelectedChain(chain)
-										setSelectedColumns(null)
-										setSortState(null)
-									}}
+						{hasData ? (
+							<>
+								<label className="relative min-w-0 flex-1">
+									<Icon
+										name="search"
+										height={14}
+										width={14}
+										className="absolute top-0 bottom-0 left-2.5 my-auto text-(--text-tertiary)"
+									/>
+									<input
+										value={search}
+										onChange={(e) => setSearch(e.currentTarget.value)}
+										placeholder="Filter rows..."
+										className="w-full min-w-32 rounded-md border border-(--divider) bg-transparent py-1.5 pr-2.5 pl-8 text-xs transition-colors outline-none placeholder:text-(--text-tertiary) focus:border-(--primary) focus:ring-1 focus:ring-(--primary)/30 sm:w-48"
+									/>
+								</label>
+
+								<ColumnPickerPopover
+									columns={columnMeta}
+									selected={cols}
+									allSelected={allSelected}
+									onToggle={toggleColumn}
+									onToggleAll={toggleAll}
 								/>
-							) : null}
 
-							<ColumnPickerPopover
-								columns={columnMeta}
-								selected={cols}
-								allSelected={allSelected}
-								onToggle={toggleColumn}
-								onToggleAll={toggleAll}
-							/>
-
-							<button
-								type="button"
-								onClick={() => void handleCopy()}
-								disabled={selectedCount === 0}
-								className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:hidden"
-								title="Copy selected columns as TSV"
-							>
-								<Icon name="clipboard" className="h-3.5 w-3.5" />
-							</button>
-						</div>
-					) : null}
+								<button
+									type="button"
+									onClick={() => void handleCopy()}
+									disabled={selectedCount === 0}
+									className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:hidden"
+									title="Copy selected columns as TSV"
+								>
+									<Icon name="clipboard" className="h-3.5 w-3.5" />
+								</button>
+							</>
+						) : null}
+					</div>
 				</div>
 
-				{loading ? (
+				{!selectedParam ? (
+					<div className="flex flex-1 items-center justify-center">
+						<div className="flex flex-col items-center gap-2 text-center">
+							<Icon name="search" className="h-6 w-6 text-(--text-tertiary)" />
+							<p className="text-sm text-(--text-secondary)">
+								Select a {dataset.paramLabel.toLowerCase()} above to load chart data
+							</p>
+						</div>
+					</div>
+				) : dataLoading ? (
 					<div className="flex flex-1 items-center justify-center">
 						<div className="flex flex-col items-center gap-3">
 							<LoadingSpinner size={28} />
-							<p className="text-sm text-(--text-secondary)">Fetching dataset...</p>
+							<p className="text-sm text-(--text-secondary)">Fetching chart data...</p>
 						</div>
 					</div>
-				) : error ? (
+				) : dataError ? (
 					<div className="flex flex-1 items-center justify-center">
 						<div className="flex flex-col items-center gap-2">
 							<Icon name="alert-triangle" className="h-6 w-6 text-red-500" />
-							<p className="text-sm text-red-500">{error instanceof Error ? error.message : 'Failed to fetch data'}</p>
+							<p className="text-sm text-red-500">
+								{dataError instanceof Error ? dataError.message : 'Failed to fetch data'}
+							</p>
 						</div>
 					</div>
 				) : columnMeta.length === 0 ? (
@@ -739,68 +702,66 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	)
 }
 
-function ChainPickerPopover({
-	chains,
+function OptionPickerPopover({
+	label,
+	options,
 	selected,
 	onSelect
 }: {
-	chains: string[]
-	selected: string | null
-	onSelect: (chain: string | null) => void
+	label: string
+	options: Array<{ label: string; value: string }>
+	selected: { label: string; value: string } | null
+	onSelect: (option: { label: string; value: string } | null) => void
 }) {
 	const popoverStore = Ariakit.usePopoverStore()
-	const [chainSearch, setChainSearch] = useState('')
-	const deferredChainSearch = useDeferredValue(chainSearch.trim().toLowerCase())
+	const [optionSearch, setOptionSearch] = useState('')
+	const deferredOptionSearch = useDeferredValue(optionSearch.trim().toLowerCase())
 
-	const filteredChains = useMemo(() => {
-		if (!deferredChainSearch) return chains
-		return chains.filter((c) => c.toLowerCase().includes(deferredChainSearch))
-	}, [chains, deferredChainSearch])
+	const filtered = useMemo(() => {
+		if (!deferredOptionSearch) return options
+		return options.filter((o) => o.label.toLowerCase().includes(deferredOptionSearch))
+	}, [options, deferredOptionSearch])
 
 	return (
 		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure className="flex items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary)">
-				<Icon name="link" className="h-3.5 w-3.5" />
-				{selected ?? 'All Chains'}
+				<Icon name="chevron-down" className="h-3.5 w-3.5" />
+				{selected ? selected.label : `Select ${label}`}
 			</Ariakit.PopoverDisclosure>
 			<Ariakit.Popover
 				gutter={6}
 				portal
 				unmountOnHide
-				className="z-[60] flex max-h-80 w-64 flex-col overflow-hidden rounded-lg border border-(--divider) bg-(--cards-bg) shadow-xl"
+				className="z-[60] flex max-h-80 w-80 flex-col overflow-hidden rounded-lg border border-(--divider) bg-(--cards-bg) shadow-xl"
 			>
 				<div className="border-b border-(--divider) px-3 py-2">
 					<input
-						value={chainSearch}
-						onChange={(e) => setChainSearch(e.currentTarget.value)}
-						placeholder="Search chains..."
+						value={optionSearch}
+						onChange={(e) => setOptionSearch(e.currentTarget.value)}
+						placeholder={`Search ${label.toLowerCase()}...`}
 						className="w-full rounded-md border border-(--divider) bg-transparent px-2.5 py-1.5 text-xs outline-none placeholder:text-(--text-tertiary) focus:border-(--primary)"
+						autoFocus
 					/>
 				</div>
 				<div className="thin-scrollbar flex-1 overflow-auto py-1">
-					<button
-						type="button"
-						onClick={() => {
-							onSelect(null)
-							popoverStore.hide()
-						}}
-						className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${selected === null ? 'font-medium text-(--primary)' : 'text-(--text-secondary)'}`}
-					>
-						All Chains
-					</button>
-					{filteredChains.map((chain) => (
-						<button
-							key={chain}
-							type="button"
-							onClick={() => {
-								onSelect(chain)
-								popoverStore.hide()
-							}}
-							className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${selected === chain ? 'font-medium text-(--primary)' : 'text-(--text-secondary)'}`}
-						>
-							{chain}
-						</button>
-					))}
+					{filtered.length === 0 ? (
+						<p className="px-3 py-2 text-xs text-(--text-tertiary)">No results</p>
+					) : (
+						filtered.map((opt) => (
+							<button
+								key={opt.value}
+								type="button"
+								onClick={() => {
+									onSelect(opt)
+									popoverStore.hide()
+									setOptionSearch('')
+								}}
+								className={`flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-xs transition-colors hover:bg-(--link-hover-bg) ${selected?.value === opt.value ? 'font-medium text-(--primary)' : 'text-(--text-secondary)'}`}
+							>
+								{opt.label}
+							</button>
+						))
+					)}
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>

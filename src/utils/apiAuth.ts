@@ -9,13 +9,19 @@ export async function validateSubscription(authHeader: string | undefined): Prom
 		return { valid: false, status: 401, error: 'Authentication required' }
 	}
 
-	const subResponse = await fetch(`${AUTH_SERVER}/subscription/status`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: authHeader
-		}
-	})
+	const [subResponse, userResponse] = await Promise.all([
+		fetch(`${AUTH_SERVER}/subscription/status`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: authHeader
+			}
+		}),
+		fetch(`${POCKETBASE_URL}/api/collections/users/auth-refresh`, {
+			method: 'POST',
+			headers: { Authorization: authHeader }
+		}).catch(() => null)
+	])
 
 	if (!subResponse.ok) {
 		return { valid: false, status: 403, error: 'Invalid subscription' }
@@ -26,7 +32,11 @@ export async function validateSubscription(authHeader: string | undefined): Prom
 		return { valid: false, status: 403, error: 'Active subscription required' }
 	}
 
-	const isTrial = Boolean(subData?.subscription?.metadata?.isTrial)
+	let isTrial = false
+	if (userResponse?.ok) {
+		const userData = await userResponse.json()
+		isTrial = Boolean(userData?.record?.flags?.is_trial)
+	}
 
 	return { valid: true, isTrial }
 }
