@@ -29,7 +29,9 @@ export default function YieldPlots(data) {
 			canonicalUrl={`/yields/overview`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<PlotsPage {...data} />
 		</Layout>
 	)

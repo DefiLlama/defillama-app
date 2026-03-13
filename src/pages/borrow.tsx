@@ -91,7 +91,9 @@ export default function YieldBorrow(data) {
 			canonicalUrl={`/borrow`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
 				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
 					<TokensSelect

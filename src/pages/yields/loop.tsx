@@ -68,7 +68,9 @@ export default function YieldBorrow(data) {
 			canonicalUrl={`/yields/loop`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 
 			<p className="rounded-md bg-(--cards-bg) p-3 text-center whitespace-pre-line">
 				This page displays leveraged lending APY values. The way this works:

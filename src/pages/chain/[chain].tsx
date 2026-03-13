@@ -1,4 +1,5 @@
 import type { InferGetStaticPropsType } from 'next'
+import { Announcement } from '~/components/Announcement'
 import { BasicLink } from '~/components/Link'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ChainOverview } from '~/containers/ChainOverview'
@@ -11,7 +12,7 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']
-const Announcement = () => (
+const RwaAnnouncementContent = () => (
 	<>
 		NEW!{' '}
 		<BasicLink href="/rwa" className="underline">
@@ -83,7 +84,11 @@ export default function Chain(props: InferGetStaticPropsType<typeof getStaticPro
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
-			announcement={<Announcement />}
+			announcement={
+				<Announcement announcementId="rwa-dashboard" version="2026-03">
+					<RwaAnnouncementContent />
+				</Announcement>
+			}
 		>
 			<ChainOverview {...props} />
 		</Layout>

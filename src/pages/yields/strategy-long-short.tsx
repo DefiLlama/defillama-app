@@ -68,7 +68,9 @@ export default function YieldStrategiesFR(data) {
 			canonicalUrl={`/yields/strategy-long-short`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<YieldsStrategyPageLongShort {...data} />
 		</Layout>
 	)

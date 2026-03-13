@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Announcement } from '~/components/Announcement'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
@@ -47,7 +46,7 @@ function Layout({
 						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
 					)}
 				</span>
-				{announcement ? <Announcement>{announcement}</Announcement> : null}
+				{announcement ?? null}
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>

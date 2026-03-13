@@ -1,8 +1,12 @@
-const THEME_COOKIE_NAME = 'defillama-theme'
+export const THEME_COOKIE_NAME = 'defillama-theme'
+export const ANNOUNCEMENT_DISMISSALS_COOKIE_NAME = 'defillama-dismissed-announcements'
+const MAX_DISMISSED_ANNOUNCEMENT_TOKENS = 32
 
 type Theme = 'dark' | 'light'
 
 const VALID_THEME_VALUES: ReadonlySet<string> = new Set<string>(['dark', 'light'])
+const VALID_ANNOUNCEMENT_TOKEN_REGEX = /^[a-z0-9-]+(?:--[a-z0-9-]+)?$/
+const ANNOUNCEMENT_DISMISSAL_STYLE_SELECTOR = 'style[data-announcement-dismissals]'
 
 const isSecureContext = (): boolean => {
 	if (typeof window === 'undefined') {
@@ -17,6 +21,71 @@ const sanitizeThemeValue = (value: string | null | undefined): Theme => {
 	if (!value) return 'dark'
 	const trimmed = String(value).trim()
 	return isTheme(trimmed) ? trimmed : 'dark'
+}
+
+const getCookieValue = (cookieString: string, cookieName: string): string | null => {
+	if (!cookieString) return null
+
+	const cookies = cookieString.split(';')
+	const matchingCookie = cookies.find((cookie) => cookie.trim().startsWith(`${cookieName}=`))
+	if (!matchingCookie) return null
+
+	const parts = matchingCookie.split('=')
+	if (parts.length < 2 || !parts[1]) return null
+
+	return parts.slice(1).join('=')
+}
+
+const sanitizeAnnouncementTokenPart = (value: string, fallback: string): string => {
+	const normalized = value
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+	return normalized || fallback
+}
+
+const normalizeAnnouncementTokens = (tokens: string[]): string[] => {
+	const uniqueTokens: string[] = []
+	const seen = new Set<string>()
+
+	for (const token of tokens) {
+		const trimmedToken = token.trim()
+		if (!VALID_ANNOUNCEMENT_TOKEN_REGEX.test(trimmedToken) || seen.has(trimmedToken)) continue
+		seen.add(trimmedToken)
+		uniqueTokens.push(trimmedToken)
+		if (uniqueTokens.length >= MAX_DISMISSED_ANNOUNCEMENT_TOKENS) break
+	}
+
+	return uniqueTokens
+}
+
+const createAnnouncementDismissalCSS = (tokens: string[]): string => {
+	return normalizeAnnouncementTokens(tokens)
+		.map((token) => `.announcement-token--${token}{display:none!important;}`)
+		.join('')
+}
+
+const syncAnnouncementDismissalStyles = (tokens: string[]): void => {
+	if (typeof document === 'undefined') return
+
+	const selectors = createAnnouncementDismissalCSS(tokens)
+	const existingStyleTag = document.head.querySelector<HTMLStyleElement>(ANNOUNCEMENT_DISMISSAL_STYLE_SELECTOR)
+
+	if (!selectors) {
+		existingStyleTag?.remove()
+		return
+	}
+
+	if (existingStyleTag) {
+		existingStyleTag.textContent = selectors
+		return
+	}
+
+	const style = document.createElement('style')
+	style.setAttribute('data-announcement-dismissals', 'true')
+	style.textContent = selectors
+	document.head.appendChild(style)
 }
 
 export const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
@@ -39,17 +108,72 @@ export const validateOrigin = (origin: string | undefined, allowedOrigins: strin
 export const getThemeCookie = (): Theme | null => {
 	if (typeof document === 'undefined') return null
 
-	const cookies = document.cookie.split(';')
-	const themeCookie = cookies.find((cookie) => cookie.trim().startsWith(`${THEME_COOKIE_NAME}=`))
-
+	const themeCookie = getCookieValue(document.cookie, THEME_COOKIE_NAME)
 	if (themeCookie) {
-		const parts = themeCookie.split('=')
-		if (parts.length >= 2 && parts[1]) {
-			return sanitizeThemeValue(parts[1])
-		}
+		return sanitizeThemeValue(themeCookie)
 	}
 
 	return null
+}
+
+export const createAnnouncementDismissalToken = (announcementId: string, version: string): string => {
+	const normalizedAnnouncementId = sanitizeAnnouncementTokenPart(announcementId, 'announcement')
+	const normalizedVersion = sanitizeAnnouncementTokenPart(version, 'v1')
+	return `${normalizedAnnouncementId}--${normalizedVersion}`
+}
+
+export const parseDismissedAnnouncementsCookie = (
+	cookieString: string,
+	cookieName: string = ANNOUNCEMENT_DISMISSALS_COOKIE_NAME
+): string[] => {
+	const cookieValue = getCookieValue(cookieString, cookieName)
+	if (!cookieValue) return []
+
+	try {
+		return normalizeAnnouncementTokens(decodeURIComponent(cookieValue).split(','))
+	} catch {
+		return normalizeAnnouncementTokens(cookieValue.split(','))
+	}
+}
+
+export const getDismissedAnnouncements = (): string[] => {
+	if (typeof document === 'undefined') return []
+
+	return parseDismissedAnnouncementsCookie(document.cookie)
+}
+
+export const isAnnouncementDismissed = (token: string): boolean => {
+	return getDismissedAnnouncements().includes(token)
+}
+
+export const dismissAnnouncement = (token: string): void => {
+	if (typeof document === 'undefined' || !VALID_ANNOUNCEMENT_TOKEN_REGEX.test(token)) return
+
+	const nextTokens = normalizeAnnouncementTokens([token, ...getDismissedAnnouncements()])
+	const expires = new Date()
+	expires.setFullYear(expires.getFullYear() + 1)
+
+	const secureFlag = isSecureContext() ? '; Secure' : ''
+	const cookieString = `${ANNOUNCEMENT_DISMISSALS_COOKIE_NAME}=${encodeURIComponent(nextTokens.join(','))}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secureFlag}`
+	document.cookie = cookieString
+	syncAnnouncementDismissalStyles(nextTokens)
+}
+
+export const parseThemeCookie = (cookieString: string, cookieName: string = THEME_COOKIE_NAME): Theme => {
+	const themeCookie = getCookieValue(cookieString, cookieName)
+
+	if (themeCookie) {
+		return sanitizeThemeValue(themeCookie)
+	}
+
+	return 'dark'
+}
+
+export const parseDismissedAnnouncementsFromCookieString = (
+	cookieString: string,
+	cookieName: string = ANNOUNCEMENT_DISMISSALS_COOKIE_NAME
+): string[] => {
+	return parseDismissedAnnouncementsCookie(cookieString, cookieName)
 }
 
 export const setThemeCookie = (isDarkMode: boolean): void => {
@@ -63,20 +187,4 @@ export const setThemeCookie = (isDarkMode: boolean): void => {
 	const cookieString = `${THEME_COOKIE_NAME}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secureFlag}`
 
 	document.cookie = cookieString
-}
-
-export const parseThemeCookie = (cookieString: string, cookieName: string = THEME_COOKIE_NAME): Theme => {
-	if (!cookieString) return 'dark'
-
-	const cookies = cookieString.split(';')
-	const themeCookie = cookies.find((cookie) => cookie.trim().startsWith(`${cookieName}=`))
-
-	if (themeCookie) {
-		const parts = themeCookie.split('=')
-		if (parts.length >= 2 && parts[1]) {
-			return sanitizeThemeValue(parts[1])
-		}
-	}
-
-	return 'dark'
 }
