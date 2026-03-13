@@ -20,7 +20,8 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 	const router = useRouter()
 	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
 	const [pendingQuestion, setPendingQuestion] = useState<string | null>(null)
-	const signInDialogStore = Ariakit.useDialogStore()
+	const [isOpen, setIsOpen] = useState(false)
+	const signInDialogStore = Ariakit.useDialogStore({ open: isOpen, setOpen: setIsOpen })
 
 	if (!isLoading && !questions?.length) return null
 
@@ -89,41 +90,43 @@ export function EntityQuestionsStrip({ questions, entitySlug, entityType, entity
 					</div>
 				</div>
 			</div>
-			<Suspense fallback={null}>
-				<WalletProvider>
-					<Ariakit.Dialog
-						store={signInDialogStore}
-						className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#2a2a2e] bg-[#1a1b1f] shadow-2xl max-sm:drawer max-sm:rounded-b-none"
-						unmountOnHide
-					>
-						{/* Branded header */}
-						<div className="shrink-0 border-b border-[#2a2a2e] px-5 pt-5 pb-4">
-							<div className="flex flex-col items-center gap-2.5 text-center">
-								<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-9 w-9" />
-								<div>
-									<p className="text-[15px] font-bold text-white">Try LlamaAI for free</p>
-									<p className="mt-0.5 text-[13px] text-[#919296]">
-										Sign in to get <span className="font-semibold text-[#FDE0A9]">3 free AI-answered questions</span>{' '}
-										per day
-									</p>
+			{isOpen ? (
+				<Suspense fallback={null}>
+					<WalletProvider>
+						<Ariakit.Dialog
+							store={signInDialogStore}
+							className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#2a2a2e] bg-[#1a1b1f] shadow-2xl max-sm:drawer max-sm:rounded-b-none"
+							unmountOnHide
+						>
+							{/* Branded header */}
+							<div className="shrink-0 border-b border-[#2a2a2e] px-5 pt-5 pb-4">
+								<div className="flex flex-col items-center gap-2.5 text-center">
+									<img src="/assets/llamaai/llama-ai.svg" alt="" className="h-9 w-9" />
+									<div>
+										<p className="text-[15px] font-bold text-white">Try LlamaAI for free</p>
+										<p className="mt-0.5 text-[13px] text-[#919296]">
+											Sign in to get <span className="font-semibold text-[#FDE0A9]">3 free AI-answered questions</span>{' '}
+											per day
+										</p>
+									</div>
 								</div>
+								{pendingQuestion ? (
+									<div className="mt-3 rounded-lg border border-[#FDE0A9]/15 bg-[#FDE0A9]/5 px-3 py-2">
+										<p className="text-[12px] leading-relaxed text-[#c8c8cc]">
+											&ldquo;{pendingQuestion.length > 100 ? `${pendingQuestion.slice(0, 100)}...` : pendingQuestion}
+											&rdquo;
+										</p>
+									</div>
+								) : null}
 							</div>
-							{pendingQuestion ? (
-								<div className="mt-3 rounded-lg border border-[#FDE0A9]/15 bg-[#FDE0A9]/5 px-3 py-2">
-									<p className="text-[12px] leading-relaxed text-[#c8c8cc]">
-										&ldquo;{pendingQuestion.length > 100 ? `${pendingQuestion.slice(0, 100)}...` : pendingQuestion}
-										&rdquo;
-									</p>
-								</div>
-							) : null}
-						</div>
-						{/* Sign-in form */}
-						<div className="p-4 sm:p-6">
-							<SignInForm dialogStore={signInDialogStore} returnUrl="/ai/chat" />
-						</div>
-					</Ariakit.Dialog>
-				</WalletProvider>
-			</Suspense>
+							{/* Sign-in form */}
+							<div className="p-4 sm:p-6">
+								<SignInForm dialogStore={signInDialogStore} returnUrl="/ai/chat" />
+							</div>
+						</Ariakit.Dialog>
+					</WalletProvider>
+				</Suspense>
+			) : null}
 		</>
 	)
 }
