@@ -45,7 +45,7 @@ next-env.d.ts
 # metadata cache
 .cache
 
-.overseer
-
 # generated at build time
 /public/robots.txt
+
+.codex/

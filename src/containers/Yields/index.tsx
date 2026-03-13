@@ -130,7 +130,11 @@ const YieldPage = ({
 
 			if (toFilter) {
 				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
-				const poolTokens = curr.symbol?.split('(')[0].split('-').map((s) => s.toLowerCase().trim()) || []
+				const poolTokens =
+					curr.symbol
+						?.split('(')[0]
+						.split('-')
+						.map((s) => s.toLowerCase().trim()) || []
 				let pegInfo = null
 				let maxAbs = -1
 				for (const t of poolTokens) {
