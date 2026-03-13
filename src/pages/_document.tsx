@@ -1,5 +1,5 @@
 import { Head, Html, Main, NextScript } from 'next/document'
-import { ANNOUNCEMENT_DISMISSALS_COOKIE_NAME } from '~/utils/cookies'
+import { getAnnouncementDismissalBootstrapScript } from '~/utils/cookies'
 
 export default function Document() {
 	return (
@@ -59,47 +59,7 @@ export default function Document() {
 				/>
 				<script
 					dangerouslySetInnerHTML={{
-						__html: `
-							(function() {
-								function getCookieValue(cookieString, cookieName) {
-									if (!cookieString) return null;
-									var cookies = cookieString.split(';');
-									var matchingCookie = cookies.find(function(cookie) {
-										return cookie.trim().startsWith(cookieName + '=');
-									});
-									if (!matchingCookie) return null;
-									var parts = matchingCookie.split('=');
-									if (parts.length < 2 || !parts[1]) return null;
-									return parts.slice(1).join('=');
-								}
-
-								var cookieValue = getCookieValue(document.cookie, '${ANNOUNCEMENT_DISMISSALS_COOKIE_NAME}');
-								if (!cookieValue) return;
-
-								var tokens;
-								try {
-									tokens = decodeURIComponent(cookieValue).split(',');
-								} catch (_error) {
-									tokens = cookieValue.split(',');
-								}
-
-								var selectors = tokens
-									.map(function(token) {
-										var normalizedToken = token.trim();
-										if (!/^[a-z0-9-]+(?:--[a-z0-9-]+)?$/.test(normalizedToken)) return '';
-										return '.announcement-token--' + normalizedToken + '{display:none!important;}';
-									})
-									.filter(Boolean)
-									.join('');
-
-								if (!selectors) return;
-
-								var style = document.createElement('style');
-								style.setAttribute('data-announcement-dismissals', 'true');
-								style.textContent = selectors;
-								document.head.appendChild(style);
-							})();
-						`
+						__html: getAnnouncementDismissalBootstrapScript()
 					}}
 				/>
 			</Head>

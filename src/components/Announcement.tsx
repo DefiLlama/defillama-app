@@ -28,10 +28,7 @@ export function Announcement(props: AnnouncementProps) {
 	const [isDismissed, setIsDismissed] = React.useState(false)
 
 	React.useEffect(() => {
-		if (!dismissalToken) return
-		if (isAnnouncementDismissed(dismissalToken)) {
-			setIsDismissed(true)
-		}
+		setIsDismissed(dismissalToken ? isAnnouncementDismissed(dismissalToken) : false)
 	}, [dismissalToken])
 
 	if (isDismissed) {

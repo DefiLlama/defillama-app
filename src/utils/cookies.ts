@@ -1,12 +1,14 @@
 export const THEME_COOKIE_NAME = 'defillama-theme'
 export const ANNOUNCEMENT_DISMISSALS_COOKIE_NAME = 'defillama-dismissed-announcements'
+export const ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE = 'data-announcement-dismissals'
+export const ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN = '^[a-z0-9-]+(?:--[a-z0-9-]+)?$'
 const MAX_DISMISSED_ANNOUNCEMENT_TOKENS = 32
 
 type Theme = 'dark' | 'light'
 
 const VALID_THEME_VALUES: ReadonlySet<string> = new Set<string>(['dark', 'light'])
-const VALID_ANNOUNCEMENT_TOKEN_REGEX = /^[a-z0-9-]+(?:--[a-z0-9-]+)?$/
-const ANNOUNCEMENT_DISMISSAL_STYLE_SELECTOR = 'style[data-announcement-dismissals]'
+const VALID_ANNOUNCEMENT_TOKEN_REGEX = new RegExp(ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN)
+const ANNOUNCEMENT_DISMISSAL_STYLE_SELECTOR = `style[${ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE}]`
 
 const isSecureContext = (): boolean => {
 	if (typeof window === 'undefined') {
@@ -60,13 +62,13 @@ const normalizeAnnouncementTokens = (tokens: string[]): string[] => {
 	return uniqueTokens
 }
 
-const createAnnouncementDismissalCSS = (tokens: string[]): string => {
+export const createAnnouncementDismissalCSS = (tokens: string[]): string => {
 	return normalizeAnnouncementTokens(tokens)
 		.map((token) => `.announcement-token--${token}{display:none!important;}`)
 		.join('')
 }
 
-const syncAnnouncementDismissalStyles = (tokens: string[]): void => {
+export const syncAnnouncementDismissalStyles = (tokens: string[]): void => {
 	if (typeof document === 'undefined') return
 
 	const selectors = createAnnouncementDismissalCSS(tokens)
@@ -83,10 +85,54 @@ const syncAnnouncementDismissalStyles = (tokens: string[]): void => {
 	}
 
 	const style = document.createElement('style')
-	style.setAttribute('data-announcement-dismissals', 'true')
+	style.setAttribute(ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE, 'true')
 	style.textContent = selectors
 	document.head.appendChild(style)
 }
+
+export const getAnnouncementDismissalBootstrapScript = (
+	cookieName: string = ANNOUNCEMENT_DISMISSALS_COOKIE_NAME
+): string => `
+	(function() {
+		function getCookieValue(cookieString, targetCookieName) {
+			if (!cookieString) return null;
+			var cookies = cookieString.split(';');
+			var matchingCookie = cookies.find(function(cookie) {
+				return cookie.trim().startsWith(targetCookieName + '=');
+			});
+			if (!matchingCookie) return null;
+			var parts = matchingCookie.split('=');
+			if (parts.length < 2 || !parts[1]) return null;
+			return parts.slice(1).join('=');
+		}
+
+		var cookieValue = getCookieValue(document.cookie, '${cookieName}');
+		if (!cookieValue) return;
+
+		var tokens;
+		try {
+			tokens = decodeURIComponent(cookieValue).split(',');
+		} catch (_error) {
+			tokens = cookieValue.split(',');
+		}
+
+		var selectors = tokens
+			.map(function(token) {
+				var normalizedToken = token.trim();
+				if (!new RegExp('${ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN}').test(normalizedToken)) return '';
+				return '.announcement-token--' + normalizedToken + '{display:none!important;}';
+			})
+			.filter(Boolean)
+			.join('');
+
+		if (!selectors) return;
+
+		var style = document.createElement('style');
+		style.setAttribute('${ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE}', 'true');
+		style.textContent = selectors;
+		document.head.appendChild(style);
+	})();
+`
 
 export const validateOrigin = (origin: string | undefined, allowedOrigins: string[]): boolean => {
 	if (!origin) return false
@@ -167,13 +213,6 @@ export const parseThemeCookie = (cookieString: string, cookieName: string = THEM
 	}
 
 	return 'dark'
-}
-
-export const parseDismissedAnnouncementsFromCookieString = (
-	cookieString: string,
-	cookieName: string = ANNOUNCEMENT_DISMISSALS_COOKIE_NAME
-): string[] => {
-	return parseDismissedAnnouncementsCookie(cookieString, cookieName)
 }
 
 export const setThemeCookie = (isDarkMode: boolean): void => {
