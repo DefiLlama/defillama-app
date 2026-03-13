@@ -20,6 +20,21 @@ const ATTACHED_THRESHOLD_PX = 48
 const TOP_PAGINATION_THRESHOLD_PX = 50
 const STREAM_FOLLOW_INTERVAL_MS = 200
 
+// State machine for chat scroll behavior. Three modes control who owns scrollTop:
+//
+//   attached ──(user scrolls up)──► detached ──(user scrolls down to bottom)──► attached
+//      │                               ▲
+//      └──(button click)──► reattaching ┘ (user interrupts smooth scroll)
+//                               │
+//                               └──(scrollend / 800ms timeout)──► attached
+//
+// Only 'attached' mode auto-follows new content (streaming interval + items effect).
+// 'reattaching' is a transient mode for the smooth scroll animation — nothing writes
+// scrollTop during it so the browser animation isn't cancelled.
+// 'detached' is fully passive — the user has full scroll control.
+//
+// External callers (session restore, new prompt) use attach() which force-sets
+// 'attached' and cancels any pending reattach animation.
 export function useChatScroll({
 	scrollContainerRef,
 	isStreaming,
@@ -52,27 +67,47 @@ export function useChatScroll({
 		[scrollContainerRef, syncScrollToBottomVisibility]
 	)
 
+	const reattachCleanupRef = useRef<(() => void) | null>(null)
+
+	const cancelPendingReattach = useCallback(() => {
+		reattachCleanupRef.current?.()
+		reattachCleanupRef.current = null
+	}, [])
+
 	const attach = useCallback(() => {
+		cancelPendingReattach()
 		setMode('attached')
-	}, [setMode])
+	}, [cancelPendingReattach, setMode])
 
 	const scrollToBottom = useCallback(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
 
-		const isAtBottom =
-			Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - ATTACHED_THRESHOLD_PX
-		if (isAtBottom) {
-			setMode('attached', container)
-			return
-		}
+		cancelPendingReattach()
 
 		setMode('reattaching', container)
 		container.scrollTo({
 			top: container.scrollHeight,
 			behavior: 'smooth'
 		})
-	}, [scrollContainerRef, setMode])
+
+		let fallbackTimer: ReturnType<typeof setTimeout>
+		const settle = () => {
+			clearTimeout(fallbackTimer)
+			container.removeEventListener('scrollend', settle)
+			reattachCleanupRef.current = null
+			if (modeRef.current === 'reattaching') {
+				setMode('attached', container)
+			}
+		}
+
+		container.addEventListener('scrollend', settle, { once: true })
+		fallbackTimer = setTimeout(settle, 800)
+		reattachCleanupRef.current = settle
+	}, [cancelPendingReattach, scrollContainerRef, setMode])
+
+	// Cancel any in-flight scrollend listener + timeout on unmount.
+	useEffect(() => cancelPendingReattach, [cancelPendingReattach])
 
 	useEffect(() => {
 		paginationRef.current = paginationState
@@ -81,7 +116,10 @@ export function useChatScroll({
 		}
 	}, [paginationState])
 
-	// While streaming, keep the viewport pinned only when the mode is attached.
+	// Streaming follow: while streaming, a 200ms interval pins the viewport to the
+	// bottom, but ONLY in 'attached' mode — 'reattaching' and 'detached' are left
+	// alone so smooth-scroll animations and user reading aren't interrupted.
+	// When streaming ends, a one-shot check re-attaches if still near the bottom.
 	useEffect(() => {
 		if (!isStreaming) {
 			const timer = setTimeout(() => {
@@ -105,14 +143,16 @@ export function useChatScroll({
 			const container = scrollContainerRef.current
 			if (!container) return
 
-			if (modeRef.current === 'attached' || modeRef.current === 'reattaching') {
+			if (modeRef.current === 'attached') {
 				container.scrollTop = container.scrollHeight
 			}
 		}, STREAM_FOLLOW_INTERVAL_MS)
 		return () => clearInterval(interval)
 	}, [isStreaming, scrollContainerRef, setMode, syncScrollToBottomVisibility])
 
-	// New content should pin immediately only while attached.
+	// Items effect: when the message list changes (new message added, content updated),
+	// snap to bottom in the next frame — but only if already attached. This handles
+	// the gap between item renders and the next streaming interval tick.
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (modeRef.current === 'attached' && container) {
@@ -125,7 +165,18 @@ export function useChatScroll({
 		}
 	}, [items, scrollContainerRef])
 
-	// Track user intent, the scroll-to-bottom affordance, and top-of-thread pagination.
+	// Scroll event handler: interprets user scroll intent and manages mode transitions.
+	//
+	// Immediate (pre-rAF) check: detects upward scroll while attached and detaches
+	// instantly — no frame delay so the user never feels the viewport fight them.
+	//
+	// rAF-throttled checks handle all other transitions:
+	//   reattaching + scrolling up + away from bottom → user interrupted, cancel & detach
+	//   attached + moved away from bottom → detach
+	//   detached + at bottom + scrolling down → re-attach
+	//
+	// Also triggers top-of-thread pagination when scrolled near the top. Uses a
+	// synchronous in-flight ref to prevent duplicate loads before React state updates.
 	useEffect(() => {
 		const container = scrollContainerRef.current
 		if (!container) return
@@ -137,7 +188,7 @@ export function useChatScroll({
 			const immediatePreviousScrollTop = lastScrollTopRef.current
 			const isImmediateScrollUp = immediateScrollTop < immediatePreviousScrollTop
 
-			if (isImmediateScrollUp && modeRef.current !== 'detached') {
+			if (isImmediateScrollUp && modeRef.current === 'attached') {
 				setMode('detached', container)
 			}
 
@@ -153,11 +204,12 @@ export function useChatScroll({
 				const hasScrollableContent = scrollHeight > clientHeight
 				const currentMode = modeRef.current
 
-				if (currentMode === 'reattaching' && isScrollingUp) {
+				if (currentMode === 'reattaching' && isScrollingUp && !isAtBottom) {
+					cancelPendingReattach()
 					setMode('detached', container)
 				} else if (currentMode === 'attached' && hasMoved && !isAtBottom) {
 					setMode('detached', container)
-				} else if (currentMode !== 'attached' && isAtBottom) {
+				} else if (currentMode === 'detached' && isAtBottom && !isScrollingUp) {
 					setMode('attached', container)
 				} else {
 					setShowScrollToBottom(currentMode !== 'attached' && hasScrollableContent)
@@ -185,22 +237,8 @@ export function useChatScroll({
 		return () => {
 			container.removeEventListener('scroll', onScroll)
 		}
-	}, [hasMessages, isStreaming, onLoadMoreMessages, scrollContainerRef, setMode])
+	}, [cancelPendingReattach, hasMessages, isStreaming, onLoadMoreMessages, scrollContainerRef, setMode])
 
-	// Edge cases:
-	// 1. New prompt submitted into an older chat: if the user has not scrolled away,
-	//    pin immediately to the bottom after render so the active exchange is visible.
-	// 2. User scrolls up during a stream: disable follow mode immediately so the
-	//    viewport is not pulled back down while they are reading older messages.
-	// 3. User scrolls back to the bottom during a stream: resume follow mode only
-	//    once the viewport is actually back within the strict bottom threshold.
-	// 4. Only the explicit scroll-to-bottom button uses smooth scrolling; automatic
-	//    follow uses direct scrollTop writes and never changes mode on its own.
-	// 5. Top-of-thread pagination still relies on the passive scroll listener, so
-	//    these follow-mode guards should not suppress normal upward scroll events.
-	// 6. Pagination uses a synchronous in-flight ref so repeated scroll events at
-	//    the top cannot enqueue duplicate load-more requests for the same cursor
-	//    before React applies the loading state update.
 	return {
 		attach,
 		scrollToBottom,
