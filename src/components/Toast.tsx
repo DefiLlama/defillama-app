@@ -1,10 +1,14 @@
+import { createPortal } from 'react-dom'
 import toast, { Toaster } from 'react-hot-toast'
 import { Icon } from './Icon'
 
 export function Toast() {
-	return (
+	if (typeof document === 'undefined') return null
+
+	return createPortal(
 		<Toaster
 			position="top-center"
+			containerStyle={{ zIndex: 99999 }}
 			toastOptions={{
 				style: {
 					background: 'var(--cards-bg)',
@@ -26,7 +30,8 @@ export function Toast() {
 					}
 				}
 			}}
-		/>
+		/>,
+		document.body
 	)
 }
 
