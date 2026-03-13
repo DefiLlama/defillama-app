@@ -25,7 +25,9 @@ export default function YieldPlots(data) {
 			canonicalUrl={`/yields/stablecoins`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<YieldPage {...data} />
 		</Layout>
 	)

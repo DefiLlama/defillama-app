@@ -45,7 +45,9 @@ export default function ApyHomePage(data) {
 			canonicalUrl={`/yields`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<YieldPage {...data} />
 		</Layout>
 	)

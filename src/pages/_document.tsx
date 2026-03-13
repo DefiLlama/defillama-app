@@ -1,4 +1,5 @@
 import { Head, Html, Main, NextScript } from 'next/document'
+import { getAnnouncementDismissalBootstrapScript } from '~/utils/cookies'
 
 export default function Document() {
 	return (
@@ -54,6 +55,11 @@ export default function Document() {
 								}
 							})();
 						`
+					}}
+				/>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: getAnnouncementDismissalBootstrapScript()
 					}}
 				/>
 			</Head>
