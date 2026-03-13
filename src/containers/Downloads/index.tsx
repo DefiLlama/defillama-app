@@ -102,7 +102,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			<div className="flex flex-col gap-1">
 				<h1 className="text-2xl font-semibold">Downloads</h1>
 				<p className="text-sm text-(--text-secondary)">
-					Download CSV datasets from the DefiLlama API. Click a dataset to preview and choose columns.
+					Download CSV datasets from DefiLlama. Click a dataset to preview and choose columns.
 				</p>
 			</div>
 
@@ -256,6 +256,63 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 			) : null}
 
 			{trialLimitOpen ? <TrialCsvLimitModal isOpen={trialLimitOpen} onClose={() => setTrialLimitOpen(false)} /> : null}
+
+			<section className="mt-8 flex flex-col gap-4 border-t border-(--divider) pt-8">
+				<h2 className="text-lg font-semibold text-(--text-primary)">FAQ</h2>
+				<div className="divide-y divide-(--divider) border-y border-(--divider)">
+					<FaqItem question="How do I subscribe to download data from DefiLlama?">
+						DefiLlama data is available to subscribers of our Pro and API plans. Learn more about these plans{' '}
+						<a
+							href="https://defillama.com/subscription"
+							className="text-(--primary) underline hover:opacity-80"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							here
+						</a>
+						.
+					</FaqItem>
+					<FaqItem question="Is DefiLlama data available through an API?">
+						Yes, DefiLlama data is available through both a free and paid{' '}
+						<a
+							href="https://api-docs.defillama.com/"
+							className="text-(--primary) underline hover:opacity-80"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							API
+						</a>
+						.
+					</FaqItem>
+					<FaqItem question="How can I contact DefiLlama with questions?">
+						You can contact us by email, a support form, or live support{' '}
+						<a
+							href="https://defillama.com/support"
+							className="text-(--primary) underline hover:opacity-80"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							here
+						</a>
+						.
+					</FaqItem>
+				</div>
+			</section>
 		</div>
 	)
 }
+
+const FaqItem = ({ question, children }: { question: string; children: React.ReactNode }) => (
+	<details className="group">
+		<summary className="flex cursor-pointer items-center gap-4 py-4">
+			<span className="flex-1 text-sm font-medium text-(--text-primary)">{question}</span>
+			<Icon
+				name="chevron-down"
+				height={16}
+				width={16}
+				className="shrink-0 text-(--text-secondary) transition-transform duration-200 group-open:rotate-180"
+			/>
+		</summary>
+		<div className="pb-4 text-sm text-(--text-secondary)">{children}</div>
+	</details>
+)
