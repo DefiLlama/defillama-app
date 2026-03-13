@@ -141,13 +141,13 @@ export async function getYieldPageData() {
 		// Peg health: symbol -> { price, pegDeviation }
 		const stablecoinInfoBySymbol = new Map<string, { price: number | null; pegDeviation: number | null }>()
 		for (const a of peggedAssets) {
-			if (!a?.symbol || !a.pegType) continue
+			if (!a?.symbol || a.pegType !== 'peggedUSD') continue
 			const symbol = a.symbol.toLowerCase()
 			const price = typeof a.price === 'number' ? a.price : typeof a.price === 'string' ? parseFloat(a.price) : null
 			const targetPrice = a.pegType === 'peggedUSD' ? 1 : null
-			// Skip yield-bearing tokens and those >$1.05 (likely NAV-accruing)
+			// Skip yield-bearing tokens (NAV-accruing, not true pegs)
 			const pegDeviation =
-				a.yieldBearing || price == null || targetPrice == null || !Number.isFinite(price) || price > 1.05
+				a.yieldBearing || price == null || targetPrice == null || !Number.isFinite(price)
 					? null
 					: ((price - targetPrice) / targetPrice) * 100
 			// First occurrence wins (largest by market cap)
