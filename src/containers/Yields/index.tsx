@@ -37,7 +37,7 @@ const YieldPage = ({
 	usdPeggedSymbols,
 	tokenCategories,
 	evmChains,
-	stablecoinInfoBySymbol
+	stablecoinInfoBySymbol,
 	entityQuestions: baseQuestions
 }) => {
 	const router = useRouter()
@@ -129,13 +129,18 @@ const YieldPage = ({
 			})
 
 			if (toFilter) {
-				// Match pool tokens to stablecoin peg data
+				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
 				const poolTokens = curr.symbol?.split('(')[0].split('-').map((s) => s.toLowerCase().trim()) || []
 				let pegInfo = null
+				let maxAbs = -1
 				for (const t of poolTokens) {
-					if (scInfo[t]) {
-						pegInfo = scInfo[t]
-						break
+					const info = scInfo[t]
+					if (info) {
+						const abs = info.pegDeviation != null ? Math.abs(info.pegDeviation) : -1
+						if (abs > maxAbs) {
+							maxAbs = abs
+							pegInfo = info
+						}
 					}
 				}
 

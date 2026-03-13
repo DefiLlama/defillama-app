@@ -27,12 +27,12 @@ function PegHealthIndicator({
 	price: number | null | undefined
 }) {
 	if (deviation == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
-	const colorClass = deviation >= 0 ? 'text-(--success)' : 'text-(--error)'
-	const dotClass = deviation >= 0 ? 'bg-(--success)' : 'bg-(--error)'
-	const sign = deviation >= 0 ? '+' : ''
+	const colorClass = deviation > 0 ? 'text-(--success)' : deviation < 0 ? 'text-(--error)' : ''
+	const dotClass = deviation > 0 ? 'bg-(--success)' : deviation < 0 ? 'bg-(--error)' : 'bg-(--text-disabled)'
+	const sign = deviation > 0 ? '+' : ''
 	const priceStr = price != null ? `$${price.toFixed(4)}` : null
 	const depeg = Math.abs(deviation) >= 2
-	const label = depeg ? 'Currently de-pegged by 2% or more' : deviation >= 0 ? 'Above peg' : 'Below peg'
+	const label = depeg ? 'Currently de-pegged by 2% or more' : deviation > 0 ? 'Above peg' : deviation < 0 ? 'Below peg' : 'At peg'
 	const tooltipText = priceStr
 		? `${label} \u00b7 ${priceStr} (${sign}${deviation.toFixed(4)}%)`
 		: `${label} \u00b7 ${sign}${deviation.toFixed(4)}%`
