@@ -1,21 +1,12 @@
 import type { InferGetStaticPropsType } from 'next/types'
-import { Announcement } from '~/components/Announcement'
-import { BasicLink } from '~/components/Link'
 import { ChainOverview } from '~/containers/ChainOverview'
+import { ChainOverviewAnnouncement } from '~/containers/ChainOverview/Announcement'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']
-const RwaAnnouncementContent = () => (
-	<>
-		NEW!{' '}
-		<BasicLink href="/rwa" className="underline">
-			RWA dashboard
-		</BasicLink>
-	</>
-)
 
 export const getStaticProps = withPerformanceLogging('index', async () => {
 	const metadataModule = await import('~/utils/metadata')
@@ -42,11 +33,7 @@ export default function HomePage(props: InferGetStaticPropsType<typeof getStatic
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
-			announcement={
-				<Announcement announcementId="rwa-dashboard" version="2026-03">
-					<RwaAnnouncementContent />
-				</Announcement>
-			}
+			announcement={<ChainOverviewAnnouncement />}
 		>
 			<ChainOverview {...props} />
 		</Layout>

@@ -90,6 +90,40 @@ export const syncAnnouncementDismissalStyles = (tokens: string[]): void => {
 	document.head.appendChild(style)
 }
 
+export const getThemeBootstrapScript = (cookieName: string = THEME_COOKIE_NAME): string => `
+	(function() {
+		var VALID_THEME_VALUES = ['dark', 'light'];
+
+		function sanitizeThemeValue(value) {
+			if (!value) return 'dark';
+			var trimmed = String(value).trim();
+			return VALID_THEME_VALUES.indexOf(trimmed) !== -1 ? trimmed : 'dark';
+		}
+
+		function getCookieValue(cookieString, targetCookieName) {
+			if (!cookieString) return null;
+			var cookies = cookieString.split(';');
+			var matchingCookie = cookies.find(function(cookie) {
+				return cookie.trim().startsWith(targetCookieName + '=');
+			});
+			if (!matchingCookie) return null;
+			var parts = matchingCookie.split('=');
+			if (parts.length < 2 || !parts[1]) return null;
+			return parts[1];
+		}
+
+		var theme = sanitizeThemeValue(getCookieValue(document.cookie, '${cookieName}'));
+
+		if (theme === 'light') {
+			document.documentElement.classList.remove('dark');
+			document.documentElement.classList.add('light');
+		} else {
+			document.documentElement.classList.remove('light');
+			document.documentElement.classList.add('dark');
+		}
+	})();
+`
+
 export const getAnnouncementDismissalBootstrapScript = (
 	cookieName: string = ANNOUNCEMENT_DISMISSALS_COOKIE_NAME
 ): string => `

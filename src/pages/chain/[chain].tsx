@@ -1,8 +1,7 @@
 import type { InferGetStaticPropsType } from 'next'
-import { Announcement } from '~/components/Announcement'
-import { BasicLink } from '~/components/Link'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ChainOverview } from '~/containers/ChainOverview'
+import { ChainOverviewAnnouncement } from '~/containers/ChainOverview/Announcement'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -12,14 +11,6 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Overview']
-const RwaAnnouncementContent = () => (
-	<>
-		NEW!{' '}
-		<BasicLink href="/rwa" className="underline">
-			RWA dashboard
-		</BasicLink>
-	</>
-)
 
 export const getStaticProps = withPerformanceLogging('chain/[chain]', async ({ params }) => {
 	const chain = params.chain
@@ -84,11 +75,7 @@ export default function Chain(props: InferGetStaticPropsType<typeof getStaticPro
 			metricFilters={props.tvlAndFeesOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}
-			announcement={
-				<Announcement announcementId="rwa-dashboard" version="2026-03">
-					<RwaAnnouncementContent />
-				</Announcement>
-			}
+			announcement={<ChainOverviewAnnouncement />}
 		>
 			<ChainOverview {...props} />
 		</Layout>
