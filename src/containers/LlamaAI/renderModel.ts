@@ -38,6 +38,11 @@ export type MessageRenderBlock =
 	| { type: 'alert'; key: string; artifactId: string }
 	| { type: 'action-group'; key: string; actions: Array<{ label: string; message: string }> }
 
+type ParsedRenderModel = {
+	artifactsById: ArtifactRegistry
+	blocks: MessageRenderBlock[]
+}
+
 function buildArtifactRegistry(message: Message): ArtifactRegistry {
 	const artifacts: ArtifactRegistry = new Map()
 
@@ -78,14 +83,20 @@ function buildArtifactRegistry(message: Message): ArtifactRegistry {
 	return artifacts
 }
 
-export function parseMessageToRenderModel(message: Message): {
-	artifactsById: ArtifactRegistry
-	blocks: MessageRenderBlock[]
-} {
+export function parseMessageToRenderModel(message: Message): ParsedRenderModel
+export function parseMessageToRenderModel(
+	message: Message,
+	options: { includeFallbackArtifacts?: boolean }
+): ParsedRenderModel
+export function parseMessageToRenderModel(
+	message: Message,
+	options: { includeFallbackArtifacts?: boolean } = {}
+): ParsedRenderModel {
 	const artifactsById = buildArtifactRegistry(message)
 	const parsed = parseArtifactPlaceholders(message.content || '')
 	const blocks: MessageRenderBlock[] = []
 	const usedArtifactIds = new Set<string>()
+	const { includeFallbackArtifacts = true } = options
 
 	let actionGroup: Array<{ label: string; message: string }> = []
 	let markdownBlockIndex = 0
@@ -131,6 +142,7 @@ export function parseMessageToRenderModel(message: Message): {
 		}
 
 		if (part.type === 'chart') {
+			if (usedArtifactIds.has(part.chartId)) continue
 			usedArtifactIds.add(part.chartId)
 			blocks.push({
 				type: 'chart',
@@ -141,6 +153,7 @@ export function parseMessageToRenderModel(message: Message): {
 		}
 
 		if (part.type === 'csv') {
+			if (usedArtifactIds.has(part.csvId)) continue
 			usedArtifactIds.add(part.csvId)
 			blocks.push({
 				type: 'csv',
@@ -151,6 +164,7 @@ export function parseMessageToRenderModel(message: Message): {
 		}
 
 		if (part.type === 'alert') {
+			if (usedArtifactIds.has(part.alertId)) continue
 			usedArtifactIds.add(part.alertId)
 			blocks.push({
 				type: 'alert',
@@ -181,18 +195,20 @@ export function parseMessageToRenderModel(message: Message): {
 		}
 	}
 
-	// Preserve current behavior for artifacts emitted out-of-band without an inline placeholder.
-	for (const [artifactId, artifact] of artifactsById) {
-		if (usedArtifactIds.has(artifactId)) continue
-		if (artifact.type === 'chart') {
-			blocks.push({ type: 'chart', key: `chart-${artifactId}-fallback`, artifactId })
-			continue
+	if (includeFallbackArtifacts) {
+		// Preserve current behavior for artifacts emitted out-of-band without an inline placeholder.
+		for (const [artifactId, artifact] of artifactsById) {
+			if (usedArtifactIds.has(artifactId)) continue
+			if (artifact.type === 'chart') {
+				blocks.push({ type: 'chart', key: `chart-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			if (artifact.type === 'csv') {
+				blocks.push({ type: 'csv', key: `csv-${artifactId}-fallback`, artifactId })
+				continue
+			}
+			blocks.push({ type: 'alert', key: `alert-${artifactId}-fallback`, artifactId })
 		}
-		if (artifact.type === 'csv') {
-			blocks.push({ type: 'csv', key: `csv-${artifactId}-fallback`, artifactId })
-			continue
-		}
-		blocks.push({ type: 'alert', key: `alert-${artifactId}-fallback`, artifactId })
 	}
 
 	if (citations.length > 0 && lastMarkdownIndex === -1) {

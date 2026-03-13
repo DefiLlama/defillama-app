@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import type { SpawnAgentStatus, ToolCall } from '~/containers/LlamaAI/types'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 export const TOOL_LABELS: Record<string, string> = {
 	execute_sql: 'Querying database',
@@ -106,22 +107,44 @@ function formatTime(seconds: number) {
 	return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`
 }
 
+function useHackerMode() {
+	const [isDark] = useDarkModeManager()
+	const [enabled, setEnabled] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
+	)
+	useEffect(() => {
+		const handler = () => setEnabled(localStorage.getItem('llamaai-hacker-mode') === 'true')
+		window.addEventListener('llamaai-hacker-mode-changed', handler)
+		return () => window.removeEventListener('llamaai-hacker-mode-changed', handler)
+	}, [])
+	return enabled && isDark
+}
+
 export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: string; defaultOpen?: boolean }) {
 	const detailsRef = useRef<HTMLDetailsElement>(null)
 	const contentRef = useRef<HTMLDivElement>(null)
+	const shouldAutoScrollRef = useRef(true)
+	const hackerMode = useHackerMode()
 
-	const scrollContentToBottom = useCallback(() => {
+	const syncAutoScrollIntent = useCallback(() => {
+		const content = contentRef.current
+		if (!content) return
+		shouldAutoScrollRef.current = Math.ceil(content.scrollTop + content.clientHeight) >= content.scrollHeight - 16
+	}, [])
+
+	const scrollContentToBottom = useCallback((force = false) => {
 		requestAnimationFrame(() => {
-			if (contentRef.current) {
-				contentRef.current.scrollTop = contentRef.current.scrollHeight
-			}
+			const content = contentRef.current
+			if (!content || (!force && !shouldAutoScrollRef.current)) return
+			content.scrollTop = content.scrollHeight
+			shouldAutoScrollRef.current = true
 		})
 	}, [])
 
 	useEffect(() => {
 		if (defaultOpen && detailsRef.current) {
 			detailsRef.current.open = true
-			scrollContentToBottom()
+			scrollContentToBottom(true)
 		}
 	}, [defaultOpen, scrollContentToBottom])
 
@@ -139,17 +162,29 @@ export function ThinkingPanel({ thinking, defaultOpen = false }: { thinking: str
 			className="group"
 			onToggle={() => {
 				if (detailsRef.current?.open) {
-					scrollContentToBottom()
+					scrollContentToBottom(true)
 				}
 			}}
 		>
-			<summary className="flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]">
+			<summary
+				className={
+					hackerMode
+						? 'flex items-center gap-1 text-xs text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
+						: 'flex items-center gap-1 text-xs text-[#555] dark:text-[#aaa]'
+				}
+			>
 				<span className="inline-block transition-transform duration-150 group-open:rotate-90">&#9656;</span>
-				<span>Reasoning</span>
+				<span>{hackerMode ? '> decrypting...' : 'Reasoning'}</span>
 			</summary>
 			<div
 				ref={contentRef}
-				className="mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]"
+				onScroll={syncAutoScrollIntent}
+				className={
+					hackerMode
+						? 'mt-1 max-h-[160px] overflow-y-auto rounded-md border border-[#00ff41]/20 bg-[#0d0d0d] p-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#00ff41] shadow-[inset_0_0_30px_rgba(0,255,65,0.03)] drop-shadow-[0_0_4px_rgba(0,255,65,0.3)]'
+						: 'mt-1 max-h-[120px] overflow-y-auto pl-3 font-mono text-xs leading-[1.6] whitespace-pre-wrap text-[#555] dark:text-[#aaa]'
+				}
+				style={hackerMode ? { textShadow: '0 0 8px rgba(0,255,65,0.4)' } : undefined}
 			>
 				{thinking}
 			</div>
@@ -192,15 +227,28 @@ export function ToolProgressIndicator({
 	isCompacting?: boolean
 }) {
 	const hasActivity = toolCalls.length > 0 || !!thinking || !!isCompacting
+	const hackerMode = useHackerMode()
 
 	if (!hasActivity) return null
 
 	return (
 		<section className="flex gap-3 py-1.5" aria-label="LlamaAI progress">
-			<img src="/assets/llamaai/llamaai_animation.webp" alt="" className="h-16 w-16 shrink-0" />
+			<img
+				src={hackerMode ? '/assets/llamaai/hackerllama.webp' : '/assets/llamaai/llamaai_animation.webp'}
+				alt=""
+				className={`h-16 w-16 shrink-0 ${hackerMode ? 'rounded-lg drop-shadow-[0_0_8px_rgba(0,255,65,0.4)]' : ''}`}
+			/>
 			<div className="flex min-w-0 flex-1 flex-col gap-2 pt-1">
 				<div className="flex flex-col gap-0.5">
-					<p className="m-0 text-base font-semibold text-[#555] dark:text-[#919296]">LlamaAI is thinking...</p>
+					<p
+						className={
+							hackerMode
+								? 'm-0 font-mono text-base font-semibold text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
+								: 'm-0 text-base font-semibold text-[#555] dark:text-[#919296]'
+						}
+					>
+						{hackerMode ? '> infiltrating mainframe...' : 'LlamaAI is thinking...'}
+					</p>
 					<ElapsedTimeLabel />
 				</div>
 				{thinking ? <ThinkingPanel thinking={thinking} defaultOpen /> : null}

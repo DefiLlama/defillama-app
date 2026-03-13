@@ -2,10 +2,12 @@ import * as Ariakit from '@ariakit/react'
 import { memo, useCallback, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
+import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const STORAGE_KEY = 'llamaai-custom-instructions'
 const MEMORY_STORAGE_KEY = 'llamaai-enable-memory'
+const HACKER_MODE_KEY = 'llamaai-hacker-mode'
 const MAX_LENGTH = 500
 
 interface SettingsModalProps {
@@ -14,6 +16,8 @@ interface SettingsModalProps {
 	onCustomInstructionsChange: (value: string) => void
 	enableMemory: boolean
 	onEnableMemoryChange: (value: boolean) => void
+	hackerMode: boolean
+	onHackerModeChange: (value: boolean) => void
 	fetchFn?: typeof fetch
 }
 
@@ -33,11 +37,15 @@ export const SettingsModal = memo(function SettingsModal({
 	onCustomInstructionsChange,
 	enableMemory,
 	onEnableMemoryChange,
+	hackerMode,
+	onHackerModeChange,
 	fetchFn
 }: SettingsModalProps) {
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
+	const [isDark] = useDarkModeManager()
 	const [draft, setDraft] = useState(customInstructions)
 	const [memoryDraft, setMemoryDraft] = useState(enableMemory)
+	const [hackerDraft, setHackerDraft] = useState(hackerMode)
 
 	useEffect(() => {
 		if (!isOpen) return
@@ -48,12 +56,13 @@ export const SettingsModal = memo(function SettingsModal({
 			if (cancelled) return
 			setDraft(customInstructions)
 			setMemoryDraft(enableMemory)
+			setHackerDraft(hackerMode)
 		})
 
 		return () => {
 			cancelled = true
 		}
-	}, [isOpen, customInstructions, enableMemory])
+	}, [isOpen, customInstructions, enableMemory, hackerMode])
 
 	const save = useCallback(() => {
 		const trimmed = draft.trim()
@@ -89,6 +98,18 @@ export const SettingsModal = memo(function SettingsModal({
 			void saveSettingsToServer(fetchFn, { enableMemory: next })
 		}
 	}, [memoryDraft, onEnableMemoryChange, fetchFn])
+
+	const handleHackerToggle = useCallback(() => {
+		const next = !hackerDraft
+		trackUmamiEvent('llamaai-hacker-mode-toggle')
+		setHackerDraft(next)
+		onHackerModeChange(next)
+		localStorage.setItem(HACKER_MODE_KEY, String(next))
+		window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
+		if (fetchFn) {
+			void saveSettingsToServer(fetchFn, { hackerMode: next })
+		}
+	}, [hackerDraft, onHackerModeChange, fetchFn])
 
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
@@ -183,6 +204,48 @@ export const SettingsModal = memo(function SettingsModal({
 							</div>
 						</button>
 					</section>
+
+					{isDark ? (
+						<section className="border-t border-[#E6E6E6] px-5 py-4 dark:border-[#39393E]">
+							<button
+								type="button"
+								role="switch"
+								aria-checked={hackerDraft}
+								aria-label="Hacker Mode"
+								onClick={handleHackerToggle}
+								className="flex w-full items-center justify-between"
+							>
+								<div className="flex items-center gap-3 text-left">
+									<img src="/assets/llamaai/hackerllama.webp" alt="Hacker Llama" className="h-9 w-9 rounded-lg" />
+									<div className="flex flex-col gap-0.5">
+										<p
+											className={`m-0 text-sm font-medium ${
+												hackerDraft
+													? 'font-mono text-[#00ff41] drop-shadow-[0_0_6px_rgba(0,255,65,0.5)]'
+													: 'text-[#1a1a1a] dark:text-white'
+											}`}
+										>
+											{hackerDraft ? '> hacker_mode --active' : 'Hacker Mode'}
+										</p>
+										<p className="m-0 text-xs text-[#777] dark:text-[#919296]">
+											Watch the llama hack through your questions in green.
+										</p>
+									</div>
+								</div>
+								<div
+									className={`relative ml-3 h-5 w-9 shrink-0 rounded-full transition-colors ${
+										hackerDraft ? 'bg-[#00ff41] shadow-[0_0_8px_rgba(0,255,65,0.4)]' : 'bg-[#d1d1d1] dark:bg-[#555]'
+									}`}
+								>
+									<div
+										className={`absolute top-0.5 h-4 w-4 rounded-full shadow transition-transform ${
+											hackerDraft ? 'translate-x-4 bg-[#0d0d0d]' : 'translate-x-0.5 bg-white'
+										}`}
+									/>
+								</div>
+							</button>
+						</section>
+					) : null}
 				</div>
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>

@@ -769,6 +769,39 @@
 	}
 }
 
+@keyframes llamaLandingExit {
+	from {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-72px) scale(0.985);
+	}
+}
+
+@keyframes llamaConversationEnter {
+	from {
+		opacity: 0;
+		transform: translateY(72px) scale(0.985);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+@keyframes llamaActiveExchangeEnter {
+	from {
+		opacity: 0.2;
+		transform: translateY(44px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @keyframes shimmer {
 	0% {
 		transform: translateX(-100%) translateY(-100%) rotate(45deg);

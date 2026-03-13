@@ -32,12 +32,14 @@ import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimi
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import {
 	checkActiveExecution,
 	fetchAgenticResponse,
 	resumeAgenticStream
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
+import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -132,6 +134,7 @@ interface UsageLimitError extends Error {
 }
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
 const RECOVERY_GRACE_MS = 8000
 const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 3000, 7000] as const
 const CONNECTIVITY_ERROR_PATTERNS = [
@@ -410,6 +413,7 @@ function createAgenticCallbacks({
 	toolCallIdRef,
 	onSessionId,
 	onTitle,
+	onTokenLimit,
 	appendMessage,
 	notify
 }: {
@@ -421,6 +425,7 @@ function createAgenticCallbacks({
 	toolCallIdRef: RefObject<number>
 	onSessionId?: (sessionId: string) => void
 	onTitle?: (title: string) => void
+	onTokenLimit?: () => void
 	appendMessage: (message: Message) => void
 	notify: () => void
 }): AgenticSSECallbacks {
@@ -505,6 +510,10 @@ function createAgenticCallbacks({
 		onTitle: (title) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onTitle?.(title)
+		},
+		onTokenLimit: () => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onTokenLimit?.()
 		},
 		onError: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -608,11 +617,15 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [customInstructions, setCustomInstructions] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
 	)
 	const [enableMemory, setEnableMemory] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
+	)
+	const [hackerMode, setHackerMode] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
 	)
 	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
 	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
@@ -636,6 +649,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		cursor: number | null
 		isLoadingMore: boolean
 	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -644,10 +658,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const toolCallIdRef = useRef(0)
 	const promptSubmissionLockRef = useRef(false)
 	const isFirstMessageRef = useRef(true)
-	const shouldAutoScrollRef = useRef(true)
-	const paginationRef = useRef(paginationState)
-	const userScrollCooldownRef = useRef(false)
-	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
+	const promptTransitionTimerRef = useRef<number | null>(null)
 	const {
 		isStreaming,
 		isCompacting,
@@ -667,25 +678,47 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		rateLimitDetails
 	} = streamState
 
-	// Scroll the conversation viewport to the latest content and re-enable auto-follow mode.
-	const scrollToBottom = useCallback(() => {
-		if (scrollContainerRef.current) {
-			scrollContainerRef.current.scrollTo({
-				top: scrollContainerRef.current.scrollHeight,
-				behavior: 'smooth'
-			})
-			shouldAutoScrollRef.current = true
-			userScrollCooldownRef.current = false
-			setShowScrollToBottom(false)
-		}
-	}, [])
-
 	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
 	const effectiveMessages = sharedMessages ?? messages
 	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
 	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
 	const hasMessages = effectiveMessages.length > 0 || isStreaming
 	const visibleError = viewError ?? error
+	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
+	const shouldAnimateLandingTransition =
+		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+	const shouldAnimateConversationTransition =
+		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+
+	const clearPromptTransitionTimer = useCallback(() => {
+		if (promptTransitionTimerRef.current !== null) {
+			window.clearTimeout(promptTransitionTimerRef.current)
+			promptTransitionTimerRef.current = null
+		}
+	}, [])
+
+	const resetPromptTransition = useCallback(() => {
+		clearPromptTransitionTimer()
+		setPromptTransitionMode('idle')
+	}, [clearPromptTransitionTimer])
+
+	const triggerPromptTransition = useCallback(
+		(mode: PromptTransitionMode) => {
+			clearPromptTransitionTimer()
+			setPromptTransitionMode(mode)
+			promptTransitionTimerRef.current = window.setTimeout(() => {
+				setPromptTransitionMode('idle')
+				promptTransitionTimerRef.current = null
+			}, 480)
+		},
+		[clearPromptTransitionTimer]
+	)
+
+	useEffect(() => {
+		return () => {
+			clearPromptTransitionTimer()
+		}
+	}, [clearPromptTransitionTimer])
 
 	const streamingDraft = useMemo((): Message | null => {
 		if (!isStreaming) return null
@@ -715,11 +748,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		streamingToolExecutions
 	])
 
-	// Keep a ref copy of pagination state so the scroll listener can stay stable.
-	useEffect(() => {
-		paginationRef.current = paginationState
-	}, [paginationState])
-
 	// Hydrate per-user settings once auth is ready.
 	useEffect(() => {
 		if (!user) return
@@ -735,42 +763,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					setEnableMemory(data.settings.enableMemory)
 					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
 				}
+				if (typeof data?.settings?.hackerMode === 'boolean') {
+					setHackerMode(data.settings.hackerMode)
+					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
+					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
+				}
 			})
 			.catch(() => {})
 	}, [user, authorizedFetchStrict])
-
-	// While streaming, keep the viewport pinned unless the user explicitly scrolled away from the bottom.
-	useEffect(() => {
-		if (!isStreaming) {
-			const timer = setTimeout(() => {
-				requestAnimationFrame(() => {
-					const c = scrollContainerRef.current
-					if (!c) return
-					const isAtBottom = Math.ceil(c.scrollTop + c.clientHeight) >= c.scrollHeight - 150
-					if (isAtBottom) {
-						shouldAutoScrollRef.current = true
-						setShowScrollToBottom(false)
-					} else if (c.scrollHeight > c.clientHeight) {
-						setShowScrollToBottom(true)
-					}
-				})
-			}, 100)
-			return () => clearTimeout(timer)
-		}
-		const interval = setInterval(() => {
-			if (shouldAutoScrollRef.current && scrollContainerRef.current) {
-				scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
-			}
-		}, 200)
-		return () => clearInterval(interval)
-	}, [isStreaming])
-
-	// Snap to the latest message when new content is appended and auto-scroll is still enabled.
-	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current) {
-			scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
-		}
-	}, [effectiveMessages])
 
 	// Load older messages when the user reaches the top, while preserving the current viewport position.
 	const handleLoadMoreMessages = useCallback(async () => {
@@ -818,52 +818,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		void handleLoadMoreMessages()
 	})
 
-	// Manage user-driven scrolling, auto-scroll opt-out, the scroll-to-bottom affordance, and top pagination.
-	useEffect(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
-
-		let cooldownTimer: ReturnType<typeof setTimeout>
-		const onUserScrollIntent = () => {
-			shouldAutoScrollRef.current = false
-			userScrollCooldownRef.current = true
-			clearTimeout(cooldownTimer)
-			cooldownTimer = setTimeout(() => {
-				userScrollCooldownRef.current = false
-			}, 500)
-		}
-
-		let ticking = false
-		const onScroll = () => {
-			if (!ticking) {
-				ticking = true
-				requestAnimationFrame(() => {
-					const { scrollTop, scrollHeight, clientHeight } = container
-					const isAtBottom = Math.ceil(scrollTop + clientHeight) >= scrollHeight - 150
-					if (isAtBottom) {
-						shouldAutoScrollRef.current = true
-						userScrollCooldownRef.current = false
-					}
-					setShowScrollToBottom(!shouldAutoScrollRef.current && scrollHeight > clientHeight)
-					const pg = paginationRef.current
-					if (scrollTop <= 50 && pg.hasMore && !pg.isLoadingMore) {
-						handleLoadMoreMessagesEvent()
-					}
-					ticking = false
-				})
-			}
-		}
-
-		container.addEventListener('wheel', onUserScrollIntent, { passive: true })
-		container.addEventListener('touchmove', onUserScrollIntent, { passive: true })
-		container.addEventListener('scroll', onScroll, { passive: true })
-		return () => {
-			clearTimeout(cooldownTimer)
-			container.removeEventListener('wheel', onUserScrollIntent)
-			container.removeEventListener('touchmove', onUserScrollIntent)
-			container.removeEventListener('scroll', onScroll)
-		}
-	}, [hasMessages])
+	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
+		scrollContainerRef,
+		isStreaming,
+		items: effectiveMessages,
+		hasMessages,
+		paginationState,
+		onLoadMoreMessages: handleLoadMoreMessagesEvent
+	})
 
 	// Trigger the sidebar open/close animation before toggling visibility.
 	const handleSidebarToggle = useCallback(() => {
@@ -963,6 +925,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				toolCallIdRef,
 				appendMessage,
 				notify,
+				onTokenLimit: () => setShowTokenLimitModal(true),
 				onTitle: (title) => {
 					setSessionTitle(title)
 					updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
@@ -1030,8 +993,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			setSessionTitle(match?.title || null)
 			restoredSessionIdRef.current = targetSessionId
 			isFirstMessageRef.current = false
-			shouldAutoScrollRef.current = true
-			setShowScrollToBottom(false)
+			attach()
 			setPaginationState({
 				hasMore: result.pagination?.hasMore ?? false,
 				cursor: result.pagination?.cursor ?? null,
@@ -1044,7 +1006,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			dispatchStream({ type: 'RESET_RECOVERY' })
 			return { restored: true, recoveredResponse }
 		},
-		[restoreSession, sessions]
+		[attach, restoreSession, sessions]
 	)
 
 	const exhaustRecovery = useCallback(
@@ -1227,13 +1189,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	// Reset transient streaming and error state without touching the actual message history.
 	const clearConversationRuntimeState = useCallback(() => {
 		clearRecoveryController()
+		resetPromptTransition()
 		setViewError(null)
 		setPaginationError(null)
 		dispatchStream({ type: 'RESET_STREAM' })
 		dispatchStream({ type: 'SET_ERROR', value: null })
 		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
 		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
-	}, [clearRecoveryController])
+	}, [clearRecoveryController, resetPromptTransition])
 
 	// Start a brand-new chat, or route away from a session page back to the base chat route.
 	const handleNewChat = useCallback(async () => {
@@ -1248,11 +1211,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		setSessionTitle(null)
 		restoredSessionIdRef.current = null
 		isFirstMessageRef.current = true
-		shouldAutoScrollRef.current = true
-		setShowScrollToBottom(false)
+		attach()
 		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
 		promptInputRef.current?.focus()
-	}, [initialSessionId, abortActiveRequest, clearConversationRuntimeState])
+	}, [initialSessionId, abortActiveRequest, attach, clearConversationRuntimeState])
 
 	// Restore a saved session, and resume any still-active server execution attached to it.
 	const handleSessionSelect = useCallback(
@@ -1323,6 +1285,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		) => {
 			const trimmed = prompt.trim()
 			if (!trimmed || isStreaming || promptSubmissionLockRef.current) return
+			triggerPromptTransition(shouldShowLanding ? 'landing' : 'conversation')
 			promptSubmissionLockRef.current = true
 
 			void abortActiveRequest()
@@ -1346,8 +1309,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						...prev,
 						{ role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }
 					])
-					shouldAutoScrollRef.current = true
-					setShowScrollToBottom(false)
+					attach()
 
 					const buffer = createStreamBuffer()
 					const controller = new AbortController()
@@ -1382,6 +1344,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							toolCallIdRef,
 							appendMessage,
 							notify,
+							onTokenLimit: () => setShowTokenLimitModal(true),
 							onSessionId: (id) => {
 								if (!isActiveRequest(activeRequestIdRef, requestId)) return
 								const previousSessionId = currentSessionId
@@ -1498,7 +1461,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			abortActiveRequest,
 			startRecoveryCycle,
 			sessionTitle,
-			sessions
+			sessions,
+			attach,
+			shouldShowLanding,
+			triggerPromptTransition
 		]
 	)
 
@@ -1672,6 +1638,60 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					<LoadingConversationState />
 				) : !hasMessages && visibleError ? (
 					<EmptyConversationErrorState message={visibleError} />
+				) : shouldAnimateLandingTransition ? (
+					<div className="relative flex flex-1 overflow-hidden">
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
+						>
+							<ChatLanding
+								readOnly={readOnly}
+								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+								handleSubmit={handleSubmit}
+								promptInputRef={promptInputRef}
+								handleStopRequest={handleStopRequest}
+								isStreaming={isStreaming}
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={researchUsage}
+								onOpenAlerts={alertsModalStore.show}
+							/>
+						</div>
+						<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
+							<ConversationView
+								readOnly={readOnly}
+								messages={effectiveMessages}
+								sessionId={effectiveSessionId}
+								isLlama={isLlama}
+								isStreaming={isStreaming}
+								activeToolCalls={activeToolCalls}
+								spawnProgress={spawnProgress}
+								spawnStartTime={spawnStartTime}
+								streamingThinking={streamingThinking}
+								streamingDraft={streamingDraft}
+								isCompacting={isCompacting}
+								paginationState={paginationState}
+								paginationError={paginationError}
+								recovery={recovery}
+								error={visibleError}
+								lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
+								onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+								scrollContainerRef={scrollContainerRef}
+								messagesEndRef={messagesEndRef}
+								promptInputRef={promptInputRef}
+								showScrollToBottom={showScrollToBottom}
+								scrollToBottom={scrollToBottom}
+								handleSubmit={handleSubmit}
+								handleStopRequest={handleStopRequest}
+								handleActionClick={handleActionClick}
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={researchUsage}
+								animateActiveExchange={false}
+								onOpenAlerts={alertsModalStore.show}
+							/>
+						</div>
+					</div>
 				) : !hasMessages && !visibleError ? (
 					<ChatLanding
 						readOnly={readOnly}
@@ -1715,6 +1735,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
+						animateActiveExchange={shouldAnimateConversationTransition}
 						onOpenAlerts={alertsModalStore.show}
 					/>
 				)}
@@ -1726,6 +1747,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					limit={rateLimitDetails.limit}
 					resetTime={rateLimitDetails.resetTime}
 				/>
+			) : null}
+			{!readOnly ? (
+				<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
 			) : null}
 			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
 			{shouldRenderSubscribeModal ? (
@@ -1740,6 +1764,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					onCustomInstructionsChange={setCustomInstructions}
 					enableMemory={enableMemory}
 					onEnableMemoryChange={setEnableMemory}
+					hackerMode={hackerMode}
+					onHackerModeChange={setHackerMode}
 					fetchFn={authorizedFetchStrict}
 				/>
 			) : null}
