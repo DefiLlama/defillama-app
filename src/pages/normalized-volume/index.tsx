@@ -30,8 +30,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const NormalizedVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title="Normalized DEX Volume Rankings - Wash Trading Filtered Analytics - DefiLlama"
-			description="Track normalized DEX volume with wash trading filtered out. Compare genuine trading activity based on available liquidity and market conditions. Real-time authentic DEX volume analytics across all protocols."
+			title="Normalized DEX Volume Rankings - DefiLlama"
+			description="Track normalized perp volume with suspected wash trading filtered out. Compare genuine trading activity based on liquidity and market conditions."
 			canonicalUrl={`/normalized-volume`}
 			pageName={pageName}
 		>

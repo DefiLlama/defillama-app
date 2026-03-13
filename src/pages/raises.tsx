@@ -18,7 +18,7 @@ export const getStaticProps = withPerformanceLogging('raises', async () => {
 const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 	return (
 		<Layout
-			title="DeFi Funding Rounds & Crypto Raises - Investor Funding Tracker - DefiLlama"
+			title="DeFi Funding Rounds & Crypto Raises - DefiLlama"
 			description="Track DeFi and crypto funding rounds, venture capital investments, and investor activity. Monitor 1000+ funding rounds across 500+ protocols. Real-time Web3 investment analytics with investor profiles and funding amounts."
 			canonicalUrl="/raises"
 			pageName={pageName}

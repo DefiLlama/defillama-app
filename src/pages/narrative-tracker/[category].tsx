@@ -52,8 +52,8 @@ interface CategoryPageProps extends CategoryPerformanceProps {
 export default function Returns(props: CategoryPageProps) {
 	return (
 		<Layout
-			title={`Narrative Tracker - DefiLlama`}
-			description={`Narrative Tracker by ${props.categoryName ?? 'Category'}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`${props.categoryName ?? 'Category'} Narrative Tracker - DefiLlama`}
+			description={`Track ${props.categoryName ?? 'category'} narrative performance, protocol metrics, and market trends on DefiLlama.`}
 			canonicalUrl={`/narrative-tracker/${props.categoryId}`}
 			pageName={pageName}
 		>

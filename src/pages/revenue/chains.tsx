@@ -29,7 +29,7 @@ const pageName = ['Chains', 'ranked by', type]
 const RevenueByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title="Revenue by Blockchain - Protocol Revenue Across All Chains - DefiLlama"
+			title="DeFi Revenue by Chain - All Blockchains - DefiLlama"
 			description="Compare DeFi protocol revenue across all blockchains. Track actual revenue (fees retained) on Ethereum, Solana, Base, Arbitrum, and 150+ chains. Real-time blockchain revenue analytics by chain."
 			canonicalUrl={`/revenue/chains`}
 			pageName={pageName}

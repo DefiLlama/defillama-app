@@ -225,8 +225,8 @@ const VCFilterPage = ({ categories, chains, defiCategories, roundTypes, lastRoun
 
 	return (
 		<Layout
-			title="VC Filter - DefiLlama"
-			description={`Pitch your project to VCs by filtering them by their investments in DeFi projects. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title="Crypto VC Filter - Find DeFi Investors - DefiLlama"
+			description="Find crypto VCs by investment focus and portfolio. Filter venture capital firms by chains, categories, and past deals to find the right investors."
 			canonicalUrl={`/pitch`}
 		>
 			<div className="mx-auto flex w-full max-w-4xl flex-col gap-5 rounded-md bg-(--cards-bg) p-3">

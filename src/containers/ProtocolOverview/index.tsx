@@ -8,7 +8,6 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { formattedNum, tokenIconUrl } from '~/utils'
 import { AdditionalInfo } from './AdditionalInfo'
-import { Flag } from './Flag'
 import { getPrimaryValueLabelType, useFinalTVL } from './helpers'
 import { KeyMetrics } from './KeyMetrics'
 import { ProtocolOverviewLayout } from './Layout'
@@ -204,19 +203,13 @@ const PrimaryValue = ({
 }) => {
 	if (!hasTvl) return null
 
-	const { title, byChainTitle, dataType } = getPrimaryValueLabelType(category)
+	const { title, byChainTitle } = getPrimaryValueLabelType(category)
 
 	if (!valueByChain || valueByChain.length === 0) {
 		return (
 			<p className="flex flex-col">
 				<span className="flex flex-nowrap items-center gap-2">
 					<span>{title}</span>
-					<Flag
-						protocol={name}
-						dataType={dataType}
-						isLending={category === 'Lending'}
-						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
 				</span>
 				<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>
 					{formatPrice(value)}
@@ -230,12 +223,6 @@ const PrimaryValue = ({
 			<summary className="flex flex-col">
 				<span className="flex flex-nowrap items-center gap-2">
 					<span className="text-(--text-label)">{title}</span>
-					<Flag
-						protocol={name}
-						dataType={dataType}
-						isLending={category === 'Lending'}
-						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
 				</span>
 				<span className="flex flex-nowrap items-center gap-2">
 					<span className="min-h-8 font-jetbrains text-2xl font-semibold" suppressHydrationWarning>

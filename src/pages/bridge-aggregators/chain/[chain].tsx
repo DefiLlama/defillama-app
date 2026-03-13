@@ -92,7 +92,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const BridgeAggregatorsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} Bridge Aggregator Volume - Cross-Chain Routing Activity - DefiLlama`}
+			title={`${props.chain} Bridge Aggregator Volume - DefiLlama`}
 			description={`Track bridge aggregator volume and cross-chain transfers routed through aggregators on ${props.chain}. Compare volume across Bungee, LI.FI, Socket, and all bridge aggregators on ${props.chain}. Real-time ${props.chain} bridge routing analytics.`}
 			canonicalUrl={`/bridge-aggregators/chain/${slug(props.chain)}`}
 			pageName={pageName}

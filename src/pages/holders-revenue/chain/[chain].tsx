@@ -94,8 +94,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const HoldersRevenueOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} Holders Revenue - Token Holder Earnings by Protocol - DefiLlama`}
-			description={`Track revenue distributed to token holders on ${props.chain}. Compare holder earnings by protocol on DefiLlama.`}
+			title={`${props.chain} Holders Revenue by Protocol - DefiLlama`}
+			description={`Track holder revenue on ${props.chain} by protocol, from buyback and burn, fee burning, and distributions to stakers.`}
 			canonicalUrl={`/holders-revenue/chain/${slug(props.chain)}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"

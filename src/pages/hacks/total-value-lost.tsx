@@ -21,7 +21,7 @@ export const getStaticProps = withPerformanceLogging('protocols/total-value-lost
 export default function TotalLostInHacks(props: IProtocolTotalValueLostInHacksByProtocol) {
 	return (
 		<Layout
-			title="Protocols by Hack Loss - DeFi Total Value Lost Rankings - DefiLlama"
+			title="DeFi Hacks - Total Value Lost by Protocol - DefiLlama"
 			description="Track total value lost in DeFi hacks ranked by protocol. Compare cumulative hack losses across 500+ protocols. Historical security incident analytics showing which protocols lost the most to exploits and breaches."
 			canonicalUrl="/hacks/total-value-lost"
 			pageName={pageName}

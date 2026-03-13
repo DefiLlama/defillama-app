@@ -192,7 +192,7 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 	return (
 		<Layout
 			title="NFT Marketplace Volume & Rankings - DefiLlama"
-			description={`NFT Marketplaces by Volume. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Compare NFT marketplace volume and trading activity. Track OpenSea, Blur, and other marketplaces by daily and weekly volume."
 			canonicalUrl={`/nfts/marketplaces`}
 			pageName={pageName}
 		>

@@ -157,8 +157,8 @@ const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
 		enabled: isEnabled
 	})
 }
-// oxlint-disable-next-line no-unused-vars
-const useFetchProtocolTokenLiquidity = (token: string | null) => {
+
+export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
 		queryKey: ['protocol-overview', 'token-liquidity', token],
@@ -169,6 +169,7 @@ const useFetchProtocolTokenLiquidity = (token: string | null) => {
 		enabled: isEnabled
 	})
 }
+
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	const isEnabled = !!protocolName
 	return useQuery({

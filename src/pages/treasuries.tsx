@@ -18,7 +18,7 @@ export const getStaticProps = withPerformanceLogging('treasuries', async () => {
 export default function TreasuriesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Treasury Rankings - DeFi Protocol Holdings & Assets - DefiLlama"
+			title="DeFi Treasury Rankings - Protocol Holdings - DefiLlama"
 			description="Track DAO and DeFi protocol treasury holdings. View treasury composition, stablecoin allocations, and native token reserves. Real-time treasury analytics for 500+ DeFi protocols and organizations."
 			canonicalUrl="/treasuries"
 			pageName={pageName}

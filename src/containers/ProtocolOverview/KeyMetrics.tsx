@@ -217,14 +217,6 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 				{props.currentTvlByChain?.staking != null ? (
 					<MetricRow
 						label="Staked"
-						extra={
-							<Flag
-								protocol={props.name}
-								dataType="Staked"
-								isLending={props.category === 'Lending'}
-								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-							/>
-						}
 						valueClassName="ml-auto"
 						value={
 							props.tokenCGData?.marketCap?.current != null ? (
@@ -242,18 +234,7 @@ export const KeyMetrics = (props: IKeyMetricsProps) => {
 					/>
 				) : null}
 				{props.currentTvlByChain?.borrowed != null ? (
-					<MetricRow
-						label="Borrowed"
-						extra={
-							<Flag
-								protocol={props.name}
-								dataType="Borrowed"
-								isLending={props.category === 'Lending'}
-								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-							/>
-						}
-						value={props.formatPrice(props.currentTvlByChain.borrowed)}
-					/>
+					<MetricRow label="Borrowed" value={props.formatPrice(props.currentTvlByChain.borrowed)} />
 				) : null}
 				<TokenLiquidity {...props} />
 				<Treasury {...props} />
@@ -609,14 +590,6 @@ const SmolStats = ({
 			<MetricRow
 				label={data[0].name}
 				tooltip={data[0].tooltipContent ?? undefined}
-				extra={
-					<Flag
-						protocol={protocolName}
-						dataType={dataType}
-						isLending={category === 'Lending'}
-						className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-					/>
-				}
 				value={formatPrice(data[0].value)}
 			/>
 		)
@@ -628,14 +601,6 @@ const SmolStats = ({
 			tooltip={data[0].tooltipContent ?? undefined}
 			value={formatPrice(data[0].value)}
 			defaultOpen={openSmolStatsSummaryByDefault}
-			extra={
-				<Flag
-					protocol={protocolName}
-					dataType={dataType}
-					isLending={category === 'Lending'}
-					className="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-			}
 		>
 			{restOfData.map((metric) => (
 				<SubMetricRow
@@ -652,18 +617,7 @@ const SmolStats = ({
 const Treasury = (props: IKeyMetricsProps) => {
 	if (!props.treasury) return null
 	return (
-		<MetricSection
-			label="Treasury"
-			value={formattedNum(props.treasury.total, true)}
-			extra={
-				<Flag
-					protocol={props.name}
-					dataType="Treasury"
-					isLending={props.category === 'Lending'}
-					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-			}
-		>
+		<MetricSection label="Treasury" value={formattedNum(props.treasury.total, true)}>
 			{props.treasury.majors != null ? (
 				<SubMetricRow label="Majors" tooltip="BTC, ETH" value={formattedNum(props.treasury.majors, true)} />
 			) : null}
@@ -683,18 +637,7 @@ const Treasury = (props: IKeyMetricsProps) => {
 const Expenses = (props: IKeyMetricsProps) => {
 	if (!props.expenses) return null
 	return (
-		<MetricSection
-			label="Annual Operational Expenses"
-			value={props.formatPrice(props.expenses.total)}
-			extra={
-				<Flag
-					protocol={props.name}
-					dataType="Expenses"
-					isLending={props.category === 'Lending'}
-					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-			}
-		>
+		<MetricSection label="Annual Operational Expenses" value={props.formatPrice(props.expenses.total)}>
 			<MetricRow
 				label="Headcount"
 				value={props.expenses.headcount != null ? formattedNum(props.expenses.headcount) : '\u2014'}
@@ -749,14 +692,6 @@ const TokenLiquidity = (props: IKeyMetricsProps) => {
 			label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Liquidity`}
 			tooltip="Sum of value locked in DEX pools that include that token across all DEXs for which DefiLlama tracks pool data."
 			value={formattedNum(props.tokenLiquidity.total, true)}
-			extra={
-				<Flag
-					protocol={props.name}
-					dataType="Token Liquidity"
-					isLending={props.category === 'Lending'}
-					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-			}
 		>
 			{props.tokenLiquidity?.pools.map((pool) => (
 				<p
@@ -776,32 +711,13 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 	return (
 		<>
 			{props.tokenCGData?.marketCap?.current != null ? (
-				<MetricRow
-					label="Market Cap"
-					extra={
-						<Flag
-							protocol={props.name}
-							dataType="Market Cap"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-					}
-					value={props.formatPrice(props.tokenCGData.marketCap.current)}
-				/>
+				<MetricRow label="Market Cap" value={props.formatPrice(props.tokenCGData.marketCap.current)} />
 			) : null}
 			{props.tokenCGData?.price?.current != null ? (
 				props.tokenCGData.price.ath != null || props.tokenCGData.price.atl != null ? (
 					<MetricSection
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
 						value={props.formatPrice(props.tokenCGData.price.current)}
-						extra={
-							<Flag
-								protocol={props.name}
-								dataType="Token Price"
-								isLending={props.category === 'Lending'}
-								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-							/>
-						}
 					>
 						<SubMetricRow label="All Time High" value={props.formatPrice(props.tokenCGData.price.ath)} />
 						<SubMetricRow label="All Time Low" value={props.formatPrice(props.tokenCGData.price.atl)} />
@@ -809,14 +725,6 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				) : (
 					<MetricRow
 						label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Price`}
-						extra={
-							<Flag
-								protocol={props.name}
-								dataType="Token Price"
-								isLending={props.category === 'Lending'}
-								className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-							/>
-						}
 						value={props.formatPrice(props.tokenCGData.price.current)}
 					/>
 				)
@@ -827,14 +735,6 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					tooltip={
 						"Fully Diluted Valuation, this is calculated by taking the expected maximum supply of the token and multiplying it by the price. It's mainly used to calculate the hypothetical marketcap of the token if all the tokens were unlocked and circulating.\n\nData for this metric is imported directly from coingecko."
 					}
-					extra={
-						<Flag
-							protocol={props.name}
-							dataType="FDV"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-					}
 					value={props.formatPrice(props.tokenCGData.fdv.current)}
 				/>
 			) : null}
@@ -844,14 +744,6 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 					tooltip={
 						'Outstanding FDV is calculated by taking the outstanding supply of the token and multiplying it by the price.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
 					}
-					extra={
-						<Flag
-							protocol={props.name}
-							dataType="Outstanding FDV"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-					}
 					value={props.formatPrice(props.outstandingFDV)}
 				/>
 			) : null}
@@ -859,14 +751,6 @@ const TokenCGData = (props: IKeyMetricsProps) => {
 				<MetricSection
 					label={`${props.token?.symbol ? `$${props.token.symbol}` : 'Token'} Volume 24h`}
 					value={props.formatPrice(props.tokenCGData.volume24h.total)}
-					extra={
-						<Flag
-							protocol={props.name}
-							dataType="Token Volume"
-							isLending={props.category === 'Lending'}
-							className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-						/>
-					}
 				>
 					<SubMetricRow
 						label="CEX Volume"
@@ -902,14 +786,6 @@ const Raises = (props: IKeyMetricsProps) => {
 		<MetricSection
 			label="Total Raised"
 			value={formattedNum(props.raises.reduce((sum, r) => sum + Number(r.amount), 0) * 1_000_000, true)}
-			extra={
-				<Flag
-					protocol={props.name}
-					dataType="Raises"
-					isLending={props.category === 'Lending'}
-					className="mr-auto opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
-				/>
-			}
 		>
 			{props.raises.map((raise) => (
 				<p

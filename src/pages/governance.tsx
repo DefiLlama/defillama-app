@@ -17,7 +17,7 @@ const pageName = ['Governance']
 export default function GovernancePage({ data }) {
 	return (
 		<Layout
-			title="Governance Tracker - DeFi Proposals & DAO Voting - DefiLlama"
+			title="DeFi Governance & DAO Proposals - DefiLlama"
 			description="Track DeFi governance proposals and DAO voting activity across protocols. Monitor active proposals, voter participation, and governance outcomes for 200+ DeFi DAOs including Uniswap, Aave, and MakerDAO."
 			canonicalUrl={`/governance`}
 			pageName={pageName}

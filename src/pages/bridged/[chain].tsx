@@ -51,7 +51,7 @@ export default function Bridged(props: InferGetStaticPropsType<typeof getStaticP
 	if (!props.chainData) {
 		return (
 			<TemporarilyDisabledPage
-				title={`${props.chainName} Bridged Assets & Cross-Chain TVL - Assets Bridged To ${props.chainName} - DefiLlama`}
+				title={`${props.chainName} Bridged Assets & Cross-Chain TVL - DefiLlama`}
 				description={`Track total value of assets bridged to ${props.chainName} from other chains. View bridged TVL breakdown by token, source chain, and bridge protocol. Real-time cross-chain asset analytics for ${props.chainName}.`}
 				canonicalUrl={`/bridged/${props.chain}`}
 				heading="Bridged TVL temporarily unavailable"
@@ -64,7 +64,7 @@ export default function Bridged(props: InferGetStaticPropsType<typeof getStaticP
 
 	return (
 		<Layout
-			title={`${props.chainName} Bridged Assets & Cross-Chain TVL - Assets Bridged To ${props.chainName} - DefiLlama`}
+			title={`${props.chainName} Bridged Assets & Cross-Chain TVL - DefiLlama`}
 			description={`Track total value of assets bridged to ${props.chainName} from other chains. View bridged TVL breakdown by token, source chain, and bridge protocol. Real-time cross-chain asset analytics for ${props.chainName}.`}
 			canonicalUrl={`/bridged/${props.chain}`}
 			pageName={pageName}

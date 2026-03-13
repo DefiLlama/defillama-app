@@ -32,7 +32,7 @@ const REVByChain = (props: IChainsByREVPageData) => {
 	return (
 		<Layout
 			title="Real Economic Value (REV) by Blockchain - DefiLlama"
-			description={`REV by chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Compare Real Economic Value (REV) by chain, the sum of chain fees and MEV tips. Track 24h and 30d rankings."
 			canonicalUrl={`/rev/chains`}
 			pageName={pageName}
 		>

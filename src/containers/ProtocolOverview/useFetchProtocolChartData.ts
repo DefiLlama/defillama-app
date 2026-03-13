@@ -719,15 +719,16 @@ export const useFetchProtocolChartData = ({
 		isRouterReady && toggledMetrics.transactions === 'true' && metrics.activeUsers ? protocolId : null
 	)
 
-	const { data: governanceData = null, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
+	const isGovernanceEnabled = !!(
 		isRouterReady &&
-			[toggledMetrics.totalProposals, toggledMetrics.successfulProposals, toggledMetrics.maxVotes].some(
-				(v) => v === 'true'
-			) &&
-			governanceApis &&
-			governanceApis.length > 0
-			? governanceApis
-			: null
+		[toggledMetrics.totalProposals, toggledMetrics.successfulProposals, toggledMetrics.maxVotes].some(
+			(v) => v === 'true'
+		) &&
+		governanceApis &&
+		governanceApis.length > 0
+	)
+	const { data: governanceData = null, isLoading: fetchingGovernanceData } = useFetchProtocolGovernanceData(
+		isGovernanceEnabled ? governanceApis : null
 	)
 
 	const isNftVolumeEnabled = !!(toggledMetrics.nftVolume === 'true' && metrics.nfts && isRouterReady)
@@ -777,45 +778,55 @@ export const useFetchProtocolChartData = ({
 
 	const chartData = useMemo(() => {
 		const loadingStates: ReadonlyArray<{ isLoading: boolean; label: string }> = [
-			{ isLoading: fetchingDenominationPriceHistory, label: 'Denomination Price History' },
-			{ isLoading: fetchingProtocolTokenData, label: 'Mcap, Token price, Token volume' },
-			{ isLoading: fetchingTokenTotalSupply, label: 'Token Supply' },
-			{ isLoading: fetchingTokenLiquidity, label: 'Token Liquidity' },
+			{ isLoading: !!denominationGeckoId && fetchingDenominationPriceHistory, label: 'Denomination Price History' },
 			{
 				isLoading:
-					fetchingPool2TvlChart ||
-					fetchingStakingTvlChart ||
-					fetchingBorrowedTvlChart ||
-					fetchingDoubleCountedTvlChart ||
-					fetchingLiquidStakingTvlChart ||
-					fetchingVestingTvlChart ||
-					fetchingGovTokensTvlChart,
+					(isMcapToggled || isTokenPriceToggled || isTokenVolumeToggled || isFdvToggled) && fetchingProtocolTokenData,
+				label: 'Mcap, Token price, Token volume'
+			},
+			{ isLoading: isFdvToggled && fetchingTokenTotalSupply, label: 'Token Supply' },
+			{ isLoading: toggledMetrics.tokenLiquidity === 'true' && fetchingTokenLiquidity, label: 'Token Liquidity' },
+			{
+				isLoading:
+					(shouldFetchPool2Tvl && fetchingPool2TvlChart) ||
+					(shouldFetchStakingTvl && fetchingStakingTvlChart) ||
+					(shouldFetchBorrowedTvl && fetchingBorrowedTvlChart) ||
+					(shouldFetchDoubleCountedTvl && fetchingDoubleCountedTvlChart) ||
+					(shouldFetchLiquidStakingTvl && fetchingLiquidStakingTvlChart) ||
+					(shouldFetchVestingTvl && fetchingVestingTvlChart) ||
+					(shouldFetchGovTokensTvl && fetchingGovTokensTvlChart),
 				label: 'TVL Breakdown'
 			},
-			{ isLoading: fetchingTvs, label: 'TVS' },
-			{ isLoading: fetchingFees, label: 'Fees' },
-			{ isLoading: fetchingRevenue, label: 'Revenue' },
-			{ isLoading: fetchingHoldersRevenue, label: 'Holders Revenue' },
-			{ isLoading: fetchingBribes, label: 'Bribes' },
-			{ isLoading: fetchingTokenTaxes, label: 'Token Taxes' },
-			{ isLoading: fetchingDexVolume, label: 'DEX Volume' },
-			{ isLoading: fetchingPerpVolume, label: 'Perp Volume' },
-			{ isLoading: fetchingOpenInterest, label: 'Open Interest' },
-			{ isLoading: fetchingOptionsPremiumVolume, label: 'Options Premium Volume' },
-			{ isLoading: fetchingOptionsNotionalVolume, label: 'Options Notional Volume' },
-			{ isLoading: fetchingDexAggregatorVolume, label: 'DEX Aggregator Volume' },
-			{ isLoading: fetchingPerpAggregatorVolume, label: 'Perp Aggregator Volume' },
-			{ isLoading: fetchingBridgeAggregatorVolume, label: 'Bridge Aggregator Volume' },
-			{ isLoading: fetchingUnlocksAndIncentives, label: 'Emissions' },
-			{ isLoading: fetchingTreasury, label: 'Treasury' },
-			{ isLoading: fetchingUsdInflows, label: 'USD Inflows' },
-			{ isLoading: fetchingMedianAPY, label: 'Median APY' },
-			{ isLoading: fetchingGovernanceData, label: 'Governance' },
-			{ isLoading: fetchingNftVolume, label: 'NFT Volume' },
-			{ isLoading: fetchingActiveAddresses, label: 'Active Addresses' },
-			{ isLoading: fetchingNewAddresses, label: 'New Addresses' },
-			{ isLoading: fetchingTransactions, label: 'Transactions' },
-			{ isLoading: fetchingBridgeVolume, label: 'Bridge Volume' }
+			{ isLoading: isTvsToggled && fetchingTvs, label: 'TVS' },
+			{ isLoading: isFeesEnabled && fetchingFees, label: 'Fees' },
+			{ isLoading: isRevenueEnabled && fetchingRevenue, label: 'Revenue' },
+			{ isLoading: isHoldersRevenueEnabled && fetchingHoldersRevenue, label: 'Holders Revenue' },
+			{ isLoading: isBribesEnabled && fetchingBribes, label: 'Bribes' },
+			{ isLoading: isTokenTaxesEnabled && fetchingTokenTaxes, label: 'Token Taxes' },
+			{ isLoading: isDexVolumeEnabled && fetchingDexVolume, label: 'DEX Volume' },
+			{ isLoading: isPerpsVolumeEnabled && fetchingPerpVolume, label: 'Perp Volume' },
+			{ isLoading: isOpenInterestEnabled && fetchingOpenInterest, label: 'Open Interest' },
+			{ isLoading: isOptionsPremiumVolumeEnabled && fetchingOptionsPremiumVolume, label: 'Options Premium Volume' },
+			{
+				isLoading: isOptionsNotionalVolumeEnabled && fetchingOptionsNotionalVolume,
+				label: 'Options Notional Volume'
+			},
+			{ isLoading: isDexAggregatorsVolumeEnabled && fetchingDexAggregatorVolume, label: 'DEX Aggregator Volume' },
+			{ isLoading: isPerpsAggregatorsVolumeEnabled && fetchingPerpAggregatorVolume, label: 'Perp Aggregator Volume' },
+			{
+				isLoading: isBridgeAggregatorsVolumeEnabled && fetchingBridgeAggregatorVolume,
+				label: 'Bridge Aggregator Volume'
+			},
+			{ isLoading: isUnlocksEnabled && fetchingUnlocksAndIncentives, label: 'Emissions' },
+			{ isLoading: isTreasuryToggled && fetchingTreasury, label: 'Treasury' },
+			{ isLoading: isUsdInflowsToggled && fetchingUsdInflows, label: 'USD Inflows' },
+			{ isLoading: toggledMetrics.medianApy === 'true' && fetchingMedianAPY, label: 'Median APY' },
+			{ isLoading: isGovernanceEnabled && fetchingGovernanceData, label: 'Governance' },
+			{ isLoading: isNftVolumeToggled && fetchingNftVolume, label: 'NFT Volume' },
+			{ isLoading: isActiveAddressesToggled && fetchingActiveAddresses, label: 'Active Addresses' },
+			{ isLoading: isNewAddressesToggled && fetchingNewAddresses, label: 'New Addresses' },
+			{ isLoading: isTransactionsToggled && fetchingTransactions, label: 'Transactions' },
+			{ isLoading: isBridgeVolumeToggled && fetchingBridgeVolume, label: 'Bridge Volume' }
 		]
 		const loadingCharts = loadingStates.filter((state) => state.isLoading).map((state) => state.label)
 		if (loadingCharts.length > 0) {
@@ -1163,12 +1174,34 @@ export const useFetchProtocolChartData = ({
 		fetchingTokenLiquidity,
 		tokenLiquidityData,
 		fetchingPool2TvlChart,
+		shouldFetchPool2Tvl,
 		fetchingStakingTvlChart,
+		shouldFetchStakingTvl,
 		fetchingBorrowedTvlChart,
+		shouldFetchBorrowedTvl,
 		fetchingDoubleCountedTvlChart,
+		shouldFetchDoubleCountedTvl,
 		fetchingLiquidStakingTvlChart,
+		shouldFetchLiquidStakingTvl,
 		fetchingVestingTvlChart,
+		shouldFetchVestingTvl,
 		fetchingGovTokensTvlChart,
+		shouldFetchGovTokensTvl,
+		denominationGeckoId,
+		isFeesEnabled,
+		isRevenueEnabled,
+		isHoldersRevenueEnabled,
+		isBribesEnabled,
+		isTokenTaxesEnabled,
+		isDexVolumeEnabled,
+		isPerpsVolumeEnabled,
+		isOpenInterestEnabled,
+		isOptionsPremiumVolumeEnabled,
+		isOptionsNotionalVolumeEnabled,
+		isDexAggregatorsVolumeEnabled,
+		isPerpsAggregatorsVolumeEnabled,
+		isBridgeAggregatorsVolumeEnabled,
+		isUnlocksEnabled,
 		fetchingFees,
 		feesDataChart,
 		fetchingRevenue,
@@ -1211,6 +1244,7 @@ export const useFetchProtocolChartData = ({
 		newAddressesData,
 		fetchingTransactions,
 		transactionsData,
+		isGovernanceEnabled,
 		fetchingGovernanceData,
 		governanceData,
 		fetchingNftVolume,

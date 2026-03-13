@@ -45,7 +45,7 @@ function ReportError() {
 	return (
 		<Layout
 			title="Report a Data Error or Issue - DefiLlama"
-			description={`Report Error on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Report a data error, missing protocol, or incorrect information on DefiLlama. Help us maintain accurate DeFi analytics."
 			canonicalUrl={`/report-error`}
 		>
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11 xl:ml-[calc(228px-16px)]">

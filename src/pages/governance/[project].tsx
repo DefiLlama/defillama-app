@@ -43,7 +43,7 @@ export default function GovernanceProjectPage({ projectName, governanceData, gov
 	return (
 		<Layout
 			title={`${projectName} Governance - DefiLlama`}
-			description={`${projectName} Governance on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Track ${projectName} governance proposals, voting activity, and DAO decisions on DefiLlama.`}
 			canonicalUrl={`/governance/${slug(projectName)}`}
 		>
 			{governanceData?.length ? (

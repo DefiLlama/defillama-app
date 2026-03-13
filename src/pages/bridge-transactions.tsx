@@ -19,7 +19,7 @@ export default function BridgeTransactions({ bridges }) {
 	return (
 		<Layout
 			title={`Bridge Transactions - DefiLlama`}
-			description={`Download transaction data across different time periods by bridge on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Download cross-chain bridge transaction data by protocol and time period. Export bridge transfer records for analysis on DefiLlama."
 			canonicalUrl={`/bridge-transactions`}
 			pageName={pageName}
 		>

@@ -58,7 +58,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	return (
 		<Layout
 			title={`Protocol Expense Rankings - DefiLlama`}
-			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Track DeFi protocol expenses and token incentive costs. Compare operational spending across protocols to evaluate sustainability."
 			canonicalUrl={`/expenses`}
 			pageName={pageName}
 		>

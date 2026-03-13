@@ -25,8 +25,8 @@ const pageName = ['Chains', 'ranked by', type]
 const OptionsNotionalVolumeByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title="Options Notional Volume by Chain - DeFi Derivatives Activity - DefiLlama"
-			description="Compare DeFi options notional volume across blockchains on DefiLlama."
+			title="Options Notional Volume by Chain - DefiLlama"
+			description="Compare options notional volume by chain, the sum of the notional value traded on DeFi options exchanges."
 			canonicalUrl={`/options/notional-volume/chains`}
 			pageName={pageName}
 		>

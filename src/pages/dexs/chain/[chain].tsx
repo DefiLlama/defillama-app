@@ -92,7 +92,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const DexsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} DEX Swap Volume Rankings - Decentralized Exchange Activity - DefiLlama`}
+			title={`${props.chain} DEX Volume Rankings - DefiLlama`}
 			description={`Track DEX swap volume and trading activity on ${props.chain}. Compare 24h and 7-day volume across Uniswap, Curve, and all spot decentralized exchanges on ${props.chain}. Real-time ${props.chain} DEX volume rankings by protocol.`}
 			canonicalUrl={`/dexs/chain/${slug(props.chain)}`}
 			pageName={pageName}

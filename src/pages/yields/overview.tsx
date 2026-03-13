@@ -24,12 +24,14 @@ const pageName = ['Yields: Overview']
 export default function YieldPlots(data) {
 	return (
 		<Layout
-			title={`DeFi Yield Overview & Market Summary - DefiLlama`}
-			description={`Overview of defi yields. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`Overview - DefiLlama Yield`}
+			description="Analyze DeFi yield trends, volatility, and APY distributions across all tracked pools."
 			canonicalUrl={`/yields/overview`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<PlotsPage {...data} />
 		</Layout>
 	)

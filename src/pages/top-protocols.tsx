@@ -195,7 +195,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 
 	return (
 		<Layout
-			title="Top Protocols by Chain & Category - DeFi TVL Rankings - DefiLlama"
+			title="Top DeFi Protocols by Chain & Category - DefiLlama"
 			description="Discover the top DeFi protocols on each blockchain by category. Compare lending, DEXs, yield, and derivatives protocols ranked by TVL across Ethereum, Solana, Base, Arbitrum, and 500+ chains."
 			canonicalUrl={`/top-protocols`}
 			pageName={pageName}

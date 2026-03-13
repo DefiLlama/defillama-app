@@ -66,8 +66,8 @@ const pageName = ['RWA']
 export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Real World Assets (RWA) by ${props.categoryName} Dashboard & Analytics - DefiLlama`}
-			description={`Overview of the ${props.categoryName} Real World Asset (RWA) category, a high-level economic classification of tokenized assets and financial products onchain.`}
+			title={`${props.categoryName} RWA Dashboard & Analytics - DefiLlama`}
+			description={`Track ${props.categoryName} RWA assets onchain. Compare Active Mcap, Onchain Mcap, DeFi Active TVL, and utilization.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/category/${props.categorySlug}`}
 		>

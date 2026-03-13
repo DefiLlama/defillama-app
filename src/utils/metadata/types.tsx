@@ -78,6 +78,12 @@ export interface ICexItem {
 	auditLink?: string | null
 }
 
+export interface ICategoriesAndTags {
+	categories: Array<string>
+	tags: Array<string>
+	tagCategoryMap: Record<string, string>
+}
+
 export interface IRWAList {
 	tickers: Array<string>
 	platforms: Array<string>

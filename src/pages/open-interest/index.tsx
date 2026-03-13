@@ -32,7 +32,7 @@ const pageName = ['Protocols', 'ranked by', type]
 const OpenInterestOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title="Crypto Open Interest Rankings - Derivatives Open Interest by Protocol - DefiLlama"
+			title="Open Interest Rankings - DeFi Derivatives - DefiLlama"
 			description="Track crypto open interest rankings across all derivatives protocols. Compare total open interest on Hyperliquid, Aster, Lighter, and 50+ perp DEXs. Real-time open interest analytics and leverage exposure data."
 			canonicalUrl={`/open-interest`}
 			pageName={pageName}

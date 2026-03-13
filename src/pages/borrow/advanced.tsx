@@ -51,7 +51,9 @@ export default function YieldBorrow(data) {
 			canonicalUrl={`/borrow/advanced`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<BorrowAggregatorAdvanced {...data} />
 		</Layout>
 	)

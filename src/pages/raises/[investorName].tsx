@@ -49,7 +49,7 @@ const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 	return (
 		<Layout
 			title={`Crypto Investments by ${investorName} - DefiLlama`}
-			description={`Track ${investorName} investments, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Track ${investorName} crypto investments, portfolio companies, total funding, and funding rounds on DefiLlama.`}
 			canonicalUrl={`/raises/${slug(investorName)}`}
 			pageName={pageName}
 		>

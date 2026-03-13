@@ -31,7 +31,7 @@ const AppFeesByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
 			title={`App Fee Rankings by Blockchain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Compare app fees by chain, excluding stablecoins, liquid staking apps, and gas fees."
 			canonicalUrl={`/app-fees/chains`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in App Fees"

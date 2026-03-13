@@ -49,7 +49,7 @@ export default function TotalBorrowedByChain(props: InferGetStaticPropsType<type
 	return (
 		<Layout
 			title={`Total Borrowed in DeFi on ${props.chain} - DefiLlama`}
-			description={`Total Borrowed by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Track total value borrowed across DeFi lending protocols on ${props.chain}. Compare borrowed TVL by protocol on DefiLlama.`}
 			canonicalUrl={`/total-borrowed/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>

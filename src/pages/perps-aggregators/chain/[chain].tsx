@@ -92,8 +92,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const PerpsAggregatorsVolumeOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${props.chain} Perps Aggregator Volume - Futures Routing by Protocol - DefiLlama`}
-			description={`Track perps aggregator volume on ${props.chain} by protocol on DefiLlama.`}
+			title={`${props.chain} Perps Aggregator Volume - DefiLlama`}
+			description={`Track perps aggregator volume on ${props.chain}, the notional volume of leveraged trades routed through aggregators.`}
 			canonicalUrl={`/perps-aggregators/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>

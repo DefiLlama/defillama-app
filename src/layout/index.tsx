@@ -1,10 +1,8 @@
 import * as React from 'react'
-import { Announcement } from '~/components/Announcement'
 import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterState'
 import { MetricsAndTools } from '~/components/Metrics'
 import { Nav } from '~/components/Nav'
 import { DesktopSearch } from '~/components/Search'
-import { SearchFallback } from '~/components/Search/Fallback'
 import { Select } from '~/components/Select/Select'
 import { type ISEOProps, SEO } from '~/components/SEO'
 import { useIsClient } from '~/hooks/useIsClient'
@@ -37,17 +35,16 @@ function Layout({
 			<Nav metricFilters={metricFilters} />
 			<main
 				{...props}
-				className="isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-[100dvh] lg:p-4 lg:pl-0"
+				className="isolate col-span-full flex min-h-[calc(100dvh-68px)] flex-col gap-2 p-1 text-(--text-primary) lg:col-span-1 lg:min-h-dvh lg:p-4 lg:pl-0"
 			>
 				<span className="hidden items-center justify-between gap-2 lg:flex lg:min-h-8">
-					<React.Suspense fallback={<SearchFallback />}>
-						<DesktopSearch />
-					</React.Suspense>
+					<DesktopSearch />
+
 					{!metricFilters || metricFilters.length === 0 ? null : (
 						<MetricFilters options={metricFilters} label={metricFiltersLabel} />
 					)}
 				</span>
-				{announcement ? <Announcement>{announcement}</Announcement> : null}
+				{announcement ?? null}
 				{pageName ? <MetricsAndTools currentMetric={pageName} /> : null}
 				{children}
 			</main>

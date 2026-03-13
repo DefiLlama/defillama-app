@@ -76,12 +76,14 @@ export default function Protocols({ projects }) {
 
 	return (
 		<Layout
-			title={`DeFi Yield by Project Rankings - DefiLlama`}
-			description={`Projects by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`DeFi Yield Projects & Protocols - DefiLlama`}
+			description="Compare DeFi projects by yield performance. View APY rankings, pool counts, and TVL for yield-generating protocols across all chains."
 			canonicalUrl={`/yields/projects`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex items-center justify-end p-3">

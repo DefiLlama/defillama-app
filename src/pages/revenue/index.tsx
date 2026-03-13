@@ -51,7 +51,7 @@ const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
 			title="Protocol Revenue Rankings - DeFi Fees Retained - DefiLlama"
-			description="Track actual revenue earned by DeFi protocols (portion of fees kept after costs). Compare protocol revenue from trading, lending, and staking across 500+ projects. Real-time revenue analytics for sustainable DeFi projects."
+			description="Track protocol revenue, the subset of fees retained by DeFi protocols. Compare revenue from trading, lending, and staking across protocols."
 			canonicalUrl={`/revenue`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"

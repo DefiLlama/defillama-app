@@ -64,11 +64,13 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout
 			title={`Lend/Borrow rates - DefiLlama Yield`}
-			description={`Pools by leveraged lending APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description="Compare leveraged lending and borrowing rates across DeFi protocols. Find the best lend/borrow rate spreads for looping strategies."
 			canonicalUrl={`/yields/loop`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 
 			<p className="rounded-md bg-(--cards-bg) p-3 text-center whitespace-pre-line">
 				This page displays leveraged lending APY values. The way this works:

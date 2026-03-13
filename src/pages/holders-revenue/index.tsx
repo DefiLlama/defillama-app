@@ -33,8 +33,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title="Holders Revenue Rankings - Token Holder Earnings by Protocol - DefiLlama"
-			description="Track revenue distributed to token holders by DeFi protocol. Compare holder earnings across protocols on DefiLlama."
+			title="Holders Revenue Rankings - DefiLlama"
+			description="Track holder revenue by protocol from buyback and burn, fee burning, and distributions to stakers."
 			canonicalUrl={`/holders-revenue`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"

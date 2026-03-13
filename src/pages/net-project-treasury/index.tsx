@@ -24,7 +24,7 @@ const columnHelper = createColumnHelper<INetProjectTreasury>()
 const NetProjectTreasuries = (props) => {
 	return (
 		<Layout
-			title="Net Treasury Rankings - DeFi Protocol Assets Excluding Native Token - DefiLlama"
+			title="Net Treasury Rankings - Excl. Native Token - DefiLlama"
 			description="Track DeFi protocol net treasury rankings - value of assets owned excluding native tokens. Compare protocol treasuries holding stables, ETH, BTC, and other assets across 500+ protocols. Real-time net treasury analytics."
 			canonicalUrl={`/net-project-treasury`}
 			pageName={pageName}

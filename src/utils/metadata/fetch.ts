@@ -1,5 +1,12 @@
 import { getErrorMessage } from '~/utils/error'
-import type { ITokenListEntry } from './types'
+import type {
+	ICategoriesAndTags,
+	ICexItem,
+	IChainMetadata,
+	IProtocolMetadata,
+	IRWAList,
+	ITokenListEntry
+} from './types'
 
 type RawBridgeInfo = {
 	id?: number
@@ -13,6 +20,13 @@ type RawBridgeInfo = {
 type RawBridgesResponse = {
 	bridges?: RawBridgeInfo[]
 }
+
+type RawCexsResponse = {
+	cexs: ICexItem[]
+	cg_volume_cexs: string[]
+}
+
+type RawTokenListItem = ITokenListEntry & { id: string }
 
 const normalizeSlug = (value: unknown): string =>
 	String(value ?? '')
@@ -72,11 +86,11 @@ async function fetchJson<T = any>(url: string): Promise<T> {
 }
 
 export async function fetchCoreMetadata(): Promise<{
-	protocols: Record<string, any>
-	chains: Record<string, any>
-	categoriesAndTags: any
-	cexs: Array<any>
-	rwaList: any
+	protocols: Record<string, IProtocolMetadata>
+	chains: Record<string, IChainMetadata>
+	categoriesAndTags: ICategoriesAndTags
+	cexs: ICexItem[]
+	rwaList: IRWAList
 	tokenlist: Record<string, ITokenListEntry>
 	cgExchangeIdentifiers: string[]
 	bridgeProtocolSlugs: string[]
@@ -99,18 +113,35 @@ export async function fetchCoreMetadata(): Promise<{
 	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
+	const isDev = process.env.NODE_ENV === 'development'
+
+	const fetchWithDevFallback = <T>(url: string, fallback: T): Promise<T> =>
+		isDev
+			? fetchJson<T>(url).catch((error) => {
+					console.error(`[metadata] dev: failed to fetch ${sanitizeUrlForMetadataLogs(url)}, using fallback:`, error)
+					return fallback
+				})
+			: fetchJson<T>(url)
+
 	const [protocols, chains, categoriesAndTags, cexsResponse, rwaList, tokenlistArray, bridgesResponse] =
 		await Promise.all([
-			fetchJson(PROTOCOLS_DATA_URL),
-			fetchJson(CHAINS_DATA_URL),
-			fetchJson(CATEGORIES_AND_TAGS_DATA_URL),
-			fetchJson(CEXS_DATA_URL),
-			fetchJson(RWA_LIST_DATA_URL),
-			fetchJson<Array<any>>(TOKENLIST_DATA_URL),
-			fetchJson<RawBridgesResponse>(BRIDGES_DATA_URL).catch((error) => {
-				console.error('[metadata] failed to fetch bridge inventory, continuing with empty bridge slug caches:', error)
-				return { bridges: [] }
-			})
+			fetchWithDevFallback<Record<string, IProtocolMetadata>>(PROTOCOLS_DATA_URL, {}),
+			fetchWithDevFallback<Record<string, IChainMetadata>>(CHAINS_DATA_URL, {}),
+			fetchWithDevFallback<ICategoriesAndTags>(CATEGORIES_AND_TAGS_DATA_URL, {
+				categories: [],
+				tags: [],
+				tagCategoryMap: {}
+			}),
+			fetchWithDevFallback<RawCexsResponse>(CEXS_DATA_URL, { cexs: [], cg_volume_cexs: [] }),
+			fetchWithDevFallback<IRWAList>(RWA_LIST_DATA_URL, {
+				tickers: [],
+				platforms: [],
+				chains: [],
+				categories: [],
+				idMap: {}
+			}),
+			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),
+			fetchWithDevFallback<RawBridgesResponse>(BRIDGES_DATA_URL, { bridges: [] })
 		])
 
 	const tokenlist: Record<string, ITokenListEntry> = {}
@@ -162,8 +193,8 @@ export async function fetchCoreMetadata(): Promise<{
 		protocols,
 		chains,
 		categoriesAndTags,
-		cexs: cexsResponse.cexs ?? [],
-		cgExchangeIdentifiers: cexsResponse.cg_volume_cexs ?? [],
+		cexs: cexsResponse.cexs,
+		cgExchangeIdentifiers: cexsResponse.cg_volume_cexs,
 		rwaList,
 		tokenlist,
 		bridgeProtocolSlugs,

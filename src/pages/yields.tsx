@@ -1,4 +1,5 @@
 import { Announcement } from '~/components/Announcement'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import YieldPage from '~/containers/Yields'
 import { getLendBorrowData, getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
@@ -24,8 +25,12 @@ export const getStaticProps = withPerformanceLogging('yields', async () => {
 		}
 	})
 
+	const { questions: entityQuestions } = await fetchEntityQuestions('yields', 'page').catch(() => ({
+		questions: [] as string[]
+	}))
+
 	return {
-		props: { ...data.props },
+		props: { ...data.props, entityQuestions },
 		revalidate: maxAgeForNext([23])
 	}
 })
@@ -40,7 +45,9 @@ export default function ApyHomePage(data) {
 			canonicalUrl={`/yields`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<YieldPage {...data} />
 		</Layout>
 	)

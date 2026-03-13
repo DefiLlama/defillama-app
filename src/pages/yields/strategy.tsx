@@ -51,12 +51,14 @@ const pageName = ['Yields: Delta Neutral Strategies']
 export default function YieldStrategies(data) {
 	return (
 		<Layout
-			title={`Yield Delta Neutral Strategies - DefiLlama Yield`}
-			description={`Find strategies to neutralize delta exposure and maximize yield. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			title={`Delta Neutral Strategies - DefiLlama Yield`}
+			description="Find delta-neutral lend-borrow-farm strategies. Compare APY, LTV, available liquidity, and farm TVL across DeFi."
 			canonicalUrl={`/yields/strategy`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<YieldsStrategyPage {...data} />
 		</Layout>
 	)

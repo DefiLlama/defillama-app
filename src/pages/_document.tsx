@@ -1,4 +1,5 @@
 import { Head, Html, Main, NextScript } from 'next/document'
+import { getAnnouncementDismissalBootstrapScript, getThemeBootstrapScript } from '~/utils/cookies'
 
 export default function Document() {
 	return (
@@ -17,43 +18,12 @@ export default function Document() {
 				<link href="/assets/defillama.webp" rel="preload" as="image" type="image/webp" />
 				<script
 					dangerouslySetInnerHTML={{
-						__html: `
-							(function() {
-								const VALID_THEME_VALUES = ['dark', 'light'];
-								
-								function sanitizeThemeValue(value) {
-									if (!value) return 'dark';
-									const trimmed = String(value).trim();
-									return VALID_THEME_VALUES.includes(trimmed) ? trimmed : 'dark';
-								}
-								
-								function parseThemeCookie(cookieString) {
-									if (!cookieString) return 'dark';
-									
-									const cookies = cookieString.split(';');
-									const themeCookie = cookies.find(cookie => cookie.trim().startsWith('defillama-theme='));
-									
-									if (themeCookie) {
-										const parts = themeCookie.split('=');
-										if (parts.length >= 2 && parts[1]) {
-											return sanitizeThemeValue(parts[1]);
-										}
-									}
-									
-									return 'dark';
-								}
-								
-								const isDarkMode = parseThemeCookie(document.cookie) === 'dark';
-								
-								if (!isDarkMode) {
-									document.documentElement.classList.remove('dark');
-									document.documentElement.classList.add('light');
-								} else {
-									document.documentElement.classList.remove('light');
-									document.documentElement.classList.add('dark');
-								}
-							})();
-						`
+						__html: getThemeBootstrapScript()
+					}}
+				/>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: getAnnouncementDismissalBootstrapScript()
 					}}
 				/>
 			</Head>

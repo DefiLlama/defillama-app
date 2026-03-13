@@ -37,8 +37,8 @@ export default function Collection() {
 		charts: []
 	}
 	const collectionDescription = collection
-		? `NFT royalties for ${collection}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
-		: `NFT royalties by collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
+		? `Track NFT royalties for ${collection}. Compare 30d and lifetime earnings with historical charts.`
+		: `Track NFT royalty earnings by collection. Compare 30d and lifetime royalties with historical charts.`
 
 	if (fetchingData) {
 		return (
@@ -73,7 +73,7 @@ export default function Collection() {
 	return (
 		<Layout
 			title={props.name + ' Royalties - DefiLlama'}
-			description={`NFT royalties for ${props.name}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
+			description={`Track NFT royalties for ${props.name}. Compare 30d and lifetime earnings with historical charts.`}
 			canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 		>
 			<div className="relative isolate grid grid-cols-2 gap-2 *:last:col-span-2 xl:grid-cols-3">
