@@ -1,7 +1,10 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { LocalLoader } from '~/components/Loaders'
+import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { YieldFiltersV2 } from './Filters'
+import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
 import { useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
@@ -37,7 +40,8 @@ const YieldPage = ({
 	stablecoinInfoBySymbol,
 	entityQuestions: baseQuestions
 }) => {
-	const { pathname } = useRouter()
+	const router = useRouter()
+	const { pathname } = router
 
 	const [loading, setLoading] = React.useState(true)
 	const { data: volatility } = useVolatility()
@@ -56,6 +60,15 @@ const YieldPage = ({
 		minApy,
 		maxApy
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
+
+	const filterContext = React.useMemo(() => getYieldsQuestionContext(router.query), [router.query])
+	const { data: filteredQuestionsData, isFetching: isQuestionsLoading } = useEntityQuestions(
+		'yields',
+		'page',
+		!!filterContext,
+		filterContext ?? undefined
+	)
+	const questions = filteredQuestionsData?.questions?.length ? filteredQuestionsData.questions : baseQuestions
 
 	React.useEffect(() => {
 		const timer = setTimeout(() => setLoading(false), 1000)
@@ -313,6 +326,16 @@ const YieldPage = ({
 					Couldn't find any pools for these filters
 				</p>
 			)}
+
+			{questions?.length > 0 || isQuestionsLoading ? (
+				<EntityQuestionsStrip
+					questions={questions ?? []}
+					entitySlug="yields"
+					entityType="page"
+					entityName="Yields"
+					isLoading={isQuestionsLoading}
+				/>
+			) : null}
 		</>
 	)
 }
