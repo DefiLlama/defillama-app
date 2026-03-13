@@ -32,10 +32,9 @@ function PegHealthIndicator({
 	const sign = deviation > 0 ? '+' : ''
 	const priceStr = price != null ? `$${price.toFixed(4)}` : null
 	const depeg = Math.abs(deviation) >= 2
-	const label = depeg ? 'Currently de-pegged by 2% or more' : deviation > 0 ? 'Above peg' : deviation < 0 ? 'Below peg' : 'At peg'
-	const tooltipText = priceStr
-		? `${label} \u00b7 ${priceStr} (${sign}${deviation.toFixed(4)}%)`
-		: `${label} \u00b7 ${sign}${deviation.toFixed(4)}%`
+	const deviationStr = `${sign}${deviation.toFixed(4)}%`
+	const depegWarning = depeg ? 'De-pegged by 2%+\n' : ''
+	const tooltipText = priceStr ? `${depegWarning}${priceStr} (${deviationStr})` : `${depegWarning}${deviationStr}`
 	return (
 		<Tooltip content={tooltipText} className="justify-end">
 			<span className="inline-flex items-center gap-1.5">
