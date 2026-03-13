@@ -319,6 +319,16 @@ const YieldPage = ({
 				showPresetFilters
 			/>
 
+			{questions?.length > 0 || isQuestionsLoading ? (
+				<EntityQuestionsStrip
+					questions={questions ?? []}
+					entitySlug="yields"
+					entityType="page"
+					entityName="Yields"
+					isLoading={isQuestionsLoading}
+				/>
+			) : null}
+
 			{loading ? (
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
 					<LocalLoader />
@@ -330,16 +340,6 @@ const YieldPage = ({
 					Couldn't find any pools for these filters
 				</p>
 			)}
-
-			{questions?.length > 0 || isQuestionsLoading ? (
-				<EntityQuestionsStrip
-					questions={questions ?? []}
-					entitySlug="yields"
-					entityType="page"
-					entityName="Yields"
-					isLoading={isQuestionsLoading}
-				/>
-			) : null}
 		</>
 	)
 }

@@ -7,8 +7,8 @@ import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
-import { Tooltip } from '~/components/Tooltip'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
@@ -33,8 +33,12 @@ function PegHealthIndicator({
 	const priceStr = price != null ? `$${price.toFixed(4)}` : null
 	const depeg = Math.abs(deviation) >= 2
 	const deviationStr = `${sign}${deviation.toFixed(4)}%`
-	const depegWarning = depeg ? 'De-pegged by 2%+\n' : ''
-	const tooltipText = priceStr ? `${depegWarning}${priceStr} (${deviationStr})` : `${depegWarning}${deviationStr}`
+	const depegWarning = depeg
+		? 'De-pegged by 2%+\n'
+		: ''
+	const tooltipText = priceStr
+		? `${depegWarning}${priceStr} (${deviationStr})`
+		: `${depegWarning}${deviationStr}`
 	return (
 		<Tooltip content={tooltipText} className="justify-end">
 			<span className="inline-flex items-center gap-1.5">
