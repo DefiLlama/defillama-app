@@ -933,6 +933,11 @@
       "name": "API",
       "route": "https://api-docs.defillama.com",
       "icon": "code"
+    },
+    {
+      "name": "DEX Aggregator",
+      "route": "https://swap.defillama.com",
+      "icon": "landmark"
     }
   ],
   "Premium": [
