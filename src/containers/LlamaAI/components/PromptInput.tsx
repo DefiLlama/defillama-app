@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { CapabilityChips } from '~/containers/LlamaAI/components/input/CapabilityChips'
 import { EntityComboboxPopover } from '~/containers/LlamaAI/components/input/EntityCombobox'
 import { DragOverlay, ImageUpload, ImageUploadButton } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { InputTextarea } from '~/containers/LlamaAI/components/input/InputTextarea'
@@ -409,6 +410,13 @@ export function PromptInput({
 							<span className="sr-only">Manage Alerts</span>
 						</Tooltip>
 					) : null}
+					<CapabilityChips
+						onPromptSelect={(prompt) => {
+							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+						}}
+						isPending={isPending}
+						isStreaming={isStreaming}
+					/>
 				</div>
 				<div className="flex items-center gap-2">
 					<ImageUploadButton onClick={imageUpload.openFilePicker} />

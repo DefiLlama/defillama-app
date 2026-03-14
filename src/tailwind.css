@@ -258,6 +258,25 @@
 	}
 }
 
+@utility capability-panel {
+	opacity: 0;
+	transform: scale(0.96);
+	transition:
+		opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+		transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+
+	&[data-enter] {
+		opacity: 1;
+		transform: scale(1);
+	}
+
+	&[data-leave] {
+		transition:
+			opacity 120ms ease-out,
+			transform 120ms ease-out;
+	}
+}
+
 /* ------------------------- Pro Dashboard Utilities ------------------------- */
 @utility pro-dashboard {
 	--pro-text1: #0a0a0a;
