@@ -73,7 +73,7 @@ export const getStaticProps = withPerformanceLogging<StablecoinsByChainPageProps
 				}
 			})
 		}
-		const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', stablecoinsContext)
+		const { questions: entityQuestions } = await fetchEntityQuestions(slug(chain), 'chain', { subPage: 'stablecoins', ...stablecoinsContext })
 
 		return {
 			props: { ...props, availableBackings, availablePegTypes, entityQuestions },
