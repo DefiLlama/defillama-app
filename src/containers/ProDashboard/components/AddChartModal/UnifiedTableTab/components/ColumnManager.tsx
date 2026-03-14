@@ -668,6 +668,84 @@ export function ColumnManager({
 				/>
 			) : null}
 
+			<section className="flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg)">
+				<div className="flex flex-wrap gap-1 border-b border-(--cards-border) p-2">
+					{GROUP_FILTERS.map((filter) => (
+						<button
+							key={filter.id}
+							type="button"
+							onClick={() => setGroupFilter(filter.id)}
+							className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
+								groupFilter === filter.id
+									? 'bg-(--primary)/15 text-(--primary)'
+									: 'text-(--text-tertiary) hover:bg-(--cards-bg-alt) hover:text-(--text-secondary)'
+							}`}
+						>
+							{filter.label}
+						</button>
+					))}
+				</div>
+
+				<div className="border-b border-(--cards-border) p-2">
+					<div className="relative">
+						<Icon
+							name="search"
+							width={12}
+							height={12}
+							className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
+						/>
+						<input
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							placeholder="Search columns..."
+							className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1.5 pr-2.5 pl-8 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
+						/>
+					</div>
+				</div>
+
+				<div className="thin-scrollbar max-h-[240px] overflow-y-auto p-2">
+					{filteredColumns.length === 0 ? (
+						<p className="flex h-16 items-center justify-center text-xs text-(--text-tertiary)">No columns match</p>
+					) : (
+						<div className="flex flex-col gap-1">
+							{filteredColumns.map((column) => {
+								const isSelected = selectedColumnsSet.has(column.id)
+								return (
+									<button
+										key={column.id}
+										type="button"
+										onClick={() => handleToggleColumn(column.id)}
+										className={`group flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-left transition-all ${
+											isSelected
+												? 'border-(--primary)/30 bg-(--primary)/5'
+												: 'border-transparent hover:border-(--cards-border) hover:bg-(--cards-bg-alt)/50'
+										}`}
+									>
+										<div
+											className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border transition-colors ${
+												isSelected
+													? 'border-(--primary) bg-(--primary) text-white'
+													: 'border-(--cards-border) group-hover:border-(--primary)/50'
+											}`}
+										>
+											{isSelected ? <Icon name="check" width={8} height={8} /> : null}
+										</div>
+										<span
+											className={`flex-1 truncate text-xs ${isSelected ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'}`}
+										>
+											{column.header}
+										</span>
+										<span className="rounded bg-(--cards-bg-alt) px-1 py-0.5 text-[9px] text-(--text-tertiary) uppercase">
+											{GROUP_LABELS[column.group]}
+										</span>
+									</button>
+								)
+							})}
+						</div>
+					)}
+				</div>
+			</section>
+
 			<section className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3">
 				<button
 					type="button"
@@ -910,84 +988,6 @@ export function ColumnManager({
 						))}
 					</div>
 				) : null}
-			</section>
-
-			<section className="flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex flex-wrap gap-1 border-b border-(--cards-border) p-2">
-					{GROUP_FILTERS.map((filter) => (
-						<button
-							key={filter.id}
-							type="button"
-							onClick={() => setGroupFilter(filter.id)}
-							className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
-								groupFilter === filter.id
-									? 'bg-(--primary)/15 text-(--primary)'
-									: 'text-(--text-tertiary) hover:bg-(--cards-bg-alt) hover:text-(--text-secondary)'
-							}`}
-						>
-							{filter.label}
-						</button>
-					))}
-				</div>
-
-				<div className="border-b border-(--cards-border) p-2">
-					<div className="relative">
-						<Icon
-							name="search"
-							width={12}
-							height={12}
-							className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
-						/>
-						<input
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							placeholder="Search columns..."
-							className="w-full rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 py-1.5 pr-2.5 pl-8 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
-						/>
-					</div>
-				</div>
-
-				<div className="thin-scrollbar max-h-[240px] overflow-y-auto p-2">
-					{filteredColumns.length === 0 ? (
-						<p className="flex h-16 items-center justify-center text-xs text-(--text-tertiary)">No columns match</p>
-					) : (
-						<div className="flex flex-col gap-1">
-							{filteredColumns.map((column) => {
-								const isSelected = selectedColumnsSet.has(column.id)
-								return (
-									<button
-										key={column.id}
-										type="button"
-										onClick={() => handleToggleColumn(column.id)}
-										className={`group flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-left transition-all ${
-											isSelected
-												? 'border-(--primary)/30 bg-(--primary)/5'
-												: 'border-transparent hover:border-(--cards-border) hover:bg-(--cards-bg-alt)/50'
-										}`}
-									>
-										<div
-											className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border transition-colors ${
-												isSelected
-													? 'border-(--primary) bg-(--primary) text-white'
-													: 'border-(--cards-border) group-hover:border-(--primary)/50'
-											}`}
-										>
-											{isSelected ? <Icon name="check" width={8} height={8} /> : null}
-										</div>
-										<span
-											className={`flex-1 truncate text-xs ${isSelected ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'}`}
-										>
-											{column.header}
-										</span>
-										<span className="rounded bg-(--cards-bg-alt) px-1 py-0.5 text-[9px] text-(--text-tertiary) uppercase">
-											{GROUP_LABELS[column.group]}
-										</span>
-									</button>
-								)
-							})}
-						</div>
-					)}
-				</div>
 			</section>
 		</div>
 	)
