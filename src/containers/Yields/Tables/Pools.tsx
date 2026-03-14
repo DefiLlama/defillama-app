@@ -539,6 +539,62 @@ const columns = [
 			headerHelperText: 'Amount of borrowed collateral'
 		}
 	}),
+	columnHelper.accessor((row) => row.holderCount ?? undefined, {
+		id: 'holderCount',
+		header: 'Holders',
+		enableSorting: true,
+		cell: ({ getValue, row }) => {
+			const count = getValue() as number | null
+			if (count == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+			const change7d = row.original.holderChange7d
+			return (
+				<span className="flex items-center justify-end gap-1.5">
+					<span className="tabular-nums">{formattedNum(count)}</span>
+					{change7d != null ? (
+						<span className={`text-xs tabular-nums ${change7d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
+							{change7d >= 0 ? '+' : ''}
+							{change7d}
+						</span>
+					) : null}
+				</span>
+			)
+		},
+		size: 130,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Number of unique token holders. Badge shows 7d change.'
+		}
+	}),
+	columnHelper.accessor((row) => row.avgPositionUsd ?? undefined, {
+		id: 'avgPositionUsd',
+		header: 'Avg Position',
+		enableSorting: true,
+		cell: (info) => {
+			const val = info.getValue() as number | null
+			if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+			return <>{formattedNum(val, true)}</>
+		},
+		size: 130,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Average holder position size in USD (TVL / holders).'
+		}
+	}),
+	columnHelper.accessor((row) => row.top10Pct ?? undefined, {
+		id: 'top10Pct',
+		header: 'Top 10 %',
+		enableSorting: true,
+		cell: (info) => {
+			const val = info.getValue() as number | null
+			if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+			return <span className="tabular-nums">{val.toFixed(1)}%</span>
+		},
+		size: 110,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Percentage of TVL held by the top 10 holders. Higher = more concentrated.'
+		}
+	}),
 	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
 		id: 'totalAvailableUsd',
 		header: 'Available',
@@ -598,7 +654,10 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'holderCount',
+		'avgPositionUsd',
+		'top10Pct'
 	],
 	400: [
 		'pool',
@@ -628,7 +687,10 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'holderCount',
+		'avgPositionUsd',
+		'top10Pct'
 	],
 	640: [
 		'pool',
@@ -658,7 +720,10 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'ltv',
 		'totalSupplyUsd',
 		'totalBorrowUsd',
-		'totalAvailableUsd'
+		'totalAvailableUsd',
+		'holderCount',
+		'avgPositionUsd',
+		'top10Pct'
 	],
 	1280: [
 		'pool',
@@ -721,7 +786,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	},
 	812: {
 		pool: 200,
@@ -751,7 +819,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	},
 	1280: {
 		pool: 240,
@@ -781,7 +852,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	},
 	1536: {
 		pool: 280,
@@ -811,7 +885,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	},
 	1600: {
 		pool: 320,
@@ -841,7 +918,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	},
 	1640: {
 		pool: 360,
@@ -871,7 +951,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	},
 	1720: {
 		pool: 420,
@@ -901,7 +984,10 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		ltv: 110,
 		totalSupplyUsd: 120,
 		totalBorrowUsd: 120,
-		totalAvailableUsd: 120
+		totalAvailableUsd: 120,
+		holderCount: 130,
+		avgPositionUsd: 130,
+		top10Pct: 110
 	}
 }
 
@@ -923,7 +1009,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 		showAvailable,
 		showLTV,
 		showMedianApy,
-		showStdDev
+		showStdDev,
+		showHolders
 	} = router.query
 
 	const isStablecoinPage = router.pathname === '/yields/stablecoins'
@@ -966,6 +1053,9 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					holderCount: showHolders === 'true',
+					avgPositionUsd: showHolders === 'true',
+					top10Pct: showHolders === 'true',
 					...stablecoinColumnVisibility
 				}
 			: {
@@ -988,6 +1078,9 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					holderCount: showHolders === 'true',
+					avgPositionUsd: showHolders === 'true',
+					top10Pct: showHolders === 'true',
 					...stablecoinColumnVisibility
 				}
 

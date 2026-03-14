@@ -4,7 +4,7 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
-import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
@@ -18,7 +18,9 @@ import {
 	useYieldChartLendBorrow,
 	useYieldConfigData,
 	useYieldPoolData,
-	useVolatility
+	useVolatility,
+	useHolderHistory,
+	useHolderStats
 } from '~/containers/Yields/queries/client'
 import { StabilityCell } from '~/containers/Yields/Tables/StabilityCell'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -28,6 +30,7 @@ import { formattedNum, slug } from '~/utils'
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
+const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const EMPTY_CHART_DATA: any[] = []
 const EMPTY_TVL_APY_DATASET = { source: [] as any[], dimensions: ['timestamp', 'APY', 'TVL'] }
 
@@ -59,6 +62,19 @@ const BASE_REWARD_BAR_CHARTS: IMultiSeriesChart2Props['charts'] = [
 const SINGLE_APY_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
 	{ type: 'line', name: 'APY', encode: { x: 'timestamp', y: 'APY' }, color: CHART_COLORS[0] }
 ]
+
+const HOLDER_COUNT_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
+	{ type: 'line', name: 'Holders', encode: { x: 'timestamp', y: 'Holders' }, color: '#10b981' }
+]
+
+const EMPTY_HOLDER_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Holders'] }
+
+const HOLDER_DONUT_RADIUS: [string, string] = ['45%', '75%']
+
+function truncateAddress(addr: string): string {
+	if (!addr || addr.length < 12) return addr
+	return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+}
 
 const EMPTY_BASE_REWARD_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Base', 'Reward'] }
 const EMPTY_APY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'APY'] }
@@ -96,6 +112,9 @@ const PageView = (_props) => {
 	const { data: config, isLoading: fetchingConfigData } = useYieldConfigData(poolData.project ?? '')
 
 	const { data: volatility } = useVolatility()
+	const { data: holderHistory } = useHolderHistory(poolId)
+	const { data: holderStatsMap } = useHolderStats(poolData.pool ? [poolData.pool] : undefined)
+	const holderStats = poolData.pool ? holderStatsMap?.[poolData.pool] : null
 	const poolConfigId = poolData.pool
 	const cv30d = poolConfigId ? (volatility?.[poolConfigId]?.[3] ?? null) : null
 	const apyMedian30d = poolConfigId ? (volatility?.[poolConfigId]?.[1] ?? null) : null
@@ -279,6 +298,36 @@ const PageView = (_props) => {
 	const deferredNetBorrowApyDataset = useDeferredValue(netBorrowApyDataset)
 	const deferredPoolLiquidityDataset = useDeferredValue(poolLiquidityDataset)
 
+	const holderCountDataset = useMemo(() => {
+		if (!holderHistory?.length) return EMPTY_HOLDER_DATASET
+		return {
+			source: holderHistory.map((entry) => ({
+				timestamp: new Date(entry.timestamp).getTime(),
+				Holders: entry.holderCount
+			})),
+			dimensions: ['timestamp', 'Holders']
+		} as MultiSeriesChart2Dataset
+	}, [holderHistory])
+	const deferredHolderCountDataset = useDeferredValue(holderCountDataset)
+
+	const { chartInstance: holderCountChartInstance, handleChartReady: handleHolderCountReady } = useGetChartInstance()
+
+	const holderDonutData = useMemo(() => {
+		const holders = holderStats?.top10Holders
+		if (!holders?.length) return null
+		const top10Sum = holders.reduce((sum, h) => sum + h.balancePct, 0)
+		const othersSlice = 100 - top10Sum
+		const data = holders.map((h) => ({
+			name: truncateAddress(h.address),
+			value: h.balancePct
+		}))
+		if (othersSlice > 0.01) {
+			data.push({ name: 'Others', value: Math.round(othersSlice * 100) / 100 })
+		}
+		return data
+	}, [holderStats?.top10Holders])
+	const deferredHolderDonutData = useDeferredValue(holderDonutData)
+
 	const liquidityCharts = useMemo(() => {
 		return LIQUIDITY_LEGEND_OPTIONS.map((name) => ({
 			type: 'line' as const,
@@ -329,6 +378,29 @@ const PageView = (_props) => {
 								<span className="font-semibold">Yield Score</span>
 								<StabilityCell cv30d={cv30d} apyMedian30d={apyMedian30d} apyStd30d={apyStd30d} />
 							</p>
+						) : null}
+						{holderStats?.holderCount != null ? (
+							<>
+								<p className="flex items-center justify-between gap-1">
+									<span className="font-semibold">Holders</span>
+									<span className="ml-auto flex items-center gap-1.5 font-jetbrains">
+										{formattedNum(holderStats.holderCount)}
+										{holderStats.holderChange7d != null ? (
+											<span className={`text-xs ${holderStats.holderChange7d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
+												7d: {holderStats.holderChange7d >= 0 ? '+' : ''}{holderStats.holderChange7d}
+											</span>
+										) : null}
+									</span>
+								</p>
+								<p className="flex items-center justify-between gap-1">
+									<span className="font-semibold">Avg Position</span>
+									<span className="ml-auto font-jetbrains">{formattedNum(holderStats.avgPositionUsd, true)}</span>
+								</p>
+								<p className="flex items-center justify-between gap-1">
+									<span className="font-semibold">Top 10 Concentration</span>
+									<span className="ml-auto font-jetbrains">{holderStats.top10Pct}%</span>
+								</p>
+							</>
 						) : null}
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
@@ -503,6 +575,48 @@ const PageView = (_props) => {
 									valueSymbol="$"
 									selectedCharts={new Set(selectedLiquiditySeries)}
 									onReady={handlePoolLiquidityReady}
+								/>
+							</Suspense>
+						</div>
+					) : null}
+				</div>
+			) : null}
+
+			{holderCountDataset.source.length || deferredHolderDonutData?.length ? (
+				<div className="grid grid-cols-2 gap-2">
+					{holderCountDataset.source.length ? (
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+								<h2 className="mr-auto text-base font-semibold">Holder Count</h2>
+								<ChartExportButtons
+									chartInstance={holderCountChartInstance}
+									filename={`${query.pool}-holder-count`}
+									title="Holder Count"
+								/>
+							</div>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={deferredHolderCountDataset}
+									charts={HOLDER_COUNT_LINE_CHARTS}
+									valueSymbol=""
+									onReady={handleHolderCountReady}
+								/>
+							</Suspense>
+						</div>
+					) : null}
+					{deferredHolderDonutData?.length ? (
+						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
+							<Suspense fallback={<div className="min-h-[398px]" />}>
+								<PieChart
+									title="Top 10 Holder Distribution"
+									chartData={deferredHolderDonutData}
+									radius={HOLDER_DONUT_RADIUS}
+									valueSymbol="%"
+									showLegend
+									legendPosition={{ right: 12, orient: 'vertical' }}
+									legendTextStyle={{ fontSize: 11 }}
+									toRight={180}
+									exportButtons="auto"
 								/>
 							</Suspense>
 						</div>

@@ -5,13 +5,19 @@ import {
 	YIELD_CHART_LEND_BORROW_API,
 	YIELD_CONFIG_API,
 	YIELD_CONFIG_POOL_API,
+	YIELD_HOLDERS_API,
+	YIELD_HOLDER_HISTORY_API,
 	YIELD_POOLS_API,
 	YIELD_POOLS_LAMBDA_API,
 	YIELD_VOLATILITY_API
 } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { fetchJson } from '~/utils/async'
+import { generateMockHolderHistory, generateMockHolderStats } from './holderMocks'
+import type { HolderHistoryEntry, HolderStatsMap } from './holderTypes'
 import { formatYieldsPageData } from './utils'
+
+const USE_MOCK_HOLDER_DATA = process.env.NEXT_PUBLIC_USE_MOCK_HOLDER_DATA === 'true'
 
 // single pool
 export const useYieldPoolData = (configID) => {
@@ -111,6 +117,43 @@ export const useVolatility = () => {
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isAuthenticated && !!hasActiveSubscription
+	})
+}
+
+export const useHolderStats = (configIDs?: string[]) => {
+	return useQuery<HolderStatsMap>({
+		queryKey: ['holder-stats'],
+		queryFn: async () => {
+			if (USE_MOCK_HOLDER_DATA && configIDs?.length) {
+				return generateMockHolderStats(configIDs)
+			}
+			const res = await fetchJson(YIELD_HOLDERS_API)
+			return res?.data ?? {}
+		},
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1
+	})
+}
+
+export const useHolderHistory = (configID: string | null) => {
+	return useQuery<HolderHistoryEntry[]>({
+		queryKey: ['holder-history', configID],
+		queryFn: async () => {
+			if (USE_MOCK_HOLDER_DATA && configID) {
+				return generateMockHolderHistory(configID)
+			}
+			const res = await fetchJson(`${YIELD_HOLDER_HISTORY_API}/${configID}`)
+			return (res?.data ?? []).map((row: any) => ({
+				...row,
+				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
+				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null
+			}))
+		},
+		staleTime: Infinity,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!configID
 	})
 }
 

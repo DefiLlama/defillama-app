@@ -6,7 +6,7 @@ import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestion
 import { YieldFiltersV2 } from './Filters'
 import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
-import { useVolatility } from './queries/client'
+import { useHolderStats, useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
 import { toFilterPool } from './utils'
 
@@ -24,7 +24,8 @@ const ALL_YIELD_COLUMNS = [
 	'showTotalBorrowed',
 	'showAvailable',
 	'showMedianApy',
-	'showStdDev'
+	'showStdDev',
+	'showHolders'
 ]
 
 const YieldPage = ({
@@ -45,6 +46,7 @@ const YieldPage = ({
 
 	const [loading, setLoading] = React.useState(true)
 	const { data: volatility } = useVolatility()
+	const { data: holderStats } = useHolderStats(pools?.map((p) => p.pool))
 
 	const {
 		selectedProjects,
@@ -190,7 +192,12 @@ const YieldPage = ({
 					apyStd30d: volatility?.[curr.pool]?.[2] ?? null,
 					cv30d: volatility?.[curr.pool]?.[3] ?? null,
 					pegDeviation: pegInfo?.pegDeviation ?? null,
-					pegPrice: pegInfo?.price ?? null
+					pegPrice: pegInfo?.price ?? null,
+					holderCount: holderStats?.[curr.pool]?.holderCount ?? null,
+					avgPositionUsd: holderStats?.[curr.pool]?.avgPositionUsd ?? null,
+					top10Pct: holderStats?.[curr.pool]?.top10Pct ?? null,
+					holderChange7d: holderStats?.[curr.pool]?.holderChange7d ?? null,
+					holderChange30d: holderStats?.[curr.pool]?.holderChange30d ?? null
 				})
 			} else return acc
 		}, [])
@@ -212,7 +219,8 @@ const YieldPage = ({
 		usdPeggedSymbols,
 		tokenCategories,
 		volatility,
-		stablecoinInfoBySymbol
+		stablecoinInfoBySymbol,
+		holderStats
 	])
 	const prepareCsv = () => {
 		const headers = [

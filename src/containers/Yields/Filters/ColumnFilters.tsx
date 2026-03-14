@@ -38,7 +38,8 @@ const baseFilters = [
 	{ name: 'Borrowed', key: 'showTotalBorrowed' },
 	{ name: 'Available', key: 'showAvailable' },
 	{ name: '30d Median APY', key: 'showMedianApy', isPremium: true },
-	{ name: '30d Std Dev', key: 'showStdDev', isPremium: true }
+	{ name: '30d Std Dev', key: 'showStdDev', isPremium: true },
+	{ name: 'Holders', key: 'showHolders' }
 ]
 
 const getOptionalFilters = (hasActiveSubscription: boolean) =>
