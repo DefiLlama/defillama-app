@@ -1,6 +1,5 @@
-import { useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react'
+import type { Dispatch, RefObject, SetStateAction } from 'react'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
-import { RecommendedPrompts } from '~/containers/LlamaAI/components/RecommendedPrompts'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
 
 interface ChatLandingProps {
@@ -34,11 +33,6 @@ export function ChatLanding({
 	researchUsage,
 	onOpenAlerts
 }: ChatLandingProps) {
-	const handleSuggestedSubmit = useCallback(
-		(prompt: string) => handleSubmit(prompt, undefined, undefined, undefined, true),
-		[handleSubmit]
-	)
-
 	return (
 		<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
 			<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
@@ -46,26 +40,19 @@ export function ChatLanding({
 				<h1 className="text-center text-2xl font-semibold">{title}</h1>
 			</div>
 			{!readOnly ? (
-				<>
-					<PromptInput
-						handleSubmit={handleSubmit}
-						promptInputRef={promptInputRef}
-						isPending={isStreaming}
-						handleStopRequest={handleStopRequest}
-						isStreaming={isStreaming}
-						restoreRequest={null}
-						placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-						isResearchMode={isResearchMode}
-						setIsResearchMode={setIsResearchMode}
-						researchUsage={researchUsage}
-						onOpenAlerts={onOpenAlerts}
-					/>
-					<RecommendedPrompts
-						onSubmit={handleSuggestedSubmit}
-						isPending={isStreaming}
-						isResearchMode={isResearchMode}
-					/>
-				</>
+				<PromptInput
+					handleSubmit={handleSubmit}
+					promptInputRef={promptInputRef}
+					isPending={isStreaming}
+					handleStopRequest={handleStopRequest}
+					isStreaming={isStreaming}
+					restoreRequest={null}
+					placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
+					isResearchMode={isResearchMode}
+					setIsResearchMode={setIsResearchMode}
+					researchUsage={researchUsage}
+					onOpenAlerts={onOpenAlerts}
+				/>
 			) : null}
 		</div>
 	)
