@@ -171,7 +171,7 @@ export function ProtocolOverviewLayout({
 		<Layout
 			title={resolvedTitle}
 			description={resolvedDescription}
-			canonicalUrl={standaloneCanonicals[tab] ? null : canonicalUrl}
+			canonicalUrl={standaloneCanonicals[tab] ? canonicalUrl : null}
 			metricFilters={toggleOptions}
 			metricFiltersLabel={metricFiltersLabel ?? undefined}
 		>
