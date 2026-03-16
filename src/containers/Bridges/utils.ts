@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
-import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, keepNeededProperties, slug } from '~/utils'
-import { BLOCK_EXPLORERS_ADDRESSES, BLOCK_EXPLORERS_TXS, blockExplorers, BRIDGE_PROPERTIES_TO_KEEP } from './constants'
+import { getPercentChange, getPrevVolumeFromChart, keepNeededProperties, slug } from '~/utils'
+import { BRIDGE_PROPERTIES_TO_KEEP } from './constants'
 
 interface ITokenData {
 	usdValue: number
@@ -229,13 +229,6 @@ const getTopTokenByUsd = (tokens?: Record<string, ITokenData>) => {
 	return { symbol: topSymbol, usdValue: topUsdValue }
 }
 
-const splitChainPrefixedHash = (value: string): { chain: string; hash: string } | null => {
-	if (typeof value !== 'string' || value === '' || !value.includes(':')) return null
-	const [chain, hash] = value.split(':')
-	if (!chain || !hash) return null
-	return { chain, hash }
-}
-
 export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats) => {
 	const { tokenDeposits, tokenWithdrawals } = useMemo(() => {
 		const tokensDeposited = bridgeStatsCurrentDay?.totalTokensDeposited
@@ -261,105 +254,4 @@ export const useBuildBridgeChartData = (bridgeStatsCurrentDay: IDailyBridgeStats
 		return { tokenDeposits, tokenWithdrawals }
 	}, [bridgeStatsCurrentDay])
 	return { tokenDeposits, tokenWithdrawals }
-}
-
-export const getBlockExplorerForTx = (txHash: string = '') => {
-	const scopedHash = splitChainPrefixedHash(txHash)
-	if (scopedHash) {
-		const explorer = BLOCK_EXPLORERS_TXS[scopedHash.chain]
-		if (explorer !== undefined) {
-			return {
-				blockExplorerLink: explorer[0] + scopedHash.hash,
-				blockExplorerName: explorer[1]
-			}
-		}
-		return { blockExplorerLink: null, blockExplorerName: null }
-	}
-
-	const blockExplorerLink = typeof txHash === 'string' && txHash !== '' ? 'https://etherscan.io/tx/' + txHash : null
-	const blockExplorerName = blockExplorerLink ? 'Etherscan' : null
-
-	return {
-		blockExplorerLink,
-		blockExplorerName
-	}
-}
-
-export const getBlockExplorerForAddress = (txHash: string = '') => {
-	const scopedHash = splitChainPrefixedHash(txHash)
-	if (scopedHash) {
-		const explorer = BLOCK_EXPLORERS_ADDRESSES[scopedHash.chain]
-		const chainName = scopedHash.chain
-			? scopedHash.chain
-					.split('_')
-					.map((x) => capitalizeFirstLetter(x))
-					.join(' ')
-			: 'Ethereum'
-
-		if (explorer !== undefined) {
-			return {
-				blockExplorerLink: explorer[0] + scopedHash.hash,
-				blockExplorerName: explorer[1],
-				chainName
-			}
-		}
-
-		return {
-			blockExplorerLink: null,
-			blockExplorerName: null,
-			chainName
-		}
-	}
-
-	const blockExplorerLink =
-		typeof txHash === 'string' && txHash !== '' ? 'https://etherscan.io/address/' + txHash : null
-	const blockExplorerName = blockExplorerLink ? 'Etherscan' : null
-	const chainName = blockExplorerLink ? 'Ethereum' : null
-
-	return {
-		blockExplorerLink,
-		blockExplorerName,
-		chainName
-	}
-}
-
-type ExplorerEntry = [url: string, name: string]
-type BlockExplorerValue = ExplorerEntry | ExplorerEntry[]
-
-function isMultiExplorer(value: BlockExplorerValue): value is ExplorerEntry[] {
-	return Array.isArray(value[0])
-}
-
-export const getBlockExplorer = (address: string = '') => {
-	let blockExplorerLink, blockExplorerName, chainName, explorers
-	if (!address || typeof address !== 'string' || address === '') {
-		return { blockExplorerLink, blockExplorerName, chainName, explorers }
-	}
-	if (!address.includes(':')) {
-		address = `ethereum:${address}`
-	}
-	const [chain, chainAddress] = address.split(':')
-	const explorer = blockExplorers[chain]
-	if (explorer) {
-		const normalized: ExplorerEntry[] = isMultiExplorer(explorer) ? explorer : [explorer]
-		explorers = normalized.map((e) => ({
-			blockExplorerLink: e[0] + chainAddress,
-			blockExplorerName: e[1]
-		}))
-		blockExplorerLink = explorers[0].blockExplorerLink
-		blockExplorerName = explorers[0].blockExplorerName
-	}
-	chainName = chain
-		? chain
-				.split('_')
-				.map((x) => capitalizeFirstLetter(x))
-				.join(' ')
-		: 'Ethereum'
-
-	return {
-		blockExplorerLink: blockExplorerLink ?? '',
-		blockExplorerName: blockExplorerName ?? 'unknown',
-		chainName,
-		explorers
-	}
 }

@@ -8,13 +8,14 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useBlockExplorers } from '~/api/client'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { getBlockExplorer, getBlockExplorerForTx } from '~/containers/Bridges/utils'
 import { formattedNum, slug, toNiceDayAndHour } from '~/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 
 type LargeTxsData = {
 	date: number
@@ -35,101 +36,6 @@ type BridgesLargeTxsTableProps = {
 }
 
 const columnHelper = createColumnHelper<LargeTxsData>()
-
-const largeTxsColumn = [
-	columnHelper.accessor('date', {
-		header: 'Timestamp',
-		cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
-		size: 120
-	}),
-	columnHelper.accessor('bridge', {
-		header: 'Bridge',
-		cell: ({ getValue }) => {
-			const value = getValue()
-			const linkValue = slug(value)
-			return (
-				<BasicLink
-					href={`/bridge/${linkValue}`}
-					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
-				>
-					{value}
-				</BasicLink>
-			)
-		},
-		size: 180
-	}),
-	columnHelper.accessor('isDeposit', {
-		header: 'Deposit/Withdrawal',
-		cell: ({ getValue }) => {
-			const value = getValue()
-			return (
-				<span className={`${value ? 'text-(--error)' : 'text-(--success)'}`}>{value ? 'Withdrawal' : 'Deposit'}</span>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	}),
-	columnHelper.accessor('symbol', {
-		header: 'Token',
-		cell: ({ getValue }) => {
-			const value = getValue()
-			const splitValue = value.split('#')
-			const [symbol, token] = splitValue
-			const { blockExplorerLink } = getBlockExplorer(token)
-			if (value) {
-				return (
-					<a
-						href={blockExplorerLink}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-end"
-					>
-						<span>{symbol}</span>
-						<Icon name="external-link" height={10} width={10} />
-					</a>
-				)
-			} else return 'Not found'
-		},
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	}),
-	columnHelper.accessor('usdValue', {
-		header: 'Value',
-		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	}),
-	columnHelper.accessor('txHash', {
-		header: 'Explorer Link',
-		cell: ({ getValue }) => {
-			const value = getValue()
-			const { blockExplorerLink } = getBlockExplorerForTx(value)
-			if (value) {
-				return (
-					<a
-						href={blockExplorerLink}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-end gap-2"
-					>
-						<span>View Transaction</span>
-						<Icon name="external-link" height={10} width={10} />
-					</a>
-				)
-			} else return 'Not found'
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	})
-]
 
 const largeTxsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['date', 'symbol', 'usdValue', 'isDeposit', 'bridge', 'txHash'],
@@ -168,10 +74,130 @@ export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle,
 		const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
 		const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
 		const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+		const { data: blockExplorersData } = useBlockExplorers()
+
+		const columns = React.useMemo(
+			() => [
+				columnHelper.accessor('date', {
+					header: 'Timestamp',
+					cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
+					size: 120
+				}),
+				columnHelper.accessor('bridge', {
+					header: 'Bridge',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						const linkValue = slug(value)
+						return (
+							<BasicLink
+								href={`/bridge/${linkValue}`}
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+							>
+								{value}
+							</BasicLink>
+						)
+					},
+					size: 180
+				}),
+				columnHelper.accessor('isDeposit', {
+					header: 'Deposit/Withdrawal',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						return (
+							<span className={`${value ? 'text-(--error)' : 'text-(--success)'}`}>
+								{value ? 'Withdrawal' : 'Deposit'}
+							</span>
+						)
+					},
+					size: 120,
+					meta: {
+						align: 'end'
+					}
+				}),
+				columnHelper.accessor('symbol', {
+					header: 'Token',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						if (!value) return 'Not found'
+
+						const [symbol, token] = value.split('#')
+						const explorer = token
+							? getBlockExplorerNew({
+									apiResponse: blockExplorersData ?? [],
+									address: token,
+									urlType: 'token'
+								})
+							: null
+
+						if (!explorer) {
+							return <span>{symbol}</span>
+						}
+
+						return (
+							<a
+								href={explorer.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center justify-end"
+							>
+								<span>{symbol}</span>
+								<Icon name="external-link" height={10} width={10} />
+							</a>
+						)
+					},
+					size: 100,
+					meta: {
+						align: 'end'
+					}
+				}),
+				columnHelper.accessor('usdValue', {
+					header: 'Value',
+					cell: (info) => formattedNum(info.getValue(), true),
+					size: 120,
+					meta: {
+						align: 'end'
+					}
+				}),
+				columnHelper.accessor('txHash', {
+					header: 'Explorer Link',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						if (!value) return 'Not found'
+
+						const explorer = getBlockExplorerNew({
+							apiResponse: blockExplorersData ?? [],
+							address: value,
+							urlType: 'tx'
+						})
+
+						if (!explorer) {
+							return null
+						}
+
+						return (
+							<a
+								href={explorer.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center justify-end gap-2"
+							>
+								<span>View Transaction</span>
+								<Icon name="external-link" height={10} width={10} />
+							</a>
+						)
+					},
+					meta: {
+						align: 'end'
+					},
+					size: 100
+				})
+			],
+			[blockExplorersData]
+		)
 
 		const instance = useReactTable({
 			data,
-			columns: largeTxsColumn,
+			columns,
 			state: {
 				sorting,
 				columnOrder,
