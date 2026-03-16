@@ -26,7 +26,7 @@ type PieChartDatum = { name: string; value: number }
 const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
 type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
 const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
-const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+const DEFAULT_EXCLUDED_TYPES = new Set([])
 
 const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
 	if (!values || values.length === 0) return []
