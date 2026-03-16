@@ -707,7 +707,13 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 									})}
 								</div>
 								{isPreview ? (
-									<PlaceholderRows columnMeta={columnMeta} gridTemplate={gridTemplate} tableWidth={tableWidth} />
+									<PlaceholderRows
+										columnMeta={columnMeta}
+										gridTemplate={gridTemplate}
+										tableWidth={tableWidth}
+										rows={sortedRows}
+										cols={cols}
+									/>
 								) : null}
 							</div>
 							{isPreview ? (
@@ -754,42 +760,56 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 	)
 }
 
-const PLACEHOLDER_WIDTHS = [30, 22, 38, 25, 32, 20, 35, 28, 40, 24, 31, 21, 36, 29, 34]
-
 function PlaceholderRows({
 	columnMeta,
 	gridTemplate,
-	tableWidth
+	tableWidth,
+	rows,
+	cols
 }: {
 	columnMeta: ColumnMeta[]
 	gridTemplate: string
 	tableWidth: number
+	rows: PreviewRow[]
+	cols: Set<number>
 }) {
-	const placeholderCount = 20
+	if (rows.length === 0) return null
+	const duplicated = [...rows, ...rows]
 	return (
 		<div style={{ minWidth: `${tableWidth}px` }}>
-			{Array.from({ length: placeholderCount }, (_, rowIdx) => (
-				<div
-					key={`placeholder-${rowIdx}`}
-					style={{ display: 'grid', gridTemplateColumns: gridTemplate, height: `${ROW_HEIGHT}px` }}
-				>
-					{columnMeta.map((column, colIdx) => (
-						<div
-							key={column.index}
-							className="flex items-center border-t border-r border-(--divider) p-2 last:border-r-0"
-							style={{ justifyContent: column.align === 'end' ? 'flex-end' : 'flex-start' }}
-						>
-							<div
-								className="rounded bg-(--text-tertiary)/30"
-								style={{
-									height: 12,
-									width: `${PLACEHOLDER_WIDTHS[(rowIdx * columnMeta.length + colIdx) % PLACEHOLDER_WIDTHS.length]}%`
-								}}
-							/>
-						</div>
-					))}
-				</div>
-			))}
+			{duplicated.map((row, rowIdx) => {
+				const isOdd = (rows.length + rowIdx) % 2 === 1
+				return (
+					<div
+						key={`placeholder-${rowIdx}`}
+						style={{ display: 'grid', gridTemplateColumns: gridTemplate, height: `${ROW_HEIGHT}px` }}
+					>
+						{columnMeta.map((column, position) => {
+							const rawValue = row.values[column.index] ?? ''
+							const displayValue = formatCellValue(rawValue, column)
+							const isSticky = position === 0
+							const isSelected = cols.has(column.index)
+							const tone = isSelected ? getCellTone(rawValue, column) : ''
+							return (
+								<div
+									key={column.index}
+									className={`overflow-hidden border-t border-r border-(--divider) p-2 text-sm text-ellipsis whitespace-nowrap last:border-r-0 ${tone} ${!isSelected ? 'text-(--text-tertiary) opacity-40' : ''}`}
+									style={{
+										textAlign: column.align,
+										position: isSticky ? 'sticky' : undefined,
+										left: isSticky ? 0 : undefined,
+										zIndex: isSticky ? 1 : undefined,
+										background: isSticky ? 'var(--cards-bg)' : isOdd ? 'var(--bg-primary)' : undefined,
+										boxShadow: isSticky ? 'var(--sticky-shadow, none)' : undefined
+									}}
+								>
+									{displayValue}
+								</div>
+							)
+						})}
+					</div>
+				)
+			})}
 		</div>
 	)
 }
