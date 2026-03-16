@@ -183,7 +183,7 @@ type RWAAssetsOverviewParams = {
 	rwaList: IRWAList
 }
 
-const ASSETS_TO_EXCLUDE = new Set(['Franklin OnChain U.S. Government Money Fund (BENJI)'])
+const ASSETS_TO_EXCLUDE = new Set([])
 
 export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
