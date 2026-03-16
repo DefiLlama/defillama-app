@@ -1,4 +1,11 @@
-import { SERVER_URL, V2_SERVER_URL, YIELDS_SERVER_URL, BRIDGES_SERVER_URL, RWA_SERVER_URL } from '~/constants'
+import {
+	SERVER_URL,
+	V2_SERVER_URL,
+	YIELDS_SERVER_URL,
+	BRIDGES_SERVER_URL,
+	RWA_SERVER_URL,
+	STABLECOINS_SERVER_URL
+} from '~/constants'
 import { slug as toSlug } from '~/utils'
 
 export interface ChartDatasetDefinition {
@@ -27,10 +34,13 @@ const extractOverviewProtocolOptions = (json: any): Array<{ label: string; value
 
 const extractOverviewChainOptions = (json: any): Array<{ label: string; value: string }> => {
 	const chains: string[] = json?.allChains ?? []
-	return chains
-		.filter(Boolean)
-		.map((c) => ({ label: c, value: toSlug(c) }))
-		.sort((a, b) => a.label.localeCompare(b.label))
+	return [
+		{ label: 'All Chains', value: 'all' },
+		...chains
+			.filter(Boolean)
+			.map((c) => ({ label: c, value: toSlug(c) }))
+			.sort((a, b) => a.label.localeCompare(b.label))
+	]
 }
 
 const extractTimestampValuePairs = (json: any): Array<Record<string, unknown>> => {
@@ -59,6 +69,31 @@ const extractLiteChartRows = (json: any): Array<Record<string, unknown>> => {
 	if (json && typeof json === 'object') {
 		const metrics = Object.keys(json).filter((k) => json[k] && typeof json[k] === 'object')
 		if (metrics.length === 0) return []
+
+		const isArrayOfPairs = metrics.some(
+			(k) => Array.isArray(json[k]) && json[k].length > 0 && Array.isArray(json[k][0])
+		)
+
+		if (isArrayOfPairs) {
+			const tsMap = new Map<number, Record<string, unknown>>()
+			for (const metric of metrics) {
+				const arr = json[metric]
+				if (!Array.isArray(arr)) continue
+				for (const entry of arr) {
+					if (!Array.isArray(entry) || entry.length < 2) continue
+					const ts = Number(entry[0])
+					if (!Number.isFinite(ts)) continue
+					let row = tsMap.get(ts)
+					if (!row) {
+						row = { date: ts }
+						tsMap.set(ts, row)
+					}
+					row[metric] = entry[1]
+				}
+			}
+			return [...tsMap.entries()].sort(([a], [b]) => a - b).map(([, row]) => row)
+		}
+
 		const timestampSet = new Set<string>()
 		for (const metric of metrics) {
 			for (const ts of Object.keys(json[metric])) timestampSet.add(ts)
@@ -132,6 +167,15 @@ const extractRWATickerBreakdownRows = (json: any): Array<Record<string, unknown>
 		})
 }
 
+function sumRecord(rec: unknown): number {
+	if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return 0
+	let total = 0
+	for (const v of Object.values(rec)) {
+		if (typeof v === 'number' && Number.isFinite(v)) total += v
+	}
+	return total
+}
+
 function makeDimensionProtocolChart(opts: {
 	slug: string
 	name: string
@@ -175,7 +219,10 @@ function makeDimensionChainChart(opts: {
 		paramLabel: 'Chain',
 		optionsUrl: `${SERVER_URL}/overview/${opts.adapterType}?${OVERVIEW_QS}${dtParam}`,
 		extractOptions: extractOverviewChainOptions,
-		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/${opts.adapterType}/chain/${param}${dtChartParam}`,
+		buildUrl: (param: string) =>
+			param === 'all'
+				? `${V2_SERVER_URL}/chart/${opts.adapterType}${dtChartParam}`
+				: `${V2_SERVER_URL}/chart/${opts.adapterType}/chain/${param}${dtChartParam}`,
 		extractRows: extractTimestampValuePairs
 	}
 }
@@ -286,6 +333,62 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 	},
 
 	{
+		slug: 'stablecoin-mcap-chart',
+		name: 'Stablecoin Mcap by Stablecoin',
+		description: 'Historical circulating supply for a specific stablecoin',
+		category: 'Stablecoins',
+		paramType: 'protocol',
+		paramLabel: 'Stablecoin',
+		optionsUrl: `${STABLECOINS_SERVER_URL}/stablecoins`,
+		extractOptions: (json) => {
+			const assets: any[] = json?.peggedAssets ?? []
+			return assets
+				.filter((a: any) => a?.name && !a.deprecated && !a.delisted)
+				.sort((a: any, b: any) => sumRecord(b.circulating) - sumRecord(a.circulating))
+				.map((a: any) => ({ label: `${a.name} (${a.symbol})`, value: a.id }))
+		},
+		buildUrl: (param: string) => `${STABLECOINS_SERVER_URL}/stablecoin/${param}`,
+		extractRows: (json) => {
+			const tokens: any[] = json?.tokens ?? []
+			return tokens
+				.filter((t: any) => t?.date != null)
+				.map((t: any) => ({
+					date: t.date,
+					circulating: sumRecord(t.circulating)
+				}))
+		}
+	},
+	{
+		slug: 'stablecoin-chain-mcap-chart',
+		name: 'Stablecoin Mcap by Chain',
+		description: 'Historical total stablecoin circulating supply for a specific chain',
+		category: 'Stablecoins',
+		paramType: 'chain',
+		paramLabel: 'Chain',
+		optionsUrl: `${STABLECOINS_SERVER_URL}/stablecoins`,
+		extractOptions: (json) => {
+			const chains: any[] = json?.chains ?? []
+			return [
+				{ label: 'All Chains', value: 'all' },
+				...chains
+					.filter((c: any) => c?.name)
+					.sort((a: any, b: any) => sumRecord(b.totalCirculatingUSD) - sumRecord(a.totalCirculatingUSD))
+					.map((c: any) => ({ label: c.name, value: c.name }))
+			]
+		},
+		buildUrl: (param: string) => `${STABLECOINS_SERVER_URL}/stablecoincharts2/${param}`,
+		extractRows: (json) => {
+			const points: any[] = json?.aggregated ?? []
+			return points
+				.filter((p: any) => p?.date != null)
+				.map((p: any) => ({
+					date: Number(p.date),
+					totalCirculatingUSD: sumRecord(p.totalCirculatingUSD)
+				}))
+		}
+	},
+
+	{
 		slug: 'protocol-tvl-chart',
 		name: 'Protocol TVL',
 		description: 'Historical TVL timeseries for a specific protocol',
@@ -312,13 +415,37 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		paramLabel: 'Chain',
 		optionsUrl: `${V2_SERVER_URL}/chains`,
 		extractOptions: (json) => {
-			if (!Array.isArray(json)) return []
-			return json
-				.filter((c: any) => c?.name)
-				.sort((a: any, b: any) => (Number(b?.tvl) || 0) - (Number(a?.tvl) || 0))
-				.map((c: any) => ({ label: c.name, value: c.name }))
+			if (!Array.isArray(json)) return [{ label: 'All Chains', value: 'all' }]
+			return [
+				{ label: 'All Chains', value: 'all' },
+				...json
+					.filter((c: any) => c?.name)
+					.sort((a: any, b: any) => (Number(b?.tvl) || 0) - (Number(a?.tvl) || 0))
+					.map((c: any) => ({ label: c.name, value: c.name }))
+			]
 		},
-		buildUrl: (param: string) => `${SERVER_URL}/lite/charts/${param}`,
+		buildUrl: (param: string) => (param === 'all' ? `${SERVER_URL}/lite/charts` : `${SERVER_URL}/lite/charts/${param}`),
+		extractRows: extractLiteChartRows
+	},
+	{
+		slug: 'category-tvl-chart',
+		name: 'Category TVL',
+		description: 'Historical TVL for a specific protocol category',
+		category: 'TVL',
+		paramType: 'protocol',
+		paramLabel: 'Category',
+		optionsUrl: `${SERVER_URL}/categories`,
+		extractOptions: (json) => {
+			const categories = json?.categories
+			if (!categories || typeof categories !== 'object') return []
+			const keys = Array.isArray(categories)
+				? categories.filter((c: any) => typeof c === 'string')
+				: Object.keys(categories)
+			return keys
+				.sort((a: string, b: string) => a.localeCompare(b))
+				.map((c: string) => ({ label: c, value: toSlug(c) }))
+		},
+		buildUrl: (param: string) => `${SERVER_URL}/charts/categories/${param}`,
 		extractRows: extractLiteChartRows
 	},
 
@@ -469,28 +596,6 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 		},
 		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/oracle/protocol/${param}`,
 		extractRows: extractTimestampValuePairs
-	},
-
-	{
-		slug: 'category-tvl-chart',
-		name: 'Category TVL',
-		description: 'Historical TVL for a specific protocol category',
-		category: 'Categories',
-		paramType: 'protocol',
-		paramLabel: 'Category',
-		optionsUrl: `${SERVER_URL}/categories`,
-		extractOptions: (json) => {
-			const categories = json?.categories
-			if (!categories || typeof categories !== 'object') return []
-			const keys = Array.isArray(categories)
-				? categories.filter((c: any) => typeof c === 'string')
-				: Object.keys(categories)
-			return keys
-				.sort((a: string, b: string) => a.localeCompare(b))
-				.map((c: string) => ({ label: c, value: toSlug(c) }))
-		},
-		buildUrl: (param: string) => `${SERVER_URL}/charts/categories/${param}`,
-		extractRows: extractLiteChartRows
 	}
 ]
 
