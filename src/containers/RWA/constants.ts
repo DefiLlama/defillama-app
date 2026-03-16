@@ -1,6 +1,7 @@
 export type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 export const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
+export const RWA_YIELD_WRAPPER_SLUG = 'rwa-yield-wrapper'
 
 export function isTypeIncludedByDefault(
 	type: string | null | undefined,
@@ -8,7 +9,7 @@ export function isTypeIncludedByDefault(
 	categorySlug?: string | null
 ): boolean {
 	if (mode === 'platform') return true
-	if (mode === 'category' && categorySlug === 'rwa-yield-wrapper') return true
+	if (mode === 'category' && categorySlug === RWA_YIELD_WRAPPER_SLUG) return true
 	return !DEFAULT_EXCLUDED_TYPES.has(type || 'Unknown')
 }
 

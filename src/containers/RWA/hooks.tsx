@@ -21,30 +21,13 @@ import {
 	type RWAChartDatasetsByMetric
 } from './chartAggregation'
 import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
+import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
 const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
 type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
 const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
-
-const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
-	if (!values || values.length === 0) return []
-	const out = new Set<string>()
-	for (const value of values) {
-		const normalized = typeof value === 'string' ? value.trim() : ''
-		if (!normalized) continue
-		out.add(normalized)
-	}
-	return Array.from(out)
-}
-
-const toWeightedGroups = (values: Array<string> | null | undefined): Array<{ value: string; weight: number }> => {
-	const groups = toUniqueNonEmptyValues(values)
-	if (groups.length === 0) return []
-	const weight = 1 / groups.length
-	return groups.map((value) => ({ value, weight }))
-}
 
 const buildStackColors = (order: string[]) => {
 	const stackColors: Record<string, string> = {}
@@ -724,7 +707,7 @@ export function useRWAAssetCategoryPieChartData({
 		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const { value: category, weight } of toWeightedGroups(asset.category)) {
+			for (const { value: category, weight } of computeWeightedGroups(asset.category)) {
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
@@ -782,7 +765,7 @@ export function useRwaCategoryAssetClassPieChartData({
 		const assetClassTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const { value: assetClass, weight } of toWeightedGroups(asset.assetClass)) {
+			for (const { value: assetClass, weight } of computeWeightedGroups(asset.assetClass)) {
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }

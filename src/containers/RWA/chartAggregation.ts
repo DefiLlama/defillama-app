@@ -1,5 +1,6 @@
 import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
 import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
+import { computeWeightedGroups } from './grouping'
 
 export type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
@@ -19,17 +20,6 @@ export function emptyChartDatasets(): RWAChartDatasetsByMetric {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
-const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
-	if (!values || values.length === 0) return []
-	const out = new Set<string>()
-	for (const value of values) {
-		const normalized = typeof value === 'string' ? value.trim() : ''
-		if (!normalized) continue
-		out.add(normalized)
-	}
-	return Array.from(out)
-}
-
 function buildTickerGroupMapping(
 	assets: IRWAAssetsOverview['assets'],
 	mode: RWAChartAggregationMode
@@ -40,21 +30,20 @@ function buildTickerGroupMapping(
 		const ticker = asset.ticker
 		if (!ticker) continue
 
-		let groupValues: string[]
+		let weightedGroups: ReturnType<typeof computeWeightedGroups>
 		if (mode === 'category') {
-			groupValues = toUniqueNonEmptyValues(asset.category)
+			weightedGroups = computeWeightedGroups(asset.category)
 		} else if (mode === 'assetClass') {
-			groupValues = toUniqueNonEmptyValues(asset.assetClass)
+			weightedGroups = computeWeightedGroups(asset.assetClass)
 		} else {
 			const name = (asset.assetName || asset.ticker || '').trim()
-			groupValues = name ? [name] : []
+			weightedGroups = computeWeightedGroups(name ? [name] : [])
 		}
 
-		if (groupValues.length === 0) continue
+		if (weightedGroups.length === 0) continue
 
 		const groups = tickerToGroups.get(ticker) ?? new Map<string, number>()
-		const weight = 1 / groupValues.length
-		for (const group of groupValues) {
+		for (const { value: group, weight } of weightedGroups) {
 			groups.set(group, weight)
 		}
 		tickerToGroups.set(ticker, groups)

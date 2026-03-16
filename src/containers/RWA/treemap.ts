@@ -1,6 +1,7 @@
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview, IRWAProject } from './api.types'
 import type { RWAOverviewMode } from './constants'
+import { computeWeightedGroups } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 export type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
@@ -223,10 +224,10 @@ const getWeightedAssetGroupsByGrouping = (
 	asset: IRWAProject,
 	grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy
 ): Array<{ label: string; weight: number }> => {
-	const groups = getAssetGroupsByGrouping(asset, grouping)
-	if (groups.length === 0) return []
-	const weight = 1 / groups.length
-	return groups.map((label) => ({ label, weight }))
+	return computeWeightedGroups(getAssetGroupsByGrouping(asset, grouping)).map(({ value, weight }) => ({
+		label: value,
+		weight
+	}))
 }
 
 const sanitizeTreemapLabel = (value: string): string => {
