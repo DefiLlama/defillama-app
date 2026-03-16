@@ -290,6 +290,20 @@ export default function ChainCoreChart({
 				})
 			}
 
+			if (type === 'Gas Used') {
+				finalYAxis.push({
+					...options,
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chainOverviewChartColors['Gas Used']
+						}
+					}
+				})
+			}
+
 			if (type === 'Net Inflows') {
 				finalYAxis.push({
 					...options,

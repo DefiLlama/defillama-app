@@ -1,15 +1,12 @@
 import { fetchChainsAssets } from '~/containers/BridgedTVL/api'
 import type { RawChainsAssetsResponse } from '~/containers/BridgedTVL/api.types'
 import { fetchChainsByCategory } from '~/containers/Chains/api'
-import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
+import { fetchAdapterChainMetrics, fetchAdapterProtocolMetrics } from '~/containers/DimensionAdapters/api'
 import type { IAdapterChainMetrics } from '~/containers/DimensionAdapters/api.types'
 import { getDimensionAdapterOverviewOfAllChains } from '~/containers/DimensionAdapters/queries'
-import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
-import type { IActiveAddressesResponse } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { getNDistinctColors, slug } from '~/utils'
 import type { IChainMetadata } from '~/utils/metadata/types'
-import { fetchNftsVolumeByChain } from '../Nft/api'
 import type { IChainsByCategory, IChainsByCategoryData } from './types'
 
 export const getChainsByCategory = async ({
@@ -21,6 +18,14 @@ export const getChainsByCategory = async ({
 	category: string
 	sampledChart?: boolean
 }): Promise<IChainsByCategoryData> => {
+	const activeUserChains = Array.from(
+		new Set(
+			Object.values(chainMetadata)
+				.filter((metadata) => metadata.chainActiveUsers)
+				.map((metadata) => metadata.name)
+		)
+	)
+
 	const [
 		{ categories, chainTvls, ...rest },
 		dexs,
@@ -50,9 +55,31 @@ export const getChainsByCategory = async ({
 			return null
 		}) as Promise<IAdapterChainMetrics | null>,
 		fetchStablecoinAssetsApi(),
-		fetchActiveAddresses().catch(() => ({}) as IActiveAddressesResponse),
+		Promise.all(
+			activeUserChains.map(async (chainName) => {
+				const metrics = await fetchAdapterProtocolMetrics({
+					adapterType: 'active-users',
+					protocol: chainName,
+					dataType: 'dailyActiveUsers'
+				}).catch((err) => {
+					console.log(err)
+					return null
+				})
+
+				return [chainName, metrics?.total24h ?? null] as const
+			})
+		).then((chainMetrics) =>
+			chainMetrics.reduce<Record<string, { '24h': number | null }>>((acc, [chainName, total24h]) => {
+				acc[chainName] = { '24h': total24h }
+				return acc
+			}, {})
+		),
 		fetchChainsAssets() as Promise<RawChainsAssetsResponse>,
-		fetchNftsVolumeByChain(),
+		fetchAdapterChainMetrics({
+			adapterType: 'nft-volume',
+			chain: 'All',
+			dataType: 'dailyVolume'
+		}),
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue', chainMetadata })
 	])
 
@@ -120,6 +147,14 @@ export const getChainsByCategory = async ({
 			}
 		}
 	}
+	const nftVolumeByDisplayName = new Map<string, number>()
+	if (chainNftsVolume?.protocols) {
+		for (const protocol of chainNftsVolume.protocols) {
+			if (!nftVolumeByDisplayName.has(protocol.displayName)) {
+				nftVolumeByDisplayName.set(protocol.displayName, protocol.total24h ?? 0)
+			}
+		}
+	}
 
 	let stackedDataset = rest.stackedDataset
 	if (sampledChart) {
@@ -167,7 +202,7 @@ export const getChainsByCategory = async ({
 		colorsByChain,
 		chains: chainTvls.map((chain) => {
 			const name = slug(chain.name)
-			const nftVolume = chainNftsVolume[name] ?? null
+			const nftVolume = nftVolumeByDisplayName.get(chain.name) ?? null
 			// O(1) Map lookups instead of O(n) .find() calls
 			const feesProtocol = feesByDisplayName.get(chain.name)
 			const totalFees24h = feesProtocol?.total24h ?? null
@@ -184,7 +219,7 @@ export const getChainsByCategory = async ({
 			const totalVolume7d = dexs?.[chain.name]?.['7d'] ?? null
 			const totalVolume30d = dexs?.[chain.name]?.['30d'] ?? null
 			const stablesMcap = stablesChainMcapMap.get(name) ?? null
-			const users = activeUsers['chain#' + name]?.users?.value
+			const users = activeUsers?.[chain.name]?.['24h'] ?? null
 			const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
 			const tvl =
 				(chain.tvl ?? 0) -

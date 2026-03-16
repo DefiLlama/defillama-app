@@ -421,7 +421,7 @@ const columns = [
 		}
 	}),
 	columnHelper.accessor('users', {
-		header: 'Active Addresses',
+		header: '24h Active Addresses',
 		cell: (info) => <>{info.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
 		size: 180,
 		meta: {

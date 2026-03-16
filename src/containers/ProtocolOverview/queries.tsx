@@ -10,8 +10,6 @@ import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
-import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
-import type { IActiveAddressMetrics, IProtocolOnchainMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchOracleMetrics, fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -101,6 +99,9 @@ export const getProtocolMetricFlags = ({
 		inflows: !!metadata.inflows,
 		liquidity: !!metadata.liquidity,
 		activeUsers: !!metadata.activeUsers,
+		newUsers: !!metadata.newUsers,
+		txCount: !!metadata.txCount,
+		gasUsed: !!metadata.gasUsed,
 		borrowed: !!metadata.borrowed,
 		tokenRights: !!metadata.tokenRights
 	}
@@ -109,6 +110,19 @@ export const getProtocolMetricFlags = ({
 type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | null
 type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
 type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
+
+const fetchActivityMetric24h = ({
+	protocol,
+	adapterType,
+	dataType
+}: {
+	protocol: string
+	adapterType: 'active-users' | 'new-users'
+	dataType?: 'dailyTransactionsCount' | 'dailyGasUsed'
+}) =>
+	fetchAdapterProtocolMetrics({ adapterType, protocol, dataType })
+		.then((data) => data?.total24h ?? null)
+		.catch(() => null)
 
 export const getProtocolOverviewPageData = async ({
 	protocolId,
@@ -182,7 +196,7 @@ export const getProtocolOverviewPageData = async ({
 		IArticle[],
 		IProtocolOverviewPageData['incentives'],
 		number | null,
-		IProtocolOnchainMetrics | null,
+		IProtocolOverviewPageData['users'],
 		IProtocolExpenses | null,
 		IYieldsConfigResult,
 		ProtocolLiquidityToken[],
@@ -379,21 +393,46 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: null,
-		currentProtocolMetadata.activeUsers && protocolId
-			? fetchActiveAddresses()
-					.then((data) => data?.[protocolId] ?? null)
-					.then((data: IActiveAddressMetrics | null): IProtocolOnchainMetrics | null => {
-						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
-							? {
-									activeUsers: data.users?.value ?? null,
-									newUsers: data.newUsers?.value ?? null,
-									transactions: data.txs?.value ? Number(data.txs.value) : null,
-									gasUsd: data.gasUsd?.value ?? null
-								}
-							: null
-					})
-					.catch(() => null)
-			: null,
+		(currentProtocolMetadata.activeUsers ||
+			currentProtocolMetadata.newUsers ||
+			currentProtocolMetadata.txCount ||
+			currentProtocolMetadata.gasUsed) &&
+		currentProtocolMetadata.displayName
+			? Promise.all([
+					currentProtocolMetadata.activeUsers
+						? fetchActivityMetric24h({
+								protocol: currentProtocolMetadata.displayName,
+								adapterType: 'active-users'
+							})
+						: Promise.resolve(null),
+					currentProtocolMetadata.newUsers
+						? fetchActivityMetric24h({
+								protocol: currentProtocolMetadata.displayName,
+								adapterType: 'new-users'
+							})
+						: Promise.resolve(null),
+					currentProtocolMetadata.txCount
+						? fetchActivityMetric24h({
+								protocol: currentProtocolMetadata.displayName,
+								adapterType: 'active-users',
+								dataType: 'dailyTransactionsCount'
+							})
+						: Promise.resolve(null),
+					currentProtocolMetadata.gasUsed
+						? fetchActivityMetric24h({
+								protocol: currentProtocolMetadata.displayName,
+								adapterType: 'active-users',
+								dataType: 'dailyGasUsed'
+							})
+						: Promise.resolve(null)
+				]).then(([activeUsers, newUsers, transactions, gasUsd]) => {
+					if (activeUsers == null && newUsers == null && transactions == null && gasUsd == null) {
+						return null
+					}
+
+					return { activeUsers, newUsers, transactions, gasUsd }
+				})
+			: Promise.resolve(null),
 		currentProtocolMetadata.expenses && protocolId
 			? fetchProtocolExpenses()
 					.then((data) => data.find((item) => item.protocolId === protocolId) ?? null)
@@ -674,7 +713,11 @@ export const getProtocolOverviewPageData = async ({
 		hasTreasury: Boolean(treasury),
 		hasMedianApy: Boolean(yields && !protocolData.isParentProtocol),
 		hasGovernance: Boolean(protocolData.governanceID),
-		hasNfts: Boolean(currentProtocolMetadata.nfts)
+		hasNfts: Boolean(currentProtocolMetadata.nfts),
+		hasActiveAddresses: protocolMetrics.activeUsers,
+		hasNewAddresses: protocolMetrics.newUsers,
+		hasTransactions: protocolMetrics.txCount,
+		hasGasUsed: protocolMetrics.gasUsed
 	})
 
 	const chartColors: Record<string, string> = {}
@@ -748,6 +791,36 @@ export const getProtocolOverviewPageData = async ({
 				.catch(() => null),
 		Borrowed: () =>
 			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' })
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		'Active Addresses': () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: currentProtocolMetadata.displayName ?? ''
+			})
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		'New Addresses': () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'new-users',
+				protocol: currentProtocolMetadata.displayName ?? ''
+			})
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		Transactions: () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: currentProtocolMetadata.displayName ?? '',
+				dataType: 'dailyTransactionsCount'
+			})
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		'Gas Used': () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: currentProtocolMetadata.displayName ?? '',
+				dataType: 'dailyGasUsed'
+			})
 				.then((data) => normalizeChartPointsToMs(data))
 				.catch(() => null)
 	}

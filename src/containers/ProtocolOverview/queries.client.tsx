@@ -3,13 +3,7 @@ import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
 import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
-import {
-	fetchProtocolUsers,
-	fetchProtocolNewUsers,
-	fetchProtocolTransactions,
-	fetchProtocolGas
-} from '~/containers/OnchainUsersAndTxs/api'
-import type { IUserDataResponse, ITxDataResponse, IGasDataResponse } from '~/containers/OnchainUsersAndTxs/api.types'
+import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
 import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import type {
@@ -35,6 +29,7 @@ interface IProtocolBreakdownChartParams extends Omit<IProtocolChartParams, 'brea
 type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
 type ProtocolChartSource = 'tvl' | 'treasury'
+type IActivityChart = Array<[number, number]> | null
 type IProtocolChartQueryKey = [
 	'protocol-overview',
 	'tvl-chart' | 'treasury-chart',
@@ -78,79 +73,29 @@ const getProtocolTvlChartQueryOptions = (params: IProtocolChartParams) =>
 const getProtocolTreasuryChartQueryOptions = (params: IProtocolChartParams) =>
 	getProtocolChartQueryOptions({ ...params, source: 'treasury' as const })
 
-export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocol-overview', 'active-users', protocolId],
-		queryFn: () =>
-			fetchProtocolUsers({ protocolId: protocolId! })
-				.then((values: IUserDataResponse | null) => {
-					return values && values.length > 0
-						? values
-								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, +val])
-								.sort((a, b) => a[0] - b[0])
-						: null
-				})
-				.catch(() => []),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocol-overview', 'new-users', protocolId],
-		queryFn: () =>
-			fetchProtocolNewUsers({ protocolId: protocolId! })
-				.then((values: IUserDataResponse | null) => {
-					return values && values.length > 0
-						? values
-								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, +val])
-								.sort((a, b) => a[0] - b[0])
-						: null
-				})
-				.catch(() => []),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
+const normalizeActivityChart = (values: Array<[number, number]> | null): IActivityChart =>
+	values && values.length > 0
+		? values.map(([date, val]): [number, number] => [date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+		: null
 
-export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
+export const useFetchProtocolActivityChart = ({
+	queryKey,
+	protocol,
+	adapterType,
+	dataType
+}: {
+	queryKey: string
+	protocol: string | null
+	adapterType: 'active-users' | 'new-users'
+	dataType?: 'dailyTransactionsCount' | 'dailyGasUsed'
+}) => {
+	const isEnabled = !!protocol
 	return useQuery({
-		queryKey: ['protocol-overview', 'transactions', protocolId],
+		queryKey: ['protocol-overview', queryKey, protocol],
 		queryFn: () =>
-			fetchProtocolTransactions({ protocolId: protocolId! })
-				.then((values: ITxDataResponse | null) => {
-					return values && values.length > 0
-						? values
-								.map(([date, val]: [number, number]): [number, number] => [date * 1e3, +val])
-								.sort((a, b) => a[0] - b[0])
-						: null
-				})
-				.catch(() => []),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocol-overview', 'gas-used', protocolId],
-		queryFn: () =>
-			fetchProtocolGas({ protocolId: protocolId! })
-				.then((values: IGasDataResponse | null) => {
-					return values && values.length > 0 ? values : null
-				})
-				.catch(() => []),
+			fetchAdapterProtocolChartData({ adapterType, protocol: protocol!, dataType })
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,

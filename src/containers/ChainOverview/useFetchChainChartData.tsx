@@ -6,11 +6,6 @@ import { CACHE_SERVER } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
 import { useGetBridgeChartDataByChain } from '~/containers/Bridges/queries.client'
 import { fetchAdapterChainChartData, fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
-import {
-	useFetchProtocolActiveUsers,
-	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions
-} from '~/containers/ProtocolOverview/queries.client'
 import { fetchRaises } from '~/containers/Raises/api'
 import { useGetStabelcoinsChartDataByChain } from '~/containers/Stablecoins/queries.client'
 import { getProtocolUnlockUsdChart } from '~/containers/Unlocks/queries'
@@ -58,6 +53,11 @@ const getTvl24hChange = (
 
 	return { totalValueUSD: lastValue, tvlPrevDay }
 }
+
+const normalizeActivityChart = (values: Array<[number, number]> | null): Array<[number, number]> | null =>
+	values && values.length > 0
+		? values.map(([date, value]): [number, number] => [date * 1e3, +value]).sort((a, b) => a[0] - b[0])
+		: null
 
 export const useFetchChainChartData = ({
 	denomination,
@@ -221,15 +221,70 @@ export const useFetchChainChartData = ({
 		toggledChartsSet.has('Net Inflows') ? selectedChain : null
 	)
 
-	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
-		toggledChartsSet.has('Active Addresses') ? `chain$${selectedChain}` : null
-	)
-	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
-		toggledChartsSet.has('New Addresses') ? `chain$${selectedChain}` : null
-	)
-	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
-		toggledChartsSet.has('Transactions') ? `chain$${selectedChain}` : null
-	)
+	const isActiveAddressesEnabled = toggledChartsSet.has('Active Addresses')
+	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useQuery<Array<
+		[number, number]
+	> | null>({
+		queryKey: ['chain-overview', 'active-addresses', selectedChain],
+		queryFn: () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: selectedChain
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isActiveAddressesEnabled
+	})
+	const isNewAddressesEnabled = toggledChartsSet.has('New Addresses')
+	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useQuery<Array<[number, number]> | null>({
+		queryKey: ['chain-overview', 'new-addresses', selectedChain],
+		queryFn: () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'new-users',
+				protocol: selectedChain
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isNewAddressesEnabled
+	})
+	const isTransactionsEnabled = toggledChartsSet.has('Transactions')
+	const { data: transactionsData = null, isLoading: fetchingTransactions } = useQuery<Array<[number, number]> | null>({
+		queryKey: ['chain-overview', 'transactions', selectedChain],
+		queryFn: () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: selectedChain,
+				dataType: 'dailyTransactionsCount'
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isTransactionsEnabled
+	})
+	const isGasUsedEnabled = toggledChartsSet.has('Gas Used')
+	const { data: gasUsedData = null, isLoading: fetchingGasUsed } = useQuery<Array<[number, number]> | null>({
+		queryKey: ['chain-overview', 'gas-used', selectedChain],
+		queryFn: () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: selectedChain,
+				dataType: 'dailyGasUsed'
+			})
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isGasUsedEnabled
+	})
 
 	const isBridgedTvlEnabled = toggledChartsSet.has('Bridged TVL')
 	const { data: bridgedTvlData = null, isLoading: fetchingBridgedTvlData } = useQuery({
@@ -376,6 +431,10 @@ export const useFetchChainChartData = ({
 
 		if (fetchingTransactions) {
 			loadingCharts.push('Transactions')
+		}
+
+		if (fetchingGasUsed) {
+			loadingCharts.push('Gas Used')
 		}
 
 		if (fetchingBridgedTvlData) {
@@ -546,6 +605,16 @@ export const useFetchChainChartData = ({
 			})
 		}
 
+		if (gasUsedData) {
+			const chartName: ChainChartLabels = 'Gas Used' as const
+			charts[chartName] = formatBarChart({
+				data: gasUsedData,
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
+		}
+
 		if (bridgedTvlData) {
 			const finalChainAssetsChart = []
 			for (const item of bridgedTvlData) {
@@ -636,6 +705,8 @@ export const useFetchChainChartData = ({
 		newAddressesData,
 		fetchingTransactions,
 		transactionsData,
+		fetchingGasUsed,
+		gasUsedData,
 		fetchingBridgedTvlData,
 		bridgedTvlData,
 		fetchingRaises,
