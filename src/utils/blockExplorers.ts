@@ -170,7 +170,7 @@ export const getBlockExplorer = (address: string = '') => {
 		blockExplorerName: blockExplorerName ?? 'unknown',
 		chainName,
 		explorers
-	} //rebuild again
+	}
 }
 
 export const getProtocolTokenUrlOnExplorer = (address: string = '') => {

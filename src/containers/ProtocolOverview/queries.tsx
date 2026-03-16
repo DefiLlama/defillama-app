@@ -20,8 +20,9 @@ import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { getProtocolTokenUrlOnExplorer } from '~/utils/blockExplorers'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,

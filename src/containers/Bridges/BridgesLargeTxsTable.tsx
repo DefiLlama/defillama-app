@@ -14,7 +14,8 @@ import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { getBlockExplorerForTx } from '~/containers/Bridges/utils'
-import { formattedNum, getBlockExplorer, slug, toNiceDayAndHour } from '~/utils'
+import { formattedNum, slug, toNiceDayAndHour } from '~/utils'
+import { getBlockExplorer } from '~/utils/blockExplorers'
 
 type LargeTxsData = {
 	date: number

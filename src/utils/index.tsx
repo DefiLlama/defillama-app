@@ -6,8 +6,6 @@ import { ICONS_CDN } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
 
-export * from './blockExplorers'
-
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
