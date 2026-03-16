@@ -2,7 +2,6 @@ export interface IChainMetadata {
 	stablecoins?: boolean
 	dexs?: boolean
 	name: string
-	activeUsers?: boolean
 	activeLiquidity?: boolean
 	fees?: boolean
 	revenue?: boolean
@@ -24,6 +23,12 @@ export interface IChainMetadata {
 	id: string
 	protocolCount?: number
 	incentives?: boolean
+	chainActiveUsers?: boolean
+	chainNewUsers?: boolean
+	activeUsers?: boolean
+	newUsers?: boolean
+	txCount?: boolean
+	gasUsed?: boolean
 	dimAgg?: Record<string, Record<string, { '24h'?: number | null; '7d'?: number | null; '30d'?: number | null }>>
 }
 
