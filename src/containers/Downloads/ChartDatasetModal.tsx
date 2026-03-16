@@ -238,7 +238,8 @@ export function ChartDatasetModal({ dataset, options, authorizedFetch, onClose, 
 	} = useQuery({
 		queryKey: ['chart-preview', dataset.slug, selectedParam?.value, isPreview],
 		queryFn: async () => {
-			const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(selectedParam!.value)}`
+			const nonce = isPreview ? `&_n=${Math.random().toString(36).slice(2)}` : ''
+			const url = `/api/downloads/chart/${dataset.slug}?param=${encodeURIComponent(selectedParam!.value)}${nonce}`
 			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)

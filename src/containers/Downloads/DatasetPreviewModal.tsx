@@ -286,7 +286,9 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	} = useQuery({
 		queryKey: ['downloads-preview', dataset.slug, selectedChain, isPreview],
 		queryFn: async () => {
-			const url = `/api/downloads/${dataset.slug}${chainQueryParam}`
+			const sep = chainQueryParam ? '&' : '?'
+			const nonce = isPreview ? `${sep}_n=${Math.random().toString(36).slice(2)}` : ''
+			const url = `/api/downloads/${dataset.slug}${chainQueryParam}${nonce}`
 			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)
