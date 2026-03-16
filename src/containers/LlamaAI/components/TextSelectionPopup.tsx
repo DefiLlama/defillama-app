@@ -35,13 +35,14 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 				}
 			}
 
-			const range = selection?.getRangeAt(0)
-			if (!range) return
+			if (!selection || selection.rangeCount === 0) return
+			const range = selection.getRangeAt(0)
 			const rect = range.getBoundingClientRect()
 			const centeredLeft = rect.left + window.scrollX + rect.width / 2
 
 			const aboveTop = rect.top + window.scrollY - POPUP_OFFSET
-			const top = aboveTop < VIEWPORT_MARGIN ? rect.bottom + window.scrollY + VIEWPORT_MARGIN : aboveTop
+			const fitsAbove = rect.top - POPUP_OFFSET >= VIEWPORT_MARGIN
+			const top = fitsAbove ? aboveTop : rect.bottom + window.scrollY + VIEWPORT_MARGIN
 
 			setSelectedText(text.slice(0, 2000))
 			setPosition({ top, left: centeredLeft })

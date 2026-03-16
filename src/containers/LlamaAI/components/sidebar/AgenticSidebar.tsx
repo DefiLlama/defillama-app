@@ -1,5 +1,5 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type CSSProperties, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, memo, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
@@ -43,7 +43,7 @@ type VirtualItem =
 	| { type: 'header'; groupName: string; isFirst: boolean }
 	| { type: 'session'; session: ChatSession; groupName: string }
 
-function VirtualizedSidebarItem({
+const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	item,
 	itemStyle,
 	currentSessionId,
@@ -55,7 +55,7 @@ function VirtualizedSidebarItem({
 	onUpdateTitle,
 	handleSidebarToggle,
 	selectMode,
-	selectedSessionIds,
+	isSelected,
 	onToggleSelect
 }: {
 	item: VirtualItem
@@ -69,7 +69,7 @@ function VirtualizedSidebarItem({
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	handleSidebarToggle: () => void
 	selectMode: boolean
-	selectedSessionIds: Set<string>
+	isSelected: boolean
 	onToggleSelect: (sessionId: string) => void
 }) {
 	if (item.type === 'header') {
@@ -95,11 +95,11 @@ function VirtualizedSidebarItem({
 			handleSidebarToggle={handleSidebarToggle}
 			style={itemStyle}
 			selectMode={selectMode}
-			isSelected={selectedSessionIds.has(item.session.sessionId)}
+			isSelected={isSelected}
 			onToggleSelect={onToggleSelect}
 		/>
 	)
-}
+})
 
 export function AgenticSidebar({
 	sessions,
@@ -328,7 +328,7 @@ export function AgenticSidebar({
 									onUpdateTitle={handleUpdateTitle}
 									handleSidebarToggle={handleSidebarToggle}
 									selectMode={selectMode}
-									selectedSessionIds={selectedSessionIds}
+									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
 									onToggleSelect={toggleSelect}
 								/>
 							)
