@@ -63,7 +63,7 @@ export function getBlockExplorerNew({
 	address: string
 	chainName?: string
 	urlType: 'address' | 'token' | 'tx'
-}): { name: string; url: string } | null {
+}): { name: string; url: string; chainDisplayName: string } | null {
 	if (!address) return null
 
 	let finalAddress: string
@@ -86,6 +86,7 @@ export function getBlockExplorerNew({
 	if (!explorer) return null
 
 	return {
+		chainDisplayName: match.displayName,
 		name: explorer.name,
 		url: `${explorer.url}/${urlType ? (NON_STANDARD_EXPLORER_PATHS[explorer.url]?.[urlType] ?? urlType) : 'address'}/${finalAddress}`
 	}
