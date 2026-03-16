@@ -150,3 +150,11 @@ export interface ProtocolLiquidityToken {
 }
 
 export type ProtocolTokenLiquidityChart = Array<[string | number, number]>
+
+export interface SearchQuery {
+	indexUid: string
+	limit: number
+	offset: number
+	q: string
+	filter?: Array<string | string[]>
+}

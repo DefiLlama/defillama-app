@@ -2,10 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { startTransition, useEffect, useMemo, useRef, useState } from 'react'
+import { searchApi } from '~/api'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import { useDebouncedValue } from '~/hooks/useDebounce'
@@ -20,26 +20,8 @@ async function getDefaultSearchList() {
 		throw new Error(error instanceof Error ? error.message : 'Unknown error')
 	}
 }
-async function fetchSearchList(query: string) {
-	const response: Array<ISearchItem> = await fetchJson(SEARCH_API_URL, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${SEARCH_API_TOKEN}`
-		},
-		body: JSON.stringify({
-			queries: [
-				{
-					indexUid: 'pages',
-					limit: 20,
-					offset: 0,
-					q: query
-				}
-			]
-		})
-	}).then((res) => res?.results?.[0]?.hits ?? [])
-
-	return response
+async function fetchSearchList(query: string): Promise<Array<ISearchItem>> {
+	return searchApi<ISearchItem>({ indexUid: 'pages', limit: 20, offset: 0, q: query })
 }
 
 interface ISearchItem {

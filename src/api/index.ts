@@ -1,4 +1,12 @@
-import { CACHE_SERVER, COINS_SERVER_URL, CONFIG_API, DATASETS_SERVER_URL, SERVER_URL } from '~/constants'
+import {
+	CACHE_SERVER,
+	COINS_SERVER_URL,
+	CONFIG_API,
+	DATASETS_SERVER_URL,
+	SEARCH_API_TOKEN,
+	SEARCH_API_URL,
+	SERVER_URL
+} from '~/constants'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { runBatchPromises } from '~/utils/batchPromises'
 import { getErrorMessage } from '~/utils/error'
@@ -17,8 +25,29 @@ import type {
 	PriceObject,
 	ProtocolLiquidityToken,
 	ProtocolTokenLiquidityChart,
+	SearchQuery,
 	TwitterPostsResponse
 } from './types'
+
+// ---------------------------------------------------------------------------
+// DefiLlama multi-search API
+// ---------------------------------------------------------------------------
+
+/** Generic search API helper for the DefiLlama multi-search endpoint. */
+export async function searchApi<T = Record<string, unknown>>(query: SearchQuery): Promise<Array<T>> {
+	return fetchJson(SEARCH_API_URL, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${SEARCH_API_TOKEN}`
+		},
+		body: JSON.stringify({ queries: [query] })
+	}).then((res) => res?.results?.[0]?.hits ?? [])
+}
+
+// ---------------------------------------------------------------------------
+// CoinGecko queries
+// ---------------------------------------------------------------------------
 
 const COINGECKO_MARKETS_API_BASE = 'https://api.coingecko.com/api/v3/coins/markets'
 const COINGECKO_CONTRACTS_API_BASE = 'https://api.coingecko.com/api/v3/coins'
