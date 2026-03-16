@@ -961,6 +961,11 @@
       "icon": "sheets"
     },
     {
+      "name": "Downloads",
+      "route": "/downloads",
+      "icon": "download-cloud"
+    },
+    {
       "name": "LlamaFeed",
       "route": "https://llamafeed.io",
       "icon": "activity",
