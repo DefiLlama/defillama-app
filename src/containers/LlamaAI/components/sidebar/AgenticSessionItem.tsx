@@ -25,6 +25,9 @@ interface AgenticSessionItemProps {
 	isUpdatingTitle: boolean
 	handleSidebarToggle: () => void
 	style: React.CSSProperties
+	selectMode?: boolean
+	isSelected?: boolean
+	onToggleSelect?: (sessionId: string) => void
 }
 
 export const AgenticSessionItem = memo(function AgenticSessionItem({
@@ -37,7 +40,10 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 	isDeleting,
 	isUpdatingTitle,
 	handleSidebarToggle,
-	style
+	style,
+	selectMode,
+	isSelected,
+	onToggleSelect
 }: AgenticSessionItemProps) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
@@ -139,6 +145,29 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 					</button>
 				</div>
 			</form>
+		)
+	}
+
+	if (selectMode) {
+		return (
+			<button
+				type="button"
+				onClick={() => onToggleSelect?.(session.sessionId)}
+				className="group relative -mx-1.5 flex w-full items-center gap-2 rounded-sm p-1.5 text-left text-xs hover:bg-[#f7f7f7] dark:hover:bg-[#222324]"
+				style={style}
+			>
+				<span
+					data-checked={isSelected}
+					className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#ccc] data-[checked=true]:border-(--old-blue) data-[checked=true]:bg-(--old-blue) dark:border-[#555] dark:data-[checked=true]:border-(--old-blue)"
+				>
+					{isSelected ? (
+						<svg className="h-2.5 w-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+							<polyline points="20 6 9 17 4 12" />
+						</svg>
+					) : null}
+				</span>
+				<span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">{session.title}</span>
+			</button>
 		)
 	}
 

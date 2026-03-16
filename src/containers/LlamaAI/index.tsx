@@ -603,7 +603,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		deleteSession,
 		updateSessionTitle,
 		isDeletingSession,
-		isUpdatingTitle
+		isUpdatingTitle,
+		bulkDeleteSessions
 	} = useSessionMutations()
 	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
 	const { notify, requestPermission } = useStreamNotification()
@@ -1637,6 +1638,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							shouldAnimate={shouldAnimateSidebar}
 							onOpenSettings={settingsModalStore.show}
 							hasCustomInstructions={customInstructions.trim().length > 0}
+							onBulkDelete={bulkDeleteSessions}
 						/>
 						<div className="flex min-h-11 lg:hidden" />
 					</>

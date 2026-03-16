@@ -102,6 +102,39 @@ export function useSessionMutations() {
 		}
 	})
 
+	const bulkDeleteSessionsMutation = useMutation({
+		mutationFn: async (sessionIds: string[]) => {
+			await authorizedFetch(`${MCP_SERVER}/user/sessions/bulk`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ sessionIds })
+			})
+				.then((res) => assertResponse(res, 'Failed to bulk delete sessions'))
+				.then(handleSimpleFetchResponse)
+		},
+		onMutate: async (sessionIds) => {
+			await queryClient.cancelQueries({ queryKey: [SESSIONS_QUERY_KEY, user?.id] })
+			const previous = queryClient.getQueryData<SessionListData>([SESSIONS_QUERY_KEY, user?.id])
+			const idsSet = new Set(sessionIds)
+			queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], (old: SessionListData | undefined) => {
+				if (!old) return { sessions: [], usage: null }
+				return {
+					...old,
+					sessions: old.sessions.filter((session) => !idsSet.has(session.sessionId))
+				}
+			})
+			return { previous }
+		},
+		onError: (_err, _sessionIds, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData([SESSIONS_QUERY_KEY, user?.id], context.previous)
+			}
+		},
+		onSettled: () => {
+			void queryClient.invalidateQueries({ queryKey: [SESSIONS_QUERY_KEY] })
+		}
+	})
+
 	// Rename a session optimistically so the sidebar updates immediately.
 	const updateTitleMutation = useMutation({
 		mutationFn: async ({ sessionId, title }: { sessionId: string; title: string }) => {
@@ -229,6 +262,8 @@ export function useSessionMutations() {
 		isCreatingSession: createSessionMutation.isPending,
 		isRestoringSession: restoreSessionMutation.isPending,
 		isDeletingSession: deleteSessionMutation.isPending,
-		isUpdatingTitle: updateTitleMutation.isPending
+		isUpdatingTitle: updateTitleMutation.isPending,
+		bulkDeleteSessions: bulkDeleteSessionsMutation.mutateAsync,
+		isBulkDeleting: bulkDeleteSessionsMutation.isPending
 	}
 }
