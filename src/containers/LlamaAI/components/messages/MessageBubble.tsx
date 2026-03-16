@@ -616,6 +616,13 @@ export function MessageBubble({
 	if (message.role === 'user') {
 		return (
 			<div className="ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 wrap-break-word dark:bg-[#222425]">
+				{message.quotedText ? (
+					<div className="mb-2 border-l-2 border-black/15 py-1 pl-2.5 dark:border-white/15">
+						<p className="line-clamp-3 text-[13px] text-[#666] dark:text-[#888]">
+							{message.quotedText}
+						</p>
+					</div>
+				) : null}
 				{message.images && message.images.length > 0 ? (
 					<div className="mb-2.5 flex flex-wrap gap-3">
 						{message.images.map((image) => {

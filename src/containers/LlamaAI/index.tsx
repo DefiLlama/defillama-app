@@ -31,6 +31,7 @@ import {
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
+import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import {
@@ -81,6 +82,7 @@ interface PersistedMessageMetadata {
 	alertIntent?: PersistedAlertIntent
 	savedAlertId?: string
 	savedAlertIds?: string[]
+	quotedText?: string
 }
 
 interface PersistedMessage {
@@ -202,6 +204,7 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 		images: message.images,
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
+		quotedText: message.metadata?.quotedText,
 		id: message.messageId,
 		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
 	}
@@ -617,6 +620,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
 	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
 	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [quotedText, setQuotedText] = useState<string | null>(null)
 	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
 	const [customInstructions, setCustomInstructions] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
@@ -1307,7 +1311,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					const userImages = images?.map((img) => ({ url: img.data, mimeType: img.mimeType, filename: img.filename }))
 					setMessages((prev) => [
 						...prev,
-						{ role: 'user', content: trimmed, images: userImages?.length ? userImages : undefined }
+						{
+							role: 'user',
+							content: trimmed,
+							images: userImages?.length ? userImages : undefined,
+							quotedText: currentQuotedText || undefined
+						}
 					])
 					attach()
 
@@ -1324,6 +1333,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					const settleState = createRequestSettleState(requestId)
 					activeRequestSettleRef.current = settleState
 
+					const currentQuotedText = quotedText
+					if (currentQuotedText) setQuotedText(null)
+
 					void fetchAgenticResponse({
 						message: trimmed,
 						sessionId: currentSessionId,
@@ -1331,6 +1343,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						entities: entities?.length ? entities : undefined,
 						images: images?.length ? images : undefined,
 						pageContext,
+						quotedText: currentQuotedText || undefined,
 						customInstructions: customInstructions || undefined,
 						isSuggestedQuestion,
 						abortSignal: controller.signal,
@@ -1464,7 +1477,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 			sessions,
 			attach,
 			shouldShowLanding,
-			triggerPromptTransition
+			triggerPromptTransition,
+			quotedText
 		]
 	)
 
@@ -1627,7 +1641,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						<div className="flex min-h-11 lg:hidden" />
 					</>
 				) : (
-					<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
+					<ChatControls
+						handleSidebarToggle={handleSidebarToggle}
+						handleNewChat={handleNewChat}
+						onOpenSettings={settingsModalStore.show}
+						hasCustomInstructions={customInstructions.trim().length > 0}
+					/>
 				)
 			) : null}
 
@@ -1655,6 +1674,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								setIsResearchMode={setIsResearchMode}
 								researchUsage={researchUsage}
 								onOpenAlerts={alertsModalStore.show}
+								quotedText={quotedText}
+								onClearQuotedText={() => setQuotedText(null)}
 							/>
 						</div>
 						<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
@@ -1689,6 +1710,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								researchUsage={researchUsage}
 								animateActiveExchange={false}
 								onOpenAlerts={alertsModalStore.show}
+								quotedText={quotedText}
+								onClearQuotedText={() => setQuotedText(null)}
 							/>
 						</div>
 					</div>
@@ -1704,6 +1727,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 						onOpenAlerts={alertsModalStore.show}
+						quotedText={quotedText}
+						onClearQuotedText={() => setQuotedText(null)}
 					/>
 				) : (
 					<ConversationView
@@ -1737,9 +1762,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						researchUsage={researchUsage}
 						animateActiveExchange={shouldAnimateConversationTransition}
 						onOpenAlerts={alertsModalStore.show}
+						quotedText={quotedText}
+						onClearQuotedText={() => setQuotedText(null)}
 					/>
 				)}
 			</div>
+			{!readOnly ? <TextSelectionPopup onSelect={setQuotedText} /> : null}
 			{!readOnly && rateLimitDetails ? (
 				<ResearchLimitModal
 					dialogStore={researchModalStore}
@@ -1775,32 +1803,51 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat
+	handleNewChat,
+	onOpenSettings,
+	hasCustomInstructions
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
+	onOpenSettings: () => void
+	hasCustomInstructions: boolean
 }) {
 	return (
-		<nav
-			className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
-			aria-label="Chat controls"
-		>
-			<Tooltip
-				content="Open Chat History"
-				render={<button onClick={handleSidebarToggle} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+		<>
+			<nav
+				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
+				aria-label="Chat controls"
 			>
-				<Icon name="panel-left-open" height={16} width={16} />
-				<span className="sr-only">Open Chat History</span>
-			</Tooltip>
+				<Tooltip
+					content="Open Chat History"
+					render={<button onClick={handleSidebarToggle} />}
+					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				>
+					<Icon name="panel-left-open" height={16} width={16} />
+					<span className="sr-only">Open Chat History</span>
+				</Tooltip>
+				<Tooltip
+					content="New Chat"
+					render={<button onClick={handleNewChat} />}
+					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+				>
+					<Icon name="message-square-plus" height={16} width={16} />
+					<span className="sr-only">New Chat</span>
+				</Tooltip>
+			</nav>
 			<Tooltip
-				content="New Chat"
-				render={<button onClick={handleNewChat} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+				content="Settings"
+				render={<button onClick={onOpenSettings} />}
+				className="absolute bottom-2.5 left-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white max-lg:hidden"
 			>
-				<Icon name="message-square-plus" height={16} width={16} />
-				<span className="sr-only">New Chat</span>
+				<div className="relative">
+					<Icon name="settings" height={16} width={16} />
+					{hasCustomInstructions ? (
+						<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+					) : null}
+				</div>
+				<span className="sr-only">Settings</span>
 			</Tooltip>
-		</nav>
+		</>
 	)
 })
