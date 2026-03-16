@@ -1,4 +1,6 @@
+import { fetchBlockExplorers } from '~/api'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	fetchRWAActiveTVLs,
@@ -784,9 +786,14 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
+		const [data, chartDataset, blockExplorersData]: [
+			IFetchedRWAProject,
+			IRWAAssetData['chartDataset'],
+			Awaited<ReturnType<typeof fetchBlockExplorers>>
+		] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
-			fetchRWAAssetChartData(assetId)
+			fetchRWAAssetChartData(assetId),
+			fetchBlockExplorers().catch(() => [])
 		])
 
 		if (!data) {
@@ -821,6 +828,27 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			}
 		}
 
+		let contractUrls: Record<string, Record<string, string>> | null = null
+		if (data.contracts) {
+			contractUrls = {}
+			for (const chain in data.contracts) {
+				const addresses = data.contracts[chain]
+				if (!addresses) continue
+				for (const address of addresses) {
+					const result = getBlockExplorerNew({
+						apiResponse: blockExplorersData,
+						address,
+						chainName: chain,
+						urlType: 'token'
+					})
+					if (result) {
+						contractUrls[chain] ??= {}
+						contractUrls[chain][address] = result.url
+					}
+				}
+			}
+		}
+
 		if (chartDataset && data.activeMcapData === false) {
 			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
@@ -833,6 +861,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			rwaClassificationDescription,
 			accessModelDescription,
 			assetClassDescriptions,
+			contractUrls,
 			onChainMcap: onChainMcapBreakdown
 				? {
 						total: aggregatedMetrics.totals.onChainMcap,

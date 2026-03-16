@@ -26,7 +26,8 @@ import type {
 	ProtocolLiquidityToken,
 	ProtocolTokenLiquidityChart,
 	SearchQuery,
-	TwitterPostsResponse
+	TwitterPostsResponse,
+	BlockExplorersResponse
 } from './types'
 
 // ---------------------------------------------------------------------------
@@ -326,4 +327,15 @@ export async function fetchProtocolTokenLiquidityChart(tokenId: string): Promise
 	if (!tokenId) return null
 	const encodedTokenId = encodeURIComponent(tokenId.replaceAll('#', '$'))
 	return fetchJson<ProtocolTokenLiquidityChart>(`${TOKEN_LIQUIDITY_API_URL}/${encodedTokenId}`).catch(() => null)
+}
+
+// ---------------------------------------------------------------------------
+// Block Explorers
+// ---------------------------------------------------------------------------
+
+const BLOCK_EXPLORERS_API_URL = `${DATASETS_SERVER_URL}/blockExplorers.json`
+
+/** Fetch block explorer URLs for all chains from the datasets server. */
+export async function fetchBlockExplorers(): Promise<BlockExplorersResponse> {
+	return fetchJson<BlockExplorersResponse>(BLOCK_EXPLORERS_API_URL)
 }

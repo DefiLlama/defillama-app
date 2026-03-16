@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { preparePieChartData } from '~/components/ECharts/formatters'
 import { capitalizeFirstLetter, getPercentChange, getPrevVolumeFromChart, keepNeededProperties, slug } from '~/utils'
-import { BLOCK_EXPLORERS_ADDRESSES, BLOCK_EXPLORERS_TXS, BRIDGE_PROPERTIES_TO_KEEP } from './constants'
+import { BLOCK_EXPLORERS_ADDRESSES, BLOCK_EXPLORERS_TXS, blockExplorers, BRIDGE_PROPERTIES_TO_KEEP } from './constants'
 
 interface ITokenData {
 	usdValue: number
@@ -320,5 +320,46 @@ export const getBlockExplorerForAddress = (txHash: string = '') => {
 		blockExplorerLink,
 		blockExplorerName,
 		chainName
+	}
+}
+
+type ExplorerEntry = [url: string, name: string]
+type BlockExplorerValue = ExplorerEntry | ExplorerEntry[]
+
+function isMultiExplorer(value: BlockExplorerValue): value is ExplorerEntry[] {
+	return Array.isArray(value[0])
+}
+
+export const getBlockExplorer = (address: string = '') => {
+	let blockExplorerLink, blockExplorerName, chainName, explorers
+	if (!address || typeof address !== 'string' || address === '') {
+		return { blockExplorerLink, blockExplorerName, chainName, explorers }
+	}
+	if (!address.includes(':')) {
+		address = `ethereum:${address}`
+	}
+	const [chain, chainAddress] = address.split(':')
+	const explorer = blockExplorers[chain]
+	if (explorer) {
+		const normalized: ExplorerEntry[] = isMultiExplorer(explorer) ? explorer : [explorer]
+		explorers = normalized.map((e) => ({
+			blockExplorerLink: e[0] + chainAddress,
+			blockExplorerName: e[1]
+		}))
+		blockExplorerLink = explorers[0].blockExplorerLink
+		blockExplorerName = explorers[0].blockExplorerName
+	}
+	chainName = chain
+		? chain
+				.split('_')
+				.map((x) => capitalizeFirstLetter(x))
+				.join(' ')
+		: 'Ethereum'
+
+	return {
+		blockExplorerLink: blockExplorerLink ?? '',
+		blockExplorerName: blockExplorerName ?? 'unknown',
+		chainName,
+		explorers
 	}
 }

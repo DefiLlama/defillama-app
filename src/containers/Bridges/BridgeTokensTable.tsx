@@ -8,8 +8,8 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { VirtualTable } from '~/components/Table/Table'
+import { getBlockExplorer } from '~/containers/Bridges/utils'
 import { formattedNum } from '~/utils'
-import { getBlockExplorer } from '~/utils/blockExplorers'
 
 type BridgeTokensTableRow = {
 	symbol: string

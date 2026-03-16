@@ -1,4 +1,4 @@
-import { fetchLlamaConfig } from '~/api'
+import { fetchBlockExplorers, fetchLlamaConfig } from '~/api'
 import {
 	formatPeggedAssetsData,
 	formatPeggedChainsData,
@@ -11,6 +11,7 @@ import {
 } from '~/containers/Stablecoins/utils'
 import { getPercentChange, slug } from '~/utils'
 import { postRuntimeLogs } from '~/utils/async'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 import {
 	fetchStablecoinAssetApi,
@@ -428,11 +429,12 @@ export const getStablecoinAssetPageData = async (
 		return null
 	}
 	return withStablecoinsCache(`asset:${peggedID}`, async () => {
-		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo] = await Promise.all([
+		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo, blockExplorersData] = await Promise.all([
 			fetchStablecoinAssetApi(peggedID),
 			getStablecoinConfigData().catch(() => ({ chainCoingeckoIds: {} })),
 			fetchStablecoinRecentCoinsDataApi().catch(() => ({})),
-			getStablecoinBridgeInfo().catch(() => null)
+			getStablecoinBridgeInfo().catch(() => null),
+			fetchBlockExplorers().catch(() => [])
 		])
 		if (!res) return null
 
@@ -481,6 +483,12 @@ export const getStablecoinAssetPageData = async (
 			})
 			.sort((a, b) => (b.circulating ?? 0) - (a.circulating ?? 0))
 
+		const explorerResult = getBlockExplorerNew({
+			apiResponse: blockExplorersData,
+			address: res.address ?? '',
+			urlType: 'token'
+		})
+
 		return {
 			props: {
 				chainsUnique,
@@ -489,7 +497,9 @@ export const getStablecoinAssetPageData = async (
 				totalCirculating,
 				unreleased,
 				mcap,
-				bridgeInfo
+				bridgeInfo,
+				blockExplorerUrl: explorerResult?.url ?? null,
+				blockExplorerName: explorerResult?.name ?? null
 			}
 		}
 	})

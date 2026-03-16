@@ -17,7 +17,6 @@ import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } 
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { capitalizeFirstLetter, formattedNum, peggedAssetIconUrl, slug } from '~/utils'
-import { getBlockExplorer } from '~/utils/blockExplorers'
 import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
@@ -70,7 +69,9 @@ export const PeggedAssetInfo = ({
 	totalCirculating,
 	unreleased,
 	mcap,
-	bridgeInfo
+	bridgeInfo,
+	blockExplorerUrl,
+	blockExplorerName
 }: PeggedAssetPageProps) => {
 	const router = useRouter()
 	let {
@@ -80,15 +81,12 @@ export const PeggedAssetInfo = ({
 		symbol,
 		description,
 		mintRedeemDescription,
-		address,
 		url,
 		pegMechanism,
 		twitter,
 		auditLinks,
 		price
 	} = peggedAssetData
-
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? '')
 
 	const [chartType, setChartType] = React.useState<ChartType>('Pie')
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
@@ -407,9 +405,9 @@ export const PeggedAssetInfo = ({
 										<span>Twitter</span>
 									</a>
 								) : null}
-								{blockExplorerLink !== undefined ? (
+								{blockExplorerUrl ? (
 									<a
-										href={blockExplorerLink}
+										href={blockExplorerUrl}
 										target="_blank"
 										rel="noopener noreferrer"
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"

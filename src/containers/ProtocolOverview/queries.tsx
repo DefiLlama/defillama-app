@@ -1,5 +1,5 @@
-import { fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
-import type { CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
+import { fetchBlockExplorers, fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
+import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
@@ -22,7 +22,7 @@ import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
 import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { getProtocolTokenUrlOnExplorer } from '~/utils/blockExplorers'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,
@@ -159,7 +159,8 @@ export const getProtocolOverviewPageData = async ({
 		bridgeVolumeData,
 		incomeStatement,
 		oracleChartData,
-		oracleTvs
+		oracleTvs,
+		blockExplorersData
 	]: [
 		IProtocolDataExtended | null,
 		IProtocolValueChart,
@@ -190,7 +191,8 @@ export const getProtocolOverviewPageData = async ({
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
 		IOracleProtocolChart | null,
-		IProtocolOverviewPageData['oracleTvs']
+		IProtocolOverviewPageData['oracleTvs'],
+		BlockExplorersResponse
 	] = await Promise.all([
 		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
 			async (data): Promise<IProtocolDataExtended | null> => {
@@ -452,7 +454,8 @@ export const getProtocolOverviewPageData = async ({
 						return hasTvs ? tvs : null
 					})
 					.catch(() => null)
-			: null
+			: null,
+		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	])
 
 	if (!protocolData) {
@@ -854,7 +857,12 @@ export const getProtocolOverviewPageData = async ({
 					: (protocolData.tokenCGData?.symbol ?? null),
 			gecko_id: protocolData.gecko_id ?? null,
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
-			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address ?? undefined)
+			explorer_url:
+				getBlockExplorerNew({
+					apiResponse: blockExplorersData,
+					address: protocolData.address ?? '',
+					urlType: 'token'
+				})?.url ?? null
 		},
 		metrics: protocolMetrics,
 		fees: feesData,

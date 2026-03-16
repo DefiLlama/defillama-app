@@ -42,7 +42,7 @@ export interface LlamaConfigResponse {
 	chainCoingeckoIds: Record<string, LlamaChainConfig>
 }
 
-export interface LlamaChainConfig {
+interface LlamaChainConfig {
 	geckoId?: string
 	symbol?: string
 	stablecoins?: string[]
@@ -53,7 +53,7 @@ export interface LlamaChainConfig {
 	[key: string]: unknown
 }
 
-export interface CoinMcapEntry {
+interface CoinMcapEntry {
 	mcap?: number | null
 	timestamp?: number
 }
@@ -72,12 +72,12 @@ export interface CoinsPricesResponse {
 	coins?: Record<string, PriceObject | undefined>
 }
 
-export interface CoinChartPricePoint {
+interface CoinChartPricePoint {
 	timestamp?: number
 	price?: number
 }
 
-export interface CoinChartEntry {
+interface CoinChartEntry {
 	prices?: CoinChartPricePoint[]
 }
 
@@ -158,3 +158,17 @@ export interface SearchQuery {
 	q: string
 	filter?: Array<string | string[]>
 }
+
+interface BlockExplorerLink {
+	name: string
+	url: string
+}
+
+interface BlockExplorersChain {
+	displayName: string
+	llamaChainId: string | null
+	evmChainId: number | null
+	blockExplorers: BlockExplorerLink[]
+}
+
+export type BlockExplorersResponse = BlockExplorersChain[]
