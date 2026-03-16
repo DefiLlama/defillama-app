@@ -161,7 +161,15 @@ export const AgenticSessionItem = memo(function AgenticSessionItem({
 					className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border border-[#ccc] data-[checked=true]:border-(--old-blue) data-[checked=true]:bg-(--old-blue) dark:border-[#555] dark:data-[checked=true]:border-(--old-blue)"
 				>
 					{isSelected ? (
-						<svg className="h-2.5 w-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+						<svg
+							className="h-2.5 w-2.5 text-white"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="3"
+							strokeLinecap="round"
+							strokeLinejoin="round"
+						>
 							<polyline points="20 6 9 17 4 12" />
 						</svg>
 					) : null}

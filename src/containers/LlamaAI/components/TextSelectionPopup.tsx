@@ -12,37 +12,43 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 	const popupRef = useRef<HTMLButtonElement>(null)
 
 	useEffect(() => {
-		const handleMouseUp = () => {
-			setTimeout(() => {
-				const selection = window.getSelection()
-				const text = selection?.toString().trim() || ''
+		const POPUP_OFFSET = 36
+		const VIEWPORT_MARGIN = 8
 
-				if (text.length < 3) {
+		const showPopupForSelection = () => {
+			const selection = window.getSelection()
+			const text = selection?.toString().trim() || ''
+
+			if (text.length < 3) {
+				setSelectedText('')
+				setPosition(null)
+				return
+			}
+
+			const anchorNode = selection?.anchorNode
+			if (anchorNode) {
+				const el = anchorNode instanceof Element ? anchorNode : anchorNode.parentElement
+				if (el?.closest('textarea, input, [contenteditable]')) {
 					setSelectedText('')
 					setPosition(null)
 					return
 				}
+			}
 
-				const anchorNode = selection?.anchorNode
-				if (anchorNode) {
-					const el = anchorNode instanceof Element ? anchorNode : anchorNode.parentElement
-					if (el?.closest('textarea, input, [contenteditable]')) {
-						setSelectedText('')
-						setPosition(null)
-						return
-					}
-				}
+			const range = selection?.getRangeAt(0)
+			if (!range) return
+			const rect = range.getBoundingClientRect()
+			const centeredLeft = rect.left + window.scrollX + rect.width / 2
 
-				const range = selection?.getRangeAt(0)
-				if (!range) return
-				const rect = range.getBoundingClientRect()
+			const aboveTop = rect.top + window.scrollY - POPUP_OFFSET
+			const top = aboveTop < VIEWPORT_MARGIN ? rect.bottom + window.scrollY + VIEWPORT_MARGIN : aboveTop
 
-				setSelectedText(text.slice(0, 2000))
-				setPosition({
-					top: rect.top + window.scrollY - 36,
-					left: rect.left + window.scrollX + rect.width / 2
-				})
-			}, 10)
+			setSelectedText(text.slice(0, 2000))
+			setPosition({ top, left: centeredLeft })
+		}
+
+		const handleMouseUp = () => {
+			setTimeout(showPopupForSelection, 10)
 		}
 
 		const handleMouseDown = (e: MouseEvent) => {
@@ -51,11 +57,17 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 			setPosition(null)
 		}
 
+		const handleSelectionChange = () => {
+			showPopupForSelection()
+		}
+
 		document.addEventListener('mouseup', handleMouseUp)
 		document.addEventListener('mousedown', handleMouseDown)
+		document.addEventListener('selectionchange', handleSelectionChange)
 		return () => {
 			document.removeEventListener('mouseup', handleMouseUp)
 			document.removeEventListener('mousedown', handleMouseDown)
+			document.removeEventListener('selectionchange', handleSelectionChange)
 		}
 	}, [])
 
@@ -78,7 +90,7 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 				left: position.left,
 				transform: 'translateX(-50%)',
 				zIndex: 9999,
-				animation: 'llamaPopupIn 0.15s cubic-bezier(0.16, 1, 0.3, 1)'
+				animation: 'llama-popup-in 0.15s cubic-bezier(0.16, 1, 0.3, 1)'
 			}}
 			className="flex items-center gap-1.5 rounded-full border border-[#e6e6e6] bg-white/90 px-3 py-1.5 text-xs font-medium text-[#333] shadow-[0_2px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.15)] active:scale-95 dark:border-[#39393E] dark:bg-[#1a1a1d]/90 dark:text-[#ccc] dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)]"
 		>

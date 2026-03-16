@@ -353,7 +353,7 @@ export function AgenticSidebar({
 					</button>
 					<button
 						onClick={() => void handleBulkDelete()}
-						disabled={selectedSessionIds.size === 0}
+						disabled={selectedSessionIds.size === 0 || !onBulkDelete}
 						className="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-40 dark:text-red-400"
 					>
 						Delete{selectedSessionIds.size > 0 ? ` (${selectedSessionIds.size})` : ''}

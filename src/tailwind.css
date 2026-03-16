@@ -802,7 +802,7 @@
 	}
 }
 
-@keyframes llamaPopupIn {
+@keyframes llama-popup-in {
 	from {
 		opacity: 0;
 		transform: translateX(-50%) translateY(4px) scale(0.95);

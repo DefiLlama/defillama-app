@@ -31,8 +31,8 @@ import {
 import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
 import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
 import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
-import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
 import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
 import {
 	checkActiveExecution,
@@ -1309,6 +1309,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isFirstMessageRef.current = false
 					}
 
+					const currentQuotedText = quotedText
+					if (currentQuotedText) setQuotedText(null)
+
 					const userImages = images?.map((img) => ({ url: img.data, mimeType: img.mimeType, filename: img.filename }))
 					setMessages((prev) => [
 						...prev,
@@ -1333,9 +1336,6 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					)
 					const settleState = createRequestSettleState(requestId)
 					activeRequestSettleRef.current = settleState
-
-					const currentQuotedText = quotedText
-					if (currentQuotedText) setQuotedText(null)
 
 					void fetchAgenticResponse({
 						message: trimmed,

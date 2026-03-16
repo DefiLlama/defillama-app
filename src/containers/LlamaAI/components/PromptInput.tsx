@@ -386,15 +386,21 @@ export function PromptInput({
 						<polyline points="9 14 4 9 9 4" />
 						<path d="M20 20v-7a4 4 0 0 0-4-4H4" />
 					</svg>
-					<p className="min-w-0 flex-1 truncate text-[13px] text-[#333] dark:text-[#bbb]">
-						{quotedText}
-					</p>
+					<p className="min-w-0 flex-1 truncate text-[13px] text-[#333] dark:text-[#bbb]">{quotedText}</p>
 					<button
 						type="button"
 						onClick={onClearQuotedText}
+						aria-label="Clear quoted text"
 						className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#555] dark:hover:bg-white/5 dark:hover:text-white"
 					>
-						<svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+						<svg
+							className="h-3.5 w-3.5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+						>
 							<path d="M18 6L6 18M6 6l12 12" />
 						</svg>
 					</button>
