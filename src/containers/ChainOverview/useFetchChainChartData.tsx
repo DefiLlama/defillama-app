@@ -227,9 +227,9 @@ export const useFetchChainChartData = ({
 	> | null>({
 		queryKey: ['chain-overview', 'active-addresses', selectedChain],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
+			fetchAdapterChainChartData({
 				adapterType: 'active-users',
-				protocol: selectedChain
+				chain: selectedChain
 			})
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
@@ -242,9 +242,9 @@ export const useFetchChainChartData = ({
 	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['chain-overview', 'new-addresses', selectedChain],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
+			fetchAdapterChainChartData({
 				adapterType: 'new-users',
-				protocol: selectedChain
+				chain: selectedChain
 			})
 				.then((values) => normalizeActivityChart(values))
 				.catch(() => null),
@@ -257,9 +257,9 @@ export const useFetchChainChartData = ({
 	const { data: transactionsData = null, isLoading: fetchingTransactions } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['chain-overview', 'transactions', selectedChain],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
+			fetchAdapterChainChartData({
 				adapterType: 'active-users',
-				protocol: selectedChain,
+				chain: selectedChain,
 				dataType: 'dailyTransactionsCount'
 			})
 				.then((values) => normalizeActivityChart(values))
@@ -273,9 +273,9 @@ export const useFetchChainChartData = ({
 	const { data: gasUsedData = null, isLoading: fetchingGasUsed } = useQuery<Array<[number, number]> | null>({
 		queryKey: ['chain-overview', 'gas-used', selectedChain],
 		queryFn: () =>
-			fetchAdapterProtocolChartData({
+			fetchAdapterChainChartData({
 				adapterType: 'active-users',
-				protocol: selectedChain,
+				chain: selectedChain,
 				dataType: 'dailyGasUsed'
 			})
 				.then((values) => normalizeActivityChart(values))
