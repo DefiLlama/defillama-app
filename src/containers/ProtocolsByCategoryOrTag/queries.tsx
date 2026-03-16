@@ -78,7 +78,6 @@ const createTimeSeriesMap = (
 	const chartMap = new Map<number, number | null>()
 
 	for (const [timestamp, value] of chartData ?? []) {
-		if (!Number.isFinite(timestamp)) continue
 		chartMap.set(normalizeChartTimestamp(timestamp), value ?? null)
 	}
 
@@ -1002,7 +1001,6 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 	const chartSource: IProtocolsCategoriesPageData['chartSource'] = []
 	for (const [date, chartByCategory] of Object.entries(chart ?? {})) {
 		const timestamp = Number(date) * 1e3
-		if (!Number.isFinite(timestamp)) continue
 
 		const chartRow: IProtocolsCategoriesPageData['chartSource'][number] = { timestamp }
 		for (const categoryName of categoryKeys) {

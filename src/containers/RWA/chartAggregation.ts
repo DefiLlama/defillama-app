@@ -1,4 +1,5 @@
 import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
+import { DEFAULT_EXCLUDED_TYPES, type RWAOverviewMode } from './constants'
 
 export type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
@@ -70,6 +71,7 @@ function aggregateMetricRows(
 
 	for (const row of rows ?? []) {
 		const outRow: RWAChartRow = { timestamp: row.timestamp }
+		let hasData = false
 
 		for (const [ticker, value] of Object.entries(row)) {
 			if (ticker === 'timestamp') continue
@@ -78,13 +80,16 @@ function aggregateMetricRows(
 			const groups = tickerToGroups.get(ticker)
 			if (!groups || groups.size === 0) continue
 
+			hasData = true
 			for (const group of groups) {
 				seenGroups.add(group)
 				outRow[group] = (outRow[group] ?? 0) + value
 			}
 		}
 
-		out.push(outRow)
+		if (hasData) {
+			out.push(outRow)
+		}
 	}
 
 	return out
@@ -148,21 +153,25 @@ export function aggregateRwaChartData(
 	}
 }
 
-const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
-
 /**
  * Apply the same default filters that the client applies when no URL query params exist.
  * This ensures `initialChartDataset` matches the no-filter client view exactly.
  */
 export function applyDefaultAssetFilters(
 	assets: IRWAAssetsOverview['assets'],
-	{ includeStablecoins, includeGovernance }: { includeStablecoins: boolean; includeGovernance: boolean }
+	{
+		includeStablecoins,
+		includeGovernance,
+		mode
+	}: { includeStablecoins: boolean; includeGovernance: boolean; mode?: RWAOverviewMode }
 ): IRWAAssetsOverview['assets'] {
 	return assets.filter((asset) => {
 		if (!includeStablecoins && asset.stablecoin) return false
 		if (!includeGovernance && asset.governance) return false
-		const assetType = asset.type || 'Unknown'
-		if (DEFAULT_EXCLUDED_TYPES.has(assetType)) return false
+		if (mode !== 'platform') {
+			const assetType = asset.type || 'Unknown'
+			if (DEFAULT_EXCLUDED_TYPES.has(assetType)) return false
+		}
 		return true
 	})
 }

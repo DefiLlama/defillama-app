@@ -1,8 +1,7 @@
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview, IRWAProject } from './api.types'
+import type { RWAOverviewMode } from './constants'
 import { rwaSlug } from './rwaSlug'
-
-type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 export type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 export type RwaTreemapParentGrouping = 'category' | 'assetClass' | 'assetName' | 'platform' | 'chain'

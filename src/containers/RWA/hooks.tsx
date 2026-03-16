@@ -20,13 +20,13 @@ import {
 	type RWAChartAggregationMode,
 	type RWAChartDatasetsByMetric
 } from './chartAggregation'
+import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
 const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
 type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
 const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
-const DEFAULT_EXCLUDED_TYPES = new Set([])
 
 const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
 	if (!values || values.length === 0) return []
@@ -108,7 +108,8 @@ export const useRWATableQueryParams = ({
 	accessModels,
 	issuers,
 	defaultIncludeStablecoins,
-	defaultIncludeGovernance
+	defaultIncludeGovernance,
+	mode
 }: {
 	assetNames: string[]
 	types: string[]
@@ -120,6 +121,7 @@ export const useRWATableQueryParams = ({
 	issuers: string[]
 	defaultIncludeStablecoins: boolean
 	defaultIncludeGovernance: boolean
+	mode: RWAOverviewMode
 }) => {
 	const router = useRouter()
 	const {
@@ -234,7 +236,7 @@ export const useRWATableQueryParams = ({
 				? parseArrayParam(typesQ, types, typesValidSet)
 				: excludeTypesSet.size > 0
 					? types
-					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
+					: getDefaultSelectedTypes(types, mode)
 		const selectedTypes = excludeTypesSet.size > 0 ? baseTypes.filter((t) => !excludeTypesSet.has(t)) : baseTypes
 
 		const baseCategories =
@@ -370,7 +372,8 @@ export const useRWATableQueryParams = ({
 		assetClasses,
 		rwaClassifications,
 		accessModels,
-		issuers
+		issuers,
+		mode
 	])
 
 	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
