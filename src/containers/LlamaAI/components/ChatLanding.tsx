@@ -20,6 +20,8 @@ interface ChatLandingProps {
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
 	onOpenAlerts: () => void
+	quotedText?: string | null
+	onClearQuotedText?: () => void
 }
 
 export function ChatLanding({
@@ -32,7 +34,9 @@ export function ChatLanding({
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
-	onOpenAlerts
+	onOpenAlerts,
+	quotedText,
+	onClearQuotedText
 }: ChatLandingProps) {
 	const handleSuggestedSubmit = useCallback(
 		(prompt: string) => handleSubmit(prompt, undefined, undefined, undefined, true),
@@ -59,6 +63,8 @@ export function ChatLanding({
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
+						quotedText={quotedText}
+						onClearQuotedText={onClearQuotedText}
 					/>
 					<RecommendedPrompts
 						onSubmit={handleSuggestedSubmit}

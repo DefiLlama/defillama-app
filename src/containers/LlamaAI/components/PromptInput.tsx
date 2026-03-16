@@ -53,6 +53,8 @@ interface PromptInputProps {
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
 	onOpenAlerts?: () => void
+	quotedText?: string | null
+	onClearQuotedText?: () => void
 }
 
 const trackSubmit = () => {
@@ -79,7 +81,9 @@ export function PromptInput({
 	droppedFiles,
 	clearDroppedFiles,
 	externalDragging,
-	onOpenAlerts
+	onOpenAlerts,
+	quotedText,
+	onClearQuotedText
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const [submitError, setSubmitError] = useState<string | null>(null)
@@ -193,6 +197,12 @@ export function PromptInput({
 			promptInputRef.current?.focus()
 		}
 	}, [droppedFiles, promptInputRef])
+
+	useEffect(() => {
+		if (quotedText) {
+			promptInputRef.current?.focus()
+		}
+	}, [quotedText, promptInputRef])
 
 	const resetInput = (imagesToRevoke?: Array<{ url: string }>) => {
 		applyPromptEdit({
@@ -361,6 +371,41 @@ export function PromptInput({
 				fileInputRef={imageUpload.fileInputRef}
 				handleImageSelect={handleImageSelect}
 			/>
+
+			{quotedText ? (
+				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/[0.04] py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/[0.04]">
+					<svg
+						className="h-3.5 w-3.5 shrink-0 -scale-x-100 text-[#2172e5]/50 dark:text-[#4190f7]/50"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						strokeWidth="2.5"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
+						<polyline points="9 14 4 9 9 4" />
+						<path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+					</svg>
+					<p className="min-w-0 flex-1 truncate text-[13px] text-[#333] dark:text-[#bbb]">{quotedText}</p>
+					<button
+						type="button"
+						onClick={onClearQuotedText}
+						aria-label="Clear quoted text"
+						className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[#999] transition-colors hover:bg-black/5 hover:text-[#333] dark:text-[#555] dark:hover:bg-white/5 dark:hover:text-white"
+					>
+						<svg
+							className="h-3.5 w-3.5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2.5"
+							strokeLinecap="round"
+						>
+							<path d="M18 6L6 18M6 6l12 12" />
+						</svg>
+					</button>
+				</div>
+			) : null}
 
 			<InputTextarea
 				combobox={entityCombobox.combobox}

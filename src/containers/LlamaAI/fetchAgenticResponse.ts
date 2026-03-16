@@ -158,6 +158,7 @@ interface FetchAgenticResponseParams {
 	images?: Array<{ data: string; mimeType: string; filename?: string }>
 	pageContext?: { entitySlug?: string; entityType?: string; route: string }
 	customInstructions?: string
+	quotedText?: string
 	isSuggestedQuestion?: boolean
 	fetchFn?: typeof fetch
 }
@@ -296,6 +297,7 @@ export async function fetchAgenticResponse({
 	images,
 	pageContext,
 	customInstructions,
+	quotedText,
 	isSuggestedQuestion,
 	fetchFn
 }: FetchAgenticResponseParams) {
@@ -312,6 +314,7 @@ export async function fetchAgenticResponse({
 		images?: Array<{ data: string; mimeType: string; filename?: string }>
 		pageContext?: { entitySlug?: string; entityType?: string; route: string }
 		customInstructions?: string
+		quotedText?: string
 		isSuggestedQuestion?: true
 	} = {
 		message,
@@ -346,6 +349,10 @@ export async function fetchAgenticResponse({
 
 	if (customInstructions) {
 		requestBody.customInstructions = customInstructions
+	}
+
+	if (quotedText) {
+		requestBody.quotedText = quotedText
 	}
 
 	if (isSuggestedQuestion) {
