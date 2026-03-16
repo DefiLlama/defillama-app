@@ -547,37 +547,32 @@ const columns = [
 			const count = getValue() as number | null
 			if (count == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
 			const change7d = row.original.holderChange7d
+			const change30d = row.original.holderChange30d
 			return (
-				<span className="flex items-center justify-end gap-1.5">
-					<span className="tabular-nums">{formattedNum(count)}</span>
-					{change7d != null ? (
-						<span className={`text-xs tabular-nums ${change7d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
-							{change7d >= 0 ? '+' : ''}
-							{change7d}
-						</span>
-					) : null}
-				</span>
+				<Tooltip
+					content={
+						change7d != null || change30d != null
+							? `${change7d != null ? `7d: ${change7d >= 0 ? '+' : ''}${change7d}` : ''}${change7d != null && change30d != null ? ', ' : ''}${change30d != null ? `30d: ${change30d >= 0 ? '+' : ''}${change30d}` : ''}`
+							: null
+					}
+					className="justify-end"
+				>
+					<span className="flex items-center justify-end gap-1.5">
+						<span className="tabular-nums">{formattedNum(count)}</span>
+						{change7d != null ? (
+							<span className={`text-xs tabular-nums ${change7d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
+								{change7d >= 0 ? '+' : ''}
+								{change7d}
+							</span>
+						) : null}
+					</span>
+				</Tooltip>
 			)
 		},
 		size: 130,
 		meta: {
 			align: 'end',
-			headerHelperText: 'Number of unique token holders. Badge shows 7d change.'
-		}
-	}),
-	columnHelper.accessor((row) => row.avgPositionUsd ?? undefined, {
-		id: 'avgPositionUsd',
-		header: 'Avg Position',
-		enableSorting: true,
-		cell: (info) => {
-			const val = info.getValue() as number | null
-			if (val == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
-			return <>{formattedNum(val, true)}</>
-		},
-		size: 130,
-		meta: {
-			align: 'end',
-			headerHelperText: 'Average holder position size in USD (TVL / holders).'
+			headerHelperText: 'Number of unique token holders. Badge shows 7d change, hover for 30d.'
 		}
 	}),
 	columnHelper.accessor((row) => row.top10Pct ?? undefined, {
@@ -656,7 +651,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'avgPositionUsd',
 		'top10Pct'
 	],
 	400: [
@@ -689,7 +683,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'avgPositionUsd',
 		'top10Pct'
 	],
 	640: [
@@ -722,7 +715,6 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'totalBorrowUsd',
 		'totalAvailableUsd',
 		'holderCount',
-		'avgPositionUsd',
 		'top10Pct'
 	],
 	1280: [
@@ -788,7 +780,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	},
 	812: {
@@ -821,7 +812,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	},
 	1280: {
@@ -854,7 +844,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	},
 	1536: {
@@ -887,7 +876,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	},
 	1600: {
@@ -920,7 +908,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	},
 	1640: {
@@ -953,7 +940,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	},
 	1720: {
@@ -986,7 +972,6 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		totalBorrowUsd: 120,
 		totalAvailableUsd: 120,
 		holderCount: 130,
-		avgPositionUsd: 130,
 		top10Pct: 110
 	}
 }
@@ -1054,7 +1039,6 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
 					holderCount: showHolders === 'true',
-					avgPositionUsd: showHolders === 'true',
 					top10Pct: showHolders === 'true',
 					...stablecoinColumnVisibility
 				}
@@ -1079,7 +1063,6 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
 					apyStd30d: hasActiveSubscription && showStdDev === 'true',
 					holderCount: showHolders === 'true',
-					avgPositionUsd: showHolders === 'true',
 					top10Pct: showHolders === 'true',
 					...stablecoinColumnVisibility
 				}

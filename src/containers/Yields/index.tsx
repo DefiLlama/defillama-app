@@ -194,7 +194,6 @@ const YieldPage = ({
 					pegDeviation: pegInfo?.pegDeviation ?? null,
 					pegPrice: pegInfo?.price ?? null,
 					holderCount: holderStats?.[curr.pool]?.holderCount ?? null,
-					avgPositionUsd: holderStats?.[curr.pool]?.avgPositionUsd ?? null,
 					top10Pct: holderStats?.[curr.pool]?.top10Pct ?? null,
 					holderChange7d: holderStats?.[curr.pool]?.holderChange7d ?? null,
 					holderChange30d: holderStats?.[curr.pool]?.holderChange30d ?? null
@@ -254,7 +253,11 @@ const YieldPage = ({
 			'Pool Meta',
 			'APY Median 30d',
 			'APY Std Dev 30d',
-			'CV 30d'
+			'CV 30d',
+			'Holder Count',
+			'Top 10 %',
+			'Holder Change 7d',
+			'Holder Change 30d'
 		]
 		const csvData = poolsData.map((row) => {
 			return {
@@ -288,7 +291,11 @@ const YieldPage = ({
 				'Pool Meta': row.poolMeta,
 				'APY Median 30d': row.apyMedian30d,
 				'APY Std Dev 30d': row.apyStd30d,
-				'CV 30d': row.cv30d
+				'CV 30d': row.cv30d,
+				'Holder Count': row.holderCount,
+				'Top 10 %': row.top10Pct,
+				'Holder Change 7d': row.holderChange7d,
+				'Holder Change 30d': row.holderChange30d
 			}
 		})
 

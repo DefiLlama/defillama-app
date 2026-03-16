@@ -122,7 +122,7 @@ export const useVolatility = () => {
 
 export const useHolderStats = (configIDs?: string[]) => {
 	return useQuery<HolderStatsMap>({
-		queryKey: ['holder-stats'],
+		queryKey: ['holder-stats', configIDs],
 		queryFn: async () => {
 			if (USE_MOCK_HOLDER_DATA && configIDs?.length) {
 				return generateMockHolderStats(configIDs)
@@ -146,7 +146,6 @@ export const useHolderHistory = (configID: string | null) => {
 			const res = await fetchJson(`${YIELD_HOLDER_HISTORY_API}/${configID}`)
 			return (res?.data ?? []).map((row: any) => ({
 				...row,
-				avgPositionUsd: row.avgPositionUsd != null ? Number(row.avgPositionUsd) : null,
 				top10Pct: row.top10Pct != null ? Number(row.top10Pct) : null
 			}))
 		},

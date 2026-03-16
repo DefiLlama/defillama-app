@@ -69,6 +69,11 @@ const HOLDER_COUNT_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
 
 const EMPTY_HOLDER_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Holders'] }
 
+const CONCENTRATION_LINE_CHARTS: IMultiSeriesChart2Props['charts'] = [
+	{ type: 'line', name: 'Top 10 %', encode: { x: 'timestamp', y: 'Top 10 %' }, color: '#f59e0b' }
+]
+const EMPTY_CONCENTRATION_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp', 'Top 10 %'] }
+
 const HOLDER_DONUT_RADIUS: [string, string] = ['45%', '75%']
 
 function truncateAddress(addr: string): string {
@@ -312,6 +317,23 @@ const PageView = (_props) => {
 
 	const { chartInstance: holderCountChartInstance, handleChartReady: handleHolderCountReady } = useGetChartInstance()
 
+	const concentrationDataset = useMemo(() => {
+		if (!holderHistory?.length) return EMPTY_CONCENTRATION_DATASET
+		return {
+			source: holderHistory
+				.filter((e) => e.top10Pct != null)
+				.map((entry) => ({
+					timestamp: new Date(entry.timestamp).getTime(),
+					'Top 10 %': entry.top10Pct
+				})),
+			dimensions: ['timestamp', 'Top 10 %']
+		} as MultiSeriesChart2Dataset
+	}, [holderHistory])
+	const deferredConcentrationDataset = useDeferredValue(concentrationDataset)
+
+	const { chartInstance: concentrationChartInstance, handleChartReady: handleConcentrationReady } =
+		useGetChartInstance()
+
 	const holderDonutData = useMemo(() => {
 		const holders = holderStats?.top10Holders
 		if (!holders?.length) return null
@@ -390,11 +412,12 @@ const PageView = (_props) => {
 												7d: {holderStats.holderChange7d >= 0 ? '+' : ''}{holderStats.holderChange7d}
 											</span>
 										) : null}
+										{holderStats.holderChange30d != null ? (
+											<span className={`text-xs ${holderStats.holderChange30d >= 0 ? 'text-(--success)' : 'text-(--error)'}`}>
+												30d: {holderStats.holderChange30d >= 0 ? '+' : ''}{holderStats.holderChange30d}
+											</span>
+										) : null}
 									</span>
-								</p>
-								<p className="flex items-center justify-between gap-1">
-									<span className="font-semibold">Avg Position</span>
-									<span className="ml-auto font-jetbrains">{formattedNum(holderStats.avgPositionUsd, true)}</span>
 								</p>
 								<p className="flex items-center justify-between gap-1">
 									<span className="font-semibold">Top 10 Concentration</span>
@@ -621,6 +644,27 @@ const PageView = (_props) => {
 							</Suspense>
 						</div>
 					) : null}
+				</div>
+			) : null}
+
+			{concentrationDataset.source.length ? (
+				<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
+						<h2 className="mr-auto text-base font-semibold">Top 10 Concentration</h2>
+						<ChartExportButtons
+							chartInstance={concentrationChartInstance}
+							filename={`${query.pool}-concentration`}
+							title="Top 10 Concentration"
+						/>
+					</div>
+					<Suspense fallback={<div className="min-h-[360px]" />}>
+						<MultiSeriesChart2
+							dataset={deferredConcentrationDataset}
+							charts={CONCENTRATION_LINE_CHARTS}
+							valueSymbol="%"
+							onReady={handleConcentrationReady}
+						/>
+					</Suspense>
 				</div>
 			) : null}
 

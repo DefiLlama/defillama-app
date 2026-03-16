@@ -35,7 +35,6 @@ export interface IYieldTableRow {
 	pegDeviation?: number | null
 	pegPrice?: number | null
 	holderCount?: number | null
-	avgPositionUsd?: number | null
 	top10Pct?: number | null
 	holderChange7d?: number | null
 	holderChange30d?: number | null
