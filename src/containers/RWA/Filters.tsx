@@ -259,9 +259,11 @@ function Filters({
 
 	if (!enabled) return null
 
+	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
 	const defaultSelectedTypes = getDefaultSelectedTypes(
 		options.typeOptions.map((o) => o.key),
-		modes.mode
+		modes.mode,
+		categorySlug
 	)
 
 	// Determine active filters/chart controls purely from URL query.

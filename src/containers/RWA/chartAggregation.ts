@@ -1,5 +1,5 @@
 import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
-import { DEFAULT_EXCLUDED_TYPES, type RWAOverviewMode } from './constants'
+import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
 
 export type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
@@ -33,8 +33,8 @@ const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): strin
 function buildTickerGroupMapping(
 	assets: IRWAAssetsOverview['assets'],
 	mode: RWAChartAggregationMode
-): Map<string, Set<string>> {
-	const tickerToGroups = new Map<string, Set<string>>()
+): Map<string, Map<string, number>> {
+	const tickerToGroups = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
 		const ticker = asset.ticker
@@ -52,9 +52,10 @@ function buildTickerGroupMapping(
 
 		if (groupValues.length === 0) continue
 
-		const groups = tickerToGroups.get(ticker) ?? new Set<string>()
+		const groups = tickerToGroups.get(ticker) ?? new Map<string, number>()
+		const weight = 1 / groupValues.length
 		for (const group of groupValues) {
-			groups.add(group)
+			groups.set(group, weight)
 		}
 		tickerToGroups.set(ticker, groups)
 	}
@@ -64,7 +65,7 @@ function buildTickerGroupMapping(
 
 function aggregateMetricRows(
 	rows: RWAChartRow[],
-	tickerToGroups: Map<string, Set<string>>,
+	tickerToGroups: Map<string, Map<string, number>>,
 	seenGroups: Set<string>
 ): RWAChartRow[] {
 	const out: RWAChartRow[] = []
@@ -81,9 +82,9 @@ function aggregateMetricRows(
 			if (!groups || groups.size === 0) continue
 
 			hasData = true
-			for (const group of groups) {
+			for (const [group, weight] of groups.entries()) {
 				seenGroups.add(group)
-				outRow[group] = (outRow[group] ?? 0) + value
+				outRow[group] = (outRow[group] ?? 0) + value * weight
 			}
 		}
 
@@ -162,16 +163,19 @@ export function applyDefaultAssetFilters(
 	{
 		includeStablecoins,
 		includeGovernance,
-		mode
-	}: { includeStablecoins: boolean; includeGovernance: boolean; mode?: RWAOverviewMode }
+		mode,
+		categorySlug
+	}: {
+		includeStablecoins: boolean
+		includeGovernance: boolean
+		mode?: RWAOverviewMode
+		categorySlug?: string | null
+	}
 ): IRWAAssetsOverview['assets'] {
 	return assets.filter((asset) => {
 		if (!includeStablecoins && asset.stablecoin) return false
 		if (!includeGovernance && asset.governance) return false
-		if (mode !== 'platform') {
-			const assetType = asset.type || 'Unknown'
-			if (DEFAULT_EXCLUDED_TYPES.has(assetType)) return false
-		}
+		if (!isTypeIncludedByDefault(asset.type, mode ?? 'chain', categorySlug)) return false
 		return true
 	})
 }

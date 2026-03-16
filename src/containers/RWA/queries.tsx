@@ -542,7 +542,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
 			includeStablecoins: !isChainMode,
 			includeGovernance: !isChainMode,
-			mode: selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain'
+			mode: selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain',
+			categorySlug: selectedCategory
 		})
 		const initialChartDataset = chartDataMs
 			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
