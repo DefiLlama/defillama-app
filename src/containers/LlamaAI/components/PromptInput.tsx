@@ -198,6 +198,12 @@ export function PromptInput({
 		}
 	}, [droppedFiles, promptInputRef])
 
+	useEffect(() => {
+		if (quotedText) {
+			promptInputRef.current?.focus()
+		}
+	}, [quotedText, promptInputRef])
+
 	const resetInput = (imagesToRevoke?: Array<{ url: string }>) => {
 		applyPromptEdit({
 			nextValue: '',
