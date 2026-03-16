@@ -1,6 +1,7 @@
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview, IRWAProject } from './api.types'
 import type { RWAOverviewMode } from './constants'
+import { computeWeightedGroups } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 export type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
@@ -219,6 +220,16 @@ const getAssetGroupsByGrouping = (
 	}
 }
 
+const getWeightedAssetGroupsByGrouping = (
+	asset: IRWAProject,
+	grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy
+): Array<{ label: string; weight: number }> => {
+	return computeWeightedGroups(getAssetGroupsByGrouping(asset, grouping)).map(({ value, weight }) => ({
+		label: value,
+		weight
+	}))
+}
+
 const sanitizeTreemapLabel = (value: string): string => {
 	const trimmed = value.trim()
 	if (!trimmed) return ''
@@ -349,7 +360,7 @@ export const buildRwaNestedTreemapTreeData = ({
 	const nestedTotals = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
-		const childGroups = getAssetGroupsByGrouping(asset, childGrouping)
+		const childGroups = getWeightedAssetGroupsByGrouping(asset, childGrouping)
 		if (childGroups.length === 0) continue
 
 		if (parentGrouping === 'chain') {
@@ -358,8 +369,8 @@ export const buildRwaNestedTreemapTreeData = ({
 
 			for (const { label: parentGroup, value: metricValue } of metricByChain) {
 				const childTotals = nestedTotals.get(parentGroup) ?? new Map<string, number>()
-				for (const childGroup of childGroups) {
-					childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue)
+				for (const { label: childGroup, weight: childWeight } of childGroups) {
+					childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue * childWeight)
 				}
 				nestedTotals.set(parentGroup, childTotals)
 			}
@@ -369,15 +380,13 @@ export const buildRwaNestedTreemapTreeData = ({
 		const metricValue = getRwaMetricValue(asset, metric)
 		if (!Number.isFinite(metricValue) || metricValue <= 0) continue
 
-		const parentGroups = getAssetGroupsByGrouping(asset, parentGrouping)
+		const parentGroups = getWeightedAssetGroupsByGrouping(asset, parentGrouping)
 		if (parentGroups.length === 0) continue
 
-		// Intentional full-count behavior: if an asset belongs to multiple parent/child groups,
-		// we add the full metric to each membership. To migrate to split-even, divide metricValue here.
-		for (const parentGroup of parentGroups) {
+		for (const { label: parentGroup, weight: parentWeight } of parentGroups) {
 			const childTotals = nestedTotals.get(parentGroup) ?? new Map<string, number>()
-			for (const childGroup of childGroups) {
-				childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue)
+			for (const { label: childGroup, weight: childWeight } of childGroups) {
+				childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue * parentWeight * childWeight)
 			}
 			nestedTotals.set(parentGroup, childTotals)
 		}

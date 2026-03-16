@@ -1,5 +1,6 @@
 import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
-import { DEFAULT_EXCLUDED_TYPES, type RWAOverviewMode } from './constants'
+import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
+import { computeWeightedGroups } from './grouping'
 
 export type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
@@ -19,42 +20,31 @@ export function emptyChartDatasets(): RWAChartDatasetsByMetric {
 	return { onChainMcap: emptyChartDataset(), activeMcap: emptyChartDataset(), defiActiveTvl: emptyChartDataset() }
 }
 
-const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
-	if (!values || values.length === 0) return []
-	const out = new Set<string>()
-	for (const value of values) {
-		const normalized = typeof value === 'string' ? value.trim() : ''
-		if (!normalized) continue
-		out.add(normalized)
-	}
-	return Array.from(out)
-}
-
 function buildTickerGroupMapping(
 	assets: IRWAAssetsOverview['assets'],
 	mode: RWAChartAggregationMode
-): Map<string, Set<string>> {
-	const tickerToGroups = new Map<string, Set<string>>()
+): Map<string, Map<string, number>> {
+	const tickerToGroups = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
 		const ticker = asset.ticker
 		if (!ticker) continue
 
-		let groupValues: string[]
+		let weightedGroups: ReturnType<typeof computeWeightedGroups>
 		if (mode === 'category') {
-			groupValues = toUniqueNonEmptyValues(asset.category)
+			weightedGroups = computeWeightedGroups(asset.category)
 		} else if (mode === 'assetClass') {
-			groupValues = toUniqueNonEmptyValues(asset.assetClass)
+			weightedGroups = computeWeightedGroups(asset.assetClass)
 		} else {
 			const name = (asset.assetName || asset.ticker || '').trim()
-			groupValues = name ? [name] : []
+			weightedGroups = computeWeightedGroups(name ? [name] : [])
 		}
 
-		if (groupValues.length === 0) continue
+		if (weightedGroups.length === 0) continue
 
-		const groups = tickerToGroups.get(ticker) ?? new Set<string>()
-		for (const group of groupValues) {
-			groups.add(group)
+		const groups = tickerToGroups.get(ticker) ?? new Map<string, number>()
+		for (const { value: group, weight } of weightedGroups) {
+			groups.set(group, weight)
 		}
 		tickerToGroups.set(ticker, groups)
 	}
@@ -64,7 +54,7 @@ function buildTickerGroupMapping(
 
 function aggregateMetricRows(
 	rows: RWAChartRow[],
-	tickerToGroups: Map<string, Set<string>>,
+	tickerToGroups: Map<string, Map<string, number>>,
 	seenGroups: Set<string>
 ): RWAChartRow[] {
 	const out: RWAChartRow[] = []
@@ -81,9 +71,9 @@ function aggregateMetricRows(
 			if (!groups || groups.size === 0) continue
 
 			hasData = true
-			for (const group of groups) {
+			for (const [group, weight] of groups.entries()) {
 				seenGroups.add(group)
-				outRow[group] = (outRow[group] ?? 0) + value
+				outRow[group] = (outRow[group] ?? 0) + value * weight
 			}
 		}
 
@@ -162,16 +152,19 @@ export function applyDefaultAssetFilters(
 	{
 		includeStablecoins,
 		includeGovernance,
-		mode
-	}: { includeStablecoins: boolean; includeGovernance: boolean; mode?: RWAOverviewMode }
+		mode,
+		categorySlug
+	}: {
+		includeStablecoins: boolean
+		includeGovernance: boolean
+		mode?: RWAOverviewMode
+		categorySlug?: string | null
+	}
 ): IRWAAssetsOverview['assets'] {
 	return assets.filter((asset) => {
 		if (!includeStablecoins && asset.stablecoin) return false
 		if (!includeGovernance && asset.governance) return false
-		if (mode !== 'platform') {
-			const assetType = asset.type || 'Unknown'
-			if (DEFAULT_EXCLUDED_TYPES.has(assetType)) return false
-		}
+		if (!isTypeIncludedByDefault(asset.type, mode ?? 'chain', categorySlug)) return false
 		return true
 	})
 }
