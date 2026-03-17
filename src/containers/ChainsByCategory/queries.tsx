@@ -105,30 +105,24 @@ export const getChainsByCategory = async ({
 	}
 
 	const feesByDisplayName: Record<string, (typeof fees.protocols)[0]> = {}
-	const revenueByDisplayName: Record<string, (typeof revenue.protocols)[0]> = {}
-	if (fees?.protocols) {
-		for (const protocol of fees.protocols) {
-			feesByDisplayName[protocol.displayName] ??= protocol
-		}
-	}
-	if (revenue?.protocols) {
-		for (const protocol of revenue.protocols) {
-			revenueByDisplayName[protocol.displayName] ??= protocol
-		}
-	}
-	const nftVolumeByDisplayName: Record<string, number> = {}
-	if (chainNftsVolume?.protocols) {
-		for (const protocol of chainNftsVolume.protocols) {
-			nftVolumeByDisplayName[protocol.displayName] ??= protocol.total24h ?? 0
-		}
+	for (const protocol of fees?.protocols ?? []) {
+		feesByDisplayName[protocol.displayName] ??= protocol
 	}
 
-	const activeUsersByDisplayName: Record<string, number> = {}
-	if (activeUsers?.protocols) {
-		for (const protocol of activeUsers.protocols) {
-			if (!protocol.defillamaId.startsWith('chain#')) continue
-			activeUsersByDisplayName[protocol.displayName] ??= protocol.total24h ?? 0
-		}
+	const revenueByDisplayName: Record<string, (typeof revenue.protocols)[0]> = {}
+	for (const protocol of revenue?.protocols ?? []) {
+		revenueByDisplayName[protocol.displayName] ??= protocol
+	}
+
+	const nftVolumeByDisplayName: Record<string, (typeof chainNftsVolume.protocols)[0]> = {}
+	for (const protocol of chainNftsVolume?.protocols ?? []) {
+		nftVolumeByDisplayName[protocol.displayName] ??= protocol
+	}
+
+	const activeUsersByDisplayName: Record<string, (typeof activeUsers.protocols)[0]> = {}
+	for (const protocol of activeUsers?.protocols ?? []) {
+		if (!protocol.defillamaId.startsWith('chain#')) continue
+		activeUsersByDisplayName[protocol.displayName] ??= protocol
 	}
 
 	let stackedDataset = rest.stackedDataset
@@ -177,24 +171,31 @@ export const getChainsByCategory = async ({
 		colorsByChain,
 		chains: chainTvls.map((chain) => {
 			const name = slug(chain.name)
-			const nftVolume = nftVolumeByDisplayName[chain.name] ?? null
-			const feesProtocol = feesByDisplayName[chain.name]
-			const totalFees24h = feesProtocol?.total24h ?? null
-			const totalFees7d = feesProtocol?.total7d ?? null
-			const totalFees30d = feesProtocol?.total30d ?? null
-			const revenueProtocol = revenueByDisplayName[chain.name]
-			const totalRevenue24h = revenueProtocol?.total24h ?? null
-			const totalRevenue7d = revenueProtocol?.total7d ?? null
-			const totalRevenue30d = revenueProtocol?.total30d ?? null
-			const totalAppRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
-			const totalAppRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
-			const totalAppRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null
-			const totalVolume24h = dexs?.[chain.name]?.['24h'] ?? null
-			const totalVolume7d = dexs?.[chain.name]?.['7d'] ?? null
-			const totalVolume30d = dexs?.[chain.name]?.['30d'] ?? null
+
+			const fees24h = feesByDisplayName[chain.name]?.total24h ?? null
+			const fees7d = feesByDisplayName[chain.name]?.total7d ?? null
+			const fees30d = feesByDisplayName[chain.name]?.total30d ?? null
+
+			const revenue24h = revenueByDisplayName[chain.name]?.total24h ?? null
+			const revenue7d = revenueByDisplayName[chain.name]?.total7d ?? null
+			const revenue30d = revenueByDisplayName[chain.name]?.total30d ?? null
+
+			const appRevenue24h = appRevenue?.[chain.name]?.['24h'] ?? null
+			const appRevenue7d = appRevenue?.[chain.name]?.['7d'] ?? null
+			const appRevenue30d = appRevenue?.[chain.name]?.['30d'] ?? null
+
+			const dexVolume24h = dexs?.[chain.name]?.['24h'] ?? null
+			const dexVolume7d = dexs?.[chain.name]?.['7d'] ?? null
+			const dexVolume30d = dexs?.[chain.name]?.['30d'] ?? null
+
 			const stablesMcap = stablesChainMcapMap.get(name) ?? null
-			const users = activeUsersByDisplayName[chain.name] ?? null
+
+			const activeUsers24h = activeUsersByDisplayName[chain.name]?.total24h ?? null
+			const activeUsers7d = activeUsersByDisplayName[chain.name]?.total7d ?? null
+			const activeUsers30d = activeUsersByDisplayName[chain.name]?.total30d ?? null
+
 			const protocols = chainMetadata[name]?.protocolCount ?? chain.protocols ?? 0
+
 			const tvl =
 				(chain.tvl ?? 0) -
 				(chain.extraTvl?.doublecounted?.tvl ?? 0) -
@@ -216,31 +217,39 @@ export const getChainsByCategory = async ({
 				(chain.extraTvl?.liquidstaking?.tvlPrevMonth ?? 0) +
 				(chain.extraTvl?.dcAndLsOverlap?.tvlPrevMonth ?? 0)
 
+			const nftVolume24h = nftVolumeByDisplayName[chain.name]?.total24h ?? null
+			const nftVolume7d = nftVolumeByDisplayName[chain.name]?.total7d ?? null
+			const nftVolume30d = nftVolumeByDisplayName[chain.name]?.total30d ?? null
+
 			return {
 				...chain,
 				protocols,
-				nftVolume: nftVolume ? +Number(nftVolume).toFixed(2) : null,
-				totalVolume24h,
-				totalVolume7d,
-				totalVolume30d,
-				totalFees24h,
-				totalFees7d,
-				totalFees30d,
-				totalRevenue24h,
-				totalRevenue7d,
-				totalRevenue30d,
 				stablesMcap,
-				users: users ? +users : null,
-				totalAppRevenue24h,
-				totalAppRevenue7d,
-				totalAppRevenue30d,
+				dexVolume24h,
+				dexVolume7d,
+				dexVolume30d,
+				fees24h,
+				fees7d,
+				fees30d,
+				revenue24h,
+				revenue7d,
+				revenue30d,
+				appRevenue24h,
+				appRevenue7d,
+				appRevenue30d,
+				activeUsers24h,
+				activeUsers7d,
+				activeUsers30d,
 				chainAssets: chainsAssets[chain.name] ?? null,
 				bridgedTvl: chainsAssets[chain.name]?.total?.total != null ? +chainsAssets[chain.name].total.total : null,
 				childGroups: rest.chainsGroupbyParent[chain.name] ?? null,
 				tvl,
 				tvlPrevDay,
 				tvlPrevWeek,
-				tvlPrevMonth
+				tvlPrevMonth,
+				nftVolume24h,
+				nftVolume7d,
+				nftVolume30d
 			}
 		}),
 		description:

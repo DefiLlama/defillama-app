@@ -37,19 +37,6 @@ import { formatChainAssets, toFilterProtocol, toStrikeTvl } from './utils'
 
 const TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000
 
-const fetchActivityMetric24h = ({
-	protocol,
-	adapterType,
-	dataType
-}: {
-	protocol: string
-	adapterType: 'active-users' | 'new-users'
-	dataType?: 'dailyTransactionsCount'
-}) =>
-	fetchAdapterProtocolMetrics({ adapterType, protocol, dataType })
-		.then((data) => data?.total24h ?? null)
-		.catch(() => null)
-
 /**
  * Pre-compute TVL 24h change values on server to avoid client-side iteration.
  * This finds the last value and the value from ~24 hours ago.
@@ -207,23 +194,29 @@ export async function getChainOverviewData({
 						.catch(() => null),
 			!currentChainMetadata.chainActiveUsers
 				? Promise.resolve(null)
-				: fetchActivityMetric24h({
-						protocol: currentChainMetadata.name,
+				: fetchAdapterChainMetrics({
+						chain: currentChainMetadata.name,
 						adapterType: 'active-users'
-					}),
+					})
+						.then((data) => data?.total24h ?? null)
+						.catch(() => null),
 			!currentChainMetadata.txCount
 				? Promise.resolve(null)
-				: fetchActivityMetric24h({
-						protocol: currentChainMetadata.name,
+				: fetchAdapterChainMetrics({
+						chain: currentChainMetadata.name,
 						adapterType: 'active-users',
 						dataType: 'dailyTransactionsCount'
-					}),
+					})
+						.then((data) => data?.total24h ?? null)
+						.catch(() => null),
 			!currentChainMetadata.chainNewUsers
 				? Promise.resolve(null)
-				: fetchActivityMetric24h({
-						protocol: currentChainMetadata.name,
+				: fetchAdapterChainMetrics({
+						chain: currentChainMetadata.name,
 						adapterType: 'new-users'
-					}),
+					})
+						.then((data) => data?.total24h ?? null)
+						.catch(() => null),
 			fetchRaises(),
 			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id

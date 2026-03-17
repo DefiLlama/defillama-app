@@ -111,19 +111,6 @@ type IYieldsDataResult = { data?: Array<{ project: string; apy: number }> } | nu
 type IYieldsConfigResult = { protocols?: Record<string, { name?: string }> } | null
 type IBridgeVolumeResult = Array<{ date: string; depositUSD: number; withdrawUSD: number }> | null
 
-const fetchActivityMetric24h = ({
-	protocol,
-	adapterType,
-	dataType
-}: {
-	protocol: string
-	adapterType: 'active-users' | 'new-users'
-	dataType?: 'dailyTransactionsCount' | 'dailyGasUsed'
-}) =>
-	fetchAdapterProtocolMetrics({ adapterType, protocol, dataType })
-		.then((data) => data?.total24h ?? null)
-		.catch(() => null)
-
 export const getProtocolOverviewPageData = async ({
 	protocolId,
 	currentProtocolMetadata,
@@ -400,30 +387,38 @@ export const getProtocolOverviewPageData = async ({
 		currentProtocolMetadata.displayName
 			? Promise.all([
 					currentProtocolMetadata.activeUsers
-						? fetchActivityMetric24h({
+						? fetchAdapterProtocolMetrics({
 								protocol: currentProtocolMetadata.displayName,
 								adapterType: 'active-users'
 							})
+								.then((data) => data?.total24h ?? null)
+								.catch(() => null)
 						: Promise.resolve(null),
 					currentProtocolMetadata.newUsers
-						? fetchActivityMetric24h({
+						? fetchAdapterProtocolMetrics({
 								protocol: currentProtocolMetadata.displayName,
 								adapterType: 'new-users'
 							})
+								.then((data) => data?.total24h ?? null)
+								.catch(() => null)
 						: Promise.resolve(null),
 					currentProtocolMetadata.txCount
-						? fetchActivityMetric24h({
+						? fetchAdapterProtocolMetrics({
 								protocol: currentProtocolMetadata.displayName,
 								adapterType: 'active-users',
 								dataType: 'dailyTransactionsCount'
 							})
+								.then((data) => data?.total24h ?? null)
+								.catch(() => null)
 						: Promise.resolve(null),
 					currentProtocolMetadata.gasUsed
-						? fetchActivityMetric24h({
+						? fetchAdapterProtocolMetrics({
 								protocol: currentProtocolMetadata.displayName,
 								adapterType: 'active-users',
 								dataType: 'dailyGasUsed'
 							})
+								.then((data) => data?.total24h ?? null)
+								.catch(() => null)
 						: Promise.resolve(null)
 				]).then(([activeUsers, newUsers, transactions, gasUsd]) => {
 					if (activeUsers == null && newUsers == null && transactions == null && gasUsd == null) {

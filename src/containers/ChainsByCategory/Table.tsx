@@ -172,10 +172,10 @@ const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'users',
+		'dexVolume24h',
+		'fees24h',
+		'revenue24h',
+		'activeUsers24h',
 		'mcaptvl'
 	],
 	400: [
@@ -187,10 +187,10 @@ const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'users',
+		'dexVolume24h',
+		'fees24h',
+		'revenue24h',
+		'activeUsers24h',
 		'mcaptvl'
 	],
 	600: [
@@ -202,10 +202,10 @@ const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 		'change_1d',
 		'change_1m',
 		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'users',
+		'dexVolume24h',
+		'fees24h',
+		'revenue24h',
+		'activeUsers24h',
 		'mcaptvl'
 	],
 	900: [
@@ -217,10 +217,10 @@ const chainsTableColumnOrders: ColumnOrdersByBreakpoint = {
 		'change_1m',
 		'chainAssets',
 		'stablesMcap',
-		'totalVolume24h',
-		'totalFees24h',
-		'totalRevenue24h',
-		'users',
+		'dexVolume24h',
+		'fees24h',
+		'revenue24h',
+		'activeUsers24h',
 		'mcaptvl'
 	]
 }
@@ -390,7 +390,7 @@ const columns = [
 			headerHelperText: 'Sum of market cap of all stablecoins on the chain'
 		}
 	}),
-	columnHelper.accessor('totalVolume24h', {
+	columnHelper.accessor('dexVolume24h', {
 		header: '24h DEXs Volume',
 		enableSorting: true,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -400,7 +400,7 @@ const columns = [
 			headerHelperText: 'Sum of 24h volume on all DEXs on the chain. Updated daily at 00:00UTC'
 		}
 	}),
-	columnHelper.accessor('totalFees24h', {
+	columnHelper.accessor('fees24h', {
 		header: `24h Chain Fees`,
 		enableSorting: true,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -410,7 +410,7 @@ const columns = [
 			headerHelperText: definitions.fees.chain['24h']
 		}
 	}),
-	columnHelper.accessor('totalAppRevenue24h', {
+	columnHelper.accessor('appRevenue24h', {
 		header: `24h App Revenue`,
 		enableSorting: true,
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
@@ -420,7 +420,7 @@ const columns = [
 			headerHelperText: definitions.appRevenue.chain['24h']
 		}
 	}),
-	columnHelper.accessor('users', {
+	columnHelper.accessor('activeUsers24h', {
 		header: '24h Active Addresses',
 		cell: (info) => <>{info.getValue() > 0 ? formattedNum(info.getValue()) : null}</>,
 		size: 180,
@@ -438,7 +438,7 @@ const columns = [
 			headerHelperText: 'Market cap / DeFi TVL ratio'
 		}
 	}),
-	columnHelper.accessor('nftVolume', {
+	columnHelper.accessor('nftVolume24h', {
 		header: '24h NFT Volume',
 		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 148,

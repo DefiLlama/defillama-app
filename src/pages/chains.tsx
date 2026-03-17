@@ -25,9 +25,9 @@ export const getStaticProps = withPerformanceLogging('chains', async () => {
 			change_1d: c.change_1d ?? null,
 			change_7d: c.change_7d ?? null,
 			protocols: c.protocols ?? null,
-			totalVolume24h: c.totalVolume24h ?? null,
-			totalFees24h: c.totalFees24h ?? null,
-			totalRevenue24h: c.totalRevenue24h ?? null,
+			dexVolume24h: c.dexVolume24h ?? null,
+			fees24h: c.fees24h ?? null,
+			revenue24h: c.revenue24h ?? null,
 			stablesMcap: c.stablesMcap ?? null
 		}))
 	}
