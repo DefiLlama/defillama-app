@@ -47,6 +47,8 @@ const CHART_METRIC_LABELS: Record<ProtocolCategoryChartMetric, string> = {
 	dexAggregatorsVolume: 'DEX Aggregator Volume',
 	perpVolume: 'Perp Volume',
 	openInterest: 'Open Interest',
+	optionsPremiumVolume: 'Options Premium Volume',
+	optionsNotionalVolume: 'Options Notional Volume',
 	borrowed: 'Borrowed',
 	staking: 'Staking TVL'
 }
@@ -57,6 +59,8 @@ const CHART_METRIC_SERIES_TYPE: Record<ProtocolCategoryChartMetric, 'line' | 'ba
 	dexAggregatorsVolume: 'bar',
 	perpVolume: 'bar',
 	openInterest: 'line',
+	optionsPremiumVolume: 'bar',
+	optionsNotionalVolume: 'bar',
 	borrowed: 'line',
 	staking: 'line'
 }
@@ -67,6 +71,8 @@ const CHART_METRIC_Y_AXIS_INDEX: Record<ProtocolCategoryChartMetric, number> = {
 	dexAggregatorsVolume: 1,
 	perpVolume: 1,
 	openInterest: 1,
+	optionsPremiumVolume: 1,
+	optionsNotionalVolume: 1,
 	borrowed: 1,
 	staking: 0
 }
@@ -109,6 +115,8 @@ const buildCategoryCharts = ({
 	dexAggregatorsVolumeChartData,
 	perpVolumeChartData,
 	openInterestChartData,
+	optionsPremiumVolumeChartData,
+	optionsNotionalVolumeChartData,
 	borrowedChartData,
 	stakingChartData
 }: {
@@ -118,6 +126,8 @@ const buildCategoryCharts = ({
 	dexAggregatorsVolumeChartData: Array<[number, number]> | null
 	perpVolumeChartData: Array<[number, number]> | null
 	openInterestChartData: Array<[number, number]> | null
+	optionsPremiumVolumeChartData: Array<[number, number]> | null
+	optionsNotionalVolumeChartData: Array<[number, number]> | null
 	borrowedChartData: Record<string | number, number | null> | undefined
 	stakingChartData: Record<string | number, number | null> | undefined
 }): IProtocolByCategoryOrTagPageData['charts'] => {
@@ -127,6 +137,8 @@ const buildCategoryCharts = ({
 		dexAggregatorsVolume: createTimeSeriesMap(dexAggregatorsVolumeChartData),
 		perpVolume: createTimeSeriesMap(perpVolumeChartData),
 		openInterest: createTimeSeriesMap(openInterestChartData),
+		optionsPremiumVolume: createTimeSeriesMap(optionsPremiumVolumeChartData),
+		optionsNotionalVolume: createTimeSeriesMap(optionsNotionalVolumeChartData),
 		borrowed: createTimeSeriesMapFromRecord(borrowedChartData),
 		staking: createTimeSeriesMapFromRecord(stakingChartData)
 	}
@@ -253,6 +265,8 @@ export async function getProtocolsByCategoryOrTag(
 		dexAggregatorsVolumeChartData,
 		perpVolumeChartData,
 		openInterestChartData,
+		optionsPremiumVolumeChartData,
+		optionsNotionalVolumeChartData,
 		chainsByCategoriesOrTags
 	]: [
 		{ protocols: Array<ProtocolLite>; parentProtocols: Array<ParentProtocolLite> },
@@ -264,6 +278,8 @@ export async function getProtocolsByCategoryOrTag(
 		IAdapterChainMetrics | null,
 		IAdapterChainMetrics | null,
 		Record<string, Record<string, number | null>>,
+		Array<[number, number]> | null,
+		Array<[number, number]> | null,
 		Array<[number, number]> | null,
 		Array<[number, number]> | null,
 		Array<[number, number]> | null,
@@ -349,6 +365,20 @@ export async function getProtocolsByCategoryOrTag(
 					chain: chain ?? 'All',
 					adapterType: 'open-interest',
 					dataType: 'openInterestAtEnd'
+				}).catch(() => null)
+			: null,
+		categoryMetrics?.optionsPremiumVolume && currentChainMetadata?.optionsPremiumVolume
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'options',
+					dataType: 'dailyPremiumVolume'
+				}).catch(() => null)
+			: null,
+		categoryMetrics?.optionsNotionalVolume && currentChainMetadata?.optionsNotionalVolume
+			? fetchAdapterChainChartData({
+					chain: chain ?? 'All',
+					adapterType: 'options',
+					dataType: 'dailyNotionalVolume'
 				}).catch(() => null)
 			: null,
 		tag
@@ -683,6 +713,8 @@ export async function getProtocolsByCategoryOrTag(
 		dexAggregatorsVolumeChartData,
 		perpVolumeChartData,
 		openInterestChartData,
+		optionsPremiumVolumeChartData,
+		optionsNotionalVolumeChartData,
 		borrowedChartData: extraTvlCharts.borrowed,
 		stakingChartData: extraTvlCharts.staking
 	})

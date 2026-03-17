@@ -7,6 +7,8 @@ export type ProtocolCategoryChartMetric =
 	| 'dexAggregatorsVolume'
 	| 'perpVolume'
 	| 'openInterest'
+	| 'optionsPremiumVolume'
+	| 'optionsNotionalVolume'
 	| 'borrowed'
 	| 'staking'
 
@@ -221,7 +223,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		tableHeader: 'Market Rankings',
 		searchPlaceholder: 'Search markets...',
 		columns: ['name', 'tvl', 'fees_7d', 'revenue_7d', 'mcap/tvl', 'fees_30d', 'revenue_30d', 'fees_24h', 'revenue_24h'],
-		defaultSort: 'prediction_market_volume_7d'
+		defaultSort: 'tvl'
 	},
 	'Algo-Stables': { description: 'Protocols that provide algorithmic coins to stablecoins' },
 	'NFT Marketplace': {
@@ -742,6 +744,8 @@ export function getProtocolCategoryChartMetrics(effectiveCategory: string | null
 	if (m.dexAggregatorsVolume) result.push('dexAggregatorsVolume')
 	if (m.perpVolume) result.push('perpVolume')
 	if (m.openInterest) result.push('openInterest')
+	if (m.optionsPremiumVolume) result.push('optionsPremiumVolume')
+	if (m.optionsNotionalVolume) result.push('optionsNotionalVolume')
 	if (m.borrowed) result.push('borrowed')
 	if (m.staking) result.push('staking')
 	return result.length > 0 ? result : ['tvl']

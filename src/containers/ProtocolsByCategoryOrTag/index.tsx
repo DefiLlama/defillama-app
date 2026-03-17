@@ -1,4 +1,4 @@
-import { createColumnHelper } from '@tanstack/react-table'
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
 import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
@@ -416,7 +416,7 @@ const perpVolumeCell = (info: any) => {
 	return formattedNum(info.getValue(), true)
 }
 
-const COLUMN_REGISTRY: Record<string, any> = {
+const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 	name: columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
