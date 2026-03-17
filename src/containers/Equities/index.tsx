@@ -2,24 +2,11 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { formattedNum } from '~/utils'
 import type { IEquitiesListCompanyRow, IEquitiesListPageProps } from './types'
-import { formatEquitiesDateTime } from './utils'
+import { formatCurrency, formatEquitiesDateTime, formatPercent } from './utils'
 
 const columnHelper = createColumnHelper<IEquitiesListCompanyRow>()
 const DEFAULT_SORTING_STATE = [{ id: 'marketCap', desc: true }]
-
-function formatCurrency(value: number | null): string {
-	return value == null ? '-' : (formattedNum(value, true) ?? '-')
-}
-
-function formatDollarAmount(value: number | null): string {
-	return value == null ? '-' : (formattedNum(value, true) ?? '-')
-}
-
-function formatPercent(value: number | null): string {
-	return value == null ? '-' : `${formattedNum(value, false) ?? '0'}%`
-}
 
 const columns = [
 	columnHelper.accessor('ticker', {
@@ -72,7 +59,7 @@ const columns = [
 	columnHelper.accessor('volume', {
 		header: '24h Volume',
 		size: 128,
-		cell: ({ getValue }) => formatDollarAmount(getValue()),
+		cell: ({ getValue }) => formatCurrency(getValue()),
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('marketCap', {

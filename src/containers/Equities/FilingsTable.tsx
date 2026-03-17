@@ -124,7 +124,7 @@ export function EquitiesFilingsTable({
 			compact
 			columnSizes={columnSizes}
 			columnOrders={columnOrders}
-			csvFileName="equity-filings"
+			csvFileName="equities-filings"
 			customFilters={
 				<label className="flex items-center gap-2 text-sm">
 					<span className="text-(--text-form)">Form</span>

@@ -3,12 +3,18 @@ import type { ReactNode } from 'react'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { EquitiesFilingsTable } from './FilingsTable'
 import { EquitiesFinancialsTable } from './FinancialsTable'
 import type { IEquityTickerPageProps } from './types'
-import { formatEquitiesDate, formatEquitiesDateTime } from './utils'
+import {
+	formatCurrency,
+	formatEquitiesDate,
+	formatEquitiesDateTime,
+	formatNumber,
+	formatPercent,
+	formatText
+} from './utils'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const TABS = ['overview', 'financials', 'filings'] as const
@@ -17,22 +23,6 @@ const TAB_LABELS: Record<EquityTab, string> = {
 	overview: 'Overview',
 	financials: 'Financials',
 	filings: 'Filings'
-}
-
-function formatCurrency(value: number | null): string {
-	return value == null ? '-' : (formattedNum(value, true) ?? '-')
-}
-
-function formatNumber(value: number | null): string {
-	return value == null ? '-' : (formattedNum(value, false) ?? '-')
-}
-
-function formatText(value?: string | null): string {
-	return value && value.trim().length > 0 ? value : '-'
-}
-
-function formatPercent(value: number | null): string {
-	return value == null ? '-' : `${formattedNum(value, false) ?? '0'}%`
 }
 
 function MetricRow({ label, value, monospace = false }: { label: string; value: string; monospace?: boolean }) {

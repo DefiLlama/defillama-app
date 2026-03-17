@@ -18,6 +18,7 @@ export const EQUITIES_FILINGS_API = `${EQUITIES_SERVER_URL}/filings`
 
 function createEquitiesUrl(baseUrl: string, ticker?: string): string {
 	const url = new URL(baseUrl)
+
 	if (ticker) {
 		url.searchParams.set('ticker', ticker)
 	}
