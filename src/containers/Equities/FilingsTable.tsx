@@ -37,16 +37,6 @@ const columns = [
 				row.original.form.toLowerCase().includes(query)
 			)
 		},
-		cell: ({ getValue, row }) => (
-			<a
-				href={row.original.primaryDocumentUrl}
-				target="_blank"
-				rel="noopener noreferrer"
-				className="text-(--link-text) hover:underline"
-			>
-				{getValue()}
-			</a>
-		),
 		meta: { align: 'start' }
 	}),
 	columnHelper.accessor('primaryDocumentUrl', {
