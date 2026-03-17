@@ -401,6 +401,6 @@ export const useGroupAndFormatChains = ({
 			})
 		}
 
-		return { showByGroup, chainsTableData: chainsTableData.sort((a, b) => b.tvl - a.tvl) }
+		return { showByGroup, chainsTableData: chainsTableData.sort((a, b) => (b.tvl ?? 0) - (a.tvl ?? 0)) }
 	}, [category, chains, tvlSettings, minMaxTvl, chainsGroupbyParent, hideGroupBy])
 }

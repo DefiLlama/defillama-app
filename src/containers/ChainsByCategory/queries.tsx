@@ -60,7 +60,10 @@ export const getChainsByCategory = async ({
 			adapterType: 'nft-volume',
 			chain: 'All',
 			dataType: 'dailyVolume'
-		}),
+		}).catch((err) => {
+			console.log(err)
+			return null
+		}) as Promise<IAdapterChainMetrics | null>,
 		getDimensionAdapterOverviewOfAllChains({ adapterType: 'fees', dataType: 'dailyAppRevenue', chainMetadata })
 	])
 
