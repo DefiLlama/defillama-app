@@ -838,11 +838,6 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		fetchCategoriesSummary()
 	])
 
-	const categoryDescriptions = new Map<string, string>()
-	for (const [name, data] of Object.entries(protocolCategoryConfig)) {
-		categoryDescriptions.set(name, data.description)
-	}
-
 	const revenueByProtocol: Record<string, number> = {}
 	for (const protocol of revenueData?.protocols ?? []) {
 		revenueByProtocol[protocol.defillamaId] = protocol.total24h ?? 0
@@ -968,7 +963,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 			subRows.push(
 				toCategoryTableRow({
 					row: tagRow,
-					description: categoryDescriptions.get(tagName) ?? ''
+					description: protocolCategoryConfig[tagName]?.description ?? ''
 				})
 			)
 		}
@@ -976,7 +971,7 @@ export async function getProtocolsCategoriesPageData(): Promise<IProtocolsCatego
 		tableData.push(
 			toCategoryTableRow({
 				row: categoryRow,
-				description: categoryDescriptions.get(categoryName) ?? '',
+				description: protocolCategoryConfig[categoryName]?.description ?? '',
 				subRows
 			})
 		)
