@@ -389,6 +389,39 @@ export const chartDatasets: ChartDatasetDefinition[] = [
 	},
 
 	{
+		slug: 'cex-inflows-chart',
+		name: 'CEX Inflows',
+		description: 'Historical daily USD inflows/outflows for a specific centralized exchange',
+		category: 'CEX',
+		paramType: 'protocol',
+		paramLabel: 'Exchange',
+		optionsUrl: `${SERVER_URL}/cexs`,
+		extractOptions: (json) => {
+			const cexs: any[] = json?.cexs ?? []
+			return cexs
+				.filter((c: any) => c?.slug)
+				.sort((a: any, b: any) => (Number(b?.currentTvl) || 0) - (Number(a?.currentTvl) || 0))
+				.map((c: any) => ({ label: c.name, value: toSlug(c.slug) }))
+		},
+		buildUrl: (param: string) => `${V2_SERVER_URL}/chart/tvl/protocol/${param}`,
+		extractRows: (json) => {
+			const pairs = extractTimestampValuePairs(json)
+			if (pairs.length < 2) return []
+			const rows: Array<Record<string, unknown>> = []
+			for (let i = 1; i < pairs.length; i++) {
+				const currentVal = pairs[i].value as number
+				const prevVal = pairs[i - 1].value as number
+				if (currentVal == null || prevVal == null || !Number.isFinite(currentVal) || !Number.isFinite(prevVal)) continue
+				rows.push({
+					date: pairs[i].date,
+					inflow: currentVal - prevVal
+				})
+			}
+			return rows
+		}
+	},
+
+	{
 		slug: 'protocol-tvl-chart',
 		name: 'Protocol TVL',
 		description: 'Historical TVL timeseries for a specific protocol',
