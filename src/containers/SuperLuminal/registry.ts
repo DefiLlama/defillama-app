@@ -12,7 +12,8 @@ const DASHBOARD_REGISTRY: Record<string, () => Promise<{ tabs: DashboardTabConfi
 	'73x90j3b28pfhgx': () => import('./dashboards/etherfi'),
 	roxh2oxb1b7fhjz: () => import('./dashboards/spark'),
 	l5accmh9zooc32q: () => import('./dashboards/maple'),
-	t62luatlj9thwx2: () => import('./dashboards/berachain')
+	t62luatlj9thwx2: () => import('./dashboards/berachain'),
+	g3rswlkr9khxa03: () => import('./dashboards/aave')
 }
 
 export function getDashboardModule(dashboardId: string) {

@@ -133,8 +133,13 @@ function SuperLuminalContent({
 	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
 
 	const prevTab = useRef(activeTab)
+	const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set(['dashboard']))
 
 	useEffect(() => {
+		setVisitedTabs((prev) => {
+			if (prev.has(activeTab)) return prev
+			return new Set(prev).add(activeTab)
+		})
 		if (activeTab !== prevTab.current) {
 			prevTab.current = activeTab
 			requestAnimationFrame(() => {
@@ -166,6 +171,7 @@ function SuperLuminalContent({
 
 			{tabs.map((tab) => {
 				if (tab.id === 'dashboard') return null
+				if (!visitedTabs.has(tab.id)) return null
 				if (!tab.component) {
 					return (
 						<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
@@ -176,12 +182,9 @@ function SuperLuminalContent({
 				const TabComponent = tab.component
 				return (
 					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
-						<Suspense fallback={<div className="min-h-[60vh]" />}>
+						<Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" /></div>}>
 							<TabComponent />
 						</Suspense>
-						{tab.source && tab.source !== 'DefiLlama' && (
-							<p className="mt-6 text-center text-xs text-(--text-disabled)">Data source: {tab.source}</p>
-						)}
 					</div>
 				)
 			})}
@@ -198,6 +201,15 @@ function CustomOnlyContent({
 	activeTab: string
 	displayName: string
 }) {
+	const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set([activeTab]))
+
+	useEffect(() => {
+		setVisitedTabs((prev) => {
+			if (prev.has(activeTab)) return prev
+			return new Set(prev).add(activeTab)
+		})
+	}, [activeTab])
+
 	return (
 		<>
 			<header className="hidden items-center gap-3 md:flex">
@@ -207,11 +219,11 @@ function CustomOnlyContent({
 			</header>
 
 			{tabs.map((tab) => {
-				if (!tab.component) return null
+				if (!tab.component || !visitedTabs.has(tab.id)) return null
 				const TabComponent = tab.component
 				return (
 					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
-						<Suspense fallback={<div className="min-h-[60vh]" />}>
+						<Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" /></div>}>
 							<TabComponent />
 						</Suspense>
 					</div>
