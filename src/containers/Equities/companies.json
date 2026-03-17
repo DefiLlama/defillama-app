@@ -1,0 +1,830 @@
+[
+	{
+		"ticker": "NVDA",
+		"name": "NVIDIA Corporation",
+		"currentPrice": 183.22,
+		"volume": 215647512,
+		"marketCap": 4453162287104,
+		"priceChangePercentage": 1.65,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AAPL",
+		"name": "Apple Inc.",
+		"currentPrice": 252.82,
+		"volume": 30091880,
+		"marketCap": 3715929735168,
+		"priceChangePercentage": 1.08,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "GOOG",
+		"name": "Alphabet Inc.",
+		"currentPrice": 304.42,
+		"volume": 14764954,
+		"marketCap": 3682569027584,
+		"priceChangePercentage": 0.98,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MSFT",
+		"name": "Microsoft Corporation",
+		"currentPrice": 399.95,
+		"volume": 27676508,
+		"marketCap": 2972579528704,
+		"priceChangePercentage": 1.11,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AMZN",
+		"name": "Amazon.com, Inc.",
+		"currentPrice": 211.74,
+		"volume": 42137043,
+		"marketCap": 2273012088832,
+		"priceChangePercentage": 1.96,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "META",
+		"name": "Meta Platforms, Inc.",
+		"currentPrice": 627.45,
+		"volume": 14353381,
+		"marketCap": 1587169591296,
+		"priceChangePercentage": 2.33,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AVGO",
+		"name": "Broadcom Inc.",
+		"currentPrice": 324.92,
+		"volume": 31244813,
+		"marketCap": 1540534697984,
+		"priceChangePercentage": 0.86,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "TSLA",
+		"name": "Tesla, Inc.",
+		"currentPrice": 395.56,
+		"volume": 57799658,
+		"marketCap": 1484311887872,
+		"priceChangePercentage": 1.11,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "LLY",
+		"name": "Eli Lilly and Company",
+		"currentPrice": 989.12,
+		"volume": 1436073,
+		"marketCap": 885280931840,
+		"priceChangePercentage": 0.41,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "JPM",
+		"name": "JPMorgan Chase & Co.",
+		"currentPrice": 286.16,
+		"volume": 8142667,
+		"marketCap": 771782803456,
+		"priceChangePercentage": 0.96,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "XOM",
+		"name": "Exxon Mobil Corporation",
+		"currentPrice": 157.23,
+		"volume": 14735861,
+		"marketCap": 655140192256,
+		"priceChangePercentage": 0.71,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "V",
+		"name": "Visa Inc.",
+		"currentPrice": 310.11,
+		"volume": 4147987,
+		"marketCap": 597904326656,
+		"priceChangePercentage": 0.97,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MU",
+		"name": "Micron Technology, Inc.",
+		"currentPrice": 441.8,
+		"volume": 40573623,
+		"marketCap": 497249976320,
+		"priceChangePercentage": 3.68,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MA",
+		"name": "Mastercard Inc",
+		"currentPrice": 508.5,
+		"volume": 2423112,
+		"marketCap": 453804556288,
+		"priceChangePercentage": 2.11,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ORCL",
+		"name": "Oracle Corporation",
+		"currentPrice": 155.97,
+		"volume": 21541975,
+		"marketCap": 448576913408,
+		"priceChangePercentage": 0.55,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "COST",
+		"name": "Costco Wholesale Corporation",
+		"currentPrice": 1001.74,
+		"volume": 1234871,
+		"marketCap": 444464005120,
+		"priceChangePercentage": -0.66,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "NFLX",
+		"name": "Netflix, Inc.",
+		"currentPrice": 95.2,
+		"volume": 34582324,
+		"marketCap": 403827884032,
+		"priceChangePercentage": -0.12,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CVX",
+		"name": "Chevron Corporation",
+		"currentPrice": 196.84,
+		"volume": 12298171,
+		"marketCap": 393552756736,
+		"priceChangePercentage": 0.01,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ABBV",
+		"name": "AbbVie Inc.",
+		"currentPrice": 221.45,
+		"volume": 2754396,
+		"marketCap": 391561019392,
+		"priceChangePercentage": 0.81,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PLTR",
+		"name": "Palantir Technologies Inc.",
+		"currentPrice": 152.72,
+		"volume": 32773147,
+		"marketCap": 365256704000,
+		"priceChangePercentage": 1.17,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PG",
+		"name": "The Procter & Gamble Company",
+		"currentPrice": 152.12,
+		"volume": 5331386,
+		"marketCap": 355463888896,
+		"priceChangePercentage": 0.98,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "BAC",
+		"name": "Bank of America Corporation",
+		"currentPrice": 47.06,
+		"volume": 29809436,
+		"marketCap": 343655448576,
+		"priceChangePercentage": 0.73,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "HD",
+		"name": "The Home Depot, Inc.",
+		"currentPrice": 342.58,
+		"volume": 3108921,
+		"marketCap": 341042298880,
+		"priceChangePercentage": 1.05,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "KO",
+		"name": "The Coca-Cola Company",
+		"currentPrice": 77.82,
+		"volume": 8064065,
+		"marketCap": 334751203328,
+		"priceChangePercentage": 0.62,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CAT",
+		"name": "Caterpillar Inc.",
+		"currentPrice": 699.78,
+		"volume": 2096121,
+		"marketCap": 327482769408,
+		"priceChangePercentage": 0.83,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "GE",
+		"name": "GE Aerospace",
+		"currentPrice": 304,
+		"volume": 6252727,
+		"marketCap": 320663420928,
+		"priceChangePercentage": 1.44,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AMD",
+		"name": "Advanced Micro Devices, Inc.",
+		"currentPrice": 196.58,
+		"volume": 30136935,
+		"marketCap": 320506167296,
+		"priceChangePercentage": 1.65,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CSCO",
+		"name": "Cisco Systems, Inc.",
+		"currentPrice": 78.9,
+		"volume": 14704958,
+		"marketCap": 311741349888,
+		"priceChangePercentage": 0.73,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MRK",
+		"name": "Merck & Co., Inc.",
+		"currentPrice": 115.43,
+		"volume": 6539144,
+		"marketCap": 285388210176,
+		"priceChangePercentage": 0.58,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "LRCX",
+		"name": "Lam Research Corporation",
+		"currentPrice": 219.4,
+		"volume": 9510441,
+		"marketCap": 275572948992,
+		"priceChangePercentage": 3.39,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AMAT",
+		"name": "Applied Materials, Inc.",
+		"currentPrice": 346.18,
+		"volume": 4145491,
+		"marketCap": 274731859968,
+		"priceChangePercentage": 1.3599999999999999,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PM",
+		"name": "Philip Morris International Inc.",
+		"currentPrice": 174.78,
+		"volume": 2385549,
+		"marketCap": 272076455936,
+		"priceChangePercentage": 0.07,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "UNH",
+		"name": "UnitedHealth Group Incorporated",
+		"currentPrice": 285.49,
+		"volume": 4797726,
+		"marketCap": 259132358656,
+		"priceChangePercentage": 1.21,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MS",
+		"name": "Morgan Stanley",
+		"currentPrice": 155.7,
+		"volume": 5497654,
+		"marketCap": 247229825024,
+		"priceChangePercentage": 0.54,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "TMUS",
+		"name": "T-Mobile US, Inc.",
+		"currentPrice": 214.82,
+		"volume": 4451060,
+		"marketCap": 240277602304,
+		"priceChangePercentage": -1.18,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "GS",
+		"name": "The Goldman Sachs Group, Inc.",
+		"currentPrice": 794.77,
+		"volume": 1669070,
+		"marketCap": 238374191104,
+		"priceChangePercentage": 1.6099999999999999,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "IBM",
+		"name": "International Business Machines Corporation",
+		"currentPrice": 249.25,
+		"volume": 4987035,
+		"marketCap": 233898459136,
+		"priceChangePercentage": 1.21,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MCD",
+		"name": "McDonalds Corporation",
+		"currentPrice": 326.65,
+		"volume": 2512421,
+		"marketCap": 233098870784,
+		"priceChangePercentage": 0.06,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "INTC",
+		"name": "Intel Corporation",
+		"currentPrice": 45.76,
+		"volume": 113318901,
+		"marketCap": 228579360768,
+		"priceChangePercentage": -0.02,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "GEV",
+		"name": "GE Vernova Inc.",
+		"currentPrice": 827.37,
+		"volume": 1959067,
+		"marketCap": 224482394112,
+		"priceChangePercentage": 2.7800000000000002,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PEP",
+		"name": "PepsiCo, Inc.",
+		"currentPrice": 157.72,
+		"volume": 4496809,
+		"marketCap": 215656890368,
+		"priceChangePercentage": -1.35,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "VZ",
+		"name": "Verizon Communications Inc.",
+		"currentPrice": 50.97,
+		"volume": 16481040,
+		"marketCap": 214975365120,
+		"priceChangePercentage": -0.8,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AXP",
+		"name": "American Express Company",
+		"currentPrice": 298.2,
+		"volume": 3600888,
+		"marketCap": 205415563264,
+		"priceChangePercentage": -0.59,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "AMGN",
+		"name": "Amgen Inc.",
+		"currentPrice": 366.25,
+		"volume": 1737628,
+		"marketCap": 197433524224,
+		"priceChangePercentage": 0.01,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "T",
+		"name": "AT&T Inc.",
+		"currentPrice": 27.73,
+		"volume": 31260003,
+		"marketCap": 196590436352,
+		"priceChangePercentage": 0.04,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ABT",
+		"name": "Abbott Laboratories",
+		"currentPrice": 109.95,
+		"volume": 7435839,
+		"marketCap": 191058231296,
+		"priceChangePercentage": 1.78,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "KLAC",
+		"name": "KLA Corporation",
+		"currentPrice": 1438.24,
+		"volume": 954922,
+		"marketCap": 188973711360,
+		"priceChangePercentage": 1.38,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CRM",
+		"name": "Salesforce, Inc.",
+		"currentPrice": 198.34,
+		"volume": 13094861,
+		"marketCap": 185844580352,
+		"priceChangePercentage": 2.86,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "GILD",
+		"name": "Gilead Sciences, Inc.",
+		"currentPrice": 145.21,
+		"volume": 3497985,
+		"marketCap": 180266680320,
+		"priceChangePercentage": 0.15,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "TXN",
+		"name": "Texas Instruments Inc.",
+		"currentPrice": 194.13,
+		"volume": 4747009,
+		"marketCap": 176748249088,
+		"priceChangePercentage": 1.76,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "DIS",
+		"name": "The Walt Disney Company",
+		"currentPrice": 98.66,
+		"volume": 11564368,
+		"marketCap": 174962376704,
+		"priceChangePercentage": -0.63,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "TMO",
+		"name": "Thermo Fisher Scientific Inc.",
+		"currentPrice": 470,
+		"volume": 2513502,
+		"marketCap": 174597603328,
+		"priceChangePercentage": 1.21,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "TJX",
+		"name": "The TJX Companies, Inc.",
+		"currentPrice": 156.02,
+		"volume": 3351276,
+		"marketCap": 173640712192,
+		"priceChangePercentage": 0.38,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ISRG",
+		"name": "Intuitive Surgical, Inc.",
+		"currentPrice": 483.46,
+		"volume": 1233006,
+		"marketCap": 171691261952,
+		"priceChangePercentage": 2.39,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ANET",
+		"name": "Arista Networks, Inc.",
+		"currentPrice": 135.35,
+		"volume": 6771677,
+		"marketCap": 170444242944,
+		"priceChangePercentage": 1.33,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "APH",
+		"name": "Amphenol Corporation",
+		"currentPrice": 136.8,
+		"volume": 10390727,
+		"marketCap": 168156610560,
+		"priceChangePercentage": 2.15,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "SCHW",
+		"name": "The Charles Schwab Corporation",
+		"currentPrice": 93.63,
+		"volume": 6860219,
+		"marketCap": 166374588416,
+		"priceChangePercentage": 0.61,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "UBER",
+		"name": "Uber Technologies, Inc.",
+		"currentPrice": 74.66,
+		"volume": 15873548,
+		"marketCap": 155130822656,
+		"priceChangePercentage": 1.81,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "DE",
+		"name": "Deere & Company",
+		"currentPrice": 572.48,
+		"volume": 922340,
+		"marketCap": 154631012352,
+		"priceChangePercentage": -0.87,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ADI",
+		"name": "Analog Devices, Inc.",
+		"currentPrice": 310.92,
+		"volume": 3254006,
+		"marketCap": 151792451584,
+		"priceChangePercentage": 1.58,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "LMT",
+		"name": "Lockheed Martin Corporation",
+		"currentPrice": 645.2,
+		"volume": 1179162,
+		"marketCap": 149297856512,
+		"priceChangePercentage": -0.12,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "COP",
+		"name": "ConocoPhillips",
+		"currentPrice": 121.32,
+		"volume": 7467323,
+		"marketCap": 148294189056,
+		"priceChangePercentage": -0.47,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "SCCO",
+		"name": "Southern Copper Corporation.",
+		"currentPrice": 176.8,
+		"volume": 1559009,
+		"marketCap": 146048385024,
+		"priceChangePercentage": 3.49,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "BKNG",
+		"name": "Booking Holdings Inc.",
+		"currentPrice": 4293.02,
+		"volume": 189001,
+		"marketCap": 138380410880,
+		"priceChangePercentage": 1.22,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PANW",
+		"name": "Palo Alto Networks Inc",
+		"currentPrice": 167.45,
+		"volume": 5911130,
+		"marketCap": 136639201280,
+		"priceChangePercentage": 0.26,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "LOW",
+		"name": "Lowes Companies, Inc.",
+		"currentPrice": 242.11,
+		"volume": 2315262,
+		"marketCap": 135811964928,
+		"priceChangePercentage": 1.9,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "DHR",
+		"name": "Danaher Corporation",
+		"currentPrice": 191.39,
+		"volume": 4333420,
+		"marketCap": 135339393024,
+		"priceChangePercentage": 2.17,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "SYK",
+		"name": "Stryker Corporation",
+		"currentPrice": 349.56,
+		"volume": 2858111,
+		"marketCap": 133772648448,
+		"priceChangePercentage": 3.8,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "SPGI",
+		"name": "S&P Global Inc.",
+		"currentPrice": 426.59,
+		"volume": 1852771,
+		"marketCap": 129171447808,
+		"priceChangePercentage": 0.97,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "INTU",
+		"name": "Intuit Inc.",
+		"currentPrice": 452.31,
+		"volume": 3050123,
+		"marketCap": 125866147840,
+		"priceChangePercentage": 2.81,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PLD",
+		"name": "Prologis, Inc.",
+		"currentPrice": 134.07,
+		"volume": 2132079,
+		"marketCap": 124625977344,
+		"priceChangePercentage": 1.76,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "BMY",
+		"name": "Bristol-Myers Squibb Company",
+		"currentPrice": 59.71,
+		"volume": 6434171,
+		"marketCap": 121597845504,
+		"priceChangePercentage": 1.07,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "NOW",
+		"name": "ServiceNow, Inc.",
+		"currentPrice": 114.88,
+		"volume": 12253444,
+		"marketCap": 121214820352,
+		"priceChangePercentage": 1.11,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "NEM",
+		"name": "Newmont Corporation",
+		"currentPrice": 110.19,
+		"volume": 8173651,
+		"marketCap": 120246272000,
+		"priceChangePercentage": 0.56,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "VRTX",
+		"name": "Vertex Pharmaceuticals Inc.",
+		"currentPrice": 466.1,
+		"volume": 1496460,
+		"marketCap": 118405341184,
+		"priceChangePercentage": -0.69,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MCK",
+		"name": "McKesson Corporation",
+		"currentPrice": 943.25,
+		"volume": 442418,
+		"marketCap": 116422189056,
+		"priceChangePercentage": 0.25,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MO",
+		"name": "Altria Group, Inc.",
+		"currentPrice": 67.53,
+		"volume": 5429618,
+		"marketCap": 113360691200,
+		"priceChangePercentage": -0.53,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "GLW",
+		"name": "Corning Inc.",
+		"currentPrice": 132.05,
+		"volume": 8148028,
+		"marketCap": 113292050432,
+		"priceChangePercentage": 2.27,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PH",
+		"name": "Parker-Hannifin Corporation",
+		"currentPrice": 894.64,
+		"volume": 599402,
+		"marketCap": 112918355968,
+		"priceChangePercentage": 0.54,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CME",
+		"name": "CME Group Inc.",
+		"currentPrice": 313.83,
+		"volume": 1903327,
+		"marketCap": 112825778176,
+		"priceChangePercentage": 0.78,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CMCSA",
+		"name": "Comcast Corporation",
+		"currentPrice": 30.34,
+		"volume": 19546791,
+		"marketCap": 110555758592,
+		"priceChangePercentage": 0.6,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "NOC",
+		"name": "Northrop Grumman Corporation",
+		"currentPrice": 735.96,
+		"volume": 504107,
+		"marketCap": 105036259328,
+		"priceChangePercentage": 0.31,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "SNDK",
+		"name": "Sandisk Corporation",
+		"currentPrice": 703.63,
+		"volume": 19152343,
+		"marketCap": 103856472064,
+		"priceChangePercentage": 6.35,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "BSX",
+		"name": "Boston Scientific Corporation",
+		"currentPrice": 69.79,
+		"volume": 6619762,
+		"marketCap": 103560364032,
+		"priceChangePercentage": 0.95,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "ADBE",
+		"name": "Adobe Inc.",
+		"currentPrice": 251.86,
+		"volume": 11021530,
+		"marketCap": 103388528640,
+		"priceChangePercentage": 1.02,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "HWM",
+		"name": "Howmet Aerospace Inc.",
+		"currentPrice": 240.73,
+		"volume": 2163007,
+		"marketCap": 96893820928,
+		"priceChangePercentage": 1.6800000000000002,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "HOOD",
+		"name": "Robinhood Markets, Inc.",
+		"currentPrice": 75.31,
+		"volume": 22641027,
+		"marketCap": 67802222592,
+		"priceChangePercentage": 2.62,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "COIN",
+		"name": "Coinbase Global Inc.",
+		"currentPrice": 203.32,
+		"volume": 12965588,
+		"marketCap": 54826786816,
+		"priceChangePercentage": 3.98,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "MSTR",
+		"name": "Strategy Inc",
+		"currentPrice": 147.52,
+		"volume": 22627443,
+		"marketCap": 49235202048,
+		"priceChangePercentage": 5.62,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "PYPL",
+		"name": "PayPal Holdings, Inc.",
+		"currentPrice": 45.42,
+		"volume": 14447013,
+		"marketCap": 42497310720,
+		"priceChangePercentage": 1.16,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "XYZ",
+		"name": "Block, Inc.",
+		"currentPrice": 59.85,
+		"volume": 6071738,
+		"marketCap": 36368752640,
+		"priceChangePercentage": 0.1,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	},
+	{
+		"ticker": "CRCL",
+		"name": "Circle Internet Group Inc.",
+		"currentPrice": 125.83,
+		"volume": 16847331,
+		"marketCap": 33405425664,
+		"priceChangePercentage": 9.06,
+		"lastUpdatedAt": "2026-03-17 11:00:05"
+	}
+]

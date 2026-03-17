@@ -17,6 +17,9 @@ export const V2_SERVER_URL = `${SERVER_URL}/v2`
 // Product/domain server roots
 export const BRIDGES_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/bridges` : 'https://bridges.llama.fi'
 export const COINS_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/coins` : 'https://coins.llama.fi'
+export const EQUITIES_SERVER_URL = API_KEY
+	? `https://pro-api.llama.fi/${API_KEY}/equities/v1`
+	: 'https://api.llama.fi/equities/v1'
 export const ETF_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/etfs` : 'https://etfs.llama.fi'
 export const FDV_SERVER_URL = API_KEY ? `https://pro-api.llama.fi/${API_KEY}/fdv` : 'https://fdv-server.llama.fi'
 export const NFT_SERVER_URL = 'https://nft.llama.fi'
