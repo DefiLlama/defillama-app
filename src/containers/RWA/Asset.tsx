@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
@@ -7,6 +7,8 @@ import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { formattedNum } from '~/utils'
 import { chainIconUrl } from '~/utils/icons'
+import { RWAYieldsTable } from './RWAYieldsTable'
+import { useYieldChartData } from '~/containers/Yields/queries/client'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
@@ -195,6 +197,20 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						.filter(Boolean)
 						.join(', ') || null
 				: null
+
+	const { data: yieldChartRaw, isLoading: isLoadingYieldChart } = useYieldChartData(asset.nativeYieldPoolId)
+
+	const nativeYieldDataset = useMemo(() => {
+		if (!yieldChartRaw?.data) return null
+		const source = yieldChartRaw.data
+			.filter((item: any) => item.apyBase != null)
+			.map((item: any) => ({
+				timestamp: Math.floor(new Date(item.timestamp.split('T')[0]).getTime()),
+				'Native Yield': Number(item.apyBase.toFixed(2))
+			}))
+		return source.length > 0 ? { source, dimensions: ['timestamp', 'Native Yield'] } : null
+	}, [yieldChartRaw])
+
 	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
 	const timeSeriesCharts =
 		chartDimensions.length > 0
@@ -402,7 +418,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</div>
 			) : null}
 
-			<div className="grid gap-2 lg:grid-cols-2">
+				<div className="grid gap-2 lg:grid-cols-2">
 				{/* Left Column */}
 				<div className="flex flex-col gap-2">
 					{/* Token Properties */}
@@ -683,6 +699,75 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</SectionCard>
 			) : null}
 
+			{asset.nativeYieldPoolId ? (
+				<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
+					<div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#cc3e82] to-transparent" />
+					<div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 pb-2">
+						<div className="flex flex-col gap-0.5">
+							<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
+								Native Yield
+							</span>
+							{asset.nativeYieldCurrent != null ? (
+								<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
+									{asset.nativeYieldCurrent.toFixed(2)}%
+								</span>
+							) : null}
+						</div>
+						<span className="mb-1 text-xs text-(--text-disabled)">
+							Historical APY from {asset.issuer ?? 'issuer'}
+						</span>
+					</div>
+					{isLoadingYieldChart ? (
+						<div className="flex min-h-[200px] items-center justify-center text-(--text-disabled)">
+							Loading chart...
+						</div>
+					) : nativeYieldDataset ? (
+						<Suspense fallback={<div className="min-h-[200px]" />}>
+							<MultiSeriesChart2
+								charts={NATIVE_YIELD_CHARTS}
+								dataset={nativeYieldDataset}
+								valueSymbol="%"
+								hideDefaultLegend={false}
+								exportButtons={{
+									png: true,
+									csv: true,
+									filename: `${asset.ticker ?? asset.assetName ?? 'asset'}-native-yield`,
+									pngTitle: `${asset.ticker ?? asset.assetName ?? 'Asset'} Native Yield`
+								}}
+							/>
+						</Suspense>
+					) : (
+						<div className="flex min-h-[80px] items-center justify-center text-(--text-disabled)">
+							No historical yield data available
+						</div>
+					)}
+				</div>
+			) : null}
+
+			{asset.yieldPools && asset.yieldPools.length > 0 ? (
+				<SectionCard
+					title={
+						<div className="flex items-center justify-between">
+							<span>
+								{asset.yieldPoolsTotal && asset.yieldPoolsTotal > asset.yieldPools.length
+									? `DeFi Yield Opportunities (${asset.yieldPools.length} of ${asset.yieldPoolsTotal})`
+									: `DeFi Yield Opportunities (${asset.yieldPools.length})`}
+							</span>
+							{asset.yieldPoolsTotal && asset.yieldPoolsTotal > asset.yieldPools.length ? (
+								<a
+									href={`/yields?token=${asset.ticker}&attribute=no_il&attribute=single_exposure`}
+									className="text-xs font-medium text-(--link-text) hover:underline"
+								>
+									View all {asset.yieldPoolsTotal} pools →
+								</a>
+							) : null}
+						</div>
+					}
+				>
+					<RWAYieldsTable data={asset.yieldPools} />
+				</SectionCard>
+			) : null}
+
 			{/* Chain Availability (moved to last) */}
 			{asset.chain && asset.chain.length > 0 ? (
 				<SectionCard title="Chains">
@@ -702,6 +787,16 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 		</div>
 	)
 }
+
+const NATIVE_YIELD_CHARTS = [
+	{
+		type: 'line' as const,
+		name: 'Native Yield',
+		encode: { x: 'timestamp', y: 'Native Yield' },
+		color: '#cc3e82',
+		valueSymbol: '%'
+	}
+]
 
 const BASE_TIME_SERIES_CHARTS: Array<{
 	type: 'line' | 'bar'
