@@ -178,7 +178,7 @@ export function AdapterByChain(props: IProps) {
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
 						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d !== 0 ? extra30d : null
 
-						const pfOrPs = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const pfOrPs = p.mcap != null && total30d != null ? getAnnualizedRatio(p.mcap, total30d) : null
 
 						// Only aggregate child protocols when bribes/tokentax is enabled
 						const childProtocols: IProtocol['childProtocols'] =
@@ -191,7 +191,8 @@ export function AdapterByChain(props: IProps) {
 										const cpTotal30d =
 											cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
 
-										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
+										const cpPfOrPs =
+											cp.mcap != null && cpTotal30d != null ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
 
 										return {
 											...cp,

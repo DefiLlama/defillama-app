@@ -1,4 +1,4 @@
-import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { protocolCategoryConfig } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts
@@ -114,7 +114,7 @@ export function buildDefaultToggledCharts({
 		}
 	}
 
-	const protocolCategoriesMap = protocolCategories as Record<string, { description: string; defaultChart?: string }>
+	const protocolCategoriesMap = protocolCategoryConfig as Record<string, { description: string; defaultChart?: string }>
 	const protocolChartsMap = protocolCharts as Record<string, string>
 	const categoryDefaultChart = category ? protocolCategoriesMap[category]?.defaultChart : null
 	const isCategoryDefaultChartValue =

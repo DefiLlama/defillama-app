@@ -16,7 +16,7 @@ import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
-import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { protocolCategoryConfig } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
 import { slug } from '~/utils'
@@ -165,7 +165,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				},
 				size: 200,
 				meta: {
-					headerHelperText: protocolCategories[cat as string]?.description ?? ''
+					headerHelperText: protocolCategoryConfig[cat as string]?.description ?? ''
 				}
 			})
 		)
