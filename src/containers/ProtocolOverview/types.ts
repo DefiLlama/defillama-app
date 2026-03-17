@@ -31,6 +31,9 @@ export interface IProtocolPageMetrics {
 	inflows: boolean
 	liquidity: boolean
 	activeUsers: boolean
+	newUsers: boolean
+	txCount: boolean
+	gasUsed: boolean
 	borrowed: boolean
 	tokenRights: boolean
 }

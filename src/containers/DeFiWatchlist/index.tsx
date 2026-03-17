@@ -11,7 +11,7 @@ import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
-import type { IProtocol } from '~/containers/ChainOverview/types'
+import type { IChainOverviewData } from '~/containers/ChainOverview/types'
 import { useGroupAndFormatChains } from '~/containers/ChainsByCategory'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
 import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
@@ -23,16 +23,20 @@ import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEma
 import { useIsClient } from '~/hooks/useIsClient'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
 import { parseNumberQueryParam } from '~/utils/routerQuery'
+import type { IChainsByCategoryData } from '../ChainsByCategory/types'
 import { chainMetrics, protocolMetrics } from './constants'
-
-const EMPTY_PROTOCOLS: IProtocol[] = []
-const EMPTY_CHAINS: Array<{ name: string }> = []
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
-export function DefiWatchlistContainer({ protocols, chains }) {
+export function DefiWatchlistContainer({
+	protocols,
+	chains
+}: {
+	protocols: IChainOverviewData['protocols']
+	chains: IChainsByCategoryData['chains']
+}) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { selectedPortfolio, savedProtocols, addProtocol, removeProtocol, isLoadingWatchlist } = useBookmarks('defi')
@@ -40,12 +44,12 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	const { savedProtocols: savedChains, addProtocol: addChain, removeProtocol: removeChain } = useBookmarks('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
-		const resolvedProtocols = protocols ?? EMPTY_PROTOCOLS
 		return {
-			protocolOptions: resolvedProtocols.map((c) => ({ key: c.name, name: c.name })),
-			savedProtocolsList: resolvedProtocols.filter(
-				(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
-			),
+			protocolOptions: protocols?.map((c) => ({ key: c.name, name: c.name })) ?? [],
+			savedProtocolsList:
+				protocols?.filter(
+					(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
+				) ?? [],
 			selectedProtocolNames: Array.from(savedProtocols)
 		}
 	}, [protocols, savedProtocols])
@@ -71,10 +75,9 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	}
 
 	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
-		const resolvedChains = chains ?? EMPTY_CHAINS
 		return {
-			chainOptions: resolvedChains.map((c) => ({ key: c.name, name: c.name })),
-			savedChainsList: resolvedChains.filter((c) => savedChains.has(c.name)),
+			chainOptions: chains?.map((c) => ({ key: c.name, name: c.name })) ?? [],
+			savedChainsList: chains?.filter((c) => savedChains.has(c.name)) ?? [],
 			selectedChainNames: Array.from(savedChains)
 		}
 	}, [chains, savedChains])
@@ -689,7 +692,7 @@ function PortfolioSelection() {
 }
 
 type TopMoversProps = {
-	protocols: Array<IProtocol & { slug?: string }>
+	protocols: IChainOverviewData['protocols']
 }
 
 function TopMovers({ protocols }: TopMoversProps) {

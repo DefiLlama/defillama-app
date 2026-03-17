@@ -10,10 +10,8 @@ import { useFetchProtocolGovernanceData } from '~/containers/Governance/queries.
 import { fetchNftMarketplaceVolumes } from '~/containers/Nft/api'
 import { fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import {
-	useFetchProtocolActiveUsers,
+	useFetchProtocolActivityChart,
 	useFetchProtocolMedianAPY,
-	useFetchProtocolNewUsers,
-	useFetchProtocolTransactions,
 	useFetchProtocolTVLChart
 } from '~/containers/ProtocolOverview/queries.client'
 import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
@@ -709,15 +707,28 @@ export const useFetchProtocolChartData = ({
 			: null
 	)
 
-	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActiveUsers(
-		isRouterReady && toggledMetrics.activeAddresses === 'true' && metrics.activeUsers ? protocolId : null
-	)
-	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolNewUsers(
-		isRouterReady && toggledMetrics.newAddresses === 'true' && metrics.activeUsers ? protocolId : null
-	)
-	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolTransactions(
-		isRouterReady && toggledMetrics.transactions === 'true' && metrics.activeUsers ? protocolId : null
-	)
+	const { data: activeAddressesData = null, isLoading: fetchingActiveAddresses } = useFetchProtocolActivityChart({
+		queryKey: 'active-users',
+		protocol: isRouterReady && toggledMetrics.activeAddresses === 'true' && metrics.activeUsers ? name : null,
+		adapterType: 'active-users'
+	})
+	const { data: newAddressesData = null, isLoading: fetchingNewAddresses } = useFetchProtocolActivityChart({
+		queryKey: 'new-users',
+		protocol: isRouterReady && toggledMetrics.newAddresses === 'true' && metrics.newUsers ? name : null,
+		adapterType: 'new-users'
+	})
+	const { data: transactionsData = null, isLoading: fetchingTransactions } = useFetchProtocolActivityChart({
+		queryKey: 'transactions',
+		protocol: isRouterReady && toggledMetrics.transactions === 'true' && metrics.txCount ? name : null,
+		adapterType: 'active-users',
+		dataType: 'dailyTransactionsCount'
+	})
+	const { data: gasUsedData = null, isLoading: fetchingGasUsed } = useFetchProtocolActivityChart({
+		queryKey: 'gas-used',
+		protocol: isRouterReady && toggledMetrics.gasUsed === 'true' && metrics.gasUsed ? name : null,
+		adapterType: 'active-users',
+		dataType: 'dailyGasUsed'
+	})
 
 	const isGovernanceEnabled = !!(
 		isRouterReady &&
@@ -765,6 +776,7 @@ export const useFetchProtocolChartData = ({
 	const isActiveAddressesToggled = toggledMetrics.activeAddresses === 'true'
 	const isNewAddressesToggled = toggledMetrics.newAddresses === 'true'
 	const isTransactionsToggled = toggledMetrics.transactions === 'true'
+	const isGasUsedToggled = toggledMetrics.gasUsed === 'true'
 	const isTreasuryToggled = toggledMetrics.treasury === 'true'
 	const isUsdInflowsToggled = toggledMetrics.usdInflows === 'true'
 	const isBridgeVolumeToggled = toggledMetrics.bridgeVolume === 'true'
@@ -826,6 +838,7 @@ export const useFetchProtocolChartData = ({
 			{ isLoading: isActiveAddressesToggled && fetchingActiveAddresses, label: 'Active Addresses' },
 			{ isLoading: isNewAddressesToggled && fetchingNewAddresses, label: 'New Addresses' },
 			{ isLoading: isTransactionsToggled && fetchingTransactions, label: 'Transactions' },
+			{ isLoading: isGasUsedToggled && fetchingGasUsed, label: 'Gas Used' },
 			{ isLoading: isBridgeVolumeToggled && fetchingBridgeVolume, label: 'Bridge Volume' }
 		]
 		const loadingCharts = loadingStates.filter((state) => state.isLoading).map((state) => state.label)
@@ -1137,6 +1150,13 @@ export const useFetchProtocolChartData = ({
 				denominationPriceHistory: null,
 				dateInMs: true
 			})
+		if (gasUsedData && isGasUsedToggled)
+			charts['Gas Used'] = formatBarChart({
+				data: gasUsedData.map((item): [number, number] => [item[0], item[1]]),
+				groupBy,
+				denominationPriceHistory: null,
+				dateInMs: true
+			})
 		if (treasuryData && isTreasuryToggled)
 			charts['Treasury'] = formatLineChart({ data: treasuryData, groupBy, dateInMs: true, denominationPriceHistory })
 		if (usdInflowsData && isUsdInflowsToggled)
@@ -1244,6 +1264,8 @@ export const useFetchProtocolChartData = ({
 		newAddressesData,
 		fetchingTransactions,
 		transactionsData,
+		fetchingGasUsed,
+		gasUsedData,
 		isGovernanceEnabled,
 		fetchingGovernanceData,
 		governanceData,
@@ -1266,6 +1288,7 @@ export const useFetchProtocolChartData = ({
 		isActiveAddressesToggled,
 		isNewAddressesToggled,
 		isTransactionsToggled,
+		isGasUsedToggled,
 		isTreasuryToggled,
 		isUsdInflowsToggled,
 		isBridgeVolumeToggled,

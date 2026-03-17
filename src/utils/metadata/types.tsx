@@ -53,7 +53,6 @@ export interface IProtocolMetadata {
 	displayName?: string
 	chains?: Array<string>
 	hacks?: boolean
-	activeUsers?: boolean
 	governance?: boolean
 	expenses?: boolean
 	treasury?: boolean
@@ -68,6 +67,10 @@ export interface IProtocolMetadata {
 	borrowed?: boolean
 	tokenRights?: boolean
 	inflows?: boolean
+	activeUsers?: boolean
+	newUsers?: boolean
+	txCount?: boolean
+	gasUsed?: boolean
 }
 
 export interface ICexItem {

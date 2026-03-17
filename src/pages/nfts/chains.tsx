@@ -1,32 +1,25 @@
 import type { InferGetStaticPropsType } from 'next'
-import { fetchNftsVolumeByChain } from '~/containers/Nft/api'
+import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { NftsByChain, type INftChainRow } from '~/containers/Nft/NftsByChain'
 import Layout from '~/layout'
 import { chainIconUrl } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const getMetadataChainKey = (chain: string): string => {
-	if (chain === 'optimism') return 'op-mainnet'
-	if (chain === 'immutablex') return 'immutable-zkevm'
-	return chain
-}
-
 export const getStaticProps = withPerformanceLogging(`nfts/chains`, async () => {
-	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-
-	const data = await fetchNftsVolumeByChain()
+	const data = await fetchAdapterChainMetrics({
+		adapterType: 'nft-volume',
+		chain: 'All',
+		dataType: 'dailyVolume'
+	})
 
 	if (!data) return { notFound: true }
 
-	const chains: INftChainRow[] = Object.entries(data).map(([chain, total24h]) => {
-		const metadataChainKey = getMetadataChainKey(chain)
-		const name = metadataCache.chainMetadata[metadataChainKey]?.name ?? chain
-
+	const chains: INftChainRow[] = (data.protocols ?? []).map((chain) => {
 		return {
-			name,
-			logo: chainIconUrl(chain),
-			total24h
+			name: chain.displayName,
+			logo: chainIconUrl(chain.slug),
+			total24h: chain.total24h ?? 0
 		}
 	})
 
