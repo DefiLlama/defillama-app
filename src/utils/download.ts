@@ -1,3 +1,5 @@
+import { trackUmamiEvent } from './analytics/umami'
+
 export interface CSVDownloadOptions {
 	mimeType?: string
 	addTimestamp?: boolean
@@ -66,6 +68,8 @@ export function downloadCSV(filename: string, csvData: CsvData, options: CSVDown
 		} else {
 			csvContent = String(csvData)
 		}
+
+		trackUmamiEvent('export-csv-success', { filename })
 
 		let finalFilename = filename
 		if (addTimestamp && !filename.includes(new Date().toISOString().split('T')[0])) {

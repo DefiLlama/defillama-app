@@ -951,6 +951,11 @@
       "route": "/ai"
     },
     {
+      "name": "Downloads",
+      "route": "/downloads",
+      "icon": "download-cloud"
+    },
+    {
       "name": "Custom Dashboards",
       "route": "/pro",
       "icon": "blocks"

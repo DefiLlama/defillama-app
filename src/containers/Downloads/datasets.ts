@@ -9,6 +9,12 @@ import {
 	TRADFI_API
 } from '~/constants'
 
+export interface DatasetExcludeToggle {
+	field: string
+	label: string
+	defaultExclude?: boolean
+}
+
 export interface DatasetDefinition {
 	slug: string
 	name: string
@@ -19,6 +25,7 @@ export interface DatasetDefinition {
 	defaultSortField?: string
 	extractItems: (json: any) => any[]
 	chainFilterType?: 'overview' | 'protocols'
+	excludeToggles?: DatasetExcludeToggle[]
 }
 
 const extractArray = (json: any): any[] => (Array.isArray(json) ? json : [])
@@ -35,6 +42,16 @@ function sumRecord(rec: unknown): number {
 	let total = 0
 	for (const v of Object.values(rec)) {
 		if (typeof v === 'number' && Number.isFinite(v)) total += v
+	}
+	return total
+}
+
+function deepSumRecord(rec: unknown): number {
+	if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return 0
+	let total = 0
+	for (const v of Object.values(rec)) {
+		if (typeof v === 'number' && Number.isFinite(v)) total += v
+		else if (v && typeof v === 'object' && !Array.isArray(v)) total += deepSumRecord(v)
 	}
 	return total
 }
@@ -136,11 +153,14 @@ export const datasets: DatasetDefinition[] = [
 			'chain',
 			'onChainMcap',
 			'activeMcap',
+			'defiActiveTvl',
 			'issuer',
 			'rwaClassification',
 			'accessModel',
-			'type'
+			'type',
+			'stablecoin'
 		],
+		excludeToggles: [{ field: 'stablecoin', label: 'Stablecoins', defaultExclude: true }],
 		extractItems: (json) => {
 			if (!Array.isArray(json)) return []
 			return json.map((item: any) => ({
@@ -148,7 +168,8 @@ export const datasets: DatasetDefinition[] = [
 				category: Array.isArray(item.category) ? item.category.join(', ') : item.category,
 				chain: Array.isArray(item.chain) ? item.chain.join(', ') : item.chain,
 				onChainMcap: item.onChainMcap ? sumRecord(item.onChainMcap) : null,
-				activeMcap: item.activeMcap ? sumRecord(item.activeMcap) : null
+				activeMcap: item.activeMcap ? sumRecord(item.activeMcap) : null,
+				defiActiveTvl: item.defiActiveTvl ? deepSumRecord(item.defiActiveTvl) : null
 			}))
 		}
 	},

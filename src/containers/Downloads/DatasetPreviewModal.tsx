@@ -8,7 +8,7 @@ import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
 import { downloadCSV } from '~/utils/download'
-import type { DatasetDefinition } from './datasets'
+import type { DatasetDefinition, DatasetExcludeToggle } from './datasets'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -253,6 +253,13 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	const [search, setSearch] = useState('')
 	const [sortState, setSortState] = useState<SortState | null>(null)
 	const [selectedChain, setSelectedChain] = useState<string | null>(null)
+	const [excludeState, setExcludeState] = useState<Record<string, boolean>>(() => {
+		const initial: Record<string, boolean> = {}
+		for (const toggle of dataset.excludeToggles ?? []) {
+			initial[toggle.field] = toggle.defaultExclude ?? false
+		}
+		return initial
+	})
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const rightShadowRef = useRef<HTMLDivElement>(null)
 	const deferredSearch = useDeferredValue(search.trim().toLowerCase())
@@ -279,7 +286,9 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 	} = useQuery({
 		queryKey: ['downloads-preview', dataset.slug, selectedChain, isPreview],
 		queryFn: async () => {
-			const url = `/api/downloads/${dataset.slug}${chainQueryParam}`
+			const sep = chainQueryParam ? '&' : '?'
+			const nonce = isPreview ? `${sep}_n=${Math.random().toString(36).slice(2)}` : ''
+			const url = `/api/downloads/${dataset.slug}${chainQueryParam}${nonce}`
 			const response = isPreview ? await fetch(url) : await authorizedFetch(url)
 			if (!response || !response.ok) {
 				const errorData = await response?.json().catch(() => null)
@@ -341,12 +350,22 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 
 	const selectedCount = useMemo(() => columnMeta.filter((c) => cols.has(c.index)).length, [columnMeta, cols])
 
+	const excludeFilteredRows = useMemo(() => {
+		const toggles = dataset.excludeToggles
+		if (!toggles || toggles.length === 0) return rows
+		const activeExcludes = toggles.filter((t) => excludeState[t.field])
+		if (activeExcludes.length === 0) return rows
+		const fieldIndices = activeExcludes.map((t) => headers.indexOf(t.field)).filter((i) => i !== -1)
+		if (fieldIndices.length === 0) return rows
+		return rows.filter((row) => !fieldIndices.some((idx) => row.values[idx]?.toLowerCase() === 'true'))
+	}, [rows, headers, dataset.excludeToggles, excludeState])
+
 	const filteredRows = useMemo(() => {
-		if (deferredSearch.length === 0) return rows
-		return rows.filter((row) =>
+		if (deferredSearch.length === 0) return excludeFilteredRows
+		return excludeFilteredRows.filter((row) =>
 			columnMeta.some((column) => (row.values[column.index] ?? '').toLowerCase().includes(deferredSearch))
 		)
-	}, [columnMeta, deferredSearch, rows])
+	}, [columnMeta, deferredSearch, excludeFilteredRows])
 
 	const sortedRows = useMemo(() => {
 		if (!sortState) return filteredRows
@@ -587,6 +606,15 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 												}}
 											/>
 										) : null}
+
+										{dataset.excludeToggles?.map((toggle) => (
+											<ExcludeToggleButton
+												key={toggle.field}
+												toggle={toggle}
+												excluded={excludeState[toggle.field] ?? false}
+												onToggle={(excluded) => setExcludeState((prev) => ({ ...prev, [toggle.field]: excluded }))}
+											/>
+										))}
 
 										<ColumnPickerPopover
 											columns={columnMeta}
@@ -924,6 +952,31 @@ function ChainPickerPopover({
 				</div>
 			</Ariakit.Popover>
 		</Ariakit.PopoverProvider>
+	)
+}
+
+function ExcludeToggleButton({
+	toggle,
+	excluded,
+	onToggle
+}: {
+	toggle: DatasetExcludeToggle
+	excluded: boolean
+	onToggle: (excluded: boolean) => void
+}) {
+	return (
+		<button
+			type="button"
+			onClick={() => onToggle(!excluded)}
+			className={`flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${
+				excluded
+					? 'border-(--divider) text-(--text-tertiary) hover:bg-(--link-hover-bg) hover:text-(--text-primary)'
+					: 'border-(--primary)/30 bg-(--primary)/10 text-(--primary) hover:bg-(--primary)/20'
+			}`}
+		>
+			<Icon name={excluded ? 'eye-off' : 'eye'} className="h-3.5 w-3.5" />
+			{toggle.label}
+		</button>
 	)
 }
 
