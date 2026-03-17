@@ -1,8 +1,5 @@
 import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import { abbreviateNumber, formattedNum } from '~/utils'
-
-dayjs.extend(utc)
 
 export function formatCurrency(value: number | null): string {
 	return value == null ? '-' : (abbreviateNumber(value, 2, '$') ?? '-')
@@ -22,12 +19,12 @@ export function formatPercent(value: number | null): string {
 
 export function formatEquitiesDate(value?: string | null): string {
 	if (!value) return '-'
-	const parsed = dayjs.utc(value)
+	const parsed = dayjs(value)
 	return parsed.isValid() ? parsed.format('MMM D, YYYY') : value
 }
 
 export function formatEquitiesDateTime(value?: string | null): string {
 	if (!value) return '-'
-	const parsed = dayjs.utc(value)
-	return parsed.isValid() ? parsed.format('MMM D, YYYY h:mm A') : value
+	const parsed = dayjs(value)
+	return parsed.isValid() ? parsed.format('MMM D, YYYY, h:mm A') : value
 }

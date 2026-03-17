@@ -109,7 +109,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 					<span className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.marketCap)}</span>
 				</div>
 				<div className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-(--text-label)">24h Volume</span>
+					<span className="text-(--text-label)">Volume</span>
 					<span className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.volume)}</span>
 				</div>
 			</div>
@@ -155,7 +155,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 						<MetricRow label="Current Price" value={formatCurrency(props.summary.currentPrice)} monospace />
 						<MetricRow label="24h Price Change" value={formatPercent(props.summary.priceChangePercentage)} monospace />
 						<MetricRow label="Market Cap" value={formatCurrency(props.summary.marketCap)} monospace />
-						<MetricRow label="24h Volume" value={formatCurrency(props.summary.volume)} monospace />
+						<MetricRow label="Volume" value={formatCurrency(props.summary.volume)} monospace />
 						<MetricRow label="Dividend Yield" value={formatPercent(props.summary.dividendYield)} monospace />
 						<MetricRow label="Trailing P/E" value={formatNumber(props.summary.trailingPE)} monospace />
 						<MetricRow

@@ -2,6 +2,7 @@ import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
+import { Tooltip } from '~/components/Tooltip'
 import { abbreviateNumber } from '~/utils'
 import type { IEquitiesStatementsResponse } from './api.types'
 import type { IEquitiesStatementTableRow } from './types'
@@ -235,14 +236,29 @@ export function EquitiesFinancialsTable({ statements }: { statements: IEquitiesS
 							<th className="min-w-[220px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10">
 								Name
 							</th>
-							{headerIndexes.map((index) => (
-								<th
-									key={`${statementType}-${periodType}-${periodData.periods[index]}`}
-									className="min-w-[132px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
-								>
-									{formatStatementPeriodLabel(periodData.periods[index])}
-								</th>
-							))}
+							{headerIndexes.map((index, position) => {
+								let tooltipContent = `Ends at ${periodData.periodEnding[index]}`
+								const previousIndex = headerIndexes[position + 1]
+
+								if (previousIndex !== undefined) {
+									const startDate = new Date(`${periodData.periodEnding[previousIndex]}T00:00:00Z`)
+									startDate.setUTCDate(startDate.getUTCDate() + 1)
+									tooltipContent = `From ${startDate.toISOString().slice(0, 10)} till ${periodData.periodEnding[index]}`
+								}
+
+								return (
+									<th
+										key={`${statementType}-${periodType}-${periodData.periods[index]}`}
+										className="min-w-[132px] overflow-hidden border border-black/10 bg-(--app-bg) p-2 text-left font-semibold text-ellipsis whitespace-nowrap dark:border-white/10"
+									>
+										<Tooltip content={tooltipContent}>
+											<span className="underline decoration-dotted underline-offset-3">
+												{formatStatementPeriodLabel(periodData.periods[index])}
+											</span>
+										</Tooltip>
+									</th>
+								)
+							})}
 						</tr>
 					</thead>
 					<tbody>

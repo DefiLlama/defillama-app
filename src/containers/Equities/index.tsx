@@ -57,7 +57,7 @@ const columns = [
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('volume', {
-		header: '24h Volume',
+		header: 'Volume',
 		size: 120,
 		cell: ({ getValue }) => formatCurrency(getValue()),
 		meta: { align: 'end' }
@@ -118,7 +118,7 @@ export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPage
 					<div className="flex flex-1 flex-col gap-1">
 						<h1 className="text-xl font-bold">Equities</h1>
 						<p className="max-w-2xl text-sm text-(--text-secondary)">
-							Track live company rankings by market cap, price, 24h volume, and price change.
+							Track live company rankings by market cap, price, volume, and price change.
 						</p>
 					</div>
 					{lastUpdatedAt ? (
