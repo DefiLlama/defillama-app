@@ -87,7 +87,8 @@ export default function BarChart({
 		hideLegend,
 		tooltipOrderBottomUp,
 		isThemeDark,
-		groupBy: groupBy ?? 'daily'
+		groupBy: groupBy ?? 'daily',
+		xAxisType
 	})
 
 	const series = useMemo(() => {
