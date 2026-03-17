@@ -185,11 +185,13 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 export function ChatMarkdownRenderer({
 	content,
 	citations,
-	isStreaming = false
+	isStreaming = false,
+	hackerMode = false
 }: {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
+	hackerMode?: boolean
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
@@ -247,7 +249,7 @@ export function ChatMarkdownRenderer({
 	}
 
 	return (
-		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
+		<div className={`llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline${hackerMode ? ' hacker-mode' : ''}`}>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
 				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}

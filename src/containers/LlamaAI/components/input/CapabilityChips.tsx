@@ -5,14 +5,15 @@ import { CapabilityBrowser } from '~/containers/LlamaAI/components/input/Capabil
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface CapabilityChipsProps {
-	onPromptSelect: (prompt: string) => void
+	onPromptSelect: (prompt: string, categoryKey?: string) => void
 	isPending: boolean
 	isStreaming?: boolean
+	onExploreOpen?: () => void
 }
 
 type PanelState = 'closed' | 'entering' | 'open' | 'leaving'
 
-export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: CapabilityChipsProps) {
+export function CapabilityChips({ onPromptSelect, isPending, isStreaming, onExploreOpen }: CapabilityChipsProps) {
 	const [panelState, setPanelState] = useState<PanelState>('closed')
 	const [selectedCategoryKey, setSelectedCategoryKey] = useState<string | null>(null)
 	const [direction, setDirection] = useState<'up' | 'down'>('down')
@@ -36,6 +37,7 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: Capa
 			return
 		}
 		trackUmamiEvent('llamaai-capability-chip-click', { category: 'explore' })
+		onExploreOpen?.()
 		setSelectedCategoryKey(null)
 
 		// Direction detection
@@ -61,9 +63,12 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: Capa
 	}, [])
 
 	const handlePromptSelect = (prompt: string) => {
-		trackUmamiEvent('llamaai-capability-prompt-click')
+		trackUmamiEvent('llamaai-capability-prompt-click', {
+			category: selectedCategoryKey ?? 'unknown',
+			prompt: prompt.slice(0, 100)
+		})
 		setPanelState('closed')
-		onPromptSelect(prompt)
+		onPromptSelect(prompt, selectedCategoryKey ?? undefined)
 	}
 
 	return (
@@ -71,14 +76,14 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: Capa
 			<Tooltip
 				content="Explore Capabilities"
 				render={<button type="button" onClick={handleToggle} disabled={disabled} />}
-				className={`flex h-7 w-7 items-center justify-center rounded-md transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40 ${
+				className={`flex h-7 items-center justify-center gap-1 rounded-md px-2 transition-colors duration-150 disabled:pointer-events-none disabled:opacity-40 ${
 					isVisible
 						? 'bg-[#2563eb]/15 text-[#2563eb] dark:bg-[#60a5fa]/15 dark:text-[#60a5fa]'
 						: 'bg-[#2563eb]/8 text-[#2563eb]/70 hover:bg-[#2563eb]/15 hover:text-[#2563eb] dark:bg-[#60a5fa]/8 dark:text-[#60a5fa]/70 dark:hover:bg-[#60a5fa]/15 dark:hover:text-[#60a5fa]'
 				}`}
 			>
 				<Icon name={isVisible ? 'x' : 'layout-grid'} height={14} width={14} />
-				<span className="sr-only">Explore capabilities</span>
+				<span className="text-xs font-medium">Explore</span>
 			</Tooltip>
 
 			{isVisible ? (
@@ -88,7 +93,10 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: Capa
 					hasEntered={panelState === 'open'}
 					isLeaving={panelState === 'leaving'}
 					selectedCategoryKey={selectedCategoryKey}
-					onCategoryChange={setSelectedCategoryKey}
+					onCategoryChange={(key) => {
+						if (key) trackUmamiEvent('llamaai-capability-category-view', { category: key })
+						setSelectedCategoryKey(key)
+					}}
 					onPromptSelect={handlePromptSelect}
 					onClose={close}
 				/>

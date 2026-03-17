@@ -944,6 +944,24 @@
 	margin-bottom: 0;
 }
 
+/* ----------------------------- Hacker Mode: Code Blocks ----------------------------- */
+.prose.llamaai-prose.hacker-mode pre {
+	background: #0d0d0d;
+	border: 1px solid rgba(0, 255, 65, 0.2);
+	box-shadow: inset 0 0 30px rgba(0, 255, 65, 0.03);
+	border-radius: 0.5rem;
+}
+.prose.llamaai-prose.hacker-mode pre code {
+	color: #00ff41;
+	text-shadow: 0 0 8px rgba(0, 255, 65, 0.4);
+	font-family: monospace;
+}
+.prose.llamaai-prose.hacker-mode :not(pre) > code {
+	color: #00ff41;
+	background: rgba(0, 255, 65, 0.08);
+	text-shadow: 0 0 6px rgba(0, 255, 65, 0.3);
+}
+
 /* Align entity logos with text */
 .prose.llamaai-prose a img.inline-block {
 	vertical-align: -0.15em;

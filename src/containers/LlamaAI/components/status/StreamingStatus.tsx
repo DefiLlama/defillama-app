@@ -107,7 +107,7 @@ function formatTime(seconds: number) {
 	return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`
 }
 
-function useHackerMode() {
+export function useHackerMode() {
 	const [isDark] = useDarkModeManager()
 	const [enabled, setEnabled] = useState(() =>
 		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false

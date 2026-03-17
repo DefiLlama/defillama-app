@@ -122,8 +122,8 @@ export function CapabilityBrowser({
 			</nav>
 
 			{/* Content */}
-			<div className="flex flex-1 flex-col overflow-y-auto">
-				<div className="border-b border-black/[0.06] px-4 pt-3.5 pb-3 dark:border-[#2a2a2e]">
+			<div className="flex flex-1 flex-col overflow-hidden">
+				<div className="shrink-0 border-b border-black/[0.06] px-4 pt-3.5 pb-3 dark:border-[#2a2a2e]">
 					<div className="flex items-center gap-2">
 						<Icon name={activeCategory.icon} height={14} width={14} className="text-[#777] dark:text-[#888]" />
 						<h3 className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">
@@ -140,11 +140,14 @@ export function CapabilityBrowser({
 					</p>
 				</div>
 
-				<ul className="flex flex-col p-1.5">
-					{activeCategory.prompts.map((prompt, idx) => (
-						<PromptItem key={idx} prompt={prompt} onClick={onPromptSelect} />
-					))}
-				</ul>
+				<div className="min-h-0 flex-1 overflow-y-auto">
+					<ul className="flex flex-col p-1.5">
+						{activeCategory.prompts.map((prompt, idx) => (
+							<PromptItem key={idx} prompt={prompt} onClick={onPromptSelect} />
+						))}
+						<li aria-hidden="true" className="h-1 shrink-0" />
+					</ul>
+				</div>
 			</div>
 		</div>
 	)
@@ -223,11 +226,14 @@ const MobileSheet = forwardRef<
 				</p>
 
 				{/* Prompts */}
-				<ul className="flex flex-col overflow-y-auto px-2 pb-6">
-					{activeCategory.prompts.map((prompt, idx) => (
-						<PromptItem key={idx} prompt={prompt} onClick={onPromptSelect} />
-					))}
-				</ul>
+				<div className="min-h-0 flex-1 overflow-y-auto">
+					<ul className="flex flex-col px-2">
+						{activeCategory.prompts.map((prompt, idx) => (
+							<PromptItem key={idx} prompt={prompt} onClick={onPromptSelect} />
+						))}
+						<li aria-hidden="true" className="h-6 shrink-0" />
+					</ul>
+				</div>
 			</div>
 		</div>
 	)

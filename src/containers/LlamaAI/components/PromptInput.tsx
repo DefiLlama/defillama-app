@@ -54,6 +54,7 @@ interface PromptInputProps {
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
 	onOpenAlerts?: () => void
+	onExploreOpen?: () => void
 }
 
 const trackSubmit = () => {
@@ -80,7 +81,8 @@ export function PromptInput({
 	droppedFiles,
 	clearDroppedFiles,
 	externalDragging,
-	onOpenAlerts
+	onOpenAlerts,
+	onExploreOpen
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const [submitError, setSubmitError] = useState<string | null>(null)
@@ -400,6 +402,17 @@ export function PromptInput({
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 					/>
+					<CapabilityChips
+						onPromptSelect={(prompt, categoryKey) => {
+							if (categoryKey === 'research') {
+								setIsResearchMode(true)
+							}
+							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+						}}
+						isPending={isPending}
+						isStreaming={isStreaming}
+						onExploreOpen={onExploreOpen}
+					/>
 					{onOpenAlerts ? (
 						<Tooltip
 							content="Manage Alerts"
@@ -410,13 +423,6 @@ export function PromptInput({
 							<span className="sr-only">Manage Alerts</span>
 						</Tooltip>
 					) : null}
-					<CapabilityChips
-						onPromptSelect={(prompt) => {
-							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
-						}}
-						isPending={isPending}
-						isStreaming={isStreaming}
-					/>
 				</div>
 				<div className="flex items-center gap-2">
 					<ImageUploadButton onClick={imageUpload.openFilePicker} />

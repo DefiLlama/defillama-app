@@ -48,7 +48,7 @@ interface UseImageUploadOptions {
 }
 
 export function useImageUpload({
-	maxImages = 4,
+	maxImages = 15,
 	maxSizeBytes,
 	droppedFiles,
 	clearDroppedFiles
