@@ -17,9 +17,7 @@ interface TopupRequest {
 	cancelUrl: string
 }
 
-type TopupResult =
-	| { provider: 'stripe'; clientSecret: string }
-	| { provider: 'llamapay'; checkoutUrl: string }
+type TopupResult = { provider: 'stripe'; clientSecret: string } | { provider: 'llamapay'; checkoutUrl: string }
 
 export const TOPUP_CONFIG = {
 	minAmount: 1,
@@ -63,9 +61,7 @@ export const useAiBalance = () => {
 		refetchOnWindowFocus: false
 	})
 
-	const totalAvailable = balance
-		? parseFloat(balance.freeRemaining) + parseFloat(balance.toppedUpBalance)
-		: 0
+	const totalAvailable = balance ? parseFloat(balance.freeRemaining) + parseFloat(balance.toppedUpBalance) : 0
 
 	return { balance, totalAvailable, isLoading, isError, refetch }
 }

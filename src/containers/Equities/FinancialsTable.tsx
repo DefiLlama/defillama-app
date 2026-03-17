@@ -25,8 +25,12 @@ const periodKeyMap: Record<PeriodOption, StatementPeriodKey> = {
 	Annual: 'annual'
 }
 
-function formatCellValue(value: number | null): string {
-	return value == null ? '-' : (abbreviateNumber(value, 2, '$') ?? '$0')
+function formatCellValue(label: string, value: number | null): string {
+	return value == null
+		? '-'
+		: label === 'Weighted Average Shares Basic' || label === 'Weighted Average Shares Diluted'
+			? (abbreviateNumber(value, 2) ?? '0')
+			: (abbreviateNumber(value, 2, '$') ?? '$0')
 }
 
 function buildStatementRows(
@@ -135,7 +139,7 @@ function FinancialRow({
 						key={`${row.id}-${index}`}
 						className="overflow-hidden border border-black/10 p-2 text-left font-medium text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) dark:border-white/10"
 					>
-						{formatCellValue(row.values[index] ?? null)}
+						{formatCellValue(row.label, row.values[index] ?? null)}
 					</td>
 				))}
 			</tr>
@@ -150,7 +154,7 @@ function FinancialRow({
 									key={`${subRow.id}-${index}`}
 									className="overflow-hidden border border-black/10 p-2 text-left font-normal text-ellipsis whitespace-nowrap group-hover:bg-(--link-hover-bg) dark:border-white/10"
 								>
-									{formatCellValue(subRow.values[index] ?? null)}
+									{formatCellValue(subRow.label, subRow.values[index] ?? null)}
 								</td>
 							))}
 						</tr>

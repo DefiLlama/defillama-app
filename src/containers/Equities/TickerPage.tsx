@@ -25,9 +25,30 @@ const TAB_LABELS: Record<EquityTab, string> = {
 	filings: 'Filings'
 }
 
-function MetricRow({ label, value, monospace = false }: { label: string; value: string; monospace?: boolean }) {
+function KeyValueRow({ label, description, children }: { label: string; description?: string; children: ReactNode }) {
 	return (
-		<KeyValueRow label={label}>
+		<div className="flex items-center justify-between gap-4 py-2">
+			<dt className="shrink-0 text-sm text-(--text-secondary)" title={description}>
+				{label}
+			</dt>
+			<dd className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 text-right">{children}</dd>
+		</div>
+	)
+}
+
+function MetricRow({
+	label,
+	value,
+	description,
+	monospace = false
+}: {
+	label: string
+	value: string
+	description?: string
+	monospace?: boolean
+}) {
+	return (
+		<KeyValueRow label={label} description={description}>
 			<span className={monospace ? 'font-jetbrains font-medium' : 'font-medium'}>{value}</span>
 		</KeyValueRow>
 	)
@@ -39,15 +60,6 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 			<h2 className="text-base font-semibold">{title}</h2>
 			<dl className="divide-y divide-(--cards-border)">{children}</dl>
 		</section>
-	)
-}
-
-function KeyValueRow({ label, children }: { label: string; children: ReactNode }) {
-	return (
-		<div className="flex items-center justify-between gap-4 py-2">
-			<dt className="shrink-0 text-sm text-(--text-secondary)">{label}</dt>
-			<dd className="flex min-w-0 flex-wrap items-center justify-end gap-1.5 text-right">{children}</dd>
-		</div>
 	)
 }
 
@@ -188,8 +200,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 								<span className="font-medium">-</span>
 							)}
 						</KeyValueRow>
-						<MetricRow label="CIK" value={formatText(props.metadata.cik)} />
-						<MetricRow label="Start Date" value={formatEquitiesDate(props.metadata.startDate)} />
+						<MetricRow label="CIK" description="Central Index Key" value={formatText(props.metadata.cik)} />
 						<MetricRow label="Last Updated At" value={formatEquitiesDateTime(props.summary.updatedAt)} />
 					</SectionCard>
 				</div>
@@ -199,6 +210,13 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 			{activeTab === 'filings' ? (
 				<EquitiesFilingsTable filings={props.filings} filingForms={props.filingForms} />
 			) : null}
+
+			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<h2 className="text-sm font-semibold">Attribution</h2>
+				<p className="mt-1 text-xs text-(--text-disabled)">
+					Prices data from Yahoo Finance. Filings and statements data from SEC EDGAR.
+				</p>
+			</div>
 		</div>
 	)
 }

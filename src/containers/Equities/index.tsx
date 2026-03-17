@@ -11,7 +11,7 @@ const DEFAULT_SORTING_STATE = [{ id: 'marketCap', desc: true }]
 const columns = [
 	columnHelper.accessor('ticker', {
 		header: 'Ticker',
-		size: 136,
+		size: 120,
 		cell: ({ row }) => (
 			<span className="relative flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -24,7 +24,7 @@ const columns = [
 	}),
 	columnHelper.accessor('name', {
 		header: 'Company',
-		size: 420,
+		size: 200,
 		filterFn: (row, _columnId, filterValue) => {
 			const query = String(filterValue).trim().toLowerCase()
 			if (!query) return true
@@ -45,7 +45,7 @@ const columns = [
 	}),
 	columnHelper.accessor('priceChangePercentage', {
 		header: '24h Price Change',
-		size: 164,
+		size: 154,
 		cell: ({ getValue }) => {
 			const value = getValue()
 			return (
@@ -58,61 +58,50 @@ const columns = [
 	}),
 	columnHelper.accessor('volume', {
 		header: '24h Volume',
-		size: 128,
+		size: 120,
 		cell: ({ getValue }) => formatCurrency(getValue()),
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('marketCap', {
 		header: 'Market Cap',
-		size: 152,
+		size: 120,
 		cell: ({ getValue }) => formatCurrency(getValue()),
-		meta: { align: 'end' }
-	}),
-	columnHelper.accessor('lastUpdatedAt', {
-		header: 'Updated',
-		size: 228,
-		enableSorting: false,
-		cell: ({ getValue }) => formatEquitiesDateTime(getValue()),
 		meta: { align: 'end' }
 	})
 ]
 
 const columnSizes: ColumnSizesByBreakpoint = {
 	0: {
-		ticker: 132,
-		name: 240,
+		ticker: 120,
+		name: 200,
 		currentPrice: 120,
-		priceChangePercentage: 164,
-		volume: 116,
-		marketCap: 140,
-		lastUpdatedAt: 188
+		priceChangePercentage: 154,
+		volume: 120,
+		marketCap: 120
 	},
 	640: {
-		ticker: 144,
-		name: 340,
-		currentPrice: 124,
-		priceChangePercentage: 164,
-		volume: 124,
-		marketCap: 152,
-		lastUpdatedAt: 220
+		ticker: 120,
+		name: 200,
+		currentPrice: 120,
+		priceChangePercentage: 154,
+		volume: 120,
+		marketCap: 120
 	},
 	1024: {
-		ticker: 136,
-		name: 380,
-		currentPrice: 124,
-		priceChangePercentage: 164,
-		volume: 132,
-		marketCap: 156,
-		lastUpdatedAt: 236
+		ticker: 120,
+		name: 280,
+		currentPrice: 120,
+		priceChangePercentage: 154,
+		volume: 120,
+		marketCap: 120
 	},
 	1536: {
-		ticker: 136,
-		name: 420,
-		currentPrice: 128,
-		priceChangePercentage: 168,
-		volume: 136,
-		marketCap: 160,
-		lastUpdatedAt: 244
+		ticker: 120,
+		name: 360,
+		currentPrice: 120,
+		priceChangePercentage: 154,
+		volume: 120,
+		marketCap: 120
 	}
 }
 

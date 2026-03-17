@@ -1,11 +1,11 @@
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { formattedNum } from '~/utils'
+import { abbreviateNumber, formattedNum } from '~/utils'
 
 dayjs.extend(utc)
 
 export function formatCurrency(value: number | null): string {
-	return value == null ? '-' : (formattedNum(value, true) ?? '-')
+	return value == null ? '-' : (abbreviateNumber(value, 2, '$') ?? '-')
 }
 
 export function formatNumber(value: number | null): string {

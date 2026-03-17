@@ -106,10 +106,8 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 									<h2 className="text-lg font-bold text-white sm:text-xl">Complete Payment</h2>
 									<p className="text-xs text-[#b4b7bc] sm:text-sm">
 										Top up{' '}
-										<span className="font-jetbrains font-semibold text-[#5C5CF9]">
-											${parsedAmount.toFixed(2)}
-										</span>{' '}
-										to your LlamaAI Balance
+										<span className="font-jetbrains font-semibold text-[#5C5CF9]">${parsedAmount.toFixed(2)}</span> to
+										your LlamaAI Balance
 									</p>
 								</div>
 							</div>
@@ -160,7 +158,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 									value={amount}
 									onChange={(e) => handleAmountInput(e.target.value)}
 									placeholder="0.00"
-									className="w-full rounded-lg border border-[#39393E] bg-[#1a1b1f] py-3.5 pr-4 pl-10 font-jetbrains text-xl text-white outline-none transition-colors placeholder:text-[#39393E] focus:border-[#5C5CF9]"
+									className="w-full rounded-lg border border-[#39393E] bg-[#1a1b1f] py-3.5 pr-4 pl-10 font-jetbrains text-xl text-white transition-colors outline-none placeholder:text-[#39393E] focus:border-[#5C5CF9]"
 									autoFocus
 								/>
 							</div>

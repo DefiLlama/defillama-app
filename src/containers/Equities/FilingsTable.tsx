@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
+import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import type { IEquitiesFilingApiItem } from './api.types'
@@ -50,12 +51,18 @@ const columns = [
 		meta: { align: 'start' }
 	}),
 	columnHelper.accessor('primaryDocumentUrl', {
-		header: 'SEC',
-		size: 84,
+		header: 'Source URL',
+		size: 132,
 		enableSorting: false,
 		cell: ({ getValue }) => (
-			<a href={getValue()} target="_blank" rel="noopener noreferrer" className="text-(--link-text) hover:underline">
-				Open
+			<a
+				href={getValue()}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="flex w-full items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
+			>
+				<Icon name="arrow-up-right" height={14} width={14} />
+				<span className="sr-only">open in new tab</span>
 			</a>
 		),
 		meta: { align: 'end' }
@@ -68,28 +75,28 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		reportDate: 108,
 		form: 84,
 		documentDescription: 360,
-		primaryDocumentUrl: 84
+		primaryDocumentUrl: 132
 	},
 	640: {
 		filingDate: 108,
 		reportDate: 108,
 		form: 84,
 		documentDescription: 420,
-		primaryDocumentUrl: 84
+		primaryDocumentUrl: 132
 	},
 	1024: {
 		filingDate: 116,
 		reportDate: 116,
 		form: 88,
 		documentDescription: 520,
-		primaryDocumentUrl: 88
+		primaryDocumentUrl: 132
 	},
 	1536: {
 		filingDate: 120,
 		reportDate: 120,
 		form: 92,
 		documentDescription: 620,
-		primaryDocumentUrl: 96
+		primaryDocumentUrl: 132
 	}
 }
 

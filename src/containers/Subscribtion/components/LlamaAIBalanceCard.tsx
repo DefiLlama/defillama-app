@@ -68,7 +68,9 @@ export const LlamaAIBalanceCard = ({
 						</div>
 						<div>
 							<h3 className="text-lg font-bold sm:text-xl">LlamaAI Balance</h3>
-							<p className="text-xs text-[#b4b7bc] sm:text-sm">Credits for LlamaAI to access premium on-chain and off-chain data</p>
+							<p className="text-xs text-[#b4b7bc] sm:text-sm">
+								Credits for LlamaAI to access premium on-chain and off-chain data
+							</p>
 						</div>
 					</div>
 					<button
@@ -93,9 +95,7 @@ export const LlamaAIBalanceCard = ({
 									<span className="text-sm">Free This Month</span>
 								</div>
 								<div className="flex items-baseline gap-1">
-									<span className="font-jetbrains font-semibold text-white">
-										{formatUsd(freeRemaining)}
-									</span>
+									<span className="font-jetbrains font-semibold text-white">{formatUsd(freeRemaining)}</span>
 									<span className="text-xs text-[#8a8c90]">/ {formatUsd(freeLimit)}</span>
 								</div>
 							</div>
@@ -123,9 +123,7 @@ export const LlamaAIBalanceCard = ({
 									<span className="text-sm">Topped Up</span>
 								</div>
 								<div className="flex items-baseline gap-1">
-									<span className="font-jetbrains font-semibold text-white">
-										{formatUsd(toppedUpBalance)}
-									</span>
+									<span className="font-jetbrains font-semibold text-white">{formatUsd(toppedUpBalance)}</span>
 								</div>
 							</div>
 
@@ -148,9 +146,7 @@ export const LlamaAIBalanceCard = ({
 						<div className="flex items-center gap-2">
 							<span className="text-sm text-[#8a8c90]">Total Available</span>
 						</div>
-						<span
-							className={`font-jetbrains text-xl font-bold ${isLowBalance ? 'text-yellow-400' : 'text-white'}`}
-						>
+						<span className={`font-jetbrains text-xl font-bold ${isLowBalance ? 'text-yellow-400' : 'text-white'}`}>
 							${totalAvailable.toFixed(2)}
 						</span>
 					</div>
