@@ -565,10 +565,8 @@ function BridgeVolume(props: IKeyMetricsProps) {
 const SmolStats = ({
 	data,
 	protocolName,
-	category,
 	formatPrice,
-	openSmolStatsSummaryByDefault = false,
-	dataType
+	openSmolStatsSummaryByDefault = false
 }: {
 	data: Array<{
 		name: string

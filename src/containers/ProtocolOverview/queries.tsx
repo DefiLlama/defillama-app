@@ -151,7 +151,10 @@ export const getProtocolOverviewPageData = async ({
 		articles,
 		incentives,
 		adjustedSupply,
-		users,
+		activeUsers,
+		newUsers,
+		transactions,
+		gasUsd,
 		expenses,
 		yieldsConfig,
 		liquidityInfo,
@@ -183,7 +186,10 @@ export const getProtocolOverviewPageData = async ({
 		IArticle[],
 		IProtocolOverviewPageData['incentives'],
 		number | null,
-		IProtocolOverviewPageData['users'],
+		number | null,
+		number | null,
+		number | null,
+		number | null,
 		IProtocolExpenses | null,
 		IYieldsConfigResult,
 		ProtocolLiquidityToken[],
@@ -380,53 +386,39 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: null,
-		(currentProtocolMetadata.activeUsers ||
-			currentProtocolMetadata.newUsers ||
-			currentProtocolMetadata.txCount ||
-			currentProtocolMetadata.gasUsed) &&
-		currentProtocolMetadata.displayName
-			? Promise.all([
-					currentProtocolMetadata.activeUsers
-						? fetchAdapterProtocolMetrics({
-								protocol: currentProtocolMetadata.displayName,
-								adapterType: 'active-users'
-							})
-								.then((data) => data?.total24h ?? null)
-								.catch(() => null)
-						: Promise.resolve(null),
-					currentProtocolMetadata.newUsers
-						? fetchAdapterProtocolMetrics({
-								protocol: currentProtocolMetadata.displayName,
-								adapterType: 'new-users'
-							})
-								.then((data) => data?.total24h ?? null)
-								.catch(() => null)
-						: Promise.resolve(null),
-					currentProtocolMetadata.txCount
-						? fetchAdapterProtocolMetrics({
-								protocol: currentProtocolMetadata.displayName,
-								adapterType: 'active-users',
-								dataType: 'dailyTransactionsCount'
-							})
-								.then((data) => data?.total24h ?? null)
-								.catch(() => null)
-						: Promise.resolve(null),
-					currentProtocolMetadata.gasUsed
-						? fetchAdapterProtocolMetrics({
-								protocol: currentProtocolMetadata.displayName,
-								adapterType: 'active-users',
-								dataType: 'dailyGasUsed'
-							})
-								.then((data) => data?.total24h ?? null)
-								.catch(() => null)
-						: Promise.resolve(null)
-				]).then(([activeUsers, newUsers, transactions, gasUsd]) => {
-					if (activeUsers == null && newUsers == null && transactions == null && gasUsd == null) {
-						return null
-					}
-
-					return { activeUsers, newUsers, transactions, gasUsd }
+		currentProtocolMetadata.activeUsers
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'active-users'
 				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.newUsers
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'new-users'
+				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.txCount
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'active-users',
+					dataType: 'dailyTransactionsCount'
+				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.gasUsed
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'active-users',
+					dataType: 'dailyGasUsed'
+				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
 			: Promise.resolve(null),
 		currentProtocolMetadata.expenses && protocolId
 			? fetchProtocolExpenses()
@@ -953,7 +945,12 @@ export const getProtocolOverviewPageData = async ({
 		yields,
 		articles,
 		incentives,
-		users,
+		users: {
+			activeUsers: activeUsers ?? null,
+			newUsers: newUsers ?? null,
+			transactions: transactions ?? null,
+			gasUsd: gasUsd ?? null
+		},
 		raises: raises?.length ? raises : null,
 		expenses: expenses
 			? {
