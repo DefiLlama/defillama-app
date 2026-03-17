@@ -2,7 +2,6 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import type { IEquitiesFilingApiItem } from './api.types'
 import { formatEquitiesDate } from './utils'
 
@@ -71,42 +70,6 @@ const columns = [
 	})
 ]
 
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		filingDate: 108,
-		reportDate: 108,
-		form: 84,
-		documentDescription: 360,
-		primaryDocumentUrl: 80
-	},
-	640: {
-		filingDate: 108,
-		reportDate: 108,
-		form: 84,
-		documentDescription: 420,
-		primaryDocumentUrl: 80
-	},
-	1024: {
-		filingDate: 116,
-		reportDate: 116,
-		form: 120,
-		documentDescription: 520,
-		primaryDocumentUrl: 80
-	},
-	1536: {
-		filingDate: 120,
-		reportDate: 120,
-		form: 92,
-		documentDescription: 620,
-		primaryDocumentUrl: 80
-	}
-}
-
-const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['filingDate', 'form', 'documentDescription', 'reportDate', 'primaryDocumentUrl'],
-	640: ['filingDate', 'reportDate', 'form', 'documentDescription', 'primaryDocumentUrl']
-}
-
 export function EquitiesFilingsTable({
 	filings,
 	filingForms
@@ -131,8 +94,6 @@ export function EquitiesFilingsTable({
 			sortingState={DEFAULT_SORTING_STATE}
 			rowSize={52}
 			compact
-			columnSizes={columnSizes}
-			columnOrders={columnOrders}
 			csvFileName="equities-filings"
 			customFilters={
 				<label className="flex items-center gap-2 text-sm">

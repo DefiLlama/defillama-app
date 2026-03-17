@@ -70,46 +70,6 @@ const columns = [
 	})
 ]
 
-const columnSizes: ColumnSizesByBreakpoint = {
-	0: {
-		ticker: 120,
-		name: 200,
-		currentPrice: 120,
-		priceChangePercentage: 154,
-		volume: 120,
-		marketCap: 120
-	},
-	640: {
-		ticker: 120,
-		name: 200,
-		currentPrice: 120,
-		priceChangePercentage: 154,
-		volume: 120,
-		marketCap: 120
-	},
-	1024: {
-		ticker: 120,
-		name: 280,
-		currentPrice: 120,
-		priceChangePercentage: 154,
-		volume: 120,
-		marketCap: 120
-	},
-	1536: {
-		ticker: 120,
-		name: 360,
-		currentPrice: 120,
-		priceChangePercentage: 154,
-		volume: 120,
-		marketCap: 120
-	}
-}
-
-const columnOrders: ColumnOrdersByBreakpoint = {
-	0: ['ticker', 'name', 'currentPrice', 'priceChangePercentage', 'marketCap', 'volume', 'lastUpdatedAt'],
-	640: ['ticker', 'name', 'currentPrice', 'priceChangePercentage', 'volume', 'marketCap', 'lastUpdatedAt']
-}
-
 export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPageProps) {
 	return (
 		<div className="flex flex-col gap-2">
@@ -138,8 +98,6 @@ export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPage
 				sortingState={DEFAULT_SORTING_STATE}
 				rowSize={56}
 				compact
-				columnSizes={columnSizes}
-				columnOrders={columnOrders}
 				csvFileName="equities-rankings"
 			/>
 		</div>
