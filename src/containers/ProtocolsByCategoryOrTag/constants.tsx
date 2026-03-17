@@ -101,7 +101,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		defaultChart: 'bridgeVolume',
 		headingLabel: 'Cross-Chain Bridges',
 		seoLabel: 'Cross-Chain Bridges',
-		seoBaseTitle: 'Cross-Chain Bridges - All Chains - TVL, Fees, & Revenue',
+		seoBaseTitle: 'Cross-Chain Bridges - TVL, Fees, & Revenue',
 		searchPlaceholder: 'Search cross-chain bridges...'
 	},
 	Staking: { description: 'Protocols that allow you to stake assets in exchange of a reward' },
@@ -252,7 +252,7 @@ export const protocolCategoryConfig: Record<string, ProtocolCategoryConfig> = {
 		description: 'Protocols that allow users to lock money in exchange for a protocol token',
 		headingLabel: 'Farms',
 		seoLabel: 'Farms',
-		seoBaseTitle: 'DeFi Farms - All Chains - TVL, Fees, & Revenue',
+		seoBaseTitle: 'DeFi Farms - TVL, Fees, & Revenue',
 		searchPlaceholder: 'Search farms...'
 	},
 	'Liquid Staking': {

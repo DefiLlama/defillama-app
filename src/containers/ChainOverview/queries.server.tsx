@@ -888,7 +888,7 @@ export const getProtocolsByChain = async ({
 				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
 				mcaptvl:
-					protocol.mcap && protocol.category !== 'Bridge' && tvls?.default?.tvl
+					protocol.mcap != null && protocol.category !== 'Bridge' && tvls?.default?.tvl != null
 						? +formatNum(+protocol.mcap.toFixed(2) / +tvls.default.tvl.toFixed(2))
 						: null,
 				strikeTvl:
@@ -1129,7 +1129,7 @@ export const getProtocolsByChain = async ({
 				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
 				mcap: parentProtocol.mcap ?? null,
 				mcaptvl:
-					parentProtocol.mcap && parentTvl?.default?.tvl
+					parentProtocol.mcap != null && parentTvl?.default?.tvl != null
 						? +formatNum(+parentProtocol.mcap.toFixed(2) / +parentTvl.default.tvl.toFixed(2))
 						: null
 			}

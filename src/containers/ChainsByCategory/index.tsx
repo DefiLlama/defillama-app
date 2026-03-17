@@ -205,7 +205,8 @@ export const useGroupAndFormatChains = ({
 					change_1d,
 					change_7d,
 					change_1m,
-					mcaptvl: chain.mcap && finalTvl ? +formatNum(+chain.mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
+					mcaptvl:
+						chain.mcap != null && finalTvl != null ? +formatNum(+chain.mcap.toFixed(2) / +finalTvl.toFixed(2)) : null
 				}
 			})
 			.filter((chain) => (minTvl != null ? chain.tvl >= minTvl : true) && (maxTvl != null ? chain.tvl <= maxTvl : true))

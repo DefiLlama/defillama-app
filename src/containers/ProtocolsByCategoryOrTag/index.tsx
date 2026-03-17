@@ -468,7 +468,7 @@ const COLUMN_REGISTRY: Record<string, ColumnDef<ProtocolRow, any>> = {
 		meta: { align: 'end', headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol' },
 		size: 120
 	}),
-	'mcap/tvl': columnHelper.accessor((p) => (p.mcap && p.tvl ? formatNum(p.mcap / p.tvl) : null), {
+	'mcap/tvl': columnHelper.accessor((p) => (p.mcap != null && p.tvl != null ? formatNum(p.mcap / p.tvl) : null), {
 		id: 'mcap/tvl',
 		header: 'Mcap/TVL',
 		cell: (info) => (info.getValue() != null ? info.getValue() : null),
