@@ -49,7 +49,15 @@ export const TOOL_LABELS: Record<string, string> = {
 	x_get_retweeted_by: 'Fetching retweets',
 	x_get_community: 'Fetching X community',
 	x_get_community_members: 'Fetching community members',
-	x_get_community_posts: 'Fetching community posts'
+	x_get_community_posts: 'Fetching community posts',
+	query_allium: 'Querying onchain data',
+	apollo_org_search: 'Searching organizations',
+	apollo_people_search: 'Searching people',
+	apollo_people_enrich: 'Enriching people data',
+	apollo_org_enrich: 'Enriching org data',
+	clado_linkedin_scrape: 'Scraping LinkedIn profile',
+	clado_contacts_enrich: 'Enriching contact data',
+	feed_enrichment: 'Enriching feed data'
 }
 
 export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
@@ -98,7 +106,15 @@ export const TOOL_ICONS: Record<string, { icon: string; color: string }> = {
 	x_get_retweeted_by: { icon: 'twitter', color: '#94a3b8' },
 	x_get_community: { icon: 'twitter', color: '#94a3b8' },
 	x_get_community_members: { icon: 'twitter', color: '#94a3b8' },
-	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' }
+	x_get_community_posts: { icon: 'twitter', color: '#94a3b8' },
+	query_allium: { icon: 'layers', color: '#6366f1' },
+	apollo_org_search: { icon: 'search', color: '#8b5cf6' },
+	apollo_people_search: { icon: 'users', color: '#8b5cf6' },
+	apollo_people_enrich: { icon: 'users', color: '#a78bfa' },
+	apollo_org_enrich: { icon: 'search', color: '#a78bfa' },
+	clado_linkedin_scrape: { icon: 'users', color: '#0077b5' },
+	clado_contacts_enrich: { icon: 'users', color: '#0077b5' },
+	feed_enrichment: { icon: 'layers', color: '#8b5cf6' }
 }
 
 function formatTime(seconds: number) {
