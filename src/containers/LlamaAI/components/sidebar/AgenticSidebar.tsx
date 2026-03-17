@@ -1,11 +1,14 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type CSSProperties, memo, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { type CSSProperties, lazy, memo, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { useAiBalance } from '~/containers/Subscribtion/useTopup'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+
+const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
 
 interface AgenticSidebarProps {
 	sessions: ChatSession[]
@@ -125,6 +128,8 @@ export function AgenticSidebar({
 	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
 	const [selectMode, setSelectMode] = useState(false)
 	const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set())
+	const { balance, totalAvailable } = useAiBalance()
+	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 
 	const toggleSelect = useCallback((sessionId: string) => {
 		setSelectedSessionIds((prev) => {
@@ -336,6 +341,31 @@ export function AgenticSidebar({
 					</div>
 				)}
 			</nav>
+
+			{balance ? (
+				<div className="border-t border-[#e6e6e6] px-3 py-2.5 dark:border-[#222324]">
+					<button
+						onClick={() => setIsTopupModalOpen(true)}
+						className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#222324]"
+					>
+						<div className="flex items-center gap-2">
+							<Icon name="package" height={14} width={14} className="text-[#5C5CF9]" />
+							<span className="text-xs text-[#666] dark:text-[#919296]">LlamaAI Balance</span>
+						</div>
+						<span
+							className={`font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
+						>
+							${totalAvailable.toFixed(2)}
+						</span>
+					</button>
+				</div>
+			) : null}
+
+			{isTopupModalOpen ? (
+				<Suspense fallback={<></>}>
+					<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+				</Suspense>
+			) : null}
 
 			{selectMode ? (
 				<footer className="flex items-center gap-2 border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
