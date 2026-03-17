@@ -293,6 +293,9 @@ export default function ChainCoreChart({
 			if (type === 'Gas Used') {
 				finalYAxis.push({
 					...options,
+					axisLabel: {
+						formatter: (value) => formattedNum(value)
+					},
 					axisLine: {
 						show: true,
 						lineStyle: {
