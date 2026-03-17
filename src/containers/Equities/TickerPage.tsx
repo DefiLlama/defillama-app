@@ -83,23 +83,6 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 					<h1 className="text-xl font-bold">{props.name}</h1>
 					<p className="text-(--text-disabled)">({props.ticker})</p>
 				</div>
-				<div className="flex flex-wrap items-center gap-2 text-sm text-(--text-secondary)">
-					<span>{props.metadata.industry}</span>
-					<span className="text-(--text-disabled)">•</span>
-					<span>CIK {props.metadata.cik}</span>
-					{props.metadata.startDate ? (
-						<>
-							<span className="text-(--text-disabled)">•</span>
-							<span>Coverage since {formatEquitiesDate(props.metadata.startDate)}</span>
-						</>
-					) : null}
-					{props.summary.updatedAt ? (
-						<>
-							<span className="text-(--text-disabled)">•</span>
-							<span>Updated {formatEquitiesDateTime(props.summary.updatedAt)}</span>
-						</>
-					) : null}
-				</div>
 			</div>
 
 			<div className="grid gap-2 lg:grid-cols-4">
@@ -201,6 +184,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 							)}
 						</KeyValueRow>
 						<MetricRow label="CIK" description="Central Index Key" value={formatText(props.metadata.cik)} />
+						<MetricRow label="Coverage since" value={formatEquitiesDate(props.metadata.startDate)} />
 						<MetricRow label="Last Updated At" value={formatEquitiesDateTime(props.summary.updatedAt)} />
 					</SectionCard>
 				</div>
