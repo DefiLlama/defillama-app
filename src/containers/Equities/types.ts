@@ -29,12 +29,19 @@ export interface IEquitiesStatementTableRow {
 	subRows?: IEquitiesStatementTableRow[]
 }
 
+export interface IEquitiesPriceChanges {
+	twentyFourHour: number | null
+	sevenDay: number | null
+	thirtyDay: number | null
+}
+
 export interface IEquityTickerPageProps {
 	ticker: string
 	name: string
 	metadata: IEquitiesMetadataResponse
 	summary: IEquitiesSummaryResponse
 	priceHistoryChart: IEquitiesPriceHistoryChart
+	priceChanges: IEquitiesPriceChanges
 	statements: IEquitiesStatementsResponse
 	filings: IEquitiesFilingApiItem[]
 	filingForms: string[]

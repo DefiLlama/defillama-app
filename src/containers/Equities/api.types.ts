@@ -31,7 +31,7 @@ export interface IEquitiesMetadataResponse {
 
 export type EquitiesPriceHistoryTimeframe = '1W' | '1M' | '6M' | '1Y' | '5Y' | 'MAX'
 
-export type EquitiesPriceHistory = Array<[number, number]>
+export type EquitiesPriceHistory = Array<[string, number]>
 
 export interface IEquitiesFilingApiItem {
 	filingDate: string

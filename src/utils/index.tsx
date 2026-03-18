@@ -305,9 +305,9 @@ export const formattedNum = (number: unknown, symbol: boolean | string = false):
 		})}`
 	}
 
-	return num.toLocaleString(undefined, {
+	return `${normalMark}${num.toLocaleString(undefined, {
 		maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
-	})
+	})}`
 }
 
 export function chainIconUrl(chain: unknown): string {

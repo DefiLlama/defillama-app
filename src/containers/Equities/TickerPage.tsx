@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { ReactNode } from 'react'
 import { lazy, Suspense, useMemo } from 'react'
@@ -6,7 +5,6 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-import { fetchEquitiesPriceHistory } from './api'
 import type { EquitiesPriceHistoryTimeframe } from './api.types'
 import {
 	DEFAULT_EQUITY_CHART_TYPE,
@@ -18,7 +16,6 @@ import {
 } from './constants'
 import { EquitiesFilingsTable } from './FilingsTable'
 import { EquitiesFinancialsTable } from './FinancialsTable'
-import { buildPriceHistoryChart } from './queries'
 import type { IEquityTickerPageProps } from './types'
 import {
 	formatCurrency,
@@ -32,6 +29,15 @@ import {
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 type EquityTab = (typeof TABS)[number]
 type EquityChartType = (typeof EQUITY_CHART_TYPES)[number]
+
+const TIMEFRAME_MS: Record<EquitiesPriceHistoryTimeframe, number | null> = {
+	'1W': 7 * 86_400_000,
+	'1M': 30 * 86_400_000,
+	'6M': 180 * 86_400_000,
+	'1Y': 365 * 86_400_000,
+	'5Y': 5 * 365 * 86_400_000,
+	MAX: null
+}
 const TAB_LABELS: Record<EquityTab, string> = {
 	overview: 'Overview',
 	financials: 'Financials',
@@ -103,21 +109,13 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 	const isPriceHistoryChart = activeChartType === DEFAULT_EQUITY_CHART_TYPE
 	const disabledTimeframes = isPriceHistoryChart ? undefined : EQUITIES_PRICE_HISTORY_TIMEFRAMES
 
-	const { data: queriedPriceHistoryChart } = useQuery({
-		queryKey: ['equities', 'price-history', props.ticker, activeTimeframe],
-		queryFn: () =>
-			fetchEquitiesPriceHistory(props.ticker, activeTimeframe)
-				.then((priceHistory) => buildPriceHistoryChart(priceHistory))
-				.catch(() => buildPriceHistoryChart([])),
-		initialData: activeTimeframe === DEFAULT_PRICE_HISTORY_TIMEFRAME ? props.priceHistoryChart : undefined,
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0,
-		enabled: isPriceHistoryChart
-	})
-	const activePriceHistoryChart =
-		queriedPriceHistoryChart ??
-		(activeTimeframe === DEFAULT_PRICE_HISTORY_TIMEFRAME ? props.priceHistoryChart : buildPriceHistoryChart([]))
+	const activePriceHistoryChart = useMemo(() => {
+		const duration = TIMEFRAME_MS[activeTimeframe]
+		if (!duration) return props.priceHistoryChart
+		const cutoff = Date.now() - duration
+		const source = props.priceHistoryChart.dataset.source.filter((point) => (point.timestamp as number) >= cutoff)
+		return { ...props.priceHistoryChart, dataset: { ...props.priceHistoryChart.dataset, source } }
+	}, [activeTimeframe, props.priceHistoryChart])
 
 	const setActiveTab = (tab: EquityTab) => {
 		void pushShallowQuery(router, { tab: tab === 'overview' ? undefined : tab })
@@ -150,17 +148,17 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.currentPrice)}</dd>
 				</dl>
 				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<dt className="text-(--text-label)">24h Price Change</dt>
+					<dt className="text-(--text-label)">30d Price Change</dt>
 					<dd
 						className={`font-jetbrains text-xl font-semibold ${
-							props.summary.priceChangePercentage == null
+							props.priceChanges.thirtyDay == null
 								? ''
-								: props.summary.priceChangePercentage >= 0
+								: props.priceChanges.thirtyDay >= 0
 									? 'text-(--success)'
 									: 'text-(--error)'
 						}`}
 					>
-						{formatPercent(props.summary.priceChangePercentage)}
+						{formatPercent(props.priceChanges.thirtyDay)}
 					</dd>
 				</dl>
 				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
@@ -183,12 +181,12 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 					/> */}
 					<h2 className="mr-auto text-base font-semibold">{`$${props.ticker} Price History`}</h2>
 					<div className="ml-auto flex flex-wrap items-center gap-2">
-						{/* <TagGroup
+						<TagGroup
 							selectedValue={activeTimeframe}
 							setValue={setActiveTimeframe}
 							values={EQUITIES_PRICE_HISTORY_TIMEFRAMES}
 							disabledValues={disabledTimeframes}
-						/> */}
+						/>
 						<div
 							className={`flex items-center gap-2 ${isPriceHistoryChart ? '' : 'pointer-events-none opacity-50'}`}
 							aria-disabled={!isPriceHistoryChart}
@@ -233,7 +231,9 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 				<section className="grid grid-cols-1 gap-2 lg:grid-cols-2" role="tabpanel" aria-label="Overview">
 					<SectionCard title="Key Data">
 						<MetricRow label="Current Price" value={formatCurrency(props.summary.currentPrice)} monospace />
-						<MetricRow label="24h Price Change" value={formatPercent(props.summary.priceChangePercentage)} monospace />
+						<MetricRow label="30d Price Change" value={formatPercent(props.priceChanges.thirtyDay)} monospace />
+						<MetricRow label="7d Price Change" value={formatPercent(props.priceChanges.sevenDay)} monospace />
+						<MetricRow label="24h Price Change" value={formatPercent(props.priceChanges.twentyFourHour)} monospace />
 						<MetricRow label="Market Cap" value={formatCurrency(props.summary.marketCap)} monospace />
 						<MetricRow label="Volume" value={formatCurrency(props.summary.volume)} monospace />
 						<MetricRow label="Dividend Yield" value={formatPercent(props.summary.dividendYield)} monospace />
