@@ -18,6 +18,8 @@ import { datasets, datasetCategories, type DatasetDefinition } from './datasets'
 const TABS = ['Datasets', 'Time Series'] as const
 type Tab = (typeof TABS)[number]
 
+const ALL_CATEGORY = 'All'
+
 export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOptionsMap }) {
 	const { isAuthenticated, hasActiveSubscription, isTrial, user, loaders, authorizedFetch } = useAuthContext()
 	const [activeTab, setActiveTab] = useState<Tab>('Datasets')
@@ -30,34 +32,31 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearch = useDeferredValue(searchValue)
+	const [selectedCategory, setSelectedCategory] = useState<string>(ALL_CATEGORY)
 
 	const csvDownloadCount = typeof user?.flags?.csvDownload === 'number' ? user.flags.csvDownload : 0
 
 	const isPreview = !isAuthenticated || !hasActiveSubscription
 
-	const filteredDatasetsByCategory = useMemo(() => {
-		const grouped = datasetCategories.map((category) => ({
+	const allDatasetsByCategory = useMemo(() => {
+		return datasetCategories.map((category) => ({
 			category,
 			items: datasets.filter((d) => d.category === category)
 		}))
-		if (!deferredSearch) return grouped
-		return grouped
-			.map((group) => {
-				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
-				const matched = matchSorter(group.items, deferredSearch, {
-					keys: ['name', 'description', 'category'],
-					threshold: matchSorter.rankings.CONTAINS
-				})
-				return { ...group, items: matched }
-			})
-			.filter((group) => group.items.length > 0)
-	}, [deferredSearch])
+	}, [])
 
-	const filteredChartsByCategory = useMemo(() => {
-		const grouped = chartDatasetCategories.map((category) => ({
+	const allChartsByCategory = useMemo(() => {
+		return chartDatasetCategories.map((category) => ({
 			category,
 			items: chartDatasets.filter((d) => d.category === category)
 		}))
+	}, [])
+
+	const filteredDatasetsByCategory = useMemo(() => {
+		let grouped = allDatasetsByCategory
+		if (selectedCategory !== ALL_CATEGORY) {
+			grouped = grouped.filter((g) => g.category === selectedCategory)
+		}
 		if (!deferredSearch) return grouped
 		return grouped
 			.map((group) => {
@@ -69,7 +68,47 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 				return { ...group, items: matched }
 			})
 			.filter((group) => group.items.length > 0)
-	}, [deferredSearch])
+	}, [deferredSearch, selectedCategory, allDatasetsByCategory])
+
+	const filteredChartsByCategory = useMemo(() => {
+		let grouped = allChartsByCategory
+		if (selectedCategory !== ALL_CATEGORY) {
+			grouped = grouped.filter((g) => g.category === selectedCategory)
+		}
+		if (!deferredSearch) return grouped
+		return grouped
+			.map((group) => {
+				if (group.category.toLowerCase().includes(deferredSearch.toLowerCase())) return group
+				const matched = matchSorter(group.items, deferredSearch, {
+					keys: ['name', 'description', 'category'],
+					threshold: matchSorter.rankings.CONTAINS
+				})
+				return { ...group, items: matched }
+			})
+			.filter((group) => group.items.length > 0)
+	}, [deferredSearch, selectedCategory, allChartsByCategory])
+
+	const totalFilteredCount = useMemo(() => {
+		const groups = activeTab === 'Datasets' ? filteredDatasetsByCategory : filteredChartsByCategory
+		return groups.reduce((sum, g) => sum + g.items.length, 0)
+	}, [activeTab, filteredDatasetsByCategory, filteredChartsByCategory])
+
+	const totalCount = useMemo(() => {
+		return activeTab === 'Datasets' ? datasets.length : chartDatasets.length
+	}, [activeTab])
+
+	const currentCategories = useMemo(() => {
+		return activeTab === 'Datasets' ? datasetCategories : chartDatasetCategories
+	}, [activeTab])
+
+	const categoryCounts = useMemo(() => {
+		const groups = activeTab === 'Datasets' ? allDatasetsByCategory : allChartsByCategory
+		const counts: Record<string, number> = {}
+		for (const g of groups) {
+			counts[g.category] = g.items.length
+		}
+		return counts
+	}, [activeTab, allDatasetsByCategory, allChartsByCategory])
 
 	const handleCardClick = useCallback(
 		(dataset: DatasetDefinition) => {
@@ -132,7 +171,10 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					<button
 						key={tab}
 						type="button"
-						onClick={() => setActiveTab(tab)}
+						onClick={() => {
+							setActiveTab(tab)
+							setSelectedCategory(ALL_CATEGORY)
+						}}
 						className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
 							activeTab === tab
 								? 'bg-(--primary) text-white shadow-sm'
@@ -161,6 +203,52 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
 				/>
 			</label>
+
+			<div className="flex flex-wrap items-center gap-2">
+				<button
+					type="button"
+					onClick={() => setSelectedCategory(ALL_CATEGORY)}
+					className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+						selectedCategory === ALL_CATEGORY
+							? 'bg-(--primary) text-white shadow-sm'
+							: 'border border-(--divider) bg-(--bg-primary) text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--text-primary)'
+					}`}
+				>
+					All
+					<span
+						className={`ml-1.5 ${selectedCategory === ALL_CATEGORY ? 'text-white/70' : 'text-(--text-tertiary)'}`}
+					>
+						{totalCount}
+					</span>
+				</button>
+				{currentCategories.map((category) => (
+					<button
+						key={category}
+						type="button"
+						onClick={() => setSelectedCategory(selectedCategory === category ? ALL_CATEGORY : category)}
+						className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+							selectedCategory === category
+								? 'bg-(--primary) text-white shadow-sm'
+								: 'border border-(--divider) bg-(--bg-primary) text-(--text-secondary) hover:border-(--primary)/40 hover:text-(--text-primary)'
+						}`}
+					>
+						{category}
+						<span
+							className={`ml-1.5 ${selectedCategory === category ? 'text-white/70' : 'text-(--text-tertiary)'}`}
+						>
+							{categoryCounts[category] ?? 0}
+						</span>
+					</button>
+				))}
+			</div>
+
+			{(deferredSearch || selectedCategory !== ALL_CATEGORY) && (
+				<p className="text-xs text-(--text-tertiary)">
+					Showing {totalFilteredCount} of {totalCount} datasets
+					{selectedCategory !== ALL_CATEGORY ? ` in ${selectedCategory}` : ''}
+					{deferredSearch ? ` matching "${deferredSearch}"` : ''}
+				</p>
+			)}
 
 			{activeTab === 'Datasets' ? (
 				<div className="flex flex-col gap-8">
