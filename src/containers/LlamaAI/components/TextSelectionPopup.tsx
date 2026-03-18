@@ -6,6 +6,11 @@ interface PopupPosition {
 	left: number
 }
 
+function getElementFromNode(node: Node | null) {
+	if (!node) return null
+	return node instanceof Element ? node : node.parentElement
+}
+
 export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => void }) {
 	const [selectedText, setSelectedText] = useState('')
 	const [position, setPosition] = useState<PopupPosition | null>(null)
@@ -25,18 +30,27 @@ export function TextSelectionPopup({ onSelect }: { onSelect: (text: string) => v
 				return
 			}
 
-			const anchorNode = selection?.anchorNode
-			if (anchorNode) {
-				const el = anchorNode instanceof Element ? anchorNode : anchorNode.parentElement
-				if (el?.closest('textarea, input, [contenteditable]')) {
-					setSelectedText('')
-					setPosition(null)
-					return
-				}
+			if (!selection || selection.rangeCount === 0) {
+				setSelectedText('')
+				setPosition(null)
+				return
 			}
 
-			if (!selection || selection.rangeCount === 0) return
+			const anchorElement = getElementFromNode(selection.anchorNode)
+			if (anchorElement?.closest('textarea, input, [contenteditable]')) {
+				setSelectedText('')
+				setPosition(null)
+				return
+			}
+
 			const range = selection.getRangeAt(0)
+			const rangeRoot = getElementFromNode(range.commonAncestorContainer)
+			if (!rangeRoot?.closest('.llamaai-prose')) {
+				setSelectedText('')
+				setPosition(null)
+				return
+			}
+
 			const rect = range.getBoundingClientRect()
 			const centeredLeft = rect.left + window.scrollX + rect.width / 2
 

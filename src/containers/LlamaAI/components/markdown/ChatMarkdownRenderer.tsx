@@ -185,11 +185,13 @@ export function SourcesList({ citations, isStreaming = false }: { citations: str
 export function ChatMarkdownRenderer({
 	content,
 	citations,
-	isStreaming = false
+	isStreaming = false,
+	hackerMode = false
 }: {
 	content: string
 	citations?: string[]
 	isStreaming?: boolean
+	hackerMode?: boolean
 }) {
 	const processedData = useMemo(() => {
 		const linkMap = extractLlamaLinks(content)
@@ -229,12 +231,12 @@ export function ChatMarkdownRenderer({
 				</td>
 			),
 			ul: ({ children, node: _node, ...props }: MarkdownListProps) => (
-				<ul {...props} className={`grid list-disc gap-1 pl-4 ${props.className ?? ''}`}>
+				<ul {...props} className={`list-disc space-y-1 pl-4 ${props.className ?? ''}`}>
 					{children}
 				</ul>
 			),
 			ol: ({ children, node: _node, ...props }: MarkdownOrderedListProps) => (
-				<ol {...props} className={`grid list-decimal gap-1 pl-4 ${props.className ?? ''}`}>
+				<ol {...props} className={`list-decimal space-y-1 pl-4 ${props.className ?? ''}`}>
 					{children}
 				</ol>
 			)
@@ -247,7 +249,9 @@ export function ChatMarkdownRenderer({
 	}
 
 	return (
-		<div className="llamaai-prose prose prose-sm flex max-w-none flex-col gap-2.5 overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline">
+		<div
+			className={`llamaai-prose prose prose-sm max-w-none overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline${hackerMode ? ' hacker-mode' : ''}`}
+		>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
 				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}

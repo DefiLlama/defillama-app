@@ -7,7 +7,12 @@ import { CSVExportArtifact } from '~/containers/LlamaAI/components/CSVExportArti
 import { ImagePreviewModal } from '~/containers/LlamaAI/components/ImagePreviewModal'
 import { ChatMarkdownRenderer, SourcesList } from '~/containers/LlamaAI/components/markdown/ChatMarkdownRenderer'
 import { ResponseControls } from '~/containers/LlamaAI/components/ResponseControls'
-import { ThinkingPanel, TOOL_ICONS, TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import {
+	ThinkingPanel,
+	TOOL_ICONS,
+	TOOL_LABELS,
+	useHackerMode
+} from '~/containers/LlamaAI/components/status/StreamingStatus'
 import {
 	parseMessageToRenderModel,
 	type ArtifactRecord,
@@ -327,7 +332,8 @@ function MessageContentBlock({
 	isStreaming,
 	sessionId,
 	onActionClick,
-	nextUserMessage
+	nextUserMessage,
+	hackerMode
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -335,13 +341,21 @@ function MessageContentBlock({
 	sessionId?: string | null
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	hackerMode?: boolean
 }) {
 	if (block.type === 'action-group') {
 		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
 	}
 
 	if (block.type === 'markdown') {
-		return <ChatMarkdownRenderer content={block.content} citations={block.citations} isStreaming={isStreaming} />
+		return (
+			<ChatMarkdownRenderer
+				content={block.content}
+				citations={block.citations}
+				isStreaming={isStreaming}
+				hackerMode={hackerMode}
+			/>
+		)
 	}
 
 	if (block.type === 'sources') {
@@ -357,7 +371,8 @@ function InlineContent({
 	isStreaming = false,
 	sessionId,
 	onActionClick,
-	nextUserMessage
+	nextUserMessage,
+	hackerMode
 }: {
 	message: Message
 	toolExecutions?: ToolExecution[]
@@ -365,6 +380,7 @@ function InlineContent({
 	sessionId?: string | null
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	hackerMode?: boolean
 }) {
 	const includeFallbackArtifacts = !isStreaming || !message.content?.trim()
 	const { artifactsById, blocks } = useMemo(
@@ -383,6 +399,7 @@ function InlineContent({
 						sessionId={sessionId}
 						onActionClick={onActionClick}
 						nextUserMessage={nextUserMessage}
+						hackerMode={hackerMode}
 					/>
 				</div>
 			))}
@@ -612,6 +629,7 @@ export function MessageBubble({
 	nextUserMessage?: string
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
+	const hackerMode = useHackerMode()
 
 	if (message.role === 'user') {
 		return (
@@ -673,6 +691,7 @@ export function MessageBubble({
 				sessionId={sessionId}
 				onActionClick={onActionClick}
 				nextUserMessage={nextUserMessage}
+				hackerMode={hackerMode}
 			/>
 			{message.id && !isDraft ? (
 				<ResponseControls

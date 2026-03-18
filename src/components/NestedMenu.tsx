@@ -60,26 +60,29 @@ export function NestedMenu({
 					menu.parent ? 'max-sm:drawer-to-left' : 'max-sm:drawer'
 				}`}
 			>
-				<Ariakit.MenuDismiss className="ml-auto px-3 py-1 sm:hidden">
-					<Icon name="x" height={16} width={16} />
-					<span className="sr-only">Close dialog</span>
-				</Ariakit.MenuDismiss>
 				{menu.parent ? (
-					<>
-						<div className="grid grid-cols-[1fr_auto_1fr] items-end sm:hidden">
-							<button
-								className="-ml-1.5 flex items-center justify-between gap-3 px-3 py-2"
-								onClick={() => {
-									menu.hide()
-								}}
-								aria-label="Back to parent menu"
-							>
-								<Icon name="chevron-left" height={20} width={20} />
-							</button>
-							<h2 className="px-3 py-1.5 text-base font-medium">{label}</h2>
-						</div>
-					</>
-				) : null}
+					<div className="grid grid-cols-[auto_1fr_auto] items-center px-2 py-2 sm:hidden">
+						<button
+							className="flex h-8 w-8 items-center justify-center rounded-md"
+							onClick={() => {
+								menu.hide()
+							}}
+							aria-label="Back to parent menu"
+						>
+							<Icon name="chevron-left" height={20} width={20} />
+						</button>
+						<Ariakit.MenuHeading className="text-center text-base font-medium">{label}</Ariakit.MenuHeading>
+						<Ariakit.MenuDismiss className="flex h-8 w-8 items-center justify-center rounded-md">
+							<Icon name="x" height={20} width={20} />
+							<span className="sr-only">Close dialog</span>
+						</Ariakit.MenuDismiss>
+					</div>
+				) : (
+					<Ariakit.MenuDismiss className="ml-auto px-3 py-1 sm:hidden">
+						<Icon name="x" height={16} width={16} />
+						<span className="sr-only">Close dialog</span>
+					</Ariakit.MenuDismiss>
+				)}
 				{children}
 			</Ariakit.Menu>
 		</Ariakit.MenuProvider>

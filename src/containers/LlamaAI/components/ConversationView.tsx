@@ -227,8 +227,8 @@ export function ConversationView({
 	return (
 		<>
 			<div ref={scrollContainerRef} className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0">
-				<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-					<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
+				<div className="relative mx-auto flex w-full max-w-3xl flex-col">
+					<div className="flex w-full flex-col gap-2 px-2">
 						<div className="flex flex-col gap-2.5">
 							{paginationState.isLoadingMore ? (
 								<div className="flex justify-center py-2">

@@ -45,9 +45,9 @@ export function setInputSize(
 		const scrollHeight = textarea.scrollHeight
 		const nextHeight = Math.min(scrollHeight, maxHeight)
 		textarea.style.height = `${nextHeight}px`
+		textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden'
 
 		if (highlightRef?.current) {
-			// Use the already computed height instead of reading offsetHeight
 			highlightRef.current.style.height = `${nextHeight}px`
 			syncHighlightScroll(promptInputRef, highlightRef)
 		}

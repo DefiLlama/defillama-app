@@ -69,7 +69,8 @@ export const LlamaAIBalanceCard = ({
 						<div>
 							<h3 className="text-lg font-bold sm:text-xl">LlamaAI Balance</h3>
 							<p className="text-xs text-[#b4b7bc] sm:text-sm">
-								Credits for LlamaAI to access premium on-chain and off-chain data
+								Credits give LlamaAI access to premium data: onchain data, X profiles and posts, LinkedIn, and more.
+								<br></br>Pro Subscribers get $10 per month in credits
 							</p>
 						</div>
 					</div>

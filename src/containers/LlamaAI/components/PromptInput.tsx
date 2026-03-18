@@ -10,9 +10,11 @@ import {
 } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { CapabilityChips } from '~/containers/LlamaAI/components/input/CapabilityChips'
 import { EntityComboboxPopover } from '~/containers/LlamaAI/components/input/EntityCombobox'
 import { DragOverlay, ImageUpload, ImageUploadButton } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { InputTextarea } from '~/containers/LlamaAI/components/input/InputTextarea'
+import { MobileToolsPopover } from '~/containers/LlamaAI/components/input/MobileToolsPopover'
 import { ModeToggle, type ResearchUsage } from '~/containers/LlamaAI/components/input/ModeToggle'
 import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
@@ -143,7 +145,15 @@ export function PromptInput({
 		const textarea = promptInputRef.current
 		if (!textarea) return
 
-		setInputSize(promptInputRef, highlightRef)
+		if (value) {
+			setInputSize(promptInputRef, highlightRef)
+		} else {
+			textarea.style.height = ''
+			textarea.style.overflowY = 'hidden'
+			if (highlightRef.current) {
+				highlightRef.current.style.height = ''
+			}
+		}
 
 		const pendingSelection = pendingSelectionRef.current
 		if (!pendingSelection) return
@@ -197,12 +207,6 @@ export function PromptInput({
 			promptInputRef.current?.focus()
 		}
 	}, [droppedFiles, promptInputRef])
-
-	useEffect(() => {
-		if (quotedText) {
-			promptInputRef.current?.focus()
-		}
-	}, [quotedText, promptInputRef])
 
 	const resetInput = (imagesToRevoke?: Array<{ url: string }>) => {
 		applyPromptEdit({
@@ -373,7 +377,7 @@ export function PromptInput({
 			/>
 
 			{quotedText ? (
-				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/[0.04] py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/[0.04]">
+				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/4 py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/4">
 					<svg
 						className="h-3.5 w-3.5 shrink-0 -scale-x-100 text-[#2172e5]/50 dark:text-[#4190f7]/50"
 						viewBox="0 0 24 24"
@@ -437,12 +441,23 @@ export function PromptInput({
 
 			{submitError ? <p className="text-xs text-red-700 dark:text-red-300">{submitError}</p> : null}
 
-			<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-				<div className="flex items-center gap-2">
+			<div className="flex items-center justify-between gap-4 p-0">
+				<div className="hidden items-center gap-2 sm:flex">
 					<ModeToggle
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
+					/>
+					<CapabilityChips
+						key={isPending || isStreaming ? 'capability-chips-disabled' : 'capability-chips-enabled'}
+						onPromptSelect={(prompt, categoryKey) => {
+							if (categoryKey === 'research') {
+								setIsResearchMode(true)
+							}
+							applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+						}}
+						isPending={isPending}
+						isStreaming={isStreaming}
 					/>
 					{onOpenAlerts ? (
 						<Tooltip
@@ -455,8 +470,25 @@ export function PromptInput({
 						</Tooltip>
 					) : null}
 				</div>
+				<MobileToolsPopover
+					isResearchMode={isResearchMode}
+					setIsResearchMode={setIsResearchMode}
+					researchUsage={researchUsage}
+					onOpenAlerts={onOpenAlerts}
+					onPromptSelect={(prompt, categoryKey) => {
+						if (categoryKey === 'research') {
+							setIsResearchMode(true)
+						}
+						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+					}}
+					onImageUploadClick={imageUpload.openFilePicker}
+					isPending={isPending}
+					isStreaming={isStreaming}
+				/>
 				<div className="flex items-center gap-2">
-					<ImageUploadButton onClick={imageUpload.openFilePicker} />
+					<span className="max-sm:hidden">
+						<ImageUploadButton onClick={imageUpload.openFilePicker} />
+					</span>
 					<SubmitButton
 						isStreaming={isStreaming}
 						isPending={isPending}
