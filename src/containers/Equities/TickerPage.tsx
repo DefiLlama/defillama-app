@@ -138,22 +138,22 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 	const exportFilename = `${props.ticker.toLowerCase()}-price-history-${activeTimeframe.toLowerCase()}`
 
 	return (
-		<div className="flex flex-col gap-2">
-			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<div className="flex flex-wrap items-center gap-2">
+		<article className="flex flex-col gap-2">
+			<header className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+				<hgroup className="flex flex-wrap items-center gap-2">
 					<h1 className="text-xl font-bold">{props.name}</h1>
 					<p className="text-(--text-disabled)">({props.ticker})</p>
-				</div>
-			</div>
+				</hgroup>
+			</header>
 
-			<div className="grid gap-2 lg:grid-cols-4">
-				<div className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-(--text-label)">Current Price</span>
-					<span className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.currentPrice)}</span>
-				</div>
-				<div className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-(--text-label)">24h Price Change</span>
-					<span
+			<section className="grid gap-2 lg:grid-cols-4" aria-label="Key metrics">
+				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<dt className="text-(--text-label)">Current Price</dt>
+					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.currentPrice)}</dd>
+				</dl>
+				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<dt className="text-(--text-label)">24h Price Change</dt>
+					<dd
 						className={`font-jetbrains text-xl font-semibold ${
 							props.summary.priceChangePercentage == null
 								? ''
@@ -163,26 +163,27 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 						}`}
 					>
 						{formatPercent(props.summary.priceChangePercentage)}
-					</span>
-				</div>
-				<div className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-(--text-label)">Market Cap</span>
-					<span className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.marketCap)}</span>
-				</div>
-				<div className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<span className="text-(--text-label)">Volume</span>
-					<span className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.volume)}</span>
-				</div>
-			</div>
+					</dd>
+				</dl>
+				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<dt className="text-(--text-label)">Market Cap</dt>
+					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.marketCap)}</dd>
+				</dl>
+				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<dt className="text-(--text-label)">Volume</dt>
+					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.volume)}</dd>
+				</dl>
+			</section>
 
-			<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div className="flex flex-wrap items-center gap-2 p-3 pb-0">
-					<TagGroup
+			<figure className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<figcaption className="flex flex-wrap items-center gap-2 p-3 pb-0">
+					{/* <TagGroup
 						selectedValue={activeChartType}
 						setValue={setActiveChartType}
 						values={EQUITY_CHART_TYPES}
 						variant="responsive"
-					/>
+					/> */}
+					<h2 className="mr-auto text-base font-semibold">{`$${props.ticker} Price History`}</h2>
 					<div className="ml-auto flex flex-wrap items-center gap-2">
 						<TagGroup
 							selectedValue={activeTimeframe}
@@ -197,7 +198,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 							<ChartExportButtons chartInstance={chartInstance} filename={exportFilename} title={exportTitle} />
 						</div>
 					</div>
-				</div>
+				</figcaption>
 				{isPriceHistoryChart ? (
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
@@ -212,13 +213,15 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 				) : (
 					<div className="min-h-[360px]" />
 				)}
-			</div>
+			</figure>
 
-			<div className="flex w-full overflow-x-auto text-xs font-medium">
+			<nav className="flex w-full overflow-x-auto text-xs font-medium" role="tablist" aria-label="Ticker sections">
 				{TABS.map((tab) => (
 					<button
 						key={tab}
 						type="button"
+						role="tab"
+						aria-selected={activeTab === tab}
 						onClick={() => setActiveTab(tab)}
 						data-active={activeTab === tab}
 						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--primary)"
@@ -226,10 +229,10 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 						{TAB_LABELS[tab]}
 					</button>
 				))}
-			</div>
+			</nav>
 
 			{activeTab === 'overview' ? (
-				<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
+				<section className="grid grid-cols-1 gap-2 lg:grid-cols-2" role="tabpanel" aria-label="Overview">
 					<SectionCard title="Key Data">
 						<MetricRow label="Current Price" value={formatCurrency(props.summary.currentPrice)} monospace />
 						<MetricRow label="24h Price Change" value={formatPercent(props.summary.priceChangePercentage)} monospace />
@@ -266,7 +269,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 						<MetricRow label="Coverage since" value={formatEquitiesDate(props.metadata.startDate)} />
 						<MetricRow label="Last Updated At" value={formatEquitiesDateTime(props.summary.updatedAt)} />
 					</SectionCard>
-				</div>
+				</section>
 			) : null}
 
 			{activeTab === 'financials' ? <EquitiesFinancialsTable statements={props.statements} /> : null}
@@ -274,12 +277,12 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 				<EquitiesFilingsTable filings={props.filings} filingForms={props.filingForms} />
 			) : null}
 
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<footer className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<h2 className="text-sm font-semibold">Attribution</h2>
 				<p className="mt-1 text-xs text-(--text-disabled)">
 					Prices data from Yahoo Finance. Filings and statements data from SEC EDGAR.
 				</p>
-			</div>
-		</div>
+			</footer>
+		</article>
 	)
 }
