@@ -1,6 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { useIsClient } from '~/hooks/useIsClient'
 import type { IEquitiesListCompanyRow, IEquitiesListPageProps } from './types'
 import { formatCurrency, formatEquitiesDateTime, formatPercent } from './utils'
 
@@ -69,6 +70,15 @@ const columns = [
 	})
 ]
 
+function LastUpdated({ value }: { value: string }) {
+	const isClient = useIsClient()
+	return (
+		<p className="shrink-0 text-right text-xs text-(--text-disabled)" suppressHydrationWarning>
+			Last updated: {isClient ? formatEquitiesDateTime(value) : value}
+		</p>
+	)
+}
+
 export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPageProps) {
 	return (
 		<div className="flex flex-col gap-2">
@@ -80,11 +90,7 @@ export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPage
 							Track live company rankings by market cap, price, volume, and price change.
 						</p>
 					</div>
-					{lastUpdatedAt ? (
-						<p className="shrink-0 text-right text-xs text-(--text-disabled)" suppressHydrationWarning>
-							Last updated: {formatEquitiesDateTime(lastUpdatedAt)}
-						</p>
-					) : null}
+					{lastUpdatedAt ? <LastUpdated value={lastUpdatedAt} /> : null}
 				</div>
 			</div>
 

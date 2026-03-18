@@ -4,6 +4,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { useIsClient } from '~/hooks/useIsClient'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EquitiesPriceHistoryTimeframe } from './api.types'
 import {
@@ -90,6 +91,15 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 			<h2 className="text-base font-semibold">{title}</h2>
 			<dl className="divide-y divide-(--cards-border)">{children}</dl>
 		</section>
+	)
+}
+
+function ClientDate({ value, formatter }: { value?: string | null; formatter: (v?: string | null) => string }) {
+	const isClient = useIsClient()
+	return (
+		<span className="font-medium" suppressHydrationWarning>
+			{isClient ? formatter(value) : value}
+		</span>
 	)
 }
 
@@ -200,6 +210,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 						<MultiSeriesChart2
 							dataset={activePriceHistoryChart.dataset}
 							charts={activePriceHistoryChart.charts}
+							chartOptions={{ yAxis: { scale: true } }}
 							valueSymbol="$"
 							title=""
 							hideDataZoom={activePriceHistoryChart.dataset.source.length < 2}
@@ -264,8 +275,12 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 							)}
 						</KeyValueRow>
 						<MetricRow label="CIK" description="Central Index Key" value={formatText(props.metadata.cik)} />
-						<MetricRow label="Coverage since" value={formatEquitiesDate(props.metadata.startDate)} />
-						<MetricRow label="Last Updated At" value={formatEquitiesDateTime(props.summary.updatedAt)} />
+						<KeyValueRow label="Coverage since">
+							<ClientDate value={props.metadata.startDate} formatter={formatEquitiesDate} />
+						</KeyValueRow>
+						<KeyValueRow label="Last Updated At">
+							<ClientDate value={props.summary.updatedAt} formatter={formatEquitiesDateTime} />
+						</KeyValueRow>
 					</SectionCard>
 				</section>
 			) : null}
