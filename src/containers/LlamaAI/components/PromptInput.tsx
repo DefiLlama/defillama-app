@@ -54,7 +54,6 @@ interface PromptInputProps {
 	clearDroppedFiles?: () => void
 	externalDragging?: boolean
 	onOpenAlerts?: () => void
-	onExploreOpen?: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
 }
@@ -84,7 +83,6 @@ export function PromptInput({
 	clearDroppedFiles,
 	externalDragging,
 	onOpenAlerts,
-	onExploreOpen,
 	quotedText,
 	onClearQuotedText
 }: PromptInputProps) {
@@ -451,7 +449,6 @@ export function PromptInput({
 						}}
 						isPending={isPending}
 						isStreaming={isStreaming}
-						onExploreOpen={onExploreOpen}
 					/>
 					{onOpenAlerts ? (
 						<Tooltip

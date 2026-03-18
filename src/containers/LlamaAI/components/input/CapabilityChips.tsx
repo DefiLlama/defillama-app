@@ -8,12 +8,11 @@ interface CapabilityChipsProps {
 	onPromptSelect: (prompt: string, categoryKey?: string) => void
 	isPending: boolean
 	isStreaming?: boolean
-	onExploreOpen?: () => void
 }
 
 type PanelState = 'closed' | 'entering' | 'open' | 'leaving'
 
-export function CapabilityChips({ onPromptSelect, isPending, isStreaming, onExploreOpen }: CapabilityChipsProps) {
+export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: CapabilityChipsProps) {
 	const [panelState, setPanelState] = useState<PanelState>('closed')
 	const [selectedCategoryKey, setSelectedCategoryKey] = useState<string | null>(null)
 	const [direction, setDirection] = useState<'up' | 'down'>('down')
@@ -37,7 +36,6 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming, onExpl
 			return
 		}
 		trackUmamiEvent('llamaai-capability-chip-click', { category: 'explore' })
-		onExploreOpen?.()
 		setSelectedCategoryKey(null)
 
 		// Direction detection
