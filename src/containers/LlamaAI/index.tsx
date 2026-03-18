@@ -1769,7 +1769,16 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					/>
 				)}
 			</div>
-			{!readOnly ? <TextSelectionPopup onSelect={setQuotedText} /> : null}
+			{!readOnly ? (
+				<TextSelectionPopup
+					onSelect={(text) => {
+						setQuotedText(text)
+						requestAnimationFrame(() => {
+							promptInputRef.current?.focus()
+						})
+					}}
+				/>
+			) : null}
 			{!readOnly && rateLimitDetails ? (
 				<ResearchLimitModal
 					dialogStore={researchModalStore}

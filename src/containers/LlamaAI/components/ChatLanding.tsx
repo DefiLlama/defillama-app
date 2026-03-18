@@ -92,7 +92,7 @@ export function ChatLanding({
 								className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-[450] transition-all duration-150 ${
 									activeKey === cap.key
 										? 'border-[#60a5fa]/30 bg-[#2563eb]/12 text-[#60a5fa]'
-										: 'border-[#fff]/[0.07] bg-[#fff]/[0.03] text-[#a1a1aa] hover:border-[#fff]/[0.12] hover:bg-[#fff]/[0.06] hover:text-[#e4e4e7]'
+										: 'border-white/7 bg-white/3 text-[#a1a1aa] hover:border-white/12 hover:bg-white/6 hover:text-[#e4e4e7]'
 								}`}
 								onClick={() => {
 									const next = activeKey === cap.key ? null : cap.key
@@ -117,8 +117,8 @@ export function ChatLanding({
 					</div>
 
 					{activeCap ? (
-						<div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-xl border border-[#fff]/[0.07] bg-[#fff]/[0.02]">
-							<div className="flex shrink-0 items-center gap-2 border-b border-[#fff]/[0.06] px-4 py-2.5">
+						<div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-xl border border-white/7 bg-white/2">
+							<div className="flex shrink-0 items-center gap-2 border-b border-white/6 px-4 py-2.5">
 								<Icon name={activeCap.icon} height={14} width={14} className="text-[#60a5fa]" />
 								<span className="text-[13px] font-medium text-[#e4e4e7]">{activeCap.name}</span>
 								<button
@@ -132,10 +132,10 @@ export function ChatLanding({
 							<div className="min-h-0 flex-1 overflow-y-auto">
 								{activeCap.prompts.map((prompt, i) => (
 									<button
-										key={i}
+										key={`${activeCap.key}:${prompt}`}
 										type="button"
-										className={`group flex w-full items-center justify-between px-4 py-3 text-left text-[13.5px] text-[#a1a1aa] transition-colors hover:bg-[#fff]/[0.03] hover:text-[#e4e4e7] ${
-											i < activeCap.prompts.length - 1 ? 'border-b border-[#fff]/[0.04]' : ''
+										className={`group flex w-full items-center justify-between px-4 py-3 text-left text-[13.5px] text-[#a1a1aa] transition-colors hover:bg-white/3 hover:text-[#e4e4e7] ${
+											i < activeCap.prompts.length - 1 ? 'border-b border-white/4' : ''
 										}`}
 										onClick={() => handlePromptClick(prompt)}
 									>

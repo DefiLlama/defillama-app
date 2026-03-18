@@ -89,11 +89,11 @@ export function CapabilityBrowser({
 			ref={popoverRef}
 			data-enter={hasEntered ? '' : undefined}
 			data-leave={isLeaving ? '' : undefined}
-			className={`absolute left-0 z-50 flex w-[600px] capability-panel overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-2xl dark:border-[#2a2a2e] dark:bg-[#18181b] ${directionClasses}`}
+			className={`absolute left-0 z-50 flex w-[600px] capability-panel overflow-hidden rounded-xl border border-black/8 bg-white shadow-2xl dark:border-[#2a2a2e] dark:bg-[#18181b] ${directionClasses}`}
 			style={{ maxHeight: 'min(420px, 50vh)' }}
 		>
 			{/* Sidebar */}
-			<nav className="flex w-[176px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-black/[0.06] bg-[#f8f8f8] p-1.5 dark:border-[#2a2a2e] dark:bg-[#131316]">
+			<nav className="flex w-[176px] shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-black/6 bg-[#f8f8f8] p-1.5 dark:border-[#2a2a2e] dark:bg-[#131316]">
 				{CAPABILITIES.map((cap) => {
 					const isActive = activeCategory.key === cap.key
 					return (
@@ -106,7 +106,7 @@ export function CapabilityBrowser({
 							className={`flex items-center gap-2 rounded-lg px-2.5 py-[7px] text-left text-[12.5px] font-medium transition-all duration-100 ${
 								isActive
 									? 'bg-white text-[#111] shadow-[0_1px_3px_rgba(0,0,0,0.08)] dark:bg-[#252529] dark:text-white dark:shadow-[0_1px_4px_rgba(0,0,0,0.4)]'
-									: 'text-[#555] hover:bg-black/[0.04] hover:text-[#222] dark:text-[#9a9a9a] dark:hover:bg-white/[0.04] dark:hover:text-[#ccc]'
+									: 'text-[#555] hover:bg-black/4 hover:text-[#222] dark:text-[#9a9a9a] dark:hover:bg-white/4 dark:hover:text-[#ccc]'
 							}`}
 						>
 							<Icon
@@ -128,7 +128,7 @@ export function CapabilityBrowser({
 
 			{/* Content */}
 			<div className="flex flex-1 flex-col overflow-hidden">
-				<div className="shrink-0 border-b border-black/[0.06] px-4 pt-3.5 pb-3 dark:border-[#2a2a2e]">
+				<div className="shrink-0 border-b border-black/6 px-4 pt-3.5 pb-3 dark:border-[#2a2a2e]">
 					<div className="flex items-center gap-2">
 						<Icon name={activeCategory.icon} height={14} width={14} className="text-[#777] dark:text-[#888]" />
 						<h3 className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">{activeCategory.name}</h3>
@@ -143,8 +143,8 @@ export function CapabilityBrowser({
 
 				<div className="min-h-0 flex-1 overflow-y-auto">
 					<ul className="flex flex-col p-1.5">
-						{activeCategory.prompts.map((prompt, idx) => (
-							<PromptItem key={idx} prompt={prompt} onClick={onPromptSelect} />
+						{activeCategory.prompts.map((prompt) => (
+							<PromptItem key={`${activeCategory.key}:${prompt}`} prompt={prompt} onClick={onPromptSelect} />
 						))}
 						<li aria-hidden="true" className="h-1 shrink-0" />
 					</ul>
@@ -174,14 +174,13 @@ const MobileSheet = forwardRef<
 	return (
 		<div
 			className={`fixed inset-0 z-50 flex flex-col justify-end transition-colors duration-200 ${backdropVisible && !isLeaving ? 'bg-black/50' : 'bg-black/0'}`}
-			onClick={onClose}
 		>
+			<button type="button" aria-label="Close capability browser" className="absolute inset-0" onClick={onClose} />
 			<div
 				ref={ref}
 				data-enter={hasEntered ? '' : undefined}
 				data-leave={isLeaving ? '' : undefined}
-				className="flex max-h-[75vh] drawer flex-col rounded-t-2xl bg-white dark:bg-[#18181b]"
-				onClick={(e) => e.stopPropagation()}
+				className="relative flex max-h-[75vh] drawer flex-col rounded-t-2xl bg-white dark:bg-[#18181b]"
 			>
 				{/* Drag handle */}
 				<div className="flex justify-center py-2.5">
@@ -229,8 +228,8 @@ const MobileSheet = forwardRef<
 				{/* Prompts */}
 				<div className="min-h-0 flex-1 overflow-y-auto">
 					<ul className="flex flex-col px-2">
-						{activeCategory.prompts.map((prompt, idx) => (
-							<PromptItem key={idx} prompt={prompt} onClick={onPromptSelect} />
+						{activeCategory.prompts.map((prompt) => (
+							<PromptItem key={`mobile-${activeCategory.key}:${prompt}`} prompt={prompt} onClick={onPromptSelect} />
 						))}
 						<li aria-hidden="true" className="h-6 shrink-0" />
 					</ul>
@@ -246,7 +245,7 @@ function PromptItem({ prompt, onClick }: { prompt: string; onClick: (prompt: str
 			<button
 				type="button"
 				onClick={() => onClick(prompt)}
-				className="group flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-100 hover:bg-[#f0f0f0] dark:hover:bg-white/[0.06]"
+				className="group flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-100 hover:bg-[#f0f0f0] dark:hover:bg-white/6"
 			>
 				<p className="m-0 flex-1 text-[13px] leading-[1.55] text-[#333] group-hover:text-[#111] dark:text-[#bbb] dark:group-hover:text-[#f0f0f0]">
 					{prompt}

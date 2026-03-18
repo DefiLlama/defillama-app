@@ -55,14 +55,6 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming, onExpl
 		})
 	}
 
-	// Force-close panel when chip becomes disabled (pending/streaming)
-	useEffect(() => {
-		if (disabled && panelState !== 'closed') {
-			if (leaveTimerRef.current) clearTimeout(leaveTimerRef.current)
-			setPanelState('closed')
-		}
-	}, [disabled, panelState])
-
 	// Cleanup timer on unmount
 	useEffect(() => {
 		return () => {

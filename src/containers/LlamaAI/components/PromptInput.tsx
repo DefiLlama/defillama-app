@@ -201,12 +201,6 @@ export function PromptInput({
 		}
 	}, [droppedFiles, promptInputRef])
 
-	useEffect(() => {
-		if (quotedText) {
-			promptInputRef.current?.focus()
-		}
-	}, [quotedText, promptInputRef])
-
 	const resetInput = (imagesToRevoke?: Array<{ url: string }>) => {
 		applyPromptEdit({
 			nextValue: '',
@@ -448,6 +442,7 @@ export function PromptInput({
 						researchUsage={researchUsage}
 					/>
 					<CapabilityChips
+						key={isPending || isStreaming ? 'capability-chips-disabled' : 'capability-chips-enabled'}
 						onPromptSelect={(prompt, categoryKey) => {
 							if (categoryKey === 'research') {
 								setIsResearchMode(true)
