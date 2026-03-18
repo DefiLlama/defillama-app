@@ -13,7 +13,6 @@ export interface IEquitiesPriceHistoryChart {
 }
 
 export interface IEquitiesListCompanyRow extends IEquitiesCompanyApiItem {
-	rank: number
 	href: string
 }
 

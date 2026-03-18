@@ -1,7 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import type { IEquitiesListCompanyRow, IEquitiesListPageProps } from './types'
 import { formatCurrency, formatEquitiesDateTime, formatPercent } from './utils'
 

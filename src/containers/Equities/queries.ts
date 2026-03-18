@@ -57,9 +57,8 @@ export async function getEquitiesListPageData(): Promise<IEquitiesListPageProps>
 	})
 
 	return {
-		companies: sortedCompanies.map((company, index) => ({
+		companies: sortedCompanies.map((company) => ({
 			...company,
-			rank: index + 1,
 			href: createTickerHref(company.ticker)
 		})),
 		lastUpdatedAt: sortedCompanies.find((company) => company.lastUpdatedAt)?.lastUpdatedAt

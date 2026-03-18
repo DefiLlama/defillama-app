@@ -47,7 +47,6 @@ export default function EquityTickerDetailPage(props: InferGetStaticPropsType<ty
 			title={`${props.name} (${props.ticker}) Stock Overview - DefiLlama`}
 			description={`Track ${props.name} (${props.ticker}) price history, financial statements, key metrics, and SEC filings on DefiLlama.`}
 			canonicalUrl={`/equities/${props.ticker.toLowerCase()}`}
-			pageName={['Equities', props.ticker]}
 		>
 			<EquityTickerPage {...props} />
 		</Layout>
