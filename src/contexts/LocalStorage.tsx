@@ -16,6 +16,7 @@ const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
 const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
+const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
@@ -162,6 +163,7 @@ export type AppStorage = SettingsStore & {
 	[YIELDS_SAVED_FILTERS]?: YieldSavedFilters
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
 	[LLAMA_AI_WELCOME_SHOWN]?: boolean
+	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore
 	[YIELDS_WATCHLIST]?: WatchlistStore

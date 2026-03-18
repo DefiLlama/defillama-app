@@ -79,13 +79,16 @@ export function StripeCheckoutModal({
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (): Promise<SubscriptionResult> => {
+			if (typeof window !== 'undefined') {
+				sessionStorage.setItem('onboarding_returnUrl', window.location.pathname)
+			}
 			const response = await authorizedFetch(
 				`${AUTH_SERVER}/subscription/create`,
 				{
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
-						redirectUrl: `${window.location.origin}/account?success=true`,
+						redirectUrl: `${window.location.origin}/welcome`,
 						cancelUrl: `${window.location.origin}/subscription`,
 						provider: paymentMethod,
 						subscriptionType: type,
@@ -287,7 +290,7 @@ function UpgradePaymentForm() {
 			const confirmResult = await stripe.confirmPayment({
 				elements,
 				confirmParams: {
-					return_url: `${window.location.origin}/account?success=true`
+					return_url: `${window.location.origin}/welcome`
 				},
 				redirect: 'if_required'
 			})
@@ -307,7 +310,7 @@ function UpgradePaymentForm() {
 			return confirmResult.paymentIntent
 		},
 		onSuccess: () => {
-			window.location.href = `${window.location.origin}/account?success=true`
+			window.location.href = `${window.location.origin}/welcome`
 		}
 	})
 

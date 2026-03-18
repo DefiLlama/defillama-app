@@ -2,8 +2,10 @@ import * as Ariakit from '@ariakit/react'
 import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
+import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import { useLlamaAIWelcome } from '~/contexts/LocalStorage'
 import { useMedia } from '~/hooks/useMedia'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -12,7 +14,7 @@ const FEATURED_CAPABILITIES = FEATURED_KEYS.map((key) => CAPABILITIES.find((c) =
 	(c): c is (typeof CAPABILITIES)[number] => c != null
 )
 
-interface ChatLandingProps {
+export interface ChatLandingProps {
 	readOnly: boolean
 	title: string
 	handleSubmit: (
@@ -47,6 +49,8 @@ export function ChatLanding({
 	quotedText,
 	onClearQuotedText
 }: ChatLandingProps) {
+	const [hasSeenWelcome, markWelcomeSeen] = useLlamaAIWelcome()
+
 	return (
 		<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5 overflow-hidden">
 			<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
@@ -73,6 +77,16 @@ export function ChatLanding({
 
 					<CapabilityRow promptInputRef={promptInputRef} />
 				</>
+			) : null}
+
+			{!readOnly && !hasSeenWelcome ? (
+				<OnboardingWalkthrough
+					isResearchMode={isResearchMode}
+					setIsResearchMode={setIsResearchMode}
+					handleSubmit={handleSubmit}
+					promptInputRef={promptInputRef}
+					onComplete={markWelcomeSeen}
+				/>
 			) : null}
 		</div>
 	)
