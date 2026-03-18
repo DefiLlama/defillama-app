@@ -4,7 +4,8 @@ import type {
 	IEquitiesCompanyApiItem,
 	IEquitiesFilingApiItem,
 	IEquitiesMetadataResponse,
-	IEquitiesPriceHistoryApiItem,
+	EquitiesPriceHistory,
+	EquitiesPriceHistoryTimeframe,
 	IEquitiesStatementsResponse,
 	IEquitiesSummaryResponse
 } from './api.types'
@@ -16,11 +17,18 @@ export const EQUITIES_SUMMARY_API = `${EQUITIES_SERVER_URL}/summary`
 export const EQUITIES_METADATA_API = `${EQUITIES_SERVER_URL}/metadata`
 export const EQUITIES_FILINGS_API = `${EQUITIES_SERVER_URL}/filings`
 
-function createEquitiesUrl(baseUrl: string, ticker?: string): string {
+function createEquitiesUrl(
+	baseUrl: string,
+	params?: { ticker?: string; timeframe?: EquitiesPriceHistoryTimeframe }
+): string {
 	const url = new URL(baseUrl)
 
-	if (ticker) {
-		url.searchParams.set('ticker', ticker)
+	if (params?.ticker) {
+		url.searchParams.set('ticker', params.ticker)
+	}
+
+	if (params?.timeframe) {
+		url.searchParams.set('timeframe', params.timeframe)
 	}
 
 	return url.toString()
@@ -37,33 +45,36 @@ export async function fetchEquitiesCompanies(): Promise<IEquitiesCompanyApiItem[
  * Fetch the normalized financial statements for a company ticker.
  */
 export async function fetchEquitiesStatements(ticker: string): Promise<IEquitiesStatementsResponse> {
-	return fetchJson<IEquitiesStatementsResponse>(createEquitiesUrl(EQUITIES_STATEMENTS_API, ticker))
+	return fetchJson<IEquitiesStatementsResponse>(createEquitiesUrl(EQUITIES_STATEMENTS_API, { ticker }))
 }
 
 /**
  * Fetch historical daily close prices for a company ticker.
  */
-export async function fetchEquitiesPriceHistory(ticker: string): Promise<IEquitiesPriceHistoryApiItem[]> {
-	return fetchJson<IEquitiesPriceHistoryApiItem[]>(createEquitiesUrl(EQUITIES_PRICE_HISTORY_API, ticker))
+export async function fetchEquitiesPriceHistory(
+	ticker: string,
+	timeframe: EquitiesPriceHistoryTimeframe = '1W'
+): Promise<EquitiesPriceHistory> {
+	return fetchJson<EquitiesPriceHistory>(createEquitiesUrl(EQUITIES_PRICE_HISTORY_API, { ticker, timeframe }))
 }
 
 /**
  * Fetch the live market summary for a company ticker.
  */
 export async function fetchEquitiesSummary(ticker: string): Promise<IEquitiesSummaryResponse> {
-	return fetchJson<IEquitiesSummaryResponse>(createEquitiesUrl(EQUITIES_SUMMARY_API, ticker))
+	return fetchJson<IEquitiesSummaryResponse>(createEquitiesUrl(EQUITIES_SUMMARY_API, { ticker }))
 }
 
 /**
  * Fetch metadata for a company ticker.
  */
 export async function fetchEquitiesMetadata(ticker: string): Promise<IEquitiesMetadataResponse> {
-	return fetchJson<IEquitiesMetadataResponse>(createEquitiesUrl(EQUITIES_METADATA_API, ticker))
+	return fetchJson<IEquitiesMetadataResponse>(createEquitiesUrl(EQUITIES_METADATA_API, { ticker }))
 }
 
 /**
  * Fetch SEC filings for a company ticker.
  */
 export async function fetchEquitiesFilings(ticker: string): Promise<IEquitiesFilingApiItem[]> {
-	return fetchJson<IEquitiesFilingApiItem[]>(createEquitiesUrl(EQUITIES_FILINGS_API, ticker))
+	return fetchJson<IEquitiesFilingApiItem[]>(createEquitiesUrl(EQUITIES_FILINGS_API, { ticker }))
 }

@@ -1,11 +1,16 @@
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import type { ReactNode } from 'react'
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import { fetchEquitiesPriceHistory } from './api'
+import { EQUITIES_PRICE_HISTORY_TIMEFRAMES, type EquitiesPriceHistoryTimeframe } from './api.types'
 import { EquitiesFilingsTable } from './FilingsTable'
 import { EquitiesFinancialsTable } from './FinancialsTable'
+import { buildPriceHistoryChart } from './queries'
 import type { IEquityTickerPageProps } from './types'
 import {
 	formatCurrency,
@@ -18,11 +23,30 @@ import {
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const TABS = ['overview', 'financials', 'filings'] as const
+const EQUITY_CHART_TYPES = ['Price History', 'Market Cap', 'Revenue'] as const
+const DEFAULT_EQUITY_CHART_TYPE = 'Price History'
+const DEFAULT_PRICE_HISTORY_TIMEFRAME = '1W' as const
+const EQUITY_CHART_QUERY_VALUES = {
+	'Price History': 'price-history',
+	'Market Cap': 'market-cap',
+	Revenue: 'revenue'
+} as const
+
 type EquityTab = (typeof TABS)[number]
+type EquityChartType = (typeof EQUITY_CHART_TYPES)[number]
 const TAB_LABELS: Record<EquityTab, string> = {
 	overview: 'Overview',
 	financials: 'Financials',
 	filings: 'Filings'
+}
+
+function getChartTypeFromQueryValue(value?: string): EquityChartType {
+	const chartType = EQUITY_CHART_TYPES.find((type) => EQUITY_CHART_QUERY_VALUES[type] === value)
+	return chartType ?? DEFAULT_EQUITY_CHART_TYPE
+}
+
+function getPriceHistoryTimeframeFromQueryValue(value?: string): EquitiesPriceHistoryTimeframe {
+	return EQUITIES_PRICE_HISTORY_TIMEFRAMES.find((timeframe) => timeframe === value) ?? DEFAULT_PRICE_HISTORY_TIMEFRAME
 }
 
 function KeyValueRow({ label, description, children }: { label: string; description?: string; children: ReactNode }) {
@@ -49,7 +73,9 @@ function MetricRow({
 }) {
 	return (
 		<KeyValueRow label={label} description={description}>
-			<span className={monospace ? 'font-jetbrains font-medium' : 'font-medium'}>{value}</span>
+			<span className={monospace ? 'font-jetbrains font-medium' : 'font-medium'} suppressHydrationWarning>
+				{value}
+			</span>
 		</KeyValueRow>
 	)
 }
@@ -66,15 +92,50 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 export function EquityTickerPage(props: IEquityTickerPageProps) {
 	const router = useRouter()
 	const { chartInstance, handleChartReady } = useGetChartInstance()
-
 	const activeTab = useMemo<EquityTab>(() => {
 		const tab = readSingleQueryValue(router.query.tab)
 		return tab && TABS.includes(tab as EquityTab) ? (tab as EquityTab) : 'overview'
 	}, [router.query.tab])
+	const activeChartType = useMemo<EquityChartType>(() => {
+		return getChartTypeFromQueryValue(readSingleQueryValue(router.query.chart))
+	}, [router.query.chart])
+	const activeTimeframe = useMemo<EquitiesPriceHistoryTimeframe>(() => {
+		return getPriceHistoryTimeframeFromQueryValue(readSingleQueryValue(router.query.timeframe))
+	}, [router.query.timeframe])
+	const isPriceHistoryChart = activeChartType === DEFAULT_EQUITY_CHART_TYPE
+	const disabledTimeframes = isPriceHistoryChart ? undefined : EQUITIES_PRICE_HISTORY_TIMEFRAMES
+
+	const { data: queriedPriceHistoryChart } = useQuery({
+		queryKey: ['equities', 'price-history', props.ticker, activeTimeframe],
+		queryFn: () =>
+			fetchEquitiesPriceHistory(props.ticker, activeTimeframe)
+				.then((priceHistory) => buildPriceHistoryChart(priceHistory))
+				.catch(() => buildPriceHistoryChart([])),
+		initialData: activeTimeframe === DEFAULT_PRICE_HISTORY_TIMEFRAME ? props.priceHistoryChart : undefined,
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: isPriceHistoryChart
+	})
+	const activePriceHistoryChart =
+		queriedPriceHistoryChart ??
+		(activeTimeframe === DEFAULT_PRICE_HISTORY_TIMEFRAME ? props.priceHistoryChart : buildPriceHistoryChart([]))
 
 	const setActiveTab = (tab: EquityTab) => {
 		void pushShallowQuery(router, { tab: tab === 'overview' ? undefined : tab })
 	}
+	const setActiveChartType = (chartType: EquityChartType) => {
+		void pushShallowQuery(router, {
+			chart: chartType === DEFAULT_EQUITY_CHART_TYPE ? undefined : EQUITY_CHART_QUERY_VALUES[chartType]
+		})
+	}
+	const setActiveTimeframe = (timeframe: EquitiesPriceHistoryTimeframe) => {
+		void pushShallowQuery(router, {
+			timeframe: timeframe === DEFAULT_PRICE_HISTORY_TIMEFRAME ? undefined : timeframe
+		})
+	}
+	const exportTitle = `${props.ticker} Price History (${activeTimeframe})`
+	const exportFilename = `${props.ticker.toLowerCase()}-price-history-${activeTimeframe.toLowerCase()}`
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -116,23 +177,41 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 
 			<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center gap-2 p-3 pb-0">
-					<h2 className="mr-auto text-base font-semibold">{`$${props.ticker} Price History`}</h2>
-					<ChartExportButtons
-						chartInstance={chartInstance}
-						filename={`${props.ticker.toLowerCase()}-price-history`}
-						title={`$${props.ticker} Price History`}
+					<TagGroup
+						selectedValue={activeChartType}
+						setValue={setActiveChartType}
+						values={EQUITY_CHART_TYPES}
+						variant="responsive"
 					/>
+					<div className="ml-auto flex flex-wrap items-center gap-2">
+						<TagGroup
+							selectedValue={activeTimeframe}
+							setValue={setActiveTimeframe}
+							values={EQUITIES_PRICE_HISTORY_TIMEFRAMES}
+							disabledValues={disabledTimeframes}
+						/>
+						<div
+							className={`flex items-center gap-2 ${isPriceHistoryChart ? '' : 'pointer-events-none opacity-50'}`}
+							aria-disabled={!isPriceHistoryChart}
+						>
+							<ChartExportButtons chartInstance={chartInstance} filename={exportFilename} title={exportTitle} />
+						</div>
+					</div>
 				</div>
-				<Suspense fallback={<div className="min-h-[360px]" />}>
-					<MultiSeriesChart2
-						dataset={props.priceHistoryChart.dataset}
-						charts={props.priceHistoryChart.charts}
-						valueSymbol="$"
-						title=""
-						hideDataZoom={props.priceHistoryChart.dataset.source.length < 2}
-						onReady={handleChartReady}
-					/>
-				</Suspense>
+				{isPriceHistoryChart ? (
+					<Suspense fallback={<div className="min-h-[360px]" />}>
+						<MultiSeriesChart2
+							dataset={activePriceHistoryChart.dataset}
+							charts={activePriceHistoryChart.charts}
+							valueSymbol="$"
+							title=""
+							hideDataZoom={activePriceHistoryChart.dataset.source.length < 2}
+							onReady={handleChartReady}
+						/>
+					</Suspense>
+				) : (
+					<div className="min-h-[360px]" />
+				)}
 			</div>
 
 			<div className="flex w-full overflow-x-auto text-xs font-medium">

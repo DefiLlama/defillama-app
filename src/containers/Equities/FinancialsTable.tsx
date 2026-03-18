@@ -1,9 +1,11 @@
+import { useRouter } from 'next/router'
 import { startTransition, useMemo, useState } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { abbreviateNumber } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { IEquitiesStatementsResponse } from './api.types'
 import type { IEquitiesStatementTableRow } from './types'
 
@@ -21,9 +23,30 @@ const statementSectionMap: Record<StatementOption, StatementSectionKey> = {
 	'Cash Flow': 'cashflow'
 }
 
+const statementQueryValueMap: Record<StatementOption, string> = {
+	'Income Statement': 'income-statement',
+	'Balance Sheet': 'balance-sheet',
+	'Cash Flow': 'cash-flow'
+}
+
 const periodKeyMap: Record<PeriodOption, StatementPeriodKey> = {
 	Quarterly: 'quarterly',
 	Annual: 'annual'
+}
+
+const periodQueryValueMap: Record<PeriodOption, string> = {
+	Quarterly: 'quarterly',
+	Annual: 'annual'
+}
+
+function getStatementTypeFromQueryValue(value?: string): StatementOption {
+	const statementType = STATEMENT_OPTIONS.find((option) => statementQueryValueMap[option] === value)
+	return statementType ?? 'Income Statement'
+}
+
+function getPeriodTypeFromQueryValue(value?: string): PeriodOption {
+	const periodType = PERIOD_OPTIONS.find((option) => periodQueryValueMap[option] === value)
+	return periodType ?? 'Quarterly'
 }
 
 function formatCellValue(label: string, value: number | null): string {
@@ -166,8 +189,15 @@ function FinancialRow({
 }
 
 export function EquitiesFinancialsTable({ statements }: { statements: IEquitiesStatementsResponse }) {
-	const [statementType, setStatementType] = useState<StatementOption>('Income Statement')
-	const [periodType, setPeriodType] = useState<PeriodOption>('Quarterly')
+	const router = useRouter()
+	const statementQueryValue = readSingleQueryValue(router.query['financials-table'])
+	const periodQueryValue = readSingleQueryValue(router.query['financials-timeframe'])
+	const statementType = useMemo<StatementOption>(() => {
+		return getStatementTypeFromQueryValue(statementQueryValue)
+	}, [statementQueryValue])
+	const periodType = useMemo<PeriodOption>(() => {
+		return getPeriodTypeFromQueryValue(periodQueryValue)
+	}, [periodQueryValue])
 
 	const section = statements[statementSectionMap[statementType]]
 	const periodData = section[periodKeyMap[periodType]]
@@ -180,6 +210,16 @@ export function EquitiesFinancialsTable({ statements }: { statements: IEquitiesS
 		[periodData.periodEnding, periodData.periods]
 	)
 	const hasAnyBreakdownRows = rows.some((row) => (row.subRows?.length ?? 0) > 0)
+	const setStatementType = (value: StatementOption) => {
+		void pushShallowQuery(router, {
+			'financials-table': value === 'Income Statement' ? undefined : statementQueryValueMap[value]
+		})
+	}
+	const setPeriodType = (value: PeriodOption) => {
+		void pushShallowQuery(router, {
+			'financials-timeframe': value === 'Quarterly' ? undefined : periodQueryValueMap[value]
+		})
+	}
 	const prepareCsv = () => {
 		const headers = ['Name', ...headerIndexes.map((index) => formatStatementPeriodLabel(periodData.periods[index]))]
 		const flattenedRows = flattenStatementRows(rows)

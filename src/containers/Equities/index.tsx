@@ -81,7 +81,7 @@ export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPage
 						</p>
 					</div>
 					{lastUpdatedAt ? (
-						<p className="shrink-0 text-right text-xs text-(--text-disabled)">
+						<p className="shrink-0 text-right text-xs text-(--text-disabled)" suppressHydrationWarning>
 							Last updated: {formatEquitiesDateTime(lastUpdatedAt)}
 						</p>
 					) : null}
