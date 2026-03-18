@@ -1,7 +1,7 @@
 import { lazy } from 'react'
 import type { DashboardTabConfig } from '../../registry'
+import Financials from './Financials'
 
-const Financials = lazy(() => import('./Financials'))
 const DistributionRewards = lazy(() => import('./DistributionRewards'))
 
 export const tabs: DashboardTabConfig[] = [
