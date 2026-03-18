@@ -201,7 +201,6 @@ export function Metrics({
 						</div>
 						<div
 							className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canDismiss ? 'lg:grid-cols-3 xl:grid-cols-4' : 'xl:grid-cols-3 2xl:grid-cols-4'}`}
-							style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 300px' }}
 						>
 							{metrics.map((metric) => (
 								<LinkToMetricOrToolPage
@@ -248,6 +247,7 @@ export function LinkToMetricOrToolPage({
 	return (
 		<div
 			className={`relative col-span-1 flex min-h-[120px] flex-col ${page.route === '/' ? '' : 'group'}`}
+			style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' }}
 			data-pinned={isPinned}
 		>
 			<BasicLink
