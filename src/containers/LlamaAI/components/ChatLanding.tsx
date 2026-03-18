@@ -120,7 +120,8 @@ const Capability = ({
 		<Ariakit.PopoverProvider>
 			<Ariakit.PopoverDisclosure
 				onClick={() => trackUmamiEvent('llamaai-landing-capability-click', { category: cap.key })}
-				className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-[450] transition-all duration-150 border-[#d7deea] bg-white text-[#7b8597] hover:border-[#c5cbd6] hover:bg-[#f4f5f7] hover:text-[#4b5563] dark:border-white/7 dark:bg-white/3 dark:text-[#a1a1aa] dark:hover:border-white/12 dark:hover:bg-white/6 dark:hover:text-[#e4e4e7] aria-expanded:border-[#2563eb]/30 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] dark:aria-expanded:border-[#60a5fa]/25 dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]">
+				className="flex items-center gap-1.5 rounded-lg border border-[#d7deea] bg-white px-3 py-1.5 text-[13px] font-[450] text-[#7b8597] duration-150 hover:border-[#c5cbd6] hover:bg-[#f4f5f7] hover:text-[#4b5563] aria-expanded:border-[#2563eb]/30 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] dark:border-white/7 dark:bg-white/3 dark:text-[#a1a1aa] dark:hover:border-white/12 dark:hover:bg-white/6 dark:hover:text-[#e4e4e7] dark:aria-expanded:border-[#60a5fa]/25 dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]"
+			>
 				<Icon name={cap.icon} height={14} width={14} />
 				{cap.name}
 				{cap.badge ? (
@@ -137,7 +138,10 @@ const Capability = ({
 				getAnchorRect={getAnchorRect}
 				gutter={14}
 				flip={false}
-				className="z-50 flex min-h-0 w-[min(calc(100vw-32px),42rem)] max-w-xl flex-col overflow-hidden overscroll-contain rounded-xl border border-[#dbe3ef] bg-white shadow-[0_12px_40px_rgba(148,163,184,0.12)] max-sm:h-[calc(100dvh-80px)] max-sm:drawer max-sm:rounded-b-none sm:max-h-[min(420px,60dvh)] lg:max-h-(--popover-available-height) dark:border-white/7 dark:bg-[#101113] dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+				wrapperProps={{
+					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
+				}}
+				className="z-50 flex min-h-0 w-[min(calc(100vw-32px),42rem)] max-w-xl flex-col overflow-hidden overscroll-contain rounded-xl border border-[#dbe3ef] bg-white shadow-[0_12px_40px_rgba(148,163,184,0.12)] max-sm:h-[calc(100dvh-80px)] max-sm:w-full max-sm:max-w-full max-sm:drawer max-sm:rounded-xl max-sm:rounded-b-none sm:max-h-[min(420px,60dvh)] lg:max-h-(--popover-available-height) dark:border-white/7 dark:bg-[#101113] dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
 			>
 				<div className="flex shrink-0 items-center gap-2 border-b border-[#edf2f8] px-4 py-2.5 dark:border-white/6">
 					<Icon name={cap.icon} height={14} width={14} className="text-[#60a5fa]" />
@@ -145,7 +149,7 @@ const Capability = ({
 						{cap.name}
 					</Ariakit.PopoverHeading>
 					<Ariakit.PopoverDismiss
-						className="ml-auto text-[#9aa4b2] transition-colors hover:text-[#4f5f73] dark:text-[#71717a] dark:hover:text-[#a1a1aa]"
+						className="ml-auto text-[#9aa4b2] hover:text-[#4f5f73] dark:text-[#71717a] dark:hover:text-[#a1a1aa]"
 						aria-label={`Close ${cap.name} prompts`}
 					>
 						<Icon name="x" height={14} width={14} />
@@ -156,7 +160,7 @@ const Capability = ({
 						<button
 							key={`${cap.key}:${prompt}`}
 							type="button"
-							className={`group flex w-full items-center justify-between px-4 py-3 text-left text-[13.5px] text-[#7a8596] transition-colors hover:bg-[#f4f8fc] hover:text-[#24364d] dark:text-[#a1a1aa] dark:hover:bg-white/3 dark:hover:text-[#e4e4e7] ${
+							className={`group flex w-full items-center justify-between px-4 py-3 text-left text-[13.5px] text-[#7a8596] hover:bg-[#f4f8fc] hover:text-[#24364d] dark:text-[#a1a1aa] dark:hover:bg-white/3 dark:hover:text-[#e4e4e7] ${
 								i < cap.prompts.length - 1 ? 'border-b border-[#f1f4f8] dark:border-white/4' : ''
 							}`}
 							onClick={() => handlePromptClick(prompt)}
@@ -166,7 +170,7 @@ const Capability = ({
 								name="chevron-right"
 								height={14}
 								width={14}
-								className="shrink-0 text-[#9db4d3] opacity-0 transition-opacity group-hover:opacity-100 dark:text-current dark:opacity-0 dark:group-hover:opacity-60"
+								className="shrink-0 text-[#9db4d3] opacity-0 group-hover:opacity-100 dark:text-current dark:opacity-0 dark:group-hover:opacity-60"
 							/>
 						</button>
 					))}

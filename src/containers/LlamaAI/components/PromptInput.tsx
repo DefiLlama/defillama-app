@@ -368,7 +368,7 @@ export function PromptInput({
 			/>
 
 			{quotedText ? (
-				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/[0.04] py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/[0.04]">
+				<div className="flex items-center gap-2.5 rounded-md border-l-2 border-[#2172e5]/40 bg-[#2172e5]/4 py-2 pr-2 pl-3 dark:border-[#4190f7]/40 dark:bg-[#4190f7]/4">
 					<svg
 						className="h-3.5 w-3.5 shrink-0 -scale-x-100 text-[#2172e5]/50 dark:text-[#4190f7]/50"
 						viewBox="0 0 24 24"
