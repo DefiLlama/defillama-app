@@ -7,7 +7,12 @@ export interface DashboardTabConfig {
 	source?: string
 }
 
-const DASHBOARD_REGISTRY: Record<string, () => Promise<{ tabs: DashboardTabConfig[] }>> = {
+export interface DashboardModule {
+	tabs: DashboardTabConfig[]
+	header?: LazyExoticComponent<ComponentType>
+}
+
+const DASHBOARD_REGISTRY: Record<string, () => Promise<DashboardModule>> = {
 	eobgdbgg0d0hake: () => import('./dashboards/hyperliquid'),
 	'73x90j3b28pfhgx': () => import('./dashboards/etherfi'),
 	roxh2oxb1b7fhjz: () => import('./dashboards/spark'),
