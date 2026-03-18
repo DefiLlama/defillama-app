@@ -180,7 +180,7 @@ export function useFinancialsData() {
 
 	return useMemo(() => {
 		if (!query.data) {
-			return { data: null, isLoading: query.isLoading }
+			return { data: null, isLoading: query.isLoading || query.isPending }
 		}
 
 		const d = query.data
