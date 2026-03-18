@@ -3,7 +3,7 @@ import type { ComponentType, LazyExoticComponent } from 'react'
 export interface DashboardTabConfig {
 	id: string
 	label: string
-	component?: LazyExoticComponent<ComponentType>
+	component?: LazyExoticComponent<ComponentType> | ComponentType
 	source?: string
 }
 

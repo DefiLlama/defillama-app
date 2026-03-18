@@ -139,10 +139,13 @@ function SuperLuminalContent({
 	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
 
 	const prevTab = useRef(activeTab)
-	const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set(['dashboard']))
+	const [visitedTabsBase, setVisitedTabsBase] = useState<Set<string>>(() => new Set(['dashboard', activeTab]))
+
+	// Always include current activeTab synchronously — no blink waiting for useEffect
+	const visitedTabs = visitedTabsBase.has(activeTab) ? visitedTabsBase : new Set([...visitedTabsBase, activeTab])
 
 	useEffect(() => {
-		setVisitedTabs((prev) => {
+		setVisitedTabsBase((prev) => {
 			if (prev.has(activeTab)) return prev
 			return new Set(prev).add(activeTab)
 		})
@@ -154,9 +157,7 @@ function SuperLuminalContent({
 		}
 	}, [activeTab])
 
-	if (isLoadingDashboard || !currentDashboard) {
-		return null
-	}
+	const dashboardReady = !isLoadingDashboard && !!currentDashboard
 
 	return (
 		<>
@@ -169,12 +170,12 @@ function SuperLuminalContent({
 			)}
 
 			<div className={activeTab === 'dashboard' ? '' : 'hidden'}>
-				{items.length > 0 && (
+				{dashboardReady && items.length > 0 && (
 					<div className="w-full">
 						<ChartGrid onAddChartClick={NOOP} />
 					</div>
 				)}
-				{!protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
+				{dashboardReady && !protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
 			</div>
 
 			{tabs.map((tab) => {
@@ -190,7 +191,7 @@ function SuperLuminalContent({
 				const TabComponent = tab.component
 				return (
 					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
-						<Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" /></div>}>
+						<Suspense fallback={null}>
 							<TabComponent />
 						</Suspense>
 					</div>
@@ -211,10 +212,11 @@ function CustomOnlyContent({
 	displayName: string
 	hasCustomHeader?: boolean
 }) {
-	const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set([activeTab]))
+	const [visitedTabsBase, setVisitedTabsBase] = useState<Set<string>>(() => new Set([activeTab]))
+	const visitedTabs = visitedTabsBase.has(activeTab) ? visitedTabsBase : new Set([...visitedTabsBase, activeTab])
 
 	useEffect(() => {
-		setVisitedTabs((prev) => {
+		setVisitedTabsBase((prev) => {
 			if (prev.has(activeTab)) return prev
 			return new Set(prev).add(activeTab)
 		})
@@ -235,7 +237,7 @@ function CustomOnlyContent({
 				const TabComponent = tab.component
 				return (
 					<div key={tab.id} className={activeTab === tab.id ? '' : 'hidden'}>
-						<Suspense fallback={<div className="flex min-h-[60vh] items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" /></div>}>
+						<Suspense fallback={null}>
 							<TabComponent />
 						</Suspense>
 					</div>
@@ -261,11 +263,10 @@ function SuperLuminalShell({
 	const defaultProject = visibleProjects[0]?.id ?? ALL_PROJECTS[0].id
 
 	const { tabsByProject, headersByProject } = useProjectModules(visibleProjects)
-	const [activeTab, setActiveTab] = useState('dashboard')
+	const [activeTab, setActiveTab] = useState<string | null>(null)
 	const [activeProject, setActiveProject] = useState(defaultProject)
 	const [expandedProject, setExpandedProject] = useState<string | null>(defaultProject)
 	const [sidebarOpen, setSidebarOpen] = useState(false)
-	const initialTabSet = useRef(false)
 
 	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
@@ -275,12 +276,15 @@ function SuperLuminalShell({
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 	const HeaderComponent = headersByProject[activeProject]
 
+	// Derive the effective tab: use activeTab if set and valid, otherwise first tab
+	const resolvedTab = activeTab && tabs.some((t) => t.id === activeTab) ? activeTab : tabs[0]?.id ?? 'dashboard'
+
+	// Auto-select first tab once tabs load (only if user hasn't manually selected)
 	useEffect(() => {
-		if (!initialTabSet.current && tabs.length > 0 && tabs[0].id !== 'dashboard') {
-			initialTabSet.current = true
+		if (activeTab === null && tabs.length > 0 && tabs !== DEFAULT_TABS) {
 			setActiveTab(tabs[0].id)
 		}
-	}, [tabs])
+	}, [tabs, activeTab])
 
 	return (
 		<CustomServerDataContext.Provider value={customServerData ?? {}}>
@@ -372,7 +376,7 @@ function SuperLuminalShell({
 													closeSidebar()
 												}}
 												className={`rounded-md px-3 py-1.5 text-left text-[12px] font-medium tracking-wide transition-colors ${
-													activeTab === tab.id
+													resolvedTab === tab.id
 														? 'bg-(--sl-accent-muted) text-(--sl-accent)'
 														: 'text-(--text-secondary) hover:bg-(--sl-hover-bg) hover:text-(--text-primary)'
 												}`}
@@ -426,14 +430,14 @@ function SuperLuminalShell({
 				{activeProjectConfig?.comingSoon ? (
 					<ProjectComingSoon />
 				) : activeProjectConfig?.customOnly ? (
-					<CustomOnlyContent tabs={tabs} activeTab={activeTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
+					<CustomOnlyContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
 				) : (
 					<ProDashboardAPIProvider
 						key={dashboardId}
 						initialDashboardId={dashboardId}
 						serverData={serverDataByDashboardId?.[dashboardId]}
 					>
-						<SuperLuminalContent tabs={tabs} activeTab={activeTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
+						<SuperLuminalContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
 					</ProDashboardAPIProvider>
 				)}
 			</div>
