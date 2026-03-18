@@ -86,7 +86,7 @@ function CapabilityRow({ promptInputRef }: { promptInputRef: RefObject<HTMLTextA
 	}, [])
 
 	return (
-		<div ref={rowRef} className="flex flex-wrap justify-center gap-2 pt-1">
+		<div ref={rowRef} className="flex flex-wrap justify-center gap-2 pt-1 max-sm:hidden">
 			{FEATURED_CAPABILITIES.map((cap) => (
 				<Capability key={cap.key} cap={cap} promptInputRef={promptInputRef} getAnchorRect={getAnchorRect} />
 			))}

@@ -14,6 +14,7 @@ import { CapabilityChips } from '~/containers/LlamaAI/components/input/Capabilit
 import { EntityComboboxPopover } from '~/containers/LlamaAI/components/input/EntityCombobox'
 import { DragOverlay, ImageUpload, ImageUploadButton } from '~/containers/LlamaAI/components/input/ImageUpload'
 import { InputTextarea } from '~/containers/LlamaAI/components/input/InputTextarea'
+import { MobileToolsPopover } from '~/containers/LlamaAI/components/input/MobileToolsPopover'
 import { ModeToggle, type ResearchUsage } from '~/containers/LlamaAI/components/input/ModeToggle'
 import { SubmitButton } from '~/containers/LlamaAI/components/input/SubmitButton'
 import { useEntityCombobox } from '~/containers/LlamaAI/hooks/useEntityCombobox'
@@ -144,7 +145,15 @@ export function PromptInput({
 		const textarea = promptInputRef.current
 		if (!textarea) return
 
-		setInputSize(promptInputRef, highlightRef)
+		if (value) {
+			setInputSize(promptInputRef, highlightRef)
+		} else {
+			textarea.style.height = ''
+			textarea.style.overflowY = 'hidden'
+			if (highlightRef.current) {
+				highlightRef.current.style.height = ''
+			}
+		}
 
 		const pendingSelection = pendingSelectionRef.current
 		if (!pendingSelection) return
@@ -432,8 +441,8 @@ export function PromptInput({
 
 			{submitError ? <p className="text-xs text-red-700 dark:text-red-300">{submitError}</p> : null}
 
-			<div className="flex flex-wrap items-center justify-between gap-4 p-0">
-				<div className="flex items-center gap-2">
+			<div className="flex items-center justify-between gap-4 p-0">
+				<div className="hidden items-center gap-2 sm:flex">
 					<ModeToggle
 						isResearchMode={isResearchMode}
 						setIsResearchMode={setIsResearchMode}
@@ -461,8 +470,25 @@ export function PromptInput({
 						</Tooltip>
 					) : null}
 				</div>
+				<MobileToolsPopover
+					isResearchMode={isResearchMode}
+					setIsResearchMode={setIsResearchMode}
+					researchUsage={researchUsage}
+					onOpenAlerts={onOpenAlerts}
+					onPromptSelect={(prompt, categoryKey) => {
+						if (categoryKey === 'research') {
+							setIsResearchMode(true)
+						}
+						applyPromptEdit({ nextValue: prompt, selectionStart: prompt.length, focus: true })
+					}}
+					onImageUploadClick={imageUpload.openFilePicker}
+					isPending={isPending}
+					isStreaming={isStreaming}
+				/>
 				<div className="flex items-center gap-2">
-					<ImageUploadButton onClick={imageUpload.openFilePicker} />
+					<span className="max-sm:hidden">
+						<ImageUploadButton onClick={imageUpload.openFilePicker} />
+					</span>
 					<SubmitButton
 						isStreaming={isStreaming}
 						isPending={isPending}

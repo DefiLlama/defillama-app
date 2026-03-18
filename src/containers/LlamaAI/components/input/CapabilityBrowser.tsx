@@ -30,7 +30,13 @@ export function CapabilityBrowser({ onPromptSelect }: CapabilityBrowserProps) {
 	)
 }
 
-function BrowserContent({ onPromptSelect }: { onPromptSelect: (prompt: string, categoryKey?: string) => void }) {
+export function BrowserContent({
+	onPromptSelect,
+	hideDragHandle
+}: {
+	onPromptSelect: (prompt: string, categoryKey?: string) => void
+	hideDragHandle?: boolean
+}) {
 	const tabs = Ariakit.useTabStore({
 		defaultSelectedId: CAPABILITIES[0].key,
 		selectOnMove: true,
@@ -73,10 +79,14 @@ function BrowserContent({ onPromptSelect }: { onPromptSelect: (prompt: string, c
 
 	return (
 		<Ariakit.TabProvider store={tabs}>
-			{/* Mobile: drag handle */}
-			<div className="flex justify-center py-2.5 sm:hidden">
-				<div className="h-1 w-9 rounded-full bg-[#d5d5d5] dark:bg-[#444]" />
-			</div>
+			{!hideDragHandle ? (
+				<div className="flex items-center justify-between px-3 pt-3 pb-1 sm:hidden">
+					<span className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">Explore</span>
+					<Ariakit.PopoverDismiss className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e0e0e0] dark:bg-white/10 dark:text-[#aaa] dark:hover:bg-white/15">
+						<Icon name="x" height={14} width={14} />
+					</Ariakit.PopoverDismiss>
+				</div>
+			) : null}
 
 			{/* Mobile: horizontal category pills */}
 			<div className="scrollbar-none flex gap-1.5 overflow-x-auto px-3 pb-2.5 sm:hidden">
