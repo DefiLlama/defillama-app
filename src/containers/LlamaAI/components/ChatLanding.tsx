@@ -8,7 +8,9 @@ import { useMedia } from '~/hooks/useMedia'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const FEATURED_KEYS = ['trade_thesis', 'x_data', 'tradfi', 'yields', 'onchain_analytics'] as const
-const FEATURED_CAPABILITIES = CAPABILITIES.filter((c) => (FEATURED_KEYS as readonly string[]).includes(c.key))
+const FEATURED_CAPABILITIES = FEATURED_KEYS.map((key) => CAPABILITIES.find((c) => c.key === key)).filter(
+	(c): c is (typeof CAPABILITIES)[number] => c != null
+)
 
 interface ChatLandingProps {
 	readOnly: boolean

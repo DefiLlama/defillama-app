@@ -49,6 +49,7 @@ export function setInputSize(
 
 		if (highlightRef?.current) {
 			highlightRef.current.style.height = `${nextHeight}px`
+			highlightRef.current.style.overflowY = textarea.style.overflowY
 			syncHighlightScroll(promptInputRef, highlightRef)
 		}
 	} catch (error) {

@@ -1,13 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-
-export interface ResearchUsage {
-	remainingUsage: number
-	limit: number
-	period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
-	resetTime: string | null
-}
+import type { ResearchUsage } from '~/containers/LlamaAI/types'
 
 interface ModeToggleProps {
 	isResearchMode: boolean

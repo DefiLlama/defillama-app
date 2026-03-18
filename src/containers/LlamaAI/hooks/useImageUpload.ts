@@ -91,14 +91,21 @@ export function useImageUpload({
 				const sizeRejected = rejected.filter((r) => r.type === 'size')
 				const formatRejected = rejected.filter((r) => r.type === 'format')
 				if (sizeRejected.length > 0) {
-					const maxMB = Math.round((maxSizeBytes ?? maxSizeForType(sizeRejected[0].file.type)) / (1024 * 1024))
+					const uniqueMBs = [
+						...new Set(
+							sizeRejected.map((r) => Math.round((maxSizeBytes ?? maxSizeForType(r.file.type)) / (1024 * 1024)))
+						)
+					]
 					queueMicrotask(() => {
+						const limitsText = uniqueMBs.join('MB, ') + 'MB'
 						errorToast({
 							title: 'File too large',
 							description:
 								sizeRejected.length === 1
-									? `${sizeRejected[0].file.name} exceeds the ${maxMB}MB limit`
-									: `${sizeRejected.length} files exceed the ${maxMB}MB limit`
+									? `${sizeRejected[0].file.name} exceeds the ${limitsText} limit`
+									: uniqueMBs.length === 1
+										? `${sizeRejected.length} files exceed the ${limitsText} limit`
+										: `${sizeRejected.length} files exceed their size limits (${limitsText})`
 						})
 					})
 				}
@@ -127,25 +134,20 @@ export function useImageUpload({
 			if (newImages.length === 0) return
 
 			setSelectedImages((prev) => {
-				const totalCount = prev.length + newImages.length
-				if (totalCount > maxImages) {
-					queueMicrotask(() => {
-						errorToast({
-							title: 'File upload limit',
-							description: `You may upload only ${maxImages} files at a time`
-						})
-					})
-					for (const { url } of newImages.slice(maxImages - prev.length)) {
-						if (url) URL.revokeObjectURL(url)
-					}
-				}
-				const combined = [...prev, ...newImages].slice(0, maxImages)
-
 				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
 				let addedBytes = 0
+				let countLimitHit = false
+				let totalSizeLimitHit = false
 				const withinBudget: SelectedImage[] = [...prev]
-				for (const img of combined.slice(prev.length)) {
+
+				for (const img of newImages) {
+					if (withinBudget.length >= maxImages) {
+						countLimitHit = true
+						if (img.url) URL.revokeObjectURL(img.url)
+						continue
+					}
 					if (existingBytes + addedBytes + img.file.size > MAX_TOTAL_BYTES) {
+						totalSizeLimitHit = true
 						if (img.url) URL.revokeObjectURL(img.url)
 						continue
 					}
@@ -153,7 +155,16 @@ export function useImageUpload({
 					withinBudget.push(img)
 				}
 
-				if (withinBudget.length === prev.length && combined.length > prev.length) {
+				if (countLimitHit) {
+					queueMicrotask(() => {
+						errorToast({
+							title: 'File upload limit',
+							description: `You may upload only ${maxImages} files at a time`
+						})
+					})
+				}
+
+				if (totalSizeLimitHit && withinBudget.length === prev.length) {
 					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
 					queueMicrotask(() => {
 						errorToast({

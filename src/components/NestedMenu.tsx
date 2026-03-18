@@ -63,6 +63,7 @@ export function NestedMenu({
 				{menu.parent ? (
 					<div className="grid grid-cols-[auto_1fr_auto] items-center px-2 py-2 sm:hidden">
 						<button
+							type="button"
 							className="flex h-8 w-8 items-center justify-center rounded-md"
 							onClick={() => {
 								menu.hide()
@@ -74,13 +75,13 @@ export function NestedMenu({
 						<Ariakit.MenuHeading className="text-center text-base font-medium">{label}</Ariakit.MenuHeading>
 						<Ariakit.MenuDismiss className="flex h-8 w-8 items-center justify-center rounded-md">
 							<Icon name="x" height={20} width={20} />
-							<span className="sr-only">Close dialog</span>
+							<span className="sr-only">Close menu</span>
 						</Ariakit.MenuDismiss>
 					</div>
 				) : (
 					<Ariakit.MenuDismiss className="ml-auto px-3 py-1 sm:hidden">
 						<Icon name="x" height={16} width={16} />
-						<span className="sr-only">Close dialog</span>
+						<span className="sr-only">Close menu</span>
 					</Ariakit.MenuDismiss>
 				)}
 				{children}

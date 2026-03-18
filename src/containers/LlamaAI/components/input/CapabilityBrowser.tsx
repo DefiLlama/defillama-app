@@ -96,6 +96,7 @@ export function BrowserContent({
 						<button
 							key={cap.key}
 							type="button"
+							aria-pressed={isActive}
 							onClick={() => {
 								tabs.setSelectedId(cap.key)
 								trackUmamiEvent('llamaai-capability-category-view', { category: cap.key })
