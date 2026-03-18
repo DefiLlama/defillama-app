@@ -235,6 +235,7 @@ export function AgenticSidebar({
 			event.target instanceof Node &&
 			sidebarRef.current &&
 			!sidebarRef.current.contains(event.target) &&
+			!(event.target instanceof Element && event.target.closest('[role="dialog"]')) &&
 			document.documentElement.clientWidth < 1024
 		) {
 			handleSidebarToggle()
