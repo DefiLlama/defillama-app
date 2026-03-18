@@ -13,7 +13,7 @@ import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SUPERLUMINAL_PROJECTS } from './config'
 import { CustomServerDataContext } from './CustomServerDataContext'
 import { Logo } from './Logo'
-import { type DashboardTabConfig, getDashboardModule } from './registry'
+import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
 
 const NOOP = () => {}
 
@@ -95,8 +95,9 @@ function ProjectComingSoon() {
 
 const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Overview' }]
 
-function useProjectTabs(projects: typeof ALL_PROJECTS) {
+function useProjectModules(projects: typeof ALL_PROJECTS) {
 	const [tabsByProject, setTabsByProject] = useState<Record<string, DashboardTabConfig[]>>({})
+	const [headersByProject, setHeadersByProject] = useState<Record<string, DashboardModule['header']>>({})
 
 	useEffect(() => {
 		let cancelled = false
@@ -108,6 +109,9 @@ function useProjectTabs(projects: typeof ALL_PROJECTS) {
 					if (!cancelled && mod?.tabs) {
 						setTabsByProject((prev) => (prev[project.id] === mod.tabs ? prev : { ...prev, [project.id]: mod.tabs }))
 					}
+					if (!cancelled && mod?.header) {
+						setHeadersByProject((prev) => (prev[project.id] === mod.header ? prev : { ...prev, [project.id]: mod.header }))
+					}
 				})
 			}
 		}
@@ -116,17 +120,19 @@ function useProjectTabs(projects: typeof ALL_PROJECTS) {
 		}
 	}, [projects])
 
-	return tabsByProject
+	return { tabsByProject, headersByProject }
 }
 
 function SuperLuminalContent({
 	tabs,
 	activeTab,
-	displayName
+	displayName,
+	hasCustomHeader
 }: {
 	tabs: DashboardTabConfig[]
 	activeTab: string
 	displayName: string
+	hasCustomHeader?: boolean
 }) {
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
@@ -154,11 +160,13 @@ function SuperLuminalContent({
 
 	return (
 		<>
-			<header className="hidden items-center gap-3 md:flex">
-				<h1 className="text-xl font-semibold tracking-tight pro-text1">
-					{activeTab === 'dashboard' ? displayName || 'Dashboard' : tabs.find((t) => t.id === activeTab)?.label}
-				</h1>
-			</header>
+			{!hasCustomHeader && (
+				<header className="hidden items-center gap-3 md:flex">
+					<h1 className="text-xl font-semibold tracking-tight pro-text1">
+						{activeTab === 'dashboard' ? displayName || 'Dashboard' : tabs.find((t) => t.id === activeTab)?.label}
+					</h1>
+				</header>
+			)}
 
 			<div className={activeTab === 'dashboard' ? '' : 'hidden'}>
 				{items.length > 0 && (
@@ -195,11 +203,13 @@ function SuperLuminalContent({
 function CustomOnlyContent({
 	tabs,
 	activeTab,
-	displayName
+	displayName,
+	hasCustomHeader
 }: {
 	tabs: DashboardTabConfig[]
 	activeTab: string
 	displayName: string
+	hasCustomHeader?: boolean
 }) {
 	const [visitedTabs, setVisitedTabs] = useState<Set<string>>(() => new Set([activeTab]))
 
@@ -212,11 +222,13 @@ function CustomOnlyContent({
 
 	return (
 		<>
-			<header className="hidden items-center gap-3 md:flex">
-				<h1 className="text-xl font-semibold tracking-tight pro-text1">
-					{tabs.find((t) => t.id === activeTab)?.label ?? displayName}
-				</h1>
-			</header>
+			{!hasCustomHeader && (
+				<header className="hidden items-center gap-3 md:flex">
+					<h1 className="text-xl font-semibold tracking-tight pro-text1">
+						{tabs.find((t) => t.id === activeTab)?.label ?? displayName}
+					</h1>
+				</header>
+			)}
 
 			{tabs.map((tab) => {
 				if (!tab.component || !visitedTabs.has(tab.id)) return null
@@ -248,7 +260,7 @@ function SuperLuminalShell({
 	const visibleProjects = protocol ? ALL_PROJECTS.filter((p) => p.id === protocol) : ALL_PROJECTS
 	const defaultProject = visibleProjects[0]?.id ?? ALL_PROJECTS[0].id
 
-	const tabsByProject = useProjectTabs(visibleProjects)
+	const { tabsByProject, headersByProject } = useProjectModules(visibleProjects)
 	const [activeTab, setActiveTab] = useState('dashboard')
 	const [activeProject, setActiveProject] = useState(defaultProject)
 	const [expandedProject, setExpandedProject] = useState<string | null>(defaultProject)
@@ -261,6 +273,7 @@ function SuperLuminalShell({
 	const dashboardId = activeProjectConfig?.dashboardId ?? visibleProjects[0]?.dashboardId ?? ALL_PROJECTS[0].dashboardId
 	const displayName = activeProjectConfig?.name ?? 'Dashboard'
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
+	const HeaderComponent = headersByProject[activeProject]
 
 	useEffect(() => {
 		if (!initialTabSet.current && tabs.length > 0 && tabs[0].id !== 'dashboard') {
@@ -405,17 +418,22 @@ function SuperLuminalShell({
 			</aside>
 
 			<div className="flex flex-1 flex-col gap-4 p-5 md:ml-56">
+				{HeaderComponent && (
+					<Suspense fallback={null}>
+						<HeaderComponent />
+					</Suspense>
+				)}
 				{activeProjectConfig?.comingSoon ? (
 					<ProjectComingSoon />
 				) : activeProjectConfig?.customOnly ? (
-					<CustomOnlyContent tabs={tabs} activeTab={activeTab} displayName={displayName} />
+					<CustomOnlyContent tabs={tabs} activeTab={activeTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
 				) : (
 					<ProDashboardAPIProvider
 						key={dashboardId}
 						initialDashboardId={dashboardId}
 						serverData={serverDataByDashboardId?.[dashboardId]}
 					>
-						<SuperLuminalContent tabs={tabs} activeTab={activeTab} displayName={displayName} />
+						<SuperLuminalContent tabs={tabs} activeTab={activeTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
 					</ProDashboardAPIProvider>
 				)}
 			</div>
