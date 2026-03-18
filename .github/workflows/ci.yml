@@ -33,6 +33,11 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Build metadata cache
+        run: bun run build:metadata
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+
       - name: Typecheck
         run: bun run ts
 
