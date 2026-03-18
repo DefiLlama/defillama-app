@@ -74,7 +74,43 @@ export function useImageUpload({
 
 	const addImages = useCallback(
 		(files: File[]) => {
-			const valid = files.filter((f) => isAcceptedFile(f) && f.size <= (maxSizeBytes ?? maxSizeForType(f.type)))
+			const rejected: { type: 'size' | 'format'; file: File }[] = []
+			const valid: File[] = []
+			for (const f of files) {
+				if (!isAcceptedFile(f)) {
+					rejected.push({ type: 'format', file: f })
+				} else if (f.size > (maxSizeBytes ?? maxSizeForType(f.type))) {
+					rejected.push({ type: 'size', file: f })
+				} else {
+					valid.push(f)
+				}
+			}
+
+			if (rejected.length > 0) {
+				const sizeRejected = rejected.filter((r) => r.type === 'size')
+				const formatRejected = rejected.filter((r) => r.type === 'format')
+				if (sizeRejected.length > 0) {
+					const maxMB = Math.round((maxSizeBytes ?? FILE_MAX_SIZE) / (1024 * 1024))
+					queueMicrotask(() => {
+						errorToast({
+							title: 'File too large',
+							description:
+								sizeRejected.length === 1
+									? `${sizeRejected[0].file.name} exceeds the ${maxMB}MB limit`
+									: `${sizeRejected.length} files exceed the ${maxMB}MB limit`
+						})
+					})
+				}
+				if (formatRejected.length > 0) {
+					queueMicrotask(() => {
+						errorToast({
+							title: 'Unsupported file type',
+							description: 'Supported formats: PNG, JPEG, GIF, WebP, PDF, CSV'
+						})
+					})
+				}
+			}
+
 			if (valid.length === 0) return
 
 			const newImages: SelectedImage[] = []
@@ -145,7 +181,7 @@ export function useImageUpload({
 		(e: React.ClipboardEvent) => {
 			const files = Array.from(e.clipboardData.items)
 				.map((item) => item.getAsFile())
-				.filter((file): file is File => Boolean(file) && isAcceptedFile(file))
+				.filter((file): file is File => Boolean(file))
 			if (files.length) {
 				trackUmamiEvent('llamaai-file-paste')
 				addImages(files)
@@ -178,7 +214,7 @@ export function useImageUpload({
 			e.stopPropagation()
 			dragCounterRef.current = 0
 			setIsDragging(false)
-			const files = Array.from(e.dataTransfer.files).filter(isAcceptedFile)
+			const files = Array.from(e.dataTransfer.files)
 			if (files.length) {
 				trackUmamiEvent('llamaai-file-upload', { method: 'drag_and_drop', count: files.length })
 				addImages(files)
