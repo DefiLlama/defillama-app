@@ -133,27 +133,29 @@ export const LinkPreviewCard = ({
 
 export interface ISEOProps {
 	title: string
-	description?: string
-	canonicalUrl?: string
+	description: string | null | undefined
+	canonicalUrl: string | null | undefined
+	noIndex?: boolean
 }
 
-export function SEO({ title, description, canonicalUrl }: ISEOProps) {
+export function SEO({ title, description, canonicalUrl, noIndex }: ISEOProps) {
 	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
 	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>
-			{canonicalUrl != null ? <link rel="canonical" href={url} /> : <meta name="robots" content="noindex" />}
+			{canonicalUrl != null ? <link rel="canonical" href={url} /> : null}
+			{noIndex ? <meta name="robots" content="noindex" /> : null}
 			<title>{title}</title>
 			{description ? <meta name="description" content={description} /> : null}
 			<meta property="og:title" content={title} />
 			<meta property="og:type" content="website" />
-			<meta property="og:url" content={url} />
+			{canonicalUrl != null ? <meta property="og:url" content={url} /> : null}
 			<meta property="og:site_name" content="DefiLlama" />
 			{description ? <meta property="og:description" content={description} /> : null}
 			{/* <meta property="og:image" content={cardURL} /> */}
 			<meta name="twitter:card" content="summary_large_image" />
 			<meta property="twitter:domain" content="defillama.com" />
-			<meta property="twitter:url" content={url} />
+			{canonicalUrl != null ? <meta property="twitter:url" content={url} /> : null}
 			<meta name="twitter:title" content={title} />
 			<meta name="twitter:site" content="@DefiLlama" />
 			<meta name="twitter:creator" content="@DefiLlama" />

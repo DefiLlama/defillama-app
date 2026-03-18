@@ -89,6 +89,8 @@ export default function SharedConversationPage() {
 			<Layout
 				title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+				canonicalUrl={null}
+				noIndex={true}
 			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
@@ -102,7 +104,12 @@ export default function SharedConversationPage() {
 
 	if (error || !session) {
 		return (
-			<Layout title="Conversation Not Found - DefiLlama" description="The requested conversation could not be found">
+			<Layout
+				title="Conversation Not Found - DefiLlama"
+				description="The requested conversation could not be found"
+				canonicalUrl={null}
+				noIndex={true}
+			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<div className="text-center">
 						<div className="mb-2 text-lg text-(--error)">{error?.message ?? 'Conversation not found'}</div>
@@ -117,6 +124,8 @@ export default function SharedConversationPage() {
 		<Layout
 			title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+			canonicalUrl={null}
+			noIndex={true}
 		>
 			<AgenticChat sharedSession={session as any} readOnly />
 		</Layout>

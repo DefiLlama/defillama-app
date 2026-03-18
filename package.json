@@ -11,6 +11,9 @@
 		"build:metadata": "bun scripts/pullMetadata.js && bun scripts/generateRobots.js",
 		"build": "bun run build:metadata && bunx next build",
 		"start": "./scripts/prestart.sh & bunx next start",
+		"test": "vitest run",
+		"test:types": "tsc -p tsconfig.vitest.json --noEmit",
+		"format:check": "oxfmt --check",
 		"format": "oxfmt --write",
 		"lint": "oxlint",
 		"ts": "tsc --noEmit"
@@ -63,6 +66,7 @@
 		"oxlint-tsgolint": "^0.16.0",
 		"postcss": "8.5.8",
 		"tailwindcss": "4.2.1",
-		"typescript": "5.9.3"
+		"typescript": "5.9.3",
+		"vitest": "^4.1.0"
 	}
 }
