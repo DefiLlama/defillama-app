@@ -955,10 +955,6 @@
 	margin-bottom: 0;
 }
 
-.prose.llamaai-prose > * + * {
-	margin-top: 0.625rem;
-}
-
 /* ----------------------------- Hacker Mode: Code Blocks ----------------------------- */
 .prose.llamaai-prose.hacker-mode pre {
 	background: #0d0d0d;
