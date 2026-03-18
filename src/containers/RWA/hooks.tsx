@@ -20,24 +20,14 @@ import {
 	type RWAChartAggregationMode,
 	type RWAChartDatasetsByMetric
 } from './chartAggregation'
+import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
+import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type PieChartDatum = { name: string; value: number }
 const RWA_ATTRIBUTE_FILTER_STATES = ['yes', 'no', 'unknown'] as const
 type RWAAttributeFilterState = (typeof RWA_ATTRIBUTE_FILTER_STATES)[number]
 const RWA_ATTRIBUTE_FILTER_STATE_SET = new Set<RWAAttributeFilterState>(RWA_ATTRIBUTE_FILTER_STATES)
-const DEFAULT_EXCLUDED_TYPES = new Set(['Wrapper'])
-
-const toUniqueNonEmptyValues = (values: Array<string> | null | undefined): string[] => {
-	if (!values || values.length === 0) return []
-	const out = new Set<string>()
-	for (const value of values) {
-		const normalized = typeof value === 'string' ? value.trim() : ''
-		if (!normalized) continue
-		out.add(normalized)
-	}
-	return Array.from(out)
-}
 
 const buildStackColors = (order: string[]) => {
 	const stackColors: Record<string, string> = {}
@@ -108,7 +98,8 @@ export const useRWATableQueryParams = ({
 	accessModels,
 	issuers,
 	defaultIncludeStablecoins,
-	defaultIncludeGovernance
+	defaultIncludeGovernance,
+	mode
 }: {
 	assetNames: string[]
 	types: string[]
@@ -120,6 +111,7 @@ export const useRWATableQueryParams = ({
 	issuers: string[]
 	defaultIncludeStablecoins: boolean
 	defaultIncludeGovernance: boolean
+	mode: RWAOverviewMode
 }) => {
 	const router = useRouter()
 	const {
@@ -155,6 +147,7 @@ export const useRWATableQueryParams = ({
 		transferableStates: transferableStatesQ,
 		selfCustodyStates: selfCustodyStatesQ
 	} = router.query
+	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
 
 	const {
 		selectedAssetNames,
@@ -234,7 +227,7 @@ export const useRWATableQueryParams = ({
 				? parseArrayParam(typesQ, types, typesValidSet)
 				: excludeTypesSet.size > 0
 					? types
-					: types.filter((t) => !DEFAULT_EXCLUDED_TYPES.has(t))
+					: getDefaultSelectedTypes(types, mode, categorySlug)
 		const selectedTypes = excludeTypesSet.size > 0 ? baseTypes.filter((t) => !excludeTypesSet.has(t)) : baseTypes
 
 		const baseCategories =
@@ -370,7 +363,9 @@ export const useRWATableQueryParams = ({
 		assetClasses,
 		rwaClassifications,
 		accessModels,
-		issuers
+		issuers,
+		mode,
+		categorySlug
 	])
 
 	const setDefiActiveTvlToOnChainMcapPctRange = (minValue: string | number | null, maxValue: string | number | null) =>
@@ -712,15 +707,13 @@ export function useRWAAssetCategoryPieChartData({
 		const categoryTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const category of toUniqueNonEmptyValues(asset.category)) {
+			for (const { value: category, weight } of computeWeightedGroups(asset.category)) {
 				if (!category || !selectedCategoriesSet.has(category)) continue
 
 				const prev = categoryTotals.get(category) ?? { onChain: 0, active: 0, defi: 0 }
-				// Intentional full-count behavior for multi-category assets.
-				// To migrate to split-even later, divide each metric by asset.category.length here.
-				prev.onChain += asset.onChainMcap?.total ?? 0
-				prev.active += asset.activeMcap?.total ?? 0
-				prev.defi += asset.defiActiveTvl?.total ?? 0
+				prev.onChain += (asset.onChainMcap?.total ?? 0) * weight
+				prev.active += (asset.activeMcap?.total ?? 0) * weight
+				prev.defi += (asset.defiActiveTvl?.total ?? 0) * weight
 				categoryTotals.set(category, prev)
 			}
 		}
@@ -772,15 +765,13 @@ export function useRwaCategoryAssetClassPieChartData({
 		const assetClassTotals = new Map<string, { onChain: number; active: number; defi: number }>()
 
 		for (const asset of assets) {
-			for (const assetClass of toUniqueNonEmptyValues(asset.assetClass)) {
+			for (const { value: assetClass, weight } of computeWeightedGroups(asset.assetClass)) {
 				if (!assetClass || !selectedAssetClassesSet.has(assetClass)) continue
 
 				const prev = assetClassTotals.get(assetClass) ?? { onChain: 0, active: 0, defi: 0 }
-				// Intentional full-count behavior for multi-asset-class assets.
-				// To migrate to split-even later, divide each metric by asset.assetClass.length here.
-				prev.onChain += asset.onChainMcap?.total ?? 0
-				prev.active += asset.activeMcap?.total ?? 0
-				prev.defi += asset.defiActiveTvl?.total ?? 0
+				prev.onChain += (asset.onChainMcap?.total ?? 0) * weight
+				prev.active += (asset.activeMcap?.total ?? 0) * weight
+				prev.defi += (asset.defiActiveTvl?.total ?? 0) * weight
 				assetClassTotals.set(assetClass, prev)
 			}
 		}
@@ -923,6 +914,7 @@ export function useRwaAssetPlatformPieChartData({
 				.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
 				.filter((platform): platform is string => platform.length > 0)
 			const platforms = normalizedPlatforms.length > 0 ? Array.from(new Set(normalizedPlatforms)) : [UNKNOWN]
+			const platformWeight = 1 / platforms.length
 
 			for (const platform of platforms) {
 				const key = rwaSlug(platform)
@@ -931,11 +923,9 @@ export function useRwaAssetPlatformPieChartData({
 				// Prefer a non-Unknown label if we previously only had Unknown.
 				if (prev.label === UNKNOWN && platform !== UNKNOWN) prev.label = platform
 
-				// Intentional full-count behavior for assets mapped to multiple platforms.
-				// To migrate to split-even later, divide each metric by platforms.length here.
-				prev.onChain += asset.onChainMcap?.total ?? 0
-				prev.active += asset.activeMcap?.total ?? 0
-				prev.defi += asset.defiActiveTvl?.total ?? 0
+				prev.onChain += (asset.onChainMcap?.total ?? 0) * platformWeight
+				prev.active += (asset.activeMcap?.total ?? 0) * platformWeight
+				prev.defi += (asset.defiActiveTvl?.total ?? 0) * platformWeight
 				totalsBySlug.set(key, prev)
 			}
 		}

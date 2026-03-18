@@ -197,6 +197,7 @@ export interface Message {
 	timestamp?: number
 	toolExecutions?: ToolExecution[]
 	thinking?: string
+	quotedText?: string
 }
 
 export interface ChartSet {

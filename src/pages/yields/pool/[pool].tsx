@@ -597,7 +597,11 @@ export default function YieldPoolPage(props) {
 	const pool = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
 
 	return (
-		<Layout title={pool ? `Yields ${pool} - DefiLlama` : ''}>
+		<Layout
+			title={pool ? `Yields ${pool} - DefiLlama` : ''}
+			description={pool ? `Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.` : ''}
+			canonicalUrl={pool ? `/yields/pool/${pool}` : null}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

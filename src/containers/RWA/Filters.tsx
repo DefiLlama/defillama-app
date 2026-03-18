@@ -9,6 +9,7 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ExcludeQueryKey, SelectValues } from '~/components/Select/types'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
+import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 
 const ratioPercentInputProps = { min: 0, step: '0.01' } as const
@@ -72,6 +73,7 @@ const formatPercentRange = (minPercent: number | null, maxPercent: number | null
 }
 
 type RWAFilterModes = {
+	mode: RWAOverviewMode
 	isChainMode: boolean
 	isCategoryMode: boolean
 	isPlatformMode: boolean
@@ -257,7 +259,12 @@ function Filters({
 
 	if (!enabled) return null
 
-	const defaultSelectedTypes = options.typeOptions.flatMap((option) => (option.key !== 'Wrapper' ? [option.key] : []))
+	const categorySlug = typeof router.query.category === 'string' ? router.query.category : null
+	const defaultSelectedTypes = getDefaultSelectedTypes(
+		options.typeOptions.map((o) => o.key),
+		modes.mode,
+		categorySlug
+	)
 
 	// Determine active filters/chart controls purely from URL query.
 	// Selected arrays often default to "all values" when there is no query set.

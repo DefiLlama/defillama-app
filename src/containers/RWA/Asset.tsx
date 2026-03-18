@@ -5,7 +5,7 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
+import { chainIconUrl, formattedNum } from '~/utils'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
@@ -102,14 +102,13 @@ const SectionCard = ({ title, children }: { title: React.ReactNode; children: Re
 	</div>
 )
 
-const ContractItem = ({ chain, address }: { chain: string; address: string }) => {
+const ContractItem = ({ address, explorerUrl }: { address: string; explorerUrl?: string }) => {
 	const truncatedAddress = address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address
-	const { blockExplorerLink } = getBlockExplorer(`${chain.toLowerCase()}:${address}`)
 	return (
 		<div className="flex items-center">
-			{blockExplorerLink ? (
+			{explorerUrl ? (
 				<a
-					href={blockExplorerLink}
+					href={explorerUrl}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center gap-1 text-xs break-all hover:underline"
@@ -131,12 +130,14 @@ const ChainBadge = ({
 	chain,
 	isPrimary = false,
 	showPrimaryStyle = true,
-	contracts
+	contracts,
+	contractUrls
 }: {
 	chain: string
 	isPrimary?: boolean
 	showPrimaryStyle?: boolean
 	contracts?: string[]
+	contractUrls?: Record<string, string>
 }) => {
 	return (
 		<div className="flex items-center gap-1.5 rounded-md border border-(--cards-border) p-2">
@@ -153,7 +154,7 @@ const ChainBadge = ({
 				{contracts && contracts.length > 0 ? (
 					<>
 						{contracts.map((address) => (
-							<ContractItem key={`${chain}-${address}`} chain={chain} address={address} />
+							<ContractItem key={`${chain}-${address}`} address={address} explorerUrl={contractUrls?.[address]} />
 						))}
 					</>
 				) : null}
@@ -682,6 +683,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								chain={chain}
 								isPrimary={chain === asset.primaryChain}
 								contracts={asset.contracts?.[chain]}
+								contractUrls={asset.contractUrls?.[chain]}
 							/>
 						))}
 					</div>

@@ -109,6 +109,9 @@ export const getStaticProps = withPerformanceLogging(
 				inflows: false,
 				liquidity: false,
 				activeUsers: false,
+				newUsers: false,
+				txCount: false,
+				gasUsed: false,
 				borrowed: false,
 				tokenRights: false
 			}),

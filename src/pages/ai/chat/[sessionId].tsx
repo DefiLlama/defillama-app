@@ -11,6 +11,14 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
+const AI_LAYOUT_SEO = {
+	title: 'AI Crypto Analysis - DeFi & TradFi Data - LlamaAI',
+	description:
+		'Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts',
+	canonicalUrl: null,
+	noIndex: true
+} as const
+
 export default function SessionPage() {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const router = useRouter()
@@ -22,10 +30,7 @@ export default function SessionPage() {
 
 	if (!isClient || loaders.userLoading || !router.isReady || !resolvedSessionId) {
 		return (
-			<Layout
-				title="LlamaAI - DefiLlama"
-				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-			>
+			<Layout {...AI_LAYOUT_SEO}>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
 						Loading
@@ -38,10 +43,7 @@ export default function SessionPage() {
 
 	if (!user) {
 		return (
-			<Layout
-				title="LlamaAI - DefiLlama"
-				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-			>
+			<Layout {...AI_LAYOUT_SEO}>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
 						Please{' '}
@@ -67,10 +69,7 @@ export default function SessionPage() {
 	}
 
 	return (
-		<Layout
-			title="LlamaAI - DefiLlama"
-			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-		>
+		<Layout {...AI_LAYOUT_SEO}>
 			<AgenticChat initialSessionId={resolvedSessionId} key={`session-${resolvedSessionId}`} />
 		</Layout>
 	)

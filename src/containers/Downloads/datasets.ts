@@ -5,8 +5,15 @@ import {
 	BRIDGES_SERVER_URL,
 	ETF_SERVER_URL,
 	STABLECOINS_SERVER_URL,
+	RWA_SERVER_URL,
 	TRADFI_API
 } from '~/constants'
+
+export interface DatasetExcludeToggle {
+	field: string
+	label: string
+	defaultExclude?: boolean
+}
 
 export interface DatasetDefinition {
 	slug: string
@@ -18,6 +25,7 @@ export interface DatasetDefinition {
 	defaultSortField?: string
 	extractItems: (json: any) => any[]
 	chainFilterType?: 'overview' | 'protocols'
+	excludeToggles?: DatasetExcludeToggle[]
 }
 
 const extractArray = (json: any): any[] => (Array.isArray(json) ? json : [])
@@ -27,6 +35,25 @@ const extractProtocols = (json: any): any[] => json?.protocols ?? []
 function pctChange(current: number | null | undefined, prev: number | null | undefined): number | null {
 	if (current == null || prev == null || prev === 0) return null
 	return ((current - prev) / prev) * 100
+}
+
+function sumRecord(rec: unknown): number {
+	if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return 0
+	let total = 0
+	for (const v of Object.values(rec)) {
+		if (typeof v === 'number' && Number.isFinite(v)) total += v
+	}
+	return total
+}
+
+function deepSumRecord(rec: unknown): number {
+	if (!rec || typeof rec !== 'object' || Array.isArray(rec)) return 0
+	let total = 0
+	for (const v of Object.values(rec)) {
+		if (typeof v === 'number' && Number.isFinite(v)) total += v
+		else if (v && typeof v === 'object' && !Array.isArray(v)) total += deepSumRecord(v)
+	}
+	return total
 }
 
 const extractLiteProtocols = (json: any): any[] => {
@@ -75,6 +102,116 @@ const overviewFields = [
 ]
 
 export const datasets: DatasetDefinition[] = [
+	{
+		slug: 'stablecoins',
+		name: 'Stablecoins',
+		description: 'All stablecoins with circulating supply, price, and chain distribution',
+		category: 'Stablecoins',
+		url: `${STABLECOINS_SERVER_URL}/stablecoins?includePrices=true`,
+		fields: [
+			'name',
+			'symbol',
+			'pegType',
+			'pegMechanism',
+			'circulating',
+			'circulatingPrevDay',
+			'circulatingPrevWeek',
+			'circulatingPrevMonth',
+			'chains',
+			'price'
+		],
+		extractItems: (json) => json?.peggedAssets ?? extractArray(json)
+	},
+	{
+		slug: 'stablecoins-chains',
+		name: 'Stablecoins by Chain',
+		description: 'Stablecoin circulating supply breakdown by chain',
+		category: 'Stablecoins',
+		url: `${STABLECOINS_SERVER_URL}/stablecoins`,
+		defaultSortField: 'totalCirculatingUSD',
+		fields: ['name', 'tokenSymbol', 'totalCirculatingUSD'],
+		extractItems: (json) => {
+			const chains: any[] = json?.chains ?? []
+			return chains.map((c: any) => ({
+				...c,
+				totalCirculatingUSD: sumRecord(c.totalCirculatingUSD)
+			}))
+		}
+	},
+	{
+		slug: 'rwa-assets',
+		name: 'RWA Assets',
+		description: 'All Real World Assets with on-chain market cap, categories, and chain distribution',
+		category: 'RWA',
+		url: `${RWA_SERVER_URL}/current?z=0`,
+		defaultSortField: 'onChainMcap',
+		fields: [
+			'ticker',
+			'assetName',
+			'category',
+			'primaryChain',
+			'chain',
+			'onChainMcap',
+			'activeMcap',
+			'defiActiveTvl',
+			'issuer',
+			'rwaClassification',
+			'accessModel',
+			'type',
+			'stablecoin'
+		],
+		excludeToggles: [{ field: 'stablecoin', label: 'Stablecoins', defaultExclude: true }],
+		extractItems: (json) => {
+			if (!Array.isArray(json)) return []
+			return json.map((item: any) => ({
+				...item,
+				category: Array.isArray(item.category) ? item.category.join(', ') : item.category,
+				chain: Array.isArray(item.chain) ? item.chain.join(', ') : item.chain,
+				onChainMcap: item.onChainMcap ? sumRecord(item.onChainMcap) : null,
+				activeMcap: item.activeMcap ? sumRecord(item.activeMcap) : null,
+				defiActiveTvl: item.defiActiveTvl ? deepSumRecord(item.defiActiveTvl) : null
+			}))
+		}
+	},
+	{
+		slug: 'rwa-categories',
+		name: 'RWA by Category',
+		description: 'RWA aggregate on-chain market cap, asset count, and issuers by category',
+		category: 'RWA',
+		url: `${RWA_SERVER_URL}/stats?z=0`,
+		defaultSortField: 'onChainMcap',
+		fields: ['category', 'onChainMcap', 'activeMcap', 'defiActiveTvl', 'assetCount', 'assetIssuers'],
+		extractItems: (json) => {
+			const byCategory: Record<string, any> = json?.byCategory ?? {}
+			return Object.entries(byCategory).map(([category, stats]: [string, any]) => ({
+				category,
+				onChainMcap: stats.onChainMcap ?? 0,
+				activeMcap: stats.activeMcap ?? 0,
+				defiActiveTvl: stats.defiActiveTvl ?? 0,
+				assetCount: stats.assetCount ?? 0,
+				assetIssuers: stats.assetIssuers ?? 0
+			}))
+		}
+	},
+	{
+		slug: 'rwa-chains',
+		name: 'RWA by Chain',
+		description: 'RWA aggregate on-chain market cap, asset count, and issuers by chain',
+		category: 'RWA',
+		url: `${RWA_SERVER_URL}/stats?z=0`,
+		defaultSortField: 'onChainMcap',
+		fields: ['chain', 'onChainMcap', 'activeMcap', 'defiActiveTvl', 'assetCount'],
+		extractItems: (json) => {
+			const byChain: Record<string, any> = json?.byChain ?? {}
+			return Object.entries(byChain).map(([chain, stats]: [string, any]) => ({
+				chain,
+				onChainMcap: stats.base?.onChainMcap ?? 0,
+				activeMcap: stats.base?.activeMcap ?? 0,
+				defiActiveTvl: stats.base?.defiActiveTvl ?? 0,
+				assetCount: stats.base?.assetCount ?? 0
+			}))
+		}
+	},
 	{
 		slug: 'protocols',
 		name: 'Protocols (TVL)',
@@ -384,26 +521,6 @@ export const datasets: DatasetDefinition[] = [
 		defaultSortField: 'total24h',
 		chainFilterType: 'overview',
 		extractItems: extractProtocols
-	},
-	{
-		slug: 'stablecoins',
-		name: 'Stablecoins',
-		description: 'All stablecoins with circulating supply, price, and chain distribution',
-		category: 'Stablecoins',
-		url: `${STABLECOINS_SERVER_URL}/stablecoins?includePrices=true`,
-		fields: [
-			'name',
-			'symbol',
-			'pegType',
-			'pegMechanism',
-			'circulating',
-			'circulatingPrevDay',
-			'circulatingPrevWeek',
-			'circulatingPrevMonth',
-			'chains',
-			'price'
-		],
-		extractItems: (json) => json?.peggedAssets ?? extractArray(json)
 	},
 	{
 		slug: 'hacks',

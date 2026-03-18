@@ -1,4 +1,6 @@
+import { fetchBlockExplorers } from '~/api'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	fetchRWAActiveTVLs,
@@ -28,7 +30,12 @@ import type {
 	IRWAPlatformsOverviewRow,
 	RWAChartMetricKey
 } from './api.types'
-import { aggregateRwaChartData, applyDefaultAssetFilters, type RWAChartAggregationMode } from './chartAggregation'
+import {
+	aggregateRwaChartData,
+	applyDefaultAssetFilters,
+	sortKeysByLatestTimestampValue,
+	type RWAChartAggregationMode
+} from './chartAggregation'
 import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
@@ -176,7 +183,7 @@ type RWAAssetsOverviewParams = {
 	rwaList: IRWAList
 }
 
-const ASSETS_TO_EXCLUDE = new Set(['Franklin OnChain U.S. Government Money Fund (BENJI)'])
+const ASSETS_TO_EXCLUDE = new Set([])
 
 export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
@@ -534,7 +541,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				: 'category'
 		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
 			includeStablecoins: !isChainMode,
-			includeGovernance: !isChainMode
+			includeGovernance: !isChainMode,
+			mode: selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain',
+			categorySlug: selectedCategory
 		})
 		const initialChartDataset = chartDataMs
 			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
@@ -628,30 +637,6 @@ const RWA_CHART_METRIC_KEYS: RWAChartMetricKey[] = ['onChainMcap', 'activeMcap',
 
 const emptyRwaBreakdownDataset = () => ({ source: [], dimensions: ['timestamp'] })
 
-function sortBreakdownSeriesByLatestTimestampValue(rows: IRWABreakdownChartResponse, keys: Iterable<string>): string[] {
-	const seriesKeys = Array.from(keys).filter(Boolean)
-	if (seriesKeys.length === 0) return seriesKeys
-
-	let latestRow: IRWABreakdownChartResponse[number] | null = null
-	let latestTimestamp = Number.NEGATIVE_INFINITY
-	for (const row of rows) {
-		if (!Number.isFinite(row.timestamp)) continue
-		if (row.timestamp >= latestTimestamp) {
-			latestTimestamp = row.timestamp
-			latestRow = row
-		}
-	}
-
-	return seriesKeys.sort((a, b) => {
-		const aValueRaw = latestRow?.[a]
-		const bValueRaw = latestRow?.[b]
-		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
-		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
-		if (aValue !== bValue) return bValue - aValue
-		return a.localeCompare(b)
-	})
-}
-
 function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
 	if (!rows || rows.length === 0) return emptyRwaBreakdownDataset()
 
@@ -660,25 +645,28 @@ function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
 
 	for (const row of ensureChronologicalRows(rows)) {
 		const timestamp = Number(row.timestamp)
-		if (!Number.isFinite(timestamp)) continue
 
 		const normalizedRow: IRWABreakdownChartResponse[number] = { timestamp }
+		let hasData = false
 		for (const [series, value] of Object.entries(row)) {
 			if (series === 'timestamp') continue
 			const numericValue = Number(value)
 			if (!Number.isFinite(numericValue)) continue
+			hasData = true
 			seenSeries.add(series)
 			normalizedRow[series] = numericValue
 		}
 
-		source.push(normalizedRow)
+		if (hasData) {
+			source.push(normalizedRow)
+		}
 	}
 
 	if (source.length === 0) return emptyRwaBreakdownDataset()
 
 	return {
 		source,
-		dimensions: ['timestamp', ...sortBreakdownSeriesByLatestTimestampValue(source, seenSeries)]
+		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenSeries)]
 	}
 }
 
@@ -799,9 +787,14 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
+		const [data, chartDataset, blockExplorersData]: [
+			IFetchedRWAProject,
+			IRWAAssetData['chartDataset'],
+			Awaited<ReturnType<typeof fetchBlockExplorers>>
+		] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
-			fetchRWAAssetChartData(assetId)
+			fetchRWAAssetChartData(assetId),
+			fetchBlockExplorers().catch(() => [])
 		])
 
 		if (!data) {
@@ -836,6 +829,27 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			}
 		}
 
+		let contractUrls: Record<string, Record<string, string>> | null = null
+		if (data.contracts) {
+			contractUrls = {}
+			for (const chain in data.contracts) {
+				const addresses = data.contracts[chain]
+				if (!addresses) continue
+				for (const address of addresses) {
+					const result = getBlockExplorerNew({
+						apiResponse: blockExplorersData,
+						address,
+						chainName: chain,
+						urlType: 'token'
+					})
+					if (result) {
+						contractUrls[chain] ??= {}
+						contractUrls[chain][address] = result.url
+					}
+				}
+			}
+		}
+
 		if (chartDataset && data.activeMcapData === false) {
 			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
@@ -848,6 +862,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			rwaClassificationDescription,
 			accessModelDescription,
 			assetClassDescriptions,
+			contractUrls,
 			onChainMcap: onChainMcapBreakdown
 				? {
 						total: aggregatedMetrics.totals.onChainMcap,

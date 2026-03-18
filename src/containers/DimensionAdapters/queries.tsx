@@ -13,13 +13,7 @@ import {
 	fetchAdapterProtocolMetrics
 } from './api'
 import type { IAdapterProtocolMetrics, IAdapterChainMetrics } from './api.types'
-import {
-	ADAPTER_DATA_TYPE_KEYS,
-	ADAPTER_DATA_TYPES,
-	ADAPTER_TYPES,
-	ADAPTER_TYPES_TO_METADATA_TYPE,
-	isAdapterDataTypeKey
-} from './constants'
+import { ADAPTER_DATA_TYPE_KEYS, ADAPTER_DATA_TYPES, ADAPTER_TYPES, getChainMetadataKey } from './constants'
 import type {
 	IAdapterByChainPageData,
 	IAdapterChainOverview,
@@ -337,7 +331,6 @@ export const getAdapterByChainPageData = async ({
 	if (normalizedVolumeData) {
 		normalizedVolumeProtocols = normalizedVolumeData.protocols.reduce(
 			(acc: Record<string, { total24h: number | null }>, p: { name: string; total24h: number | null }) => {
-				if (p.name === 'Extended') return acc
 				acc[p.name] = {
 					total24h: p.total24h ?? null
 				}
@@ -631,13 +624,11 @@ export const getChainsByFeesAdapterPageData = async ({
 	try {
 		const allChainsSet = new Set<string>()
 
+		const chainLevelKey = dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees'
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const sType = adapterType === 'fees' ? (dataType === 'dailyRevenue' ? 'chainRevenue' : 'chainFees') : dataType
-			// Check if key exists AND has truthy value (handles boolean flags correctly)
-			if (sType in currentChainMetadata && currentChainMetadata[sType as keyof IChainMetadata]) {
-				allChainsSet.add(currentChainMetadata.name)
-			}
+			if (!currentChainMetadata[chainLevelKey]) continue
+			allChainsSet.add(currentChainMetadata.name)
 		}
 
 		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
@@ -727,16 +718,9 @@ export const getChainsByAdapterPageData = async ({
 
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const sType =
-				adapterType === 'fees'
-					? dataType === 'dailyRevenue'
-						? 'chainRevenue'
-						: 'chainFees'
-					: ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
-			// Check if key exists AND has truthy value (handles boolean flags correctly)
-			if (sType in currentChainMetadata && currentChainMetadata[sType as keyof IChainMetadata]) {
-				allChains.push(currentChainMetadata.name)
-			}
+			const sType = getChainMetadataKey(adapterType, dataType)
+			if (!sType || !currentChainMetadata[sType]) continue
+			allChains.push(currentChainMetadata.name)
 		}
 
 		const getOptionalOverview = ({
@@ -974,9 +958,9 @@ export function getDimensionAdapterOverviewOfAllChains({
 		const chains: Record<string, { '24h'?: number; '7d'?: number; '30d'?: number }> = {}
 		for (const chain in chainMetadata) {
 			const currentChainMetadata = chainMetadata[chain]
-			const metadataKey = ADAPTER_TYPES_TO_METADATA_TYPE[adapterType]
-			if (!(metadataKey in currentChainMetadata)) continue
-			const dataKey = isAdapterDataTypeKey(dataType) ? ADAPTER_DATA_TYPE_KEYS[dataType] : null
+			const metadataKey = getChainMetadataKey(adapterType, dataType)
+			if (!metadataKey || !currentChainMetadata[metadataKey]) continue
+			const dataKey = dataType in ADAPTER_DATA_TYPE_KEYS ? ADAPTER_DATA_TYPE_KEYS[dataType] : null
 			if (!dataKey) continue
 			const value = currentChainMetadata.dimAgg?.[adapterType]?.[dataKey]
 			if (!value) continue

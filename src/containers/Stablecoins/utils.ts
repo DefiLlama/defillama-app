@@ -568,15 +568,15 @@ export const formatPeggedAssetsData = ({
 		formattedPegged.change_1m = getPercentChange(formattedPegged.mcap, mcapPrevMonth)
 
 		const change_1d_nol =
-			formattedPegged.mcap && mcapPrevDay
+			formattedPegged.mcap != null && mcapPrevDay != null
 				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevDay)), true)
 				: null
 		const change_7d_nol =
-			formattedPegged.mcap && mcapPrevWeek
+			formattedPegged.mcap != null && mcapPrevWeek != null
 				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevWeek)), true)
 				: null
 		const change_1m_nol =
-			formattedPegged.mcap && mcapPrevMonth
+			formattedPegged.mcap != null && mcapPrevMonth != null
 				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevMonth)), true)
 				: null
 

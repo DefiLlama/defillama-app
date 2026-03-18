@@ -1,4 +1,4 @@
-import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { protocolCategoryConfig } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 const isProtocolChartsLabel = (value: string): value is ProtocolChartsLabels => value in protocolCharts
@@ -30,6 +30,10 @@ interface IBuildAvailableChartsParams {
 	hasMedianApy: boolean
 	hasGovernance: boolean
 	hasNfts: boolean
+	hasActiveAddresses: boolean
+	hasNewAddresses: boolean
+	hasTransactions: boolean
+	hasGasUsed: boolean
 }
 
 export function buildAvailableCharts(params: IBuildAvailableChartsParams): ProtocolChartsLabels[] {
@@ -62,6 +66,10 @@ export function buildAvailableCharts(params: IBuildAvailableChartsParams): Proto
 	if (params.hasMedianApy) charts.push('Median APY')
 	if (params.hasGovernance) charts.push('Total Proposals', 'Successful Proposals', 'Max Votes')
 	if (params.hasNfts) charts.push('NFT Volume')
+	if (params.hasActiveAddresses) charts.push('Active Addresses')
+	if (params.hasNewAddresses) charts.push('New Addresses')
+	if (params.hasTransactions) charts.push('Transactions')
+	if (params.hasGasUsed) charts.push('Gas Used')
 	return charts
 }
 
@@ -106,7 +114,7 @@ export function buildDefaultToggledCharts({
 		}
 	}
 
-	const protocolCategoriesMap = protocolCategories as Record<string, { description: string; defaultChart?: string }>
+	const protocolCategoriesMap = protocolCategoryConfig as Record<string, { description: string; defaultChart?: string }>
 	const protocolChartsMap = protocolCharts as Record<string, string>
 	const categoryDefaultChart = category ? protocolCategoriesMap[category]?.defaultChart : null
 	const isCategoryDefaultChartValue =

@@ -16,14 +16,14 @@ import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { getErrorMessage } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
-import type { ADAPTER_TYPES } from './constants'
+import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 import { getChartDataByChainAndInterval } from './utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-const LINE_DIMENSIONS = new Set(['Open Interest', 'Active Liquidity'])
+
 const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
 type AdapterByChainInterval = (typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]
 type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
@@ -108,10 +108,12 @@ export const AdapterByChainChart = ({
 		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			const isOpenInterestSeries = chartName === 'Open Interest'
-			const type = isOpenInterestSeries || isCumulative || isIntrinsicLineSeries ? ('line' as const) : ('bar' as const)
-			const stack =
-				isBreakdownMode && !isIntrinsicLineSeries && !isOpenInterestSeries ? 'protocol-breakdown' : undefined
+			// In breakdown mode dimensions are protocol names, not metric names, so
+			// isIntrinsicLineSeries is false. Fall back to checking the chart-level name
+			// so line-type charts (Open Interest, Active Liquidity) stay as lines.
+			const isLineChart = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
+			const type = isLineChart || isCumulative ? ('line' as const) : ('bar' as const)
+			const stack = isBreakdownMode && !isLineChart ? 'protocol-breakdown' : undefined
 			if (isDaily) {
 				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
@@ -124,8 +126,9 @@ export const AdapterByChainChart = ({
 				})
 				.filter((item): item is [number, number] => item != null)
 
-			// formatLineChart uses latest value per period; formatBarChart sums values per period
-			const data = isIntrinsicLineSeries
+			// Use the same line/bar decision for aggregation and rendering so breakdown
+			// series under line-dimension charts keep latest-per-period semantics.
+			const data = isLineChart
 				? formatLineChart({
 						data: rawData,
 						groupBy,
@@ -252,7 +255,7 @@ export const AdapterByChainChart = ({
 						portal
 					/>
 				) : null}
-				{chartName === 'Open Interest' ? null : (
+				{LINE_DIMENSIONS.has(chartName) ? null : (
 					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 						{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
 							<Tooltip

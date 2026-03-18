@@ -245,6 +245,7 @@ export interface IRWAAssetData extends IRWAProject {
 	rwaClassificationDescription: string | null
 	accessModelDescription: string | null
 	assetClassDescriptions: Record<string, string>
+	contractUrls: Record<string, Record<string, string>> | null
 	chartDataset: {
 		source: RWAAssetChartRow[]
 		dimensions: RWAAssetChartDimension[]

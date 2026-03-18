@@ -20,6 +20,7 @@ import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
 import type { RWAChartAggregationMode } from './chartAggregation'
+import type { RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
 import {
@@ -53,13 +54,8 @@ const MultiSeriesChart2 = lazy(
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
-type RWAOverviewMode = 'chain' | 'category' | 'platform'
-
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
-	const pushShallowMergedQuery = (patch: Record<string, string | string[] | undefined>) => {
-		void pushShallowQuery(router, patch)
-	}
 	const getSelectedFilterValue = (value: string | string[]) => (Array.isArray(value) ? value[0] : value)
 
 	const mode = getRWAOverviewMode(props)
@@ -132,7 +128,8 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		accessModels: props.accessModels,
 		issuers: props.issuers,
 		defaultIncludeStablecoins: !isChainMode,
-		defaultIncludeGovernance: !isChainMode
+		defaultIncludeGovernance: !isChainMode,
+		mode
 	})
 
 	const { filteredAssets, totalOnChainMcap, totalActiveMcap, totalOnChainDeFiActiveTvl, totalIssuersCount } =
@@ -422,7 +419,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
 					data-active={chartType === key}
 					onClick={() => {
-						pushShallowMergedQuery({ chartType: key })
+						void pushShallowQuery(router, { chartType: key })
 					}}
 				>
 					{label}
@@ -439,7 +436,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				const selectedView = getSelectedFilterValue(value)
 
 				if (selectedView === 'pie' || selectedView === 'treemap' || selectedView === 'hbar') {
-					pushShallowMergedQuery({ chartView: selectedView })
+					void pushShallowQuery(router, { chartView: selectedView })
 					return
 				}
 
@@ -562,7 +559,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					parentGrouping: treemapParentGrouping,
 					nestedBy: selectedNestedBy
 				})
-				pushShallowMergedQuery({ treemapNestedBy: normalizedNestedBy })
+				void pushShallowQuery(router, { treemapNestedBy: normalizedNestedBy })
 			}}
 			label={`Nested by: ${treemapNestedByLabel}`}
 			labelType="none"
@@ -607,6 +604,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			<RWAOverviewFilters
 				enabled={showFilters}
 				modes={{
+					mode,
 					isChainMode,
 					isCategoryMode,
 					isPlatformMode

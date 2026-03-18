@@ -4,9 +4,11 @@ import {
 	fetchDenominationPriceHistory,
 	fetchGeckoIdByAddress,
 	fetchTokenPriceByGeckoId,
-	fetchAllCGTokensList
+	fetchAllCGTokensList,
+	fetchBlockExplorers
 } from '~/api'
 import type {
+	BlockExplorersResponse,
 	CgChartResponse,
 	DenominationPriceHistory,
 	GeckoIdResponse,
@@ -68,5 +70,16 @@ export const useDenominationPriceHistory = (geckoId?: string) => {
 		staleTime: 60 * 60 * 1000,
 		retry: 0,
 		enabled: isEnabled
+	})
+}
+
+export const useBlockExplorers = () => {
+	return useQuery<BlockExplorersResponse, Error>({
+		queryKey: ['block-explorers'],
+		queryFn: fetchBlockExplorers,
+		staleTime: 24 * 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		retry: 1
 	})
 }

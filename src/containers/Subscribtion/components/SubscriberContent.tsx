@@ -7,11 +7,15 @@ import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { type Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAiBalance } from '~/containers/Subscribtion/useTopup'
+import { LlamaAIBalanceCard } from './LlamaAIBalanceCard'
 import { UsageStatsCard } from './UsageStatsCard'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
 )
+
+const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
 
 interface SubscriberContentProps {
 	credits: number | null
@@ -51,6 +55,8 @@ export const SubscriberContent = ({
 	const hasLegacySubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = hasProSubscription ? 0 : 1_000_000
 	const { loading, apiKey, isApiKeyLoading, generateNewKeyMutation } = useSubscribe()
+	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
+	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 
 	const currentSubscription = hasProSubscription ? llamafeedSubscription : hasApiSubscription ? apiSubscription : null
 	const currentBillingInterval = currentSubscription?.billing_interval
@@ -159,6 +165,30 @@ export const SubscriberContent = ({
 					<SubscribeEnterpriseCard active={subscription?.type === 'enterprise'} />
 				</div>
 			</div>
+
+			{(hasProSubscription || hasApiSubscription) && balance ? (
+				<div className="mb-6">
+					<LlamaAIBalanceCard
+						freeRemaining={balance.freeRemaining}
+						toppedUpBalance={balance.toppedUpBalance}
+						freeLimit={balance.freeLimit}
+						freeSpent={balance.freeSpent}
+						isLoading={isAiBalanceLoading}
+						onTopUp={() => setIsTopupModalOpen(true)}
+					/>
+				</div>
+			) : (hasProSubscription || hasApiSubscription) && isAiBalanceLoading ? (
+				<div className="mb-6">
+					<LlamaAIBalanceCard
+						freeRemaining="0"
+						toppedUpBalance="0"
+						freeLimit="0"
+						freeSpent="0"
+						isLoading={true}
+						onTopUp={() => setIsTopupModalOpen(true)}
+					/>
+				</div>
+			) : null}
 
 			{hasApiSubscription || hasLegacySubscription ? (
 				<div className="relative overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-xl">
@@ -643,6 +673,12 @@ export const SubscriberContent = ({
 					cancelSubscription={cancelSubscription}
 					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
 				/>
+			) : null}
+
+			{isTopupModalOpen ? (
+				<Suspense fallback={<></>}>
+					<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+				</Suspense>
 			) : null}
 		</>
 	)

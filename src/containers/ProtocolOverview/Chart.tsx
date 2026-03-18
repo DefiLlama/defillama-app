@@ -396,6 +396,9 @@ export default function ProtocolChart({
 			if (type === 'Gas Used') {
 				finalYAxis.push({
 					...options,
+					axisLabel: {
+						formatter: (value: number) => formattedNum(value)
+					},
 					axisLine: {
 						show: true,
 						lineStyle: {

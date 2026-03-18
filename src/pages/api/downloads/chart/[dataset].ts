@@ -80,11 +80,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
 	try {
 		const auth = await validateSubscription(req.headers.authorization)
-		if (auth.valid === false) {
-			return res.status(auth.status).json({ error: auth.error })
-		}
+		const isPreview = auth.valid === false
 
-		if (auth.isTrial) {
+		if (!isPreview && auth.valid && auth.isTrial) {
 			const csvDownloadCount = await getTrialCsvDownloadCount(req.headers.authorization!)
 			if (csvDownloadCount >= 1) {
 				return res.status(403).json({ error: 'Trial CSV download limit reached. Upgrade for unlimited downloads.' })
@@ -108,9 +106,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			return res.status(404).json({ error: 'No data returned for the specified parameter' })
 		}
 
+		if (isPreview) {
+			rows = rows.slice(-10)
+		}
+
 		const csv = rowsToCsv(rows)
 
-		if (auth.isTrial) {
+		if (!isPreview && auth.valid && auth.isTrial) {
 			await trackCsvDownload(req.headers.authorization!)
 		}
 
@@ -118,6 +120,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		res.setHeader('Content-Type', 'text/csv; charset=utf-8')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.setHeader('Cache-Control', 'private, no-store')
+		if (isPreview) {
+			res.setHeader('X-Preview', 'true')
+		}
 		return res.status(200).send(csv)
 	} catch (error) {
 		console.error(`Chart downloads proxy error (${datasetSlug}):`, error)

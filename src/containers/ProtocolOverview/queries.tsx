@@ -1,5 +1,5 @@
-import { fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
-import type { CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
+import { fetchBlockExplorers, fetchCgChartByGeckoId, fetchProtocolLiquidityTokens } from '~/api'
+import type { BlockExplorersResponse, CgChartResponse, ProtocolLiquidityToken } from '~/api/types'
 import { oracleProtocols, V2_SERVER_URL, YIELD_CONFIG_API, YIELD_POOLS_API } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { CHART_COLORS } from '~/constants/colors'
@@ -10,8 +10,6 @@ import { governanceIdsToApis } from '~/containers/Governance/api'
 import { fetchHacks } from '~/containers/Hacks/api'
 import type { IHackApiItem } from '~/containers/Hacks/api.types'
 import { getProtocolIncentivesFromAggregatedEmissions } from '~/containers/Incentives/queries'
-import { fetchActiveAddresses } from '~/containers/OnchainUsersAndTxs/api'
-import type { IActiveAddressMetrics, IProtocolOnchainMetrics } from '~/containers/OnchainUsersAndTxs/api.types'
 import { fetchOracleMetrics, fetchOracleProtocolChart } from '~/containers/Oracles/api'
 import type { IOracleProtocolChart } from '~/containers/Oracles/api.types'
 import { fetchProtocols } from '~/containers/Protocols/api'
@@ -20,8 +18,9 @@ import { fetchTreasuries } from '~/containers/Treasuries/api'
 import { fetchProtocolEmissionFromDatasets } from '~/containers/Unlocks/api'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { definitions } from '~/public/definitions'
-import { capitalizeFirstLetter, getProtocolTokenUrlOnExplorer, slug } from '~/utils'
+import { capitalizeFirstLetter, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import type { IChainMetadata, IProtocolMetadata } from '~/utils/metadata/types'
 import {
 	fetchProtocolExpenses,
@@ -100,6 +99,9 @@ export const getProtocolMetricFlags = ({
 		inflows: !!metadata.inflows,
 		liquidity: !!metadata.liquidity,
 		activeUsers: !!metadata.activeUsers,
+		newUsers: !!metadata.newUsers,
+		txCount: !!metadata.txCount,
+		gasUsed: !!metadata.gasUsed,
 		borrowed: !!metadata.borrowed,
 		tokenRights: !!metadata.tokenRights
 	}
@@ -149,7 +151,10 @@ export const getProtocolOverviewPageData = async ({
 		articles,
 		incentives,
 		adjustedSupply,
-		users,
+		activeUsers,
+		newUsers,
+		transactions,
+		gasUsd,
 		expenses,
 		yieldsConfig,
 		liquidityInfo,
@@ -158,7 +163,8 @@ export const getProtocolOverviewPageData = async ({
 		bridgeVolumeData,
 		incomeStatement,
 		oracleChartData,
-		oracleTvs
+		oracleTvs,
+		blockExplorersData
 	]: [
 		IProtocolDataExtended | null,
 		IProtocolValueChart,
@@ -180,7 +186,10 @@ export const getProtocolOverviewPageData = async ({
 		IArticle[],
 		IProtocolOverviewPageData['incentives'],
 		number | null,
-		IProtocolOnchainMetrics | null,
+		number | null,
+		number | null,
+		number | null,
+		number | null,
 		IProtocolExpenses | null,
 		IYieldsConfigResult,
 		ProtocolLiquidityToken[],
@@ -189,7 +198,8 @@ export const getProtocolOverviewPageData = async ({
 		IBridgeVolumeResult,
 		IProtocolOverviewPageData['incomeStatement'],
 		IOracleProtocolChart | null,
-		IProtocolOverviewPageData['oracleTvs']
+		IProtocolOverviewPageData['oracleTvs'],
+		BlockExplorersResponse
 	] = await Promise.all([
 		fetchProtocolOverviewMetrics(slug(currentProtocolMetadata.displayName)).then(
 			async (data): Promise<IProtocolDataExtended | null> => {
@@ -376,21 +386,40 @@ export const getProtocolOverviewPageData = async ({
 					.then((data) => data?.supplyMetrics?.adjustedSupply ?? null)
 					.catch(() => null)
 			: null,
-		currentProtocolMetadata.activeUsers && protocolId
-			? fetchActiveAddresses()
-					.then((data) => data?.[protocolId] ?? null)
-					.then((data: IActiveAddressMetrics | null): IProtocolOnchainMetrics | null => {
-						return data?.users?.value || data?.newUsers?.value || data?.txs?.value || data?.gasUsd?.value
-							? {
-									activeUsers: data.users?.value ?? null,
-									newUsers: data.newUsers?.value ?? null,
-									transactions: data.txs?.value ? Number(data.txs.value) : null,
-									gasUsd: data.gasUsd?.value ?? null
-								}
-							: null
-					})
+		currentProtocolMetadata.activeUsers
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'active-users'
+				})
+					.then((data) => data?.total24h ?? null)
 					.catch(() => null)
-			: null,
+			: Promise.resolve(null),
+		currentProtocolMetadata.newUsers
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'new-users'
+				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.txCount
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'active-users',
+					dataType: 'dailyTransactionsCount'
+				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
+		currentProtocolMetadata.gasUsed
+			? fetchAdapterProtocolMetrics({
+					protocol: currentProtocolMetadata.displayName,
+					adapterType: 'active-users',
+					dataType: 'dailyGasUsed'
+				})
+					.then((data) => data?.total24h ?? null)
+					.catch(() => null)
+			: Promise.resolve(null),
 		currentProtocolMetadata.expenses && protocolId
 			? fetchProtocolExpenses()
 					.then((data) => data.find((item) => item.protocolId === protocolId) ?? null)
@@ -451,7 +480,8 @@ export const getProtocolOverviewPageData = async ({
 						return hasTvs ? tvs : null
 					})
 					.catch(() => null)
-			: null
+			: null,
+		fetchBlockExplorers().catch((): BlockExplorersResponse => [])
 	])
 
 	if (!protocolData) {
@@ -670,7 +700,11 @@ export const getProtocolOverviewPageData = async ({
 		hasTreasury: Boolean(treasury),
 		hasMedianApy: Boolean(yields && !protocolData.isParentProtocol),
 		hasGovernance: Boolean(protocolData.governanceID),
-		hasNfts: Boolean(currentProtocolMetadata.nfts)
+		hasNfts: Boolean(currentProtocolMetadata.nfts),
+		hasActiveAddresses: protocolMetrics.activeUsers,
+		hasNewAddresses: protocolMetrics.newUsers,
+		hasTransactions: protocolMetrics.txCount,
+		hasGasUsed: protocolMetrics.gasUsed
 	})
 
 	const chartColors: Record<string, string> = {}
@@ -744,6 +778,36 @@ export const getProtocolOverviewPageData = async ({
 				.catch(() => null),
 		Borrowed: () =>
 			fetchProtocolTvlChart({ protocol: protocolSlug, key: 'borrowed' })
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		'Active Addresses': () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: currentProtocolMetadata.displayName ?? ''
+			})
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		'New Addresses': () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'new-users',
+				protocol: currentProtocolMetadata.displayName ?? ''
+			})
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		Transactions: () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: currentProtocolMetadata.displayName ?? '',
+				dataType: 'dailyTransactionsCount'
+			})
+				.then((data) => normalizeChartPointsToMs(data))
+				.catch(() => null),
+		'Gas Used': () =>
+			fetchAdapterProtocolChartData({
+				adapterType: 'active-users',
+				protocol: currentProtocolMetadata.displayName ?? '',
+				dataType: 'dailyGasUsed'
+			})
 				.then((data) => normalizeChartPointsToMs(data))
 				.catch(() => null)
 	}
@@ -853,7 +917,12 @@ export const getProtocolOverviewPageData = async ({
 					: (protocolData.tokenCGData?.symbol ?? null),
 			gecko_id: protocolData.gecko_id ?? null,
 			gecko_url: protocolData.gecko_id ? `https://www.coingecko.com/en/coins/${protocolData.gecko_id}` : null,
-			explorer_url: getProtocolTokenUrlOnExplorer(protocolData.address ?? undefined)
+			explorer_url:
+				getBlockExplorerNew({
+					apiResponse: blockExplorersData,
+					address: protocolData.address ?? '',
+					urlType: 'token'
+				})?.url ?? null
 		},
 		metrics: protocolMetrics,
 		fees: feesData,
@@ -876,7 +945,12 @@ export const getProtocolOverviewPageData = async ({
 		yields,
 		articles,
 		incentives,
-		users,
+		users: {
+			activeUsers: activeUsers ?? null,
+			newUsers: newUsers ?? null,
+			transactions: transactions ?? null,
+			gasUsd: gasUsd ?? null
+		},
 		raises: raises?.length ? raises : null,
 		expenses: expenses
 			? {

@@ -52,6 +52,8 @@ interface ConversationViewProps {
 	researchUsage?: ResearchUsage | null
 	animateActiveExchange: boolean
 	onOpenAlerts: () => void
+	quotedText?: string | null
+	onClearQuotedText?: () => void
 }
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
@@ -209,7 +211,9 @@ export function ConversationView({
 	setIsResearchMode,
 	researchUsage,
 	animateActiveExchange,
-	onOpenAlerts
+	onOpenAlerts,
+	quotedText,
+	onClearQuotedText
 }: ConversationViewProps) {
 	// Keep the newest user prompt in the same block as the live response/status UI
 	// so the viewport-sized spacer applies to the whole active exchange.
@@ -346,6 +350,8 @@ export function ConversationView({
 						setIsResearchMode={setIsResearchMode}
 						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
+						quotedText={quotedText}
+						onClearQuotedText={onClearQuotedText}
 					/>
 				</div>
 			) : null}

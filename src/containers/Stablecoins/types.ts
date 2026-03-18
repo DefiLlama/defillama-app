@@ -66,6 +66,8 @@ export interface PeggedAssetPageProps {
 	unreleased: number | null
 	mcap: number | null
 	bridgeInfo: StablecoinBridgeInfoResponse
+	blockExplorerUrl: string | null
+	blockExplorerName: string | null
 }
 
 export interface PeggedChainMcapSummary {

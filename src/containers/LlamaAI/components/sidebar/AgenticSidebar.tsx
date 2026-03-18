@@ -1,11 +1,25 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type CSSProperties, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import {
+	type CSSProperties,
+	lazy,
+	memo,
+	Suspense,
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useMemo,
+	useRef,
+	useState
+} from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { AgenticSessionItem } from '~/containers/LlamaAI/components/sidebar/AgenticSessionItem'
 import type { ChatSession } from '~/containers/LlamaAI/types'
+import { useAiBalance } from '~/containers/Subscribtion/useTopup'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
+
+const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
 
 interface AgenticSidebarProps {
 	sessions: ChatSession[]
@@ -23,6 +37,7 @@ interface AgenticSidebarProps {
 	shouldAnimate?: boolean
 	onOpenSettings?: () => void
 	hasCustomInstructions?: boolean
+	onBulkDelete?: (sessionIds: string[]) => Promise<void>
 }
 
 function getGroupName(lastActivity: string, now: number) {
@@ -42,7 +57,7 @@ type VirtualItem =
 	| { type: 'header'; groupName: string; isFirst: boolean }
 	| { type: 'session'; session: ChatSession; groupName: string }
 
-function VirtualizedSidebarItem({
+const VirtualizedSidebarItem = memo(function VirtualizedSidebarItem({
 	item,
 	itemStyle,
 	currentSessionId,
@@ -52,7 +67,10 @@ function VirtualizedSidebarItem({
 	onSessionSelect,
 	onDelete,
 	onUpdateTitle,
-	handleSidebarToggle
+	handleSidebarToggle,
+	selectMode,
+	isSelected,
+	onToggleSelect
 }: {
 	item: VirtualItem
 	itemStyle: CSSProperties
@@ -64,6 +82,9 @@ function VirtualizedSidebarItem({
 	onDelete: (sessionId: string) => Promise<void>
 	onUpdateTitle: (args: { sessionId: string; title: string }) => Promise<void>
 	handleSidebarToggle: () => void
+	selectMode: boolean
+	isSelected: boolean
+	onToggleSelect: (sessionId: string) => void
 }) {
 	if (item.type === 'header') {
 		return (
@@ -87,9 +108,12 @@ function VirtualizedSidebarItem({
 			isUpdatingTitle={updatingTitleSessionId === item.session.sessionId}
 			handleSidebarToggle={handleSidebarToggle}
 			style={itemStyle}
+			selectMode={selectMode}
+			isSelected={isSelected}
+			onToggleSelect={onToggleSelect}
 		/>
 	)
-}
+})
 
 export function AgenticSidebar({
 	sessions,
@@ -106,12 +130,47 @@ export function AgenticSidebar({
 	isUpdatingTitle: _isUpdatingTitle,
 	shouldAnimate = false,
 	onOpenSettings,
-	hasCustomInstructions
+	hasCustomInstructions,
+	onBulkDelete
 }: AgenticSidebarProps) {
 	const sidebarRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
 	const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 	const [updatingTitleSessionId, setUpdatingTitleSessionId] = useState<string | null>(null)
+	const [selectMode, setSelectMode] = useState(false)
+	const [selectedSessionIds, setSelectedSessionIds] = useState<Set<string>>(new Set())
+	const { balance, totalAvailable } = useAiBalance()
+	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
+
+	const toggleSelect = useCallback((sessionId: string) => {
+		setSelectedSessionIds((prev) => {
+			const next = new Set(prev)
+			if (next.has(sessionId)) {
+				next.delete(sessionId)
+			} else {
+				next.add(sessionId)
+			}
+			return next
+		})
+	}, [])
+
+	const handleBulkDelete = useCallback(async () => {
+		if (selectedSessionIds.size === 0 || !onBulkDelete) return
+		const count = selectedSessionIds.size
+		if (!window.confirm(`Delete ${count} session${count > 1 ? 's' : ''}?`)) return
+		try {
+			await onBulkDelete([...selectedSessionIds])
+			setSelectMode(false)
+			setSelectedSessionIds(new Set())
+		} catch {
+			// rollback handled by mutation
+		}
+	}, [selectedSessionIds, onBulkDelete])
+
+	const exitSelectMode = useCallback(() => {
+		setSelectMode(false)
+		setSelectedSessionIds(new Set())
+	}, [])
 
 	const handleDelete = useCallback(
 		(sessionId: string) => {
@@ -193,14 +252,31 @@ export function AgenticSidebar({
 			className={`relative flex h-full w-full max-w-[272px] flex-col rounded-lg border border-[#e6e6e6] bg-(--cards-bg) max-lg:absolute max-lg:top-0 max-lg:right-0 max-lg:bottom-0 max-lg:left-0 max-lg:z-10 lg:mr-2 dark:border-[#222324] ${shouldAnimate ? 'animate-[slideInRight_0.08s_ease-out]' : ''}`}
 		>
 			<header className="flex flex-col gap-2 p-4">
-				<Tooltip
-					content="Close Chat History"
-					render={<button onClick={handleSidebarToggle} />}
-					className="ml-auto flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
-				>
-					<Icon name="panel-left-close" height={16} width={16} />
-					<span className="sr-only">Close Chat History</span>
-				</Tooltip>
+				<div className="flex items-center justify-between">
+					{sessions.length > 0 ? (
+						<button
+							onClick={selectMode ? exitSelectMode : () => setSelectMode(true)}
+							className={`flex h-6 items-center gap-1 rounded-sm px-1.5 text-[11px] transition-colors ${
+								selectMode
+									? 'bg-(--old-blue)/12 text-(--old-blue)'
+									: 'text-[#666] hover:text-[#333] dark:text-[#919296] dark:hover:text-white'
+							}`}
+						>
+							<Icon name={selectMode ? 'x' : 'check'} height={12} width={12} />
+							{selectMode ? 'Cancel' : 'Select'}
+						</button>
+					) : (
+						<div />
+					)}
+					<Tooltip
+						content="Close Chat History"
+						render={<button onClick={handleSidebarToggle} />}
+						className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+					>
+						<Icon name="panel-left-close" height={16} width={16} />
+						<span className="sr-only">Close Chat History</span>
+					</Tooltip>
+				</div>
 
 				<button
 					onClick={() => {
@@ -267,6 +343,9 @@ export function AgenticSidebar({
 									onDelete={handleDelete}
 									onUpdateTitle={handleUpdateTitle}
 									handleSidebarToggle={handleSidebarToggle}
+									selectMode={selectMode}
+									isSelected={item.type === 'session' && selectedSessionIds.has(item.session.sessionId)}
+									onToggleSelect={toggleSelect}
 								/>
 							)
 						})}
@@ -274,7 +353,54 @@ export function AgenticSidebar({
 				)}
 			</nav>
 
-			{onOpenSettings ? (
+			{balance ? (
+				<div className="border-t border-[#e6e6e6] px-3 py-2.5 dark:border-[#222324]">
+					<button
+						onClick={() => setIsTopupModalOpen(true)}
+						className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#222324]"
+					>
+						<div className="flex items-center gap-2">
+							<Icon name="package" height={14} width={14} className="text-[#5C5CF9]" />
+							<span className="text-xs text-[#666] dark:text-[#919296]">LlamaAI Balance</span>
+						</div>
+						<span
+							className={`font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
+						>
+							${totalAvailable.toFixed(2)}
+						</span>
+					</button>
+				</div>
+			) : null}
+
+			{isTopupModalOpen ? (
+				<Suspense fallback={<></>}>
+					<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+				</Suspense>
+			) : null}
+
+			{selectMode ? (
+				<footer className="flex items-center gap-2 border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
+					<button
+						onClick={() => {
+							if (selectedSessionIds.size === sessions.length) {
+								setSelectedSessionIds(new Set())
+							} else {
+								setSelectedSessionIds(new Set(sessions.map((s) => s.sessionId)))
+							}
+						}}
+						className="flex-1 rounded-md px-2 py-1.5 text-xs text-[#666] transition-colors hover:bg-[#f0f0f0] dark:text-[#919296] dark:hover:bg-[#222324]"
+					>
+						{selectedSessionIds.size === sessions.length ? 'Deselect All' : 'Select All'}
+					</button>
+					<button
+						onClick={() => void handleBulkDelete()}
+						disabled={selectedSessionIds.size === 0 || !onBulkDelete}
+						className="rounded-md bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-500/20 disabled:opacity-40 dark:text-red-400"
+					>
+						Delete{selectedSessionIds.size > 0 ? ` (${selectedSessionIds.size})` : ''}
+					</button>
+				</footer>
+			) : onOpenSettings ? (
 				<footer className="border-t border-[#e6e6e6] p-3 dark:border-[#222324]">
 					<button
 						onClick={onOpenSettings}

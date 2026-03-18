@@ -25,6 +25,8 @@ interface ChatLandingProps {
 	setIsResearchMode: Dispatch<SetStateAction<boolean>>
 	researchUsage?: ResearchUsage | null
 	onOpenAlerts: () => void
+	quotedText?: string | null
+	onClearQuotedText?: () => void
 }
 
 export function ChatLanding({
@@ -37,7 +39,9 @@ export function ChatLanding({
 	isResearchMode,
 	setIsResearchMode,
 	researchUsage,
-	onOpenAlerts
+	onOpenAlerts,
+	quotedText,
+	onClearQuotedText
 }: ChatLandingProps) {
 	const [activeKey, setActiveKey] = useState<string | null>(null)
 	const activeCap = activeKey ? FEATURED_CAPABILITIES.find((c) => c.key === activeKey) : null
@@ -80,6 +84,8 @@ export function ChatLanding({
 						researchUsage={researchUsage}
 						onOpenAlerts={onOpenAlerts}
 						onExploreOpen={() => setActiveKey(null)}
+						quotedText={quotedText}
+						onClearQuotedText={onClearQuotedText}
 					/>
 					<div className="flex flex-wrap justify-center gap-2 pt-1">
 						{FEATURED_CAPABILITIES.map((cap) => (

@@ -385,7 +385,7 @@ export default function LlamaAIGetStarted({ landingQuestions }: { landingQuestio
 	return (
 		<>
 			<SEO
-				title="LlamaAI - DefiLlama"
+				title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 				description="AI-powered research across DeFi, TradFi, and onchain data. Parallel agents, scheduled alerts, custom memory, and DefiLlama's full dataset through natural conversation."
 				canonicalUrl="/ai"
 			/>
