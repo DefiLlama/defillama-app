@@ -707,11 +707,11 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				</SectionCard>
 			) : null}
 
-			{asset.nativeYieldPoolId || (asset.yieldPools && asset.yieldPools.length > 0) ? (
+			{(asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset)) || (asset.yieldPools && asset.yieldPools.length > 0) ? (
 				<div
-					className={`grid gap-2 ${asset.nativeYieldPoolId && asset.yieldPools && asset.yieldPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
+					className={`grid gap-2 ${(isLoadingYieldChart || nativeYieldDataset) && asset.yieldPools && asset.yieldPools.length > 0 ? 'lg:grid-cols-2' : ''}`}
 				>
-					{asset.nativeYieldPoolId ? (
+					{asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset) ? (
 						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
 							<div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 pb-2">
@@ -725,31 +725,20 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										</span>
 									) : null}
 								</div>
-								{bestDefiApy != null ? (
-									<div className="mb-1 flex flex-col items-end gap-0.5">
-										<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
-											Best DeFi
-										</span>
-										<span className="font-jetbrains text-lg font-semibold">
-											{bestDefiApy.toFixed(2)}%
-										</span>
-									</div>
-								) : (
-									<span className="mb-1 text-xs text-(--text-disabled)">
-										Historical APY from {asset.issuer ?? 'issuer'}
-									</span>
-								)}
+								<span className="mb-1 text-xs text-(--text-disabled)">
+									Historical APY from {asset.issuer ?? 'issuer'}
+								</span>
 							</div>
 							<div className="flex-1">
 								{isLoadingYieldChart ? (
 									<div className="flex h-full min-h-[200px] items-center justify-center text-(--text-disabled)">
 										Loading chart...
 									</div>
-								) : nativeYieldDataset ? (
+								) : (
 									<Suspense fallback={<div className="min-h-[200px]" />}>
 										<MultiSeriesChart2
 											charts={NATIVE_YIELD_CHARTS}
-											dataset={nativeYieldDataset}
+											dataset={nativeYieldDataset!}
 											valueSymbol="%"
 											hideDefaultLegend={false}
 											exportButtons={{
@@ -760,10 +749,6 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 											}}
 										/>
 									</Suspense>
-								) : (
-									<div className="flex h-full min-h-[80px] items-center justify-center text-(--text-disabled)">
-										No historical yield data available
-									</div>
 								)}
 							</div>
 						</div>

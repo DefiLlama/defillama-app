@@ -969,11 +969,25 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 				// the first word of the asset's issuer name (e.g. "Ondo Finance" → "ondo" matches "ondo-yield-assets").
 				const issuerProjectSlugs = new Set(projectSlugs)
 				if (issuerProjectSlugs.size === 0 && data.issuer) {
-					const issuerPrefix = data.issuer.trim().split(/\s+/)[0].toLowerCase()
-					if (issuerPrefix.length >= 3) {
-						for (const pool of matchedPools) {
-							if (pool.project.toLowerCase().startsWith(issuerPrefix)) {
+					// Extract candidate prefixes from the issuer name:
+					// - First word (e.g. "Ondo Finance" → "ondo")
+					// - Parenthesized content (e.g. "Permian Labs (USD.AI)" → "usdai")
+					const issuerLower = data.issuer.trim().toLowerCase()
+					const candidates: string[] = []
+					const firstWord = issuerLower.split(/\s+/)[0]
+					if (firstWord.length >= 3) candidates.push(firstWord)
+					const parenMatch = issuerLower.match(/\(([^)]+)\)/)
+					if (parenMatch) {
+						const normalized = parenMatch[1].replace(/[^a-z0-9]/g, '')
+						if (normalized.length >= 3) candidates.push(normalized)
+					}
+
+					for (const pool of matchedPools) {
+						const slugNormalized = pool.project.toLowerCase().replace(/[^a-z0-9]/g, '')
+						for (const candidate of candidates) {
+							if (slugNormalized.startsWith(candidate) || candidate.startsWith(slugNormalized)) {
 								issuerProjectSlugs.add(pool.project)
+								break
 							}
 						}
 					}
