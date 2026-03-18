@@ -87,7 +87,7 @@ export default function SharedConversationPage() {
 	if (isLoading || !router.isReady) {
 		return (
 			<Layout
-				title="LlamaAI - DefiLlama"
+				title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
@@ -115,7 +115,7 @@ export default function SharedConversationPage() {
 
 	return (
 		<Layout
-			title="LlamaAI - DefiLlama"
+			title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 		>
 			<AgenticChat sharedSession={session as any} readOnly />

@@ -36,6 +36,7 @@ const tabs = {
 } as const
 
 const standaloneCanonicals: Partial<Record<keyof typeof tabs, string>> = {
+	information: '/protocol',
 	unlocks: '/unlocks',
 	governance: '/governance',
 	forks: '/forks'
