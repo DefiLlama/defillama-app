@@ -399,7 +399,11 @@ export default function YieldPoolPage(props) {
 	const strat = typeof query.strat === 'string' ? query.strat : Array.isArray(query.strat) ? query.strat[0] : undefined
 
 	return (
-		<Layout title={strat ? `Strategy: ${strat} - DefiLlama Yield` : ''}>
+		<Layout
+			title={strat ? `Strategy: ${strat} - DefiLlama Yield` : ''}
+			description={`Explore lend-borrow-farm strategies for ${strat} across all tracked pools on DefiLlama. Calculates total Strategy APY from individual yield components at each step.`}
+			canonicalUrl={`/yields/strategy/${strat}`}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

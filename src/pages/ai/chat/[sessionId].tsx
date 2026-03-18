@@ -25,6 +25,8 @@ export default function SessionPage() {
 			<Layout
 				title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+				canonicalUrl={null}
+				noIndex={true}
 			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
@@ -41,6 +43,8 @@ export default function SessionPage() {
 			<Layout
 				title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+				canonicalUrl={null}
+				noIndex={true}
 			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
@@ -70,6 +74,8 @@ export default function SessionPage() {
 		<Layout
 			title="AI Crypto Analysis - DeFi & TradFi Data - LlamaAI"
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+			canonicalUrl={null}
+			noIndex={true}
 		>
 			<AgenticChat initialSessionId={resolvedSessionId} key={`session-${resolvedSessionId}`} />
 		</Layout>

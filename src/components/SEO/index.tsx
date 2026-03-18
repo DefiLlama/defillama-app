@@ -133,16 +133,18 @@ export const LinkPreviewCard = ({
 
 export interface ISEOProps {
 	title: string
-	description?: string
-	canonicalUrl?: string
+	description: string | null | undefined
+	canonicalUrl: string | null | undefined
+	noIndex?: boolean
 }
 
-export function SEO({ title, description, canonicalUrl }: ISEOProps) {
+export function SEO({ title, description, canonicalUrl, noIndex }: ISEOProps) {
 	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
 	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>
-			{canonicalUrl != null ? <link rel="canonical" href={url} /> : <meta name="robots" content="noindex" />}
+			{canonicalUrl != null ? <link rel="canonical" href={url} /> : null}
+			{noIndex ? <meta name="robots" content="noindex" /> : null}
 			<title>{title}</title>
 			{description ? <meta name="description" content={description} /> : null}
 			<meta property="og:title" content={title} />
