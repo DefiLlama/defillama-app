@@ -29,7 +29,7 @@ export function CapabilityBrowser({
 	const popoverRef = useRef<HTMLDivElement>(null)
 
 	const activeCategory = selectedCategoryKey
-		? CAPABILITIES.find((c) => c.key === selectedCategoryKey) ?? CAPABILITIES[0]
+		? (CAPABILITIES.find((c) => c.key === selectedCategoryKey) ?? CAPABILITIES[0])
 		: CAPABILITIES[0]
 
 	useEffect(() => {
@@ -89,7 +89,7 @@ export function CapabilityBrowser({
 			ref={popoverRef}
 			data-enter={hasEntered ? '' : undefined}
 			data-leave={isLeaving ? '' : undefined}
-			className={`capability-panel absolute left-0 z-50 flex w-[600px] overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-2xl dark:border-[#2a2a2e] dark:bg-[#18181b] ${directionClasses}`}
+			className={`absolute left-0 z-50 flex w-[600px] capability-panel overflow-hidden rounded-xl border border-black/[0.08] bg-white shadow-2xl dark:border-[#2a2a2e] dark:bg-[#18181b] ${directionClasses}`}
 			style={{ maxHeight: 'min(420px, 50vh)' }}
 		>
 			{/* Sidebar */}
@@ -109,10 +109,15 @@ export function CapabilityBrowser({
 									: 'text-[#555] hover:bg-black/[0.04] hover:text-[#222] dark:text-[#9a9a9a] dark:hover:bg-white/[0.04] dark:hover:text-[#ccc]'
 							}`}
 						>
-							<Icon name={cap.icon} height={13} width={13} className={`shrink-0 ${isActive ? 'opacity-90' : 'opacity-60'}`} />
+							<Icon
+								name={cap.icon}
+								height={13}
+								width={13}
+								className={`shrink-0 ${isActive ? 'opacity-90' : 'opacity-60'}`}
+							/>
 							<span className="truncate">{cap.name}</span>
 							{cap.badge ? (
-								<span className="ml-auto shrink-0 rounded-sm bg-[#2563eb]/12 px-1.5 py-px text-[9px] font-bold leading-normal tracking-wide text-[#2563eb] dark:bg-[#60a5fa]/15 dark:text-[#7db8ff]">
+								<span className="ml-auto shrink-0 rounded-sm bg-[#2563eb]/12 px-1.5 py-px text-[9px] leading-normal font-bold tracking-wide text-[#2563eb] dark:bg-[#60a5fa]/15 dark:text-[#7db8ff]">
 									{cap.badge}
 								</span>
 							) : null}
@@ -126,18 +131,14 @@ export function CapabilityBrowser({
 				<div className="shrink-0 border-b border-black/[0.06] px-4 pt-3.5 pb-3 dark:border-[#2a2a2e]">
 					<div className="flex items-center gap-2">
 						<Icon name={activeCategory.icon} height={14} width={14} className="text-[#777] dark:text-[#888]" />
-						<h3 className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">
-							{activeCategory.name}
-						</h3>
+						<h3 className="text-[13px] font-semibold text-[#111] dark:text-[#f0f0f0]">{activeCategory.name}</h3>
 						{activeCategory.badge ? (
-							<span className="rounded-sm bg-[#2563eb]/12 px-1.5 py-px text-[9px] font-bold leading-normal tracking-wide text-[#2563eb] dark:bg-[#60a5fa]/15 dark:text-[#7db8ff]">
+							<span className="rounded-sm bg-[#2563eb]/12 px-1.5 py-px text-[9px] leading-normal font-bold tracking-wide text-[#2563eb] dark:bg-[#60a5fa]/15 dark:text-[#7db8ff]">
 								{activeCategory.badge}
 							</span>
 						) : null}
 					</div>
-					<p className="mt-1 text-[12px] leading-relaxed text-[#777] dark:text-[#888]">
-						{activeCategory.description}
-					</p>
+					<p className="mt-1 text-[12px] leading-relaxed text-[#777] dark:text-[#888]">{activeCategory.description}</p>
 				</div>
 
 				<div className="min-h-0 flex-1 overflow-y-auto">
@@ -179,7 +180,7 @@ const MobileSheet = forwardRef<
 				ref={ref}
 				data-enter={hasEntered ? '' : undefined}
 				data-leave={isLeaving ? '' : undefined}
-				className="drawer flex max-h-[75vh] flex-col rounded-t-2xl bg-white dark:bg-[#18181b]"
+				className="flex max-h-[75vh] drawer flex-col rounded-t-2xl bg-white dark:bg-[#18181b]"
 				onClick={(e) => e.stopPropagation()}
 			>
 				{/* Drag handle */}
@@ -188,7 +189,7 @@ const MobileSheet = forwardRef<
 				</div>
 
 				{/* Category tabs */}
-				<div className="flex gap-1.5 overflow-x-auto px-3 pb-2.5 scrollbar-none">
+				<div className="scrollbar-none flex gap-1.5 overflow-x-auto px-3 pb-2.5">
 					{CAPABILITIES.map((cap) => {
 						const isActive = activeCategory.key === cap.key
 						return (
@@ -206,7 +207,7 @@ const MobileSheet = forwardRef<
 								<span>{cap.name}</span>
 								{cap.badge ? (
 									<span
-										className={`rounded-sm px-1 py-px text-[8px] font-bold leading-normal tracking-wide ${
+										className={`rounded-sm px-1 py-px text-[8px] leading-normal font-bold tracking-wide ${
 											isActive
 												? 'bg-white/20 text-white dark:bg-black/20 dark:text-[#111]'
 												: 'bg-[#2563eb]/12 text-[#2563eb] dark:bg-[#60a5fa]/15 dark:text-[#7db8ff]'

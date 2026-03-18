@@ -249,7 +249,9 @@ export function ChatMarkdownRenderer({
 	}
 
 	return (
-		<div className={`llamaai-prose prose prose-sm max-w-none overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline${hackerMode ? ' hacker-mode' : ''}`}>
+		<div
+			className={`llamaai-prose prose prose-sm max-w-none overflow-x-auto leading-normal dark:prose-invert prose-a:no-underline${hackerMode ? ' hacker-mode' : ''}`}
+		>
 			<ReactMarkdown
 				remarkPlugins={MARKDOWN_REMARK_PLUGINS}
 				rehypePlugins={MARKDOWN_REHYPE_PLUGINS}

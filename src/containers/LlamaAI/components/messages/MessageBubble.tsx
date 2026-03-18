@@ -348,7 +348,14 @@ function MessageContentBlock({
 	}
 
 	if (block.type === 'markdown') {
-		return <ChatMarkdownRenderer content={block.content} citations={block.citations} isStreaming={isStreaming} hackerMode={hackerMode} />
+		return (
+			<ChatMarkdownRenderer
+				content={block.content}
+				citations={block.citations}
+				isStreaming={isStreaming}
+				hackerMode={hackerMode}
+			/>
+		)
 	}
 
 	if (block.type === 'sources') {

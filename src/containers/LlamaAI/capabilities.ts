@@ -16,7 +16,8 @@ export const CAPABILITIES: Capability[] = [
 		name: 'Trade Thesis',
 		icon: 'activity',
 		badge: 'HOT',
-		description: 'Get a data-backed buy/sell verdict on any token — fundamentals, momentum, risk, and a conviction score.',
+		description:
+			'Get a data-backed buy/sell verdict on any token — fundamentals, momentum, risk, and a conviction score.',
 		prompts: [
 			'Should I buy ETH right now? Give me a full thesis with conviction score',
 			'AAVE vs Morpho — compare fundamentals, P/F ratio, revenue growth, and momentum',
@@ -49,7 +50,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'tradfi',
 		name: 'TradFi',
 		icon: 'landmark',
-		description: 'Stocks, macro, and earnings alongside crypto — compare Apple vs Bitcoin or check how CPI affects markets.',
+		description:
+			'Stocks, macro, and earnings alongside crypto — compare Apple vs Bitcoin or check how CPI affects markets.',
 		prompts: [
 			'Chart Apple stock price vs Bitcoin returns since January 2024',
 			'Pull Tesla quarterly earnings for the last 4 quarters and show the trend',
@@ -65,7 +67,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'yields',
 		name: 'Yields',
 		icon: 'percent',
-		description: 'Find the highest yields in DeFi and get a strategy — loops, LPs, delta-neutral, or just the best lending rate.',
+		description:
+			'Find the highest yields in DeFi and get a strategy — loops, LPs, delta-neutral, or just the best lending rate.',
 		prompts: [
 			'Best USDC lending rates across all protocols — only show pools with $10M+ TVL',
 			'Design a borrow-lend loop strategy for ETH on Aave with safe LTV and net APY calculation',
@@ -128,7 +131,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'research',
 		name: 'Research',
 		icon: 'sparkles',
-		description: 'Get an in-depth research report on any protocol, narrative, or market trend — powered by multiple AI agents.',
+		description:
+			'Get an in-depth research report on any protocol, narrative, or market trend — powered by multiple AI agents.',
 		prompts: [
 			'Deep dive report on Lido — competitive position, tokenomics, risks, and catalysts',
 			'Comprehensive landscape analysis of all lending protocols — market share, growth, and differentiation',
@@ -143,7 +147,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'risk',
 		name: 'Risk',
 		icon: 'alert-triangle',
-		description: 'Know before you ape — get a full risk breakdown covering smart contract, economic, oracle, and liquidity risks.',
+		description:
+			'Know before you ape — get a full risk breakdown covering smart contract, economic, oracle, and liquidity risks.',
 		prompts: [
 			'Full 5-dimension risk assessment for Aave — smart contract, economic, oracle, liquidity, centralization',
 			'Compare risk profiles of Curve vs Uniswap vs Balancer side by side',
@@ -157,7 +162,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'charts',
 		name: 'Charts',
 		icon: 'bar-chart-2',
-		description: 'Generate any chart on the fly — candlesticks with indicators, protocol comparisons, TVL trends, and more.',
+		description:
+			'Generate any chart on the fly — candlesticks with indicators, protocol comparisons, TVL trends, and more.',
 		prompts: [
 			'BTC candlestick chart with RSI and MACD indicators over 90 days',
 			'Top 15 protocols by monthly fees — horizontal bar chart',
@@ -226,7 +232,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'income_statement',
 		name: 'Income Statement',
 		icon: 'file-text',
-		description: 'See if a protocol actually makes money — full P&L with revenue, costs, earnings, and profitability rankings.',
+		description:
+			'See if a protocol actually makes money — full P&L with revenue, costs, earnings, and profitability rankings.',
 		prompts: [
 			"Show me Aave's full income statement — revenue, costs, gross profit, and token holder income",
 			'Rank the top 20 most profitable DeFi protocols by quarterly earnings',
@@ -282,7 +289,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'dat',
 		name: 'Corporate Holdings',
 		icon: 'blocks',
-		description: 'Which public companies hold Bitcoin? Track MicroStrategy, Tesla, and every institutional crypto position.',
+		description:
+			'Which public companies hold Bitcoin? Track MicroStrategy, Tesla, and every institutional crypto position.',
 		prompts: [
 			'How much Bitcoin does MicroStrategy hold? Show purchase history and average cost basis',
 			'Top 20 public companies by crypto holdings — rank by total USD value',
@@ -324,7 +332,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'cex',
 		name: 'CEX Data',
 		icon: 'bar-chart',
-		description: 'Compare centralized exchanges — trading volume, reserves, leverage, and how they stack up against DEXes.',
+		description:
+			'Compare centralized exchanges — trading volume, reserves, leverage, and how they stack up against DEXes.',
 		prompts: [
 			'Compare Binance vs Coinbase vs OKX — spot volume, derivative volume, and open interest',
 			'CEX vs DEX derivative volume over the last 6 months — is DEX market share growing?',
@@ -352,7 +361,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'user_activity',
 		name: 'User Activity',
 		icon: 'layers',
-		description: 'Are people actually using it? Daily active users, new users, transactions, and gas spend by protocol.',
+		description:
+			'Are people actually using it? Daily active users, new users, transactions, and gas spend by protocol.',
 		prompts: [
 			'Top 10 chains by daily active users — show the trend over the last 90 days',
 			'Revenue per user for the top DeFi protocols — who extracts the most value?',
@@ -366,7 +376,8 @@ export const CAPABILITIES: Capability[] = [
 		key: 'token_categories',
 		name: 'Token Categories',
 		icon: 'tag',
-		description: 'Explore 260+ token categories — meme coins, AI agents, RWA, liquid staking, and every niche in between.',
+		description:
+			'Explore 260+ token categories — meme coins, AI agents, RWA, liquid staking, and every niche in between.',
 		prompts: [
 			'Top 20 meme coins by market cap — show 7d and 30d performance',
 			'AI agent tokens ranked by market cap and 30-day returns — who is leading?',

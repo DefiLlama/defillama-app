@@ -1,7 +1,7 @@
 import { type Dispatch, type RefObject, type SetStateAction, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
+import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -53,10 +53,7 @@ export function ChatLanding({
 		})
 		setActiveKey(null)
 		if (promptInputRef.current) {
-			const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
-				window.HTMLTextAreaElement.prototype,
-				'value'
-			)?.set
+			const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set
 			nativeInputValueSetter?.call(promptInputRef.current, prompt)
 			promptInputRef.current.dispatchEvent(new Event('input', { bubbles: true }))
 			promptInputRef.current.focus()
@@ -103,10 +100,15 @@ export function ChatLanding({
 									setActiveKey(next)
 								}}
 							>
-								<Icon name={cap.icon} height={14} width={14} className={activeKey === cap.key ? 'opacity-100' : 'opacity-70'} />
+								<Icon
+									name={cap.icon}
+									height={14}
+									width={14}
+									className={activeKey === cap.key ? 'opacity-100' : 'opacity-70'}
+								/>
 								{cap.name}
 								{cap.badge ? (
-									<span className="rounded bg-[#60a5fa]/20 px-1 py-px text-[9px] font-semibold uppercase tracking-wide text-[#60a5fa]">
+									<span className="rounded bg-[#60a5fa]/20 px-1 py-px text-[9px] font-semibold tracking-wide text-[#60a5fa] uppercase">
 										{cap.badge}
 									</span>
 								) : null}
