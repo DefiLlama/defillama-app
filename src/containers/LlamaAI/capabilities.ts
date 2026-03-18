@@ -41,7 +41,7 @@ export const CAPABILITIES: Capability[] = [
 			'Search tweets mentioning EtherFi with 100+ likes in the last 7 days',
 			'Who does @0xngmi follow? Show the overlap with top DeFi accounts',
 			'Find tweets from @0xngmi with 50+ likes in the last 30 days',
-			'Get the latest tweets from @aaboronkov and show engagement stats',
+			'Get the latest tweets from @0xngmi and show engagement stats',
 			'Search for tweets about Pendle with 200+ reposts this month',
 			'Who are the most followed accounts tweeting about Hyperliquid?'
 		]
