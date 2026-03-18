@@ -154,52 +154,55 @@ describe('ProtocolOverview final page SEO', () => {
 	})
 })
 
+function setupLayoutMocks() {
+	vi.doMock('next/head', () => ({
+		default: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
+	}))
+	vi.doMock('@ariakit/react', () => ({
+		MenuProvider: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+		MenuButton: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children),
+		MenuButtonArrow: () => null,
+		Menu: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+		PopoverDismiss: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children),
+		MenuItem: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children)
+	}))
+	vi.doMock('~/components/EntityQuestionsStrip', () => ({
+		EntityQuestionsStrip: () => null
+	}))
+	vi.doMock('~/components/Icon', () => ({
+		Icon: () => null
+	}))
+	vi.doMock('~/components/Link', () => ({
+		BasicLink: ({ children, href }: { children: React.ReactNode; href: string }) =>
+			React.createElement('a', { href }, children),
+		ButtonLink: ({ children, href }: { children: React.ReactNode; href: string }) =>
+			React.createElement('a', { href }, children)
+	}))
+	vi.doMock('~/components/TokenLogo', () => ({
+		TokenLogo: () => null
+	}))
+	vi.doMock('~/layout', async () => {
+		const { SEO } = await vi.importActual<typeof import('~/components/SEO')>('~/components/SEO')
+
+		return {
+			default: ({
+				title,
+				description,
+				canonicalUrl,
+				noIndex
+			}: {
+				title: string
+				description: string | null | undefined
+				canonicalUrl: string | null | undefined
+				noIndex?: boolean
+			}) => React.createElement(SEO, { title, description, canonicalUrl, noIndex })
+		}
+	})
+}
+
 describe('ProtocolOverviewLayout SEO', () => {
 	it('keeps the information tab indexable with a canonical URL', async () => {
-		vi.doMock('next/head', () => ({
-			default: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
-		}))
-		vi.doMock('@ariakit/react', () => ({
-			MenuProvider: ({ children }: { children: React.ReactNode }) =>
-				React.createElement(React.Fragment, null, children),
-			MenuButton: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children),
-			MenuButtonArrow: () => null,
-			Menu: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
-			PopoverDismiss: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children),
-			MenuItem: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children)
-		}))
-		vi.doMock('~/components/EntityQuestionsStrip', () => ({
-			EntityQuestionsStrip: () => null
-		}))
-		vi.doMock('~/components/Icon', () => ({
-			Icon: () => null
-		}))
-		vi.doMock('~/components/Link', () => ({
-			BasicLink: ({ children, href }: { children: React.ReactNode; href: string }) =>
-				React.createElement('a', { href }, children),
-			ButtonLink: ({ children, href }: { children: React.ReactNode; href: string }) =>
-				React.createElement('a', { href }, children)
-		}))
-		vi.doMock('~/components/TokenLogo', () => ({
-			TokenLogo: () => null
-		}))
-		vi.doMock('~/layout', async () => {
-			const { SEO } = await vi.importActual<typeof import('~/components/SEO')>('~/components/SEO')
-
-			return {
-				default: ({
-					title,
-					description,
-					canonicalUrl,
-					noIndex
-				}: {
-					title: string
-					description: string | null | undefined
-					canonicalUrl: string | null | undefined
-					noIndex?: boolean
-				}) => React.createElement(SEO, { title, description, canonicalUrl, noIndex })
-			}
-		})
+		setupLayoutMocks()
 
 		const { ProtocolOverviewLayout } = await import('./Layout')
 		const markup = renderToStaticMarkup(
@@ -220,50 +223,7 @@ describe('ProtocolOverviewLayout SEO', () => {
 	})
 
 	it('marks a non-standalone tab as noindex without a canonical URL', async () => {
-		vi.doMock('next/head', () => ({
-			default: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
-		}))
-		vi.doMock('@ariakit/react', () => ({
-			MenuProvider: ({ children }: { children: React.ReactNode }) =>
-				React.createElement(React.Fragment, null, children),
-			MenuButton: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children),
-			MenuButtonArrow: () => null,
-			Menu: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
-			PopoverDismiss: ({ children }: { children: React.ReactNode }) => React.createElement('button', null, children),
-			MenuItem: ({ children }: { children: React.ReactNode }) => React.createElement('div', null, children)
-		}))
-		vi.doMock('~/components/EntityQuestionsStrip', () => ({
-			EntityQuestionsStrip: () => null
-		}))
-		vi.doMock('~/components/Icon', () => ({
-			Icon: () => null
-		}))
-		vi.doMock('~/components/Link', () => ({
-			BasicLink: ({ children, href }: { children: React.ReactNode; href: string }) =>
-				React.createElement('a', { href }, children),
-			ButtonLink: ({ children, href }: { children: React.ReactNode; href: string }) =>
-				React.createElement('a', { href }, children)
-		}))
-		vi.doMock('~/components/TokenLogo', () => ({
-			TokenLogo: () => null
-		}))
-		vi.doMock('~/layout', async () => {
-			const { SEO } = await vi.importActual<typeof import('~/components/SEO')>('~/components/SEO')
-
-			return {
-				default: ({
-					title,
-					description,
-					canonicalUrl,
-					noIndex
-				}: {
-					title: string
-					description: string | null | undefined
-					canonicalUrl: string | null | undefined
-					noIndex?: boolean
-				}) => React.createElement(SEO, { title, description, canonicalUrl, noIndex })
-			}
-		})
+		setupLayoutMocks()
 
 		const { ProtocolOverviewLayout } = await import('./Layout')
 		const markup = renderToStaticMarkup(

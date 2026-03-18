@@ -401,8 +401,12 @@ export default function YieldPoolPage(props) {
 	return (
 		<Layout
 			title={strat ? `Strategy: ${strat} - DefiLlama Yield` : ''}
-			description={`Explore lend-borrow-farm strategies for ${strat} across all tracked pools on DefiLlama. Calculates total Strategy APY from individual yield components at each step.`}
-			canonicalUrl={`/yields/strategy/${strat}`}
+			description={
+				strat
+					? `Explore lend-borrow-farm strategies for ${strat} across all tracked pools on DefiLlama. Calculates total Strategy APY from individual yield components at each step.`
+					: ''
+			}
+			canonicalUrl={strat ? `/yields/strategy/${strat}` : null}
 		>
 			<PageView {...props} />
 		</Layout>

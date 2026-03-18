@@ -41,5 +41,8 @@ jobs:
       - name: Typecheck
         run: bun run ts
 
+      - name: Typecheck test files
+        run: bun run test:types
+
       - name: Run tests
         run: bun run test

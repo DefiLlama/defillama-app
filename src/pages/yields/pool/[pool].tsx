@@ -599,8 +599,8 @@ export default function YieldPoolPage(props) {
 	return (
 		<Layout
 			title={pool ? `Yields ${pool} - DefiLlama` : ''}
-			description={`Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.`}
-			canonicalUrl={`/yields/pool/${pool}`}
+			description={pool ? `Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.` : ''}
+			canonicalUrl={pool ? `/yields/pool/${pool}` : null}
 		>
 			<PageView {...props} />
 		</Layout>
