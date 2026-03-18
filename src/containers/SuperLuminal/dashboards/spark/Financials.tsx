@@ -1,5 +1,6 @@
-import { lazy, useMemo, useState } from 'react'
+import { lazy, useEffect, useMemo, useState } from 'react'
 import type { IBarChartProps, IChartProps, IMultiSeriesChartProps, IPieChartProps } from '~/components/ECharts/types'
+import { useContentReady } from '~/containers/SuperLuminal/index'
 import { assignColors } from './api'
 import { useFinancialsData, type AllocatedAssetsData, type AllocatedAssetsEntry } from './financialsApi'
 
@@ -21,31 +22,11 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 	)
 }
 
-function CardSkeleton({ title }: { title: string }) {
-	return (
-		<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<h3 className="mb-3 text-sm font-medium text-(--text-label)">{title}</h3>
-			<div className="flex h-[400px] items-center justify-center">
-				<div className="h-5 w-5 animate-spin rounded-full border-2 border-(--text-disabled) border-t-transparent" />
-			</div>
-		</div>
-	)
-}
-
 function KpiCard({ label, value }: { label: string; value: string }) {
 	return (
 		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
 			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
 			<span className="text-2xl font-semibold text-(--text-primary)">{value}</span>
-		</div>
-	)
-}
-
-function KpiSkeleton({ label }: { label: string }) {
-	return (
-		<div className="flex flex-col gap-1 rounded-lg border border-(--cards-border) bg-(--cards-bg) p-4">
-			<span className="text-xs font-medium tracking-wide text-(--text-label)">{label}</span>
-			<div className="h-8 w-24 animate-pulse rounded bg-(--text-disabled) opacity-20" />
 		</div>
 	)
 }
@@ -235,40 +216,16 @@ function AllocatedAssetsSection({
 
 export default function Financials() {
 	const { data, isLoading } = useFinancialsData()
+	const onContentReady = useContentReady()
+
+	useEffect(() => {
+		if (data && !isLoading) {
+			onContentReady()
+		}
+	}, [data, isLoading, onContentReady])
 
 	if (isLoading || !data) {
-		return (
-			<div className="flex flex-col gap-6">
-				<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-					{['Gross Returns', 'Total Projected Annual Revenue', 'Projected Yearly OpEx', 'Projected Yearly Surplus'].map(
-						(label) => (
-							<KpiSkeleton key={label} label={label} />
-						)
-					)}
-				</div>
-				<CardSkeleton title="Projected Yearly Net Returns Breakdown" />
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<CardSkeleton title="Gross Returns" />
-					<CardSkeleton title="Net Returns" />
-				</div>
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<CardSkeleton title="sUSDS Total Supply" />
-					<CardSkeleton title="sUSDS Supply by Chain" />
-				</div>
-				<CardSkeleton title="SLL Allocated Assets" />
-				<CardSkeleton title="Total TVL" />
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<CardSkeleton title="SparkLend Deposits" />
-					<CardSkeleton title="SparkLend Borrows" />
-				</div>
-				<CardSkeleton title="SLL TVL by Chain" />
-				<CardSkeleton title="Spark Savings TVL by Chain" />
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-					<CardSkeleton title="Treasury" />
-					<CardSkeleton title="SPK Buybacks" />
-				</div>
-			</div>
-		)
+		return null
 	}
 
 	return (
