@@ -25,7 +25,7 @@ export function Logo({ animate = false, size = 'default' }: { animate?: boolean;
 						: 'rounded-full border border-(--sl-accent)/40 px-3 py-1 text-[9px] font-semibold tracking-[0.15em] text-(--sl-accent)/60 uppercase'
 				}
 			>
-				{sm ? 'IR' : 'Investor Relationships'}
+				{sm ? 'IR' : 'Investor Relations'}
 			</span>
 		</div>
 	)
