@@ -1,5 +1,5 @@
 import * as Ariakit from '@ariakit/react'
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { useMedia } from '~/hooks/useMedia'
@@ -54,6 +54,12 @@ function BrowserContent({ onPromptSelect }: { onPromptSelect: (prompt: string, c
 		if (hoverTimerRef.current) {
 			clearTimeout(hoverTimerRef.current)
 			hoverTimerRef.current = null
+		}
+	}, [])
+
+	useEffect(() => {
+		return () => {
+			if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current)
 		}
 	}, [])
 

@@ -268,7 +268,7 @@ export const CAPABILITIES: Capability[] = [
 			'Which crypto price target markets have the highest conviction (>80% yes)?',
 			'Find close/uncertain crypto bets (40-60% odds) — where is the market undecided?',
 			'Compare Polymarket odds vs Monte Carlo probability for BTC price targets',
-			'What prediction markets exist for Solana, Ethereum ETF, or Bitcoin halvening effects?'
+			'What prediction markets exist for Solana, Ethereum ETF, or Bitcoin halving effects?'
 		]
 	},
 	{

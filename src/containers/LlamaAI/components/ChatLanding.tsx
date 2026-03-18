@@ -104,6 +104,7 @@ const Capability = ({
 	getAnchorRect: () => { x: number; y: number; width: number; height: number } | null
 }) => {
 	const isMobile = useMedia('(max-width: 640px)')
+	const popoverStore = Ariakit.usePopoverStore()
 
 	const handlePromptClick = (prompt: string) => {
 		trackUmamiEvent('llamaai-landing-prompt-click', {
@@ -111,16 +112,19 @@ const Capability = ({
 			prompt: prompt.slice(0, 100)
 		})
 
-		if (promptInputRef.current) {
+		popoverStore.hide()
+
+		const textarea = promptInputRef.current
+		if (textarea) {
 			const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set
-			nativeInputValueSetter?.call(promptInputRef.current, prompt)
-			promptInputRef.current.dispatchEvent(new Event('input', { bubbles: true }))
-			promptInputRef.current.focus()
+			nativeInputValueSetter?.call(textarea, prompt)
+			textarea.dispatchEvent(new Event('input', { bubbles: true }))
+			requestAnimationFrame(() => textarea.focus())
 		}
 	}
 
 	return (
-		<Ariakit.PopoverProvider>
+		<Ariakit.PopoverProvider store={popoverStore}>
 			<Ariakit.PopoverDisclosure
 				onClick={() => trackUmamiEvent('llamaai-landing-capability-click', { category: cap.key })}
 				className="flex items-center gap-1.5 rounded-lg border border-[#d7deea] bg-white px-3 py-1.5 text-[13px] font-[450] text-[#7b8597] duration-150 hover:border-[#c5cbd6] hover:bg-[#f4f5f7] hover:text-[#4b5563] aria-expanded:border-[#2563eb]/30 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] dark:border-white/7 dark:bg-white/3 dark:text-[#a1a1aa] dark:hover:border-white/12 dark:hover:bg-white/6 dark:hover:text-[#e4e4e7] dark:aria-expanded:border-[#60a5fa]/25 dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]"

@@ -91,7 +91,7 @@ export function useImageUpload({
 				const sizeRejected = rejected.filter((r) => r.type === 'size')
 				const formatRejected = rejected.filter((r) => r.type === 'format')
 				if (sizeRejected.length > 0) {
-					const maxMB = Math.round((maxSizeBytes ?? FILE_MAX_SIZE) / (1024 * 1024))
+					const maxMB = Math.round((maxSizeBytes ?? maxSizeForType(sizeRejected[0].file.type)) / (1024 * 1024))
 					queueMicrotask(() => {
 						errorToast({
 							title: 'File too large',
@@ -106,7 +106,7 @@ export function useImageUpload({
 					queueMicrotask(() => {
 						errorToast({
 							title: 'Unsupported file type',
-							description: 'Supported formats: PNG, JPEG, GIF, WebP, PDF, CSV'
+							description: 'Supported formats: PNG, JPEG, GIF, WebP, PDF, CSV, XLS'
 						})
 					})
 				}
