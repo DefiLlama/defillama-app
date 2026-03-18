@@ -91,8 +91,8 @@ export function ChatLanding({
 								type="button"
 								className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] font-[450] transition-all duration-150 ${
 									activeKey === cap.key
-										? 'border-[#60a5fa]/30 bg-[#2563eb]/12 text-[#60a5fa]'
-										: 'border-white/7 bg-white/3 text-[#a1a1aa] hover:border-white/12 hover:bg-white/6 hover:text-[#e4e4e7]'
+										? 'border-[#93c5fd] bg-[#dbeafe] text-[#3b82f6] shadow-[0_1px_0_rgba(255,255,255,0.7)_inset] dark:border-[#60a5fa]/30 dark:bg-[#2563eb]/12 dark:text-[#60a5fa] dark:shadow-none'
+										: 'border-[#d7deea] bg-white text-[#7b8597] hover:border-[#bfd5ff] hover:bg-[#f3f8ff] hover:text-[#4b6ea8] dark:border-white/7 dark:bg-white/3 dark:text-[#a1a1aa] dark:hover:border-white/12 dark:hover:bg-white/6 dark:hover:text-[#e4e4e7]'
 								}`}
 								onClick={() => {
 									const next = activeKey === cap.key ? null : cap.key
@@ -104,11 +104,11 @@ export function ChatLanding({
 									name={cap.icon}
 									height={14}
 									width={14}
-									className={activeKey === cap.key ? 'opacity-100' : 'opacity-70'}
+									className={activeKey === cap.key ? 'opacity-100' : 'opacity-75 dark:opacity-70'}
 								/>
 								{cap.name}
 								{cap.badge ? (
-									<span className="rounded bg-[#60a5fa]/20 px-1 py-px text-[9px] font-semibold tracking-wide text-[#60a5fa] uppercase">
+									<span className="rounded bg-[#bfdbfe] px-1 py-px text-[9px] font-semibold tracking-wide text-[#3b82f6] uppercase dark:bg-[#60a5fa]/20 dark:text-[#60a5fa]">
 										{cap.badge}
 									</span>
 								) : null}
@@ -117,13 +117,13 @@ export function ChatLanding({
 					</div>
 
 					{activeCap ? (
-						<div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-xl border border-white/7 bg-white/2">
-							<div className="flex shrink-0 items-center gap-2 border-b border-white/6 px-4 py-2.5">
+						<div className="mx-auto flex min-h-0 w-full max-w-xl flex-1 flex-col overflow-hidden rounded-xl border border-[#dbe3ef] bg-white shadow-[0_12px_40px_rgba(148,163,184,0.12)] dark:border-white/7 dark:bg-white/2 dark:shadow-none">
+							<div className="flex shrink-0 items-center gap-2 border-b border-[#edf2f8] px-4 py-2.5 dark:border-white/6">
 								<Icon name={activeCap.icon} height={14} width={14} className="text-[#60a5fa]" />
-								<span className="text-[13px] font-medium text-[#e4e4e7]">{activeCap.name}</span>
+								<span className="text-[13px] font-medium text-[#5f6b7c] dark:text-[#e4e4e7]">{activeCap.name}</span>
 								<button
 									type="button"
-									className="ml-auto text-[#71717a] transition-colors hover:text-[#a1a1aa]"
+									className="ml-auto text-[#9aa4b2] transition-colors hover:text-[#4f5f73] dark:text-[#71717a] dark:hover:text-[#a1a1aa]"
 									onClick={() => setActiveKey(null)}
 								>
 									<Icon name="x" height={14} width={14} />
@@ -134,8 +134,8 @@ export function ChatLanding({
 									<button
 										key={`${activeCap.key}:${prompt}`}
 										type="button"
-										className={`group flex w-full items-center justify-between px-4 py-3 text-left text-[13.5px] text-[#a1a1aa] transition-colors hover:bg-white/3 hover:text-[#e4e4e7] ${
-											i < activeCap.prompts.length - 1 ? 'border-b border-white/4' : ''
+										className={`group flex w-full items-center justify-between px-4 py-3 text-left text-[13.5px] text-[#7a8596] transition-colors hover:bg-[#f4f8fc] hover:text-[#24364d] dark:text-[#a1a1aa] dark:hover:bg-white/3 dark:hover:text-[#e4e4e7] ${
+											i < activeCap.prompts.length - 1 ? 'border-b border-[#f1f4f8] dark:border-white/4' : ''
 										}`}
 										onClick={() => handlePromptClick(prompt)}
 									>
@@ -144,7 +144,7 @@ export function ChatLanding({
 											name="chevron-right"
 											height={14}
 											width={14}
-											className="shrink-0 opacity-0 transition-opacity group-hover:opacity-60"
+											className="shrink-0 text-[#9db4d3] opacity-0 transition-opacity group-hover:opacity-100 dark:text-current dark:opacity-0 dark:group-hover:opacity-60"
 										/>
 									</button>
 								))}
