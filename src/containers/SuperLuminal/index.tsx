@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { createContext, Suspense, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import { ChartGrid } from '~/containers/ProDashboard/components/ChartGrid'
 import { EmptyState } from '~/containers/ProDashboard/components/EmptyState'
@@ -14,6 +14,9 @@ import { SUPERLUMINAL_PROJECTS } from './config'
 import { CustomServerDataContext } from './CustomServerDataContext'
 import { Logo } from './Logo'
 import { type DashboardTabConfig, type DashboardModule, getDashboardModule } from './registry'
+
+const ContentReadyContext = createContext<() => void>(() => {})
+export const useContentReady = () => useContext(ContentReadyContext)
 
 const NOOP = () => {}
 
@@ -98,6 +101,7 @@ const DEFAULT_TABS: DashboardTabConfig[] = [{ id: 'dashboard', label: 'Overview'
 function useProjectModules(projects: typeof ALL_PROJECTS) {
 	const [tabsByProject, setTabsByProject] = useState<Record<string, DashboardTabConfig[]>>({})
 	const [headersByProject, setHeadersByProject] = useState<Record<string, DashboardModule['header']>>({})
+	const [loadingProjects, setLoadingProjects] = useState<Set<string>>(() => new Set(projects.filter((p) => p.dashboardId && !p.comingSoon).map((p) => p.id)))
 
 	useEffect(() => {
 		let cancelled = false
@@ -112,6 +116,14 @@ function useProjectModules(projects: typeof ALL_PROJECTS) {
 					if (!cancelled && mod?.header) {
 						setHeadersByProject((prev) => (prev[project.id] === mod.header ? prev : { ...prev, [project.id]: mod.header }))
 					}
+					if (!cancelled) {
+						setLoadingProjects((prev) => {
+							if (!prev.has(project.id)) return prev
+							const next = new Set(prev)
+							next.delete(project.id)
+							return next
+						})
+					}
 				})
 			}
 		}
@@ -120,7 +132,7 @@ function useProjectModules(projects: typeof ALL_PROJECTS) {
 		}
 	}, [projects])
 
-	return { tabsByProject, headersByProject }
+	return { tabsByProject, headersByProject, loadingProjects }
 }
 
 function SuperLuminalContent({
@@ -267,14 +279,22 @@ function SuperLuminalShell({
 	const [activeProject, setActiveProject] = useState(defaultProject)
 	const [expandedProject, setExpandedProject] = useState<string | null>(defaultProject)
 	const [sidebarOpen, setSidebarOpen] = useState(false)
+	const [contentReadyProjects, setContentReadyProjects] = useState<Set<string>>(new Set())
 
 	const closeSidebar = useCallback(() => setSidebarOpen(false), [])
+	const markContentReady = useCallback(() => {
+		setContentReadyProjects((prev) => {
+			if (prev.has(activeProject)) return prev
+			return new Set(prev).add(activeProject)
+		})
+	}, [activeProject])
 
 	const activeProjectConfig = visibleProjects.find((p) => p.id === activeProject)
 	const dashboardId = activeProjectConfig?.dashboardId ?? visibleProjects[0]?.dashboardId ?? ALL_PROJECTS[0].dashboardId
 	const displayName = activeProjectConfig?.name ?? 'Dashboard'
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 	const HeaderComponent = headersByProject[activeProject]
+	const showGlobalLoader = !!HeaderComponent && !contentReadyProjects.has(activeProject)
 
 	// Derive the effective tab: use activeTab if set and valid, otherwise first tab
 	const resolvedTab = activeTab && tabs.some((t) => t.id === activeTab) ? activeTab : tabs[0]?.id ?? 'dashboard'
@@ -421,25 +441,32 @@ function SuperLuminalShell({
 				</div>
 			</aside>
 
-			<div className="flex flex-1 flex-col gap-4 p-5 md:ml-56">
-				{HeaderComponent && (
-					<Suspense fallback={null}>
-						<HeaderComponent />
-					</Suspense>
+			<div className="relative flex flex-1 flex-col gap-4 p-5 md:ml-56">
+				{showGlobalLoader && (
+					<div className="fixed inset-0 z-50 flex items-center justify-center bg-(--app-bg) md:left-56">
+						<Logo animate />
+					</div>
 				)}
-				{activeProjectConfig?.comingSoon ? (
-					<ProjectComingSoon />
-				) : activeProjectConfig?.customOnly ? (
-					<CustomOnlyContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
-				) : (
-					<ProDashboardAPIProvider
-						key={dashboardId}
-						initialDashboardId={dashboardId}
-						serverData={serverDataByDashboardId?.[dashboardId]}
-					>
-						<SuperLuminalContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
-					</ProDashboardAPIProvider>
-				)}
+				<ContentReadyContext.Provider value={markContentReady}>
+					{HeaderComponent && (
+						<Suspense fallback={null}>
+							<HeaderComponent />
+						</Suspense>
+					)}
+					{activeProjectConfig?.comingSoon ? (
+						<ProjectComingSoon />
+					) : activeProjectConfig?.customOnly ? (
+						<CustomOnlyContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
+					) : (
+						<ProDashboardAPIProvider
+							key={dashboardId}
+							initialDashboardId={dashboardId}
+							serverData={serverDataByDashboardId?.[dashboardId]}
+						>
+							<SuperLuminalContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
+						</ProDashboardAPIProvider>
+					)}
+				</ContentReadyContext.Provider>
 			</div>
 		</div>
 		</CustomServerDataContext.Provider>
