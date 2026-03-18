@@ -9,6 +9,7 @@ import type {
 	IEquitiesStatementsResponse,
 	IEquitiesSummaryResponse
 } from './api.types'
+import { DEFAULT_PRICE_HISTORY_TIMEFRAME } from './constants'
 
 export const EQUITIES_COMPANIES_API = `${EQUITIES_SERVER_URL}/companies`
 export const EQUITIES_STATEMENTS_API = `${EQUITIES_SERVER_URL}/statements`
@@ -30,6 +31,7 @@ function createEquitiesUrl(
 	if (params?.timeframe) {
 		url.searchParams.set('timeframe', params.timeframe)
 	}
+	url.searchParams.set('q', '2')
 
 	return url.toString()
 }
@@ -53,7 +55,7 @@ export async function fetchEquitiesStatements(ticker: string): Promise<IEquities
  */
 export async function fetchEquitiesPriceHistory(
 	ticker: string,
-	timeframe: EquitiesPriceHistoryTimeframe = '1W'
+	timeframe: EquitiesPriceHistoryTimeframe = DEFAULT_PRICE_HISTORY_TIMEFRAME
 ): Promise<EquitiesPriceHistory> {
 	return fetchJson<EquitiesPriceHistory>(createEquitiesUrl(EQUITIES_PRICE_HISTORY_API, { ticker, timeframe }))
 }

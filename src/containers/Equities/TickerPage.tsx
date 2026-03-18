@@ -7,7 +7,15 @@ import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { fetchEquitiesPriceHistory } from './api'
-import { EQUITIES_PRICE_HISTORY_TIMEFRAMES, type EquitiesPriceHistoryTimeframe } from './api.types'
+import type { EquitiesPriceHistoryTimeframe } from './api.types'
+import {
+	DEFAULT_EQUITY_CHART_TYPE,
+	DEFAULT_PRICE_HISTORY_TIMEFRAME,
+	EQUITIES_PRICE_HISTORY_TIMEFRAMES,
+	EQUITY_CHART_QUERY_VALUES,
+	EQUITY_CHART_TYPES,
+	TABS
+} from './constants'
 import { EquitiesFilingsTable } from './FilingsTable'
 import { EquitiesFinancialsTable } from './FinancialsTable'
 import { buildPriceHistoryChart } from './queries'
@@ -22,16 +30,6 @@ import {
 } from './utils'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-const TABS = ['overview', 'financials', 'filings'] as const
-const EQUITY_CHART_TYPES = ['Price History', 'Market Cap', 'Revenue'] as const
-const DEFAULT_EQUITY_CHART_TYPE = 'Price History'
-const DEFAULT_PRICE_HISTORY_TIMEFRAME = '1W' as const
-const EQUITY_CHART_QUERY_VALUES = {
-	'Price History': 'price-history',
-	'Market Cap': 'market-cap',
-	Revenue: 'revenue'
-} as const
-
 type EquityTab = (typeof TABS)[number]
 type EquityChartType = (typeof EQUITY_CHART_TYPES)[number]
 const TAB_LABELS: Record<EquityTab, string> = {
@@ -124,11 +122,11 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 	const setActiveTab = (tab: EquityTab) => {
 		void pushShallowQuery(router, { tab: tab === 'overview' ? undefined : tab })
 	}
-	const setActiveChartType = (chartType: EquityChartType) => {
-		void pushShallowQuery(router, {
-			chart: chartType === DEFAULT_EQUITY_CHART_TYPE ? undefined : EQUITY_CHART_QUERY_VALUES[chartType]
-		})
-	}
+	// const setActiveChartType = (chartType: EquityChartType) => {
+	// 	void pushShallowQuery(router, {
+	// 		chart: chartType === DEFAULT_EQUITY_CHART_TYPE ? undefined : EQUITY_CHART_QUERY_VALUES[chartType]
+	// 	})
+	// }
 	const setActiveTimeframe = (timeframe: EquitiesPriceHistoryTimeframe) => {
 		void pushShallowQuery(router, {
 			timeframe: timeframe === DEFAULT_PRICE_HISTORY_TIMEFRAME ? undefined : timeframe
@@ -185,12 +183,12 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 					/> */}
 					<h2 className="mr-auto text-base font-semibold">{`$${props.ticker} Price History`}</h2>
 					<div className="ml-auto flex flex-wrap items-center gap-2">
-						<TagGroup
+						{/* <TagGroup
 							selectedValue={activeTimeframe}
 							setValue={setActiveTimeframe}
 							values={EQUITIES_PRICE_HISTORY_TIMEFRAMES}
 							disabledValues={disabledTimeframes}
-						/>
+						/> */}
 						<div
 							className={`flex items-center gap-2 ${isPriceHistoryChart ? '' : 'pointer-events-none opacity-50'}`}
 							aria-disabled={!isPriceHistoryChart}

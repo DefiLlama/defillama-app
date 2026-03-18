@@ -29,11 +29,9 @@ export interface IEquitiesMetadataResponse {
 	startDate?: string
 }
 
-export const EQUITIES_PRICE_HISTORY_TIMEFRAMES = ['1W', '1M', '6M', '1Y', '5Y', 'MAX'] as const
+export type EquitiesPriceHistoryTimeframe = '1W' | '1M' | '6M' | '1Y' | '5Y' | 'MAX'
 
-export type EquitiesPriceHistoryTimeframe = (typeof EQUITIES_PRICE_HISTORY_TIMEFRAMES)[number]
-
-export type EquitiesPriceHistory = Record<string, unknown> | unknown[]
+export type EquitiesPriceHistory = Array<[number, number]>
 
 export interface IEquitiesFilingApiItem {
 	filingDate: string

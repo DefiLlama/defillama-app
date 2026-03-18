@@ -17,7 +17,16 @@ function createTickerHref(ticker: string): string {
 	return `/equities/${ticker.toLowerCase()}`
 }
 
-function createEmptyPriceHistoryChart(): IEquityTickerPageProps['priceHistoryChart'] {
+export function buildPriceHistoryChart(
+	priceHistory: Awaited<ReturnType<typeof fetchEquitiesPriceHistory>>
+): IEquityTickerPageProps['priceHistoryChart'] {
+	const source = priceHistory
+		.sort((a, b) => a[0] - b[0])
+		.map((point) => ({
+			timestamp: point[0],
+			Close: point[1]
+		}))
+
 	const charts: MultiSeriesChart2SeriesConfig[] = [
 		{
 			type: 'line',
@@ -28,26 +37,11 @@ function createEmptyPriceHistoryChart(): IEquityTickerPageProps['priceHistoryCha
 
 	return {
 		dataset: {
-			source: [],
+			source,
 			dimensions: ['timestamp', 'Close']
 		},
 		charts
 	}
-}
-
-export function buildPriceHistoryChart(
-	priceHistory: Awaited<ReturnType<typeof fetchEquitiesPriceHistory>>
-): IEquityTickerPageProps['priceHistoryChart'] {
-	void priceHistory
-
-	// const source = priceHistory
-	// 	.sort((a, b) => a[0] - b[0])
-	// 	.map((point) => ({
-	// 		timestamp: point[0],
-	// 		Close: point[1]
-	// 	}))
-
-	return createEmptyPriceHistoryChart()
 }
 
 export async function getEquitiesListPageData(): Promise<IEquitiesListPageProps> {
