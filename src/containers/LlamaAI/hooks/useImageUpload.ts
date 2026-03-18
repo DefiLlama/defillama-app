@@ -19,6 +19,7 @@ const ACCEPTED_TYPES = new Set([
 const ACCEPTED_EXTENSIONS = new Set(['.pdf', '.csv'])
 const IMAGE_MAX_SIZE = 10 * 1024 * 1024
 const FILE_MAX_SIZE = 30 * 1024 * 1024
+const MAX_TOTAL_BYTES = 50 * 1024 * 1024
 
 function isImageType(type: string) {
 	return type.startsWith('image/')
@@ -138,7 +139,32 @@ export function useImageUpload({
 						if (url) URL.revokeObjectURL(url)
 					}
 				}
-				return [...prev, ...newImages].slice(0, maxImages)
+				const combined = [...prev, ...newImages].slice(0, maxImages)
+
+				const existingBytes = prev.reduce((sum, img) => sum + img.file.size, 0)
+				let addedBytes = 0
+				const withinBudget: SelectedImage[] = [...prev]
+				for (const img of combined.slice(prev.length)) {
+					if (existingBytes + addedBytes + img.file.size > MAX_TOTAL_BYTES) {
+						if (img.url) URL.revokeObjectURL(img.url)
+						continue
+					}
+					addedBytes += img.file.size
+					withinBudget.push(img)
+				}
+
+				if (withinBudget.length === prev.length && combined.length > prev.length) {
+					const totalMB = Math.round(MAX_TOTAL_BYTES / (1024 * 1024))
+					queueMicrotask(() => {
+						errorToast({
+							title: 'Total upload size exceeded',
+							description: `Combined files must be under ${totalMB}MB`
+						})
+					})
+					return prev
+				}
+
+				return withinBudget
 			})
 		},
 		[maxImages, maxSizeBytes]
