@@ -898,10 +898,15 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 				// Avoids getYieldPageData() which calls 6 APIs and runs heavy processing
 				// (price fetching, LSD APY, raise valuations) that we don't need here.
 				const { fetchJson } = await import('~/utils/async')
-				const { YIELD_POOLS_API, YIELD_CONFIG_API } = await import('~/constants')
-				const [poolsRes, configRes] = await Promise.all([fetchJson(YIELD_POOLS_API), fetchJson(YIELD_CONFIG_API)])
+				const { YIELD_POOLS_API, YIELD_CONFIG_API, YIELD_URL_API } = await import('~/constants')
+				const [poolsRes, configRes, urlsRes] = await Promise.all([
+					fetchJson(YIELD_POOLS_API),
+					fetchJson(YIELD_CONFIG_API),
+					fetchJson(YIELD_URL_API)
+				])
 				const allPools: any[] = poolsRes?.data ?? []
 				const configProtocols: Record<string, { name?: string; category?: string }> = configRes?.protocols ?? {}
+				const poolUrls: Record<string, string> = urlsRes ?? {}
 
 				const matchedPoolIds = new Set<string>()
 				const matchedPools: typeof allPools = []
@@ -995,7 +1000,8 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 					configID: pool.pool,
 					chains: [pool.chain],
 					project: configProtocols[pool.project]?.name ?? pool.project,
-					projectslug: pool.project
+					projectslug: pool.project,
+					url: poolUrls[pool.pool] ?? ''
 				}))
 
 				if (yieldPools.length === 0) {

@@ -158,13 +158,26 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	1280: { pool: 240, project: 200, chains: 60, tvl: 120, apy: 100, apyBase: 140, apyReward: 140, apyMean30d: 125, cv30d: 110, apyChart30d: 125 }
 }
 
-export function RWAYieldsTable({ data }: { data: IYieldTableRow[] }) {
+const COMPACT_COL_IDS = ['pool', 'project', 'chains', 'tvl', 'apy']
+
+const compactColumnOrders: ColumnOrdersByBreakpoint = {
+	0: ['pool', 'apy', 'tvl', 'project', 'chains'],
+	400: ['pool', 'project', 'apy', 'tvl', 'chains'],
+	640: COMPACT_COL_IDS
+}
+
+const compactColumnSizes: ColumnSizesByBreakpoint = {
+	0: { pool: 160, project: 200, chains: 36, tvl: 90, apy: 70 },
+	640: { pool: 220, project: 220, chains: 36, tvl: 90, apy: 70 }
+}
+
+export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; compact?: boolean }) {
 	return (
 		<YieldsTableWrapper
 			data={data}
-			columns={columns}
-			columnSizes={columnSizes}
-			columnOrders={columnOrders}
+			columns={compact ? columns.filter((c) => COMPACT_COL_IDS.includes(c.id!)) : columns}
+			columnSizes={compact ? compactColumnSizes : columnSizes}
+			columnOrders={compact ? compactColumnOrders : columnOrders}
 			sortingState={[{ id: 'tvl', desc: true }]}
 		/>
 	)
