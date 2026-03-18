@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
+import { useMedia } from '~/hooks/useMedia'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const FEATURED_KEYS = ['trade_thesis', 'x_data', 'tradfi', 'yields', 'onchain_analytics'] as const
@@ -102,6 +103,8 @@ const Capability = ({
 	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	getAnchorRect: () => { x: number; y: number; width: number; height: number } | null
 }) => {
+	const isMobile = useMedia('(max-width: 640px)')
+
 	const handlePromptClick = (prompt: string) => {
 		trackUmamiEvent('llamaai-landing-prompt-click', {
 			category: cap.key ?? 'unknown',
@@ -133,7 +136,7 @@ const Capability = ({
 			<Ariakit.Popover
 				unmountOnHide
 				hideOnInteractOutside
-				modal={false}
+				modal={isMobile}
 				portal
 				getAnchorRect={getAnchorRect}
 				gutter={14}
