@@ -9,6 +9,7 @@ import type {
 	YieldsChartConfig
 } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
@@ -71,6 +72,7 @@ export function AddToDashboardButton({
 		if (hasActiveSubscription && isAuthenticated) {
 			dashboardDialogStore.show()
 		} else {
+			setSignupSource('add-to-dashboard')
 			subscribeDialogStore.show()
 		}
 	}

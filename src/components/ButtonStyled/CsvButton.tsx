@@ -9,6 +9,7 @@ import { TrialCsvLimitModal } from '~/components/TrialCsvLimitModal'
 import { AUTH_SERVER } from '~/constants'
 import { ConfirmationModal } from '~/containers/ProDashboard/components/ConfirmationModal'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
 import { downloadCSV } from '~/utils/download'
@@ -203,6 +204,7 @@ export function CSVDownloadButton(props: CSVDownloadButtonPropsUnion) {
 			return
 		}
 
+		setSignupSource('csv')
 		subscribeModalStore.show()
 	}, [
 		csvDownloadCount,

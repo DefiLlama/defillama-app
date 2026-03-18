@@ -59,6 +59,7 @@ import {
 import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -1596,6 +1597,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						Please{' '}
 						<button
 							onClick={() => {
+								setSignupSource('llamaai')
 								if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
 								subscribeModalStore.show()
 							}}

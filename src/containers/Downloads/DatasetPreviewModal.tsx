@@ -7,6 +7,7 @@ import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { SortIcon } from '~/components/Table/SortIcon'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { downloadCSV } from '~/utils/download'
 import type { DatasetDefinition, DatasetExcludeToggle } from './datasets'
 
@@ -546,7 +547,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 								<>
 									<button
 										type="button"
-										onClick={() => (isPreview ? subscribeModalStore.show() : void handleCopy())}
+										onClick={() => (isPreview ? (setSignupSource('downloads'), subscribeModalStore.show()) : void handleCopy())}
 										disabled={!isPreview && selectedCount === 0}
 										className="hidden items-center gap-1.5 rounded-md border border-(--divider) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:bg-(--link-hover-bg) hover:text-(--text-primary) disabled:opacity-40 sm:flex"
 										title="Copy selected columns as TSV"
@@ -557,7 +558,7 @@ export function DatasetPreviewModal({ dataset, authorizedFetch, onClose, isTrial
 
 									<button
 										type="button"
-										onClick={() => (isPreview ? subscribeModalStore.show() : handleDownload())}
+										onClick={() => (isPreview ? (setSignupSource('downloads'), subscribeModalStore.show()) : handleDownload())}
 										disabled={!isPreview && selectedCount === 0}
 										className="flex items-center gap-1.5 rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:opacity-90 disabled:opacity-40"
 									>

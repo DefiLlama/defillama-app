@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { formatValue } from '../../utils'
 import { useAuthContext } from '../Subscribtion/auth'
+import { setSignupSource } from '../Subscribtion/signupSource'
 import { AVAILABLE_FIELDS, AVAILABLE_FUNCTIONS, replaceAliases } from './customColumnsUtils'
 import { evaluateFormula } from './formula.service'
 
@@ -175,6 +176,7 @@ export function CustomColumnModal({
 			return
 		}
 		if (!isAuthenticated || !hasActiveSubscription) {
+			setSignupSource('custom-columns')
 			subscribeModalStore.show()
 			return
 		}

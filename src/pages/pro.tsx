@@ -14,6 +14,7 @@ import {
 	useProDashboardUI
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import Layout from '~/layout'
 
 const SubscribeProModal = lazy(() =>
@@ -199,7 +200,10 @@ function ProContent({
 									? () => router.push('/pro/preview')
 									: hasActiveSubscription
 										? () => setShowGenerateDashboardModal(true)
-										: () => subscribeModalStore.show()
+										: () => {
+												setSignupSource('pro-dashboard')
+												subscribeModalStore.show()
+											}
 							}
 							data-umami-event="dashboard-llamaai-generate"
 							className="flex items-center gap-1 rounded-md pro-btn-blue px-4 py-2"
@@ -214,7 +218,10 @@ function ProContent({
 								? () => router.push('/pro/preview')
 								: hasActiveSubscription
 									? () => createDashboardDialogStore.show()
-									: () => subscribeModalStore.show()
+									: () => {
+											setSignupSource('pro-dashboard')
+											subscribeModalStore.show()
+										}
 						}
 						data-umami-event="dashboard-create"
 						className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-2"
