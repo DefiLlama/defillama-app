@@ -83,7 +83,12 @@ export function MobileToolsPopover({
 					</Ariakit.MenuDismiss>
 				</div>
 
-				<Ariakit.MenuItem data-walkthrough="mobile-upload-item" className={itemClassName} hideOnClick={false} onClick={handleImageUpload}>
+				<Ariakit.MenuItem
+					data-walkthrough="mobile-upload-item"
+					className={itemClassName}
+					hideOnClick={false}
+					onClick={handleImageUpload}
+				>
 					<Icon name="image-plus" height={16} width={16} className="shrink-0 text-[#777] dark:text-[#888]" />
 					<span>Upload files</span>
 				</Ariakit.MenuItem>
@@ -140,7 +145,12 @@ export function MobileToolsPopover({
 				</NestedMenu>
 
 				{onOpenAlerts ? (
-					<Ariakit.MenuItem data-walkthrough="mobile-alerts-item" className={itemClassName} hideOnClick={false} onClick={handleOpenAlerts}>
+					<Ariakit.MenuItem
+						data-walkthrough="mobile-alerts-item"
+						className={itemClassName}
+						hideOnClick={false}
+						onClick={handleOpenAlerts}
+					>
 						<Icon name="calendar-plus" height={16} width={16} className="shrink-0 text-amber-500 dark:text-amber-400" />
 						<span>Manage Alerts</span>
 					</Ariakit.MenuItem>

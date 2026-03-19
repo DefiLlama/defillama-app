@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { type Dispatch, type RefObject, type SetStateAction, useCallback, useRef } from 'react'
 import { Icon } from '~/components/Icon'
 import { CAPABILITIES } from '~/containers/LlamaAI/capabilities'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { OnboardingWalkthrough } from '~/containers/LlamaAI/components/OnboardingWalkthrough'
 import { PromptInput } from '~/containers/LlamaAI/components/PromptInput'
 import type { ResearchUsage } from '~/containers/LlamaAI/types'
@@ -49,7 +50,8 @@ export function ChatLanding({
 	quotedText,
 	onClearQuotedText
 }: ChatLandingProps) {
-	const [hasSeenWelcome, markWelcomeSeen] = useLlamaAIWelcome()
+	const { hasActiveSubscription } = useAuthContext()
+	const [hasSeenWelcome, markWelcomeSeen] = useLlamaAIWelcome(hasActiveSubscription)
 
 	return (
 		<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5 overflow-hidden">

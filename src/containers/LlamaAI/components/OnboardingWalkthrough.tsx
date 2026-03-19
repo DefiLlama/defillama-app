@@ -66,7 +66,8 @@ const SPOTLIGHT_CONFIGS: Partial<Record<Step, SpotlightConfig>> = {
 	explore: {
 		selectors: ['[data-walkthrough="explore-button"]'],
 		title: 'Explore',
-		description: 'Not sure what to ask? Browse here to see everything LlamaAI can do — yields, analytics, trade theses, on-chain, and more.',
+		description:
+			'Not sure what to ask? Browse here to see everything LlamaAI can do — yields, analytics, trade theses, on-chain, and more.',
 		icon: 'layout-grid',
 		iconColor: '#60a5fa',
 		accentColor: 'rgba(37, 99, 235, 0.25)',
@@ -85,8 +86,7 @@ const SPOTLIGHT_CONFIGS: Partial<Record<Step, SpotlightConfig>> = {
 	upload: {
 		selectors: ['[data-walkthrough="image-upload"]'],
 		title: 'File Upload',
-		description:
-			'Upload images, PDFs, or CSVs and ask LlamaAI to analyze them — charts, reports, datasets, anything.',
+		description: 'Upload images, PDFs, or CSVs and ask LlamaAI to analyze them — charts, reports, datasets, anything.',
 		icon: 'image-plus',
 		iconColor: '#10b981',
 		accentColor: 'rgba(16, 185, 129, 0.25)',
@@ -104,8 +104,7 @@ const SPOTLIGHT_CONFIGS: Partial<Record<Step, SpotlightConfig>> = {
 	'mobile-upload': {
 		selectors: ['[data-walkthrough="mobile-upload-item"]'],
 		title: 'File Upload',
-		description:
-			'Upload images, PDFs, or CSVs and ask LlamaAI to analyze them — charts, reports, datasets, anything.',
+		description: 'Upload images, PDFs, or CSVs and ask LlamaAI to analyze them — charts, reports, datasets, anything.',
 		icon: 'image-plus',
 		iconColor: '#10b981',
 		accentColor: 'rgba(16, 185, 129, 0.25)',
@@ -123,7 +122,8 @@ const SPOTLIGHT_CONFIGS: Partial<Record<Step, SpotlightConfig>> = {
 	'mobile-explore': {
 		selectors: ['[data-walkthrough="mobile-explore-item"]'],
 		title: 'Explore',
-		description: 'Not sure what to ask? Browse here to see everything LlamaAI can do — yields, analytics, trade theses, on-chain, and more.',
+		description:
+			'Not sure what to ask? Browse here to see everything LlamaAI can do — yields, analytics, trade theses, on-chain, and more.',
 		icon: 'layout-grid',
 		iconColor: '#60a5fa',
 		accentColor: 'rgba(37, 99, 235, 0.25)',
@@ -174,8 +174,12 @@ export function OnboardingWalkthrough({
 	}, [variant])
 
 	const steps = isMobile
-		? variant === 'B' ? MOBILE_STEPS_SHORT : MOBILE_STEPS
-		: variant === 'B' ? DESKTOP_STEPS_SHORT : DESKTOP_STEPS
+		? variant === 'B'
+			? MOBILE_STEPS_SHORT
+			: MOBILE_STEPS
+		: variant === 'B'
+			? DESKTOP_STEPS_SHORT
+			: DESKTOP_STEPS
 	const stepIndex = steps.indexOf(step)
 	const config = SPOTLIGHT_CONFIGS[step]
 	const isSpotlightStep = !!config
@@ -372,9 +376,7 @@ export function OnboardingWalkthrough({
 					<div className="pointer-events-auto absolute inset-0 bg-black/60" onClick={handleSkip} />
 					<div
 						className={`pointer-events-auto absolute inset-0 flex items-center justify-center p-4 ${
-							introExiting
-								? 'animate-[intro-exit_0.25s_ease-in_forwards]'
-								: 'animate-[fadein_0.3s_ease-out]'
+							introExiting ? 'animate-[intro-exit_0.25s_ease-in_forwards]' : 'animate-[fadein_0.3s_ease-out]'
 						}`}
 					>
 						<div className="relative w-full max-w-[340px] overflow-hidden rounded-2xl border border-[#C99A4A]/15 bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.7)]">
@@ -385,8 +387,7 @@ export function OnboardingWalkthrough({
 										<div
 											className="absolute inset-0 -m-3 rounded-full"
 											style={{
-												background:
-													'radial-gradient(circle, rgba(201,154,74,0.2) 0%, transparent 70%)',
+												background: 'radial-gradient(circle, rgba(201,154,74,0.2) 0%, transparent 70%)',
 												filter: 'blur(10px)'
 											}}
 										/>
@@ -398,12 +399,10 @@ export function OnboardingWalkthrough({
 											height={56}
 										/>
 									</div>
-									<h2 className="text-lg font-bold tracking-tight text-white">
-										Welcome to LlamaAI
-									</h2>
+									<h2 className="text-lg font-bold tracking-tight text-white">Welcome to LlamaAI</h2>
 									<p className="text-[13px] leading-relaxed text-[#8b8d93]">
-										AI-powered research across DeFi, TradFi, and on-chain data. Charts, reports,
-										forecasts, and alerts — all in one conversation.
+										AI-powered research across DeFi, TradFi, and on-chain data. Charts, reports, forecasts, and alerts —
+										all in one conversation.
 									</p>
 								</div>
 
@@ -487,13 +486,7 @@ export function OnboardingWalkthrough({
 					<div
 						className={`pointer-events-auto absolute z-10 w-[280px] transition-[left,top] duration-300 ease-in-out ${isFirstSpotlight ? (tooltipPosition === 'above' ? 'animate-[tooltip-enter-above_0.35s_ease-out]' : 'animate-[tooltip-enter-below_0.35s_ease-out]') : ''}`}
 						style={{
-							left: Math.max(
-								16,
-								Math.min(
-									spotlightRect.left + spotlightRect.width / 2 - 140,
-									window.innerWidth - 296
-								)
-							),
+							left: Math.max(16, Math.min(spotlightRect.left + spotlightRect.width / 2 - 140, window.innerWidth - 296)),
 							...(tooltipPosition === 'above'
 								? { top: spotlightRect.top - pad - 14, transform: 'translateY(-100%)' }
 								: { top: spotlightRect.bottom + pad + 14 })
@@ -506,24 +499,22 @@ export function OnboardingWalkthrough({
 						) : null}
 
 						<div className="overflow-hidden rounded-xl border border-[#222428] bg-[#111214] shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
-							<div className="h-px w-full bg-gradient-to-r from-transparent to-transparent" style={{ backgroundImage: `linear-gradient(to right, transparent, ${config.iconColor}40, transparent)` }} />
+							<div
+								className="h-px w-full bg-gradient-to-r from-transparent to-transparent"
+								style={{
+									backgroundImage: `linear-gradient(to right, transparent, ${config.iconColor}40, transparent)`
+								}}
+							/>
 							<div className="p-4">
 								<div className="flex items-start gap-3">
 									<div
 										className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
 										style={{ backgroundColor: `${config.iconColor}15` }}
 									>
-										<Icon
-											name={config.icon}
-											height={14}
-											width={14}
-											style={{ color: config.iconColor }}
-										/>
+										<Icon name={config.icon} height={14} width={14} style={{ color: config.iconColor }} />
 									</div>
 									<div className="flex flex-col gap-1">
-										<span className="text-[13px] font-semibold text-white">
-											{config.title}
-										</span>
+										<span className="text-[13px] font-semibold text-white">{config.title}</span>
 										<span className="text-[12px] leading-snug text-[#8b8d93]">
 											{RESEARCH_STEPS.has(step) ? researchDescription : config.description}
 										</span>
@@ -539,11 +530,7 @@ export function OnboardingWalkthrough({
 									</button>
 								) : null}
 
-								<ProgressFooter
-									current={stepIndex}
-									total={steps.length}
-									onSkip={handleSkip}
-								/>
+								<ProgressFooter current={stepIndex} total={steps.length} onSkip={handleSkip} />
 							</div>
 						</div>
 
@@ -569,12 +556,8 @@ export function OnboardingWalkthrough({
 									<div className="mb-1 flex h-7 w-7 items-center justify-center rounded-full bg-green-500/12">
 										<Icon name="check" height={14} width={14} className="text-green-400" />
 									</div>
-									<span className="text-[15px] font-bold text-white">
-										Research mode is on
-									</span>
-									<span className="text-[13px] text-[#8b8d93]">
-										Unsure what to ask? Try one of these:
-									</span>
+									<span className="text-[15px] font-bold text-white">Research mode is on</span>
+									<span className="text-[13px] text-[#8b8d93]">Unsure what to ask? Try one of these:</span>
 								</div>
 
 								<div className="mb-4 flex flex-col gap-1.5">
@@ -590,9 +573,7 @@ export function OnboardingWalkthrough({
 												width={14}
 												className="shrink-0 text-[#555] transition-colors group-hover:text-[#60a5fa]"
 											/>
-											<span className="text-[13px] font-medium text-[#d1d5db] group-hover:text-white">
-												{p.label}
-											</span>
+											<span className="text-[13px] font-medium text-[#d1d5db] group-hover:text-white">{p.label}</span>
 											<Icon
 												name="arrow-right"
 												height={12}
@@ -614,11 +595,7 @@ export function OnboardingWalkthrough({
 									Start chatting
 								</button>
 
-								<ProgressFooter
-									current={stepIndex}
-									total={steps.length}
-									onSkip={handleSkip}
-								/>
+								<ProgressFooter current={stepIndex} total={steps.length} onSkip={handleSkip} />
 							</div>
 						</div>
 					</div>
@@ -629,15 +606,7 @@ export function OnboardingWalkthrough({
 	)
 }
 
-function ProgressFooter({
-	current,
-	total,
-	onSkip
-}: {
-	current: number
-	total: number
-	onSkip: () => void
-}) {
+function ProgressFooter({ current, total, onSkip }: { current: number; total: number; onSkip: () => void }) {
 	return (
 		<div className="mt-3 flex items-center justify-between">
 			<div className="flex items-center gap-1">
@@ -650,10 +619,7 @@ function ProgressFooter({
 					/>
 				))}
 			</div>
-			<button
-				onClick={onSkip}
-				className="text-[11px] text-[#555] transition-colors hover:text-[#8b8d93]"
-			>
+			<button onClick={onSkip} className="text-[11px] text-[#555] transition-colors hover:text-[#8b8d93]">
 				Skip
 			</button>
 		</div>

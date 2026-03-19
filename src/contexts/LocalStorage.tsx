@@ -580,13 +580,13 @@ export function useCustomColumns() {
 	}
 }
 
-export function useLlamaAIWelcome(): [boolean, () => void] {
+export function useLlamaAIWelcome(isSubscribed: boolean): [boolean, () => void] {
 	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => {
 			const store = readAppStorage()
-			// Show walkthrough only if triggered from /welcome AND not yet shown
-			return store[LLAMA_AI_SHOW_WALKTHROUGH] && !store[LLAMA_AI_WELCOME_SHOWN] ? '0' : '1'
+			if (store[LLAMA_AI_WELCOME_SHOWN]) return '1' // already seen
+			return isSubscribed ? '0' : '1' // show for subscribers only
 		},
 		() => '1' // SSR: assume seen
 	)

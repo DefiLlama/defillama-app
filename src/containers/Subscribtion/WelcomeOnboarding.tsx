@@ -1,5 +1,4 @@
 import { useQueryClient } from '@tanstack/react-query'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
@@ -72,7 +71,6 @@ export function WelcomeOnboarding() {
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 	const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set())
-	const [screen, setScreen] = useState<'select' | 'overview'>('select')
 
 	useEffect(() => {
 		if (!isSubscriptionLoading && !isAuthenticated) {
@@ -121,7 +119,7 @@ export function WelcomeOnboarding() {
 		writeAppStorage(storage)
 
 		if (selectedFeatures.has('exploring')) {
-			setScreen('overview')
+			void router.push('/')
 			return
 		}
 
@@ -193,10 +191,6 @@ export function WelcomeOnboarding() {
 		)
 	}
 
-	if (screen === 'overview') {
-		return <FeatureOverview />
-	}
-
 	return (
 		<div className="mx-auto flex w-full max-w-[580px] flex-col items-center px-4 py-14 animate-[fadein_0.3s_ease-out]">
 			<div className="mb-8 flex flex-col items-center gap-1.5 text-center">
@@ -218,9 +212,7 @@ export function WelcomeOnboarding() {
 							onClick={() => toggleFeature(option.id)}
 							style={{
 								animationDelay: `${i * 40}ms`,
-								...(isSelected
-									? { borderColor: `${c}66`, backgroundColor: `${c}0f` }
-									: {})
+								...(isSelected ? { borderColor: `${c}66`, backgroundColor: `${c}0f` } : {})
 							}}
 							className={`group flex items-center gap-3.5 rounded-xl border px-4 py-3 text-left transition-all duration-200 animate-[fadein_0.2s_ease-out_both] ${
 								isSelected ? '' : 'border-[#2a2b30] bg-[#1a1b1f] hover:border-[#39393E] hover:bg-[#1e1f24]'
@@ -235,10 +227,7 @@ export function WelcomeOnboarding() {
 								}}
 							>
 								{option.iconType === 'svg' ? (
-									<svg
-										className="h-[18px] w-[18px]"
-										style={{ color: isSelected ? '#FDE0A9' : c }}
-									>
+									<svg className="h-[18px] w-[18px]" style={{ color: isSelected ? '#FDE0A9' : c }}>
 										<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 									</svg>
 								) : (
@@ -252,17 +241,11 @@ export function WelcomeOnboarding() {
 								)}
 							</div>
 							<div className="flex min-w-0 flex-col">
-								<span
-									className={`text-sm font-medium leading-tight ${
-										isSelected ? 'text-white' : 'text-[#e0e0e3]'
-									}`}
-								>
+								<span className={`text-sm font-medium leading-tight ${isSelected ? 'text-white' : 'text-[#e0e0e3]'}`}>
 									{option.label}
 								</span>
 								{option.description ? (
-									<span className="mt-0.5 text-xs leading-tight text-[#6b6e73]">
-										{option.description}
-									</span>
+									<span className="mt-0.5 text-xs leading-tight text-[#6b6e73]">{option.description}</span>
 								) : null}
 							</div>
 							<div className="ml-auto shrink-0">
@@ -272,9 +255,7 @@ export function WelcomeOnboarding() {
 									}`}
 									style={isSelected ? { borderColor: c, backgroundColor: c } : undefined}
 								>
-									{isSelected ? (
-										<Icon name="check" height={10} width={10} className="text-white" />
-									) : null}
+									{isSelected ? <Icon name="check" height={10} width={10} className="text-white" /> : null}
 								</div>
 							</div>
 						</button>
@@ -296,88 +277,6 @@ export function WelcomeOnboarding() {
 				>
 					Skip
 				</button>
-			</div>
-		</div>
-	)
-}
-
-function FeatureOverview() {
-	const features = ONBOARDING_OPTIONS.filter(
-		(o): o is (typeof ONBOARDING_OPTIONS)[number] & { destination: string } =>
-			o.id !== 'exploring' && o.destination !== null
-	)
-
-	return (
-		<div className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-16 animate-[fadein_0.3s_ease-out]">
-			<div className="mb-10 flex flex-col items-center gap-2 text-center">
-				<h2 className="text-[1.75rem] font-bold tracking-tight text-white">
-					Your Pro features
-				</h2>
-				<p className="text-[#8a8c90]">Everything included in your subscription.</p>
-			</div>
-
-			<div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-				{features.map((feature, i) => {
-					const isAI = feature.id === 'llamaai'
-					return (
-						<Link
-							key={feature.id}
-							href={feature.destination}
-							style={{ animationDelay: `${i * 60}ms` }}
-							className={`group flex flex-col gap-3 rounded-xl border p-5 transition-all duration-200 animate-[fadein_0.3s_ease-out_both] ${
-								isAI
-									? 'border-[#C99A4A]/30 bg-linear-to-br from-[#C99A4A]/8 to-transparent hover:border-[#C99A4A]/50 hover:shadow-[0_0_30px_rgba(201,154,74,0.1)]'
-									: 'border-[#2a2b30] bg-[#1a1b1f] hover:border-[#39393E] hover:bg-[#1e1f24]'
-							}`}
-						>
-							<div
-								className={`flex h-10 w-10 items-center justify-center rounded-lg ${
-									isAI ? 'bg-[#C99A4A]/15' : 'bg-[#222429]'
-								}`}
-							>
-								{feature.iconType === 'svg' ? (
-									<svg className="h-5 w-5" style={{ color: '#FDE0A9' }}>
-										<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
-									</svg>
-								) : (
-									<Icon
-										name={feature.iconName}
-										height={20}
-										width={20}
-										className="text-[#8a8c90] transition-colors group-hover:text-white"
-									/>
-								)}
-							</div>
-							<div className="flex flex-col gap-0.5">
-								<span className={`font-medium ${isAI ? 'llamaai-glow-text' : 'text-white'}`}>
-									{feature.label}
-								</span>
-								{feature.description ? (
-									<span className="text-[0.8125rem] text-[#6b6e73]">{feature.description}</span>
-								) : null}
-							</div>
-							<span className="mt-auto flex items-center gap-1 text-[0.8125rem] text-[#5C5CF9] opacity-0 transition-opacity group-hover:opacity-100">
-								Open
-								<Icon name="arrow-right" height={14} width={14} />
-							</span>
-						</Link>
-					)
-				})}
-			</div>
-
-			<div className="mt-10 flex flex-col items-center gap-3">
-				<Link
-					href="/ai/chat"
-					className="rounded-xl bg-[#5C5CF9] px-8 py-3 text-[0.9375rem] font-semibold text-white transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-[0_0_24px_rgba(92,92,249,0.25)]"
-				>
-					Start with LlamaAI
-				</Link>
-				<Link
-					href="/account"
-					className="py-1 text-[0.8125rem] text-[#6b6e73] transition-colors hover:text-[#b4b7bc]"
-				>
-					Go to account
-				</Link>
 			</div>
 		</div>
 	)
