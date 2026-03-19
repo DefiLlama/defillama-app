@@ -2,6 +2,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWACategoriesTable } from '~/containers/RWA/Categories'
 import { getRWACategoriesOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -33,7 +34,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () 
 	}
 })
 
-const pageName = ['RWA Categories']
+const pageName = ['RWA']
 
 export default function RWACategoriesPage({ categories, categoryLinks, chartDatasets }) {
 	return (
@@ -43,6 +44,7 @@ export default function RWACategoriesPage({ categories, categoryLinks, chartData
 			pageName={pageName}
 			canonicalUrl={`/rwa/categories`}
 		>
+			<RWATabNav active="categories" />
 			<RowLinksWithDropdown links={categoryLinks} activeLink={'All'} />
 			<RWACategoriesTable categories={categories} chartDatasets={chartDatasets} />
 		</Layout>
