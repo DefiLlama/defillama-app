@@ -64,6 +64,7 @@ interface StripeCheckoutModalProps {
 	type: 'api' | 'llamafeed'
 	billingInterval?: 'year' | 'month'
 	isTrial?: boolean
+	isUpgradeFlow?: boolean
 }
 
 export function StripeCheckoutModal({
@@ -72,14 +73,16 @@ export function StripeCheckoutModal({
 	paymentMethod,
 	type,
 	billingInterval = 'month',
-	isTrial = false
+	isTrial = false,
+	isUpgradeFlow = false
 }: StripeCheckoutModalProps) {
 	const { authorizedFetch } = useAuthContext()
 	const queryClient = useQueryClient()
+	const postCheckoutPath = isUpgradeFlow ? '/account?success=true' : '/welcome'
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async (): Promise<SubscriptionResult> => {
-			if (typeof window !== 'undefined') {
+			if (typeof window !== 'undefined' && !isUpgradeFlow) {
 				sessionStorage.setItem('onboarding_returnUrl', window.location.pathname)
 			}
 			const response = await authorizedFetch(
@@ -88,7 +91,7 @@ export function StripeCheckoutModal({
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
-						redirectUrl: `${window.location.origin}/welcome`,
+						redirectUrl: `${window.location.origin}${postCheckoutPath}`,
 						cancelUrl: `${window.location.origin}/subscription`,
 						provider: paymentMethod,
 						subscriptionType: type,
@@ -237,7 +240,7 @@ export function StripeCheckoutModal({
 								clientSecret: result.clientSecret
 							}}
 						>
-							<UpgradePaymentForm />
+							<UpgradePaymentForm postCheckoutPath={postCheckoutPath} />
 						</Elements>
 					</div>
 				</Ariakit.Dialog>
@@ -274,7 +277,7 @@ export function StripeCheckoutModal({
 	)
 }
 
-function UpgradePaymentForm() {
+function UpgradePaymentForm({ postCheckoutPath }: { postCheckoutPath: string }) {
 	const stripe = useStripe()
 	const elements = useElements()
 
@@ -290,7 +293,7 @@ function UpgradePaymentForm() {
 			const confirmResult = await stripe.confirmPayment({
 				elements,
 				confirmParams: {
-					return_url: `${window.location.origin}/welcome`
+					return_url: `${window.location.origin}${postCheckoutPath}`
 				},
 				redirect: 'if_required'
 			})
@@ -310,7 +313,7 @@ function UpgradePaymentForm() {
 			return confirmResult.paymentIntent
 		},
 		onSuccess: () => {
-			window.location.href = `${window.location.origin}/welcome`
+			window.location.href = `${window.location.origin}${postCheckoutPath}`
 		}
 	})
 

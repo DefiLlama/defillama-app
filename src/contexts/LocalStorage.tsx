@@ -586,7 +586,8 @@ export function useLlamaAIWelcome(isSubscribed: boolean): [boolean, () => void] 
 		() => {
 			const store = readAppStorage()
 			if (store[LLAMA_AI_WELCOME_SHOWN]) return '1' // already seen
-			return isSubscribed ? '0' : '1' // show for subscribers only
+			if (!isSubscribed) return '1'
+			return store[LLAMA_AI_SHOW_WALKTHROUGH] ? '0' : '1'
 		},
 		() => '1' // SSR: assume seen
 	)

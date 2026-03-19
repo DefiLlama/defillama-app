@@ -151,6 +151,7 @@ export function SubscribeAPICard({
 						paymentMethod="stripe"
 						type="api"
 						billingInterval="year"
+						isUpgradeFlow
 					/>
 				</Suspense>
 			) : null}

@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -163,10 +163,8 @@ export function OnboardingWalkthrough({
 
 	// A/B experiment: full steps (A) vs short steps (B)
 	const { user, isTrial } = useAuthContext()
-	const variant = useMemo(
-		() => (user?.id ? getExperimentVariant('walkthrough-steps-v1', String(user.id)) : 'A'),
-		[user?.id]
-	)
+	const userId = user?.id ? String(user.id) : null
+	const variant = userId ? getExperimentVariant('walkthrough-steps-v1', userId) : 'A'
 
 	// Track experiment assignment once
 	useEffect(() => {
@@ -180,16 +178,11 @@ export function OnboardingWalkthrough({
 		: variant === 'B'
 			? DESKTOP_STEPS_SHORT
 			: DESKTOP_STEPS
-	const stepIndex = steps.indexOf(step)
-	const config = SPOTLIGHT_CONFIGS[step]
+	const currentStep = RESEARCH_STEPS.has(step) && isResearchMode ? 'prompts' : step
+	const config = SPOTLIGHT_CONFIGS[currentStep]
 	const isSpotlightStep = !!config
-
-	// Track first spotlight appearance for entry animation
-	const hasShownSpotlightRef = useRef(false)
-	const isFirstSpotlight = isSpotlightStep && !hasShownSpotlightRef.current
-	useEffect(() => {
-		if (isSpotlightStep) hasShownSpotlightRef.current = true
-	}, [isSpotlightStep])
+	const firstSpotlightStep = steps.find((candidate) => SPOTLIGHT_CONFIGS[candidate] != null) ?? null
+	const isFirstSpotlight = currentStep === firstSpotlightStep
 
 	const tapOrClick = isMobile ? 'Tap' : 'Click'
 	const researchDescription = isTrial
@@ -225,7 +218,8 @@ export function OnboardingWalkthrough({
 
 		// If the drawer is about to open for this step, wait for its animation.
 		// Otherwise measure on the next frame (element already in the DOM).
-		const drawerOpening = MOBILE_DRAWER_STEPS.has(step) && !mobileDrawerOpenRef.current
+		const drawerButton = document.querySelector<HTMLElement>('[data-walkthrough="mobile-tools-button"]')
+		const drawerOpening = MOBILE_DRAWER_STEPS.has(currentStep) && drawerButton?.getAttribute('aria-expanded') !== 'true'
 		const initialDelay = drawerOpening ? 400 : 0
 
 		const timer = setTimeout(() => {
@@ -240,7 +234,7 @@ export function OnboardingWalkthrough({
 			window.removeEventListener('resize', debouncedUpdateRect)
 			window.removeEventListener('scroll', debouncedUpdateRect, true)
 		}
-	}, [step, isSpotlightStep, config])
+	}, [currentStep, isSpotlightStep, config])
 
 	// Auto-skip spotlight steps whose target element doesn't exist (e.g. alerts when not available)
 	useEffect(() => {
@@ -249,7 +243,7 @@ export function OnboardingWalkthrough({
 		const timer = setTimeout(() => {
 			const hasTarget = config.selectors.some((sel) => document.querySelector(sel))
 			if (!hasTarget) {
-				const i = steps.indexOf(step)
+				const i = steps.indexOf(currentStep)
 				if (i < steps.length - 1) {
 					setStep(steps[i + 1])
 				}
@@ -257,40 +251,22 @@ export function OnboardingWalkthrough({
 		}, 600)
 
 		return () => clearTimeout(timer)
-	}, [step, isSpotlightStep, config, steps])
+	}, [currentStep, isSpotlightStep, config, steps])
 
 	// Manage mobile drawer: open when entering a drawer step, close when leaving all drawer steps
-	const mobileDrawerOpenRef = useRef(false)
 	useEffect(() => {
-		let timerId: ReturnType<typeof setTimeout>
-		const isMobileDrawerStep = MOBILE_DRAWER_STEPS.has(step)
+		const isMobileDrawerStep = MOBILE_DRAWER_STEPS.has(currentStep)
+		const btn = document.querySelector<HTMLElement>('[data-walkthrough="mobile-tools-button"]')
+		const isExpanded = btn?.getAttribute('aria-expanded') === 'true'
 
-		if (isMobileDrawerStep && !mobileDrawerOpenRef.current) {
-			const btn = document.querySelector<HTMLElement>('[data-walkthrough="mobile-tools-button"]')
-			if (btn) {
+		if (isMobileDrawerStep) {
+			if (btn && !isExpanded) {
 				btn.click()
-				mobileDrawerOpenRef.current = true // optimistic
-				timerId = setTimeout(() => {
-					const expanded = btn.getAttribute('aria-expanded') === 'true'
-					if (!expanded) mobileDrawerOpenRef.current = false // rollback
-				}, 400)
 			}
-		} else if (!isMobileDrawerStep && mobileDrawerOpenRef.current) {
-			const btn = document.querySelector<HTMLElement>('[data-walkthrough="mobile-tools-button"][aria-expanded="true"]')
-			if (btn) btn.click()
-			mobileDrawerOpenRef.current = false
+		} else if (btn && isExpanded) {
+			btn.click()
 		}
-
-		return () => clearTimeout(timerId)
-	}, [step])
-
-	// Auto-advance when user toggles Research mode ON
-	useEffect(() => {
-		if (RESEARCH_STEPS.has(step) && isResearchMode) {
-			trackUmamiEvent('llamaai-walkthrough-step', { from: step, to: 'prompts', variant })
-			setStep('prompts')
-		}
-	}, [step, isResearchMode, variant])
+	}, [currentStep])
 
 	const nextStep = useCallback(() => {
 		const i = steps.indexOf(step)
@@ -324,10 +300,10 @@ export function OnboardingWalkthrough({
 	)
 
 	const handleSkip = useCallback(() => {
-		trackUmamiEvent('llamaai-walkthrough-skip', { step, variant })
+		trackUmamiEvent('llamaai-walkthrough-skip', { step: currentStep, variant })
 		setIsResearchMode(true)
 		onComplete()
-	}, [step, variant, setIsResearchMode, onComplete])
+	}, [currentStep, variant, setIsResearchMode, onComplete])
 
 	// Dismiss walkthrough on Escape key
 	useEffect(() => {
@@ -367,13 +343,23 @@ export function OnboardingWalkthrough({
 		<div className="pointer-events-none fixed inset-0 z-[9999]">
 			{/* Dark overlay bridging the gap between intro→spotlight and spotlight→prompts */}
 			{showGapOverlay ? (
-				<div className="pointer-events-auto absolute inset-0 bg-black/60" onClick={handleSkip} />
+				<button
+					type="button"
+					aria-label="Skip walkthrough"
+					className="pointer-events-auto absolute inset-0 bg-black/60"
+					onClick={handleSkip}
+				/>
 			) : null}
 
 			{/* ─── Intro ─── */}
-			{step === 'intro' ? (
+			{currentStep === 'intro' ? (
 				<>
-					<div className="pointer-events-auto absolute inset-0 bg-black/60" onClick={handleSkip} />
+					<button
+						type="button"
+						aria-label="Skip walkthrough"
+						className="pointer-events-auto absolute inset-0 bg-black/60"
+						onClick={handleSkip}
+					/>
 					<div
 						className={`pointer-events-auto absolute inset-0 flex items-center justify-center p-4 ${
 							introExiting ? 'animate-[intro-exit_0.25s_ease-in_forwards]' : 'animate-[fadein_0.3s_ease-out]'
@@ -432,7 +418,7 @@ export function OnboardingWalkthrough({
 								>
 									Show me around
 								</button>
-								<ProgressFooter current={stepIndex} total={steps.length} onSkip={handleSkip} />
+								<ProgressFooter currentStep={currentStep} steps={steps} onSkip={handleSkip} />
 							</div>
 						</div>
 					</div>
@@ -516,12 +502,12 @@ export function OnboardingWalkthrough({
 									<div className="flex flex-col gap-1">
 										<span className="text-[13px] font-semibold text-white">{config.title}</span>
 										<span className="text-[12px] leading-snug text-[#8b8d93]">
-											{RESEARCH_STEPS.has(step) ? researchDescription : config.description}
+											{RESEARCH_STEPS.has(currentStep) ? researchDescription : config.description}
 										</span>
 									</div>
 								</div>
 
-								{!RESEARCH_STEPS.has(step) ? (
+								{!RESEARCH_STEPS.has(currentStep) ? (
 									<button
 										onClick={nextStep}
 										className="mt-3 w-full rounded-lg bg-[#1e2028] py-2 text-[12px] font-medium text-[#d1d5db] transition-colors hover:bg-[#282c36] hover:text-white"
@@ -530,7 +516,7 @@ export function OnboardingWalkthrough({
 									</button>
 								) : null}
 
-								<ProgressFooter current={stepIndex} total={steps.length} onSkip={handleSkip} />
+								<ProgressFooter currentStep={currentStep} steps={steps} onSkip={handleSkip} />
 							</div>
 						</div>
 
@@ -544,9 +530,14 @@ export function OnboardingWalkthrough({
 			) : null}
 
 			{/* ─── Prompts ─── */}
-			{step === 'prompts' ? (
+			{currentStep === 'prompts' ? (
 				<>
-					<div className="pointer-events-auto absolute inset-0 bg-black/60" onClick={handleSkip} />
+					<button
+						type="button"
+						aria-label="Skip walkthrough"
+						className="pointer-events-auto absolute inset-0 bg-black/60"
+						onClick={handleSkip}
+					/>
 					<div className="pointer-events-auto absolute inset-0 flex animate-[fadein_0.25s_ease-out] items-center justify-center p-4">
 						<div className="relative w-full max-w-[400px] overflow-hidden rounded-2xl border border-[#222428] bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.7)]">
 							<div className="h-px w-full bg-gradient-to-r from-transparent via-green-400/50 to-transparent" />
@@ -595,7 +586,7 @@ export function OnboardingWalkthrough({
 									Start chatting
 								</button>
 
-								<ProgressFooter current={stepIndex} total={steps.length} onSkip={handleSkip} />
+								<ProgressFooter currentStep={currentStep} steps={steps} onSkip={handleSkip} />
 							</div>
 						</div>
 					</div>
@@ -606,15 +597,17 @@ export function OnboardingWalkthrough({
 	)
 }
 
-function ProgressFooter({ current, total, onSkip }: { current: number; total: number; onSkip: () => void }) {
+function ProgressFooter({ currentStep, steps, onSkip }: { currentStep: Step; steps: Step[]; onSkip: () => void }) {
+	const currentIndex = steps.indexOf(currentStep)
+
 	return (
 		<div className="mt-3 flex items-center justify-between">
 			<div className="flex items-center gap-1">
-				{Array.from({ length: total }, (_, i) => (
+				{steps.map((stepName, index) => (
 					<div
-						key={i}
+						key={stepName}
 						className={`h-1 rounded-full transition-all duration-300 ${
-							i <= current ? 'w-3.5 bg-[#C99A4A]' : 'w-1 bg-[#2a2c30]'
+							index <= currentIndex ? 'w-3.5 bg-[#C99A4A]' : 'w-1 bg-[#2a2c30]'
 						}`}
 					/>
 				))}
