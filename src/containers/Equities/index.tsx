@@ -247,7 +247,7 @@ function LastUpdated({ value }: { value: string }) {
 	)
 }
 
-export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPageProps) {
+export function EquitiesOverview({ companies }: IEquitiesListPageProps) {
 	const router = useRouter()
 	const presetQueryValue = readSingleQueryValue(router.query.rankBy)
 	const activePreset = useMemo(() => getPresetFromQuery(presetQueryValue), [presetQueryValue])
@@ -259,7 +259,7 @@ export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPage
 
 	return (
 		<div className="flex flex-col gap-2">
-			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			{/* <div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 					<div className="flex flex-1 flex-col gap-1">
 						<h1 className="text-xl font-bold">Equities</h1>
@@ -269,20 +269,20 @@ export function EquitiesOverview({ companies, lastUpdatedAt }: IEquitiesListPage
 					</div>
 					{lastUpdatedAt ? <LastUpdated value={lastUpdatedAt} /> : null}
 				</div>
-			</div>
+			</div> */}
 
 			<div className="flex flex-wrap items-center justify-center gap-2">
 				<span className="text-sm font-medium text-(--text-secondary)">Rank by</span>
 				{EQUITIES_PRESETS.map((preset) => (
-				<button
-					key={preset}
-					data-active={preset === activePreset}
-					data-umami-event="equities-preset-click"
-					data-umami-event-preset={PRESET_QUERY_SLUGS[preset] ?? 'market-cap'}
-					onClick={() => startTransition(() => setPreset(preset))}
-					className="rounded-full border border-(--old-blue) px-3 py-1 text-xs hover:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-				>
-					{preset}
+					<button
+						key={preset}
+						data-active={preset === activePreset}
+						data-umami-event="equities-preset-click"
+						data-umami-event-preset={PRESET_QUERY_SLUGS[preset] ?? 'market-cap'}
+						onClick={() => startTransition(() => setPreset(preset))}
+						className="rounded-full border border-(--old-blue) px-3 py-1 text-xs hover:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+					>
+						{preset}
 					</button>
 				))}
 			</div>
