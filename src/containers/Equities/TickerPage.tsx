@@ -50,11 +50,13 @@ function EquityKeyMetrics({ summary }: { summary: IEquitiesSummaryResponse }) {
 				tooltip={defs.grossProfitTTM.description}
 				value={abbreviateNumber(summary.grossProfitTTM, 2, '$')}
 			/>
-			<MetricRow
-				label={defs.dividendYield.label}
-				tooltip={defs.dividendYield.description}
-				value={abbreviateNumber(summary.dividendYield, 2, '%')}
-			/>
+			{summary.dividendYield ? (
+				<MetricRow
+					label={defs.dividendYield.label}
+					tooltip={defs.dividendYield.description}
+					value={abbreviateNumber(summary.dividendYield, 2, '%')}
+				/>
+			) : null}
 			{/* <MetricRow label={defs.ebitdaTTM.label} tooltip={defs.ebitdaTTM.description} value={abbreviateNumber(summary.ebitdaTTM, 2, '$')} /> */}
 			{/* <MetricRow label={defs.holdersRevenueTTM.label} tooltip={defs.holdersRevenueTTM.description} value={abbreviateNumber(summary.holdersRevenueTTM, 2, '$')} /> */}
 			{/* <MetricRow label={defs.treasury.label} tooltip={defs.treasury.description} value={abbreviateNumber(summary.treasury, 2, '$')} /> */}
