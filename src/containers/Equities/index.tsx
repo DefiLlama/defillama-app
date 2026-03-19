@@ -2,8 +2,9 @@ import { createColumnHelper } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useIsClient } from '~/hooks/useIsClient'
+import { abbreviateNumber } from '~/utils'
 import type { IEquitiesListCompanyRow, IEquitiesListPageProps } from './types'
-import { formatCurrency, formatEquitiesDateTime, formatPercent } from './utils'
+import { formatEquitiesDateTime } from './utils'
 
 const columnHelper = createColumnHelper<IEquitiesListCompanyRow>()
 const DEFAULT_SORTING_STATE = [{ id: 'marketCap', desc: true }]
@@ -40,7 +41,7 @@ const columns = [
 	columnHelper.accessor('currentPrice', {
 		header: 'Price',
 		size: 120,
-		cell: ({ getValue }) => formatCurrency(getValue()),
+		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('priceChangePercentage', {
@@ -50,7 +51,7 @@ const columns = [
 			const value = getValue()
 			return (
 				<span className={value == null ? '' : value >= 0 ? 'text-(--success)' : 'text-(--error)'}>
-					{formatPercent(value)}
+					{abbreviateNumber(value, 2, '%')}
 				</span>
 			)
 		},
@@ -59,13 +60,13 @@ const columns = [
 	columnHelper.accessor('volume', {
 		header: 'Volume',
 		size: 120,
-		cell: ({ getValue }) => formatCurrency(getValue()),
+		cell: ({ getValue }) => abbreviateNumber(getValue(), 2),
 		meta: { align: 'end' }
 	}),
 	columnHelper.accessor('marketCap', {
 		header: 'Market Cap',
 		size: 120,
-		cell: ({ getValue }) => formatCurrency(getValue()),
+		cell: ({ getValue }) => abbreviateNumber(getValue(), 2, '$'),
 		meta: { align: 'end' }
 	})
 ]

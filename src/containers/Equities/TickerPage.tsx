@@ -5,6 +5,7 @@ import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { useIsClient } from '~/hooks/useIsClient'
+import { abbreviateNumber } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EquitiesPriceHistoryTimeframe } from './api.types'
 import {
@@ -18,14 +19,7 @@ import {
 import { EquitiesFilingsTable } from './FilingsTable'
 import { EquitiesFinancialsTable } from './FinancialsTable'
 import type { IEquityTickerPageProps } from './types'
-import {
-	formatCurrency,
-	formatEquitiesDate,
-	formatEquitiesDateTime,
-	formatNumber,
-	formatPercent,
-	formatText
-} from './utils'
+import { formatEquitiesDate, formatEquitiesDateTime } from './utils'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 type EquityTab = (typeof TABS)[number]
@@ -155,7 +149,9 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 			<section className="grid gap-2 lg:grid-cols-4" aria-label="Key metrics">
 				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<dt className="text-(--text-label)">Current Price</dt>
-					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.currentPrice)}</dd>
+					<dd className="font-jetbrains text-xl font-semibold">
+						{abbreviateNumber(props.summary.currentPrice, 2, '$')}
+					</dd>
 				</dl>
 				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<dt className="text-(--text-label)">30d Price Change</dt>
@@ -168,16 +164,16 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 									: 'text-(--error)'
 						}`}
 					>
-						{formatPercent(props.priceChanges.thirtyDay)}
+						{abbreviateNumber(props.priceChanges.thirtyDay, 2, '%')}
 					</dd>
 				</dl>
 				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<dt className="text-(--text-label)">Market Cap</dt>
-					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.marketCap)}</dd>
+					<dd className="font-jetbrains text-xl font-semibold">{abbreviateNumber(props.summary.marketCap, 2, '$')}</dd>
 				</dl>
 				<dl className="flex flex-1 flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 					<dt className="text-(--text-label)">Volume</dt>
-					<dd className="font-jetbrains text-xl font-semibold">{formatCurrency(props.summary.volume)}</dd>
+					<dd className="font-jetbrains text-xl font-semibold">{abbreviateNumber(props.summary.volume, 2)}</dd>
 				</dl>
 			</section>
 
@@ -241,25 +237,37 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 			{activeTab === 'overview' ? (
 				<section className="grid grid-cols-1 gap-2 lg:grid-cols-2" role="tabpanel" aria-label="Overview">
 					<SectionCard title="Key Data">
-						<MetricRow label="Current Price" value={formatCurrency(props.summary.currentPrice)} monospace />
-						<MetricRow label="30d Price Change" value={formatPercent(props.priceChanges.thirtyDay)} monospace />
-						<MetricRow label="7d Price Change" value={formatPercent(props.priceChanges.sevenDay)} monospace />
-						<MetricRow label="24h Price Change" value={formatPercent(props.priceChanges.twentyFourHour)} monospace />
-						<MetricRow label="Market Cap" value={formatCurrency(props.summary.marketCap)} monospace />
-						<MetricRow label="Volume" value={formatCurrency(props.summary.volume)} monospace />
-						<MetricRow label="Dividend Yield" value={formatPercent(props.summary.dividendYield)} monospace />
-						<MetricRow label="Trailing P/E" value={formatNumber(props.summary.trailingPE)} monospace />
+						<MetricRow label="Current Price" value={abbreviateNumber(props.summary.currentPrice, 2, '$')} monospace />
+						<MetricRow
+							label="30d Price Change"
+							value={abbreviateNumber(props.priceChanges.thirtyDay, 2, '%')}
+							monospace
+						/>
+						<MetricRow
+							label="7d Price Change"
+							value={abbreviateNumber(props.priceChanges.sevenDay, 2, '%')}
+							monospace
+						/>
+						<MetricRow
+							label="24h Price Change"
+							value={abbreviateNumber(props.priceChanges.twentyFourHour, 2, '%')}
+							monospace
+						/>
+						<MetricRow label="Market Cap" value={abbreviateNumber(props.summary.marketCap, 2, '$')} monospace />
+						<MetricRow label="Volume" value={abbreviateNumber(props.summary.volume, 2)} monospace />
+						<MetricRow label="Dividend Yield" value={abbreviateNumber(props.summary.dividendYield, 2, '%')} monospace />
+						<MetricRow label="Trailing P/E" value={abbreviateNumber(props.summary.trailingPE, 2)} monospace />
 						<MetricRow
 							label="52 Week Range"
-							value={`${formatCurrency(props.summary.fiftyTwoWeekLow)} - ${formatCurrency(props.summary.fiftyTwoWeekHigh)}`}
+							value={`${abbreviateNumber(props.summary.fiftyTwoWeekLow, 2, '$')} - ${abbreviateNumber(props.summary.fiftyTwoWeekHigh, 2, '$')}`}
 							monospace
 						/>
 					</SectionCard>
 
 					<SectionCard title="Profile">
 						<MetricRow label="Ticker" value={props.ticker} />
-						<MetricRow label="Company" value={formatText(props.name)} />
-						<MetricRow label="Industry" value={formatText(props.metadata.industry)} />
+						<MetricRow label="Company" value={props.name} />
+						<MetricRow label="Industry" value={props.metadata.industry} />
 						<KeyValueRow label="Website">
 							{props.metadata.website ? (
 								<a
@@ -274,7 +282,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 								<span className="font-medium">-</span>
 							)}
 						</KeyValueRow>
-						<MetricRow label="CIK" description="Central Index Key" value={formatText(props.metadata.cik)} />
+						<MetricRow label="CIK" description="Central Index Key" value={props.metadata.cik} />
 						<KeyValueRow label="Coverage since">
 							<ClientDate value={props.metadata.startDate} formatter={formatEquitiesDate} />
 						</KeyValueRow>
