@@ -217,8 +217,16 @@ export async function getChainOverviewData({
 					})
 						.then((data) => data?.total24h ?? null)
 						.catch(() => null),
-			fetchRaises(),
-			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
+			fetchRaises().catch((err) => {
+				console.log('ERROR fetching raises data', err)
+				return { raises: [] }
+			}),
+			chain === 'All'
+				? Promise.resolve(null)
+				: fetchTreasuries().catch((err) => {
+						console.log('ERROR fetching treasuries data', err)
+						return null
+					}),
 			currentChainMetadata.gecko_id
 				? fetchJson(
 						`https://pro-api.coingecko.com/api/v3/coins/${currentChainMetadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
@@ -283,7 +291,10 @@ export async function getChainOverviewData({
 						return null
 					})
 				: Promise.resolve(null),
-			fetchCexVolume(),
+			fetchCexVolume().catch((err) => {
+				console.log('ERROR fetching cex volume', err)
+				return null
+			}),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {
@@ -302,7 +313,12 @@ export async function getChainOverviewData({
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
+			chain === 'All'
+				? getAllProtocolEmissions({ getHistoricalPrices: false }).catch((err) => {
+						console.log('ERROR fetching all protocol emissions', err)
+						return null
+					})
+				: Promise.resolve(null),
 			currentChainMetadata.incentives && chain !== 'All'
 				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name).catch(() => null)
 				: Promise.resolve(null),
@@ -629,13 +645,15 @@ export const getProtocolsByChain = async ({
 	chainMetadata,
 	protocolMetadata,
 	oracle = null,
-	fork = null
+	fork = null,
+	forksOnly = false
 }: {
 	chain: string
 	chainMetadata: Record<string, IChainMetadata>
 	protocolMetadata: Record<string, IProtocolMetadata>
 	oracle?: string | null
 	fork?: string | null
+	forksOnly?: boolean
 }) => {
 	const currentChainMetadata: IChainMetadata =
 		chain === 'All'
@@ -648,10 +666,9 @@ export const getProtocolsByChain = async ({
 	const normalizedFork = fork ? slug(fork) : null
 
 	const protocolMatchesForkFilter = (protocol: ILiteProtocol): boolean => {
-		if (!normalizedFork) return true
-
 		const forkedFrom = protocol.forkedFrom
-		if (!forkedFrom) return false
+		if (!forkedFrom || forkedFrom.length === 0) return !normalizedFork && !forksOnly
+		if (!normalizedFork) return true
 		for (const forkName of forkedFrom) {
 			if (slug(forkName) === normalizedFork) return true
 		}
@@ -884,6 +901,7 @@ export const getProtocolsByChain = async ({
 				slug: slug(protocolMetadata[protocol.defillamaId].displayName),
 				chains: protocolMetadata[protocol.defillamaId].chains,
 				category: protocol.category ?? null,
+				forkedFrom: protocol.forkedFrom ?? null,
 				tvl: protocol.tvl != null && protocol.category !== 'Bridge' ? tvls : null,
 				tvlChange: protocol.tvl != null && protocol.category !== 'Bridge' ? tvlChange : null,
 				mcap: protocol.mcap ?? null,
@@ -1117,11 +1135,15 @@ export const getProtocolsByChain = async ({
 				if (p.category) categorySet.add(p.category)
 			}
 			const chilsProtocolCategories = Array.from(categorySet)
+			const parentForkedFrom = Array.from(
+				new Set(parentStore[parentProtocol.id].flatMap((child) => child.forkedFrom ?? []))
+			)
 
 			protocolsStore[parentProtocol.id] = {
 				name: protocolMetadata[parentProtocol.id].displayName,
 				slug: slug(protocolMetadata[parentProtocol.id].displayName),
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
+				forkedFrom: parentForkedFrom.length > 0 ? parentForkedFrom : null,
 				childProtocols: parentStore[parentProtocol.id],
 				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
 				tvl: parentTvl,

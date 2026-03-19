@@ -156,6 +156,7 @@ export interface IChildProtocol {
 	name: string
 	slug: string
 	category: string | null
+	forkedFrom?: Array<string> | null
 	tvl: Record<TVL_TYPES, { tvl: number; tvlPrevDay: number; tvlPrevWeek: number; tvlPrevMonth: number }> | null
 	tvlChange: { change1d: number | null; change7d: number | null; change1m: number | null } | null
 	chains: Array<string>
