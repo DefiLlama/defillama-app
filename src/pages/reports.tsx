@@ -65,7 +65,9 @@ export default function ReportsPage() {
 				<div className="relative flex flex-col gap-5">
 					{/* Header */}
 					<div className="flex flex-col gap-3">
-						<DLResearchLogo />
+						<a href="https://www.dlnews.com/research/" target="_blank" rel="noopener noreferrer">
+							<DLResearchLogo />
+						</a>
 						<p className="max-w-2xl text-sm text-(--text-secondary)">
 							In-depth research reports covering DeFi markets, protocols, infrastructure, and emerging trends —
 							published by the DL Research team.
