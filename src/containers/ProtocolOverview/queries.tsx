@@ -1215,8 +1215,9 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 		}
 
 		const labelsByType: Record<string, Set<string>> = {}
+		const metricTypes = new Set<string>()
 
-		// Collect all breakdown labels present in the raw aggregates.
+		// Collect all breakdown labels and metric type names present in the raw aggregates.
 		// The table UI renders breakdown rows based on `labelsByType`, while the Sankey reads `by-label` directly.
 		// If this isn't computed, breakdown rows will be missing in the table even when `by-label` data exists.
 		for (const groupBy in aggregatesMap) {
@@ -1230,6 +1231,7 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 				const periodData = aggregatesMap[groupBy][period]
 				for (const type in periodData) {
 					if (type === 'timestamp') continue
+					metricTypes.add(type)
 					const byLabel = periodData?.[type]?.['by-label']
 					if (!byLabel) continue
 					for (const breakdownLabel in byLabel) {
@@ -1371,24 +1373,13 @@ export async function getProtocolIncomeStatement({ metadata }: { metadata: IProt
 			}
 		}
 
-		let hasOtherTokenHolderFlows = false
-		for (const groupBy in aggregatesMap) {
-			for (const period in aggregatesMap[groupBy]) {
-				for (const label in aggregatesMap[groupBy][period]) {
-					if (label === 'Others Token Holder Flows') {
-						hasOtherTokenHolderFlows = true
-						break
-					}
-				}
-			}
-		}
-
 		return {
 			data: aggregates,
 			labelsByType: finalLabelsByType,
 			methodology: methodology,
 			breakdownMethodology: breakdownMethodology,
-			hasOtherTokenHolderFlows
+			hasOtherTokenHolderFlows: metricTypes.has('Others Token Holder Flows'),
+			hasTokenHolderNetIncome: metricTypes.has('Token Holder Net Income')
 		} as IProtocolOverviewPageData['incomeStatement']
 	} catch (err) {
 		console.log(err)

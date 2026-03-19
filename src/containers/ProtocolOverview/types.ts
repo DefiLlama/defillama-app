@@ -183,6 +183,7 @@ export interface IProtocolOverviewPageData {
 		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
 		hasOtherTokenHolderFlows: boolean
+		hasTokenHolderNetIncome: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IProtocolMetricsV2['warningBanners']

@@ -3,6 +3,7 @@ import type { RecordAuthResponse } from 'pocketbase'
 import { createContext, type ReactNode, useCallback, useContext, useMemo, useSyncExternalStore } from 'react'
 import toast from 'react-hot-toast'
 import { AUTH_SERVER } from '~/constants'
+import { clearSignupSource, getSignupSource } from '~/containers/Subscribtion/signupSource'
 import { fetchJson, handleSimpleFetchResponse } from '~/utils/async'
 import pb, { type AuthModel } from '~/utils/pocketbase'
 
@@ -286,7 +287,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 					password,
 					passwordConfirm,
 					auth_method: 'email',
-					source: 'defillama',
+					source: getSignupSource(),
 					turnstile_token: turnstileToken,
 					promotionalEmails
 				})
@@ -301,6 +302,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			pb.authStore.save(token)
 		},
 		onSuccess: () => {
+			clearSignupSource()
 			sessionStorage.setItem('just_signed_up', 'true')
 			toast.success('Account created! Please check your email to verify your account.', { duration: 5000 })
 		},
@@ -414,7 +416,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString() })
+				body: JSON.stringify({
+					message,
+					signature,
+					address,
+					issuedAt: issuedAt.toISOString(),
+					source: getSignupSource()
+				})
 			})
 
 			if (!response.ok) {
@@ -430,6 +438,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 				await pb.collection('users').authWithPassword(identity, password)
 			}
 
+			clearSignupSource()
 			toast.success('Successfully signed in with Web3 wallet')
 
 			return { address }

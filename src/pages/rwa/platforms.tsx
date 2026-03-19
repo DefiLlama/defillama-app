@@ -2,6 +2,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAPlatformsTable } from '~/containers/RWA/Platforms'
 import { getRWAPlatformsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -34,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () =
 	}
 })
 
-const pageName = ['RWA Platforms']
+const pageName = ['RWA']
 
 export default function RWAPlatformsPage({ platforms, platformLinks, chartDatasets }) {
 	return (
@@ -44,6 +45,7 @@ export default function RWAPlatformsPage({ platforms, platformLinks, chartDatase
 			pageName={pageName}
 			canonicalUrl={`/rwa/platforms`}
 		>
+			<RWATabNav active="platforms" />
 			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
 			<RWAPlatformsTable platforms={platforms} chartDatasets={chartDatasets} />
 		</Layout>

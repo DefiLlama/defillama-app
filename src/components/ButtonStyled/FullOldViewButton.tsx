@@ -5,6 +5,7 @@ import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { useDashboardCreation } from '~/containers/ProDashboard/hooks/useDashboardCreation'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 
 const SubscribeProModal = lazy(() =>
@@ -24,6 +25,7 @@ export const FullOldViewButton = () => {
 		if (isAuthenticated && hasActiveSubscription) {
 			createDashboardWithDataset()
 		} else {
+			setSignupSource('open-in-dashboard')
 			subscribeModalStore.show()
 		}
 	}

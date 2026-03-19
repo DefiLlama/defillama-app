@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { AgenticChat } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
@@ -56,6 +57,7 @@ export default function LlamaAIPage() {
 						Please{' '}
 						<button
 							onClick={() => {
+								setSignupSource('llamaai')
 								if (!shouldRenderModal) setShouldRenderModal(true)
 								subscribeModalStore.show()
 							}}

@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from 'react'
 import { LockIcon } from '~/components/LockIcon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
@@ -55,6 +56,7 @@ export function StabilityHeader() {
 				onClick={(e) => {
 					e.stopPropagation()
 					trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'header' })
+					setSignupSource('yield-score')
 					setShouldRenderModal(true)
 				}}
 				className="cursor-pointer"
@@ -117,6 +119,7 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 					<button
 						onClick={() => {
 							trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'cell' })
+							setSignupSource('yield-score')
 							setShouldRenderModal(true)
 						}}
 						className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"

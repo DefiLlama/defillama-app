@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
 import { CopyDashboardLinkButton } from './components/CopyDashboardLinkButton'
@@ -197,6 +198,7 @@ function ProDashboardContent() {
 											if (hasActiveSubscription) {
 												void copyDashboard()
 											} else {
+												setSignupSource('pro-dashboard')
 												subscribeModalStore.show()
 											}
 										}}

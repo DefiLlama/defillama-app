@@ -2,6 +2,7 @@ import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAChainsTable } from '~/containers/RWA/Chains'
 import { getRWAChainsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -34,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
 	}
 })
 
-const pageName = ['RWA Chains']
+const pageName = ['RWA']
 
 export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 	return (
@@ -44,6 +45,7 @@ export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 			pageName={pageName}
 			canonicalUrl={`/rwa/chains`}
 		>
+			<RWATabNav active="chains" />
 			<RowLinksWithDropdown links={chainLinks} activeLink={'All'} />
 			<RWAChainsTable chains={chains} chartDatasets={chartDatasets} />
 		</Layout>

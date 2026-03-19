@@ -11,6 +11,7 @@ const SubscribeProModal = lazy(() =>
 import { MCP_SERVER } from '~/constants'
 import { captureAllCharts, type CapturedChart } from '~/containers/LlamaAI/utils/chartCapture'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 
 const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
@@ -150,6 +151,7 @@ export function PDFExportButton({
 				setIsLoading(false)
 			}
 		} else {
+			setSignupSource('llamaai-pdf')
 			subscribeModalStore.show()
 		}
 	}

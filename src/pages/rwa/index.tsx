@@ -1,6 +1,7 @@
 import type { InferGetStaticPropsType } from 'next'
 import { RWAOverview } from '~/containers/RWA'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -28,6 +29,7 @@ export default function RWAPage(props: InferGetStaticPropsType<typeof getStaticP
 			pageName={pageName}
 			canonicalUrl={`/rwa`}
 		>
+			<RWATabNav active="overview" />
 			<RWAOverview {...props} />
 		</Layout>
 	)

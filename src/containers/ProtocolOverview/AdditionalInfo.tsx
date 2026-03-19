@@ -8,6 +8,7 @@ import { MetricRow } from '~/components/MetricPrimitives'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { formattedNum, slug } from '~/utils'
 import type { IProtocolOverviewPageData } from './types'
 
@@ -519,6 +520,7 @@ const Competitors = (props: IProtocolOverviewPageData) => {
 						onClick={(event) => {
 							if (canOpenComparison) return
 							event.preventDefault()
+							setSignupSource('protocol-comparison')
 							subscribeModalStore.show()
 						}}
 						className="rounded-md border border-(--primary) px-2 py-1.5 text-xs text-(--primary) hover:bg-(--primary)/10 focus-visible:bg-(--primary)/10"
