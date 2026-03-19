@@ -466,7 +466,7 @@ export const IncomeStatement = ({
 		costOfRevenueByLabels.length > 0 ||
 		grossProfitByLabels.length > 0 ||
 		(hasIncentives && incentivesByLabels.length > 0) ||
-		tokenHolderNetIncomeByLabels.length > 0 ||
+		(incomeStatement?.hasTokenHolderNetIncome && tokenHolderNetIncomeByLabels.length > 0) ||
 		(incomeStatement?.hasOtherTokenHolderFlows && othersTokenHolderFlowsByLabels.length > 0)
 
 	const prepareTableCsv = () => {
@@ -519,7 +519,8 @@ export const IncomeStatement = ({
 		pushMetric('Gross Profit', grossProfitData, grossProfitByLabels)
 		if (hasIncentives) pushMetric('Incentives', incentivesData, incentivesByLabels)
 		pushMetric('Earnings', earningsData, EMPTY_BREAKDOWN_LABELS)
-		pushMetric('Token Holder Net Income', tokenHolderNetIncomeData, tokenHolderNetIncomeByLabels)
+		if (incomeStatement?.hasTokenHolderNetIncome)
+			pushMetric('Token Holder Net Income', tokenHolderNetIncomeData, tokenHolderNetIncomeByLabels)
 		if (incomeStatement?.hasOtherTokenHolderFlows)
 			pushMetric('Others Token Holder Flows', othersTokenHolderFlowsData, othersTokenHolderFlowsByLabels)
 
@@ -683,18 +684,20 @@ export const IncomeStatement = ({
 								breakdownMethodology={EMPTY_BREAKDOWN_METHODOLOGY}
 								alignWithBreakdownRows={hasAnyBreakdownRows}
 							/>
-							<IncomeStatementByLabel
-								protocolName={name}
-								groupBy={groupBy}
-								data={tokenHolderNetIncomeData}
-								dataType="token holder net income"
-								label="Token Holder Net Income"
-								methodology={incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
-								tableHeaders={tableHeaders}
-								breakdownByLabels={tokenHolderNetIncomeByLabels}
-								breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
-								alignWithBreakdownRows={hasAnyBreakdownRows}
-							/>
+							{incomeStatement?.hasTokenHolderNetIncome ? (
+								<IncomeStatementByLabel
+									protocolName={name}
+									groupBy={groupBy}
+									data={tokenHolderNetIncomeData}
+									dataType="token holder net income"
+									label="Token Holder Net Income"
+									methodology={incomeStatement?.methodology?.['Token Holder Net Income'] ?? ''}
+									tableHeaders={tableHeaders}
+									breakdownByLabels={tokenHolderNetIncomeByLabels}
+									breakdownMethodology={incomeStatement?.breakdownMethodology?.['Token Holder Net Income'] ?? {}}
+									alignWithBreakdownRows={hasAnyBreakdownRows}
+								/>
+							) : null}
 							{incomeStatement?.hasOtherTokenHolderFlows ? (
 								<IncomeStatementByLabel
 									protocolName={name}

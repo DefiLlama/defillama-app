@@ -215,9 +215,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 					}`}
 				>
 					All
-					<span
-						className={`ml-1.5 ${selectedCategory === ALL_CATEGORY ? 'text-white/70' : 'text-(--text-tertiary)'}`}
-					>
+					<span className={`ml-1.5 ${selectedCategory === ALL_CATEGORY ? 'text-white/70' : 'text-(--text-tertiary)'}`}>
 						{totalCount}
 					</span>
 				</button>
@@ -233,9 +231,7 @@ export function DownloadsCatalog({ chartOptionsMap }: { chartOptionsMap: ChartOp
 						}`}
 					>
 						{category}
-						<span
-							className={`ml-1.5 ${selectedCategory === category ? 'text-white/70' : 'text-(--text-tertiary)'}`}
-						>
+						<span className={`ml-1.5 ${selectedCategory === category ? 'text-white/70' : 'text-(--text-tertiary)'}`}>
 							{categoryCounts[category] ?? 0}
 						</span>
 					</button>

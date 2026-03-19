@@ -416,7 +416,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 			const response = await fetch(`${AUTH_SERVER}/eth-auth`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ message, signature, address, issuedAt: issuedAt.toISOString(), source: getSignupSource() })
+				body: JSON.stringify({
+					message,
+					signature,
+					address,
+					issuedAt: issuedAt.toISOString(),
+					source: getSignupSource()
+				})
 			})
 
 			if (!response.ok) {
