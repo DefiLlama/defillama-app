@@ -128,7 +128,7 @@
 			transform: scale(1);
 		}
 	}
-	@keyframes tooltip-enter {
+	@keyframes tooltip-enter-below {
 		from {
 			opacity: 0;
 			transform: translateY(8px);
@@ -136,6 +136,16 @@
 		to {
 			opacity: 1;
 			transform: translateY(0);
+		}
+	}
+	@keyframes tooltip-enter-above {
+		from {
+			opacity: 0;
+			transform: translateY(calc(-100% - 8px));
+		}
+		to {
+			opacity: 1;
+			transform: translateY(-100%);
 		}
 	}
 	@keyframes slideup {

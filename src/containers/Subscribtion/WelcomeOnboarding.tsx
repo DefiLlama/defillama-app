@@ -1,6 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
@@ -67,6 +68,7 @@ const PRIORITY_ORDER = ['llamaai', 'dashboards', 'csv', 'llamafeed', 'sheets'] a
 
 export function WelcomeOnboarding() {
 	const router = useRouter()
+	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
 	const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set())
@@ -77,6 +79,17 @@ export function WelcomeOnboarding() {
 			void router.replace('/subscription')
 		}
 	}, [isSubscriptionLoading, isAuthenticated, router])
+
+	// Invalidate subscription cache once on mount when arriving from Stripe redirect.
+	// StripeCheckoutModal redirects directly to /welcome, bypassing /account?success=true
+	// where the cache invalidation previously happened.
+	const hasInvalidatedRef = useRef(false)
+	useEffect(() => {
+		if (isAuthenticated && !hasActiveSubscription && !isSubscriptionLoading && !hasInvalidatedRef.current) {
+			hasInvalidatedRef.current = true
+			void queryClient.invalidateQueries({ queryKey: ['subscription'] })
+		}
+	}, [isAuthenticated, hasActiveSubscription, isSubscriptionLoading, queryClient])
 
 	const toggleFeature = useCallback((id: string) => {
 		setSelectedFeatures((prev) => {
@@ -100,12 +113,12 @@ export function WelcomeOnboarding() {
 
 		trackUmamiEvent('onboarding-intent', { features })
 
-		writeAppStorage({ ...readAppStorage(), ONBOARDING_INTENT: features })
-
-		// Trigger LlamaAI walkthrough if user selected llamaai and will be routed there
+		const storage = readAppStorage()
+		storage.ONBOARDING_INTENT = features
 		if (selectedFeatures.has('llamaai')) {
-			writeAppStorage({ ...readAppStorage(), [LLAMA_AI_SHOW_WALKTHROUGH]: true })
+			storage[LLAMA_AI_SHOW_WALKTHROUGH] = true
 		}
+		writeAppStorage(storage)
 
 		if (selectedFeatures.has('exploring')) {
 			setScreen('overview')
@@ -120,13 +133,15 @@ export function WelcomeOnboarding() {
 			}
 		}
 
+		// Always clean up the returnUrl regardless of path taken
+		const returnUrl = typeof window !== 'undefined' ? sessionStorage.getItem('onboarding_returnUrl') : null
+		if (returnUrl) sessionStorage.removeItem('onboarding_returnUrl')
+
 		if (features.length === 1) {
 			const option = ONBOARDING_OPTIONS.find((o) => o.id === features[0])
 			if (option?.destination) {
-				if (option.id === 'csv') {
-					const returnUrl = typeof window !== 'undefined' ? sessionStorage.getItem('onboarding_returnUrl') : null
-					navigate(returnUrl || option.destination)
-					if (returnUrl) sessionStorage.removeItem('onboarding_returnUrl')
+				if (option.id === 'csv' && returnUrl) {
+					navigate(returnUrl)
 				} else {
 					navigate(option.destination)
 				}
@@ -287,7 +302,10 @@ export function WelcomeOnboarding() {
 }
 
 function FeatureOverview() {
-	const features = ONBOARDING_OPTIONS.filter((o) => o.id !== 'exploring')
+	const features = ONBOARDING_OPTIONS.filter(
+		(o): o is (typeof ONBOARDING_OPTIONS)[number] & { destination: string } =>
+			o.id !== 'exploring' && o.destination !== null
+	)
 
 	return (
 		<div className="mx-auto flex w-full max-w-3xl flex-col items-center px-4 py-16 animate-[fadein_0.3s_ease-out]">
@@ -304,7 +322,7 @@ function FeatureOverview() {
 					return (
 						<Link
 							key={feature.id}
-							href={feature.destination!}
+							href={feature.destination}
 							style={{ animationDelay: `${i * 60}ms` }}
 							className={`group flex flex-col gap-3 rounded-xl border p-5 transition-all duration-200 animate-[fadein_0.3s_ease-out_both] ${
 								isAI

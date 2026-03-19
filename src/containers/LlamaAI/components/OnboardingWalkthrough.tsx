@@ -183,7 +183,9 @@ export function OnboardingWalkthrough({
 	// Track first spotlight appearance for entry animation
 	const hasShownSpotlightRef = useRef(false)
 	const isFirstSpotlight = isSpotlightStep && !hasShownSpotlightRef.current
-	if (isSpotlightStep) hasShownSpotlightRef.current = true
+	useEffect(() => {
+		if (isSpotlightStep) hasShownSpotlightRef.current = true
+	}, [isSpotlightStep])
 
 	const tapOrClick = isMobile ? 'Tap' : 'Click'
 	const researchDescription = isTrial
@@ -210,6 +212,13 @@ export function OnboardingWalkthrough({
 			setSpotlightRect(new DOMRect(left, top, right - left, bottom - top))
 		}
 
+		// rAF-guarded version to coalesce rapid scroll/resize events
+		let rafId = 0
+		const debouncedUpdateRect = () => {
+			if (rafId) cancelAnimationFrame(rafId)
+			rafId = requestAnimationFrame(updateRect)
+		}
+
 		// If the drawer is about to open for this step, wait for its animation.
 		// Otherwise measure on the next frame (element already in the DOM).
 		const drawerOpening = MOBILE_DRAWER_STEPS.has(step) && !mobileDrawerOpenRef.current
@@ -219,12 +228,13 @@ export function OnboardingWalkthrough({
 			requestAnimationFrame(updateRect)
 		}, initialDelay)
 
-		window.addEventListener('resize', updateRect)
-		window.addEventListener('scroll', updateRect, true)
+		window.addEventListener('resize', debouncedUpdateRect)
+		window.addEventListener('scroll', debouncedUpdateRect, true)
 		return () => {
 			clearTimeout(timer)
-			window.removeEventListener('resize', updateRect)
-			window.removeEventListener('scroll', updateRect, true)
+			if (rafId) cancelAnimationFrame(rafId)
+			window.removeEventListener('resize', debouncedUpdateRect)
+			window.removeEventListener('scroll', debouncedUpdateRect, true)
 		}
 	}, [step, isSpotlightStep, config])
 
@@ -248,17 +258,26 @@ export function OnboardingWalkthrough({
 	// Manage mobile drawer: open when entering a drawer step, close when leaving all drawer steps
 	const mobileDrawerOpenRef = useRef(false)
 	useEffect(() => {
+		let timerId: ReturnType<typeof setTimeout>
 		const isMobileDrawerStep = MOBILE_DRAWER_STEPS.has(step)
 
 		if (isMobileDrawerStep && !mobileDrawerOpenRef.current) {
 			const btn = document.querySelector<HTMLElement>('[data-walkthrough="mobile-tools-button"]')
-			if (btn) btn.click()
-			mobileDrawerOpenRef.current = true
+			if (btn) {
+				btn.click()
+				mobileDrawerOpenRef.current = true // optimistic
+				timerId = setTimeout(() => {
+					const expanded = btn.getAttribute('aria-expanded') === 'true'
+					if (!expanded) mobileDrawerOpenRef.current = false // rollback
+				}, 400)
+			}
 		} else if (!isMobileDrawerStep && mobileDrawerOpenRef.current) {
 			const btn = document.querySelector<HTMLElement>('[data-walkthrough="mobile-tools-button"][aria-expanded="true"]')
 			if (btn) btn.click()
 			mobileDrawerOpenRef.current = false
 		}
+
+		return () => clearTimeout(timerId)
 	}, [step])
 
 	// Auto-advance when user toggles Research mode ON
@@ -305,6 +324,15 @@ export function OnboardingWalkthrough({
 		setIsResearchMode(true)
 		onComplete()
 	}, [step, variant, setIsResearchMode, onComplete])
+
+	// Dismiss walkthrough on Escape key
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') handleSkip()
+		}
+		window.addEventListener('keydown', onKeyDown)
+		return () => window.removeEventListener('keydown', onKeyDown)
+	}, [handleSkip])
 
 	const handleStartChatting = useCallback(() => {
 		trackUmamiEvent('llamaai-walkthrough-complete', { action: 'start-chatting', variant })
@@ -457,7 +485,7 @@ export function OnboardingWalkthrough({
 
 					{/* Tooltip card */}
 					<div
-						className={`pointer-events-auto absolute z-10 w-[280px] transition-[left,top] duration-300 ease-in-out ${isFirstSpotlight ? 'animate-[tooltip-enter_0.35s_ease-out]' : ''}`}
+						className={`pointer-events-auto absolute z-10 w-[280px] transition-[left,top] duration-300 ease-in-out ${isFirstSpotlight ? (tooltipPosition === 'above' ? 'animate-[tooltip-enter-above_0.35s_ease-out]' : 'animate-[tooltip-enter-below_0.35s_ease-out]') : ''}`}
 						style={{
 							left: Math.max(
 								16,
