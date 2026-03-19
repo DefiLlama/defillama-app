@@ -70,7 +70,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 
 	const activeTab = useMemo<EquityTab>(() => {
 		const tab = readSingleQueryValue(router.query.tab)
-		return tab && TABS.includes(tab as EquityTab) ? (tab as EquityTab) : 'overview'
+		return tab && TABS.includes(tab as EquityTab) ? (tab as EquityTab) : 'financials'
 	}, [router.query.tab])
 
 	const activeTimeframe = useMemo<EquitiesPriceHistoryTimeframe>(() => {
@@ -89,7 +89,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 	}, [activeTimeframe, props.priceHistoryChart])
 
 	const setActiveTab = (tab: EquityTab) => {
-		void pushShallowQuery(router, { tab: tab === 'overview' ? undefined : tab })
+		void pushShallowQuery(router, { tab: tab === 'financials' ? undefined : tab })
 	}
 
 	const setActiveTimeframe = (timeframe: EquitiesPriceHistoryTimeframe) => {
