@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
-import { readAppStorage, writeAppStorage } from '~/contexts/LocalStorage'
+import { LLAMA_AI_SHOW_WALKTHROUGH, readAppStorage, writeAppStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const ONBOARDING_OPTIONS = [
@@ -13,6 +13,7 @@ const ONBOARDING_OPTIONS = [
 		label: 'LlamaAI',
 		description: 'Research & analysis',
 		iconType: 'svg' as const,
+		color: '#C99A4A',
 		destination: '/ai/chat'
 	},
 	{
@@ -21,6 +22,7 @@ const ONBOARDING_OPTIONS = [
 		description: 'Export any dataset',
 		iconType: 'icon' as const,
 		iconName: 'download-cloud' as const,
+		color: '#2564eb',
 		destination: '/downloads'
 	},
 	{
@@ -29,6 +31,7 @@ const ONBOARDING_OPTIONS = [
 		description: 'Build custom views',
 		iconType: 'icon' as const,
 		iconName: 'layout-grid' as const,
+		color: '#e04dc0',
 		destination: '/pro'
 	},
 	{
@@ -37,7 +40,8 @@ const ONBOARDING_OPTIONS = [
 		description: 'Real-time premium insights',
 		iconType: 'icon' as const,
 		iconName: 'activity' as const,
-		destination: '/recent'
+		color: '#8b5cf6',
+		destination: 'https://llamafeed.io'
 	},
 	{
 		id: 'sheets',
@@ -45,6 +49,7 @@ const ONBOARDING_OPTIONS = [
 		description: 'Blockchain data in spreadsheets',
 		iconType: 'icon' as const,
 		iconName: 'sheets' as const,
+		color: '#22c55e',
 		destination: '/sheets'
 	},
 	{
@@ -53,6 +58,7 @@ const ONBOARDING_OPTIONS = [
 		description: null,
 		iconType: 'icon' as const,
 		iconName: 'earth' as const,
+		color: '#8a8c90',
 		destination: null
 	}
 ] as const
@@ -96,9 +102,22 @@ export function WelcomeOnboarding() {
 
 		writeAppStorage({ ...readAppStorage(), ONBOARDING_INTENT: features })
 
+		// Trigger LlamaAI walkthrough if user selected llamaai and will be routed there
+		if (selectedFeatures.has('llamaai')) {
+			writeAppStorage({ ...readAppStorage(), [LLAMA_AI_SHOW_WALKTHROUGH]: true })
+		}
+
 		if (selectedFeatures.has('exploring')) {
 			setScreen('overview')
 			return
+		}
+
+		const navigate = (url: string) => {
+			if (url.startsWith('http')) {
+				window.location.href = url
+			} else {
+				void router.push(url)
+			}
 		}
 
 		if (features.length === 1) {
@@ -106,10 +125,10 @@ export function WelcomeOnboarding() {
 			if (option?.destination) {
 				if (option.id === 'csv') {
 					const returnUrl = typeof window !== 'undefined' ? sessionStorage.getItem('onboarding_returnUrl') : null
-					void router.push(returnUrl || option.destination)
+					navigate(returnUrl || option.destination)
 					if (returnUrl) sessionStorage.removeItem('onboarding_returnUrl')
 				} else {
-					void router.push(option.destination)
+					navigate(option.destination)
 				}
 				return
 			}
@@ -119,7 +138,7 @@ export function WelcomeOnboarding() {
 			if (selectedFeatures.has(id)) {
 				const option = ONBOARDING_OPTIONS.find((o) => o.id === id)
 				if (option?.destination) {
-					void router.push(option.destination)
+					navigate(option.destination)
 					return
 				}
 			}
@@ -177,39 +196,33 @@ export function WelcomeOnboarding() {
 			<div className="flex w-full flex-col gap-2">
 				{ONBOARDING_OPTIONS.map((option, i) => {
 					const isSelected = selectedFeatures.has(option.id)
-					const isAI = option.id === 'llamaai'
+					const c = option.color
 					return (
 						<button
 							key={option.id}
 							onClick={() => toggleFeature(option.id)}
-							style={{ animationDelay: `${i * 40}ms` }}
+							style={{
+								animationDelay: `${i * 40}ms`,
+								...(isSelected
+									? { borderColor: `${c}66`, backgroundColor: `${c}0f` }
+									: {})
+							}}
 							className={`group flex items-center gap-3.5 rounded-xl border px-4 py-3 text-left transition-all duration-200 animate-[fadein_0.2s_ease-out_both] ${
-								isSelected
-									? isAI
-										? 'border-[#C99A4A]/40 bg-[#C99A4A]/6'
-										: 'border-[#5C5CF9]/40 bg-[#5C5CF9]/6'
-									: isAI
-										? 'border-[#C99A4A]/15 bg-[#1a1b1f] hover:border-[#C99A4A]/30 hover:bg-[#C99A4A]/4'
-										: 'border-[#2a2b30] bg-[#1a1b1f] hover:border-[#39393E] hover:bg-[#1e1f24]'
+								isSelected ? '' : 'border-[#2a2b30] bg-[#1a1b1f] hover:border-[#39393E] hover:bg-[#1e1f24]'
 							}`}
 							role="checkbox"
 							aria-checked={isSelected}
 						>
 							<div
-								className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200 ${
-									isSelected
-										? isAI
-											? 'bg-[#C99A4A]/15'
-											: 'bg-[#5C5CF9]/12'
-										: isAI
-											? 'bg-[#C99A4A]/8'
-											: 'bg-[#222429]'
-								}`}
+								className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors duration-200"
+								style={{
+									backgroundColor: isSelected ? `${c}26` : `${c}14`
+								}}
 							>
 								{option.iconType === 'svg' ? (
 									<svg
 										className="h-[18px] w-[18px]"
-										style={{ color: isSelected ? '#FDE0A9' : '#C99A4A' }}
+										style={{ color: isSelected ? '#FDE0A9' : c }}
 									>
 										<use href="/assets/llamaai/ask-llamaai-3.svg#ai-icon" />
 									</svg>
@@ -218,22 +231,15 @@ export function WelcomeOnboarding() {
 										name={option.iconName}
 										height={18}
 										width={18}
-										className={`transition-colors duration-200 ${
-											isSelected ? 'text-[#5C5CF9]' : 'text-[#8a8c90] group-hover:text-[#b4b7bc]'
-										}`}
+										className="transition-colors duration-200"
+										style={{ color: isSelected ? c : '#8a8c90' }}
 									/>
 								)}
 							</div>
 							<div className="flex min-w-0 flex-col">
 								<span
 									className={`text-sm font-medium leading-tight ${
-										isSelected
-											? isAI
-												? 'text-[#FDE0A9]'
-												: 'text-white'
-											: isAI
-												? 'text-[#e0dcc8]'
-												: 'text-[#e0e0e3]'
+										isSelected ? 'text-white' : 'text-[#e0e0e3]'
 									}`}
 								>
 									{option.label}
@@ -247,12 +253,9 @@ export function WelcomeOnboarding() {
 							<div className="ml-auto shrink-0">
 								<div
 									className={`flex h-[18px] w-[18px] items-center justify-center rounded-full border transition-all duration-200 ${
-										isSelected
-											? isAI
-												? 'border-[#C99A4A] bg-[#C99A4A]'
-												: 'border-[#5C5CF9] bg-[#5C5CF9]'
-											: 'border-[#39393E] group-hover:border-[#555]'
+										isSelected ? '' : 'border-[#39393E] group-hover:border-[#555]'
 									}`}
+									style={isSelected ? { borderColor: c, backgroundColor: c } : undefined}
 								>
 									{isSelected ? (
 										<Icon name="check" height={10} width={10} className="text-white" />

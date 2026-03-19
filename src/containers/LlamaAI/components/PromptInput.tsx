@@ -58,6 +58,7 @@ interface PromptInputProps {
 	onOpenAlerts?: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	walkthroughActive?: boolean
 }
 
 const trackSubmit = () => {
@@ -86,7 +87,8 @@ export function PromptInput({
 	externalDragging,
 	onOpenAlerts,
 	quotedText,
-	onClearQuotedText
+	onClearQuotedText,
+	walkthroughActive
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const [submitError, setSubmitError] = useState<string | null>(null)
@@ -485,6 +487,7 @@ export function PromptInput({
 					onImageUploadClick={imageUpload.openFilePicker}
 					isPending={isPending}
 					isStreaming={isStreaming}
+					walkthroughActive={walkthroughActive}
 				/>
 				<div className="flex items-center gap-2">
 					<span className="max-sm:hidden" data-walkthrough="image-upload">

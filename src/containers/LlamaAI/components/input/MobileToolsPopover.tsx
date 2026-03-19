@@ -14,6 +14,7 @@ interface MobileToolsPopoverProps {
 	onImageUploadClick: () => void
 	isPending: boolean
 	isStreaming?: boolean
+	walkthroughActive?: boolean
 }
 
 const itemClassName =
@@ -27,7 +28,8 @@ export function MobileToolsPopover({
 	onPromptSelect,
 	onImageUploadClick,
 	isPending,
-	isStreaming
+	isStreaming,
+	walkthroughActive
 }: MobileToolsPopoverProps) {
 	const disabled = isPending || !!isStreaming
 	const menu = Ariakit.useMenuStore({ placement: 'top-start' })
@@ -50,6 +52,7 @@ export function MobileToolsPopover({
 	return (
 		<Ariakit.MenuProvider store={menu}>
 			<Ariakit.MenuButton
+				data-walkthrough="mobile-tools-button"
 				disabled={disabled}
 				aria-label="Open mobile tools"
 				className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f0f0f0] text-[#555] transition-colors hover:bg-[#e4e4e4] hover:text-[#333] disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] sm:hidden dark:bg-white/8 dark:text-[#a1a1aa] dark:hover:bg-white/12 dark:hover:text-[#e4e4e7] dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]"
@@ -59,8 +62,9 @@ export function MobileToolsPopover({
 
 			<Ariakit.Menu
 				portal
-				modal
-				unmountOnHide
+				modal={!walkthroughActive}
+				unmountOnHide={!walkthroughActive}
+				hideOnInteractOutside={!walkthroughActive}
 				gutter={8}
 				wrapperProps={{
 					className: 'max-sm:fixed! max-sm:bottom-0! max-sm:top-[unset]! max-sm:transform-none! max-sm:w-full!'
@@ -79,9 +83,9 @@ export function MobileToolsPopover({
 					</Ariakit.MenuDismiss>
 				</div>
 
-				<Ariakit.MenuItem className={itemClassName} hideOnClick={false} onClick={handleImageUpload}>
+				<Ariakit.MenuItem data-walkthrough="mobile-upload-item" className={itemClassName} hideOnClick={false} onClick={handleImageUpload}>
 					<Icon name="image-plus" height={16} width={16} className="shrink-0 text-[#777] dark:text-[#888]" />
-					<span>Add photo</span>
+					<span>Upload files</span>
 				</Ariakit.MenuItem>
 
 				<Ariakit.MenuSeparator className="mx-2 border-t border-black/6 dark:border-white/6" />
@@ -100,6 +104,7 @@ export function MobileToolsPopover({
 				</Ariakit.MenuItem>
 
 				<Ariakit.MenuItem
+					data-walkthrough="mobile-research-item"
 					className={itemClassName}
 					hideOnClick={false}
 					onClick={() => setIsResearchMode(true)}
@@ -122,6 +127,7 @@ export function MobileToolsPopover({
 				<Ariakit.MenuSeparator className="mx-2 border-t border-black/6 dark:border-white/6" />
 
 				<NestedMenu
+					data-walkthrough="mobile-explore-item"
 					label={
 						<span className="flex items-center gap-3">
 							<Icon name="layout-grid" height={16} width={16} className="shrink-0 text-[#777] dark:text-[#888]" />
@@ -134,7 +140,7 @@ export function MobileToolsPopover({
 				</NestedMenu>
 
 				{onOpenAlerts ? (
-					<Ariakit.MenuItem className={itemClassName} hideOnClick={false} onClick={handleOpenAlerts}>
+					<Ariakit.MenuItem data-walkthrough="mobile-alerts-item" className={itemClassName} hideOnClick={false} onClick={handleOpenAlerts}>
 						<Icon name="calendar-plus" height={16} width={16} className="shrink-0 text-amber-500 dark:text-amber-400" />
 						<span>Manage Alerts</span>
 					</Ariakit.MenuItem>

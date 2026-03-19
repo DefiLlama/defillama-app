@@ -16,6 +16,7 @@ const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
 const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
+export const LLAMA_AI_SHOW_WALKTHROUGH = 'LLAMA_AI_SHOW_WALKTHROUGH' as const
 const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
@@ -163,6 +164,7 @@ export type AppStorage = SettingsStore & {
 	[YIELDS_SAVED_FILTERS]?: YieldSavedFilters
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
 	[LLAMA_AI_WELCOME_SHOWN]?: boolean
+	[LLAMA_AI_SHOW_WALKTHROUGH]?: boolean
 	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore
@@ -581,13 +583,25 @@ export function useCustomColumns() {
 export function useLlamaAIWelcome(): [boolean, () => void] {
 	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => (readAppStorage()[LLAMA_AI_WELCOME_SHOWN] ? '1' : '0'),
-		() => '0'
+		() => {
+			const store = readAppStorage()
+			// Show walkthrough only if triggered from /welcome AND not yet shown
+			return store[LLAMA_AI_SHOW_WALKTHROUGH] && !store[LLAMA_AI_WELCOME_SHOWN] ? '0' : '1'
+		},
+		() => '1' // SSR: assume seen
 	)
 
 	const shown = snapshot === '1'
 
-	const setShown = useMemo(() => () => writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true }), [])
+	const setShown = useMemo(
+		() => () =>
+			writeAppStorage({
+				...readAppStorage(),
+				[LLAMA_AI_WELCOME_SHOWN]: true,
+				[LLAMA_AI_SHOW_WALKTHROUGH]: false
+			}),
+		[]
+	)
 
 	return [shown, setShown]
 }

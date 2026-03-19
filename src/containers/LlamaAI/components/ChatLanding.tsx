@@ -73,6 +73,7 @@ export function ChatLanding({
 						onOpenAlerts={onOpenAlerts}
 						quotedText={quotedText}
 						onClearQuotedText={onClearQuotedText}
+						walkthroughActive={!hasSeenWelcome}
 					/>
 
 					<CapabilityRow promptInputRef={promptInputRef} />
