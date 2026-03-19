@@ -1,5 +1,5 @@
-import Layout from '~/layout'
 import { Icon } from '~/components/Icon'
+import Layout from '~/layout'
 
 const dlResearchReports = [
 	{
@@ -56,8 +56,22 @@ export default function ReportsPage() {
 			{/* DL Research Section */}
 			<div className="relative overflow-hidden rounded-lg border border-[#237BFF]/20 bg-(--cards-bg) p-4 shadow-[0_0_30px_-5px_rgba(35,123,255,0.15)]">
 				{/* Dot pattern decorations */}
-				<div className="pointer-events-none absolute top-0 left-0 h-full w-16" style={{ ...dotPatternStyle, maskImage: 'linear-gradient(to right, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, black 0%, transparent 100%)' }} />
-				<div className="pointer-events-none absolute top-0 right-0 h-full w-16" style={{ ...dotPatternStyle, maskImage: 'linear-gradient(to left, black 0%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to left, black 0%, transparent 100%)' }} />
+				<div
+					className="pointer-events-none absolute top-0 left-0 h-full w-16"
+					style={{
+						...dotPatternStyle,
+						maskImage: 'linear-gradient(to right, black 0%, transparent 100%)',
+						WebkitMaskImage: 'linear-gradient(to right, black 0%, transparent 100%)'
+					}}
+				/>
+				<div
+					className="pointer-events-none absolute top-0 right-0 h-full w-16"
+					style={{
+						...dotPatternStyle,
+						maskImage: 'linear-gradient(to left, black 0%, transparent 100%)',
+						WebkitMaskImage: 'linear-gradient(to left, black 0%, transparent 100%)'
+					}}
+				/>
 
 				{/* Glow orb behind logo */}
 				<div className="pointer-events-none absolute -top-20 -left-20 h-40 w-40 rounded-full bg-[#237BFF]/10 blur-3xl" />
@@ -194,9 +208,7 @@ function DLReportCard({ report }: { report: Report }) {
 				</div>
 			)}
 			<div className="flex flex-1 flex-col gap-3 p-4">
-				{!report.image && (
-					<h3 className="text-lg font-semibold">{report.title}</h3>
-				)}
+				{!report.image && <h3 className="text-lg font-semibold">{report.title}</h3>}
 				<div className="flex items-center gap-3 text-xs text-(--text-secondary)">
 					<span className="flex items-center gap-1">
 						<Icon name="calendar" height={12} width={12} />
@@ -257,9 +269,7 @@ function ReportCard({ report }: { report: Report }) {
 				</div>
 			)}
 			<div className="flex flex-1 flex-col gap-3 p-4">
-				{!report.image && (
-					<h3 className="text-lg font-semibold">{report.title}</h3>
-				)}
+				{!report.image && <h3 className="text-lg font-semibold">{report.title}</h3>}
 				<div className="flex items-center gap-3 text-xs text-(--text-secondary)">
 					<span className="flex items-center gap-1">
 						<Icon name="calendar" height={12} width={12} />

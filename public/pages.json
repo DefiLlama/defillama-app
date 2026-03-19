@@ -55,13 +55,6 @@
       "oldName": "Oracles"
     },
     {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
-    },
-    {
       "name": "Top Protocols",
       "route": "/top-protocols",
       "category": "Total Value Locked",
@@ -69,6 +62,13 @@
       "tab": "Protocols",
       "oldCategory": "Market Overview",
       "oldName": "Top Protocols"
+    },
+    {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
     },
     {
       "name": "Forks",
