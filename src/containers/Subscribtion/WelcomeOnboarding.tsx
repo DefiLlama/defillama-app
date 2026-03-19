@@ -192,7 +192,7 @@ export function WelcomeOnboarding() {
 	}
 
 	return (
-		<div className="mx-auto flex w-full max-w-[580px] flex-col items-center px-4 py-14 animate-[fadein_0.3s_ease-out]">
+		<div className="mx-auto flex w-full max-w-[580px] animate-[fadein_0.3s_ease-out] flex-col items-center px-4 py-14">
 			<div className="mb-8 flex flex-col items-center gap-1.5 text-center">
 				<span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-[#5C5CF9]/25 bg-[#5C5CF9]/8 px-3 py-1 text-xs font-medium tracking-wide text-[#7B7BFF]">
 					<Icon name="check-circle" height={13} width={13} />
@@ -214,7 +214,7 @@ export function WelcomeOnboarding() {
 								animationDelay: `${i * 40}ms`,
 								...(isSelected ? { borderColor: `${c}66`, backgroundColor: `${c}0f` } : {})
 							}}
-							className={`group flex items-center gap-3.5 rounded-xl border px-4 py-3 text-left transition-all duration-200 animate-[fadein_0.2s_ease-out_both] ${
+							className={`group flex animate-[fadein_0.2s_ease-out_both] items-center gap-3.5 rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
 								isSelected ? '' : 'border-[#2a2b30] bg-[#1a1b1f] hover:border-[#39393E] hover:bg-[#1e1f24]'
 							}`}
 							role="checkbox"
@@ -241,7 +241,7 @@ export function WelcomeOnboarding() {
 								)}
 							</div>
 							<div className="flex min-w-0 flex-col">
-								<span className={`text-sm font-medium leading-tight ${isSelected ? 'text-white' : 'text-[#e0e0e3]'}`}>
+								<span className={`text-sm leading-tight font-medium ${isSelected ? 'text-white' : 'text-[#e0e0e3]'}`}>
 									{option.label}
 								</span>
 								{option.description ? (

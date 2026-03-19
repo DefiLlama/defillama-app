@@ -547,7 +547,7 @@ export function OnboardingWalkthrough({
 			{step === 'prompts' ? (
 				<>
 					<div className="pointer-events-auto absolute inset-0 bg-black/60" onClick={handleSkip} />
-					<div className="pointer-events-auto absolute inset-0 flex items-center justify-center p-4 animate-[fadein_0.25s_ease-out]">
+					<div className="pointer-events-auto absolute inset-0 flex animate-[fadein_0.25s_ease-out] items-center justify-center p-4">
 						<div className="relative w-full max-w-[400px] overflow-hidden rounded-2xl border border-[#222428] bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.7)]">
 							<div className="h-px w-full bg-gradient-to-r from-transparent via-green-400/50 to-transparent" />
 
