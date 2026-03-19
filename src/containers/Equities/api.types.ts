@@ -1,23 +1,41 @@
 export interface IEquitiesCompanyApiItem {
 	ticker: string
 	name: string
-	currentPrice: number | null
-	volume: number | null
-	marketCap: number | null
-	priceChangePercentage: number | null
-	lastUpdatedAt?: string
+	currentPrice: number
+	volume: number
+	marketCap: number
+	priceChangePercentage1d: number
+	trailingPE: number | null
+	dividendYield: number | null
+	priceToBook: number
+	lastUpdatedAt: string
+	priceChangePercentage7d: number
+	priceChangePercentage1m: number
+	revenueTTM: number
+	grossProfitTTM: number
+	totalAssets: number
+	earningsTTM: number
+	operatingProfitMargin: number
+	totalLiabilities: number
 }
 
 export interface IEquitiesSummaryResponse {
-	currentPrice: number | null
-	volume: number | null
-	marketCap: number | null
-	fiftyTwoWeekHigh: number | null
-	fiftyTwoWeekLow: number | null
+	currentPrice: number
+	volume: number
+	marketCap: number
+	fiftyTwoWeekHigh: number
+	fiftyTwoWeekLow: number
 	dividendYield: number | null
 	trailingPE: number | null
-	priceChangePercentage: number | null
-	updatedAt?: string
+	priceChangePercentage1d: number
+	priceChangePercentage7d: number
+	priceChangePercentage1m: number
+	priceToBook: number
+	updatedAt: string
+	revenueTTM: number
+	grossProfitTTM: number
+	totalAssets: number
+	earningsTTM: number
 }
 
 export interface IEquitiesMetadataResponse {

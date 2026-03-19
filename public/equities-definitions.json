@@ -1,0 +1,52 @@
+{
+	"currentPrice": { "label": "Price", "description": "Current share price" },
+	"marketCap": { "label": "Market Cap", "description": "Total market value of all outstanding shares" },
+	"volume": { "label": "Volume", "description": "Number of shares traded in the last session" },
+	"priceChangePercentage1d": { "label": "1D Price Change", "description": "Price change over the last trading day" },
+	"priceChangePercentage7d": { "label": "7D Price Change", "description": "Price change over the last 7 days" },
+	"priceChangePercentage1m": { "label": "1M Price Change", "description": "Price change over the last 30 days" },
+	"trailingPE": {
+		"label": "P/E",
+		"description": "Price-to-Earnings ratio — current share price divided by earnings per share over the trailing 12 months"
+	},
+	"dividendYield": {
+		"label": "Dividend Yield",
+		"description": "Annual dividend payment as a percentage of the current share price"
+	},
+	"priceToBook": {
+		"label": "P/B",
+		"description": "Price-to-Book ratio — current share price divided by book value per share"
+	},
+	"operatingProfitMargin": {
+		"label": "Op. Margin",
+		"description": "Operating income as a percentage of revenue, measuring core business profitability"
+	},
+	"revenueTTM": { "label": "Revenue (TTM)", "description": "Total revenue over the trailing twelve months" },
+	"grossProfitTTM": {
+		"label": "Gross Profit (TTM)",
+		"description": "Revenue minus cost of goods sold over the trailing twelve months"
+	},
+	"earningsTTM": { "label": "Earnings (TTM)", "description": "Net income over the trailing twelve months" },
+	"totalAssets": {
+		"label": "Total Assets",
+		"description": "Sum of all current and non-current assets on the balance sheet"
+	},
+	"totalLiabilities": {
+		"label": "Total Liabilities",
+		"description": "Sum of all current and long-term obligations on the balance sheet"
+	},
+	"fiftyTwoWeekHigh": { "label": "52W High", "description": "Highest share price in the past 52 weeks" },
+	"fiftyTwoWeekLow": { "label": "52W Low", "description": "Lowest share price in the past 52 weeks" },
+	"ebitdaTTM": {
+		"label": "EBITDA (TTM)",
+		"description": "Earnings before interest, taxes, depreciation and amortization over the trailing twelve months"
+	},
+	"holdersRevenueTTM": {
+		"label": "Holders Revenue (TTM)",
+		"description": "Revenue distributed to shareholders via buybacks and dividends over the trailing twelve months"
+	},
+	"treasury": {
+		"label": "Treasury / Balance Sheet",
+		"description": "Cash and cash equivalents plus short-term investments on the balance sheet"
+	}
+}

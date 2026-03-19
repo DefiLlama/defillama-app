@@ -7,46 +7,7 @@ import {
 	fetchEquitiesStatements,
 	fetchEquitiesSummary
 } from './api'
-import type { EquitiesPriceHistory } from './api.types'
-import type { IEquitiesListPageProps, IEquitiesPriceChanges, IEquityTickerPageProps } from './types'
-
-const MS_PER_DAY = 86_400_000
-
-function toMs(dateStr: string): number {
-	return new Date(dateStr).getTime()
-}
-
-function computePriceChangeForPeriod(sorted: EquitiesPriceHistory, periodMs: number): number | null {
-	if (sorted.length < 2) return null
-
-	const latest = sorted[sorted.length - 1]
-	const latestMs = toMs(latest[0])
-	const targetMs = latestMs - periodMs
-
-	let closest = sorted[0]
-	let closestDiff = Math.abs(toMs(closest[0]) - targetMs)
-
-	for (const point of sorted) {
-		const diff = Math.abs(toMs(point[0]) - targetMs)
-		if (diff < closestDiff) {
-			closest = point
-			closestDiff = diff
-		}
-	}
-
-	if (closest[0] === latest[0] || closest[1] === 0) return null
-	return ((latest[1] - closest[1]) / closest[1]) * 100
-}
-
-export function computePriceChanges(priceHistory: EquitiesPriceHistory): IEquitiesPriceChanges {
-	const sorted = [...priceHistory].sort((a, b) => toMs(a[0]) - toMs(b[0]))
-
-	return {
-		twentyFourHour: computePriceChangeForPeriod(sorted, MS_PER_DAY),
-		sevenDay: computePriceChangeForPeriod(sorted, 7 * MS_PER_DAY),
-		thirtyDay: computePriceChangeForPeriod(sorted, 30 * MS_PER_DAY)
-	}
-}
+import type { IEquitiesListPageProps, IEquityTickerPageProps } from './types'
 
 function normalizeTicker(ticker: string): string {
 	return ticker.trim().toUpperCase()
@@ -121,7 +82,6 @@ export async function getEquitiesTickerPageData(rawTicker: string): Promise<IEqu
 		metadata,
 		summary,
 		priceHistoryChart: buildPriceHistoryChart(priceHistory),
-		priceChanges: computePriceChanges(priceHistory),
 		statements,
 		filings,
 		filingForms: Array.from(new Set(filings.map((filing) => filing.form))).sort((a, b) => a.localeCompare(b))

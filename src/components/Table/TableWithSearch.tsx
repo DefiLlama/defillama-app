@@ -5,6 +5,7 @@ import {
 	type ColumnSizingState,
 	type ExpandedState,
 	type RowData,
+	type VisibilityState,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -15,6 +16,7 @@ import {
 import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
+import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
 import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from './utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from './utils'
@@ -33,9 +35,12 @@ interface ITableWithSearchBaseProps<T extends RowData> {
 	columnSizes?: ColumnSizesByBreakpoint | null
 	columnOrders?: ColumnOrdersByBreakpoint | null
 	sortingState?: SortingState
+	columnVisibility?: VisibilityState | null
 	rowSize?: number | null
 	compact?: boolean
 	getSubRows?: (row: T) => T[] | undefined
+	showColumnSelect?: boolean
+	columnSelectLabel?: string
 }
 
 type ITableWithSearchProps<T extends RowData = RowData> = ITableWithSearchBaseProps<T> &
@@ -61,8 +66,11 @@ export function TableWithSearch<T extends RowData>({
 	columnSizes = null,
 	columnOrders = null,
 	sortingState = EMPTY_SORTING,
+	columnVisibility: columnVisibilityProp = null,
 	rowSize = null,
 	compact = false,
+	showColumnSelect = false,
+	columnSelectLabel = 'Columns',
 	csvFileName = null,
 	getSubRows: getSubRowsProp
 }: ITableWithSearchProps<T>) {
@@ -71,6 +79,7 @@ export function TableWithSearch<T extends RowData>({
 	const [expanded, setExpanded] = React.useState<ExpandedState>({})
 	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+	const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(columnVisibilityProp ?? {})
 
 	const instance = useReactTable({
 		data,
@@ -80,7 +89,8 @@ export function TableWithSearch<T extends RowData>({
 			columnFilters,
 			expanded,
 			columnSizing,
-			columnOrder
+			columnOrder,
+			columnVisibility
 		},
 		defaultColumn: {
 			sortUndefined: 'last'
@@ -98,6 +108,7 @@ export function TableWithSearch<T extends RowData>({
 		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnVisibilityChange: (updater) => React.startTransition(() => setColumnVisibility(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -105,6 +116,32 @@ export function TableWithSearch<T extends RowData>({
 	})
 
 	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch })
+	const columnsOptions = React.useMemo(
+		() =>
+			columns
+				.map((column) => {
+					const key = column.id ?? ('accessorKey' in column ? String(column.accessorKey) : '')
+					if (!key) return null
+					const name = typeof column.header === 'function' ? key : column.header != null ? String(column.header) : key
+					return { key, name }
+				})
+				.filter((column): column is { key: string; name: string } => column !== null),
+		[columns]
+	)
+	const selectedColumns = instance
+		.getAllLeafColumns()
+		.filter((column) => column.getIsVisible())
+		.map((column) => column.id)
+	const setColumnOptions = React.useCallback(
+		(newOptions: string[] | ((prev: string[]) => string[])) => {
+			const resolvedOptions = typeof newOptions === 'function' ? newOptions(selectedColumns) : newOptions
+			const nextVisibility = Object.fromEntries(
+				instance.getAllLeafColumns().map((column) => [column.id, resolvedOptions.includes(column.id)])
+			)
+			instance.setColumnVisibility(nextVisibility)
+		},
+		[instance, selectedColumns]
+	)
 
 	useSortColumnSizesAndOrders({ instance, columnSizes, columnOrders })
 
@@ -127,6 +164,17 @@ export function TableWithSearch<T extends RowData>({
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
+				) : null}
+				{showColumnSelect ? (
+					<SelectWithCombobox
+						allValues={columnsOptions}
+						selectedValues={selectedColumns}
+						setSelectedValues={setColumnOptions}
+						nestedMenu={false}
+						label={columnSelectLabel}
+						labelType="smol"
+						variant="filter-responsive"
+					/>
 				) : null}
 				{typeof customFilters === 'function' ? customFilters() : customFilters}
 				{csvFileName ? (
