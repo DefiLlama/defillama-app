@@ -315,7 +315,7 @@ const ChainProtocolsTableInner = ({
 			const newColumns = Object.fromEntries(
 				columnOptions.map((column) => [
 					column.key,
-					['name', 'category'].includes(column.key) ? true : column[key] === newState
+					['name', 'category', 'forked_from'].includes(column.key) ? true : column[key] === newState
 				])
 			)
 
@@ -632,7 +632,7 @@ const columns = [
 							>
 								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 							</Tooltip>
-							<ForkedFromCell forkedFrom={row.original.forkedFrom} />
+							<ForkedFromCell forkedFrom={row.original.forkedFrom ?? null} />
 						</span>
 					</span>
 					{value === 'SyncDEX Finance' ? (

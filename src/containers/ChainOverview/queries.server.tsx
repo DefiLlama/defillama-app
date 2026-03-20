@@ -217,16 +217,8 @@ export async function getChainOverviewData({
 					})
 						.then((data) => data?.total24h ?? null)
 						.catch(() => null),
-			fetchRaises().catch((err) => {
-				console.log('ERROR fetching raises data', err)
-				return { raises: [] }
-			}),
-			chain === 'All'
-				? Promise.resolve(null)
-				: fetchTreasuries().catch((err) => {
-						console.log('ERROR fetching treasuries data', err)
-						return null
-					}),
+			fetchRaises(),
+			chain === 'All' ? Promise.resolve(null) : fetchTreasuries(),
 			currentChainMetadata.gecko_id
 				? fetchJson(
 						`https://pro-api.coingecko.com/api/v3/coins/${currentChainMetadata.gecko_id}?tickers=true&community_data=false&developer_data=false&sparkline=false`,
@@ -291,10 +283,7 @@ export async function getChainOverviewData({
 						return null
 					})
 				: Promise.resolve(null),
-			fetchCexVolume().catch((err) => {
-				console.log('ERROR fetching cex volume', err)
-				return null
-			}),
+			fetchCexVolume(),
 			chain === 'All'
 				? getETFData()
 						.then((data) => {
@@ -313,12 +302,7 @@ export async function getChainOverviewData({
 						})
 						.catch(() => null)
 				: Promise.resolve(null),
-			chain === 'All'
-				? getAllProtocolEmissions({ getHistoricalPrices: false }).catch((err) => {
-						console.log('ERROR fetching all protocol emissions', err)
-						return null
-					})
-				: Promise.resolve(null),
+			chain === 'All' ? getAllProtocolEmissions({ getHistoricalPrices: false }) : Promise.resolve(null),
 			currentChainMetadata.incentives && chain !== 'All'
 				? getChainIncentivesFromAggregatedEmissions(currentChainMetadata.name).catch(() => null)
 				: Promise.resolve(null),
@@ -1145,7 +1129,7 @@ export const getProtocolsByChain = async ({
 				category: chilsProtocolCategories.length > 1 ? null : chilsProtocolCategories[0],
 				forkedFrom: parentForkedFrom.length > 0 ? parentForkedFrom : null,
 				childProtocols: parentStore[parentProtocol.id],
-				chains: Array.from(new Set(...parentStore[parentProtocol.id].map((p) => p.chains ?? []))),
+				chains: Array.from(new Set(parentStore[parentProtocol.id].flatMap((p) => p.chains ?? []))),
 				tvl: parentTvl,
 				tvlChange: parentTvlChange,
 				strikeTvl: parentStore[parentProtocol.id].some((child) => child.strikeTvl),
