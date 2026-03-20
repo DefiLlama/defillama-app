@@ -138,8 +138,8 @@ interface UsageLimitError extends Error {
 
 type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
 type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
-const RECOVERY_GRACE_MS = 8000
-const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 3000, 7000] as const
+const RECOVERY_GRACE_MS = 20000
+const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 2000, 4000, 8000, 14000] as const
 const CONNECTIVITY_ERROR_PATTERNS = [
 	'failed to fetch',
 	'networkerror',
@@ -148,7 +148,8 @@ const CONNECTIVITY_ERROR_PATTERNS = [
 	'err_network_changed',
 	'network changed',
 	'err_name_not_resolved',
-	'name not resolved'
+	'name not resolved',
+	'stream heartbeat timeout'
 ] as const
 
 type RecoveryController = {
@@ -896,8 +897,52 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				dispatchStream({ type: 'SET_ERROR', value: checkError.message })
 				return false
 			}
-			const { active } = activeExecution
-			if (!active) return false
+			const { active, status, hasResult } = activeExecution
+			if (!active) {
+				if (status === 'completed' && hasResult) {
+					try {
+						setViewError(null)
+						dispatchStream({ type: 'SET_ERROR', value: null })
+						dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+						dispatchStream({ type: 'RESET_RECOVERY' })
+						if (resetStream) {
+							dispatchStream({ type: 'START_STREAM' })
+							currentMessageIdRef.current = null
+						}
+						const replayRequestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'resume', targetSessionId)
+						const replayController = new AbortController()
+						abortControllerRef.current = replayController
+						const replaySettleState = createRequestSettleState(replayRequestId)
+						activeRequestSettleRef.current = replaySettleState
+						const replayCallbacks = createAgenticCallbacks({
+							requestId: replayRequestId,
+							activeRequestIdRef,
+							buffer,
+							dispatch: dispatchStream,
+							currentMessageIdRef,
+							toolCallIdRef,
+							appendMessage,
+							notify,
+							onTokenLimit: () => setShowTokenLimitModal(true),
+							onTitle: (title) => {
+								setSessionTitle(title)
+								updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+								moveSessionToTop(targetSessionId)
+							}
+						})
+						await resumeAgenticStream({
+							sessionId: targetSessionId,
+							callbacks: replayCallbacks,
+							abortSignal: replayController.signal,
+							fetchFn: authorizedFetchCompat
+						})
+						return true
+					} catch {
+						// Buffer expired, fall through to restoreSessionSnapshot
+					}
+				}
+				return false
+			}
 
 			setViewError(null)
 			setPaginationError(null)
@@ -1660,7 +1705,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				{restoringSessionId && !hasMessages ? (
 					<LoadingConversationState />
 				) : !hasMessages && visibleError ? (
-					<EmptyConversationErrorState message={visibleError} />
+					<EmptyConversationErrorState
+						message={visibleError}
+						onRetry={lastFailedRequest ? handleRetryLastFailedPrompt : undefined}
+					/>
 				) : shouldAnimateLandingTransition ? (
 					<div className="relative flex flex-1 overflow-hidden">
 						<div
