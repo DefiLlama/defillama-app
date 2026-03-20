@@ -20,6 +20,7 @@ export function CapabilityChips({ onPromptSelect, isPending, isStreaming }: Capa
 			}}
 		>
 			<Ariakit.PopoverDisclosure
+				data-walkthrough="explore-button"
 				disabled={disabled}
 				className="group flex h-7 items-center justify-center gap-1 rounded-md bg-[#2563eb]/8 px-2 text-[#2563eb]/70 transition-colors duration-150 hover:bg-[#2563eb]/15 hover:text-[#2563eb] disabled:pointer-events-none disabled:opacity-40 aria-expanded:bg-[#2563eb]/15 aria-expanded:text-[#2563eb] dark:bg-[#60a5fa]/8 dark:text-[#60a5fa]/70 dark:hover:bg-[#60a5fa]/15 dark:hover:text-[#60a5fa] dark:aria-expanded:bg-[#60a5fa]/15 dark:aria-expanded:text-[#60a5fa]"
 			>

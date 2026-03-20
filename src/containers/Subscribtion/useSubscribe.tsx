@@ -186,7 +186,7 @@ export const useSubscribe = () => {
 			}
 
 			const subscriptionData: SubscriptionRequest = {
-				redirectUrl: `${window.location.origin}/subscription?subscription=success`,
+				redirectUrl: `${window.location.origin}/welcome`,
 				cancelUrl: `${window.location.origin}/subscription?subscription=cancelled`,
 				provider: paymentMethod,
 				subscriptionType,

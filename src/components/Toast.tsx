@@ -1,9 +1,11 @@
 import { createPortal } from 'react-dom'
 import toast, { Toaster } from 'react-hot-toast'
+import { useIsClient } from '~/hooks/useIsClient'
 import { Icon } from './Icon'
 
 export function Toast() {
-	if (typeof document === 'undefined') return null
+	const isClient = useIsClient()
+	if (!isClient) return null
 
 	return createPortal(
 		<Toaster

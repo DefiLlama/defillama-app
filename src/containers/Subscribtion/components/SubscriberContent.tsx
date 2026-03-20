@@ -660,6 +660,7 @@ export const SubscriberContent = ({
 						paymentMethod="stripe"
 						type={upgradeType}
 						billingInterval="year"
+						isUpgradeFlow
 					/>
 				</Suspense>
 			) : null}

@@ -11,7 +11,10 @@ interface ModeToggleProps {
 
 export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }: ModeToggleProps) {
 	return (
-		<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
+		<div
+			data-walkthrough="mode-toggle"
+			className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]"
+		>
 			<Tooltip
 				content={
 					<div className="flex max-w-[200px] flex-col gap-1">

@@ -323,6 +323,7 @@ export function SubscribeProCard({
 						paymentMethod="stripe"
 						type="llamafeed"
 						billingInterval="year"
+						isUpgradeFlow
 					/>
 				</Suspense>
 			) : null}

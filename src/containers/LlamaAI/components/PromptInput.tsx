@@ -58,6 +58,7 @@ interface PromptInputProps {
 	onOpenAlerts?: () => void
 	quotedText?: string | null
 	onClearQuotedText?: () => void
+	walkthroughActive?: boolean
 }
 
 const trackSubmit = () => {
@@ -86,7 +87,8 @@ export function PromptInput({
 	externalDragging,
 	onOpenAlerts,
 	quotedText,
-	onClearQuotedText
+	onClearQuotedText,
+	walkthroughActive
 }: PromptInputProps) {
 	const [value, setValue] = useState('')
 	const [submitError, setSubmitError] = useState<string | null>(null)
@@ -463,7 +465,7 @@ export function PromptInput({
 					{onOpenAlerts ? (
 						<Tooltip
 							content="Manage Alerts"
-							render={<button type="button" onClick={onOpenAlerts} />}
+							render={<button type="button" onClick={onOpenAlerts} data-walkthrough="alerts-button" />}
 							className="flex h-7 w-7 items-center justify-center rounded-md bg-amber-500/12 text-amber-500 hover:bg-amber-500 hover:text-white"
 						>
 							<Icon name="calendar-plus" height={14} width={14} />
@@ -485,9 +487,10 @@ export function PromptInput({
 					onImageUploadClick={imageUpload.openFilePicker}
 					isPending={isPending}
 					isStreaming={isStreaming}
+					walkthroughActive={walkthroughActive}
 				/>
 				<div className="flex items-center gap-2">
-					<span className="max-sm:hidden">
+					<span className="max-sm:hidden" data-walkthrough="image-upload">
 						<ImageUploadButton onClick={imageUpload.openFilePicker} />
 					</span>
 					<SubmitButton
