@@ -380,7 +380,7 @@ function adjustSeriesForExport(opts: {
 						p.emphasis = { ...p.emphasis, label: { ...p.emphasis.label, fontSize: EXPORT_FONT_SIZE } }
 					}
 					if (typeof p.y === 'number') {
-						p.y = p.y * 2
+						p.y = Math.max(p.y * 2, layout.gridTop + 8)
 					}
 					return p
 				})
