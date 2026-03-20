@@ -12,7 +12,7 @@ import { getNDistinctColors } from '~/utils'
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
 	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
-	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
+	if (labels.length > 1 && labels.every((l) => l === labels[0])) {
 		return hallmarks.map((h) => [h[0], ''])
 	}
 	return hallmarks.map((h) => [h[0], h[1] || ''])
