@@ -15,8 +15,7 @@ export const DEFAULT_PORTFOLIO_NAME = 'main' as const
 const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
-const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
-export const LLAMA_AI_SHOW_WALKTHROUGH = 'LLAMA_AI_SHOW_WALKTHROUGH' as const
+export const LLAMA_AI_WALKTHROUGH_STATE = 'LLAMA_AI_WALKTHROUGH_STATE' as const
 const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
@@ -160,11 +159,12 @@ export type CustomColumnDef = {
 	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
+export type LlamaAIWalkthroughState = 'idle' | 'armed' | 'completed'
+
 export type AppStorage = SettingsStore & {
 	[YIELDS_SAVED_FILTERS]?: YieldSavedFilters
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
-	[LLAMA_AI_WELCOME_SHOWN]?: boolean
-	[LLAMA_AI_SHOW_WALKTHROUGH]?: boolean
+	[LLAMA_AI_WALKTHROUGH_STATE]?: LlamaAIWalkthroughState
 	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore
@@ -246,6 +246,23 @@ export const readAppStorage = (): AppStorage => {
 }
 export const writeAppStorage = (next: AppStorage) => {
 	setStorageItem(DEFILLAMA, JSON.stringify(next))
+}
+
+const isLlamaAIWalkthroughState = (value: unknown): value is LlamaAIWalkthroughState =>
+	value === 'idle' || value === 'armed' || value === 'completed'
+
+export const getLlamaAIWalkthroughState = (store: AppStorage): LlamaAIWalkthroughState => {
+	const state = store[LLAMA_AI_WALKTHROUGH_STATE]
+	if (isLlamaAIWalkthroughState(state)) return state
+	return 'idle'
+}
+
+export const setLlamaAIWalkthroughState = (state: LlamaAIWalkthroughState, nextStore?: AppStorage) => {
+	const current = nextStore ?? readAppStorage()
+	writeAppStorage({
+		...current,
+		[LLAMA_AI_WALKTHROUGH_STATE]: state
+	})
 }
 
 const updateSetting = (key: string) => {
@@ -584,25 +601,16 @@ export function useLlamaAIWelcome(isSubscribed: boolean): [boolean, () => void] 
 	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
 		() => {
-			const store = readAppStorage()
-			if (store[LLAMA_AI_WELCOME_SHOWN]) return '1' // already seen
+			const walkthroughState = getLlamaAIWalkthroughState(readAppStorage())
 			if (!isSubscribed) return '1'
-			return store[LLAMA_AI_SHOW_WALKTHROUGH] ? '0' : '1'
+			return walkthroughState === 'armed' ? '0' : '1'
 		},
 		() => '1' // SSR: assume seen
 	)
 
 	const shown = snapshot === '1'
 
-	const setShown = useMemo(
-		() => () =>
-			writeAppStorage({
-				...readAppStorage(),
-				[LLAMA_AI_WELCOME_SHOWN]: true,
-				[LLAMA_AI_SHOW_WALKTHROUGH]: false
-			}),
-		[]
-	)
+	const setShown = useMemo(() => () => setLlamaAIWalkthroughState('completed'), [])
 
 	return [shown, setShown]
 }

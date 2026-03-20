@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { LLAMA_AI_SHOW_WALKTHROUGH, readAppStorage, writeAppStorage } from '~/contexts/LocalStorage'
+import { readAppStorage, setLlamaAIWalkthroughState, writeAppStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const ONBOARDING_OPTIONS = [
@@ -106,9 +106,10 @@ export function WelcomeOnboarding() {
 		const storage = readAppStorage()
 		storage.ONBOARDING_INTENT = features
 		if (selectedFeatures.has('llamaai')) {
-			storage[LLAMA_AI_SHOW_WALKTHROUGH] = true
+			setLlamaAIWalkthroughState('armed', storage)
+		} else {
+			writeAppStorage(storage)
 		}
-		writeAppStorage(storage)
 
 		if (selectedFeatures.has('exploring')) {
 			void router.push('/')
