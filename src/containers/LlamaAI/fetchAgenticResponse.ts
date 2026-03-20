@@ -259,10 +259,7 @@ function parseSSEStream(
 				const { done, value } = await Promise.race([
 					reader.read(),
 					new Promise<never>((_, reject) => {
-						timeoutId = setTimeout(
-							() => reject(new Error('Stream heartbeat timeout')),
-							HEARTBEAT_TIMEOUT_MS
-						)
+						timeoutId = setTimeout(() => reject(new Error('Stream heartbeat timeout')), HEARTBEAT_TIMEOUT_MS)
 					})
 				]).finally(() => clearTimeout(timeoutId))
 				if (done) {
@@ -429,7 +426,13 @@ export async function checkActiveExecution(
 			const statusLabel = `${res.status} ${res.statusText}`.trim()
 			throw new Error(await getResponseErrorMessage(res, `Failed to check active execution (${statusLabel})`))
 		}
-		return (await res.json()) as { active: boolean; status?: string; eventCount?: number; messageId?: string; hasResult?: boolean }
+		return (await res.json()) as {
+			active: boolean
+			status?: string
+			eventCount?: number
+			messageId?: string
+			hasResult?: boolean
+		}
 	} catch (err) {
 		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
 		const status =

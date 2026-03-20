@@ -33,12 +33,7 @@ interface PDFExportButtonProps {
 	className?: string
 }
 
-export function PDFExportButton({
-	sessionId,
-	messageId,
-	exportType,
-	className
-}: PDFExportButtonProps) {
+export function PDFExportButton({ sessionId, messageId, exportType, className }: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)

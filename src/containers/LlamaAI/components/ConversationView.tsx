@@ -370,13 +370,7 @@ export function LoadingConversationState() {
 	)
 }
 
-export function EmptyConversationErrorState({
-	message,
-	onRetry
-}: {
-	message: string
-	onRetry?: () => void
-}) {
+export function EmptyConversationErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
 	return (
 		<div className="flex flex-1 flex-col items-center justify-center gap-2">
 			<p className="text-sm text-red-700 dark:text-red-300">{message}</p>

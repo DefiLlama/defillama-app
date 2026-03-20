@@ -909,7 +909,13 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 							dispatchStream({ type: 'START_STREAM' })
 							currentMessageIdRef.current = null
 						}
-						const replayRequestId = beginRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, 'resume', targetSessionId)
+						const replayRequestId = beginRequest(
+							activeRequestIdRef,
+							activeRequestKindRef,
+							activeSessionIdRef,
+							'resume',
+							targetSessionId
+						)
 						const replayController = new AbortController()
 						abortControllerRef.current = replayController
 						const replaySettleState = createRequestSettleState(replayRequestId)
