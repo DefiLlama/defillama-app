@@ -583,6 +583,27 @@
       "tab": "Protocols"
     },
     {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "Equities, ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "Equities, ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
+      "name": "Equities",
+      "route": "/equities",
+      "category": "Equities, ETFs & DATs",
+      "description": "Live company rankings by market cap, price, volume, and price change",
+      "oldName": "Equities"
+    },
+    {
       "name": "Treasuries",
       "route": "/treasuries",
       "category": "Treasury",
