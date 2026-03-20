@@ -28,7 +28,6 @@ function formatPdfError(error: unknown): string {
 interface PDFExportButtonProps {
 	sessionId: string | null
 	messageId?: string | null
-	charts?: Array<{ id: string; title: string }>
 	exportType: 'single_message' | 'full_conversation'
 	className?: string
 }
@@ -144,7 +143,7 @@ export function PDFExportButton({ sessionId, messageId, exportType, className }:
 			<Ariakit.MenuProvider>
 				<Tooltip content="Download PDF">
 					<Ariakit.MenuButton
-						data-umami-event="export-pdf"
+						aria-label={isLoading ? 'Exporting PDF' : 'Export PDF options'}
 						className={
 							className ??
 							'flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)'
@@ -161,6 +160,8 @@ export function PDFExportButton({ sessionId, messageId, exportType, className }:
 					className="z-50 flex min-w-[140px] flex-col rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) dark:border-[hsl(204,3%,32%)]"
 				>
 					<Ariakit.MenuItem
+						data-umami-event="export-pdf"
+						data-umami-event-theme="light"
 						onClick={() => {
 							void handlePDFExport(false)
 						}}
@@ -171,6 +172,8 @@ export function PDFExportButton({ sessionId, messageId, exportType, className }:
 						Light Mode
 					</Ariakit.MenuItem>
 					<Ariakit.MenuItem
+						data-umami-event="export-pdf"
+						data-umami-event-theme="dark"
 						onClick={() => {
 							void handlePDFExport(true)
 						}}

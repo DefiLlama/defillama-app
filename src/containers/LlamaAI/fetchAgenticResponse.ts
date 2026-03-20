@@ -259,7 +259,12 @@ function parseSSEStream(
 				const { done, value } = await Promise.race([
 					reader.read(),
 					new Promise<never>((_, reject) => {
-						timeoutId = setTimeout(() => reject(new Error('Stream heartbeat timeout')), HEARTBEAT_TIMEOUT_MS)
+						timeoutId = setTimeout(() => {
+							void reader
+								.cancel('Stream heartbeat timeout')
+								.catch(() => undefined)
+								.finally(() => reject(new Error('Stream heartbeat timeout')))
+						}, HEARTBEAT_TIMEOUT_MS)
 					})
 				]).finally(() => clearTimeout(timeoutId))
 				if (done) {

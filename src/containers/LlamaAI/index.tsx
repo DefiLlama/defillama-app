@@ -936,13 +936,23 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								moveSessionToTop(targetSessionId)
 							}
 						})
-						await resumeAgenticStream({
+						return await resumeAgenticStream({
 							sessionId: targetSessionId,
 							callbacks: replayCallbacks,
 							abortSignal: replayController.signal,
 							fetchFn: authorizedFetchCompat
 						})
-						return true
+							.then(() => true)
+							.finally(() => {
+								if (abortControllerRef.current === replayController) {
+									abortControllerRef.current = null
+								}
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
+								replaySettleState.resolve()
+								if (activeRequestSettleRef.current?.requestId === replayRequestId) {
+									activeRequestSettleRef.current = null
+								}
+							})
 					} catch {
 						// Buffer expired, fall through to restoreSessionSnapshot
 					}
