@@ -11,13 +11,13 @@ const DEFAULT_SORTING_STATE = [{ id: 'filingDate', desc: true }]
 const columns = [
 	columnHelper.accessor('filingDate', {
 		header: 'Filing Date',
-		size: 108,
+		size: 120,
 		cell: ({ getValue }) => formatEquitiesDate(getValue()),
 		meta: { align: 'start' }
 	}),
 	columnHelper.accessor('reportDate', {
 		header: 'Report Date',
-		size: 108,
+		size: 120,
 		cell: ({ getValue }) => formatEquitiesDate(getValue()),
 		meta: { align: 'start' }
 	}),
