@@ -7,6 +7,14 @@ import { getExperimentVariant } from '~/utils/analytics/experiment'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import type { ChatLandingProps } from './ChatLanding'
 
+const CAPABILITY_BADGES = [
+	['bar-chart-2', 'Charts'],
+	['file-text', 'Reports'],
+	['trending-up', 'Forecasts'],
+	['link', 'On-chain'],
+	['calendar', 'Alerts']
+] as const
+
 const ONBOARDING_PROMPTS = [
 	{
 		label: 'Check if a protocol is safe',
@@ -340,7 +348,7 @@ export function OnboardingWalkthrough({
 	const showGapOverlay = isSpotlightStep && !spotlightRect
 
 	return createPortal(
-		<div className="pointer-events-none fixed inset-0 z-[9999]">
+		<div className="pointer-events-none fixed inset-0 z-9999">
 			{/* Dark overlay bridging the gap between intro→spotlight and spotlight→prompts */}
 			{showGapOverlay ? (
 				<button
@@ -366,7 +374,7 @@ export function OnboardingWalkthrough({
 						}`}
 					>
 						<div className="relative w-full max-w-[340px] overflow-hidden rounded-2xl border border-[#C99A4A]/15 bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.7)]">
-							<div className="h-px w-full bg-gradient-to-r from-transparent via-[#C99A4A]/60 to-transparent" />
+							<div className="h-px w-full bg-linear-to-r from-transparent via-[#C99A4A]/60 to-transparent" />
 							<div className="p-6">
 								<div className="mb-5 flex flex-col items-center gap-3 text-center">
 									<div className="relative">
@@ -393,15 +401,7 @@ export function OnboardingWalkthrough({
 								</div>
 
 								<div className="mb-5 flex flex-wrap justify-center gap-1.5">
-									{(
-										[
-											['bar-chart-2', 'Charts'],
-											['file-text', 'Reports'],
-											['trending-up', 'Forecasts'],
-											['link', 'On-chain'],
-											['calendar', 'Alerts']
-										] as const
-									).map(([icon, label]) => (
+									{CAPABILITY_BADGES.map(([icon, label]) => (
 										<span
 											key={label}
 											className="flex items-center gap-1 rounded-md border border-[#C99A4A]/10 bg-[#C99A4A]/5 px-2 py-0.5 text-[10px] text-[#C99A4A]"
@@ -486,7 +486,7 @@ export function OnboardingWalkthrough({
 
 						<div className="overflow-hidden rounded-xl border border-[#222428] bg-[#111214] shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
 							<div
-								className="h-px w-full bg-gradient-to-r from-transparent to-transparent"
+								className="h-px w-full bg-linear-to-r from-transparent to-transparent"
 								style={{
 									backgroundImage: `linear-gradient(to right, transparent, ${config.iconColor}40, transparent)`
 								}}
@@ -540,7 +540,7 @@ export function OnboardingWalkthrough({
 					/>
 					<div className="pointer-events-auto absolute inset-0 flex animate-[fadein_0.25s_ease-out] items-center justify-center p-4">
 						<div className="relative w-full max-w-[400px] overflow-hidden rounded-2xl border border-[#222428] bg-[#111214] shadow-[0_24px_64px_rgba(0,0,0,0.7)]">
-							<div className="h-px w-full bg-gradient-to-r from-transparent via-green-400/50 to-transparent" />
+							<div className="h-px w-full bg-linear-to-r from-transparent via-green-400/50 to-transparent" />
 
 							<div className="p-6">
 								<div className="mb-4 flex flex-col items-center gap-1 text-center">
