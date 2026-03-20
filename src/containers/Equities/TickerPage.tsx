@@ -59,7 +59,11 @@ function EquityKeyMetrics({ summary }: { summary: IEquitiesSummaryResponse }) {
 			) : null}
 			{/* <MetricRow label={defs.ebitdaTTM.label} tooltip={defs.ebitdaTTM.description} value={abbreviateNumber(summary.ebitdaTTM, 2, '$')} /> */}
 			{/* <MetricRow label={defs.holdersRevenueTTM.label} tooltip={defs.holdersRevenueTTM.description} value={abbreviateNumber(summary.holdersRevenueTTM, 2, '$')} /> */}
-			{/* <MetricRow label={defs.treasury.label} tooltip={defs.treasury.description} value={abbreviateNumber(summary.treasury, 2, '$')} /> */}
+			<MetricRow
+				label={defs.totalAssets.label}
+				tooltip={defs.totalAssets.description}
+				value={abbreviateNumber(summary.totalAssets, 2, '$')}
+			/>
 		</div>
 	)
 }
