@@ -101,11 +101,11 @@ const Articles = (props: IProtocolOverviewPageData) => {
 							alt={article.headline}
 						/>
 					) : null}
-					<div className="flex lg:min-w-0 lg:flex-1 flex-col justify-between gap-3 lg:py-1">
+					<div className="flex flex-col justify-between gap-3 lg:min-w-0 lg:flex-1 lg:py-1">
 						<p className="text-sm font-medium">{article.headline}</p>
 						<div className="flex items-center justify-between lg:mt-auto">
 							<p className="text-xs">{dayjs.utc(article.date).format('MMMM D, YYYY')}</p>
-							<p className="flex flex-nowrap shrink-0 items-center gap-1 font-semibold">
+							<p className="flex shrink-0 flex-nowrap items-center gap-1 font-semibold">
 								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</p>
 						</div>
