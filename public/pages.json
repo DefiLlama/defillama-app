@@ -547,22 +547,6 @@
       "oldName": "Volume (Chains)"
     },
     {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
-    },
-    {
       "name": "Bridges by Volume",
       "route": "/bridges",
       "category": "Bridge",
@@ -581,6 +565,43 @@
       "tab": "Chains",
       "oldCategory": "Bridges",
       "oldName": "Chains"
+    },
+    {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
+      "name": "Digital Asset Treasuries (DATs)",
+      "route": "/digital-asset-treasuries",
+      "category": "Equities, ETFs & DATs",
+      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
+      "oldName": "DATs"
+    },
+    {
+      "name": "Exchange Traded Funds (ETFs)",
+      "route": "/etfs",
+      "category": "Equities, ETFs & DATs",
+      "description": "AUM, Flows, Volume metrics of all ETFs",
+      "oldName": "ETFs"
+    },
+    {
+      "name": "Equities",
+      "route": "/equities",
+      "category": "Equities, ETFs & DATs",
+      "description": "Live company rankings by market cap, price, volume, and price change",
+      "oldName": "Equities"
     },
     {
       "name": "Treasuries",
@@ -605,27 +626,6 @@
       "category": "Treasury",
       "description": "Treasury by entity",
       "totalTrackedKey": "treasury.entities"
-    },
-    {
-      "name": "Digital Asset Treasuries (DATs)",
-      "route": "/digital-asset-treasuries",
-      "category": "Equities, ETFs & DATs",
-      "description": "Institutions that own cryptocurrencies as part of their corporate treasury",
-      "oldName": "DATs"
-    },
-    {
-      "name": "Exchange Traded Funds (ETFs)",
-      "route": "/etfs",
-      "category": "Equities, ETFs & DATs",
-      "description": "AUM, Flows, Volume metrics of all ETFs",
-      "oldName": "ETFs"
-    },
-    {
-      "name": "Equities",
-      "route": "/equities",
-      "category": "Equities, ETFs & DATs",
-      "description": "Live company rankings by market cap, price, volume, and price change",
-      "oldName": "Equities"
     },
     {
       "name": "Unlocks: Overview",

@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { LLAMA_AI_SHOW_WALKTHROUGH, readAppStorage, writeAppStorage } from '~/contexts/LocalStorage'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 
@@ -68,26 +67,19 @@ const PRIORITY_ORDER = ['llamaai', 'dashboards', 'csv', 'llamafeed', 'sheets'] a
 export function WelcomeOnboarding() {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { isAuthenticated } = useAuthContext()
-	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
+	const { isAuthenticated, hasActiveSubscription, loaders } = useAuthContext()
 	const [selectedFeatures, setSelectedFeatures] = useState<Set<string>>(new Set())
-
-	useEffect(() => {
-		if (!isSubscriptionLoading && !isAuthenticated) {
-			void router.replace('/subscription')
-		}
-	}, [isSubscriptionLoading, isAuthenticated, router])
 
 	// Invalidate subscription cache once on mount when arriving from Stripe redirect.
 	// StripeCheckoutModal redirects directly to /welcome, bypassing /account?success=true
 	// where the cache invalidation previously happened.
 	const hasInvalidatedRef = useRef(false)
 	useEffect(() => {
-		if (isAuthenticated && !hasActiveSubscription && !isSubscriptionLoading && !hasInvalidatedRef.current) {
+		if (isAuthenticated && !hasActiveSubscription && !loaders.userLoading && !hasInvalidatedRef.current) {
 			hasInvalidatedRef.current = true
 			void queryClient.invalidateQueries({ queryKey: ['subscription'] })
 		}
-	}, [isAuthenticated, hasActiveSubscription, isSubscriptionLoading, queryClient])
+	}, [isAuthenticated, hasActiveSubscription, loaders.userLoading, queryClient])
 
 	const toggleFeature = useCallback((id: string) => {
 		setSelectedFeatures((prev) => {
@@ -158,7 +150,7 @@ export function WelcomeOnboarding() {
 		}
 	}, [selectedFeatures, router])
 
-	if (isSubscriptionLoading) {
+	if (loaders.userLoading) {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4">
@@ -169,7 +161,7 @@ export function WelcomeOnboarding() {
 		)
 	}
 
-	if (!isSubscriptionLoading && !hasActiveSubscription && isAuthenticated) {
+	if (!loaders.userLoading && !hasActiveSubscription && isAuthenticated) {
 		return (
 			<div className="flex min-h-[60vh] items-center justify-center">
 				<div className="flex flex-col items-center gap-4 text-center">
