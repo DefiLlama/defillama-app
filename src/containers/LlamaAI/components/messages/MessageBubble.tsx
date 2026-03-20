@@ -678,9 +678,6 @@ export function MessageBubble({
 		)
 	}
 
-	const chartList =
-		message.charts?.flatMap((set) => set.charts.map((chart) => ({ id: chart.id, title: chart.title }))) ?? []
-
 	return (
 		<>
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
@@ -694,13 +691,7 @@ export function MessageBubble({
 				hackerMode={hackerMode}
 			/>
 			{message.id && !isDraft ? (
-				<ResponseControls
-					messageId={message.id}
-					content={message.content}
-					sessionId={sessionId}
-					readOnly={readOnly}
-					charts={chartList}
-				/>
+				<ResponseControls messageId={message.id} content={message.content} sessionId={sessionId} readOnly={readOnly} />
 			) : null}
 		</>
 	)

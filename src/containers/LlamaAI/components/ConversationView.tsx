@@ -370,10 +370,18 @@ export function LoadingConversationState() {
 	)
 }
 
-export function EmptyConversationErrorState({ message }: { message: string }) {
+export function EmptyConversationErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
 	return (
-		<div className="flex flex-1 items-center justify-center">
+		<div className="flex flex-1 flex-col items-center justify-center gap-2">
 			<p className="text-sm text-red-700 dark:text-red-300">{message}</p>
+			{onRetry ? (
+				<button
+					onClick={onRetry}
+					className="rounded-md bg-red-100 px-3 py-1 text-sm text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-300 dark:hover:bg-red-800"
+				>
+					Retry
+				</button>
+			) : null}
 		</div>
 	)
 }

@@ -248,12 +248,25 @@ function parseSSEStream(
 		}
 	}
 
+	const HEARTBEAT_TIMEOUT_MS = 15_000
+
 	const process = async () => {
 		try {
 			while (true) {
 				if (abortSignal?.aborted) break
 
-				const { done, value } = await reader.read()
+				let timeoutId: ReturnType<typeof setTimeout> | undefined
+				const { done, value } = await Promise.race([
+					reader.read(),
+					new Promise<never>((_, reject) => {
+						timeoutId = setTimeout(() => {
+							void reader
+								.cancel('Stream heartbeat timeout')
+								.catch(() => undefined)
+								.finally(() => reject(new Error('Stream heartbeat timeout')))
+						}, HEARTBEAT_TIMEOUT_MS)
+					})
+				]).finally(() => clearTimeout(timeoutId))
 				if (done) {
 					// Some backends terminate the stream without a trailing newline, so flush the final buffered event on EOF.
 					if (lineBuffer.trim()) {
@@ -398,7 +411,7 @@ export async function fetchAgenticResponse({
 export async function checkActiveExecution(
 	sessionId: string,
 	fetchFn?: typeof fetch
-): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string }> {
+): Promise<{ active: boolean; status?: string; eventCount?: number; messageId?: string; hasResult?: boolean }> {
 	try {
 		const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/active/${encodeURIComponent(sessionId)}`)
 		if (!res) {
@@ -410,6 +423,7 @@ export async function checkActiveExecution(
 				status?: string
 				eventCount?: number
 				messageId?: string
+				hasResult?: boolean
 			} | null
 			return payload?.active === false ? { active: false, ...payload } : { active: false }
 		}
@@ -417,7 +431,13 @@ export async function checkActiveExecution(
 			const statusLabel = `${res.status} ${res.statusText}`.trim()
 			throw new Error(await getResponseErrorMessage(res, `Failed to check active execution (${statusLabel})`))
 		}
-		return (await res.json()) as { active: boolean; status?: string; eventCount?: number; messageId?: string }
+		return (await res.json()) as {
+			active: boolean
+			status?: string
+			eventCount?: number
+			messageId?: string
+			hasResult?: boolean
+		}
 	} catch (err) {
 		console.error('[llama-ai] [checkActiveExecution] failed:', getErrorMessage(err))
 		const status =

@@ -9,12 +9,8 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 import { MCP_SERVER } from '~/constants'
-import { captureAllCharts, type CapturedChart } from '~/containers/LlamaAI/utils/chartCapture'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setSignupSource } from '~/containers/Subscribtion/signupSource'
-import { useDarkModeManager } from '~/contexts/LocalStorage'
-
-const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
 
 function formatPdfError(error: unknown): string {
 	if (!error) return 'Failed to generate PDF'
@@ -32,27 +28,18 @@ function formatPdfError(error: unknown): string {
 interface PDFExportButtonProps {
 	sessionId: string | null
 	messageId?: string | null
-	charts?: Array<{ id: string; title: string }>
 	exportType: 'single_message' | 'full_conversation'
 	className?: string
 }
 
-export function PDFExportButton({
-	sessionId,
-	messageId,
-	charts = EMPTY_CHARTS,
-	exportType,
-	className
-}: PDFExportButtonProps) {
+export function PDFExportButton({ sessionId, messageId, exportType, className }: PDFExportButtonProps) {
 	const [isLoading, setIsLoading] = useState(false)
 	const { loaders, authorizedFetch, hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
-	const [isDark] = useDarkModeManager()
-
 	const loading = loaders.userLoading || isLoading
 
-	const handlePDFExport = async () => {
+	const handlePDFExport = async (isDark: boolean) => {
 		if (loading) return
 		if (!sessionId) return
 
@@ -70,18 +57,11 @@ export function PDFExportButton({
 					}
 				}
 
-				let chartImages: CapturedChart[] = []
-				if (charts.length > 0) {
-					toast.loading('Capturing charts...', { id: 'pdf-export' })
-					chartImages = await captureAllCharts(charts, isDark)
-				}
-
 				toast.loading('Generating PDF...', { id: 'pdf-export' })
 
 				const requestBody: any = {
 					sessionId,
 					exportType,
-					chartImages,
 					options: {
 						includeTimestamps: true,
 						includeCitations: true,
@@ -160,21 +140,51 @@ export function PDFExportButton({
 
 	return (
 		<>
-			<Tooltip content="Download PDF">
-				<button
-					data-umami-event="export-pdf"
-					className={
-						className ??
-						'flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)'
-					}
-					onClick={() => {
-						void handlePDFExport()
-					}}
-					disabled={loading}
+			<Ariakit.MenuProvider>
+				<Tooltip content="Download PDF">
+					<Ariakit.MenuButton
+						aria-label={isLoading ? 'Exporting PDF' : 'Export PDF options'}
+						className={
+							className ??
+							'flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)'
+						}
+						disabled={loading}
+					>
+						{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={14} width={14} />}
+					</Ariakit.MenuButton>
+				</Tooltip>
+				<Ariakit.Menu
+					portal
+					unmountOnHide
+					gutter={8}
+					className="z-50 flex min-w-[140px] flex-col rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) text-(--text-primary) dark:border-[hsl(204,3%,32%)]"
 				>
-					{isLoading ? <LoadingSpinner size={12} /> : <Icon name="download-paper" height={14} width={14} />}
-				</button>
-			</Tooltip>
+					<Ariakit.MenuItem
+						data-umami-event="export-pdf"
+						data-umami-event-theme="light"
+						onClick={() => {
+							void handlePDFExport(false)
+						}}
+						disabled={loading}
+						className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2.5 text-sm first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
+					>
+						<Icon name="sun" height={14} width={14} className="shrink-0" />
+						Light Mode
+					</Ariakit.MenuItem>
+					<Ariakit.MenuItem
+						data-umami-event="export-pdf"
+						data-umami-event-theme="dark"
+						onClick={() => {
+							void handlePDFExport(true)
+						}}
+						disabled={loading}
+						className="flex shrink-0 cursor-pointer items-center gap-2 px-3 py-2.5 text-sm first-of-type:rounded-t-md last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:cursor-not-allowed aria-disabled:opacity-60 data-active-item:bg-(--primary-hover)"
+					>
+						<Icon name="moon" height={14} width={14} className="shrink-0" />
+						Dark Mode
+					</Ariakit.MenuItem>
+				</Ariakit.Menu>
+			</Ariakit.MenuProvider>
 			{shouldRenderModal ? (
 				<Suspense fallback={<></>}>
 					<SubscribeProModal dialogStore={subscribeModalStore} />

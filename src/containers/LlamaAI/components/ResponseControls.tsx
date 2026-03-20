@@ -15,15 +15,12 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
-const EMPTY_CHARTS: Array<{ id: string; title: string }> = []
-
 interface ResponseControlsProps {
 	messageId?: string
 	content?: string
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
 	readOnly?: boolean
-	charts?: Array<{ id: string; title: string }>
 }
 
 type Rating = 'good' | 'bad' | null
@@ -146,8 +143,7 @@ export function ResponseControls({
 	content,
 	initialRating,
 	sessionId,
-	readOnly = false,
-	charts = EMPTY_CHARTS
+	readOnly = false
 }: ResponseControlsProps) {
 	const [state, dispatch] = useReducer(responseControlsReducer, initialRating || null, createInitialState)
 	const { copied, showFeedback, showShareModal, selectedRating, submittedRating } = state
@@ -275,7 +271,6 @@ export function ResponseControls({
 					<PDFExportButton
 						sessionId={sessionId}
 						messageId={messageId}
-						charts={charts}
 						exportType="single_message"
 						className="flex items-center gap-1 rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
 					/>
