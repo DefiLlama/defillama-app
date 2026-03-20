@@ -92,20 +92,20 @@ const Articles = (props: IProtocolOverviewPageData) => {
 					href={article.href}
 					target="_blank"
 					rel="noreferrer noopener"
-					className="flex flex-col gap-3 rounded-md bg-(--btn2-bg) p-2 hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+					className="flex flex-col gap-3 rounded-md bg-(--btn2-bg) p-2 hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg) lg:flex-row"
 				>
 					{article.imgSrc ? (
 						<img
-							className="h-[100px] w-full shrink-0 rounded-sm object-cover"
+							className="h-[100px] w-full shrink-0 rounded-sm object-cover lg:size-30 lg:w-auto"
 							src={article.imgSrc}
 							alt={article.headline}
 						/>
 					) : null}
-					<div className="flex flex-col justify-between gap-3">
-						<p className="text-sm font-medium break-keep whitespace-pre-wrap">{article.headline}</p>
-						<div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+					<div className="flex lg:min-w-0 lg:flex-1 flex-col justify-between gap-3 lg:py-1">
+						<p className="text-sm font-medium">{article.headline}</p>
+						<div className="flex items-center justify-between lg:mt-auto">
 							<p className="text-xs">{dayjs.utc(article.date).format('MMMM D, YYYY')}</p>
-							<p className="flex flex-nowrap items-center justify-between rounded-md font-semibold">
+							<p className="flex flex-nowrap shrink-0 items-center gap-1 font-semibold">
 								<span>Read on DL News</span> <Icon name="arrow-up-right" height={14} width={14} />
 							</p>
 						</div>
