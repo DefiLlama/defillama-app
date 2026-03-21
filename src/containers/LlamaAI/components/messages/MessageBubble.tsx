@@ -417,7 +417,13 @@ function InlineContent({
 	)
 }
 
-function ToolExecutionPanel({ toolExecutions, showDetails = false }: { toolExecutions: ToolExecution[]; showDetails?: boolean }) {
+function ToolExecutionPanel({
+	toolExecutions,
+	showDetails = false
+}: {
+	toolExecutions: ToolExecution[]
+	showDetails?: boolean
+}) {
 	const totalTime = toolExecutions.reduce((sum, execution) => sum + execution.executionTimeMs, 0)
 	const successCount = toolExecutions.filter((execution) => execution.success).length
 	const detailsRef = useRef<HTMLDetailsElement>(null)
@@ -460,7 +466,11 @@ function ToolExecutionPanel({ toolExecutions, showDetails = false }: { toolExecu
 				className="flex flex-col gap-1 border-t border-[#e6e6e6] px-3 py-2 select-text dark:border-[#222324]"
 			>
 				{toolExecutions.map((execution) => (
-					<ToolExecutionRow key={getRowKey(getToolExecutionKey(execution))} execution={execution} showDetails={showDetails} />
+					<ToolExecutionRow
+						key={getRowKey(getToolExecutionKey(execution))}
+						execution={execution}
+						showDetails={showDetails}
+					/>
 				))}
 			</div>
 		</details>
@@ -482,7 +492,7 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 			>
 				<Icon name={meta.icon as never} height={12} width={12} className="shrink-0" style={{ color: meta.color }} />
 				<span className="flex-1 text-xs text-[#555] dark:text-[#ccc]">{label}</span>
-				{(execution.isPremium || execution.costUsd) ? (
+				{execution.isPremium || execution.costUsd ? (
 					<span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
 						Premium{execution.costUsd ? ` $${parseFloat(execution.costUsd).toFixed(3)}` : ''}
 					</span>

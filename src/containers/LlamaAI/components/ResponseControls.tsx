@@ -272,9 +272,7 @@ export function ResponseControls({
 				) : null}
 				{messageMetadata && (messageMetadata.outputTokens != null || messageMetadata.x402CostUsd) ? (
 					<Ariakit.PopoverProvider placement="top">
-						<Ariakit.PopoverDisclosure
-							className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
-						>
+						<Ariakit.PopoverDisclosure className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white">
 							<Icon name="circle-help" height={14} width={14} />
 						</Ariakit.PopoverDisclosure>
 						<Ariakit.Popover
@@ -286,19 +284,25 @@ export function ResponseControls({
 								{messageMetadata.outputTokens != null ? (
 									<div className="flex justify-between gap-4">
 										<span className="text-[#999] dark:text-[#666]">Output</span>
-										<span className="font-mono tabular-nums">{messageMetadata.outputTokens.toLocaleString()} tokens</span>
+										<span className="font-mono tabular-nums">
+											{messageMetadata.outputTokens.toLocaleString()} tokens
+										</span>
 									</div>
 								) : null}
 								{messageMetadata.executionTimeMs ? (
 									<div className="flex justify-between gap-4">
 										<span className="text-[#999] dark:text-[#666]">Time</span>
-										<span className="font-mono tabular-nums">{(messageMetadata.executionTimeMs / 1000).toFixed(1)}s</span>
+										<span className="font-mono tabular-nums">
+											{(messageMetadata.executionTimeMs / 1000).toFixed(1)}s
+										</span>
 									</div>
 								) : null}
 								{messageMetadata.x402CostUsd ? (
 									<div className="flex justify-between gap-4">
 										<span className="text-[#999] dark:text-[#666]">Premium data</span>
-										<span className="font-mono tabular-nums text-amber-600 dark:text-amber-400">${parseFloat(messageMetadata.x402CostUsd).toFixed(3)}</span>
+										<span className="font-mono tabular-nums text-amber-600 dark:text-amber-400">
+											${parseFloat(messageMetadata.x402CostUsd).toFixed(3)}
+										</span>
 									</div>
 								) : null}
 							</div>
