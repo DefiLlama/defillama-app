@@ -30,7 +30,7 @@ type FormatterInput = {
 export const getBucketTimestampSec = (timestampSec: number, groupBy: ChartTimeGrouping): number => {
 	switch (groupBy) {
 		case 'daily':
-			return timestampSec
+			return Math.floor(timestampSec / 86400) * 86400
 		case 'weekly':
 			return lastDayOfWeek(timestampSec)
 		case 'monthly':
@@ -53,7 +53,7 @@ const formatDailyChart = ({
 }: Pick<FormatterInput, 'data' | 'dateInMs' | 'denominationPriceHistory'>): Array<[number, number | null]> => {
 	return data.map(([date, value]) => {
 		const timestampSec = dateInMs ? +date / 1e3 : +date
-		const timestampMs = dateInMs ? +date : +date * 1e3
+		const timestampMs = getBucketTimestampSec(timestampSec, 'daily') * 1e3
 		const price = denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
 		return [timestampMs, price ? value / price : denominationPriceHistory ? null : value]
 	})

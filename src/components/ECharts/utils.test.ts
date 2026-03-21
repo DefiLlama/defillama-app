@@ -21,6 +21,7 @@ const weekBucketJan28 = toMs(2024, 1, 28)
 
 describe('formatBarChart', () => {
 	it('exports canonical bucket helpers for week/month/quarter/year', () => {
+		expect(getBucketTimestampSec(toSec(2024, 1, 17) + 13 * 60 * 60, 'daily')).toBe(toSec(2024, 1, 17))
 		expect(getBucketTimestampSec(toSec(2024, 1, 17), 'weekly')).toBe(toSec(2024, 1, 21))
 		expect(getBucketTimestampSec(toSec(2024, 3, 17), 'monthly')).toBe(toSec(2024, 3, 1))
 		expect(getBucketTimestampSec(toSec(2024, 3, 17), 'quarterly')).toBe(toSec(2024, 1, 1))
@@ -32,11 +33,11 @@ describe('formatBarChart', () => {
 		expect(formatBarChart({ data: [], groupBy: 'daily', denominationPriceHistory: null })).toEqual([])
 	})
 
-	it('passes through daily timestamps and converts sec → ms', () => {
+	it('normalizes daily timestamps to UTC day boundaries and converts sec → ms', () => {
 		expect(
 			formatBarChart({
 				data: [
-					[toSec(2024, 1, 1), 10],
+					[toSec(2024, 1, 1) + 13 * 60 * 60, 10],
 					[toSec(2024, 1, 2), 20]
 				],
 				groupBy: 'daily',
@@ -232,11 +233,11 @@ describe('formatBarChart', () => {
 })
 
 describe('formatLineChart', () => {
-	it('passes through daily timestamps', () => {
+	it('normalizes daily timestamps to UTC day boundaries', () => {
 		expect(
 			formatLineChart({
 				data: [
-					[toSec(2024, 1, 1), 10],
+					[toSec(2024, 1, 1) + 13 * 60 * 60, 10],
 					[toSec(2024, 1, 2), 20]
 				],
 				groupBy: 'daily',

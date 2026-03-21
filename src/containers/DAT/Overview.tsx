@@ -7,7 +7,7 @@ import {
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
-import { ensureChronologicalRows, getBucketTimestampMs } from '~/components/ECharts/utils'
+import { buildTimeSeriesChart } from '~/components/ECharts/timeSeriesChartBuilder'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -38,70 +38,29 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 		for (const asset in dailyFlowsByAsset) {
 			assetKeys.push(asset)
 		}
-		const rowMap = new Map<number, Record<string, number | null>>()
-		const isCumulative = groupBy === 'cumulative'
 
-		if (groupBy !== 'daily' && !isCumulative) {
-			for (const asset of assetKeys) {
-				const sumByDate: Record<number, { purchasePrice: number; assetQuantity: number }> = {}
-				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
-					if (date == null) continue
-					const dateKey = getBucketTimestampMs(date, groupBy)
-					sumByDate[dateKey] = sumByDate[dateKey] ?? { purchasePrice: 0, assetQuantity: 0 }
-					sumByDate[dateKey].purchasePrice += purchasePrice ?? 0
-					sumByDate[dateKey].assetQuantity += assetQuantity ?? 0
-				}
-				for (const dateStr in sumByDate) {
-					const dateNum = +dateStr
-					const row = rowMap.get(dateNum) ?? { timestamp: dateNum }
-					row[dailyFlowsByAsset[asset].name] = sumByDate[dateNum].purchasePrice
-					rowMap.set(dateNum, row)
-				}
-			}
-		} else {
-			for (const asset of assetKeys) {
-				for (const [date, purchasePrice] of dailyFlowsByAsset[asset].data) {
-					if (date == null) continue
-					const row = rowMap.get(date) ?? { timestamp: date }
-					row[dailyFlowsByAsset[asset].name] = purchasePrice
-					rowMap.set(date, row)
-				}
+		if (groupBy === 'cumulative') {
+			return {
+				chartData: buildTimeSeriesChart({
+					kind: 'cumulativeLines',
+					series: assetKeys.map((asset) => {
+						const item = dailyFlowsByAsset[asset]
+						return {
+							name: item.name,
+							color: item.color,
+							points: item.points
+						}
+					})
+				})
 			}
 		}
 
-		const source = ensureChronologicalRows(Array.from(rowMap.values()))
-		const seriesNames = assetKeys.map((a) => dailyFlowsByAsset[a].name)
-		const dimensions = ['timestamp', ...seriesNames]
-		const cumulativeSource = isCumulative
-			? (() => {
-					const runningTotals: Record<string, number> = {}
-					for (const name of seriesNames) {
-						runningTotals[name] = 0
-					}
-
-					return source.map((row) => {
-						const nextRow: Record<string, number> = { timestamp: Number(row.timestamp) }
-						for (const name of seriesNames) {
-							const rawValue = row[name]
-							const value = typeof rawValue === 'number' ? rawValue : 0
-							runningTotals[name] += value
-							nextRow[name] = runningTotals[name]
-						}
-						return nextRow
-					})
-				})()
-			: source
-		const chartType: 'line' | 'bar' = isCumulative ? 'line' : 'bar'
-		const charts = assetKeys.map((asset) => ({
-			type: chartType,
-			name: dailyFlowsByAsset[asset].name,
-			encode: { x: 'timestamp', y: dailyFlowsByAsset[asset].name },
-			...(isCumulative ? {} : { stack: dailyFlowsByAsset[asset].stack }),
-			color: dailyFlowsByAsset[asset].color
-		}))
-
 		return {
-			chartData: { dataset: { source: cumulativeSource, dimensions }, charts }
+			chartData: buildTimeSeriesChart({
+				kind: 'periodBars',
+				groupBy,
+				series: assetKeys.map((asset) => dailyFlowsByAsset[asset])
+			})
 		}
 	}, [dailyFlowsByAsset, groupBy])
 	const deferredChartData = useDeferredValue(chartData)

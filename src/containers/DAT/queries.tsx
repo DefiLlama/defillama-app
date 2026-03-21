@@ -7,7 +7,7 @@ import type { IDATInstitutionsResponse } from './api.types'
 import type {
 	IDATOverviewPageProps,
 	IDATInstitutionOverview,
-	IDATDailyFlowByAsset,
+	IDATOverviewFlowSeries,
 	IDATOverviewDataByAssetProps,
 	IDATInstitutionOverviewByAsset,
 	IDATCompanyPageProps,
@@ -82,36 +82,21 @@ export async function getDATOverviewData(): Promise<IDATOverviewPageProps> {
 	const allAssets = buildAllAssetLinks(res)
 	const colorByAsset = buildColorByAsset(res)
 
-	const inflowsByAssetByDate: Record<string, Record<string, [number, number]>> = {}
-	const dailyFlowsByAsset: Record<string, IDATDailyFlowByAsset> = {}
+	const dailyFlowsByAsset: Record<string, IDATOverviewFlowSeries> = {}
 	for (const asset in res.flows) {
 		const name = res.assetMetadata[asset]?.name ?? asset
+		const points: Array<readonly [number, number]> = []
+
+		for (const [date, _net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
+			points.push([toUnixMsTimestamp(+date), purchasePrice ?? usdValueOfPurchase ?? 0] as const)
+		}
+
 		dailyFlowsByAsset[asset] = {
 			name,
 			stack: 'asset',
-			type: 'bar',
 			color: colorByAsset[asset],
-			data: []
+			points: points.toSorted((a, b) => a[0] - b[0])
 		}
-		for (const [date, _net, _inflow, _outflow, purchasePrice, usdValueOfPurchase] of res.flows[asset]) {
-			inflowsByAssetByDate[date] = inflowsByAssetByDate[date] ?? {}
-			inflowsByAssetByDate[date][asset] = [purchasePrice ?? usdValueOfPurchase ?? 0, _net]
-		}
-	}
-
-	for (const date in inflowsByAssetByDate) {
-		for (const asset in res.flows) {
-			dailyFlowsByAsset[asset].data.push([
-				+date,
-				inflowsByAssetByDate[date][asset]?.[0] ?? null,
-				inflowsByAssetByDate[date][asset]?.[1] ?? null
-			])
-		}
-	}
-
-	// Sort data by date for each asset to ensure correct cumulative calculations
-	for (const asset in dailyFlowsByAsset) {
-		dailyFlowsByAsset[asset].data.sort((a, b) => (a[0] ?? 0) - (b[0] ?? 0))
 	}
 
 	const institutions: IDATInstitutionOverview[] = res.institutions.map((institution) => {
