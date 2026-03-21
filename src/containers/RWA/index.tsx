@@ -725,7 +725,6 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 										hideDefaultLegend={false}
 										stacked
 										showTotalInTooltip
-										tooltipTotalPosition="top"
 										onReady={handleMultiSeriesChart2Ready}
 									/>
 								</Suspense>

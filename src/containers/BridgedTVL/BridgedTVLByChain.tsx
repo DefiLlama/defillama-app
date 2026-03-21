@@ -226,6 +226,7 @@ export function BridgedTVLByChain({
 								charts={deferredInflowsData.charts}
 								hideDefaultLegend={true}
 								valueSymbol="$"
+								showTotalInTooltip
 								selectedCharts={selectedChartsSet}
 								chartOptions={
 									selectedTokens.length > 1 ? { tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER_USD } } : undefined

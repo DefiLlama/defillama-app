@@ -45,6 +45,7 @@ export function BridgeChainsOverview({ allChains, tableData, chart }) {
 							selectedCharts={selectedCharts}
 							hideDefaultLegend
 							valueSymbol="$"
+							showTotalInTooltip
 							tooltipMaxItems={30}
 							exportButtons="hidden"
 							onReady={onChartReady}

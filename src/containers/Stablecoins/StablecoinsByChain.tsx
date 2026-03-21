@@ -574,6 +574,7 @@ export function StablecoinsByChain({
 										charts={deferredTokenMcapsData.charts}
 										stacked={true}
 										valueSymbol="$"
+										showTotalInTooltip
 										chartOptions={chartOptions}
 										onReady={handleExportChartReady}
 									/>
@@ -669,6 +670,7 @@ function TokenInflowsChartPanel({
 					dataset={dataset}
 					charts={charts}
 					selectedCharts={selectedTokenInflowsSet}
+					showTotalInTooltip
 					chartOptions={
 						selectedTokenInflowsSet.size > 1
 							? { ...chartOptions, tooltip: { formatter: INFLOWS_TOOLTIP_FORMATTER } }

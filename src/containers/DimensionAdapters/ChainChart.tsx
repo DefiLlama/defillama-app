@@ -283,6 +283,7 @@ export const AdapterByChainChart = ({
 						charts={deferredFinalCharts.charts}
 						hideDefaultLegend={deferredFinalCharts.charts.length === 1}
 						groupBy={chartInterval}
+						showTotalInTooltip={isBreakdownMode}
 						onReady={handleChartReady}
 					/>
 				</React.Suspense>
@@ -466,6 +467,7 @@ export const ChainsByAdapterChart = ({
 						: {
 								groupBy: chartInterval
 							})}
+					showTotalInTooltip={chartType !== 'Dominance'}
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>

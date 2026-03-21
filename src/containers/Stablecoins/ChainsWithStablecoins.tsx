@@ -309,6 +309,7 @@ export function ChainsWithStablecoins({
 								charts={deferredChainMcapsData.charts}
 								stacked={true}
 								valueSymbol="$"
+								showTotalInTooltip
 								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>

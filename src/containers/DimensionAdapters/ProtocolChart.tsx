@@ -391,6 +391,7 @@ const ChartByType = ({
 					charts={deferredMainChartData.charts}
 					groupBy={chartInterval}
 					valueSymbol="$"
+					showTotalInTooltip
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>

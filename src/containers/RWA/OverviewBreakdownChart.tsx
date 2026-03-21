@@ -103,7 +103,6 @@ export function RWAOverviewBreakdownChart({
 					dataset={dataset}
 					stacked
 					showTotalInTooltip
-					tooltipTotalPosition="top"
 					selectedCharts={selectedStacksSet}
 					onReady={handleChartReady}
 				/>

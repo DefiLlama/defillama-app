@@ -194,7 +194,7 @@ export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
 	showTotalInTooltip?: boolean
 	/**
 	 * Placement for the total line when `showTotalInTooltip` is enabled.
-	 * Defaults to `'bottom'`.
+	 * Defaults to `'top'`.
 	 */
 	tooltipTotalPosition?: 'top' | 'bottom'
 	/**

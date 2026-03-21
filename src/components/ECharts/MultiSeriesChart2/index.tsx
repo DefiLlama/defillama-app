@@ -423,7 +423,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		solidChartAreaStyle = false,
 		hideDataZoom,
 		showTotalInTooltip = false,
-		tooltipTotalPosition = 'bottom',
+		tooltipTotalPosition = 'top',
 		onReady,
 		hideDefaultLegend = true,
 		selectedCharts,

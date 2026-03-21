@@ -391,6 +391,7 @@ export const LSTOverview = ({
 										charts={deferredInflowsData.cumulativeCharts}
 										hideDefaultLegend
 										valueSymbol="ETH"
+										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
@@ -405,6 +406,7 @@ export const LSTOverview = ({
 										charts={deferredInflowsData.barCharts}
 										hideDefaultLegend
 										valueSymbol="ETH"
+										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined

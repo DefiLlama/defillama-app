@@ -229,7 +229,6 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 						solidChartAreaStyle
 						onReady={handleChartReady}
 						showTotalInTooltip
-						tooltipTotalPosition="top"
 					/>
 				</React.Suspense>
 			</div>
