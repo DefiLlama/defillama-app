@@ -8,6 +8,7 @@ import {
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import type { ChartTimeGrouping } from '~/components/ECharts/types'
+import { getBucketTimestampMs } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import type { ChartBuilderConfig } from '~/containers/ProDashboard/types'
@@ -15,7 +16,7 @@ import { getAdapterBuilderMetric } from '~/containers/ProDashboard/utils/adapter
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, firstDayOfQuarter, firstDayOfYear, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
+import { getNDistinctColors, slug } from '~/utils'
 import { fetchAdapterProtocolChartDataByBreakdownType } from './api'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from './constants'
 
@@ -249,20 +250,10 @@ const ChartByType = ({
 		if (selectedTypes.length === 0) return { dataset: { source: [], dimensions: ['timestamp'] }, charts: [] }
 
 		// Helper to compute final date based on interval
-		const computeFinalDate = (date: number) => {
-			switch (chartInterval as ChartTimeGrouping | 'cumulative') {
-				case 'weekly':
-					return lastDayOfWeek(+date) * 1e3
-				case 'monthly':
-					return firstDayOfMonth(+date) * 1e3
-				case 'quarterly':
-					return firstDayOfQuarter(+date) * 1e3
-				case 'yearly':
-					return firstDayOfYear(+date) * 1e3
-				default:
-					return +date * 1e3
-			}
-		}
+		const computeFinalDate = (date: number) =>
+			chartInterval === 'cumulative'
+				? +date * 1e3
+				: getBucketTimestampMs(+date * 1e3, chartInterval as ChartTimeGrouping)
 
 		// Aggregate by date with interval grouping
 		const aggregatedByDate: Map<number, Record<string, number>> = new Map()

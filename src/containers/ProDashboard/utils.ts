@@ -82,6 +82,33 @@ const getStartOfYear = (date: Date): Date => {
 	return new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
 }
 
+export const getGroupedTimestampSec = (timestampSec: number, grouping: DashboardGrouping): number => {
+	if (grouping === 'day') return timestampSec
+
+	const date = new Date(timestampSec * 1000)
+	let groupKeyDate: Date
+
+	switch (grouping) {
+		case 'week':
+			groupKeyDate = getStartOfWeek(date)
+			break
+		case 'month':
+			groupKeyDate = getStartOfMonth(date)
+			break
+		case 'quarter':
+			groupKeyDate = getStartOfQuarter(date)
+			break
+		case 'year':
+			groupKeyDate = getStartOfYear(date)
+			break
+		default:
+			groupKeyDate = date
+	}
+
+	groupKeyDate.setUTCHours(0, 0, 0, 0)
+	return Math.floor(groupKeyDate.getTime() / 1000)
+}
+
 export const groupData = (
 	data: [string, number][] | undefined,
 	grouping: DashboardGrouping = 'day'
@@ -95,28 +122,7 @@ export const groupData = (
 	const groupedData: { [key: string]: number } = {}
 
 	for (const [timestampStr, value] of data) {
-		const date = new Date(parseInt(timestampStr) * 1000)
-		let groupKeyDate: Date
-
-		switch (grouping) {
-			case 'week':
-				groupKeyDate = getStartOfWeek(date)
-				break
-			case 'month':
-				groupKeyDate = getStartOfMonth(date)
-				break
-			case 'quarter':
-				groupKeyDate = getStartOfQuarter(date)
-				break
-			case 'year':
-				groupKeyDate = getStartOfYear(date)
-				break
-			default:
-				groupKeyDate = date
-		}
-
-		groupKeyDate.setUTCHours(0, 0, 0, 0)
-		const groupKey = (groupKeyDate.getTime() / 1000).toString()
+		const groupKey = getGroupedTimestampSec(parseInt(timestampStr), grouping).toString()
 
 		if (groupedData[groupKey]) {
 			groupedData[groupKey] += +value

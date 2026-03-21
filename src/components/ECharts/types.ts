@@ -238,7 +238,7 @@ export interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	groupBy?: ChartTimeGrouping
 	hallmarks?: [number, string][]
 	valueSymbol?: string
 	yAxisSymbols?: string[]

@@ -114,6 +114,7 @@ const buildTvlChart = ({
 	}
 
 	const store: Record<string, number> = {}
+	const retainedTimestampByKey: Record<string, number> = {}
 	const latestMainTvlTimestamp = getLatestTimestamp(tvlChartData)
 	let mostRecentTvlTimestamp = latestMainTvlTimestamp
 
@@ -163,14 +164,18 @@ const buildTvlChart = ({
 			extrasAtTimestamp += extraValue ?? 0
 		}
 		store[String(dateKey)] = value + extrasAtTimestamp
+		retainedTimestampByKey[String(dateKey)] = alignedDateInSec
 	}
 
 	const finalChart: Array<[number, number | null]> = []
 	for (const date in store) {
 		const dateInSec = Number(date)
 		const dateInMs = Number(date) * 1e3
+		const retainedTimestampSec = retainedTimestampByKey[date] ?? dateInSec
+		const retainedTimestampMs = retainedTimestampSec * 1e3
 		const denominationRate =
-			denominationPriceHistory?.[String(dateInSec)] ?? denominationPriceHistory?.[String(dateInMs)]
+			denominationPriceHistory?.[String(retainedTimestampSec)] ??
+			denominationPriceHistory?.[String(retainedTimestampMs)]
 		const finalValue = denominationPriceHistory
 			? denominationRate
 				? store[date] / denominationRate
