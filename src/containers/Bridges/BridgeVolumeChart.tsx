@@ -150,6 +150,7 @@ export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEn
 					charts={deferredChartData.charts}
 					height={height}
 					hideDefaultLegend={false}
+					groupBy={timePeriod}
 					valueSymbol={deferredChartData.metricType === 'Volume' ? '$' : ''}
 					onReady={onReady}
 				/>

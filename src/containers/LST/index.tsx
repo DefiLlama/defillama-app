@@ -389,6 +389,7 @@ export const LSTOverview = ({
 										dataset={deferredInflowsData.dataset}
 										charts={deferredInflowsData.cumulativeCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
 										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
@@ -404,6 +405,7 @@ export const LSTOverview = ({
 										dataset={deferredInflowsData.dataset}
 										charts={deferredInflowsData.barCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
 										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}

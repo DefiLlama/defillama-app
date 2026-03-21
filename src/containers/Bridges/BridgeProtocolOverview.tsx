@@ -244,6 +244,7 @@ export const BridgeInfo = ({
 								<MultiSeriesChart2
 									dataset={deferredVolumeDataset}
 									charts={VOLUME_CHARTS}
+									groupBy={groupBy}
 									valueSymbol="$"
 									onReady={handleChartReady}
 								/>
@@ -254,6 +255,7 @@ export const BridgeInfo = ({
 								<MultiSeriesChart2
 									dataset={deferredInflowsDataset}
 									charts={INFLOW_CHARTS}
+									groupBy={groupBy}
 									valueSymbol="$"
 									onReady={handleChartReady}
 								/>
