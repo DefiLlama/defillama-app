@@ -945,12 +945,15 @@ export const getProtocolOverviewPageData = async ({
 		yields,
 		articles,
 		incentives,
-		users: {
-			activeUsers: activeUsers ?? null,
-			newUsers: newUsers ?? null,
-			transactions: transactions ?? null,
-			gasUsd: gasUsd ?? null
-		},
+		users:
+			activeUsers || newUsers || transactions || gasUsd
+				? {
+						activeUsers: activeUsers ?? null,
+						newUsers: newUsers ?? null,
+						transactions: transactions ?? null,
+						gasUsd: gasUsd ?? null
+					}
+				: null,
 		raises: raises?.length ? raises : null,
 		expenses: expenses
 			? {

@@ -118,7 +118,7 @@ const Articles = (props: IProtocolOverviewPageData) => {
 
 function Users(props: IProtocolOverviewPageData) {
 	const users = props.users
-	if (!users || Object.values(users).every((value) => value === null)) return null
+	if (!users) return null
 
 	return (
 		<div className="col-span-1 flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:p-4">
