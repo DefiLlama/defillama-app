@@ -9,6 +9,7 @@ import {
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
@@ -32,7 +33,7 @@ interface ChainChartPanelProps {
 	denominations: string[]
 	denomination: string
 	hasBarChart: boolean
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	groupBy: ChartTimeGroupingWithCumulative
 	chainGeckoId: string | null
 	finalCharts: any
 	valueSymbol: string

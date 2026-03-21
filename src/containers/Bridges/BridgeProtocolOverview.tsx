@@ -7,6 +7,7 @@ import {
 	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { LinkPreviewCard } from '~/components/SEO'
@@ -20,7 +21,7 @@ import { getBridgePageDatanew } from '~/containers/Bridges/queries.server'
 import { AddressesTableSwitch } from '~/containers/Bridges/TableSwitch'
 import { BRIDGES_SHOWING_ADDRESSES, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, getPercentChange, lastDayOfWeek, slug } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import type { BridgePageData } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -84,7 +85,7 @@ export const BridgeInfo = ({
 		if (groupBy === 'daily' || allChainsVolumePairs.length === 0) return allChainsVolumePairs
 		const store: Record<number, number> = {}
 		for (const [date, value] of allChainsVolumePairs) {
-			const key = groupBy === 'weekly' ? lastDayOfWeek(date) : firstDayOfMonth(date)
+			const key = getBucketTimestampSec(date, groupBy)
 			store[key] = (store[key] ?? 0) + (value ?? 0)
 		}
 		return Object.entries(store)
@@ -110,7 +111,7 @@ export const BridgeInfo = ({
 		if (groupBy === 'daily') return volumeChartDataByChain
 		const store: Record<number, { Deposited: number; Withdrawn: number }> = {}
 		for (const point of volumeChartDataByChain as Array<any>) {
-			const key = groupBy === 'weekly' ? lastDayOfWeek(point.date) : firstDayOfMonth(point.date)
+			const key = getBucketTimestampSec(point.date, groupBy)
 			store[key] = store[key] || { Deposited: 0, Withdrawn: 0 }
 			store[key].Deposited += Number(point.Deposited ?? 0)
 			store[key].Withdrawn += Number(point.Withdrawn ?? 0)
@@ -243,6 +244,7 @@ export const BridgeInfo = ({
 								<MultiSeriesChart2
 									dataset={deferredVolumeDataset}
 									charts={VOLUME_CHARTS}
+									groupBy={groupBy}
 									valueSymbol="$"
 									onReady={handleChartReady}
 								/>
@@ -253,6 +255,7 @@ export const BridgeInfo = ({
 								<MultiSeriesChart2
 									dataset={deferredInflowsDataset}
 									charts={INFLOW_CHARTS}
+									groupBy={groupBy}
 									valueSymbol="$"
 									onReady={handleChartReady}
 								/>

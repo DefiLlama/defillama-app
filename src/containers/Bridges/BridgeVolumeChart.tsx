@@ -1,10 +1,11 @@
-import dayjs from 'dayjs'
 import { lazy, type ReactNode, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import {
 	ChartGroupingSelector,
 	DWM_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { TagGroup } from '~/components/TagGroup'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -81,8 +82,7 @@ export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEn
 		>()
 
 		for (const item of rawData) {
-			const date = dayjs.unix(item.timestamp)
-			const key = (timePeriod === 'weekly' ? date.startOf('week') : date.startOf('month')).unix()
+			const key = getBucketTimestampSec(item.timestamp, timePeriod as Exclude<ChartTimeGrouping, 'daily'>)
 
 			const existing = groupedData.get(key) || { deposits: 0, withdrawals: 0 }
 			groupedData.set(key, {
@@ -150,6 +150,7 @@ export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEn
 					charts={deferredChartData.charts}
 					height={height}
 					hideDefaultLegend={false}
+					groupBy={timePeriod}
 					valueSymbol={deferredChartData.metricType === 'Volume' ? '$' : ''}
 					onReady={onReady}
 				/>

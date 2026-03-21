@@ -22,7 +22,7 @@ import { TopUnlocks } from '~/containers/Unlocks/TopUnlocks'
 import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
-import { formattedNum } from '~/utils'
+import { firstDayOfMonth, firstDayOfQuarter, firstDayOfYear, formattedNum } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
@@ -96,15 +96,19 @@ const END_TIMESTAMP = dayjs('2031-01-01').unix()
 const SECONDS_PER_DAY = 86400
 
 function bucketTimestamp(ts: number, timePeriod: LowercaseDwmGrouping): number {
-	if (timePeriod === 'daily') {
-		return Math.floor(ts / SECONDS_PER_DAY) * SECONDS_PER_DAY
+	switch (timePeriod) {
+		case 'daily':
+			return Math.floor(ts / SECONDS_PER_DAY) * SECONDS_PER_DAY
+		case 'monthly':
+			return firstDayOfMonth(ts)
+		case 'quarterly':
+			return firstDayOfQuarter(ts)
+		case 'yearly':
+			return firstDayOfYear(ts)
+		default:
+			// Weekly — locale-aware week start requires dayjs
+			return dayjs.unix(ts).startOf('week').unix()
 	}
-	if (timePeriod === 'monthly') {
-		const d = dayjs.unix(ts)
-		return d.startOf('month').unix()
-	}
-	// Weekly — locale-aware week start requires dayjs
-	return dayjs.unix(ts).startOf('week').unix()
 }
 
 const EMPTY_CHART_RESULT = {

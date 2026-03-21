@@ -8,6 +8,7 @@ import {
 } from '~/components/ECharts/ChartGroupingSelector'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -16,7 +17,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
@@ -220,14 +221,12 @@ export const LSTOverview = ({
 	const inflowsData = React.useMemo(() => {
 		const store: Record<string | number, Record<string, number>> = {}
 
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
 		const isCumulative = groupBy === 'cumulative'
 		const totalByToken: Record<string, number> = {}
 
 		for (const [date, dateEntry] of Object.entries(inflowsChartData)) {
 			for (const [token, value] of Object.entries(dateEntry)) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = groupBy === 'cumulative' ? +date : getBucketTimestampSec(+date, groupBy)
 				if (!store[dateKey]) {
 					store[dateKey] = {}
 				}
@@ -390,6 +389,7 @@ export const LSTOverview = ({
 										dataset={deferredInflowsData.dataset}
 										charts={deferredInflowsData.cumulativeCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
 										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
@@ -405,6 +405,7 @@ export const LSTOverview = ({
 										dataset={deferredInflowsData.dataset}
 										charts={deferredInflowsData.barCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
 										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}

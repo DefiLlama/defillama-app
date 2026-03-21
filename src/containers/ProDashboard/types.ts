@@ -1,5 +1,7 @@
 const dashboardBlue = '#326abd'
 
+export type DashboardGrouping = 'day' | 'week' | 'month' | 'quarter' | 'year'
+
 export interface Chain {
 	gecko_id: string
 	tvl: number
@@ -17,7 +19,7 @@ export interface MultiChartConfig {
 	kind: 'multi'
 	name?: string
 	items: ChartConfig[]
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	grouping?: DashboardGrouping
 	colSpan?: StoredColSpan
 	showCumulative?: boolean
 	showPercentage?: boolean
@@ -120,7 +122,7 @@ export interface ChartBuilderConfig {
 		additionalFilters?: Record<string, any>
 		seriesColors?: Record<string, string>
 	}
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	grouping?: DashboardGrouping
 	colSpan?: StoredColSpan
 }
 
@@ -262,7 +264,7 @@ export interface ChartConfig {
 	isLoading?: boolean
 	hasError?: boolean
 	refetch?: () => void
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	grouping?: DashboardGrouping
 	geckoId?: string | null
 	dataType?: UnlocksDataType
 	colSpan?: StoredColSpan

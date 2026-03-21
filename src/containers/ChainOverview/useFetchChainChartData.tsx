@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { CACHE_SERVER } from '~/constants'
 import { fetchChainAssetsChart } from '~/containers/BridgedTVL/api'
@@ -83,7 +84,7 @@ export const useFetchChainChartData = ({
 	tvlSettings: Record<string, boolean>
 	chainGeckoId?: string
 	toggledCharts: Array<ChainChartLabels>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	groupBy: ChartTimeGroupingWithCumulative
 }) => {
 	const toggledChartsSet = useMemo(() => new Set(toggledCharts), [toggledCharts])
 	const [nowMs] = useState(() => Date.now())

@@ -12,7 +12,7 @@ import {
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { CHART_TYPES, type MultiChartConfig } from '../types'
+import { CHART_TYPES, type DashboardGrouping, type MultiChartConfig } from '../types'
 import { convertToCumulative, generateChartColor } from '../utils'
 import { COLOR_PALETTE_2, EXTENDED_COLOR_PALETTE } from '../utils/colorManager'
 import { ConfirmationModal } from './ConfirmationModal'
@@ -537,7 +537,7 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 		}
 	}, [allCountMetrics, allPercentMetrics, allRatioMetrics, seriesCount, showPercentage])
 
-	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+	const groupingOptions: DashboardGrouping[] = ['day', 'week', 'month', 'quarter', 'year']
 
 	return (
 		<div className="flex min-h-[402px] flex-col p-1 md:min-h-[418px]">
@@ -681,7 +681,9 @@ const MultiChartCard = memo(function MultiChartCard({ multi }: MultiChartCardPro
 									? 'monthly'
 									: multi.grouping === 'quarter'
 										? 'quarterly'
-										: 'daily'
+										: multi.grouping === 'year'
+											? 'yearly'
+											: 'daily'
 						}
 						hideDataZoom={true}
 						onReady={handleChartReady}

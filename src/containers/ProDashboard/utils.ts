@@ -1,3 +1,6 @@
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
+import type { DashboardGrouping } from './types'
 import { generateConsistentChartColor } from './utils/colorManager'
 
 export const convertToNumberFormat = (data: any[], convertToSeconds: boolean = false): [number, number][] => {
@@ -61,26 +64,30 @@ export const normalizeHourlyToDaily = (
 	return result.sort((a, b) => a[0] - b[0])
 }
 
-const getStartOfWeek = (date: Date): Date => {
-	const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-	const day = dt.getDay()
-	const diff = dt.getDate() - day + (day === 0 ? -6 : 1)
-	return new Date(dt.setDate(diff))
+const GROUPING_TO_CHART_GROUP_BY: Record<Exclude<DashboardGrouping, 'day'>, Exclude<ChartTimeGrouping, 'daily'>> = {
+	week: 'weekly',
+	month: 'monthly',
+	quarter: 'quarterly',
+	year: 'yearly'
 }
 
-const getStartOfMonth = (date: Date): Date => {
-	return new Date(date.getFullYear(), date.getMonth(), 1)
-}
+export const getGroupedTimestampSec = (timestampSec: number, grouping: DashboardGrouping): number => {
+	if (grouping === 'day') return timestampSec
 
-const getStartOfQuarter = (date: Date): Date => {
-	const month = date.getMonth()
-	const quarterStartMonth = Math.floor(month / 3) * 3
-	return new Date(date.getFullYear(), quarterStartMonth, 1)
+	const groupedTimestampSec = getBucketTimestampSec(timestampSec, GROUPING_TO_CHART_GROUP_BY[grouping])
+	const groupKeyDate = new Date(groupedTimestampSec * 1000)
+
+	if (grouping === 'week') {
+		groupKeyDate.setUTCDate(groupKeyDate.getUTCDate() - 6)
+	}
+
+	groupKeyDate.setUTCHours(0, 0, 0, 0)
+	return Math.floor(groupKeyDate.getTime() / 1000)
 }
 
 export const groupData = (
 	data: [string, number][] | undefined,
-	grouping: 'day' | 'week' | 'month' | 'quarter' = 'day'
+	grouping: DashboardGrouping = 'day'
 ): [string, number][] => {
 	if (!data || data.length === 0) return []
 
@@ -91,21 +98,7 @@ export const groupData = (
 	const groupedData: { [key: string]: number } = {}
 
 	for (const [timestampStr, value] of data) {
-		const date = new Date(parseInt(timestampStr) * 1000)
-		let groupKeyDate: Date
-
-		if (grouping === 'week') {
-			groupKeyDate = getStartOfWeek(date)
-		} else if (grouping === 'month') {
-			groupKeyDate = getStartOfMonth(date)
-		} else if (grouping === 'quarter') {
-			groupKeyDate = getStartOfQuarter(date)
-		} else {
-			groupKeyDate = date
-		}
-
-		groupKeyDate.setHours(0, 0, 0, 0)
-		const groupKey = (groupKeyDate.getTime() / 1000).toString()
+		const groupKey = getGroupedTimestampSec(parseInt(timestampStr), grouping).toString()
 
 		if (groupedData[groupKey]) {
 			groupedData[groupKey] += +value

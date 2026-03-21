@@ -578,6 +578,11 @@ export function firstDayOfQuarter(utcTimestamp: number): number {
 	return Math.trunc(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1) / 1000)
 }
 
+export function firstDayOfYear(utcTimestamp: number): number {
+	const date = new Date(utcTimestamp * 1000)
+	return Math.trunc(Date.UTC(date.getUTCFullYear(), 0, 1) / 1000)
+}
+
 export function lastDayOfWeek(utcTimestamp: number): number {
 	const date = new Date(utcTimestamp * 1000)
 	const weekDay = date.getUTCDay()

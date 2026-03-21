@@ -2,7 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { fetchProtocolTokenLiquidityChart } from '~/api'
-import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
+import { formatBarChart, formatLineChart, getBucketTimestampSec } from '~/components/ECharts/utils'
 import { CACHE_SERVER, oracleProtocols } from '~/constants'
 import { fetchBridgeVolumeBySlug } from '~/containers/Bridges/api'
 import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
@@ -16,7 +17,7 @@ import {
 } from '~/containers/ProtocolOverview/queries.client'
 import type { EmissionsChartRow } from '~/containers/Unlocks/api.types'
 import { getProtocolEmissionsCharts } from '~/containers/Unlocks/queries'
-import { firstDayOfMonth, lastDayOfWeek, slug } from '~/utils'
+import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart } from './api'
 import { ADAPTER_CHART_DESCRIPTORS_BY_LABEL } from './chartDescriptors'
@@ -29,10 +30,14 @@ import { protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IDenominationPriceHistory, IProtocolOverviewPageData, IToggledMetrics } from './types'
 import { usePrefetchedProtocolChartQuery } from './usePrefetchedProtocolChartQuery'
 
-type ChartInterval = 'daily' | 'weekly' | 'monthly' | 'cumulative'
+type ChartInterval = ChartTimeGroupingWithCumulative
 type V2ChartPoint = [string | number, number]
 /** Maximum allowed difference (in seconds) between chart latest timestamps for alignment. */
 const MAX_TVL_TIMESTAMP_ALIGNMENT_DIFF_SEC = 24 * 60 * 60
+
+const getGroupedTimestampSec = (timestampSec: number, groupBy: ChartInterval): number => {
+	return groupBy === 'cumulative' ? timestampSec : getBucketTimestampSec(timestampSec, groupBy)
+}
 
 const toUnixSeconds = (timestamp: string | number): number | null => {
 	const parsed = Number(timestamp)
@@ -109,8 +114,7 @@ const buildTvlChart = ({
 	}
 
 	const store: Record<string, number> = {}
-	const isWeekly = groupBy === 'weekly'
-	const isMonthly = groupBy === 'monthly'
+	const retainedTimestampByKey: Record<string, number> = {}
 	const latestMainTvlTimestamp = getLatestTimestamp(tvlChartData)
 	let mostRecentTvlTimestamp = latestMainTvlTimestamp
 
@@ -132,11 +136,7 @@ const buildTvlChart = ({
 		if (dateInSec == null) continue
 		const alignedDateInSec =
 			shouldNormalizeMainTvlLatest && dateInSec === latestMainTvlTimestamp ? mostRecentTvlTimestamp! : dateInSec
-		const dateKey = isWeekly
-			? lastDayOfWeek(alignedDateInSec)
-			: isMonthly
-				? firstDayOfMonth(alignedDateInSec)
-				: alignedDateInSec
+		const dateKey = getGroupedTimestampSec(alignedDateInSec, groupBy)
 		let extrasAtTimestamp = 0
 		for (const extra of extraTvls) {
 			const extraChart = extraTvlCharts.charts[extra]
@@ -164,14 +164,18 @@ const buildTvlChart = ({
 			extrasAtTimestamp += extraValue ?? 0
 		}
 		store[String(dateKey)] = value + extrasAtTimestamp
+		retainedTimestampByKey[String(dateKey)] = alignedDateInSec
 	}
 
 	const finalChart: Array<[number, number | null]> = []
 	for (const date in store) {
 		const dateInSec = Number(date)
 		const dateInMs = Number(date) * 1e3
+		const retainedTimestampSec = retainedTimestampByKey[date] ?? dateInSec
+		const retainedTimestampMs = retainedTimestampSec * 1e3
 		const denominationRate =
-			denominationPriceHistory?.[String(dateInSec)] ?? denominationPriceHistory?.[String(dateInMs)]
+			denominationPriceHistory?.[String(retainedTimestampSec)] ??
+			denominationPriceHistory?.[String(retainedTimestampMs)]
 		const finalValue = denominationPriceHistory
 			? denominationRate
 				? store[date] / denominationRate
@@ -896,8 +900,6 @@ export const useFetchProtocolChartData = ({
 		const feesStore: Record<string, number | null> = {}
 		const revenueStore: Record<string, number | null> = {}
 		const holdersRevenueStore: Record<string, number | null> = {}
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
 		const isCumulative = groupBy === 'cumulative'
 		const applyValue = (date: number, value: number) => {
 			if (!denominationPriceHistory) return value
@@ -908,7 +910,7 @@ export const useFetchProtocolChartData = ({
 		if (feesDataChart) {
 			let total = 0
 			for (const [date, value] of feesDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
 					feesStore[dateKey] = null
@@ -922,7 +924,7 @@ export const useFetchProtocolChartData = ({
 		if (revenueDataChart) {
 			let total = 0
 			for (const [date, value] of revenueDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
 					revenueStore[dateKey] = null
@@ -936,7 +938,7 @@ export const useFetchProtocolChartData = ({
 		if (holdersRevenueDataChart) {
 			let total = 0
 			for (const [date, value] of holdersRevenueDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
 					holdersRevenueStore[dateKey] = null
@@ -950,7 +952,7 @@ export const useFetchProtocolChartData = ({
 		if (bribesDataChart) {
 			let total = 0
 			for (const [date, value] of bribesDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
 					if (feesDataChart) feesStore[dateKey] = null
@@ -970,7 +972,7 @@ export const useFetchProtocolChartData = ({
 		if (tokenTaxesDataChart) {
 			let total = 0
 			for (const [date, value] of tokenTaxesDataChart) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = getGroupedTimestampSec(+date, groupBy)
 				const finalValue = applyValue(+date, value)
 				if (finalValue == null) {
 					if (feesDataChart) feesStore[dateKey] = null
@@ -1046,7 +1048,7 @@ export const useFetchProtocolChartData = ({
 			const store: Record<string, number> = {}
 			for (const { timestamp, ...rest } of unlocksAndIncentivesData.chartData.documented) {
 				const dateSec = Math.floor(timestamp / 1e3)
-				const dateKey = isWeekly ? lastDayOfWeek(dateSec) : isMonthly ? firstDayOfMonth(dateSec) : dateSec
+				const dateKey = getGroupedTimestampSec(dateSec, groupBy)
 				let total = 0
 				for (const label in rest) {
 					const val = rest[label]
@@ -1113,13 +1115,21 @@ export const useFetchProtocolChartData = ({
 					maxVotes[date] = (maxVotes[date] ?? 0) + (Number(item['Max Votes']) || 0)
 				}
 			}
-			charts['Total Proposals'] = Object.entries(totalProposals).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
-			charts['Successful Proposals'] = Object.entries(successfulProposals).map(
-				([date, value]) => [+date * 1e3, value] as [number, number]
-			)
-			charts['Max Votes'] = Object.entries(maxVotes).map(([date, value]) => [+date * 1e3, value] as [number, number])
+			charts['Total Proposals'] = formatBarChart({
+				data: Object.entries(totalProposals).map(([date, value]) => [+date, value] as [number, number]),
+				groupBy,
+				denominationPriceHistory: null
+			})
+			charts['Successful Proposals'] = formatBarChart({
+				data: Object.entries(successfulProposals).map(([date, value]) => [+date, value] as [number, number]),
+				groupBy,
+				denominationPriceHistory: null
+			})
+			charts['Max Votes'] = formatLineChart({
+				data: Object.entries(maxVotes).map(([date, value]) => [+date, value] as [number, number]),
+				groupBy,
+				denominationPriceHistory: null
+			})
 		}
 
 		if (nftVolumeData && isNftVolumeToggled)
