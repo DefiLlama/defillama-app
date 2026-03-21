@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import * as React from 'react'
 import { Tooltip } from '~/components/Tooltip'
 
@@ -42,11 +43,6 @@ type ExternalStateProps<T extends string> = BaseProps<T> & {
 
 type ChartGroupingSelectorProps<T extends string> = LocalStateProps<T> | ExternalStateProps<T>
 
-const CONTAINER_CLASSNAME =
-	'flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)'
-const BUTTON_CLASSNAME =
-	'shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)'
-
 export function ChartGroupingSelector<T extends string>({
 	value,
 	options,
@@ -67,7 +63,13 @@ export function ChartGroupingSelector<T extends string>({
 	)
 
 	return (
-		<div role="radiogroup" className={className ? `${CONTAINER_CLASSNAME} ${className}` : CONTAINER_CLASSNAME}>
+		<div
+			role="radiogroup"
+			className={clsx(
+				'flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)',
+				className
+			)}
+		>
 			{options.map((option) => {
 				const shortLabel = option.shortLabel ?? option.label.slice(0, 1).toUpperCase()
 				return (
@@ -77,7 +79,10 @@ export function ChartGroupingSelector<T extends string>({
 							role="radio"
 							aria-checked={value === option.value}
 							aria-label={option.label}
-							className={buttonClassName ? `${BUTTON_CLASSNAME} ${buttonClassName}` : BUTTON_CLASSNAME}
+							className={clsx(
+								'shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)',
+								buttonClassName
+							)}
 							data-active={value === option.value}
 							onClick={() => handleValueChange(option.value)}
 						>
