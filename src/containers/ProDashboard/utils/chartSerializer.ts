@@ -74,7 +74,7 @@ interface ChainChartSerializationParams {
 	chainName: string
 	geckoId?: string | null
 	toggledMetrics: ChainChartLabels[]
-	chartColors: Record<ChainChartLabels, string>
+	chartColors: Partial<Record<ChainChartLabels, string>>
 	groupBy: ChartTimeGroupingWithCumulative
 }
 
