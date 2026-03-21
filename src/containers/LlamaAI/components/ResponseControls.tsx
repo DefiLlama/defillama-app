@@ -3,13 +3,13 @@ import { useMutation } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useReducer, useRef } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
-import type { MessageMetadata } from '~/containers/LlamaAI/types'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
 import { FeedbackForm } from '~/containers/LlamaAI/components/FeedbackForm'
 import { PDFExportButton } from '~/containers/LlamaAI/components/PDFExportButton'
 import { ShareModalContent, type ShareData } from '~/containers/LlamaAI/components/ShareModalContent'
+import type { MessageMetadata } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { convertLlamaLinksToDefillama } from '~/containers/LlamaAI/utils/entityLinks'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -300,7 +300,7 @@ export function ResponseControls({
 								{messageMetadata.x402CostUsd ? (
 									<div className="flex justify-between gap-4">
 										<span className="text-[#999] dark:text-[#666]">Premium data</span>
-										<span className="font-mono tabular-nums text-amber-600 dark:text-amber-400">
+										<span className="font-mono text-amber-600 tabular-nums dark:text-amber-400">
 											${parseFloat(messageMetadata.x402CostUsd).toFixed(3)}
 										</span>
 									</div>

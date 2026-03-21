@@ -376,7 +376,9 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 				>
 					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
+							<div className="min-h-0 flex-1 overflow-y-auto">
+								<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
+							</div>
 						) : (
 							<>
 								<Ariakit.DialogDismiss className="ml-auto shrink-0 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
@@ -391,7 +393,7 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 										isTrialAvailable={true}
 									/>
 								</div>
-								<div className="shrink-0 flex flex-col gap-3 pt-3">
+								<div className="flex shrink-0 flex-col gap-3 pt-3">
 									<BasicLink
 										href="/subscription"
 										data-umami-event="subscribe-modal-goto-page"
