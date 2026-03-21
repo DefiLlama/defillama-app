@@ -212,9 +212,12 @@ export const LSTOverview = ({
 	}, [groupBy])
 
 	const { chartInstance: breakdownChartInstance, handleChartReady: handleBreakdownReady } = useGetChartInstance()
+	const { chartInstance: inflowsChartInstance, handleChartReady: handleInflowsReady } = useGetChartInstance()
 
 	const breakdownExportFilenameBase = 'lst-breakdown-dominance'
 	const breakdownExportTitle = 'LST Breakdown (Dominance)'
+	const inflowsExportFilenameBase = 'lst-inflows'
+	const inflowsExportTitle = 'LST Inflows'
 
 	const inflowsData = React.useMemo(() => {
 		const store: Record<string | number, Record<string, number>> = {}
@@ -360,12 +363,12 @@ export const LSTOverview = ({
 						</div>
 					) : (
 						<div className="flex flex-col">
-							<div className="flex items-center justify-end gap-2 p-2 pb-0">
+							<div className="flex flex-nowrap items-center justify-end gap-2 overflow-x-auto p-2 pb-0">
 								<ChartGroupingSelector
 									value={groupBy}
 									setValue={setGroupBy}
 									options={DWMC_GROUPING_OPTIONS_LOWERCASE}
-									className="mr-auto"
+									className="mr-auto shrink-0"
 								/>
 								<SelectWithCombobox
 									allValues={tokens}
@@ -375,6 +378,11 @@ export const LSTOverview = ({
 									labelType="smol"
 									variant="filter"
 									portal
+								/>
+								<ChartExportButtons
+									chartInstance={inflowsChartInstance}
+									filename={inflowsExportFilenameBase}
+									title={inflowsExportTitle}
 								/>
 							</div>
 
@@ -389,6 +397,7 @@ export const LSTOverview = ({
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
+										onReady={handleInflowsReady}
 									/>
 								</React.Suspense>
 							) : (
@@ -402,6 +411,7 @@ export const LSTOverview = ({
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
+										onReady={handleInflowsReady}
 									/>
 								</React.Suspense>
 							)}
