@@ -482,6 +482,8 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 	const meta = TOOL_ICONS[execution.name] || { icon: 'sparkles', color: '#919296' }
 	const label = TOOL_LABELS[execution.name] || execution.name
 	const hasDetails = showDetails && (execution.resultPreview?.length || execution.sqlQuery || execution.toolData)
+	const parsedCost = execution.costUsd ? parseFloat(execution.costUsd) : NaN
+	const premiumCostLabel = Number.isFinite(parsedCost) ? ` $${parsedCost.toFixed(3)}` : ''
 
 	return (
 		<div className="flex flex-col">
@@ -494,7 +496,7 @@ function ToolExecutionRow({ execution, showDetails = false }: { execution: ToolE
 				<span className="flex-1 text-xs text-[#555] dark:text-[#ccc]">{label}</span>
 				{execution.isPremium || execution.costUsd ? (
 					<span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-						Premium{execution.costUsd ? ` $${parseFloat(execution.costUsd).toFixed(3)}` : ''}
+						Premium{premiumCostLabel}
 					</span>
 				) : null}
 				{execution.success ? (

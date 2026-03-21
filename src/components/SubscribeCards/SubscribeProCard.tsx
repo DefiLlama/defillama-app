@@ -390,6 +390,8 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 										isAuthenticated={isAuthenticated}
 										isTrialActive={isTrial}
 										billingInterval={props.billingInterval}
+										// Intentionally force the promotional trial copy in the modal; the main
+										// SubscribeProCard path uses useSubscribe() to determine actual eligibility.
 										isTrialAvailable={true}
 									/>
 								</div>
