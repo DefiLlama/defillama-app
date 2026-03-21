@@ -1,6 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
@@ -23,8 +28,6 @@ const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as Re
 const CHART_TYPES = ['Inflows', 'Volume', 'Tokens To', 'Tokens From'] as const
 type ChartType = (typeof CHART_TYPES)[number]
 
-const GROUP_BY_VALUES = ['daily', 'weekly', 'monthly'] as const
-
 export const BridgeInfo = ({
 	displayName,
 	logo,
@@ -35,7 +38,7 @@ export const BridgeInfo = ({
 	config
 }: BridgePageData) => {
 	const [chartType, setChartType] = React.useState<ChartType>('Volume')
-	const [groupBy, setGroupBy] = React.useState<'daily' | 'weekly' | 'monthly'>('daily')
+	const [groupBy, setGroupBy] = React.useState<LowercaseDwmGrouping>('daily')
 	const [currentChain, setChain] = React.useState(defaultChain)
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
@@ -226,7 +229,7 @@ export const BridgeInfo = ({
 							className="mr-auto"
 						/>
 						{chartType === 'Volume' || chartType === 'Inflows' ? (
-							<TagGroup selectedValue={groupBy} setValue={(v) => setGroupBy(v)} values={GROUP_BY_VALUES} />
+							<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWM_GROUPING_OPTIONS_LOWERCASE} />
 						) : null}
 						<ChartExportButtons
 							chartInstance={exportChartInstance}

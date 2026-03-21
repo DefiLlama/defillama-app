@@ -5,6 +5,11 @@ import * as React from 'react'
 import { lazy, useMemo } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -84,8 +89,7 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 
 const pageName = ['Protocols', 'ranked by', 'Token Unlocks']
 
-const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
-type TimePeriod = (typeof TIME_PERIODS)[number]
+type TimePeriod = LowercaseDwmGrouping
 
 const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
@@ -94,10 +98,10 @@ const END_TIMESTAMP = dayjs('2031-01-01').unix()
 const SECONDS_PER_DAY = 86400
 
 function bucketTimestamp(ts: number, timePeriod: TimePeriod): number {
-	if (timePeriod === 'Daily') {
+	if (timePeriod === 'daily') {
 		return Math.floor(ts / SECONDS_PER_DAY) * SECONDS_PER_DAY
 	}
-	if (timePeriod === 'Monthly') {
+	if (timePeriod === 'monthly') {
 		const d = dayjs.unix(ts)
 		return d.startOf('month').unix()
 	}
@@ -122,9 +126,10 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 
 	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
 	const timePeriod: TimePeriod =
-		chartGroupParam && (TIME_PERIODS as readonly string[]).includes(chartGroupParam)
-			? (chartGroupParam as TimePeriod)
-			: 'Weekly'
+		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
+		chartGroupParam && DWM_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === chartGroupParam.toLowerCase())
+			? (chartGroupParam.toLowerCase() as TimePeriod)
+			: 'weekly'
 
 	const chartViewParam = readSingleQueryValue(router.query.chartView)
 	const viewMode: ViewMode =
@@ -229,10 +234,10 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 				<>
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
-						<TagGroup
-							selectedValue={timePeriod}
-							setValue={(value) => updateQueryParam('chartGroup', value, 'Weekly')}
-							values={TIME_PERIODS}
+						<ChartGroupingSelector
+							value={timePeriod}
+							onValueChange={(value) => updateQueryParam('chartGroup', value, 'weekly')}
+							options={DWM_GROUPING_OPTIONS_LOWERCASE}
 						/>
 						<TagGroup
 							selectedValue={viewMode}
@@ -250,7 +255,7 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 							dataset={deferredChartData.dataset}
 							charts={deferredChartData.charts}
 							hideDefaultLegend={viewMode === 'Total View'}
-							groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
+							groupBy={timePeriod}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>

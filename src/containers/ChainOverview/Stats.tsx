@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -16,9 +17,6 @@ import { BAR_CHARTS, type ChainChartLabels, chainCharts } from './constants'
 import { KeyMetrics } from './KeyMetrics'
 import type { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
-
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
 interface IStatsProps extends IChainOverviewData {
 	hideChart?: boolean
 }
@@ -61,8 +59,8 @@ export function Stats(props: IStatsProps) {
 
 		const groupBy =
 			hasAtleasOneBarChart && searchParams.get('groupBy')
-				? INTERVALS_LIST.includes(searchParams.get('groupBy') as any)
-					? (searchParams.get('groupBy') as any)
+				? DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === searchParams.get('groupBy'))
+					? (searchParams.get('groupBy') as LowercaseDwmcGrouping)
 					: 'daily'
 				: 'daily'
 

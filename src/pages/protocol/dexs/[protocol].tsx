@@ -1,6 +1,11 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { formatBarChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -16,7 +21,7 @@ import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -123,10 +128,8 @@ export const getStaticPaths = () => {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
+	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>(props.defaultChartView)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const finalCharts = useMemo(() => {
@@ -181,22 +184,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				</div>
 				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-							{INTERVALS_LIST.map((dataInterval) => (
-								<Tooltip
-									content={capitalizeFirstLetter(dataInterval)}
-									render={<button />}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={groupBy === dataInterval}
-									onClick={() => {
-										startTransition(() => setGroupBy(dataInterval))
-									}}
-									key={`${props.name}-dexs-groupBy-${dataInterval}`}
-								>
-									{dataInterval.slice(0, 1).toUpperCase()}
-								</Tooltip>
-							))}
-						</div>
+						<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
 						<ChartExportButtons
 							chartInstance={chartInstance}
 							filename={`${props.name}-dex-volume`}

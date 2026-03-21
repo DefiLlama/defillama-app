@@ -1,5 +1,10 @@
 import dayjs from 'dayjs'
 import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import {
+	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { TagGroup } from '~/components/TagGroup'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -10,8 +15,7 @@ interface BridgeVolumeChartProps {
 	onReady?: (instance: any | null) => void
 }
 
-const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
-type TimePeriod = (typeof TIME_PERIODS)[number]
+type TimePeriod = LowercaseDwmGrouping
 const VIEW_TYPES = ['Split', 'Combined'] as const
 type ViewType = (typeof VIEW_TYPES)[number]
 const METRIC_TYPES = ['Volume', 'Transactions'] as const
@@ -38,7 +42,7 @@ const COMBINED_CHARTS = [
 ]
 
 export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartProps) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('Weekly')
+	const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
 
@@ -53,7 +57,7 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 			withdrawals: metricType === 'Volume' ? item.withdrawUSD || 0 : item.withdrawTxs || 0
 		}))
 
-		if (timePeriod === 'Daily') {
+		if (timePeriod === 'daily') {
 			return rawData.map((item) => ({
 				date: item.timestamp,
 				...(viewType === 'Split'
@@ -77,7 +81,7 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 
 		for (const item of rawData) {
 			const date = dayjs.unix(item.timestamp)
-			const key = (timePeriod === 'Weekly' ? date.startOf('week') : date.startOf('month')).unix()
+			const key = (timePeriod === 'weekly' ? date.startOf('week') : date.startOf('month')).unix()
 
 			const existing = groupedData.get(key) || { deposits: 0, withdrawals: 0 }
 			groupedData.set(key, {
@@ -120,10 +124,10 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 			<div className="mx-auto flex w-full max-w-2xl flex-col gap-2 overflow-x-auto p-3 sm:flex-row sm:flex-wrap sm:justify-center md:gap-4">
 				<fieldset className="flex flex-1 flex-col gap-1">
 					<legend className="text-xs font-medium text-(--text-secondary)">Time Period:</legend>
-					<TagGroup
-						selectedValue={timePeriod}
-						setValue={(period) => startTransition(() => setTimePeriod(period))}
-						values={TIME_PERIODS}
+					<ChartGroupingSelector
+						value={timePeriod}
+						setValue={setTimePeriod}
+						options={DWM_GROUPING_OPTIONS_LOWERCASE}
 						className="w-full *:flex-1"
 					/>
 				</fieldset>

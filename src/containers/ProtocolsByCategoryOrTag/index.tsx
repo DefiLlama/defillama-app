@@ -1,6 +1,11 @@
 import { type ColumnDef, createColumnHelper } from '@tanstack/react-table'
-import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -21,8 +26,7 @@ import {
 import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-const CHART_INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-type ChartInterval = (typeof CHART_INTERVALS_LIST)[number]
+type ChartInterval = LowercaseDwmcGrouping
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
@@ -328,22 +332,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
 						{hasBarCharts ? (
-							<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-								{CHART_INTERVALS_LIST.map((dataInterval) => (
-									<Tooltip
-										content={`${dataInterval.slice(0, 1).toUpperCase()}${dataInterval.slice(1)}`}
-										render={<button />}
-										className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-										data-active={groupBy === dataInterval}
-										onClick={() => {
-											startTransition(() => setGroupBy(dataInterval))
-										}}
-										key={`${name}-category-groupBy-${dataInterval}`}
-									>
-										{dataInterval.slice(0, 1).toUpperCase()}
-									</Tooltip>
-								))}
-							</div>
+							<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}

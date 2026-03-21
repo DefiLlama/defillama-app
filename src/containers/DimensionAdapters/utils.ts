@@ -246,17 +246,17 @@ export function getChartDataByChainAndInterval({
 	chartType
 }: {
 	chartData: IChainsByAdapterPageData['chartData']
-	chartInterval: 'Daily' | 'Weekly' | 'Monthly' | 'Cumulative'
+	chartInterval: 'daily' | 'weekly' | 'monthly' | 'cumulative'
 	selectedChains: string[]
 	chartType: 'Volume' | 'Dominance'
 }) {
 	const isDominance = chartType === 'Dominance'
-	const isCumulative = chartInterval === 'Cumulative'
+	const isCumulative = chartInterval === 'cumulative'
 	const groupBy = isCumulative
 		? 'cumulative'
-		: chartInterval === 'Weekly'
+		: chartInterval === 'weekly'
 			? 'weekly'
-			: chartInterval === 'Monthly'
+			: chartInterval === 'monthly'
 				? 'monthly'
 				: 'daily'
 

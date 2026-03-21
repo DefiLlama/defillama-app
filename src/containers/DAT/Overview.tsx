@@ -1,12 +1,16 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
@@ -14,8 +18,7 @@ import type { IDATOverviewPageProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
-type GroupByType = (typeof GROUP_BY)[number]
+type GroupByType = LowercaseDwmGrouping
 
 /** Narrow an unknown echarts tooltip param to a record, or return undefined. */
 function asRecord(value: unknown): Record<string, unknown> | undefined {
@@ -25,11 +28,9 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
 export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
-	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
+	const [groupBy, setGroupBy] = useState<GroupByType>('weekly')
 
 	const chartOptions = useMemo(() => {
-		const groupByLower: 'daily' | 'weekly' | 'monthly' =
-			groupBy === 'Daily' ? 'daily' : groupBy === 'Monthly' ? 'monthly' : 'weekly'
 		return {
 			tooltip: {
 				formatter: (params: unknown) => {
@@ -39,7 +40,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 					const data = asRecord(firstParam.data) ?? {}
 					const valueArray = Array.isArray(firstParam.value) ? firstParam.value : undefined
 					const firstTimestamp = data.timestamp ?? valueArray?.[0] ?? firstParam.axisValue
-					const chartdate = formatTooltipChartDate(Number(firstTimestamp), groupByLower)
+					const chartdate = formatTooltipChartDate(Number(firstTimestamp), groupBy)
 					let vals = ''
 					let total = 0
 					for (const param of paramsArray) {
@@ -70,13 +71,13 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 		}
 		const rowMap = new Map<number, Record<string, number | null>>()
 
-		if (['Weekly', 'Monthly'].includes(groupBy)) {
+		if (['weekly', 'monthly'].includes(groupBy)) {
 			for (const asset of assetKeys) {
 				const sumByDate: Record<number, { purchasePrice: number; assetQuantity: number }> = {}
 				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
 					if (date == null) continue
 					const dateKey =
-						groupBy === 'Monthly' ? firstDayOfMonth(date / 1000) * 1000 : lastDayOfWeek(date / 1000) * 1000
+						groupBy === 'monthly' ? firstDayOfMonth(date / 1000) * 1000 : lastDayOfWeek(date / 1000) * 1000
 					sumByDate[dateKey] = sumByDate[dateKey] ?? { purchasePrice: 0, assetQuantity: 0 }
 					sumByDate[dateKey].purchasePrice += purchasePrice ?? 0
 					sumByDate[dateKey].assetQuantity += assetQuantity ?? 0
@@ -124,10 +125,10 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
-					<TagGroup
-						selectedValue={groupBy}
-						setValue={(period) => startTransition(() => setGroupBy(period))}
-						values={GROUP_BY}
+					<ChartGroupingSelector
+						value={groupBy}
+						setValue={setGroupBy}
+						options={DWM_GROUPING_OPTIONS_LOWERCASE}
 						className="ml-auto"
 					/>
 					<ChartExportButtons

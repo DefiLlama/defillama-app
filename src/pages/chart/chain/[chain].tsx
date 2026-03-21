@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { LocalLoader } from '~/components/Loaders'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -13,9 +14,6 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
-
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
-
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
@@ -95,8 +93,8 @@ export default function ChainChartPage(props) {
 
 		const groupBy =
 			hasAtleasOneBarChart && queryParams?.groupBy
-				? groupByOptions.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
+				? DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === queryParams.groupBy)
+					? (queryParams.groupBy as LowercaseDwmcGrouping)
 					: 'daily'
 				: 'daily'
 

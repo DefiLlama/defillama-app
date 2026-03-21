@@ -1,6 +1,11 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
@@ -8,7 +13,6 @@ import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
@@ -18,15 +22,7 @@ import type { ILSTTokenRow, LSTOverviewProps } from './types'
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-type GroupByType = (typeof GROUP_BY)[number]
-
-const GROUP_BY_TO_TOOLTIP: Record<GroupByType, 'daily' | 'weekly' | 'monthly' | 'cumulative'> = {
-	Daily: 'daily',
-	Weekly: 'weekly',
-	Monthly: 'monthly',
-	Cumulative: 'cumulative'
-}
+type GroupByType = LowercaseDwmcGrouping
 
 const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
@@ -205,14 +201,14 @@ export const LSTOverview = ({
 	barChartStacks
 }: LSTOverviewProps) => {
 	const [tab, setTab] = React.useState('breakdown')
-	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
+	const [groupBy, setGroupBy] = React.useState<GroupByType>('weekly')
 	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
 	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>(tokens ?? [])
 	const selectedBreakdownTokensSet = React.useMemo(() => new Set(selectedBreakdownTokens), [selectedBreakdownTokens])
 	const selectedInflowTokensSet = React.useMemo(() => new Set(selectedInflowTokens), [selectedInflowTokens])
 
 	const inflowsTooltipFormatter = React.useMemo(() => {
-		return createInflowsTooltipFormatter({ groupBy: GROUP_BY_TO_TOOLTIP[groupBy], valueSymbol: 'ETH' })
+		return createInflowsTooltipFormatter({ groupBy, valueSymbol: 'ETH' })
 	}, [groupBy])
 
 	const { chartInstance: breakdownChartInstance, handleChartReady: handleBreakdownReady } = useGetChartInstance()
@@ -223,9 +219,9 @@ export const LSTOverview = ({
 	const inflowsData = React.useMemo(() => {
 		const store: Record<string | number, Record<string, number>> = {}
 
-		const isWeekly = groupBy === 'Weekly'
-		const isMonthly = groupBy === 'Monthly'
-		const isCumulative = groupBy === 'Cumulative'
+		const isWeekly = groupBy === 'weekly'
+		const isMonthly = groupBy === 'monthly'
+		const isCumulative = groupBy === 'cumulative'
 		const totalByToken: Record<string, number> = {}
 
 		for (const [date, dateEntry] of Object.entries(inflowsChartData)) {
@@ -365,24 +361,24 @@ export const LSTOverview = ({
 					) : (
 						<div className="flex flex-col">
 							<div className="flex items-center justify-end gap-2 p-2 pb-0">
-								<TagGroup
-									selectedValue={groupBy}
-									setValue={(period) => setGroupBy(period)}
-									values={GROUP_BY}
+								<ChartGroupingSelector
+									value={groupBy}
+									setValue={setGroupBy}
+									options={DWMC_GROUPING_OPTIONS_LOWERCASE}
 									className="mr-auto"
 								/>
 								<SelectWithCombobox
 									allValues={tokens}
 									selectedValues={selectedInflowTokens}
 									setSelectedValues={setSelectedInflowTokens}
-									label={groupBy === 'Cumulative' ? 'LST' : 'Protocol'}
+									label={groupBy === 'cumulative' ? 'LST' : 'Protocol'}
 									labelType="smol"
 									variant="filter"
 									portal
 								/>
 							</div>
 
-							{groupBy === 'Cumulative' ? (
+							{groupBy === 'cumulative' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
 										dataset={deferredInflowsData.dataset}
