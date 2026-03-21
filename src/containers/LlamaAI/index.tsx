@@ -96,6 +96,7 @@ interface PersistedMessage {
 	csvExports?: CsvExport[]
 	images?: Array<{ url: string; mimeType: string; filename?: string }>
 	metadata?: PersistedMessageMetadata
+	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
 	messageId?: string
 	timestamp?: string | number
 	savedAlertIds?: string[]
@@ -208,6 +209,7 @@ function mapPersistedMessage(message: PersistedMessage): Message {
 		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
 		thinking: message.metadata?.thinking,
 		quotedText: message.metadata?.quotedText,
+		messageMetadata: message.messageMetadata,
 		id: message.messageId,
 		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
 	}
@@ -467,16 +469,21 @@ function createAgenticCallbacks({
 			buffer.citations = [...new Set([...buffer.citations, ...citations])]
 			dispatch({ type: 'MERGE_CITATIONS', value: citations })
 		},
-		onProgress: (toolName) => {
+		onProgress: (toolName, isPremium) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			const label = TOOL_LABELS[toolName] || toolName
-			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label }
+			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label, ...(isPremium && { isPremium }) }
 			dispatch({ type: 'APPEND_TOOL_CALL', value: toolCall })
 		},
 		onToolExecution: (data) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			buffer.toolExecutions.push(data)
 			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
+		},
+		onMessageMetadata: (data) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.messageMetadata = data
+			dispatch({ type: 'SET_MESSAGE_METADATA', value: data })
 		},
 		onThinking: (content) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return

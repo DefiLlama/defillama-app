@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useReducer, useRef } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
+import type { MessageMetadata } from '~/containers/LlamaAI/types'
 import { LoadingSpinner } from '~/components/Loaders'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
@@ -21,6 +22,7 @@ interface ResponseControlsProps {
 	initialRating?: 'good' | 'bad' | null
 	sessionId?: string | null
 	readOnly?: boolean
+	messageMetadata?: MessageMetadata
 }
 
 type Rating = 'good' | 'bad' | null
@@ -143,7 +145,8 @@ export function ResponseControls({
 	content,
 	initialRating,
 	sessionId,
-	readOnly = false
+	readOnly = false,
+	messageMetadata
 }: ResponseControlsProps) {
 	const [state, dispatch] = useReducer(responseControlsReducer, initialRating || null, createInitialState)
 	const { copied, showFeedback, showShareModal, selectedRating, submittedRating } = state
@@ -266,6 +269,41 @@ export function ResponseControls({
 							<Icon name="clipboard" height={14} width={14} />
 						)}
 					</Tooltip>
+				) : null}
+				{messageMetadata && (messageMetadata.outputTokens != null || messageMetadata.x402CostUsd) ? (
+					<Ariakit.PopoverProvider placement="top">
+						<Ariakit.PopoverDisclosure
+							className="rounded p-1.5 text-[#666] hover:bg-[#f7f7f7] hover:text-black dark:text-[#919296] dark:hover:bg-[#222324] dark:hover:text-white"
+						>
+							<Icon name="circle-help" height={14} width={14} />
+						</Ariakit.PopoverDisclosure>
+						<Ariakit.Popover
+							className="z-50 rounded-lg border border-[#e6e6e6] bg-(--cards-bg) p-3 shadow-lg dark:border-[#333]"
+							portal
+							gutter={8}
+						>
+							<div className="flex flex-col gap-1.5 text-xs text-[#555] dark:text-[#ccc]">
+								{messageMetadata.outputTokens != null ? (
+									<div className="flex justify-between gap-4">
+										<span className="text-[#999] dark:text-[#666]">Output</span>
+										<span className="font-mono tabular-nums">{messageMetadata.outputTokens.toLocaleString()} tokens</span>
+									</div>
+								) : null}
+								{messageMetadata.executionTimeMs ? (
+									<div className="flex justify-between gap-4">
+										<span className="text-[#999] dark:text-[#666]">Time</span>
+										<span className="font-mono tabular-nums">{(messageMetadata.executionTimeMs / 1000).toFixed(1)}s</span>
+									</div>
+								) : null}
+								{messageMetadata.x402CostUsd ? (
+									<div className="flex justify-between gap-4">
+										<span className="text-[#999] dark:text-[#666]">Premium data</span>
+										<span className="font-mono tabular-nums text-amber-600 dark:text-amber-400">${parseFloat(messageMetadata.x402CostUsd).toFixed(3)}</span>
+									</div>
+								) : null}
+							</div>
+						</Ariakit.Popover>
+					</Ariakit.PopoverProvider>
 				) : null}
 				{content && sessionId && !readOnly ? (
 					<PDFExportButton
