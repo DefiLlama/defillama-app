@@ -97,14 +97,7 @@ export const AdapterByChainChart = ({
 	const isBreakdownMode = chartViewMode === 'Breakdown' && breakdownChartData != null
 	const finalCharts = React.useMemo(() => {
 		const isDaily = chartInterval === 'daily'
-		const groupBy =
-			chartInterval === 'weekly'
-				? 'weekly'
-				: chartInterval === 'monthly'
-					? 'monthly'
-					: chartInterval === 'cumulative'
-						? 'cumulative'
-						: 'daily'
+
 		const isCumulative = chartInterval === 'cumulative'
 		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
@@ -132,13 +125,13 @@ export const AdapterByChainChart = ({
 			const data = isLineChart
 				? formatLineChart({
 						data: rawData,
-						groupBy,
+						groupBy: chartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 				: formatBarChart({
 						data: rawData,
-						groupBy,
+						groupBy: chartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
@@ -284,7 +277,7 @@ export const AdapterByChainChart = ({
 						dataset={deferredFinalCharts.dataset}
 						charts={deferredFinalCharts.charts}
 						hideDefaultLegend={deferredFinalCharts.charts.length === 1}
-						groupBy={chartInterval === 'weekly' ? 'weekly' : chartInterval === 'monthly' ? 'monthly' : 'daily'}
+						groupBy={chartInterval}
 						onReady={handleChartReady}
 					/>
 				</React.Suspense>
@@ -466,7 +459,7 @@ export const ChainsByAdapterChart = ({
 					{...(chartType === 'Dominance'
 						? {}
 						: {
-								groupBy: chartInterval === 'weekly' ? 'weekly' : chartInterval === 'monthly' ? 'monthly' : 'daily'
+								groupBy: chartInterval
 							})}
 					onReady={handleChartReady}
 				/>

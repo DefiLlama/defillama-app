@@ -25,13 +25,6 @@ const ASSETS = [
 
 type GroupBy = LowercaseDwmcGrouping
 
-const GROUP_BY_TO_CHART_GROUP: Record<GroupBy, 'daily' | 'weekly' | 'monthly'> = {
-	daily: 'daily',
-	weekly: 'weekly',
-	monthly: 'monthly',
-	cumulative: 'daily'
-}
-
 const ASSET_VALUES = ['Bitcoin', 'Ethereum', 'Solana'] as const
 const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 
@@ -190,7 +183,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 						<MultiSeriesChart2
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
-							groupBy={GROUP_BY_TO_CHART_GROUP[groupBy]}
+							groupBy={groupBy}
 							onReady={handleChartReady}
 						/>
 					</React.Suspense>

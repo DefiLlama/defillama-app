@@ -252,13 +252,6 @@ export function getChartDataByChainAndInterval({
 }) {
 	const isDominance = chartType === 'Dominance'
 	const isCumulative = chartInterval === 'cumulative'
-	const groupBy = isCumulative
-		? 'cumulative'
-		: chartInterval === 'weekly'
-			? 'weekly'
-			: chartInterval === 'monthly'
-				? 'monthly'
-				: 'daily'
 
 	const chainTotals = new Map<string, number>()
 	const chainSeries = new Map<string, Array<[number, number]>>()
@@ -304,13 +297,18 @@ export function getChartDataByChainAndInterval({
 	for (const chain of topChains) {
 		groupedSeries.set(
 			chain,
-			formatBarChart({ data: chainSeries.get(chain)!, groupBy, dateInMs: true, denominationPriceHistory: null })
+			formatBarChart({
+				data: chainSeries.get(chain)!,
+				groupBy: chartInterval,
+				dateInMs: true,
+				denominationPriceHistory: null
+			})
 		)
 	}
 	if (othersSeries) {
 		groupedSeries.set(
 			'Others',
-			formatBarChart({ data: othersSeries, groupBy, dateInMs: true, denominationPriceHistory: null })
+			formatBarChart({ data: othersSeries, groupBy: chartInterval, dateInMs: true, denominationPriceHistory: null })
 		)
 	}
 

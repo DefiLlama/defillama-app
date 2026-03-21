@@ -198,7 +198,7 @@ export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData
 	}, [charts, chartSeries, groupBy, hasBarCharts])
 	const deferredGroupedCharts = useDeferredValue(groupedCharts)
 
-	const chartGroupBy = groupBy === 'cumulative' ? 'daily' : groupBy
+	const chartGroupBy = groupBy
 
 	return (
 		<>

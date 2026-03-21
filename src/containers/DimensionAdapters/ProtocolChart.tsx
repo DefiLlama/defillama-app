@@ -389,7 +389,7 @@ const ChartByType = ({
 				<MultiSeriesChart2
 					dataset={deferredMainChartData.dataset}
 					charts={deferredMainChartData.charts}
-					groupBy={chartInterval === 'cumulative' ? 'daily' : chartInterval}
+					groupBy={chartInterval}
 					valueSymbol="$"
 					onReady={handleChartReady}
 				/>
