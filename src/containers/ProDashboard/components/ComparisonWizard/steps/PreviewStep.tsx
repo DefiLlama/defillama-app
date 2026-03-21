@@ -11,7 +11,8 @@ const GROUPING_OPTIONS: SelectOption[] = [
 	{ value: 'day', label: 'Day' },
 	{ value: 'week', label: 'Week' },
 	{ value: 'month', label: 'Month' },
-	{ value: 'quarter', label: 'Quarter' }
+	{ value: 'quarter', label: 'Quarter' },
+	{ value: 'year', label: 'Year' }
 ]
 
 const DISPLAY_OPTIONS: SelectOption[] = [

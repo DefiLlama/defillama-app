@@ -1,4 +1,5 @@
-import { firstDayOfMonth, lastDayOfWeek, toNiceCsvDate } from '~/utils'
+import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
+import { firstDayOfMonth, firstDayOfQuarter, firstDayOfYear, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 
 /** Generate a random 6-digit hex colour string (e.g. `"#a3f04c"`). */
 export function stringToColour() {
@@ -17,72 +18,97 @@ export function stringToColour() {
  * @param denominationPriceHistory - Optional price map to convert values into an alternative denomination.
  * @returns Chronologically sorted `[timestampMs, value | null]` tuples.
  */
+type FormatterMode = 'sum' | 'last'
+
+type FormatterInput = {
+	data: Array<[string | number, number]>
+	groupBy: ChartTimeGroupingWithCumulative
+	dateInMs?: boolean
+	denominationPriceHistory: Record<string, number> | null
+}
+
+export const getBucketTimestampSec = (timestampSec: number, groupBy: ChartTimeGrouping): number => {
+	switch (groupBy) {
+		case 'daily':
+			return Math.floor(timestampSec / 86400) * 86400
+		case 'weekly':
+			return lastDayOfWeek(timestampSec)
+		case 'monthly':
+			return firstDayOfMonth(timestampSec)
+		case 'quarterly':
+			return firstDayOfQuarter(timestampSec)
+		case 'yearly':
+			return firstDayOfYear(timestampSec)
+	}
+}
+
+export const getBucketTimestampMs = (timestampMs: number, groupBy: ChartTimeGrouping): number => {
+	return getBucketTimestampSec(timestampMs / 1e3, groupBy) * 1e3
+}
+
+const formatDailyChart = ({
+	data,
+	dateInMs = false,
+	denominationPriceHistory
+}: Pick<FormatterInput, 'data' | 'dateInMs' | 'denominationPriceHistory'>): Array<[number, number | null]> => {
+	return data.map(([date, value]) => {
+		const timestampSec = dateInMs ? +date / 1e3 : +date
+		const timestampMs = getBucketTimestampSec(timestampSec, 'daily') * 1e3
+		const price = denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
+		return [timestampMs, price ? value / price : denominationPriceHistory ? null : value]
+	})
+}
+
+const formatGroupedChart = ({
+	data,
+	groupBy,
+	dateInMs = false,
+	denominationPriceHistory,
+	mode
+}: FormatterInput & { mode: FormatterMode }): Array<[number, number | null]> => {
+	if (groupBy === 'daily') {
+		return formatDailyChart({ data, dateInMs, denominationPriceHistory })
+	}
+
+	if (groupBy === 'cumulative' && mode === 'last') {
+		return formatDailyChart({ data, dateInMs, denominationPriceHistory })
+	}
+
+	const valuesByTimestamp = new Map<number, number | null>()
+	let cumulativeTotal = 0
+
+	for (const [date, value] of data) {
+		const timestampSec = dateInMs ? +date / 1e3 : +date
+		const timestampMs = dateInMs ? +date : +date * 1e3
+		const bucketTimestampMs =
+			groupBy === 'cumulative' ? timestampMs : getBucketTimestampSec(timestampSec, groupBy) * 1e3
+		const price = denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
+
+		if (mode === 'sum') {
+			if (denominationPriceHistory && !price) continue
+			const nextValue = denominationPriceHistory ? value / price! : value
+			const currentValue = valuesByTimestamp.get(bucketTimestampMs) ?? 0
+			valuesByTimestamp.set(
+				bucketTimestampMs,
+				groupBy === 'cumulative' ? currentValue + nextValue + cumulativeTotal : currentValue + nextValue
+			)
+			if (groupBy === 'cumulative') cumulativeTotal += nextValue
+			continue
+		}
+
+		valuesByTimestamp.set(bucketTimestampMs, denominationPriceHistory ? (price ? value / price : null) : value)
+	}
+
+	return Array.from(valuesByTimestamp.entries()).sort((a, b) => a[0] - b[0])
+}
+
 export const formatBarChart = ({
 	data,
 	groupBy,
 	dateInMs = false,
 	denominationPriceHistory
-}: {
-	data: Array<[string | number, number]>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
-	dateInMs?: boolean
-	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number | null]> => {
-	const getDenominationPrice = (timestampSec: number, timestampMs: number) =>
-		denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
-
-	if (['weekly', 'monthly', 'cumulative'].includes(groupBy)) {
-		const store: Record<string, number> = {}
-		let total = 0
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
-		const isCumulative = groupBy === 'cumulative'
-		for (const [date, value] of data) {
-			const timestampSec = dateInMs ? +date / 1e3 : +date
-			const timestampMs = dateInMs ? +date : +date * 1e3
-			// `cumulative` keeps the original day on the x-axis and only changes the y-values
-			// into a running total. This lets callers choose whether cumulative charts should
-			// still show daily-style dates in tooltips/axes or opt into a cumulative-specific label.
-			const dateKey = isWeekly
-				? lastDayOfWeek(timestampSec)
-				: isMonthly
-					? firstDayOfMonth(timestampSec)
-					: dateInMs
-						? timestampSec
-						: +date
-			// sum up values as it is bar chart
-			if (denominationPriceHistory) {
-				const price = getDenominationPrice(timestampSec, timestampMs)
-				if (!price) continue
-				const converted = value / price
-				store[dateKey] = (store[dateKey] ?? 0) + converted + total
-				if (isCumulative) total += converted
-			} else {
-				store[dateKey] = (store[dateKey] ?? 0) + value + total
-				if (isCumulative) {
-					total += value
-				}
-			}
-		}
-		const finalChart: Array<[number, number]> = []
-		for (const date in store) {
-			finalChart.push([+date * 1e3, store[date]])
-		}
-		// `for...in` over object keys is not guaranteed to be chronological.
-		// Many ECharts features (eg. `dataZoom`) and "latest" lookups assume sorted x-values.
-		return finalChart.sort((a, b) => a[0] - b[0])
-	}
-	if (denominationPriceHistory) {
-		return data.map(([date, value]) => {
-			const timestampSec = dateInMs ? +date / 1e3 : +date
-			const timestampMs = dateInMs ? +date : +date * 1e3
-			const price = getDenominationPrice(timestampSec, timestampMs)
-			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
-		})
-	} else {
-		return data.map(([date, value]) => [dateInMs ? +date : +date * 1e3, value])
-	}
-}
+}: FormatterInput): Array<[number, number | null]> =>
+	formatGroupedChart({ data, groupBy, dateInMs, denominationPriceHistory, mode: 'sum' })
 
 /**
  * Transform raw time-series tuples into `[timestampMs, value]` pairs for ECharts line series.
@@ -103,55 +129,8 @@ export const formatLineChart = ({
 	groupBy,
 	dateInMs = false,
 	denominationPriceHistory
-}: {
-	data: Array<[string | number, number]>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
-	dateInMs?: boolean
-	denominationPriceHistory: Record<string, number> | null
-}): Array<[number, number | null]> => {
-	const getDenominationPrice = (timestampSec: number, timestampMs: number) =>
-		denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
-
-	if (['weekly', 'monthly'].includes(groupBy)) {
-		const store: Record<string, number | null> = {}
-		const isWeekly = groupBy === 'weekly'
-		const isMonthly = groupBy === 'monthly'
-		for (const [date, value] of data) {
-			const timestampSec = dateInMs ? +date / 1e3 : +date
-			const timestampMs = dateInMs ? +date : +date * 1e3
-			const dateKey = isWeekly
-				? lastDayOfWeek(timestampSec)
-				: isMonthly
-					? firstDayOfMonth(timestampSec)
-					: dateInMs
-						? timestampSec
-						: +date
-			// do not sum up values, just use the last value for each date
-			const denomPrice = denominationPriceHistory ? getDenominationPrice(timestampSec, timestampMs) : null
-			const finalValue = denominationPriceHistory ? (denomPrice ? value / denomPrice : null) : value
-			store[dateKey] = finalValue
-		}
-		const finalChart: Array<[number, number | null]> = []
-		for (const date in store) {
-			finalChart.push([+date * 1e3, store[date]])
-		}
-		// `for...in` over object keys is not guaranteed to be chronological.
-		return finalChart.sort((a, b) => a[0] - b[0])
-	}
-	// `cumulative` is intentionally not handled here: line-series cumulative views in this
-	// codebase either precompute running totals before calling this helper or reuse
-	// `formatBarChart(..., 'cumulative')` and render the result as a line.
-	if (denominationPriceHistory) {
-		return data.map(([date, value]) => {
-			const timestampSec = dateInMs ? +date / 1e3 : +date
-			const timestampMs = dateInMs ? +date : +date * 1e3
-			const price = getDenominationPrice(timestampSec, timestampMs)
-			return [dateInMs ? +date : +date * 1e3, price ? value / price : null]
-		})
-	} else {
-		return data.map(([date, value]) => [dateInMs ? +date : +date * 1e3, value])
-	}
-}
+}: FormatterInput): Array<[number, number | null]> =>
+	formatGroupedChart({ data, groupBy, dateInMs, denominationPriceHistory, mode: 'last' })
 
 /**
  * Merge multiple named chart series into a single CSV-ready structure.

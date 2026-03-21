@@ -200,6 +200,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 						<MultiSeriesChart2
 							dataset={deferredFinalCharts.dataset}
 							charts={deferredFinalCharts.charts}
+							groupBy={groupBy}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>

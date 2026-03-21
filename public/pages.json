@@ -74,13 +74,6 @@
       "oldName": "Forks"
     },
     {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
-    },
-    {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Total Value Locked",
@@ -89,6 +82,13 @@
       "tab": "Chains",
       "oldCategory": "Market Overview",
       "oldName": "Bridged TVL"
+    },
+    {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
     },
     {
       "name": "Total Borrowed by Protocol",

@@ -13,6 +13,8 @@ import {
 	useProDashboardTime
 } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
+import type { DashboardGrouping } from '../types'
+import { getGroupedTimestampSec } from '../utils'
 import { ConfirmationModal } from './ConfirmationModal'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -99,7 +101,7 @@ interface ChartBuilderCardProps {
 			seriesColors?: Record<string, string>
 		}
 		name?: string
-		grouping?: 'day' | 'week' | 'month' | 'quarter'
+		grouping?: DashboardGrouping
 	}
 }
 
@@ -128,7 +130,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		hasCustomSeriesColors = true
 		break
 	}
-	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+	const groupingOptions: DashboardGrouping[] = ['day', 'week', 'month', 'quarter', 'year']
 	const chainFilterMode = resolveFilterMode(config.chainFilterMode, config.filterMode)
 	const categoryFilterMode = resolveFilterMode(config.categoryFilterMode, config.filterMode)
 	const chainCategoryFilterMode = resolveFilterMode(config.chainCategoryFilterMode, config.filterMode)
@@ -260,28 +262,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 				const aggregatedData: Map<number, { value: number; lastTimestamp: number }> = new Map()
 
 				for (const [timestamp, value] of s.data as [number, number][]) {
-					const date = new Date(timestamp * 1000)
-					let groupKey: number
-
-					switch (builder.grouping) {
-						case 'week':
-							const weekDate = new Date(date)
-							const day = weekDate.getDay()
-							const diff = weekDate.getDate() - day + (day === 0 ? -6 : 1)
-							weekDate.setDate(diff)
-							weekDate.setHours(0, 0, 0, 0)
-							groupKey = Math.floor(weekDate.getTime() / 1000)
-							break
-						case 'month':
-							groupKey = Math.floor(new Date(date.getFullYear(), date.getMonth(), 1).getTime() / 1000)
-							break
-						case 'quarter':
-							const quarter = Math.floor(date.getMonth() / 3)
-							groupKey = Math.floor(new Date(date.getFullYear(), quarter * 3, 1).getTime() / 1000)
-							break
-						default:
-							groupKey = timestamp
-					}
+					const groupKey = getGroupedTimestampSec(timestamp, builder.grouping)
 
 					const existingEntry = aggregatedData.get(groupKey)
 					if (isTvlChart) {
@@ -866,7 +847,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 										? 'monthly'
 										: builder.grouping === 'quarter'
 											? 'quarterly'
-											: 'daily'
+											: builder.grouping === 'year'
+												? 'yearly'
+												: 'daily'
 							}
 							hideDataZoom={true}
 							onReady={handleChartReady}

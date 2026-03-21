@@ -1,3 +1,4 @@
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { getNDistinctColors, slug } from '~/utils'
@@ -246,7 +247,7 @@ export function getChartDataByChainAndInterval({
 	chartType
 }: {
 	chartData: IChainsByAdapterPageData['chartData']
-	chartInterval: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	chartInterval: ChartTimeGroupingWithCumulative
 	selectedChains: string[]
 	chartType: 'Volume' | 'Dominance'
 }) {

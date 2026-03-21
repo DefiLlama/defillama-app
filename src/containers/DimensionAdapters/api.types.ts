@@ -1,3 +1,5 @@
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
+
 // Full type for single protocol metrics response
 export interface IAdapterProtocolMetrics {
 	chain: string | null
@@ -37,7 +39,7 @@ export interface IAdapterProtocolMetrics {
 	governanceID: Array<string> | null
 	treasury: string | null
 	cmcId: string | null
-	defaultChartView?: 'daily' | 'weekly' | 'monthly' | null
+	defaultChartView?: ChartTimeGrouping | null
 	hasLabelBreakdown?: boolean
 	twitter?: string
 	stablecoins?: Array<string>
@@ -55,7 +57,7 @@ export interface IAdapterProtocolMetrics {
 		methodologyURL: string
 		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
-		defaultChartView?: 'daily' | 'weekly' | 'monthly' | null
+		defaultChartView?: ChartTimeGrouping | null
 	}>
 }
 

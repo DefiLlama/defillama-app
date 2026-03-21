@@ -1,121 +1,75 @@
 import { createColumnHelper } from '@tanstack/react-table'
-import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import {
 	ChartGroupingSelector,
-	DWM_GROUPING_OPTIONS_LOWERCASE,
-	type LowercaseDwmGrouping
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
-import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { buildTimeSeriesChart } from '~/components/ECharts/timeSeriesChartBuilder'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { IDATOverviewPageProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-/** Narrow an unknown echarts tooltip param to a record, or return undefined. */
-function asRecord(value: unknown): Record<string, unknown> | undefined {
-	return typeof value === 'object' && value != null ? (value as Record<string, unknown>) : undefined
-}
-
 const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
-export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
-	const [groupBy, setGroupBy] = useState<LowercaseDwmGrouping>('weekly')
+const normalizeChartGroup = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 
-	const chartOptions = useMemo(() => {
-		return {
-			tooltip: {
-				formatter: (params: unknown) => {
-					const paramsArray = Array.isArray(params) ? params : [params]
-					const firstParam = asRecord(paramsArray[0])
-					if (!firstParam) return ''
-					const data = asRecord(firstParam.data) ?? {}
-					const valueArray = Array.isArray(firstParam.value) ? firstParam.value : undefined
-					const firstTimestamp = data.timestamp ?? valueArray?.[0] ?? firstParam.axisValue
-					const chartdate = formatTooltipChartDate(Number(firstTimestamp), groupBy)
-					let vals = ''
-					let total = 0
-					for (const param of paramsArray) {
-						const p = asRecord(param)
-						if (!p) continue
-						const pData = asRecord(p.data) ?? {}
-						const pValueArray = Array.isArray(p.value) ? p.value : undefined
-						const seriesValue = (typeof p.seriesName === 'string' ? pData[p.seriesName] : undefined) ?? pValueArray?.[1]
-						if (!seriesValue) continue
-						const numericValue = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue)
-						if (!numericValue) continue
-						total += numericValue
-						const marker = typeof p.marker === 'string' ? p.marker : ''
-						const seriesName = typeof p.seriesName === 'string' ? p.seriesName : ''
-						vals += `<li style="list-style:none;">${marker} ${seriesName}: ${formattedNum(numericValue, true)}</li>`
-					}
-					vals += `<li style="list-style:none;">Total: ${formattedNum(total, true)}</li>`
-					return chartdate + vals
-				}
-			}
-		}
-	}, [groupBy])
+export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
+	const router = useRouter()
+	const groupBy = normalizeChartGroup(readSingleQueryValue(router.query.groupBy)) ?? 'weekly'
 
 	const { chartData } = useMemo(() => {
 		const assetKeys: string[] = []
 		for (const asset in dailyFlowsByAsset) {
 			assetKeys.push(asset)
 		}
-		const rowMap = new Map<number, Record<string, number | null>>()
 
-		if (['weekly', 'monthly'].includes(groupBy)) {
-			for (const asset of assetKeys) {
-				const sumByDate: Record<number, { purchasePrice: number; assetQuantity: number }> = {}
-				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
-					if (date == null) continue
-					const dateKey =
-						groupBy === 'monthly' ? firstDayOfMonth(date / 1000) * 1000 : lastDayOfWeek(date / 1000) * 1000
-					sumByDate[dateKey] = sumByDate[dateKey] ?? { purchasePrice: 0, assetQuantity: 0 }
-					sumByDate[dateKey].purchasePrice += purchasePrice ?? 0
-					sumByDate[dateKey].assetQuantity += assetQuantity ?? 0
-				}
-				for (const dateStr in sumByDate) {
-					const dateNum = +dateStr
-					const row = rowMap.get(dateNum) ?? { timestamp: dateNum }
-					row[dailyFlowsByAsset[asset].name] = sumByDate[dateNum].purchasePrice
-					rowMap.set(dateNum, row)
-				}
-			}
-		} else {
-			for (const asset of assetKeys) {
-				for (const [date, purchasePrice] of dailyFlowsByAsset[asset].data) {
-					if (date == null) continue
-					const row = rowMap.get(date) ?? { timestamp: date }
-					row[dailyFlowsByAsset[asset].name] = purchasePrice
-					rowMap.set(date, row)
-				}
+		if (groupBy === 'cumulative') {
+			return {
+				chartData: buildTimeSeriesChart({
+					kind: 'cumulativeLines',
+					series: assetKeys.map((asset) => {
+						const item = dailyFlowsByAsset[asset]
+						return {
+							name: item.name,
+							color: item.color,
+							points: item.points
+						}
+					})
+				})
 			}
 		}
 
-		const source = ensureChronologicalRows(Array.from(rowMap.values()))
-		const seriesNames = assetKeys.map((a) => dailyFlowsByAsset[a].name)
-		const dimensions = ['timestamp', ...seriesNames]
-		const charts = assetKeys.map((asset) => ({
-			type: 'bar' as const,
-			name: dailyFlowsByAsset[asset].name,
-			encode: { x: 'timestamp', y: dailyFlowsByAsset[asset].name },
-			stack: dailyFlowsByAsset[asset].stack,
-			color: dailyFlowsByAsset[asset].color
-		}))
-
 		return {
-			chartData: { dataset: { source, dimensions }, charts }
+			chartData: buildTimeSeriesChart({
+				kind: 'periodBars',
+				groupBy,
+				series: assetKeys.map((asset) => dailyFlowsByAsset[asset])
+			})
 		}
 	}, [dailyFlowsByAsset, groupBy])
 	const deferredChartData = useDeferredValue(chartData)
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+
+	const onChangeGroupBy = (nextGroupBy: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextGroupBy === 'weekly' ? undefined : nextGroupBy })
+	}
 
 	return (
 		<>
@@ -125,8 +79,8 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
 					<ChartGroupingSelector
 						value={groupBy}
-						setValue={setGroupBy}
-						options={DWM_GROUPING_OPTIONS_LOWERCASE}
+						onValueChange={onChangeGroupBy}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
 						className="ml-auto"
 					/>
 					<ChartExportButtons
@@ -139,8 +93,9 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 					<MultiSeriesChart2
 						dataset={deferredChartData.dataset}
 						charts={deferredChartData.charts}
+						groupBy={groupBy}
 						valueSymbol="$"
-						chartOptions={chartOptions}
+						showTotalInTooltip
 						onReady={handleChartReady}
 					/>
 				</Suspense>

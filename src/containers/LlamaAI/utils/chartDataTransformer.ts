@@ -3,13 +3,14 @@ import type { AdaptedLlamaAICartesianChart, LlamaAICartesianDatasetRow } from '~
 import type { AdaptedChartData } from '~/containers/LlamaAI/utils/chartAdapter'
 import type { ChartCapabilities, ChartViewState } from '~/containers/LlamaAI/utils/chartCapabilities'
 
-type GroupingInterval = 'day' | 'week' | 'month' | 'quarter'
+type GroupingInterval = 'day' | 'week' | 'month' | 'quarter' | 'year'
 
 const GROUP_BY_LABEL: Record<GroupingInterval, AdaptedLlamaAICartesianChart['props']['groupBy']> = {
 	day: 'daily',
 	week: 'weekly',
 	month: 'monthly',
-	quarter: 'quarterly'
+	quarter: 'quarterly',
+	year: 'yearly'
 }
 
 function cloneChartOptions(chartOptions: AdaptedLlamaAICartesianChart['props']['chartOptions']) {
@@ -61,6 +62,9 @@ function bucketTimestamp(timestampMs: number, interval: Exclude<GroupingInterval
 	}
 	if (interval === 'month') {
 		return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)
+	}
+	if (interval === 'year') {
+		return Date.UTC(date.getUTCFullYear(), 0, 1)
 	}
 	const quarter = Math.floor(date.getUTCMonth() / 3)
 	return Date.UTC(date.getUTCFullYear(), quarter * 3, 1)
