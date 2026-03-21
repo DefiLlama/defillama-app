@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { groupData } from './utils'
+import { getGroupedTimestampSec, groupData } from './utils'
 import { serializeChainChartToMultiChart, serializeProtocolChartToMultiChart } from './utils/chartSerializer'
+
+describe('getGroupedTimestampSec', () => {
+	it('uses the shared bucket helper while preserving week start in UTC seconds', () => {
+		expect(getGroupedTimestampSec(1705449600, 'week')).toBe(1705276800) // 2024-01-17 -> 2024-01-15
+		expect(getGroupedTimestampSec(1710460800, 'month')).toBe(1709251200) // 2024-03-15 -> 2024-03-01
+		expect(getGroupedTimestampSec(1710460800, 'quarter')).toBe(1704067200) // 2024-03-15 -> 2024-01-01
+		expect(getGroupedTimestampSec(1729296000, 'year')).toBe(1704067200) // 2024-10-19 -> 2024-01-01
+	})
+})
 
 describe('groupData', () => {
 	it('groups data yearly', () => {

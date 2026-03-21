@@ -1,3 +1,5 @@
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import type { DashboardGrouping } from './types'
 import { generateConsistentChartColor } from './utils/colorManager'
 
@@ -62,47 +64,21 @@ export const normalizeHourlyToDaily = (
 	return result.sort((a, b) => a[0] - b[0])
 }
 
-const getStartOfWeek = (date: Date): Date => {
-	const day = date.getUTCDay()
-	const diff = day === 0 ? -6 : 1 - day
-	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + diff))
-}
-
-const getStartOfMonth = (date: Date): Date => {
-	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
-}
-
-const getStartOfQuarter = (date: Date): Date => {
-	const month = date.getUTCMonth()
-	const quarterStartMonth = Math.floor(month / 3) * 3
-	return new Date(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1))
-}
-
-const getStartOfYear = (date: Date): Date => {
-	return new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+const GROUPING_TO_CHART_GROUP_BY: Record<Exclude<DashboardGrouping, 'day'>, Exclude<ChartTimeGrouping, 'daily'>> = {
+	week: 'weekly',
+	month: 'monthly',
+	quarter: 'quarterly',
+	year: 'yearly'
 }
 
 export const getGroupedTimestampSec = (timestampSec: number, grouping: DashboardGrouping): number => {
 	if (grouping === 'day') return timestampSec
 
-	const date = new Date(timestampSec * 1000)
-	let groupKeyDate: Date
+	const groupedTimestampSec = getBucketTimestampSec(timestampSec, GROUPING_TO_CHART_GROUP_BY[grouping])
+	const groupKeyDate = new Date(groupedTimestampSec * 1000)
 
-	switch (grouping) {
-		case 'week':
-			groupKeyDate = getStartOfWeek(date)
-			break
-		case 'month':
-			groupKeyDate = getStartOfMonth(date)
-			break
-		case 'quarter':
-			groupKeyDate = getStartOfQuarter(date)
-			break
-		case 'year':
-			groupKeyDate = getStartOfYear(date)
-			break
-		default:
-			groupKeyDate = date
+	if (grouping === 'week') {
+		groupKeyDate.setUTCDate(groupKeyDate.getUTCDate() - 6)
 	}
 
 	groupKeyDate.setUTCHours(0, 0, 0, 0)
