@@ -34,7 +34,7 @@ interface ChartControlsProps {
 	onStackedChange: (stacked: boolean) => void
 	onPercentageChange: (percentage: boolean) => void
 	onCumulativeChange: (cumulative: boolean) => void
-	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter') => void
+	onGroupingChange: (grouping: 'day' | 'week' | 'month' | 'quarter' | 'year') => void
 	onHallmarksChange: (showHallmarks: boolean) => void
 	onLabelsChange: (showLabels: boolean) => void
 	children?: React.ReactNode

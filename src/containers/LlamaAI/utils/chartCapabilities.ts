@@ -5,7 +5,7 @@ export type ChartViewState = {
 	stacked: boolean
 	percentage: boolean
 	cumulative: boolean
-	grouping: 'day' | 'week' | 'month' | 'quarter'
+	grouping: 'day' | 'week' | 'month' | 'quarter' | 'year'
 	showHallmarks: boolean
 	showLabels: boolean
 }
@@ -32,7 +32,7 @@ export interface ChartControlsModel {
 	groupingOptions: readonly ChartViewState['grouping'][]
 }
 
-const GROUPING_OPTIONS: readonly ChartViewState['grouping'][] = ['day', 'week', 'month', 'quarter']
+const GROUPING_OPTIONS: readonly ChartViewState['grouping'][] = ['day', 'week', 'month', 'quarter', 'year']
 
 export function deriveCapabilities(config: ChartConfiguration, adaptedChart: AdaptedChartData): ChartCapabilities {
 	switch (adaptedChart.chartType) {

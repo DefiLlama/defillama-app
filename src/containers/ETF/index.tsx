@@ -6,13 +6,14 @@ import {
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { ETFOverviewProps, IETFSnapshotRow } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -59,11 +60,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 		// without Bitcoin are dropped, while `totalBitcoin`/`totalEthereum`/`totalSolana` stay aligned.
 		for (const [flowDate, flowEntry] of Object.entries(flows)) {
 			const date =
-				groupBy === 'daily' || groupBy === 'cumulative'
-					? flowDate
-					: groupBy === 'weekly'
-						? lastDayOfWeek(+flowDate)
-						: firstDayOfMonth(+flowDate)
+				groupBy === 'daily' || groupBy === 'cumulative' ? flowDate : getBucketTimestampSec(+flowDate, groupBy)
 
 			bitcoin[date] = (bitcoin[date] ?? 0) + (flowEntry['Bitcoin'] ?? 0) + totalBitcoin
 			if (flowEntry['Ethereum'] != null) {

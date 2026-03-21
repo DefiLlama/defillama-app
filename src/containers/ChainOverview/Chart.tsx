@@ -1,6 +1,7 @@
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -31,6 +32,7 @@ export default function ChainCoreChart({
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -42,10 +44,7 @@ export default function ChainCoreChart({
 		hideLegend: true,
 		unlockTokenSymbol,
 		isThemeDark,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly')
-				: 'daily'
+		groupBy: tooltipGroupBy
 	})
 
 	const { series, allYAxis } = useMemo(() => {

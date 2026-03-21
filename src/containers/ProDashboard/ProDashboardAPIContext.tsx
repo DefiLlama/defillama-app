@@ -26,6 +26,7 @@ import type {
 	Chain,
 	ChartBuilderConfig,
 	ChartConfig,
+	DashboardGrouping,
 	DashboardItemConfig,
 	MultiChartConfig,
 	MetricConfig,
@@ -226,7 +227,7 @@ interface ProDashboardEditorActionsContextType {
 	handleEditItem: (itemId: string, newItem: DashboardItemConfig) => void
 	handleRemoveItem: (itemId: string) => void
 	handleChartsReordered: (newCharts: DashboardItemConfig[]) => void
-	handleGroupingChange: (chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => void
+	handleGroupingChange: (chartId: string, newGrouping: DashboardGrouping) => void
 	handleColSpanChange: (chartId: string, newColSpan: StoredColSpan) => void
 	handleCumulativeChange: (itemId: string, showCumulative: boolean) => void
 	handlePercentageChange: (itemId: string, showPercentage: boolean) => void

@@ -198,14 +198,24 @@ export const AdapterByChainChart = ({
 	const multiChart = React.useMemo<MultiChartConfig | null>(() => {
 		if (!dashboardChartType) return null
 
-		const grouping =
-			chartInterval === 'daily'
-				? 'day'
-				: chartInterval === 'weekly'
-					? 'week'
-					: chartInterval === 'monthly'
-						? 'month'
-						: 'day'
+		let grouping: MultiChartConfig['grouping']
+		switch (chartInterval) {
+			case 'weekly':
+				grouping = 'week'
+				break
+			case 'monthly':
+				grouping = 'month'
+				break
+			case 'quarterly':
+				grouping = 'quarter'
+				break
+			case 'yearly':
+				grouping = 'year'
+				break
+			default:
+				grouping = 'day'
+				break
+		}
 
 		return {
 			id: generateItemId('multi', `${chain}-${adapterType}`),

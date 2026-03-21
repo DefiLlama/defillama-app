@@ -6,6 +6,9 @@ type EChartsFormatterParams = Record<string, unknown>
 
 type ChartDataItem = any
 
+export type ChartTimeGrouping = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+export type ChartTimeGroupingWithCumulative = ChartTimeGrouping | 'cumulative'
+
 export interface IChartProps {
 	chartData: ChartDataItem[]
 	stacks?: Array<string>
@@ -37,7 +40,7 @@ export interface IChartProps {
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	groupBy?: ChartTimeGrouping
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
 	hideDataZoom?: boolean
@@ -75,7 +78,7 @@ export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo10
 	stacks?: {
 		[stack: string]: string
 	}
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: ChartTimeGrouping
 	orientation?: 'vertical' | 'horizontal'
 }
 
@@ -158,7 +161,7 @@ type MultiSeriesChart2BaseProps = {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'cumulative'
+	groupBy?: ChartTimeGroupingWithCumulative
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string

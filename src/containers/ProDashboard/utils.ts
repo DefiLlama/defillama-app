@@ -1,3 +1,4 @@
+import type { DashboardGrouping } from './types'
 import { generateConsistentChartColor } from './utils/colorManager'
 
 export const convertToNumberFormat = (data: any[], convertToSeconds: boolean = false): [number, number][] => {
@@ -62,25 +63,28 @@ export const normalizeHourlyToDaily = (
 }
 
 const getStartOfWeek = (date: Date): Date => {
-	const dt = new Date(date.getFullYear(), date.getMonth(), date.getDate())
-	const day = dt.getDay()
-	const diff = dt.getDate() - day + (day === 0 ? -6 : 1)
-	return new Date(dt.setDate(diff))
+	const day = date.getUTCDay()
+	const diff = day === 0 ? -6 : 1 - day
+	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + diff))
 }
 
 const getStartOfMonth = (date: Date): Date => {
-	return new Date(date.getFullYear(), date.getMonth(), 1)
+	return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
 }
 
 const getStartOfQuarter = (date: Date): Date => {
-	const month = date.getMonth()
+	const month = date.getUTCMonth()
 	const quarterStartMonth = Math.floor(month / 3) * 3
-	return new Date(date.getFullYear(), quarterStartMonth, 1)
+	return new Date(Date.UTC(date.getUTCFullYear(), quarterStartMonth, 1))
+}
+
+const getStartOfYear = (date: Date): Date => {
+	return new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
 }
 
 export const groupData = (
 	data: [string, number][] | undefined,
-	grouping: 'day' | 'week' | 'month' | 'quarter' = 'day'
+	grouping: DashboardGrouping = 'day'
 ): [string, number][] => {
 	if (!data || data.length === 0) return []
 
@@ -94,17 +98,24 @@ export const groupData = (
 		const date = new Date(parseInt(timestampStr) * 1000)
 		let groupKeyDate: Date
 
-		if (grouping === 'week') {
-			groupKeyDate = getStartOfWeek(date)
-		} else if (grouping === 'month') {
-			groupKeyDate = getStartOfMonth(date)
-		} else if (grouping === 'quarter') {
-			groupKeyDate = getStartOfQuarter(date)
-		} else {
-			groupKeyDate = date
+		switch (grouping) {
+			case 'week':
+				groupKeyDate = getStartOfWeek(date)
+				break
+			case 'month':
+				groupKeyDate = getStartOfMonth(date)
+				break
+			case 'quarter':
+				groupKeyDate = getStartOfQuarter(date)
+				break
+			case 'year':
+				groupKeyDate = getStartOfYear(date)
+				break
+			default:
+				groupKeyDate = date
 		}
 
-		groupKeyDate.setHours(0, 0, 0, 0)
+		groupKeyDate.setUTCHours(0, 0, 0, 0)
 		const groupKey = (groupKeyDate.getTime() / 1000).toString()
 
 		if (groupedData[groupKey]) {

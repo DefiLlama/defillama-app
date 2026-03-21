@@ -1,9 +1,9 @@
-import type { MetricAggregator, MetricWindow } from '../../types'
+import type { DashboardGrouping, MetricAggregator, MetricWindow } from '../../types'
 
 export type ComparisonType = 'chains' | 'protocols'
 export type WizardStep = 'select-type' | 'select-items' | 'select-metrics' | 'preview'
 
-export type GroupingInterval = 'day' | 'week' | 'month' | 'quarter'
+export type GroupingInterval = DashboardGrouping
 export type DisplayMode = 'default' | 'stacked' | 'cumulative' | 'percentage'
 
 export type ComparisonPreset = {

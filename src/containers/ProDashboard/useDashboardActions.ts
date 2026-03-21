@@ -16,6 +16,7 @@ import {
 	CHART_TYPES,
 	type ChartBuilderConfig,
 	type ChartConfig,
+	type DashboardGrouping,
 	type DashboardItemConfig,
 	type IncomeStatementConfig,
 	type LlamaAIChartConfig,
@@ -563,7 +564,7 @@ export function useDashboardActions(
 	)
 
 	const handleGroupingChange = useCallback(
-		(chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => {
+		(chartId: string, newGrouping: DashboardGrouping) => {
 			if (isReadOnlyUntilDashboardLoaded) return
 
 			dispatchItemsAndSave((prev) =>

@@ -1,3 +1,4 @@
+import type { ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
 import type { ChainChartLabels } from '~/containers/ChainOverview/constants'
 import type { ProtocolChartsLabels } from '~/containers/ProtocolOverview/constants'
 import type { ChartConfig, MultiChartConfig } from '../types'
@@ -11,7 +12,22 @@ interface ProtocolChartSerializationParams {
 	geckoId?: string | null
 	toggledMetrics: ProtocolChartsLabels[]
 	chartColors: Record<string, string>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	groupBy: ChartTimeGroupingWithCumulative
+}
+
+function getDashboardGrouping(groupBy: ChartTimeGroupingWithCumulative): MultiChartConfig['grouping'] {
+	switch (groupBy) {
+		case 'weekly':
+			return 'week'
+		case 'monthly':
+			return 'month'
+		case 'quarterly':
+			return 'quarter'
+		case 'yearly':
+			return 'year'
+		default:
+			return 'day'
+	}
 }
 
 export function serializeProtocolChartToMultiChart(params: ProtocolChartSerializationParams): {
@@ -27,7 +43,7 @@ export function serializeProtocolChartToMultiChart(params: ProtocolChartSerializ
 		return { multiChart: null, unsupportedMetrics: unsupported }
 	}
 
-	const grouping = groupBy === 'daily' ? 'day' : groupBy === 'weekly' ? 'week' : groupBy === 'monthly' ? 'month' : 'day'
+	const grouping = getDashboardGrouping(groupBy)
 
 	const charts: ChartConfig[] = supported.map(({ label, dashboardType }) => {
 		return {
@@ -59,7 +75,7 @@ interface ChainChartSerializationParams {
 	geckoId?: string | null
 	toggledMetrics: ChainChartLabels[]
 	chartColors: Record<ChainChartLabels, string>
-	groupBy: 'daily' | 'weekly' | 'monthly' | 'cumulative'
+	groupBy: ChartTimeGroupingWithCumulative
 }
 
 export function serializeChainChartToMultiChart(params: ChainChartSerializationParams): {
@@ -79,7 +95,7 @@ export function serializeChainChartToMultiChart(params: ChainChartSerializationP
 		return { multiChart: null, unsupportedMetrics: unsupported }
 	}
 
-	const grouping = groupBy === 'daily' ? 'day' : groupBy === 'weekly' ? 'week' : groupBy === 'monthly' ? 'month' : 'day'
+	const grouping = getDashboardGrouping(groupBy)
 
 	const charts: ChartConfig[] = supported.map(({ label, dashboardType }) => {
 		return {

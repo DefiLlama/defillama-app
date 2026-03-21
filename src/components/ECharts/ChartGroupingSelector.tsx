@@ -1,6 +1,7 @@
 import clsx from 'clsx'
 import * as React from 'react'
 import { Tooltip } from '~/components/Tooltip'
+import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from './types'
 
 export type ChartGroupingOption<T extends string> = {
 	value: T
@@ -9,17 +10,21 @@ export type ChartGroupingOption<T extends string> = {
 }
 
 export const DWMC_GROUPING_OPTIONS_LOWERCASE = [
-	{ value: 'daily', label: 'Daily' },
-	{ value: 'weekly', label: 'Weekly' },
-	{ value: 'monthly', label: 'Monthly' },
-	{ value: 'cumulative', label: 'Cumulative' }
-] as const satisfies readonly ChartGroupingOption<'daily' | 'weekly' | 'monthly' | 'cumulative'>[]
+	{ value: 'daily', label: 'Daily', shortLabel: 'D' },
+	{ value: 'weekly', label: 'Weekly', shortLabel: 'W' },
+	{ value: 'monthly', label: 'Monthly', shortLabel: 'M' },
+	{ value: 'quarterly', label: 'Quarterly', shortLabel: 'Q' },
+	{ value: 'yearly', label: 'Yearly', shortLabel: 'Y' },
+	{ value: 'cumulative', label: 'Cumulative', shortLabel: 'C' }
+] as const satisfies readonly ChartGroupingOption<ChartTimeGroupingWithCumulative>[]
 
 export const DWM_GROUPING_OPTIONS_LOWERCASE = [
-	{ value: 'daily', label: 'Daily' },
-	{ value: 'weekly', label: 'Weekly' },
-	{ value: 'monthly', label: 'Monthly' }
-] as const satisfies readonly ChartGroupingOption<'daily' | 'weekly' | 'monthly'>[]
+	{ value: 'daily', label: 'Daily', shortLabel: 'D' },
+	{ value: 'weekly', label: 'Weekly', shortLabel: 'W' },
+	{ value: 'monthly', label: 'Monthly', shortLabel: 'M' },
+	{ value: 'quarterly', label: 'Quarterly', shortLabel: 'Q' },
+	{ value: 'yearly', label: 'Yearly', shortLabel: 'Y' }
+] as const satisfies readonly ChartGroupingOption<ChartTimeGrouping>[]
 
 export type LowercaseDwmcGrouping = (typeof DWMC_GROUPING_OPTIONS_LOWERCASE)[number]['value']
 export type LowercaseDwmGrouping = (typeof DWM_GROUPING_OPTIONS_LOWERCASE)[number]['value']

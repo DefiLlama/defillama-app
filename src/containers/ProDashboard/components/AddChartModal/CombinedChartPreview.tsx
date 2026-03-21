@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import { CHART_TYPES, type ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig, type DashboardGrouping } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -14,19 +14,18 @@ interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
 
-const mapGroupingToGroupBy = (
-	grouping: 'day' | 'week' | 'month' | 'quarter'
-): 'daily' | 'weekly' | 'monthly' | 'quarterly' => {
+const mapGroupingToGroupBy = (grouping: DashboardGrouping): 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' => {
 	if (grouping === 'week') return 'weekly'
 	if (grouping === 'month') return 'monthly'
 	if (grouping === 'quarter') return 'quarterly'
+	if (grouping === 'year') return 'yearly'
 	return 'daily'
 }
 
 export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
 
-	const previewGrouping = useMemo<'day' | 'week' | 'month' | 'quarter'>(() => {
+	const previewGrouping = useMemo<DashboardGrouping>(() => {
 		const definedGroupings = composerItems
 			.map((item) => item.grouping)
 			.filter((grouping): grouping is NonNullable<typeof grouping> => Boolean(grouping))

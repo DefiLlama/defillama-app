@@ -7,13 +7,13 @@ import {
 	type LowercaseDwmGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, getBucketTimestampMs } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { IDATOverviewPageProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -69,13 +69,12 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 		}
 		const rowMap = new Map<number, Record<string, number | null>>()
 
-		if (['weekly', 'monthly'].includes(groupBy)) {
+		if (groupBy !== 'daily') {
 			for (const asset of assetKeys) {
 				const sumByDate: Record<number, { purchasePrice: number; assetQuantity: number }> = {}
 				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
 					if (date == null) continue
-					const dateKey =
-						groupBy === 'monthly' ? firstDayOfMonth(date / 1000) * 1000 : lastDayOfWeek(date / 1000) * 1000
+					const dateKey = getBucketTimestampMs(date, groupBy)
 					sumByDate[dateKey] = sumByDate[dateKey] ?? { purchasePrice: 0, assetQuantity: 0 }
 					sumByDate[dateKey].purchasePrice += purchasePrice ?? 0
 					sumByDate[dateKey].assetQuantity += assetQuantity ?? 0

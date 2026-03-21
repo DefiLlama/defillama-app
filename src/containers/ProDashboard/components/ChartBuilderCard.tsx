@@ -13,6 +13,7 @@ import {
 	useProDashboardTime
 } from '../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../services/ProtocolSplitCharts'
+import type { DashboardGrouping } from '../types'
 import { ConfirmationModal } from './ConfirmationModal'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -99,7 +100,7 @@ interface ChartBuilderCardProps {
 			seriesColors?: Record<string, string>
 		}
 		name?: string
-		grouping?: 'day' | 'week' | 'month' | 'quarter'
+		grouping?: DashboardGrouping
 	}
 }
 
@@ -128,7 +129,7 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 		hasCustomSeriesColors = true
 		break
 	}
-	const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+	const groupingOptions: DashboardGrouping[] = ['day', 'week', 'month', 'quarter', 'year']
 	const chainFilterMode = resolveFilterMode(config.chainFilterMode, config.filterMode)
 	const categoryFilterMode = resolveFilterMode(config.categoryFilterMode, config.filterMode)
 	const chainCategoryFilterMode = resolveFilterMode(config.chainCategoryFilterMode, config.filterMode)
@@ -866,7 +867,9 @@ export function ChartBuilderCard({ builder }: ChartBuilderCardProps) {
 										? 'monthly'
 										: builder.grouping === 'quarter'
 											? 'quarterly'
-											: 'daily'
+											: builder.grouping === 'year'
+												? 'yearly'
+												: 'daily'
 							}
 							hideDataZoom={true}
 							onReady={handleChartReady}
