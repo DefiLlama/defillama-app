@@ -40,6 +40,10 @@ const getQueryValueOnRemove = (isDefaultEnabled: boolean): 'false' | null => (is
 type ChartInterval = LowercaseDwmcGrouping
 const isChartInterval = (value: string | null): value is ChartInterval =>
 	value != null && DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === value)
+const normalizeChartInterval = (value: string | null | undefined): ChartInterval | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	return isChartInterval(normalizedValue) ? normalizedValue : null
+}
 
 const ProtocolChart = lazy(() =>
 	import('./Chart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
@@ -95,9 +99,10 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 			hasAtleasOneBarChart,
 			groupBy: (() => {
 				if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
-				const groupByParam = searchParams.get('groupBy')
-				if (isChartInterval(groupByParam)) return groupByParam
-				return (props.defaultChartView ?? 'daily') as ChartInterval
+				// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
+				const groupByParam = normalizeChartInterval(searchParams.get('groupBy'))
+				if (groupByParam) return groupByParam
+				return normalizeChartInterval(props.defaultChartView) ?? 'daily'
 			})(),
 			defaultEnabledCharts
 		}
