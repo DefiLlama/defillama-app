@@ -699,7 +699,7 @@ export function MessageBubble({
 			{message.thinking ? <ThinkingPanel thinking={message.thinking} defaultOpen={isDraft} /> : null}
 			<InlineContent
 				message={readOnly ? { ...message, alerts: undefined } : message}
-				toolExecutions={isLlama ? message.toolExecutions : undefined}
+				toolExecutions={message.toolExecutions}
 				isStreaming={isDraft}
 				sessionId={sessionId}
 				onActionClick={onActionClick}
