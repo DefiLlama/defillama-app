@@ -208,6 +208,77 @@ export function ensureChronologicalRows<T extends { timestamp?: number | string 
 }
 
 /**
+ * Normalize heterogeneous data (object map or array of records) into a sorted
+ * `{ name, value }[]` array suitable for ECharts pie/doughnut series.
+ * When `limit` is specified, only the top-N slices are kept and the remainder
+ * is merged into a single "Others" entry. Existing "Others" entries in the
+ * source data are consolidated to avoid duplicates.
+ *
+ * @param data - Source data as either a `Record<name, value>` or an array of keyed objects.
+ * @param sliceIdentifier - Key used to read the slice name from array entries (default `'name'`).
+ * @param sliceValue - Key used to read the numeric value from array entries (default `'value'`).
+ * @param limit - Maximum number of individual slices before grouping the rest into "Others".
+ */
+export const preparePieChartData = ({
+	data,
+	sliceIdentifier = 'name',
+	sliceValue = 'value',
+	limit
+}: {
+	data: Record<string, number> | Array<Record<string, any>>
+	sliceIdentifier?: string
+	sliceValue?: string
+	limit?: number
+}) => {
+	let pieData: Array<{ name: string; value: number }> = []
+
+	if (Array.isArray(data)) {
+		pieData = data.map((entry) => {
+			return {
+				name: entry[sliceIdentifier],
+				value: Number(entry[sliceValue])
+			}
+		})
+	} else {
+		pieData = Object.entries(data).map(([name, value]) => {
+			return {
+				name: name,
+				value: Number(value)
+			}
+		})
+	}
+
+	pieData = pieData.toSorted((a, b) => b.value - a.value)
+
+	if (!limit) {
+		return pieData
+	}
+
+	const mainSlices = pieData.slice(0, limit)
+	const otherSlices = pieData.slice(limit)
+
+	const othersIndex = mainSlices.findIndex((slice) => slice.name === 'Others')
+	let othersValueFromMain = 0
+	let filteredMainSlices = mainSlices
+
+	if (othersIndex !== -1) {
+		othersValueFromMain = mainSlices[othersIndex].value
+		filteredMainSlices = mainSlices.filter((_, index) => index !== othersIndex)
+	}
+
+	const otherSlicesValue =
+		otherSlices.reduce((acc, curr) => {
+			return acc + curr.value
+		}, 0) + othersValueFromMain
+
+	if (otherSlicesValue > 0) {
+		return [...filteredMainSlices, { name: 'Others', value: otherSlicesValue }]
+	}
+
+	return filteredMainSlices
+}
+
+/**
  * Recursively merge `source` into `target`, returning a new object.
  * - Arrays are concatenated (target first, then source).
  * - Nested plain objects are merged recursively.

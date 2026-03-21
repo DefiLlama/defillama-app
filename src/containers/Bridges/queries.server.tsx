@@ -1,6 +1,6 @@
 import type { LlamaConfigResponse } from '~/api/types'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { CONFIG_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'

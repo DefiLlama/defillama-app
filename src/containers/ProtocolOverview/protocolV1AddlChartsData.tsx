@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { fetchProtocolBySlug } from './api'
 import type { IProtocolChainTvlEntry, IProtocolOverviewMetricsV1 } from './api.types'
