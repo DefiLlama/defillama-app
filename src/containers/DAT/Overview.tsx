@@ -18,8 +18,6 @@ import type { IDATOverviewPageProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-type GroupByType = LowercaseDwmGrouping
-
 /** Narrow an unknown echarts tooltip param to a record, or return undefined. */
 function asRecord(value: unknown): Record<string, unknown> | undefined {
 	return typeof value === 'object' && value != null ? (value as Record<string, unknown>) : undefined
@@ -28,7 +26,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
 export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
-	const [groupBy, setGroupBy] = useState<GroupByType>('weekly')
+	const [groupBy, setGroupBy] = useState<LowercaseDwmGrouping>('weekly')
 
 	const chartOptions = useMemo(() => {
 		return {

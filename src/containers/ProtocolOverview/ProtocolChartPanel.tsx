@@ -37,10 +37,9 @@ const resolveVisibility = ({
 
 const getQueryValueOnRemove = (isDefaultEnabled: boolean): 'false' | null => (isDefaultEnabled ? 'false' : null)
 
-type ChartInterval = LowercaseDwmcGrouping
-const isChartInterval = (value: string | null): value is ChartInterval =>
+const isChartInterval = (value: string | null): value is LowercaseDwmcGrouping =>
 	value != null && DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === value)
-const normalizeChartInterval = (value: string | null | undefined): ChartInterval | null => {
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
 	const normalizedValue = value?.toLowerCase() ?? null
 	return isChartInterval(normalizedValue) ? normalizedValue : null
 }
@@ -98,7 +97,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: (() => {
-				if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
+				if (!hasAtleasOneBarChart) return 'daily' as LowercaseDwmcGrouping
 				// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 				const groupByParam = normalizeChartInterval(searchParams.get('groupBy'))
 				if (groupByParam) return groupByParam

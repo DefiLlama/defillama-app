@@ -17,7 +17,6 @@ interface BridgeVolumeChartProps {
 	headerEnd?: ReactNode
 }
 
-type TimePeriod = LowercaseDwmGrouping
 const VIEW_TYPES = ['Split', 'Combined'] as const
 type ViewType = (typeof VIEW_TYPES)[number]
 const METRIC_TYPES = ['Volume', 'Transactions'] as const
@@ -44,7 +43,7 @@ const COMBINED_CHARTS = [
 ]
 
 export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEnd }: BridgeVolumeChartProps) {
-	const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
+	const [timePeriod, setTimePeriod] = useState<LowercaseDwmGrouping>('weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
 

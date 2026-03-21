@@ -22,8 +22,6 @@ import type { ILSTTokenRow, LSTOverviewProps } from './types'
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-type GroupByType = LowercaseDwmcGrouping
-
 const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
 const ETHPegTooltipContent = ({ marketRate, expectedRate }: { marketRate: number; expectedRate: number }) => {
@@ -201,7 +199,7 @@ export const LSTOverview = ({
 	barChartStacks
 }: LSTOverviewProps) => {
 	const [tab, setTab] = React.useState('breakdown')
-	const [groupBy, setGroupBy] = React.useState<GroupByType>('weekly')
+	const [groupBy, setGroupBy] = React.useState<LowercaseDwmcGrouping>('weekly')
 	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
 	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>(tokens ?? [])
 	const selectedBreakdownTokensSet = React.useMemo(() => new Set(selectedBreakdownTokens), [selectedBreakdownTokens])

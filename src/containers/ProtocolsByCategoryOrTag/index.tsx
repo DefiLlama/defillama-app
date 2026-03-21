@@ -26,12 +26,11 @@ import {
 import type { IProtocolByCategoryOrTagPageData } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-type ChartInterval = LowercaseDwmcGrouping
 
 export function ProtocolsByCategoryOrTag(props: IProtocolByCategoryOrTagPageData) {
 	const name = props.category ?? props.tag ?? ''
 	const namePrefix = name ? `${name}-` : ''
-	const [groupBy, setGroupBy] = useState<ChartInterval>('daily')
+	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>('daily')
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const categoryPresentation = useMemo(
 		() =>

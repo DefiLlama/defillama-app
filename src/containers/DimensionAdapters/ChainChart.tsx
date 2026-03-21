@@ -27,9 +27,7 @@ import { getChartDataByChainAndInterval } from './utils'
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
-type AdapterByChainInterval = LowercaseDwmcGrouping
 type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
-type ChainsByAdapterInterval = AdapterByChainInterval
 const CHART_TYPES_CHAINS_BY_ADAPTER = ['Volume', 'Dominance'] as const
 type ChainsByAdapterChartType = (typeof CHART_TYPES_CHAINS_BY_ADAPTER)[number]
 
@@ -43,7 +41,7 @@ export const AdapterByChainChart = ({
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
-	const chartInterval = React.useMemo<AdapterByChainInterval>(() => {
+	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
 		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
 		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
@@ -89,7 +87,7 @@ export const AdapterByChainChart = ({
 		return breakdownProtocolDimensions.filter((d) => selectedProtocolsSet.has(d))
 	}, [metricDimensions, chartViewMode, breakdownChartData, selectedProtocols, breakdownProtocolDimensions])
 
-	const onChangeChartInterval = (nextInterval: AdapterByChainInterval) => {
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
@@ -371,7 +369,7 @@ export const ChainsByAdapterChart = ({
 }: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'>) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
-	const chartInterval = React.useMemo<ChainsByAdapterInterval>(() => {
+	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
 		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
 		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
@@ -381,7 +379,7 @@ export const ChainsByAdapterChart = ({
 		const chartTypeParam = readSingleQueryValue(router.query.chartType)?.toLowerCase()
 		return chartTypeParam === 'dominance' ? 'Dominance' : 'Volume'
 	}, [router.query.chartType])
-	const effectiveInterval: ChainsByAdapterInterval = chartType === 'Dominance' ? 'daily' : chartInterval
+	const effectiveInterval: LowercaseDwmcGrouping = chartType === 'Dominance' ? 'daily' : chartInterval
 	const selectedChains = React.useMemo(() => {
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
@@ -398,7 +396,7 @@ export const ChainsByAdapterChart = ({
 	}, [chartData, effectiveInterval, selectedChains, chartType])
 	const deferredChartData = React.useDeferredValue(chainsByAdapterChartData)
 
-	const onChangeChartInterval = (nextInterval: ChainsByAdapterInterval) => {
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartType = (nextChartType: ChainsByAdapterChartType) => {

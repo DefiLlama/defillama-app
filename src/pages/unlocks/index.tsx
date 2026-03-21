@@ -89,15 +89,13 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 
 const pageName = ['Protocols', 'ranked by', 'Token Unlocks']
 
-type TimePeriod = LowercaseDwmGrouping
-
 const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
 
 const END_TIMESTAMP = dayjs('2031-01-01').unix()
 const SECONDS_PER_DAY = 86400
 
-function bucketTimestamp(ts: number, timePeriod: TimePeriod): number {
+function bucketTimestamp(ts: number, timePeriod: LowercaseDwmGrouping): number {
 	if (timePeriod === 'daily') {
 		return Math.floor(ts / SECONDS_PER_DAY) * SECONDS_PER_DAY
 	}
@@ -125,10 +123,10 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 	)
 
 	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
-	const timePeriod: TimePeriod =
+	const timePeriod: LowercaseDwmGrouping =
 		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		chartGroupParam && DWM_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === chartGroupParam.toLowerCase())
-			? (chartGroupParam.toLowerCase() as TimePeriod)
+			? (chartGroupParam.toLowerCase() as LowercaseDwmGrouping)
 			: 'weekly'
 
 	const chartViewParam = readSingleQueryValue(router.query.chartView)
