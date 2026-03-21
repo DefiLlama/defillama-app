@@ -158,7 +158,7 @@ type MultiSeriesChart2BaseProps = {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'cumulative'
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string

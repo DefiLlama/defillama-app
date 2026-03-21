@@ -253,20 +253,16 @@ export function formatTooltipChartDate(value: number, groupBy: TooltipGroupBy, h
 	const date = new Date(value)
 
 	switch (groupBy) {
+		case 'weekly':
+			return getStartAndEndDayOfTheWeek(value)
 		case 'monthly':
 			return `${monthNames[date.getUTCMonth()]} 1 - ${lastDayOfMonth(value)}, ${date.getUTCFullYear()}`
 		case 'quarterly':
 			return getQuarterDateRange(value)
-		case 'weekly':
-			return getStartAndEndDayOfTheWeek(value)
 		case 'yearly':
 			return `Jan 1 - Dec 31, ${date.getUTCFullYear()}`
-		case 'cumulative': {
-			const formatted = `${date.getUTCDate().toString().padStart(2, '0')} ${monthNames[date.getUTCMonth()]} ${date.getUTCFullYear()}`
-			return `Cumulative through ${formatted}`
-		}
 		default: {
-			// daily
+			// daily , cumulative
 			if (date.getUTCHours() !== 0 && !hideTime) {
 				return date.toLocaleDateString(undefined, {
 					year: 'numeric',

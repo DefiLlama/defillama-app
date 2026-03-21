@@ -465,7 +465,9 @@ export const ChainsByAdapterChart = ({
 						: {})}
 					{...(chartType === 'Dominance'
 						? {}
-						: { groupBy: chartInterval === 'weekly' ? 'weekly' : chartInterval === 'monthly' ? 'monthly' : 'daily' })}
+						: {
+								groupBy: chartInterval === 'weekly' ? 'weekly' : chartInterval === 'monthly' ? 'monthly' : 'daily'
+							})}
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>

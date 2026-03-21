@@ -27,6 +27,9 @@ export const formatBarChart = ({
 		for (const [date, value] of data) {
 			const timestampSec = dateInMs ? +date / 1e3 : +date
 			const timestampMs = dateInMs ? +date : +date * 1e3
+			// `cumulative` keeps the original day on the x-axis and only changes the y-values
+			// into a running total. This lets callers choose whether cumulative charts should
+			// still show daily-style dates in tooltips/axes or opt into a cumulative-specific label.
 			const dateKey = isWeekly
 				? lastDayOfWeek(timestampSec)
 				: isMonthly
@@ -108,6 +111,9 @@ export const formatLineChart = ({
 		// `for...in` over object keys is not guaranteed to be chronological.
 		return finalChart.sort((a, b) => a[0] - b[0])
 	}
+	// `cumulative` is intentionally not handled here: line-series cumulative views in this
+	// codebase either precompute running totals before calling this helper or reuse
+	// `formatBarChart(..., 'cumulative')` and render the result as a line.
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
 			const timestampSec = dateInMs ? +date / 1e3 : +date
