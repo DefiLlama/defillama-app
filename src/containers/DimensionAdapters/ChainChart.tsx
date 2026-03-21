@@ -102,12 +102,12 @@ export const AdapterByChainChart = ({
 		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			// In breakdown mode dimensions are protocol names, not metric names, so
-			// isIntrinsicLineSeries is false. Fall back to checking the chart-level name
-			// so line-type charts (Open Interest, Active Liquidity) stay as lines.
-			const isLineChart = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
-			const type = isLineChart || isCumulative ? ('line' as const) : ('bar' as const)
-			const stack = isBreakdownMode && !isLineChart ? 'protocol-breakdown' : undefined
+			// Snapshot metrics (Open Interest, Active Liquidity) take last-value-per-period;
+			// flow metrics (fees, volume) sum per period. In breakdown mode dimensions are
+			// protocol names, so fall back to chartName to inherit the metric's semantics.
+			const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
+			const type = isSnapshotMetric || isCumulative ? ('line' as const) : ('bar' as const)
+			const stack = isBreakdownMode && !isSnapshotMetric ? 'protocol-breakdown' : undefined
 			if (isDaily) {
 				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
@@ -120,9 +120,14 @@ export const AdapterByChainChart = ({
 				})
 				.filter((item): item is [number, number] => item != null)
 
-			// Use the same line/bar decision for aggregation and rendering so breakdown
-			// series under line-dimension charts keep latest-per-period semantics.
-			const data = isLineChart
+			// Snapshot metrics (OI, Active Liquidity) are point-in-time values — summing
+			// them is meaningless, so they always use formatLineChart (last-value-per-period).
+			// When chartInterval is 'cumulative', formatLineChart falls through to daily
+			// passthrough which is correct: "cumulative OI" has no meaning, so we just
+			// show the raw snapshot values alongside any cumulative flow series.
+			// Flow metrics (fees, volume) sum per period via formatBarChart, which also
+			// handles cumulative running totals.
+			const data = isSnapshotMetric
 				? formatLineChart({
 						data: rawData,
 						groupBy: chartInterval,
