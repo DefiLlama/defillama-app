@@ -1,5 +1,5 @@
 import { MCP_SERVER } from '~/constants'
-import type { AlertProposedData, ChartConfiguration, ToolExecution } from '~/containers/LlamaAI/types'
+import type { AlertProposedData, ChartConfiguration, MessageMetadata, ToolExecution } from '~/containers/LlamaAI/types'
 import { getErrorMessage } from '~/utils/error'
 
 export interface CsvExport {
@@ -22,13 +22,14 @@ export interface SpawnProgressData {
 export interface AgenticSSECallbacks {
 	onToken: (content: string) => void
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
-	onProgress: (toolName: string) => void
+	onProgress: (toolName: string, isPremium?: boolean) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
 	onSessionId: (sessionId: string) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
 	onToolExecution?: (data: ToolExecution) => void
+	onMessageMetadata?: (data: MessageMetadata) => void
 	onThinking?: (content: string) => void
 	onCompaction?: (data: { status: 'started' | 'completed'; messagesBefore: number; messagesAfter?: number }) => void
 	onTitle?: (title: string) => void
@@ -46,6 +47,7 @@ interface SessionEvent {
 interface ToolCallEvent {
 	type: 'tool_call'
 	name: string
+	isPremium?: boolean
 }
 
 interface ResponseChunkEvent {
@@ -109,6 +111,16 @@ interface DoneEvent {
 	type: 'done'
 }
 
+interface MessageMetadataEvent {
+	type: 'message_metadata'
+	content: {
+		inputTokens?: number
+		outputTokens?: number
+		executionTimeMs?: number
+		x402CostUsd?: string
+	}
+}
+
 type AgenticSSEEvent =
 	| SessionEvent
 	| ToolCallEvent
@@ -123,6 +135,7 @@ type AgenticSSEEvent =
 	| CitationsEvent
 	| TitleEvent
 	| MessageIdEvent
+	| MessageMetadataEvent
 	| TokenLimitEvent
 	| ErrorEvent
 	| DoneEvent
@@ -198,7 +211,7 @@ function parseSSEStream(
 					callbacks.onSessionId(data.sessionId)
 					break
 				case 'tool_call':
-					callbacks.onProgress(data.name)
+					callbacks.onProgress(data.name, data.isPremium)
 					break
 				case 'response_chunk':
 					callbacks.onToken(data.content)
@@ -220,6 +233,9 @@ function parseSSEStream(
 					break
 				case 'tool_execution':
 					callbacks.onToolExecution?.(data)
+					break
+				case 'message_metadata':
+					callbacks.onMessageMetadata?.(data.content)
 					break
 				case 'thinking':
 					callbacks.onThinking?.(data.content)

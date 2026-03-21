@@ -4,6 +4,7 @@ import type {
 	AlertProposedData,
 	ChartSet,
 	Message,
+	MessageMetadata,
 	SpawnAgentStatus,
 	ToolCall,
 	ToolExecution
@@ -49,6 +50,7 @@ export interface StreamState {
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
 	recovery: RecoveryState
+	messageMetadata?: MessageMetadata
 	error: string | null
 	lastFailedRequest: FailedRequest | null
 	rateLimitDetails: RateLimitDetails | null
@@ -64,6 +66,7 @@ export interface StreamBuffer {
 	thinking: string
 	hasStartedText: boolean
 	spawnStarted: boolean
+	messageMetadata?: MessageMetadata
 }
 
 export type StreamAction =
@@ -79,6 +82,7 @@ export type StreamAction =
 	| { type: 'APPEND_ALERT'; value: AlertProposedData }
 	| { type: 'MERGE_CITATIONS'; value: string[] }
 	| { type: 'APPEND_TOOL_EXECUTION'; value: ToolExecution }
+	| { type: 'SET_MESSAGE_METADATA'; value: MessageMetadata }
 	| { type: 'APPEND_THINKING'; value: string }
 	| { type: 'APPEND_TOOL_CALL'; value: ToolCall }
 	| { type: 'CLEAR_ACTIVITY' }
@@ -165,6 +169,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			return { ...state, citations: [...new Set([...state.citations, ...action.value])] }
 		case 'APPEND_TOOL_EXECUTION':
 			return { ...state, toolExecutions: [...state.toolExecutions, action.value] }
+		case 'SET_MESSAGE_METADATA':
+			return { ...state, messageMetadata: action.value }
 		case 'APPEND_THINKING':
 			return { ...state, thinking: state.thinking + action.value }
 		case 'APPEND_TOOL_CALL':
@@ -233,6 +239,7 @@ export function buildAssistantMessage(buffer: StreamBuffer, messageId?: string):
 		citations: buffer.citations.length > 0 ? buffer.citations : undefined,
 		toolExecutions: buffer.toolExecutions.length > 0 ? buffer.toolExecutions : undefined,
 		thinking: buffer.thinking || undefined,
+		messageMetadata: buffer.messageMetadata,
 		id: messageId
 	}
 }

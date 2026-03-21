@@ -294,6 +294,11 @@ export function ToolProgressIndicator({
 										style={{ color: meta.color }}
 									/>
 									<p className="m-0 text-xs font-medium text-[#444] dark:text-[#ccc]">{toolCall.label}</p>
+									{toolCall.isPremium ? (
+										<span className="rounded-full bg-amber-100 px-1.5 py-px text-[9px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+											Premium
+										</span>
+									) : null}
 								</li>
 							)
 						})}
