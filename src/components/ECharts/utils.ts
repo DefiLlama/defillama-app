@@ -1,9 +1,22 @@
 import { firstDayOfMonth, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 
+/** Generate a random 6-digit hex colour string (e.g. `"#a3f04c"`). */
 export function stringToColour() {
 	return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
 }
 
+/**
+ * Transform raw time-series tuples into `[timestampMs, value]` pairs for ECharts bar series.
+ * Values within the same period are **summed** (appropriate for bar/volume charts).
+ * When `groupBy` is `'cumulative'`, a running total is computed across all periods.
+ *
+ * @param data - Raw data as `[date, value]` tuples (date in seconds or ms depending on `dateInMs`).
+ * @param groupBy - Temporal bucketing strategy: `'daily'` passes through, `'weekly'`/`'monthly'`
+ *   bucket by week/month end/start, and `'cumulative'` computes a running total.
+ * @param dateInMs - When true, incoming dates are already in milliseconds (default: seconds).
+ * @param denominationPriceHistory - Optional price map to convert values into an alternative denomination.
+ * @returns Chronologically sorted `[timestampMs, value | null]` tuples.
+ */
 export const formatBarChart = ({
 	data,
 	groupBy,
@@ -27,6 +40,9 @@ export const formatBarChart = ({
 		for (const [date, value] of data) {
 			const timestampSec = dateInMs ? +date / 1e3 : +date
 			const timestampMs = dateInMs ? +date : +date * 1e3
+			// `cumulative` keeps the original day on the x-axis and only changes the y-values
+			// into a running total. This lets callers choose whether cumulative charts should
+			// still show daily-style dates in tooltips/axes or opt into a cumulative-specific label.
 			const dateKey = isWeekly
 				? lastDayOfWeek(timestampSec)
 				: isMonthly
@@ -68,6 +84,20 @@ export const formatBarChart = ({
 	}
 }
 
+/**
+ * Transform raw time-series tuples into `[timestampMs, value]` pairs for ECharts line series.
+ * Unlike {@link formatBarChart}, values within the same period are **not** summed — the last
+ * value for each bucket wins (point-in-time snapshot, appropriate for line charts).
+ *
+ * `'cumulative'` is intentionally not handled here; callers either precompute running totals
+ * or reuse `formatBarChart(..., 'cumulative')` and render the result as a line.
+ *
+ * @param data - Raw data as `[date, value]` tuples (date in seconds or ms depending on `dateInMs`).
+ * @param groupBy - Temporal bucketing strategy.
+ * @param dateInMs - When true, incoming dates are already in milliseconds (default: seconds).
+ * @param denominationPriceHistory - Optional price map to convert values into an alternative denomination.
+ * @returns Chronologically sorted `[timestampMs, value | null]` tuples.
+ */
 export const formatLineChart = ({
 	data,
 	groupBy,
@@ -108,6 +138,9 @@ export const formatLineChart = ({
 		// `for...in` over object keys is not guaranteed to be chronological.
 		return finalChart.sort((a, b) => a[0] - b[0])
 	}
+	// `cumulative` is intentionally not handled here: line-series cumulative views in this
+	// codebase either precompute running totals before calling this helper or reuse
+	// `formatBarChart(..., 'cumulative')` and render the result as a line.
 	if (denominationPriceHistory) {
 		return data.map(([date, value]) => {
 			const timestampSec = dateInMs ? +date / 1e3 : +date
@@ -120,6 +153,15 @@ export const formatLineChart = ({
 	}
 }
 
+/**
+ * Merge multiple named chart series into a single CSV-ready structure.
+ * Each row contains a timestamp, a human-readable date, and one column per series.
+ * Rows are sorted chronologically by timestamp.
+ *
+ * @param data - Map of series name → `[timestampMs, value]` tuples.
+ * @param filename - Desired filename for the exported CSV.
+ * @returns `{ filename, rows }` where rows include a header row followed by data rows.
+ */
 export function prepareChartCsv(data: Record<string, Array<[string | number, number | null]>>, filename: string) {
 	let rows = []
 	const charts = []
@@ -145,6 +187,11 @@ export function prepareChartCsv(data: Record<string, Array<[string | number, num
 	return { filename, rows: rows.sort((a, b) => a[0] - b[0]) }
 }
 
+/**
+ * Return rows sorted by `timestamp` ascending. Performs an optimistic linear scan first —
+ * if the rows are already in order the original array is returned without allocating a copy.
+ * Only falls back to a full sort when an out-of-order element is detected.
+ */
 export function ensureChronologicalRows<T extends { timestamp?: number | string }>(rows: T[]) {
 	if (rows.length < 2) return rows
 
@@ -160,7 +207,84 @@ export function ensureChronologicalRows<T extends { timestamp?: number | string 
 	return rows
 }
 
-// Deep merge function for nested objects
+/**
+ * Normalize heterogeneous data (object map or array of records) into a sorted
+ * `{ name, value }[]` array suitable for ECharts pie/doughnut series.
+ * When `limit` is specified, only the top-N slices are kept and the remainder
+ * is merged into a single "Others" entry. Existing "Others" entries in the
+ * source data are consolidated to avoid duplicates.
+ *
+ * @param data - Source data as either a `Record<name, value>` or an array of keyed objects.
+ * @param sliceIdentifier - Key used to read the slice name from array entries (default `'name'`).
+ * @param sliceValue - Key used to read the numeric value from array entries (default `'value'`).
+ * @param limit - Maximum number of individual slices before grouping the rest into "Others".
+ */
+export const preparePieChartData = ({
+	data,
+	sliceIdentifier = 'name',
+	sliceValue = 'value',
+	limit
+}: {
+	data: Record<string, number> | Array<Record<string, any>>
+	sliceIdentifier?: string
+	sliceValue?: string
+	limit?: number
+}) => {
+	let pieData: Array<{ name: string; value: number }> = []
+
+	if (Array.isArray(data)) {
+		pieData = data.map((entry) => {
+			return {
+				name: entry[sliceIdentifier],
+				value: Number(entry[sliceValue])
+			}
+		})
+	} else {
+		pieData = Object.entries(data).map(([name, value]) => {
+			return {
+				name: name,
+				value: Number(value)
+			}
+		})
+	}
+
+	pieData = pieData.toSorted((a, b) => b.value - a.value)
+
+	if (!limit) {
+		return pieData
+	}
+
+	const mainSlices = pieData.slice(0, limit)
+	const otherSlices = pieData.slice(limit)
+
+	const othersIndex = mainSlices.findIndex((slice) => slice.name === 'Others')
+	let othersValueFromMain = 0
+	let filteredMainSlices = mainSlices
+
+	if (othersIndex !== -1) {
+		othersValueFromMain = mainSlices[othersIndex].value
+		filteredMainSlices = mainSlices.filter((_, index) => index !== othersIndex)
+	}
+
+	const otherSlicesValue =
+		otherSlices.reduce((acc, curr) => {
+			return acc + curr.value
+		}, 0) + othersValueFromMain
+
+	if (otherSlicesValue > 0) {
+		return [...filteredMainSlices, { name: 'Others', value: otherSlicesValue }]
+	}
+
+	return filteredMainSlices
+}
+
+/**
+ * Recursively merge `source` into `target`, returning a new object.
+ * - Arrays are concatenated (target first, then source).
+ * - Nested plain objects are merged recursively.
+ * - Primitives and non-object sources overwrite the target value.
+ * - `null`/`undefined` sources leave the target unchanged.
+ */
 export function mergeDeep(target: any, source: any): any {
 	if (source == null) return target
 	if (Array.isArray(source) && Array.isArray(target)) return [...target, ...source]

@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import { type ComponentType, lazy, Suspense, useEffect, useMemo } from 'react'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { LocalLoader } from '~/components/Loaders'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/constants'
@@ -15,8 +16,13 @@ import { withPerformanceLogging } from '~/utils/perf'
 
 const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
 
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 export const getStaticProps = withPerformanceLogging(
 	'chart/protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
@@ -117,11 +123,7 @@ export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 			toggledMetrics,
 			toggledCharts,
 			hasAtleasOneBarChart,
-			groupBy: hasAtleasOneBarChart
-				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
-					: 'daily'
-				: 'daily',
+			groupBy: hasAtleasOneBarChart ? (normalizeChartInterval(queryParams.groupBy) ?? 'daily') : 'daily',
 			tvlSettings,
 			feesSettings
 		}

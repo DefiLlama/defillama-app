@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import type { IProtocolTokenBreakdownChart, IProtocolValueChart } from './api.types'
 import { useFetchProtocolChartsByKeys } from './queries.client'
 

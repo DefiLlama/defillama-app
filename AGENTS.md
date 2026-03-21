@@ -38,3 +38,7 @@ When moving or renaming types/functions across files:
 2. **ALWAYS update imports** in all files that use the moved type/function
 3. Update imports to point directly to the new location (e.g., `from './api.types'` instead of `from './queries'`)
 4. This ensures clear dependency chains and avoids circular dependencies
+
+# Next.js: ALWAYS read docs before coding
+
+Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.

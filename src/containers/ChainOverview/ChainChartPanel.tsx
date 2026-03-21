@@ -4,22 +4,24 @@ import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
-import { Tooltip } from '~/components/Tooltip'
 import { serializeChainChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
-import { capitalizeFirstLetter, chainIconUrl, slug } from '~/utils'
+import { chainIconUrl, slug } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './constants'
 import type { IChainOverviewData } from './types'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
-
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
 
 interface ChainChartPanelProps {
 	charts: IChainOverviewData['charts']
@@ -90,7 +92,7 @@ export function ChainChartPanel({
 	const imageExportFilename = slug(metadata.name)
 	const imageExportTitle = metadata.name === 'All' ? 'All Chains' : metadata.name
 
-	const updateGroupBy = (newGroupBy: string) => {
+	const updateGroupBy = (newGroupBy: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: newGroupBy })
 	}
 
@@ -197,20 +199,11 @@ export function ChainChartPanel({
 				) : null}
 
 				{hasBarChart ? (
-					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{INTERVALS_LIST.map((dataInterval) => (
-							<Tooltip
-								content={capitalizeFirstLetter(dataInterval)}
-								render={<button />}
-								className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-								data-active={groupBy === dataInterval}
-								onClick={() => updateGroupBy(dataInterval)}
-								key={`${chain}-overview-groupBy-${dataInterval}`}
-							>
-								{dataInterval.slice(0, 1).toUpperCase()}
-							</Tooltip>
-						))}
-					</div>
+					<ChartGroupingSelector
+						value={groupBy}
+						onValueChange={updateGroupBy}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+					/>
 				) : null}
 				<EmbedChart />
 				<CSVDownloadButton prepareCsv={prepareCsv} smol />

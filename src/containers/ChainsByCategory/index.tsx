@@ -1,8 +1,7 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { ensureChronologicalRows, preparePieChartData } from '~/components/ECharts/utils'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import {

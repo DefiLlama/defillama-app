@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import toast from 'react-hot-toast'
 import { Bookmark } from '~/components/Bookmark'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
@@ -17,8 +18,13 @@ import { KeyMetrics } from './KeyMetrics'
 import type { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
 
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 interface IStatsProps extends IChainOverviewData {
 	hideChart?: boolean
 }
@@ -58,13 +64,9 @@ export function Stats(props: IStatsProps) {
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+		const groupByParam = searchParams.get('groupBy')
 
-		const groupBy =
-			hasAtleasOneBarChart && searchParams.get('groupBy')
-				? INTERVALS_LIST.includes(searchParams.get('groupBy') as any)
-					? (searchParams.get('groupBy') as any)
-					: 'daily'
-				: 'daily'
+		const groupBy = hasAtleasOneBarChart && groupByParam ? (normalizeChartInterval(groupByParam) ?? 'daily') : 'daily'
 
 		const currencyInSearchParams = searchParams.get('currency')?.toLowerCase()
 

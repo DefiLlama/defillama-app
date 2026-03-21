@@ -1,12 +1,16 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { IconsRow } from '~/components/IconsRow'
 import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
 import type { ETFOverviewProps, IETFSnapshotRow } from './types'
@@ -19,21 +23,13 @@ const ASSETS = [
 	{ key: 'solana', name: 'Solana', iconUrl: 'https://icons.llamao.fi/icons/protocols/solana' }
 ] as const
 
-const GROUP_BY_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-type GroupBy = (typeof GROUP_BY_LIST)[number]
-
-const GROUP_BY_TO_CHART_GROUP: Record<GroupBy, 'daily' | 'weekly' | 'monthly'> = {
-	Daily: 'daily',
-	Weekly: 'weekly',
-	Monthly: 'monthly',
-	Cumulative: 'daily'
-}
+type GroupBy = LowercaseDwmcGrouping
 
 const ASSET_VALUES = ['Bitcoin', 'Ethereum', 'Solana'] as const
 const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 
 export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETFOverviewProps) => {
-	const [groupBy, setGroupBy] = React.useState<GroupBy>('Weekly')
+	const [groupBy, setGroupBy] = React.useState<GroupBy>('weekly')
 	const [tickers, setTickers] = React.useState<string[]>(['Bitcoin', 'Ethereum', 'Solana'])
 	const setTickersFromSelect: React.Dispatch<React.SetStateAction<Array<string> | string>> = React.useCallback(
 		(next) => {
@@ -63,9 +59,9 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 		// without Bitcoin are dropped, while `totalBitcoin`/`totalEthereum`/`totalSolana` stay aligned.
 		for (const [flowDate, flowEntry] of Object.entries(flows)) {
 			const date =
-				groupBy === 'Daily' || groupBy === 'Cumulative'
+				groupBy === 'daily' || groupBy === 'cumulative'
 					? flowDate
-					: groupBy === 'Weekly'
+					: groupBy === 'weekly'
 						? lastDayOfWeek(+flowDate)
 						: firstDayOfMonth(+flowDate)
 
@@ -77,14 +73,14 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				solana[date] = (solana[date] ?? 0) + (flowEntry['Solana'] ?? 0) + totalSolana
 			}
 
-			if (groupBy === 'Cumulative') {
+			if (groupBy === 'cumulative') {
 				totalBitcoin += flowEntry['Bitcoin'] ?? 0
 				totalEthereum += flowEntry['Ethereum'] ?? 0
 				totalSolana += flowEntry['Solana'] ?? 0
 			}
 		}
 
-		const seriesType: 'line' | 'bar' = groupBy === 'Cumulative' ? 'line' : 'bar'
+		const seriesType: 'line' | 'bar' = groupBy === 'cumulative' ? 'line' : 'bar'
 		const source: Array<Record<string, number | null>> = []
 		for (const [date] of Object.entries(bitcoin)) {
 			source.push({
@@ -171,7 +167,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-2">
 					<div className="flex flex-wrap justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
-						<TagGroup setValue={(val) => setGroupBy(val)} values={GROUP_BY_LIST} selectedValue={groupBy} />
+						<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
 						<Select
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}
@@ -187,7 +183,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 						<MultiSeriesChart2
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
-							groupBy={GROUP_BY_TO_CHART_GROUP[groupBy]}
+							groupBy={groupBy}
 							onReady={handleChartReady}
 						/>
 					</React.Suspense>

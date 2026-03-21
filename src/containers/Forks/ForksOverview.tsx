@@ -1,6 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'

@@ -4,16 +4,20 @@ import { type ComponentType, lazy, Suspense, useDeferredValue, useMemo } from 'r
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { prepareChartCsv } from '~/components/ECharts/utils'
 import { EmbedChart } from '~/components/EmbedChart'
 import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
-import { Tooltip } from '~/components/Tooltip'
 import { serializeProtocolChartToMultiChart } from '~/containers/ProDashboard/utils/chartSerializer'
 import { useDarkModeManager, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { useIsClient } from '~/hooks/useIsClient'
-import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
+import { slug, tokenIconUrl } from '~/utils'
 import { pushShallowQuery } from '~/utils/routerQuery'
 import { BAR_CHARTS, protocolCharts, type ProtocolChartsLabels } from './constants'
 import type { IProtocolOverviewPageData, IToggledMetrics, IProtocolCoreChartProps } from './types'
@@ -33,10 +37,12 @@ const resolveVisibility = ({
 
 const getQueryValueOnRemove = (isDefaultEnabled: boolean): 'false' | null => (isDefaultEnabled ? 'false' : null)
 
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-type ChartInterval = (typeof INTERVALS_LIST)[number]
-const isChartInterval = (value: string | null): value is ChartInterval =>
-	value != null && INTERVALS_LIST.includes(value as (typeof INTERVALS_LIST)[number])
+const isChartInterval = (value: string | null): value is LowercaseDwmcGrouping =>
+	value != null && DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === value)
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	return isChartInterval(normalizedValue) ? normalizedValue : null
+}
 
 const ProtocolChart = lazy(() =>
 	import('./Chart').then((m) => ({ default: m.default as ComponentType<IProtocolCoreChartProps> }))
@@ -91,10 +97,11 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: (() => {
-				if (!hasAtleasOneBarChart) return 'daily' as ChartInterval
-				const groupByParam = searchParams.get('groupBy')
-				if (isChartInterval(groupByParam)) return groupByParam
-				return (props.defaultChartView ?? 'daily') as ChartInterval
+				if (!hasAtleasOneBarChart) return 'daily'
+				// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
+				const groupByParam = normalizeChartInterval(searchParams.get('groupBy'))
+				if (groupByParam) return groupByParam
+				return normalizeChartInterval(props.defaultChartView) ?? 'daily'
 			})(),
 			defaultEnabledCharts
 		}
@@ -286,24 +293,15 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 						</div>
 					) : null}
 					{hasAtleasOneBarChart ? (
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-							{INTERVALS_LIST.map((dataInterval) => (
-								<Tooltip
-									content={capitalizeFirstLetter(dataInterval)}
-									render={<button />}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={groupBy === dataInterval}
-									onClick={() => {
-										void pushShallowQuery(router, {
-											groupBy: dataInterval
-										})
-									}}
-									key={`${props.name}-overview-groupBy-${dataInterval}`}
-								>
-									{dataInterval.slice(0, 1).toUpperCase()}
-								</Tooltip>
-							))}
-						</div>
+						<ChartGroupingSelector
+							value={groupBy}
+							onValueChange={(dataInterval) => {
+								void pushShallowQuery(router, {
+									groupBy: dataInterval
+								})
+							}}
+							options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+						/>
 					) : null}
 					<EmbedChart />
 					<AddToDashboardButton chartConfig={multiChart} unsupportedMetrics={unsupportedMetrics} smol />

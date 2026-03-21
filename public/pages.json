@@ -64,13 +64,6 @@
       "oldName": "Top Protocols"
     },
     {
-      "name": "Total Staked by Protocol",
-      "route": "/total-staked",
-      "category": "Total Value Locked",
-      "description": "Total value of the protocol's own tokens staked on their platform",
-      "tab": "Protocols"
-    },
-    {
       "name": "Forks",
       "route": "/forks",
       "category": "Total Value Locked",
@@ -79,6 +72,13 @@
       "tab": "Protocols",
       "oldCategory": "Market Overview",
       "oldName": "Forks"
+    },
+    {
+      "name": "Total Staked by Protocol",
+      "route": "/total-staked",
+      "category": "Total Value Locked",
+      "description": "Total value of the protocol's own tokens staked on their platform",
+      "tab": "Protocols"
     },
     {
       "name": "Bridged TVL by Chain",
@@ -512,6 +512,26 @@
       "description": "Overview of all Real World Assets (RWAs) by platform"
     },
     {
+      "name": "Bridges by Volume",
+      "route": "/bridges",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol",
+      "totalTrackedKey": "bridges.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Bridges",
+      "oldName": "Overview"
+    },
+    {
+      "name": "Bridge Volume by Chain",
+      "route": "/bridges/chains",
+      "category": "Bridge",
+      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
+      "totalTrackedKey": "bridges.chains",
+      "tab": "Chains",
+      "oldCategory": "Bridges",
+      "oldName": "Chains"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -545,26 +565,6 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
-    },
-    {
-      "name": "Bridges by Volume",
-      "route": "/bridges",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol",
-      "totalTrackedKey": "bridges.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Bridges",
-      "oldName": "Overview"
-    },
-    {
-      "name": "Bridge Volume by Chain",
-      "route": "/bridges/chains",
-      "category": "Bridge",
-      "description": "Sum of the value of all assets that were bridged through the protocol on each chain",
-      "totalTrackedKey": "bridges.chains",
-      "tab": "Chains",
-      "oldCategory": "Bridges",
-      "oldName": "Chains"
     },
     {
       "name": "Hacks: Overview",

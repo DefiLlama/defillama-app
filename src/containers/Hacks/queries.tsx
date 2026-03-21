@@ -1,4 +1,4 @@
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { CHART_COLORS } from '~/constants/colors'
 import { firstDayOfMonth, formattedNum, slug } from '~/utils'
 import type { IProtocolMetadata } from '~/utils/metadata/types'

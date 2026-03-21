@@ -3,11 +3,15 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { LoadingDots } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
@@ -22,12 +26,8 @@ import { getChartDataByChainAndInterval } from './utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-
 const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
-type AdapterByChainInterval = (typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]
 type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
-type ChainsByAdapterInterval = AdapterByChainInterval
 const CHART_TYPES_CHAINS_BY_ADAPTER = ['Volume', 'Dominance'] as const
 type ChainsByAdapterChartType = (typeof CHART_TYPES_CHAINS_BY_ADAPTER)[number]
 
@@ -41,10 +41,11 @@ export const AdapterByChainChart = ({
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
-	const chartInterval = React.useMemo<AdapterByChainInterval>(() => {
+	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
+		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
-		const matchedInterval = INTERVALS_LIST_ADAPTER_BY_CHAIN.find((interval) => interval.toLowerCase() === groupByParam)
-		return matchedInterval ?? 'Daily'
+		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
+		return matchedInterval?.value ?? 'daily'
 	}, [router.query.groupBy])
 	const chartViewMode = React.useMemo<AdapterByChainViewMode>(() => {
 		const chartViewParam = readSingleQueryValue(router.query.chartView)?.toLowerCase()
@@ -86,8 +87,8 @@ export const AdapterByChainChart = ({
 		return breakdownProtocolDimensions.filter((d) => selectedProtocolsSet.has(d))
 	}, [metricDimensions, chartViewMode, breakdownChartData, selectedProtocols, breakdownProtocolDimensions])
 
-	const onChangeChartInterval = (nextInterval: AdapterByChainInterval) => {
-		void pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
 		void pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
@@ -95,25 +96,18 @@ export const AdapterByChainChart = ({
 
 	const isBreakdownMode = chartViewMode === 'Breakdown' && breakdownChartData != null
 	const finalCharts = React.useMemo(() => {
-		const isDaily = chartInterval === 'Daily'
-		const groupBy =
-			chartInterval === 'Weekly'
-				? 'weekly'
-				: chartInterval === 'Monthly'
-					? 'monthly'
-					: chartInterval === 'Cumulative'
-						? 'cumulative'
-						: 'daily'
-		const isCumulative = chartInterval === 'Cumulative'
+		const isDaily = chartInterval === 'daily'
+
+		const isCumulative = chartInterval === 'cumulative'
 		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			// In breakdown mode dimensions are protocol names, not metric names, so
-			// isIntrinsicLineSeries is false. Fall back to checking the chart-level name
-			// so line-type charts (Open Interest, Active Liquidity) stay as lines.
-			const isLineChart = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
-			const type = isLineChart || isCumulative ? ('line' as const) : ('bar' as const)
-			const stack = isBreakdownMode && !isLineChart ? 'protocol-breakdown' : undefined
+			// Snapshot metrics (Open Interest, Active Liquidity) take last-value-per-period;
+			// flow metrics (fees, volume) sum per period. In breakdown mode dimensions are
+			// protocol names, so fall back to chartName to inherit the metric's semantics.
+			const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
+			const type = isSnapshotMetric || isCumulative ? ('line' as const) : ('bar' as const)
+			const stack = isBreakdownMode && !isSnapshotMetric ? 'protocol-breakdown' : undefined
 			if (isDaily) {
 				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
@@ -126,18 +120,23 @@ export const AdapterByChainChart = ({
 				})
 				.filter((item): item is [number, number] => item != null)
 
-			// Use the same line/bar decision for aggregation and rendering so breakdown
-			// series under line-dimension charts keep latest-per-period semantics.
-			const data = isLineChart
+			// Snapshot metrics (OI, Active Liquidity) are point-in-time values — summing
+			// them is meaningless, so they always use formatLineChart (last-value-per-period).
+			// When chartInterval is 'cumulative', formatLineChart falls through to daily
+			// passthrough which is correct: "cumulative OI" has no meaning, so we just
+			// show the raw snapshot values alongside any cumulative flow series.
+			// Flow metrics (fees, volume) sum per period via formatBarChart, which also
+			// handles cumulative running totals.
+			const data = isSnapshotMetric
 				? formatLineChart({
 						data: rawData,
-						groupBy,
+						groupBy: chartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 				: formatBarChart({
 						data: rawData,
-						groupBy,
+						groupBy: chartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
@@ -200,11 +199,11 @@ export const AdapterByChainChart = ({
 		if (!dashboardChartType) return null
 
 		const grouping =
-			chartInterval === 'Daily'
+			chartInterval === 'daily'
 				? 'day'
-				: chartInterval === 'Weekly'
+				: chartInterval === 'weekly'
 					? 'week'
-					: chartInterval === 'Monthly'
+					: chartInterval === 'monthly'
 						? 'month'
 						: 'day'
 
@@ -223,7 +222,7 @@ export const AdapterByChainChart = ({
 				}
 			],
 			grouping,
-			showCumulative: chartInterval === 'Cumulative'
+			showCumulative: chartInterval === 'cumulative'
 		}
 	}, [chain, adapterType, dashboardChartType, chartInterval, chartName])
 
@@ -256,20 +255,12 @@ export const AdapterByChainChart = ({
 					/>
 				) : null}
 				{LINE_DIMENSIONS.has(chartName) ? null : (
-					<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-							<Tooltip
-								content={dataInterval}
-								render={<button />}
-								className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								onClick={() => onChangeChartInterval(dataInterval)}
-								data-active={dataInterval === chartInterval}
-								key={`${dataInterval}-${chartName}-${chain}`}
-							>
-								{dataInterval.slice(0, 1).toUpperCase()}
-							</Tooltip>
-						))}
-					</div>
+					<ChartGroupingSelector
+						value={chartInterval}
+						onValueChange={onChangeChartInterval}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+						buttonClassName="font-medium data-[active=true]:font-medium"
+					/>
 				)}
 				{chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
 				<ChartExportButtons
@@ -291,7 +282,7 @@ export const AdapterByChainChart = ({
 						dataset={deferredFinalCharts.dataset}
 						charts={deferredFinalCharts.charts}
 						hideDefaultLegend={deferredFinalCharts.charts.length === 1}
-						groupBy={chartInterval === 'Weekly' ? 'weekly' : chartInterval === 'Monthly' ? 'monthly' : 'daily'}
+						groupBy={chartInterval}
 						onReady={handleChartReady}
 					/>
 				</React.Suspense>
@@ -376,16 +367,17 @@ export const ChainsByAdapterChart = ({
 }: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'>) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
-	const chartInterval = React.useMemo<ChainsByAdapterInterval>(() => {
+	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
+		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
-		const matchedInterval = INTERVALS_LIST_ADAPTER_BY_CHAIN.find((interval) => interval.toLowerCase() === groupByParam)
-		return matchedInterval ?? 'Daily'
+		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
+		return matchedInterval?.value ?? 'daily'
 	}, [router.query.groupBy])
 	const chartType = React.useMemo<ChainsByAdapterChartType>(() => {
 		const chartTypeParam = readSingleQueryValue(router.query.chartType)?.toLowerCase()
 		return chartTypeParam === 'dominance' ? 'Dominance' : 'Volume'
 	}, [router.query.chartType])
-	const effectiveInterval: ChainsByAdapterInterval = chartType === 'Dominance' ? 'Daily' : chartInterval
+	const effectiveInterval: LowercaseDwmcGrouping = chartType === 'Dominance' ? 'daily' : chartInterval
 	const selectedChains = React.useMemo(() => {
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
@@ -402,8 +394,8 @@ export const ChainsByAdapterChart = ({
 	}, [chartData, effectiveInterval, selectedChains, chartType])
 	const deferredChartData = React.useDeferredValue(chainsByAdapterChartData)
 
-	const onChangeChartInterval = (nextInterval: ChainsByAdapterInterval) => {
-		void pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartType = (nextChartType: ChainsByAdapterChartType) => {
 		void pushShallowQuery(router, {
@@ -417,20 +409,13 @@ export const ChainsByAdapterChart = ({
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				{chartType === 'Dominance' ? <div className="mr-auto" /> : null}
 				{chartType === 'Dominance' ? null : (
-					<div className="mr-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-							<Tooltip
-								content={dataInterval}
-								render={<button />}
-								className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								onClick={() => onChangeChartInterval(dataInterval)}
-								data-active={dataInterval === chartInterval}
-								key={`chains-by-adapter-${dataInterval}`}
-							>
-								{dataInterval.slice(0, 1).toUpperCase()}
-							</Tooltip>
-						))}
-					</div>
+					<ChartGroupingSelector
+						value={chartInterval}
+						onValueChange={onChangeChartInterval}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+						className="mr-auto"
+						buttonClassName="font-medium data-[active=true]:font-medium"
+					/>
 				)}
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{CHART_TYPES_CHAINS_BY_ADAPTER.map((currentChartType) => (
@@ -478,7 +463,9 @@ export const ChainsByAdapterChart = ({
 						: {})}
 					{...(chartType === 'Dominance'
 						? {}
-						: { groupBy: chartInterval === 'Weekly' ? 'weekly' : chartInterval === 'Monthly' ? 'monthly' : 'daily' })}
+						: {
+								groupBy: chartInterval
+							})}
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>

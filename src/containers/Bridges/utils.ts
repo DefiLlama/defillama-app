@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { getPercentChange, getPrevVolumeFromChart, keepNeededProperties, slug } from '~/utils'
 import { BRIDGE_PROPERTIES_TO_KEEP } from './constants'
 
