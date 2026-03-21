@@ -17,6 +17,14 @@ import { BAR_CHARTS, type ChainChartLabels, chainCharts } from './constants'
 import { KeyMetrics } from './KeyMetrics'
 import type { IChainOverviewData } from './types'
 import { useFetchChainChartData } from './useFetchChainChartData'
+
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 interface IStatsProps extends IChainOverviewData {
 	hideChart?: boolean
 }
@@ -56,13 +64,9 @@ export function Stats(props: IStatsProps) {
 		) as ChainChartLabels[]
 
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
+		const groupByParam = searchParams.get('groupBy')
 
-		const groupBy =
-			hasAtleasOneBarChart && searchParams.get('groupBy')
-				? DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === searchParams.get('groupBy'))
-					? (searchParams.get('groupBy') as LowercaseDwmcGrouping)
-					: 'daily'
-				: 'daily'
+		const groupBy = hasAtleasOneBarChart && groupByParam ? (normalizeChartInterval(groupByParam) ?? 'daily') : 'daily'
 
 		const currencyInSearchParams = searchParams.get('currency')?.toLowerCase()
 

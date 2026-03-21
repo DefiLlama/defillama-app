@@ -15,6 +15,14 @@ import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
+
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 export const getStaticProps = withPerformanceLogging(
 	'chart/protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
@@ -115,12 +123,7 @@ export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 			toggledMetrics,
 			toggledCharts,
 			hasAtleasOneBarChart,
-			groupBy: hasAtleasOneBarChart
-				? typeof queryParams.groupBy === 'string' &&
-					DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === queryParams.groupBy)
-					? (queryParams.groupBy as LowercaseDwmcGrouping)
-					: 'daily'
-				: 'daily',
+			groupBy: hasAtleasOneBarChart ? (normalizeChartInterval(queryParams.groupBy) ?? 'daily') : 'daily',
 			tvlSettings,
 			feesSettings
 		}

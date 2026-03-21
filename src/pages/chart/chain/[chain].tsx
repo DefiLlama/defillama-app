@@ -14,6 +14,14 @@ import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
@@ -92,11 +100,7 @@ export default function ChainChartPage(props) {
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		const groupBy =
-			hasAtleasOneBarChart && queryParams?.groupBy
-				? DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === queryParams.groupBy)
-					? (queryParams.groupBy as LowercaseDwmcGrouping)
-					: 'daily'
-				: 'daily'
+			hasAtleasOneBarChart && queryParams?.groupBy ? (normalizeChartInterval(queryParams.groupBy) ?? 'daily') : 'daily'
 
 		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 

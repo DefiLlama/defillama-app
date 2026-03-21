@@ -97,7 +97,7 @@ export function ProtocolChartPanel(props: IProtocolOverviewPageData) {
 			toggledCharts,
 			hasAtleasOneBarChart,
 			groupBy: (() => {
-				if (!hasAtleasOneBarChart) return 'daily' as LowercaseDwmcGrouping
+				if (!hasAtleasOneBarChart) return 'daily'
 				// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 				const groupByParam = normalizeChartInterval(searchParams.get('groupBy'))
 				if (groupByParam) return groupByParam

@@ -112,6 +112,14 @@ const EMPTY_CHART_RESULT = {
 	charts: [] as NonNullable<IMultiSeriesChart2Props['charts']>
 }
 
+const normalizeChartGroup = (value: string | null | undefined): LowercaseDwmGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWM_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmGrouping
+	}
+	return null
+}
+
 function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: any[]; initialNowSec: number }) {
 	const router = useRouter()
 
@@ -125,9 +133,7 @@ function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: an
 	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
 	const timePeriod: LowercaseDwmGrouping =
 		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
-		chartGroupParam && DWM_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === chartGroupParam.toLowerCase())
-			? (chartGroupParam.toLowerCase() as LowercaseDwmGrouping)
-			: 'weekly'
+		normalizeChartGroup(chartGroupParam) ?? 'weekly'
 
 	const chartViewParam = readSingleQueryValue(router.query.chartView)
 	const viewMode: ViewMode =
