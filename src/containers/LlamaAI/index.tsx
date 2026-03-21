@@ -37,7 +37,8 @@ import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal
 import {
 	checkActiveExecution,
 	fetchAgenticResponse,
-	resumeAgenticStream
+	resumeAgenticStream,
+	stopAgenticExecution
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
@@ -1547,9 +1548,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// Stop the active streamed response while preserving already-buffered output.
 	const handleStopRequest = useCallback(() => {
+		if (sessionId) void stopAgenticExecution(sessionId)
 		void abortActiveRequest()
 		dispatchStream({ type: 'RESET_STREAM' })
-	}, [abortActiveRequest])
+	}, [sessionId, abortActiveRequest])
 
 	// Reuse the same submit path for assistant action buttons.
 	const handleActionClick = useCallback(

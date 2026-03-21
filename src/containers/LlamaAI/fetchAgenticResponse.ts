@@ -407,6 +407,12 @@ export async function fetchAgenticResponse({
 	return parseSSEStream(response.body.getReader(), callbacks, abortSignal)
 }
 
+export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
+	try {
+		await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stop/${encodeURIComponent(sessionId)}`, { method: 'POST' })
+	} catch {}
+}
+
 // Probe whether a restored session still has a live execution that needs to be resumed client-side.
 export async function checkActiveExecution(
 	sessionId: string,
