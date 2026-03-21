@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import { lazy, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
+import { lazy, type ReactNode, startTransition, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import {
 	ChartGroupingSelector,
 	DWM_GROUPING_OPTIONS_LOWERCASE,
@@ -13,6 +13,8 @@ interface BridgeVolumeChartProps {
 	data: any[]
 	height?: string
 	onReady?: (instance: any | null) => void
+	headerStart?: ReactNode
+	headerEnd?: ReactNode
 }
 
 type TimePeriod = LowercaseDwmGrouping
@@ -41,7 +43,7 @@ const COMBINED_CHARTS = [
 	{ type: 'bar' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' }, color: '#22c55e' }
 ]
 
-export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartProps) {
+export function BridgeVolumeChart({ data, height, onReady, headerStart, headerEnd }: BridgeVolumeChartProps) {
 	const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
 	const [metricType, setMetricType] = useState<MetricType>('Volume')
 	const [viewType, setViewType] = useState<ViewType>('Split')
@@ -121,36 +123,25 @@ export function BridgeVolumeChart({ data, height, onReady }: BridgeVolumeChartPr
 
 	return (
 		<>
-			<div className="mx-auto flex w-full max-w-2xl flex-col gap-2 overflow-x-auto p-3 sm:flex-row sm:flex-wrap sm:justify-center md:gap-4">
-				<fieldset className="flex flex-1 flex-col gap-1">
-					<legend className="text-xs font-medium text-(--text-secondary)">Time Period:</legend>
-					<ChartGroupingSelector
-						value={timePeriod}
-						setValue={setTimePeriod}
-						options={DWM_GROUPING_OPTIONS_LOWERCASE}
-						className="w-full *:flex-1"
-					/>
-				</fieldset>
-
-				<fieldset className="flex flex-1 flex-col gap-1">
-					<legend className="text-xs font-medium text-(--text-secondary)">View:</legend>
-					<TagGroup
-						selectedValue={viewType}
-						setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
-						values={VIEW_TYPES}
-						className="w-full *:flex-1"
-					/>
-				</fieldset>
-
-				<fieldset className="flex flex-1 flex-col gap-1">
-					<legend className="text-xs font-medium text-(--text-secondary)">Metric:</legend>
-					<TagGroup
-						selectedValue={metricType}
-						setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
-						values={METRIC_TYPES}
-						className="w-full *:flex-1"
-					/>
-				</fieldset>
+			<div className="flex flex-wrap items-center justify-end gap-2 p-2">
+				{headerStart}
+				<ChartGroupingSelector
+					value={timePeriod}
+					setValue={setTimePeriod}
+					options={DWM_GROUPING_OPTIONS_LOWERCASE}
+					className={headerStart ? undefined : 'mr-auto'}
+				/>
+				<TagGroup
+					selectedValue={viewType}
+					setValue={(newViewType) => startTransition(() => setViewType(newViewType))}
+					values={VIEW_TYPES}
+				/>
+				<TagGroup
+					selectedValue={metricType}
+					setValue={(newMetricType) => startTransition(() => setMetricType(newMetricType))}
+					values={METRIC_TYPES}
+				/>
+				{headerEnd}
 			</div>
 
 			<Suspense fallback={<div style={{ height: height ?? '360px' }} />}>
