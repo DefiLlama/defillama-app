@@ -1,9 +1,22 @@
 import { firstDayOfMonth, lastDayOfWeek, toNiceCsvDate } from '~/utils'
 
+/** Generate a random 6-digit hex colour string (e.g. `"#a3f04c"`). */
 export function stringToColour() {
 	return '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0')
 }
 
+/**
+ * Transform raw time-series tuples into `[timestampMs, value]` pairs for ECharts bar series.
+ * Values within the same period are **summed** (appropriate for bar/volume charts).
+ * When `groupBy` is `'cumulative'`, a running total is computed across all periods.
+ *
+ * @param data - Raw data as `[date, value]` tuples (date in seconds or ms depending on `dateInMs`).
+ * @param groupBy - Temporal bucketing strategy: `'daily'` passes through, `'weekly'`/`'monthly'`
+ *   bucket by week/month end/start, and `'cumulative'` computes a running total.
+ * @param dateInMs - When true, incoming dates are already in milliseconds (default: seconds).
+ * @param denominationPriceHistory - Optional price map to convert values into an alternative denomination.
+ * @returns Chronologically sorted `[timestampMs, value | null]` tuples.
+ */
 export const formatBarChart = ({
 	data,
 	groupBy,
@@ -71,6 +84,20 @@ export const formatBarChart = ({
 	}
 }
 
+/**
+ * Transform raw time-series tuples into `[timestampMs, value]` pairs for ECharts line series.
+ * Unlike {@link formatBarChart}, values within the same period are **not** summed — the last
+ * value for each bucket wins (point-in-time snapshot, appropriate for line charts).
+ *
+ * `'cumulative'` is intentionally not handled here; callers either precompute running totals
+ * or reuse `formatBarChart(..., 'cumulative')` and render the result as a line.
+ *
+ * @param data - Raw data as `[date, value]` tuples (date in seconds or ms depending on `dateInMs`).
+ * @param groupBy - Temporal bucketing strategy.
+ * @param dateInMs - When true, incoming dates are already in milliseconds (default: seconds).
+ * @param denominationPriceHistory - Optional price map to convert values into an alternative denomination.
+ * @returns Chronologically sorted `[timestampMs, value | null]` tuples.
+ */
 export const formatLineChart = ({
 	data,
 	groupBy,
@@ -126,6 +153,15 @@ export const formatLineChart = ({
 	}
 }
 
+/**
+ * Merge multiple named chart series into a single CSV-ready structure.
+ * Each row contains a timestamp, a human-readable date, and one column per series.
+ * Rows are sorted chronologically by timestamp.
+ *
+ * @param data - Map of series name → `[timestampMs, value]` tuples.
+ * @param filename - Desired filename for the exported CSV.
+ * @returns `{ filename, rows }` where rows include a header row followed by data rows.
+ */
 export function prepareChartCsv(data: Record<string, Array<[string | number, number | null]>>, filename: string) {
 	let rows = []
 	const charts = []
@@ -151,6 +187,11 @@ export function prepareChartCsv(data: Record<string, Array<[string | number, num
 	return { filename, rows: rows.sort((a, b) => a[0] - b[0]) }
 }
 
+/**
+ * Return rows sorted by `timestamp` ascending. Performs an optimistic linear scan first —
+ * if the rows are already in order the original array is returned without allocating a copy.
+ * Only falls back to a full sort when an out-of-order element is detected.
+ */
 export function ensureChronologicalRows<T extends { timestamp?: number | string }>(rows: T[]) {
 	if (rows.length < 2) return rows
 
@@ -166,7 +207,13 @@ export function ensureChronologicalRows<T extends { timestamp?: number | string 
 	return rows
 }
 
-// Deep merge function for nested objects
+/**
+ * Recursively merge `source` into `target`, returning a new object.
+ * - Arrays are concatenated (target first, then source).
+ * - Nested plain objects are merged recursively.
+ * - Primitives and non-object sources overwrite the target value.
+ * - `null`/`undefined` sources leave the target unchanged.
+ */
 export function mergeDeep(target: any, source: any): any {
 	if (source == null) return target
 	if (Array.isArray(source) && Array.isArray(target)) return [...target, ...source]

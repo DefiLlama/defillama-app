@@ -11,15 +11,26 @@ type TooltipGroupBy = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 
 
 type TooltipRow = { marker: string; name: string; value: number }
 
+/** Type guard that narrows `value` to a plain object (excludes arrays and nulls). */
 export function isTooltipDataRecord(value: unknown): value is Record<string, unknown> {
 	return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
+/**
+ * Safely cast `value` to a shallow-copied record, or return `null` if it isn't a plain object.
+ * The shallow copy prevents mutation of the original tooltip data.
+ */
 export function asTooltipDataRecord(value: unknown): Record<string, unknown> | null {
 	if (!isTooltipDataRecord(value)) return null
 	return { ...value }
 }
 
+/**
+ * Extract the x-axis timestamp (in ms) from the first ECharts tooltip param.
+ * Handles multiple data shapes: object-row datasets with a `timestamp` field,
+ * `[ts, y]` value arrays, nested value objects, and raw `axisValue` strings/numbers.
+ * @returns The resolved timestamp, or `NaN` if none could be determined.
+ */
 function getAxisValueFromTooltipParams(first: any): number {
 	const dataObj = asTooltipDataRecord(first?.data)
 	if (dataObj && 'timestamp' in dataObj) {
@@ -47,6 +58,11 @@ function getAxisValueFromTooltipParams(first: any): number {
 	return Number.isFinite(parsed) ? parsed : Number.NaN
 }
 
+/**
+ * Extract the raw y-value for a named series from an ECharts tooltip item.
+ * Tries object-row `data[seriesName]` first, then falls back to `value[1]`
+ * (array format) and finally the bare `value` property.
+ */
 function getTooltipRawYValue(item: any, seriesName: string): any {
 	const dataObj = asTooltipDataRecord(item?.data)
 
@@ -60,6 +76,17 @@ function getTooltipRawYValue(item: any, seriesName: string): any {
 	return item?.value
 }
 
+/**
+ * Factory that returns an ECharts tooltip formatter optimised for inflow/outflow charts.
+ * Only the top-N series (ranked by absolute value) are shown individually; the rest are
+ * collapsed into a single "Others" row. A bolded total line is appended at the bottom.
+ *
+ * @param groupBy - Date grouping used to format the header date.
+ * @param valueSymbol - Unit symbol (`'$'`, `'%'`, etc.) passed to {@link formatTooltipValue}.
+ * @param topN - Maximum number of individual series rows to display.
+ * @param othersLabel - Label for the aggregated remainder row.
+ * @param totalLabel - Label for the sum-total row.
+ */
 export function createInflowsTooltipFormatter({
 	groupBy = 'daily',
 	valueSymbol,
@@ -150,6 +177,14 @@ export function createInflowsTooltipFormatter({
 	}
 }
 
+/**
+ * Factory that returns an ECharts tooltip formatter showing all non-zero series
+ * sorted by absolute value (descending) with a bolded total row at the bottom.
+ *
+ * @param groupBy - Date grouping used to format the header date.
+ * @param valueSymbol - Unit symbol (`'$'`, `'%'`, etc.) passed to {@link formatTooltipValue}.
+ * @param totalLabel - Label for the sum-total row.
+ */
 export function createAggregateTooltipFormatter({
 	groupBy = 'daily',
 	valueSymbol,
@@ -234,6 +269,11 @@ export function formatTvlApyTooltip(params: any) {
 	)
 }
 
+/**
+ * Format a numeric value for display in a tooltip, applying the appropriate unit.
+ * `'$'` uses abbreviated currency formatting, `'%'` rounds to two decimals,
+ * and any other symbol is appended after a formatted number.
+ */
 export const formatTooltipValue = (value: number, symbol: string) => {
 	switch (symbol) {
 		case '$':
@@ -247,8 +287,19 @@ export const formatTooltipValue = (value: number, symbol: string) => {
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-// timestamps in monthly chart date is 1st of every month
-// timestamps in weekly chart date is last day of week i.e., sunday
+/**
+ * Format a timestamp (in ms) as a human-readable date string for chart tooltips.
+ * The output format varies by `groupBy`:
+ * - `'weekly'`    → `"DD MMM - DD MMM YYYY"` (Mon–Sun range)
+ * - `'monthly'`   → `"MMM 1 - lastDay, YYYY"`
+ * - `'quarterly'` → `"MMM 1 - MMM lastDay, YYYY"`
+ * - `'yearly'`    → `"Jan 1 - Dec 31, YYYY"`
+ * - `'daily'` / `'cumulative'` → `"DD MMM YYYY"` (with time if intraday and `hideTime` is false)
+ *
+ * @param value - Timestamp in milliseconds.
+ * @param groupBy - Temporal grouping that determines the date format.
+ * @param hideTime - When true, suppresses the time portion for intraday daily timestamps.
+ */
 export function formatTooltipChartDate(value: number, groupBy: TooltipGroupBy, hideTime?: boolean) {
 	const date = new Date(value)
 
@@ -278,6 +329,10 @@ export function formatTooltipChartDate(value: number, groupBy: TooltipGroupBy, h
 	}
 }
 
+/**
+ * Format a timestamp (in ms) as a short locale date string (`MM/DD/YYYY` in most locales)
+ * for use in chart emphasis/highlight labels.
+ */
 export function formatChartEmphasisDate(value: number) {
 	const date = new Date(value)
 	return date.toLocaleDateString(undefined, {
@@ -288,6 +343,12 @@ export function formatChartEmphasisDate(value: number) {
 	})
 }
 
+/**
+ * Format a 7-day range string from a week-ending timestamp.
+ * Cross-month and cross-year boundaries are handled by conditionally including
+ * the month/year on the start date only when they differ from the end date.
+ * @param value - Timestamp (ms) of the last day (Sunday) of the week.
+ */
 function getStartAndEndDayOfTheWeek(value: number) {
 	const current = new Date(value)
 	const past = new Date(value - 6 * 24 * 60 * 60 * 1000)
@@ -302,12 +363,17 @@ function getStartAndEndDayOfTheWeek(value: number) {
 	} - ${current.getUTCDate().toString().padStart(2, '0')} ${currentMonth} ${currentYear}`
 }
 
+/** @returns The last calendar day (1–31) of the month containing the given timestamp. */
 function lastDayOfMonth(dateString: number) {
 	let date = new Date(dateString)
 
 	return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
 }
 
+/**
+ * Format a fiscal-quarter date range string (e.g. `"Jan 1 - Mar 31, 2024"`)
+ * from a timestamp falling anywhere within that quarter.
+ */
 function getQuarterDateRange(value: number) {
 	const date = new Date(value)
 	const month = date.getUTCMonth()
@@ -327,6 +393,18 @@ interface PieChartDataInput {
 	limit?: number
 }
 
+/**
+ * Normalize heterogeneous data (object map or array of records) into a sorted
+ * `{ name, value }[]` array suitable for ECharts pie/doughnut series.
+ * When `limit` is specified, only the top-N slices are kept and the remainder
+ * is merged into a single "Others" entry. Existing "Others" entries in the
+ * source data are consolidated to avoid duplicates.
+ *
+ * @param data - Source data as either a `Record<name, value>` or an array of keyed objects.
+ * @param sliceIdentifier - Key used to read the slice name from array entries (default `'name'`).
+ * @param sliceValue - Key used to read the numeric value from array entries (default `'value'`).
+ * @param limit - Maximum number of individual slices before grouping the rest into "Others".
+ */
 export const preparePieChartData = ({
 	data,
 	sliceIdentifier = 'name',
