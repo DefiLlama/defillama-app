@@ -502,7 +502,7 @@ export async function resumeAgenticStream({
 	from?: number
 	eventCounter?: { count: number }
 }) {
-	const url = from
+	const url = from != null
 		? `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
 		: `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
 	const res = await (fetchFn || fetch)(url, {
