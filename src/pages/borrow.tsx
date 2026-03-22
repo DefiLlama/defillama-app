@@ -7,7 +7,7 @@ import { Announcement } from '~/components/Announcement'
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getLendBorrowData } from '~/containers/Yields/queries/index'
-import { disclaimer, findOptimizerPools } from '~/containers/Yields/utils'
+import { disclaimer, exploitWarning, findOptimizerPools } from '~/containers/Yields/utils'
 import Layout from '~/layout'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
@@ -95,7 +95,7 @@ export default function YieldBorrow(data) {
 				{disclaimer}
 			</Announcement>
 			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
-				USR is depegging following an exploit on Resolv (unauthorized minting of 50M unbacked USR). Protocol functions are paused. Follow Resolv's X for updates.
+				{exploitWarning}
 			</Announcement>
 			<div className="relative mx-auto flex w-full max-w-md flex-col items-center gap-3 rounded-md bg-(--cards-bg) p-3 xl:absolute xl:top-0 xl:right-0 xl:left-0 xl:m-auto xl:mt-[180px]">
 				<div className="flex w-full flex-col gap-2 overflow-y-auto p-3">
