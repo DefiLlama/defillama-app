@@ -49,6 +49,8 @@ export interface StreamState {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	spawnIsResearchMode: boolean
+	executionStartedAt: number
 	recovery: RecoveryState
 	messageMetadata?: MessageMetadata
 	error: string | null
@@ -66,6 +68,7 @@ export interface StreamBuffer {
 	thinking: string
 	hasStartedText: boolean
 	spawnStarted: boolean
+	receivedEventCount: number
 	messageMetadata?: MessageMetadata
 }
 
@@ -87,6 +90,8 @@ export type StreamAction =
 	| { type: 'APPEND_TOOL_CALL'; value: ToolCall }
 	| { type: 'CLEAR_ACTIVITY' }
 	| { type: 'SET_SPAWN_START_TIME'; value: number }
+	| { type: 'SET_SPAWN_RESEARCH_MODE'; value: boolean }
+	| { type: 'SET_EXECUTION_STARTED_AT'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
 	| { type: 'UPDATE_RECOVERY'; attemptCount: number; lastErrorMessage: string | null }
@@ -106,6 +111,8 @@ const createEmptyRuntimeState = () => ({
 	activeToolCalls: [] as ToolCall[],
 	spawnProgress: new Map<string, SpawnAgentStatus>(),
 	spawnStartTime: 0,
+	spawnIsResearchMode: false,
+	executionStartedAt: 0,
 	recovery: {
 		status: 'idle',
 		startedAt: null,
@@ -132,7 +139,8 @@ export const createStreamBuffer = (): StreamBuffer => ({
 	toolExecutions: [],
 	thinking: '',
 	hasStartedText: false,
-	spawnStarted: false
+	spawnStarted: false,
+	receivedEventCount: 0
 })
 
 // Drive the live streaming UI without mutating message history until the request is complete.
@@ -184,6 +192,10 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			}
 		case 'SET_SPAWN_START_TIME':
 			return { ...state, spawnStartTime: action.value }
+		case 'SET_SPAWN_RESEARCH_MODE':
+			return { ...state, spawnIsResearchMode: action.value }
+		case 'SET_EXECUTION_STARTED_AT':
+			return { ...state, executionStartedAt: action.value }
 		case 'UPSERT_SPAWN_PROGRESS': {
 			const next = new Map(state.spawnProgress)
 			const existing = next.get(action.value.id)

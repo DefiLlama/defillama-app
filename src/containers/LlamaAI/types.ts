@@ -224,7 +224,7 @@ export interface ToolCall {
 
 export interface SpawnAgentStatus {
 	id: string
-	status: 'started' | 'tool_call' | 'completed' | 'error'
+	status: 'started' | 'thinking' | 'tool_call' | 'completed' | 'error'
 	tool?: string
 	toolCount?: number
 	chartCount?: number

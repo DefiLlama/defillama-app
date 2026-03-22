@@ -494,7 +494,10 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			if (data.status === 'started' && !buffer.spawnStarted) {
 				buffer.spawnStarted = true
-				dispatch({ type: 'SET_SPAWN_START_TIME', value: Date.now() })
+				dispatch({ type: 'SET_SPAWN_START_TIME', value: data.startedAt || Date.now() })
+				if (data.isResearchMode !== undefined) {
+					dispatch({ type: 'SET_SPAWN_RESEARCH_MODE', value: data.isResearchMode })
+				}
 			}
 			dispatch({
 				type: 'UPSERT_SPAWN_PROGRESS',
@@ -512,9 +515,10 @@ function createAgenticCallbacks({
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			dispatch({ type: 'SET_COMPACTING', value: data.status === 'started' })
 		},
-		onSessionId: (sessionId) => {
+		onSessionId: (sessionId, startedAt) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
 			onSessionId?.(sessionId)
+			if (startedAt) dispatch({ type: 'SET_EXECUTION_STARTED_AT', value: startedAt })
 		},
 		onMessageId: (messageId) => {
 			if (!isActiveRequest(activeRequestIdRef, requestId)) return
@@ -687,6 +691,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		activeToolCalls,
 		spawnProgress,
 		spawnStartTime,
+		spawnIsResearchMode,
+		executionStartedAt,
 		recovery,
 		error,
 		lastFailedRequest,
@@ -850,7 +856,12 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	// Append one message to the live conversation state.
 	const appendMessage = useCallback((message: Message) => {
-		setMessages((prev) => [...prev, message])
+		setMessages((prev) => {
+			if (message.id && prev.some((m) => m.id === message.id)) {
+				return prev.map((m) => (m.id === message.id ? message : m))
+			}
+			return [...prev, message]
+		})
 	}, [])
 
 	const clearRecoveryRetryTimers = useCallback((controller: RecoveryController) => {
@@ -944,11 +955,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								moveSessionToTop(targetSessionId)
 							}
 						})
+						const replayEventCounter = { count: buffer.receivedEventCount }
 						return await resumeAgenticStream({
 							sessionId: targetSessionId,
 							callbacks: replayCallbacks,
 							abortSignal: replayController.signal,
-							fetchFn: authorizedFetchCompat
+							fetchFn: authorizedFetchCompat,
+							from: buffer.receivedEventCount || undefined,
+							eventCounter: replayEventCounter
 						})
 							.then(() => true)
 							.finally(() => {
@@ -1008,11 +1022,14 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 				}
 			})
 
+			const resumeEventCounter = { count: buffer.receivedEventCount }
 			void resumeAgenticStream({
 				sessionId: targetSessionId,
 				callbacks,
 				abortSignal: controller.signal,
-				fetchFn: authorizedFetchCompat
+				fetchFn: authorizedFetchCompat,
+				from: buffer.receivedEventCount,
+				eventCounter: resumeEventCounter
 			})
 				.catch((resumeError: Error) => {
 					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
@@ -1022,6 +1039,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						return
 					}
 					if (onTemporaryDisconnect && isTemporaryConnectivityError(resumeError)) {
+						buffer.receivedEventCount = resumeEventCounter.count
 						onTemporaryDisconnect(resumeError, buffer)
 						return
 					}
@@ -1140,7 +1158,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						exhaustRecovery(latest)
 						return
 					}
-					queueRecoveryAttempt(recoveryId, 250)
+					const baseMs = Math.min(250 * Math.pow(2, latest.attemptCount - 1), 8000)
+					const backoffMs = Math.round(baseMs * (0.5 + Math.random() * 0.5))
+					queueRecoveryAttempt(recoveryId, backoffMs)
 				}
 			})
 			if (didResume) {
@@ -1407,6 +1427,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 					const settleState = createRequestSettleState(requestId)
 					activeRequestSettleRef.current = settleState
 
+					const eventCounter = { count: 0 }
 					void fetchAgenticResponse({
 						message: trimmed,
 						sessionId: currentSessionId,
@@ -1419,6 +1440,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						isSuggestedQuestion,
 						abortSignal: controller.signal,
 						fetchFn: authorizedFetchCompat,
+						eventCounter,
 						callbacks: createAgenticCallbacks({
 							requestId,
 							activeRequestIdRef,
@@ -1491,17 +1513,18 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (
-								currentSessionId &&
-								isTemporaryConnectivityError(err) &&
-								startRecoveryCycle({
-									targetSessionId: currentSessionId,
-									buffer,
-									failedRequest,
-									error: err instanceof Error ? err : new Error(getErrorMessage(err))
-								})
-							) {
-								return
+							if (currentSessionId && isTemporaryConnectivityError(err) && eventCounter.count > 0) {
+								buffer.receivedEventCount = eventCounter.count
+								if (
+									startRecoveryCycle({
+										targetSessionId: currentSessionId,
+										buffer,
+										failedRequest,
+										error: err instanceof Error ? err : new Error(getErrorMessage(err))
+									})
+								) {
+									return
+								}
 							}
 							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
 							dispatchStream({
@@ -1765,6 +1788,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								activeToolCalls={activeToolCalls}
 								spawnProgress={spawnProgress}
 								spawnStartTime={spawnStartTime}
+								executionStartedAt={executionStartedAt}
+								spawnIsResearchMode={spawnIsResearchMode}
 								streamingThinking={streamingThinking}
 								streamingDraft={streamingDraft}
 								isCompacting={isCompacting}
@@ -1817,7 +1842,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						activeToolCalls={activeToolCalls}
 						spawnProgress={spawnProgress}
 						spawnStartTime={spawnStartTime}
+						executionStartedAt={executionStartedAt}
 						streamingThinking={streamingThinking}
+						spawnIsResearchMode={spawnIsResearchMode}
 						streamingDraft={streamingDraft}
 						isCompacting={isCompacting}
 						paginationState={paginationState}
