@@ -11,6 +11,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
+import { Announcement } from '~/components/Announcement'
 import { CHART_COLORS } from '~/constants/colors'
 import type { YieldsChartConfig, YieldChartType } from '~/containers/ProDashboard/types'
 import {
