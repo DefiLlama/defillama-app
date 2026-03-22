@@ -463,8 +463,8 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 									</span>
 								) : null}
 								{agent.status === 'started' || agent.status === 'thinking' ? (
-								<span className="opacity-60"> - {agent.status === 'thinking' ? 'Thinking...' : 'Starting...'}</span>
-							) : null}
+									<span className="opacity-60"> - {agent.status === 'thinking' ? 'Thinking...' : 'Starting...'}</span>
+								) : null}
 								{agent.status === 'error' ? <span className="opacity-60"> - Error</span> : null}
 							</p>
 						</li>

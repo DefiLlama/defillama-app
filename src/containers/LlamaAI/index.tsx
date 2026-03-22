@@ -1507,17 +1507,17 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (
-								currentSessionId &&
-								isTemporaryConnectivityError(err)
-							) {
+							if (currentSessionId && isTemporaryConnectivityError(err)) {
 								buffer.receivedEventCount = eventCounter.count
-								if (startRecoveryCycle({
-									targetSessionId: currentSessionId,
-									buffer,
-									failedRequest,
-									error: err instanceof Error ? err : new Error(getErrorMessage(err))
-								})) return
+								if (
+									startRecoveryCycle({
+										targetSessionId: currentSessionId,
+										buffer,
+										failedRequest,
+										error: err instanceof Error ? err : new Error(getErrorMessage(err))
+									})
+								)
+									return
 							}
 							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
 							dispatchStream({
