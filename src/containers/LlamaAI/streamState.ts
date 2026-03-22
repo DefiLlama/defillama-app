@@ -49,6 +49,7 @@ export interface StreamState {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	spawnIsResearchMode: boolean
 	executionStartedAt: number
 	recovery: RecoveryState
 	messageMetadata?: MessageMetadata
@@ -89,6 +90,7 @@ export type StreamAction =
 	| { type: 'APPEND_TOOL_CALL'; value: ToolCall }
 	| { type: 'CLEAR_ACTIVITY' }
 	| { type: 'SET_SPAWN_START_TIME'; value: number }
+	| { type: 'SET_SPAWN_RESEARCH_MODE'; value: boolean }
 	| { type: 'SET_EXECUTION_STARTED_AT'; value: number }
 	| { type: 'UPSERT_SPAWN_PROGRESS'; value: SpawnAgentStatus }
 	| { type: 'START_RECOVERY'; startedAt: number; lastErrorMessage: string | null }
@@ -109,6 +111,7 @@ const createEmptyRuntimeState = () => ({
 	activeToolCalls: [] as ToolCall[],
 	spawnProgress: new Map<string, SpawnAgentStatus>(),
 	spawnStartTime: 0,
+	spawnIsResearchMode: false,
 	executionStartedAt: 0,
 	recovery: {
 		status: 'idle',
@@ -189,6 +192,8 @@ export function streamReducer(state: StreamState, action: StreamAction): StreamS
 			}
 		case 'SET_SPAWN_START_TIME':
 			return { ...state, spawnStartTime: action.value }
+		case 'SET_SPAWN_RESEARCH_MODE':
+			return { ...state, spawnIsResearchMode: action.value }
 		case 'SET_EXECUTION_STARTED_AT':
 			return { ...state, executionStartedAt: action.value }
 		case 'UPSERT_SPAWN_PROGRESS': {

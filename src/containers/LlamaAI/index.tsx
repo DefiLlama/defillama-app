@@ -495,6 +495,9 @@ function createAgenticCallbacks({
 			if (data.status === 'started' && !buffer.spawnStarted) {
 				buffer.spawnStarted = true
 				dispatch({ type: 'SET_SPAWN_START_TIME', value: data.startedAt || Date.now() })
+				if (data.isResearchMode !== undefined) {
+					dispatch({ type: 'SET_SPAWN_RESEARCH_MODE', value: data.isResearchMode })
+				}
 			}
 			dispatch({
 				type: 'UPSERT_SPAWN_PROGRESS',
@@ -688,6 +691,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		activeToolCalls,
 		spawnProgress,
 		spawnStartTime,
+		spawnIsResearchMode,
 		executionStartedAt,
 		recovery,
 		error,
@@ -1154,7 +1158,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						exhaustRecovery(latest)
 						return
 					}
-					queueRecoveryAttempt(recoveryId, 250)
+					const backoffMs = Math.min(250 * Math.pow(2, latest.attemptCount - 1), 8000)
+					queueRecoveryAttempt(recoveryId, backoffMs)
 				}
 			})
 			if (didResume) {
@@ -1782,6 +1787,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								spawnProgress={spawnProgress}
 								spawnStartTime={spawnStartTime}
 								executionStartedAt={executionStartedAt}
+								spawnIsResearchMode={spawnIsResearchMode}
 								streamingThinking={streamingThinking}
 								streamingDraft={streamingDraft}
 								isCompacting={isCompacting}
@@ -1836,6 +1842,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						spawnStartTime={spawnStartTime}
 						executionStartedAt={executionStartedAt}
 						streamingThinking={streamingThinking}
+						spawnIsResearchMode={spawnIsResearchMode}
 						streamingDraft={streamingDraft}
 						isCompacting={isCompacting}
 						paginationState={paginationState}

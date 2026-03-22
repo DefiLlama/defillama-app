@@ -18,6 +18,7 @@ export interface SpawnProgressData {
 	chartCount?: number
 	findingsPreview?: string
 	startedAt?: number
+	isResearchMode?: boolean
 }
 
 export interface AgenticSSECallbacks {

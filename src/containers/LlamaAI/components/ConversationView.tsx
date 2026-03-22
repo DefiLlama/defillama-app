@@ -22,6 +22,7 @@ interface ConversationViewProps {
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
 	executionStartedAt: number
+	spawnIsResearchMode: boolean
 	streamingThinking: string
 	streamingDraft: Message | null
 	isCompacting: boolean
@@ -94,6 +95,7 @@ function ConversationLiveStatus({
 	spawnProgress,
 	spawnStartTime,
 	executionStartedAt,
+	spawnIsResearchMode,
 	streamingThinking,
 	streamingDraft,
 	isCompacting,
@@ -111,6 +113,7 @@ function ConversationLiveStatus({
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
 	executionStartedAt: number
+	spawnIsResearchMode: boolean
 	streamingThinking: string
 	streamingDraft: Message | null
 	isCompacting: boolean
@@ -135,7 +138,7 @@ function ConversationLiveStatus({
 			) : null}
 
 			<div style={{ overflowAnchor: 'none' }}>
-				{spawnProgress.size > 0 && isResearchMode ? (
+				{spawnProgress.size > 0 && spawnIsResearchMode ? (
 					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} isResearchMode />
 				) : (
 					<ToolProgressIndicator
@@ -200,6 +203,7 @@ export function ConversationView({
 	spawnProgress,
 	spawnStartTime,
 	executionStartedAt,
+	spawnIsResearchMode,
 	streamingThinking,
 	streamingDraft,
 	isCompacting,
@@ -293,6 +297,7 @@ export function ConversationView({
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
 										executionStartedAt={executionStartedAt}
+										spawnIsResearchMode={spawnIsResearchMode}
 										streamingThinking={streamingThinking}
 										streamingDraft={streamingDraft}
 										isCompacting={isCompacting}
@@ -314,6 +319,7 @@ export function ConversationView({
 									spawnStartTime={spawnStartTime}
 									executionStartedAt={executionStartedAt}
 									streamingThinking={streamingThinking}
+									spawnIsResearchMode={spawnIsResearchMode}
 									streamingDraft={streamingDraft}
 									isCompacting={isCompacting}
 									recovery={recovery}
