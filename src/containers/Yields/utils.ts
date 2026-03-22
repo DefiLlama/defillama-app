@@ -624,6 +624,13 @@ export const lockupsCollateral = [
 ]
 export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
 
+export const exploitedProjects = ['resolv-protocol']
+export const exploitedTokens = ['USR']
+
+export function isExploitedPool(project: string, symbol: string): boolean {
+	return exploitedProjects.includes(project) || exploitedTokens.some((t) => symbol?.toUpperCase().includes(t))
+}
+
 export const disclaimer =
 	"DefiLlama doesn't audit nor endorse any of the protocols listed, we just focus on providing accurate data. Ape at your own risk."
 

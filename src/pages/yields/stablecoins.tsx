@@ -28,6 +28,9 @@ export default function YieldPlots(data) {
 			<Announcement announcementId="yields-disclaimer" version="2026-03">
 				{disclaimer}
 			</Announcement>
+			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
+				USR is depegging following an exploit on Resolv (unauthorized minting of 50M unbacked USR). Protocol functions are paused. Follow Resolv's X for updates.
+			</Announcement>
 			<YieldPage {...data} />
 		</Layout>
 	)

@@ -10,7 +10,7 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
@@ -57,13 +57,23 @@ const columns = [
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
+			const exploited = isExploitedPool(row.original.projectslug, value)
 			return (
-				<NameYieldPool
-					value={value}
-					configID={row.original.configID}
-					url={row.original.url}
-					poolMeta={row.original.poolMeta}
-				/>
+				<span className="flex items-center gap-1">
+					<NameYieldPool
+						value={value}
+						configID={row.original.configID}
+						url={row.original.url}
+						poolMeta={row.original.poolMeta}
+					/>
+					{exploited ? (
+						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-red-600 dark:text-red-400">
+								exploit
+							</span>
+						</Tooltip>
+					) : null}
+				</span>
 			)
 		},
 		size: 200
