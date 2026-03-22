@@ -1158,7 +1158,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						exhaustRecovery(latest)
 						return
 					}
-					const backoffMs = Math.min(250 * Math.pow(2, latest.attemptCount - 1), 8000)
+					const baseMs = Math.min(250 * Math.pow(2, latest.attemptCount - 1), 8000)
+					const backoffMs = Math.round(baseMs * (0.5 + Math.random() * 0.5))
 					queueRecoveryAttempt(recoveryId, backoffMs)
 				}
 			})
@@ -1512,7 +1513,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 								return
 							}
-							if (currentSessionId && isTemporaryConnectivityError(err)) {
+							if (currentSessionId && isTemporaryConnectivityError(err) && eventCounter.count > 0) {
 								buffer.receivedEventCount = eventCounter.count
 								if (
 									startRecoveryCycle({
@@ -1521,8 +1522,9 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 										failedRequest,
 										error: err instanceof Error ? err : new Error(getErrorMessage(err))
 									})
-								)
+								) {
 									return
+								}
 							}
 							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
 							dispatchStream({

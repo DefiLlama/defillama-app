@@ -353,11 +353,12 @@ export const SpawnProgressCard = memo(function SpawnProgressCard({
 	startTime: number
 	isResearchMode?: boolean
 }) {
-	const [elapsed, setElapsed] = useState(0)
+	const [elapsed, setElapsed] = useState(() => (startTime ? Math.floor((Date.now() - startTime) / 1000) : 0))
 	const [isExpanded, setIsExpanded] = useState(true)
 
 	useEffect(() => {
 		if (!startTime) return
+		setElapsed(Math.floor((Date.now() - startTime) / 1000))
 		const interval = setInterval(() => {
 			setElapsed(Math.floor((Date.now() - startTime) / 1000))
 		}, 1000)
