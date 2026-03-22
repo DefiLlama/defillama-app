@@ -12,11 +12,12 @@ export interface CsvExport {
 
 export interface SpawnProgressData {
 	agentId: string
-	status: 'started' | 'tool_call' | 'completed' | 'error'
+	status: 'started' | 'thinking' | 'tool_call' | 'completed' | 'error'
 	tool?: string
 	toolCount?: number
 	chartCount?: number
 	findingsPreview?: string
+	startedAt?: number
 }
 
 export interface AgenticSSECallbacks {
@@ -24,7 +25,7 @@ export interface AgenticSSECallbacks {
 	onCharts: (charts: ChartConfiguration[], chartData: Record<string, unknown[]>) => void
 	onProgress: (toolName: string, isPremium?: boolean) => void
 	onSpawnProgress: (data: SpawnProgressData) => void
-	onSessionId: (sessionId: string) => void
+	onSessionId: (sessionId: string, startedAt?: number) => void
 	onCitations: (citations: string[]) => void
 	onCsvExport?: (exports: CsvExport[]) => void
 	onAlertProposed?: (data: AlertProposedData) => void
@@ -42,6 +43,7 @@ export interface AgenticSSECallbacks {
 interface SessionEvent {
 	type: 'session'
 	sessionId: string
+	startedAt?: number
 }
 
 interface ToolCallEvent {
@@ -174,6 +176,7 @@ interface FetchAgenticResponseParams {
 	quotedText?: string
 	isSuggestedQuestion?: boolean
 	fetchFn?: typeof fetch
+	eventCounter?: { count: number }
 }
 
 async function getResponseErrorMessage(response: Response, fallback: string) {
@@ -195,7 +198,8 @@ async function getResponseErrorMessage(response: Response, fallback: string) {
 function parseSSEStream(
 	reader: ReadableStreamDefaultReader<Uint8Array>,
 	callbacks: AgenticSSECallbacks,
-	abortSignal?: AbortSignal
+	abortSignal?: AbortSignal,
+	eventCounter?: { count: number }
 ) {
 	const decoder = new TextDecoder()
 	let lineBuffer = ''
@@ -205,10 +209,11 @@ function parseSSEStream(
 
 		try {
 			const data = JSON.parse(line.slice(6)) as AgenticSSEEvent
+			if (eventCounter) eventCounter.count++
 
 			switch (data.type) {
 				case 'session':
-					callbacks.onSessionId(data.sessionId)
+					callbacks.onSessionId(data.sessionId, data.startedAt)
 					break
 				case 'tool_call':
 					callbacks.onProgress(data.name, data.isPremium)
@@ -328,7 +333,8 @@ export async function fetchAgenticResponse({
 	customInstructions,
 	quotedText,
 	isSuggestedQuestion,
-	fetchFn
+	fetchFn,
+	eventCounter
 }: FetchAgenticResponseParams) {
 	const doFetch = fetchFn || fetch
 
@@ -420,7 +426,7 @@ export async function fetchAgenticResponse({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(response.body.getReader(), callbacks, abortSignal)
+	return parseSSEStream(response.body.getReader(), callbacks, abortSignal, eventCounter)
 }
 
 export async function stopAgenticExecution(sessionId: string, fetchFn?: typeof fetch): Promise<void> {
@@ -484,14 +490,21 @@ export async function resumeAgenticStream({
 	sessionId,
 	callbacks,
 	abortSignal,
-	fetchFn
+	fetchFn,
+	from,
+	eventCounter
 }: {
 	sessionId: string
 	callbacks: AgenticSSECallbacks
 	abortSignal?: AbortSignal
 	fetchFn?: typeof fetch
+	from?: number
+	eventCounter?: { count: number }
 }) {
-	const res = await (fetchFn || fetch)(`${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`, {
+	const url = from
+		? `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}?from=${from}`
+		: `${MCP_SERVER}/agentic/stream/${encodeURIComponent(sessionId)}`
+	const res = await (fetchFn || fetch)(url, {
 		signal: abortSignal
 	})
 
@@ -504,5 +517,5 @@ export async function resumeAgenticStream({
 		throw new Error('No response body')
 	}
 
-	return parseSSEStream(res.body.getReader(), callbacks, abortSignal)
+	return parseSSEStream(res.body.getReader(), callbacks, abortSignal, eventCounter)
 }

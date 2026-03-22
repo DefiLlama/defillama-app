@@ -228,7 +228,7 @@ function inferTimeSeriesAxis(
 		.map((row) => row?.[config.axes.x.field])
 		.filter((value) => value != null && String(value).trim().length > 0)
 
-	if (rawValues.length === 0) {
+	if (rawValues.length === 0 || rawValues.some((v) => typeof v !== 'string')) {
 		return {
 			axisType: 'category',
 			dimensionName: 'category',

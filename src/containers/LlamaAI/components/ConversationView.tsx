@@ -21,6 +21,7 @@ interface ConversationViewProps {
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	executionStartedAt: number
 	streamingThinking: string
 	streamingDraft: Message | null
 	isCompacting: boolean
@@ -92,6 +93,7 @@ function ConversationLiveStatus({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	executionStartedAt,
 	streamingThinking,
 	streamingDraft,
 	isCompacting,
@@ -108,6 +110,7 @@ function ConversationLiveStatus({
 	activeToolCalls: ToolCall[]
 	spawnProgress: Map<string, SpawnAgentStatus>
 	spawnStartTime: number
+	executionStartedAt: number
 	streamingThinking: string
 	streamingDraft: Message | null
 	isCompacting: boolean
@@ -132,10 +135,16 @@ function ConversationLiveStatus({
 			) : null}
 
 			<div style={{ overflowAnchor: 'none' }}>
-				{spawnProgress.size > 0 ? (
-					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} />
+				{spawnProgress.size > 0 && isResearchMode ? (
+					<SpawnProgressCard agents={spawnProgress} startTime={spawnStartTime} isResearchMode />
 				) : (
-					<ToolProgressIndicator toolCalls={activeToolCalls} thinking={streamingThinking} isCompacting={isCompacting} />
+					<ToolProgressIndicator
+						toolCalls={activeToolCalls}
+						thinking={streamingThinking}
+						isCompacting={isCompacting}
+						spawnProgress={spawnProgress.size > 0 ? spawnProgress : undefined}
+						executionStartedAt={executionStartedAt}
+					/>
 				)}
 			</div>
 
@@ -190,6 +199,7 @@ export function ConversationView({
 	activeToolCalls,
 	spawnProgress,
 	spawnStartTime,
+	executionStartedAt,
 	streamingThinking,
 	streamingDraft,
 	isCompacting,
@@ -282,6 +292,7 @@ export function ConversationView({
 										activeToolCalls={activeToolCalls}
 										spawnProgress={spawnProgress}
 										spawnStartTime={spawnStartTime}
+										executionStartedAt={executionStartedAt}
 										streamingThinking={streamingThinking}
 										streamingDraft={streamingDraft}
 										isCompacting={isCompacting}
@@ -301,6 +312,7 @@ export function ConversationView({
 									activeToolCalls={activeToolCalls}
 									spawnProgress={spawnProgress}
 									spawnStartTime={spawnStartTime}
+									executionStartedAt={executionStartedAt}
 									streamingThinking={streamingThinking}
 									streamingDraft={streamingDraft}
 									isCompacting={isCompacting}
