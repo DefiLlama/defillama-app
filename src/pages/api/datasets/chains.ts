@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl } from '~/utils/icons'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 	try {

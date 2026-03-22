@@ -2,7 +2,6 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import utc from 'dayjs/plugin/utc'
 import { renderPercentChange } from '~/components/PercentChange'
-import { ICONS_CDN } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { fetchJson } from './async'
 
@@ -308,34 +307,6 @@ export const formattedNum = (number: unknown, symbol: boolean | string = false):
 	return `${normalMark}${num.toLocaleString(undefined, {
 		maximumFractionDigits: num > 0.1 ? 2 : num > 0.01 ? 3 : num > 0.0001 ? 4 : 5
 	})}`
-}
-
-export function chainIconUrl(chain: unknown): string {
-	return `${ICONS_CDN}/chains/rsz_${String(chain).toLowerCase()}?w=48&h=48`
-}
-
-export function tokenIconUrl(name: unknown): string {
-	const x = typeof name === 'string' ? name : ''
-	return `${ICONS_CDN}/protocols/${
-		x
-			.trim()
-			.toLowerCase()
-			.replace(/[()'"]/g, '') // Remove parentheses and quotes
-			.replace(/\s+/g, '-') // Replace spaces with hyphens
-			.replace(/[^\w.!&-]/g, '') // Remove any other non-word chars except hyphens, !, & and .
-	}?w=48&h=48`
-}
-
-export function liquidationsIconUrl(symbol: unknown, hd: boolean = false): string {
-	if (hd) {
-		return `${ICONS_CDN}/liquidations/${String(symbol).toLowerCase()}?w=64&h=64`
-	} else {
-		return `${ICONS_CDN}/liquidations/${String(symbol).toLowerCase()}?w=48&h=48`
-	}
-}
-
-export function peggedAssetIconUrl(name: unknown): string {
-	return `${ICONS_CDN}/pegged/${encodeURIComponent(String(name).toLowerCase().split(' ').join('-'))}?w=48&h=48`
 }
 
 /**

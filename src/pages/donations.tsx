@@ -1,6 +1,6 @@
 import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
-import { tokenIconUrl } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 

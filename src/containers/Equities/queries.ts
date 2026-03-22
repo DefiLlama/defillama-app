@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2SeriesConfig } from '~/components/ECharts/types'
+import { equityIconUrl } from '~/utils/icons'
 import {
 	fetchEquitiesCompanies,
 	fetchEquitiesFilings,
@@ -11,10 +12,6 @@ import type { IEquitiesListPageProps, IEquityTickerPageProps } from './types'
 
 function normalizeTicker(ticker: string): string {
 	return ticker.trim().toUpperCase()
-}
-
-function createTickerHref(ticker: string): string {
-	return `/equities/${ticker.toLowerCase()}`
 }
 
 export function buildPriceHistoryChart(
@@ -55,7 +52,7 @@ export async function getEquitiesListPageData(): Promise<IEquitiesListPageProps>
 	return {
 		companies: sortedCompanies.map((company) => ({
 			...company,
-			href: createTickerHref(company.ticker)
+			href: `/equities/${company.ticker.toLowerCase()}`
 		})),
 		lastUpdatedAt: sortedCompanies.find((company) => company.lastUpdatedAt)?.lastUpdatedAt
 	}
@@ -77,7 +74,7 @@ export async function getEquitiesTickerPageData(rawTicker: string): Promise<IEqu
 	}
 
 	return {
-		ticker: normalizeTicker(metadata.ticker),
+		ticker,
 		name: metadata.name,
 		metadata,
 		summary,

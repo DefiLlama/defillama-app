@@ -7,8 +7,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
 import type { IProtocol } from '~/containers/ChainOverview/types'
 import Layout from '~/layout'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { tokenIconUrl } from '~/utils/icons'
 
 export async function getStaticProps() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)

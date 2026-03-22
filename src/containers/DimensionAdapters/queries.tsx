@@ -2,9 +2,10 @@ import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { REV_PROTOCOLS, V2_SERVER_URL, ZERO_FEE_PERPS } from '~/constants'
 import { getDimensionAdapterChainEarningsOverview } from '~/containers/Incentives/queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
-import { chainIconUrl, slug, tokenIconUrl, getAnnualizedRatio } from '~/utils'
+import { slug, getAnnualizedRatio } from '~/utils'
 import { fetchJson, postRuntimeLogs } from '~/utils/async'
 import { getErrorMessage } from '~/utils/error'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import type { IChainMetadata } from '~/utils/metadata/types'
 import {
 	fetchAdapterChainChartData,

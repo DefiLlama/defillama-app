@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { chainIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils'
+import { chainIconUrl, equityIconUrl, peggedAssetIconUrl, tokenIconUrl } from '~/utils/icons'
 
-export type LogoKind = 'token' | 'chain' | 'pegged'
+export type LogoKind = 'token' | 'chain' | 'pegged' | 'equities'
 
 type TokenLogoProps = {
 	size?: number
@@ -19,6 +19,8 @@ function resolveLogoUrl(name: string, kind: LogoKind): string {
 			return chainIconUrl(name)
 		case 'pegged':
 			return peggedAssetIconUrl(name)
+		case 'equities':
+			return equityIconUrl(name)
 	}
 }
 

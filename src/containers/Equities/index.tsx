@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { startTransition, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { TokenLogo } from '~/components/TokenLogo'
 import { useIsClient } from '~/hooks/useIsClient'
 import defs from '~/public/equities-definitions.json'
 import { abbreviateNumber } from '~/utils'
@@ -19,6 +20,7 @@ const columns = [
 		cell: ({ row }) => (
 			<span className="relative flex items-center gap-2">
 				<span className="vf-row-index shrink-0" aria-hidden="true" />
+				<TokenLogo name={row.original.ticker} kind="equities" data-lgonly alt={`Logo of ${row.original.ticker}`} />
 				<BasicLink href={row.original.href} className="font-medium text-(--link-text)">
 					{row.original.ticker}
 				</BasicLink>

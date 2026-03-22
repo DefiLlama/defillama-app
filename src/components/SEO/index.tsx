@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 
 const FEES_PAGE_TYPE: string = ADAPTER_TYPES.FEES
 const VOLUME_PAGE_TYPES = new Set<string>([

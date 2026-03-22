@@ -8,7 +8,8 @@ import {
 	getProtocolUnlocksStaticPropsData
 } from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import Layout from '~/layout'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 

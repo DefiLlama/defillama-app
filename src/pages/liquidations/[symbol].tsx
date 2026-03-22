@@ -13,7 +13,8 @@ import { LiqPositionsTable, LiqProtocolsTable } from '~/containers/Liquidations/
 import { type ChartData, buildLiquidationsChartSeries } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, liquidationsIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { liquidationsIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -83,7 +84,7 @@ const LiquidationsHomePage: NextPage<{
 			<LinkPreviewCard
 				liqsPage
 				cardName={nameAndSymbol}
-				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
+				logo={`https://defillama.com${liquidationsIconUrl(data.symbol, 64)}`}
 				tvl={formattedNum(data.totalLiquidable, true)}
 			/>
 

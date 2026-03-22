@@ -8,7 +8,7 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
 import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import Layout from '~/layout'
-import { tokenIconUrl } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 

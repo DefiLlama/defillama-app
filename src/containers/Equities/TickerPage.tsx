@@ -3,6 +3,7 @@ import { lazy, Suspense, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { MetricRow } from '~/components/MetricPrimitives'
 import { TagGroup } from '~/components/TagGroup'
+import { TokenLogo } from '~/components/TokenLogo'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import defs from '~/public/equities-definitions.json'
 import { abbreviateNumber } from '~/utils'
@@ -110,10 +111,13 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				{/* Desktop: left stats panel */}
 				<div className="col-span-1 hidden flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:flex xl:min-h-[360px]">
-					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<span className="font-bold">{props.name}</span>
-						<span className="font-normal text-(--text-disabled)">({props.ticker})</span>
-					</h1>
+					<span className="flex items-center gap-2">
+						<TokenLogo name={props.ticker} kind="equities" />
+						<h1 className="flex flex-wrap items-center gap-2 text-xl">
+							<span className="font-bold">{props.name}</span>
+							<span className="font-normal text-(--text-disabled)">({props.ticker})</span>
+						</h1>
+					</span>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">{defs.marketCap.label}</span>
 						<span className="min-h-8 font-jetbrains text-2xl font-semibold">
@@ -127,10 +131,13 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 					<div className="col-span-full flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						{/* Mobile: name + market cap */}
 						<div className="flex flex-col gap-6 xl:hidden">
-							<div className="flex flex-wrap items-center gap-2 text-xl">
-								<span className="font-bold">{props.name}</span>
-								<span className="font-normal text-(--text-disabled)">({props.ticker})</span>
-							</div>
+							<span className="flex items-center gap-2">
+								<TokenLogo name={props.ticker} kind="equities" />
+								<h1 className="flex flex-wrap items-center gap-2 text-xl">
+									<span className="font-bold">{props.name}</span>
+									<span className="font-normal text-(--text-disabled)">({props.ticker})</span>
+								</h1>
+							</span>
 							<p className="flex flex-col">
 								<span className="text-(--text-label)">{defs.marketCap.label}</span>
 								<span className="min-h-8 font-jetbrains text-2xl font-semibold">

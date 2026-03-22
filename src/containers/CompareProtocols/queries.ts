@@ -1,5 +1,5 @@
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
-import { tokenIconUrl } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 import type { CompareProtocolsProps } from './types'
 
 export async function getCompareProtocolsPageData(): Promise<CompareProtocolsProps> {

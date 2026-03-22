@@ -3,8 +3,9 @@ import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/compon
 import { preparePieChartData } from '~/components/ECharts/utils'
 import { CONFIG_API } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
-import { chainIconUrl, getNDistinctColors, slug, tokenIconUrl } from '~/utils'
+import { getNDistinctColors, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import {
 	fetchBridgeDayStats,
 	fetchBridges,

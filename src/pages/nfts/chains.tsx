@@ -2,7 +2,7 @@ import type { InferGetStaticPropsType } from 'next'
 import { fetchAdapterChainMetrics } from '~/containers/DimensionAdapters/api'
 import { NftsByChain, type INftChainRow } from '~/containers/Nft/NftsByChain'
 import Layout from '~/layout'
-import { chainIconUrl } from '~/utils'
+import { chainIconUrl } from '~/utils/icons'
 import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
