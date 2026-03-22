@@ -42,13 +42,14 @@ export function Announcement(props: AnnouncementProps) {
 	}
 
 	const wrapperStyle: React.CSSProperties & Record<'--link-bg', string> = {
-		'--link-bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)'
+		'--link-bg': warning ? 'hsl(45deg 80% 50% / 18%)' : 'hsl(215deg 79% 51% / 12%)'
 	}
 
 	return (
 		<div
 			className={[
 				'flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm',
+				warning ? 'text-amber-900 dark:text-amber-200' : '',
 				dismissalToken ? `announcement-token--${dismissalToken}` : ''
 			]
 				.filter(Boolean)

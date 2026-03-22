@@ -4,7 +4,8 @@ import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
+import { Tooltip } from '~/components/Tooltip'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
 import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
@@ -19,7 +20,20 @@ const columns = [
 		header: 'Pool',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			return <NameYieldPool value={getValue()} configID={row.original.configID} url={row.original.url} borrow={true} />
+			const value = getValue()
+			const exploited = isExploitedPool(row.original.projectslug, value)
+			return (
+				<span className="flex items-center gap-1">
+					<NameYieldPool value={value} configID={row.original.configID} url={row.original.url} borrow={true} />
+					{exploited ? (
+						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide text-red-600 dark:text-red-400">
+								exploit
+							</span>
+						</Tooltip>
+					) : null}
+				</span>
+			)
 		},
 		size: 160
 	}),
