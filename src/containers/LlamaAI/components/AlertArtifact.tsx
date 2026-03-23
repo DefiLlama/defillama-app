@@ -62,9 +62,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [hour, setHour] = useState(alertIntent.hour)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
 	const [timezone] = useState(alertIntent.timezone)
-	const [savedDbId, setSavedDbId] = useState<string | null>(
-		savedAlertIds?.includes(alertId) ? alertId : null
-	)
+	const [savedDbId, setSavedDbId] = useState<string | null>(savedAlertIds?.includes(alertId) ? alertId : null)
 	const [hasRetriedTest, setHasRetriedTest] = useState(false)
 
 	const isSaved = savedDbId !== null

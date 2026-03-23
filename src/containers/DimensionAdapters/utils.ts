@@ -269,20 +269,21 @@ export type ChainsByAdapterTreemapDatum = {
 	itemStyle: { color: string }
 }
 
-type ChainsByAdapterMultiSeriesPresentation = {
-	kind: 'multiSeries'
+type ChainsByAdapterBarPresentation = {
+	kind: 'bar'
 	dataset: MultiSeriesChart2Dataset
 	charts: MultiSeriesChart2SeriesConfig[]
-	valueSymbol: '$' | '%'
+	valueMode: ChainsByAdapterValueMode
+	barLayout: ChainsByAdapterBarLayout
 	showTotalInTooltip: boolean
-	solidChartAreaStyle?: boolean
-	chartOptions?: {
-		yAxis: {
-			min: number
-			max: number
-		}
-	}
-	groupBy?: ChartTimeGrouping
+	groupBy: ChartTimeGrouping
+}
+
+type ChainsByAdapterLinePresentation = {
+	kind: 'line'
+	dataset: MultiSeriesChart2Dataset
+	charts: MultiSeriesChart2SeriesConfig[]
+	groupBy: ChartTimeGrouping
 }
 
 type ChainsByAdapterTreemapPresentation = {
@@ -291,7 +292,8 @@ type ChainsByAdapterTreemapPresentation = {
 }
 
 export type ChainsByAdapterChartPresentation =
-	| ChainsByAdapterMultiSeriesPresentation
+	| ChainsByAdapterBarPresentation
+	| ChainsByAdapterLinePresentation
 	| ChainsByAdapterTreemapPresentation
 
 const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGrouping = 'daily'
@@ -372,10 +374,6 @@ function createSeriesUniverse({
 	}
 
 	const ranked = Array.from(chainTotals.entries()).toSorted((a, b) => b[1] - a[1])
-	const allSeriesNames = ranked.map(([chain]) => chain)
-	const allColors = getNDistinctColors(allSeriesNames.length || 1)
-	const allColorByChain = Object.fromEntries(allSeriesNames.map((chain, i) => [chain, allColors[i]]))
-
 	const topChainNames = ranked.slice(0, 10).map(([chain]) => chain)
 	const otherChainNames = ranked.slice(10).map(([chain]) => chain)
 	const topSeries = new Map<string, Array<[number, number]>>()
@@ -405,9 +403,6 @@ function createSeriesUniverse({
 	const topColorByChain = Object.fromEntries(topSeriesNames.map((chain, i) => [chain, topColors[i]]))
 
 	return {
-		allSeries: chainSeries,
-		allSeriesNames,
-		allColorByChain,
 		topSeries,
 		topSeriesNames,
 		topColorByChain
@@ -470,7 +465,7 @@ function buildBarPresentation({
 	topSeriesNames: string[]
 	topColorByChain: Record<string, string>
 	state: Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
-}): ChainsByAdapterMultiSeriesPresentation {
+}): ChainsByAdapterBarPresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
 	for (const chain of topSeriesNames) {
@@ -490,7 +485,7 @@ function buildBarPresentation({
 		state.valueMode === 'relative' ? normalizeDatasetToPercent(absoluteDataset, topSeriesNames) : absoluteDataset
 
 	return {
-		kind: 'multiSeries',
+		kind: 'bar',
 		dataset: finalDataset,
 		charts: topSeriesNames.map((chain) => ({
 			type: 'bar',
@@ -499,18 +494,9 @@ function buildBarPresentation({
 			...(state.barLayout === 'stacked' ? { stack: 'chain' as const } : {}),
 			color: topColorByChain[chain]
 		})),
-		valueSymbol: state.valueMode === 'relative' ? '%' : '$',
+		valueMode: state.valueMode,
+		barLayout: state.barLayout,
 		showTotalInTooltip: state.valueMode === 'absolute' && state.barLayout === 'stacked',
-		...(state.valueMode === 'relative'
-			? {
-					chartOptions: {
-						yAxis: {
-							min: 0,
-							max: 100
-						}
-					}
-				}
-			: {}),
 		groupBy: state.groupBy
 	}
 }
@@ -525,7 +511,7 @@ function buildLinePresentation({
 	topSeriesNames: string[]
 	topColorByChain: Record<string, string>
 	state: Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
-}): ChainsByAdapterMultiSeriesPresentation {
+}): ChainsByAdapterLinePresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
 	for (const chain of topSeriesNames) {
@@ -544,7 +530,7 @@ function buildLinePresentation({
 	const relativeDataset = normalizeDatasetToPercent(groupedDataset, topSeriesNames)
 
 	return {
-		kind: 'multiSeries',
+		kind: 'line',
 		dataset: relativeDataset,
 		charts: topSeriesNames.map((chain) => ({
 			type: 'line',
@@ -553,56 +539,29 @@ function buildLinePresentation({
 			color: topColorByChain[chain],
 			stack: 'chain'
 		})),
-		valueSymbol: '%',
-		showTotalInTooltip: false,
-		solidChartAreaStyle: true,
-		groupBy: state.groupBy,
-		chartOptions: {
-			yAxis: {
-				min: 0,
-				max: 100
-			}
-		}
+		groupBy: state.groupBy
 	}
 }
 
 function buildTreemapPresentation({
-	chartData,
 	selectedChains,
 	latestChainRows
 }: {
-	chartData: IChainsByAdapterPageData['chartData']
 	selectedChains: string[]
-	latestChainRows?: IChainsByAdapterPageData['chains']
+	latestChainRows: IChainsByAdapterPageData['chains']
 }): ChainsByAdapterTreemapPresentation {
 	const latestValuesByChain = new Map<string, number>()
-	for (const row of latestChainRows ?? []) {
+	for (const row of latestChainRows) {
 		const value = row.total24h
 		if (typeof value === 'number' && Number.isFinite(value)) {
 			latestValuesByChain.set(row.name, value)
 		}
 	}
 
-	let latestRow: IChainsByAdapterPageData['chartData']['source'][number] | null = null
-	let latestTimestamp = -Infinity
-
-	for (const row of chartData.source) {
-		const timestamp = Number(row.timestamp)
-		if (Number.isFinite(timestamp) && timestamp > latestTimestamp) {
-			latestTimestamp = timestamp
-			latestRow = row
-		}
-	}
-
-	if (!latestRow) {
-		return { kind: 'treemap', data: [] }
-	}
-
 	const values = selectedChains
 		.map((chain) => {
-			const tableValue = latestValuesByChain.get(chain)
-			const rawValue = tableValue ?? latestRow[chain]
-			const value = typeof rawValue === 'number' ? rawValue : Number(rawValue ?? 0)
+			const rawValue = latestValuesByChain.get(chain) ?? 0
+			const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
 			return {
 				name: chain,
 				value: Number.isFinite(value) ? value : 0
@@ -635,10 +594,10 @@ export function buildChainsByAdapterChartPresentation({
 	chartData: IChainsByAdapterPageData['chartData']
 	selectedChains: string[]
 	state: ChainsByAdapterChartState
-	latestChainRows?: IChainsByAdapterPageData['chains']
+	latestChainRows: IChainsByAdapterPageData['chains']
 }): ChainsByAdapterChartPresentation {
 	if (state.chartKind === 'treemap') {
-		return buildTreemapPresentation({ chartData, selectedChains, latestChainRows })
+		return buildTreemapPresentation({ selectedChains, latestChainRows })
 	}
 
 	const { topSeries, topSeriesNames, topColorByChain } = createSeriesUniverse({ chartData, selectedChains })

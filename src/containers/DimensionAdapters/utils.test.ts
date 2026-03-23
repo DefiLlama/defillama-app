@@ -87,14 +87,16 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state
+			state,
+			latestChainRows: baseChainRows
 		})
 
-		expect(presentation.kind).toBe('multiSeries')
-		if (presentation.kind !== 'multiSeries') return
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
 
 		expect(presentation.showTotalInTooltip).toBe(true)
-		expect(presentation.valueSymbol).toBe('$')
+		expect(presentation.valueMode).toBe('absolute')
+		expect(presentation.barLayout).toBe('stacked')
 		expect(presentation.groupBy).toBe('daily')
 		expect(presentation.charts.every((chart) => chart.stack === 'chain')).toBe(true)
 		expect(presentation.dataset.source).toEqual([
@@ -115,16 +117,17 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state
+			state,
+			latestChainRows: baseChainRows
 		})
 
-		expect(presentation.kind).toBe('multiSeries')
-		if (presentation.kind !== 'multiSeries') return
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
 
 		expect(presentation.showTotalInTooltip).toBe(false)
-		expect(presentation.valueSymbol).toBe('%')
+		expect(presentation.valueMode).toBe('relative')
+		expect(presentation.barLayout).toBe('separate')
 		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
-		expect(presentation.chartOptions?.yAxis).toEqual({ min: 0, max: 100 })
 
 		const [day1, day2, day3] = presentation.dataset.source
 		expect(day1.Ethereum).toBe(100)
@@ -139,16 +142,14 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		const presentation = buildChainsByAdapterChartPresentation({
 			chartData: baseChartData,
 			selectedChains: ['Ethereum', 'Solana'],
-			state: { chartKind: 'line', groupBy: 'weekly' }
+			state: { chartKind: 'line', groupBy: 'weekly' },
+			latestChainRows: baseChainRows
 		})
 
-		expect(presentation.kind).toBe('multiSeries')
-		if (presentation.kind !== 'multiSeries') return
+		expect(presentation.kind).toBe('line')
+		if (presentation.kind !== 'line') return
 
-		expect(presentation.valueSymbol).toBe('%')
-		expect(presentation.showTotalInTooltip).toBe(false)
 		expect(presentation.groupBy).toBe('weekly')
-		expect(presentation.solidChartAreaStyle).toBe(true)
 		expect(presentation.charts.every((chart) => chart.type === 'line' && chart.hideAreaStyle == null)).toBe(true)
 
 		const [week1] = presentation.dataset.source

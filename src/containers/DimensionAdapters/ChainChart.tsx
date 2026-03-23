@@ -26,7 +26,11 @@ import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryVa
 import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
 import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
-import { buildChainsByAdapterChartPresentation, normalizeChainsByAdapterChartState } from './utils'
+import {
+	buildChainsByAdapterChartPresentation,
+	normalizeChainsByAdapterChartState,
+	type ChainsByAdapterChartState
+} from './utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 const TreeMapBuilderChart = React.lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
@@ -54,6 +58,56 @@ const BAR_LAYOUT_OPTIONS = [
 	{ key: 'Stacked', name: 'Stacked' },
 	{ key: 'Separate', name: 'Separate' }
 ] as const
+
+function assertNever(value: never): never {
+	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
+}
+
+function getChartKindQueryUpdate(
+	nextChartKind: ChainsByAdapterChartKind,
+	currentGroupByParam: string | undefined
+): Record<string, string | undefined> {
+	switch (nextChartKind) {
+		case 'Bar':
+			return {
+				chartKind: undefined,
+				chartType: undefined,
+				valueMode: undefined,
+				barLayout: undefined,
+				groupBy: undefined
+			}
+		case 'Line':
+			return {
+				chartKind: 'line',
+				chartType: undefined,
+				valueMode: undefined,
+				barLayout: undefined,
+				groupBy: currentGroupByParam?.toLowerCase() === 'daily' ? undefined : currentGroupByParam
+			}
+		case 'Treemap':
+			return {
+				chartKind: 'treemap',
+				chartType: undefined,
+				valueMode: undefined,
+				barLayout: undefined,
+				groupBy: undefined
+			}
+		default:
+			return assertNever(nextChartKind)
+	}
+}
+
+function getChartHeight(chartState: ChainsByAdapterChartState): string {
+	switch (chartState.chartKind) {
+		case 'bar':
+		case 'line':
+			return CHAINS_BY_ADAPTER_CHART_HEIGHT
+		case 'treemap':
+			return CHAINS_BY_ADAPTER_TREEMAP_HEIGHT
+		default:
+			return assertNever(chartState)
+	}
+}
 
 export const AdapterByChainChart = ({
 	chartData,
@@ -444,38 +498,7 @@ export const ChainsByAdapterChart = ({
 	}
 
 	const onChangeChartKind = (nextChartKind: ChainsByAdapterChartKind) => {
-		if (nextChartKind === 'Bar') {
-			void pushShallowQuery(router, {
-				chartKind: undefined,
-				chartType: undefined,
-				valueMode: undefined,
-				barLayout: undefined,
-				groupBy: undefined
-			})
-			return
-		}
-
-		if (nextChartKind === 'Line') {
-			void pushShallowQuery(router, {
-				chartKind: nextChartKind.toLowerCase(),
-				chartType: undefined,
-				valueMode: undefined,
-				barLayout: undefined,
-				groupBy:
-					readSingleQueryValue(router.query.groupBy)?.toLowerCase() === 'daily'
-						? undefined
-						: readSingleQueryValue(router.query.groupBy)
-			})
-			return
-		}
-
-		void pushShallowQuery(router, {
-			chartKind: nextChartKind.toLowerCase(),
-			chartType: undefined,
-			valueMode: undefined,
-			barLayout: undefined,
-			groupBy: undefined
-		})
+		void pushShallowQuery(router, getChartKindQueryUpdate(nextChartKind, readSingleQueryValue(router.query.groupBy)))
 	}
 
 	const onChangeValueMode = (nextValueMode: ChainsByAdapterValueMode) => {
@@ -520,23 +543,55 @@ export const ChainsByAdapterChart = ({
 	}, [chartName, chartState])
 
 	const multiSeriesChartOptions = React.useMemo(() => {
-		if (deferredChartPresentation.kind !== 'multiSeries') return undefined
-
-		const hasVisibleLegend = deferredChartPresentation.charts.length > 1
-		const baseOptions = deferredChartPresentation.chartOptions ?? {}
-
-		if (!hasVisibleLegend) {
-			return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
-		}
-
-		return {
-			...baseOptions,
-			legend: {
-				top: 12
-			},
-			grid: {
-				top: 40
+		switch (deferredChartPresentation.kind) {
+			case 'treemap':
+				return undefined
+			case 'bar': {
+				const baseOptions =
+					deferredChartPresentation.valueMode === 'relative'
+						? {
+								yAxis: {
+									min: 0,
+									max: 100
+								}
+							}
+						: {}
+				if (deferredChartPresentation.charts.length <= 1) {
+					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
+				}
+				return {
+					...baseOptions,
+					legend: {
+						top: 12
+					},
+					grid: {
+						top: 40
+					}
+				}
 			}
+			case 'line':
+				if (deferredChartPresentation.charts.length <= 1) {
+					return {
+						yAxis: {
+							min: 0,
+							max: 100
+						}
+					}
+				}
+				return {
+					yAxis: {
+						min: 0,
+						max: 100
+					},
+					legend: {
+						top: 12
+					},
+					grid: {
+						top: 40
+					}
+				}
+			default:
+				return assertNever(deferredChartPresentation)
 		}
 	}, [deferredChartPresentation])
 
@@ -546,6 +601,7 @@ export const ChainsByAdapterChart = ({
 		chartState.chartKind === 'bar' ? (chartState.valueMode === 'relative' ? 'Relative (%)' : 'Absolute ($)') : null
 	const barLayoutLabel =
 		chartState.chartKind === 'bar' ? (chartState.barLayout === 'separate' ? 'Separate' : 'Stacked') : null
+	const chartHeight = getChartHeight(chartState)
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -610,31 +666,28 @@ export const ChainsByAdapterChart = ({
 				fallback={
 					<div
 						style={{
-							height:
-								deferredChartPresentation.kind === 'treemap'
-									? CHAINS_BY_ADAPTER_TREEMAP_HEIGHT
-									: CHAINS_BY_ADAPTER_CHART_HEIGHT
+							height: chartHeight
 						}}
 					/>
 				}
 			>
 				{deferredChartPresentation.kind === 'treemap' ? (
-					<TreeMapBuilderChart
-						data={deferredChartPresentation.data}
-						height={CHAINS_BY_ADAPTER_TREEMAP_HEIGHT}
-						onReady={handleChartReady}
-					/>
+					<TreeMapBuilderChart data={deferredChartPresentation.data} height={chartHeight} onReady={handleChartReady} />
 				) : (
 					<MultiSeriesChart2
 						dataset={deferredChartPresentation.dataset}
 						charts={deferredChartPresentation.charts}
-						height={CHAINS_BY_ADAPTER_CHART_HEIGHT}
-						valueSymbol={deferredChartPresentation.valueSymbol}
-						solidChartAreaStyle={deferredChartPresentation.solidChartAreaStyle}
+						height={chartHeight}
+						valueSymbol={
+							deferredChartPresentation.kind === 'bar' && deferredChartPresentation.valueMode === 'absolute' ? '$' : '%'
+						}
+						solidChartAreaStyle={deferredChartPresentation.kind === 'line'}
 						{...(multiSeriesChartOptions ? { chartOptions: multiSeriesChartOptions } : {})}
-						{...(deferredChartPresentation.groupBy ? { groupBy: deferredChartPresentation.groupBy } : {})}
+						groupBy={deferredChartPresentation.groupBy}
 						hideDefaultLegend={deferredChartPresentation.charts.length === 1}
-						showTotalInTooltip={deferredChartPresentation.showTotalInTooltip}
+						showTotalInTooltip={
+							deferredChartPresentation.kind === 'bar' ? deferredChartPresentation.showTotalInTooltip : false
+						}
 						onReady={handleChartReady}
 					/>
 				)}
