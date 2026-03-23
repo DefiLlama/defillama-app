@@ -268,45 +268,40 @@ export const AlertArtifact = memo(function AlertArtifact({
 			</button>
 			{saveErrorMessage ? <p className="text-center text-xs text-(--error)">{saveErrorMessage}</p> : null}
 
-		{saved && testStatus === 'idle' ? (
-			<button
-				onClick={handleTest}
-				className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 dark:border-[#222324] dark:hover:bg-[#222324]"
-			>
-				<Icon name="mail" className="h-4 w-4" />
-				<span>Send test email</span>
-			</button>
-		) : null}
-
-		{(testStatus === 'loading') ? (
-			<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
-				<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-				Sending test email...
-			</p>
-		) : null}
-
-		{testStatus === 'success' ? (
-			<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-				<Icon name="check" className="h-3.5 w-3.5" />
-				Test email sent! Check your inbox
-			</p>
-		) : null}
-
-		{testStatus === 'error' ? (
-			<div className="flex flex-col items-center gap-1.5">
-				<p className="text-xs text-(--error)">{testError}</p>
+			{saved && testStatus === 'idle' ? (
 				<button
 					onClick={handleTest}
-					className="text-xs font-medium text-[#2172E5] hover:underline"
+					className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 dark:border-[#222324] dark:hover:bg-[#222324]"
 				>
-					Retry
+					<Icon name="mail" className="h-4 w-4" />
+					<span>Send test email</span>
 				</button>
-			</div>
-		) : null}
+			) : null}
 
-		{testStatus === 'failed' ? (
-			<p className="text-center text-xs text-(--error)">{testError}</p>
-		) : null}
+			{testStatus === 'loading' ? (
+				<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
+					<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+					Sending test email...
+				</p>
+			) : null}
+
+			{testStatus === 'success' ? (
+				<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+					<Icon name="check" className="h-3.5 w-3.5" />
+					Test email sent! Check your inbox
+				</p>
+			) : null}
+
+			{testStatus === 'error' ? (
+				<div className="flex flex-col items-center gap-1.5">
+					<p className="text-xs text-(--error)">{testError}</p>
+					<button onClick={handleTest} className="text-xs font-medium text-[#2172E5] hover:underline">
+						Retry
+					</button>
+				</div>
+			) : null}
+
+			{testStatus === 'failed' ? <p className="text-center text-xs text-(--error)">{testError}</p> : null}
 		</div>
 	)
 })
