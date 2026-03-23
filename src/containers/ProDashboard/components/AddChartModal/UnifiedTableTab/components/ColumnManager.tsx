@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import {
 	DndContext,
@@ -19,9 +20,15 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 import {
 	COLUMN_DICTIONARY_BY_ID,
 	UNIFIED_TABLE_COLUMN_DICTIONARY
@@ -162,6 +169,12 @@ export function ColumnManager({
 	onSortingChange,
 	onSortingReset
 }: ColumnManagerProps) {
+	const { hasActiveSubscription } = useAuthContext()
+	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderSubscribeModal,
+		setOpen: setShouldRenderSubscribeModal
+	})
 	const [uiState, setUIState] = useState<{
 		search: string
 		groupFilter: ColumnGroupId | 'all'
@@ -750,15 +763,26 @@ export function ColumnManager({
 				<button
 					type="button"
 					onClick={() => {
+						if (!hasActiveSubscription) {
+							setSignupSource('pro-dashboard')
+							subscribeModalStore.show()
+							return
+						}
 						setCustomColumnExpanded(!customColumnExpanded)
 						if (editingId) handleCancelEdit()
 					}}
 					className="flex w-full items-center justify-between"
 				>
 					<div className="flex items-center gap-2">
-						<Icon name={customColumnExpanded ? 'minus' : 'plus'} width={14} height={14} className="text-(--primary)" />
+						<Icon
+							name={!hasActiveSubscription ? 'file-lock-2' : customColumnExpanded ? 'minus' : 'plus'}
+							width={14}
+							height={14}
+							className="text-(--primary)"
+						/>
 						<span className="text-xs font-semibold text-(--text-primary)">
 							{editingId ? 'Edit Custom Column' : 'Custom Column'}
+							{!hasActiveSubscription ? <span className="ml-1 text-[10px] font-normal opacity-60">(Pro)</span> : null}
 						</span>
 						{(customColumns?.length ?? 0) > 0 ? (
 							<span className="rounded bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-medium text-purple-500">
@@ -989,6 +1013,12 @@ export function ColumnManager({
 					</div>
 				) : null}
 			</section>
+
+			{shouldRenderSubscribeModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }

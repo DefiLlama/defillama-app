@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { ConfirmationModal } from './ConfirmationModal'
 
 interface DashboardSettingsModalProps {
@@ -40,6 +41,7 @@ function DashboardSettingsModalInner({
 	onSave,
 	onDelete
 }: DashboardSettingsModalProps) {
+	const { hasActiveSubscription } = useAuthContext()
 	const [localVisibility, setLocalVisibility] = useState(visibility)
 	const [localTags, setLocalTags] = useState(tags)
 	const [isDeleting, setIsDeleting] = useState(false)
@@ -160,18 +162,32 @@ function DashboardSettingsModalInner({
 									</button>
 									<button
 										type="button"
-										onClick={() => setLocalVisibility('private')}
+										onClick={() => hasActiveSubscription && setLocalVisibility('private')}
+										disabled={!hasActiveSubscription}
 										aria-pressed={localVisibility === 'private'}
 										className={`flex-1 rounded-md border px-4 py-3 transition-colors ${
-											localVisibility === 'private' ? 'pro-btn-blue' : 'pro-border pro-text2 hover:pro-text1'
+											localVisibility === 'private'
+												? 'pro-btn-blue'
+												: !hasActiveSubscription
+													? 'cursor-not-allowed pro-border pro-text2 opacity-50'
+													: 'pro-border pro-text2 hover:pro-text1'
 										}`}
 									>
-										<Icon name="key" height={16} width={16} className="mr-2 inline" />
+										<Icon
+											name={hasActiveSubscription ? 'key' : 'file-lock-2'}
+											height={16}
+											width={16}
+											className="mr-2 inline"
+										/>
 										Private
+										{!hasActiveSubscription ? <span className="ml-1 text-xs opacity-70">(Pro)</span> : null}
 									</button>
 								</div>
 								{localVisibility === 'public' ? (
 									<p className="mt-2 text-sm pro-text3">Public dashboards are visible in the Discover tab</p>
+								) : null}
+								{!hasActiveSubscription ? (
+									<p className="mt-2 text-xs pro-text3">Upgrade to Pro to make dashboards private</p>
 								) : null}
 							</div>
 

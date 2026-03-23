@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Suspense, lazy, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { fetchChainsByCategory as fetchChainsByCategoryApi } from '~/containers/Chains/api'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useAppMetadata } from '../AppMetadataContext'
 import { useDimensionProtocols } from '../hooks/useDimensionProtocols'
 import { useProDashboardCatalog } from '../ProDashboardAPIContext'
@@ -44,6 +45,7 @@ async function fetchChainsByCategory(category: string): Promise<{ category: stri
 export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset }: CreateDashboardPickerProps) {
 	const [mode, setMode] = useState<PickerMode>('picker')
 	const [comparisonPresetHandled, setComparisonPresetHandled] = useState(false)
+	const { hasActiveSubscription } = useAuthContext()
 	const { protocols, chains } = useProDashboardCatalog()
 	const { protocolsBySlug } = useAppMetadata()
 
@@ -118,7 +120,7 @@ export function CreateDashboardPicker({ dialogStore, onCreate, comparisonPreset 
 
 		onCreate({
 			dashboardName: template.name,
-			visibility: 'private',
+			visibility: hasActiveSubscription ? 'private' : 'public',
 			tags: [],
 			description: template.description,
 			items
@@ -269,6 +271,7 @@ function CreateDashboardModalContent({
 		description: string
 	}) => void
 }) {
+	const { hasActiveSubscription } = useAuthContext()
 	const [visibility, setVisibility] = useState<'private' | 'public'>('public')
 	const [tags, setTags] = useState<string[]>([])
 	const tagInputRef = useRef<HTMLInputElement>(null)
@@ -349,19 +352,26 @@ function CreateDashboardModalContent({
 						</button>
 						<button
 							type="button"
-							onClick={() => setVisibility('private')}
+							onClick={() => hasActiveSubscription && setVisibility('private')}
+							disabled={!hasActiveSubscription}
 							className={`flex flex-1 items-center justify-center gap-2 rounded-md border px-4 py-3 transition-colors ${
 								visibility === 'private'
 									? 'border-(--primary) bg-(--primary)/10 font-medium text-(--primary)'
-									: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
+									: !hasActiveSubscription
+										? 'cursor-not-allowed border-(--form-control-border) text-(--text-tertiary) opacity-50'
+										: 'border-(--form-control-border) text-(--text-secondary) hover:border-(--primary)/40'
 							}`}
 						>
-							<Icon name="key" height={16} width={16} />
+							<Icon name={hasActiveSubscription ? 'key' : 'file-lock-2'} height={16} width={16} />
 							Private
+							{!hasActiveSubscription ? <span className="text-xs opacity-70">(Pro)</span> : null}
 						</button>
 					</div>
 					{visibility === 'public' ? (
 						<p className="mt-2 text-sm text-(--text-tertiary)">Public dashboards are visible in the Discover tab</p>
+					) : null}
+					{!hasActiveSubscription ? (
+						<p className="mt-2 text-xs text-(--text-tertiary)">Upgrade to Pro to create private dashboards</p>
 					) : null}
 				</div>
 

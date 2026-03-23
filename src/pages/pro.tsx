@@ -7,7 +7,7 @@ import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContex
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
-import { useMyDashboards } from '~/containers/ProDashboard/hooks'
+import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import {
 	ProDashboardAPIProvider,
 	useProDashboardDashboard,
@@ -17,9 +17,7 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import Layout from '~/layout'
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
+import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
 		default: m.CreateDashboardPicker
@@ -89,10 +87,21 @@ function ProContent({
 	const { tab } = router.query
 	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
 
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
+		open: false,
+		reason: 'pro-feature'
+	})
+	const paywallDialogStore = Ariakit.useDialogStore({
+		open: paywallState.open,
+		setOpen: (open) => setPaywallState((prev) => ({ ...prev, open }))
+	})
+	const showPaywall = (reason: PaywallReason) => {
+		setSignupSource('pro-dashboard')
+		setPaywallState({ open: true, reason })
+	}
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
+	const { canCreateDashboard } = useFreeTierStatus()
 	const [comparisonPreset, setComparisonPreset] = useState<ComparisonPreset | null>(null)
 	const createDialogOpen = Ariakit.useStoreState(createDashboardDialogStore, 'open')
 	const dialogWasOpenRef = useRef(false)
@@ -169,7 +178,7 @@ function ProContent({
 					>
 						Discover
 					</BasicLink>
-					{isAuthenticated && hasActiveSubscription ? (
+					{isAuthenticated ? (
 						<BasicLink
 							href={`/pro?tab=my-dashboards`}
 							shallow
@@ -200,10 +209,7 @@ function ProContent({
 									? () => router.push('/pro/preview')
 									: hasActiveSubscription
 										? () => setShowGenerateDashboardModal(true)
-										: () => {
-												setSignupSource('pro-dashboard')
-												subscribeModalStore.show()
-											}
+										: () => showPaywall('llamaai')
 							}
 							data-umami-event="dashboard-llamaai-generate"
 							className="flex items-center gap-1 rounded-md pro-btn-blue px-4 py-2"
@@ -216,12 +222,9 @@ function ProContent({
 						onClick={
 							!isAuthenticated
 								? () => router.push('/pro/preview')
-								: hasActiveSubscription
+								: canCreateDashboard
 									? () => createDashboardDialogStore.show()
-									: () => {
-											setSignupSource('pro-dashboard')
-											subscribeModalStore.show()
-										}
+									: () => showPaywall('dashboard-limit')
 						}
 						data-umami-event="dashboard-create"
 						className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-2"
@@ -335,10 +338,8 @@ function ProContent({
 				/>
 			</Suspense>
 
-			{shouldRenderModal ? (
-				<Suspense fallback={<></>}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
+			{paywallState.open ? (
+				<DashboardPaywallModal dialogStore={paywallDialogStore} reason={paywallState.reason} />
 			) : null}
 		</div>
 	)

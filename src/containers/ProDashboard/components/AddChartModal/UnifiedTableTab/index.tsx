@@ -1,6 +1,13 @@
+import * as Ariakit from '@ariakit/react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
 	UNIFIED_TABLE_PRESETS,
@@ -217,6 +224,12 @@ function TabContent({
 		},
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
+	const { hasActiveSubscription } = useAuthContext()
+	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderSubscribeModal,
+		setOpen: setShouldRenderSubscribeModal
+	})
 	const isEditing = Boolean(editItem)
 	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
 	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
@@ -641,6 +654,11 @@ function TabContent({
 	}
 
 	const handleSelectTableType = (type: CombinedTableType) => {
+		if (type === 'token-usage' && !hasActiveSubscription) {
+			setSignupSource('pro-dashboard')
+			subscribeModalStore.show()
+			return
+		}
 		onTableTypeChange(type)
 		setShowTypeSelector(false)
 	}
@@ -687,29 +705,41 @@ function TabContent({
 				<div className="mt-4">
 					<span className="mb-2.5 block text-xs font-medium tracking-wide pro-text2 uppercase">Other datasets</span>
 					<div className="grid grid-cols-2 gap-2">
-						{otherCards.map((card) => (
-							<button
-								key={card.value}
-								type="button"
-								onClick={() => handleSelectTableType(card.value)}
-								className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
-							>
-								<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
-									<Icon
-										name={card.icon}
-										height={16}
-										width={16}
-										className="text-(--text-secondary) group-hover:text-(--primary)"
-									/>
-								</div>
-								<div className="min-w-0 flex-1">
-									<span className="text-sm font-medium pro-text1">{card.label}</span>
-									<p className="mt-0.5 line-clamp-1 text-xs pro-text2">{card.description}</p>
-								</div>
-							</button>
-						))}
+						{otherCards.map((card) => {
+							const isProLocked = card.value === 'token-usage' && !hasActiveSubscription
+							return (
+								<button
+									key={card.value}
+									type="button"
+									onClick={() => handleSelectTableType(card.value)}
+									className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+								>
+									<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
+										<Icon
+											name={isProLocked ? 'file-lock-2' : card.icon}
+											height={16}
+											width={16}
+											className="text-(--text-secondary) group-hover:text-(--primary)"
+										/>
+									</div>
+									<div className="min-w-0 flex-1">
+										<span className="text-sm font-medium pro-text1">
+											{card.label}
+											{isProLocked ? <span className="ml-1 text-xs font-normal opacity-60">(Pro)</span> : null}
+										</span>
+										<p className="mt-0.5 line-clamp-1 text-xs pro-text2">{card.description}</p>
+									</div>
+								</button>
+							)
+						})}
 					</div>
 				</div>
+
+				{shouldRenderSubscribeModal ? (
+					<Suspense fallback={<></>}>
+						<SubscribeProModal dialogStore={subscribeModalStore} />
+					</Suspense>
+				) : null}
 			</div>
 		)
 	}

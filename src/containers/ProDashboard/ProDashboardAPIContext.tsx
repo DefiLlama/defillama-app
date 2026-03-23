@@ -15,7 +15,7 @@ import {
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
-import { useAutoSave, useDashboardAPI, useDashboardPermissions } from './hooks'
+import { useAutoSave, useDashboardAPI, useDashboardPermissions, useFreeTierStatus } from './hooks'
 import { useChartsData, useProtocolsAndChains } from './queries'
 import type { ProDashboardServerProps } from './queries.server'
 import type { TableServerData } from './server/tableQueries'
@@ -390,7 +390,8 @@ export function ProDashboardAPIProvider({
 		hasSeededServerDataRef.current = true
 	}, [queryClient, seedTimestamp, serverData])
 
-	const { isAuthenticated, user } = useAuthContext()
+	const { isAuthenticated, hasActiveSubscription, user } = useAuthContext()
+	const { canCreateDashboard, isFreeUser } = useFreeTierStatus()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(
 		serverData?.protocolsAndChains
 	)
@@ -447,7 +448,8 @@ export function ProDashboardAPIProvider({
 		currentDashboard,
 		userId: user?.id,
 		updateDashboard,
-		cleanItemsForSaving
+		cleanItemsForSaving,
+		isFreeUser
 	})
 
 	const actions = useDashboardActions(dispatch, state, autoSave, isReadOnlyUntilDashboardLoaded)
@@ -580,7 +582,7 @@ export function ProDashboardAPIProvider({
 				dashboardName: nameToSave,
 				timePeriod,
 				customTimePeriod,
-				visibility: overrides?.visibility ?? dashboardVisibility,
+				visibility: isFreeUser ? ('public' as const) : (overrides?.visibility ?? dashboardVisibility),
 				tags: overrides?.tags ?? dashboardTags,
 				description: overrides?.description ?? dashboardDescription,
 				aiGenerated: overrides?.aiGenerated ?? currentDashboard?.aiGenerated ?? null,
@@ -611,6 +613,7 @@ export function ProDashboardAPIProvider({
 			currentDashboard?.aiGenerated,
 			isAuthenticated,
 			isReadOnly,
+			isFreeUser,
 			updateDashboard,
 			createDashboard,
 			applyDashboard
@@ -670,12 +673,18 @@ export function ProDashboardAPIProvider({
 			return
 		}
 
+		if (!canCreateDashboard) {
+			toast.error('You have reached the free tier dashboard limit. Upgrade to Pro for unlimited dashboards.')
+			return
+		}
+
 		const cleanedItems = cleanItemsForSaving(items)
 		const data = {
 			items: cleanedItems,
 			dashboardName: `${dashboardName} (Copy)`,
 			timePeriod,
-			customTimePeriod
+			customTimePeriod,
+			visibility: isFreeUser ? ('public' as const) : dashboardVisibility
 		}
 
 		try {
@@ -683,7 +692,17 @@ export function ProDashboardAPIProvider({
 		} catch (error) {
 			console.log('Failed to copy dashboard:', error)
 		}
-	}, [items, dashboardName, timePeriod, customTimePeriod, isAuthenticated, createDashboard])
+	}, [
+		items,
+		dashboardName,
+		timePeriod,
+		customTimePeriod,
+		isAuthenticated,
+		createDashboard,
+		canCreateDashboard,
+		isFreeUser,
+		dashboardVisibility
+	])
 
 	const handleCreateDashboard = useCallback(
 		async (data: {
@@ -694,11 +713,16 @@ export function ProDashboardAPIProvider({
 			items?: DashboardItemConfig[]
 			aiGenerated?: AIGeneratedData | null
 		}) => {
+			if (!canCreateDashboard) {
+				toast.error('You have reached the free tier dashboard limit. Upgrade to Pro for unlimited dashboards.')
+				return
+			}
+
 			const dashboardData = {
 				items: data.items ?? [],
 				dashboardName: data.dashboardName,
 				timePeriod: '365d' as TimePeriod,
-				visibility: data.visibility,
+				visibility: isFreeUser ? ('public' as const) : data.visibility,
 				tags: data.tags,
 				description: data.description,
 				aiGenerated: data.aiGenerated ?? null
@@ -711,7 +735,7 @@ export function ProDashboardAPIProvider({
 				toast.error('Failed to create new dashboard')
 			}
 		},
-		[createDashboard]
+		[createDashboard, canCreateDashboard, isFreeUser]
 	)
 
 	const handleGenerateDashboard = useCallback(
