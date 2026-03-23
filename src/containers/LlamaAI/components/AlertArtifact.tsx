@@ -5,7 +5,6 @@ import { MCP_SERVER } from '~/constants'
 import type { AlertIntent } from '~/containers/LlamaAI/types'
 import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { handleSimpleFetchResponse } from '~/utils/async'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (
@@ -72,6 +71,10 @@ export const AlertArtifact = memo(function AlertArtifact({
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
 	const [timezone] = useState(alertIntent.timezone ?? getUserTimezone())
 	const [saved, setSaved] = useState(savedAlertIds?.includes(alertId) || false)
+	const [savedDbId, setSavedDbId] = useState<string | null>(null)
+	const [testStatus, setTestStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'failed'>('idle')
+	const [testError, setTestError] = useState<string | null>(null)
+	const [retryUsed, setRetryUsed] = useState(false)
 
 	const {
 		mutate: saveAlert,
@@ -84,16 +87,17 @@ export const AlertArtifact = memo(function AlertArtifact({
 			title: string
 			alertConfig: { frequency: 'daily' | 'weekly'; hour: number; dayOfWeek: number; timezone: string }
 		}) => {
-			return authorizedFetch(`${MCP_SERVER}/alerts`, {
+			const response = await authorizedFetch(`${MCP_SERVER}/alerts`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
 			})
-				.then((response) => assertResponse(response, 'Failed to save alert'))
-				.then(handleSimpleFetchResponse)
+			assertResponse(response, 'Failed to save alert')
+			return response!.json()
 		},
-		onSuccess: () => {
+		onSuccess: (data: any) => {
 			setSaved(true)
+			setSavedDbId(data.id)
 		}
 	})
 
@@ -107,6 +111,28 @@ export const AlertArtifact = memo(function AlertArtifact({
 			title: title.trim(),
 			alertConfig: { frequency, hour, dayOfWeek, timezone }
 		})
+	}
+
+	const testId = savedDbId || alertId
+	const handleTest = async () => {
+		if (!testId) return
+		setTestStatus('loading')
+		setTestError(null)
+		try {
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${testId}/test`, { method: 'POST' })
+			const data = await res.json()
+			if (!data.success) throw new Error(data.error || 'Test failed')
+			setTestStatus('success')
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : 'Test failed'
+			setTestError(msg)
+			if (retryUsed) {
+				setTestStatus('failed')
+			} else {
+				setTestStatus('error')
+				setRetryUsed(true)
+			}
+		}
 	}
 
 	const saveErrorMessage = saveError ? (saveError instanceof Error ? saveError.message : String(saveError)) : null
@@ -240,6 +266,46 @@ export const AlertArtifact = memo(function AlertArtifact({
 				)}
 			</button>
 			{saveErrorMessage ? <p className="text-center text-xs text-(--error)">{saveErrorMessage}</p> : null}
+
+		{saved && testStatus === 'idle' ? (
+			<button
+				onClick={handleTest}
+				className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#e6e6e6] px-4 py-2 text-sm font-medium text-(--text1) transition-colors hover:bg-gray-50 dark:border-[#222324] dark:hover:bg-[#222324]"
+			>
+				<Icon name="mail" className="h-4 w-4" />
+				<span>Send test email</span>
+			</button>
+		) : null}
+
+		{(testStatus === 'loading') ? (
+			<p className="flex items-center justify-center gap-1.5 text-xs text-(--text3)">
+				<span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+				Sending test email...
+			</p>
+		) : null}
+
+		{testStatus === 'success' ? (
+			<p className="flex items-center justify-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+				<Icon name="check" className="h-3.5 w-3.5" />
+				Test email sent! Check your inbox
+			</p>
+		) : null}
+
+		{testStatus === 'error' ? (
+			<div className="flex flex-col items-center gap-1.5">
+				<p className="text-xs text-(--error)">{testError}</p>
+				<button
+					onClick={handleTest}
+					className="text-xs font-medium text-[#2172E5] hover:underline"
+				>
+					Retry
+				</button>
+			</div>
+		) : null}
+
+		{testStatus === 'failed' ? (
+			<p className="text-center text-xs text-(--error)">{testError}</p>
+		) : null}
 		</div>
 	)
 })

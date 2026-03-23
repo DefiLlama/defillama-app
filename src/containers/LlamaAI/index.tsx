@@ -73,6 +73,7 @@ interface PersistedAlertIntent {
 	timezone?: string
 	dayOfWeek?: number
 	dataQuery?: string
+	title?: string
 }
 
 interface PersistedToolExecution extends ToolExecution {
@@ -308,7 +309,7 @@ function buildRestoredAlerts({
 	return [
 		{
 			alertId: persistedAlertId,
-			title: metadata.alertIntent.dataQuery || '',
+			title: metadata.alertIntent.title || metadata.alertIntent.dataQuery || '',
 			alertIntent: {
 				frequency: metadata.alertIntent.frequency || 'daily',
 				hour: metadata.alertIntent.hour ?? 9,
