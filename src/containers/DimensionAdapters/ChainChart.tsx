@@ -5,31 +5,55 @@ import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import {
 	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
 	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping,
 	type LowercaseDwmcGrouping
 } from '~/components/ECharts/ChartGroupingSelector'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
 import { LoadingDots } from '~/components/Loaders'
+import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { CHART_COLORS } from '~/constants/colors'
 import type { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
+import { slug } from '~/utils'
 import { getErrorMessage } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
 import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
-import { getChartDataByChainAndInterval } from './utils'
+import { buildChainsByAdapterChartPresentation, normalizeChainsByAdapterChartState } from './utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+const TreeMapBuilderChart = React.lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
 const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
 type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
-const CHART_TYPES_CHAINS_BY_ADAPTER = ['Volume', 'Dominance'] as const
-type ChainsByAdapterChartType = (typeof CHART_TYPES_CHAINS_BY_ADAPTER)[number]
+const CHART_KINDS_CHAINS_BY_ADAPTER = ['Bar', 'Line', 'Treemap'] as const
+type ChainsByAdapterChartKind = (typeof CHART_KINDS_CHAINS_BY_ADAPTER)[number]
+const BAR_VALUE_MODES_CHAINS_BY_ADAPTER = ['Absolute', 'Relative'] as const
+type ChainsByAdapterValueMode = (typeof BAR_VALUE_MODES_CHAINS_BY_ADAPTER)[number]
+const BAR_LAYOUTS_CHAINS_BY_ADAPTER = ['Stacked', 'Separate'] as const
+type ChainsByAdapterBarLayout = (typeof BAR_LAYOUTS_CHAINS_BY_ADAPTER)[number]
+const CHAINS_BY_ADAPTER_CHART_HEIGHT = '420px'
+const CHAINS_BY_ADAPTER_TREEMAP_HEIGHT = '520px'
+const CHART_KIND_OPTIONS = [
+	{ key: 'Bar', name: 'Bar Chart' },
+	{ key: 'Line', name: 'Line Chart' },
+	{ key: 'Treemap', name: 'Treemap Chart' }
+] as const
+const BAR_VALUE_MODE_OPTIONS = [
+	{ key: 'Absolute', name: 'Absolute ($)' },
+	{ key: 'Relative', name: 'Relative (%)' }
+] as const
+const BAR_LAYOUT_OPTIONS = [
+	{ key: 'Stacked', name: 'Stacked' },
+	{ key: 'Separate', name: 'Separate' }
+] as const
 
 export const AdapterByChainChart = ({
 	chartData,
@@ -374,21 +398,29 @@ function useAdapterByChainBreakdownChartData({
 
 export const ChainsByAdapterChart = ({
 	chartData,
-	allChains
-}: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'>) => {
+	allChains,
+	chains,
+	chartName
+}: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains' | 'chains'> & { chartName: string }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
-	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
-		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
-		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
-		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
-		return matchedInterval?.value ?? 'daily'
-	}, [router.query.groupBy])
-	const chartType = React.useMemo<ChainsByAdapterChartType>(() => {
-		const chartTypeParam = readSingleQueryValue(router.query.chartType)?.toLowerCase()
-		return chartTypeParam === 'dominance' ? 'Dominance' : 'Volume'
-	}, [router.query.chartType])
-	const effectiveInterval: LowercaseDwmcGrouping = chartType === 'Dominance' ? 'daily' : chartInterval
+	const chartState = React.useMemo(
+		() =>
+			normalizeChainsByAdapterChartState({
+				chartKindParam: readSingleQueryValue(router.query.chartKind),
+				valueModeParam: readSingleQueryValue(router.query.valueMode),
+				barLayoutParam: readSingleQueryValue(router.query.barLayout),
+				groupByParam: readSingleQueryValue(router.query.groupBy),
+				legacyChartTypeParam: readSingleQueryValue(router.query.chartType)
+			}),
+		[
+			router.query.barLayout,
+			router.query.chartKind,
+			router.query.chartType,
+			router.query.groupBy,
+			router.query.valueMode
+		]
+	)
 	const selectedChains = React.useMemo(() => {
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
@@ -400,46 +432,162 @@ export const ChainsByAdapterChart = ({
 			: baseSelectedChains
 	}, [allChains, router.query.chains, router.query.excludeChains])
 
-	const chainsByAdapterChartData = React.useMemo(() => {
-		return getChartDataByChainAndInterval({ chartData, chartInterval: effectiveInterval, selectedChains, chartType })
-	}, [chartData, effectiveInterval, selectedChains, chartType])
-	const deferredChartData = React.useDeferredValue(chainsByAdapterChartData)
+	const chartPresentation = React.useMemo(
+		() =>
+			buildChainsByAdapterChartPresentation({ chartData, selectedChains, state: chartState, latestChainRows: chains }),
+		[chartData, selectedChains, chartState, chains]
+	)
+	const deferredChartPresentation = React.useDeferredValue(chartPresentation)
 
-	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
+	const onChangeChartInterval = (nextInterval: LowercaseDwmGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
-	const onChangeChartType = (nextChartType: ChainsByAdapterChartType) => {
+
+	const onChangeChartKind = (nextChartKind: ChainsByAdapterChartKind) => {
+		if (nextChartKind === 'Bar') {
+			void pushShallowQuery(router, {
+				chartKind: undefined,
+				chartType: undefined,
+				valueMode: undefined,
+				barLayout: undefined,
+				groupBy: undefined
+			})
+			return
+		}
+
+		if (nextChartKind === 'Line') {
+			void pushShallowQuery(router, {
+				chartKind: nextChartKind.toLowerCase(),
+				chartType: undefined,
+				valueMode: undefined,
+				barLayout: undefined,
+				groupBy:
+					readSingleQueryValue(router.query.groupBy)?.toLowerCase() === 'daily'
+						? undefined
+						: readSingleQueryValue(router.query.groupBy)
+			})
+			return
+		}
+
 		void pushShallowQuery(router, {
-			chartType: nextChartType === 'Volume' ? undefined : nextChartType,
-			groupBy: nextChartType === 'Dominance' ? undefined : readSingleQueryValue(router.query.groupBy)
+			chartKind: nextChartKind.toLowerCase(),
+			chartType: undefined,
+			valueMode: undefined,
+			barLayout: undefined,
+			groupBy: undefined
 		})
 	}
+
+	const onChangeValueMode = (nextValueMode: ChainsByAdapterValueMode) => {
+		void pushShallowQuery(router, {
+			chartKind: undefined,
+			chartType: undefined,
+			valueMode: nextValueMode === 'Absolute' ? undefined : nextValueMode.toLowerCase()
+		})
+	}
+
+	const onChangeBarLayout = (nextBarLayout: ChainsByAdapterBarLayout) => {
+		void pushShallowQuery(router, {
+			chartKind: undefined,
+			chartType: undefined,
+			barLayout: nextBarLayout === 'Stacked' ? undefined : nextBarLayout.toLowerCase()
+		})
+	}
+
+	const exportConfig = React.useMemo(() => {
+		const chartBaseTitle = `${chartName} by Chain`
+
+		if (chartState.chartKind === 'line') {
+			return {
+				filename: `${slug(chartName)}-by-chain-line-relative-${chartState.groupBy}`,
+				title: `${chartBaseTitle} - Dominance Line (${chartState.groupBy})`
+			}
+		}
+
+		if (chartState.chartKind === 'treemap') {
+			return {
+				filename: `${slug(chartName)}-by-chain-treemap-latest`,
+				title: `${chartBaseTitle} - Treemap (Latest)`
+			}
+		}
+
+		return {
+			filename: `${slug(chartName)}-by-chain-bar-${chartState.valueMode}-${chartState.barLayout}-${chartState.groupBy}`,
+			title: `${chartBaseTitle} - Bar (${chartState.valueMode === 'absolute' ? 'Absolute' : 'Relative'}, ${
+				chartState.barLayout === 'stacked' ? 'Stacked' : 'Separate'
+			}, ${chartState.groupBy})`
+		}
+	}, [chartName, chartState])
+
+	const multiSeriesChartOptions = React.useMemo(() => {
+		if (deferredChartPresentation.kind !== 'multiSeries') return undefined
+
+		const hasVisibleLegend = deferredChartPresentation.charts.length > 1
+		const baseOptions = deferredChartPresentation.chartOptions ?? {}
+
+		if (!hasVisibleLegend) {
+			return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
+		}
+
+		return {
+			...baseOptions,
+			legend: {
+				top: 12
+			},
+			grid: {
+				top: 40
+			}
+		}
+	}, [deferredChartPresentation])
+
+	const chartKindLabel =
+		chartState.chartKind === 'treemap' ? 'Treemap Chart' : chartState.chartKind === 'line' ? 'Line Chart' : 'Bar Chart'
+	const barValueModeLabel =
+		chartState.chartKind === 'bar' ? (chartState.valueMode === 'relative' ? 'Relative (%)' : 'Absolute ($)') : null
+	const barLayoutLabel =
+		chartState.chartKind === 'bar' ? (chartState.barLayout === 'separate' ? 'Separate' : 'Stacked') : null
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				{chartType === 'Dominance' ? <div className="mr-auto" /> : null}
-				{chartType === 'Dominance' ? null : (
+				<Select
+					allValues={CHART_KIND_OPTIONS as any}
+					selectedValues={
+						chartState.chartKind === 'treemap' ? 'Treemap' : chartState.chartKind === 'line' ? 'Line' : 'Bar'
+					}
+					setSelectedValues={(value: string) => onChangeChartKind(value as ChainsByAdapterChartKind)}
+					label={chartKindLabel}
+					labelType="none"
+					variant="filter"
+				/>
+				{chartState.chartKind === 'bar' ? (
+					<Select
+						allValues={BAR_VALUE_MODE_OPTIONS as any}
+						selectedValues={chartState.valueMode === 'relative' ? 'Relative' : 'Absolute'}
+						setSelectedValues={(value: string) => onChangeValueMode(value as ChainsByAdapterValueMode)}
+						label={barValueModeLabel ?? 'Absolute'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				{chartState.chartKind === 'bar' ? (
+					<Select
+						allValues={BAR_LAYOUT_OPTIONS as any}
+						selectedValues={chartState.barLayout === 'separate' ? 'Separate' : 'Stacked'}
+						setSelectedValues={(value: string) => onChangeBarLayout(value as ChainsByAdapterBarLayout)}
+						label={barLayoutLabel ?? 'Stacked'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				{chartState.chartKind !== 'treemap' ? (
 					<ChartGroupingSelector
-						value={chartInterval}
+						value={chartState.groupBy}
 						onValueChange={onChangeChartInterval}
-						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
-						className="mr-auto"
+						options={DWM_GROUPING_OPTIONS_LOWERCASE}
 						buttonClassName="font-medium data-[active=true]:font-medium"
 					/>
-				)}
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					{CHART_TYPES_CHAINS_BY_ADAPTER.map((currentChartType) => (
-						<button
-							key={`chains-by-adapter-chart-type-${currentChartType}`}
-							className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							data-active={currentChartType === chartType}
-							onClick={() => onChangeChartType(currentChartType)}
-						>
-							{currentChartType}
-						</button>
-					))}
-				</div>
+				) : null}
 				<SelectWithCombobox
 					allValues={allChains}
 					selectedValues={selectedChains}
@@ -449,37 +597,47 @@ export const ChainsByAdapterChart = ({
 					label="Chains"
 					labelType="smol"
 					variant="filter"
+					triggerProps={{ style: { marginLeft: 'auto' } }}
 					portal
 				/>
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
-					filename="chains-by-adapter"
-					title="Chains by Adapter"
+					filename={exportConfig.filename}
+					title={exportConfig.title}
 				/>
 			</div>
-			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<MultiSeriesChart2
-					dataset={deferredChartData.dataset}
-					charts={deferredChartData.charts}
-					{...(chartType === 'Dominance' ? { valueSymbol: '%', solidChartAreaStyle: true } : {})}
-					{...(chartType === 'Dominance'
-						? {
-								chartOptions: {
-									yAxis: {
-										min: 0,
-										max: 100
-									}
-								}
-							}
-						: {})}
-					{...(chartType === 'Dominance'
-						? {}
-						: {
-								groupBy: chartInterval
-							})}
-					showTotalInTooltip={chartType !== 'Dominance'}
-					onReady={handleChartReady}
-				/>
+			<React.Suspense
+				fallback={
+					<div
+						style={{
+							height:
+								deferredChartPresentation.kind === 'treemap'
+									? CHAINS_BY_ADAPTER_TREEMAP_HEIGHT
+									: CHAINS_BY_ADAPTER_CHART_HEIGHT
+						}}
+					/>
+				}
+			>
+				{deferredChartPresentation.kind === 'treemap' ? (
+					<TreeMapBuilderChart
+						data={deferredChartPresentation.data}
+						height={CHAINS_BY_ADAPTER_TREEMAP_HEIGHT}
+						onReady={handleChartReady}
+					/>
+				) : (
+					<MultiSeriesChart2
+						dataset={deferredChartPresentation.dataset}
+						charts={deferredChartPresentation.charts}
+						height={CHAINS_BY_ADAPTER_CHART_HEIGHT}
+						valueSymbol={deferredChartPresentation.valueSymbol}
+						solidChartAreaStyle={deferredChartPresentation.solidChartAreaStyle}
+						{...(multiSeriesChartOptions ? { chartOptions: multiSeriesChartOptions } : {})}
+						{...(deferredChartPresentation.groupBy ? { groupBy: deferredChartPresentation.groupBy } : {})}
+						hideDefaultLegend={deferredChartPresentation.charts.length === 1}
+						showTotalInTooltip={deferredChartPresentation.showTotalInTooltip}
+						onReady={handleChartReady}
+					/>
+				)}
 			</React.Suspense>
 		</div>
 	)
