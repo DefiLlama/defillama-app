@@ -74,7 +74,7 @@ function getChartKindQueryUpdate(
 				chartType: undefined,
 				valueMode: undefined,
 				barLayout: undefined,
-				groupBy: undefined
+				groupBy: currentGroupByParam?.toLowerCase() === 'daily' ? undefined : currentGroupByParam
 			}
 		case 'Line':
 			return {
@@ -602,6 +602,7 @@ export const ChainsByAdapterChart = ({
 	const barLayoutLabel =
 		chartState.chartKind === 'bar' ? (chartState.barLayout === 'separate' ? 'Separate' : 'Stacked') : null
 	const chartHeight = getChartHeight(chartState)
+	const canExportChart = deferredChartPresentation.kind !== 'treemap' || deferredChartPresentation.data.length > 0
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -656,11 +657,13 @@ export const ChainsByAdapterChart = ({
 					triggerProps={{ style: { marginLeft: 'auto' } }}
 					portal
 				/>
-				<ChartExportButtons
-					chartInstance={exportChartInstance}
-					filename={exportConfig.filename}
-					title={exportConfig.title}
-				/>
+				{canExportChart ? (
+					<ChartExportButtons
+						chartInstance={exportChartInstance}
+						filename={exportConfig.filename}
+						title={exportConfig.title}
+					/>
+				) : null}
 			</div>
 			<React.Suspense
 				fallback={
