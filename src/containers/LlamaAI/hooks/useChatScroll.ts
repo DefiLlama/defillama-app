@@ -12,6 +12,7 @@ interface UseChatScrollParams {
 	hasMessages: boolean
 	paginationState: PaginationState
 	onLoadMoreMessages: () => void
+	keyboardOpen?: boolean
 }
 
 type ScrollMode = 'attached' | 'detached' | 'reattaching'
@@ -41,7 +42,8 @@ export function useChatScroll({
 	items,
 	hasMessages,
 	paginationState,
-	onLoadMoreMessages
+	onLoadMoreMessages,
+	keyboardOpen
 }: UseChatScrollParams) {
 	const modeRef = useRef<ScrollMode>('attached')
 	const paginationRef = useRef(paginationState)
@@ -164,6 +166,21 @@ export function useChatScroll({
 			})
 		}
 	}, [items, scrollContainerRef])
+
+	// Keyboard open: when the soft keyboard appears and we're attached, snap to bottom
+	// so the latest content stays visible above the input.
+	useEffect(() => {
+		if (keyboardOpen && modeRef.current === 'attached') {
+			const container = scrollContainerRef.current
+			if (container) {
+				requestAnimationFrame(() => {
+					if (scrollContainerRef.current && modeRef.current === 'attached') {
+						scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+					}
+				})
+			}
+		}
+	}, [keyboardOpen, scrollContainerRef])
 
 	// Scroll event handler: interprets user scroll intent and manages mode transitions.
 	//
