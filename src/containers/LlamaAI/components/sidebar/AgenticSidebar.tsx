@@ -356,20 +356,21 @@ export function AgenticSidebar({
 
 			{balance ? (
 				<div className="border-t border-[#e6e6e6] px-3 py-2.5 dark:border-[#222324]">
-					<button
-						onClick={() => setIsTopupModalOpen(true)}
+					<Tooltip
+						content="Credits that let LlamaAI access premium external data sources like onchain data, X profiles, LinkedIn, and more."
+						render={<button onClick={() => setIsTopupModalOpen(true)} />}
 						className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 transition-colors hover:bg-[#f0f0f0] dark:hover:bg-[#222324]"
 					>
 						<div className="flex items-center gap-2">
 							<Icon name="package" height={14} width={14} className="text-[#5C5CF9]" />
-							<span className="text-xs text-[#666] dark:text-[#919296]">LlamaAI Premium Data Balance</span>
+							<span className="text-xs text-[#666] dark:text-[#919296]">External Data Balance</span>
 						</div>
 						<span
 							className={`font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
 						>
 							${totalAvailable.toFixed(2)}
 						</span>
-					</button>
+					</Tooltip>
 				</div>
 			) : null}
 

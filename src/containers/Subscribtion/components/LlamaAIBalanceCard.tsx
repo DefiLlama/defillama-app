@@ -67,7 +67,7 @@ export const LlamaAIBalanceCard = ({
 							<Icon name="package" height={18} width={18} className="sm:h-5 sm:w-5" />
 						</div>
 						<div>
-							<h3 className="text-lg font-bold sm:text-xl">LlamaAI Premium Data Balance</h3>
+							<h3 className="text-lg font-bold sm:text-xl">External Data Balance</h3>
 							<p className="text-xs text-[#b4b7bc] sm:text-sm">
 								Credits give LlamaAI access to premium data: onchain data, X profiles and posts, LinkedIn, and more.
 								<br></br>Pro Subscribers get $10 per month in credits
