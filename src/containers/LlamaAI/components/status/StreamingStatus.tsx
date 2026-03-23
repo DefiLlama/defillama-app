@@ -320,9 +320,9 @@ export function ToolProgressIndicator({
 							{[...spawnProgress!.values()].map((agent) => (
 								<li key={agent.id} className="flex animate-[fadeIn_0.25s_ease-out] items-center gap-2">
 									{agent.status === 'completed' ? (
-										<span className="text-green-500 text-[10px]">✓</span>
+										<span className="text-[10px] text-green-500">✓</span>
 									) : agent.status === 'error' ? (
-										<span className="text-red-500 text-[10px]">✗</span>
+										<span className="text-[10px] text-red-500">✗</span>
 									) : (
 										<span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-(--old-blue)" />
 									)}

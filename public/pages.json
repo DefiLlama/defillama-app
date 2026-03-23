@@ -532,6 +532,22 @@
       "oldName": "Chains"
     },
     {
+      "name": "Hacks: Overview",
+      "route": "/hacks",
+      "category": "Hacks",
+      "description": "Overview of all hacks that have happened in the ecosystem",
+      "totalTrackedKey": "hacks.total",
+      "oldName": "Hacks"
+    },
+    {
+      "name": "Total Value Lost in Hacks by Protocol",
+      "route": "/hacks/total-value-lost",
+      "category": "Hacks",
+      "description": "Net user loss, total value lost in hacks by a protocol",
+      "totalTrackedKey": "hacks.protocols",
+      "tab": "Protocols"
+    },
+    {
       "name": "NFTs: Collections",
       "route": "/nfts",
       "category": "NFTs",
@@ -565,22 +581,6 @@
       "totalTrackedKey": "nfts.chains",
       "oldCategory": "NFTs",
       "oldName": "Volume (Chains)"
-    },
-    {
-      "name": "Hacks: Overview",
-      "route": "/hacks",
-      "category": "Hacks",
-      "description": "Overview of all hacks that have happened in the ecosystem",
-      "totalTrackedKey": "hacks.total",
-      "oldName": "Hacks"
-    },
-    {
-      "name": "Total Value Lost in Hacks by Protocol",
-      "route": "/hacks/total-value-lost",
-      "category": "Hacks",
-      "description": "Net user loss, total value lost in hacks by a protocol",
-      "totalTrackedKey": "hacks.protocols",
-      "tab": "Protocols"
     },
     {
       "name": "Digital Asset Treasuries (DATs)",

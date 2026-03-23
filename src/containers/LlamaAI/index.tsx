@@ -42,11 +42,11 @@ import {
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
-import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
 import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
+import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
 import {
 	buildAssistantMessage,
 	createInitialStreamState,

@@ -1,5 +1,5 @@
-import Head from 'next/head'
 import { useQuery } from '@tanstack/react-query'
+import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { LoadingDots } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'

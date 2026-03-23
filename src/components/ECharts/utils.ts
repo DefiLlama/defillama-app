@@ -12,8 +12,8 @@ export function stringToColour() {
  * When `groupBy` is `'cumulative'`, a running total is computed across all periods.
  *
  * @param data - Raw data as `[date, value]` tuples (date in seconds or ms depending on `dateInMs`).
- * @param groupBy - Temporal bucketing strategy: `'daily'` passes through, `'weekly'`/`'monthly'`
- *   bucket by week/month end/start, and `'cumulative'` computes a running total.
+ * @param groupBy - Temporal bucketing strategy: `'daily'` preserves incoming timestamps,
+ *   `'weekly'`/`'monthly'` bucket by week/month end/start, and `'cumulative'` computes a running total.
  * @param dateInMs - When true, incoming dates are already in milliseconds (default: seconds).
  * @param denominationPriceHistory - Optional price map to convert values into an alternative denomination.
  * @returns Chronologically sorted `[timestampMs, value | null]` tuples.
@@ -53,7 +53,7 @@ const formatDailyChart = ({
 }: Pick<FormatterInput, 'data' | 'dateInMs' | 'denominationPriceHistory'>): Array<[number, number | null]> => {
 	return data.map(([date, value]) => {
 		const timestampSec = dateInMs ? +date / 1e3 : +date
-		const timestampMs = getBucketTimestampSec(timestampSec, 'daily') * 1e3
+		const timestampMs = dateInMs ? +date : +date * 1e3
 		const price = denominationPriceHistory?.[String(timestampSec)] ?? denominationPriceHistory?.[String(timestampMs)]
 		return [timestampMs, price ? value / price : denominationPriceHistory ? null : value]
 	})
