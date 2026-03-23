@@ -362,7 +362,7 @@ export function AgenticSidebar({
 					>
 						<div className="flex items-center gap-2">
 							<Icon name="package" height={14} width={14} className="text-[#5C5CF9]" />
-							<span className="text-xs text-[#666] dark:text-[#919296]">LlamaAI Balance</span>
+							<span className="text-xs text-[#666] dark:text-[#919296]">LlamaAI Premium Data Balance</span>
 						</div>
 						<span
 							className={`font-jetbrains text-xs font-semibold ${totalAvailable < 1 ? 'text-yellow-400' : 'text-[#666] dark:text-white'}`}
