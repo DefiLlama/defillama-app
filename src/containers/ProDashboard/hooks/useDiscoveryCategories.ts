@@ -30,7 +30,7 @@ export function useDiscoveryCategories() {
 
 	const queries = useQueries({
 		queries: CATEGORIES.map((category) => ({
-			queryKey: ['discovery-category', category.key],
+			queryKey: ['pro-dashboard', 'discovery-category', category.key, isAuthenticated],
 			queryFn: async () => {
 				return await dashboardAPI.searchDashboards(
 					{

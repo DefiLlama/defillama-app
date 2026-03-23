@@ -6,6 +6,8 @@ import { useGetPrice } from './queries'
 import { YieldsOptimizerTable } from './Tables/Optimizer'
 import { filterPool, findOptimizerPools, formatOptimizerPool } from './utils'
 
+const EMPTY_ARRAY: string[] = []
+
 export const BorrowAggregatorAdvanced = ({
 	pools,
 	projectList,
@@ -13,7 +15,7 @@ export const BorrowAggregatorAdvanced = ({
 	categoryList,
 	lendingProtocols,
 	searchData,
-	unboundedDebtCeilingProjects = [],
+	unboundedDebtCeilingProjects = EMPTY_ARRAY,
 	evmChains
 }) => {
 	const unlimitedDebtProjects = React.useMemo(
@@ -188,14 +190,14 @@ export const BorrowAggregatorAdvanced = ({
 				if (lendAmount !== 0) {
 					const lendUSDAmount = lendAmount * lendPriceNum
 					const borrowUSDAmount = lendUSDAmount * pool.ltv
-					const borrowAmount = borrowUSDAmount / borrowPriceNum
+					const calculatedBorrowAmount = borrowUSDAmount / borrowPriceNum
 
-					if (![lendUSDAmount, borrowUSDAmount, borrowAmount].every((e) => Number.isFinite(e))) return null
+					if (![lendUSDAmount, borrowUSDAmount, calculatedBorrowAmount].every((e) => Number.isFinite(e))) return null
 					return {
 						...pool,
 						lendUSDAmount,
 						lendAmount,
-						borrowAmount,
+						borrowAmount: calculatedBorrowAmount,
 						borrowUSDAmount,
 						lendPrice,
 						borrowPrice
@@ -203,9 +205,9 @@ export const BorrowAggregatorAdvanced = ({
 				} else {
 					const borrowUSDAmount = borrowAmount * borrowPriceNum
 					const lendUSDAmount = borrowUSDAmount / pool.ltv
-					const lendAmount = lendUSDAmount / lendPriceNum
+					const calculatedLendAmount = lendUSDAmount / lendPriceNum
 
-					if (![lendUSDAmount, borrowUSDAmount, lendAmount].every((e) => Number.isFinite(e))) return null
+					if (![lendUSDAmount, borrowUSDAmount, calculatedLendAmount].every((e) => Number.isFinite(e))) return null
 
 					return {
 						...pool,
@@ -214,7 +216,7 @@ export const BorrowAggregatorAdvanced = ({
 						borrowUSDAmount,
 						lendPrice,
 						borrowPrice,
-						lendAmount
+						lendAmount: calculatedLendAmount
 					}
 				}
 			})

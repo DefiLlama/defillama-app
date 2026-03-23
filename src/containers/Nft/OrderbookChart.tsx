@@ -40,7 +40,7 @@ export default function OrderBookChart({ height, chartData }: IOrderBookChartPro
 		if (!Array.isArray(chartData) || chartData.length === 0) return
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
 		const series = [

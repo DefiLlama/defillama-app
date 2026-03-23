@@ -1,12 +1,12 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { PROTOCOLS_API } from '~/constants'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -14,7 +14,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -31,17 +31,19 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const data = await getProtocolOverviewPageData({
 			protocolId: metadata[0],
 			currentProtocolMetadata: metadata[1],
-			chainMetadata: metadataCache.chainMetadata
+			chainMetadata: metadataCache.chainMetadata,
+			tokenlist: metadataCache.tokenlist,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
 		})
 
 		if (!data) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const { questions: entityQuestions } = await fetchEntityQuestions(normalizedName, 'protocol')
@@ -54,14 +56,14 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
 		}
 	}
 
-	const res = await fetchJson(PROTOCOLS_API)
+	const res = await fetchProtocols()
 	const slugs = new Set()
 	const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
 	for (const protocol of res.protocols) {
@@ -80,7 +82,7 @@ export async function getStaticPaths() {
 			break
 		}
 	}
-	const paths: string[] = Array.from(slugs).map((slug) => `/protocol/${slug}`)
+	const paths: string[] = Array.from(slugs).map((protocolSlug) => `/protocol/${protocolSlug}`)
 
 	return { paths, fallback: 'blocking' }
 }

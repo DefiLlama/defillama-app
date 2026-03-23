@@ -14,7 +14,10 @@ import {
 	getLiquidationsCsvData
 } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { download, formattedNum, liquidationsIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { download } from '~/utils/download'
+import { liquidationsIconUrl } from '~/utils/icons'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -51,7 +54,7 @@ export const LiquidationsContainer = (props: {
 	}, [toggleLiqsSettings, LIQS_USING_USD])
 
 	const handleToggleCumulative = React.useCallback(() => {
-		React.startTransition(() => toggleLiqsSettings(LIQS_CUMULATIVE))
+		toggleLiqsSettings(LIQS_CUMULATIVE)
 	}, [toggleLiqsSettings, LIQS_CUMULATIVE])
 
 	const onChartReady = React.useCallback((instance: ECharts | null) => {
@@ -238,6 +241,17 @@ export const LiquidationsContainer = (props: {
 		return options as unknown as IMultiSeriesChart2Props['chartOptions']
 	}, [isLiqsCumulative, isLiqsUsingUsd, nativeSymbol])
 
+	const chartRenderModel = React.useMemo(
+		() => ({
+			dataset: formattedChart.dataset,
+			charts: formattedChart.charts,
+			chartOptions,
+			valueSymbol: isLiqsUsingUsd ? '$' : ''
+		}),
+		[formattedChart, chartOptions, isLiqsUsingUsd]
+	)
+	const deferredChartRenderModel = React.useDeferredValue(chartRenderModel)
+
 	const liquidableChanges = React.useMemo(
 		() => getLiquidableChangesRatio(data, prevData, stackBy),
 		[data, prevData, stackBy]
@@ -252,7 +266,7 @@ export const LiquidationsContainer = (props: {
 			<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 				<h1 className="flex items-center gap-2">
 					<img
-						src={liquidationsIconUrl(data.symbol.toLowerCase())}
+						src={liquidationsIconUrl(data.symbol)}
 						alt={data.name}
 						width={24}
 						height={24}
@@ -282,16 +296,7 @@ export const LiquidationsContainer = (props: {
 						<button
 							data-active={stackBy === 'protocols'}
 							onClick={() => {
-								router.push(
-									{
-										query: {
-											...router.query,
-											stackBy: 'protocols'
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
+								void pushShallowQuery(router, { stackBy: 'protocols' })
 							}}
 							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 						>
@@ -301,16 +306,7 @@ export const LiquidationsContainer = (props: {
 						<button
 							data-active={stackBy === 'chains'}
 							onClick={() => {
-								router.push(
-									{
-										query: {
-											...router.query,
-											stackBy: 'chains'
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
+								void pushShallowQuery(router, { stackBy: 'chains' })
 							}}
 							className="inline-flex shrink-0 items-center justify-center gap-1 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white max-sm:flex-1"
 						>
@@ -329,13 +325,13 @@ export const LiquidationsContainer = (props: {
 				</div>
 				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={formattedChart.dataset}
-						charts={formattedChart.charts}
-						chartOptions={chartOptions}
+						dataset={deferredChartRenderModel.dataset}
+						charts={deferredChartRenderModel.charts}
+						chartOptions={deferredChartRenderModel.chartOptions}
 						containerClassName="min-h-[360px]"
 						hideDefaultLegend={false}
 						onReady={onChartReady}
-						valueSymbol={isLiqsUsingUsd ? '$' : ''}
+						valueSymbol={deferredChartRenderModel.valueSymbol}
 					/>
 				</React.Suspense>
 

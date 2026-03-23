@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -10,17 +10,20 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import type { useCalcCirculating } from '~/containers/Stablecoins/hooks'
-import { formattedNum, peggedAssetIconUrl as stablecoinAssetIconUrl, renderPercentChange, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type StablecoinDeviationInfo = {
 	timestamp: number
@@ -54,26 +57,24 @@ type StablecoinsTableInputRow = {
 	subRows?: StablecoinsTableInputRow[]
 }
 type StablecoinRow = ReturnType<typeof useCalcCirculating<StablecoinsTableInputRow>>[number]
+const columnHelper = createColumnHelper<StablecoinRow>()
 
-const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
-	{
-		header: 'Name',
+const stablecoinsColumns = [
+	columnHelper.accessor((row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`, {
 		id: 'name',
-		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
+		header: 'Name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={stablecoinAssetIconUrl(row.original.name)} data-lgonly />
+					<TokenLogo name={row.original.name} kind="pegged" alt={`Logo of ${row.original.name}`} data-lgonly />
 					{row.original?.deprecated ? (
 						<BasicLink
 							href={`/stablecoin/${slug(row.original.name)}`}
 							className="flex items-center gap-1 overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">
-								{getValue() as string}
-							</span>
+							<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{getValue()}</span>
 							<Tooltip content="Deprecated" className="text-(--error)">
 								<Icon name="alert-triangle" height={14} width={14} />
 							</Tooltip>
@@ -83,29 +84,29 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 							href={`/stablecoin/${slug(row.original.name)}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue() as string}
+							{getValue()}
 						</BasicLink>
 					)}
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/stablecoins" iconType="chain" />,
+		cell: ({ getValue }) => (
+			<IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/stablecoins', chain))} />
+		),
 		size: 200,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Chains are ordered by stablecoin issuance on each chain'
 		}
-	},
-	{
-		header: '% Off Peg',
+	}),
+	columnHelper.accessor((row) => (row.yieldBearing ? null : row.pegDeviation), {
 		id: 'pegDeviation',
-		accessorFn: (row) => (row.yieldBearing ? null : row.pegDeviation),
+		header: '% Off Peg',
 		size: 120,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -123,11 +124,10 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: '1m % Off Peg',
+	}),
+	columnHelper.accessor((row) => (row.yieldBearing ? null : row.pegDeviation_1m), {
 		id: 'pegDeviation_1m',
-		accessorFn: (row) => (row.yieldBearing ? null : row.pegDeviation_1m),
+		header: '1m % Off Peg',
 		size: 132,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -146,10 +146,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 			align: 'end',
 			headerHelperText: 'Shows greatest % price deviation from peg over the past month'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('price', {
 		header: 'Price',
-		accessorKey: 'price',
 		size: 110,
 		cell: ({ getValue, row }) => {
 			const value = getValue()
@@ -164,10 +163,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
 		cell: (info) =>
 			info.row.original.change_1d_nol != null ? (
 				<Tooltip
@@ -176,7 +174,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 						info.row.original.change_1d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{renderPercentChange(info.getValue())}
+					<PercentChange percent={info.getValue()} />
 				</Tooltip>
 			) : (
 				'-'
@@ -185,10 +183,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
 		cell: (info) =>
 			info.row.original.change_7d_nol != null ? (
 				<Tooltip
@@ -197,7 +194,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 						info.row.original.change_7d_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{renderPercentChange(info.getValue())}
+					<PercentChange percent={info.getValue()} />
 				</Tooltip>
 			) : (
 				'-'
@@ -206,10 +203,9 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m Change',
-		accessorKey: 'change_1m',
 		cell: (info) =>
 			info.row.original.change_1m_nol != null ? (
 				<Tooltip
@@ -218,7 +214,7 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 						info.row.original.change_1m_nol.startsWith('-') ? 'text-(--error)' : 'text-(--success)'
 					}`}
 				>
-					{renderPercentChange(info.getValue())}
+					<PercentChange percent={info.getValue()} />
 				</Tooltip>
 			) : (
 				'-'
@@ -227,16 +223,15 @@ const stablecoinsColumns: ColumnDef<StablecoinRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const assetsColumnOrders: ColumnOrdersByBreakpoint = {
@@ -369,16 +364,17 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({ instance, columnSizes: assetsColumnSizes, columnOrders: assetsColumnOrders })
 
 	return (
@@ -393,14 +389,12 @@ export function StablecoinsTable({ data }: { data: StablecoinRow[] }) {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-assets' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

@@ -1,20 +1,21 @@
 import {
-	type ColumnDef,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { useBlockExplorers } from '~/api/client'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { getBlockExplorerForTx } from '~/containers/Bridges/utils'
-import { formattedNum, getBlockExplorer, slug, toNiceDayAndHour } from '~/utils'
+import { formattedNum, slug, toNiceDayAndHour } from '~/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 
 type LargeTxsData = {
 	date: number
@@ -25,106 +26,16 @@ type LargeTxsData = {
 	usdValue: string | number
 }
 
-const largeTxsColumn: ColumnDef<LargeTxsData>[] = [
-	{
-		header: 'Timestamp',
-		accessorKey: 'date',
-		cell: (info) => <>{toNiceDayAndHour(info.getValue() as number)}</>,
-		size: 120
-	},
-	{
-		header: 'Bridge',
-		accessorKey: 'bridge',
-		cell: ({ getValue }) => {
-			const value = getValue() as string
-			const linkValue = slug(value)
-			return (
-				<BasicLink
-					href={`/bridge/${linkValue}`}
-					className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
-				>
-					{value}
-				</BasicLink>
-			)
-		},
-		size: 180
-	},
-	{
-		header: 'Deposit/Withdrawal',
-		accessorKey: 'isDeposit',
-		cell: ({ getValue }) => {
-			const value = getValue() as boolean
-			return (
-				<span className={`${value ? 'text-(--error)' : 'text-(--success)'}`}>{value ? 'Withdrawal' : 'Deposit'}</span>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Token',
-		accessorKey: 'symbol',
-		cell: ({ getValue }) => {
-			const value = getValue() as string
-			const splitValue = value.split('#')
-			const [symbol, token] = splitValue
-			const { blockExplorerLink } = getBlockExplorer(token)
-			if (value) {
-				return (
-					<a
-						href={blockExplorerLink}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-end"
-					>
-						<span>{symbol}</span>
-						<Icon name="external-link" height={10} width={10} />
-					</a>
-				)
-			} else return <>Not found</>
-		},
-		size: 100,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Value',
-		accessorKey: 'usdValue',
-		cell: (info) => formattedNum(info.getValue(), true),
-		size: 120,
-		meta: {
-			align: 'end'
-		}
-	},
-	{
-		header: 'Explorer Link',
-		accessorKey: 'txHash',
-		cell: ({ getValue }) => {
-			const value = getValue() as string
-			const { blockExplorerLink } = getBlockExplorerForTx(value)
-			if (value) {
-				return (
-					<a
-						href={blockExplorerLink}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="flex items-center justify-end gap-2"
-					>
-						<span>View Transaction</span>
-						<Icon name="external-link" height={10} width={10} />
-					</a>
-				)
-			} else return <>Not found</>
-		},
-		meta: {
-			align: 'end'
-		},
-		size: 100
-	}
-]
+export type BridgesLargeTxsTableHandle = {
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+}
+
+type BridgesLargeTxsTableProps = {
+	data: LargeTxsData[]
+	csvFileName?: string
+}
+
+const columnHelper = createColumnHelper<LargeTxsData>()
 
 const largeTxsColumnOrders: ColumnOrdersByBreakpoint = {
 	0: ['date', 'symbol', 'usdValue', 'isDeposit', 'bridge', 'txHash'],
@@ -158,34 +69,165 @@ const largeTxsColumnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export function BridgesLargeTxsTable({ data }: { data: LargeTxsData[] }) {
-	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
-	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
-	const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+export const BridgesLargeTxsTable = React.forwardRef<BridgesLargeTxsTableHandle, BridgesLargeTxsTableProps>(
+	function BridgesLargeTxsTable({ data, csvFileName = 'bridge-transactions' }, ref) {
+		const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }])
+		const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
+		const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({})
+		const { data: blockExplorersData } = useBlockExplorers()
 
-	const instance = useReactTable({
-		data,
-		columns: largeTxsColumn,
-		state: {
-			sorting,
-			columnOrder,
-			columnSizing
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
+		const columns = React.useMemo(
+			() => [
+				columnHelper.accessor('date', {
+					header: 'Timestamp',
+					cell: (info) => <>{toNiceDayAndHour(info.getValue())}</>,
+					size: 120
+				}),
+				columnHelper.accessor('bridge', {
+					header: 'Bridge',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						const linkValue = slug(value)
+						return (
+							<BasicLink
+								href={`/bridge/${linkValue}`}
+								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
+							>
+								{value}
+							</BasicLink>
+						)
+					},
+					size: 180
+				}),
+				columnHelper.accessor('isDeposit', {
+					header: 'Deposit/Withdrawal',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						return (
+							<span className={`${value ? 'text-(--error)' : 'text-(--success)'}`}>
+								{value ? 'Withdrawal' : 'Deposit'}
+							</span>
+						)
+					},
+					size: 120,
+					meta: {
+						align: 'end'
+					}
+				}),
+				columnHelper.accessor('symbol', {
+					header: 'Token',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						if (!value) return 'Not found'
 
-	useSortColumnSizesAndOrders({
-		instance,
-		columnSizes: largeTxsColumnSizes,
-		columnOrders: largeTxsColumnOrders
-	})
+						const [symbol, token] = value.split('#')
+						const explorer = token
+							? getBlockExplorerNew({
+									apiResponse: blockExplorersData ?? [],
+									address: token,
+									urlType: 'token'
+								})
+							: null
 
-	return <VirtualTable instance={instance} />
-}
+						if (!explorer) {
+							return <span>{symbol}</span>
+						}
+
+						return (
+							<a
+								href={explorer.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center justify-end"
+							>
+								<span>{symbol}</span>
+								<Icon name="external-link" height={10} width={10} />
+							</a>
+						)
+					},
+					size: 100,
+					meta: {
+						align: 'end'
+					}
+				}),
+				columnHelper.accessor('usdValue', {
+					header: 'Value',
+					cell: (info) => formattedNum(info.getValue(), true),
+					size: 120,
+					meta: {
+						align: 'end'
+					}
+				}),
+				columnHelper.accessor('txHash', {
+					header: 'Explorer Link',
+					cell: ({ getValue }) => {
+						const value = getValue()
+						if (!value) return 'Not found'
+
+						const explorer = getBlockExplorerNew({
+							apiResponse: blockExplorersData ?? [],
+							address: value,
+							urlType: 'tx'
+						})
+
+						if (!explorer) {
+							return null
+						}
+
+						return (
+							<a
+								href={explorer.url}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center justify-end gap-2"
+							>
+								<span>View Transaction</span>
+								<Icon name="external-link" height={10} width={10} />
+							</a>
+						)
+					},
+					meta: {
+						align: 'end'
+					},
+					size: 100
+				})
+			],
+			[blockExplorersData]
+		)
+
+		const instance = useReactTable({
+			data,
+			columns,
+			state: {
+				sorting,
+				columnOrder,
+				columnSizing
+			},
+			defaultColumn: {
+				sortUndefined: 'last'
+			},
+			enableSortingRemoval: false,
+			onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+			onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+			onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+			getCoreRowModel: getCoreRowModel(),
+			getSortedRowModel: getSortedRowModel()
+		})
+
+		useSortColumnSizesAndOrders({
+			instance,
+			columnSizes: largeTxsColumnSizes,
+			columnOrders: largeTxsColumnOrders
+		})
+
+		React.useImperativeHandle(
+			ref,
+			() => ({
+				prepareCsv: () => prepareTableCsv({ instance, filename: csvFileName })
+			}),
+			[csvFileName, instance]
+		)
+
+		return <VirtualTable instance={instance} />
+	}
+)

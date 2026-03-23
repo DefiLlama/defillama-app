@@ -20,14 +20,18 @@ function escapeHtml(str: string): string {
 }
 
 export function highlightWord(text: string, words: string[]) {
-	if (!text || typeof text !== 'string') return text
-	if (!Array.isArray(words) || words.length === 0) return text
+	if (typeof text !== 'string') return ''
 
 	const escapedText = escapeHtml(text)
 
-	const escapedWords = words
-		.filter((word) => word && word.trim())
-		.map((word) => word.replace(REGEX_ESCAPE_PATTERN, '\\$&'))
+	if (!text || !Array.isArray(words) || words.length === 0) return escapedText
+
+	const escapedWords: string[] = []
+	for (const word of words) {
+		if (!word || !word.trim()) continue
+		const escapedWord = escapeHtml(word)
+		escapedWords.push(escapedWord.replace(REGEX_ESCAPE_PATTERN, '\\$&'))
+	}
 
 	if (escapedWords.length === 0) return escapedText
 
@@ -44,5 +48,7 @@ export function highlightWord(text: string, words: string[]) {
 
 	// Reset lastIndex to avoid issues with global regex state
 	highlightRegexCache.regex.lastIndex = 0
+	// Safety contract: both the full text and every matched token are escaped first.
+	// The only HTML introduced here is the internal highlight span used by the input overlay.
 	return escapedText.replace(highlightRegexCache.regex, '<span class="highlight">$1</span>')
 }

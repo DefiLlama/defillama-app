@@ -3,18 +3,13 @@ import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import type { StablecoinChartType, StablecoinsChartConfig } from '~/containers/ProDashboard/types'
 import { ChartSelector } from '~/containers/Stablecoins/ChartSelector'
-import {
-	parseBooleanQueryParam,
-	useCalcCirculating,
-	useCalcGroupExtraPeggedByDay,
-	useGroupChainsPegged
-} from '~/containers/Stablecoins/hooks'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import {
 	getStablecoinDominance,
 	type IBuildStablecoinChartDataResult,
@@ -22,6 +17,7 @@ import {
 } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { formattedNum, toNiceCsvDate } from '~/utils'
+import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { StablecoinsChainsTable } from './StablecoinsChainsTable'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -84,10 +80,7 @@ export function ChainsWithStablecoins({
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const filteredPeggedAssets = chainCirculatings
-	const includeUnreleased = React.useMemo(
-		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
-		[router.query]
-	)
+	const includeUnreleased = React.useMemo(() => isTruthyQueryParam(router.query[UNRELEASED_QUERY_KEY]), [router.query])
 	const chainTotals = useCalcCirculating<Parameters<typeof useGroupChainsPegged>[0][number]>(
 		filteredPeggedAssets,
 		includeUnreleased
@@ -111,7 +104,7 @@ export function ChainsWithStablecoins({
 				}, 0)
 			])
 		}
-		return { filename: 'stablecoinsChainTotals.csv', rows }
+		return { filename: 'stablecoinsChainTotals', rows }
 	}
 
 	const mcapToDisplay = formattedNum(totalMcapCurrent, true)
@@ -131,9 +124,9 @@ export function ChainsWithStablecoins({
 		return preparePieChartData({ data: groupedChains, sliceIdentifier: 'name', sliceValue: 'mcap', limit: 10 })
 	}, [groupedChains])
 
-	const { chainMcapsDataset, chainMcapsCharts } = React.useMemo(
+	const chainMcapsData = React.useMemo(
 		() => ({
-			chainMcapsDataset: {
+			dataset: {
 				source: peggedAreaChartData
 					.map(({ date, ...rest }) => {
 						const timestamp = Number(date) * 1e3
@@ -149,7 +142,7 @@ export function ChainsWithStablecoins({
 					.filter((row): row is Record<string, number> => row !== null),
 				dimensions: ['timestamp', ...chainList]
 			},
-			chainMcapsCharts: chainList.map((name) => ({
+			charts: chainList.map((name) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -159,9 +152,9 @@ export function ChainsWithStablecoins({
 		[peggedAreaChartData, chainList]
 	)
 
-	const { dominanceDataset, dominanceCharts } = React.useMemo(
+	const dominanceData = React.useMemo(
 		() => ({
-			dominanceDataset: {
+			dataset: {
 				source: dataWithExtraPeggedAndDominanceByDay
 					.map(({ date, ...rest }) => {
 						const timestamp = Number(date) * 1e3
@@ -177,7 +170,7 @@ export function ChainsWithStablecoins({
 					.filter((row): row is Record<string, number> => row !== null),
 				dimensions: ['timestamp', ...chainList]
 			},
-			dominanceCharts: chainList.map((name) => ({
+			charts: chainList.map((name) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -186,6 +179,10 @@ export function ChainsWithStablecoins({
 		}),
 		[dataWithExtraPeggedAndDominanceByDay, chainList]
 	)
+	const deferredPeggedAreaTotalData = React.useDeferredValue(peggedAreaTotalData)
+	const deferredChainMcapsData = React.useDeferredValue(chainMcapsData)
+	const deferredDominanceData = React.useDeferredValue(dominanceData)
+	const deferredChainsCirculatingValues = React.useDeferredValue(chainsCirculatingValues)
 
 	const stablecoinsChartConfig = React.useMemo<StablecoinsChartConfig>(
 		() => ({
@@ -227,10 +224,10 @@ export function ChainsWithStablecoins({
 		<>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
-					<p className="flex flex-col">
-						<span className="text-(--text-label)">Total Stablecoins Market Cap</span>
-						<span className="font-jetbrains text-2xl font-semibold">{mcapToDisplay}</span>
-					</p>
+					<div className="flex flex-col">
+						<h1 className="text-(--text-label)">Total Stablecoins Market Cap</h1>
+						<p className="font-jetbrains text-2xl font-semibold">{mcapToDisplay}</p>
+					</div>
 
 					<details className="group text-base">
 						<summary className="flex items-center">
@@ -298,8 +295,8 @@ export function ChainsWithStablecoins({
 					{chartType === 'Total Market Cap' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
-								dataset={peggedAreaTotalData.dataset}
-								charts={peggedAreaTotalData.charts}
+								dataset={deferredPeggedAreaTotalData.dataset}
+								charts={deferredPeggedAreaTotalData.charts}
 								valueSymbol="$"
 								chartOptions={chartOptions}
 								onReady={handleChartReady}
@@ -308,10 +305,11 @@ export function ChainsWithStablecoins({
 					) : chartType === 'Chain Market Caps' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
-								dataset={chainMcapsDataset}
-								charts={chainMcapsCharts}
+								dataset={deferredChainMcapsData.dataset}
+								charts={deferredChainMcapsData.charts}
 								stacked={true}
 								valueSymbol="$"
+								showTotalInTooltip
 								chartOptions={chartOptions}
 								onReady={handleChartReady}
 							/>
@@ -319,8 +317,8 @@ export function ChainsWithStablecoins({
 					) : chartType === 'Dominance' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
-								dataset={dominanceDataset}
-								charts={dominanceCharts}
+								dataset={deferredDominanceData.dataset}
+								charts={deferredDominanceData.charts}
 								stacked={true}
 								expandTo100Percent={true}
 								valueSymbol="%"
@@ -330,7 +328,7 @@ export function ChainsWithStablecoins({
 						</React.Suspense>
 					) : chartType === 'Pie' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart chartData={chainsCirculatingValues} onReady={handleChartReady} />
+							<PieChart chartData={deferredChainsCirculatingValues} onReady={handleChartReady} />
 						</React.Suspense>
 					) : null}
 				</div>

@@ -1,9 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, renderPercentChange, peggedAssetIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface IPeggedAssetRow {
 	name: string
@@ -31,13 +32,13 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<TokenLogo logo={peggedAssetIconUrl(name)} data-lgonly />
+					<TokenLogo name={name} kind="pegged" alt={`Logo of ${name}`} data-lgonly />
 					<BasicLink
 						href={`/stablecoins/${row.original.gecko_id || name}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
-						{symbol && symbol !== '-' && <span className="text-(--text-tertiary)"> ({symbol})</span>}
+						{symbol && symbol !== '-' ? <span className="text-(--text-tertiary)"> ({symbol})</span> : null}
 					</BasicLink>
 				</span>
 			)
@@ -53,7 +54,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 
 			return (
 				<span className="flex items-center gap-1">
-					{pegDeviation && Math.abs(pegDeviation) >= 0.5 && (
+					{pegDeviation && Math.abs(pegDeviation) >= 0.5 ? (
 						<Tooltip content={`${pegDeviation > 0 ? '+' : ''}${pegDeviation.toFixed(2)}% from peg`}>
 							<Icon
 								name="alert-triangle"
@@ -62,7 +63,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 								className={pegDeviation > 0 ? 'text-(--success)' : 'text-(--error)'}
 							/>
 						</Tooltip>
-					)}
+					) : null}
 					<span>${value?.toFixed(4) || '0.0000'}</span>
 				</span>
 			)
@@ -90,7 +91,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{renderPercentChange(value)}</span>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
 			)
 		},
 		size: 100,
@@ -104,7 +107,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{renderPercentChange(value)}</span>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
 			)
 		},
 		size: 100,
@@ -118,7 +123,9 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 		cell: ({ getValue }) => {
 			const value = getValue() as number
 			return (
-				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>{renderPercentChange(value)}</span>
+				<span className={` ${value < 0 ? 'text-(--error)' : 'text-(--success)'}`}>
+					<PercentChange percent={value} />
+				</span>
 			)
 		},
 		size: 100,
@@ -138,7 +145,7 @@ export const stablecoinsDatasetColumns: ColumnDef<IPeggedAssetRow>[] = [
 				<Tooltip content={chains.join(', ')}>
 					<span className="text-sm text-(--text-secondary)">
 						{displayChains.join(', ')}
-						{remainingCount > 0 && ` +${remainingCount}`}
+						{remainingCount > 0 ? ` +${remainingCount}` : null}
 					</span>
 				</Tooltip>
 			)

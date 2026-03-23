@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { UnifiedRowHeaderType } from '../../../types'
 
 export const ROW_HEADER_GROUPING_COLUMN_IDS: Record<UnifiedRowHeaderType, string> = {

@@ -24,8 +24,9 @@ This document defines the commands and conventions that all AI agents (opencode)
 
 When completing any task, you MUST run the following commands to verify code correctness:
 
-1. `bun run lint` - to check for linting errors
-2. `bun run ts` - to check for TypeScript errors
+1. `bun run format` - to format code
+2. `bun run lint` - to check for linting errors
+3. `bun run ts` - to check for TypeScript errors
 
 Do NOT run `bun run build` as it will fail due to rate limits.
 
@@ -38,7 +39,6 @@ When moving or renaming types/functions across files:
 3. Update imports to point directly to the new location (e.g., `from './api.types'` instead of `from './queries'`)
 4. This ensures clear dependency chains and avoids circular dependencies
 
-## Additional Guidelines
+# Next.js: ALWAYS read docs before coding
 
-- Follow `.agents/CODING_STANDARDS.md` for code quality, type safety, React patterns, and API conventions.
-- If any rule conflicts, `AGENTS.md` takes precedence.
+Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.

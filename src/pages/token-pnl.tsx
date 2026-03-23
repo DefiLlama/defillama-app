@@ -1,10 +1,11 @@
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { fetchAllCGTokensList } from '~/api'
 import { TokenPnl } from '~/containers/TokenPnl'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('token-pnl', async () => {
-	const coinsData = await getAllCGTokensList()
+	const coinsData = await fetchAllCGTokensList()
 	return {
 		props: {
 			coinsData
@@ -18,9 +19,8 @@ const pageName = ['Token PNL']
 export default function TokenPnlPage({ coinsData }) {
 	return (
 		<Layout
-			title={`Token PNL - DefiLlama`}
-			description={`Token PNL on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token pnl, defi token pnl, pnl by token, profit and loss by token`}
+			title={`Token Profit & Loss (PnL) Tracker - DefiLlama`}
+			description="Calculate profit and loss for any DeFi token. Track entry price, current value, and returns on DefiLlama."
 			canonicalUrl={`/token-pnl`}
 			pageName={pageName}
 		>

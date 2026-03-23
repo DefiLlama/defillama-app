@@ -1,7 +1,7 @@
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useReducer, useRef } from 'react'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
@@ -37,6 +37,64 @@ interface YieldsChartTabProps {
 	onSelectedYieldTokensChange: (tokens: string[]) => void
 	onMinTvlChange: (tvl: number | null) => void
 	onMaxTvlChange: (tvl: number | null) => void
+}
+
+type SortColumn = 'tvl' | 'apy'
+type SortDirection = 'desc' | 'asc'
+
+interface YieldsChartUiState {
+	chainSearch: string
+	projectSearch: string
+	tokenSearch: string
+	poolSearch: string
+	sortColumn: SortColumn
+	sortDirection: SortDirection
+	showPoolPicker: boolean
+}
+
+type YieldsChartUiAction =
+	| { type: 'set_chain_search'; value: string }
+	| { type: 'set_project_search'; value: string }
+	| { type: 'set_token_search'; value: string }
+	| { type: 'set_pool_search'; value: string }
+	| { type: 'toggle_sort'; column: SortColumn }
+	| { type: 'set_show_pool_picker'; value: boolean }
+
+const getInitialYieldsChartUiState = (
+	selectedYieldPool: YieldsChartTabProps['selectedYieldPool']
+): YieldsChartUiState => ({
+	chainSearch: '',
+	projectSearch: '',
+	tokenSearch: '',
+	poolSearch: '',
+	sortColumn: 'tvl',
+	sortDirection: 'desc',
+	showPoolPicker: !selectedYieldPool
+})
+
+const yieldsChartUiReducer = (state: YieldsChartUiState, action: YieldsChartUiAction): YieldsChartUiState => {
+	switch (action.type) {
+		case 'set_chain_search':
+			return { ...state, chainSearch: action.value }
+		case 'set_project_search':
+			return { ...state, projectSearch: action.value }
+		case 'set_token_search':
+			return { ...state, tokenSearch: action.value }
+		case 'set_pool_search':
+			return { ...state, poolSearch: action.value }
+		case 'toggle_sort':
+			if (state.sortColumn === action.column) {
+				return {
+					...state,
+					sortDirection: state.sortDirection === 'desc' ? 'asc' : 'desc'
+				}
+			}
+			return { ...state, sortColumn: action.column, sortDirection: 'desc' }
+		case 'set_show_pool_picker':
+			return { ...state, showPoolPicker: action.value }
+		default:
+			return state
+	}
 }
 
 const tvlApyCharts = [
@@ -85,13 +143,12 @@ export function YieldsChartTab({
 }: YieldsChartTabProps) {
 	const { data: yieldsDataResponse, isLoading: yieldsLoading } = useYieldsData()
 	const yieldsData = yieldsDataResponse ?? EMPTY_YIELDS_DATA
-	const [chainSearch, setChainSearch] = useState('')
-	const [projectSearch, setProjectSearch] = useState('')
-	const [tokenSearch, setTokenSearch] = useState('')
-	const [poolSearch, setPoolSearch] = useState('')
-	const [sortColumn, setSortColumn] = useState<'tvl' | 'apy'>('tvl')
-	const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc')
-	const [showPoolPicker, setShowPoolPicker] = useState(!selectedYieldPool)
+	const [uiState, dispatchUi] = useReducer(yieldsChartUiReducer, selectedYieldPool, getInitialYieldsChartUiState)
+	const { chainSearch, projectSearch, tokenSearch, poolSearch, sortColumn, sortDirection, showPoolPicker } = uiState
+	const deferredChainSearch = useDeferredValue(chainSearch)
+	const deferredProjectSearch = useDeferredValue(projectSearch)
+	const deferredTokenSearch = useDeferredValue(tokenSearch)
+	const deferredPoolSearch = useDeferredValue(poolSearch)
 	const chainListRef = useRef<HTMLDivElement | null>(null)
 	const projectListRef = useRef<HTMLDivElement | null>(null)
 	const tokenListRef = useRef<HTMLDivElement | null>(null)
@@ -167,23 +224,19 @@ export function YieldsChartTab({
 	}, [yieldsData])
 
 	const filteredChainOptions = useMemo(() => {
-		if (!chainSearch) return chainOptions
-		return matchSorter(chainOptions, chainSearch, { keys: ['label'] })
-	}, [chainOptions, chainSearch])
+		if (!deferredChainSearch) return chainOptions
+		return matchSorter(chainOptions, deferredChainSearch, { keys: ['label'] })
+	}, [chainOptions, deferredChainSearch])
 
 	const filteredProjectOptions = useMemo(() => {
-		if (!projectSearch) return projectOptions
-		return matchSorter(projectOptions, projectSearch, { keys: ['label'] })
-	}, [projectOptions, projectSearch])
+		if (!deferredProjectSearch) return projectOptions
+		return matchSorter(projectOptions, deferredProjectSearch, { keys: ['label'] })
+	}, [projectOptions, deferredProjectSearch])
 
 	const filteredTokenOptions = useMemo(() => {
-		if (!tokenSearch) return tokenOptions
-		return matchSorter(tokenOptions, tokenSearch, { keys: ['label'] })
-	}, [tokenOptions, tokenSearch])
-
-	const chainOpen = chainPopover.useState('open')
-	const projectOpen = projectPopover.useState('open')
-	const tokenOpen = tokenPopover.useState('open')
+		if (!deferredTokenSearch) return tokenOptions
+		return matchSorter(tokenOptions, deferredTokenSearch, { keys: ['label'] })
+	}, [tokenOptions, deferredTokenSearch])
 
 	const chainVirtualizer = useVirtualizer({
 		count: filteredChainOptions.length,
@@ -206,23 +259,17 @@ export function YieldsChartTab({
 		overscan: 8
 	})
 
-	useEffect(() => {
-		if (chainOpen) {
-			setTimeout(() => chainVirtualizer.measure(), 0)
-		}
-	}, [chainOpen, chainVirtualizer])
+	const handleChainPopoverToggle = () => {
+		setTimeout(() => chainVirtualizer.measure(), 0)
+	}
 
-	useEffect(() => {
-		if (projectOpen) {
-			setTimeout(() => projectVirtualizer.measure(), 0)
-		}
-	}, [projectOpen, projectVirtualizer])
+	const handleProjectPopoverToggle = () => {
+		setTimeout(() => projectVirtualizer.measure(), 0)
+	}
 
-	useEffect(() => {
-		if (tokenOpen) {
-			setTimeout(() => tokenVirtualizer.measure(), 0)
-		}
-	}, [tokenOpen, tokenVirtualizer])
+	const handleTokenPopoverToggle = () => {
+		setTimeout(() => tokenVirtualizer.measure(), 0)
+	}
 
 	const toggleChain = (value: string) => {
 		if (selectedYieldChains.includes(value)) {
@@ -325,8 +372,8 @@ export function YieldsChartTab({
 	const searchedAndSortedPools = useMemo(() => {
 		let result = filteredPools
 
-		if (poolSearch) {
-			result = matchSorter(result, poolSearch, {
+		if (deferredPoolSearch) {
+			result = matchSorter(result, deferredPoolSearch, {
 				keys: ['pool', 'project', (item: any) => item.chains?.[0] || '']
 			})
 		}
@@ -336,7 +383,7 @@ export function YieldsChartTab({
 			const bVal = sortColumn === 'tvl' ? b.tvl || 0 : b.apy || 0
 			return sortDirection === 'desc' ? bVal - aVal : aVal - bVal
 		})
-	}, [filteredPools, poolSearch, sortColumn, sortDirection])
+	}, [filteredPools, deferredPoolSearch, sortColumn, sortDirection])
 
 	const poolListVirtualizer = useVirtualizer({
 		count: searchedAndSortedPools.length,
@@ -345,13 +392,8 @@ export function YieldsChartTab({
 		overscan: 8
 	})
 
-	const toggleSort = (column: 'tvl' | 'apy') => {
-		if (sortColumn === column) {
-			setSortDirection((prev) => (prev === 'desc' ? 'asc' : 'desc'))
-		} else {
-			setSortColumn(column)
-			setSortDirection('desc')
-		}
+	const toggleSort = (column: SortColumn) => {
+		dispatchUi({ type: 'toggle_sort', column })
 	}
 
 	const selectedPoolData = useMemo(() => {
@@ -464,9 +506,10 @@ export function YieldsChartTab({
 				<div className="flex flex-col gap-4">
 					<div className="grid grid-cols-5 gap-2">
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">Chains</label>
+							<span className="mb-1 block text-[11px] font-medium pro-text2">Chains</span>
 							<PopoverDisclosure
 								store={chainPopover}
+								onClick={handleChainPopoverToggle}
 								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							>
 								<span className={selectedYieldChains.length > 0 ? 'pro-text1' : 'pro-text3'}>
@@ -494,9 +537,8 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											autoFocus
 											value={chainSearch}
-											onChange={(e) => setChainSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_chain_search', value: e.target.value })}
 											placeholder="Search chains..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -535,27 +577,26 @@ export function YieldsChartTab({
 														}}
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
-															{iconUrl && (
+															{iconUrl ? (
 																<img
 																	src={iconUrl}
 																	alt={option.label}
+																	width={20}
+																	height={20}
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
-																	onError={(e) => {
-																		e.currentTarget.style.display = 'none'
-																	}}
 																/>
-															)}
+															) : null}
 															<span className="truncate">{option.label}</span>
 														</div>
-														{isActive && (
+														{isActive ? (
 															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-														)}
+														) : null}
 													</button>
 												)
 											})}
 										</div>
 									</div>
-									{selectedYieldChains.length > 0 && (
+									{selectedYieldChains.length > 0 ? (
 										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 											<span className="text-[11px] font-medium text-(--text-secondary)">
 												{selectedYieldChains.length} selected
@@ -568,15 +609,16 @@ export function YieldsChartTab({
 												Clear
 											</button>
 										</div>
-									)}
+									) : null}
 								</div>
 							</Popover>
 						</div>
 
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">Projects</label>
+							<span className="mb-1 block text-[11px] font-medium pro-text2">Projects</span>
 							<PopoverDisclosure
 								store={projectPopover}
+								onClick={handleProjectPopoverToggle}
 								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							>
 								<span className={selectedYieldProjects.length > 0 ? 'pro-text1' : 'pro-text3'}>
@@ -604,9 +646,8 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											autoFocus
 											value={projectSearch}
-											onChange={(e) => setProjectSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_project_search', value: e.target.value })}
 											placeholder="Search projects..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -645,27 +686,26 @@ export function YieldsChartTab({
 														}}
 													>
 														<div className="flex min-w-0 items-center gap-2.5">
-															{iconUrl && (
+															{iconUrl ? (
 																<img
 																	src={iconUrl}
 																	alt={option.label}
+																	width={20}
+																	height={20}
 																	className="h-5 w-5 rounded-full object-cover ring-1 ring-(--cards-border)"
-																	onError={(e) => {
-																		e.currentTarget.style.display = 'none'
-																	}}
 																/>
-															)}
+															) : null}
 															<span className="truncate">{option.label}</span>
 														</div>
-														{isActive && (
+														{isActive ? (
 															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-														)}
+														) : null}
 													</button>
 												)
 											})}
 										</div>
 									</div>
-									{selectedYieldProjects.length > 0 && (
+									{selectedYieldProjects.length > 0 ? (
 										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 											<span className="text-[11px] font-medium text-(--text-secondary)">
 												{selectedYieldProjects.length} selected
@@ -678,15 +718,16 @@ export function YieldsChartTab({
 												Clear
 											</button>
 										</div>
-									)}
+									) : null}
 								</div>
 							</Popover>
 						</div>
 
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">Tokens</label>
+							<span className="mb-1 block text-[11px] font-medium pro-text2">Tokens</span>
 							<PopoverDisclosure
 								store={tokenPopover}
+								onClick={handleTokenPopoverToggle}
 								className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 							>
 								<span className={selectedYieldTokens.length > 0 ? 'pro-text1' : 'pro-text3'}>
@@ -714,9 +755,8 @@ export function YieldsChartTab({
 											className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--text-tertiary)"
 										/>
 										<input
-											autoFocus
 											value={tokenSearch}
-											onChange={(e) => setTokenSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_token_search', value: e.target.value })}
 											placeholder="Search tokens..."
 											className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -754,15 +794,15 @@ export function YieldsChartTab({
 														}}
 													>
 														<span className="truncate">{option.label}</span>
-														{isActive && (
+														{isActive ? (
 															<Icon name="check" width={14} height={14} className="ml-2 shrink-0 text-(--primary)" />
-														)}
+														) : null}
 													</button>
 												)
 											})}
 										</div>
 									</div>
-									{selectedYieldTokens.length > 0 && (
+									{selectedYieldTokens.length > 0 ? (
 										<div className="mt-2.5 flex items-center justify-between rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/40 px-2.5 py-2">
 											<span className="text-[11px] font-medium text-(--text-secondary)">
 												{selectedYieldTokens.length} selected
@@ -771,14 +811,14 @@ export function YieldsChartTab({
 												type="button"
 												onClick={() => {
 													onSelectedYieldTokensChange([])
-													setTokenSearch('')
+													dispatchUi({ type: 'set_token_search', value: '' })
 												}}
 												className="text-[11px] font-medium text-(--text-tertiary) transition-colors hover:text-(--primary)"
 											>
 												Clear
 											</button>
 										</div>
-									)}
+									) : null}
 								</div>
 							</Popover>
 						</div>
@@ -792,7 +832,7 @@ export function YieldsChartTab({
 						/>
 
 						<div className="flex flex-col">
-							<label className="mb-1 block text-[11px] font-medium pro-text2">TVL Range</label>
+							<span className="mb-1 block text-[11px] font-medium pro-text2">TVL Range</span>
 							<div className="flex gap-1">
 								<input
 									type="number"
@@ -816,23 +856,22 @@ export function YieldsChartTab({
 						<div className="overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 							<div className="flex items-center justify-between px-3 py-2.5">
 								<div className="flex items-center gap-3">
-									{selectedPoolData && (
+									{selectedPoolData ? (
 										<img
 											src={getItemIconUrl('protocol', null, selectedPoolData.project)}
 											alt={selectedPoolData.project}
+											width={32}
+											height={32}
 											className="h-8 w-8 rounded-full object-cover ring-1 ring-(--cards-border)"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
-									)}
+									) : null}
 									<div className="min-w-0">
-										<div className="text-sm font-semibold pro-text1">{selectedYieldPool.name}</div>
+										<p className="text-sm font-semibold pro-text1">{selectedYieldPool.name}</p>
 										<div className="flex items-center gap-2 text-xs text-(--text-tertiary)">
 											<span>{selectedYieldPool.project}</span>
 											<span>•</span>
 											<span>{selectedYieldPool.chain}</span>
-											{selectedPoolData && (
+											{selectedPoolData ? (
 												<>
 													<span>•</span>
 													<span className="font-medium text-(--text-secondary)">
@@ -843,14 +882,14 @@ export function YieldsChartTab({
 														APY: {selectedPoolData.apy?.toFixed(2) || '0.00'}%
 													</span>
 												</>
-											)}
+											) : null}
 										</div>
 									</div>
 								</div>
 								<div className="flex items-center gap-2">
 									<button
 										type="button"
-										onClick={() => setShowPoolPicker(true)}
+										onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: true })}
 										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-secondary) transition-colors hover:border-(--primary)/40 hover:text-(--text-primary)"
 									>
 										Change pool
@@ -859,7 +898,7 @@ export function YieldsChartTab({
 										type="button"
 										onClick={() => {
 											onSelectedYieldPoolChange(null)
-											setShowPoolPicker(true)
+											dispatchUi({ type: 'set_show_pool_picker', value: true })
 										}}
 										className="rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs font-medium text-(--text-tertiary) transition-colors hover:border-red-500/40 hover:text-red-500"
 									>
@@ -881,7 +920,7 @@ export function YieldsChartTab({
 										/>
 										<input
 											value={poolSearch}
-											onChange={(e) => setPoolSearch(e.target.value)}
+											onChange={(e) => dispatchUi({ type: 'set_pool_search', value: e.target.value })}
 											placeholder="Search pools..."
 											className="w-48 rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-7 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 										/>
@@ -890,19 +929,19 @@ export function YieldsChartTab({
 										{filteredPools.length} pool{filteredPools.length !== 1 ? 's' : ''}
 									</span>
 								</div>
-								{selectedYieldPool && (
+								{selectedYieldPool ? (
 									<button
 										type="button"
-										onClick={() => setShowPoolPicker(false)}
+										onClick={() => dispatchUi({ type: 'set_show_pool_picker', value: false })}
 										className="text-xs font-medium text-(--primary) transition-colors hover:text-(--primary)/80"
 									>
 										Cancel
 									</button>
-								)}
+								) : null}
 							</div>
 
 							<div className="grid grid-cols-[1fr_100px_100px_80px] gap-2 border-b border-(--cards-border) bg-(--cards-bg-alt)/50 px-3 py-2 text-[11px] font-medium">
-								<div className="pro-text3">Pool</div>
+								<p className="pro-text3">Pool</p>
 								<button
 									onClick={() => toggleSort('tvl')}
 									className={`flex items-center justify-end gap-1 ${
@@ -931,7 +970,7 @@ export function YieldsChartTab({
 										className={sortColumn === 'apy' ? 'opacity-100' : 'opacity-30'}
 									/>
 								</button>
-								<div className="text-right pro-text3">Category</div>
+								<p className="text-right pro-text3">Category</p>
 							</div>
 
 							<div ref={poolListRef} className="thin-scrollbar h-[240px] overflow-y-auto">
@@ -961,7 +1000,7 @@ export function YieldsChartTab({
 															project: pool.project,
 															chain: pool.chains[0]
 														})
-														setShowPoolPicker(false)
+														dispatchUi({ type: 'set_show_pool_picker', value: false })
 													}}
 													className={`grid w-full grid-cols-[1fr_100px_100px_80px] items-center gap-2 px-3 py-2 text-left text-xs transition-all hover:bg-(--cards-bg-alt) ${
 														isSelected ? 'bg-(--primary)/10' : ''
@@ -975,16 +1014,15 @@ export function YieldsChartTab({
 													}}
 												>
 													<div className="flex min-w-0 items-center gap-2">
-														{iconUrl && (
+														{iconUrl ? (
 															<img
 																src={iconUrl}
 																alt={pool.project}
+																width={24}
+																height={24}
 																className="h-6 w-6 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
-																onError={(e) => {
-																	e.currentTarget.style.display = 'none'
-																}}
 															/>
-														)}
+														) : null}
 														<div className="min-w-0">
 															<div className={`truncate font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
 																{pool.pool}
@@ -1003,19 +1041,19 @@ export function YieldsChartTab({
 														<div className={`font-medium ${isSelected ? 'text-(--primary)' : 'pro-text1'}`}>
 															{pool.apy?.toFixed(2) || '0.00'}%
 														</div>
-														{pool.apyMean30d != null && (
+														{pool.apyMean30d != null ? (
 															<div className="text-[10px] text-(--text-tertiary)">
 																30d: {pool.apyMean30d.toFixed(2)}%
 															</div>
-														)}
+														) : null}
 													</div>
 
 													<div className="text-right">
-														{pool.category && (
+														{pool.category ? (
 															<span className="inline-block truncate rounded bg-(--cards-bg-alt) px-1.5 py-0.5 text-[10px] text-(--text-tertiary)">
 																{pool.category}
 															</span>
-														)}
+														) : null}
 													</div>
 												</button>
 											)
@@ -1035,7 +1073,7 @@ export function YieldsChartTab({
 						</div>
 
 						{/* Chart Type Pills */}
-						{selectedYieldPool && (
+						{selectedYieldPool ? (
 							<div className="flex flex-wrap gap-1.5 border-b border-(--cards-border) bg-(--cards-bg) px-3 py-2">
 								{availableChartTypes.map((type) => {
 									const isLoading =
@@ -1055,12 +1093,12 @@ export function YieldsChartTab({
 											}`}
 										>
 											{type.label}
-											{isLoading && '...'}
+											{isLoading ? '...' : null}
 										</button>
 									)
 								})}
 							</div>
-						)}
+						) : null}
 
 						{selectedYieldPool ? (
 							<div className="bg-(--cards-bg) p-3">
@@ -1071,23 +1109,23 @@ export function YieldsChartTab({
 								</div>
 
 								{selectedYieldChartType === 'tvl-apy' &&
-									latestYieldData.apy !== null &&
-									latestYieldData.tvl !== null && (
-										<div className="mb-3 flex gap-4">
-											<div className="flex flex-col">
-												<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
-												<span className="font-jetbrains text-base font-semibold" style={{ color: '#cc3e82' }}>
-													{latestYieldData.apy}%
-												</span>
-											</div>
-											<div className="flex flex-col">
-												<span className="text-[10px] pro-text3 uppercase">TVL</span>
-												<span className="font-jetbrains text-base font-semibold" style={{ color: '#3e79cc' }}>
-													{formattedNum(latestYieldData.tvl, true)}
-												</span>
-											</div>
+								latestYieldData.apy !== null &&
+								latestYieldData.tvl !== null ? (
+									<div className="mb-3 flex gap-4">
+										<div className="flex flex-col">
+											<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
+											<span className="font-jetbrains text-base font-semibold" style={{ color: '#cc3e82' }}>
+												{latestYieldData.apy}%
+											</span>
 										</div>
-									)}
+										<div className="flex flex-col">
+											<span className="text-[10px] pro-text3 uppercase">TVL</span>
+											<span className="font-jetbrains text-base font-semibold" style={{ color: '#3e79cc' }}>
+												{formattedNum(latestYieldData.tvl, true)}
+											</span>
+										</div>
+									</div>
+								) : null}
 
 								<div className="h-[280px]">
 									{isPreviewLoading ? (
@@ -1102,7 +1140,7 @@ export function YieldsChartTab({
 												</div>
 											}
 										>
-											{selectedYieldChartType === 'tvl-apy' && (
+											{selectedYieldChartType === 'tvl-apy' ? (
 												<MultiSeriesChart2
 													height="280px"
 													dataset={yieldsChartDataset}
@@ -1111,8 +1149,8 @@ export function YieldsChartTab({
 													valueSymbol=""
 													alwaysShowTooltip={false}
 												/>
-											)}
-											{selectedYieldChartType === 'supply-apy' && (
+											) : null}
+											{selectedYieldChartType === 'supply-apy' ? (
 												<BarChart
 													height="280px"
 													chartData={supplyApyBarData}
@@ -1121,8 +1159,8 @@ export function YieldsChartTab({
 													title="Supply APY"
 													valueSymbol="%"
 												/>
-											)}
-											{selectedYieldChartType === 'supply-apy-7d' && (
+											) : null}
+											{selectedYieldChartType === 'supply-apy-7d' ? (
 												<AreaChart
 													height="280px"
 													chartData={supplyApy7dData}
@@ -1130,8 +1168,8 @@ export function YieldsChartTab({
 													valueSymbol="%"
 													color={CHART_COLORS[0]}
 												/>
-											)}
-											{selectedYieldChartType === 'borrow-apy' && (
+											) : null}
+											{selectedYieldChartType === 'borrow-apy' ? (
 												<BarChart
 													height="280px"
 													chartData={borrowApyBarData}
@@ -1140,8 +1178,8 @@ export function YieldsChartTab({
 													title="Borrow APY"
 													valueSymbol="%"
 												/>
-											)}
-											{selectedYieldChartType === 'net-borrow-apy' && (
+											) : null}
+											{selectedYieldChartType === 'net-borrow-apy' ? (
 												<AreaChart
 													height="280px"
 													chartData={netBorrowApyData}
@@ -1149,8 +1187,8 @@ export function YieldsChartTab({
 													valueSymbol="%"
 													color={CHART_COLORS[0]}
 												/>
-											)}
-											{selectedYieldChartType === 'pool-liquidity' && (
+											) : null}
+											{selectedYieldChartType === 'pool-liquidity' ? (
 												<AreaChart
 													height="280px"
 													chartData={poolLiquidityData}
@@ -1160,7 +1198,7 @@ export function YieldsChartTab({
 													valueSymbol="$"
 													stackColors={liquidityChartColors}
 												/>
-											)}
+											) : null}
 										</Suspense>
 									)}
 								</div>
@@ -1169,7 +1207,7 @@ export function YieldsChartTab({
 							<div className="flex h-[280px] items-center justify-center bg-(--cards-bg) text-center pro-text3">
 								<div>
 									<Icon name="bar-chart-2" height={32} width={32} className="mx-auto mb-1" />
-									<div className="text-xs">Select a yield pool to see preview</div>
+									<p className="text-xs">Select a yield pool to see preview</p>
 								</div>
 							</div>
 						)}

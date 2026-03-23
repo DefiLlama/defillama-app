@@ -1,9 +1,10 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { DATByAsset } from '~/containers/DAT/ByAsset'
 import { getDATOverviewDataByAsset, getDATAssetPaths } from '~/containers/DAT/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Digital Asset Treasuries', 'by', 'Institution']
@@ -12,7 +13,7 @@ export const getStaticProps = withPerformanceLogging(
 	'digital-asset-treasuries/[asset]',
 	async ({ params }: GetStaticPropsContext<{ asset: string }>) => {
 		if (!params?.asset) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const asset = slug(params.asset)
@@ -20,7 +21,7 @@ export const getStaticProps = withPerformanceLogging(
 		const props = await getDATOverviewDataByAsset(asset)
 
 		if (!props) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {
@@ -31,7 +32,7 @@ export const getStaticProps = withPerformanceLogging(
 )
 
 export async function getStaticPaths() {
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -48,8 +49,7 @@ export default function TreasuriesByAssetPage(props: InferGetStaticPropsType<typ
 	return (
 		<Layout
 			title={`${props.metadata.name} Treasury Holdings - DefiLlama`}
-			description={`Track institutions that own ${props.metadata.name} (${props.metadata.ticker}) as part of their corporate treasury. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.metadata.name} (${props.metadata.ticker}) treasury holdings, ${props.metadata.name} (${props.metadata.ticker}) corporate treasury, ${props.metadata.name} (${props.metadata.ticker}) treasury holdings by institution, ${props.metadata.name} (${props.metadata.ticker}) treasury holdings by company, ${props.metadata.name} (${props.metadata.ticker}) DATs, ${props.metadata.name} (${props.metadata.ticker}) digital asset treasury`}
+			description={`Track institutions that own ${props.metadata.name} (${props.metadata.ticker}) as part of their corporate treasury. See total holdings, purchase history and cost basis data in one view.`}
 			canonicalUrl={`/digital-asset-treasuries/${props.asset}`}
 			pageName={pageName}
 		>

@@ -5,7 +5,7 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, getTokenDominance, tokenIconUrl } from '~/utils'
+import { formattedNum, getTokenDominance } from '~/utils'
 import { useForkByProtocolExtraSeries } from './queries.client'
 import { getEnabledExtraApiKeys } from './tvl'
 import type { ForkByProtocolPageData } from './types'
@@ -66,7 +66,7 @@ export const ForksByProtocol = ({ fork, forkLinks, protocolTableData, chartData 
 					<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 						<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 							<h1 className="flex items-center gap-2 text-xl font-semibold">
-								<TokenLogo logo={tokenIconUrl(fork)} size={24} />
+								<TokenLogo name={fork} kind="token" size={24} alt={`Logo of ${fork}`} />
 								{fork}
 							</h1>
 							<p className="flex flex-col">

@@ -1,6 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -8,6 +7,7 @@ import { tvlOptionsMap } from '~/components/Filters/options'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { oldBlue } from '~/constants/colors'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -16,7 +16,8 @@ import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/usePro
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -33,7 +34,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/tvl/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -48,18 +49,21 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].tvl) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Total Value Locked (TVL) - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} Total Value Locked across all chains with historical charts and breakdowns on DefiLlama.`
 
 		const toggleOptions = []
+		const chainsUnique = new Set<string>()
 
 		for (const chain in protocolData.currentChainTvls) {
 			if (TVL_SETTINGS_KEYS_SET.has(chain)) {
@@ -67,6 +71,9 @@ export const getStaticProps = withPerformanceLogging(
 				if (option) {
 					toggleOptions.push(option)
 				}
+			} else {
+				if (chain.includes('-')) continue
+				chainsUnique.add(chain)
 			}
 		}
 
@@ -78,18 +85,21 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData.category ?? null,
 				metrics,
 				warningBanners: getProtocolWarningBanners(protocolData),
-				toggleOptions
+				toggleOptions,
+				chainsUnique: Array.from(chainsUnique),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -121,11 +131,13 @@ function ChainsChartCard({
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
+	const deferredCharts = React.useDeferredValue(charts)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allValues}
@@ -141,8 +153,8 @@ function ChainsChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredDataset}
+					charts={deferredCharts}
 					valueSymbol="$"
 					selectedCharts={selectedChartsSet}
 					chartOptions={{ tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } }}
@@ -175,11 +187,13 @@ function TokenLineChartCard({
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
+	const deferredCharts = React.useDeferredValue(charts)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allValues}
@@ -195,8 +209,8 @@ function TokenLineChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredDataset}
+					charts={deferredCharts}
 					valueSymbol={valueSymbol}
 					selectedCharts={selectedChartsSet}
 					chartOptions={valueSymbol === '$' ? { tooltip: { formatter: AGG_TOOLTIP_FORMATTER_USD } } : undefined}
@@ -226,13 +240,14 @@ function TokensBreakdownPieChartCard({
 		if (selectedTokens.length === 0) return []
 		return chartData.filter((d) => selectedTokensSet.has(d.name))
 	}, [chartData, selectedTokens.length, selectedTokensSet])
+	const deferredFilteredChartData = React.useDeferredValue(filteredChartData)
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -247,7 +262,7 @@ function TokensBreakdownPieChartCard({
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<PieChart chartData={filteredChartData} onReady={handleChartReady} />
+				<PieChart chartData={deferredFilteredChartData} onReady={handleChartReady} />
 			</React.Suspense>
 		</div>
 	)
@@ -267,16 +282,17 @@ function USDInflowsChartCard({
 	const allSeries = React.useMemo(() => ['USD Inflows'], [])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
+					dataset={deferredDataset}
 					charts={USD_INFLOWS_CHARTS}
 					valueSymbol="$"
 					selectedCharts={new Set(allSeries)}
@@ -307,11 +323,13 @@ function InflowsByTokenChartCard({
 	const selectedChartsSet = React.useMemo(() => new Set(selected), [selected])
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
+	const deferredDataset = React.useDeferredValue(dataset)
+	const deferredCharts = React.useDeferredValue(charts)
 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allValues.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allValues}
@@ -327,8 +345,8 @@ function InflowsByTokenChartCard({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredDataset}
+					charts={deferredCharts}
 					hideDefaultLegend={true}
 					valueSymbol="$"
 					selectedCharts={selectedChartsSet}
@@ -352,6 +370,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 
 	const {
 		isLoading,
+		errors,
 		chainsUnique,
 		tokensUnique,
 		chainsDataset,
@@ -369,19 +388,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		protocol,
 		keys: toggledTvlKeys,
 		includeBase: true,
+		chainsUnique: props.chainsUnique,
 		inflows: props.metrics?.inflows
 	})
 
 	const protocolSlug = slug(props.name || 'protocol')
 	const buildFilename = (suffix: string) => `${protocolSlug}-${slug(suffix)}`
 	const buildTitle = (suffix: string) => (props.name ? `${props.name} – ${suffix}` : suffix)
-	const hasBreakdownMetrics =
-		(chainsDataset && chainsUnique?.length > 1) ||
-		(tokenUSDDataset && tokensUnique?.length > 0) ||
-		(tokenBreakdownUSD?.length > 1 && tokensUnique?.length > 0 && tokenBreakdownPieChart?.length > 0) ||
-		(tokenRawDataset && tokensUnique?.length > 0) ||
-		usdInflowsDataset ||
-		(tokenInflowsDataset && tokensUnique?.length > 0)
 
 	return (
 		<ProtocolOverviewLayout
@@ -392,16 +405,18 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="tvl"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<h1 className="text-xl font-bold">{props.name} TVL Breakdown</h1>
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
-			) : !hasBreakdownMetrics ? (
+			) : props.chainsUnique.length <= 1 && !props.metrics.inflows ? (
 				<div className="col-span-2 flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-(--text-label)">
 						Breakdown charts are not available for this protocol as it operates on a single chain and token composition
@@ -480,8 +495,26 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 					) : null}
 				</div>
 			)}
+			{errors.length > 0 ? (
+				<div className="col-span-2 flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--error)">
+						Failed to fetch{' '}
+						{Array.from(new Set(errors.map((e) => CHART_CATEGORY_LABELS[e.category])))
+							.filter(Boolean)
+							.join(', ')}{' '}
+						APIs
+					</p>
+				</div>
+			) : null}
 		</ProtocolOverviewLayout>
 	)
+}
+
+const CHART_CATEGORY_LABELS: Record<string, string> = {
+	tvl: 'TVL',
+	'chain-breakdown': 'chain breakdown',
+	'token-breakdown-usd': 'token breakdown',
+	'token-breakdown-raw': 'token inflows'
 }
 
 const USD_INFLOWS_CHARTS = [

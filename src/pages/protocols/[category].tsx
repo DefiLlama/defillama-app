@@ -1,20 +1,20 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
-import { PROTOCOLS_API } from '~/constants/index'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[category]',
 	async ({ params }: GetStaticPropsContext<{ category: string }>) => {
 		if (!params?.category) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const category = params.category
@@ -74,14 +74,14 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
 		}
 	}
 
-	const res = await fetchJson(PROTOCOLS_API)
+	const res = await fetchProtocols()
 
 	const paths = res.protocolCategories.map((category) => ({
 		params: { category: slug(category) }
@@ -99,14 +99,12 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		effectiveCategory: props.effectiveCategory,
 		isTagPage: !!props.tag && !props.category
 	})
-	const title = `${capitalizeFirstLetter(presentation.seoLabel)} ${presentation.titleSuffix} - DefiLlama`
-	const description = `${presentation.seoLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
-	const keywords = `${presentation.seoLabel} rankings, defi ${presentation.seoLabel} rankings`.toLowerCase()
+	const title = presentation.seoTitle
+	const description = presentation.seoDescription
 	return (
 		<Layout
 			title={title}
 			description={description}
-			keywords={keywords}
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}`}
 			metricFilters={toggleOptions}
 		>

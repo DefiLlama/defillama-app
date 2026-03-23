@@ -7,11 +7,15 @@ import { SubscribeAPICard } from '~/components/SubscribeCards/SubscribeAPICard'
 import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEnterpriseCard'
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { type Subscription, useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useAiBalance } from '~/containers/Subscribtion/useTopup'
+import { LlamaAIBalanceCard } from './LlamaAIBalanceCard'
 import { UsageStatsCard } from './UsageStatsCard'
 
 const StripeCheckoutModal = lazy(() =>
 	import('~/components/StripeCheckoutModal').then((m) => ({ default: m.StripeCheckoutModal }))
 )
+
+const TopupModal = lazy(() => import('~/components/TopupModal').then((m) => ({ default: m.TopupModal })))
 
 interface SubscriberContentProps {
 	credits: number | null
@@ -26,6 +30,8 @@ interface SubscriberContentProps {
 	usageStats: any | null
 	isUsageStatsLoading: boolean
 	isUsageStatsError: boolean
+	cancelSubscription: (message?: string) => Promise<any>
+	isCancelSubscriptionLoading: boolean
 }
 
 export const SubscriberContent = ({
@@ -40,19 +46,26 @@ export const SubscriberContent = ({
 	isEnableOverageLoading,
 	usageStats,
 	isUsageStatsLoading,
-	isUsageStatsError
+	isUsageStatsError,
+	cancelSubscription,
+	isCancelSubscriptionLoading
 }: SubscriberContentProps) => {
 	const hasProSubscription = llamafeedSubscription?.status === 'active'
 	const hasApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider !== 'legacy'
 	const hasLegacySubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const creditsLimit = hasProSubscription ? 0 : 1_000_000
 	const { loading, apiKey, isApiKeyLoading, generateNewKeyMutation } = useSubscribe()
+	const { balance, isLoading: isAiBalanceLoading } = useAiBalance()
+	const [isTopupModalOpen, setIsTopupModalOpen] = useState(false)
 
 	const currentSubscription = hasProSubscription ? llamafeedSubscription : hasApiSubscription ? apiSubscription : null
 	const currentBillingInterval = currentSubscription?.billing_interval
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>(currentBillingInterval || 'month')
 	const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false)
 	const [upgradeType, setUpgradeType] = useState<'api' | 'llamafeed' | null>(null)
+	const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+
+	const isCancelPending = subscription?.metadata?.isCanceled === 'true'
 
 	const monthlyPricePro = 49
 	const yearlyPricePro = monthlyPricePro * 10
@@ -68,6 +81,15 @@ export const SubscriberContent = ({
 				? `$${yearlyPriceAPI}.00 USD`
 				: `$${monthlyPriceAPI}.00 USD`
 			: ''
+
+	function handleCancelSubscription(type: 'llamafeed' | 'api') {
+		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
+		if (sub?.provider === 'stripe') {
+			setIsCancelModalOpen(true)
+		} else {
+			window.open('https://subscriptions.llamapay.io/', '_blank')
+		}
+	}
 
 	async function handleManageSubscription(type: 'llamafeed' | 'api') {
 		const sub = type === 'llamafeed' ? llamafeedSubscription : apiSubscription
@@ -115,7 +137,10 @@ export const SubscriberContent = ({
 					<SubscribeProCard
 						context="account"
 						active={hasProSubscription && subscription?.provider !== 'trial'}
-						onCancelSubscription={hasProSubscription ? () => handleManageSubscription('llamafeed') : undefined}
+						onCancelSubscription={
+							hasProSubscription && !isCancelPending ? () => handleCancelSubscription('llamafeed') : undefined
+						}
+						isCancelPending={isCancelPending}
 						currentBillingInterval={llamafeedSubscription?.billing_interval}
 						billingInterval={billingInterval}
 					/>
@@ -124,7 +149,10 @@ export const SubscriberContent = ({
 					<SubscribeAPICard
 						context="account"
 						active={hasApiSubscription || hasLegacySubscription}
-						onCancelSubscription={hasApiSubscription ? () => handleManageSubscription('api') : undefined}
+						onCancelSubscription={
+							hasApiSubscription && !isCancelPending ? () => handleCancelSubscription('api') : undefined
+						}
+						isCancelPending={isCancelPending}
 						isLegacyActive={hasLegacySubscription}
 						currentBillingInterval={apiSubscription?.billing_interval}
 						billingInterval={billingInterval}
@@ -138,7 +166,31 @@ export const SubscriberContent = ({
 				</div>
 			</div>
 
-			{(hasApiSubscription || hasLegacySubscription) && (
+			{(hasProSubscription || hasApiSubscription) && balance ? (
+				<div className="mb-6">
+					<LlamaAIBalanceCard
+						freeRemaining={balance.freeRemaining}
+						toppedUpBalance={balance.toppedUpBalance}
+						freeLimit={balance.freeLimit}
+						freeSpent={balance.freeSpent}
+						isLoading={isAiBalanceLoading}
+						onTopUp={() => setIsTopupModalOpen(true)}
+					/>
+				</div>
+			) : (hasProSubscription || hasApiSubscription) && isAiBalanceLoading ? (
+				<div className="mb-6">
+					<LlamaAIBalanceCard
+						freeRemaining="0"
+						toppedUpBalance="0"
+						freeLimit="0"
+						freeSpent="0"
+						isLoading={true}
+						onTopUp={() => setIsTopupModalOpen(true)}
+					/>
+				</div>
+			) : null}
+
+			{hasApiSubscription || hasLegacySubscription ? (
 				<div className="relative overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-xl">
 					<div className="absolute -inset-1 -z-10 bg-linear-to-r from-[#5C5EFC]/20 to-[#462A92]/20 opacity-70 blur-[100px]"></div>
 
@@ -189,7 +241,7 @@ export const SubscriberContent = ({
 											<button
 												className="group rounded-lg p-2 text-[#5C5CF9] transition-colors hover:bg-[#5C5CF9]/5 hover:text-[#4A4AF0]"
 												onClick={() => {
-													navigator.clipboard.writeText(apiKey)
+													void navigator.clipboard.writeText(apiKey)
 													toast.success('API key copied to clipboard')
 												}}
 												aria-label="Copy API key to clipboard"
@@ -227,7 +279,7 @@ export const SubscriberContent = ({
 											<div className="absolute inset-0 flex items-center justify-center rounded-lg bg-[#181a1f]/90 opacity-0 backdrop-blur-xs transition-opacity group-hover:opacity-100">
 												<button
 													onClick={() => {
-														navigator.clipboard.writeText(apiKey)
+														void navigator.clipboard.writeText(apiKey)
 														toast.success('API key copied to clipboard')
 													}}
 													className="flex items-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2 text-white shadow-lg"
@@ -279,20 +331,25 @@ export const SubscriberContent = ({
 											</div>
 
 											<div className="mb-2 h-3 overflow-hidden rounded-full bg-[#39393E]/20">
-												{credits && (
+												{credits && creditsLimit > 0 ? (
 													<div
-														className={`w-[ relative h-full${((credits / creditsLimit) * 100).toFixed(
-															1
-														)}%] bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]`}
+														className="relative h-full bg-linear-to-r from-[#5C5CF9]/80 to-[#5842C3]"
+														style={{
+															width: `${Math.min(100, (credits / creditsLimit) * 100).toFixed(1)}%`
+														}}
 													>
 														<div className="absolute inset-0 animate-shimmer bg-[linear-gradient(45deg,transparent_25%,rgba(92,92,249,0.4)_50%,transparent_75%)] bg-size-[1rem_1rem]"></div>
 													</div>
-												)}
+												) : null}
 											</div>
 
 											<div className="flex items-center justify-between text-xs text-[#8a8c90]">
 												<span>{credits ? `${credits.toLocaleString()} remaining` : 'No calls available'}</span>
-												<span>{credits ? `${((credits / creditsLimit) * 100).toFixed(1)}% remaining` : '-'}</span>
+												<span>
+													{credits && creditsLimit > 0
+														? `${((credits / creditsLimit) * 100).toFixed(1)}% remaining`
+														: '-'}
+												</span>
 											</div>
 										</div>
 
@@ -362,9 +419,9 @@ export const SubscriberContent = ({
 						)}
 					</div>
 				</div>
-			)}
+			) : null}
 
-			{(hasApiSubscription || hasProSubscription) && (
+			{hasApiSubscription || hasProSubscription ? (
 				<div className="overflow-hidden rounded-xl border border-[#39393E] bg-linear-to-b from-[#222429] to-[#1d1f24] shadow-lg">
 					<div className="border-b border-[#39393E]/40 p-4 sm:p-6">
 						<div className="flex items-center gap-2.5 sm:gap-3">
@@ -393,16 +450,27 @@ export const SubscriberContent = ({
 										<span>{hasProSubscription ? 'Pro' : hasApiSubscription ? 'API' : ''} Plan</span>
 									</h4>
 									<div className="flex items-center gap-3 sm:gap-4">
-										<div className="flex items-center gap-2">
-											<span className="h-2 w-2 rounded-full bg-green-400"></span>
-											<span className="text-xs font-medium text-white sm:text-sm">Active</span>
-										</div>
+										{isCancelPending ? (
+											<div className="flex items-center gap-2">
+												<span className="h-2 w-2 rounded-full bg-yellow-400"></span>
+												<span className="text-xs font-medium text-yellow-400 sm:text-sm">Cancels at period end</span>
+											</div>
+										) : (
+											<div className="flex items-center gap-2">
+												<span className="h-2 w-2 rounded-full bg-green-400"></span>
+												<span className="text-xs font-medium text-white sm:text-sm">Active</span>
+											</div>
+										)}
 										<button
 											onClick={
 												hasProSubscription
-													? () => handleManageSubscription('llamafeed')
+													? () => {
+															void handleManageSubscription('llamafeed')
+														}
 													: hasApiSubscription
-														? () => handleManageSubscription('api')
+														? () => {
+																void handleManageSubscription('api')
+															}
 														: undefined
 											}
 											disabled={isPortalSessionLoading}
@@ -438,7 +506,9 @@ export const SubscriberContent = ({
 									</div>
 
 									<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
-										<p className="mb-1 text-xs text-[#8a8c90]">Next billing date</p>
+										<p className="mb-1 text-xs text-[#8a8c90]">
+											{isCancelPending ? 'Cancels on' : 'Next billing date'}
+										</p>
 										<p className="text-sm font-medium sm:text-base">
 											{hasProSubscription && llamafeedSubscription?.expires_at
 												? new Date(+llamafeedSubscription.expires_at * 1000).toLocaleDateString('en-US', {
@@ -456,7 +526,7 @@ export const SubscriberContent = ({
 										</p>
 									</div>
 
-									{hasApiSubscription && (
+									{hasApiSubscription ? (
 										<div className="col-span-2 rounded-lg bg-[#13141a]/60 p-2.5 sm:p-3 md:col-span-1">
 											<p className="mb-1 text-xs text-[#8a8c90]">Overage</p>
 											<p className="flex text-sm font-medium sm:text-base">
@@ -467,48 +537,46 @@ export const SubscriberContent = ({
 												/>
 											</p>
 										</div>
-									)}
+									) : null}
 								</div>
 
 								{hasProSubscription &&
-									(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) && (
-										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-												</div>
-												<div className="flex-1">
-													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade Pro to Yearly</h4>
-													<p className="text-xs text-[#8a8c90] sm:text-sm">
-														Switch to annual billing and save 2 months.
-													</p>
-												</div>
+								(llamafeedSubscription?.billing_interval === 'month' || !llamafeedSubscription?.billing_interval) ? (
+									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
 											</div>
-											<button
-												onClick={() => {
-													setUpgradeType('llamafeed')
-													setIsUpgradeModalOpen(true)
-												}}
-												disabled={loading === 'stripe'}
-												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-											>
-												{loading === 'stripe' ? (
-													<>
-														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-														<span>Processing...</span>
-													</>
-												) : (
-													<>
-														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-														<span className="sm:hidden">Upgrade to Yearly</span>
-													</>
-												)}
-											</button>
+											<div className="flex-1">
+												<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade Pro to Yearly</h4>
+												<p className="text-xs text-[#8a8c90] sm:text-sm">Switch to annual billing and save 2 months.</p>
+											</div>
 										</div>
-									)}
+										<button
+											onClick={() => {
+												setUpgradeType('llamafeed')
+												setIsUpgradeModalOpen(true)
+											}}
+											disabled={loading === 'stripe'}
+											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+										>
+											{loading === 'stripe' ? (
+												<>
+													<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+													<span>Processing...</span>
+												</>
+											) : (
+												<>
+													<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+													<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+													<span className="sm:hidden">Upgrade to Yearly</span>
+												</>
+											)}
+										</button>
+									</div>
+								) : null}
 
-								{hasApiSubscription && !apiSubscription?.overage && (
+								{hasApiSubscription && !apiSubscription?.overage ? (
 									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
 										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
 											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
@@ -539,51 +607,49 @@ export const SubscriberContent = ({
 											)}
 										</button>
 									</div>
-								)}
+								) : null}
 								{hasApiSubscription &&
-									(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) && (
-										<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
-											<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
-												<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
-													<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
-												</div>
-												<div className="flex-1">
-													<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
-													<p className="text-xs text-[#8a8c90] sm:text-sm">
-														Switch to annual billing and save 2 months.
-													</p>
-												</div>
+								(apiSubscription?.billing_interval === 'month' || !apiSubscription?.billing_interval) ? (
+									<div className="mt-4 rounded-lg border border-[#39393E] bg-linear-to-r from-[#1a1b1f] to-[#1a1b1f]/80 p-4 sm:mt-6 sm:p-5">
+										<div className="mb-3 flex items-start gap-2.5 sm:mb-4 sm:gap-3">
+											<div className="rounded-lg bg-[#5C5CF9]/10 p-1.5 text-[#5C5CF9] sm:p-2">
+												<Icon name="trending-up" height={18} width={18} className="sm:h-5 sm:w-5" />
 											</div>
-											<button
-												onClick={() => {
-													setUpgradeType('api')
-													setIsUpgradeModalOpen(true)
-												}}
-												disabled={loading === 'stripe'}
-												className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
-											>
-												{loading === 'stripe' ? (
-													<>
-														<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
-														<span>Processing...</span>
-													</>
-												) : (
-													<>
-														<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
-														<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
-														<span className="sm:hidden">Upgrade to Yearly</span>
-													</>
-												)}
-											</button>
+											<div className="flex-1">
+												<h4 className="mb-1 text-sm font-medium sm:text-base">Upgrade API to Yearly</h4>
+												<p className="text-xs text-[#8a8c90] sm:text-sm">Switch to annual billing and save 2 months.</p>
+											</div>
 										</div>
-									)}
+										<button
+											onClick={() => {
+												setUpgradeType('api')
+												setIsUpgradeModalOpen(true)
+											}}
+											disabled={loading === 'stripe'}
+											className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#5C5CF9] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70 sm:py-3"
+										>
+											{loading === 'stripe' ? (
+												<>
+													<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span>
+													<span>Processing...</span>
+												</>
+											) : (
+												<>
+													<Icon name="arrow-up" height={14} width={14} className="sm:h-4 sm:w-4" />
+													<span className="hidden sm:inline">Upgrade to Yearly (Save 2 Months)</span>
+													<span className="sm:hidden">Upgrade to Yearly</span>
+												</>
+											)}
+										</button>
+									</div>
+								) : null}
 							</div>
 						</div>
 					</div>
 				</div>
-			)}
+			) : null}
 
-			{isUpgradeModalOpen && upgradeType && (
+			{isUpgradeModalOpen && upgradeType ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isUpgradeModalOpen}
@@ -594,9 +660,115 @@ export const SubscriberContent = ({
 						paymentMethod="stripe"
 						type={upgradeType}
 						billingInterval="year"
+						isUpgradeFlow
 					/>
 				</Suspense>
-			)}
+			) : null}
+
+			{isCancelModalOpen ? (
+				<CancelSubscriptionModal
+					isOpen={isCancelModalOpen}
+					onClose={() => {
+						setIsCancelModalOpen(false)
+					}}
+					cancelSubscription={cancelSubscription}
+					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
+				/>
+			) : null}
+
+			{isTopupModalOpen ? (
+				<Suspense fallback={<></>}>
+					<TopupModal isOpen={isTopupModalOpen} onClose={() => setIsTopupModalOpen(false)} />
+				</Suspense>
+			) : null}
 		</>
+	)
+}
+
+interface CancelSubscriptionModalProps {
+	isOpen: boolean
+	onClose: () => void
+	cancelSubscription: (message?: string) => Promise<any>
+	isCancelSubscriptionLoading: boolean
+}
+
+const CancelSubscriptionModal = ({
+	isOpen,
+	onClose,
+	cancelSubscription,
+	isCancelSubscriptionLoading
+}: CancelSubscriptionModalProps) => {
+	const [message, setMessage] = useState('')
+
+	function handleClose() {
+		setMessage('')
+		onClose()
+	}
+
+	async function handleConfirmCancel() {
+		let cancellationMessage: string | undefined = undefined
+		if (message) {
+			cancellationMessage = message
+		}
+		try {
+			await cancelSubscription(cancellationMessage)
+			handleClose()
+		} catch {
+			// error handled by mutation
+		}
+	}
+
+	return (
+		<Ariakit.DialogProvider open={isOpen} setOpen={handleClose}>
+			<Ariakit.Dialog
+				className="dialog gap-0 border border-[#4a4a50]/10 bg-[#131415] p-0 shadow-[0_0_150px_75px_rgba(92,92,249,0.15),0_0_75px_25px_rgba(123,123,255,0.1)] md:max-w-[480px]"
+				portal
+				unmountOnHide
+			>
+				<Ariakit.DialogDismiss className="absolute top-3 right-3 z-20 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white">
+					<Icon name="x" className="h-6 w-6" />
+				</Ariakit.DialogDismiss>
+				<div className="p-6 sm:p-8">
+					<div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+						<Icon name="alert-triangle" height={24} width={24} />
+					</div>
+					<h2 className="mb-2 text-center text-xl font-bold text-white">Cancel Subscription</h2>
+					<p className="mb-6 text-center text-sm text-[#b4b7bc]">
+						Your subscription will remain active until the end of your current billing period. After that, it will not
+						renew.
+					</p>
+					<div className="mb-6">
+						<label htmlFor="cancel-reason" className="mb-2 block text-sm font-medium text-[#b4b7bc]">
+							Reason for cancelling (optional)
+						</label>
+						<textarea
+							id="cancel-reason"
+							value={message}
+							onChange={(e) => setMessage(e.target.value)}
+							placeholder="Let us know why you're cancelling..."
+							rows={3}
+							className="w-full resize-none rounded-lg border border-[#39393E] bg-[#1a1b1f] p-3 text-sm text-white placeholder-[#8a8c90] transition-colors outline-none focus:border-[#5C5CF9]"
+						/>
+					</div>
+					<div className="flex flex-col gap-3">
+						<button
+							onClick={() => {
+								void handleConfirmCancel()
+							}}
+							disabled={isCancelSubscriptionLoading}
+							className="w-full rounded-lg bg-red-500 px-4 py-3 font-medium text-white transition-colors hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+						>
+							{isCancelSubscriptionLoading ? 'Cancelling...' : 'Confirm Cancellation'}
+						</button>
+						<button
+							onClick={handleClose}
+							className="w-full rounded-lg bg-[#22242930] px-4 py-3 font-medium text-white transition-colors hover:bg-[#39393E]"
+						>
+							Keep Subscription
+						</button>
+					</div>
+				</div>
+			</Ariakit.Dialog>
+		</Ariakit.DialogProvider>
 	)
 }

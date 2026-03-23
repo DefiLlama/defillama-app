@@ -1,15 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
-import { download, slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
+import { slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
+import { download } from '~/utils/download'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '../queries'
 import type { UnlocksScheduleConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const MultiSeriesChart2 = lazy(
@@ -28,14 +29,14 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 	const resolvedDataType = dataType === 'realtime' ? 'documented' : dataType
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
-	const todayTimestamp = useMemo(() => Math.floor(Date.now() / 1000), [])
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 	const todayHallmarks = useMemo<[number, string][]>(
 		() => [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]],
 		[todayTimestamp]
 	)
 
 	const { data, isLoading } = useQuery({
-		queryKey: ['unlocks-schedule', protocol, resolvedDataType],
+		queryKey: ['pro-dashboard', 'unlocks-schedule', protocol, resolvedDataType],
 		queryFn: () => getProtocolEmissionsScheduleData(slug(protocol)),
 		enabled: Boolean(protocol),
 		staleTime: 60 * 60 * 1000
@@ -74,7 +75,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 
 	const hasChartData = dataset.source.length > 0 && stacks.length > 0
 	const imageTitle = `${protocolName} Unlocks Schedule`
-	const imageFilename = `${slug(protocolName || protocol)}-unlock-schedule-${resolvedDataType}`
+	const imageFilename = `${protocolName || protocol}-unlock-schedule-${resolvedDataType}`
 
 	const handleCsvExport = useCallback(() => {
 		if (!hasChartData) return
@@ -83,7 +84,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 			return [toNiceCsvDate(Math.floor((item.timestamp as number) / 1e3)), ...stacks.map((stack) => item[stack] ?? '')]
 		})
 		const csvContent = [headers, ...rows].map((row) => row.join(',')).join('\n')
-		const filename = `${slug(protocolName || protocol)}-unlock-schedule-${resolvedDataType}.csv`
+		const filename = `${protocolName || protocol}-unlock-schedule-${resolvedDataType}`
 		download(filename, csvContent)
 	}, [hasChartData, dataset.source, stacks, protocolName, protocol, resolvedDataType])
 
@@ -101,7 +102,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 				<div className="flex flex-col gap-1">
 					<h3 className="text-sm font-semibold pro-text1">{protocolName} Unlocks Schedule </h3>
 				</div>
-				{hasChartData && (
+				{hasChartData ? (
 					<div className="flex gap-2">
 						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
@@ -110,9 +111,9 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
-				)}
+				) : null}
 			</div>
-			{hasChartData && stacks.length > 1 && (
+			{hasChartData && stacks.length > 1 ? (
 				<div className="mb-2 flex justify-end">
 					<SelectWithCombobox
 						allValues={stacks}
@@ -124,7 +125,7 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 						portal
 					/>
 				</div>
-			)}
+			) : null}
 			<div>
 				{hasChartData ? (
 					<Suspense fallback={<div className="min-h-[360px]" />}>

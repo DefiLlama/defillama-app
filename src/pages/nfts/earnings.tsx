@@ -1,12 +1,11 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
+import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { FallbackLogo, TokenLogo } from '~/components/TokenLogo'
 import { getNFTCollectionEarnings } from '~/containers/Nft/queries'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('nfts/earnings', async () => {
@@ -24,12 +23,10 @@ const pageName = ['Earnings', 'by', 'NFTs']
 const DEFAULT_SORTING_STATE = [{ id: 'totalEarnings', desc: true }]
 
 function Earnings({ earnings }) {
-	//x
 	return (
 		<Layout
-			title="NFT Earnings - DefiLlama"
-			description={`NFT Earnings by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nft earnings, defi nft earnings`}
+			title="NFT Creator Earnings & Royalties - DefiLlama"
+			description="Track NFT creator earnings and royalty revenue by collection. Compare royalty income across top NFT collections on DefiLlama."
 			canonicalUrl={`/nfts/earnings`}
 			pageName={pageName}
 		>
@@ -39,6 +36,8 @@ function Earnings({ earnings }) {
 				columnToSearch={'name'}
 				placeholder={'Search collections...'}
 				header="NFT Collection Earnings"
+				headingAs="h1"
+				csvFileName="nft-earnings"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
@@ -59,13 +58,14 @@ interface IEarnings {
 	totalEarnings: number | null
 }
 
-const earningsColumns: ColumnDef<IEarnings>[] = [
-	{
+const columnHelper = createColumnHelper<IEarnings>()
+
+const earningsColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			const logo = row.original.logo ?? row.subRows?.[0]?.original?.logo
 
@@ -97,7 +97,7 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					{logo ? <TokenLogo logo={logo} data-lgonly /> : <FallbackLogo />}
+					{logo ? <TokenLogo src={logo} alt={`Logo of ${value}`} data-lgonly /> : <FallbackLogo />}
 
 					{row.subRows?.length === 0 ? (
 						<a
@@ -115,52 +115,40 @@ const earningsColumns: ColumnDef<IEarnings>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('totalMintEarnings', {
 		header: 'Mint Earnings',
-		accessorKey: 'totalMintEarnings',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('totalRoyaltyEarnings', {
 		header: 'Lifetime Royalty Earnings',
-		accessorKey: 'totalRoyaltyEarnings',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('total30d', {
 		header: 'Royalties 30d',
-		accessorKey: 'total30d',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 80
-	},
-	{
+	}),
+	columnHelper.accessor('totalEarnings', {
 		header: 'Total Lifetime Earnings',
-		accessorKey: 'totalEarnings',
-		cell: (info) => {
-			return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'mint + royalties'
 		},
 		size: 120
-	}
+	})
 ]
 
 export default Earnings

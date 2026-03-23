@@ -1,9 +1,9 @@
-import type { MetricAggregator, MetricWindow } from '../../types'
+import type { DashboardGrouping, MetricAggregator, MetricWindow } from '../../types'
 
 export type ComparisonType = 'chains' | 'protocols'
 export type WizardStep = 'select-type' | 'select-items' | 'select-metrics' | 'preview'
 
-export type GroupingInterval = 'day' | 'week' | 'month' | 'quarter'
+export type GroupingInterval = DashboardGrouping
 export type DisplayMode = 'default' | 'stacked' | 'cumulative' | 'percentage'
 
 export type ComparisonPreset = {
@@ -46,6 +46,7 @@ export interface MetricWithAvailability {
 
 export type WizardAction =
 	| { type: 'SET_STEP'; step: WizardStep }
+	| { type: 'APPLY_PRESET'; comparisonType: ComparisonType; items: string[]; step: WizardStep }
 	| { type: 'SET_COMPARISON_TYPE'; comparisonType: ComparisonType }
 	| { type: 'SET_SELECTED_ITEMS'; items: string[] }
 	| { type: 'TOGGLE_SELECTED_ITEM'; item: string; maxItems?: number }

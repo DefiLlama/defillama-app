@@ -2,7 +2,7 @@ import { SankeyChart as ESankeyChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
@@ -11,8 +11,8 @@ import { useMedia } from '~/hooks/useMedia'
 import { abbreviateNumber } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
+import { formatTooltipValue } from '../formatters'
 import type { ISankeyChartProps } from '../types'
-import { formatTooltipValue } from '../useDefaults'
 
 echarts.use([CanvasRenderer, ESankeyChart, TooltipComponent, TitleComponent, GridComponent, GraphicComponent])
 
@@ -21,6 +21,7 @@ export default function SankeyChart({
 	nodes,
 	links,
 	title,
+	headingAs,
 	valueSymbol = '$',
 	nodeColors,
 	nodeAlign = 'justify',
@@ -44,6 +45,9 @@ export default function SankeyChart({
 		},
 		[valueSymbol]
 	)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -144,7 +148,7 @@ export default function SankeyChart({
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
 		const graphic = {
@@ -196,15 +200,15 @@ export default function SankeyChart({
 		})
 
 		handleChartReady(instance)
-		onReady?.(instance)
+		emitReady(instance)
 
 		return () => {
 			chartRef.current = null
 			instance.dispose()
 			handleChartReady(null)
-			onReady?.(null)
+			emitReady(null)
 		}
-	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, onReady, nodeMetadata, formatSankeyValue])
+	}, [id, series, isDark, title, valueSymbol, isSmall, handleChartReady, nodeMetadata, formatSankeyValue])
 
 	return (
 		<ChartContainer
@@ -215,6 +219,7 @@ export default function SankeyChart({
 				title || enableImageExport ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						className="mb-2 flex items-center justify-end gap-2"
 						exportButtons={
 							enableImageExport ? (

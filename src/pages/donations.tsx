@@ -1,14 +1,13 @@
-import { maxAgeForNext } from '~/api'
-import { PROTOCOLS_API } from '~/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import Layout from '~/layout'
-import { tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { tokenIconUrl } from '~/utils/icons'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const hideProtocols = ['Mycelium', 'Hubble Exchange', 'NEX']
 
 export const getStaticProps = withPerformanceLogging('donations', async () => {
-	const { protocols, parentProtocols } = await fetchJson(PROTOCOLS_API)
+	const { protocols, parentProtocols } = await fetchProtocols()
 
 	const protocolsWithReferralurl: Record<string, { name: string; logo: string; url: string; tvl: number }> = {}
 
@@ -61,9 +60,8 @@ export const getStaticProps = withPerformanceLogging('donations', async () => {
 function DonationsPage({ protocols }) {
 	return (
 		<Layout
-			title="Donations - DefiLlama"
-			description={`Donate to DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`donations, defi donations`}
+			title="Support DefiLlama - Donations & Contributions"
+			description={`Why donate? DefiLlama is an open-source project that runs no ads and provides all data for free. We have no revenue and are supported by donations.`}
 			canonicalUrl={`/donations`}
 		>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
@@ -75,7 +73,7 @@ function DonationsPage({ protocols }) {
 				</p>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Direct donation</h1>
+				<h2 className="text-lg font-semibold">Direct donation</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
 					<p>You can send us any token, on any network, to the following address:</p>
@@ -85,7 +83,7 @@ function DonationsPage({ protocols }) {
 				</div>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Affiliate links</h1>
+				<h2 className="text-lg font-semibold">Affiliate links</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-3">
 					<p>
@@ -108,7 +106,7 @@ function DonationsPage({ protocols }) {
 				</div>
 			</div>
 			<div className="flex flex-col gap-4 rounded-md bg-(--cards-bg) p-3">
-				<h1 className="text-lg font-semibold">Use of funds</h1>
+				<h2 className="text-lg font-semibold">Use of funds</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				<div className="flex flex-col gap-2">
 					<p>Funds are only used for 2 purposes:</p>

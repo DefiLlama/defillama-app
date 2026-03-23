@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.BRIDGE_AGGREGATORS
@@ -30,9 +30,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const BridgeAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
+			title="Bridge Aggregator Volume & Rankings - DefiLlama"
+			description="Track bridge aggregator volume and cross-chain transfers routed through aggregators. Compare volume across Bungee, LI.FI, Socket, and 20+ bridge aggregators. Real-time bridge routing analytics across all chains."
 			canonicalUrl={`/bridge-aggregators`}
 			pageName={pageName}
 		>

@@ -9,6 +9,7 @@ import { pushShallowQuery } from '~/utils/routerQuery'
 
 interface IDropdownMenusProps {
 	header: string
+	headingAs?: 'h1' | 'h2'
 	pathname?: string
 	investors?: Array<string>
 	selectedInvestors?: Array<string>
@@ -22,9 +23,10 @@ interface IDropdownMenusProps {
 }
 
 export function RaisesFilters(props: IDropdownMenusProps) {
+	const HeadingTag = props.headingAs ?? 'h2'
 	return (
 		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-			<h1 className="text-lg font-semibold">{props.header}</h1>
+			<HeadingTag className="text-lg font-semibold">{props.header}</HeadingTag>
 			<RaisesSearch list={props.investors} />
 			<ResponsiveFilterLayout>{(nestedMenu) => <Filters {...props} nestedMenu={nestedMenu} />}</ResponsiveFilterLayout>
 		</div>
@@ -120,7 +122,7 @@ function Filters({
 			<button
 				onClick={() => {
 					// Clear only query params while keeping the route.
-					pushShallowQuery(
+					void pushShallowQuery(
 						router,
 						{
 							investor: undefined,

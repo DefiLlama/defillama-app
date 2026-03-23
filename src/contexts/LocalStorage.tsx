@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import { useDeferredValue, useEffect, useMemo, useSyncExternalStore } from 'react'
 import type { CustomView } from '~/containers/ProDashboard/types'
 import { useIsClient } from '~/hooks/useIsClient'
 import { slug } from '~/utils'
@@ -15,7 +15,8 @@ export const DEFAULT_PORTFOLIO_NAME = 'main' as const
 const BRIDGES_SHOWING_TXS = 'BRIDGES_SHOWING_TXS' as const
 export const BRIDGES_SHOWING_ADDRESSES = 'BRIDGES_SHOWING_ADDRESSES' as const
 const PRO_DASHBOARD_ITEMS = 'PRO_DASHBOARD_ITEMS' as const
-const LLAMA_AI_WELCOME_SHOWN = 'LLAMA_AI_WELCOME_SHOWN' as const
+export const LLAMA_AI_WALKTHROUGH_STATE = 'LLAMA_AI_WALKTHROUGH_STATE' as const
+const ONBOARDING_INTENT = 'ONBOARDING_INTENT' as const
 
 const YIELDS_SAVED_FILTERS = 'YIELDS_SAVED_FILTERS' as const
 const CUSTOM_COLUMNS = 'CUSTOM_COLUMNS' as const
@@ -158,10 +159,13 @@ export type CustomColumnDef = {
 	determinedFormat?: 'number' | 'usd' | 'percent' | 'string' | 'boolean'
 }
 
+export type LlamaAIWalkthroughState = 'idle' | 'armed' | 'completed'
+
 export type AppStorage = SettingsStore & {
 	[YIELDS_SAVED_FILTERS]?: YieldSavedFilters
 	[CUSTOM_COLUMNS]?: CustomColumnDef[]
-	[LLAMA_AI_WELCOME_SHOWN]?: boolean
+	[LLAMA_AI_WALKTHROUGH_STATE]?: LlamaAIWalkthroughState
+	[ONBOARDING_INTENT]?: string[]
 	[PRO_DASHBOARD_ITEMS]?: unknown
 	[DEFI_WATCHLIST]?: WatchlistStore
 	[YIELDS_WATCHLIST]?: WatchlistStore
@@ -172,7 +176,7 @@ export type AppStorage = SettingsStore & {
 	tableViews?: CustomView[]
 }
 
-const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.key) as ChainsCategoryGroupKey[]
+const CHAINS_CATEGORY_GROUP_KEYS = CHAINS_CATEGORY_GROUP_SETTINGS.map((g) => g.key)
 const CHAINS_CATEGORY_GROUP_KEYS_SET = new Set<string>(CHAINS_CATEGORY_GROUP_KEYS)
 export const TVL_SETTINGS_KEYS = valuesOf(TVL_SETTINGS)
 export const TVL_SETTINGS_KEYS_SET = new Set<string>(TVL_SETTINGS_KEYS)
@@ -195,6 +199,8 @@ export function subscribeToPinnedMetrics(callback: () => void) {
 	return subscribeToStorageKey(PINNED_METRICS_KEY, callback)
 }
 
+const subscribeToTheme = (cb: () => void) => subscribeToStorageKey(THEME_SYNC_KEY, cb)
+
 const toggleDarkMode = () => {
 	const isDarkMode = getThemeCookie() === 'dark'
 	setThemeCookie(!isDarkMode)
@@ -203,7 +209,7 @@ const toggleDarkMode = () => {
 
 export function useDarkModeManager() {
 	const store = useSyncExternalStore(
-		(callback) => subscribeToStorageKey(THEME_SYNC_KEY, callback),
+		subscribeToTheme,
 		() => getThemeCookie() ?? 'dark',
 		() => 'dark'
 	)
@@ -242,6 +248,23 @@ export const writeAppStorage = (next: AppStorage) => {
 	setStorageItem(DEFILLAMA, JSON.stringify(next))
 }
 
+const isLlamaAIWalkthroughState = (value: unknown): value is LlamaAIWalkthroughState =>
+	value === 'idle' || value === 'armed' || value === 'completed'
+
+export const getLlamaAIWalkthroughState = (store: AppStorage): LlamaAIWalkthroughState => {
+	const state = store[LLAMA_AI_WALKTHROUGH_STATE]
+	if (isLlamaAIWalkthroughState(state)) return state
+	return 'idle'
+}
+
+export const setLlamaAIWalkthroughState = (state: LlamaAIWalkthroughState, nextStore?: AppStorage) => {
+	const current = nextStore ?? readAppStorage()
+	writeAppStorage({
+		...current,
+		[LLAMA_AI_WALKTHROUGH_STATE]: state
+	})
+}
+
 const updateSetting = (key: string) => {
 	const current = readAppStorage()
 
@@ -257,7 +280,7 @@ const updateSetting = (key: string) => {
 	url.searchParams.set(key, newState.toString())
 	window.history.pushState({}, '', url)
 
-	writeAppStorage({ ...(current as AppStorage), [key]: newState })
+	writeAppStorage({ ...current, [key]: newState })
 }
 
 export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boolean>>) => {
@@ -276,7 +299,7 @@ export const updateAllSettingsInLsAndUrl = (keys: Partial<Record<SettingKey, boo
 
 	window.history.pushState({}, '', url)
 
-	writeAppStorage({ ...(current as AppStorage), ...keys })
+	writeAppStorage({ ...current, ...keys })
 }
 
 type TSETTINGTYPE =
@@ -312,6 +335,32 @@ function getSettingKeys<T extends TSETTINGTYPE>(type: T): KeysFor<T>[] {
 	}
 }
 
+function computeSettingsSnapshot<T extends TSETTINGTYPE>(keys: KeysFor<T>[], isClient: boolean): string {
+	let urlParams: URLSearchParams | null = null
+	if (isClient) {
+		urlParams = new URLSearchParams(window.location.search)
+	}
+	const ps = readAppStorage()
+	const obj = {} as Record<KeysFor<T>, boolean>
+	for (const s of keys) {
+		const storedValue = (ps as SettingsStore)[s as SettingKey]
+		let param: string | null = null
+		if (urlParams != null) {
+			param = urlParams.get(s)
+		}
+		let value: boolean
+		if (param) {
+			value = param === 'true'
+		} else if (typeof storedValue === 'boolean') {
+			value = storedValue
+		} else {
+			value = false
+		}
+		obj[s] = value
+	}
+	return JSON.stringify(obj)
+}
+
 export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 	type: T
 ): [Record<KeysFor<T>, boolean>, (key: KeysFor<T>) => void] {
@@ -322,18 +371,7 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 		subscribeToLocalStorage,
 		() => {
 			try {
-				const urlParams = isClient ? new URLSearchParams(window.location.search) : null
-
-				const ps = readAppStorage()
-				const obj = {} as Record<KeysFor<T>, boolean>
-				for (const s of keys) {
-					const storedValue = (ps as SettingsStore)[s as SettingKey]
-					obj[s] =
-						(urlParams && urlParams.get(s) ? urlParams.get(s) === 'true' : null) ??
-						(typeof storedValue === 'boolean' ? storedValue : false)
-				}
-
-				return JSON.stringify(obj)
+				return computeSettingsSnapshot(keys, isClient)
 			} catch {
 				return '{}'
 			}
@@ -341,43 +379,40 @@ export function useLocalStorageSettingsManager<T extends TSETTINGTYPE>(
 		() => '{}'
 	)
 
+	const deferredSnapshot = useDeferredValue(snapshot)
+
 	const settings = useMemo(() => {
 		try {
-			return JSON.parse(snapshot) as Record<KeysFor<T>, boolean>
+			return JSON.parse(deferredSnapshot) as Record<KeysFor<T>, boolean>
 		} catch {
 			return {} as Record<KeysFor<T>, boolean>
 		}
-	}, [snapshot])
+	}, [deferredSnapshot])
 
-	return [settings, (key: KeysFor<T>) => updateSetting(key)]
-}
+	const toggle = useMemo(() => (key: KeysFor<T>) => updateSetting(key), [])
 
-const updateAllSettings = (keys: Partial<Record<SettingKey, boolean>>) => {
-	const current = readAppStorage()
-	writeAppStorage({ ...(current as AppStorage), ...keys })
-}
-
-export function useManageAppSettings(): [SettingsStore, (keys: Partial<Record<SettingKey, boolean>>) => void] {
-	const store = useSyncExternalStore(
-		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
-	)
-	const toggledSettings = useMemo(() => JSON.parse(store) as SettingsStore, [store])
-
-	return [toggledSettings, updateAllSettings]
+	return [settings, toggle]
 }
 
 // YIELDS SAVED FILTERS HOOK
 export function useYieldFilters() {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
+		() => {
+			const store = readAppStorage()
+			const filters = store[YIELDS_SAVED_FILTERS]
+			return filters ? JSON.stringify(filters) : '{}'
+		},
 		() => '{}'
 	)
 
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const savedFilters: YieldSavedFilters = parsedStore?.[YIELDS_SAVED_FILTERS] ?? {}
+	const savedFilters: YieldSavedFilters = useMemo(() => {
+		try {
+			return JSON.parse(snapshot) as YieldSavedFilters
+		} catch {
+			return {}
+		}
+	}, [snapshot])
 
 	return {
 		savedFilters,
@@ -399,28 +434,34 @@ export function useYieldFilters() {
 }
 
 export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
-	const store = useSyncExternalStore(
+	const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
+	const selectedPortfolioKey =
+		type === 'defi'
+			? DEFI_SELECTED_PORTFOLIO
+			: type === 'yields'
+				? YIELDS_SELECTED_PORTFOLIO
+				: CHAINS_SELECTED_PORTFOLIO
+
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const store = readAppStorage()
+			const wl = store[watchlistKey as keyof AppStorage]
+			const sp = store[selectedPortfolioKey as keyof AppStorage]
+			return JSON.stringify({ wl, sp })
+		},
+		() => JSON.stringify({ wl: undefined, sp: undefined })
 	)
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
 
 	return useMemo(() => {
-		const watchlistKey = type === 'defi' ? DEFI_WATCHLIST : type === 'yields' ? YIELDS_WATCHLIST : CHAINS_WATCHLIST
-		const selectedPortfolioKey =
-			type === 'defi'
-				? DEFI_SELECTED_PORTFOLIO
-				: type === 'yields'
-					? YIELDS_SELECTED_PORTFOLIO
-					: CHAINS_SELECTED_PORTFOLIO
+		const { wl, sp } = JSON.parse(snapshot) as { wl: WatchlistStore | undefined; sp: string | undefined }
+		const watchlist = wl ?? { [DEFAULT_PORTFOLIO_NAME]: {} }
+		const selectedPortfolio = sp ?? DEFAULT_PORTFOLIO_NAME
 
-		const watchlist = (parsedStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
-			[DEFAULT_PORTFOLIO_NAME]: {}
+		const portfolios: string[] = []
+		for (const portfolioName in watchlist) {
+			portfolios.push(portfolioName)
 		}
-		const portfolios = Object.keys(watchlist)
-		const selectedPortfolio =
-			(parsedStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 		return {
 			portfolios,
@@ -428,22 +469,22 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			savedProtocols: new Set(Object.values(watchlist[selectedPortfolio] ?? {})) as Set<string>,
 			addPortfolio: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
-				const newWatchlist = { ...watchlist, [name]: { ...(watchlist[name] ?? {}) } }
+				const newWatchlist = { ...currentWatchlist, [name]: { ...(currentWatchlist[name] ?? {}) } }
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist,
 					[selectedPortfolioKey]: name
 				})
 			},
 			removePortfolio: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
-				const newWatchlist = { ...watchlist }
+				const newWatchlist = { ...currentWatchlist }
 				delete newWatchlist[name]
 
 				let hasKeys = false
@@ -456,7 +497,7 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 				}
 
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist,
 					[selectedPortfolioKey]: DEFAULT_PORTFOLIO_NAME
 				})
@@ -464,74 +505,75 @@ export function useWatchlistManager(type: 'defi' | 'yields' | 'chains') {
 			setSelectedPortfolio: (name: string) => {
 				const currentStore = readAppStorage()
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[selectedPortfolioKey]: name
 				})
 			},
 			addProtocol: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
 				const currentSelectedPortfolio =
 					(currentStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 				const newWatchlist = {
-					...watchlist,
+					...currentWatchlist,
 					[currentSelectedPortfolio]: {
-						...watchlist[currentSelectedPortfolio],
+						...currentWatchlist[currentSelectedPortfolio],
 						[slug(name)]: name
 					}
 				}
 
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist
 				})
 			},
 			removeProtocol: (name: string) => {
 				const currentStore = readAppStorage()
-				const watchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
+				const currentWatchlist = (currentStore[watchlistKey as keyof AppStorage] as WatchlistStore | undefined) ?? {
 					[DEFAULT_PORTFOLIO_NAME]: {}
 				}
 				const currentSelectedPortfolio =
 					(currentStore[selectedPortfolioKey as keyof AppStorage] as string) ?? DEFAULT_PORTFOLIO_NAME
 
 				const newWatchlist = {
-					...watchlist,
-					[currentSelectedPortfolio]: { ...watchlist[currentSelectedPortfolio] }
+					...currentWatchlist,
+					[currentSelectedPortfolio]: { ...currentWatchlist[currentSelectedPortfolio] }
 				}
 				delete newWatchlist[currentSelectedPortfolio][slug(name)]
 
 				writeAppStorage({
-					...(currentStore as AppStorage),
+					...currentStore,
 					[watchlistKey]: newWatchlist
 				})
 			}
 		}
-	}, [parsedStore, type])
+	}, [snapshot, watchlistKey, selectedPortfolioKey])
 }
 
 export function useCustomColumns() {
-	const store = useSyncExternalStore(
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const store = readAppStorage()
+			const cols = store[CUSTOM_COLUMNS]
+			return cols ? JSON.stringify(cols) : '[]'
+		},
+		() => '[]'
 	)
-	const parsedStore = useMemo(() => {
-		try {
-			return JSON.parse(store) as AppStorage
-		} catch {
-			return {} as AppStorage
-		}
-	}, [store])
 
 	const customColumns = useMemo(() => {
-		return (parsedStore?.[CUSTOM_COLUMNS] as CustomColumnDef[] | undefined) ?? []
-	}, [parsedStore])
+		try {
+			return JSON.parse(snapshot) as CustomColumnDef[]
+		} catch {
+			return [] as CustomColumnDef[]
+		}
+	}, [snapshot])
 
 	function setCustomColumns(cols: CustomColumnDef[]) {
-		writeAppStorage({ ...parsedStore, [CUSTOM_COLUMNS]: cols })
+		writeAppStorage({ ...readAppStorage(), [CUSTOM_COLUMNS]: cols })
 	}
 
 	function addCustomColumn(col: CustomColumnDef) {
@@ -555,19 +597,20 @@ export function useCustomColumns() {
 	}
 }
 
-export function useLlamaAIWelcome(): [boolean, () => void] {
-	const store = useSyncExternalStore(
+export function useLlamaAIWelcome(isSubscribed: boolean): [boolean, () => void] {
+	const snapshot = useSyncExternalStore(
 		subscribeToLocalStorage,
-		() => getStorageItem(DEFILLAMA, '{}') ?? '{}',
-		() => '{}'
+		() => {
+			const walkthroughState = getLlamaAIWalkthroughState(readAppStorage())
+			if (!isSubscribed) return '1'
+			return walkthroughState === 'armed' ? '0' : '1'
+		},
+		() => '1' // SSR: assume seen
 	)
 
-	const parsedStore = useMemo(() => JSON.parse(store) as AppStorage, [store])
-	const shown = parsedStore?.[LLAMA_AI_WELCOME_SHOWN] ?? false
+	const shown = snapshot === '1'
 
-	const setShown = () => {
-		writeAppStorage({ ...readAppStorage(), [LLAMA_AI_WELCOME_SHOWN]: true })
-	}
+	const setShown = useMemo(() => () => setLlamaAIWalkthroughState('completed'), [])
 
 	return [shown, setShown]
 }

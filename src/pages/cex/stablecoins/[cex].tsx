@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPropsContext } from 'next'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics, fetchProtocolTvlTokenBreakdownChart } from '~/containers/ProtocolOverview/api'
 import type { IProtocolTokenBreakdownChart } from '~/containers/ProtocolOverview/api.types'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
@@ -19,7 +19,8 @@ import {
 } from '~/containers/ProtocolOverview/utils'
 import { fetchStablecoinAssetsApi } from '~/containers/Stablecoins/api'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -32,7 +33,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/stablecoins/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
@@ -49,7 +50,7 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {
@@ -91,11 +92,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -263,7 +264,7 @@ function useStablecoinData(protocolName: string) {
 			tokenBreakdownDataUpdatedAt,
 			stablecoinsListUpdatedAt
 		],
-		queryFn: async () => {
+		queryFn: () => {
 			if (!tokenBreakdownData || tokenBreakdownData.length === 0) return null
 			if (!peggedAssets || peggedAssets.length === 0) return null
 
@@ -288,8 +289,12 @@ function useStablecoinData(protocolName: string) {
 			for (const [rawDate, tokens] of tokenBreakdownData) {
 				const date = rawDate > 1e12 ? Math.floor(rawDate / 1e3) : rawDate
 				const stablecoinsOnly = filterStablecoinsFromTokens(tokens, stablecoinSymbols)
-
-				if (Object.keys(stablecoinsOnly).length === 0) continue
+				let hasStablecoins = false
+				for (const _token in stablecoinsOnly) {
+					hasStablecoins = true
+					break
+				}
+				if (!hasStablecoins) continue
 
 				for (const token in stablecoinsOnly) {
 					stablecoinTokensUniqueSet.add(token)
@@ -402,26 +407,28 @@ export default function CEXStablecoins(props: {
 	const pegTypesUnique = React.useMemo(() => data?.pegTypesUnique ?? [], [data?.pegTypesUnique])
 	const stablecoinTokensUnique = React.useMemo(() => data?.stablecoinTokensUnique ?? [], [data?.stablecoinTokensUnique])
 
+	const totalStablecoins = data?.totalStablecoins
 	const totalStablecoinsDataset = React.useMemo(() => {
-		if (!data?.totalStablecoins?.length || data.totalStablecoins.length <= 1) return null
+		if (!totalStablecoins?.length || totalStablecoins.length <= 1) return null
 		return {
-			source: data.totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
+			source: totalStablecoins.map(({ date, value }) => ({ timestamp: +date * 1e3, Total: value })),
 			dimensions: ['timestamp', 'Total']
 		}
-	}, [data?.totalStablecoins])
+	}, [totalStablecoins])
 	const totalStablecoinsCharts = React.useMemo<MultiSeriesCharts>(
 		() => [{ type: 'line' as const, name: 'Total', encode: { x: 'timestamp', y: 'Total' } }],
 		[]
 	)
 
+	const stablecoinsByPegMechanism = data?.stablecoinsByPegMechanism
 	const { stablecoinsByPegMechanismDataset, stablecoinsByPegMechanismCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByPegMechanism?.length || data.stablecoinsByPegMechanism.length <= 1) {
+		if (!stablecoinsByPegMechanism?.length || stablecoinsByPegMechanism.length <= 1) {
 			return { stablecoinsByPegMechanismDataset: null, stablecoinsByPegMechanismCharts: [] }
 		}
 
 		return {
 			stablecoinsByPegMechanismDataset: {
-				source: data.stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByPegMechanism.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...pegMechanismsUnique]
 			},
 			stablecoinsByPegMechanismCharts: pegMechanismsUnique.map((name) => ({
@@ -430,16 +437,17 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByPegMechanism, pegMechanismsUnique])
+	}, [stablecoinsByPegMechanism, pegMechanismsUnique])
 
+	const stablecoinsByPegType = data?.stablecoinsByPegType
 	const { stablecoinsByPegTypeDataset, stablecoinsByPegTypeCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByPegType?.length || data.stablecoinsByPegType.length <= 1) {
+		if (!stablecoinsByPegType?.length || stablecoinsByPegType.length <= 1) {
 			return { stablecoinsByPegTypeDataset: null, stablecoinsByPegTypeCharts: [] }
 		}
 
 		return {
 			stablecoinsByPegTypeDataset: {
-				source: data.stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByPegType.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...pegTypesUnique]
 			},
 			stablecoinsByPegTypeCharts: pegTypesUnique.map((name) => ({
@@ -448,16 +456,17 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByPegType, pegTypesUnique])
+	}, [stablecoinsByPegType, pegTypesUnique])
 
+	const stablecoinsByToken = data?.stablecoinsByToken
 	const { stablecoinsByTokenDataset, stablecoinsByTokenCharts } = React.useMemo(() => {
-		if (!data?.stablecoinsByToken?.length || data.stablecoinsByToken.length <= 1) {
+		if (!stablecoinsByToken?.length || stablecoinsByToken.length <= 1) {
 			return { stablecoinsByTokenDataset: null, stablecoinsByTokenCharts: [] }
 		}
 
 		return {
 			stablecoinsByTokenDataset: {
-				source: data.stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
+				source: stablecoinsByToken.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...stablecoinTokensUnique]
 			},
 			stablecoinsByTokenCharts: stablecoinTokensUnique.map((name) => ({
@@ -466,9 +475,10 @@ export default function CEXStablecoins(props: {
 				encode: { x: 'timestamp', y: name }
 			}))
 		}
-	}, [data?.stablecoinsByToken, stablecoinTokensUnique])
+	}, [stablecoinsByToken, stablecoinTokensUnique])
 
-	const pegMechanismPieChartData = React.useMemo(() => data?.pegMechanismPieChart ?? [], [data?.pegMechanismPieChart])
+	const pegMechanismPieChart = data?.pegMechanismPieChart
+	const pegMechanismPieChartData = React.useMemo(() => pegMechanismPieChart ?? [], [pegMechanismPieChart])
 
 	return (
 		<ProtocolOverviewLayout
@@ -480,11 +490,11 @@ export default function CEXStablecoins(props: {
 			isCEX={true}
 		>
 			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+				<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 				<h1 className="text-xl font-bold">{props.name}</h1>
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : !data ? (
@@ -498,7 +508,7 @@ export default function CEXStablecoins(props: {
 							<span className="text-sm text-(--text-label)">Total Stablecoin in CEX</span>
 							<span className="text-sm font-medium">{currentTotal ? formattedNum(currentTotal, true) : '-'}</span>
 						</div>
-						{stablecoinBreakdown && stablecoinBreakdown.length > 0 && (
+						{stablecoinBreakdown && stablecoinBreakdown.length > 0 ? (
 							<>
 								<div className="flex items-baseline gap-1.5">
 									<span className="text-sm text-(--text-label)">Dominant Backing Type</span>
@@ -518,7 +528,7 @@ export default function CEXStablecoins(props: {
 									<span className="text-sm font-medium">{data.stablecoinTokensUnique?.length || 0}</span>
 								</div>
 							</>
-						)}
+						) : null}
 					</div>
 
 					<div className="grid grid-cols-2 gap-2">

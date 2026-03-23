@@ -1,6 +1,6 @@
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
 import { SortableItem } from '~/containers/ProtocolOverview/ProtocolPro'
@@ -16,7 +16,7 @@ import { ConfirmationModal } from './ConfirmationModal'
 import {
 	AggregatorsDataset,
 	BridgeAggregatorsDataset,
-	CexDataset,
+	CexAnalyticsDataset,
 	ChainsDataset,
 	DexsDataset,
 	EarningsDataset,
@@ -258,7 +258,11 @@ function DashboardItemRenderer({ item, onEditItem, handleEditItem }: DashboardIt
 
 	if (item.kind === 'table') {
 		if (item.tableType === 'dataset') {
-			if (item.datasetType === 'cex') return <CexDataset />
+			if (item.datasetType === 'cex')
+				return (
+					<CexAnalyticsDataset config={{ ...item, datasetType: 'cex-analytics', cexAnalyticsView: 'comparison' }} />
+				)
+			if (item.datasetType === 'cex-analytics') return <CexAnalyticsDataset config={item} />
 			if (item.datasetType === 'revenue')
 				return <RevenueDataset chains={item.chains} tableId={item.id} filters={item.filters} />
 			if (item.datasetType === 'holders-revenue')
@@ -339,13 +343,16 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 	const sortableItemIds = chartsWithData.map((c) => c.id)
 
 	const currentRatingSession = getCurrentRatingSession()
-	const currentSessionId = currentRatingSession?.sessionId
 
-	useEffect(() => {
-		if (currentSessionId) {
-			autoSkipOlderSessionsForRating()
-		}
-	}, [currentSessionId, autoSkipOlderSessionsForRating])
+	const handleRatingSubmit = async (sessionId: string, rating: number, feedback?: string) => {
+		await submitRating(sessionId, rating, feedback)
+		await autoSkipOlderSessionsForRating()
+	}
+
+	const handleRatingSkip = async (sessionId: string) => {
+		await skipRating(sessionId)
+		await autoSkipOlderSessionsForRating()
+	}
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -452,7 +459,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 											<Icon name="plus" height={14} width={14} />
 											<span className="sr-only">Expand width</span>
 										</Tooltip>
-										{onEditItem && (
+										{onEditItem ? (
 											<Tooltip
 												content="Edit item"
 												render={<button onClick={() => onEditItem(item)} />}
@@ -461,7 +468,7 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 												<Icon name="pencil" height={14} width={14} />
 												<span className="sr-only">Edit item</span>
 											</Tooltip>
-										)}
+										) : null}
 										<Tooltip
 											content="Remove item"
 											render={<button onClick={() => handleDeleteClick(item.id)} />}
@@ -477,18 +484,18 @@ export function ChartGrid({ onAddChartClick, onEditItem }: ChartGridProps) {
 								</SortableItem>
 							)
 						})}
-						{currentRatingSession && !isReadOnly && (
+						{currentRatingSession && !isReadOnly ? (
 							<div className="col-span-full flex animate-ai-glow flex-col items-center justify-center gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
 								<Rating
 									sessionId={currentRatingSession.sessionId}
 									mode={currentRatingSession.mode}
 									variant="inline"
 									prompt={currentRatingSession.prompt}
-									onRate={submitRating}
-									onSkip={skipRating}
+									onRate={handleRatingSubmit}
+									onSkip={handleRatingSkip}
 								/>
 							</div>
-						)}
+						) : null}
 						<button
 							onClick={onAddChartClick}
 							className="relative isolate flex min-h-[340px] flex-col items-center justify-center gap-1 rounded-md border border-dashed border-(--cards-border) bg-(--cards-bg) p-2.5 text-(--link-text) hover:bg-pro-blue-300/5 dark:hover:bg-pro-blue-300/10"

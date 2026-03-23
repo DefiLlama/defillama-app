@@ -11,7 +11,8 @@ const GROUPING_OPTIONS: SelectOption[] = [
 	{ value: 'day', label: 'Day' },
 	{ value: 'week', label: 'Week' },
 	{ value: 'month', label: 'Month' },
-	{ value: 'quarter', label: 'Quarter' }
+	{ value: 'quarter', label: 'Quarter' },
+	{ value: 'year', label: 'Year' }
 ]
 
 const DISPLAY_OPTIONS: SelectOption[] = [
@@ -77,10 +78,11 @@ export function PreviewStep() {
 		<div className="grid grid-cols-2 items-start gap-5">
 			<div className="flex flex-col gap-3">
 				<div>
-					<label className="mb-1 block text-sm font-medium text-(--text-primary)">
+					<label htmlFor="comparison-dashboard-name" className="mb-1 block text-sm font-medium text-(--text-primary)">
 						Dashboard Name <span className="text-red-500">*</span>
 					</label>
 					<input
+						id="comparison-dashboard-name"
 						type="text"
 						value={state.dashboardName}
 						onChange={(e) => actions.setDashboardName(e.target.value)}
@@ -91,7 +93,7 @@ export function PreviewStep() {
 
 				<div className="flex items-center gap-3">
 					<div className="flex-1">
-						<label className="mb-1 block text-sm font-medium text-(--text-primary)">Visibility</label>
+						<p className="mb-1 block text-sm font-medium text-(--text-primary)">Visibility</p>
 						<div className="flex gap-1.5">
 							<button
 								type="button"
@@ -137,9 +139,12 @@ export function PreviewStep() {
 				</div>
 
 				<div>
-					<label className="mb-1 block text-sm font-medium text-(--text-primary)">Tags</label>
+					<label htmlFor="comparison-dashboard-tags" className="mb-1 block text-sm font-medium text-(--text-primary)">
+						Tags
+					</label>
 					<div className="flex gap-1.5">
 						<input
+							id="comparison-dashboard-tags"
 							type="text"
 							value={tagInput}
 							onChange={(e) => setTagInput(e.target.value)}
@@ -156,7 +161,7 @@ export function PreviewStep() {
 							Add
 						</button>
 					</div>
-					{state.tags.length > 0 && (
+					{state.tags.length > 0 ? (
 						<div className="mt-1.5 flex flex-wrap gap-1">
 							{state.tags.map((tag) => (
 								<span
@@ -174,14 +179,18 @@ export function PreviewStep() {
 								</span>
 							))}
 						</div>
-					)}
+					) : null}
 				</div>
 
 				<div>
-					<label className="mb-1 block text-sm font-medium text-(--text-primary)">
+					<label
+						htmlFor="comparison-dashboard-description"
+						className="mb-1 block text-sm font-medium text-(--text-primary)"
+					>
 						Description <span className="text-xs font-normal text-(--text-tertiary)">(optional)</span>
 					</label>
 					<input
+						id="comparison-dashboard-description"
 						type="text"
 						value={state.description}
 						onChange={(e) => actions.setDescription(e.target.value)}
@@ -220,13 +229,13 @@ export function PreviewStep() {
 										onChange={() => actions.toggleMetricForCard(metric)}
 										className="sr-only"
 									/>
-									{isSelected && <Icon name="check" height={10} width={10} />}
+									{isSelected ? <Icon name="check" height={10} width={10} /> : null}
 									{label}
 								</label>
 							)
 						})}
 					</div>
-					{state.metricsForCards.length > 0 && (
+					{state.metricsForCards.length > 0 ? (
 						<div className="mt-2 flex items-center gap-2 border-t border-(--cards-border) pt-2">
 							<AriakitSelect
 								options={AGGREGATOR_OPTIONS}
@@ -241,7 +250,7 @@ export function PreviewStep() {
 								className="min-w-[60px]"
 							/>
 						</div>
-					)}
+					) : null}
 				</div>
 
 				<div className="rounded-lg border border-(--cards-border) bg-(--cards-bg-alt)/30 p-3">
@@ -271,9 +280,9 @@ export function PreviewStep() {
 						<div className="flex items-center justify-between">
 							<span className="text-(--text-tertiary)">Output</span>
 							<span className="font-medium text-(--primary)">
-								{metricCardsCount > 0 && `${metricCardsCount} cards + `}
+								{metricCardsCount > 0 ? `${metricCardsCount} cards + ` : null}
 								{state.selectedMetrics.length} charts
-								{state.includeTable && ' + 1 table'}
+								{state.includeTable ? ' + 1 table' : null}
 							</span>
 						</div>
 					</div>

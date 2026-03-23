@@ -1,4 +1,6 @@
+import { fetchBlockExplorers } from '~/api'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import type { IRWAList } from '~/utils/metadata/types'
 import {
 	fetchRWAActiveTVLs,
@@ -28,11 +30,17 @@ import type {
 	IRWAPlatformsOverviewRow,
 	RWAChartMetricKey
 } from './api.types'
+import {
+	aggregateRwaChartData,
+	applyDefaultAssetFilters,
+	sortKeysByLatestTimestampValue,
+	type RWAChartAggregationMode
+} from './chartAggregation'
 import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
-type ChainMetricBreakdown = Record<string, string> | null
-type DefiMetricBreakdown = Record<string, Record<string, string>> | null
+type ChainMetricBreakdown = Record<string, number | string> | null
+type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
 
 type AggregatedRwaMetrics = {
 	totals: {
@@ -175,6 +183,8 @@ type RWAAssetsOverviewParams = {
 	rwaList: IRWAList
 }
 
+const ASSETS_TO_EXCLUDE = new Set([])
+
 export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Promise<IRWAAssetsOverview | null> {
 	try {
 		const selectedChain = params?.chain ? rwaSlug(params.chain) : undefined
@@ -213,11 +223,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualChainName: string | null = null
 		if (selectedChain) {
 			for (const item of data) {
-				const match = item.chain?.find((c) => rwaSlug(c) === selectedChain)
-				if (match) {
-					actualChainName = match
-					break
+				if (item.chain) {
+					for (const c of item.chain) {
+						if (rwaSlug(c) === selectedChain) {
+							actualChainName = c
+							break
+						}
+					}
 				}
+				if (actualChainName) break
 			}
 			if (!actualChainName) {
 				return null
@@ -228,11 +242,15 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualCategoryName: string | null = null
 		if (selectedCategory) {
 			for (const item of data) {
-				const match = item.category?.find((c) => rwaSlug(c) === selectedCategory)
-				if (match) {
-					actualCategoryName = match
-					break
+				if (item.category) {
+					for (const c of item.category) {
+						if (rwaSlug(c) === selectedCategory) {
+							actualCategoryName = c
+							break
+						}
+					}
 				}
+				if (actualCategoryName) break
 			}
 			if (!actualCategoryName) {
 				return null
@@ -260,6 +278,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const rwaClassifications = new Map<string, number>()
 		const accessModels = new Map<string, number>()
 		const categories = new Map<string, number>()
+		const platforms = new Map<string, number>()
 		const assetNames = new Map<string, number>()
 		const issuers = new Map<string, number>()
 		const issuerSet = new Set<string>()
@@ -370,7 +389,13 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			}
 
 			// Only include asset if it exists on the selected chain/category (or no route filter)
-			if (hasChainInTvl && hasCategoryMatch && hasPlatformMatch && asset.assetName) {
+			if (
+				hasChainInTvl &&
+				hasCategoryMatch &&
+				hasPlatformMatch &&
+				asset.assetName &&
+				!ASSETS_TO_EXCLUDE.has(asset.assetName)
+			) {
 				const isStablecoin = !!item.stablecoin
 				const isGovernance = !!item.governance
 				const isStablecoinOnly = isStablecoin && !isGovernance
@@ -419,6 +444,18 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMcap)
 					}
 				}
+				const platformRaw = asset.parentPlatform as unknown
+				const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
+				const normalizedPlatforms = Array.from(
+					new Set(
+						platformCandidates
+							.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
+							.filter((platform): platform is string => platform.length > 0)
+					)
+				)
+				for (const platform of normalizedPlatforms) {
+					platforms.set(platform, (platforms.get(platform) ?? 0) + effectiveOnChainMcap)
+				}
 				if (asset.rwaClassification) {
 					rwaClassifications.set(
 						asset.rwaClassification,
@@ -463,6 +500,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		const formattedCategories = Array.from(categories.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
+		const formattedPlatforms = Array.from(platforms.entries())
+			.sort((a, b) => b[1] - a[1])
+			.map(([key]) => key)
 
 		const chainNavValues =
 			params?.rwaList?.chains?.map((chain) => ({
@@ -491,6 +531,23 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		if ((selectedPlatform && !platformNavValues) || platformNavValues.length === 0) {
 			throw new Error('platforms not found in RWA list')
 		}
+
+		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
+		const isChainMode = !selectedCategory && !selectedPlatform
+		const aggregationMode: RWAChartAggregationMode = selectedCategory
+			? 'assetClass'
+			: selectedPlatform
+				? 'assetName'
+				: 'category'
+		const defaultFilteredAssets = applyDefaultAssetFilters(assets, {
+			includeStablecoins: !isChainMode,
+			includeGovernance: !isChainMode,
+			mode: selectedPlatform ? 'platform' : selectedCategory ? 'category' : 'chain',
+			categorySlug: selectedCategory
+		})
+		const initialChartDataset = chartDataMs
+			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
+			: null
 
 		return {
 			assets: assets.sort((a, b) => (b.onChainMcap?.total ?? 0) - (a.onChainMcap?.total ?? 0)),
@@ -524,6 +581,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 				name: category,
 				help: definitions.category.values?.[category] ?? null
 			})),
+			platforms: formattedPlatforms,
 			assetNames: selectedPlatform
 				? Array.from(assetNames.entries())
 						.sort((a, b) => b[1] - a[1])
@@ -565,7 +623,10 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 					issuers: Array.from(issuerSetStablecoinsAndGovernance)
 				}
 			},
-			chartData: chartDataMs
+			initialChartDataset,
+			chainSlug: selectedChain ?? null,
+			categorySlug: selectedCategory ?? null,
+			platformSlug: selectedPlatform ?? null
 		}
 	} catch (error) {
 		throw new Error(error instanceof Error ? error.message : 'Failed to get RWA assets overview')
@@ -576,30 +637,6 @@ const RWA_CHART_METRIC_KEYS: RWAChartMetricKey[] = ['onChainMcap', 'activeMcap',
 
 const emptyRwaBreakdownDataset = () => ({ source: [], dimensions: ['timestamp'] })
 
-function sortBreakdownSeriesByLatestTimestampValue(rows: IRWABreakdownChartResponse, keys: Iterable<string>): string[] {
-	const seriesKeys = Array.from(keys).filter(Boolean)
-	if (seriesKeys.length === 0) return seriesKeys
-
-	let latestRow: IRWABreakdownChartResponse[number] | null = null
-	let latestTimestamp = Number.NEGATIVE_INFINITY
-	for (const row of rows) {
-		if (!Number.isFinite(row.timestamp)) continue
-		if (row.timestamp >= latestTimestamp) {
-			latestTimestamp = row.timestamp
-			latestRow = row
-		}
-	}
-
-	return seriesKeys.sort((a, b) => {
-		const aValueRaw = latestRow?.[a]
-		const bValueRaw = latestRow?.[b]
-		const aValue = typeof aValueRaw === 'number' && Number.isFinite(aValueRaw) ? aValueRaw : 0
-		const bValue = typeof bValueRaw === 'number' && Number.isFinite(bValueRaw) ? bValueRaw : 0
-		if (aValue !== bValue) return bValue - aValue
-		return a.localeCompare(b)
-	})
-}
-
 function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
 	if (!rows || rows.length === 0) return emptyRwaBreakdownDataset()
 
@@ -608,25 +645,28 @@ function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
 
 	for (const row of ensureChronologicalRows(rows)) {
 		const timestamp = Number(row.timestamp)
-		if (!Number.isFinite(timestamp)) continue
 
 		const normalizedRow: IRWABreakdownChartResponse[number] = { timestamp }
+		let hasData = false
 		for (const [series, value] of Object.entries(row)) {
 			if (series === 'timestamp') continue
 			const numericValue = Number(value)
 			if (!Number.isFinite(numericValue)) continue
+			hasData = true
 			seenSeries.add(series)
 			normalizedRow[series] = numericValue
 		}
 
-		source.push(normalizedRow)
+		if (hasData) {
+			source.push(normalizedRow)
+		}
 	}
 
 	if (source.length === 0) return emptyRwaBreakdownDataset()
 
 	return {
 		source,
-		dimensions: ['timestamp', ...sortBreakdownSeriesByLatestTimestampValue(source, seenSeries)]
+		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenSeries)]
 	}
 }
 
@@ -747,9 +787,14 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 
 export async function getRWAAssetData({ assetId }: { assetId: string }): Promise<IRWAAssetData | null> {
 	try {
-		const [data, chartDataset]: [IFetchedRWAProject, IRWAAssetData['chartDataset']] = await Promise.all([
+		const [data, chartDataset, blockExplorersData]: [
+			IFetchedRWAProject,
+			IRWAAssetData['chartDataset'],
+			Awaited<ReturnType<typeof fetchBlockExplorers>>
+		] = await Promise.all([
 			fetchRWAAssetDataById(assetId),
-			fetchRWAAssetChartData(assetId)
+			fetchRWAAssetChartData(assetId),
+			fetchBlockExplorers().catch(() => [])
 		])
 
 		if (!data) {
@@ -784,6 +829,27 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			}
 		}
 
+		let contractUrls: Record<string, Record<string, string>> | null = null
+		if (data.contracts) {
+			contractUrls = {}
+			for (const chain in data.contracts) {
+				const addresses = data.contracts[chain]
+				if (!addresses) continue
+				for (const address of addresses) {
+					const result = getBlockExplorerNew({
+						apiResponse: blockExplorersData,
+						address,
+						chainName: chain,
+						urlType: 'token'
+					})
+					if (result) {
+						contractUrls[chain] ??= {}
+						contractUrls[chain][address] = result.url
+					}
+				}
+			}
+		}
+
 		if (chartDataset && data.activeMcapData === false) {
 			chartDataset.dimensions = chartDataset.dimensions.filter((dimension) => dimension !== 'Active Mcap')
 		}
@@ -796,6 +862,7 @@ export async function getRWAAssetData({ assetId }: { assetId: string }): Promise
 			rwaClassificationDescription,
 			accessModelDescription,
 			assetClassDescriptions,
+			contractUrls,
 			onChainMcap: onChainMcapBreakdown
 				? {
 						total: aggregatedMetrics.totals.onChainMcap,
@@ -827,5 +894,7 @@ function safeNumber(value: unknown): number {
 }
 
 function isEmptyObject(value: unknown): boolean {
-	return !!value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0
+	if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+	for (const _key in value) return false
+	return true
 }

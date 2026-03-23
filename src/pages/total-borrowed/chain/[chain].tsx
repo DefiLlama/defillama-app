@@ -1,13 +1,14 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = async () => {
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+export const getStaticPaths = () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -44,12 +45,12 @@ export const getStaticProps = withPerformanceLogging(
 const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 
 export default function TotalBorrowedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
+	console.log(props)
 	return (
 		<Layout
-			title="Total Borrowed - DefiLlama"
-			description={`Total Borrowed by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`total value borrowed by protocol on ${props.chain}`}
-			canonicalUrl={`/total-borrowed/chain/${props.chain}`}
+			title={`Total Borrowed in DeFi on ${props.chain} - DefiLlama`}
+			description={`Track total value borrowed across DeFi lending protocols on ${props.chain}. Compare borrowed TVL by protocol on DefiLlama.`}
+			canonicalUrl={`/total-borrowed/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ExtraTvlByChain {...props} />

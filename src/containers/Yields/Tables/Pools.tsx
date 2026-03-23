@@ -1,14 +1,17 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
 import { ImageWithFallback } from '~/components/ImageWithFallback'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
+import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { formattedNum } from '~/utils'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import { StabilityCell, StabilityHeader } from './StabilityCell'
@@ -16,45 +19,92 @@ import type { IYieldsTableProps, IYieldTableRow } from './types'
 
 const uniswapV3 = 'For Uniswap V3 we assume a price range of +/- 30% (+/- 0.1% for stable pools) around current price.'
 
-const columns: ColumnDef<IYieldTableRow>[] = [
-	{
+function PegHealthIndicator({
+	deviation,
+	price
+}: {
+	deviation: number | null | undefined
+	price: number | null | undefined
+}) {
+	if (deviation == null) return <span className="block text-end text-(--text-disabled)">{'\u2014'}</span>
+	const colorClass = deviation > 0 ? 'text-(--success)' : deviation < 0 ? 'text-(--error)' : ''
+	const dotClass = deviation > 0 ? 'bg-(--success)' : deviation < 0 ? 'bg-(--error)' : 'bg-(--text-disabled)'
+	const sign = deviation > 0 ? '+' : ''
+	const priceStr = price != null ? `$${price.toFixed(4)}` : null
+	const depeg = Math.abs(deviation) >= 2
+	const deviationStr = `${sign}${deviation.toFixed(4)}%`
+	const depegWarning = depeg ? 'De-pegged by 2%+\n' : ''
+	const tooltipText = priceStr ? `${depegWarning}${priceStr} (${deviationStr})` : `${depegWarning}${deviationStr}`
+	return (
+		<Tooltip content={tooltipText} className="justify-end">
+			<span className="inline-flex items-center gap-1.5">
+				<span className={`inline-block h-1.5 w-1.5 rounded-full ${dotClass}`} />
+				<span className={`tabular-nums ${colorClass}`}>
+					{sign}
+					{deviation.toFixed(2)}%
+				</span>
+			</span>
+		</Tooltip>
+	)
+}
+
+const columnHelper = createColumnHelper<IYieldTableRow>()
+
+const columns = [
+	columnHelper.accessor('pool', {
+		id: 'pool',
 		header: 'Pool',
-		accessorKey: 'pool',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
+			const value = getValue()
+			const exploited = isExploitedPool(row.original.projectslug, value)
 			return (
-				<NameYieldPool
-					value={getValue() as string}
-					configID={row.original.configID}
-					url={row.original.url}
-					poolMeta={row.original.poolMeta}
-				/>
+				<span className="flex items-center gap-1">
+					<NameYieldPool
+						value={value}
+						configID={row.original.configID}
+						url={row.original.url}
+						poolMeta={row.original.poolMeta}
+					/>
+					{exploited ? (
+						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
+								exploit
+							</span>
+						</Tooltip>
+					) : null}
+				</span>
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('project', {
+		id: 'project',
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
-		accessorKey: 'project',
 		enableSorting: false,
 		cell: ({ row }) => (
-			<NameYield project={row.original.project} projectslug={row.original.project} airdrop={row.original.airdrop} />
+			<NameYield
+				project={row.original.project}
+				projectslug={row.original.project}
+				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
+			/>
 		),
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
+		id: 'chains',
 		header: 'Chain',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+		cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
 		meta: {
 			align: 'end'
 		},
 		size: 60
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
+		id: 'tvl',
 		header: 'TVL',
-		accessorKey: 'tvl',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -72,10 +122,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Note for lending pools: TVL = Available Liquidity = (Supplied - Borrowed)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apy', {
+		id: 'apy',
 		header: 'APY',
-		accessorKey: 'apy',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -95,7 +145,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 							}
 						/>
 					) : null}
-					{renderPercentChange(info.getValue(), true, 700)}
+					<PercentChange percent={info.getValue()} noSign fontWeight={700} />
 				</span>
 			)
 		},
@@ -105,10 +155,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			headerHelperText:
 				'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyBase', {
+		id: 'apyBase',
 		header: 'Base APY',
-		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -120,7 +170,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 					) : info.row.original.project === 'Sommelier' ? (
 						<QuestionHelper text={'Calculated over a 24h period! Enable 7d Base APY column for a larger period'} />
 					) : null}
-					{renderPercentChange(info.getValue(), true)}
+					<PercentChange percent={info.getValue()} noSign />
 				</span>
 			)
 		},
@@ -130,10 +180,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			headerHelperText:
 				'Annualised percentage yield from trading fees/supplying. For dexs we use the 24h fees and scale those to a year.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyReward', {
+		id: 'apyReward',
 		header: 'Reward APY',
-		accessorKey: 'apyReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
@@ -145,12 +195,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						<QuestionHelper text={row.original.rewardMeta} />
 					) : null}
 					<IconsRow
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
+						items={toTokenIconItems(rewards, {
+							titles: row.original.rewardTokensSymbols,
+							getHref: (reward) => yieldsProjectHref(reward)
+						})}
 					/>
-					{renderPercentChange(getValue(), true)}
+					<PercentChange percent={getValue()} noSign />
 				</div>
 			)
 		},
@@ -159,49 +209,60 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Annualised percentage yield from incentives.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyBase7d as number | null, {
+		id: 'apyBase7d',
 		header: '7d Base APY',
-		accessorKey: 'apyBase7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: `Annualised percentage yield based on the trading fees from the last 7 days. ${uniswapV3}`
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).il7d as number | null, {
+		id: 'il7d',
 		header: '7d IL',
-		accessorKey: 'il7d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 100,
 		meta: {
 			align: 'end',
 			headerHelperText: `7d Impermanent Loss: the percentage loss between LPing for the last 7days vs holding the underlying assets instead. ${uniswapV3}`
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyMean30d as number | null, {
+		id: 'apyMean30d',
 		header: '30d Avg APY',
-		accessorKey: 'apyMean30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 125,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: () => <StabilityHeader />,
+	}),
+	columnHelper.accessor((row) => row.cv30d ?? undefined, {
 		id: 'cv30d',
-		accessorFn: (row) => row.cv30d ?? undefined,
+		header: () => <StabilityHeader />,
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
@@ -217,36 +278,55 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Measures yield consistency over the last 30 days.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => row.pegDeviation ?? undefined, {
+		id: 'pegDeviation',
+		header: 'Peg',
+		enableSorting: true,
+		cell: ({ row }) => <PegHealthIndicator deviation={row.original.pegDeviation} price={row.original.pegPrice} />,
+		size: 100,
+		meta: {
+			align: 'end',
+			headerHelperText: 'Live peg deviation from $1.00 target price.'
+		}
+	}),
+	columnHelper.accessor('apyMedian30d', {
+		id: 'apyMedian30d',
 		header: '30d Median APY',
-		accessorKey: 'apyMedian30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: '30-day median APY — more robust than average, resistant to outlier spikes.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyStd30d', {
+		id: 'apyStd30d',
 		header: '30d Std Dev',
-		accessorKey: 'apyStd30d',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Standard deviation of daily APY over the last 30 days. Measures yield volatility.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyChart30d as string | null | undefined, {
+		id: 'apyChart30d',
 		header: '30d APY Chart',
-		accessorKey: 'apyChart30d',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const configID = row.original.configID
@@ -267,10 +347,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).volumeUsd1d as number | null, {
+		id: 'volumeUsd1d',
 		header: '1d Volume',
-		accessorKey: 'volumeUsd1d',
 		enableSorting: true,
 		cell: (info) => {
 			return <>{info.getValue() !== null ? formattedNum(info.getValue(), true) : null}</>
@@ -280,10 +360,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: '$ Volume in the last 24 hours.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).volumeUsd7d as number | null, {
+		id: 'volumeUsd7d',
 		header: '7d Volume',
-		accessorKey: 'volumeUsd7d',
 		enableSorting: true,
 		cell: (info) => {
 			return <>{info.getValue() !== null ? formattedNum(info.getValue(), true) : null}</>
@@ -293,23 +373,27 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: '$ Volume in the last 7 days'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyBaseInception as number | null, {
+		id: 'apyBaseInception',
 		header: 'Inception APY',
-		accessorKey: 'apyBaseInception',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Annualised percentage yield since inception'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyIncludingLsdApy as number | null, {
+		id: 'apyIncludingLsdApy',
 		header: 'APY',
-		accessorKey: 'apyIncludingLsdApy',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -323,7 +407,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 							}
 						/>
 					) : null}
-					{renderPercentChange(info.getValue(), true, 700)}
+					<PercentChange percent={info.getValue()} noSign fontWeight={700} />
 				</span>
 			)
 		},
@@ -333,13 +417,17 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			headerHelperText:
 				'APY = Base APY + Reward APY. For non-autocompounding pools we do not account for reinvesting, in which case APY = APR.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyBaseIncludingLsdApy as number | null, {
+		id: 'apyBaseIncludingLsdApy',
 		header: 'Base APY',
-		accessorKey: 'apyBaseIncludingLsdApy',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 140,
 		meta: {
@@ -347,49 +435,61 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			headerHelperText:
 				'Annualised percentage yield from trading fees/supplying inclusive of LSD APY (if applicable). For dexs we use the 24h fees and scale those to a year.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyBorrow', {
+		id: 'apyBorrow',
 		header: 'Net Borrow APY',
-		accessorKey: 'apyBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true, 700)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign fontWeight={700} />
+				</>
+			)
 		},
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total net APY for borrowing (Borrow Base APY + Borrow Reward APY).'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyBaseBorrow as number | null, {
+		id: 'apyBaseBorrow',
 		header: 'Borrow Base APY',
-		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 160,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Interest borrowers pay to lenders.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyRewardBorrow', {
+		id: 'apyRewardBorrow',
 		header: 'Borrow Reward APY',
-		accessorKey: 'apyRewardBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <>{renderPercentChange(info.getValue(), true)}</>
+			return (
+				<>
+					<PercentChange percent={info.getValue()} noSign />
+				</>
+			)
 		},
 		size: 160,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Incentive reward APY for borrowing.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+		id: 'ltv',
 		header: 'Max LTV',
-		accessorKey: 'ltv',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -407,10 +507,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalSupplyUsd', {
+		id: 'totalSupplyUsd',
 		header: 'Supplied',
-		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -427,10 +527,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalBorrowUsd', {
+		id: 'totalBorrowUsd',
 		header: 'Borrowed',
-		accessorKey: 'totalBorrowUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -448,10 +548,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
+		id: 'totalAvailableUsd',
 		header: 'Available',
-		accessorKey: 'totalAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -476,7 +576,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const columnOrders: ColumnOrdersByBreakpoint = {
@@ -495,6 +595,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'apyChart30d',
@@ -524,6 +625,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'apyChart30d',
@@ -553,6 +655,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
@@ -582,6 +685,7 @@ const columnOrders: ColumnOrdersByBreakpoint = {
 		'il7d',
 		'apyMean30d',
 		'cv30d',
+		'pegDeviation',
 		'apyMedian30d',
 		'apyStd30d',
 		'volumeUsd1d',
@@ -614,6 +718,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -643,6 +748,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -672,6 +778,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -701,6 +808,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -730,6 +838,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -759,6 +868,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -788,6 +898,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 		il7d: 90,
 		apyMean30d: 125,
 		cv30d: 110,
+		pegDeviation: 100,
 		apyMedian30d: 140,
 		apyStd30d: 120,
 		volumeUsd1d: 140,
@@ -825,15 +936,23 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 		showStdDev
 	} = router.query
 
+	const isStablecoinPage = router.pathname === '/yields/stablecoins'
+
 	const resolvedColumns = useMemo(() => {
 		if (hasActiveSubscription) return columns
 		return columns.map((col) => {
-			if ('accessorKey' in col && col.accessorKey === 'cv30d') {
+			const columnId = col.id ?? ('accessorKey' in col ? col.accessorKey : undefined)
+			if (columnId === 'cv30d') {
 				return { ...col, enableSorting: false }
 			}
 			return col
 		})
 	}, [hasActiveSubscription])
+
+	// Stablecoin-specific columns only visible on /yields/stablecoins
+	const stablecoinColumnVisibility = {
+		pegDeviation: isStablecoinPage
+	}
 
 	const columnVisibility =
 		includeLsdApy === 'true'
@@ -856,7 +975,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					ltv: showLTV === 'true',
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
-					apyStd30d: hasActiveSubscription && showStdDev === 'true'
+					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					...stablecoinColumnVisibility
 				}
 			: {
 					apyBase7d: show7dBaseApy === 'true',
@@ -877,7 +997,8 @@ export function YieldsPoolsTable(props: IYieldsTableProps) {
 					ltv: showLTV === 'true',
 					cv30d: true,
 					apyMedian30d: hasActiveSubscription && showMedianApy === 'true',
-					apyStd30d: hasActiveSubscription && showStdDev === 'true'
+					apyStd30d: hasActiveSubscription && showStdDev === 'true',
+					...stablecoinColumnVisibility
 				}
 
 	return (

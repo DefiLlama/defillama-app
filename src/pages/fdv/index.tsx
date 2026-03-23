@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsFDVsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-fdv/index`, async () => {
@@ -22,9 +22,8 @@ const pageName = ['Protocols', 'ranked by', 'Fully Diluted Valuation']
 export default function ProtocolsFdv(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Fully Diluted Valuations - DefiLlama"
-			description={`Fully Diluted Valuations by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`fully diluted valuations, defi fully diluted valuations`}
+			title="FDV Rankings - Fully Diluted Valuation - DefiLlama"
+			description="Track DeFi protocol FDV rankings across all chains. Compare fully diluted valuations for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto FDV analytics and token valuation data."
 			canonicalUrl={`/fdv`}
 			pageName={pageName}
 		>

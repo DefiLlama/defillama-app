@@ -2,8 +2,8 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard/AddToDashboardButton'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
@@ -13,15 +13,12 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { StablecoinAssetChartConfig, StablecoinAssetChartType } from '~/containers/ProDashboard/types'
-import {
-	parseBooleanQueryParam,
-	useCalcCirculating,
-	useCalcGroupExtraPeggedByDay,
-	useGroupBridgeData
-} from '~/containers/Stablecoins/hooks'
+import { useCalcCirculating, useCalcGroupExtraPeggedByDay, useGroupBridgeData } from '~/containers/Stablecoins/hooks'
 import { buildStablecoinChartData } from '~/containers/Stablecoins/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, getBlockExplorer, peggedAssetIconUrl, slug } from '~/utils'
+import { capitalizeFirstLetter, formattedNum, slug } from '~/utils'
+import { peggedAssetIconUrl } from '~/utils/icons'
+import { isTruthyQueryParam } from '~/utils/routerQuery'
 import { StablecoinByChainUsageTable } from './StablecoinUsageByChainTable'
 import type { PeggedAssetPageProps } from './types'
 
@@ -46,6 +43,7 @@ const CHART_TYPE_TO_API_TYPE: Record<string, StablecoinAssetChartType> = {
 }
 
 const CHART_TYPE_VALUES = ['Total Circ', 'Pie', 'Dominance', 'Area'] as const
+type ChartType = (typeof CHART_TYPE_VALUES)[number]
 const UNRELEASED_QUERY_KEY = 'unreleased'
 
 export default function PeggedContainer(props: PeggedAssetPageProps) {
@@ -72,7 +70,9 @@ export const PeggedAssetInfo = ({
 	totalCirculating,
 	unreleased,
 	mcap,
-	bridgeInfo
+	bridgeInfo,
+	blockExplorerUrl,
+	blockExplorerName
 }: PeggedAssetPageProps) => {
 	const router = useRouter()
 	let {
@@ -82,23 +82,18 @@ export const PeggedAssetInfo = ({
 		symbol,
 		description,
 		mintRedeemDescription,
-		address,
 		url,
 		pegMechanism,
 		twitter,
 		auditLinks,
 		price
 	} = peggedAssetData
-	const logo = peggedAssetIconUrl(name)
 
-	const { blockExplorerLink, blockExplorerName } = getBlockExplorer(address ?? '')
-
-	const [chartType, setChartType] = React.useState('Pie')
+	const [chartType, setChartType] = React.useState<ChartType>('Pie')
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const onChartTypeChange = React.useCallback(
-		(nextChartType: string) => {
-			// Clear previous refs immediately to avoid exporting a stale chart
+		(nextChartType: ChartType) => {
 			handleChartReady(null)
 			setChartType(nextChartType)
 		},
@@ -120,10 +115,7 @@ export const PeggedAssetInfo = ({
 		[chainsData, chainsUnique]
 	)
 
-	const includeUnreleased = React.useMemo(
-		() => parseBooleanQueryParam(router.query[UNRELEASED_QUERY_KEY]),
-		[router.query]
-	)
+	const includeUnreleased = React.useMemo(() => isTruthyQueryParam(router.query[UNRELEASED_QUERY_KEY]), [router.query])
 	const onUnreleasedToggle = React.useCallback(() => {
 		const nextValue = !includeUnreleased
 		const nextQuery: Record<string, string | string[]> = {}
@@ -209,10 +201,10 @@ export const PeggedAssetInfo = ({
 				source: peggedAreaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...chainsUnique]
 			},
-			areaCharts: chainsUnique.map((name) => ({
+			areaCharts: chainsUnique.map((chainName) => ({
 				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
+				name: chainName,
+				encode: { x: 'timestamp', y: chainName },
 				stack: 'chains'
 			}))
 		}),
@@ -239,10 +231,10 @@ export const PeggedAssetInfo = ({
 					.filter((row): row is Record<string, number> => row != null),
 				dimensions: ['timestamp', ...chainsUnique]
 			},
-			dominanceCharts: chainsUnique.map((name) => ({
+			dominanceCharts: chainsUnique.map((chainName) => ({
 				type: 'line' as const,
-				name,
-				encode: { x: 'timestamp', y: name },
+				name: chainName,
+				encode: { x: 'timestamp', y: chainName },
 				stack: 'dominance'
 			}))
 		}),
@@ -257,7 +249,7 @@ export const PeggedAssetInfo = ({
 				{/* Stats card */}
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={logo} size={24} />
+						<TokenLogo name={name} kind="pegged" alt={`Logo of ${name}`} size={24} />
 						<span className="font-bold">{name}</span>
 						{symbol && symbol !== '-' ? <span className="font-normal">({symbol})</span> : null}
 						{peggedAssetData.deprecated ? (
@@ -414,9 +406,9 @@ export const PeggedAssetInfo = ({
 										<span>Twitter</span>
 									</a>
 								) : null}
-								{blockExplorerLink !== undefined ? (
+								{blockExplorerUrl ? (
 									<a
-										href={blockExplorerLink}
+										href={blockExplorerUrl}
 										target="_blank"
 										rel="noopener noreferrer"
 										className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"

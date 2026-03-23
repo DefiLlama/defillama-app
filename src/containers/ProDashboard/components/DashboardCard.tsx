@@ -10,7 +10,7 @@ import { ConfirmationModal } from './ConfirmationModal'
 interface DashboardCardProps {
 	dashboard: Dashboard
 	onTagClick?: (tag: string) => void
-	onDelete?: (dashboardId: string) => void
+	onDelete?: (dashboardId: string) => void | Promise<void>
 	isDeleting?: boolean
 	viewMode?: 'grid' | 'list'
 	className?: string
@@ -34,9 +34,8 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			setShowDeleteConfirm(false)
 		} catch (error) {
 			console.error('Failed to delete dashboard:', error)
-		} finally {
-			setIsDeleting(false)
 		}
+		setIsDeleting(false)
 	}
 
 	const itemTypes = useMemo(() => {
@@ -84,7 +83,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 		<div
 			className={`relative isolate flex ${viewMode === 'grid' ? 'min-h-[220px]' : ''} flex-col overflow-hidden rounded-md border border-(--cards-border) bg-(--cards-bg) transition-[border-color,box-shadow,background-color] duration-200 ease-out hover:border-(--old-blue)/30 hover:bg-pro-blue-300/5 hover:shadow-lg hover:shadow-pro-blue-300/10 dark:hover:border-(--old-blue)/40 dark:hover:bg-pro-blue-300/10 ${className ?? ''}`}
 		>
-			<div className="h-1.5 w-full bg-gradient-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
+			<div className="h-1.5 w-full bg-linear-to-r from-(--old-blue)/20 via-(--old-blue)/10 to-transparent" />
 
 			<div className="flex flex-1 flex-col gap-1.5 p-3">
 				<div className="flex flex-wrap items-center justify-end gap-2">
@@ -92,7 +91,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 						{dashboard.data.dashboardName || 'Untitled Dashboard'}
 					</h2>
 
-					{viewMode !== 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+					{viewMode !== 'grid' ? <Tags dashboard={dashboard} onTagClick={onTagClick} /> : null}
 
 					{onDelete ? (
 						<>
@@ -118,7 +117,7 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 					) : null}
 				</div>
 
-				{viewMode === 'grid' && <Tags dashboard={dashboard} onTagClick={onTagClick} />}
+				{viewMode === 'grid' ? <Tags dashboard={dashboard} onTagClick={onTagClick} /> : null}
 
 				{dashboard.description ? (
 					<p className="mt-0.5 line-clamp-2 text-sm leading-snug text-(--text-label) opacity-80">
@@ -168,7 +167,9 @@ export function DashboardCard({ dashboard, onTagClick, onDelete, viewMode = 'gri
 			<ConfirmationModal
 				isOpen={showDeleteConfirm}
 				onClose={() => setShowDeleteConfirm(false)}
-				onConfirm={handleConfirmDelete}
+				onConfirm={() => {
+					void handleConfirmDelete()
+				}}
 				title="Delete Dashboard"
 				message="Are you sure you want to delete this dashboard? This action cannot be undone."
 				confirmText="Delete"
@@ -194,11 +195,11 @@ const Tags = ({ dashboard, onTagClick }: { dashboard: Dashboard; onTagClick?: (t
 					{tag}
 				</button>
 			))}
-			{dashboard.tags.length > 2 && (
+			{dashboard.tags.length > 2 ? (
 				<span className="rounded-full bg-(--bg-hover) px-2 py-1 text-xs text-(--text-label)">
 					+{dashboard.tags.length - 2}
 				</span>
-			)}
+			) : null}
 		</div>
 	)
 }

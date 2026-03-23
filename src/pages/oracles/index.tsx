@@ -1,9 +1,9 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { OraclesByChain } from '~/containers/Oracles/OraclesByChain'
 import { getOraclesListPageData } from '~/containers/Oracles/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
@@ -24,9 +24,8 @@ export const getStaticProps = withPerformanceLogging('oracles', async () => {
 export default function OraclesPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Oracles - DefiLlama"
-			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
-			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
+			title="DeFi Oracle Rankings - Total Value Secured - DefiLlama"
+			description="Track Total Value Secured (TVS) by oracle. Compare chains and protocols secured, where oracle failure would equal TVS."
 			canonicalUrl="/oracles"
 			metricFilters={tvlOptions}
 			pageName={pageName}

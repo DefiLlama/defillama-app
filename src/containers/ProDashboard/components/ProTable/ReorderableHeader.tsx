@@ -1,3 +1,5 @@
+'use no memo'
+
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { SortIcon } from '~/components/Table/SortIcon'
@@ -14,7 +16,7 @@ interface ReorderableHeaderProps {
 	canMoveDown?: boolean
 }
 
-export function ReorderableHeader({
+export const ReorderableHeader = React.memo(function ReorderableHeader({
 	children,
 	// oxlint-disable-next-line no-unused-vars
 	columnId,
@@ -27,15 +29,28 @@ export function ReorderableHeader({
 	canMoveDown = true
 }: ReorderableHeaderProps) {
 	return (
-		<div className="group relative flex w-full cursor-pointer items-center gap-1" onClick={onSort}>
-			{onMoveUp && (
+		<div
+			className={`group relative flex w-full items-center gap-1 ${canSort ? 'cursor-pointer' : 'cursor-default'}`}
+			onClick={canSort ? onSort : undefined}
+			role="button"
+			tabIndex={canSort ? 0 : -1}
+			aria-disabled={!canSort}
+			onKeyDown={(event) => {
+				if (!canSort) return
+				if (event.key === 'Enter' || event.key === ' ') {
+					event.preventDefault()
+					onSort()
+				}
+			}}
+		>
+			{onMoveUp ? (
 				<div
 					className={`absolute top-0 bottom-0 left-0 flex items-center justify-start ${
 						canMoveUp ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
 					} transition-opacity`}
 					style={{ marginLeft: '-8px' }}
 				>
-					{canMoveUp && (
+					{canMoveUp ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
@@ -46,23 +61,23 @@ export function ReorderableHeader({
 						>
 							<Icon name="chevron-left" height={10} width={10} />
 						</button>
-					)}
+					) : null}
 				</div>
-			)}
+			) : null}
 
 			<div className="flex flex-1 items-center justify-center gap-1 px-3">
 				{children}
-				{canSort && <SortIcon dir={isSorted} />}
+				{canSort ? <SortIcon dir={isSorted} /> : null}
 			</div>
 
-			{onMoveDown && (
+			{onMoveDown ? (
 				<div
 					className={`absolute top-0 right-0 bottom-0 flex items-center justify-end ${
 						canMoveDown ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
 					} transition-opacity`}
 					style={{ marginRight: '-8px' }}
 				>
-					{canMoveDown && (
+					{canMoveDown ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
@@ -73,9 +88,9 @@ export function ReorderableHeader({
 						>
 							<Icon name="chevron-right" height={10} width={10} />
 						</button>
-					)}
+					) : null}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
-}
+})

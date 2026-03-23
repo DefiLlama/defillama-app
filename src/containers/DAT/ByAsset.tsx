@@ -1,7 +1,6 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -16,54 +15,6 @@ const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesCha
 
 const DEFAULT_SORTING_STATE = [{ id: 'totalAssetAmount', desc: true }]
 
-function prepareAssetBreakdownCsv(
-	institutions: IDATOverviewDataByAssetProps['institutions'],
-	name: string,
-	symbol: string
-) {
-	const headers = [
-		'Institution',
-		'Ticker',
-		'Type',
-		`Holdings (${symbol})`,
-		"Today's Holdings Value",
-		'Stock Price',
-		'24h Price Change (%)',
-		`% of ${symbol} Circulating Supply`,
-		'Realized mNAV',
-		'Realistic mNAV',
-		'Max mNAV',
-		`Average Purchase Price (${symbol})`,
-		'Last Updated'
-	]
-
-	const rows = institutions.map((institution) => {
-		return [
-			institution.name,
-			institution.ticker,
-			institution.type,
-			institution.holdings.amount ?? '',
-			institution.holdings.usdValue ?? '',
-			institution.price ?? '',
-			institution.priceChange24h ?? '',
-			institution.holdings.supplyPercentage ?? '',
-			institution.realized_mNAV ?? '',
-			institution.realistic_mNAV ?? '',
-			institution.max_mNAV ?? '',
-			institution.holdings.avgPrice ?? '',
-			institution.holdings.lastAnnouncementDate
-				? new Date(institution.holdings.lastAnnouncementDate).toLocaleDateString()
-				: ''
-		]
-	})
-
-	const date = new Date().toISOString().split('T')[0]
-	return {
-		filename: `${name.toLowerCase().replace(/\s+/g, '-')}-treasury-holdings-${date}.csv`,
-		rows: [headers, ...rows]
-	}
-}
-
 export function DATByAsset({
 	allAssets,
 	metadata,
@@ -74,12 +25,12 @@ export function DATByAsset({
 	mNAVMaxChart,
 	institutionsNames
 }: IDATOverviewDataByAssetProps) {
-	const handlePrepareAssetBreakdownCsv = () => prepareAssetBreakdownCsv(institutions, metadata.name, metadata.ticker)
 	const inflowsTooltipFormatter = useMemo(
 		() => createInflowsTooltipFormatter({ groupBy: 'daily', valueSymbol: metadata.ticker }),
 		[metadata.ticker]
 	)
 	const columns = useMemo(() => byAssetColumns({ symbol: metadata.ticker }), [metadata.ticker])
+	const stableInstitutionsKey = useMemo(() => JSON.stringify([...institutionsNames].sort()), [institutionsNames])
 
 	return (
 		<>
@@ -139,18 +90,26 @@ export function DATByAsset({
 			</div>
 			<div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
 				<MNAVChart
+					key={`realized-${stableInstitutionsKey}`}
 					metadata={metadata}
 					title="mNAV Realized"
 					data={mNAVRealizedChart}
 					institutionsNames={institutionsNames}
 				/>
 				<MNAVChart
+					key={`realistic-${stableInstitutionsKey}`}
 					metadata={metadata}
 					title="mNAV Realistic"
 					data={mNAVRealisticChart}
 					institutionsNames={institutionsNames}
 				/>
-				<MNAVChart metadata={metadata} title="mNAV Max" data={mNAVMaxChart} institutionsNames={institutionsNames} />
+				<MNAVChart
+					key={`max-${stableInstitutionsKey}`}
+					metadata={metadata}
+					title="mNAV Max"
+					data={mNAVMaxChart}
+					institutionsNames={institutionsNames}
+				/>
 			</div>
 			<TableWithSearch
 				data={institutions}
@@ -158,7 +117,7 @@ export function DATByAsset({
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={<CSVDownloadButton prepareCsv={handlePrepareAssetBreakdownCsv} />}
+				csvFileName={`${metadata.name}-treasury-holdings`}
 			/>
 		</>
 	)
@@ -166,19 +125,14 @@ export function DATByAsset({
 
 // ── Table columns ───────────────────────────────────────────────────────
 
-function byAssetColumns({
-	symbol
-}: {
-	symbol: string
-}): ColumnDef<IDATOverviewDataByAssetProps['institutions'][number]>[] {
+function byAssetColumns({ symbol }: { symbol: string }) {
+	const columnHelper = createColumnHelper<IDATOverviewDataByAssetProps['institutions'][number]>()
 	return [
-		{
+		columnHelper.accessor('name', {
 			header: 'Institution',
-			accessorKey: 'name',
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const name = getValue<string>()
-
+				const name = getValue()
 				return (
 					<span className="relative flex items-center gap-2">
 						<span className="vf-row-index shrink-0" aria-hidden="true" />
@@ -196,13 +150,12 @@ function byAssetColumns({
 			meta: {
 				align: 'start'
 			}
-		},
-		{
-			header: 'Holdings',
+		}),
+		columnHelper.accessor((row) => row.holdings.amount, {
 			id: 'totalAssetAmount',
-			accessorFn: (row) => row.holdings.amount,
+			header: 'Holdings',
 			cell: ({ getValue }) => {
-				const totalAssetAmount = getValue<number>()
+				const totalAssetAmount = getValue()
 				if (totalAssetAmount == null) return null
 				return <>{`${formattedNum(totalAssetAmount, false)} ${symbol}`}</>
 			},
@@ -210,13 +163,12 @@ function byAssetColumns({
 			meta: {
 				align: 'end'
 			}
-		},
-		{
-			header: "Today's Holdings Value",
+		}),
+		columnHelper.accessor((row) => row.holdings.usdValue, {
 			id: 'totalUsdValue',
-			accessorFn: (row) => row.holdings.usdValue,
+			header: "Today's Holdings Value",
 			cell: ({ getValue }) => {
-				const usdValue = getValue<number>()
+				const usdValue = getValue()
 				if (usdValue == null) return null
 				return <>{formattedNum(usdValue, true)}</>
 			},
@@ -224,12 +176,11 @@ function byAssetColumns({
 			meta: {
 				align: 'end'
 			}
-		},
-		{
+		}),
+		columnHelper.accessor('price', {
 			header: 'Stock Price',
-			accessorKey: 'price',
 			cell: ({ getValue, row }) => {
-				const price = getValue<number>()
+				const price = getValue()
 				if (price == null) return null
 				const priceChange24h = row.original.priceChange24h
 				if (priceChange24h == null) return <>{formattedNum(price, true)}</>
@@ -253,13 +204,12 @@ function byAssetColumns({
 			meta: {
 				align: 'end'
 			}
-		},
-		{
-			header: `% of ${symbol} Circulating Supply`,
+		}),
+		columnHelper.accessor((row) => row.holdings.supplyPercentage, {
 			id: 'supplyPercentage',
-			accessorFn: (row) => row.holdings.supplyPercentage,
+			header: `% of ${symbol} Circulating Supply`,
 			cell: ({ getValue }) => {
-				const supplyPercentage = getValue<number>()
+				const supplyPercentage = getValue()
 				if (supplyPercentage == null) return null
 				return <>{formattedNum(supplyPercentage, false)}%</>
 			},
@@ -267,12 +217,11 @@ function byAssetColumns({
 			meta: {
 				align: 'end'
 			}
-		},
-		{
+		}),
+		columnHelper.accessor('realized_mNAV', {
 			header: 'Realized mNAV',
-			accessorKey: 'realized_mNAV',
 			cell: ({ getValue }) => {
-				const realized_mNAV = getValue<number>()
+				const realized_mNAV = getValue()
 				if (realized_mNAV == null) return null
 				return <>{formattedNum(realized_mNAV, false)}</>
 			},
@@ -282,12 +231,11 @@ function byAssetColumns({
 				headerHelperText:
 					'Market Net Asset Value based only on the current outstanding common shares, with no dilution considered.'
 			}
-		},
-		{
+		}),
+		columnHelper.accessor('realistic_mNAV', {
 			header: 'Realistic mNAV',
-			accessorKey: 'realistic_mNAV',
 			cell: ({ getValue }) => {
-				const realistic_mNAV = getValue<number>()
+				const realistic_mNAV = getValue()
 				if (realistic_mNAV == null) return null
 				return <>{formattedNum(realistic_mNAV, false)}</>
 			},
@@ -297,12 +245,11 @@ function byAssetColumns({
 				headerHelperText:
 					'Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised'
 			}
-		},
-		{
+		}),
+		columnHelper.accessor('max_mNAV', {
 			header: 'Max mNAV',
-			accessorKey: 'max_mNAV',
 			cell: ({ getValue }) => {
-				const max_mNAV = getValue<number>()
+				const max_mNAV = getValue()
 				if (max_mNAV == null) return null
 				return <>{formattedNum(max_mNAV, false)}</>
 			},
@@ -312,13 +259,12 @@ function byAssetColumns({
 				headerHelperText:
 					'Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)'
 			}
-		},
-		{
-			header: 'Avg Purchase Price',
+		}),
+		columnHelper.accessor((row) => row.holdings.avgPrice, {
 			id: 'avgPrice',
-			accessorFn: (row) => row.holdings.avgPrice,
+			header: 'Avg Purchase Price',
 			cell: ({ getValue }) => {
-				const avgPrice = getValue<number>()
+				const avgPrice = getValue()
 				if (avgPrice == null) return null
 				return <>{formattedNum(avgPrice, true)}</>
 			},
@@ -327,13 +273,12 @@ function byAssetColumns({
 				align: 'end',
 				headerHelperText: `Average cost per ${symbol} of the institution's holdings`
 			}
-		},
-		{
-			header: 'Last Updated',
+		}),
+		columnHelper.accessor((row) => row.holdings.lastAnnouncementDate, {
 			id: 'lastAnnouncementDate',
-			accessorFn: (row) => row.holdings.lastAnnouncementDate,
+			header: 'Last Updated',
 			cell: ({ getValue }) => {
-				const lastUpdated = getValue<string>()
+				const lastUpdated = getValue()
 				if (lastUpdated == null) return null
 				return <>{new Date(lastUpdated).toLocaleDateString()}</>
 			},
@@ -343,7 +288,7 @@ function byAssetColumns({
 				headerHelperText:
 					'Some companies do not update their holdings frequently, so the last announcement date may not be the most recent'
 			}
-		}
+		})
 	]
 }
 
@@ -383,7 +328,7 @@ function MNAVChart({
 				/>
 				<ChartExportButtons
 					chartInstance={chartInstance}
-					filename={`${slug(metadata.name)}-${slug(title)}`}
+					filename={`${metadata.name}-${title}`}
 					title={`${metadata.name} ${title}`}
 				/>
 			</div>

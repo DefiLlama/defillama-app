@@ -17,7 +17,8 @@ import {
 	generateConsistentChartColor,
 	STABLECOIN_TOKEN_COLORS
 } from '~/containers/ProDashboard/utils/colorManager'
-import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
 import { AriakitSelect } from '../AriakitSelect'
 import { AriakitVirtualizedSelect, type VirtualizedSelectOption } from '../AriakitVirtualizedSelect'
 
@@ -468,21 +469,21 @@ export function StablecoinsChartTab({
 				)}
 
 				<div className="text-xs pro-text3">
-					{stablecoinMode === 'chain' && totalMcapCurrent !== null && (
+					{stablecoinMode === 'chain' && totalMcapCurrent !== null ? (
 						<p>
 							Total Market Cap: <span className="font-semibold pro-text1">{formattedNum(totalMcapCurrent, true)}</span>
 						</p>
-					)}
-					{stablecoinMode === 'asset' && totalCirculating !== null && (
+					) : null}
+					{stablecoinMode === 'asset' && totalCirculating !== null ? (
 						<p>
 							Total Circulating: <span className="font-semibold pro-text1">{formattedNum(totalCirculating, true)}</span>
 						</p>
-					)}
+					) : null}
 				</div>
 			</div>
 
 			<div className="overflow-hidden rounded-lg border pro-border">
-				<div className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</div>
+				<h4 className="border-b border-(--cards-border) px-3 py-2 text-xs font-medium pro-text2">Preview</h4>
 
 				{(stablecoinMode === 'chain' && hasChainSelection) || (stablecoinMode === 'asset' && hasAssetSelection) ? (
 					<div className="bg-(--cards-bg) p-3">

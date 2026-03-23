@@ -1,9 +1,10 @@
-import { type FormEvent, useState } from 'react'
+import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import type { FormSubmitEvent } from '~/types/forms'
 import { AccountHeader } from './components/AccountHeader'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailChangeModal } from './components/EmailChangeModal'
@@ -29,31 +30,37 @@ export const AccountInfo = () => {
 		isEnableOverageLoading,
 		usageStats,
 		isUsageStatsLoading,
-		isUsageStatsError
+		isUsageStatsError,
+		cancelSubscription,
+		isCancelSubscriptionLoading
 	} = useSubscribe()
 	const isSubscribed = subscription?.status === 'active'
 	const isLegacyApiSubscription = apiSubscription?.status === 'active' && apiSubscription?.provider === 'legacy'
 	const isWalletUser = user?.email?.includes('@defillama.com')
 
 	const isVerified = user?.verified
-	const handleEmailChange = async (e: FormEvent<HTMLFormElement>) => {
+	const handleEmailChange = async (e: FormSubmitEvent) => {
 		e.preventDefault()
-		if (isWalletUser) {
-			await addEmail(newEmail)
-		} else {
-			changeEmail(newEmail)
+		try {
+			if (isWalletUser) {
+				await addEmail(newEmail)
+			} else {
+				changeEmail(newEmail)
+			}
+			setNewEmail('')
+			setShowEmailForm(false)
+		} catch {
+			// mutation error is already surfaced by react-query's onError
 		}
-		setNewEmail('')
-		setShowEmailForm(false)
 	}
 
-	const handleResendVerification = async () => {
+	const handleResendVerification = () => {
 		if (user?.email) {
 			resendVerification(user.email)
 		}
 	}
 
-	const handleLogout = async () => {
+	const handleLogout = () => {
 		try {
 			logout()
 		} catch (error) {
@@ -112,7 +119,7 @@ export const AccountInfo = () => {
 				isLoading={loaders.logout}
 				subscription={subscription}
 			/>
-			{isLegacyApiSubscription && (
+			{isLegacyApiSubscription ? (
 				<div className="mb-4 flex w-full flex-col gap-3 rounded-lg border border-yellow-500 bg-linear-to-r from-yellow-400/10 to-yellow-900/30 px-4 py-3 text-yellow-100 shadow-xs sm:flex-row sm:items-center sm:rounded-xl sm:px-6 sm:py-4">
 					<Icon name="alert-triangle" className="shrink-0 text-yellow-400" height={20} width={20} />
 					<span className="text-sm font-medium sm:text-base">
@@ -128,7 +135,7 @@ export const AccountInfo = () => {
 						and subscribe again after current subscription expires. This is required due to technical reasons.
 					</span>
 				</div>
-			)}
+			) : null}
 
 			<div className="space-y-6">
 				<AccountStatus
@@ -141,13 +148,13 @@ export const AccountInfo = () => {
 					getPortalSessionUrl={getPortalSessionUrl}
 				/>
 
-				{!isVerified && !isWalletUser && (
+				{!isVerified && !isWalletUser ? (
 					<EmailVerificationWarning
 						email={user.email}
 						onResendVerification={handleResendVerification}
 						isLoading={loaders.resendVerification}
 					/>
-				)}
+				) : null}
 
 				<SubscriberContent
 					credits={credits}
@@ -157,18 +164,22 @@ export const AccountInfo = () => {
 					isPortalSessionLoading={isPortalSessionLoading}
 					apiSubscription={apiSubscription}
 					llamafeedSubscription={llamafeedSubscription}
-					enableOverage={enableOverage}
+					enableOverage={() => {
+						void enableOverage()
+					}}
 					isEnableOverageLoading={isEnableOverageLoading}
 					usageStats={usageStats}
 					isUsageStatsLoading={isUsageStatsLoading}
 					isUsageStatsError={isUsageStatsError}
+					cancelSubscription={cancelSubscription}
+					isCancelSubscriptionLoading={isCancelSubscriptionLoading}
 				/>
 			</div>
 
 			<EmailChangeModal
 				isOpen={showEmailForm}
 				onClose={() => setShowEmailForm(false)}
-				onSubmit={handleEmailChange}
+				onSubmit={(e) => void handleEmailChange(e)}
 				email={newEmail}
 				onEmailChange={setNewEmail}
 				isLoading={isWalletUser ? loaders.addEmail : loaders.changeEmail}

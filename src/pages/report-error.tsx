@@ -5,9 +5,8 @@ import { fetchJson } from '~/utils/async'
 
 async function reportError(report: any) {
 	try {
-		const data = await fetchJson('https://api.llama.fi/reportError', {
+		const data = await fetchJson<{ message?: string }>('https://api.llama.fi/reportError', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(report)
 		})
 		return data
@@ -18,7 +17,7 @@ async function reportError(report: any) {
 
 function ReportError() {
 	const { mutateAsync, isPending, error } = useMutation({ mutationFn: reportError })
-	const onSubmit = async (e) => {
+	const onSubmit = (e) => {
 		e.preventDefault()
 
 		const form = e.target as HTMLFormElement
@@ -45,9 +44,8 @@ function ReportError() {
 
 	return (
 		<Layout
-			title="Report Error - DefiLlama"
-			description={`Report Error on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`report error, defi report error, report error on blockchain, report error on defillama, report error on protocol`}
+			title="Report a Data Error or Issue - DefiLlama"
+			description="Report a data error, missing protocol, or incorrect information on DefiLlama. Help us maintain accurate DeFi analytics."
 			canonicalUrl={`/report-error`}
 		>
 			<div className="mx-auto flex w-full max-w-lg flex-col gap-4 lg:mt-4 xl:mt-11 xl:ml-[calc(228px-16px)]">
@@ -94,7 +92,7 @@ function ReportError() {
 					>
 						{isPending ? 'Submitting...' : 'Report'}
 					</button>
-					{error && <small className="text-center text-red-500">{error.message}</small>}
+					{error ? <small className="text-center text-red-500">{error.message}</small> : null}
 				</form>
 				<div className="flex w-full flex-col gap-4 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<p className="text-center text-base font-medium">

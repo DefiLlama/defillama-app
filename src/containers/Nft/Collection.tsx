@@ -8,6 +8,7 @@ import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { getNFTCollection } from '~/containers/Nft/queries'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { ICollectionScatterChartProps, IOrderBookChartProps } from './types'
 
 const CollectionScatterChart = React.lazy(
@@ -30,7 +31,7 @@ export function NFTCollectionContainer() {
 				: null
 
 	const { data: collectionData, isLoading: fetchingData } = useQuery({
-		queryKey: ['collection-data', collectionSlug],
+		queryKey: ['nft', 'collection', collectionSlug],
 		queryFn: () => (collectionSlug != null ? getNFTCollection(collectionSlug) : Promise.resolve(undefined)),
 		enabled: collectionSlug != null,
 		staleTime: 60 * 60 * 1000,
@@ -61,7 +62,12 @@ export function NFTCollectionContainer() {
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">
-						<TokenLogo logo={primaryCollection?.image} fallbackLogo={primaryCollection?.image} size={48} />
+						<TokenLogo
+							src={primaryCollection?.image}
+							fallbackSrc={primaryCollection?.image}
+							alt={`Logo of ${name}`}
+							size={48}
+						/>
 						<FormattedName text={name ?? ''} fontWeight={700} />
 					</h1>
 
@@ -100,15 +106,9 @@ export function NFTCollectionContainer() {
 							label="Include Outliers"
 							value="showMcapChart"
 							checked={includeOutliers}
-							onChange={() =>
-								router.push(
-									{ pathname: router.pathname, query: { ...router.query, includeOutliers: !includeOutliers } },
-									undefined,
-									{
-										shallow: true
-									}
-								)
-							}
+							onChange={() => {
+								void pushShallowQuery(router, { includeOutliers: !includeOutliers })
+							}}
 						/>
 					</div>
 					<React.Suspense fallback={<></>}>

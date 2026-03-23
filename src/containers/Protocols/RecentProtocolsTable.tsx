@@ -1,7 +1,7 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnSizingState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -17,16 +17,18 @@ import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { TVLRange } from '~/components/Filters/TVLRange'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { removedCategoriesFromChainTvlSet } from '~/constants'
+import { getCategoryRoute, removedCategoriesFromChainTvlSet } from '~/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, toNiceDaysAgo, tokenIconUrl } from '~/utils'
+import { formattedNum, slug, toNiceDaysAgo } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { IRecentProtocol } from './types'
 
 /** Row type after applyExtraTvl adds change/mcaptvl fields. */
@@ -36,6 +38,7 @@ type RecentProtocolTableRow = IRecentProtocol & {
 	change_1m: number | null
 	mcaptvl: number | null
 }
+const columnHelper = createColumnHelper<RecentProtocolTableRow>()
 
 function normaliseCategoryFilterValues(values: unknown): string[] {
 	if (Array.isArray(values)) {
@@ -63,24 +66,6 @@ function areCategoryFiltersEqual(current: unknown, next: string[] | undefined): 
 	return true
 }
 
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
-	return columnId
-}
-
-function getCsvCellValue(columnId: string, value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
-		if (columnId === 'listedAt' && typeof value === 'number') {
-			return new Date(value * 1000).toLocaleDateString()
-		}
-		return value
-	}
-	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
-}
-
 export function RecentlyListedProtocolsTable({
 	data,
 	selectedChains,
@@ -102,6 +87,7 @@ export function RecentlyListedProtocolsTable({
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
 	const router = useRouter()
+	const csvFileName = router.pathname === '/airdrops' ? 'airdrops' : 'protocols'
 
 	const columns = router.pathname === '/airdrops' ? airdropsColumns : recentlyListedProtocolsColumns
 
@@ -117,10 +103,11 @@ export function RecentlyListedProtocolsTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
-		onSortingChange: setSorting,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
@@ -129,7 +116,7 @@ export function RecentlyListedProtocolsTable({
 
 	useSortColumnSizesAndOrders({ instance, columnSizes })
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	React.useEffect(() => {
 		const categoryColumn = instance.getColumn('category')
@@ -148,19 +135,6 @@ export function RecentlyListedProtocolsTable({
 		})
 	}, [instance, categories, selectedCategories])
 
-	const prepareCsv = () => {
-		const visibleColumns = instance
-			.getAllLeafColumns()
-			.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
-
-		const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-		const rows = instance
-			.getRowModel()
-			.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(column.id, row.getValue(column.id))))
-
-		return { filename: 'protocols.csv', rows: [headers, ...rows] }
-	}
-
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-3">
@@ -173,10 +147,7 @@ export function RecentlyListedProtocolsTable({
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search protocols..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
@@ -209,7 +180,7 @@ export function RecentlyListedProtocolsTable({
 						<TVLRange triggerClassName="w-full sm:w-auto" />
 					</div>
 
-					<CSVDownloadButton prepareCsv={prepareCsv} smol />
+					<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: csvFileName })} smol />
 				</div>
 			</div>
 			<VirtualTable instance={instance} />
@@ -223,20 +194,19 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
 	</span>
 )
 
-const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
-	{
+const protocolsColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue<string>()
+			const value = getValue()
 
 			return (
 				<span
@@ -268,7 +238,7 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 
 					<span className="-my-2 flex flex-col">
 						{row.original?.deprecated ? (
@@ -285,26 +255,27 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 							<BasicLink
 								href={`/protocol/${slug(value)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-							>{`${value}`}</BasicLink>
+							>
+								{`${value}`}
+							</BasicLink>
 						)}
 
 						<Tooltip content={<ProtocolChainsComponent chains={row.original.chains} />} className="text-[0.7rem]">
 							{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 						</Tooltip>
 					</span>
-					{value === 'SyncDEX Finance' && (
+					{value === 'SyncDEX Finance' ? (
 						<Tooltip content={'Many users have reported issues with this protocol'}>
 							<Icon name="alert-triangle" height={14} width={14} />
 						</Tooltip>
-					)}
+					) : null}
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('category', {
 		header: 'Category',
-		accessorKey: 'category',
 		filterFn: (row, columnId, filterValue) => {
 			const selectedCategories = normaliseCategoryFilterValues(filterValue)
 			if (selectedCategories.length === 0) return false
@@ -317,10 +288,10 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 			return false
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<string | null>()
+			const value = getValue()
 			return value ? (
 				<BasicLink
-					href={`/protocols/${slug(value)}`}
+					href={getCategoryRoute(slug(value))}
 					className="text-sm font-medium whitespace-nowrap text-(--link-text)"
 				>
 					{value}
@@ -330,56 +301,51 @@ const protocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
 			)
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVL',
-		accessorKey: 'tvl',
 		cell: ({ getValue, row }) => <ProtocolTvlCell value={getValue()} rowValues={row.original} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of value of all coins held in smart contracts of the protocol'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
-		accessorKey: 'change_7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 7 days'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
-		accessorKey: 'change_1m',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 30 days'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap/TVL',
-		accessorKey: 'mcaptvl',
 		cell: (info) => <>{info.getValue() ?? null}</>,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const columnSizes = {
@@ -486,49 +452,39 @@ function ProtocolTvlCell({ value, rowValues }: { value: unknown; rowValues: Prot
 	)
 }
 
-const listedAtColumn: ColumnDef<RecentProtocolTableRow> = {
+const listedAtColumn = columnHelper.accessor('listedAt', {
 	header: 'Listed At',
-	accessorKey: 'listedAt',
 	cell: ({ getValue }) => {
-		const listedAt = getValue<number | null>()
+		const listedAt = getValue()
 		return listedAt != null ? toNiceDaysAgo(listedAt) : ''
 	},
 	size: 120,
 	meta: {
 		align: 'end'
 	}
-}
+})
 
-const hiddenRecentColumns = new Set(['volume_7d', 'fees_7d', 'revenue_7d'])
-
-const recentlyListedProtocolsColumns: ColumnDef<RecentProtocolTableRow>[] = [
+const recentlyListedProtocolsColumns = [
 	...protocolsColumns.slice(0, 3),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((column) => {
-		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
-		return typeof accessorKey !== 'string' || !hiddenRecentColumns.has(accessorKey)
-	})
+	...protocolsColumns.slice(3, -1)
 ]
 
-const airdropsColumns: ColumnDef<RecentProtocolTableRow>[] = [
+const airdropsColumns = [
 	...protocolsColumns.slice(0, 3),
-	{
+	columnHelper.accessor('totalRaised', {
 		header: 'Total Money Raised',
-		accessorKey: 'totalRaised',
 		cell: ({ getValue }) => {
-			const totalRaised = getValue<number | null>()
+			const totalRaised = getValue()
 			return <>{totalRaised != null ? formattedNum(totalRaised, true) : ''}</>
 		},
 		size: 168,
 		meta: {
 			align: 'end'
 		}
-	},
+	}),
 	listedAtColumn,
-	...protocolsColumns.slice(3, -1).filter((column) => {
-		const accessorKey = 'accessorKey' in column ? column.accessorKey : undefined
-		return typeof accessorKey !== 'string' || !hiddenRecentColumns.has(accessorKey)
-	})
+	...protocolsColumns.slice(3, -1)
 ]
 
 function HideForkedProtocols() {
@@ -539,17 +495,7 @@ function HideForkedProtocols() {
 	const toHide = !(hideForks && typeof hideForks === 'string' && hideForks === 'true')
 
 	const hide = () => {
-		router.push(
-			{
-				pathname: router.pathname,
-				query: {
-					...router.query,
-					hideForks: toHide
-				}
-			},
-			undefined,
-			{ shallow: true }
-		)
+		void pushShallowQuery(router, { hideForks: toHide })
 	}
 	return <Switch label="Hide Forked Protocols" value="hideForks" checked={!toHide} onChange={hide} />
 }

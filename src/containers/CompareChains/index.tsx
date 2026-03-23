@@ -7,12 +7,12 @@ import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { LocalLoader } from '~/components/Loaders'
 import { MultiSelectCombobox } from '~/components/Select/MultiSelectCombobox'
 import { Select } from '~/components/Select/Select'
+import { Stats } from '~/containers/ChainOverview/Stats'
+import type { IChainOverviewData } from '~/containers/ChainOverview/types'
+import type { IAdapterChainOverview, IAdapterProtocolOverview } from '~/containers/DimensionAdapters/types'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { getNDistinctColors, getPercentChange, getPrevTvlFromChart } from '~/utils'
 import { fetchJson } from '~/utils/async'
-import { Stats } from '../ChainOverview/Stats'
-import type { IChainOverviewData } from '../ChainOverview/types'
-import type { IAdapterChainOverview, IAdapterProtocolOverview } from '../DimensionAdapters/types'
 
 const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
@@ -68,7 +68,7 @@ const getChainData = async (chain: string): Promise<ChainDataResult> => {
 const useCompare = ({ chains = [] }: { chains?: string[] }) => {
 	const data = useQueries({
 		queries: chains.map((chain) => ({
-			queryKey: ['compare', chain],
+			queryKey: ['compare-chains', chain],
 			queryFn: () => getChainData(chain),
 			staleTime: 60 * 60 * 1000,
 			refetchOnWindowFocus: false,
@@ -142,7 +142,7 @@ const formatChartData = (
 }
 
 const updateRoute = (key: string, val: string | string[], router: NextRouter) => {
-	router.push(
+	void router.push(
 		{
 			query: {
 				...router.query,
@@ -255,6 +255,7 @@ export function CompareChains({ chains }: { chains: ChainOption[] }) {
 								<MultiSeriesChart2
 									dataset={chartData.dataset}
 									charts={chartData.charts}
+									showTotalInTooltip
 									exportButtons={{
 										png: true,
 										csv: true,
@@ -328,14 +329,19 @@ const formatTvlChart = ({
 	}
 
 	// if liquidstaking and doublecounted are toggled, we need to subtract the overlapping tvl so you don't add twice
+	const dates: string[] = []
+	for (const date in store) {
+		dates.push(date)
+	}
 	if (toggledTvlSettingsSet.has('liquidstaking') && toggledTvlSettingsSet.has('doublecounted')) {
-		for (const date of Object.keys(store)) {
+		for (const date of dates) {
 			store[date] -= extraTvlCharts['dcAndLsOverlap']?.[date] ?? 0
 		}
 	}
 
 	const finalTvlChart: Array<[number, number]> = []
-	for (const date of Object.keys(store).sort((a, b) => Number(a) - Number(b))) {
+	dates.sort((a, b) => Number(a) - Number(b))
+	for (const date of dates) {
 		finalTvlChart.push([+date, store[date]])
 	}
 
@@ -361,7 +367,7 @@ function useChainsChartFilterState() {
 		)
 		const selectedSet = new Set(valuesArray)
 
-		router.push(
+		void router.push(
 			{
 				query: {
 					chains: router.query.chains,

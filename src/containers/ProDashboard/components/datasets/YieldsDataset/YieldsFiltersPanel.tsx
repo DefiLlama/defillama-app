@@ -98,14 +98,14 @@ export function YieldsFiltersPanel({
 			<div className="mb-3 flex items-center justify-between">
 				<h4 className="text-sm font-medium pro-text1">Filter Yields</h4>
 				<div className="flex items-center gap-2">
-					{activeFilterCount > 0 && (
+					{activeFilterCount > 0 ? (
 						<button
 							onClick={handleReset}
 							className="rounded-md border pro-divider pro-bg2 pro-hover-bg px-2 py-1 text-xs pro-text2 transition-colors"
 						>
 							Clear All ({activeFilterCount})
 						</button>
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -115,7 +115,7 @@ export function YieldsFiltersPanel({
 
 					<div className="space-y-3">
 						<div>
-							<label className="mb-2 block text-xs font-medium pro-text2">Total APY Range</label>
+							<p className="mb-2 block text-xs font-medium pro-text2">Total APY Range</p>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
@@ -136,7 +136,7 @@ export function YieldsFiltersPanel({
 						</div>
 
 						<div>
-							<label className="mb-2 block text-xs font-medium pro-text2">Base APY Range</label>
+							<p className="mb-2 block text-xs font-medium pro-text2">Base APY Range</p>
 							<div className="flex items-center gap-2">
 								<input
 									type="number"
@@ -171,7 +171,7 @@ export function YieldsFiltersPanel({
 											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 									}`}
 								>
-									{localFilters.hasRewards && (
+									{localFilters.hasRewards ? (
 										<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 											<path
 												fillRule="evenodd"
@@ -179,7 +179,7 @@ export function YieldsFiltersPanel({
 												clipRule="evenodd"
 											/>
 										</svg>
-									)}
+									) : null}
 								</div>
 							</div>
 							<span className="text-sm pro-text1">Has Reward Incentives</span>
@@ -192,7 +192,7 @@ export function YieldsFiltersPanel({
 
 					<div className="space-y-3">
 						<div>
-							<label className="mb-2 block text-xs font-medium pro-text2">TVL Range (USD)</label>
+							<p className="mb-2 block text-xs font-medium pro-text2">TVL Range (USD)</p>
 							<div className="flex items-center gap-2">
 								<input
 									type="text"
@@ -233,7 +233,7 @@ export function YieldsFiltersPanel({
 											: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 									}`}
 								>
-									{localFilters.stablesOnly && (
+									{localFilters.stablesOnly ? (
 										<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 											<path
 												fillRule="evenodd"
@@ -241,14 +241,14 @@ export function YieldsFiltersPanel({
 												clipRule="evenodd"
 											/>
 										</svg>
-									)}
+									) : null}
 								</div>
 							</div>
 							<span className="text-sm pro-text1">Stablecoins Only</span>
 						</label>
 
 						<div className="mt-4">
-							<label className="mb-3 block text-xs font-medium pro-text2">Pool Categories</label>
+							<p className="mb-3 block text-xs font-medium pro-text2">Pool Categories</p>
 							<div className="space-y-2">
 								{['DEX', 'Lending', 'Staking', 'CDP', 'Bridge', 'Yield Aggregator'].map((type) => (
 									<label key={type} className="group flex cursor-pointer items-center gap-2">
@@ -274,7 +274,7 @@ export function YieldsFiltersPanel({
 														: 'border-(--text-tertiary) bg-transparent group-hover:border-(--text-secondary)'
 												}`}
 											>
-												{localFilters.poolTypes?.includes(type) && (
+												{localFilters.poolTypes?.includes(type) ? (
 													<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
 														<path
 															fillRule="evenodd"
@@ -282,7 +282,7 @@ export function YieldsFiltersPanel({
 															clipRule="evenodd"
 														/>
 													</svg>
-												)}
+												) : null}
 											</div>
 										</div>
 										<span className="text-sm pro-text1">{type}</span>

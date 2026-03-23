@@ -31,14 +31,14 @@ export function AriakitCheckbox({
 							: 'border-(--form-control-border) bg-(--bg-input) hover:border-(--primary)/60'
 					} ${disabled ? 'cursor-not-allowed' : ''}`}
 				>
-					{checked && <Icon name="check" width={10} height={10} />}
+					{checked ? <Icon name="check" width={10} height={10} /> : null}
 				</div>
-				{label && (
+				{label ? (
 					<div className="flex flex-col">
 						<span className="text-xs text-(--text-secondary)">{label}</span>
-						{description && <span className="text-[10px] text-(--text-tertiary)">{description}</span>}
+						{description ? <span className="text-[10px] text-(--text-tertiary)">{description}</span> : null}
 					</div>
-				)}
+				) : null}
 			</label>
 		</Ariakit.CheckboxProvider>
 	)

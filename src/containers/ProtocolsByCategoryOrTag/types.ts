@@ -1,19 +1,5 @@
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 
-export interface IRWAStats {
-	volumeUsd1d: number
-	volumeUsd7d: number
-	tvlUsd: number
-	symbols: Array<string>
-	matchExact?: boolean
-	redeemable?: boolean
-	attestations?: boolean
-	cexListed?: boolean
-	kyc?: boolean
-	transferable?: boolean
-	selfCustody?: boolean
-}
-
 interface IProtocolMetricTotals {
 	total24h: number | null
 	total7d: number | null
@@ -45,7 +31,6 @@ interface IProtocolByCategory {
 	optionsPremium?: IProtocolMetricTotals | null
 	optionsNotional?: IProtocolMetricTotals | null
 	tags: Array<string>
-	rwaStats?: IRWAStats | null
 	borrowed?: number | null
 	supplied?: number | null
 	suppliedTvl?: number | null

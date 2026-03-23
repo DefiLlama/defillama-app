@@ -1,24 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
 import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
-import { NETFLOWS_API } from '~/constants'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
 import { capitalizeFirstLetter, formattedNum } from '~/utils'
-import { fetchJson } from '~/utils/async'
 
 echarts.use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 
 interface NetflowChartProps {
 	height?: number | string
 	onReady?: (instance: echarts.ECharts | null) => void
+	data: Record<string, Array<{ chain: string; net_flow: string }>>
 }
 
-export default function NetflowChart({ height, onReady }: NetflowChartProps) {
+export default function NetflowChart({ height, onReady, data: allData }: NetflowChartProps) {
 	const id = useId()
 	const [isThemeDark] = useDarkModeManager()
 	const [period, setPeriod] = useState('month')
@@ -32,47 +30,50 @@ export default function NetflowChart({ height, onReady }: NetflowChartProps) {
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const { data = [] } = useQuery<Array<{ chain: string; net_flow: string }>>({
-		queryKey: ['netflowData', period],
-		queryFn: () => fetchJson(`${NETFLOWS_API}/${period}`).catch(() => [])
-	})
-
 	const { positiveData, negativeData, chains, csvSource } = useMemo(() => {
-		const nonZeroData = (data ?? [])
-			.filter((item) => item.net_flow !== '0')
-			.map((item) => ({
+		const data = allData?.[period] ?? []
+
+		const nonZeroData: Array<{ chain: string; value: number }> = []
+		for (const item of data ?? []) {
+			if (item.net_flow === '0') continue
+			nonZeroData.push({
 				chain: item.chain,
 				value: Number(item.net_flow)
-			}))
-			.sort((a, b) => Math.abs(a.value) - Math.abs(b.value))
-			.slice(-15)
-			.sort((a, b) => a.value - b.value)
-			.map((item) => ({
-				chain: capitalizeFirstLetter(item.chain),
-				value: item.value
-			}))
+			})
+		}
+		nonZeroData.sort((a, b) => Math.abs(a.value) - Math.abs(b.value))
+		const slicedData = nonZeroData.slice(-15)
+		slicedData.sort((a, b) => a.value - b.value)
 
-		const positive = nonZeroData.map((item) => (item.value > 0 ? item.value : 0))
-		const negative = nonZeroData.map((item) => (item.value < 0 ? item.value : 0))
-		const chainNames = nonZeroData.map((item) => item.chain)
+		const positive: number[] = []
+		const negative: number[] = []
+		const chainNames: string[] = []
+		const csvRows: Array<{ Chain: string; Inflow: number; Outflow: number; 'Net Flow': number }> = []
+		for (const item of slicedData) {
+			const chain = capitalizeFirstLetter(item.chain)
+			chainNames.push(chain)
+			positive.push(item.value > 0 ? item.value : 0)
+			negative.push(item.value < 0 ? item.value : 0)
+			csvRows.push({
+				Chain: chain,
+				Inflow: item.value > 0 ? item.value : 0,
+				Outflow: item.value < 0 ? Math.abs(item.value) : 0,
+				'Net Flow': item.value
+			})
+		}
 
 		return {
 			positiveData: positive,
 			negativeData: negative,
 			chains: chainNames,
-			csvSource: nonZeroData.map((item) => ({
-				Chain: item.chain,
-				Inflow: item.value > 0 ? item.value : 0,
-				Outflow: item.value < 0 ? item.value : 0,
-				'Net Flow': item.value
-			}))
+			csvSource: csvRows
 		}
-	}, [data])
+	}, [allData, period])
 
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
 		return () => {

@@ -1,10 +1,10 @@
-import type { FormEvent } from 'react'
 import { Icon } from '~/components/Icon'
+import type { FormSubmitEvent } from '~/types/forms'
 
 interface EmailChangeModalProps {
 	isOpen: boolean
 	onClose: () => void
-	onSubmit: (e: FormEvent<HTMLFormElement>) => void
+	onSubmit: (e: FormSubmitEvent) => void
 	email: string
 	onEmailChange: (value: string) => void
 	isLoading: boolean
@@ -54,7 +54,6 @@ export const EmailChangeModal = ({
 							placeholder="your.new.email@example.com"
 							value={email}
 							onChange={(e) => onEmailChange(e.target.value)}
-							autoFocus
 						/>
 					</div>
 

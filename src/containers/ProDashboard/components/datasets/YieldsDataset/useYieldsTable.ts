@@ -164,6 +164,7 @@ export function useYieldsTable({
 			columnVisibility
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,

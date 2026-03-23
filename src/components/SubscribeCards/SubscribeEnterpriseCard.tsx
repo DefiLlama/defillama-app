@@ -38,11 +38,11 @@ export function SubscribeEnterpriseCard({ active = false }: { active?: boolean }
 				<Icon name="mail" height={16} width={16} />
 				Contact Us
 			</a>
-			{active && (
+			{active ? (
 				<div className="mt-2 flex flex-col gap-2">
 					<span className="text-center font-bold text-green-400">Current Plan</span>
 				</div>
-			)}
+			) : null}
 		</>
 	)
 }

@@ -15,6 +15,7 @@ export const chainCharts = {
 	'Active Addresses': 'activeAddresses',
 	'New Addresses': 'newAddresses',
 	Transactions: 'transactions',
+	'Gas Used': 'gasUsed',
 	Raises: 'raises',
 	'Net Inflows': 'netInflows',
 	'Core Developers': 'devsMetrics',
@@ -25,10 +26,6 @@ export const chainCharts = {
 } as const
 
 export type ChainChartLabels = keyof typeof chainCharts
-// oxlint-disable-next-line no-unused-vars
-const allCharts = Object.keys(chainCharts) as ChainChartLabels[]
-// oxlint-disable-next-line no-unused-vars
-type ChainChartByQueryParams = (typeof chainCharts)[keyof typeof chainCharts]
 
 export const yAxisByChart: {
 	[K in keyof typeof chainCharts]: ChainChartLabels
@@ -46,6 +43,7 @@ export const yAxisByChart: {
 	'Active Addresses': 'Active Addresses',
 	'New Addresses': 'Active Addresses',
 	Transactions: 'Transactions',
+	'Gas Used': 'Gas Used',
 	Raises: 'Raises',
 	'Net Inflows': 'Net Inflows',
 	'Core Developers': 'Core Developers',
@@ -66,6 +64,7 @@ export const BAR_CHARTS: ChainChartLabels[] = [
 	'Active Addresses',
 	'New Addresses',
 	'Transactions',
+	'Gas Used',
 	'Raises',
 	'Net Inflows',
 	'Core Developers',

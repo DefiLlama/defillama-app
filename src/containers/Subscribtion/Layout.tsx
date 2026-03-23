@@ -1,5 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import Head from 'next/head'
+import * as React from 'react'
 import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
@@ -8,14 +9,23 @@ import { Toast } from '~/components/Toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { SignInModal } from './SignIn'
 
-export function SubscribeLayout({ children }) {
+export function SubscribeLayout({
+	children,
+	title = 'Subscribe to DefiLlama Pro Analytics - DefiLlama',
+	description
+}: {
+	children: React.ReactNode
+	title?: string
+	description?: string
+}) {
 	const { isAuthenticated, logout } = useAuthContext()
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
 
 	return (
 		<>
 			<Head>
-				<title>Subscribe - DefiLlama</title>
+				<title>{title}</title>
+				{description ? <meta name="description" content={description} /> : null}
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />

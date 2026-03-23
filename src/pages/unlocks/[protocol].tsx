@@ -1,6 +1,6 @@
-import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { LinkPreviewCard } from '~/components/SEO'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { EmissionsByProtocol } from '~/containers/Unlocks/EmissionsByProtocol'
 import {
 	calculateTotalUnlockValue,
@@ -8,17 +8,26 @@ import {
 	getProtocolUnlocksStaticPropsData
 } from '~/containers/Unlocks/protocolUnlocksStaticProps'
 import Layout from '~/layout'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'unlocks/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
-		const { emissions, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(params.protocol)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
+
+		const { emissions, tokenSymbol, initialTokenMarketData } = await getProtocolUnlocksStaticPropsData(
+			params.protocol,
+			metadataCache.tokenlist
+		)
 
 		if (!emissions) {
 			return {
@@ -34,6 +43,9 @@ export const getStaticProps = withPerformanceLogging(
 				revalidate: maxAgeForNext([22])
 			}
 		}
+		const resolvedTokenSymbol = tokenSymbol ?? emissions.tokenPrice?.symbol ?? null
+		const seoTitle = `${emissions.name} Token Unlocks & Vesting Schedule`
+		const seoDescription = `View ${emissions.name}${resolvedTokenSymbol ? ` (${resolvedTokenSymbol})` : ''} token unlock schedule, vesting charts, and cliff events. Track upcoming emissions on DefiLlama.`
 
 		return {
 			props: {
@@ -41,18 +53,20 @@ export const getStaticProps = withPerformanceLogging(
 				totalUnlockValue: calculateTotalUnlockValue(emissions),
 				eventCountdown: getEventCountdown(emissions?.upcomingEvent?.[0]?.timestamp),
 				noUpcomingEvent,
-				initialTokenMarketData
+				initialTokenMarketData,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -67,15 +81,12 @@ export default function Protocol({
 	totalUnlockValue,
 	eventCountdown,
 	noUpcomingEvent,
-	initialTokenMarketData
-}) {
+	initialTokenMarketData,
+	seoTitle,
+	seoDescription
+}: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
-		<Layout
-			title={`${emissions.name} ${emissions.tokenPrice.symbol} Token Unlocks & Vesting Schedules - DefiLlama`}
-			description={`Track upcoming ${emissions.name} token unlocks, detailed vesting schedules, and key emission data on DefiLlama. Stay informed on ${emissions.tokenPrice.symbol} release events and supply changes.`}
-			keywords={`${emissions.name} ${emissions.tokenPrice.symbol} token unlocks, vesting schedules, emission data, DefiLlama, ${emissions.tokenPrice.symbol}, ${emissions.name}, ${emissions.tokenPrice.symbol} Tokenomics, ${emissions.tokenPrice.symbol} Unlocks, ${emissions.tokenPrice.symbol} Vesting Schedule, ${emissions.name} Unlocks, ${emissions.name} Vesting Schedule, ${emissions.name} Tokenomics`}
-			canonicalUrl={`/unlocks/${emissions.name}`}
-		>
+		<Layout title={seoTitle} description={seoDescription} canonicalUrl={`/unlocks/${emissions.name}`}>
 			<LinkPreviewCard
 				unlockPage={true}
 				cardName={emissions.name}

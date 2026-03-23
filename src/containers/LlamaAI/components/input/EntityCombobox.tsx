@@ -1,18 +1,19 @@
 import * as Ariakit from '@ariakit/react'
 import type { RefObject } from 'react'
 import { TokenLogo } from '~/components/TokenLogo'
-import { getAnchorRect } from '../../utils/entitySuggestions'
+import { getAnchorRect } from '~/containers/LlamaAI/utils/entitySuggestions'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface EntityMatch {
 	id: string
 	name: string
-	logo?: string
+	logo?: string | null
 	type: string
 }
 
 interface EntityComboboxPopoverProps {
 	combobox: Ariakit.ComboboxStore
-	promptInputRef: RefObject<HTMLTextAreaElement>
+	promptInputRef: RefObject<HTMLTextAreaElement | null>
 	matches: EntityMatch[] | undefined
 	hasMatches: boolean
 	isTriggerOnly: boolean
@@ -55,10 +56,13 @@ export function EntityComboboxPopover({
 						key={id}
 						value={id}
 						focusOnHover
-						onClick={() => onItemClick({ id, name, type })}
+						onClick={() => {
+							trackUmamiEvent('llamaai-entity-select', { type })
+							onItemClick({ id, name, type })
+						}}
 						className="flex cursor-pointer items-center gap-1.5 border-t border-[#e6e6e6] px-3 py-2 first:border-t-0 hover:bg-[#e6e6e6] focus-visible:bg-[#e6e6e6] data-active-item:bg-[#e6e6e6] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324] dark:data-active-item:bg-[#222324]"
 					>
-						{logo && <TokenLogo logo={logo} size={20} />}
+						{logo ? <TokenLogo src={logo} alt={`Logo of ${name}`} size={20} /> : null}
 						<span className="flex items-center gap-1.5">
 							<span className="text-sm font-medium">{name}</span>
 							<EntityTypeBadge type={type} />
@@ -66,7 +70,7 @@ export function EntityComboboxPopover({
 					</Ariakit.ComboboxItem>
 				))
 			) : (
-				<div className="px-3 py-2 text-sm text-[#666] dark:text-[#999]">Loading…</div>
+				<p className="px-3 py-2 text-sm text-[#666] dark:text-[#999]">Loading…</p>
 			)}
 		</Ariakit.ComboboxPopover>
 	)

@@ -2,28 +2,31 @@ import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
+import type { FormSubmitEvent } from '~/types/forms'
 
 interface RatingProps {
 	sessionId: string
 	mode: 'create' | 'iterate'
 	variant: 'banner' | 'inline'
 	prompt?: string
-	onRate: (sessionId: string, rating: number, feedback?: string) => void
-	onSkip: (sessionId: string) => void
+	onRate: (sessionId: string, rating: number, feedback?: string) => void | Promise<void>
+	onSkip: (sessionId: string) => void | Promise<void>
 	onDismiss?: (sessionId: string) => void
 }
 
 export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDismiss }: RatingProps) {
 	const [rating, setRating] = useState(0)
 	const [hoveredRating, setHoveredRating] = useState(0)
-	const [feedback, setFeedback] = useState('')
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const bannerFeedbackId = `${sessionId}-rating-feedback-banner`
+	const inlineFeedbackId = `${sessionId}-rating-feedback-inline`
 
 	const handleStarClick = (star: number) => {
 		setRating(star)
 	}
 
-	const handleSubmit = async () => {
+	const handleSubmit = async (e: FormSubmitEvent) => {
+		e.preventDefault()
 		if (rating === 0) return
 
 		if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
@@ -32,15 +35,18 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 		}
 
 		setIsSubmitting(true)
+		const feedbackInput = e.currentTarget.elements.namedItem('feedback') as HTMLTextAreaElement | null
+		const feedbackValue = feedbackInput?.value.trim() || undefined
 		try {
-			await onRate(sessionId, rating, feedback.trim() || undefined)
-		} finally {
-			setIsSubmitting(false)
+			await onRate(sessionId, rating, feedbackValue)
+		} catch (error) {
+			console.error('Failed to submit rating:', error)
 		}
+		setIsSubmitting(false)
 	}
 
-	const handleSkip = async () => {
-		onSkip(sessionId)
+	const handleSkip = () => {
+		void onSkip(sessionId)
 	}
 
 	const texts = {
@@ -61,13 +67,17 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 	if (variant === 'banner') {
 		return (
-			<div className="relative isolate col-span-full flex animate-ai-glow flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4">
+			<form
+				onSubmit={(e) => void handleSubmit(e)}
+				className="relative isolate col-span-full flex animate-ai-glow flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-4"
+			>
 				<div className="flex items-center gap-4">
 					<h3 className="text-lg font-semibold">{currentTexts.title}</h3>
 					<div className="flex items-center gap-1">
 						{[1, 2, 3, 4, 5].map((star) => (
 							<button
 								key={star}
+								type="button"
 								onClick={() => handleStarClick(star)}
 								onMouseEnter={() => setHoveredRating(star)}
 								onMouseLeave={() => setHoveredRating(0)}
@@ -85,81 +95,93 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 							</button>
 						))}
 					</div>
-					{onDismiss && (
+					{onDismiss ? (
 						<button
-							onClick={() => onDismiss(sessionId)}
+							type="button"
+							onClick={() => {
+								void onDismiss(sessionId)
+							}}
 							className="ml-auto rounded-md p-2 hover:bg-red-500/10 hover:text-(--error)"
 							disabled={isSubmitting}
 							title="Dismiss"
 						>
 							<Icon name="x" height={16} width={16} />
 						</button>
-					)}
+					) : null}
 				</div>
 
 				<p className="text-sm text-(--text-label)">{currentTexts.subtitle}</p>
 
-				{prompt && (
+				{prompt ? (
 					<div className="flex flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
 						<p className="text-xs text-(--text-label)">Prompt used:</p>
 						<p className="text-center text-sm">{prompt}</p>
 					</div>
-				)}
+				) : null}
 
-				{rating > 0 && (
+				{rating > 0 ? (
 					<div className="flex w-full flex-col gap-1">
-						<label className="text-xs font-semibold tracking-wide text-(--text-label) uppercase">
+						<label
+							htmlFor={bannerFeedbackId}
+							className="text-xs font-semibold tracking-wide text-(--text-label) uppercase"
+						>
 							Your Feedback (Optional)
 						</label>
 						<textarea
-							value={feedback}
-							onChange={(e) => setFeedback(e.target.value)}
+							id={bannerFeedbackId}
+							name="feedback"
 							placeholder="Share your thoughts about the AI-generated dashboard..."
 							rows={3}
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
 							disabled={isSubmitting}
 						/>
 					</div>
-				)}
+				) : null}
 
 				<div className="mt-6 flex items-center justify-center gap-3">
-					<button onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
+					<button
+						type="button"
+						onClick={handleSkip}
+						disabled={isSubmitting}
+						className="px-4 py-2 text-sm hover:text-(--link-text)"
+					>
 						Skip
 					</button>
 
-					{rating > 0 && (
+					{rating > 0 ? (
 						<button
-							onClick={handleSubmit}
+							type="submit"
 							disabled={isSubmitting}
 							className={`flex items-center gap-2 rounded-md bg-(--old-blue) px-6 py-2 font-medium text-white`}
 						>
 							{isSubmitting ? <LoadingSpinner size={16} /> : <Icon name="sparkles" height={16} width={16} />}
 							Submit Rating
 						</button>
-					)}
+					) : null}
 				</div>
-			</div>
+			</form>
 		)
 	}
 
 	return (
-		<>
+		<form onSubmit={(e) => void handleSubmit(e)} className="contents">
 			<Icon name="sparkles" height={24} width={24} className="shrink-0 text-pro-blue-400 dark:text-pro-blue-200" />
 
 			<h3 className="-mt-5 text-xl font-semibold">{currentTexts.title}</h3>
 			<p className="-mt-5 text-sm text-(--text-label)">{currentTexts.subtitle}</p>
 
-			{prompt && (
+			{prompt ? (
 				<div className="flex w-full max-w-xl flex-col items-center gap-2 rounded-md border border-(--cards-border) bg-(--app-bg) p-3">
 					<h4 className="text-xs text-(--text-label)">Prompt used:</h4>
 					<p className="text-center text-sm">{prompt}</p>
 				</div>
-			)}
+			) : null}
 
 			<div className="flex items-center justify-center gap-2">
 				{[1, 2, 3, 4, 5].map((star) => (
 					<button
 						key={star}
+						type="button"
 						onClick={() => handleStarClick(star)}
 						onMouseEnter={() => setHoveredRating(star)}
 						onMouseLeave={() => setHoveredRating(0)}
@@ -181,12 +203,15 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 			{rating > 0 ? (
 				<div className="flex w-full max-w-xl flex-col items-center gap-6">
 					<div className="flex w-full flex-col items-center gap-1">
-						<label className="text-center text-xs font-semibold tracking-wide text-(--text-label) uppercase">
+						<label
+							htmlFor={inlineFeedbackId}
+							className="text-center text-xs font-semibold tracking-wide text-(--text-label) uppercase"
+						>
 							Your Feedback (Optional)
 						</label>
 						<textarea
-							value={feedback}
-							onChange={(e) => setFeedback(e.target.value)}
+							id={inlineFeedbackId}
+							name="feedback"
 							placeholder="Share your thoughts about the AI-generated dashboard..."
 							rows={3}
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white"
@@ -196,6 +221,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 
 					<div className="flex items-center justify-center gap-3">
 						<button
+							type="button"
 							onClick={handleSkip}
 							disabled={isSubmitting}
 							className="px-4 py-2 text-sm text-(--text-form) hover:text-(--link-text)"
@@ -203,7 +229,7 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 							Skip
 						</button>
 						<button
-							onClick={handleSubmit}
+							type="submit"
 							disabled={isSubmitting}
 							className={`flex items-center gap-2 rounded-md bg-(--old-blue) px-6 py-2 font-medium text-white`}
 						>
@@ -216,11 +242,16 @@ export function Rating({ sessionId, mode, variant, prompt, onRate, onSkip, onDis
 				<>
 					<p className="-mt-5 text-center text-xs text-(--text-form)">Click the stars above to rate your experience</p>
 
-					<button onClick={handleSkip} disabled={isSubmitting} className="px-4 py-2 text-sm hover:text-(--link-text)">
+					<button
+						type="button"
+						onClick={handleSkip}
+						disabled={isSubmitting}
+						className="px-4 py-2 text-sm hover:text-(--link-text)"
+					>
 						Skip
 					</button>
 				</>
 			)}
-		</>
+		</form>
 	)
 }

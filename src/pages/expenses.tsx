@@ -1,32 +1,35 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_API } from '~/constants'
+import type { IProtocolExpenses } from '~/containers/ProtocolOverview/api.types'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ParentProtocolLite, ProtocolLite } from '~/containers/Protocols/api.types'
 import Layout from '~/layout'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('expenses', async () => {
 	const [{ protocols, parentProtocols }, expenses] = await Promise.all([
-		fetchJson(PROTOCOLS_API),
-		fetchJson(
+		fetchProtocols(),
+		fetchJson<IProtocolExpenses[]>(
 			'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 		)
 	])
+
+	const protocolById = new Map<string, ProtocolLite | (ParentProtocolLite & { defillamaId: string })>()
+	for (const p of protocols) protocolById.set(p.defillamaId, p)
+	for (const p of parentProtocols) protocolById.set(p.id, { ...p, defillamaId: p.id })
 
 	return {
 		props: {
 			expenses: expenses
 				.map((e) => {
-					const protocol =
-						protocols
-							.concat(parentProtocols.map((p) => ({ ...p, defillamaId: p.id })))
-							.find((p) => p.defillamaId === e.protocolId) ?? null
+					const protocol = protocolById.get(e.protocolId) ?? null
 					const sumAnnualUsdExpenses = Object.values(e.annualUsdCost).reduce(
 						(sum: number, x: number) => sum + x
 					) as number
@@ -47,12 +50,15 @@ export const getStaticProps = withPerformanceLogging('expenses', async () => {
 const pageName = ['Protocols', 'ranked by', 'Expenses']
 const DEFAULT_SORTING_STATE = [{ id: 'sumAnnualUsdExpenses', desc: true }]
 
+type ExpenseRow = InferGetStaticPropsType<typeof getStaticProps>['expenses'][number]
+
+const columnHelper = createColumnHelper<ExpenseRow>()
+
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Protocol Expenses - DefiLlama`}
-			description={`Track overall expenses by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`protocol expenses, expenses by protocol`}
+			title={`Protocol Expense Rankings - DefiLlama`}
+			description="Track DeFi protocol expenses and token incentive costs. Compare operational spending across protocols to evaluate sustainability."
 			canonicalUrl={`/expenses`}
 			pageName={pageName}
 		>
@@ -62,64 +68,61 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				columnToSearch={'name'}
 				placeholder={'Search protocol...'}
 				header={'Protocol Expenses'}
+				headingAs="h1"
+				csvFileName="protocol-expenses"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
 	)
 }
 
-const columns: ColumnDef<any>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
-						href={`/protocol/${slug(getValue() as string)}`}
+						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue() as string}
+						{value}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('headcount', {
 		header: 'Headcount',
-		accessorKey: 'headcount',
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('sumAnnualUsdExpenses', {
 		header: 'Annual Expenses',
-		accessorKey: 'sumAnnualUsdExpenses',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedNum(getValue(), true) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('sources', {
 		header: 'Source',
-		accessorKey: 'sources',
 		enableSorting: false,
 		cell: ({ getValue }) =>
 			getValue() ? (
 				<a
 					className="flex shrink-0 items-center justify-center rounded-md bg-(--link-bg) px-2.5 py-1 text-xs font-medium whitespace-nowrap text-(--link-text) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
-					href={getValue()[0] as string}
+					href={getValue()[0]}
 					target="_blank"
 					rel="noopener noreferrer"
 				>
 					<Icon name="arrow-up-right" height={14} width={14} className="shrink-0" />
 				</a>
 			) : null
-	}
+	})
 ]

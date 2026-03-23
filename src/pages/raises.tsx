@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import RaisesContainer from '~/containers/Raises'
 import { getRaisesPageData } from '~/containers/Raises/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Raises Overview']
@@ -18,9 +18,8 @@ export const getStaticProps = withPerformanceLogging('raises', async () => {
 const Raises = (props: InferGetStaticPropsType<typeof getStaticProps>) => {
 	return (
 		<Layout
-			title="Raises - DefiLlama"
-			description="Track recent raises, total funding amount, and total funding rounds on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="recent raises, total funding amount, total funding rounds"
+			title="DeFi Funding Rounds & Crypto Raises - DefiLlama"
+			description="Track DeFi and crypto funding rounds, venture capital investments, and investor activity. Monitor 1000+ funding rounds across 500+ protocols. Real-time Web3 investment analytics with investor profiles and funding amounts."
 			canonicalUrl="/raises"
 			pageName={pageName}
 		>

@@ -13,6 +13,8 @@ import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
+const EMPTY_SORTING: SortingState = []
+
 interface IYieldsTableWrapper {
 	data: any
 	columns: any
@@ -32,7 +34,7 @@ export const YieldsTableWrapper = ({
 	rowSize,
 	columnVisibility,
 	setColumnVisibility,
-	sortingState = []
+	sortingState = EMPTY_SORTING
 }: IYieldsTableWrapper) => {
 	const [sorting, setSorting] = React.useState<SortingState>([...sortingState])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -50,16 +52,19 @@ export const YieldsTableWrapper = ({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		onSortingChange: (updater) => {
 			const newSorting = typeof updater === 'function' ? updater(sorting) : updater
-			setSorting(newSorting)
+			React.startTransition(() => {
+				setSorting(newSorting)
+			})
 			if (newSorting.length > 0) {
 				trackYieldsEvent(YIELDS_EVENTS.TABLE_SORT, { column: newSorting[0].id })
 			}
 		},
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		onColumnVisibilityChange: setColumnVisibility,
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnVisibilityChange: (updater) => React.startTransition(() => setColumnVisibility(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

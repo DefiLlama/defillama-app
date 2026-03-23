@@ -1,25 +1,31 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { lazy, Suspense, useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/utils'
 import { feesOptions } from '~/components/Filters/options'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { CHART_COLORS } from '~/constants/colors'
 import { DimensionProtocolChartByType } from '~/containers/DimensionAdapters/ProtocolChart'
 import { getAdapterProtocolOverview } from '~/containers/DimensionAdapters/queries'
-import { KeyMetrics } from '~/containers/ProtocolOverview'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
+import { KeyMetrics } from '~/containers/ProtocolOverview/KeyMetrics'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -29,7 +35,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/fees/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -44,7 +50,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].fees) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const [protocolData, feesData, revenueData, holdersRevenueData, bribeRevenueData, tokenTaxData] = await Promise.all(
@@ -192,9 +198,13 @@ export const getStaticProps = withPerformanceLogging(
 			option.key === 'bribes' ? metrics.bribes : option.key === 'tokentax' ? metrics.tokenTax : true
 		)
 
+		const seoTitle = `${protocolData.name} ${defaultCharts.join(', ')} - DefiLlama`
+		const seoDescription = `Financial overview of ${protocolData.name} including ${defaultCharts.join(', ').toLowerCase()} with daily, weekly, monthly, and cumulative charts and historical data.`
+
 		return {
 			props: {
 				name: protocolData.name,
+				deprecated: protocolData.deprecated ?? false,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
@@ -208,8 +218,9 @@ export const getStaticProps = withPerformanceLogging(
 				charts,
 				defaultCharts,
 				protocolChains: feesData?.chains ?? [],
-				protocolFeesVersions: linkedProtocolsWithFeesData?.map((protocol) => protocol.displayName) ?? [],
-				protocolRevenueVersions: linkedProtocolsWithRevenueData?.map((protocol) => protocol.displayName) ?? [],
+				protocolFeesVersions: linkedProtocolsWithFeesData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
+				protocolRevenueVersions:
+					linkedProtocolsWithRevenueData?.map((versionProtocol) => versionProtocol.displayName) ?? [],
 				warningBanners: getProtocolWarningBanners(protocolData),
 				defaultChartView:
 					feesData?.defaultChartView ??
@@ -218,18 +229,20 @@ export const getStaticProps = withPerformanceLogging(
 					bribeRevenueData?.defaultChartView ??
 					tokenTaxData?.defaultChartView ??
 					'daily',
-				toggleOptions
+				toggleOptions,
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -239,10 +252,8 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-const INTERVALS_LIST = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
 export default function Protocols(props: InferGetStaticPropsType<typeof getStaticProps>) {
-	const [groupBy, setGroupBy] = useState<(typeof INTERVALS_LIST)[number]>(props.defaultChartView)
+	const [groupBy, setGroupBy] = useState<LowercaseDwmcGrouping>(props.defaultChartView)
 	const [charts, setCharts] = useState<string[]>(props.defaultCharts)
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
 	const { chartInstance, handleChartReady } = useGetChartInstance()
@@ -330,7 +341,10 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 		}
 
 		const rowMap = new Map<number, Record<string, number>>()
-		const seriesNames = Object.keys(seriesData)
+		const seriesNames: string[] = []
+		for (const seriesName in seriesData) {
+			seriesNames.push(seriesName)
+		}
 		for (const name of seriesNames) {
 			for (const [timestamp, value] of seriesData[name]) {
 				const row = rowMap.get(timestamp) ?? { timestamp }
@@ -347,6 +361,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			charts: chartsConfig
 		}
 	}, [props.charts, charts, feesSettings, groupBy, props.bribeRevenue?.totalAllTime, props.tokenTax?.totalAllTime])
+	const deferredFinalCharts = useDeferredValue(finalCharts)
 
 	return (
 		<ProtocolOverviewLayout
@@ -357,11 +372,13 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			tab="fees"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="grid grid-cols-1 gap-2 xl:grid-cols-3">
 				<div className="col-span-1 flex flex-col gap-6 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:min-h-[360px]">
 					<h1 className="flex flex-wrap items-center gap-2 text-xl">
-						<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+						<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 						<span className="font-bold">{props.name}</span>
 						{props.deprecated ? (
 							<Tooltip content="Deprecated protocol" className="text-(--error)">
@@ -373,22 +390,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 				</div>
 				<div className="col-span-1 rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-[2/-1]">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
-						<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-							{INTERVALS_LIST.map((dataInterval) => (
-								<Tooltip
-									content={capitalizeFirstLetter(dataInterval)}
-									render={<button />}
-									className="shrink-0 px-2 py-1 text-sm whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:font-medium data-[active=true]:text-(--link-text)"
-									data-active={groupBy === dataInterval}
-									onClick={() => {
-										setGroupBy(dataInterval)
-									}}
-									key={`${props.name}-fees-groupBy-${dataInterval}`}
-								>
-									{dataInterval.slice(0, 1).toUpperCase()}
-								</Tooltip>
-							))}
-						</div>
+						<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
 						{props.defaultCharts.length > 1 ? (
 							<Select
 								allValues={props.defaultCharts}
@@ -401,14 +403,15 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-fees-revenue`}
+							filename={`${props.name}-fees-revenue`}
 							title="Fees & Revenue"
 						/>
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={finalCharts.dataset}
-							charts={finalCharts.charts}
+							dataset={deferredFinalCharts.dataset}
+							charts={deferredFinalCharts.charts}
+							groupBy={groupBy}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>
@@ -424,8 +427,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							adapterType="fees"
 							breakdownNames={props.protocolChains}
 							metadata={{
-								bribeRevenue: props.bribeRevenue ?? false,
-								tokenTax: props.tokenTax ?? false
+								bribeRevenue: !!props.bribeRevenue,
+								tokenTax: !!props.tokenTax
 							}}
 							title="Fees by chain"
 						/>
@@ -439,8 +442,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 							adapterType="fees"
 							breakdownNames={props.protocolFeesVersions}
 							metadata={{
-								bribeRevenue: props.bribeRevenue ?? false,
-								tokenTax: props.tokenTax ?? false
+								bribeRevenue: !!props.bribeRevenue,
+								tokenTax: !!props.tokenTax
 							}}
 							title="Fees by protocol version"
 						/>
@@ -457,7 +460,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 									dataType="dailyRevenue"
 									breakdownNames={props.protocolChains}
 									metadata={{
-										bribeRevenue: props.metrics.bribeRevenue ?? false,
+										bribeRevenue: props.metrics.bribes ?? false,
 										tokenTax: props.metrics.tokenTax ?? false
 									}}
 									title="Revenue by chain"
@@ -473,7 +476,7 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 								dataType="dailyRevenue"
 								breakdownNames={props.protocolRevenueVersions}
 								metadata={{
-									bribeRevenue: props.metrics.bribeRevenue ?? false,
+									bribeRevenue: props.metrics.bribes ?? false,
 									tokenTax: props.metrics.tokenTax ?? false
 								}}
 								title="Revenue by protocol version"

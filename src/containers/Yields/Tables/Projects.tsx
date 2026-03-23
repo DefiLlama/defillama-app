@@ -1,29 +1,28 @@
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import { YieldsProject } from './Name'
 import type { IYieldsProjectsTableRow } from './types'
 
-const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<IYieldsProjectsTableRow>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Project',
-		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <YieldsProject project={getValue() as string} projectslug={getValue() as string} />
-		}
-	},
-	{
+		cell: (info) => <YieldsProject project={info.getValue()} projectslug={info.getValue()} />
+	}),
+	columnHelper.accessor('airdrop', {
 		header: 'Airdrop',
-		accessorKey: 'airdrop',
 		cell: ({ getValue }) => {
 			if (!getValue()) {
 				return null
@@ -40,51 +39,40 @@ const columns: ColumnDef<IYieldsProjectsTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('category', {
 		header: 'Category',
-		accessorKey: 'category',
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('protocols', {
 		header: 'Pools',
-		accessorKey: 'protocols',
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'Combined TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => {
-			return <>{formattedNum(getValue(), true)}</>
-		},
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('audits', {
 		header: 'Audits',
-		accessorKey: 'audits',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? 'Yes' : 'No'}</>
-		},
+		cell: (info) => (info.getValue() ? 'Yes' : 'No'),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('medianApy', {
 		header: 'Median APY',
-		accessorKey: 'medianApy',
-		cell: ({ getValue }) => {
-			return <>{renderPercentChange(getValue(), true)}</>
-		},
+		cell: (info) => <PercentChange percent={info.getValue()} noSign />,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTableRow> }) {
@@ -99,7 +87,8 @@ export function YieldsProjectsTable({ data }: { data: Array<IYieldsProjectsTable
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})

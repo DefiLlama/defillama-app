@@ -1,5 +1,4 @@
-// oxlint-disable-next-line no-unused-vars
-interface ISale {
+export interface ISale {
 	aggregatorAddress?: string | null
 	aggregatorName?: string | null
 	blockNumber: number

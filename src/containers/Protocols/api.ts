@@ -1,25 +1,12 @@
-import { CHART_API, CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
-import type { ChartResponse, ExtraTvlChartKey, ProtocolsResponse } from './api.types'
+import type { ProtocolsResponse } from './api.types'
+
+const PROTOCOLS_LITE_API_URL = `${SERVER_URL}/lite/protocols2?b=2`
 
 /** Fetch all protocols from lite/protocols2. */
 export async function fetchProtocols(): Promise<ProtocolsResponse> {
-	return fetchJson<ProtocolsResponse>(PROTOCOLS_API)
-}
-
-/** Fetch chart data (optionally scoped to a chain). */
-export async function fetchChartData(chain?: string): Promise<ChartResponse> {
-	const url = chain && chain !== 'All' ? `${CHART_API}/${chain}` : CHART_API
-	return fetchJson<ChartResponse>(url, { timeout: 2 * 60 * 1000 })
-}
-
-/** Fetch chain list with extraTvl info from chains2/All. Returns chain names that have the given extraTvl key. */
-export async function fetchChainsWithExtraTvl(extraTvlKey: ExtraTvlChartKey): Promise<string[]> {
-	const data = await fetchJson<{
-		chainTvls: Array<{ name: string; extraTvl?: Record<string, { tvl: number }> }>
-	}>(`${CHAINS_API_V2}/All`)
-
-	return data.chainTvls.flatMap((chain) => (chain.extraTvl?.[extraTvlKey]?.tvl ? [chain.name] : []))
+	return fetchJson<ProtocolsResponse>(PROTOCOLS_LITE_API_URL)
 }
 
 /** Fetch active and historical airdrop config registry. */

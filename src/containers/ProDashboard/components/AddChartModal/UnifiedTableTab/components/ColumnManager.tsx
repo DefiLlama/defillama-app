@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
 import {
 	DndContext,
@@ -19,9 +20,15 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 import {
 	COLUMN_DICTIONARY_BY_ID,
 	UNIFIED_TABLE_COLUMN_DICTIONARY
@@ -162,21 +169,109 @@ export function ColumnManager({
 	onSortingChange,
 	onSortingReset
 }: ColumnManagerProps) {
-	const [search, setSearch] = useState('')
-	const [groupFilter, setGroupFilter] = useState<ColumnGroupId | 'all'>('all')
-	const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
-	const [customColumnExpanded, setCustomColumnExpanded] = useState(false)
+	const { hasActiveSubscription } = useAuthContext()
+	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderSubscribeModal,
+		setOpen: setShouldRenderSubscribeModal
+	})
+	const [uiState, setUIState] = useState<{
+		search: string
+		groupFilter: ColumnGroupId | 'all'
+		activeId: UniqueIdentifier | null
+		customColumnExpanded: boolean
+	}>({
+		search: '',
+		groupFilter: 'all',
+		activeId: null,
+		customColumnExpanded: false
+	})
+	const { search, groupFilter, activeId, customColumnExpanded } = uiState
 
-	const [customName, setCustomName] = useState('')
-	const [customExpression, setCustomExpression] = useState('')
-	const [customFormat, setCustomFormat] = useState<ColumnFormat>('number')
-	const [customAggregation, setCustomAggregation] = useState<ColumnAggregation>('recalculate')
-	const [editingId, setEditingId] = useState<string | null>(null)
-	const [showAutocomplete, setShowAutocomplete] = useState(false)
-	const [autocompleteIndex, setAutocompleteIndex] = useState(-1)
-	const [autocompleteFilter, setAutocompleteFilter] = useState('')
+	const [customColumnState, setCustomColumnState] = useState<{
+		customName: string
+		customExpression: string
+		customFormat: ColumnFormat
+		customAggregation: ColumnAggregation
+		editingId: string | null
+		aggregationTouched: boolean
+	}>({
+		customName: '',
+		customExpression: '',
+		customFormat: 'number',
+		customAggregation: 'recalculate',
+		editingId: null,
+		aggregationTouched: false
+	})
+	const { customName, customExpression, customFormat, customAggregation, editingId, aggregationTouched } =
+		customColumnState
+
+	const [autocompleteState, setAutocompleteState] = useState<{
+		showAutocomplete: boolean
+		autocompleteIndex: number
+		autocompleteFilter: string
+	}>({
+		showAutocomplete: false,
+		autocompleteIndex: -1,
+		autocompleteFilter: ''
+	})
+	const { showAutocomplete, autocompleteIndex, autocompleteFilter } = autocompleteState
+
+	const setSearch = (value: string) => {
+		setUIState((prev) => ({ ...prev, search: value }))
+	}
+
+	const setGroupFilter = (value: ColumnGroupId | 'all') => {
+		setUIState((prev) => ({ ...prev, groupFilter: value }))
+	}
+
+	const setActiveId = (value: UniqueIdentifier | null) => {
+		setUIState((prev) => ({ ...prev, activeId: value }))
+	}
+
+	const setCustomColumnExpanded = (value: boolean) => {
+		setUIState((prev) => ({ ...prev, customColumnExpanded: value }))
+	}
+
+	const setCustomName = (value: string) => {
+		setCustomColumnState((prev) => ({ ...prev, customName: value }))
+	}
+
+	const setCustomExpression = (value: string) => {
+		setCustomColumnState((prev) => ({ ...prev, customExpression: value }))
+	}
+
+	const setCustomFormat = (value: ColumnFormat) => {
+		setCustomColumnState((prev) => ({ ...prev, customFormat: value }))
+	}
+
+	const setCustomAggregation = (value: ColumnAggregation) => {
+		setCustomColumnState((prev) => ({ ...prev, customAggregation: value }))
+	}
+
+	const setEditingId = (value: string | null) => {
+		setCustomColumnState((prev) => ({ ...prev, editingId: value }))
+	}
+
+	const setAggregationTouched = (value: boolean) => {
+		setCustomColumnState((prev) => ({ ...prev, aggregationTouched: value }))
+	}
+
+	const setShowAutocomplete = (value: boolean) => {
+		setAutocompleteState((prev) => ({ ...prev, showAutocomplete: value }))
+	}
+
+	const setAutocompleteIndex = (value: number | ((prev: number) => number)) => {
+		setAutocompleteState((prev) => ({
+			...prev,
+			autocompleteIndex: typeof value === 'function' ? value(prev.autocompleteIndex) : value
+		}))
+	}
+
+	const setAutocompleteFilter = (value: string) => {
+		setAutocompleteState((prev) => ({ ...prev, autocompleteFilter: value }))
+	}
 	const expressionInputRef = useRef<HTMLInputElement>(null)
-	const aggregationTouchedRef = useRef(false)
 
 	const allColumns = useMemo(() => buildAllColumns(customColumns), [customColumns])
 	const allColumnIds = useMemo(() => new Set(allColumns.map((c) => c.id)), [allColumns])
@@ -339,12 +434,10 @@ export function ColumnManager({
 				}
 			})
 	}, [customExpression, expressionValidation.isValid, availableVariables])
-
-	useEffect(() => {
-		if (customExpression && expressionValidation.isValid && !editingId && !aggregationTouchedRef.current) {
-			setCustomAggregation(getDefaultAggregation(customExpression))
-		}
-	}, [customExpression, expressionValidation.isValid, editingId])
+	const resolvedCustomAggregation =
+		customExpression && expressionValidation.isValid && !editingId && !aggregationTouched
+			? getDefaultAggregation(customExpression)
+			: customAggregation
 
 	const insertSuggestion = (suggestion: AutocompleteSuggestion) => {
 		if (!expressionInputRef.current) return
@@ -354,7 +447,7 @@ export function ColumnManager({
 		const value = input.value
 
 		let wordStart = start
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) wordStart--
+		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(value[wordStart - 1])) wordStart -= 1
 
 		const newValue = value.slice(0, wordStart) + suggestion.value + value.slice(end)
 		setCustomExpression(newValue)
@@ -376,7 +469,7 @@ export function ColumnManager({
 		setCustomExpression(newValue)
 
 		let wordStart = cursorPos
-		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) wordStart--
+		while (wordStart > 0 && /[a-zA-Z0-9_]/.test(newValue[wordStart - 1])) wordStart -= 1
 		const currentWord = newValue.slice(wordStart, cursorPos)
 
 		if (currentWord.length >= 1) {
@@ -430,7 +523,7 @@ export function ColumnManager({
 			name: customName.trim(),
 			expression: customExpression.trim(),
 			format: customFormat,
-			aggregation: customAggregation
+			aggregation: resolvedCustomAggregation
 		}
 		if (editingId && onUpdateCustomColumn) {
 			onUpdateCustomColumn(editingId, {
@@ -443,7 +536,7 @@ export function ColumnManager({
 		} else if (onAddCustomColumn) {
 			onAddCustomColumn(column)
 		}
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName('')
 		setCustomExpression('')
 		setCustomFormat('number')
@@ -452,7 +545,7 @@ export function ColumnManager({
 	}
 
 	const handleApplyPreset = (preset: (typeof EXAMPLE_PRESETS)[0]) => {
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName(preset.name)
 		setCustomExpression(preset.expression)
 		setCustomFormat(preset.format)
@@ -470,7 +563,7 @@ export function ColumnManager({
 	}
 
 	const handleCancelEdit = () => {
-		aggregationTouchedRef.current = false
+		setAggregationTouched(false)
 		setCustomName('')
 		setCustomExpression('')
 		setCustomFormat('number')
@@ -522,7 +615,7 @@ export function ColumnManager({
 							{selectedColumns.length}
 						</span>
 					</div>
-					{selectedColumns.length > 0 && (
+					{selectedColumns.length > 0 ? (
 						<button
 							type="button"
 							onClick={handleClearAll}
@@ -530,7 +623,7 @@ export function ColumnManager({
 						>
 							Clear all
 						</button>
-					)}
+					) : null}
 				</div>
 
 				<DndContext
@@ -577,7 +670,7 @@ export function ColumnManager({
 				<p className="mt-2 text-[10px] text-(--text-tertiary)">Drag to reorder. First column pinned left.</p>
 			</section>
 
-			{sorting !== undefined && onSortingChange && (
+			{sorting !== undefined && onSortingChange ? (
 				<SortingSection
 					currentSortColumn={currentSortColumn}
 					isDescending={isDescending}
@@ -586,250 +679,7 @@ export function ColumnManager({
 					onDirectionChange={handleSortDirectionChange}
 					onReset={onSortingReset}
 				/>
-			)}
-
-			<section className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3">
-				<button
-					type="button"
-					onClick={() => {
-						setCustomColumnExpanded(!customColumnExpanded)
-						if (editingId) handleCancelEdit()
-					}}
-					className="flex w-full items-center justify-between"
-				>
-					<div className="flex items-center gap-2">
-						<Icon name={customColumnExpanded ? 'minus' : 'plus'} width={14} height={14} className="text-(--primary)" />
-						<span className="text-xs font-semibold text-(--text-primary)">
-							{editingId ? 'Edit Custom Column' : 'Custom Column'}
-						</span>
-						{(customColumns?.length ?? 0) > 0 && (
-							<span className="rounded bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-medium text-purple-500">
-								{customColumns?.length}
-							</span>
-						)}
-					</div>
-					<Icon
-						name="chevron-down"
-						width={14}
-						height={14}
-						className={`text-(--text-tertiary) transition-transform ${customColumnExpanded ? 'rotate-180' : ''}`}
-					/>
-				</button>
-
-				<div className="mt-2 flex flex-wrap gap-1.5">
-					{EXAMPLE_PRESETS.map((preset) => (
-						<button
-							key={preset.name}
-							type="button"
-							onClick={() => handleApplyPreset(preset)}
-							className="rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1 text-[10px] font-medium text-(--text-secondary) transition-colors hover:border-(--primary) hover:text-(--primary)"
-						>
-							{preset.name}
-						</button>
-					))}
-				</div>
-
-				{customColumnExpanded && (
-					<div className="mt-3 space-y-3 border-t border-(--cards-border) pt-3">
-						{editingId && (
-							<div className="flex items-center justify-between">
-								<span className="text-xs text-(--text-secondary)">Editing: {customName || 'Custom Column'}</span>
-								<button type="button" onClick={handleCancelEdit} className="text-xs text-(--primary) hover:underline">
-									Cancel
-								</button>
-							</div>
-						)}
-
-						<div className="flex gap-2">
-							<input
-								type="text"
-								value={customName}
-								onChange={(e) => setCustomName(e.target.value)}
-								placeholder="Column name"
-								className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
-							/>
-						</div>
-
-						<div className="relative" onClick={(e) => e.stopPropagation()}>
-							<input
-								ref={expressionInputRef}
-								type="text"
-								value={customExpression}
-								onChange={handleExpressionChange}
-								onKeyDown={handleExpressionKeyDown}
-								onFocus={() => customExpression && setShowAutocomplete(true)}
-								placeholder="e.g., tvl / mcap, fees24h * 365"
-								className={`w-full rounded-md border bg-(--cards-bg-alt)/50 px-2 py-1.5 pr-8 font-mono text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden ${
-									customExpression && !expressionValidation.isValid
-										? 'border-red-500'
-										: customExpression && expressionValidation.isValid
-											? 'border-green-500'
-											: 'border-(--cards-border) focus:border-(--primary)'
-								}`}
-							/>
-							{customExpression && (
-								<div className="absolute top-1/2 right-2 -translate-y-1/2">
-									{expressionValidation.isValid ? (
-										<Icon name="check" height={12} width={12} className="text-green-500" />
-									) : (
-										<Icon name="x" height={12} width={12} className="text-red-500" />
-									)}
-								</div>
-							)}
-							{showAutocomplete && filteredSuggestions.length > 0 && (
-								<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
-									{filteredSuggestions.map((suggestion, index) => (
-										<div
-											key={`${suggestion.type}-${suggestion.value}`}
-											onClick={() => insertSuggestion(suggestion)}
-											onMouseEnter={() => setAutocompleteIndex(index)}
-											className={`flex cursor-pointer items-center gap-2 px-2 py-1 text-xs ${
-												index === autocompleteIndex
-													? 'bg-(--primary) text-white'
-													: 'text-(--text-primary) hover:bg-(--cards-bg-alt)'
-											}`}
-										>
-											<span
-												className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-													suggestion.type === 'variable'
-														? 'bg-blue-400'
-														: suggestion.type === 'function'
-															? 'bg-purple-400'
-															: 'bg-gray-400'
-												}`}
-											/>
-											<code className="shrink-0">{suggestion.display}</code>
-											<span className="ml-auto truncate text-(--text-tertiary)">{suggestion.description}</span>
-										</div>
-									))}
-								</div>
-							)}
-						</div>
-						<p className="text-[9px] text-(--text-tertiary)">Ctrl+Space to show all · ↑↓ navigate · Enter select</p>
-
-						<div className="flex flex-wrap gap-2">
-							<div className="flex-1">
-								<label className="mb-1 block text-[10px] font-medium text-(--text-secondary)">Format</label>
-								<div className="flex gap-1">
-									{FORMAT_OPTIONS.map((opt) => (
-										<Tooltip key={opt.id} content={opt.description} placement="bottom">
-											<button
-												type="button"
-												onClick={() => setCustomFormat(opt.id)}
-												className={`flex-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors ${
-													customFormat === opt.id
-														? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
-														: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
-												}`}
-											>
-												{opt.label}
-											</button>
-										</Tooltip>
-									))}
-								</div>
-							</div>
-							<div className="flex-1">
-								<label className="mb-1 block text-[10px] font-medium text-(--text-secondary)">Aggregation</label>
-								<div className="flex gap-1">
-									{AGGREGATION_OPTIONS.map((opt) => (
-										<Tooltip key={opt.id} content={opt.description} placement="bottom">
-											<button
-												type="button"
-												onClick={() => {
-													aggregationTouchedRef.current = true
-													setCustomAggregation(opt.id)
-												}}
-												className={`flex-1 rounded-md border px-1 py-1 text-[10px] font-medium transition-colors ${
-													customAggregation === opt.id
-														? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
-														: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
-												}`}
-											>
-												{opt.label}
-											</button>
-										</Tooltip>
-									))}
-								</div>
-							</div>
-						</div>
-
-						{customExpression && (
-							<div
-								className={`rounded-md border p-2 text-xs ${
-									expressionValidation.isValid ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'
-								}`}
-							>
-								<div className="flex items-center justify-between">
-									<span className="text-(--text-secondary)">Result:</span>
-									{preview !== null ? (
-										<span className="font-mono font-semibold text-green-600 dark:text-green-400">{preview}</span>
-									) : (
-										<span className="text-red-500">{expressionValidation.error || 'Invalid'}</span>
-									)}
-								</div>
-								{usedVariables.length > 0 && (
-									<div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 border-t border-green-500/20 pt-1">
-										{usedVariables.map((v) => (
-											<span key={v.key} className="text-[10px] text-(--text-tertiary)">
-												<code>{v.key}</code>={v.formatted}
-											</span>
-										))}
-									</div>
-								)}
-							</div>
-						)}
-
-						<button
-							type="button"
-							onClick={handleAddOrUpdateCustomColumn}
-							disabled={!validation.isValid}
-							className="w-full rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
-						>
-							{editingId ? 'Update Column' : 'Add Custom Column'}
-						</button>
-					</div>
-				)}
-
-				{(customColumns?.length ?? 0) > 0 && (
-					<div className="mt-3 space-y-1.5 border-t border-(--cards-border) pt-3">
-						{customColumns?.map((col) => (
-							<div
-								key={col.id}
-								className={`flex items-center justify-between rounded-md border p-2 ${editingId === col.id ? 'border-(--primary) bg-(--primary)/5' : 'border-(--cards-border) bg-(--cards-bg-alt)/30'}`}
-							>
-								<div className="min-w-0 flex-1">
-									<div className="flex items-center gap-1.5">
-										<span className="truncate text-xs font-medium text-(--text-primary)">{col.name}</span>
-										<span className="rounded border border-(--cards-border) bg-(--cards-bg) px-1 py-0.5 text-[9px] uppercase">
-											{col.format}
-										</span>
-										<span className="rounded border border-(--cards-border) bg-(--cards-bg) px-1 py-0.5 text-[9px] text-(--text-tertiary)">
-											{AGGREGATION_OPTIONS.find((a) => a.id === col.aggregation)?.label}
-										</span>
-									</div>
-									<code className="block truncate text-[10px] text-(--text-tertiary)">{col.expression}</code>
-								</div>
-								<div className="ml-2 flex shrink-0 items-center gap-1">
-									<button
-										type="button"
-										onClick={() => handleEditCustomColumn(col)}
-										className="rounded p-1 text-(--text-tertiary) hover:bg-(--cards-bg-alt) hover:text-(--primary)"
-									>
-										<Icon name="pencil" height={12} width={12} />
-									</button>
-									<button
-										type="button"
-										onClick={() => onRemoveCustomColumn?.(col.id)}
-										className="rounded p-1 text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500"
-									>
-										<Icon name="trash-2" height={12} width={12} />
-									</button>
-								</div>
-							</div>
-						))}
-					</div>
-				)}
-			</section>
+			) : null}
 
 			<section className="flex flex-col rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap gap-1 border-b border-(--cards-border) p-2">
@@ -868,7 +718,7 @@ export function ColumnManager({
 
 				<div className="thin-scrollbar max-h-[240px] overflow-y-auto p-2">
 					{filteredColumns.length === 0 ? (
-						<div className="flex h-16 items-center justify-center text-xs text-(--text-tertiary)">No columns match</div>
+						<p className="flex h-16 items-center justify-center text-xs text-(--text-tertiary)">No columns match</p>
 					) : (
 						<div className="flex flex-col gap-1">
 							{filteredColumns.map((column) => {
@@ -891,7 +741,7 @@ export function ColumnManager({
 													: 'border-(--cards-border) group-hover:border-(--primary)/50'
 											}`}
 										>
-											{isSelected && <Icon name="check" width={8} height={8} />}
+											{isSelected ? <Icon name="check" width={8} height={8} /> : null}
 										</div>
 										<span
 											className={`flex-1 truncate text-xs ${isSelected ? 'font-medium text-(--text-primary)' : 'text-(--text-secondary)'}`}
@@ -908,6 +758,267 @@ export function ColumnManager({
 					)}
 				</div>
 			</section>
+
+			<section className="rounded-lg border border-(--cards-border) bg-(--cards-bg) p-3">
+				<button
+					type="button"
+					onClick={() => {
+						if (!hasActiveSubscription) {
+							setSignupSource('pro-dashboard')
+							subscribeModalStore.show()
+							return
+						}
+						setCustomColumnExpanded(!customColumnExpanded)
+						if (editingId) handleCancelEdit()
+					}}
+					className="flex w-full items-center justify-between"
+				>
+					<div className="flex items-center gap-2">
+						<Icon
+							name={!hasActiveSubscription ? 'file-lock-2' : customColumnExpanded ? 'minus' : 'plus'}
+							width={14}
+							height={14}
+							className="text-(--primary)"
+						/>
+						<span className="text-xs font-semibold text-(--text-primary)">
+							{editingId ? 'Edit Custom Column' : 'Custom Column'}
+							{!hasActiveSubscription ? <span className="ml-1 text-[10px] font-normal opacity-60">(Pro)</span> : null}
+						</span>
+						{(customColumns?.length ?? 0) > 0 ? (
+							<span className="rounded bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-medium text-purple-500">
+								{customColumns?.length}
+							</span>
+						) : null}
+					</div>
+					<Icon
+						name="chevron-down"
+						width={14}
+						height={14}
+						className={`text-(--text-tertiary) transition-transform ${customColumnExpanded ? 'rotate-180' : ''}`}
+					/>
+				</button>
+
+				<div className="mt-2 flex flex-wrap gap-1.5">
+					{EXAMPLE_PRESETS.map((preset) => (
+						<button
+							key={preset.name}
+							type="button"
+							onClick={() => handleApplyPreset(preset)}
+							className="rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1 text-[10px] font-medium text-(--text-secondary) transition-colors hover:border-(--primary) hover:text-(--primary)"
+						>
+							{preset.name}
+						</button>
+					))}
+				</div>
+
+				{customColumnExpanded ? (
+					<div className="mt-3 space-y-3 border-t border-(--cards-border) pt-3">
+						{editingId ? (
+							<div className="flex items-center justify-between">
+								<span className="text-xs text-(--text-secondary)">Editing: {customName || 'Custom Column'}</span>
+								<button type="button" onClick={handleCancelEdit} className="text-xs text-(--primary) hover:underline">
+									Cancel
+								</button>
+							</div>
+						) : null}
+
+						<div className="flex gap-2">
+							<input
+								type="text"
+								value={customName}
+								onChange={(e) => setCustomName(e.target.value)}
+								placeholder="Column name"
+								className="flex-1 rounded-md border border-(--cards-border) bg-(--cards-bg-alt)/50 px-2 py-1.5 text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:border-(--primary) focus:outline-hidden"
+							/>
+						</div>
+
+						<div className="relative" role="presentation" onClick={(e) => e.stopPropagation()}>
+							<input
+								ref={expressionInputRef}
+								type="text"
+								value={customExpression}
+								onChange={handleExpressionChange}
+								onKeyDown={handleExpressionKeyDown}
+								onFocus={() => customExpression && setShowAutocomplete(true)}
+								placeholder="e.g., tvl / mcap, fees24h * 365"
+								className={`w-full rounded-md border bg-(--cards-bg-alt)/50 px-2 py-1.5 pr-8 font-mono text-xs text-(--text-primary) placeholder:text-(--text-tertiary) focus:outline-hidden ${
+									customExpression && !expressionValidation.isValid
+										? 'border-red-500'
+										: customExpression && expressionValidation.isValid
+											? 'border-green-500'
+											: 'border-(--cards-border) focus:border-(--primary)'
+								}`}
+							/>
+							{customExpression ? (
+								<div className="absolute top-1/2 right-2 -translate-y-1/2">
+									{expressionValidation.isValid ? (
+										<Icon name="check" height={12} width={12} className="text-green-500" />
+									) : (
+										<Icon name="x" height={12} width={12} className="text-red-500" />
+									)}
+								</div>
+							) : null}
+							{showAutocomplete && filteredSuggestions.length > 0 ? (
+								<div className="absolute z-50 mt-1 thin-scrollbar max-h-40 w-full overflow-y-auto rounded-md border border-(--cards-border) bg-(--cards-bg) shadow-lg">
+									{filteredSuggestions.map((suggestion, index) => (
+										<button
+											key={`${suggestion.type}-${suggestion.value}`}
+											type="button"
+											onClick={() => insertSuggestion(suggestion)}
+											onMouseEnter={() => setAutocompleteIndex(index)}
+											className={`flex cursor-pointer items-center gap-2 px-2 py-1 text-xs ${
+												index === autocompleteIndex
+													? 'bg-(--primary) text-white'
+													: 'text-(--text-primary) hover:bg-(--cards-bg-alt)'
+											}`}
+										>
+											<span
+												className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+													suggestion.type === 'variable'
+														? 'bg-blue-400'
+														: suggestion.type === 'function'
+															? 'bg-purple-400'
+															: 'bg-gray-400'
+												}`}
+											/>
+											<code className="shrink-0">{suggestion.display}</code>
+											<span className="ml-auto truncate text-(--text-tertiary)">{suggestion.description}</span>
+										</button>
+									))}
+								</div>
+							) : null}
+						</div>
+						<p className="text-[9px] text-(--text-tertiary)">Ctrl+Space to show all · ↑↓ navigate · Enter select</p>
+
+						<div className="flex flex-wrap gap-2">
+							<div className="flex-1">
+								<p className="mb-1 text-[10px] font-medium text-(--text-secondary)">Format</p>
+								<div className="flex gap-1">
+									{FORMAT_OPTIONS.map((opt) => (
+										<Tooltip key={opt.id} content={opt.description} placement="bottom">
+											<button
+												type="button"
+												onClick={() => setCustomFormat(opt.id)}
+												className={`flex-1 rounded-md border px-2 py-1 text-[10px] font-medium transition-colors ${
+													customFormat === opt.id
+														? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
+														: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
+												}`}
+											>
+												{opt.label}
+											</button>
+										</Tooltip>
+									))}
+								</div>
+							</div>
+							<div className="flex-1">
+								<p className="mb-1 text-[10px] font-medium text-(--text-secondary)">Aggregation</p>
+								<div className="flex gap-1">
+									{AGGREGATION_OPTIONS.map((opt) => (
+										<Tooltip key={opt.id} content={opt.description} placement="bottom">
+											<button
+												type="button"
+												onClick={() => {
+													setAggregationTouched(true)
+													setCustomAggregation(opt.id)
+												}}
+												className={`flex-1 rounded-md border px-1 py-1 text-[10px] font-medium transition-colors ${
+													resolvedCustomAggregation === opt.id
+														? 'border-(--primary) bg-(--primary)/15 text-(--primary)'
+														: 'border-(--cards-border) text-(--text-tertiary) hover:border-(--primary)/50'
+												}`}
+											>
+												{opt.label}
+											</button>
+										</Tooltip>
+									))}
+								</div>
+							</div>
+						</div>
+
+						{customExpression ? (
+							<div
+								className={`rounded-md border p-2 text-xs ${
+									expressionValidation.isValid ? 'border-green-500/30 bg-green-500/5' : 'border-red-500/30 bg-red-500/5'
+								}`}
+							>
+								<div className="flex items-center justify-between">
+									<span className="text-(--text-secondary)">Result:</span>
+									{preview !== null ? (
+										<span className="font-mono font-semibold text-green-600 dark:text-green-400">{preview}</span>
+									) : (
+										<span className="text-red-500">{expressionValidation.error || 'Invalid'}</span>
+									)}
+								</div>
+								{usedVariables.length > 0 ? (
+									<div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 border-t border-green-500/20 pt-1">
+										{usedVariables.map((v) => (
+											<span key={v.key} className="text-[10px] text-(--text-tertiary)">
+												<code>{v.key}</code>={v.formatted}
+											</span>
+										))}
+									</div>
+								) : null}
+							</div>
+						) : null}
+
+						<button
+							type="button"
+							onClick={handleAddOrUpdateCustomColumn}
+							disabled={!validation.isValid}
+							className="w-full rounded-md bg-(--primary) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-(--primary-hover) disabled:cursor-not-allowed disabled:opacity-50"
+						>
+							{editingId ? 'Update Column' : 'Add Custom Column'}
+						</button>
+					</div>
+				) : null}
+
+				{(customColumns?.length ?? 0) > 0 ? (
+					<div className="mt-3 space-y-1.5 border-t border-(--cards-border) pt-3">
+						{customColumns?.map((col) => (
+							<div
+								key={col.id}
+								className={`flex items-center justify-between rounded-md border p-2 ${editingId === col.id ? 'border-(--primary) bg-(--primary)/5' : 'border-(--cards-border) bg-(--cards-bg-alt)/30'}`}
+							>
+								<div className="min-w-0 flex-1">
+									<div className="flex items-center gap-1.5">
+										<span className="truncate text-xs font-medium text-(--text-primary)">{col.name}</span>
+										<span className="rounded border border-(--cards-border) bg-(--cards-bg) px-1 py-0.5 text-[9px] uppercase">
+											{col.format}
+										</span>
+										<span className="rounded border border-(--cards-border) bg-(--cards-bg) px-1 py-0.5 text-[9px] text-(--text-tertiary)">
+											{AGGREGATION_OPTIONS.find((a) => a.id === col.aggregation)?.label}
+										</span>
+									</div>
+									<code className="block truncate text-[10px] text-(--text-tertiary)">{col.expression}</code>
+								</div>
+								<div className="ml-2 flex shrink-0 items-center gap-1">
+									<button
+										type="button"
+										onClick={() => handleEditCustomColumn(col)}
+										className="rounded p-1 text-(--text-tertiary) hover:bg-(--cards-bg-alt) hover:text-(--primary)"
+									>
+										<Icon name="pencil" height={12} width={12} />
+									</button>
+									<button
+										type="button"
+										onClick={() => onRemoveCustomColumn?.(col.id)}
+										className="rounded p-1 text-(--text-tertiary) hover:bg-red-500/10 hover:text-red-500"
+									>
+										<Icon name="trash-2" height={12} width={12} />
+									</button>
+								</div>
+							</div>
+						))}
+					</div>
+				) : null}
+			</section>
+
+			{shouldRenderSubscribeModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
 		</div>
 	)
 }
@@ -954,7 +1065,7 @@ function SortableChip({
 			<span className="max-w-[80px] truncate font-medium text-(--text-primary)" title={label}>
 				{label}
 			</span>
-			{isFirst && <Icon name="pin" width={8} height={8} className="text-(--primary)" />}
+			{isFirst ? <Icon name="pin" width={8} height={8} className="text-(--primary)" /> : null}
 			<button
 				type="button"
 				onClick={(e) => {
@@ -1029,9 +1140,9 @@ function SortingSection({
 								}`}
 							>
 								<span>No sorting</span>
-								{!currentSortColumn && (
+								{!currentSortColumn ? (
 									<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
-								)}
+								) : null}
 							</button>
 							{selectableColumns.map((col) => {
 								const isActive = col.id === currentSortColumn
@@ -1050,9 +1161,9 @@ function SortingSection({
 										}`}
 									>
 										<span className="truncate">{col.header}</span>
-										{isActive && (
+										{isActive ? (
 											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
-										)}
+										) : null}
 									</button>
 								)
 							})}
@@ -1089,11 +1200,11 @@ function SortingSection({
 						Desc
 					</button>
 				</div>
-				{onReset && (
+				{onReset ? (
 					<button type="button" onClick={onReset} className="text-[10px] text-(--primary) hover:underline">
 						Reset
 					</button>
-				)}
+				) : null}
 			</div>
 		</section>
 	)

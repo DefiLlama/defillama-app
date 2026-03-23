@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import { useCallback, useSyncExternalStore } from 'react'
+import { useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { setStorageItem, useStorageItem } from '~/contexts/localStorageStore'
 import type { TimePeriod } from '../ProDashboardAPIContext'
 import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 import type { DashboardItemConfig } from '../types'
@@ -13,24 +13,20 @@ const EMPTY_DASHBOARDS: Dashboard[] = []
 export function useGetLiteDashboards() {
 	const { authorizedFetch, isAuthenticated, user } = useAuthContext()
 
-	const liteDashboardsInStorage = useSyncExternalStore(
-		(callback) => subscribeToStorageKey('lite-dashboards', callback),
-		() => getStorageItem('lite-dashboards', '[]') ?? '[]',
-		() => '[]'
-	)
+	const liteDashboardsInStorage = useStorageItem('lite-dashboards', '[]')
 
 	const liteDashboards = JSON.parse(liteDashboardsInStorage)
 
 	const { isLoading, error } = useQuery({
-		queryKey: ['lite-dashboards', user?.id],
+		queryKey: ['pro-dashboard', 'lite-dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
 				const data = await dashboardAPI.listLiteDashboards(authorizedFetch)
 				setStorageItem('lite-dashboards', JSON.stringify(data))
 				return data
-			} catch (error) {
-				console.log('Failed to load lite dashboards:', error)
+			} catch (err) {
+				console.log('Failed to load lite dashboards:', err)
 				setStorageItem('lite-dashboards', '[]')
 
 				return []
@@ -44,7 +40,7 @@ export function useGetLiteDashboards() {
 	return {
 		data: liteDashboards,
 		isLoading: liteDashboards.length === 0 && isLoading,
-		error: error as Error | null
+		error
 	}
 }
 
@@ -59,13 +55,13 @@ export function useDashboardAPI() {
 		isLoading: isLoadingDashboards,
 		error: dashboardsError
 	} = useQuery({
-		queryKey: ['dashboards', user?.id],
+		queryKey: ['pro-dashboard', 'dashboards', user?.id],
 		queryFn: async () => {
 			if (!isAuthenticated) return []
 			try {
 				return await dashboardAPI.listDashboards(authorizedFetch)
-			} catch (error) {
-				console.log('Failed to load dashboards:', error)
+			} catch (err) {
+				console.log('Failed to load dashboards:', err)
 				return []
 			}
 		},
@@ -86,13 +82,13 @@ export function useDashboardAPI() {
 			return await dashboardAPI.createDashboard(data, authorizedFetch)
 		},
 		onSuccess: (dashboard) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
-			router.push(`/pro/${dashboard.id}`)
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
+			void router.push(`/pro/${dashboard.id}`)
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to create dashboard')
+		onError: (err: unknown) => {
+			toast.error(err instanceof Error ? err.message : 'Failed to create dashboard')
 		}
 	})
 
@@ -115,13 +111,13 @@ export function useDashboardAPI() {
 			return await dashboardAPI.updateDashboard(id, data, authorizedFetch)
 		},
 		onSuccess: (dashboard: Dashboard, variables) => {
-			queryClient.setQueriesData({ queryKey: ['dashboard', variables.id], exact: false }, dashboard)
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard', variables.id], exact: false }, dashboard)
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to save dashboard')
+		onError: (err: unknown) => {
+			toast.error(err instanceof Error ? err.message : 'Failed to save dashboard')
 		}
 	})
 
@@ -131,18 +127,18 @@ export function useDashboardAPI() {
 			return await dashboardAPI.deleteDashboard(id, authorizedFetch)
 		},
 		onSuccess: (_, deletedId) => {
-			queryClient.invalidateQueries({ queryKey: ['dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['my-dashboards'] })
-			queryClient.invalidateQueries({ queryKey: ['lite-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'my-dashboards'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'lite-dashboards'] })
 			toast.success('Dashboard deleted successfully')
 			// Navigate away if current dashboard was deleted
 			const currentDashboardId = router.query.dashboardId
 			if (currentDashboardId === deletedId) {
-				router.push('/pro')
+				void router.push('/pro')
 			}
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to delete dashboard')
+		onError: (err: unknown) => {
+			toast.error(err instanceof Error ? err.message : 'Failed to delete dashboard')
 		}
 	})
 
@@ -151,8 +147,8 @@ export function useDashboardAPI() {
 			try {
 				const dashboard = await dashboardAPI.getDashboard(id, isAuthenticated ? authorizedFetch : undefined)
 				return dashboard
-			} catch (error: any) {
-				console.log('Failed to load dashboard:', error)
+			} catch (err) {
+				console.log('Failed to load dashboard:', err)
 				return null
 			}
 		},
@@ -161,7 +157,7 @@ export function useDashboardAPI() {
 
 	// Navigate to a dashboard
 	const navigateToDashboard = (id: string) => {
-		router.push(`/pro/${id}`)
+		void router.push(`/pro/${id}`)
 	}
 
 	// Delete dashboard (confirmation handled in UI)

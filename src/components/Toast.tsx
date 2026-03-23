@@ -1,10 +1,16 @@
+import { createPortal } from 'react-dom'
 import toast, { Toaster } from 'react-hot-toast'
+import { useIsClient } from '~/hooks/useIsClient'
 import { Icon } from './Icon'
 
 export function Toast() {
-	return (
+	const isClient = useIsClient()
+	if (!isClient) return null
+
+	return createPortal(
 		<Toaster
 			position="top-center"
+			containerStyle={{ zIndex: 99999 }}
 			toastOptions={{
 				style: {
 					background: 'var(--cards-bg)',
@@ -26,7 +32,8 @@ export function Toast() {
 					}
 				}
 			}}
-		/>
+		/>,
+		document.body
 	)
 }
 

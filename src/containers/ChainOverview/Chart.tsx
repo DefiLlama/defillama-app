@@ -1,6 +1,7 @@
 import * as echarts from 'echarts/core'
 import { useEffect, useId, useMemo, useRef } from 'react'
 import { formatTooltipValue } from '~/components/ECharts/formatters'
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
 import { useDefaults } from '~/components/ECharts/useDefaults'
 import { mergeDeep } from '~/components/ECharts/utils'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -31,6 +32,7 @@ export default function ChainCoreChart({
 	const id = useId()
 	const isCumulative = groupBy === 'cumulative'
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const tooltipGroupBy: ChartTimeGrouping = groupBy && groupBy !== 'cumulative' ? groupBy : 'daily'
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -42,19 +44,16 @@ export default function ChainCoreChart({
 		hideLegend: true,
 		unlockTokenSymbol,
 		isThemeDark,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly')
-				: 'daily'
+		groupBy: tooltipGroupBy
 	})
 
 	const { series, allYAxis } = useMemo(() => {
-		const uniqueYAxis = new Set()
-
-		const stacks = Object.keys(chartData) as any
-
-		for (const stack of stacks) {
-			uniqueYAxis.add(yAxisByChart[stack])
+		const uniqueYAxis = new Set<ChainChartLabels>()
+		const stacks: ChainChartLabels[] = []
+		for (const stack in chartData) {
+			const chartLabel = stack as ChainChartLabels
+			stacks.push(chartLabel)
+			uniqueYAxis.add(yAxisByChart[chartLabel])
 		}
 
 		const indexByYAxis = Object.fromEntries(
@@ -122,7 +121,7 @@ export default function ChainCoreChart({
 		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 		if (onReady) {
 			onReady(instance)
@@ -285,6 +284,23 @@ export default function ChainCoreChart({
 							type: [5, 10],
 							dashOffset: 5,
 							color: chainOverviewChartColors['Transactions']
+						}
+					}
+				})
+			}
+
+			if (type === 'Gas Used') {
+				finalYAxis.push({
+					...options,
+					axisLabel: {
+						formatter: (value) => formattedNum(value)
+					},
+					axisLine: {
+						show: true,
+						lineStyle: {
+							type: [5, 10],
+							dashOffset: 5,
+							color: chainOverviewChartColors['Gas Used']
 						}
 					}
 				})

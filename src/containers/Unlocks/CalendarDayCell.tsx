@@ -1,10 +1,9 @@
 import dayjs from 'dayjs'
-import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { DailyUnlocks, DayInfo } from './calendarTypes'
 import { interpolateColor } from './colorUtils'
 
@@ -80,14 +79,17 @@ export const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ dayInfo, unloc
 						<>
 							<div className="-mx-2 border-t border-(--cards-border)"></div>
 							<div className="flex flex-col gap-1.5">
-								{dayData.events.map((event, i) => (
-									<div key={i} className="flex items-center justify-between gap-4">
+								{dayData.events.map((event, index) => (
+									<div
+										key={`${event.protocol}-${event.value}-${index}`}
+										className="flex items-center justify-between gap-4"
+									>
 										<BasicLink
 											href={`/unlocks/${slug(event.protocol)}`}
 											target="_blank"
 											className="group flex min-w-0 shrink items-center gap-1.5 text-sm font-medium hover:underline"
 										>
-											<TokenLogo logo={tokenIconUrl(event.protocol)} size={16} />
+											<TokenLogo name={event.protocol} kind="token" size={16} alt={`Logo of ${event.protocol}`} />
 											<span className="truncate">{event.protocol}</span>
 										</BasicLink>
 										<span className="text-sm font-medium whitespace-nowrap text-(--text-secondary)">

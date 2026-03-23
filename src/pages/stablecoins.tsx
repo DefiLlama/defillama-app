@@ -1,11 +1,11 @@
 import type { GetStaticProps, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import { stablecoinBackingOptions, stablecoinPegTypeOptions } from '~/containers/Stablecoins/Filters'
 import { getStablecoinsByChainPageData } from '~/containers/Stablecoins/queries.server'
 import { StablecoinsByChain } from '~/containers/Stablecoins/StablecoinsByChain'
 import type { PeggedOverviewPageData } from '~/containers/Stablecoins/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type StablecoinsPageProps = PeggedOverviewPageData & {
@@ -80,9 +80,8 @@ export default function StablecoinsPage({
 }: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Stablecoins Circulating - DefiLlama"
-			description="Total market cap of stablecoins, their price, supply, inflows, percent off peg, and more. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="stablecoins, stablecoins circulating, defi stablecoins circulating, stablecoins market cap, stablecoins price, stablecoins supply, stablecoins inflows, stablecoins percent off peg"
+			title={`Stablecoin Market Cap Chart, Supply & Peg Data - DefiLlama`}
+			description={`Track the total stablecoin market cap, circulating supply, prices, inflows, and peg stability across all stablecoins. Explore stablecoin market charts and analytics with transparent data from DefiLlama.`}
 			canonicalUrl="/stablecoins"
 			pageName={pageName}
 		>

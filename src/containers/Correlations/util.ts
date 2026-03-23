@@ -55,18 +55,3 @@ export function toPairedLogReturns(prices0: number[], prices1: number[]) {
 
 	return { returns0, returns1 }
 }
-
-// oxlint-disable-next-line no-unused-vars
-function toLogReturns(prices: number[]) {
-	if (prices.length < 2) return []
-	const returns: number[] = []
-
-	for (let i = 1; i < prices.length; i++) {
-		const prev = prices[i - 1]
-		const curr = prices[i]
-		if (prev <= 0 || curr <= 0) continue
-		returns.push(Math.log(curr / prev))
-	}
-
-	return returns
-}

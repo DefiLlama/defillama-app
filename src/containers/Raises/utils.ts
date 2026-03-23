@@ -102,3 +102,9 @@ export function getRaisesFiltersList({ raises, investorName }: GetRaisesFiltersL
 		chains: sortByAmountThenName(Array.from(chains), chainAmounts)
 	}
 }
+
+export const formatRaiseAmount = (n: unknown): number | null => {
+	if (n == null) return null
+	if (Number.isNaN(Number(n))) return null
+	return Number(n) * 1e6
+}

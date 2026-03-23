@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -7,8 +7,9 @@ import { Tooltip } from '~/components/Tooltip'
 import { getProtocolsByChain } from '~/containers/ChainOverview/queries.server'
 import type { IProtocol } from '~/containers/ChainOverview/types'
 import Layout from '~/layout'
-import { chainIconUrl, formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { tokenIconUrl } from '~/utils/icons'
 
 export async function getStaticProps() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
@@ -16,7 +17,7 @@ export async function getStaticProps() {
 
 	const [safeHarborProtocols, { protocols }]: [Record<string, boolean>, { protocols: Array<IProtocol> }] =
 		await Promise.all([
-			fetchJson('https://api.llama.fi/_fe/static/safe-harbor-projects'),
+			fetchJson<Record<string, boolean>>('https://api.llama.fi/_fe/static/safe-harbor-projects'),
 			getProtocolsByChain({
 				chain: 'All',
 				chainMetadata: metadataCache.chainMetadata,
@@ -68,8 +69,7 @@ export default function SafeHarborAgreements({ protocols }) {
 	return (
 		<Layout
 			title="Safe Harbor Agreements - DefiLlama"
-			description={`Safe Harbor Agreements by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`safe harbor agreements, defi safe harbor agreements, safe harbor agreements by protocol`}
+			description="Browse DeFi protocols with safe harbor agreements. Track which projects have adopted security frameworks to protect white-hat hackers."
 			canonicalUrl={`/safe-harbor-agreements`}
 			pageName={pageName}
 		>
@@ -78,7 +78,10 @@ export default function SafeHarborAgreements({ protocols }) {
 				columns={columns}
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
+				header="Safe Harbor Agreements"
+				headingAs="h1"
 				compact
+				csvFileName="safe-harbor-agreements"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>
@@ -89,14 +92,14 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
 	</span>
 )
 
-const columns: ColumnDef<{
+type SafeHarborRow = {
 	name: string
 	url: string
 	chains: string[]
@@ -106,14 +109,17 @@ const columns: ColumnDef<{
 	fees: number
 	revenue: number
 	dexVolume: number
-}>[] = [
-	{
+}
+
+const columnHelper = createColumnHelper<SafeHarborRow>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
@@ -140,7 +146,7 @@ const columns: ColumnDef<{
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					{row.original.chains.length ? (
 						<span className="-my-2 flex flex-col">
@@ -170,42 +176,37 @@ const columns: ColumnDef<{
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('fees', {
 		header: '24h Fees',
-		accessorKey: 'fees',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('revenue', {
 		header: '24h Revenue',
-		accessorKey: 'revenue',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('dexVolume', {
 		header: '24h DEX Volume',
-		accessorKey: 'dexVolume',
-		cell: ({ getValue }) => (getValue() != null ? formattedNum(getValue() as number, true) : null),
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('url', {
 		header: 'Agreement',
-		accessorKey: 'url',
 		enableSorting: false,
 		cell: ({ row }) => (
 			<a
@@ -221,5 +222,5 @@ const columns: ColumnDef<{
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]

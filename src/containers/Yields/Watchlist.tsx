@@ -112,7 +112,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 						<Icon name="folder-plus" height={14} width={14} />
 						<span>New</span>
 					</button>
-					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
+					{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME ? (
 						<button
 							onClick={() => removePortfolio(selectedPortfolio)}
 							className="flex items-center gap-1 rounded-md border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 focus-visible:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
@@ -122,7 +122,7 @@ export function YieldsWatchlistContainer({ protocolsDict }) {
 							<Icon name="trash-2" height={14} width={14} />
 							<span>Delete</span>
 						</button>
-					)}
+					) : null}
 					<ColumnFilters enabledColumns={ALL_YIELD_COLUMNS} />
 				</div>
 

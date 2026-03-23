@@ -1,31 +1,27 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
 import { createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IPieChartProps } from '~/components/ECharts/types'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, renderPercentChange, lastDayOfWeek } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { ILSTTokenRow, LSTOverviewProps } from './types'
 
 const PieChart = React.lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
-
-const GROUP_BY = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-type GroupByType = (typeof GROUP_BY)[number]
-
-const GROUP_BY_TO_TOOLTIP: Record<GroupByType, 'daily' | 'weekly' | 'monthly' | 'cumulative'> = {
-	Daily: 'daily',
-	Weekly: 'weekly',
-	Monthly: 'monthly',
-	Cumulative: 'cumulative'
-}
 
 const DEFAULT_SORTING_STATE = [{ id: 'stakedEth', desc: true }]
 
@@ -47,10 +43,11 @@ const McapTooltipContent = ({ mcap, tvl }: { mcap: number; tvl: number }) => {
 	)
 }
 
-const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
-	{
+const columnHelper = createColumnHelper<ILSTTokenRow>()
+
+const LSDColumn = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const nameSlug = row.original.name.replace(/\s+/g, '-').toLowerCase()
@@ -58,71 +55,65 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 					<BasicLink
 						href={`/protocol/${nameSlug}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string | null>()}
+						{getValue()}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEth', {
 		header: 'Staked ETH',
-		accessorKey: 'stakedEth',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>())}</>,
+		cell: (info) => formattedNum(info.getValue()),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEthInUsd', {
 		header: 'TVL',
-		accessorKey: 'stakedEthInUsd',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEthPctChange7d', {
 		header: '7d Change',
-		accessorKey: 'stakedEthPctChange7d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('stakedEthPctChange30d', {
 		header: '30d Change',
-		accessorKey: 'stakedEthPctChange30d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('marketShare', {
 		header: 'Market Share',
-		accessorKey: 'marketShare',
 		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
+			const value = getValue()
 			return <>{value != null ? value.toFixed(2) + '%' : null}</>
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 125
-	},
-	{
+	}),
+	columnHelper.accessor('lsdSymbol', {
 		header: 'LST',
-		accessorKey: 'lsdSymbol',
 		cell: ({ getValue, row }) => {
-			const value = getValue<string | null>()
+			const value = getValue()
 			const stringValue = typeof value === 'string' ? value : ''
 			if (!row.original.pegInfo) return stringValue
 			return (
@@ -136,10 +127,9 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('ethPeg', {
 		header: 'ETH Peg',
-		accessorKey: 'ethPeg',
 		cell: ({ getValue, row }) => {
 			return (
 				<Tooltip
@@ -151,7 +141,7 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 					}
 					className="justify-end"
 				>
-					{getValue<number | null>() != null ? renderPercentChange(getValue<number | null>()) : null}
+					{getValue() != null ? <PercentChange percent={getValue()} /> : null}
 				</Tooltip>
 			)
 		},
@@ -161,17 +151,16 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 				'Market Rate (pulled from 1inch) divided by Expected Rate. Hover for Market Rate and Expected Rate Info.'
 		},
 		size: 115
-	},
-	{
+	}),
+	columnHelper.accessor('mcapOverTvl', {
 		header: 'Mcap/TVL',
-		accessorKey: 'mcapOverTvl',
 		cell: ({ getValue, row }) => {
 			return (
 				<Tooltip
 					content={<McapTooltipContent mcap={row.original.mcap ?? 0} tvl={row.original.stakedEthInUsd} />}
 					className="justify-end"
 				>
-					{getValue<string | null>() ?? null}
+					{getValue() ?? null}
 				</Tooltip>
 			)
 		},
@@ -179,32 +168,24 @@ const LSDColumn: ColumnDef<ILSTTokenRow>[] = [
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('apy', {
 		header: 'LST APR',
-		accessorKey: 'apy',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? value.toFixed(2) + '%' : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? `${info.getValue().toFixed(2)}%` : null),
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('fee', {
 		header: 'Fee',
-		accessorKey: 'fee',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? value.toFixed(2) + '%' : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? `${info.getValue().toFixed(2)}%` : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Protocol Fee'
 		},
 		size: 90
-	}
+	})
 ]
 
 export const LSTOverview = ({
@@ -219,32 +200,33 @@ export const LSTOverview = ({
 	barChartStacks
 }: LSTOverviewProps) => {
 	const [tab, setTab] = React.useState('breakdown')
-	const [groupBy, setGroupBy] = React.useState<GroupByType>('Weekly')
+	const [groupBy, setGroupBy] = React.useState<LowercaseDwmcGrouping>('weekly')
 	const [selectedBreakdownTokens, setSelectedBreakdownTokens] = React.useState<string[]>(tokens ?? [])
 	const [selectedInflowTokens, setSelectedInflowTokens] = React.useState<string[]>(tokens ?? [])
 	const selectedBreakdownTokensSet = React.useMemo(() => new Set(selectedBreakdownTokens), [selectedBreakdownTokens])
 	const selectedInflowTokensSet = React.useMemo(() => new Set(selectedInflowTokens), [selectedInflowTokens])
 
 	const inflowsTooltipFormatter = React.useMemo(() => {
-		return createInflowsTooltipFormatter({ groupBy: GROUP_BY_TO_TOOLTIP[groupBy], valueSymbol: 'ETH' })
+		return createInflowsTooltipFormatter({ groupBy, valueSymbol: 'ETH' })
 	}, [groupBy])
 
 	const { chartInstance: breakdownChartInstance, handleChartReady: handleBreakdownReady } = useGetChartInstance()
+	const { chartInstance: inflowsChartInstance, handleChartReady: handleInflowsReady } = useGetChartInstance()
 
 	const breakdownExportFilenameBase = 'lst-breakdown-dominance'
 	const breakdownExportTitle = 'LST Breakdown (Dominance)'
+	const inflowsExportFilenameBase = 'lst-inflows'
+	const inflowsExportTitle = 'LST Inflows'
 
 	const inflowsData = React.useMemo(() => {
 		const store: Record<string | number, Record<string, number>> = {}
 
-		const isWeekly = groupBy === 'Weekly'
-		const isMonthly = groupBy === 'Monthly'
-		const isCumulative = groupBy === 'Cumulative'
+		const isCumulative = groupBy === 'cumulative'
 		const totalByToken: Record<string, number> = {}
 
 		for (const [date, dateEntry] of Object.entries(inflowsChartData)) {
 			for (const [token, value] of Object.entries(dateEntry)) {
-				const dateKey = isWeekly ? lastDayOfWeek(+date) : isMonthly ? firstDayOfMonth(+date) : date
+				const dateKey = groupBy === 'cumulative' ? +date : getBucketTimestampSec(+date, groupBy)
 				if (!store[dateKey]) {
 					store[dateKey] = {}
 				}
@@ -264,13 +246,13 @@ export const LSTOverview = ({
 		return finalData
 	}, [inflowsChartData, groupBy])
 
-	const { breakdownDataset, breakdownCharts } = React.useMemo(
+	const breakdownData = React.useMemo(
 		() => ({
-			breakdownDataset: {
+			dataset: {
 				source: areaChartData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...tokens]
 			},
-			breakdownCharts: tokens.map((name) => ({
+			charts: tokens.map((name) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -281,19 +263,19 @@ export const LSTOverview = ({
 		[areaChartData, tokens, lsdColors]
 	)
 
-	const { inflowsDataset, inflowsCumulativeCharts, inflowsBarCharts } = React.useMemo(
+	const inflowsSeriesData = React.useMemo(
 		() => ({
-			inflowsDataset: {
+			dataset: {
 				source: inflowsData.map(({ date, ...rest }) => ({ timestamp: +date * 1e3, ...rest })),
 				dimensions: ['timestamp', ...tokens]
 			},
-			inflowsCumulativeCharts: tokens.map((name) => ({
+			cumulativeCharts: tokens.map((name) => ({
 				type: 'line' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
 				color: lsdColors[name]
 			})),
-			inflowsBarCharts: tokens.map((name) => ({
+			barCharts: tokens.map((name) => ({
 				type: 'bar' as const,
 				name,
 				encode: { x: 'timestamp', y: name },
@@ -303,6 +285,9 @@ export const LSTOverview = ({
 		}),
 		[inflowsData, tokens, lsdColors, barChartStacks]
 	)
+	const deferredPieChartData = React.useDeferredValue(pieChartData)
+	const deferredBreakdownData = React.useDeferredValue(breakdownData)
+	const deferredInflowsData = React.useDeferredValue(inflowsSeriesData)
 
 	return (
 		<>
@@ -318,14 +303,14 @@ export const LSTOverview = ({
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
 						className="border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('breakdown'))}
+						onClick={() => setTab('breakdown')}
 						data-selected={tab === 'breakdown'}
 					>
 						Breakdown
 					</button>
 					<button
 						className="border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('inflows'))}
+						onClick={() => setTab('inflows')}
 						data-selected={tab === 'inflows'}
 					>
 						Inflows
@@ -337,7 +322,7 @@ export const LSTOverview = ({
 						<div className="grid grid-cols-1 gap-2 pt-2 xl:grid-cols-2">
 							<React.Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
-									chartData={pieChartData}
+									chartData={deferredPieChartData}
 									stackColors={lsdColors}
 									exportButtons={{ png: true, csv: true, filename: 'lst-breakdown', pngTitle: 'LST Breakdown' }}
 								/>
@@ -361,8 +346,8 @@ export const LSTOverview = ({
 								</div>
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={breakdownDataset}
-										charts={breakdownCharts}
+										dataset={deferredBreakdownData.dataset}
+										charts={deferredBreakdownData.charts}
 										stacked={true}
 										expandTo100Percent={true}
 										hideDefaultLegend
@@ -375,48 +360,59 @@ export const LSTOverview = ({
 						</div>
 					) : (
 						<div className="flex flex-col">
-							<div className="flex items-center justify-end gap-2 p-2 pb-0">
-								<TagGroup
-									selectedValue={groupBy}
-									setValue={(period) => setGroupBy(period as GroupByType)}
-									values={GROUP_BY}
-									className="mr-auto"
+							<div className="flex flex-nowrap items-center justify-end gap-2 overflow-x-auto p-2 pb-0">
+								<ChartGroupingSelector
+									value={groupBy}
+									setValue={setGroupBy}
+									options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+									className="mr-auto shrink-0"
 								/>
 								<SelectWithCombobox
 									allValues={tokens}
 									selectedValues={selectedInflowTokens}
 									setSelectedValues={setSelectedInflowTokens}
-									label={groupBy === 'Cumulative' ? 'LST' : 'Protocol'}
+									label={groupBy === 'cumulative' ? 'LST' : 'Protocol'}
 									labelType="smol"
 									variant="filter"
 									portal
 								/>
+								<ChartExportButtons
+									chartInstance={inflowsChartInstance}
+									filename={inflowsExportFilenameBase}
+									title={inflowsExportTitle}
+								/>
 							</div>
 
-							{groupBy === 'Cumulative' ? (
+							{groupBy === 'cumulative' ? (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={inflowsDataset}
-										charts={inflowsCumulativeCharts}
+										dataset={deferredInflowsData.dataset}
+										charts={deferredInflowsData.cumulativeCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
+										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
+										onReady={handleInflowsReady}
 									/>
 								</React.Suspense>
 							) : (
 								<React.Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={inflowsDataset}
-										charts={inflowsBarCharts}
+										dataset={deferredInflowsData.dataset}
+										charts={deferredInflowsData.barCharts}
 										hideDefaultLegend
+										groupBy={groupBy}
 										valueSymbol="ETH"
+										showTotalInTooltip
 										selectedCharts={selectedInflowTokensSet}
 										chartOptions={
 											selectedInflowTokens.length > 1 ? { tooltip: { formatter: inflowsTooltipFormatter } } : undefined
 										}
+										onReady={handleInflowsReady}
 									/>
 								</React.Suspense>
 							)}
@@ -431,6 +427,7 @@ export const LSTOverview = ({
 				columnToSearch={'name'}
 				placeholder={'Search protocols...'}
 				header="Liquid Staking Protocols"
+				csvFileName="liquid-staking"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>

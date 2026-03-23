@@ -1,18 +1,31 @@
-// adadpted from https://github.com/ariakit/ariakit
 import { useEffect, useState } from 'react'
 
 export function useMedia(query: string) {
 	const [matches, setMatches] = useState(false)
 
 	useEffect(() => {
-		const result = matchMedia(query)
-		// Handler is defined inline - no need for useCallback since it's stable within this effect
-		const handleChange = (event: MediaQueryListEvent) => setMatches(event.matches)
+		if (typeof window === 'undefined') return
 
-		result.addEventListener('change', handleChange)
-		setMatches(result.matches)
+		const mediaQueryList = window.matchMedia(query)
+		const updateMatches = () => setMatches(mediaQueryList.matches)
 
-		return () => result.removeEventListener('change', handleChange)
+		updateMatches()
+
+		if ('addEventListener' in mediaQueryList) {
+			mediaQueryList.addEventListener('change', updateMatches)
+			window.addEventListener('resize', updateMatches)
+
+			return () => {
+				mediaQueryList.removeEventListener('change', updateMatches)
+				window.removeEventListener('resize', updateMatches)
+			}
+		}
+
+		window.addEventListener('resize', updateMatches)
+
+		return () => {
+			window.removeEventListener('resize', updateMatches)
+		}
 	}, [query])
 
 	return matches

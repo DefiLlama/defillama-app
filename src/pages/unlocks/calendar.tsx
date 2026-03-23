@@ -1,10 +1,9 @@
-import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import type { PrecomputedData, UnlocksData } from '~/containers/Unlocks/calendarTypes'
 import { CalendarView } from '~/containers/Unlocks/CalendarView'
 import { getUnlocksCalendarStaticPropsData } from '~/containers/Unlocks/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('unlocks-calendar', async () => {
@@ -31,8 +30,7 @@ export default function UnlocksCalendar({
 	return (
 		<Layout
 			title={`Token Unlocks Calendar - DefiLlama`}
-			description={`Upcoming token unlocks. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token unlocks calendar, defi token unlocks calendar, upcoming token unlocks, tokken emissions calendar`}
+			description="View upcoming token unlocks on a calendar. Track vesting schedules, unlock dates, and token amounts for DeFi protocols."
 			canonicalUrl={`/unlocks/calendar`}
 			pageName={pageName}
 		>

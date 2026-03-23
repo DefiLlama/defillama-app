@@ -1,11 +1,11 @@
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { formatTooltipChartDate, formatTooltipValue } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { TagGroup } from '~/components/TagGroup'
 import { NftsMarketplaceTable } from '~/containers/Nft/NftsMarketplaceTable'
 import { getNFTMarketplacesData } from '~/containers/Nft/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(
@@ -191,20 +191,14 @@ function Marketplaces({ data, volume, dominance, trades, dominanceTrade, marketp
 
 	return (
 		<Layout
-			title="NFT Marketplaces - DefiLlama"
-			description={`NFT Marketplaces by Volume. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`nft marketplaces by volume, defi nft marketplaces`}
+			title="NFT Marketplace Volume & Rankings - DefiLlama"
+			description="Compare NFT marketplace volume and trading activity. Track OpenSea, Blur, and other marketplaces by daily and weekly volume."
 			canonicalUrl={`/nfts/marketplaces`}
 			pageName={pageName}
 		>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex items-center justify-between gap-2 p-2">
-					<TagGroup
-						selectedValue={viewType}
-						setValue={(period) => setViewType(period as ViewType)}
-						values={VIEW_TYPES}
-						className="ml-auto"
-					/>
+					<TagGroup selectedValue={viewType} setValue={(v) => setViewType(v)} values={VIEW_TYPES} className="ml-auto" />
 				</div>
 				<div className="grid grid-cols-1 *:col-span-1 xl:min-h-[398px] xl:grid-cols-2">
 					<React.Suspense fallback={<div className="h-[398px] w-full" />}>

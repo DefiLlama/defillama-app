@@ -1,18 +1,10 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import type { UseQueryOptions, UseQueryResult } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { formatProtocolsData } from '~/api/categories/protocols/utils'
-import {
-	PROTOCOL_ACTIVE_USERS_API,
-	PROTOCOL_GAS_USED_API,
-	PROTOCOL_NEW_USERS_API,
-	PROTOCOL_TRANSACTIONS_API,
-	PROTOCOLS_API,
-	TOKEN_LIQUIDITY_API,
-	TWITTER_POSTS_API_V2,
-	YIELD_PROJECT_MEDIAN_API
-} from '~/constants'
-import { fetchApi, fetchJson } from '~/utils/async'
+import { fetchProtocolTokenLiquidityChart } from '~/api'
+import { YIELD_PROJECT_MEDIAN_API } from '~/constants'
+import { fetchAdapterProtocolChartData } from '~/containers/DimensionAdapters/api'
+import { fetchJson } from '~/utils/async'
 import { fetchProtocolTreasuryChart, fetchProtocolTvlChart } from './api'
 import type {
 	IProtocolChainBreakdownChart,
@@ -37,8 +29,10 @@ interface IProtocolBreakdownChartParams extends Omit<IProtocolChartParams, 'brea
 type IProtocolAnyBreakdownChart = IProtocolChainBreakdownChart | IProtocolTokenBreakdownChart
 type IProtocolChartQueryData = IProtocolValueChart | IProtocolAnyBreakdownChart | null
 type ProtocolChartSource = 'tvl' | 'treasury'
+type IActivityChart = Array<[number, number]> | null
 type IProtocolChartQueryKey = [
-	'protocol-overview-tvl-chart' | 'protocol-overview-treasury-chart',
+	'protocol-overview',
+	'tvl-chart' | 'treasury-chart',
 	string | null,
 	string | undefined,
 	string | undefined,
@@ -59,14 +53,15 @@ const getProtocolChartQueryOptions = ({
 	IProtocolChartQueryKey
 > => {
 	const isEnabled = !!protocol && enabled
-	const queryKeyPrefix = source === 'tvl' ? 'protocol-overview-tvl-chart' : 'protocol-overview-treasury-chart'
+	const chartKey = source === 'tvl' ? 'tvl-chart' : 'treasury-chart'
 	return {
-		queryKey: [queryKeyPrefix, protocol, key, currency, breakdownType],
+		queryKey: ['protocol-overview', chartKey, protocol, key, currency, breakdownType],
 		queryFn: () =>
 			source === 'tvl'
 				? fetchProtocolTvlChart({ protocol: protocol!, key, currency, breakdownType })
 				: fetchProtocolTreasuryChart({ protocol: protocol!, key, currency, breakdownType }),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	}
@@ -78,92 +73,48 @@ const getProtocolTvlChartQueryOptions = (params: IProtocolChartParams) =>
 const getProtocolTreasuryChartQueryOptions = (params: IProtocolChartParams) =>
 	getProtocolChartQueryOptions({ ...params, source: 'treasury' as const })
 
-export const useFetchProtocolActiveUsers = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
+const normalizeActivityChart = (values: Array<[number, number]> | null): IActivityChart =>
+	values && values.length > 0
+		? values.map(([date, val]): [number, number] => [date * 1e3, +val]).sort((a, b) => a[0] - b[0])
+		: null
+
+export const useFetchProtocolActivityChart = ({
+	queryKey,
+	protocol,
+	adapterType,
+	dataType
+}: {
+	queryKey: string
+	protocol: string | null
+	adapterType: 'active-users' | 'new-users'
+	dataType?: 'dailyTransactionsCount' | 'dailyGasUsed'
+}) => {
+	const isEnabled = !!protocol
 	return useQuery({
-		queryKey: ['protocol-overview', 'active-users', protocolId],
+		queryKey: ['protocol-overview', queryKey, protocol],
 		queryFn: () =>
-			fetchJson(`${PROTOCOL_ACTIVE_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values: Array<[string | number, string | number]> | null) => {
-					return values && values.length > 0
-						? values
-								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
-								.sort((a, b) => a[0] - b[0])
-						: null
-				})
-				.catch(() => []),
+			fetchAdapterProtocolChartData({ adapterType, protocol: protocol!, dataType })
+				.then((values) => normalizeActivityChart(values))
+				.catch(() => null),
 		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-export const useFetchProtocolNewUsers = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocol-overview', 'new-users', protocolId],
-		queryFn: () =>
-			fetchJson(`${PROTOCOL_NEW_USERS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values: Array<[string | number, string | number]> | null) => {
-					return values && values.length > 0
-						? values
-								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
-								.sort((a, b) => a[0] - b[0])
-						: null
-				})
-				.catch(() => []),
-		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
 }
 
-export const useFetchProtocolTransactions = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocol-overview', 'transactions', protocolId],
-		queryFn: () =>
-			fetchJson(`${PROTOCOL_TRANSACTIONS_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values: Array<[string | number, string | number]> | null) => {
-					return values && values.length > 0
-						? values
-								.map(([date, val]: [string | number, string | number]): [number, number] => [+date * 1e3, +val])
-								.sort((a, b) => a[0] - b[0])
-						: null
-				})
-				.catch(() => []),
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useFetchProtocolGasUsed = (protocolId: number | string | null) => {
-	const isEnabled = !!protocolId
-	return useQuery({
-		queryKey: ['protocol-overview', 'gas-used', protocolId],
-		queryFn: () =>
-			fetchJson(`${PROTOCOL_GAS_USED_API}/${protocolId}`.replaceAll('#', '$'))
-				.then((values) => {
-					return values && values.length > 0 ? values : null
-				})
-				.catch(() => []),
-		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-// oxlint-disable-next-line no-unused-vars
-const useFetchProtocolTokenLiquidity = (token: string | null) => {
+export const useFetchProtocolTokenLiquidity = (token: string | null) => {
 	const isEnabled = !!token
 	return useQuery({
 		queryKey: ['protocol-overview', 'token-liquidity', token],
-		queryFn: () => fetchJson(`${TOKEN_LIQUIDITY_API}/${token!.replaceAll('#', '$')}`).catch(() => null),
+		queryFn: () => fetchProtocolTokenLiquidityChart(token!),
 		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
 }
+
 export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 	const isEnabled = !!protocolName
 	return useQuery({
@@ -182,50 +133,7 @@ export const useFetchProtocolMedianAPY = (protocolName: string | null) => {
 					return []
 				}),
 		staleTime: 60 * 60 * 1000,
-		retry: 0,
-		enabled: isEnabled
-	})
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useGetProtocolsList = ({ chain }: { chain: string }) => {
-	const { data, isLoading } = useQuery({
-		queryKey: ['protocol-overview', 'protocols-list', PROTOCOLS_API],
-		queryFn: () => fetchApi(PROTOCOLS_API),
-		staleTime: 60 * 60 * 1000,
-		retry: 0
-	})
-
-	const { fullProtocolsList, parentProtocols } = useMemo(() => {
-		if (data) {
-			const { protocols, parentProtocols } = data
-
-			return {
-				fullProtocolsList: formatProtocolsData({
-					chain: chain === 'All' ? undefined : chain,
-					protocols,
-					removeBridges: true
-				}),
-				parentProtocols
-			}
-		}
-
-		return { fullProtocolsList: [], parentProtocols: [] }
-	}, [chain, data])
-
-	return { fullProtocolsList, parentProtocols, isLoading }
-}
-
-// oxlint-disable-next-line no-unused-vars
-const useFetchProtocolTwitter = (twitter?: string | null) => {
-	const isEnabled = !!twitter
-	return useQuery({
-		queryKey: ['protocol-overview', 'twitter-data', twitter],
-		queryFn: () =>
-			fetchApi(TWITTER_POSTS_API_V2 + `/${twitter?.toLowerCase()}`).then((res) =>
-				res?.tweetStats ? { ...res, tweets: Object.entries(res?.tweetStats) } : {}
-			),
-		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: isEnabled
 	})
@@ -253,6 +161,7 @@ interface IFetchProtocolChartsByKeysParams {
 	includeBase?: boolean
 	source: ProtocolChartSource
 	inflows?: boolean
+	chainBreakdown?: boolean
 }
 
 interface IFetchProtocolChartsByKeysResult {
@@ -268,7 +177,8 @@ export function useFetchProtocolChartsByKeys({
 	keys,
 	includeBase = true,
 	source,
-	inflows = true
+	inflows = true,
+	chainBreakdown = true
 }: IFetchProtocolChartsByKeysParams): IFetchProtocolChartsByKeysResult {
 	const keysToFetch = useMemo(() => {
 		const base: Array<string | undefined> = includeBase ? [undefined] : []
@@ -282,7 +192,9 @@ export function useFetchProtocolChartsByKeys({
 	}) as Array<UseQueryResult<IProtocolValueChart | null>>
 
 	const chainBreakdownChartQueries = useQueries({
-		queries: keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'chain-breakdown' }))
+		queries: chainBreakdown
+			? keysToFetch.map((key) => getQueryOptions({ protocol, key, breakdownType: 'chain-breakdown' }))
+			: []
 	}) as Array<UseQueryResult<IProtocolChainBreakdownChart | null>>
 
 	const tokenBreakdownUsdQueries = useQueries({

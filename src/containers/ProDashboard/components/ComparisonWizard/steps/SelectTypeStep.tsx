@@ -61,12 +61,12 @@ export function SelectTypeStep() {
 								<h3 className="text-base font-semibold text-(--text-primary)">{option.title}</h3>
 								<p className="mt-1 text-sm text-(--text-tertiary)">{option.description}</p>
 							</div>
-							{isSelected && (
+							{isSelected ? (
 								<div className="flex items-center gap-1.5 text-sm font-medium text-(--primary)">
 									<Icon name="check" height={14} width={14} />
 									Selected
 								</div>
-							)}
+							) : null}
 						</button>
 					)
 				})}

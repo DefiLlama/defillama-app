@@ -1,5 +1,8 @@
-import type { IHackApiItem } from '../Hacks/api.types'
-import type { IProtocolMetricsV2, IRaise } from './api.types'
+import type * as echarts from 'echarts/core'
+import type { ChartTimeGrouping, ChartTimeGroupingWithCumulative } from '~/components/ECharts/types'
+import type { IHackApiItem } from '~/containers/Hacks/api.types'
+import type { IProtocolMetricsV2, IProtocolRaise } from './api.types'
+import type { IProtocolNumericSeries } from './chartSeries.utils'
 import { protocolCharts, type ProtocolChartsLabels } from './constants'
 
 export interface IProtocolPageMetrics {
@@ -29,6 +32,9 @@ export interface IProtocolPageMetrics {
 	inflows: boolean
 	liquidity: boolean
 	activeUsers: boolean
+	newUsers: boolean
+	txCount: boolean
+	gasUsed: boolean
 	borrowed: boolean
 	tokenRights: boolean
 }
@@ -42,11 +48,16 @@ interface IAdapterOverview {
 	methodologyURL?: string | null
 	breakdownMethodology?: Record<string, string> | null
 	childMethodologies?: Array<[string, string | null, string | null]>
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	defaultChartView?: ChartTimeGrouping
 }
 
+export type IProtocolOverviewChartSeries = IProtocolNumericSeries
+export type IProtocolOverviewInitialMultiSeriesChartData = Partial<
+	Record<ProtocolChartsLabels, IProtocolOverviewChartSeries>
+>
+
 export interface IProtocolOverviewPageData {
-	tvlChartData: Array<[string, number]>
+	initialMultiSeriesChartData: IProtocolOverviewInitialMultiSeriesChartData
 	id: string
 	name: string
 	token: {
@@ -65,8 +76,8 @@ export interface IProtocolOverviewPageData {
 	website?: string | null
 	twitter?: string | null
 	safeHarbor?: boolean
-	methodology?: string | null
-	methodologyURL?: string | null
+	tvlMethodology?: string | null
+	tvlMethodologyUrl?: string | null
 	github?: Array<string> | null
 	metrics: IProtocolPageMetrics
 	fees: IAdapterOverview | null
@@ -116,7 +127,7 @@ export interface IProtocolOverviewPageData {
 		transactions: number | null
 		gasUsd: number | null
 	} | null
-	raises: Array<IRaise> | null
+	raises: Array<IProtocolRaise> | null
 	expenses: {
 		headcount: number | null
 		total: number | null
@@ -133,9 +144,9 @@ export interface IProtocolOverviewPageData {
 		price: {
 			current: number | null
 			ath: number | null
-			athDate: number | null
+			athDate: string | null
 			atl: number | null
-			atlDate: number | null
+			atlDate: string | null
 		}
 		marketCap: { current: number | null }
 		totalSupply: number | null
@@ -166,22 +177,24 @@ export interface IProtocolOverviewPageData {
 	governanceApis: Array<string> | null
 	incomeStatement?: {
 		data: Record<
-			'monthly' | 'quarterly' | 'yearly',
+			'monthly' | 'quarterly' | 'yearly' | 'cumulative',
 			Record<string, Record<string, { value: number; 'by-label': Record<string, number> }>> & { timestamp?: number }
 		>
 		labelsByType: Record<string, Array<string>>
 		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
 		hasOtherTokenHolderFlows: boolean
+		hasTokenHolderNetIncome: boolean
 	} | null
 	openSmolStatsSummaryByDefault?: boolean
 	warningBanners?: IProtocolMetricsV2['warningBanners']
-	defaultChartView?: 'daily' | 'weekly' | 'monthly'
+	defaultChartView?: ChartTimeGrouping
+	seoTitle: string
 	seoDescription: string
-	seoKeywords: string
 	defaultToggledCharts: ProtocolChartsLabels[]
 	oracleTvs?: Record<string, number> | null
 	entityQuestions?: string[]
+	treasuryMethodologyUrl?: string | null
 }
 
 interface ICredit {
@@ -231,4 +244,21 @@ export interface IToggledMetrics extends Record<
 > {
 	events: 'true' | 'false'
 	denomination: string | null
+}
+
+export interface IProtocolCoreChartProps {
+	chartData: Record<string, Array<[string | number, number | null]>>
+	chartColors: Record<string, string>
+	valueSymbol?: string
+	color?: string
+	hallmarks: Array<[number, string]> | null
+	rangeHallmarks: Array<[[number, number], string]> | null
+	chartOptions?: Record<string, Record<string, unknown>>
+	height?: string
+	unlockTokenSymbol?: string | null
+	isThemeDark: boolean
+	groupBy?: ChartTimeGroupingWithCumulative
+	hideDataZoom?: boolean
+	onReady?: (instance: echarts.ECharts | null) => void
+	style?: React.CSSProperties
 }

@@ -7,33 +7,36 @@ import {
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
-import { getSimpleProtocolsPageData } from '~/api/categories/protocols'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { protocolCategories } from '~/containers/ProtocolsByCategoryOrTag/constants'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import { basicProtocolPropertiesToKeepV1List } from '~/containers/Protocols/utils.old'
+import { protocolCategoryConfig } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { TVL_SETTINGS_KEYS } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { chainIconUrl, slug } from '~/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+import { parseExcludeParam } from '~/utils/routerQuery'
 
 const excludeChainsStatic = new Set([...TVL_SETTINGS_KEYS, 'offers', 'dcAndLsOverlap', 'excludeParent'])
 const excludeCategories = new Set(['Bridge', 'Canonical Bridge', 'Staking Pool'])
-const COLUMN_HELPER = createColumnHelper<any>()
 
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
+type TopProtocolsRow = {
+	chain: string
+} & Record<string, string | undefined>
+
+const COLUMN_HELPER = createColumnHelper<TopProtocolsRow>()
+
 export const getStaticProps = withPerformanceLogging('top-protocols', async () => {
-	const { protocols, chains } = await getSimpleProtocolsPageData(['name', 'extraTvl', 'chainTvls', 'category'])
+	const { protocols, chains } = await fetchProtocols().then(
+		basicProtocolPropertiesToKeepV1List(['name', 'extraTvl', 'chainTvls', 'category'])
+	)
 	const topProtocolPerChainAndCategory = {}
 
 	for (const p of protocols) {
@@ -88,19 +91,25 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 	const columnOptions = uniqueCategories.map((cat) => ({ name: cat, key: cat }))
 
 	const router = useRouter()
-	const { chain, excludeChain, column, excludeColumn } = router.query
+	const { chain: chainQuery, excludeChain, column, excludeColumn } = router.query
 	const { selectedChains, selectedColumns, columnVisibility } = React.useMemo(() => {
 		const excludeChainSet = parseExcludeParam(excludeChain)
 		const excludeColumnSet = parseExcludeParam(excludeColumn)
 
-		let selectedChains = chain ? (Array.isArray(chain) ? chain : chain == 'All' ? chains : [chain]) : chains
+		let selectedChains = chainQuery
+			? Array.isArray(chainQuery)
+				? chainQuery
+				: chainQuery === 'All'
+					? chains
+					: [chainQuery]
+			: chains
 		// Filter out excludes
 		selectedChains = excludeChainSet.size > 0 ? selectedChains.filter((c) => !excludeChainSet.has(c)) : selectedChains
 
 		let selectedColumns = column
 			? Array.isArray(column)
 				? column
-				: column == 'All'
+				: column === 'All'
 					? uniqueCategories
 					: [column]
 			: uniqueCategories
@@ -114,7 +123,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 			columnVisibility[col] = selectedColumnsSet.has(col)
 		}
 		return { selectedChains, selectedColumns, columnVisibility }
-	}, [chain, excludeChain, column, excludeColumn, chains, uniqueCategories])
+	}, [chainQuery, excludeChain, column, excludeColumn, chains, uniqueCategories])
 
 	const columns = React.useMemo(() => {
 		const baseColumns = [
@@ -127,7 +136,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 					return (
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(chain)} />
+							<TokenLogo name={chain} kind="chain" alt={`Logo of ${chain}`} />
 							<BasicLink
 								href={`/chain/${slug(chain)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -142,7 +151,8 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		]
 
 		const categoryColumns = uniqueCategories.map((cat) =>
-			columnHelper.accessor(cat, {
+			columnHelper.accessor((row) => row[cat], {
+				id: cat,
 				header: cat,
 				enableSorting: false,
 				cell: (info) => {
@@ -155,7 +165,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 				},
 				size: 200,
 				meta: {
-					headerHelperText: protocolCategories[cat as string]?.description ?? ''
+					headerHelperText: protocolCategoryConfig[cat as string]?.description ?? ''
 				}
 			})
 		)
@@ -175,37 +185,18 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
-
-	const prepareCsv = () => {
-		const visibleColumns = table.getAllLeafColumns().filter((col) => col.getIsVisible())
-		const headers = visibleColumns.map((col) => {
-			if (typeof col.columnDef.header === 'string') {
-				return col.columnDef.header
-			}
-			return col.id
-		})
-
-		const dataRows = table.getFilteredRowModel().rows.map((row) =>
-			visibleColumns.map((col) => {
-				const value = row.getValue(col.id)
-				return value ?? ''
-			})
-		)
-
-		return { filename: 'top-protocols.csv', rows: [headers, ...dataRows] as (string | number | boolean)[][] }
-	}
+	const [_searchValue, setSearchValue] = useTableSearch({ instance: table, columnToSearch: 'chain' })
 
 	return (
 		<Layout
-			title="Top Protocols by chain on each category - DefiLlama"
-			description={`Top Protocols by chain on each category. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`top protocols, defi top protocols, top protocols by chain, top protocols by category`}
+			title="Top DeFi Protocols by Chain & Category - DefiLlama"
+			description="Discover the top DeFi protocols on each blockchain by category. Compare lending, DEXs, yield, and derivatives protocols ranked by TVL across Ethereum, Solana, Base, Arbitrum, and 500+ chains."
 			canonicalUrl={`/top-protocols`}
 			pageName={pageName}
 		>
@@ -223,10 +214,7 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={searchValue}
-							onChange={(e) => {
-								setSearchValue(e.target.value)
-							}}
+							onInput={(e) => setSearchValue(e.currentTarget.value)}
 							placeholder="Search chains..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
@@ -254,7 +242,10 @@ export default function TopProtocols({ data, chains, uniqueCategories }) {
 							labelType="smol"
 							variant="filter-responsive"
 						/>
-						<CSVDownloadButton prepareCsv={prepareCsv} smol />
+						<CSVDownloadButton
+							prepareCsv={() => prepareTableCsv({ instance: table, filename: 'top-protocols' })}
+							smol
+						/>
 					</div>
 				</div>
 				{table.getFilteredRowModel().rows.length > 0 ? (

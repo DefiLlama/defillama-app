@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import { YieldsWatchlistContainer } from '~/containers/Yields/Watchlist'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/watchlist', async () => {
@@ -18,12 +18,13 @@ export const getStaticProps = withPerformanceLogging('yields/watchlist', async (
 export default function Portfolio({ pools }) {
 	return (
 		<Layout
-			title={`Saved Pools - DefiLlama`}
-			description={`Saved Yields Pools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`saved pools, defi saved pools, saved yields pools, defi saved yields pools`}
+			title={`Your Saved DeFi Yield Pools - DefiLlama`}
+			description="Track your saved DeFi yield pools in one place. Monitor APY changes, TVL, and performance for your bookmarked pools on DefiLlama."
 			canonicalUrl={`/yields/watchlist`}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 			<YieldsWatchlistContainer protocolsDict={pools} />
 		</Layout>
 	)

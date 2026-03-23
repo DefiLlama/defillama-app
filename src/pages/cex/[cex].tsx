@@ -1,21 +1,24 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchCexs } from '~/containers/Cexs/api'
 import { ProtocolOverview } from '~/containers/ProtocolOverview'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData } from '~/containers/ProtocolOverview/types'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'cex/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const cexs = metadataCache.cexs
 
 		const exchangeData = cexs.find(
@@ -36,11 +39,13 @@ export const getStaticProps = withPerformanceLogging(
 				stablecoins: true
 			},
 			isCEX: true,
-			chainMetadata: metadataCache.chainMetadata
+			chainMetadata: metadataCache.chainMetadata,
+			tokenlist: metadataCache.tokenlist,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
 		})
 
 		if (!data) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return { props: data, revalidate: maxAgeForNext([22]) }
@@ -51,7 +56,7 @@ export async function getStaticPaths() {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'

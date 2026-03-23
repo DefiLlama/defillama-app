@@ -1,1313 +1,1893 @@
 import * as Ariakit from '@ariakit/react'
-import { useMutation } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
-import { memo, useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import Router from 'next/router'
+import {
+	lazy,
+	memo,
+	Suspense,
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useMemo,
+	useReducer,
+	useRef,
+	useState,
+	type RefObject
+} from 'react'
 import { Icon } from '~/components/Icon'
-import { consumePendingPrompt, consumePendingPageContext } from '~/components/LlamaAIFloatingButton'
-import { LoadingDots } from '~/components/Loaders'
+import {
+	consumePendingPrompt,
+	consumePendingPageContext,
+	consumePendingSuggestedFlag
+} from '~/components/LlamaAIFloatingButton'
 import { Tooltip } from '~/components/Tooltip'
 import { MCP_SERVER } from '~/constants'
+import { AlertsModal } from '~/containers/LlamaAI/components/AlertsModal'
+import { ChatLanding } from '~/containers/LlamaAI/components/ChatLanding'
+import {
+	ConversationView,
+	EmptyConversationErrorState,
+	LoadingConversationState
+} from '~/containers/LlamaAI/components/ConversationView'
+import { ResearchLimitModal } from '~/containers/LlamaAI/components/ResearchLimitModal'
+import { SettingsModal } from '~/containers/LlamaAI/components/SettingsModal'
+import { AgenticSidebar } from '~/containers/LlamaAI/components/sidebar/AgenticSidebar'
+import { TOOL_LABELS } from '~/containers/LlamaAI/components/status/StreamingStatus'
+import { TextSelectionPopup } from '~/containers/LlamaAI/components/TextSelectionPopup'
+import { TokenLimitModal } from '~/containers/LlamaAI/components/TokenLimitModal'
+import {
+	checkActiveExecution,
+	fetchAgenticResponse,
+	resumeAgenticStream,
+	stopAgenticExecution
+} from '~/containers/LlamaAI/fetchAgenticResponse'
+import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
+import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
+import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
+import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
+import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
+import { useStreamNotification } from '~/containers/LlamaAI/hooks/useStreamNotification'
+import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
+import {
+	buildAssistantMessage,
+	createInitialStreamState,
+	createStreamBuffer,
+	streamReducer,
+	type ChatPageContext,
+	type FailedRequest,
+	type RateLimitDetails,
+	type StreamBuffer,
+	type StreamDispatch
+} from '~/containers/LlamaAI/streamState'
+import type { AlertProposedData, ChartConfiguration, Message, ToolExecution } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
-import Layout from '~/layout'
-import { AlertsModal } from './components/AlertsModal'
-import { ChatHistorySidebar } from './components/ChatHistorySidebar'
-import { ImagePreviewModal } from './components/ImagePreviewModal'
-import { PromptInput } from './components/PromptInput'
-import { PromptResponse, QueryMetadata, SuggestedActions } from './components/PromptResponse'
-import { RecommendedPrompts } from './components/RecommendedPrompts'
-import { ResearchLimitModal } from './components/ResearchLimitModal'
-import { ResponseControls } from './components/ResponseControls'
-import { useChatHistory } from './hooks/useChatHistory'
-import { useStreamNotification } from './hooks/useStreamNotification'
-import type { StreamItem, ChartItem, SuggestionsItem, MetadataItem } from './types'
-import { fetchPromptResponse } from './utils/fetchPromptResponse'
-import { responseToItems } from './utils/messageToItems'
-import { debounce, throttle } from './utils/scrollUtils'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
+
+interface PersistedAlertIntent {
+	frequency?: 'daily' | 'weekly'
+	hour?: number
+	timezone?: string
+	dayOfWeek?: number
+	dataQuery?: string
+}
+
+interface PersistedToolExecution extends ToolExecution {
+	toolName?: string
+}
+
+interface PersistedMessageMetadata {
+	toolExecutions?: PersistedToolExecution[]
+	thinking?: string
+	alertIntent?: PersistedAlertIntent
+	savedAlertId?: string
+	savedAlertIds?: string[]
+	quotedText?: string
+}
+
+interface PersistedMessage {
+	role: 'user' | 'assistant'
+	content?: string
+	charts?: ChartConfiguration[]
+	chartData?: Record<string, unknown[]>
+	citations?: string[]
+	csvExports?: CsvExport[]
+	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	metadata?: PersistedMessageMetadata
+	messageMetadata?: { inputTokens?: number; outputTokens?: number; executionTimeMs?: number; x402CostUsd?: string }
+	messageId?: string
+	timestamp?: string | number
+	savedAlertIds?: string[]
+}
 
 interface SharedSession {
-	session: {
-		sessionId: string
-		title: string
-		createdAt: string
-		isPublic: boolean
-	}
-	// Shared sessions now use role-based format (same as regular sessions)
-	messages: Array<{
-		role: 'user' | 'assistant'
-		content: string
-		messageId?: string
-		timestamp: number
-		sequenceNumber?: number
-		images?: Array<{ url: string; mimeType: string; filename?: string }>
-		// Assistant-specific fields
-		metadata?: any
-		suggestions?: any[]
-		charts?: any[]
-		chartData?: any[] | Record<string, any[]>
-		citations?: string[]
-		csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-	}>
+	session: { sessionId: string; title: string; createdAt: string; isPublic: boolean }
+	messages: SharedSessionMessage[]
 	isPublicView: true
 }
 
-interface LlamaAIProps {
-	initialSessionId?: string
-	sharedSession?: SharedSession
-	isPublicView?: boolean
-	readOnly?: boolean
-	showDebug?: boolean
+interface SharedSessionMessage {
+	role: 'user' | 'assistant'
+	content: string
+	messageId?: string
+	timestamp: number
+	images?: Array<{ url: string; mimeType: string; filename?: string }>
+	metadata?: PersistedMessageMetadata
+	charts?: ChartConfiguration[]
+	chartData?: unknown[] | Record<string, unknown[]>
+	citations?: string[]
+	csvExports?: CsvExport[]
+	savedAlertIds?: string[]
 }
 
-export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, showDebug = false }: LlamaAIProps = {}) {
-	const router = useRouter()
-	const { authorizedFetch, user } = useAuthContext()
-	const {
-		sidebarVisible,
-		toggleSidebar,
-		createFakeSession,
-		loadMoreMessages,
-		moveSessionToTop,
-		updateSessionTitle,
-		restoreSession,
-		isRestoringSession,
-		researchUsage,
-		decrementResearchUsage
-	} = useChatHistory()
-	const { notify, requestPermission } = useStreamNotification()
+interface SessionRestoreResult {
+	messages?: PersistedMessage[]
+	pagination?: { hasMore?: boolean; cursor?: number | null }
+}
 
-	const [sessionId, setSessionId] = useState<string | null>(null)
-	const sessionIdRef = useRef<string | null>(null)
-	const newlyCreatedSessionsRef = useRef<Set<string>>(new Set())
+interface RestoreSessionSnapshotResult {
+	restored: boolean
+	recoveredResponse: boolean
+}
 
-	const [messages, setMessages] = useState<
-		Array<{
-			role?: string
-			content?: string
-			question?: string
-			images?: Array<{ url: string; mimeType: string; filename?: string }>
-			// New: Items-based message content
-			items?: StreamItem[]
-			response?: {
-				answer: string
-				metadata?: any
-				suggestions?: any[]
-				charts?: any[]
-				chartData?: any[]
-				citations?: string[]
-				inlineSuggestions?: string
-				csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
+interface UsageLimitError extends Error {
+	code?: 'USAGE_LIMIT_EXCEEDED' | 'FREE_QUESTION_LIMIT'
+	details?: Partial<RateLimitDetails>
+	upgradeUrl?: string
+}
+
+type RequestKind = 'prompt' | 'resume' | 'restore' | 'pagination' | 'idle'
+type PromptTransitionMode = 'idle' | 'landing' | 'conversation'
+const RECOVERY_GRACE_MS = 20000
+const RECOVERY_ATTEMPT_DELAYS_MS = [0, 1000, 2000, 4000, 8000, 14000] as const
+const CONNECTIVITY_ERROR_PATTERNS = [
+	'failed to fetch',
+	'networkerror',
+	'network error',
+	'load failed',
+	'err_network_changed',
+	'network changed',
+	'err_name_not_resolved',
+	'name not resolved',
+	'stream heartbeat timeout'
+] as const
+
+type RecoveryController = {
+	id: number
+	sessionId: string
+	startedAt: number
+	buffer: StreamBuffer
+	failedRequest: FailedRequest | null
+	lastErrorMessage: string | null
+	attemptCount: number
+	retryTimerIds: number[]
+	expiryTimerId: number | null
+	attemptInFlight: boolean
+	streamAttached: boolean
+}
+
+function getErrorMessage(error: unknown): string {
+	if (error instanceof Error) return error.message
+	return String(error)
+}
+
+function isTemporaryConnectivityError(error: unknown): boolean {
+	if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+		return true
+	}
+
+	const message = getErrorMessage(error).toLowerCase()
+	return CONNECTIVITY_ERROR_PATTERNS.some((pattern) => message.includes(pattern))
+}
+
+// Normalize older persisted tool payloads that may still use `toolName`.
+function mapToolExecution(tool: PersistedToolExecution): ToolExecution {
+	return {
+		...tool,
+		name: tool.name || tool.toolName || 'unknown'
+	}
+}
+
+// Convert a persisted API message into the UI message shape used by the chat view.
+function mapPersistedMessage(message: PersistedMessage): Message {
+	return {
+		role: message.role,
+		content: message.content,
+		charts:
+			message.charts && message.chartData ? [{ charts: message.charts, chartData: message.chartData }] : undefined,
+		citations: message.citations,
+		csvExports: message.csvExports,
+		alerts: buildRestoredAlerts({
+			messageId: message.messageId,
+			metadata: message.metadata,
+			savedAlertIds: message.savedAlertIds
+		}),
+		savedAlertIds: message.savedAlertIds,
+		images: message.images,
+		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
+		thinking: message.metadata?.thinking,
+		quotedText: message.metadata?.quotedText,
+		messageMetadata: message.messageMetadata,
+		id: message.messageId,
+		timestamp: message.timestamp ? new Date(message.timestamp).getTime() : undefined
+	}
+}
+
+// Map an entire persisted message list into renderable chat messages.
+function mapPersistedMessages(messages: PersistedMessage[] | undefined): Message[] {
+	if (!messages || messages.length === 0) return []
+	return messages.map(mapPersistedMessage)
+}
+
+// Capture the current scroll height so older messages can be prepended without jumping the viewport.
+function getScrollSnapshot(container: HTMLDivElement | null) {
+	return {
+		container,
+		prevScrollHeight: container?.scrollHeight ?? 0
+	}
+}
+
+// Wait for the next paint before measuring or restoring scroll positions.
+function waitForNextPaint() {
+	return new Promise<void>((resolve) => {
+		requestAnimationFrame(() => resolve())
+	})
+}
+
+// Restore the user's relative scroll position after older messages are added above.
+function restoreScrollPosition(snapshot: { container: HTMLDivElement | null; prevScrollHeight: number }) {
+	if (!snapshot.container) return
+	snapshot.container.scrollTop = snapshot.container.scrollHeight - snapshot.prevScrollHeight
+}
+
+// Keep pagination state shape consistent across restore and load-more responses.
+function normalizePaginationState(pagination: { hasMore?: boolean; cursor?: number | null } | undefined): {
+	hasMore: boolean
+	cursor: number | null
+	isLoadingMore: false
+} {
+	return {
+		hasMore: pagination?.hasMore || false,
+		cursor: pagination?.cursor ?? null,
+		isLoadingMore: false
+	}
+}
+
+// Shared/public sessions use a slightly different payload shape, so normalize them separately.
+function mapSharedSessionMessage(message: SharedSessionMessage): Message {
+	return {
+		role: message.role,
+		content: message.content || undefined,
+		charts:
+			message.charts && message.chartData
+				? [
+						{
+							charts: message.charts,
+							chartData: normalizeSharedChartDataByChartId(message.charts, message.chartData) as Record<string, any[]>
+						}
+					]
+				: undefined,
+		csvExports: message.csvExports,
+		citations: message.citations,
+		alerts: buildRestoredAlerts({
+			messageId: message.messageId,
+			metadata: message.metadata,
+			savedAlertIds: message.savedAlertIds
+		}),
+		savedAlertIds: message.savedAlertIds,
+		images: message.images,
+		toolExecutions: message.metadata?.toolExecutions?.map(mapToolExecution),
+		thinking: message.metadata?.thinking,
+		id: message.messageId
+	}
+}
+
+interface AgenticChatProps {
+	initialSessionId?: string
+	sharedSession?: SharedSession
+	readOnly?: boolean
+}
+
+// Rebuild alert artifacts from persisted assistant metadata when restoring a session.
+function buildRestoredAlerts({
+	messageId,
+	metadata,
+	savedAlertIds
+}: {
+	messageId?: string
+	metadata?: PersistedMessageMetadata
+	savedAlertIds?: string[]
+}): AlertProposedData[] | undefined {
+	if (!metadata?.alertIntent) return undefined
+	const persistedAlertId =
+		metadata.savedAlertIds?.[0] || savedAlertIds?.[0] || metadata.savedAlertId || `restored_${messageId}`
+
+	return [
+		{
+			alertId: persistedAlertId,
+			title: metadata.alertIntent.dataQuery || '',
+			alertIntent: {
+				frequency: metadata.alertIntent.frequency || 'daily',
+				hour: metadata.alertIntent.hour ?? 9,
+				timezone: metadata.alertIntent.timezone || 'UTC',
+				dayOfWeek: metadata.alertIntent.dayOfWeek
+			},
+			schedule_expression: '',
+			next_run_at: ''
+		}
+	]
+}
+
+// Consume the current streamed message id once the buffered assistant message is committed.
+function takeCurrentMessageId(ref: RefObject<string | null>) {
+	const messageId = ref.current || undefined
+	ref.current = null
+	return messageId
+}
+
+// Shared session chart data may arrive as a flat array; remap it to the keyed shape the renderer expects.
+function normalizeSharedChartDataByChartId(
+	charts: ChartConfiguration[] | undefined,
+	chartData: SharedSessionMessage['chartData']
+): Record<string, unknown[]> | undefined {
+	if (!charts || charts.length === 0 || !chartData) return undefined
+	if (!Array.isArray(chartData)) return chartData
+
+	const fallbackKey = charts[0]?.datasetName || charts[0]?.id || 'default'
+	return {
+		[fallbackKey]: chartData
+	}
+}
+
+// Commit the in-memory streamed assistant payload only if anything meaningful was actually received.
+function appendBufferedAssistantMessage(
+	buffer: StreamBuffer,
+	currentMessageIdRef: RefObject<string | null>,
+	appendMessage: (message: Message) => void
+) {
+	const hasBufferedContent =
+		buffer.text ||
+		buffer.charts.length > 0 ||
+		buffer.csvExports.length > 0 ||
+		buffer.alerts.length > 0 ||
+		buffer.citations.length > 0 ||
+		buffer.toolExecutions.length > 0 ||
+		buffer.thinking
+
+	if (!hasBufferedContent) {
+		currentMessageIdRef.current = null
+		return
+	}
+
+	appendMessage(buildAssistantMessage(buffer, takeCurrentMessageId(currentMessageIdRef)))
+}
+
+// Start tracking a new async request and mark it as the only request allowed to update UI state.
+function beginRequest(
+	activeRequestIdRef: RefObject<number>,
+	activeRequestKindRef: RefObject<RequestKind>,
+	activeSessionIdRef: RefObject<string | null>,
+	kind: RequestKind,
+	sessionId: string | null
+) {
+	const requestId = activeRequestIdRef.current + 1
+	activeRequestIdRef.current = requestId
+	activeRequestKindRef.current = kind
+	activeSessionIdRef.current = sessionId
+	return requestId
+}
+
+// Request callbacks use this guard to ignore stale async completions.
+function isActiveRequest(activeRequestIdRef: RefObject<number>, requestId: number) {
+	return activeRequestIdRef.current === requestId
+}
+
+// Clear request bookkeeping once the current request fully settles.
+function completeRequest(
+	activeRequestIdRef: RefObject<number>,
+	activeRequestKindRef: RefObject<RequestKind>,
+	activeSessionIdRef: RefObject<string | null>,
+	requestId: number
+) {
+	if (!isActiveRequest(activeRequestIdRef, requestId)) return
+	activeRequestKindRef.current = 'idle'
+	activeSessionIdRef.current = null
+}
+
+type RequestSettleState = {
+	requestId: number
+	promise: Promise<void>
+	resolve: () => void
+} | null
+
+// Create a promise that lets abort paths wait for the active request to finish its cleanup work.
+function createRequestSettleState(requestId: number): Exclude<RequestSettleState, null> {
+	let resolve = () => {}
+	const promise = new Promise<void>((done) => {
+		resolve = done
+	})
+	return { requestId, promise, resolve }
+}
+
+// Build one callback bundle shared by live prompt submits and resumed server-side streams.
+function createAgenticCallbacks({
+	requestId,
+	activeRequestIdRef,
+	buffer,
+	dispatch,
+	currentMessageIdRef,
+	toolCallIdRef,
+	onSessionId,
+	onTitle,
+	onTokenLimit,
+	appendMessage,
+	notify
+}: {
+	requestId: number
+	activeRequestIdRef: RefObject<number>
+	buffer: StreamBuffer
+	dispatch: StreamDispatch
+	currentMessageIdRef: RefObject<string | null>
+	toolCallIdRef: RefObject<number>
+	onSessionId?: (sessionId: string) => void
+	onTitle?: (title: string) => void
+	onTokenLimit?: () => void
+	appendMessage: (message: Message) => void
+	notify: () => void
+}): AgenticSSECallbacks {
+	return {
+		onToken: (content) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			if (!buffer.hasStartedText) {
+				buffer.hasStartedText = true
+				dispatch({ type: 'CLEAR_ACTIVITY' })
 			}
-			timestamp: number
-			messageId?: string
-			userRating?: 'good' | 'bad' | null
-			metadata?: any
-			suggestions?: any[]
-			charts?: any[]
-			chartData?: any[] | Record<string, any[]>
-			citations?: string[]
-			inlineSuggestions?: string
-			csvExports?: Array<{ id: string; title: string; url: string; rowCount: number; filename: string }>
-			savedAlertIds?: string[]
-		}>
-	>([])
-	const [paginationState, setPaginationState] = useState<{
-		hasMore: boolean
-		isLoadingMore: boolean
-		cursor?: number
-		totalMessages?: number
-	}>({ hasMore: false, isLoadingMore: false })
+			buffer.text += content
+			dispatch({ type: 'APPEND_TOKEN', value: content })
+		},
+		onCharts: (charts, chartData) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'CLEAR_ACTIVITY' })
+			const chartSet = { charts, chartData: chartData as Record<string, any[]> }
+			buffer.charts.push(chartSet)
+			dispatch({ type: 'APPEND_CHARTS', value: chartSet })
+		},
+		onCsvExport: (exports) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.csvExports.push(...exports)
+			dispatch({ type: 'APPEND_CSV_EXPORTS', value: exports })
+		},
+		onAlertProposed: (data) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.alerts.push(data)
+			dispatch({ type: 'APPEND_ALERT', value: data })
+		},
+		onCitations: (citations) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.citations = [...new Set([...buffer.citations, ...citations])]
+			dispatch({ type: 'MERGE_CITATIONS', value: citations })
+		},
+		onProgress: (toolName, isPremium) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			const label = TOOL_LABELS[toolName] || toolName
+			const toolCall = { id: ++toolCallIdRef.current, name: toolName, label, ...(isPremium && { isPremium }) }
+			dispatch({ type: 'APPEND_TOOL_CALL', value: toolCall })
+		},
+		onToolExecution: (data) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.toolExecutions.push(data)
+			dispatch({ type: 'APPEND_TOOL_EXECUTION', value: data })
+		},
+		onMessageMetadata: (data) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.messageMetadata = data
+			dispatch({ type: 'SET_MESSAGE_METADATA', value: data })
+		},
+		onThinking: (content) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			buffer.thinking += content
+			dispatch({ type: 'APPEND_THINKING', value: content })
+		},
+		onSpawnProgress: (data: SpawnProgressData) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			if (data.status === 'started' && !buffer.spawnStarted) {
+				buffer.spawnStarted = true
+				dispatch({ type: 'SET_SPAWN_START_TIME', value: data.startedAt || Date.now() })
+				if (data.isResearchMode !== undefined) {
+					dispatch({ type: 'SET_SPAWN_RESEARCH_MODE', value: data.isResearchMode })
+				}
+			}
+			dispatch({
+				type: 'UPSERT_SPAWN_PROGRESS',
+				value: {
+					id: data.agentId,
+					status: data.status,
+					tool: data.tool,
+					toolCount: data.toolCount,
+					chartCount: data.chartCount,
+					findingsPreview: data.findingsPreview
+				}
+			})
+		},
+		onCompaction: (data) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_COMPACTING', value: data.status === 'started' })
+		},
+		onSessionId: (sessionId, startedAt) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onSessionId?.(sessionId)
+			if (startedAt) dispatch({ type: 'SET_EXECUTION_STARTED_AT', value: startedAt })
+		},
+		onMessageId: (messageId) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			currentMessageIdRef.current = messageId
+		},
+		onTitle: (title) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onTitle?.(title)
+		},
+		onTokenLimit: () => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			onTokenLimit?.()
+		},
+		onError: (content) => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			dispatch({ type: 'SET_ERROR', value: content })
+		},
+		onDone: () => {
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+			dispatch({ type: 'RESET_STREAM' })
+			notify()
+		}
+	}
+}
 
-	const [hasRestoredSession, setHasRestoredSession] = useState<string | null>(null)
-	// New: Items-based streaming state (replaces 15+ streaming-related states)
-	const [streamingItems, setStreamingItems] = useState<StreamItem[]>([])
-	const [streamingError, setStreamingError] = useState('')
-	const [isStreaming, setIsStreaming] = useState(false)
-	const [progressMessage, setProgressMessage] = useState('')
-	const [pendingImages, setPendingImages] = useState<Array<{ url: string; mimeType: string; filename?: string }>>([])
-	const [resizeTrigger, setResizeTrigger] = useState(0)
-	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
-	const [currentMessageId, setCurrentMessageId] = useState<string | null>(null)
-	const [showScrollToBottom, setShowScrollToBottom] = useState(false)
-	const [prompt, setPrompt] = useState('')
-	const [isResearchMode, setIsResearchMode] = useState(false)
-	const alertsModalStore = Ariakit.useDialogStore()
-	const researchModalStore = Ariakit.useDialogStore()
-	const [rateLimitDetails, setRateLimitDetails] = useState<{
-		period: string
-		limit: number
-		resetTime: string | null
-	} | null>(null)
-	const [lastFailedRequest, setLastFailedRequest] = useState<{
-		userQuestion: string
-		suggestionContext?: any
-		preResolvedEntities?: Array<{ term: string; slug: string }>
-	} | null>(null)
-	const lastInputRef = useRef<{
-		text: string
-		entities?: Array<{ term: string; slug: string }>
-	} | null>(null)
-	const [restoreRequest, setRestoreRequest] = useState<{
-		key: number
-		text: string
-		entities?: Array<{ term: string; slug: string }>
-	} | null>(null)
-	const [isDraggingOnChat, setIsDraggingOnChat] = useState(false)
-	const [droppedFiles, setDroppedFiles] = useState<File[] | null>(null)
-	const chatDragCounterRef = useRef(0)
+export function AgenticChat({ initialSessionId, sharedSession, readOnly = false }: AgenticChatProps = {}) {
+	const { authorizedFetch, user } = useAuthContext()
 
-	const abortControllerRef = useRef<AbortController | null>(null)
-	const scrollContainerRef = useRef<HTMLDivElement>(null)
-	const shouldAutoScrollRef = useRef(true)
-	const rafIdRef = useRef<number | null>(null)
-	const resizeObserverRef = useRef<ResizeObserver | null>(null)
-	const isAutoScrollingRef = useRef(false) // Flag during session restoration auto-scroll
-	const promptInputRef = useRef<HTMLTextAreaElement>(null)
+	const getAuthorizedFetchInput = useCallback((input: RequestInfo | URL, init?: RequestInit) => {
+		if (!(input instanceof Request)) {
+			const url = typeof input === 'string' ? input : input.toString()
+			return { url, init }
+		}
 
-	const resetScrollState = useCallback(() => {
-		setShowScrollToBottom(false)
-		shouldAutoScrollRef.current = true
-		isAutoScrollingRef.current = true
+		const mergedHeaders = new Headers(input.headers)
+		if (init?.headers) {
+			new Headers(init.headers).forEach((value, key) => {
+				mergedHeaders.set(key, value)
+			})
+		}
+
+		const mergedInit: RequestInit = {
+			method: init?.method ?? input.method,
+			headers: mergedHeaders,
+			body: init?.body ?? input.body,
+			cache: init?.cache ?? input.cache,
+			credentials: init?.credentials ?? input.credentials,
+			integrity: init?.integrity ?? input.integrity,
+			keepalive: init?.keepalive ?? input.keepalive,
+			mode: init?.mode ?? input.mode,
+			priority: init?.priority,
+			redirect: init?.redirect ?? input.redirect,
+			referrer: init?.referrer ?? input.referrer,
+			referrerPolicy: init?.referrerPolicy ?? input.referrerPolicy,
+			signal: init?.signal ?? input.signal,
+			window: init?.window
+		}
+
+		return { url: input.url, init: mergedInit }
 	}, [])
 
-	useEffect(() => {
-		sessionIdRef.current = sessionId
-	}, [sessionId])
-
-	useEffect(() => {
-		if (initialSessionId && !sessionId) {
-			resetScrollState()
-			setSessionId(initialSessionId)
-			setHasRestoredSession(null)
-		}
-	}, [initialSessionId, sessionId, resetScrollState])
-
-	useEffect(() => {
-		if (sharedSession) {
-			resetScrollState()
-			// Shared sessions now use role-based format - use messages as-is
-			setMessages(sharedSession.messages)
-			setSessionId(sharedSession.session.sessionId)
-		}
-	}, [sharedSession, resetScrollState])
-
-	const reconnectToStream = useCallback(
-		(sid: string, initialContent: string) => {
-			// Create a new AbortController for this reconnection
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort()
+	// Adapt the auth helper to the native fetch signature while preserving non-2xx responses for downstream error handling.
+	const authorizedFetchCompat = useCallback<typeof fetch>(
+		async (input, init) => {
+			const request = getAuthorizedFetchInput(input, init)
+			const response = await authorizedFetch(request.url, request.init)
+			if (!response) {
+				throw new Error('Authorized request failed')
 			}
-			const abortController = new AbortController()
-			abortControllerRef.current = abortController
-
-			setIsStreaming(true)
-			// Note: initialContent is passed to fetchPromptResponse which initializes ItemStreamBuffer
-			// The buffer will emit the initial content immediately when onItems callback is set,
-			// ensuring continuity between previous stream content and new tokens
-
-			fetchPromptResponse({
-				abortSignal: abortController.signal,
-				userQuestion: '',
-				sessionId: sid,
-				mode: 'auto',
-				resume: true,
-				authorizedFetch,
-				// Pass initial content to ensure buffer starts with existing content
-				initialContent: initialContent || undefined,
-				// New: Use onItems callback for items-based streaming
-				onItems: (items) => {
-					setStreamingItems(items)
-				},
-				onTitle: (title) => {
-					updateSessionTitle({ sessionId: sid, title })
-				},
-				// Keep onProgress for progress messages only
-				onProgress: (data) => {
-					if (data.type === 'progress') {
-						setProgressMessage(data.content || '')
-					} else if (data.type === 'error') {
-						setIsStreaming(false)
-						setStreamingError(data.content || 'Generation failed')
-					}
-				}
-			})
-				.then((result) => {
-					setIsStreaming(false)
-					setLastFailedRequest(null)
-					if (result?.items && result.items.length > 0) {
-						setMessages((prev) => [
-							...prev,
-							{
-								role: 'assistant',
-								items: result.items,
-								timestamp: Date.now()
-							}
-						])
-					}
-					setStreamingItems([])
-				})
-				.catch((err) => {
-					console.log('Reconnect stream error:', err)
-					setIsStreaming(false)
-					setStreamingItems([])
-				})
+			return response
 		},
-		[authorizedFetch, updateSessionTitle]
+		[authorizedFetch, getAuthorizedFetchInput]
 	)
-
-	useEffect(() => {
-		if (
-			sessionId &&
-			user &&
-			!sharedSession &&
-			!readOnly &&
-			hasRestoredSession !== sessionId &&
-			!newlyCreatedSessionsRef.current.has(sessionId) &&
-			!isStreaming
-		) {
-			resetScrollState()
-			setHasRestoredSession(sessionId)
-			restoreSession(sessionId)
-				.then((result: any) => {
-					setMessages(result.messages)
-					setPaginationState(result.pagination)
-
-					if (result.streaming?.status === 'streaming') {
-						reconnectToStream(sessionId, result.streaming.content || '')
-					} else if (result.streaming?.status === 'completed' && result.streaming.result) {
-						setMessages((prev) => [
-							...prev,
-							{
-								role: 'assistant',
-								content: result.streaming.result.response,
-								charts: result.streaming.result.charts,
-								chartData: result.streaming.result.chartData,
-								suggestions: result.streaming.result.suggestions,
-								citations: result.streaming.result.citations,
-								timestamp: Date.now()
-							}
-						])
-					}
-				})
-				.catch((error) => {
-					console.log('Failed to restore session:', error)
-				})
-		}
-	}, [
-		sessionId,
-		user,
-		sharedSession,
-		readOnly,
-		hasRestoredSession,
-		restoreSession,
-		resetScrollState,
-		isStreaming,
-		reconnectToStream
-	])
-
+	// Guard authenticated fetches so downstream code never has to handle a null/empty response object.
+	const authorizedFetchStrict = useCallback<typeof fetch>(
+		async (input, init) => {
+			const request = getAuthorizedFetchInput(input, init)
+			return assertResponse(await authorizedFetch(request.url, request.init), 'Authorized request failed')
+		},
+		[authorizedFetch, getAuthorizedFetchInput]
+	)
+	const isLlama = !!user?.flags?.is_llama
 	const {
-		data: promptResponse,
-		mutate: submitPrompt,
-		isPending,
-		error,
-		reset: resetPrompt
-	} = useMutation({
-		mutationFn: ({
-			userQuestion,
-			suggestionContext,
-			preResolvedEntities,
-			images,
-			pageContext
-		}: {
-			userQuestion: string
-			suggestionContext?: any
-			preResolvedEntities?: Array<{ term: string; slug: string }>
-			images?: Array<{ data: string; mimeType: string; filename?: string }>
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
-		}) => {
-			let currentSessionId = sessionId
-
-			if (!currentSessionId && user) {
-				currentSessionId = createFakeSession()
-				newlyCreatedSessionsRef.current.add(currentSessionId)
-				setSessionId(currentSessionId)
-				sessionIdRef.current = currentSessionId
-			}
-
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort()
-			}
-
-			abortControllerRef.current = new AbortController()
-
-			requestPermission()
-			setIsStreaming(true)
-			setStreamingItems([]) // Reset items-based streaming state
-			setStreamingError('')
-			setProgressMessage('')
-
-			// Set pendingImages immediately so they display during streaming
-			if (images && images.length > 0) {
-				setPendingImages(
-					images.map((img) => ({
-						url: img.data,
-						mimeType: img.mimeType,
-						filename: img.filename
-					}))
-				)
-			} else {
-				setPendingImages([])
-			}
-
-			return fetchPromptResponse({
-				userQuestion,
-				sessionId: currentSessionId,
-				suggestionContext,
-				preResolvedEntities,
-				images,
-				pageContext,
-				mode: 'auto',
-				forceIntent: isResearchMode ? 'comprehensive_report' : undefined,
-				authorizedFetch,
-				// New: Use onItems for items-based streaming
-				onItems: (items) => {
-					setStreamingItems(items)
-				},
-				onSessionId: (newSessionId) => {
-					newlyCreatedSessionsRef.current.add(newSessionId)
-					setSessionId(newSessionId)
-					sessionIdRef.current = newSessionId
-					// Mark as restored to prevent restoration after streaming completes
-					setHasRestoredSession(newSessionId)
-				},
-				onTitle: (title) => {
-					updateSessionTitle({ sessionId: currentSessionId, title })
-				},
-				onMessageId: (messageId) => {
-					setCurrentMessageId(messageId)
-				},
-				// Keep onProgress for progress messages and errors only
-				// Note: SSE 'images' events are response images, handled by items system (itemBuffer.addImages)
-				// pendingImages is only for USER uploaded images shown in SentPrompt
-				onProgress: (data) => {
-					if (data.type === 'progress') {
-						setProgressMessage(data.content)
-					} else if (data.type === 'error') {
-						setStreamingError(data.content)
-					} else if (data.type === 'reset') {
-						setProgressMessage(data.content || 'Retrying due to output error...')
-					}
-				},
-				abortSignal: abortControllerRef.current.signal
-			})
-		},
-		onMutate: ({
-			userQuestion,
-			suggestionContext,
-			preResolvedEntities
-		}: {
-			userQuestion: string
-			suggestionContext?: any
-			preResolvedEntities?: Array<{ term: string; slug: string }>
-			image?: any
-		}) => {
-			setLastFailedRequest({ userQuestion, suggestionContext, preResolvedEntities })
-		},
-		onSuccess: (data, variables) => {
-			setIsStreaming(false)
-			abortControllerRef.current = null
-			setLastFailedRequest(null)
-			lastInputRef.current = null
-
-			if (isResearchMode) {
-				decrementResearchUsage()
-			}
-
-			notify()
-
-			const currentImages = pendingImages.length > 0 ? [...pendingImages] : undefined
-			// New: Use items from the response, or convert legacy response to items
-			const finalItems = data?.items && data.items.length > 0 ? data.items : streamingItems
-			// Extract metadata from items for the message object
-			const finalMetadata = finalItems.find((i): i is MetadataItem => i.type === 'metadata')?.metadata
-
-			setMessages((prev) => [
-				...prev,
-				{
-					role: 'user',
-					content: variables.userQuestion,
-					images: currentImages,
-					timestamp: Date.now()
-				},
-				{
-					role: 'assistant',
-					items: finalItems,
-					messageId: currentMessageId,
-					timestamp: Date.now(),
-					metadata: finalMetadata
-				}
-			])
-
-			setPendingImages([])
-			setStreamingItems([])
-			setPrompt('')
-			resetPrompt()
-			setCurrentMessageId(null)
-			setTimeout(() => {
-				promptInputRef.current?.focus()
-			}, 100)
-		},
-		onError: (error: any, variables) => {
-			setIsStreaming(false)
-			abortControllerRef.current = null
-
-			if (error?.code === 'USAGE_LIMIT_EXCEEDED') {
-				setRateLimitDetails({
-					period: error.details?.period || 'lifetime',
-					limit: error.details?.limit || 0,
-					resetTime: error.details?.resetTime || null
-				})
-				researchModalStore.show()
-				setLastFailedRequest(null)
-				return
-			}
-
-			const wasUserStopped = error?.message === 'Request aborted'
-
-			// Check if we have any meaningful content in streaming items
-			const hasContent = streamingItems.some((item) => item.type === 'markdown' && (item as any).text?.trim())
-
-			if (wasUserStopped && hasContent) {
-				setLastFailedRequest(null)
-				lastInputRef.current = null
-				const stoppedImages = pendingImages.length > 0 ? [...pendingImages] : undefined
-				setMessages((prev) => [
-					...prev,
-					{
-						role: 'user',
-						content: variables.userQuestion,
-						images: stoppedImages,
-						timestamp: Date.now()
-					},
-					{
-						role: 'assistant',
-						items: streamingItems,
-						metadata: { stopped: true, partial: true },
-						messageId: currentMessageId,
-						timestamp: Date.now()
-					}
-				])
-
-				setPendingImages([])
-				setStreamingItems([])
-				setPrompt('')
-			} else if (wasUserStopped && !hasContent) {
-				setPendingImages([])
-				setStreamingItems([])
-				setPrompt(variables.userQuestion)
-				setLastFailedRequest(null)
-			} else if (!wasUserStopped) {
-				console.log('Request failed:', error)
-				setPendingImages([])
-				setStreamingItems([])
-				setLastFailedRequest({
-					userQuestion: variables.userQuestion,
-					suggestionContext: variables.suggestionContext,
-					preResolvedEntities: variables.preResolvedEntities
-				})
-			}
-
-			setCurrentMessageId(null)
-			setTimeout(() => {
-				promptInputRef.current?.focus()
-			}, 100)
-		}
+		sessions,
+		researchUsage,
+		isLoading: isLoadingSessions,
+		error: sessionListError,
+		moveSessionToTop
+	} = useSessionList()
+	const {
+		createSession,
+		createFakeSession,
+		restoreSession,
+		loadMoreMessages,
+		deleteSession,
+		updateSessionTitle,
+		isDeletingSession,
+		isUpdatingTitle,
+		bulkDeleteSessions
+	} = useSessionMutations()
+	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
+	const { notify, requestPermission } = useStreamNotification()
+	const alertsModalStore = Ariakit.useDialogStore()
+	const settingsModalStore = Ariakit.useDialogStore()
+	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderSubscribeModal,
+		setOpen: setShouldRenderSubscribeModal
 	})
 
+	const [messages, setMessages] = useState<Message[]>([])
+	const [sessionId, setSessionId] = useState<string | null>(null)
+	const [sessionTitle, setSessionTitle] = useState<string | null>(null)
+	const [streamState, dispatchStream] = useReducer(streamReducer, undefined, createInitialStreamState)
+	const [isResearchMode, setIsResearchMode] = useState(false)
+	const [quotedText, setQuotedText] = useState<string | null>(null)
+	const [showTokenLimitModal, setShowTokenLimitModal] = useState(false)
+	const [customInstructions, setCustomInstructions] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-custom-instructions') || '' : ''
+	)
+	const [enableMemory, setEnableMemory] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-enable-memory') !== 'false' : true
+	)
+	const [hackerMode, setHackerMode] = useState(() =>
+		typeof window !== 'undefined' ? localStorage.getItem('llamaai-hacker-mode') === 'true' : false
+	)
+	const [shouldAnimateSidebar, setShouldAnimateSidebar] = useState(false)
+	const [restoringSessionId, setRestoringSessionId] = useState<string | null>(() =>
+		initialSessionId && !sharedSession ? initialSessionId : null
+	)
+	const [viewError, setViewError] = useState<string | null>(null)
+	const [paginationError, setPaginationError] = useState<string | null>(null)
+	const researchModalStore = Ariakit.useDialogStore()
+	const currentMessageIdRef = useRef<string | null>(null)
+	const pendingInitialSessionIdRef = useRef(initialSessionId)
+	const activeRequestIdRef = useRef(0)
+	const activeRequestKindRef = useRef<RequestKind>('idle')
+	const activeSessionIdRef = useRef<string | null>(null)
+	const activeRequestSettleRef = useRef<RequestSettleState>(null)
+	const restoredSessionIdRef = useRef<string | null>(null)
+	const recoveryIdRef = useRef(0)
+	const recoveryControllerRef = useRef<RecoveryController | null>(null)
+	const attemptRecoveryForControllerRef = useRef<(recoveryId: number) => void>(() => {})
+	const [paginationState, setPaginationState] = useState<{
+		hasMore: boolean
+		cursor: number | null
+		isLoadingMore: boolean
+	}>({ hasMore: false, cursor: null, isLoadingMore: false })
+	const [promptTransitionMode, setPromptTransitionMode] = useState<PromptTransitionMode>('idle')
+
+	const abortControllerRef = useRef<AbortController | null>(null)
+	const messagesEndRef = useRef<HTMLDivElement>(null)
+	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const { keyboardOpen, viewportHeight } = useVisualViewport()
+	const promptInputRef = useRef<HTMLTextAreaElement>(null)
+	const toolCallIdRef = useRef(0)
+	const promptSubmissionLockRef = useRef(false)
+	const isFirstMessageRef = useRef(true)
+	const promptTransitionTimerRef = useRef<number | null>(null)
+	const {
+		isStreaming,
+		isCompacting,
+		text: streamingText,
+		charts: streamingCharts,
+		csvExports: streamingCsvExports,
+		alerts: streamingAlerts,
+		citations: streamingCitations,
+		toolExecutions: streamingToolExecutions,
+		thinking: streamingThinking,
+		activeToolCalls,
+		spawnProgress,
+		spawnStartTime,
+		spawnIsResearchMode,
+		executionStartedAt,
+		recovery,
+		error,
+		lastFailedRequest,
+		rateLimitDetails
+	} = streamState
+
+	const sharedMessages = useMemo(() => sharedSession?.messages.map(mapSharedSessionMessage) ?? null, [sharedSession])
+	const effectiveMessages = sharedMessages ?? messages
+	const effectiveSessionId = sharedSession?.session.sessionId ?? sessionId
+	const effectiveSessionTitle = sharedSession?.session.title ?? sessionTitle
+	const hasMessages = effectiveMessages.length > 0 || isStreaming
+	const visibleError = viewError ?? error
+	const shouldShowLanding = !hasMessages && !visibleError && !restoringSessionId
+	const shouldAnimateLandingTransition =
+		promptTransitionMode === 'landing' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+	const shouldAnimateConversationTransition =
+		promptTransitionMode === 'conversation' && hasMessages && !visibleError && !restoringSessionId && !readOnly
+
+	const clearPromptTransitionTimer = useCallback(() => {
+		if (promptTransitionTimerRef.current !== null) {
+			window.clearTimeout(promptTransitionTimerRef.current)
+			promptTransitionTimerRef.current = null
+		}
+	}, [])
+
+	const resetPromptTransition = useCallback(() => {
+		clearPromptTransitionTimer()
+		setPromptTransitionMode('idle')
+	}, [clearPromptTransitionTimer])
+
+	const triggerPromptTransition = useCallback(
+		(mode: PromptTransitionMode) => {
+			clearPromptTransitionTimer()
+			setPromptTransitionMode(mode)
+			promptTransitionTimerRef.current = window.setTimeout(() => {
+				setPromptTransitionMode('idle')
+				promptTransitionTimerRef.current = null
+			}, 480)
+		},
+		[clearPromptTransitionTimer]
+	)
+
 	useEffect(() => {
-		const handleVisibilityChange = () => {
-			if (document.visibilityState !== 'visible') return
-			const currentSessionId = sessionIdRef.current
-			const isUserAbort = error?.message === 'Request aborted'
-			if (error && !isUserAbort && currentSessionId && !isStreaming && !isPending) {
-				resetPrompt()
-				// Get existing markdown content from streaming items for reconnection
-				const existingContent = streamingItems
-					.filter((item) => item.type === 'markdown')
-					.map((item) => (item as any).text)
-					.join('')
-				reconnectToStream(currentSessionId, existingContent)
-			}
+		return () => {
+			clearPromptTransitionTimer()
 		}
-		document.addEventListener('visibilitychange', handleVisibilityChange)
-		return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-	}, [error, isStreaming, isPending, reconnectToStream, streamingItems, resetPrompt])
+	}, [clearPromptTransitionTimer])
 
-	const handleStopRequest = useCallback(async () => {
-		if (!isStreaming) return
-
-		const currentSessionId = sessionIdRef.current
-		setIsStreaming(false)
-
-		if (currentSessionId) {
-			try {
-				const response = await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: currentSessionId
-					})
-				})
-
-				if (response.ok) {
-					console.log('Successfully stopped streaming session')
-				} else {
-					const errorData = await response.json()
-					console.log('Failed to stop streaming session:', errorData)
-				}
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
-			}
+	const streamingDraft = useMemo((): Message | null => {
+		if (!isStreaming) return null
+		const hasContent =
+			streamingText ||
+			streamingCharts.length > 0 ||
+			streamingCsvExports.length > 0 ||
+			streamingAlerts.length > 0 ||
+			streamingCitations.length > 0
+		if (!hasContent) return null
+		return {
+			role: 'assistant',
+			content: streamingText || undefined,
+			charts: streamingCharts.length > 0 ? streamingCharts : undefined,
+			csvExports: streamingCsvExports.length > 0 ? streamingCsvExports : undefined,
+			alerts: streamingAlerts.length > 0 ? streamingAlerts : undefined,
+			citations: streamingCitations.length > 0 ? streamingCitations : undefined,
+			toolExecutions: streamingToolExecutions.length > 0 ? streamingToolExecutions : undefined
 		}
-
-		if (abortControllerRef.current) {
-			abortControllerRef.current.abort()
-		}
-
-		// Check if we have any meaningful content in streaming items
-		const hasContent = streamingItems.some((item) => item.type === 'markdown' && (item as any).text?.trim())
-
-		if (hasContent) {
-			setMessages((prev) => [
-				...prev,
-				{
-					role: 'user',
-					content: prompt,
-					timestamp: Date.now()
-				},
-				{
-					role: 'assistant',
-					items: streamingItems,
-					metadata: { stopped: true, partial: true },
-					messageId: currentMessageId,
-					timestamp: Date.now()
-				}
-			])
-			setPrompt('')
-			lastInputRef.current = null
-		} else {
-			// No content streamed yet – restore the last submitted input to the text field
-			const lastInput = lastInputRef.current
-			if (lastInput) {
-				setPrompt(lastInput.text)
-				setRestoreRequest((prev) => ({
-					key: (prev?.key ?? 0) + 1,
-					text: lastInput.text,
-					entities: lastInput.entities
-				}))
-			}
-		}
-
-		setStreamingItems([])
-		setCurrentMessageId(null)
-		setIsResearchMode(false) // Reset research mode on stop to prevent state leak
-		resetPrompt()
-		setTimeout(() => {
-			promptInputRef.current?.focus()
-		}, 100)
 	}, [
 		isStreaming,
-		streamingItems,
-		currentMessageId,
-		prompt,
-		lastInputRef,
-		setRestoreRequest,
-		setMessages,
-		setStreamingItems,
-		setCurrentMessageId,
-		setIsResearchMode,
-		resetPrompt,
-		promptInputRef,
-		authorizedFetch
+		streamingText,
+		streamingCharts,
+		streamingCsvExports,
+		streamingAlerts,
+		streamingCitations,
+		streamingToolExecutions
 	])
 
-	const handleRetry = useCallback(() => {
-		if (lastFailedRequest) {
-			submitPrompt(lastFailedRequest)
-		}
-	}, [lastFailedRequest, submitPrompt])
-
-	const handleSubmit = useCallback(
-		(
-			prompt: string,
-			preResolved?: Array<{ term: string; slug: string; type: 'chain' | 'protocol' | 'subprotocol' }>,
-			images?: Array<{ data: string; mimeType: string; filename?: string }>,
-			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string }
-		) => {
-			if (isStreaming) {
-				return
-			}
-
-			const finalPrompt = prompt.trim()
-			setPrompt(finalPrompt)
-			lastInputRef.current = { text: finalPrompt, entities: preResolved }
-			shouldAutoScrollRef.current = true
-
-			if (sessionId) {
-				moveSessionToTop(sessionId)
-			}
-
-			submitPrompt({
-				userQuestion: finalPrompt,
-				preResolvedEntities: preResolved,
-				images,
-				pageContext
-			})
-		},
-		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
-	)
-
-	const handleSubmitWithSuggestion = useCallback(
-		(prompt: string, suggestion: any) => {
-			if (isStreaming) {
-				return
-			}
-
-			const finalPrompt = prompt.trim()
-			setPrompt(finalPrompt)
-			shouldAutoScrollRef.current = true
-
-			if (sessionId) {
-				moveSessionToTop(sessionId)
-			}
-
-			submitPrompt({
-				userQuestion: finalPrompt,
-				suggestionContext: suggestion
-			})
-		},
-		[sessionId, moveSessionToTop, submitPrompt, isStreaming]
-	)
-
-	const pendingPromptConsumedRef = useRef(false)
+	// Hydrate per-user settings once auth is ready.
 	useEffect(() => {
-		if (pendingPromptConsumedRef.current) return
-		if (isRestoringSession || isPending || isStreaming) return
-		if (initialSessionId || sharedSession || readOnly) return
+		if (!user) return
+		authorizedFetchStrict(`${MCP_SERVER}/user-settings`)
+			.then((res) => (res.ok ? res.json() : null))
+			.then((data) => {
+				const serverValue = data?.settings?.customInstructions
+				if (typeof serverValue === 'string') {
+					setCustomInstructions(serverValue)
+					localStorage.setItem('llamaai-custom-instructions', serverValue)
+				}
+				if (typeof data?.settings?.enableMemory === 'boolean') {
+					setEnableMemory(data.settings.enableMemory)
+					localStorage.setItem('llamaai-enable-memory', String(data.settings.enableMemory))
+				}
+				if (typeof data?.settings?.hackerMode === 'boolean') {
+					setHackerMode(data.settings.hackerMode)
+					localStorage.setItem('llamaai-hacker-mode', String(data.settings.hackerMode))
+					window.dispatchEvent(new Event('llamaai-hacker-mode-changed'))
+				}
+			})
+			.catch(() => {})
+	}, [user, authorizedFetchStrict])
 
-		const pendingPrompt = consumePendingPrompt()
-		const pendingPageContext = consumePendingPageContext()
-		if (pendingPrompt) {
-			pendingPromptConsumedRef.current = true
-			handleSubmit(pendingPrompt, undefined, undefined, pendingPageContext ?? undefined)
-		}
-	}, [isRestoringSession, isPending, isStreaming, initialSessionId, sharedSession, readOnly, handleSubmit])
+	// Load older messages when the user reaches the top, while preserving the current viewport position.
+	const handleLoadMoreMessages = useCallback(async () => {
+		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || isStreaming) return
 
-	const handleNewChat = useCallback(async () => {
-		if (initialSessionId) {
-			router.push('/ai/chat', undefined, { shallow: true })
+		const requestId = beginRequest(
+			activeRequestIdRef,
+			activeRequestKindRef,
+			activeSessionIdRef,
+			'pagination',
+			sessionId
+		)
+		setPaginationError(null)
+		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
+		await waitForNextPaint()
+		const scrollSnapshot = getScrollSnapshot(scrollContainerRef.current)
+		const result = await loadMoreMessages(sessionId, paginationState.cursor!).catch(() => {
+			if (isActiveRequest(activeRequestIdRef, requestId) && activeSessionIdRef.current === sessionId) {
+				setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
+				setPaginationError('Failed to load older messages')
+			}
+			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+			return null
+		})
+		if (!result) return
+		if (!isActiveRequest(activeRequestIdRef, requestId) || activeSessionIdRef.current !== sessionId) {
+			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
+			completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
 			return
 		}
+		const older = mapPersistedMessages(result.messages)
 
-		if (sessionId && isStreaming) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({
-						sessionId: sessionId
-					})
-				})
-			} catch (error) {
-				console.log('Error stopping streaming session:', error)
-			}
+		setMessages((prev) => [...older, ...prev])
 
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort()
-			}
-		}
+		requestAnimationFrame(() => {
+			restoreScrollPosition(scrollSnapshot)
+		})
 
-		if (sessionId) {
-			try {
-				await authorizedFetch(`${MCP_SERVER}/chatbot-agent/session/${sessionId}`, {
-					method: 'DELETE'
-				})
-			} catch (error) {
-				console.log('Failed to reset backend session:', error)
-			}
-		}
+		setPaginationState(normalizePaginationState(result.pagination))
+		completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+	}, [sessionId, paginationState, loadMoreMessages, isStreaming])
 
-		setSessionId(null)
-		setHasRestoredSession(null)
-		newlyCreatedSessionsRef.current.clear()
-		setPrompt('')
-		resetPrompt()
-		setStreamingItems([])
-		setStreamingError('')
-		setProgressMessage('')
-		setMessages([])
-		setResizeTrigger((prev) => prev + 1)
-		promptInputRef.current?.focus()
-	}, [initialSessionId, sessionId, isStreaming, authorizedFetch, abortControllerRef, resetPrompt, router])
+	// Expose the load-more callback through a stable event wrapper for the scroll listener.
+	const handleLoadMoreMessagesEvent = useEffectEvent(() => {
+		void handleLoadMoreMessages()
+	})
 
-	const handleSessionSelect = useCallback(
-		async (selectedSessionId: string, data: { messages: any[]; pagination?: any }) => {
-			resetScrollState()
+	const { attach, scrollToBottom, showScrollToBottom } = useChatScroll({
+		scrollContainerRef,
+		isStreaming,
+		items: effectiveMessages,
+		hasMessages,
+		paginationState,
+		onLoadMoreMessages: handleLoadMoreMessagesEvent,
+		keyboardOpen
+	})
 
-			if (sessionId && isStreaming) {
-				try {
-					await authorizedFetch(`${MCP_SERVER}/chatbot-agent/stop`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							sessionId: sessionId
-						})
-					})
-				} catch (error) {
-					console.log('Error stopping streaming session:', error)
-				}
-
-				if (abortControllerRef.current) {
-					abortControllerRef.current.abort()
-				}
-			}
-
-			setSessionId(selectedSessionId)
-			setHasRestoredSession(selectedSessionId)
-			setMessages(data.messages)
-			setPaginationState(data.pagination || { hasMore: false, isLoadingMore: false })
-			setPrompt('')
-			resetPrompt()
-			setStreamingItems([])
-			setCurrentMessageId(null) // Clear message ID when switching sessions
-			setIsResearchMode(false) // Reset research mode when switching sessions
-			setIsStreaming(false) // Ensure streaming state is cleared
-			setStreamingError('')
-			setProgressMessage('')
-			setResizeTrigger((prev) => prev + 1)
-
-			promptInputRef.current?.focus()
-		},
-		[sessionId, isStreaming, authorizedFetch, resetScrollState, resetPrompt]
-	)
-
-	const handleLoadMoreMessages = useCallback(async () => {
-		if (!sessionId || !paginationState.hasMore || paginationState.isLoadingMore || !paginationState.cursor) return
-
-		const scrollContainer = scrollContainerRef.current
-		if (!scrollContainer) return
-
-		const previousScrollHeight = scrollContainer.scrollHeight
-		setPaginationState((prev) => ({ ...prev, isLoadingMore: true }))
-
-		try {
-			const result = await loadMoreMessages(sessionId, paginationState.cursor)
-			setMessages((prev) => [...result.messages, ...prev])
-			setPaginationState(result.pagination)
-
-			// Use RAF to batch layout reads/writes with browser paint cycle
-			requestAnimationFrame(() => {
-				if (scrollContainer) {
-					// Batch read: get both values in single layout calculation
-					const newScrollHeight = scrollContainer.scrollHeight
-					const currentScrollTop = scrollContainer.scrollTop
-					// Single write after reads
-					scrollContainer.scrollTop = currentScrollTop + (newScrollHeight - previousScrollHeight)
-				}
-			})
-		} catch (error) {
-			console.log('Failed to load more messages:', error)
-			setPaginationState((prev) => ({ ...prev, isLoadingMore: false }))
-		}
-	}, [sessionId, paginationState.hasMore, paginationState.isLoadingMore, paginationState.cursor, loadMoreMessages])
-
-	const handleSuggestionClick = useCallback(
-		(suggestion: any) => {
-			const promptText = suggestion.title || suggestion.description || ''
-			handleSubmitWithSuggestion(promptText, suggestion)
-		},
-		[handleSubmitWithSuggestion]
-	)
-
+	// Trigger the sidebar open/close animation before toggling visibility.
 	const handleSidebarToggle = useCallback(() => {
-		toggleSidebar()
 		setShouldAnimateSidebar(true)
-		setResizeTrigger((prev) => prev + 1)
+		toggleSidebar()
 	}, [toggleSidebar])
 
-	const handleChatDragEnter = useCallback((e: React.DragEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
-		chatDragCounterRef.current++
-		if (e.dataTransfer.types.includes('Files')) {
-			setIsDraggingOnChat(true)
+	// Append one message to the live conversation state.
+	const appendMessage = useCallback((message: Message) => {
+		setMessages((prev) => {
+			if (message.id && prev.some((m) => m.id === message.id)) {
+				return prev.map((m) => (m.id === message.id ? message : m))
+			}
+			return [...prev, message]
+		})
+	}, [])
+
+	const clearRecoveryRetryTimers = useCallback((controller: RecoveryController) => {
+		for (const timerId of controller.retryTimerIds) {
+			window.clearTimeout(timerId)
 		}
+		controller.retryTimerIds = []
 	}, [])
 
-	const handleChatDragLeave = useCallback((e: React.DragEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
-		chatDragCounterRef.current--
-		if (chatDragCounterRef.current === 0) {
-			setIsDraggingOnChat(false)
-		}
+	const clearRecoveryController = useCallback(
+		(resetState: boolean = true) => {
+			const controller = recoveryControllerRef.current
+			if (controller) {
+				clearRecoveryRetryTimers(controller)
+				if (controller.expiryTimerId !== null) {
+					window.clearTimeout(controller.expiryTimerId)
+				}
+			}
+			recoveryControllerRef.current = null
+			if (resetState) {
+				dispatchStream({ type: 'RESET_RECOVERY' })
+			}
+		},
+		[clearRecoveryRetryTimers]
+	)
+
+	// Reattach to a server-side execution that is still running for the current session.
+	const resumeRunningExecution = useCallback(
+		async ({
+			targetSessionId,
+			buffer = createStreamBuffer(),
+			resetStream = true,
+			onTemporaryDisconnect
+		}: {
+			targetSessionId: string
+			buffer?: StreamBuffer
+			resetStream?: boolean
+			onTemporaryDisconnect?: (error: Error, streamBuffer: StreamBuffer) => void
+		}) => {
+			let activeExecution: Awaited<ReturnType<typeof checkActiveExecution>>
+			try {
+				activeExecution = await checkActiveExecution(targetSessionId, authorizedFetchCompat)
+			} catch (checkActiveExecutionError) {
+				const checkError =
+					checkActiveExecutionError instanceof Error
+						? checkActiveExecutionError
+						: new Error(getErrorMessage(checkActiveExecutionError))
+				if (onTemporaryDisconnect && isTemporaryConnectivityError(checkError)) {
+					onTemporaryDisconnect(checkError, buffer)
+					return false
+				}
+				dispatchStream({ type: 'SET_ERROR', value: checkError.message })
+				return false
+			}
+			const { active, status, hasResult } = activeExecution
+			if (!active) {
+				if (status === 'completed' && hasResult) {
+					try {
+						setViewError(null)
+						dispatchStream({ type: 'SET_ERROR', value: null })
+						dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+						dispatchStream({ type: 'RESET_RECOVERY' })
+						if (resetStream) {
+							dispatchStream({ type: 'START_STREAM' })
+							currentMessageIdRef.current = null
+						}
+						const replayRequestId = beginRequest(
+							activeRequestIdRef,
+							activeRequestKindRef,
+							activeSessionIdRef,
+							'resume',
+							targetSessionId
+						)
+						const replayController = new AbortController()
+						abortControllerRef.current = replayController
+						const replaySettleState = createRequestSettleState(replayRequestId)
+						activeRequestSettleRef.current = replaySettleState
+						const replayCallbacks = createAgenticCallbacks({
+							requestId: replayRequestId,
+							activeRequestIdRef,
+							buffer,
+							dispatch: dispatchStream,
+							currentMessageIdRef,
+							toolCallIdRef,
+							appendMessage,
+							notify,
+							onTokenLimit: () => setShowTokenLimitModal(true),
+							onTitle: (title) => {
+								setSessionTitle(title)
+								updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+								moveSessionToTop(targetSessionId)
+							}
+						})
+						const replayEventCounter = { count: buffer.receivedEventCount }
+						return await resumeAgenticStream({
+							sessionId: targetSessionId,
+							callbacks: replayCallbacks,
+							abortSignal: replayController.signal,
+							fetchFn: authorizedFetchCompat,
+							from: buffer.receivedEventCount || undefined,
+							eventCounter: replayEventCounter
+						})
+							.then(() => true)
+							.finally(() => {
+								if (abortControllerRef.current === replayController) {
+									abortControllerRef.current = null
+								}
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, replayRequestId)
+								replaySettleState.resolve()
+								if (activeRequestSettleRef.current?.requestId === replayRequestId) {
+									activeRequestSettleRef.current = null
+								}
+							})
+					} catch {
+						// Buffer expired, fall through to restoreSessionSnapshot
+					}
+				}
+				return false
+			}
+
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'SET_ERROR', value: null })
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+			dispatchStream({ type: 'RESET_RECOVERY' })
+
+			if (resetStream) {
+				dispatchStream({ type: 'START_STREAM' })
+				currentMessageIdRef.current = null
+			}
+
+			const resumeRequestId = beginRequest(
+				activeRequestIdRef,
+				activeRequestKindRef,
+				activeSessionIdRef,
+				'resume',
+				targetSessionId
+			)
+			const controller = new AbortController()
+			abortControllerRef.current = controller
+			const settleState = createRequestSettleState(resumeRequestId)
+			activeRequestSettleRef.current = settleState
+
+			const callbacks = createAgenticCallbacks({
+				requestId: resumeRequestId,
+				activeRequestIdRef,
+				buffer,
+				dispatch: dispatchStream,
+				currentMessageIdRef,
+				toolCallIdRef,
+				appendMessage,
+				notify,
+				onTokenLimit: () => setShowTokenLimitModal(true),
+				onTitle: (title) => {
+					setSessionTitle(title)
+					updateSessionTitle({ sessionId: targetSessionId, title }).catch(() => {})
+					moveSessionToTop(targetSessionId)
+				}
+			})
+
+			const resumeEventCounter = { count: buffer.receivedEventCount }
+			void resumeAgenticStream({
+				sessionId: targetSessionId,
+				callbacks,
+				abortSignal: controller.signal,
+				fetchFn: authorizedFetchCompat,
+				from: buffer.receivedEventCount,
+				eventCounter: resumeEventCounter
+			})
+				.catch((resumeError: Error) => {
+					if (!isActiveRequest(activeRequestIdRef, resumeRequestId)) return
+					if (resumeError?.name === 'AbortError') {
+						appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+						dispatchStream({ type: 'RESET_STREAM' })
+						return
+					}
+					if (onTemporaryDisconnect && isTemporaryConnectivityError(resumeError)) {
+						buffer.receivedEventCount = resumeEventCounter.count
+						onTemporaryDisconnect(resumeError, buffer)
+						return
+					}
+					clearRecoveryController()
+					dispatchStream({
+						type: 'SET_ERROR',
+						value: 'Lost connection while waiting for the running execution. Retry to reconnect.'
+					})
+					dispatchStream({ type: 'RESET_STREAM' })
+				})
+				.finally(() => {
+					const recoveryController = recoveryControllerRef.current
+					if (recoveryController?.sessionId === targetSessionId && recoveryController.streamAttached) {
+						clearRecoveryController()
+					}
+					if (isActiveRequest(activeRequestIdRef, resumeRequestId)) {
+						abortControllerRef.current = null
+						completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, resumeRequestId)
+					}
+					settleState.resolve()
+					if (activeRequestSettleRef.current?.requestId === resumeRequestId) {
+						activeRequestSettleRef.current = null
+					}
+				})
+
+			return true
+		},
+		[authorizedFetchCompat, appendMessage, clearRecoveryController, moveSessionToTop, notify, updateSessionTitle]
+	)
+
+	const restoreSessionSnapshot = useCallback(
+		async (targetSessionId: string, expectedRequestId: number): Promise<RestoreSessionSnapshotResult> => {
+			const result = await restoreSession(targetSessionId).catch(() => null as SessionRestoreResult | null)
+			if (!result || activeRequestIdRef.current !== expectedRequestId) {
+				return { restored: false, recoveredResponse: false }
+			}
+
+			const restored: Message[] = (result.messages || []).map(mapPersistedMessage)
+			const recoveredResponse = restored[restored.length - 1]?.role === 'assistant'
+
+			setMessages(restored)
+			setSessionId(targetSessionId)
+			const match = sessions.find((session) => session.sessionId === targetSessionId)
+			setSessionTitle(match?.title || null)
+			restoredSessionIdRef.current = targetSessionId
+			isFirstMessageRef.current = false
+			attach()
+			setPaginationState({
+				hasMore: result.pagination?.hasMore ?? false,
+				cursor: result.pagination?.cursor ?? null,
+				isLoadingMore: false
+			})
+			setViewError(null)
+			setPaginationError(null)
+			dispatchStream({ type: 'SET_ERROR', value: null })
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+			dispatchStream({ type: 'RESET_RECOVERY' })
+			return { restored: true, recoveredResponse }
+		},
+		[attach, restoreSession, sessions]
+	)
+
+	const exhaustRecovery = useCallback(
+		(controller: RecoveryController) => {
+			if (recoveryControllerRef.current?.id !== controller.id) return
+			clearRecoveryController()
+			appendBufferedAssistantMessage(controller.buffer, currentMessageIdRef, appendMessage)
+			dispatchStream({ type: 'RESET_STREAM' })
+			dispatchStream({
+				type: 'SET_ERROR',
+				value: controller.lastErrorMessage || 'Failed to reconnect. Please try again.'
+			})
+			dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: controller.failedRequest })
+		},
+		[appendMessage, clearRecoveryController]
+	)
+
+	const queueRecoveryAttempt = useCallback((recoveryId: number, delay: number) => {
+		return window.setTimeout(() => {
+			attemptRecoveryForControllerRef.current(recoveryId)
+		}, delay)
 	}, [])
 
-	const handleChatDragOver = useCallback((e: React.DragEvent) => {
-		e.preventDefault()
-	}, [])
+	const attemptRecoveryForController = useEffectEvent((recoveryId: number) => {
+		const controller = recoveryControllerRef.current
+		if (!controller || controller.id !== recoveryId || controller.attemptInFlight) return
 
-	const handleChatDrop = useCallback((e: React.DragEvent) => {
-		e.preventDefault()
-		e.stopPropagation()
-		chatDragCounterRef.current = 0
-		setIsDraggingOnChat(false)
-		const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'))
-		if (files.length > 0) {
-			setDroppedFiles(files)
-		}
-	}, [])
+		controller.attemptInFlight = true
+		controller.attemptCount += 1
+		dispatchStream({
+			type: 'UPDATE_RECOVERY',
+			attemptCount: controller.attemptCount,
+			lastErrorMessage: controller.lastErrorMessage
+		})
 
-	const clearDroppedFiles = useCallback(() => {
-		setDroppedFiles(null)
-	}, [])
+		void (async () => {
+			const currentController = recoveryControllerRef.current
+			if (!currentController || currentController.id !== recoveryId) return
 
-	const onCheckScrollState = useEffectEvent(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
-
-		if (rafIdRef.current) {
-			cancelAnimationFrame(rafIdRef.current)
-		}
-
-		rafIdRef.current = requestAnimationFrame(() => {
-			const activeContainer = scrollContainerRef.current
-			if (!activeContainer) return
-			const { scrollTop, scrollHeight, clientHeight } = activeContainer
-
-			const scrollBottom = Math.ceil(scrollTop + clientHeight)
-			const threshold = scrollHeight - 150
-			const isAtBottom = scrollBottom >= threshold
-			const hasScrollableContent = scrollHeight > clientHeight
-
-			if (isAutoScrollingRef.current && hasScrollableContent) {
-				activeContainer.scrollTop = scrollHeight
-				setTimeout(() => {
-					isAutoScrollingRef.current = false
-				}, 300)
+			const didResume = await resumeRunningExecution({
+				targetSessionId: currentController.sessionId,
+				buffer: currentController.buffer,
+				resetStream: false,
+				onTemporaryDisconnect: (disconnectError, streamBuffer) => {
+					const latest = recoveryControllerRef.current
+					if (!latest || latest.id !== recoveryId) return
+					latest.streamAttached = false
+					latest.buffer = streamBuffer
+					latest.lastErrorMessage = getErrorMessage(disconnectError)
+					dispatchStream({
+						type: 'UPDATE_RECOVERY',
+						attemptCount: latest.attemptCount,
+						lastErrorMessage: latest.lastErrorMessage
+					})
+					if (Date.now() >= latest.startedAt + RECOVERY_GRACE_MS) {
+						exhaustRecovery(latest)
+						return
+					}
+					const baseMs = Math.min(250 * Math.pow(2, latest.attemptCount - 1), 8000)
+					const backoffMs = Math.round(baseMs * (0.5 + Math.random() * 0.5))
+					queueRecoveryAttempt(recoveryId, backoffMs)
+				}
+			})
+			if (didResume) {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== recoveryId) return
+				latest.streamAttached = true
+				clearRecoveryRetryTimers(latest)
 				return
 			}
 
-			shouldAutoScrollRef.current = isAtBottom
-
-			const shouldShowButton = hasScrollableContent && !isAtBottom && !isStreaming && !isAutoScrollingRef.current
-			setShowScrollToBottom(shouldShowButton)
-
-			if (sessionId && paginationState.hasMore && !paginationState.isLoadingMore && scrollTop <= 50) {
-				handleLoadMoreMessages()
+			const { restored: didRestore } = await restoreSessionSnapshot(
+				currentController.sessionId,
+				activeRequestIdRef.current
+			)
+			if (didRestore) {
+				dispatchStream({ type: 'RESET_STREAM' })
+				clearRecoveryController()
+				return
 			}
+
+			const latest = recoveryControllerRef.current
+			if (!latest || latest.id !== recoveryId) return
+			if (Date.now() >= latest.startedAt + RECOVERY_GRACE_MS) {
+				exhaustRecovery(latest)
+			}
+		})().finally(() => {
+			const latest = recoveryControllerRef.current
+			if (!latest || latest.id !== recoveryId) return
+			latest.attemptInFlight = false
 		})
 	})
 
-	const hasScrollableView = messages.length > 0 || isRestoringSession || isPending || isStreaming
-
 	useEffect(() => {
-		const container = scrollContainerRef.current
-		if (!container) return
+		attemptRecoveryForControllerRef.current = attemptRecoveryForController
+	}, [])
 
-		const throttledScroll = throttle(onCheckScrollState, 150)
-		const debouncedResize = debounce(onCheckScrollState, 100)
+	const startRecoveryCycle = useCallback(
+		({
+			targetSessionId,
+			buffer,
+			failedRequest,
+			error: recoveryError
+		}: {
+			targetSessionId: string
+			buffer: StreamBuffer
+			failedRequest: FailedRequest | null
+			error: Error
+		}) => {
+			const existing = recoveryControllerRef.current
+			if (existing?.sessionId === targetSessionId) {
+				existing.buffer = buffer
+				existing.failedRequest = failedRequest
+				existing.lastErrorMessage = getErrorMessage(recoveryError)
+				dispatchStream({
+					type: 'UPDATE_RECOVERY',
+					attemptCount: existing.attemptCount,
+					lastErrorMessage: existing.lastErrorMessage
+				})
+				return true
+			}
 
-		if ('ResizeObserver' in window) {
-			resizeObserverRef.current = new ResizeObserver(debouncedResize)
-			resizeObserverRef.current.observe(container)
+			clearRecoveryController(false)
+
+			const startedAt = Date.now()
+			const controller: RecoveryController = {
+				id: recoveryIdRef.current + 1,
+				sessionId: targetSessionId,
+				startedAt,
+				buffer,
+				failedRequest,
+				lastErrorMessage: getErrorMessage(recoveryError),
+				attemptCount: 0,
+				retryTimerIds: [],
+				expiryTimerId: null,
+				attemptInFlight: false,
+				streamAttached: false
+			}
+			recoveryIdRef.current = controller.id
+			recoveryControllerRef.current = controller
+			dispatchStream({
+				type: 'START_RECOVERY',
+				startedAt,
+				lastErrorMessage: controller.lastErrorMessage
+			})
+
+			for (const delay of RECOVERY_ATTEMPT_DELAYS_MS) {
+				const timerId = queueRecoveryAttempt(controller.id, delay)
+				controller.retryTimerIds.push(timerId)
+			}
+
+			controller.expiryTimerId = window.setTimeout(() => {
+				const latest = recoveryControllerRef.current
+				if (!latest || latest.id !== controller.id || latest.attemptInFlight || latest.streamAttached) return
+				exhaustRecovery(latest)
+			}, RECOVERY_GRACE_MS)
+			return true
+		},
+		[clearRecoveryController, exhaustRecovery, queueRecoveryAttempt]
+	)
+
+	// Abort the active request and wait for its cleanup path to finish before starting another one.
+	const abortActiveRequest = useCallback(async () => {
+		const controller = abortControllerRef.current
+		const requestId = activeRequestIdRef.current
+		const settleState = activeRequestSettleRef.current
+
+		if (controller && settleState?.requestId === requestId) {
+			controller.abort()
+			await settleState.promise.catch(() => {})
 		}
 
-		container.addEventListener('scroll', throttledScroll, { passive: true })
-		container.addEventListener('scrollend', onCheckScrollState, { passive: true })
-		onCheckScrollState()
+		activeRequestIdRef.current += 1
+		activeRequestKindRef.current = 'idle'
+		activeSessionIdRef.current = null
+		currentMessageIdRef.current = null
+		abortControllerRef.current = null
+		activeRequestSettleRef.current = null
+		clearRecoveryController()
+	}, [clearRecoveryController])
 
-		return () => {
-			container.removeEventListener('scroll', throttledScroll)
-			container.removeEventListener('scrollend', onCheckScrollState)
-			if (resizeObserverRef.current) {
-				resizeObserverRef.current.disconnect()
-			}
-			if (rafIdRef.current) {
-				cancelAnimationFrame(rafIdRef.current)
-			}
+	// Reset transient streaming and error state without touching the actual message history.
+	const clearConversationRuntimeState = useCallback(() => {
+		clearRecoveryController()
+		resetPromptTransition()
+		setViewError(null)
+		setPaginationError(null)
+		dispatchStream({ type: 'RESET_STREAM' })
+		dispatchStream({ type: 'SET_ERROR', value: null })
+		dispatchStream({ type: 'SET_LAST_FAILED_REQUEST', value: null })
+		dispatchStream({ type: 'SET_RATE_LIMIT_DETAILS', value: null })
+	}, [clearRecoveryController, resetPromptTransition])
+
+	// Start a brand-new chat, or route away from a session page back to the base chat route.
+	const handleNewChat = useCallback(async () => {
+		if (initialSessionId) {
+			void Router.push('/ai/chat', undefined, { shallow: true })
+			return
 		}
-	}, [hasScrollableView])
+		await abortActiveRequest()
+		clearConversationRuntimeState()
+		setMessages([])
+		setSessionId(null)
+		setSessionTitle(null)
+		restoredSessionIdRef.current = null
+		isFirstMessageRef.current = true
+		attach()
+		setPaginationState({ hasMore: false, cursor: null, isLoadingMore: false })
+		promptInputRef.current?.focus()
+	}, [initialSessionId, abortActiveRequest, attach, clearConversationRuntimeState])
 
-	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current && (streamingItems.length > 0 || isStreaming)) {
-			requestAnimationFrame(() => {
-				if (scrollContainerRef.current) {
-					scrollContainerRef.current.scrollTo({
-						top: scrollContainerRef.current.scrollHeight,
-						behavior: 'smooth'
+	// Restore a saved session, and resume any still-active server execution attached to it.
+	const handleSessionSelect = useCallback(
+		async (selectedSessionId: string) => {
+			if (selectedSessionId === restoredSessionIdRef.current && selectedSessionId === sessionId) return
+			setRestoringSessionId(selectedSessionId)
+			await abortActiveRequest()
+			clearConversationRuntimeState()
+
+			const requestId = beginRequest(
+				activeRequestIdRef,
+				activeRequestKindRef,
+				activeSessionIdRef,
+				'restore',
+				selectedSessionId
+			)
+			const { restored: restoredOk } = await restoreSessionSnapshot(selectedSessionId, requestId)
+
+			if (!restoredOk) {
+				if (!isActiveRequest(activeRequestIdRef, requestId)) return
+				setViewError('Failed to restore session')
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+				setRestoringSessionId(null)
+				return
+			}
+
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+			window.history.replaceState(null, '', `/ai/chat/${selectedSessionId}`)
+			setRestoringSessionId(null)
+
+			if (!isActiveRequest(activeRequestIdRef, requestId)) return
+
+			const didResume = await resumeRunningExecution({
+				targetSessionId: selectedSessionId,
+				onTemporaryDisconnect: (disconnectError, buffer) => {
+					startRecoveryCycle({
+						targetSessionId: selectedSessionId,
+						buffer,
+						failedRequest: null,
+						error: disconnectError
 					})
 				}
 			})
+			if (!isActiveRequest(activeRequestIdRef, requestId) && !didResume) return
+
+			if (!didResume) {
+				completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+			}
+		},
+		[
+			sessionId,
+			abortActiveRequest,
+			clearConversationRuntimeState,
+			restoreSessionSnapshot,
+			resumeRunningExecution,
+			startRecoveryCycle
+		]
+	)
+
+	// Submit a new prompt, create a fake local session for the first message if needed, and stream the response.
+	const handleSubmit = useCallback(
+		(
+			prompt: string,
+			entities?: Array<{ term: string; slug: string; type?: string }>,
+			images?: Array<{ data: string; mimeType: string; filename?: string }>,
+			pageContext?: ChatPageContext,
+			isSuggestedQuestion?: boolean
+		) => {
+			const trimmed = prompt.trim()
+			if (!trimmed || isStreaming || promptSubmissionLockRef.current) return
+			triggerPromptTransition(shouldShowLanding ? 'landing' : 'conversation')
+			promptSubmissionLockRef.current = true
+
+			void abortActiveRequest()
+				.then(() => {
+					setViewError(null)
+					setPaginationError(null)
+					requestPermission()
+					dispatchStream({ type: 'START_STREAM' })
+					currentMessageIdRef.current = null
+
+					let currentSessionId = sessionId
+
+					if (isFirstMessageRef.current && !currentSessionId) {
+						currentSessionId = createFakeSession()
+						setSessionId(currentSessionId)
+						isFirstMessageRef.current = false
+					}
+
+					const currentQuotedText = quotedText
+					if (currentQuotedText) setQuotedText(null)
+
+					const userImages = images?.map((img) => ({ url: img.data, mimeType: img.mimeType, filename: img.filename }))
+					setMessages((prev) => [
+						...prev,
+						{
+							role: 'user',
+							content: trimmed,
+							images: userImages?.length ? userImages : undefined,
+							quotedText: currentQuotedText || undefined
+						}
+					])
+					attach()
+
+					const buffer = createStreamBuffer()
+					const controller = new AbortController()
+					abortControllerRef.current = controller
+					const requestId = beginRequest(
+						activeRequestIdRef,
+						activeRequestKindRef,
+						activeSessionIdRef,
+						'prompt',
+						currentSessionId
+					)
+					const settleState = createRequestSettleState(requestId)
+					activeRequestSettleRef.current = settleState
+
+					const eventCounter = { count: 0 }
+					void fetchAgenticResponse({
+						message: trimmed,
+						sessionId: currentSessionId,
+						researchMode: isResearchMode,
+						entities: entities?.length ? entities : undefined,
+						images: images?.length ? images : undefined,
+						pageContext,
+						quotedText: currentQuotedText || undefined,
+						customInstructions: customInstructions || undefined,
+						isSuggestedQuestion,
+						abortSignal: controller.signal,
+						fetchFn: authorizedFetchCompat,
+						eventCounter,
+						callbacks: createAgenticCallbacks({
+							requestId,
+							activeRequestIdRef,
+							buffer,
+							dispatch: dispatchStream,
+							currentMessageIdRef,
+							toolCallIdRef,
+							appendMessage,
+							notify,
+							onTokenLimit: () => setShowTokenLimitModal(true),
+							onSessionId: (id) => {
+								if (!isActiveRequest(activeRequestIdRef, requestId)) return
+								const previousSessionId = currentSessionId
+								setSessionId(id)
+								currentSessionId = id
+								activeSessionIdRef.current = id
+								if (previousSessionId !== id && !sessions.some((session) => session.sessionId === id)) {
+									void createSession({
+										sessionId: id,
+										title: sessionTitle ?? undefined
+									}).catch((createSessionError) => {
+										console.error('[llama-ai] [createSession] failed:', getErrorMessage(createSessionError))
+									})
+								}
+							},
+							onTitle: (title) => {
+								if (!isActiveRequest(activeRequestIdRef, requestId)) return
+								setSessionTitle(title)
+								if (currentSessionId) {
+									updateSessionTitle({ sessionId: currentSessionId, title }).catch(() => {})
+									moveSessionToTop(currentSessionId)
+								}
+							}
+						})
+					})
+						.catch(async (err: UsageLimitError) => {
+							if (!isActiveRequest(activeRequestIdRef, requestId)) return
+							const failedRequest: FailedRequest = {
+								prompt: trimmed,
+								entities: entities?.length ? entities : undefined,
+								images: images?.length ? images : undefined,
+								pageContext
+							}
+							if (err?.name === 'AbortError') {
+								appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+								dispatchStream({ type: 'RESET_STREAM' })
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+								return
+							}
+							if (err?.code === 'FREE_QUESTION_LIMIT') {
+								appendMessage({
+									role: 'assistant',
+									content: err.message || "You've reached the free question limit. Subscribe for unlimited access."
+								})
+								dispatchStream({ type: 'RESET_STREAM' })
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+								return
+							}
+							if (err?.code === 'USAGE_LIMIT_EXCEEDED') {
+								dispatchStream({
+									type: 'SET_RATE_LIMIT_DETAILS',
+									value: {
+										period: err.details?.period || 'lifetime',
+										limit: err.details?.limit || 0,
+										resetTime: err.details?.resetTime || null
+									}
+								})
+								dispatchStream({ type: 'RESET_STREAM' })
+								researchModalStore.show()
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+								return
+							}
+							if (currentSessionId && isTemporaryConnectivityError(err) && eventCounter.count > 0) {
+								buffer.receivedEventCount = eventCounter.count
+								if (
+									startRecoveryCycle({
+										targetSessionId: currentSessionId,
+										buffer,
+										failedRequest,
+										error: err instanceof Error ? err : new Error(getErrorMessage(err))
+									})
+								) {
+									return
+								}
+							}
+							dispatchStream({ type: 'SET_ERROR', value: err?.message || 'Failed to get response' })
+							dispatchStream({
+								type: 'SET_LAST_FAILED_REQUEST',
+								value: failedRequest
+							})
+							appendBufferedAssistantMessage(buffer, currentMessageIdRef, appendMessage)
+							dispatchStream({ type: 'RESET_STREAM' })
+							completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+						})
+						.finally(() => {
+							if (isActiveRequest(activeRequestIdRef, requestId)) {
+								abortControllerRef.current = null
+								completeRequest(activeRequestIdRef, activeRequestKindRef, activeSessionIdRef, requestId)
+							}
+							settleState.resolve()
+							if (activeRequestSettleRef.current?.requestId === requestId) {
+								activeRequestSettleRef.current = null
+							}
+							promptSubmissionLockRef.current = false
+						})
+				})
+				.catch(() => {
+					promptSubmissionLockRef.current = false
+				})
+		},
+		[
+			isStreaming,
+			sessionId,
+			isResearchMode,
+			authorizedFetchCompat,
+			createSession,
+			createFakeSession,
+			updateSessionTitle,
+			moveSessionToTop,
+			researchModalStore,
+			requestPermission,
+			notify,
+			customInstructions,
+			appendMessage,
+			abortActiveRequest,
+			startRecoveryCycle,
+			sessionTitle,
+			sessions,
+			attach,
+			shouldShowLanding,
+			triggerPromptTransition,
+			quotedText
+		]
+	)
+
+	// Stop the active streamed response while preserving already-buffered output.
+	const handleStopRequest = useCallback(() => {
+		if (sessionId) void stopAgenticExecution(sessionId)
+		void abortActiveRequest()
+		dispatchStream({ type: 'RESET_STREAM' })
+	}, [sessionId, abortActiveRequest])
+
+	// Reuse the same submit path for assistant action buttons.
+	const handleActionClick = useCallback(
+		(message: string) => {
+			if (!isStreaming) handleSubmit(message)
+		},
+		[isStreaming, handleSubmit]
+	)
+
+	// Retry the last failed prompt submission with the same prompt, images, and page context.
+	const handleRetryLastFailedPrompt = useCallback(() => {
+		if (!lastFailedRequest) return
+		dispatchStream({ type: 'SET_ERROR', value: null })
+		void (async () => {
+			if (sessionId) {
+				await abortActiveRequest()
+				const didResume = await resumeRunningExecution({ targetSessionId: sessionId })
+				if (didResume) return
+				const restoreResult = await restoreSessionSnapshot(sessionId, activeRequestIdRef.current)
+				if (restoreResult.recoveredResponse) return
+			}
+			handleSubmit(
+				lastFailedRequest.prompt,
+				lastFailedRequest.entities,
+				lastFailedRequest.images,
+				lastFailedRequest.pageContext
+			)
+		})()
+	}, [abortActiveRequest, handleSubmit, lastFailedRequest, restoreSessionSnapshot, resumeRunningExecution, sessionId])
+
+	// Consume pending prompts injected by the floating button once the base chat page mounts.
+	const submitPendingPromptEvent = useEffectEvent(
+		(
+			prompt: string,
+			pageContext?: { entitySlug?: string; entityType?: 'protocol' | 'chain' | 'page'; route: string },
+			isSuggestedQuestion?: boolean
+		) => {
+			handleSubmit(prompt, undefined, undefined, pageContext, isSuggestedQuestion)
 		}
-	}, [streamingItems, isStreaming])
+	)
+
+	// Auto-submit prompts forwarded from elsewhere in the app when landing on the base chat route.
+	useEffect(() => {
+		if (initialSessionId || sharedSession) return
+		const pendingPrompt = consumePendingPrompt()
+		const pendingPageContext = consumePendingPageContext()
+		const isSuggested = consumePendingSuggestedFlag()
+		if (pendingPrompt) {
+			submitPendingPromptEvent(pendingPrompt, pendingPageContext ?? undefined, isSuggested || undefined)
+		}
+	}, [initialSessionId, sharedSession])
+
+	// When returning to the tab after a dropped stream, try to reconnect to any still-running execution.
+	const reconnectVisibleExecutionEvent = useEffectEvent(() => {
+		const controller = recoveryControllerRef.current
+		if (!controller || readOnly) return
+		attemptRecoveryForController(controller.id)
+	})
 
 	useEffect(() => {
-		if (shouldAutoScrollRef.current && scrollContainerRef.current && messages.length > 0) {
-			requestAnimationFrame(() => {
-				if (scrollContainerRef.current && shouldAutoScrollRef.current) {
-					scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
-				}
-			})
-		}
-	}, [messages.length])
-
-	useEffect(() => {
-		return () => {
-			if (abortControllerRef.current) {
-				abortControllerRef.current.abort()
+		const onVisibilityChange = () => {
+			if (!document.hidden) {
+				reconnectVisibleExecutionEvent()
 			}
 		}
+
+		document.addEventListener('visibilitychange', onVisibilityChange)
+		return () => document.removeEventListener('visibilitychange', onVisibilityChange)
 	}, [])
 
 	useEffect(() => {
-		if (shouldAnimateSidebar) {
-			const timer = setTimeout(() => {
-				setShouldAnimateSidebar(false)
-			}, 220)
-			return () => clearTimeout(timer)
+		const onOnline = () => {
+			reconnectVisibleExecutionEvent()
 		}
-	}, [shouldAnimateSidebar])
 
-	const isSubmitted = !!(isPending || isStreaming || error || promptResponse)
+		window.addEventListener('online', onOnline)
+		return () => window.removeEventListener('online', onOnline)
+	}, [])
+
+	// Mirror route param updates into a ref so the restore effect can consume them once.
+	useEffect(() => {
+		pendingInitialSessionIdRef.current = initialSessionId
+	}, [initialSessionId])
+
+	// Restore the requested session as soon as the routed session id becomes available.
+	useEffect(() => {
+		const nextSessionId = pendingInitialSessionIdRef.current
+		if (!nextSessionId) return
+
+		pendingInitialSessionIdRef.current = undefined
+		restoredSessionIdRef.current = null
+		void handleSessionSelect(nextSessionId)
+	}, [initialSessionId, handleSessionSelect])
+
+	// Shared/public sessions are read-only snapshots, so they should never create a fake local session.
+	useEffect(() => {
+		if (!sharedSession) return
+		isFirstMessageRef.current = false
+	}, [sharedSession])
+
+	if (!user && !readOnly) {
+		return (
+			<>
+				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
+					<p className="flex items-center gap-1 text-center">
+						Please{' '}
+						<button
+							onClick={() => {
+								setSignupSource('llamaai')
+								if (!shouldRenderSubscribeModal) setShouldRenderSubscribeModal(true)
+								subscribeModalStore.show()
+							}}
+							className="underline"
+						>
+							log in
+						</button>{' '}
+						to use LlamaAI.
+					</p>
+				</div>
+				{shouldRenderSubscribeModal ? (
+					<Suspense fallback={<></>}>
+						<SubscribeProModal dialogStore={subscribeModalStore} />
+					</Suspense>
+				) : null}
+			</>
+		)
+	}
 
 	return (
-		<Layout
-			title="LlamaAI - DefiLlama"
-			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
+		<div
+			className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:bottom-0 max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"
+			style={viewportHeight ? { height: `${viewportHeight - 68}px` } : undefined}
 		>
-			<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
-				{!readOnly && (
+			{!readOnly ? (
+				sidebarVisible ? (
 					<>
-						{sidebarVisible ? (
-							<>
-								<ChatHistorySidebar
-									handleSidebarToggle={handleSidebarToggle}
-									currentSessionId={sessionId}
-									onSessionSelect={handleSessionSelect}
-									onNewChat={handleNewChat}
-									shouldAnimate={shouldAnimateSidebar}
-								/>
-								<div className="flex min-h-11 lg:hidden" />
-							</>
-						) : (
-							<ChatControls handleSidebarToggle={handleSidebarToggle} handleNewChat={handleNewChat} />
-						)}
+						<AgenticSidebar
+							sessions={sessions}
+							isLoading={isLoadingSessions}
+							loadError={sessionListError}
+							currentSessionId={sessionId}
+							restoringSessionId={restoringSessionId}
+							onSessionSelect={(nextSessionId) => {
+								void handleSessionSelect(nextSessionId)
+							}}
+							onNewChat={handleNewChat}
+							handleSidebarToggle={handleSidebarToggle}
+							onDelete={deleteSession}
+							onUpdateTitle={updateSessionTitle}
+							isDeletingSession={isDeletingSession}
+							isUpdatingTitle={isUpdatingTitle}
+							shouldAnimate={shouldAnimateSidebar}
+							onOpenSettings={settingsModalStore.show}
+							hasCustomInstructions={customInstructions.trim().length > 0}
+							onBulkDelete={bulkDeleteSessions}
+						/>
+						<div className="flex min-h-11 lg:hidden" />
 					</>
+				) : (
+					<ChatControls
+						handleSidebarToggle={handleSidebarToggle}
+						handleNewChat={handleNewChat}
+						onOpenSettings={settingsModalStore.show}
+						hasCustomInstructions={customInstructions.trim().length > 0}
+					/>
+				)
+			) : null}
+
+			<div
+				className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
+			>
+				{restoringSessionId && !hasMessages ? (
+					<LoadingConversationState />
+				) : !hasMessages && visibleError ? (
+					<EmptyConversationErrorState
+						message={visibleError}
+						onRetry={lastFailedRequest ? handleRetryLastFailedPrompt : undefined}
+					/>
+				) : shouldAnimateLandingTransition ? (
+					<div className="relative flex flex-1 overflow-hidden">
+						<div
+							aria-hidden="true"
+							className="pointer-events-none absolute inset-0 motion-safe:animate-[llamaLandingExit_0.42s_cubic-bezier(0.22,1,0.36,1)_both] motion-reduce:opacity-0"
+						>
+							<ChatLanding
+								readOnly={readOnly}
+								title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+								handleSubmit={handleSubmit}
+								promptInputRef={promptInputRef}
+								handleStopRequest={handleStopRequest}
+								isStreaming={isStreaming}
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={researchUsage}
+								onOpenAlerts={alertsModalStore.show}
+								quotedText={quotedText}
+								onClearQuotedText={() => setQuotedText(null)}
+							/>
+						</div>
+						<div className="absolute inset-0 flex flex-col motion-safe:animate-[llamaConversationEnter_0.5s_cubic-bezier(0.16,1,0.3,1)_both] motion-reduce:animate-none">
+							<ConversationView
+								readOnly={readOnly}
+								messages={effectiveMessages}
+								sessionId={effectiveSessionId}
+								isLlama={isLlama}
+								isStreaming={isStreaming}
+								activeToolCalls={activeToolCalls}
+								spawnProgress={spawnProgress}
+								spawnStartTime={spawnStartTime}
+								executionStartedAt={executionStartedAt}
+								spawnIsResearchMode={spawnIsResearchMode}
+								streamingThinking={streamingThinking}
+								streamingDraft={streamingDraft}
+								isCompacting={isCompacting}
+								paginationState={paginationState}
+								paginationError={paginationError}
+								recovery={recovery}
+								error={visibleError}
+								lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
+								onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+								scrollContainerRef={scrollContainerRef}
+								messagesEndRef={messagesEndRef}
+								promptInputRef={promptInputRef}
+								showScrollToBottom={showScrollToBottom}
+								scrollToBottom={scrollToBottom}
+								handleSubmit={handleSubmit}
+								handleStopRequest={handleStopRequest}
+								handleActionClick={handleActionClick}
+								isResearchMode={isResearchMode}
+								setIsResearchMode={setIsResearchMode}
+								researchUsage={researchUsage}
+								animateActiveExchange={false}
+								onOpenAlerts={alertsModalStore.show}
+								quotedText={quotedText}
+								onClearQuotedText={() => setQuotedText(null)}
+							/>
+						</div>
+					</div>
+				) : !hasMessages && !visibleError ? (
+					<ChatLanding
+						readOnly={readOnly}
+						title={readOnly ? effectiveSessionTitle || 'Shared Conversation' : 'What can I help you with?'}
+						handleSubmit={handleSubmit}
+						promptInputRef={promptInputRef}
+						handleStopRequest={handleStopRequest}
+						isStreaming={isStreaming}
+						isResearchMode={isResearchMode}
+						setIsResearchMode={setIsResearchMode}
+						researchUsage={researchUsage}
+						onOpenAlerts={alertsModalStore.show}
+						quotedText={quotedText}
+						onClearQuotedText={() => setQuotedText(null)}
+					/>
+				) : (
+					<ConversationView
+						readOnly={readOnly}
+						messages={effectiveMessages}
+						sessionId={effectiveSessionId}
+						isLlama={isLlama}
+						isStreaming={isStreaming}
+						activeToolCalls={activeToolCalls}
+						spawnProgress={spawnProgress}
+						spawnStartTime={spawnStartTime}
+						executionStartedAt={executionStartedAt}
+						streamingThinking={streamingThinking}
+						spawnIsResearchMode={spawnIsResearchMode}
+						streamingDraft={streamingDraft}
+						isCompacting={isCompacting}
+						paginationState={paginationState}
+						paginationError={paginationError}
+						recovery={recovery}
+						error={visibleError}
+						lastFailedPrompt={viewError ? null : (lastFailedRequest?.prompt ?? null)}
+						onRetryLastFailedPrompt={handleRetryLastFailedPrompt}
+						scrollContainerRef={scrollContainerRef}
+						messagesEndRef={messagesEndRef}
+						promptInputRef={promptInputRef}
+						showScrollToBottom={showScrollToBottom}
+						scrollToBottom={scrollToBottom}
+						handleSubmit={handleSubmit}
+						handleStopRequest={handleStopRequest}
+						handleActionClick={handleActionClick}
+						isResearchMode={isResearchMode}
+						setIsResearchMode={setIsResearchMode}
+						researchUsage={researchUsage}
+						animateActiveExchange={shouldAnimateConversationTransition}
+						onOpenAlerts={alertsModalStore.show}
+						quotedText={quotedText}
+						onClearQuotedText={() => setQuotedText(null)}
+					/>
 				)}
-				<div
-					className={`relative isolate flex flex-1 flex-col overflow-hidden rounded-lg border border-[#e6e6e6] bg-(--cards-bg) px-2.5 dark:border-[#222324] ${sidebarVisible && shouldAnimateSidebar ? 'lg:animate-[shrinkToRight_0.1s_ease-out]' : ''}`}
-					onDragEnter={handleChatDragEnter}
-					onDragLeave={handleChatDragLeave}
-					onDragOver={handleChatDragOver}
-					onDrop={handleChatDrop}
-				>
-					{messages.length === 0 && prompt.length === 0 && !isRestoringSession && !isPending && !isStreaming ? (
-						initialSessionId ? (
-							<div className="mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
-										Failed to restore session,{' '}
-										<button
-											onClick={handleNewChat}
-											data-umami-event="llamaai-new-chat"
-											className="text-(--link-text) underline"
-										>
-											Start a new chat
-										</button>
-									</p>
-								</div>
-							</div>
-						) : (
-							<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5">
-								<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
-									<img
-										src="/assets/llamaai/llama-ai.svg"
-										alt="LlamaAI"
-										className="object-contain"
-										width={64}
-										height={77}
-									/>
-									<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
-								</div>
-								{!readOnly && (
-									<>
-										<PromptInput
-											handleSubmit={handleSubmit}
-											promptInputRef={promptInputRef}
-											isPending={isPending}
-											handleStopRequest={handleStopRequest}
-											isStreaming={isStreaming}
-											restoreRequest={restoreRequest}
-											placeholder="Ask LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-											isResearchMode={isResearchMode}
-											setIsResearchMode={setIsResearchMode}
-											researchUsage={researchUsage}
-											droppedFiles={droppedFiles}
-											clearDroppedFiles={clearDroppedFiles}
-											externalDragging={isDraggingOnChat}
-											onOpenAlerts={alertsModalStore.show}
-										/>
-										<RecommendedPrompts
-											setPrompt={setPrompt}
-											submitPrompt={submitPrompt}
-											isPending={isPending}
-											isResearchMode={isResearchMode}
-										/>
-									</>
-								)}
-							</div>
-						)
-					) : (
-						<>
-							<div
-								ref={scrollContainerRef}
-								className="relative thin-scrollbar flex-1 overflow-y-auto p-2.5 max-lg:px-0"
-							>
-								<div className="relative mx-auto flex w-full max-w-3xl flex-col gap-2.5">
-									{isRestoringSession && messages.length === 0 ? (
-										<p className="mt-[100px] flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
-											Loading conversation
-											<LoadingDots />
-										</p>
-									) : messages.length > 0 || isSubmitted ? (
-										<div className="flex w-full flex-col gap-2 px-2 pb-2.5">
-											{paginationState.isLoadingMore && (
-												<p className="flex items-center justify-center gap-2 text-[#666] dark:text-[#919296]">
-													Loading more messages
-													<LoadingDots />
-												</p>
-											)}
-											{messages.length > 0 && (
-												<div className="flex flex-col gap-2.5">
-													{messages.map((item, index) => {
-														if (item.role === 'user') {
-															return (
-																<SentPrompt
-																	key={`user-${item.timestamp}-${index}`}
-																	prompt={item.content}
-																	images={item.images}
-																/>
-															)
-														}
-														if (item.role === 'assistant') {
-															// Use items if available, otherwise convert response fields to items
-															const messageItems =
-																item.items && item.items.length > 0
-																	? item.items
-																	: item.content
-																		? responseToItems(
-																				{
-																					content: item.content,
-																					charts: item.charts,
-																					chartData: item.chartData,
-																					citations: item.citations,
-																					csvExports: item.csvExports,
-																					suggestions: item.suggestions,
-																					metadata: item.metadata,
-																					inlineSuggestions: item.inlineSuggestions
-																				},
-																				item.messageId
-																			)
-																		: []
-
-															// Extract content for ResponseControls
-															const textContent = messageItems
-																.filter((i): i is StreamItem & { type: 'markdown' } => i.type === 'markdown')
-																.map((i) => i.text)
-																.join('')
-
-															// Extract charts for ResponseControls
-															const msgCharts = messageItems
-																.filter((i): i is ChartItem => i.type === 'chart')
-																.map((c) => ({ id: c.chart.id, title: c.chart.title }))
-
-															// Extract suggestions for rendering after ResponseControls
-															const msgSuggestions = messageItems.find(
-																(i): i is SuggestionsItem => i.type === 'suggestions'
-															)
-
-															// Extract metadata for rendering
-															const msgMetadata = messageItems.find((i): i is MetadataItem => i.type === 'metadata')
-
-															return (
-																<div
-																	key={`assistant-${item.messageId || item.timestamp}-${index}`}
-																	className="flex flex-col gap-2.5"
-																>
-																	<PromptResponse
-																		items={messageItems}
-																		isPending={false}
-																		isStreaming={false}
-																		resizeTrigger={resizeTrigger}
-																		showMetadata={showDebug}
-																		readOnly={readOnly}
-																		inlineChartConfig={{
-																			resizeTrigger,
-																			messageId: item.messageId,
-																			alertIntent: msgMetadata?.metadata?.alertIntent || item.metadata?.alertIntent,
-																			savedAlertIds: item.savedAlertIds || item.metadata?.savedAlertIds
-																		}}
-																	/>
-																	<ResponseControls
-																		messageId={item.messageId}
-																		content={textContent}
-																		initialRating={item.userRating}
-																		sessionId={sessionId}
-																		readOnly={readOnly}
-																		charts={msgCharts}
-																	/>
-																	{msgSuggestions?.suggestions?.length && !readOnly ? (
-																		<SuggestedActions
-																			suggestions={msgSuggestions.suggestions.map((s) => ({
-																				title: s.label,
-																				toolName: s.action,
-																				arguments: s.params
-																			}))}
-																			handleSuggestionClick={handleSuggestionClick}
-																			isPending={isPending}
-																			isStreaming={false}
-																		/>
-																	) : null}
-																	{showDebug && msgMetadata?.metadata ? (
-																		<QueryMetadata metadata={msgMetadata.metadata} />
-																	) : null}
-																</div>
-															)
-														}
-														return null
-													})}
-												</div>
-											)}
-											{(isPending || isStreaming || error) &&
-												(() => {
-													// Extract suggestions from streaming items for rendering after content
-													const streamingSuggestions = streamingItems.find(
-														(i): i is SuggestionsItem => i.type === 'suggestions'
-													)
-													// Extract metadata from streaming items for alert intent
-													const streamingMetadata = streamingItems.find((i): i is MetadataItem => i.type === 'metadata')
-
-													return (
-														<div className="flex min-h-[calc(100dvh-272px)] flex-col gap-2.5 lg:min-h-[calc(100dvh-215px)]">
-															{prompt && <SentPrompt prompt={prompt} images={pendingImages} />}
-															<PromptResponse
-																// New: Use items-based rendering
-																items={streamingItems}
-																error={error?.message}
-																streamingError={streamingError}
-																isPending={isPending}
-																isStreaming={isStreaming}
-																progressMessage={progressMessage}
-																onRetry={handleRetry}
-																canRetry={!!lastFailedRequest}
-																resizeTrigger={resizeTrigger}
-																showMetadata={showDebug}
-																readOnly={readOnly}
-																inlineChartConfig={{
-																	resizeTrigger,
-																	messageId: currentMessageId ?? undefined,
-																	alertIntent: streamingMetadata?.metadata?.alertIntent
-																}}
-															/>
-															{streamingSuggestions?.suggestions?.length && !isStreaming ? (
-																<SuggestedActions
-																	suggestions={streamingSuggestions.suggestions.map((s) => ({
-																		title: s.label,
-																		toolName: s.action,
-																		arguments: s.params
-																	}))}
-																	handleSuggestionClick={handleSuggestionClick}
-																	isPending={isPending}
-																	isStreaming={isStreaming}
-																/>
-															) : null}
-														</div>
-													)
-												})()}
-										</div>
-									) : (
-										<div className="mt-[100px] flex flex-col items-center justify-center gap-2.5">
-											<img
-												src="/assets/llamaai/llama-ai.svg"
-												alt="LlamaAI"
-												className="object-contain"
-												width={64}
-												height={77}
-											/>
-											<h1 className="text-center text-2xl font-semibold">What can I help you with?</h1>
-										</div>
-									)}
-								</div>
-							</div>
-							<div
-								className={`pointer-events-none sticky ${readOnly ? 'bottom-10' : 'bottom-32'} z-10 mx-auto -mb-8 transition-opacity duration-200 ${showScrollToBottom ? 'opacity-100' : ''} ${!showScrollToBottom ? 'opacity-0' : ''}`}
-							>
-								<Tooltip
-									content="Scroll to bottom"
-									render={
-										<button
-											onClick={() => {
-												if (scrollContainerRef.current) {
-													setShowScrollToBottom(false)
-
-													scrollContainerRef.current.scrollTo({
-														top: scrollContainerRef.current.scrollHeight,
-														behavior: 'smooth'
-													})
-												}
-											}}
-										/>
-									}
-									className="pointer-events-auto mx-auto flex h-8 w-8 items-center justify-center rounded-full border border-[#e6e6e6] bg-(--app-bg) shadow-md hover:bg-[#f7f7f7] focus-visible:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324] dark:focus-visible:bg-[#222324]"
-								>
-									<Icon name="arrow-down" height={16} width={16} />
-									<span className="sr-only">Scroll to bottom</span>
-								</Tooltip>
-							</div>
-							<div className="relative mx-auto w-full max-w-3xl pb-2.5">
-								{!readOnly && (
-									<div className="absolute -top-8 right-0 left-0 h-9 bg-gradient-to-b from-transparent to-[#fefefe] dark:to-[#131516]" />
-								)}
-								{!readOnly && (
-									<PromptInput
-										handleSubmit={handleSubmit}
-										promptInputRef={promptInputRef}
-										isPending={isPending}
-										handleStopRequest={handleStopRequest}
-										isStreaming={isStreaming}
-										restoreRequest={restoreRequest}
-										placeholder="Reply to LlamaAI... Type @ to add a protocol, chain or stablecoin, or $ to add a coin"
-										isResearchMode={isResearchMode}
-										setIsResearchMode={setIsResearchMode}
-										researchUsage={researchUsage}
-										droppedFiles={droppedFiles}
-										clearDroppedFiles={clearDroppedFiles}
-										externalDragging={isDraggingOnChat}
-										onOpenAlerts={alertsModalStore.show}
-									/>
-								)}
-							</div>
-						</>
-					)}
-				</div>
 			</div>
-			{rateLimitDetails ? (
+			{!readOnly ? (
+				<TextSelectionPopup
+					onSelect={(text) => {
+						setQuotedText(text)
+						requestAnimationFrame(() => {
+							promptInputRef.current?.focus()
+						})
+					}}
+				/>
+			) : null}
+			{!readOnly && rateLimitDetails ? (
 				<ResearchLimitModal
 					dialogStore={researchModalStore}
 					period={rateLimitDetails.period}
@@ -1315,67 +1895,78 @@ export function LlamaAI({ initialSessionId, sharedSession, readOnly = false, sho
 					resetTime={rateLimitDetails.resetTime}
 				/>
 			) : null}
-			<AlertsModal dialogStore={alertsModalStore} />
-		</Layout>
+			{!readOnly ? (
+				<TokenLimitModal isOpen={showTokenLimitModal} onClose={() => setShowTokenLimitModal(false)} />
+			) : null}
+			{!readOnly ? <AlertsModal dialogStore={alertsModalStore} /> : null}
+			{shouldRenderSubscribeModal ? (
+				<Suspense fallback={<></>}>
+					<SubscribeProModal dialogStore={subscribeModalStore} />
+				</Suspense>
+			) : null}
+			{!readOnly ? (
+				<SettingsModal
+					dialogStore={settingsModalStore}
+					customInstructions={customInstructions}
+					onCustomInstructionsChange={setCustomInstructions}
+					enableMemory={enableMemory}
+					onEnableMemoryChange={setEnableMemory}
+					hackerMode={hackerMode}
+					onHackerModeChange={setHackerMode}
+					fetchFn={authorizedFetchStrict}
+				/>
+			) : null}
+		</div>
 	)
 }
 
-const SentPrompt = memo(function SentPrompt({
-	prompt,
-	images
-}: {
-	prompt: string
-	images?: Array<{ url: string; mimeType: string; filename?: string }>
-}) {
-	const [previewImage, setPreviewImage] = useState<string | null>(null)
-
-	return (
-		<div className="message-sent relative ml-auto max-w-[80%] rounded-lg rounded-tr-none bg-[#ececec] p-3 dark:bg-[#222425]">
-			{images && images.length > 0 && (
-				<div className="mb-2.5 flex flex-wrap gap-3">
-					{images.map((img) => (
-						<button
-							key={`sent-prompt-image-${img.url}`}
-							type="button"
-							onClick={() => setPreviewImage(img.url)}
-							className="h-16 w-16 cursor-pointer overflow-hidden rounded-lg"
-						>
-							<img src={img.url} alt={img.filename || 'Uploaded image'} className="h-full w-full object-cover" />
-						</button>
-					))}
-				</div>
-			)}
-			<p>{prompt}</p>
-			<ImagePreviewModal imageUrl={previewImage} onClose={() => setPreviewImage(null)} />
-		</div>
-	)
-})
-
 const ChatControls = memo(function ChatControls({
 	handleSidebarToggle,
-	handleNewChat
+	handleNewChat,
+	onOpenSettings,
+	hasCustomInstructions
 }: {
 	handleSidebarToggle: () => void
 	handleNewChat: () => void
+	onOpenSettings: () => void
+	hasCustomInstructions: boolean
 }) {
 	return (
-		<div className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col">
-			<Tooltip
-				content="Open Chat History"
-				render={<button onClick={handleSidebarToggle} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+		<>
+			<nav
+				className="flex gap-2 max-lg:flex-wrap max-lg:items-center max-lg:justify-between max-lg:p-2.5 lg:absolute lg:top-2.5 lg:left-2.5 lg:z-10 lg:flex-col"
+				aria-label="Chat controls"
 			>
-				<Icon name="panel-left-open" height={16} width={16} />
-				<span className="sr-only">Open Chat History</span>
-			</Tooltip>
+				<Tooltip
+					content="Open Chat History"
+					render={<button onClick={handleSidebarToggle} />}
+					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white"
+				>
+					<Icon name="panel-left-open" height={16} width={16} />
+					<span className="sr-only">Open Chat History</span>
+				</Tooltip>
+				<Tooltip
+					content="New Chat"
+					render={<button onClick={handleNewChat} />}
+					className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+				>
+					<Icon name="message-square-plus" height={16} width={16} />
+					<span className="sr-only">New Chat</span>
+				</Tooltip>
+			</nav>
 			<Tooltip
-				content="New Chat"
-				render={<button onClick={handleNewChat} />}
-				className="flex h-6 w-6 items-center justify-center gap-2 rounded-sm bg-(--old-blue) text-white hover:bg-(--old-blue) focus-visible:bg-(--old-blue)"
+				content="Settings"
+				render={<button onClick={onOpenSettings} />}
+				className="absolute bottom-2.5 left-2.5 z-10 flex h-6 w-6 items-center justify-center rounded-sm bg-(--old-blue)/12 text-(--old-blue) hover:bg-(--old-blue) hover:text-white focus-visible:bg-(--old-blue) focus-visible:text-white max-lg:hidden"
 			>
-				<Icon name="message-square-plus" height={16} width={16} />
-				<span className="sr-only">New Chat</span>
+				<div className="relative">
+					<Icon name="settings" height={16} width={16} />
+					{hasCustomInstructions ? (
+						<span className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-[#1853A8] dark:bg-[#4B86DB]" />
+					) : null}
+				</div>
+				<span className="sr-only">Settings</span>
 			</Tooltip>
-		</div>
+		</>
 	)
 })

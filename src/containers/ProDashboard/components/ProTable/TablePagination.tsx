@@ -1,7 +1,9 @@
+'use no memo'
+
 import type { Table } from '@tanstack/react-table'
 import * as React from 'react'
-import type { IProtocolRow } from '~/components/Table/Defi/Protocols/types'
 import { TagGroup } from '~/components/TagGroup'
+import type { IProtocolRow } from './proTable.types'
 
 interface TablePaginationProps {
 	table: Table<IProtocolRow> | null
@@ -10,29 +12,69 @@ interface TablePaginationProps {
 const PAGINATION_VALUES = ['Previous', 'Next'] as const
 const PAGE_SIZES = ['10', '30', '50'] as const
 
+type PaginationAction = (typeof PAGINATION_VALUES)[number]
+type PageSize = (typeof PAGE_SIZES)[number]
+
+const toPageSize = (n: number): PageSize => {
+	const s = String(n)
+	return (PAGE_SIZES as readonly string[]).includes(s) ? (s as PageSize) : PAGE_SIZES[0]
+}
+
 export function TablePagination({ table }: TablePaginationProps) {
-	if (!table) return null
+	const rowCount = table?.getRowCount() ?? 0
+	const canNextPage = table?.getCanNextPage() ?? false
+	const canPreviousPage = table?.getCanPreviousPage() ?? false
+	const pageSize = table?.getState().pagination.pageSize ?? 10
+	const shouldShowPagination = canPreviousPage || canNextPage
+	const shouldShowPageSizes = rowCount > 10
+
+	const disabledValues = React.useMemo(() => {
+		const values: PaginationAction[] = []
+		if (!canNextPage) values.push('Next')
+		if (!canPreviousPage) values.push('Previous')
+		return values
+	}, [canNextPage, canPreviousPage])
+
+	const handlePaginationAction = React.useCallback(
+		(val: PaginationAction) => {
+			if (!table) return
+			if (val === 'Next' && canNextPage) {
+				table.nextPage()
+				return
+			}
+			if (val === 'Previous' && canPreviousPage) {
+				table.previousPage()
+			}
+		},
+		[canNextPage, canPreviousPage, table]
+	)
+
+	const handlePageSizeChange = React.useCallback(
+		(val: PageSize) => {
+			if (!table) return
+			table.setPageSize(Number(val))
+		},
+		[table]
+	)
+
+	if (!table || (rowCount <= 10 && !shouldShowPagination)) return null
 
 	return (
 		<div className="mt-2 flex w-full items-center justify-between">
-			<TagGroup
-				selectedValue={null}
-				setValue={(val) =>
-					val === 'Next'
-						? table.getCanNextPage() && table.nextPage()
-						: table.getCanPreviousPage() && table.previousPage()
-				}
-				values={PAGINATION_VALUES}
-				disabledValues={[!table.getCanNextPage() && 'Next', !table.getCanPreviousPage() && 'Previous']}
-			/>
-			<div className="flex items-center">
-				<div className="mr-2 text-xs">Per page</div>
+			{shouldShowPagination ? (
 				<TagGroup
-					selectedValue={String(table.getState().pagination.pageSize)}
-					values={PAGE_SIZES}
-					setValue={(val) => table.setPageSize(Number(val))}
+					selectedValue={null}
+					setValue={handlePaginationAction}
+					values={PAGINATION_VALUES}
+					disabledValues={disabledValues}
 				/>
-			</div>
+			) : null}
+			{shouldShowPageSizes ? (
+				<div className="flex items-center">
+					<span className="mr-2 text-xs">Per page</span>
+					<TagGroup selectedValue={toPageSize(pageSize)} values={PAGE_SIZES} setValue={handlePageSizeChange} />
+				</div>
+			) : null}
 		</div>
 	)
 }

@@ -1,18 +1,16 @@
 import { useMutation } from '@tanstack/react-query'
-import type { ColumnDef } from '@tanstack/react-table'
-import { useCallback, useMemo, useState } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
+import { createColumnHelper } from '@tanstack/react-table'
+import { useMemo, useState } from 'react'
 import { LoadingDots } from '~/components/Loaders'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { BRIDGETX_API } from '~/constants'
 import { useDateRangeValidation } from '~/hooks/useDateRangeValidation'
-import { toNiceCsvDate, toNiceDayAndHour } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { toNiceDayAndHour } from '~/utils'
+import { fetchBridgeTransactions } from './api'
 
 type BridgeTransaction = {
 	tx_hash: string
 	ts: string
-	tx_block: string
+	tx_block: string | number
 	tx_from: string
 	tx_to: string
 	token: string
@@ -20,7 +18,7 @@ type BridgeTransaction = {
 	is_deposit: boolean
 	chain: string
 	bridge_name: string
-	usd_value: string
+	usd_value: string | null
 }
 
 const MAX_ITERATIONS = 50
@@ -32,97 +30,89 @@ interface TransformedTransaction {
 	type: string
 	token: string
 	amount: string
-	usd_value: string
+	usd_value: string | number | null
 	tx_from: string
 	tx_to: string
 	tx_hash: string
 }
 
-const bridgeTransactionsColumns: ColumnDef<TransformedTransaction>[] = [
-	{
+const columnHelper = createColumnHelper<TransformedTransaction>()
+
+const bridgeTransactionsColumns = [
+	columnHelper.accessor('date', {
 		header: 'Date',
-		accessorKey: 'date',
 		cell: ({ getValue }) => getValue(),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('bridge_name', {
 		header: 'Bridge',
-		accessorKey: 'bridge_name',
 		cell: ({ getValue }) => getValue(),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('chain', {
 		header: 'Chain',
-		accessorKey: 'chain',
 		cell: ({ getValue }) => getValue(),
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('type', {
 		header: 'Type',
-		accessorKey: 'type',
 		cell: ({ getValue }) => (
-			<span className={getValue() === 'deposit' ? 'text-green-600' : 'text-red-600'}>{getValue() as string}</span>
+			<span className={getValue() === 'deposit' ? 'text-green-600' : 'text-red-600'}>{getValue()}</span>
 		),
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('token', {
 		header: 'Token',
-		accessorKey: 'token',
 		cell: ({ getValue }) => getValue(),
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('amount', {
 		header: 'Amount',
-		accessorKey: 'amount',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('usd_value', {
 		header: 'USD Value',
-		accessorKey: 'usd_value',
 		cell: ({ getValue }) => {
-			const value = parseFloat(getValue() as string)
-			return isNaN(value) ? getValue() : `$${value.toLocaleString()}`
+			const value = parseFloat(String(getValue()))
+			return Number.isNaN(value) ? getValue() : `$${value.toLocaleString()}`
 		},
 		size: 120,
 		meta: {
 			align: 'end' as const
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tx_from', {
 		header: 'From',
-		accessorKey: 'tx_from',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('tx_to', {
 		header: 'To',
-		accessorKey: 'tx_to',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	},
-	{
+	}),
+	columnHelper.accessor('tx_hash', {
 		header: 'Hash',
-		accessorKey: 'tx_hash',
 		cell: ({ getValue }) => (
-			<span className="inline-block max-w-30 truncate" title={getValue() as string}>
-				{getValue() as string}
+			<span className="inline-block max-w-30 truncate" title={getValue()}>
+				{getValue()}
 			</span>
 		),
 		size: 150
-	}
+	})
 ]
 
 const transformTransactionForTable = (tx: BridgeTransaction): TransformedTransaction => {
@@ -160,8 +150,7 @@ const fetchTransactions = async ({ bridges, startDate, endDate, selectedBridge }
 	let iterations = 0
 
 	while (iterations < MAX_ITERATIONS) {
-		const url = `${BRIDGETX_API}/${bridgeId}?starttimestamp=${startTimestamp}&endtimestamp=${currentEndTimestamp}`
-		const transactions: BridgeTransaction[] = await fetchJson(url)
+		const transactions = await fetchBridgeTransactions(bridgeId, startTimestamp, currentEndTimestamp)
 
 		if (!transactions?.length) {
 			break
@@ -217,11 +206,16 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	defaultStartDate.setMonth(defaultEndDate.getMonth() - 1)
 
 	const [transactions, setTransactions] = useState<BridgeTransaction[]>([])
+	const [fetchedDateRange, setFetchedDateRange] = useState<{ startDate: string; endDate: string } | null>(null)
 
 	const { mutate, isPending, error } = useMutation({
 		mutationFn: fetchTransactions,
-		onSuccess: (data) => {
+		onSuccess: (data, variables) => {
 			setTransactions(data)
+			setFetchedDateRange({
+				startDate: variables.startDate,
+				endDate: variables.endDate
+			})
 		}
 	})
 
@@ -252,35 +246,9 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 	}
 
 	const maxDate = new Date().toISOString().split('T')[0]
+	const csvDateRange = fetchedDateRange ?? { startDate, endDate }
 
 	const tableData = useMemo(() => transactions.map(transformTransactionForTable), [transactions])
-
-	const prepareCsv = useCallback(() => {
-		const filename = `bridge-transactions_${startDate}_${endDate}.csv`
-		if (transactions.length === 0) return { filename, rows: [] }
-
-		const csvData = transactions.map((tx) => {
-			const timestamp = Math.floor(new Date(tx.ts).getTime() / 1000)
-			return {
-				Timestamp: timestamp,
-				Date: toNiceCsvDate(timestamp),
-				Bridge: tx.bridge_name,
-				Chain: tx.chain,
-				Type: tx.is_deposit ? 'deposit' : 'withdrawal',
-				Token: tx.token,
-				Amount: tx.amount,
-				USD_Value: tx.usd_value,
-				From: tx.tx_from,
-				To: tx.tx_to,
-				Hash: tx.tx_hash
-			}
-		})
-
-		const headers = Object.keys(csvData[0])
-		const rows = [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
-
-		return { filename, rows }
-	}, [transactions, startDate, endDate])
 
 	return (
 		<div className="mt-4 flex flex-col gap-4 lg:mt-10">
@@ -346,20 +314,20 @@ export const BridgeTransactionsPage = ({ bridges }) => {
 				</form>
 			</div>
 
-			{transactions.length > 0 && (
+			{transactions.length > 0 ? (
 				<TableWithSearch
 					data={tableData}
 					columns={bridgeTransactionsColumns}
 					header="Bridge Transactions"
-					customFilters={
+					customFilters={() => (
 						<div className="flex items-center justify-between gap-3">
 							<span>({transactions.length.toLocaleString()}) transactions</span>
-							<CSVDownloadButton prepareCsv={prepareCsv} />
 						</div>
-					}
+					)}
+					csvFileName={`bridge-transactions_${csvDateRange.startDate}_${csvDateRange.endDate}`}
 					sortingState={[{ id: 'date', desc: true }]}
 				/>
-			)}
+			) : null}
 		</div>
 	)
 }

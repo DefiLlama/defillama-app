@@ -91,20 +91,20 @@ export const AccountStatus = ({
 									<h2 className="bg-linear-to-r from-white to-[#b4b7bc] bg-clip-text text-xl font-bold text-transparent">
 										{resolvedEmail ? resolvedEmail?.split('@')[0] : user?.walletAddress}
 									</h2>
-									{isVerified && (
+									{isVerified ? (
 										<span className="flex h-5 w-5 transform items-center justify-center rounded-full bg-green-400/10 text-green-400 transition-transform hover:scale-110">
 											<Icon name="check" height={10} width={10} />
 										</span>
-									)}
+									) : null}
 								</div>
-								{hasWallet && (
+								{hasWallet ? (
 									<p className="max-w-[200px] truncate text-sm text-[#8a8c90] sm:max-w-[300px]">
 										{formatEthAddress(user.walletAddress)}
 									</p>
-								)}
-								{hasEmail && (
+								) : null}
+								{hasEmail ? (
 									<p className="max-w-[200px] truncate text-sm text-[#8a8c90] sm:max-w-[300px]">{resolvedEmail}</p>
-								)}
+								) : null}
 							</div>
 						</div>
 
@@ -142,7 +142,7 @@ export const AccountStatus = ({
 										</>
 									)}
 								</span>
-								{portalUrl && (
+								{portalUrl ? (
 									<BasicLink
 										href={portalUrl}
 										className="group flex items-center gap-2 rounded-lg border border-[#39393E]/50 bg-[#222429]/70 px-4 py-2 text-sm shadow-md transition-all duration-200 hover:border-[#5C5CF9]/50 hover:bg-[#222429] hover:shadow-[0_4px_12px_rgba(92,92,249,0.15)]"
@@ -155,7 +155,7 @@ export const AccountStatus = ({
 										/>
 										<span>Manage subscription</span>
 									</BasicLink>
-								)}
+								) : null}
 							</span>
 						</div>
 						<div className="group flex transform flex-col rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:translate-y-[-2px] hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
@@ -165,7 +165,7 @@ export const AccountStatus = ({
 									<span className="flex items-center gap-2">
 										<span>
 											{subscription.type === 'llamafeed' ? 'Pro' : 'API'}
-											{isTrial && ' (Trial)'}
+											{isTrial ? ' (Trial)' : null}
 										</span>
 										<Icon
 											name="star"
@@ -216,7 +216,12 @@ export const AccountStatus = ({
 										user.walletAddress.length - 6
 									)}`}
 								</p>
-								<button className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1b1f] text-[#5C5CF9] opacity-0 transition-colors group-hover:opacity-100 hover:bg-[#5C5CF9]/5 hover:text-[#6A6AFA]">
+								<button
+									onClick={() => {
+										void navigator.clipboard.writeText(user.walletAddress)
+									}}
+									className="flex h-6 w-6 items-center justify-center rounded-full bg-[#1a1b1f] text-[#5C5CF9] opacity-0 transition-colors group-hover:opacity-100 hover:bg-[#5C5CF9]/5 hover:text-[#6A6AFA]"
+								>
 									<Icon name="copy" height={12} width={12} />
 								</button>
 							</div>
@@ -242,12 +247,12 @@ export const AccountStatus = ({
 					<div className="group mt-4 rounded-xl border border-[#39393E]/40 bg-linear-to-br from-[#222429]/90 to-[#1d1e23]/70 p-3.5 transition-all duration-300 hover:border-[#5C5CF9]/30 hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
 						<div className="mb-2 flex items-center justify-between">
 							<span className="text-xs text-[#8a8c90]">Email</span>
-							{hasEmail && isVerified && (
+							{hasEmail && isVerified ? (
 								<span className="flex items-center gap-1 text-xs text-green-400">
 									<Icon name="check" height={8} width={8} />
 									<span>Verified</span>
 								</span>
-							)}
+							) : null}
 						</div>
 						<div className="space-y-3">
 							<div className="flex items-center justify-between">
@@ -271,7 +276,8 @@ export const AccountStatus = ({
 								<div>
 									<span className="text-sm text-[#b4b7bc]">Promotional emails</span>
 									<p className="mt-0.5 text-xs text-[#8a8c90]">
-										Receive emails about upcoming DefiLlama products and new releases
+										Get early access announcements, new feature releases, and DeFi data insights from the DefiLlama
+										team. Unsubscribe anytime
 									</p>
 								</div>
 								<button

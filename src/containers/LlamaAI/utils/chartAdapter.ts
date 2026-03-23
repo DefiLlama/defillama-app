@@ -1,161 +1,353 @@
 import { formatTooltipValue } from '~/components/ECharts/formatters'
 import type {
-	IBarChartProps,
 	ICandlestickChartProps,
-	IChartProps,
-	IMultiSeriesChartProps,
-	IPieChartProps
+	IMultiSeriesChart2Props,
+	IPieChartProps,
+	IScatterChartProps
 } from '~/components/ECharts/types'
-import { generateChartColor } from '~/containers/ProDashboard/utils'
-import { colorManager } from '~/containers/ProDashboard/utils/colorManager'
-import { formattedNum, getNDistinctColors } from '~/utils'
-import type { ChartConfiguration } from '../types'
+import { CHART_COLORS, oldBlue } from '~/constants/colors'
+import type { ChartConfiguration } from '~/containers/LlamaAI/types'
+import { getNDistinctColors } from '~/utils'
 
 const normalizeHallmarks = (hallmarks?: Array<[number] | [number, string]>): Array<[number, string]> => {
 	if (!hallmarks?.length) return []
-	const labels: string[] = []
-	for (const h of hallmarks) {
-		if (h[1]) labels.push(h[1])
-	}
-	if (labels.length > 0 && labels.every((l) => l === labels[0])) {
+	const labels = hallmarks.map((h) => h[1]).filter(Boolean)
+	if (labels.length > 1 && labels.every((l) => l === labels[0])) {
 		return hallmarks.map((h) => [h[0], ''])
 	}
 	return hallmarks.map((h) => [h[0], h[1] || ''])
 }
 
-interface AdaptedChartData {
-	chartType: 'area' | 'bar' | 'line' | 'combo' | 'multi-series' | 'pie' | 'scatter' | 'hbar' | 'candlestick'
-	data: [number, number | null][] | [any, number | null][] | Array<{ name: string; value: number }>
-	props: Partial<IChartProps | IBarChartProps | IMultiSeriesChartProps | IPieChartProps>
-	title: string
-	description: string
+export type LlamaAICartesianChartProps = Pick<
+	IMultiSeriesChart2Props,
+	'dataset' | 'charts' | 'chartOptions' | 'valueSymbol' | 'groupBy' | 'hallmarks' | 'hideDataZoom'
+>
+
+export type LlamaAICartesianDatasetRow = LlamaAICartesianChartProps['dataset']['source'][number]
+export type LlamaAICartesianSeriesConfig = NonNullable<LlamaAICartesianChartProps['charts']>[number]
+
+export interface LlamaAICartesianSeriesMeta {
+	name: string
+	seriesIndex: number
+	metricClass: 'flow' | 'stock'
+	baseType: 'line' | 'area' | 'bar'
+	apiColor?: string
+	resolvedColor: string
+	valueSymbol?: string
+	yAxisIndex?: number
+	isPrimaryAxis: boolean
+	canStack: boolean
+	canPercentage: boolean
+	canGroup: boolean
 }
 
-const getChartColor = (entityValue?: string, seriesIndex?: number, fallbackColor: string = '#8884d8'): string => {
-	if (entityValue) {
-		return colorManager.getItemColor(entityValue, 'protocol', fallbackColor)
-	}
+export interface AdaptedLlamaAICartesianChart {
+	chartType: 'cartesian'
+	props: LlamaAICartesianChartProps
+	title: string
+	description: string
+	rowCount: number
+	axisType: 'time' | 'category'
+	isTimeChart: boolean
+	hasHallmarks: boolean
+	groupingPolicy: 'always' | 'never'
+	defaultExportKind: 'cartesian'
+	seriesMeta: LlamaAICartesianSeriesMeta[]
+}
 
+interface AdaptedPieChartData {
+	chartType: 'pie'
+	props: Partial<IPieChartProps>
+	title: string
+	description: string
+	defaultExportKind: 'pie'
+}
+
+interface AdaptedScatterChartData {
+	chartType: 'scatter'
+	props: Partial<IScatterChartProps>
+	title: string
+	description: string
+	defaultExportKind: 'scatter'
+}
+
+interface AdaptedHBarChartData {
+	chartType: 'hbar'
+	data: Array<[string | number, number]>
+	props: {
+		height: string
+		valueSymbol: string
+		colors?: string[]
+	}
+	title: string
+	description: string
+	defaultExportKind: 'hbar'
+}
+
+export type AdaptedChartData =
+	| AdaptedLlamaAICartesianChart
+	| AdaptedPieChartData
+	| AdaptedScatterChartData
+	| AdaptedHBarChartData
+
+const getChartColor = (_entityValue?: string, seriesIndex?: number, fallbackColor: string = oldBlue): string => {
 	if (seriesIndex !== undefined) {
-		const pseudoEntity = `series_${seriesIndex}`
-		return generateChartColor(pseudoEntity, fallbackColor)
+		return CHART_COLORS[seriesIndex % CHART_COLORS.length]
 	}
-
 	return fallbackColor
 }
 
 const parseStringNumber = (value: any): number => {
-	if (typeof value === 'number') {
-		return value
-	}
-
+	if (typeof value === 'number') return value
 	if (typeof value === 'string') {
 		const parsed = parseFloat(value)
 		return Number.isNaN(parsed) ? 0 : parsed
 	}
-
 	return 0
 }
 
-const formatPrecisionPercentage = (value: number): string => {
-	if (value == null || Number.isNaN(value)) {
-		return '0%'
-	}
-
-	if (Math.abs(value) < 1) {
-		const formatted = value.toFixed(5).replace(/\.?0+$/, '')
-		return `${formatted}%`
-	}
-
-	return `${Math.round(value * 100) / 100}%`
+const MONTH_NAME_TO_INDEX: Record<string, number> = {
+	jan: 0,
+	january: 0,
+	feb: 1,
+	february: 1,
+	mar: 2,
+	march: 2,
+	apr: 3,
+	april: 3,
+	may: 4,
+	jun: 5,
+	june: 5,
+	jul: 6,
+	july: 6,
+	aug: 7,
+	august: 7,
+	sep: 8,
+	sept: 8,
+	september: 8,
+	oct: 9,
+	october: 9,
+	nov: 10,
+	november: 10,
+	dec: 11,
+	december: 11
 }
 
-const _formatChartValue = (value: number, valueSymbol?: string): string => {
-	switch (valueSymbol) {
-		case '%':
-			return formatPrecisionPercentage(value)
-		case '$':
-			return formattedNum(value, true)
-		case '':
-			return formattedNum(value)
-		default:
-			return `${formattedNum(value)} ${valueSymbol || ''}`
-	}
-}
+const DATE_LIKE_FIELD_RE = /(^|_)(date|day|month|time|timestamp)$/i
 
-const validateChartData = (
-	data: [number | string, number | null][],
-	chartType: string
-): [number | string, number | null][] => {
-	if (!data || data.length === 0) {
-		return []
-	}
-
-	const uniqueData = data.filter((item, index, self) => index === self.findIndex((t) => t[0] === item[0]))
-
-	const validData = uniqueData.filter(([x, y]) => {
-		if (x == null) {
-			return false
-		}
-
-		// Accept strings for categorical charts
-		if (typeof x === 'string' && x.length > 0) {
-			return typeof y === 'number' && !Number.isNaN(y)
-		}
-
-		// Accept numbers for time-series charts
-		if (typeof x === 'number') {
-			if (chartType === 'area' || chartType === 'line') {
-				return y == null || (typeof y === 'number' && !Number.isNaN(y))
-			}
-			return typeof y === 'number' && !Number.isNaN(y)
-		}
-
-		return false
-	})
-
-	return validData
-}
-
-const determineTimeGrouping = (_data: any[], _timeField: string): 'day' | 'week' | 'month' => {
-	return 'day'
-}
-
-const convertToUnixTimestamp = (timestamp: any): number => {
+const parseStrictDateLabelToMs = (timestamp: unknown): number | null => {
 	if (typeof timestamp === 'number') {
-		return timestamp.toString().length <= 10 ? timestamp : Math.floor(timestamp / 1000)
-	}
-
-	if (typeof timestamp === 'string') {
-		const date = new Date(timestamp)
-		if (!Number.isNaN(date.getTime())) {
-			return Math.floor(date.getTime() / 1000)
-		}
-
-		const parsed = parseInt(timestamp)
-		if (!Number.isNaN(parsed)) {
-			return parsed.toString().length <= 10 ? parsed : Math.floor(parsed / 1000)
-		}
+		if (!Number.isFinite(timestamp)) return null
+		return timestamp.toString().length <= 10 ? timestamp * 1000 : timestamp
 	}
 
 	if (timestamp instanceof Date) {
-		return Math.floor(timestamp.getTime() / 1000)
+		const value = timestamp.getTime()
+		return Number.isNaN(value) ? null : value
 	}
 
-	console.log('Could not parse timestamp:', timestamp)
-	return Math.floor(Date.now() / 1000)
+	if (typeof timestamp !== 'string') return null
+
+	const value = timestamp.trim()
+	if (!value) return null
+
+	if (/^\d{10}$/.test(value)) {
+		return Number(value) * 1000
+	}
+
+	if (/^\d{13}$/.test(value)) {
+		return Number(value)
+	}
+
+	const isoMonthMatch = value.match(/^(\d{4})-(\d{2})$/)
+	if (isoMonthMatch) {
+		const year = Number(isoMonthMatch[1])
+		const month = Number(isoMonthMatch[2])
+		if (month < 1 || month > 12) return null
+		return Date.UTC(year, month - 1, 1)
+	}
+
+	const isoDateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+	if (isoDateMatch) {
+		const year = Number(isoDateMatch[1])
+		const month = Number(isoDateMatch[2])
+		const day = Number(isoDateMatch[3])
+		if (month < 1 || month > 12 || day < 1 || day > 31) return null
+		const d = new Date(Date.UTC(year, month - 1, day))
+		if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return null
+		return d.getTime()
+	}
+
+	if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+		const date = new Date(value)
+		return Number.isNaN(date.getTime()) ? null : date.getTime()
+	}
+
+	const monthNameMatch = value.match(/^([A-Za-z]+)\s+(\d{4})$/)
+	if (monthNameMatch) {
+		const monthIndex = MONTH_NAME_TO_INDEX[monthNameMatch[1].toLowerCase()]
+		if (monthIndex == null) return null
+		return Date.UTC(Number(monthNameMatch[2]), monthIndex, 1)
+	}
+
+	return null
 }
 
-function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
-	try {
-		if (!rawData || rawData.length === 0) {
-			throw new Error('No data provided')
+const looksLikeDateField = (field: string) => DATE_LIKE_FIELD_RE.test(field)
+
+function inferTimeSeriesAxis(
+	config: ChartConfiguration,
+	rawData: any[]
+): {
+	axisType: 'time' | 'category'
+	dimensionName: 'timestamp' | 'category'
+	normalizeXValue: (rawValue: unknown) => number | string | null
+	reason: 'declared-time' | 'promoted-date-category' | 'category'
+} {
+	if (config.axes.x.type === 'time') {
+		return {
+			axisType: 'time',
+			dimensionName: 'timestamp',
+			normalizeXValue: (rawValue) => parseStrictDateLabelToMs(rawValue),
+			reason: 'declared-time'
 		}
+	}
+
+	if (config.axes.x.type !== 'category' || !looksLikeDateField(config.axes.x.field)) {
+		return {
+			axisType: 'category',
+			dimensionName: 'category',
+			normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+			reason: 'category'
+		}
+	}
+
+	// Compatibility shim: some shared/generated payloads serialize monthly or daily dates
+	// as category labels. Promote only when every non-empty value parses cleanly.
+	const rawValues = rawData
+		.map((row) => row?.[config.axes.x.field])
+		.filter((value) => value != null && String(value).trim().length > 0)
+
+	if (rawValues.length === 0 || rawValues.some((v) => typeof v !== 'string')) {
+		return {
+			axisType: 'category',
+			dimensionName: 'category',
+			normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+			reason: 'category'
+		}
+	}
+
+	const parsedValues = rawValues.map((value) => parseStrictDateLabelToMs(value))
+	const allParsed = parsedValues.every((value) => value != null)
+	const uniqueTimestamps = new Set(parsedValues.filter((value): value is number => value != null))
+
+	if (allParsed && uniqueTimestamps.size >= 2) {
+		return {
+			axisType: 'time',
+			dimensionName: 'timestamp',
+			normalizeXValue: (rawValue) => parseStrictDateLabelToMs(rawValue),
+			reason: 'promoted-date-category'
+		}
+	}
+
+	return {
+		axisType: 'category',
+		dimensionName: 'category',
+		normalizeXValue: (rawValue) => (rawValue == null ? null : String(rawValue || 'Unknown')),
+		reason: 'category'
+	}
+}
+
+const BASE_TYPE_MAP: Record<string, 'line' | 'area' | 'bar'> = { area: 'area', bar: 'bar', line: 'line' }
+
+const getCartesianBaseType = (
+	config: ChartConfiguration,
+	seriesConfig: ChartConfiguration['series'][number]
+): 'line' | 'area' | 'bar' => {
+	const type = config.type === 'combo' ? seriesConfig.type : config.type
+	return BASE_TYPE_MAP[type] ?? 'line'
+}
+
+const isValidCartesianPoint = (
+	x: string | number | null | undefined,
+	value: number | null,
+	baseType: 'line' | 'area' | 'bar',
+	axisType: 'time' | 'category'
+) => {
+	if (axisType === 'time') {
+		if (typeof x !== 'number' || Number.isNaN(x)) return false
+		return baseType === 'bar' ? value != null && !Number.isNaN(value) : value == null || !Number.isNaN(value)
+	}
+
+	if (typeof x !== 'string' || x.length === 0) return false
+	return value != null && !Number.isNaN(value)
+}
+
+const getTooltipValueFromParams = (item: any) => {
+	const seriesName = item?.seriesName
+	const data = item?.data
+	if (data && typeof data === 'object' && !Array.isArray(data) && seriesName && seriesName in data) {
+		return data[seriesName]
+	}
+	if (Array.isArray(item?.value)) return item.value[1]
+	return item?.value
+}
+
+const createCategoryTooltipFormatter = (
+	valueSymbol: string,
+	charts: LlamaAICartesianSeriesConfig[] = []
+): ((params: unknown) => string) => {
+	const symbolBySeries = new Map(charts.map((chart) => [chart.name, chart.valueSymbol ?? valueSymbol]))
+
+	return (params: unknown) => {
+		const items = Array.isArray(params) ? params : params ? [params] : []
+		if (items.length === 0) return ''
+
+		const header = String(items[0]?.name ?? items[0]?.axisValue ?? items[0]?.data?.category ?? '')
+		const values = items
+			.map((item) => {
+				const seriesName = item?.seriesName
+				if (!seriesName) return null
+				const rawValue = getTooltipValueFromParams(item)
+				const value =
+					rawValue == null || rawValue === '-' ? null : typeof rawValue === 'number' ? rawValue : Number(rawValue)
+				if (value == null || Number.isNaN(value)) return null
+				return {
+					marker: item?.marker ?? '',
+					seriesName,
+					value,
+					symbol: symbolBySeries.get(seriesName) ?? valueSymbol
+				}
+			})
+			.filter(
+				(
+					item
+				): item is {
+					marker: string
+					seriesName: string
+					value: number
+					symbol: string
+				} => item !== null
+			)
+			.sort((a, b) => b.value - a.value)
+
+		const lines = values
+			.map(
+				(item) =>
+					`<div>${item.marker} ${item.seriesName}: ${formatTooltipValue(item.value, item.symbol ?? valueSymbol)}</div>`
+			)
+			.join('')
+
+		return `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>${lines}`
+	}
+}
+
+function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedPieChartData {
+	try {
+		if (!rawData || rawData.length === 0) throw new Error('No data provided')
 
 		const primarySeries = config.series[0]
-		if (!primarySeries) {
-			throw new Error('No series configuration found')
-		}
+		if (!primarySeries) throw new Error('No series configuration found')
 
 		const entityField = primarySeries.dataMapping.xField
 		const valueField = primarySeries.dataMapping.yField
@@ -164,71 +356,56 @@ function adaptPieChartData(config: ChartConfiguration, rawData: any[]): AdaptedC
 			(acc, row) => {
 				const entity = row[entityField] || 'Unknown'
 				const value = parseStringNumber(row[valueField])
-
-				if (acc[entity]) {
-					acc[entity] += value
-				} else {
-					acc[entity] = value
-				}
+				acc[entity] = (acc[entity] ?? 0) + value
 				return acc
 			},
 			{} as Record<string, number>
 		)
 
 		const pieData = Object.entries(aggregatedData)
-			.map(([name, value]: [string, number]) => ({ name, value }))
+			.map(([name, value]) => ({ name, value: Number(value) }))
 			.sort((a, b) => b.value - a.value)
 
 		const stackColors: Record<string, string> = {}
 		for (let index = 0; index < pieData.length; index++) {
-			const item = pieData[index]
-			stackColors[item.name] = getChartColor(item.name, index, '#8884d8')
-		}
-
-		const pieProps: Partial<IPieChartProps> = {
-			title: config.title,
-			chartData: pieData,
-			height: '360px',
-			stackColors,
-			valueSymbol: config.valueSymbol ?? '',
-			showLegend: true,
-			legendPosition: { right: 12, top: 'middle', orient: 'vertical' },
-			toRight: 200
+			stackColors[pieData[index].name] = getChartColor(pieData[index].name, index, oldBlue)
 		}
 
 		return {
 			chartType: 'pie',
-			data: pieData as any,
-			props: pieProps,
+			props: {
+				title: config.title,
+				chartData: pieData,
+				height: '360px',
+				stackColors,
+				valueSymbol: config.valueSymbol ?? '',
+				showLegend: true
+			},
 			title: config.title,
-			description: config.description
+			description: config.description,
+			defaultExportKind: 'pie'
 		}
 	} catch (error) {
 		console.log('PieChart adapter error:', error)
 		return {
 			chartType: 'pie',
-			data: [],
 			props: { title: 'Pie Chart Error', height: '360px' },
 			title: config.title || 'Pie Chart Error',
-			description: `Failed to render pie chart: ${error instanceof Error ? error.message : 'Unknown error'}`
+			description: `Failed to render pie chart: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			defaultExportKind: 'pie'
 		}
 	}
 }
 
-function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
+function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): AdaptedScatterChartData {
 	try {
-		if (!rawData || rawData.length === 0) {
-			throw new Error('No data provided')
-		}
+		if (!rawData || rawData.length === 0) throw new Error('No data provided')
 
 		const primarySeries = config.series[0]
-		if (!primarySeries) {
-			throw new Error('No series configuration found')
-		}
+		if (!primarySeries) throw new Error('No series configuration found')
 
 		const xField = primarySeries.dataMapping.xField
 		const yField = primarySeries.dataMapping.yField
-
 		const entityField = primarySeries.dataMapping.entityFilter?.field || 'protocol'
 		const entityType = entityField === 'chain' ? 'chain' : 'protocol'
 
@@ -244,215 +421,116 @@ function adaptScatterChartData(config: ChartConfiguration, rawData: any[]): Adap
 
 		const xAxisLabel = config.axes.x.label || xField
 		const yAxisLabel = config.axes.yAxes[0]?.label || yField
-
 		const xAxisSymbol = config.axes.x.valueSymbol ?? config.valueSymbol ?? ''
 		const yAxisSymbol = config.axes.yAxes[0]?.valueSymbol ?? config.valueSymbol ?? ''
 
-		const formatValue = (val: number, symbol: string) => {
-			if (symbol === '$') return formattedNum(val, true)
-			if (symbol === '%') return val.toFixed(2) + '%'
-			if (symbol === '') return formattedNum(val)
-			return `${formattedNum(val)} ${symbol}`
-		}
-
-		const scatterProps = {
-			chartData: scatterData,
-			title: config.title,
-			xAxisLabel,
-			yAxisLabel,
-			valueSymbol: config.valueSymbol || '',
-			height: '360px',
-			entityType,
-			tooltipFormatter: (params: any) => {
-				if (params.value.length >= 2) {
-					const xValue = params.value[0]
-					const yValue = params.value[1]
-					const entityName = params.value[2] || 'Unknown'
-					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatValue(xValue, xAxisSymbol)}<br/>${yAxisLabel}: ${formatValue(yValue, yAxisSymbol)}`
-				}
-				return ''
-			}
-		}
-
 		return {
 			chartType: 'scatter',
-			data: scatterData as any,
-			props: scatterProps,
+			props: {
+				chartData: scatterData as unknown as IScatterChartProps['chartData'],
+				title: config.title,
+				xAxisLabel,
+				yAxisLabel,
+				valueSymbol: config.valueSymbol || '',
+				height: '360px',
+				entityType,
+				tooltipFormatter: (params: any) => {
+					if (params.value.length < 2) return ''
+					const entityName = params.value[2] || 'Unknown'
+					return `<strong style="color: #000;">${entityName}</strong><br/>${xAxisLabel}: ${formatTooltipValue(params.value[0], xAxisSymbol)}<br/>${yAxisLabel}: ${formatTooltipValue(params.value[1], yAxisSymbol)}`
+				}
+			},
 			title: config.title,
-			description: config.description
+			description: config.description,
+			defaultExportKind: 'scatter'
 		}
 	} catch (error) {
 		console.log('ScatterChart adapter error:', error)
 		return {
 			chartType: 'scatter',
-			data: [],
 			props: { chartData: [], title: 'Scatter Chart Error', height: '360px' },
 			title: config.title || 'Scatter Chart Error',
-			description: `Failed to render scatter chart: ${error instanceof Error ? error.message : 'Unknown error'}`
+			description: `Failed to render scatter chart: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			defaultExportKind: 'scatter'
 		}
 	}
 }
 
-export function adaptChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
-	if (config.type === 'pie') {
-		return adaptPieChartData(config, rawData)
-	}
-
-	if (config.type === 'scatter') {
-		return adaptScatterChartData(config, rawData)
-	}
-
+function adaptHBarChartData(config: ChartConfiguration, rawData: any[]): AdaptedHBarChartData {
 	try {
-		if (!rawData || rawData.length === 0) {
-			throw new Error('No data provided')
-		}
-
-		const timeField = config.dataTransformation?.timeField || config.axes.x.field
-		const _timeGrouping = determineTimeGrouping(rawData, timeField)
+		if (!rawData || rawData.length === 0) throw new Error('No data provided')
 
 		const primarySeries = config.series[0]
-		if (!primarySeries) {
-			throw new Error('No series configuration found')
-		}
+		if (!primarySeries) throw new Error('No series configuration found')
 
-		let chartData: [number, number | null][] | [string, number, string][] = []
-		let stackColors: Record<string, string> = {}
-
-		if (config.axes.x.type === 'time') {
-			chartData = rawData.map((row) => {
-				const timestamp = row[primarySeries.dataMapping.xField]
-				const value = row[primarySeries.dataMapping.yField]
-
-				const unixTimestamp = convertToUnixTimestamp(timestamp)
-				// Preserve null/undefined values for connectNulls to work
-				return [unixTimestamp, value == null ? null : parseStringNumber(value)]
-			})
-
-			chartData.sort((a, b) => a[0] - b[0])
-		} else {
-			const allColors = getNDistinctColors(rawData.length)
-			chartData = rawData.map((row, index) => {
+		const chartData = rawData
+			.map((row, index) => {
 				const category = row[primarySeries.dataMapping.xField] || 'Unknown'
-				const value = row[primarySeries.dataMapping.yField] || 0
-				stackColors[category] = allColors[index]
-				return [category, parseStringNumber(value)]
+				const value = row[primarySeries.dataMapping.yField]
+				return [String(category), parseStringNumber(value), index] as const
 			})
-		}
+			.filter(([, value]) => !Number.isNaN(value))
 
-		const validatedData = validateChartData(chartData, config.type)
-
-		const color = primarySeries.styling?.color || getChartColor(undefined, 0, '#2196F3')
-
-		const commonProps: Partial<IChartProps> = {
-			title: config.title,
-			valueSymbol: config.valueSymbol ?? '',
-			color,
-			height: '360px',
-			hideDownloadButton: false,
-			tooltipSort: true,
-
-			customLegendName: undefined,
-			customLegendOptions: undefined,
-			hideDefaultLegend: true,
-			stackColors,
-
-			...(config.hallmarks?.length && {
-				hallmarks: normalizeHallmarks(config.hallmarks)
-			}),
-
-			chartOptions: {
-				grid: {
-					top: 12,
-					right: 12,
-					bottom: 68,
-					left: 12
-				},
-				tooltip: {
-					confine: false,
-					appendToBody: true,
-					...((config.type === 'bar' || config.type === 'hbar') &&
-						config.axes.x.type !== 'time' && {
-							formatter: (params: any) => {
-								const value = params[0].value
-								return `<strong>${value[0]}</strong>: ${formatTooltipValue(value[1], config.valueSymbol ?? '')}`
-							}
-						})
-				}
-			},
-
-			...(config.valueSymbol === '%' && {
-				tooltipFormatter: (params: any) => {
-					if (Array.isArray(params)) {
-						const timestamp = params[0]?.value?.[0]
-						const date = new Date(timestamp).toLocaleDateString()
-
-						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${date}</div>`
-
-						for (const param of params as any[]) {
-							const value = param.value?.[1]
-							if (value !== null && value !== undefined) {
-								content += `<div>${param.marker} ${param.seriesName}: ${formatPrecisionPercentage(value)}</div>`
-							}
-						}
-
-						return content
-					}
-					return ''
-				}
-			})
-		}
+		const colors = getNDistinctColors(chartData.length)
 
 		return {
-			chartType: config.type === 'combo' ? 'area' : config.type,
-			data: validatedData,
-			props: commonProps,
+			chartType: 'hbar',
+			data: chartData.map(([category, value]) => [category, value]),
+			props: {
+				height: '360px',
+				valueSymbol: config.valueSymbol ?? '',
+				colors
+			},
 			title: config.title,
-			description: config.description
+			description: config.description,
+			defaultExportKind: 'hbar'
 		}
 	} catch (error) {
-		console.log('Chart adapter error:', error)
-
+		console.log('HBar adapter error:', error)
 		return {
-			chartType: 'area',
+			chartType: 'hbar',
 			data: [],
-			props: { title: 'Chart Error', height: '360px' },
+			props: {
+				height: '360px',
+				valueSymbol: config.valueSymbol ?? ''
+			},
 			title: config.title || 'Chart Error',
-			description: `Failed to render chart: ${error instanceof Error ? error.message : 'Unknown error'}`
+			description: `Failed to render horizontal bar chart: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			defaultExportKind: 'hbar'
 		}
 	}
 }
 
-export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
+function adaptCartesianChartData(config: ChartConfiguration, rawData: any[]): AdaptedLlamaAICartesianChart {
 	try {
-		if (!rawData || rawData.length === 0) {
-			throw new Error('No data provided')
-		}
+		if (!rawData || rawData.length === 0) throw new Error('No data provided')
+		if (!config.series?.length) throw new Error('No series configuration found')
 
-		if (!config.series || config.series.length <= 1) {
-			return adaptChartData(config, rawData)
-		}
-
+		const axisInference = inferTimeSeriesAxis(config, rawData)
+		const { axisType, dimensionName, normalizeXValue } = axisInference
 		const yAxisIdToIndex = new Map<string, number>()
 		const yAxisIndexToSymbol = new Map<number, string>()
+
 		for (let index = 0; index < (config.axes.yAxes?.length ?? 0); index++) {
-			const axis = config.axes.yAxes![index]
+			const axis = config.axes.yAxes[index]
 			yAxisIdToIndex.set(axis.id, index)
-			yAxisIndexToSymbol.set(index, axis.valueSymbol ?? config.valueSymbol ?? '$')
+			yAxisIndexToSymbol.set(index, axis.valueSymbol ?? config.valueSymbol ?? '')
 		}
 
-		const series: Array<{
-			data: Array<[number, number | null]>
-			type: 'line' | 'bar'
-			name: string
-			color: string
-			metricClass: 'flow' | 'stock'
-			metricType?: string
-			yAxisIndex?: number
-		}> = []
+		const rowsByX = new Map<string | number, LlamaAICartesianDatasetRow>()
+		const categoryOrder: Array<string | number> = []
+		const charts: LlamaAICartesianSeriesConfig[] = []
+		const seriesMeta: LlamaAICartesianSeriesMeta[] = []
 
 		for (let seriesIndex = 0; seriesIndex < config.series.length; seriesIndex++) {
 			const seriesConfig = config.series[seriesIndex]
-			let seriesData: [number, number | null][] = []
+			const baseType = getCartesianBaseType(config, seriesConfig)
+			const chartType = baseType === 'bar' ? 'bar' : 'line'
+			const chartName = seriesConfig.name
+			const yAxisIndex = yAxisIdToIndex.get(seriesConfig.yAxisId) ?? 0
+			const seriesValueSymbol = yAxisIndexToSymbol.get(yAxisIndex) ?? config.valueSymbol ?? ''
+			const apiColor = seriesConfig.styling?.color
+			const isPrimaryAxis = yAxisIndex === 0
 
 			let filteredData = rawData
 			let entityValue: string | undefined
@@ -468,113 +546,147 @@ export function adaptMultiSeriesData(config: ChartConfiguration, rawData: any[])
 				})
 			}
 
-			if (config.axes.x.type === 'time') {
-				seriesData = filteredData.map((row) => {
-					const timestamp = row[seriesConfig.dataMapping.xField]
-					const value = row[seriesConfig.dataMapping.yField]
-					const unixTimestamp = convertToUnixTimestamp(timestamp)
-					return [unixTimestamp, value == null ? null : parseStringNumber(value)]
-				})
+			const resolvedColor = apiColor || getChartColor(entityValue, seriesIndex, oldBlue)
 
-				seriesData.sort((a, b) => a[0] - b[0])
-			} else {
-				seriesData = filteredData.map((row) => {
-					const category = row[seriesConfig.dataMapping.xField] || 'Unknown'
-					const value = row[seriesConfig.dataMapping.yField]
-					return [category as any, value == null ? null : parseStringNumber(value)]
-				})
+			const seenXValues = new Set<string | number>()
+			for (const row of filteredData) {
+				const xValue = normalizeXValue(row[seriesConfig.dataMapping.xField])
+				const value = row[seriesConfig.dataMapping.yField]
+				const numericValue = value == null ? null : parseStringNumber(value)
+
+				if (xValue == null) continue
+				if (!isValidCartesianPoint(xValue, numericValue, baseType, axisType)) continue
+				if (seenXValues.has(xValue)) continue
+				seenXValues.add(xValue)
+
+				if (!rowsByX.has(xValue)) {
+					rowsByX.set(xValue, { [dimensionName]: xValue })
+					categoryOrder.push(xValue)
+				}
+
+				rowsByX.get(xValue)![chartName] = numericValue
 			}
 
-			const color = seriesConfig.styling?.color || getChartColor(entityValue, seriesIndex, '#8884d8')
-
-			const validatedSeriesData = validateChartData(seriesData, seriesConfig.type)
-
-			const chartType = seriesConfig.type === 'area' ? 'line' : (seriesConfig.type as 'line' | 'bar')
-
-			series.push({
-				data: validatedSeriesData as Array<[number, number | null]>,
+			charts.push({
 				type: chartType,
-				name: seriesConfig.name,
-				color,
+				name: chartName,
+				encode: { x: dimensionName, y: chartName },
+				color: resolvedColor,
+				valueSymbol: seriesValueSymbol,
+				yAxisIndex
+			})
+
+			seriesMeta.push({
+				name: chartName,
+				seriesIndex,
 				metricClass: seriesConfig.metricClass,
-				metricType: seriesConfig.metricClass,
-				yAxisIndex: yAxisIdToIndex.get(seriesConfig.yAxisId) ?? 0
+				baseType,
+				apiColor,
+				resolvedColor,
+				valueSymbol: seriesValueSymbol,
+				yAxisIndex,
+				isPrimaryAxis,
+				// These flags describe what the series is intrinsically eligible for.
+				// Capability derivation decides whether the chart as a whole can expose the control.
+				canStack: baseType !== 'line' || isPrimaryAxis,
+				canPercentage: isPrimaryAxis,
+				canGroup: axisType === 'time'
 			})
 		}
 
-		const validSeries = series.filter((s) => s.data && s.data.length > 0)
-		const yAxisSymbols = config.axes.yAxes?.map((axis) => axis.valueSymbol ?? config.valueSymbol ?? '$') ?? []
+		const datasetSource =
+			axisType === 'time'
+				? Array.from(rowsByX.values()).sort((a, b) => Number(a[dimensionName] ?? 0) - Number(b[dimensionName] ?? 0))
+				: categoryOrder.map((key) => rowsByX.get(key)!).filter(Boolean)
 
-		const multiSeriesProps: Partial<IMultiSeriesChartProps> = {
-			series: validSeries,
-			title: config.title,
-			height: '360px',
-			hideDownloadButton: false,
-			valueSymbol: config.valueSymbol ?? '',
-			yAxisSymbols,
-			xAxisType: config.axes.x.type === 'value' ? 'category' : config.axes.x.type,
+		const dataset = {
+			source: datasetSource,
+			dimensions: [dimensionName, ...charts.map((chart) => chart.name)]
+		}
 
-			...(config.hallmarks?.length && {
-				hallmarks: normalizeHallmarks(config.hallmarks)
-			}),
+		const hasDataZoom = axisType === 'time'
+		const chartOptions: Record<string, any> = {
+			grid: {
+				top: 24,
+				right: 12,
+				bottom: hasDataZoom ? 68 : 12,
+				left: 12
+			}
+		}
 
-			chartOptions: {
-				grid: {
-					top: 24,
-					right: 12,
-					bottom: 68,
-					left: 12
-				},
-				tooltip: {
-					confine: false,
-					appendToBody: true,
-					formatter: (params: any) => {
-						if (!Array.isArray(params)) return ''
-						const xValue = params[0]?.value?.[0]
-						const header = config.axes.x.type === 'time' ? new Date(xValue).toLocaleDateString() : String(xValue)
-
-						let content = `<div style="margin-bottom: 8px; font-weight: 600;">${header}</div>`
-						for (const param of params as any[]) {
-							const value = param.value?.[1]
-							if (value != null) {
-								const yAxisIndex = validSeries[param.seriesIndex]?.yAxisIndex ?? 0
-								const axisSymbol = yAxisIndexToSymbol.get(yAxisIndex) ?? config.valueSymbol ?? '$'
-								const formattedValue =
-									axisSymbol === '%' ? formatPrecisionPercentage(value) : formatTooltipValue(value, axisSymbol)
-								content += `<div>${param.marker} ${param.seriesName}: ${formattedValue}</div>`
-							}
-						}
-						return content
-					}
-				}
+		if (axisType === 'category') {
+			chartOptions.xAxis = {
+				type: 'category',
+				boundaryGap: true
+			}
+			chartOptions.tooltip = {
+				formatter: createCategoryTooltipFormatter(config.valueSymbol ?? '', charts)
 			}
 		}
 
 		return {
-			chartType: 'multi-series',
-			data: [],
-			props: multiSeriesProps,
+			chartType: 'cartesian',
+			props: {
+				dataset,
+				charts,
+				chartOptions: chartOptions as LlamaAICartesianChartProps['chartOptions'],
+				valueSymbol: config.valueSymbol ?? (config.axes.yAxes?.length === 1 ? config.axes.yAxes[0]?.valueSymbol : ''),
+				groupBy: axisType === 'time' ? 'daily' : undefined,
+				hallmarks: axisType === 'time' && config.hallmarks?.length ? normalizeHallmarks(config.hallmarks) : undefined,
+				hideDataZoom: axisType === 'category'
+			},
 			title: config.title,
-			description: config.description
+			description: config.description,
+			rowCount: datasetSource.length,
+			axisType,
+			isTimeChart: axisType === 'time',
+			hasHallmarks: axisType === 'time' && !!config.hallmarks?.length,
+			groupingPolicy: axisType === 'time' ? 'always' : 'never',
+			defaultExportKind: 'cartesian',
+			seriesMeta
 		}
 	} catch (error) {
-		console.log('Multi-series chart adapter error:', error)
-
+		console.log('Cartesian chart adapter error:', error)
 		return {
-			chartType: 'multi-series',
-			data: [],
+			chartType: 'cartesian',
 			props: {
-				series: [],
-				title: 'Chart Error',
-				height: '360px'
+				dataset: { source: [], dimensions: ['timestamp'] },
+				charts: [],
+				chartOptions: {},
+				valueSymbol: config.valueSymbol ?? '',
+				groupBy: config.axes.x.type === 'time' ? 'daily' : undefined,
+				hallmarks: undefined
 			},
 			title: config.title || 'Chart Error',
-			description: `Failed to render multi-series chart: ${error instanceof Error ? error.message : 'Unknown error'}`
+			description: `Failed to render chart: ${error instanceof Error ? error.message : 'Unknown error'}`,
+			rowCount: 0,
+			axisType: config.axes.x.type === 'time' ? 'time' : 'category',
+			isTimeChart: config.axes.x.type === 'time',
+			hasHallmarks: false,
+			groupingPolicy: config.axes.x.type === 'time' ? 'always' : 'never',
+			defaultExportKind: 'cartesian',
+			seriesMeta: []
 		}
 	}
 }
 
-const OVERLAY_INDICATORS = ['sma', 'ema', 'dema', 'tema', 'wma', 'vwap', 'bbands', 'bollinger']
+export function adaptChartData(config: ChartConfiguration, rawData: any[]): AdaptedChartData {
+	switch (config.type) {
+		case 'pie':
+			return adaptPieChartData(config, rawData)
+		case 'scatter':
+			return adaptScatterChartData(config, rawData)
+		case 'hbar':
+			return adaptHBarChartData(config, rawData)
+		case 'line':
+		case 'area':
+		case 'bar':
+		case 'combo':
+			return adaptCartesianChartData(config, rawData)
+		default:
+			return adaptCartesianChartData(config, rawData)
+	}
+}
 
 export function adaptCandlestickData(
 	config: ChartConfiguration,
@@ -583,101 +695,103 @@ export function adaptCandlestickData(
 	let data: ICandlestickChartProps['data'] = []
 	let indicators: ICandlestickChartProps['indicators'] = []
 
-	if (rawData?.ohlcv) {
-		data = rawData.ohlcv.map((row: any[]) => [row[0], row[1], row[2], row[3], row[4], row[5]])
-		indicators = Object.entries(rawData.indicators || {}).map(([name, ind]: [string, any]) => {
-			const isOverlay = OVERLAY_INDICATORS.some((o) => name.toLowerCase().startsWith(o))
-			const hasMultiValues = ind.data?.[0]?.values
-			return {
-				name,
-				category: isOverlay ? 'overlay' : 'panel',
-				data: ind.data?.map((d: any) => [d.date, d.value]) || [],
-				values: hasMultiValues ? ind.data.map((d: any) => [d.date, d.values]) : undefined
-			}
+	if (!Array.isArray(rawData) || rawData.length === 0) {
+		return { data, indicators }
+	}
+
+	const sample = rawData[0] || {}
+	const keys = Object.keys(sample)
+	const getTs = (r: any) => {
+		const t = Number(r.timestamp)
+		if (Number.isFinite(t)) {
+			return t < 1e12 ? t * 1000 : t
+		}
+		return new Date(r.date).getTime()
+	}
+
+	data = rawData.map((r: any) => [
+		getTs(r),
+		parseFloat(r.open ?? r.price ?? 0),
+		parseFloat(r.close),
+		parseFloat(r.low),
+		parseFloat(r.high),
+		parseFloat(r.volume || 0)
+	])
+
+	const bbUpper = keys.find((k) => k.includes('_bb_upper'))
+	const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
+	const bbLower = keys.find((k) => k.includes('_bb_lower'))
+	if (bbUpper && bbMiddle && bbLower) {
+		indicators.push({
+			name: 'BBands',
+			category: 'overlay',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{
+					upper: parseFloat(r[bbUpper] || 0),
+					middle: parseFloat(r[bbMiddle] || 0),
+					lower: parseFloat(r[bbLower] || 0)
+				}
+			])
 		})
-	} else if (Array.isArray(rawData)) {
-		const sample = rawData[0] || {}
-		const keys = Object.keys(sample)
-		const getTs = (r: any) => (r.timestamp ? parseFloat(r.timestamp) : new Date(r.date).getTime())
+	}
 
-		data = rawData.map((r: any) => [
-			getTs(r),
-			parseFloat(r.open),
-			parseFloat(r.close),
-			parseFloat(r.low),
-			parseFloat(r.high),
-			parseFloat(r.volume || 0)
-		])
-
-		const bbUpper = keys.find((k) => k.includes('_bb_upper'))
-		const bbMiddle = keys.find((k) => k.includes('_bb_middle'))
-		const bbLower = keys.find((k) => k.includes('_bb_lower'))
-		if (bbUpper && bbMiddle && bbLower) {
-			indicators.push({
-				name: 'BBands',
-				category: 'overlay',
-				data: [],
-				values: rawData.map((r: any) => [
-					getTs(r),
-					{
-						upper: parseFloat(r[bbUpper] || 0),
-						middle: parseFloat(r[bbMiddle] || 0),
-						lower: parseFloat(r[bbLower] || 0)
-					}
-				])
+	const maFields = keys.filter((k) => /^(sma|ema|dema|tema|wma|vwap)_?\d*$/i.test(k))
+	for (const field of maFields) {
+		indicators.push({
+			name: field.toUpperCase(),
+			category: 'overlay',
+			data: rawData.map((r: any) => {
+				const v = parseFloat(r[field])
+				return [getTs(r), Number.isFinite(v) ? v : null]
 			})
-		}
+		})
+	}
 
-		const maFields = keys.filter((k) => /_(ma|sma|ema)\d*$/i.test(k) || /^(sma|ema)_\d+$/i.test(k))
-		for (const field of maFields) {
-			indicators.push({
-				name: field.toUpperCase(),
-				category: 'overlay',
-				data: rawData.map((r: any) => [getTs(r), parseFloat(r[field]) || null])
+	const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
+	if (rsiField) {
+		indicators.push({
+			name: 'RSI',
+			category: 'panel',
+			data: rawData.map((r: any) => {
+				const v = parseFloat(r[rsiField])
+				return [getTs(r), Number.isFinite(v) ? v : null]
 			})
-		}
+		})
+	}
 
-		const rsiField = keys.find((k) => /^rsi(_\d+)?$/i.test(k))
-		if (rsiField) {
-			indicators.push({
-				name: 'RSI',
-				category: 'panel',
-				data: rawData.map((r: any) => [getTs(r), parseFloat(r[rsiField]) || null])
-			})
-		}
+	const macdField = keys.find((k) => k === 'macd')
+	const signalField = keys.find((k) => k === 'macd_signal')
+	const histField = keys.find((k) => k === 'macd_histogram')
+	if (macdField || signalField || histField) {
+		indicators.push({
+			name: 'MACD',
+			category: 'panel',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{
+					macd: parseFloat(r[macdField as string] || 0),
+					signal: parseFloat(r[signalField as string] || 0),
+					histogram: parseFloat(r[histField as string] || 0)
+				}
+			])
+		})
+	}
 
-		const macdField = keys.find((k) => k === 'macd')
-		const signalField = keys.find((k) => k === 'macd_signal')
-		const histField = keys.find((k) => k === 'macd_histogram')
-		if (macdField || signalField || histField) {
-			indicators.push({
-				name: 'MACD',
-				category: 'panel',
-				data: [],
-				values: rawData.map((r: any) => [
-					getTs(r),
-					{
-						macd: parseFloat(r[macdField as string] || 0),
-						signal: parseFloat(r[signalField as string] || 0),
-						histogram: parseFloat(r[histField as string] || 0)
-					}
-				])
-			})
-		}
-
-		const stochK = keys.find((k) => k === 'stoch_k')
-		const stochD = keys.find((k) => k === 'stoch_d')
-		if (stochK || stochD) {
-			indicators.push({
-				name: 'Stoch',
-				category: 'panel',
-				data: [],
-				values: rawData.map((r: any) => [
-					getTs(r),
-					{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
-				])
-			})
-		}
+	const stochK = keys.find((k) => k === 'stoch_k')
+	const stochD = keys.find((k) => k === 'stoch_d')
+	if (stochK || stochD) {
+		indicators.push({
+			name: 'Stoch',
+			category: 'panel',
+			data: [],
+			values: rawData.map((r: any) => [
+				getTs(r),
+				{ k: parseFloat(r[stochK as string] || 0), d: parseFloat(r[stochD as string] || 0) }
+			])
+		})
 	}
 
 	return { data, indicators }

@@ -1,15 +1,14 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import Layout from '~/layout'
 import { postRuntimeLogs } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export default function Roundup({ messages, date }: { messages: Array<string | Array<string>>; date: string }) {
 	return (
 		<Layout
 			title={`Llama News Round-Up - DefiLlama`}
-			description={`Llama News Round-Up on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`llama news round-up, defi llama news round-up`}
+			description="Daily DeFi news roundup curated by the DefiLlama team. Stay updated on protocol launches, governance changes, and market developments."
 			canonicalUrl={`/roundup`}
 		>
 			<Announcement notCancellable>

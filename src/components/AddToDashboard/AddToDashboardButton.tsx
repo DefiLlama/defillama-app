@@ -9,6 +9,7 @@ import type {
 	YieldsChartConfig
 } from '~/containers/ProDashboard/types'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import { AddToDashboardModal } from './AddToDashboardModal'
 
@@ -26,7 +27,8 @@ export type DashboardChartConfig =
 	| StablecoinAssetChartConfig
 
 export interface LlamaAIChartInput {
-	messageId: string
+	messageId?: string
+	sessionId?: string
 	chartId: string
 	title: string
 }
@@ -46,7 +48,7 @@ export function AddToDashboardButton({
 	chartConfig,
 	multiChart,
 	llamaAIChart,
-	unsupportedMetrics = [],
+	unsupportedMetrics,
 	variant = 'button',
 	className,
 	smol,
@@ -70,6 +72,7 @@ export function AddToDashboardButton({
 		if (hasActiveSubscription && isAuthenticated) {
 			dashboardDialogStore.show()
 		} else {
+			setSignupSource('add-to-dashboard')
 			subscribeDialogStore.show()
 		}
 	}
@@ -82,18 +85,18 @@ export function AddToDashboardButton({
 			onClick={handleClick}
 			disabled={loaders.userLoading || disabled || !hasConfig}
 			className={baseClassName}
-			data-umami-event="add-to-dashboard-click"
+			data-umami-event="dashboard-add-chart"
 			title="Add to Custom Dashboard"
 		>
 			<Icon name="plus" className="h-3 w-3" />
-			{!smol && variant === 'button' && <span>Add to Dashboard</span>}
+			{!smol && variant === 'button' ? <span>Add to Dashboard</span> : null}
 		</button>
 	)
 
 	return (
 		<>
 			{button}
-			{isClient && hasConfig && (
+			{isClient && hasConfig ? (
 				<>
 					<AddToDashboardModal
 						dialogStore={dashboardDialogStore}
@@ -107,7 +110,7 @@ export function AddToDashboardButton({
 						</Suspense>
 					) : null}
 				</>
-			)}
+			) : null}
 		</>
 	)
 }

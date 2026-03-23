@@ -11,7 +11,7 @@ import {
 } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CHART_COLORS } from '~/constants/colors'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -21,7 +21,7 @@ import { useMedia } from '~/hooks/useMedia'
 import { formatNum, formattedNum, slug } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
-import { formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
+import { isTooltipDataRecord, formatChartEmphasisDate, formatTooltipChartDate } from '../formatters'
 import type { IMultiSeriesChart2Props } from '../types'
 import { mergeDeep } from '../utils'
 
@@ -54,12 +54,6 @@ function formatAxisLabel(value: number, symbol: string): string {
 }
 
 type GroupBy = NonNullable<IMultiSeriesChart2Props['groupBy']>
-
-const VALID_GROUP_BY = new Set<GroupBy>(['daily', 'weekly', 'monthly'])
-
-function coerceGroupBy(groupBy: IMultiSeriesChart2Props['groupBy']): GroupBy {
-	return groupBy && VALID_GROUP_BY.has(groupBy) ? groupBy : 'daily'
-}
 
 function buildHallmarksMarkLine(hallmarks: NonNullable<IMultiSeriesChart2Props['hallmarks']>, isThemeDark: boolean) {
 	const labelColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -169,10 +163,13 @@ function buildSeries({
 		}
 
 		if (expandTo100Percent) {
-			base.stack = 'A'
-			if (chart.type === 'line') {
-				base.lineStyle = { width: 0, color: resolvedColor }
-				base.areaStyle = {}
+			const isOverlay = chart.yAxisIndex != null && chart.yAxisIndex > 0
+			if (!isOverlay) {
+				base.stack = 'A'
+				if (chart.type === 'line') {
+					base.lineStyle = { width: 0, color: resolvedColor }
+					base.areaStyle = {}
+				}
 			}
 		} else {
 			if (chart.stack != null) base.stack = chart.stack
@@ -271,8 +268,7 @@ function buildMultiYAxis({
 		// Primary axis is intentionally not auto-colored from series colors (can be misleading when multiple series share axis 0).
 		// But if the caller explicitly assigns a unique color to that axis via charts config, apply it.
 		const axisColor = yAxisIndexToExplicitColor.get(i) ?? (isPrimary ? undefined : yAxisIndexToColor.get(i))
-		// Preserve historical behavior (no symbol on primary axis) unless explicitly provided via charts config.
-		const axisSymbol = yAxisIndexToSymbol.get(i) ?? (isPrimary ? '' : valueSymbol)
+		const axisSymbol = yAxisIndexToSymbol.get(i) ?? valueSymbol
 		const offset = noOffset || i < 2 ? 0 : prevOffset + 40
 
 		out.push({
@@ -303,12 +299,9 @@ function buildMultiYAxis({
 }
 
 function getAxisValueFromTooltipParams(first: any): number {
-	const dataObj =
-		first?.data && typeof first.data === 'object' && !Array.isArray(first.data)
-			? (first.data as Record<string, any>)
-			: null
-	if (dataObj && 'timestamp' in dataObj) {
-		const ts = Number(dataObj.timestamp)
+	const data = first?.data
+	if (isTooltipDataRecord(data) && 'timestamp' in data) {
+		const ts = Number(data.timestamp)
 		if (Number.isFinite(ts)) return ts
 	}
 
@@ -333,14 +326,9 @@ function getAxisValueFromTooltipParams(first: any): number {
 }
 
 function getTooltipRawYValue(item: any, seriesName: string): any {
-	// ECharts can provide:
-	// - item.data as object (dataset.source object rows)  <-- our canonical format
-	// - item.value as array/number (fallbacks for safety)
-	const dataObj =
-		item?.data && typeof item.data === 'object' && !Array.isArray(item.data) ? (item.data as Record<string, any>) : null
+	const data = item?.data
 
-	// 1) Object-row dataset: `data[seriesName]` is the most reliable.
-	if (dataObj && seriesName in dataObj) return dataObj[seriesName]
+	if (isTooltipDataRecord(data) && seriesName in data) return data[seriesName]
 
 	// 2) Fallback: value array (e.g. [ts, y]).
 	if (Array.isArray(item?.value)) {
@@ -399,7 +387,7 @@ function createTooltipFormatter({
 		const shouldCap = Number.isFinite(cap) && cap > 0
 		const cappedVals = shouldCap && vals.length > cap ? vals.slice(0, cap) : vals
 		const remaining = shouldCap && vals.length > cap ? vals.length - cap : 0
-		const total = vals.reduce((sum, curr) => sum + curr[2], 0)
+		const total = vals.reduce((sum, curr) => (curr[4] ? sum : sum + curr[2]), 0)
 		const totalLine =
 			showTotalInTooltip && vals.length > 0
 				? `<li style="list-style:none;font-weight:600;">Total: ${formatAxisLabel(total, valueSymbol)}</li>`
@@ -435,13 +423,14 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		solidChartAreaStyle = false,
 		hideDataZoom,
 		showTotalInTooltip = false,
-		tooltipTotalPosition = 'bottom',
+		tooltipTotalPosition = 'top',
 		onReady,
 		hideDefaultLegend = true,
 		selectedCharts,
 		dataset,
 		exportButtons,
-		title
+		title,
+		headingAs
 	} = props
 
 	const id = useId()
@@ -457,7 +446,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const groupBySafe = coerceGroupBy(groupBy)
+	const groupBySafe: GroupBy = groupBy ?? 'daily'
 
 	const defaultChartSettings = useMemo(() => {
 		const themeColor = isThemeDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)'
@@ -503,7 +492,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			// When legends are enabled, we want consistent placement (top)
 			// so callers don't have to override per-chart.
 			top: 0,
-			left: 12,
 			right: 12,
 			textStyle: {
 				fontFamily: 'sans-serif',
@@ -610,7 +598,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 	const seriesSymbols = useMemo(() => {
 		const map = new Map<string, string>()
 		for (const chart of effectiveCharts ?? []) {
-			const sym = 'valueSymbol' in chart ? (chart.valueSymbol as string | undefined) : undefined
+			const sym = 'valueSymbol' in chart ? chart.valueSymbol : undefined
 			if (sym) map.set(chart.name, sym)
 		}
 		return map.size > 0 ? map : undefined
@@ -631,20 +619,21 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 	const exportFilename = exportButtonsConfig?.filename || (title ? slug(title) : 'multi-series-chart')
 	const exportTitle = exportButtonsConfig?.pngTitle
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	useEffect(() => {
 		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 		if (shouldEnableCSVDownload || shouldEnableImageExport) {
 			handleChartReady(instance)
 		}
 
-		if (onReady) {
-			onReady(instance)
-		}
+		emitReady(instance)
 
 		// avoid mutating memoized defaults
 		const mergedChartSettings: any = { ...defaultChartSettings }
@@ -674,19 +663,19 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 						type: 'scroll',
 						orient: l?.orient ?? 'horizontal',
 						pageButtonPosition: l?.pageButtonPosition ?? 'end',
-						top: (l as any)?.top ?? 0,
-						left: l?.left ?? 12,
+						top: l?.top ?? 0,
+						...(l?.left != null ? { left: l.left } : {}),
 						right: l?.right ?? 12
 					}))
 				: legend
 					? {
 							...legend,
 							type: 'scroll',
-							orient: (legend as any)?.orient ?? 'horizontal',
-							pageButtonPosition: (legend as any)?.pageButtonPosition ?? 'end',
-							top: (legend as any)?.top ?? 0,
-							left: (legend as any)?.left ?? 12,
-							right: (legend as any)?.right ?? 12
+							orient: legend?.orient ?? 'horizontal',
+							pageButtonPosition: legend?.pageButtonPosition ?? 'end',
+							top: legend?.top ?? 0,
+							...(legend?.left != null ? { left: legend.left } : {}),
+							right: legend?.right ?? 12
 						}
 					: undefined
 
@@ -764,7 +753,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		const baseTooltip = mergedChartSettings.tooltip ?? {}
 		const customTooltipFormatter = chartOptions?.tooltip?.formatter
-		const enterable = typeof (baseTooltip as any)?.enterable === 'boolean' ? (baseTooltip as any).enterable : false
+		const enterable = typeof baseTooltip?.enterable === 'boolean' ? baseTooltip.enterable : false
 		const baseExtraCssText = typeof baseTooltip?.extraCssText === 'string' ? baseTooltip.extraCssText : ''
 		const extraCssText = [
 			baseExtraCssText,
@@ -784,8 +773,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 
 		const tooltipConfig = {
 			...baseTooltip,
-			// Always render tooltips above all stacking contexts / overflow clipping.
-			appendToBody: true,
+			appendToBody: alwaysShowTooltip ? undefined : true,
 			renderMode: 'html',
 			className: 'defillama-echarts-tooltip',
 			enterable,
@@ -807,12 +795,19 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			outerBoundsMode: 'same',
 			outerBoundsContain: 'axisLabel'
 		}
+		const finalGrid = mergedChartSettings.grid ? mergeDeep(baseGrid, mergedChartSettings.grid) : baseGrid
+		const hasExplicitGridBottom = mergedChartSettings.grid?.bottom != null
+		if (shouldHideDataZoom && !hasExplicitGridBottom) {
+			// Caller-provided grid defaults often reserve slider space. When the zoom control is
+			// not rendered, force the compact bottom padding so charts do not keep a dead band.
+			finalGrid.bottom = 12
+		}
 
 		instance.setOption({
 			...(hideDefaultLegend ? {} : { legend: finalLegend ?? legend }),
 			graphic,
 			tooltip: tooltipConfig,
-			grid: mergedChartSettings.grid ? mergeDeep(baseGrid, mergedChartSettings.grid) : baseGrid,
+			grid: finalGrid,
 			xAxis,
 			yAxis:
 				finalYAxis && finalYAxis.length > 0
@@ -852,9 +847,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				tooltipSizeCacheRef.current = null
 				instance.dispose()
 				handleChartReady(null)
-				if (onReady) {
-					onReady(null)
-				}
+				emitReady(null)
 			}
 		}
 
@@ -863,9 +856,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 			tooltipSizeCacheRef.current = null
 			instance.dispose()
 			handleChartReady(null)
-			if (onReady) {
-				onReady(null)
-			}
+			emitReady(null)
 		}
 	}, [
 		id,
@@ -879,7 +870,6 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 		datasetSource,
 		datasetDimensions,
 		valueSymbol,
-		onReady,
 		tooltipFormatter,
 		effectiveCharts,
 		handleChartReady,
@@ -896,6 +886,7 @@ export default function MultiSeriesChart2(props: IMultiSeriesChart2Props) {
 				title || shouldEnableCSVDownload || shouldEnableImageExport ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
 						exportButtons={
 							<ChartExportButtons

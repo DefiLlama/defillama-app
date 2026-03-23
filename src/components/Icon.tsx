@@ -1,106 +1,109 @@
 import { type SVGProps } from 'react'
 
-type Name =
-	| 'arrow-up-right'
-	| 'download-cloud'
-	| 'chevron-up'
-	| 'chevron-down'
-	| 'chevron-left'
-	| 'chevron-right'
-	| 'chevrons-up'
-	| 'external-link'
-	| 'clock'
-	| 'folder-plus'
-	| 'trash-2'
-	| 'github'
-	| 'copy'
-	| 'search'
-	| 'arrow-left'
-	| 'arrow-right'
-	| 'flag'
-	| 'check-circle'
-	| 'help-circle'
-	| 'alert-triangle'
-	| 'x'
-	| 'bookmark'
-	| 'settings'
-	| 'bar-chart-2'
-	| 'activity'
-	| 'trending-up'
-	| 'users'
-	| 'plus'
-	| 'repeat'
-	| 'link'
-	| 'map'
-	| 'percent'
-	| 'sun'
-	| 'moon'
-	| 'mail'
-	| 'calendar'
-	| 'menu'
-	| 'code'
-	| 'align-left'
-	| 'bar-chart'
-	| 'eye'
-	| 'file-plus'
-	| 'file-text'
-	| 'layers'
-	| 'pie-chart'
-	| 'dollar-sign'
-	| 'check'
-	| 'card'
-	| 'circle-help'
-	| 'wallet'
-	| 'plug'
-	| 'credit-card'
-	| 'star'
-	| 'ethereum'
-	| 'download-paper'
-	| 'arrow-up-right-2'
-	| 'key'
-	| 'linear-unlock'
-	| 'cliff-unlock'
-	| 'calendar-plus'
-	| 'pencil'
-	| 'sparkles'
-	| 'chat'
-	| 'earth'
-	| 'twitter'
-	| 'file-text'
-	| 'flame'
-	| 'house'
-	| 'pencil-ruler'
-	| 'blocks'
-	| 'banknote'
-	| 'pin'
-	| 'chevrons-left'
-	| 'chevrons-right'
-	| 'tag'
-	| 'file-lock-2'
-	| 'message-square-plus'
-	| 'arrow-up'
-	| 'arrow-right-to-line'
-	| 'ellipsis'
-	| 'thumbs-up'
-	| 'thumbs-down'
-	| 'chain'
-	| 'protocol'
-	| 'clipboard'
-	| 'message-square-warning'
-	| 'minus'
-	| 'package'
-	| 'layout-grid'
-	| 'arrow-down'
-	| 'share'
-	| 'pause'
-	| 'panel-left-close'
-	| 'panel-left-open'
-	| 'headset'
-	| 'sheets'
-	| 'eye-off'
-	| 'image-plus'
-	| 'graduation-cap'
-	| 'circle-x'
+const ICON_NAMES = [
+	'arrow-up-right',
+	'download-cloud',
+	'chevron-up',
+	'chevron-down',
+	'chevron-left',
+	'chevron-right',
+	'chevrons-up',
+	'external-link',
+	'clock',
+	'folder-plus',
+	'trash-2',
+	'github',
+	'copy',
+	'search',
+	'arrow-left',
+	'arrow-right',
+	'flag',
+	'check-circle',
+	'help-circle',
+	'alert-triangle',
+	'x',
+	'bookmark',
+	'settings',
+	'bar-chart-2',
+	'activity',
+	'trending-up',
+	'users',
+	'plus',
+	'repeat',
+	'link',
+	'map',
+	'percent',
+	'sun',
+	'moon',
+	'mail',
+	'calendar',
+	'menu',
+	'code',
+	'align-left',
+	'bar-chart',
+	'eye',
+	'file-plus',
+	'file-text',
+	'layers',
+	'pie-chart',
+	'dollar-sign',
+	'check',
+	'card',
+	'circle-help',
+	'wallet',
+	'plug',
+	'credit-card',
+	'star',
+	'ethereum',
+	'download-paper',
+	'arrow-up-right-2',
+	'key',
+	'linear-unlock',
+	'cliff-unlock',
+	'calendar-plus',
+	'pencil',
+	'sparkles',
+	'chat',
+	'earth',
+	'twitter',
+	'flame',
+	'house',
+	'pencil-ruler',
+	'blocks',
+	'banknote',
+	'pin',
+	'chevrons-left',
+	'chevrons-right',
+	'tag',
+	'file-lock-2',
+	'message-square-plus',
+	'arrow-up',
+	'arrow-right-to-line',
+	'ellipsis',
+	'thumbs-up',
+	'thumbs-down',
+	'chain',
+	'protocol',
+	'clipboard',
+	'message-square-warning',
+	'minus',
+	'package',
+	'layout-grid',
+	'arrow-down',
+	'share',
+	'pause',
+	'panel-left-close',
+	'panel-left-open',
+	'headset',
+	'sheets',
+	'eye-off',
+	'image-plus',
+	'graduation-cap',
+	'circle-x',
+	'landmark'
+] as const
+
+type Name = (typeof ICON_NAMES)[number]
 
 export interface IIcon extends SVGProps<SVGSVGElement> {
 	name: Name
@@ -108,7 +111,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v34.svg#${name}`} />
+			<use href={`/icons/v35.svg#${name}`} />
 		</svg>
 	)
 }

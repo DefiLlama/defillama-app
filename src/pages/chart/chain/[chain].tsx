@@ -1,20 +1,27 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
-import { maxAgeForNext } from '~/api'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { LocalLoader } from '~/components/Loaders'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { chainCoingeckoIdsForGasNotMcap } from '~/constants/chainTokens'
 import { BAR_CHARTS, type ChainChartLabels, chainCharts } from '~/containers/ChainOverview/constants'
 import { getChainOverviewData } from '~/containers/ChainOverview/queries.server'
 import { useFetchChainChartData } from '~/containers/ChainOverview/useFetchChainChartData'
 import { TVL_SETTINGS } from '~/contexts/LocalStorage'
 import { useIsClient } from '~/hooks/useIsClient'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
 
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative']
-
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 export const getStaticProps = withPerformanceLogging(
 	'chart/chain/[chain]',
 	async ({ params }: GetStaticPropsContext<{ chain: string }>) => {
@@ -38,11 +45,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -93,11 +100,7 @@ export default function ChainChartPage(props) {
 		const hasAtleasOneBarChart = toggledCharts.some((chart) => BAR_CHARTS.includes(chart))
 
 		const groupBy =
-			hasAtleasOneBarChart && queryParams?.groupBy
-				? groupByOptions.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
-					: 'daily'
-				: 'daily'
+			hasAtleasOneBarChart && queryParams?.groupBy ? (normalizeChartInterval(queryParams.groupBy) ?? 'daily') : 'daily'
 
 		const denomination = typeof queryParams.currency === 'string' ? queryParams.currency : 'USD'
 

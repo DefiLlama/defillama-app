@@ -7,10 +7,9 @@ export function useYieldsData(chains?: string[]) {
 	const sortedChains = chains?.length ? [...chains].sort() : []
 
 	return useQuery({
-		queryKey: ['yields-overview', sortedChains.join(',')],
+		queryKey: ['pro-dashboard', 'yields-overview', sortedChains.join(',')],
 		queryFn: () => fetchJson(`/api/datasets/yields${queryParams}`),
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000,
-		enabled: true
+		staleTime: Infinity,
+		retry: 1
 	})
 }

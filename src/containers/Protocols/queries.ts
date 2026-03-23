@@ -1,16 +1,19 @@
-import { fetchCoinPrices, getAllCGTokensList } from '~/api'
+import { fetchCoinPrices, fetchAllCGTokensList } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { CHART_COLORS } from '~/constants/colors'
+import { fetchChainChart, fetchChainsByCategoryAll } from '~/containers/Chains/api'
+import type { ChainChartResponse } from '~/containers/Chains/api.types'
 import { fetchRaises } from '~/containers/Raises/api'
 import { fetchEmissionSupplyMetrics } from '~/containers/Unlocks/api'
 import type { ProtocolEmissionSupplyMetricsMap } from '~/containers/Unlocks/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
-import { getPercentChange, slug, tokenIconUrl } from '~/utils'
+import { getPercentChange, slug } from '~/utils'
 import { postRuntimeLogs } from '~/utils/async'
+import { tokenIconUrl } from '~/utils/icons'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { AIRDROP_EXCLUDE } from './airdrop-exclude'
-import { fetchAirdropsConfig, fetchChartData, fetchChainsWithExtraTvl, fetchProtocols } from './api'
-import type { ExtraTvlChartKey, ParentProtocolLite, ProtocolLite } from './api.types'
+import { fetchAirdropsConfig, fetchProtocols } from './api'
+import type { ParentProtocolLite, ProtocolLite } from './api.types'
 import type {
 	ExtraTvlMetric,
 	IExtraTvlByChainPageData,
@@ -97,11 +100,11 @@ export async function getRecentProtocols(): Promise<IRecentProtocolsPageData> {
 	}
 }
 
-async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string; title?: string }>> {
+export async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: string }>> {
 	const airdrops = await fetchAirdropsConfig()
 
 	const now = Date.now()
-	const result: Array<{ name: string; page: string; title?: string }> = []
+	const result: Array<{ name: string; page: string }> = []
 	for (const key in airdrops) {
 		const i = airdrops[key]
 		if (i.isActive === false || !i.page) continue
@@ -115,8 +118,8 @@ async function getAirdropDirectoryData(): Promise<Array<{ name: string; page: st
 export async function getAirdropsProtocols(): Promise<IRecentProtocolsPageData> {
 	const [{ protocols, chains, parentProtocols }, { raises }, claimableAirdrops] = await Promise.all([
 		fetchProtocols(),
-		fetchRaises(),
-		getAirdropDirectoryData()
+		fetchRaises().catch(() => ({ raises: [] })),
+		getAirdropDirectoryData().catch(() => [])
 	])
 
 	const parents: Record<string, boolean> = {}
@@ -198,6 +201,7 @@ interface ExtraTvlMetricConfig {
 	label: string
 	basePath: string
 }
+type ExtraTvlChartKey = 'borrowed' | 'staking' | 'pool2'
 
 const EXTRA_TVL_CONFIG: Record<ExtraTvlMetric, ExtraTvlMetricConfig> = {
 	borrowed: { chartKey: 'borrowed', suffix: '-borrowed', label: 'Total Borrowed', basePath: '/total-borrowed' },
@@ -222,13 +226,24 @@ export async function getExtraTvlByChain({
 		string[]
 	] = await Promise.all([
 		fetchProtocols(),
-		fetchChartData(chain)
+		fetchChainChart<ChainChartResponse>(chain)
 			.then((data) => data?.[config.chartKey]?.map((item) => [+item[0] * 1e3, item[1]]) ?? [])
 			.catch((err) => {
 				postRuntimeLogs(`${config.label} by Chain: ${chain}: ${err instanceof Error ? err.message : err}`)
 				return null
 			}),
-		fetchChainsWithExtraTvl(config.chartKey)
+		fetchChainsByCategoryAll<{
+			chainTvls: Array<{ name: string; extraTvl?: Record<string, { tvl: number }> }>
+		}>()
+			.then((data) =>
+				(data?.chainTvls ?? []).flatMap((chainData) =>
+					chainData.extraTvl?.[config.chartKey]?.tvl ? [chainData.name] : []
+				)
+			)
+			.catch((err) => {
+				postRuntimeLogs(`${config.label} chains list: ${chain}: ${err instanceof Error ? err.message : err}`)
+				return []
+			})
 	])
 
 	if (!chart || chart.length === 0) return null
@@ -450,7 +465,7 @@ export async function getProtocolsFDVsByChain({
 	const [{ protocols, chains, parentProtocols }, tokenList]: [
 		{ protocols: ProtocolLite[]; chains: string[]; parentProtocols: ParentProtocolLite[] },
 		IResponseCGMarketsAPI[]
-	] = await Promise.all([fetchProtocols(), getAllCGTokensList()])
+	] = await Promise.all([fetchProtocols(), fetchAllCGTokensList()])
 
 	const tokenListMap = new Map(tokenList.map((t) => [t.id, t]))
 

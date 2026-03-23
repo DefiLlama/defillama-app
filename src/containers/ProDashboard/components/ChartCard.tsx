@@ -1,20 +1,21 @@
 import type * as echarts from 'echarts/core'
-import { lazy, Suspense, useMemo } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { ISingleSeriesChartProps } from '~/components/ECharts/types'
 import { Icon } from '~/components/Icon'
 import { Select } from '~/components/Select/Select'
 import { Tooltip } from '~/components/Tooltip'
-import { capitalizeFirstLetter, download, toNiceDayMonthYear } from '~/utils'
+import { capitalizeFirstLetter, toNiceDayMonthYear } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import {
 	useProDashboardCatalog,
 	useProDashboardEditorActions,
 	useProDashboardPermissions
 } from '../ProDashboardAPIContext'
-import { type Chain, CHART_TYPES, type ChartConfig, type Protocol } from '../types'
+import { type Chain, CHART_TYPES, type ChartConfig, type DashboardGrouping, type Protocol } from '../types'
 import { convertToCumulative, generateChartColor, getItemIconUrl } from '../utils'
 import { LoadingSpinner } from './LoadingSpinner'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
 const SingleSeriesChart = lazy(
@@ -56,6 +57,7 @@ function ChartRenderer({
 	onChartReady
 }: ChartRendererProps) {
 	const chartType = CHART_TYPES[type]
+	const [todayTimestamp] = useState(() => Math.floor(Date.now() / 1000))
 
 	if (isLoading) {
 		return (
@@ -78,7 +80,7 @@ function ChartRenderer({
 	}
 
 	if (!data || data.length === 0) {
-		return <div className="flex flex-1 items-center justify-center text-(--text-form)">No data available</div>
+		return <p className="flex flex-1 items-center justify-center text-(--text-form)">No data available</p>
 	}
 
 	const valueSymbol =
@@ -87,7 +89,6 @@ function ChartRenderer({
 			: percentMetricTypes.includes(type)
 				? '%'
 				: '$'
-	const todayTimestamp = Math.floor(Date.now() / 1000)
 	const todayHallmarks: [number, string][] | null =
 		type === 'unlocks' ? [[todayTimestamp, toNiceDayMonthYear(todayTimestamp)]] : null
 
@@ -107,7 +108,7 @@ function ChartRenderer({
 	)
 }
 
-const groupingOptions: ('day' | 'week' | 'month' | 'quarter')[] = ['day', 'week', 'month', 'quarter']
+const groupingOptions: DashboardGrouping[] = ['day', 'week', 'month', 'quarter', 'year']
 
 export function ChartCard({ chart }: ChartCardProps) {
 	const { getChainInfo, getProtocolInfo } = useProDashboardCatalog()
@@ -180,22 +181,23 @@ export function ChartCard({ chart }: ChartCardProps) {
 		<div className="flex min-h-[344px] flex-col p-1 md:min-h-[360px]">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-1 md:p-3">
 				<div className="mr-auto flex items-center gap-1">
-					{chart.chain !== 'All' &&
-						(itemIconUrl ? (
-							<img src={itemIconUrl} alt={itemName} className="h-5 w-5 shrink-0 rounded-full" />
+					{chart.chain !== 'All' ? (
+						itemIconUrl ? (
+							<img src={itemIconUrl} alt={itemName} width={20} height={20} className="h-5 w-5 shrink-0 rounded-full" />
 						) : (
 							<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs text-gray-600">
 								{itemName?.charAt(0)?.toUpperCase()}
 							</div>
-						))}
-					<h1 className="text-base font-semibold">
+						)
+					) : null}
+					<h2 className="text-base font-semibold">
 						{itemName} {chartTypeDetails.title}
-					</h1>
+					</h2>
 				</div>
 				<div className="flex flex-wrap items-center justify-end gap-2">
-					{!isReadOnly && (
+					{!isReadOnly ? (
 						<>
-							{isGroupable && (
+							{isGroupable ? (
 								<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
 									{groupingOptions.map((dataInterval) => (
 										<Tooltip
@@ -210,8 +212,8 @@ export function ChartCard({ chart }: ChartCardProps) {
 										</Tooltip>
 									))}
 								</div>
-							)}
-							{isBarChart && (
+							) : null}
+							{isBarChart ? (
 								<Select
 									allValues={CUMULATIVE_DISPLAY_OPTIONS}
 									selectedValues={showCumulative ? 'Cumulative' : 'Individual'}
@@ -222,10 +224,10 @@ export function ChartCard({ chart }: ChartCardProps) {
 									labelType="none"
 									variant="pro"
 								/>
-							)}
+							) : null}
 						</>
-					)}
-					{processedData && processedData.length > 0 && (
+					) : null}
+					{processedData && processedData.length > 0 ? (
 						<>
 							<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 							<ProTableCSVButton
@@ -234,7 +236,7 @@ export function ChartCard({ chart }: ChartCardProps) {
 								className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 							/>
 						</>
-					)}
+					) : null}
 				</div>
 			</div>
 			<ChartRenderer

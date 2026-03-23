@@ -1,5 +1,4 @@
 import * as Ariakit from '@ariakit/react'
-import * as React from 'react'
 
 interface ITooltip extends Ariakit.TooltipOptions {
 	content: string | null | React.ReactNode

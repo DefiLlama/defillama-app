@@ -1,25 +1,24 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { IProtocolTotalValueLostInHacksByProtocol } from './types'
 
 type ProtocolRow = IProtocolTotalValueLostInHacksByProtocol['protocols'][number]
+const columnHelper = createColumnHelper<ProtocolRow>()
 
 const DEFAULT_SORTING_STATE = [{ id: 'Net User Loss', desc: true }]
 
-const columns: Array<ColumnDef<ProtocolRow>> = [
-	{
-		header: 'Name',
-		accessorFn: (row) => row.name,
+const columns = [
+	columnHelper.accessor((row) => row.name, {
 		id: 'Name',
+		header: 'Name',
 		cell: ({ row, getValue }) => {
-			const name = String(getValue())
+			const name = getValue()
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-6' : 'pl-0'}`}>
 					{row.subRows?.length > 0 ? (
@@ -39,7 +38,7 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 					) : null}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={tokenIconUrl(row.original.slug)} data-lgonly />
+					<TokenLogo name={row.original.slug} kind="token" data-lgonly alt={`Logo of ${row.original.slug}`} />
 
 					<BasicLink
 						href={row.original.route}
@@ -50,41 +49,38 @@ const columns: Array<ColumnDef<ProtocolRow>> = [
 				</span>
 			)
 		}
-	},
-	{
-		header: 'Total Hacked',
-		accessorFn: (row) => row.totalHacked,
+	}),
+	columnHelper.accessor((row) => row.totalHacked, {
 		id: 'Total Hacked',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		header: 'Total Hacked',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center'
 		}
-	},
-	{
-		header: 'Returned Funds',
-		accessorFn: (row) => row.returnedFunds,
+	}),
+	columnHelper.accessor((row) => row.returnedFunds, {
 		id: 'Returned Funds',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		header: 'Returned Funds',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center'
 		}
-	},
-	{
-		header: 'Net User Loss',
-		accessorFn: (row) => row.totalHacked - row.returnedFunds,
+	}),
+	columnHelper.accessor((row) => row.totalHacked - row.returnedFunds, {
 		id: 'Net User Loss',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		header: 'Net User Loss',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'center',
 			headerHelperText: 'Total Hacked - Returned Funds'
 		}
-	}
+	})
 ]
 
 const columnIds: string[] = columns.map((c) => c.id).filter((id): id is string => id != null)
 
 export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostInHacksByProtocol) {
-	const [selectedColumns, setSelectedColumns] = React.useState<Array<string> | string>([
+	const [selectedColumns, setSelectedColumns] = React.useState<string[]>([
 		'Name',
 		'Total Hacked',
 		'Returned Funds',
@@ -92,22 +88,8 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 	])
 
 	const filteredColumns = React.useMemo(() => {
-		const selected = Array.isArray(selectedColumns) ? selectedColumns : [selectedColumns]
-		return columns.filter((c) => c.id != null && selected.includes(c.id))
+		return columns.filter((c) => c.id != null && selectedColumns.includes(c.id))
 	}, [selectedColumns])
-
-	const prepareCsv = () => {
-		const rows: Array<Array<string | number>> = [['Name', 'Total Hacked', 'Returned Funds', 'Net User Loss']]
-		for (const protocol of protocols) {
-			rows.push([
-				protocol.name,
-				protocol.totalHacked,
-				protocol.returnedFunds,
-				protocol.totalHacked - protocol.returnedFunds
-			])
-		}
-		return { filename: 'total-value-lost-in-hacks.csv', rows }
-	}
 
 	return (
 		<TableWithSearch
@@ -116,20 +98,19 @@ export function TotalValueLostContainer({ protocols }: IProtocolTotalValueLostIn
 			placeholder="Search..."
 			columnToSearch="Name"
 			header="Total Value Lost in Hacks"
+			headingAs="h1"
 			compact
-			customFilters={
-				<>
-					<Select
-						allValues={columnIds}
-						selectedValues={selectedColumns}
-						setSelectedValues={setSelectedColumns}
-						label="Columns"
-						labelType="smol"
-						variant="filter-responsive"
-					/>
-					<CSVDownloadButton prepareCsv={prepareCsv} smol />
-				</>
-			}
+			customFilters={() => (
+				<Select
+					allValues={columnIds}
+					selectedValues={selectedColumns}
+					setSelectedValues={setSelectedColumns}
+					label="Columns"
+					labelType="smol"
+					variant="filter-responsive"
+				/>
+			)}
+			csvFileName="total-value-lost-in-hacks"
 			sortingState={DEFAULT_SORTING_STATE}
 		/>
 	)

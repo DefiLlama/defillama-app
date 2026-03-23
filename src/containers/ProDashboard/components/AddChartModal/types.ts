@@ -1,4 +1,11 @@
-import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
+import type {
+	CexAnalyticsMetric,
+	CexAnalyticsView,
+	ChartConfig,
+	DashboardItemConfig,
+	MetricAggregator,
+	MetricChartType
+} from '../../types'
 import type { UnifiedTableFocusSection } from '../UnifiedTable/types'
 
 export interface AddChartModalProps {
@@ -23,6 +30,7 @@ export type ManualChartViewMode = 'cards' | 'form'
 export type CombinedTableType =
 	| 'protocols'
 	| 'cex'
+	| 'cex-analytics'
 	| 'stablecoins'
 	| 'revenue'
 	| 'holders-revenue'
@@ -98,6 +106,9 @@ export interface ModalState {
 	selectedTableType: CombinedTableType
 	selectedDatasetChain: string | null
 	selectedDatasetTimeframe: string | null
+	selectedCexAnalyticsView: CexAnalyticsView | 'starter'
+	selectedCexAnalyticsMetric: CexAnalyticsMetric
+	selectedCexAnalyticsTopN: number
 	selectedTokens: string[]
 	includeCex: boolean
 	chartBuilderName: string
@@ -157,6 +168,9 @@ interface ModalActions {
 	setSelectedTableType: (type: CombinedTableType) => void
 	setSelectedDatasetChain: (chain: string | null) => void
 	setSelectedDatasetTimeframe: (timeframe: string | null) => void
+	setSelectedCexAnalyticsView: (view: CexAnalyticsView | 'starter') => void
+	setSelectedCexAnalyticsMetric: (metric: CexAnalyticsMetric) => void
+	setSelectedCexAnalyticsTopN: (topN: number) => void
 	setSelectedTokens: (tokens: string[]) => void
 	setIncludeCex: (include: boolean) => void
 	setChartBuilderName: (name: string) => void

@@ -1,7 +1,6 @@
-import type { ColumnDef, SortingState } from '@tanstack/react-table'
+import { type ColumnDef, createColumnHelper, type SortingState } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -9,24 +8,12 @@ import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { getCategoryRoute } from '~/constants'
+import { formattedNum, slug } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IProtocolsWithTokensByChainPageData, ITokenMetricProtocolRow, TokenMetricType } from './types'
-import { parseExcludeParam } from './utils'
 
 const chainLikeCategories = new Set(['Chain', 'Rollup'])
-
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
-	return columnId
-}
-
-function getCsvCellValue(value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
-}
 
 export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) {
 	const router = useRouter()
@@ -77,7 +64,7 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
-				customFilters={({ instance }) => (
+				customFilters={() => (
 					<>
 						{props.categories.length > 0 ? (
 							<SelectWithCombobox
@@ -91,25 +78,9 @@ export function ProtocolsWithTokens(props: IProtocolsWithTokensByChainPageData) 
 								variant="filter-responsive"
 							/>
 						) : null}
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const visibleColumns = instance
-									.getAllLeafColumns()
-									.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
-								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
-
-								return {
-									filename: `protocols-with-tokens-${props.type}-${slug(props.chain)}.csv`,
-									rows: [headers, ...rows]
-								}
-							}}
-							smol
-						/>
 					</>
 				)}
+				csvFileName={`protocols-with-tokens-${props.type}-${props.chain}`}
 				sortingState={sortingState}
 			/>
 		</>
@@ -164,22 +135,22 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
 	</span>
 )
 
-function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRow>[] {
+const columnHelper = createColumnHelper<ITokenMetricProtocolRow>()
+
+function defaultColumns(type: TokenMetricType) {
 	return [
-		{
-			id: 'name',
+		columnHelper.accessor('name', {
 			header: 'Name',
-			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const value = getValue<string>()
+				const value = getValue()
 
 				const basePath = chainLikeCategories.has(row.original.category ?? '') ? 'chain' : 'protocol'
 				const chartKey =
@@ -211,7 +182,7 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 						) : null}
 						<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-						<TokenLogo logo={row.original.logo} data-lgonly />
+						<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 						{row.original.chains.length ? (
 							<span className="-my-2 flex flex-col">
@@ -241,86 +212,79 @@ function defaultColumns(type: TokenMetricType): ColumnDef<ITokenMetricProtocolRo
 				)
 			},
 			size: 280
-		},
-		{
-			id: 'category',
+		}),
+		columnHelper.accessor('category', {
 			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
 			enableSorting: false,
 			cell: ({ getValue }) => {
-				const value = getValue<string | null>()
-				return value ? (
-					<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+				const value = getValue()
+				if (!value) return null
+				return (
+					<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium text-(--link-text)">
 						{value}
 					</BasicLink>
-				) : (
-					''
 				)
 			},
 			size: 128,
 			meta: {
 				align: 'end'
 			}
-		}
+		})
 	]
 }
 
-const mcapColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const mcapColumns = [
 	...defaultColumns('mcap'),
-	{
+	columnHelper.accessor('value', {
 		id: 'mcap',
 		header: 'Market Cap',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 128
-	}
+	})
 ]
 
-const fdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const fdvColumns = [
 	...defaultColumns('fdv'),
-	{
+	columnHelper.accessor('value', {
 		id: 'fdv',
 		header: 'FDV',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 128
-	}
+	})
 ]
 
-const priceColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const priceColumns = [
 	...defaultColumns('price'),
-	{
+	columnHelper.accessor('value', {
 		id: 'price',
 		header: 'Token Price',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 128
-	}
+	})
 ]
 
-const outstandingFdvColumns: ColumnDef<ITokenMetricProtocolRow>[] = [
+const outstandingFdvColumns = [
 	...defaultColumns('outstanding-fdv'),
-	{
+	columnHelper.accessor('value', {
 		id: 'outstanding-fdv',
 		header: 'Outstanding FDV',
-		accessorFn: (protocol) => protocol.value,
-		cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Token price multiplied by outstanding supply.\n\nOutstanding supply is the total supply minus the supply that is not yet allocated to anything (eg coins in treasury or reserve).'
 		},
 		size: 128
-	}
+	})
 ]
 
 function getMetricNameAndColumns(type: TokenMetricType): {

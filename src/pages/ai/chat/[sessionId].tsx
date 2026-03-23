@@ -1,10 +1,10 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useState } from 'react'
-import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
-import { LlamaAI } from '~/containers/LlamaAI'
+import { AgenticChat } from '~/containers/LlamaAI'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { useIsClient } from '~/hooks/useIsClient'
 import Layout from '~/layout'
 
@@ -12,20 +12,26 @@ const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
+const AI_LAYOUT_SEO = {
+	title: 'AI Crypto Analysis - DeFi & TradFi Data - LlamaAI',
+	description:
+		'Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts',
+	canonicalUrl: null,
+	noIndex: true
+} as const
+
 export default function SessionPage() {
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const router = useRouter()
 	const { sessionId } = router.query
+	const resolvedSessionId = typeof sessionId === 'string' ? sessionId : null
 	const isClient = useIsClient()
-	const { user, loaders, hasActiveSubscription } = useAuthContext()
+	const { user, loaders } = useAuthContext()
 	const subscribeModalStore = Ariakit.useDialogStore()
 
-	if (!isClient || loaders.userLoading) {
+	if (!isClient || loaders.userLoading || !router.isReady || !resolvedSessionId) {
 		return (
-			<Layout
-				title="LlamaAI - DefiLlama"
-				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-			>
+			<Layout {...AI_LAYOUT_SEO}>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
 						Loading
@@ -38,15 +44,13 @@ export default function SessionPage() {
 
 	if (!user) {
 		return (
-			<Layout
-				title="LlamaAI - DefiLlama"
-				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-			>
+			<Layout {...AI_LAYOUT_SEO}>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<p className="flex items-center gap-1 text-center">
 						Please{' '}
 						<button
 							onClick={() => {
+								setSignupSource('llamaai')
 								if (!shouldRenderModal) setShouldRenderModal(true)
 								subscribeModalStore.show()
 							}}
@@ -66,30 +70,9 @@ export default function SessionPage() {
 		)
 	}
 
-	if (!hasActiveSubscription) {
-		return (
-			<Layout
-				title="LlamaAI - DefiLlama"
-				description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
-			>
-				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
-					<p className="flex items-center gap-1 text-center">
-						Please{' '}
-						<BasicLink href={`/subscription?returnUrl=${encodeURIComponent(router.asPath)}`} className="underline">
-							subscribe
-						</BasicLink>{' '}
-						to access this page.
-					</p>
-				</div>
-			</Layout>
-		)
-	}
-
 	return (
-		<LlamaAI
-			initialSessionId={sessionId as string}
-			showDebug={Boolean(user?.flags?.['is_llama'])}
-			key={`llamai-session-page-${sessionId}`}
-		/>
+		<Layout {...AI_LAYOUT_SEO}>
+			<AgenticChat initialSessionId={resolvedSessionId} key={`session-${resolvedSessionId}`} />
+		</Layout>
 	)
 }

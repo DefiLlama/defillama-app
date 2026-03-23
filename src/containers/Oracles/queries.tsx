@@ -1,9 +1,8 @@
-import { PROTOCOLS_API } from '~/constants'
-import type { ILiteParentProtocol, ILiteProtocol } from '~/containers/ChainOverview/types'
 import { toStrikeTvl } from '~/containers/ChainOverview/utils'
+import { fetchProtocols } from '~/containers/Protocols/api'
+import type { ProtocolLite } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET } from '~/contexts/LocalStorage'
 import { getNDistinctColors, slug } from '~/utils'
-import { fetchJson } from '~/utils/async'
 import {
 	fetchOracleMetrics,
 	fetchOracleProtocolBreakdownChart,
@@ -19,12 +18,6 @@ import type {
 	OracleProtocolWithBreakdown,
 	OracleTableDataRow
 } from './types'
-
-type TProtocolsApiResponse = {
-	protocols: Array<ILiteProtocol>
-	chains: Array<string>
-	parentProtocols: Array<ILiteParentProtocol>
-}
 
 function isExtraTvlKey(value: string): boolean {
 	return TVL_SETTINGS_KEYS_SET.has(value) || value === 'dcAndLsOverlap'
@@ -140,6 +133,7 @@ export async function getOraclesListPageData({
 	const tableData: Array<OracleTableDataRow> = []
 	for (const oracle in oraclesTVS) {
 		const chains = chainsByOracle[oracle] ?? []
+		// Single lookup: .includes() is more efficient than creating a Set
 		if (canonicalChain && !chains.includes(canonicalChain)) {
 			continue
 		}
@@ -214,7 +208,10 @@ export async function getOracleDetailPageData({
 	const chainsByOracle = metrics.chainsByOracle ?? {}
 	const oraclesTVS = metrics.oraclesTVS ?? {}
 
-	const oracleNames = Object.keys(oraclesTVS)
+	const oracleNames: string[] = []
+	for (const oracleName in oraclesTVS) {
+		oracleNames.push(oracleName)
+	}
 	const canonicalOracle = resolveCanonicalName(oracle, oracleNames)
 	if (!canonicalOracle) {
 		return null
@@ -227,12 +224,12 @@ export async function getOracleDetailPageData({
 	}
 
 	let chartData: OracleChartData = []
-	let protocols: Array<ILiteProtocol> = []
+	let protocols: Array<ProtocolLite> = []
 
 	if (canonicalChain) {
 		const [fetchedOracleChainBreakdown, { protocols: fetchedProtocols }] = await Promise.all([
 			fetchOracleProtocolChainBreakdownChart({ protocol: canonicalOracle }),
-			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+			fetchProtocols()
 		])
 		protocols = fetchedProtocols
 		chartData = fetchedOracleChainBreakdown.reduce<OracleChartData>((acc, dayData) => {
@@ -247,7 +244,7 @@ export async function getOracleDetailPageData({
 	} else {
 		const [oracleChart, { protocols: fetchedProtocols }] = await Promise.all([
 			fetchOracleProtocolChart({ protocol: canonicalOracle }),
-			fetchJson<TProtocolsApiResponse>(PROTOCOLS_API)
+			fetchProtocols()
 		])
 		protocols = fetchedProtocols
 		chartData =
@@ -272,9 +269,17 @@ export async function getOracleDetailPageData({
 	}
 
 	const protocolsByName = new Map(protocols.map((protocol) => [protocol.name, protocol]))
-	const protocolsSupportingCanonicalChain = canonicalChain
-		? new Set(protocols.filter((protocol) => protocol.chains.includes(canonicalChain)).map((protocol) => protocol.name))
-		: null
+	// Build one Set for repeated membership checks in the table loop.
+	// The per-protocol chain test remains a single cheap `.includes()` call.
+	let protocolsSupportingCanonicalChain: Set<string> | null = null
+	if (canonicalChain) {
+		protocolsSupportingCanonicalChain = new Set<string>()
+		for (const protocol of protocols) {
+			if (protocol.chains.includes(canonicalChain)) {
+				protocolsSupportingCanonicalChain.add(protocol.name)
+			}
+		}
+	}
 	const orderedOracleProtocolNames = oracleProtocolNamesByOracle[canonicalOracle] ?? []
 	const protocolTableData: Array<OracleProtocolWithBreakdown> = []
 	for (const protocolName of orderedOracleProtocolNames) {

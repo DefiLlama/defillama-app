@@ -1,11 +1,12 @@
 import { matchSorter } from 'match-sorter'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useId, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
-import { LinkToMetricOrToolPage } from '~/components/Metrics'
+import { LinkToMetricOrToolPage, usePinnedRoutes } from '~/components/Metrics'
 import Layout from '~/layout'
 import defillamaPages from '~/public/pages.json'
 
 export default function Tools() {
+	const searchInputId = useId()
 	const [searchValue, setSearchValue] = useState('')
 	const deferredSearchValue = useDeferredValue(searchValue)
 
@@ -17,11 +18,12 @@ export default function Tools() {
 		})
 	}, [deferredSearchValue])
 
+	const pinnedRoutes = usePinnedRoutes()
+
 	return (
 		<Layout
-			title="Tools - DefiLlama"
-			description={`Tools on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`tools, defi tools`}
+			title="DeFi Analytics & Research Tools - DefiLlama"
+			description="Explore DeFi analytics tools: token comparisons, correlation matrix, borrow optimizer, and more. Free open-source research tools on DefiLlama."
 			canonicalUrl={`/tools`}
 		>
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -34,17 +36,22 @@ export default function Tools() {
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
+						id={searchInputId}
 						type="text"
 						placeholder="Search..."
 						className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-black outline-hidden placeholder:text-[#666] dark:text-white"
-						value={searchValue}
-						onChange={(e) => setSearchValue(e.target.value)}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 					/>
 				</div>
 			</div>
 			<div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{pages.map((tool: any) => (
-					<LinkToMetricOrToolPage key={`tool-${tool.name}-${tool.route}`} page={tool} totalTrackedByMetric={null} />
+					<LinkToMetricOrToolPage
+						key={`tool-${tool.name}-${tool.route}`}
+						page={tool}
+						totalTrackedByMetric={null}
+						pinnedRoutes={pinnedRoutes}
+					/>
 				))}
 			</div>
 		</Layout>

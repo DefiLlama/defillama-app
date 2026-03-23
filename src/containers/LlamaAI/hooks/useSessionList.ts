@@ -1,43 +1,50 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { MCP_SERVER } from '~/constants'
+import type { ChatSession, ResearchUsage } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { ChatSession, ResearchUsage } from './useChatHistory'
 
 export interface SessionListData {
 	sessions: ChatSession[]
 	usage: ResearchUsage | null
 }
 
-export const SESSIONS_QUERY_KEY = 'chat-sessions'
+export const SESSIONS_QUERY_KEY = 'llamaai-sessions'
 
 export function useSessionList() {
 	const { user, authorizedFetch, isAuthenticated } = useAuthContext()
 	const queryClient = useQueryClient()
 
-	const { data = { sessions: [], usage: null }, isLoading } = useQuery({
+	const {
+		data = { sessions: [], usage: null },
+		isLoading,
+		error: queryError
+	} = useQuery({
 		queryKey: [SESSIONS_QUERY_KEY, user?.id],
 		queryFn: async (): Promise<SessionListData> => {
 			try {
 				if (!user) return { sessions: [], usage: null }
-				const data = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
+				const responseData = await authorizedFetch(`${MCP_SERVER}/user/sessions`)
+					.then((response) => assertResponse(response, 'Failed to fetch sessions'))
 					.then(handleSimpleFetchResponse)
 					.then((res) => res.json())
 
 				const existingData = queryClient.getQueryData([SESSIONS_QUERY_KEY, user.id]) as SessionListData | undefined
 				const existingSessions = existingData?.sessions || []
 				const fakeSessions = existingSessions.filter(
-					(session) => !data.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
+					(session) =>
+						!responseData.sessions.some((realSession: ChatSession) => realSession.sessionId === session.sessionId)
 				)
 
 				return {
-					sessions: [...fakeSessions, ...data.sessions],
-					usage: data.usage?.research_report || null
+					sessions: [...fakeSessions, ...responseData.sessions],
+					usage: responseData.usage?.research_report || null
 				}
 			} catch (error) {
 				console.log('Failed to fetch sessions:', error)
-				throw new Error('Failed to fetch sessions')
+				throw new Error(`Failed to fetch sessions: ${error instanceof Error ? error.message : String(error)}`)
 			}
 		},
 		enabled: isAuthenticated && !!user,
@@ -71,6 +78,7 @@ export function useSessionList() {
 		sessions: data.sessions,
 		researchUsage: data.usage,
 		isLoading,
+		error: queryError instanceof Error ? queryError.message : null,
 		moveSessionToTop
 	}
 }

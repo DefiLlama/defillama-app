@@ -1,12 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { fetchCoinPrices } from '~/api'
 import type { IChainTvl } from '~/api/types'
-import { COINS_PRICES_API, INFLOWS_API, PROTOCOL_API } from '~/constants'
-import { fetchCexs } from '~/containers/Cexs/api'
+import { COINGECKO_KEY } from '~/constants'
+import { fetchCexInflows, fetchCexs } from '~/containers/Cexs/api'
+import { fetchProtocolBySlug } from '~/containers/ProtocolOverview/api'
 import { fetchJson } from '~/utils/async'
-
-const hour24ms = ((Date.now() - 24 * 60 * 60 * 1000) / 1000).toFixed(0)
-const hour7dms = ((Date.now() - 7 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
-const hour1mms = ((Date.now() - 30 * 24 * 60 * 60 * 1000) / 1000).toFixed(0)
 
 export interface ICexItem {
 	name: string
@@ -31,33 +29,41 @@ export interface ICexItem {
 }
 
 export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
+	const nowSec = Math.floor(Date.now() / 1000)
+	const hour24Sec = nowSec - 24 * 60 * 60
+	const hour7dSec = nowSec - 7 * 24 * 60 * 60
+	const hour30dSec = nowSec - 30 * 24 * 60 * 60
+
 	let spot = null
 	let derivs = null
 	let btcPrice = 0
-	let cexList = null
+	let cexList: ICexItem[] = []
 
 	try {
-		const [spotData, derivsData, priceData, cexData] = await Promise.all([
+		const [spotData, derivsData, priceData] = await Promise.all([
 			fetchJson(`https://pro-api.coingecko.com/api/v3/exchanges?per_page=250`, {
 				headers: {
-					'x-cg-pro-api-key': process.env.CG_KEY
+					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
 			fetchJson(`https://pro-api.coingecko.com/api/v3/derivatives/exchanges?per_page=1000`, {
 				headers: {
-					'x-cg-pro-api-key': process.env.CG_KEY
+					'x-cg-pro-api-key': COINGECKO_KEY
 				}
 			}),
-			fetchJson(`${COINS_PRICES_API}/current/coingecko:bitcoin`),
-			fetchCexs()
+			fetchCoinPrices(['coingecko:bitcoin'])
 		])
-
 		spot = spotData
 		derivs = derivsData
-		btcPrice = priceData.coins['coingecko:bitcoin']?.price || 0
-		cexList = cexData.cexs
+		btcPrice = priceData['coingecko:bitcoin']?.price || 0
 	} catch (error) {
 		console.log('Error fetching CoinGecko data:', error)
+	}
+	try {
+		const cexData = await fetchCexs()
+		cexList = cexData.cexs || []
+	} catch (error) {
+		console.log('Error fetching CEX list:', error)
 	}
 
 	const cexsWithData = await Promise.all(
@@ -68,10 +74,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 
 			try {
 				const [protocolData, inflows24h, inflows7d, inflows1m] = await Promise.all([
-					fetchJson(`${PROTOCOL_API}/${c.slug}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour24ms}?tokensToExclude=${c.coin ?? ''}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour7dms}?tokensToExclude=${c.coin ?? ''}`),
-					fetchJson(`${INFLOWS_API}/${c.slug}/${hour1mms}?tokensToExclude=${c.coin ?? ''}`)
+					fetchProtocolBySlug<{ chainTvls?: IChainTvl }>(c.slug),
+					fetchCexInflows(c.slug, hour24Sec, nowSec, c.coin ?? ''),
+					fetchCexInflows(c.slug, hour7dSec, nowSec, c.coin ?? ''),
+					fetchCexInflows(c.slug, hour30dSec, nowSec, c.coin ?? '')
 				])
 
 				const { chainTvls = {} } = protocolData
@@ -105,10 +111,10 @@ export async function getCexData(req: NextApiRequest, res: NextApiResponse) {
 				}
 
 				// Special handling for Binance historical data
-				if (c.slug === 'Binance-CEX' && Number(hour7dms) < 1681609999) {
+				if (c.slug === 'Binance-CEX' && hour7dSec < 1681609999) {
 					inflows7d.outflows = null
 				}
-				if (c.slug === 'Binance-CEX' && Number(hour1mms) < 1681609999) {
+				if (c.slug === 'Binance-CEX' && hour30dSec < 1681609999) {
 					inflows1m.outflows = null
 				}
 

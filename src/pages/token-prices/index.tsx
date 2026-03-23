@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsTokenPricesByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`protocols-token-prices/index`, async () => {
@@ -22,9 +22,8 @@ const pageName = ['Protocols', 'ranked by', 'Token Price']
 export default function ProtocolsTokenPrices(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Token Prices - DefiLlama"
-			description={`Token Prices by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token prices by protocol`}
+			title="Token Price Rankings - DeFi Protocol Prices - DefiLlama"
+			description="Track DeFi protocol token price rankings across all chains. Compare token prices for 7000+ protocols on Ethereum, Solana, Base, Arbitrum, and 500+ chains. Real-time crypto token price analytics."
 			canonicalUrl={`/token-prices`}
 			pageName={pageName}
 		>

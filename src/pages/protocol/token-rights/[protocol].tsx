@@ -1,19 +1,21 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
-import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
-import type { ITokenRights } from '~/containers/ProtocolOverview/api.types'
+import type { IProtocolRaise } from '~/containers/ProtocolOverview/api.types'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
-import { TokenRights } from '~/containers/ProtocolOverview/TokenRights'
 import type { IProtocolOverviewPageData, IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
-import { slug, tokenIconUrl } from '~/utils'
+import { fetchTokenRightsData } from '~/containers/TokenRights/api'
+import type { ITokenRightsData } from '~/containers/TokenRights/api.types'
+import { TokenRightsByProtocol } from '~/containers/TokenRights/TokenRightsByProtocol'
+import { findProtocolEntry, parseTokenRightsEntry } from '~/containers/TokenRights/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const EMPTY_OTHER_PROTOCOLS: string[] = []
-
 type TokenRightsPageProps = {
 	name: string
 	symbol: string | null
@@ -23,18 +25,24 @@ type TokenRightsPageProps = {
 	metrics: IProtocolPageMetrics
 	warningBanners: IProtocolOverviewPageData['warningBanners']
 	toggleOptions: Array<{ name: string; key: string }>
-	tokenRights: ITokenRights
+	tokenRightsData: ITokenRightsData
+	raises: IProtocolRaise[] | null
+	seoTitle: string
+	seoDescription: string
 }
 
 export const getStaticProps = withPerformanceLogging(
 	'protocol/token-rights/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
+
 		const { protocol } = params
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 
 		let metadata: [string, IProtocolMetadata] | undefined
@@ -46,39 +54,91 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].tokenRights) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
-		const protocolData = await fetchProtocolOverviewMetrics(protocol)
+		const defillamaId = metadata[0]
 
-		if (!protocolData?.tokenRights) {
-			return { notFound: true, props: null }
+		const [tokenRightsEntries, protocolData] = await Promise.all([
+			fetchTokenRightsData(),
+			fetchProtocolOverviewMetrics(protocol)
+		])
+
+		const rawEntry = findProtocolEntry(tokenRightsEntries, defillamaId)
+
+		if (!rawEntry) {
+			return { notFound: true }
 		}
 
-		const computedMetrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const metrics: IProtocolPageMetrics = { ...computedMetrics, tokenRights: true }
+		const tokenRightsData = parseTokenRightsEntry(rawEntry)
+		const raises = protocolData?.raises ? [...protocolData.raises].sort((a, b) => b.date - a.date) : null
+		const tokenlistSymbol = protocolData?.gecko_id
+			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
+			: undefined
+		const symbol = tokenlistSymbol ?? (protocolData?.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
+
+		const computedMetrics = protocolData ? getProtocolMetricFlags({ protocolData, metadata: metadata[1] }) : null
+		const name = protocolData?.name ?? rawEntry['Protocol Name']
+		const seoTitle = `${name}${symbol ? ` (${symbol})` : ''} Token Rights & Governance`
+		const seoDescription = `Explore ${name}${symbol ? ` (${symbol})` : ''} token rights, holder benefits, governance power, and revenue distribution on DefiLlama.`
+		const metrics: IProtocolPageMetrics = {
+			...(computedMetrics ?? {
+				tvl: false,
+				dexs: false,
+				perps: false,
+				openInterest: false,
+				optionsPremiumVolume: false,
+				optionsNotionalVolume: false,
+				dexAggregators: false,
+				perpsAggregators: false,
+				bridgeAggregators: false,
+				stablecoins: false,
+				bridge: false,
+				treasury: false,
+				unlocks: false,
+				incentives: false,
+				yields: false,
+				fees: false,
+				revenue: false,
+				bribes: false,
+				tokenTax: false,
+				forks: false,
+				governance: false,
+				nfts: false,
+				dev: false,
+				inflows: false,
+				liquidity: false,
+				activeUsers: false,
+				newUsers: false,
+				txCount: false,
+				gasUsed: false,
+				borrowed: false,
+				tokenRights: false
+			}),
+			tokenRights: true
+		}
 
 		const props: TokenRightsPageProps = {
-			name: protocolData.name,
-			symbol: protocolData.symbol ?? null,
-			parentProtocol: protocolData.parentProtocol ?? null,
-			otherProtocols: protocolData.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
-			category: protocolData.category ?? null,
+			name,
+			symbol,
+			parentProtocol: protocolData?.parentProtocol ?? null,
+			otherProtocols: protocolData?.otherProtocols ?? EMPTY_OTHER_PROTOCOLS,
+			category: protocolData?.category ?? null,
 			metrics,
-			warningBanners: getProtocolWarningBanners(protocolData),
+			warningBanners: protocolData ? getProtocolWarningBanners(protocolData) : [],
 			toggleOptions: [],
-			tokenRights: protocolData.tokenRights
+			tokenRightsData,
+			raises,
+			seoTitle,
+			seoDescription
 		}
 
 		return { props, revalidate: maxAgeForNext([22]) }
 	}
 )
 
-export async function getStaticPaths() {
-	// When this is true (in preview environments) don't
-	// prerender any static pages
-	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+export const getStaticPaths = () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -98,12 +158,15 @@ export default function ProtocolTokenRightsPage(props: TokenRightsPageProps) {
 			tab="tokenRights"
 			warningBanners={props.warningBanners}
 			toggleOptions={props.toggleOptions}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
-			<div className="flex items-center gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-				<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
-				<h1 className="text-xl font-bold">{props.symbol ? `$${props.symbol}` : props.name} Token Rights</h1>
-			</div>
-			<TokenRights tokenRights={props.tokenRights} />
+			<TokenRightsByProtocol
+				name={props.name}
+				symbol={props.symbol}
+				tokenRightsData={props.tokenRightsData}
+				raises={props.raises}
+			/>
 		</ProtocolOverviewLayout>
 	)
 }

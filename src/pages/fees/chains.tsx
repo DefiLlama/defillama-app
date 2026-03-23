@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByFeesAdapterPageData } from '~/containers/DimensionAdapters/queries'
 import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -29,9 +29,8 @@ const pageName = ['Chains', 'ranked by', type]
 const FeesByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
+			title="DeFi Fees by Chain - All Blockchains - DefiLlama"
+			description="Compare DeFi fees generated across all blockchains. Track total user fees on Ethereum, Solana, Base, Arbitrum, and 150+ chains. Real-time blockchain fee analytics by chain and category."
 			canonicalUrl={`/fees/chains`}
 			pageName={pageName}
 		>

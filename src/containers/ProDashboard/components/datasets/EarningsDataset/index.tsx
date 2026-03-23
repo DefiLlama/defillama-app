@@ -15,7 +15,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import type { TableFilters } from '../../../types'
 import { CategoryFilterModal } from '../../CategoryFilterModal'
@@ -173,6 +173,7 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -201,7 +202,7 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 		instance.setColumnOrder(defaultOrder)
 	}, [instance, width])
 
-	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
@@ -283,8 +284,7 @@ export function EarningsDataset({ chains, tableId, filters }: EarningsDatasetPro
 						<input
 							type="text"
 							placeholder="Search protocols..."
-							value={protocolName}
-							onChange={(e) => setProtocolName(e.target.value)}
+							onInput={(e) => setProtocolName(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

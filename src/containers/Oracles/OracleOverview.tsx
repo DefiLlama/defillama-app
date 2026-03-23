@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { lazy, Suspense, useMemo } from 'react'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, getTokenDominance, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getTokenDominance, slug } from '~/utils'
 import { useOracleOverviewExtraSeries } from './queries.client'
 import { calculateTvsWithExtraToggles, getEnabledExtraApiKeys } from './tvl'
 import type { OracleOverviewPageData } from './types'
@@ -16,6 +16,7 @@ import type { OracleOverviewPageData } from './types'
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
 type IProtocolTableRow = OracleOverviewPageData['protocolTableData'][number]
+const columnHelper = createColumnHelper<IProtocolTableRow>()
 
 const DEFAULT_PROTOCOL_TABLE_SORTING_STATE = [{ id: 'tvl', desc: true }]
 
@@ -49,19 +50,18 @@ export const OracleOverview = ({
 	chain = null
 }: OracleOverviewPageData) => {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
-	const protocolColumns = useMemo<ColumnDef<IProtocolTableRow>[]>(
+	const protocolColumns = useMemo(
 		() => [
-			{
+			columnHelper.accessor('name', {
 				header: 'Name',
-				accessorKey: 'name',
 				enableSorting: false,
 				cell: ({ getValue }) => {
-					const name = getValue<string>()
+					const name = getValue()
 					return (
 						<span className="flex items-center gap-2">
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-							<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+							<TokenLogo name={name} kind="token" data-lgonly alt={`Logo of ${name}`} />
 
 							<BasicLink
 								href={`/protocol/${slug(name)}`}
@@ -72,19 +72,17 @@ export const OracleOverview = ({
 						</span>
 					)
 				}
-			},
-			{
+			}),
+			columnHelper.accessor('category', {
 				header: 'Category',
-				accessorKey: 'category',
 				enableSorting: false,
-				cell: ({ getValue }) => getValue<string | null>() ?? 'Unknown',
+				cell: ({ getValue }) => getValue() ?? 'Unknown',
 				meta: {
 					align: 'center'
 				}
-			},
-			{
+			}),
+			columnHelper.accessor('tvl', {
 				header: 'TVL',
-				accessorKey: 'tvl',
 				enableSorting: true,
 				cell: ({ row }) => {
 					const strikeText = getStrikeTvlText({ row: row.original, extraTvlsEnabled })
@@ -98,7 +96,7 @@ export const OracleOverview = ({
 				meta: {
 					align: 'center'
 				}
-			}
+			})
 		],
 		[extraTvlsEnabled]
 	)
@@ -144,8 +142,15 @@ export const OracleOverview = ({
 
 	const { dataset, charts } = useMemo(() => {
 		const chartBreakdownByTimestamp = chartData
-		const selectedOracle =
-			oracle ?? Object.keys(chartBreakdownByTimestamp[0] ?? {}).find((key) => key !== 'timestamp') ?? ''
+		let firstOracle = ''
+		const firstPoint = chartBreakdownByTimestamp[0] ?? {}
+		for (const key in firstPoint) {
+			if (key !== 'timestamp') {
+				firstOracle = key
+				break
+			}
+		}
+		const selectedOracle = oracle ?? firstOracle
 		const shouldApplyExtraSeries = enabledExtraApiKeys.length > 0 && !isFetchingExtraSeries
 
 		const datasetSource: Array<{ timestamp: number; TVS: number }> = []
@@ -243,6 +248,7 @@ export const OracleOverview = ({
 					placeholder="Search protocols..."
 					header="Protocols"
 					sortingState={DEFAULT_PROTOCOL_TABLE_SORTING_STATE}
+					csvFileName="oracle-protocols"
 					compact
 				/>
 			</Suspense>

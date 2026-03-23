@@ -1,29 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import { validateSubscription } from '~/utils/apiAuth'
 
 const VOLATILITY_UPSTREAM = process.env.VOLATILITY_UPSTREAM_URL ?? 'https://yields.llama.fi/volatility'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-	const authHeader = req.headers.authorization
-	if (!authHeader?.startsWith('Bearer ')) {
-		return res.status(401).json({ error: 'Authentication required' })
-	}
-
 	try {
-		const subResponse = await fetch('https://auth.llama.fi/subscription/status', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: authHeader
-			}
-		})
-
-		if (!subResponse.ok) {
-			return res.status(403).json({ error: 'Invalid subscription' })
-		}
-
-		const subData = await subResponse.json()
-		if (subData?.subscription?.status !== 'active') {
-			return res.status(403).json({ error: 'Active subscription required' })
+		const auth = await validateSubscription(req.headers.authorization)
+		if (auth.valid === false) {
+			return res.status(auth.status).json({ error: auth.error })
 		}
 
 		const upstream = await fetch(VOLATILITY_UPSTREAM)

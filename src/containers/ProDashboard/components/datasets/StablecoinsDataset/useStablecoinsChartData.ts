@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,
@@ -30,7 +30,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['stablecoins-chart-data', chain],
+		queryKey: ['pro-dashboard', 'stablecoins-chart-data', chain],
 		queryFn: async () => {
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([
 				fetchStablecoinAssetsApi(),
@@ -58,7 +58,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 						date: chart.date,
 						mcap: chart.totalCirculatingUSD
 					}))
-					.filter((i: any) => i.mcap !== undefined)
+					.filter((chartPoint: any) => chartPoint.mcap !== undefined)
 
 				if (formattedCharts.length > 0) {
 					lastTimestamp = Math.max(lastTimestamp, formattedCharts[formattedCharts.length - 1].date)
@@ -213,7 +213,7 @@ export interface StablecoinChainInfo {
 
 export function useStablecoinChainsList() {
 	return useQuery({
-		queryKey: ['stablecoin-chains-list'],
+		queryKey: ['pro-dashboard', 'stablecoin-chains-list'],
 		queryFn: async () => {
 			const data = await fetchStablecoinAssetsApi()
 			const chains = data?.chains || []

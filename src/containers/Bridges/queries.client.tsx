@@ -1,16 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { BRIDGES_API, BRIDGEVOLUME_API } from '~/constants'
-import { fetchApi, fetchJson } from '~/utils/async'
 import { getBridgeOverviewPageData } from './queries.server'
-
-// oxlint-disable-next-line no-unused-vars
-const useFetchBridgeList = () => {
-	return useQuery({ queryKey: [BRIDGES_API], queryFn: () => fetchApi(BRIDGES_API) })
-}
 
 export const useGetBridgeChartDataByChain = (chain?: string) => {
 	return useQuery({
-		queryKey: [`bridgeChartDataByChain/${chain}`],
+		queryKey: ['bridges', 'chart-by-chain', chain],
 		queryFn:
 			chain && chain !== 'All'
 				? () =>
@@ -34,15 +27,5 @@ export const useGetBridgeChartDataByChain = (chain?: string) => {
 		refetchOnWindowFocus: false,
 		retry: 0,
 		enabled: !!chain
-	})
-}
-
-export const useFetchBridgeVolume = (chain: string = 'all') => {
-	return useQuery({
-		queryKey: ['bridgeVolume', chain],
-		queryFn: () => fetchJson(`${BRIDGEVOLUME_API}/${chain}`),
-		staleTime: 60 * 60 * 1000,
-		refetchOnWindowFocus: false,
-		retry: 0
 	})
 }

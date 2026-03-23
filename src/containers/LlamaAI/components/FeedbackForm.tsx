@@ -4,7 +4,9 @@ import { useDeferredValue, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { handleSimpleFetchResponse } from '~/utils/async'
 
 interface FeedbackFormProps {
@@ -30,6 +32,7 @@ export function FeedbackForm({
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ rating, feedback })
 			})
+				.then((response) => assertResponse(response, 'Failed to submit feedback'))
 				.then(handleSimpleFetchResponse)
 				.then((res: Response) => res.json())
 
@@ -48,18 +51,15 @@ export function FeedbackForm({
 
 	const [feedbackText, setFeedbackText] = useState('')
 	const finalFeedbackText = useDeferredValue(feedbackText)
+	const handleSubmitFeedback = () => {
+		trackUmamiEvent('llamaai-feedback-text-submit')
+		submitFeedback({ rating: selectedRating, feedback: feedbackText.trim() || undefined })
+	}
 
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault()
-				const form = e.target as HTMLFormElement
-				submitFeedback({ rating: selectedRating, feedback: form.feedback?.value?.trim() })
-			}}
-			className="flex flex-col gap-4"
-		>
+		<div className="flex flex-col gap-4">
 			<div className="flex flex-col gap-2">
-				<span className="text-sm font-medium">Rate this response</span>
+				<p className="m-0 text-sm font-medium">Rate this response</p>
 				<div className="flex gap-2">
 					<button
 						type="button"
@@ -92,17 +92,17 @@ export function FeedbackForm({
 			<label className="flex flex-col gap-2">
 				<span className="text-sm text-[#666] dark:text-[#919296]">Additional feedback (optional)</span>
 				<textarea
-					name="feedback"
 					placeholder="Share your thoughts..."
 					className="w-full rounded border border-[#e6e6e6] bg-(--app-bg) p-3 dark:border-[#222324]"
 					rows={3}
 					maxLength={500}
+					value={feedbackText}
 					disabled={isSubmittingFeedback}
 					onChange={(e) => setFeedbackText(e.target.value)}
 				/>
 			</label>
 			<div className="flex items-center justify-between">
-				<span className="text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</span>
+				<p className="m-0 text-xs text-[#666] dark:text-[#919296]">{finalFeedbackText.length}/500</p>
 				<div className="flex gap-3">
 					<Ariakit.DialogDismiss
 						disabled={isSubmittingFeedback}
@@ -111,7 +111,8 @@ export function FeedbackForm({
 						Cancel
 					</Ariakit.DialogDismiss>
 					<button
-						type="submit"
+						type="button"
+						onClick={handleSubmitFeedback}
 						disabled={isSubmittingFeedback || !selectedRating}
 						className="rounded bg-(--old-blue) px-3 py-2 text-xs text-white hover:opacity-90 disabled:opacity-50"
 					>
@@ -119,6 +120,6 @@ export function FeedbackForm({
 					</button>
 				</div>
 			</div>
-		</form>
+		</div>
 	)
 }

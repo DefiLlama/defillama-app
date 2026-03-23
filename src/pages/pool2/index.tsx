@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`pool2/index`, async () => {
@@ -26,9 +26,8 @@ const pageName = ['Protocols', 'ranked by', 'Pool2 TVL']
 export default function Pool2TVL(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Pool2 TVL - DefiLlama"
-			description={`Pool2 TVL by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`pool2 tvl by protocol`}
+			title="Pool2 TVL Rankings - Value Locked - DefiLlama"
+			description={`Track Pool2 TVL rankings across DeFi protocols. Compare pool2 value locked in liquidity pools and staking contracts across 7000+ protocols on 500+ chains.`}
 			canonicalUrl={`/pool2`}
 			pageName={pageName}
 		>

@@ -1,4 +1,5 @@
 import type { NextRouter } from 'next/router'
+import { pushShallowQuery } from '~/utils/routerQuery'
 import type { ExcludeQueryKey } from './types'
 
 // URL update helpers - used when includeQueryKey/excludeQueryKey is provided
@@ -12,14 +13,14 @@ export const updateQueryFromSelected = (
 	includeKey: string,
 	excludeKey: ExcludeQueryKey,
 	allKeys: string[],
+	// 'None' is a sentinel meaning "nothing selected" — keep it explicit in the type
 	values: string[] | string | 'None' | null,
 	defaultSelectedValues?: string[]
 ) => {
-	const nextQuery: Record<string, any> = { ...router.query }
+	const updates: Record<string, string | string[] | undefined> = {}
 
 	const setOrDelete = (key: string, value: string | string[] | null) => {
-		if (value === null) delete nextQuery[key]
-		else nextQuery[key] = value
+		updates[key] = value === null ? undefined : value
 	}
 
 	const validSet = new Set(allKeys)
@@ -33,7 +34,7 @@ export const updateQueryFromSelected = (
 		if (defaultIsAll) {
 			setOrDelete(includeKey, null)
 			setOrDelete(excludeKey, null)
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+			void pushShallowQuery(router, updates)
 			return
 		}
 		nextValues = allKeys
@@ -43,7 +44,7 @@ export const updateQueryFromSelected = (
 	if (nextValues === 'None' || (Array.isArray(nextValues) && nextValues.length === 0)) {
 		setOrDelete(includeKey, 'None')
 		setOrDelete(excludeKey, null)
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		void pushShallowQuery(router, updates)
 		return
 	}
 
@@ -52,12 +53,12 @@ export const updateQueryFromSelected = (
 		if (defaultSelected?.length === 1 && defaultSelected[0] === nextValues) {
 			setOrDelete(includeKey, null)
 			setOrDelete(excludeKey, null)
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+			void pushShallowQuery(router, updates)
 			return
 		}
 		setOrDelete(includeKey, nextValues)
 		setOrDelete(excludeKey, null)
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		void pushShallowQuery(router, updates)
 		return
 	}
 
@@ -72,7 +73,7 @@ export const updateQueryFromSelected = (
 	if (isDefaultSelection) {
 		setOrDelete(includeKey, null)
 		setOrDelete(excludeKey, null)
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		void pushShallowQuery(router, updates)
 		return
 	}
 
@@ -89,5 +90,5 @@ export const updateQueryFromSelected = (
 		setOrDelete(includeKey, selected.length === 1 ? selected[0] : selected)
 	}
 
-	router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	void pushShallowQuery(router, updates)
 }

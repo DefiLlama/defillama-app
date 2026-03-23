@@ -17,6 +17,8 @@ import type { ChartTabType, ManualChartViewMode } from './types'
 import { UnlocksChartTab } from './UnlocksChartTab'
 import { YieldsChartTab } from './YieldsChartTab'
 
+const EMPTY_ARRAY: string[] = []
+
 const PROTOCOL_CHART_TYPES = getProtocolChartTypes()
 const CHAIN_CHART_TYPES = getChainChartTypes()
 
@@ -125,16 +127,16 @@ export function UnifiedChartTab({
 	onComposerItemColorChange,
 	onAddToComposer,
 	onRemoveFromComposer,
-	selectedChains: _selectedChains = [],
-	selectedProtocols: _selectedProtocols = [],
+	selectedChains: _selectedChains = EMPTY_ARRAY,
+	selectedProtocols: _selectedProtocols = EMPTY_ARRAY,
 	selectedYieldPool = null,
 	onSelectedChainsChange: _onSelectedChainsChange,
 	onSelectedProtocolsChange: _onSelectedProtocolsChange,
 	onSelectedYieldPoolChange,
-	selectedYieldChains = [],
-	selectedYieldProjects = [],
-	selectedYieldCategories = [],
-	selectedYieldTokens = [],
+	selectedYieldChains = EMPTY_ARRAY,
+	selectedYieldProjects = EMPTY_ARRAY,
+	selectedYieldCategories = EMPTY_ARRAY,
+	selectedYieldTokens = EMPTY_ARRAY,
 	minTvl = null,
 	maxTvl = null,
 	onSelectedYieldChainsChange,
@@ -655,7 +657,7 @@ export function UnifiedChartTab({
 					</div>
 
 					<div className="shrink-0">
-						<label className="mb-2 block text-xs font-medium pro-text2">Select Chart Type</label>
+						<span className="mb-2 block text-xs font-medium pro-text2">Select Chart Type</span>
 						<ChartTypePills
 							chartTypes={chartTypeOptions}
 							selectedType={selectedChartTypeSingle}
@@ -686,9 +688,9 @@ export function UnifiedChartTab({
 						className="w-full shrink-0 rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 
-					{(selectedChartTab === 'chain' || selectedChartTab === 'protocol') && bulkChartType && (
+					{(selectedChartTab === 'chain' || selectedChartTab === 'protocol') && bulkChartType ? (
 						<div className="shrink-0">
-							<label className="mb-2 block text-xs font-medium pro-text2">Change All Chart Types</label>
+							<span className="mb-2 block text-xs font-medium pro-text2">Change All Chart Types</span>
 							<ChartTypePills
 								chartTypes={bulkChartTypeOptions}
 								selectedType={bulkChartType}
@@ -697,7 +699,7 @@ export function UnifiedChartTab({
 								mode={selectedChartTab as 'chain' | 'protocol'}
 							/>
 						</div>
-					)}
+					) : null}
 
 					<div className="h-[450px] shrink-0 overflow-hidden rounded-lg border border-(--cards-border) bg-(--cards-bg)">
 						{composerItems.length > 0 ? (
@@ -709,7 +711,7 @@ export function UnifiedChartTab({
 						)}
 					</div>
 
-					{composerItems.length > 0 && (
+					{composerItems.length > 0 ? (
 						<div className="flex thin-scrollbar shrink-0 items-center gap-2 overflow-x-auto py-1">
 							{composerItems.map((item) => (
 								<div
@@ -734,7 +736,7 @@ export function UnifiedChartTab({
 								</div>
 							))}
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 		</div>

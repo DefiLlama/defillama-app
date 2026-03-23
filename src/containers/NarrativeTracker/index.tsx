@@ -1,13 +1,14 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { TimeSeriesEntry } from './api.types'
 import type { CategoryPerformanceProps, IPctChangeRow } from './types'
 
@@ -32,6 +33,7 @@ const MultiSeriesChart2 = React.lazy(
 const TreemapChart = React.lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
 
 const DEFAULT_SORTING_STATE = [{ id: 'change', desc: true }]
+const columnHelper = createColumnHelper<IPctChangeRow>()
 
 // for linechart
 function calculateDenominatedChange(data: TimeSeriesEntry[] | undefined, denominatedCoin: string): TimeSeriesEntry[] {
@@ -266,6 +268,8 @@ export const CategoryPerformanceContainer = ({
 			large: true
 		}))
 	}, [areaChartLegend])
+	const chartDataBundle = React.useMemo(() => ({ dataset, barCharts, lineCharts }), [dataset, barCharts, lineCharts])
+	const deferredChartData = React.useDeferredValue(chartDataBundle)
 
 	const treemapTreeData = React.useMemo(() => {
 		const safeReturn = (v: number | null | undefined): number => {
@@ -314,21 +318,21 @@ export const CategoryPerformanceContainer = ({
 				<div className="flex flex-wrap overflow-x-auto border-b border-(--form-control-border)">
 					<button
 						className="border-b border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('linechart'))}
+						onClick={() => setTab('linechart')}
 						data-selected={tab === 'linechart'}
 					>
 						Linechart
 					</button>
 					<button
 						className="border-b border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('barchart'))}
+						onClick={() => setTab('barchart')}
 						data-selected={tab === 'barchart'}
 					>
 						Barchart
 					</button>
 					<button
 						className="border-b border-l border-(--form-control-border) px-6 py-2 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[selected=true]:border-b-(--primary)"
-						onClick={() => React.startTransition(() => setTab('heatmap'))}
+						onClick={() => setTab('heatmap')}
 						data-selected={tab === 'heatmap'}
 					>
 						Heatmap
@@ -336,11 +340,11 @@ export const CategoryPerformanceContainer = ({
 				</div>
 
 				<div className="flex items-center justify-end gap-2 p-2">
-					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val) => setGroupBy(val as Period)} />
+					<TagGroup values={PERIODS} selectedValue={groupBy} setValue={(val) => setGroupBy(val)} />
 					<TagGroup
 						values={DENOMS}
 						selectedValue={groupByDenom}
-						setValue={(val) => setGroupByDenom(val as Denom)}
+						setValue={(val) => setGroupByDenom(val)}
 						label="Denom (vs):"
 						disabledValues={disabledDenoms}
 					/>
@@ -370,8 +374,8 @@ export const CategoryPerformanceContainer = ({
 					{tab === 'barchart' ? (
 						<React.Suspense fallback={<div className="h-[533px]" />}>
 							<MultiSeriesChart2
-								dataset={dataset}
-								charts={barCharts}
+								dataset={deferredChartData.dataset}
+								charts={deferredChartData.barCharts}
 								selectedCharts={selectedCharts}
 								valueSymbol={chartValueSymbol}
 								height="533px"
@@ -384,8 +388,8 @@ export const CategoryPerformanceContainer = ({
 					) : tab === 'linechart' ? (
 						<React.Suspense fallback={<div className="h-[533px]" />}>
 							<MultiSeriesChart2
-								dataset={dataset}
-								charts={lineCharts}
+								dataset={deferredChartData.dataset}
+								charts={deferredChartData.lineCharts}
 								selectedCharts={selectedCharts}
 								valueSymbol={chartValueSymbol}
 								height="533px"
@@ -410,16 +414,16 @@ export const CategoryPerformanceContainer = ({
 				columnToSearch={'name'}
 				placeholder={'Search...'}
 				header="Categories"
+				csvFileName={isCoinPage ? 'narrative-tracker-coin' : 'narrative-tracker-category'}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
 }
 
-const CoinPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
-	{
+const CoinPerformanceColumn = [
+	columnHelper.accessor('name', {
 		header: 'Coin',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -430,50 +434,46 @@ const CoinPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 						target="_blank"
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string | null>()}
+						{getValue()}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('change', {
 		header: 'Δ%',
-		accessorKey: 'change',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a coin has performed over your chosen time period and in your selected denomination (e.g., $, BTC).`
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('volume1D', {
 		header: '24h Volume',
-		accessorKey: 'volume1D',
 		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
+			const value = getValue()
 			return <>{value != null ? formattedNum(value, true) : null}</>
 		},
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	}
+	})
 ]
 
-const CategoryPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
-	{
+const CategoryPerformanceColumn = [
+	columnHelper.accessor('name', {
 		header: 'Category',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -485,58 +485,51 @@ const CategoryPerformanceColumn: ColumnDef<IPctChangeRow>[] = [
 							target="_blank"
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue<string | null>()}
+							{getValue()}
 						</BasicLink>
 					) : (
 						<BasicLink
 							href={`/narrative-tracker/${row.original.id}`}
 							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 						>
-							{getValue<string | null>()}
+							{getValue()}
 						</BasicLink>
 					)}
 				</span>
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('change', {
 		header: 'Δ%',
-		accessorKey: 'change',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>,
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: `Shows how a category of coins has performed over your chosen time period and in your selected denomination (e.g., $, BTC). Method: 1. calculating the percentage change for each individual coin in the category. 2. weighting these changes based on each coin's market capitalization. 3. averaging these weighted changes to get the overall category performance.`
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Market Cap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	},
-	{
+	}),
+	columnHelper.accessor('volume1D', {
 		header: '24h Volume',
-		accessorKey: 'volume1D',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? formattedNum(value, true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('nbCoins', {
 		header: '# of Coins',
-		accessorKey: 'nbCoins',
 		meta: {
 			align: 'end'
 		},
 		size: 110
-	}
+	})
 ]

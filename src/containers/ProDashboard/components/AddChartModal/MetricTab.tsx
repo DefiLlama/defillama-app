@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import type { Chain, MetricAggregator, MetricChartType, Protocol } from '../../types'
+import type { MetricAggregator, MetricChartType } from '../../types'
 import { MetricCard } from '../MetricCard'
 import { MetricSentenceBuilder } from './MetricSentenceBuilder'
 
@@ -45,9 +45,8 @@ export function MetricTab(props: MetricTabProps) {
 		onChartTypeChange
 	} = props
 
-	const { protocols, chains } = useProDashboardCatalog()
-	const protocolList = protocols as Protocol[]
-	const chainList = chains as Chain[]
+	const { protocols: protocolList, chains: chainList } = useProDashboardCatalog()
+
 	const { availableProtocolChartTypes, availableChainChartTypes } = useAppMetadata()
 
 	const availableTypes = useMemo(() => {
@@ -109,9 +108,9 @@ export function MetricTab(props: MetricTabProps) {
 						<div className="flex items-start justify-between gap-2 sm:gap-3">
 							<div>
 								<div className="text-xs font-semibold text-(--text-primary)">Custom metric title</div>
-								<div className="text-[11px] text-(--text-tertiary)">
+								<p className="text-[11px] text-(--text-tertiary)">
 									Shown above the metric tile across your dashboards.
-								</div>
+								</p>
 							</div>
 							<div className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--primary)/12 text-(--primary) md:flex">
 								<Icon name="pencil" width={14} height={14} />
@@ -163,7 +162,7 @@ export function MetricTab(props: MetricTabProps) {
 						<div className="flex h-full items-center justify-center text-xs pro-text3 sm:text-sm">
 							<div className="text-center">
 								<Icon name="activity" height={28} width={28} className="mx-auto mb-1 sm:h-8 sm:w-8" />
-								<div>Select subject and metric to preview</div>
+								<p>Select subject and metric to preview</p>
 							</div>
 						</div>
 					)}

@@ -18,7 +18,7 @@ import { useEffect } from 'react'
  *   useChartResize(chartRef)
  *
  *   useEffect(() => {
- *     const instance = echarts.init(ref.current)
+ *     const instance = echarts.init(ref.current, null, { renderer: 'canvas' })
  *     chartRef.current = instance
  *     instance.setOption(getOptions(data))
  *     return () => {

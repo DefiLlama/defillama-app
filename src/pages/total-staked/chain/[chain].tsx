@@ -1,13 +1,14 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = async () => {
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+export const getStaticPaths = () => {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -46,10 +47,9 @@ const pageName = ['Protocols', 'ranked by', 'Total Value Staked']
 export default function TotalStakedByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Total Staked - DefiLlama"
-			description={`Total Staked by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`total value staked by protocol on ${props.chain}`}
-			canonicalUrl={`/total-staked/chain/${props.chain}`}
+			title={`${props.chain} Total Staked - Staking Value - DefiLlama`}
+			description={`Track total staked value on ${props.chain}. Compare staking TVL and value locked in staking contracts for all protocols on ${props.chain}. Real-time ${props.chain} staking analytics.`}
+			canonicalUrl={`/total-staked/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ExtraTvlByChain {...props} />

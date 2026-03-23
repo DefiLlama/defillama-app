@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
@@ -10,13 +10,13 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useMemo, useState } from 'react'
+import { startTransition, useMemo, useState } from 'react'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
@@ -87,44 +87,27 @@ export function ChainsByAdapter(props: IProps) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		filterFromLeafRows: true,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnSizes
 	})
 
-	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
-		const visibleColumns = instance.getVisibleLeafColumns()
-		const headers = visibleColumns.map((col) =>
-			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
-		)
-
-		const rows = [headers]
-		instance.getFilteredRowModel().rows.forEach((row) => {
-			const cells = visibleColumns.map((col) => {
-				const value = row.getValue(col.id)
-				return value === null || value === undefined ? '' : String(value)
-			})
-			rows.push(cells)
-		})
-
-		return { filename: `${props.type}-chains-protocols.csv`, rows }
-	}
-
 	return (
 		<>
-			{props.type === 'Fees' && (
+			{props.type === 'Fees' ? (
 				<Announcement notCancellable>
 					<span>Are we missing any protocol?</span>{' '}
 					<a
@@ -136,8 +119,10 @@ export function ChainsByAdapter(props: IProps) {
 						Request it here!
 					</a>
 				</Announcement>
-			)}
-			{props.adapterType !== 'fees' && <ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />}
+			) : null}
+			{props.adapterType !== 'fees' ? (
+				<ChainsByAdapterChart chartData={props.chartData} allChains={props.allChains} />
+			) : null}
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-end gap-4 p-2">
 					<label className="relative mr-auto w-full sm:max-w-[280px]">
@@ -149,15 +134,15 @@ export function ChainsByAdapter(props: IProps) {
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={projectName}
-							onChange={(e) => {
-								setProjectName(e.target.value)
-							}}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							placeholder="Search..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
 					</label>
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-chains-protocols` })}
+						smol
+					/>
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
@@ -167,20 +152,23 @@ export function ChainsByAdapter(props: IProps) {
 
 const columnSizes: ColumnSizesByBreakpoint = { 0: { name: 180 }, 640: { name: 240 }, 768: { name: 280 } }
 
-const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains'][0]> => {
-	return {
+type ChainRow = IChainsByAdapterPageData['chains'][0]
+
+const columnHelper = createColumnHelper<ChainRow>()
+
+const NameColumn = (route: string) =>
+	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} alt={`Logo of ${row.original.name}`} data-lgonly />
 
 					<BasicLink
 						href={route ? `/${route}/chain/${slug(value)}` : `/chain/${slug(value)}`}
@@ -192,528 +180,281 @@ const NameColumn = (route: string): ColumnDef<IChainsByAdapterPageData['chains']
 			)
 		},
 		size: 280
-	}
-}
+	})
 
-const columnsByType: Record<IProps['type'], ColumnDef<IChainsByAdapterPageData['chains'][0]>[]> = {
+const metricColumn = (
+	id: string,
+	header: any,
+	accessor: (protocol: ChainRow) => number | null | undefined,
+	headerHelperText: string,
+	size: number,
+	csvHeader?: string
+) =>
+	columnHelper.accessor(accessor, {
+		id,
+		header,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: {
+			align: 'center',
+			headerHelperText,
+			...(csvHeader ? { csvHeader } : {})
+		},
+		size
+	})
+
+const columnsByType = {
 	Fees: [
 		NameColumn('fees'),
-		{
-			id: 'total24h',
-			header: 'Fees 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.fees.chain['24h']
-			},
-			size: 128
-		},
-		{
-			id: 'total7d',
-			header: 'Fees 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.fees.chain['7d']
-			},
-			size: 128
-		},
-		{
-			id: 'total30d',
-			header: 'Fees 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.fees.chain['30d']
-			},
-			size: 128
-		}
+		metricColumn('total24h', 'Fees 24h', (protocol) => protocol.total24h, definitions.fees.chain['24h'], 128),
+		metricColumn('total7d', 'Fees 7d', (protocol) => protocol.total7d, definitions.fees.chain['7d'], 128),
+		metricColumn('total30d', 'Fees 30d', (protocol) => protocol.total30d, definitions.fees.chain['30d'], 128)
 	],
 	Revenue: [
 		NameColumn('revenue'),
-		{
-			id: 'total24h',
-			header: 'Revenue 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.revenue.chain['24h']
-			},
-			size: 128
-		},
-		{
-			id: 'total7d',
-			header: 'Revenue 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.revenue.chain['7d']
-			},
-			size: 128
-		},
-		{
-			id: 'total30d',
-			header: 'Revenue 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.revenue.chain['30d']
-			},
-			size: 128
-		}
+		metricColumn('total24h', 'Revenue 24h', (protocol) => protocol.total24h, definitions.revenue.chain['24h'], 128),
+		metricColumn('total7d', 'Revenue 7d', (protocol) => protocol.total7d, definitions.revenue.chain['7d'], 128),
+		metricColumn('total30d', 'Revenue 30d', (protocol) => protocol.total30d, definitions.revenue.chain['30d'], 128)
 	],
 	'Holders Revenue': [
 		NameColumn('holders-revenue'),
-		{
-			id: 'total24h',
-			header: 'Holders Revenue 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.holdersRevenue.chain['24h']
-			},
-			size: 180
-		},
-		{
-			id: 'total7d',
-			header: 'Holders Revenue 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.holdersRevenue.chain['7d']
-			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'Holders Revenue 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.holdersRevenue.chain['30d']
-			},
-			size: 180
-		}
+		metricColumn(
+			'total24h',
+			'Holders Revenue 24h',
+			(protocol) => protocol.total24h,
+			definitions.holdersRevenue.chain['24h'],
+			180
+		),
+		metricColumn(
+			'total7d',
+			'Holders Revenue 7d',
+			(protocol) => protocol.total7d,
+			definitions.holdersRevenue.chain['7d'],
+			180
+		),
+		metricColumn(
+			'total30d',
+			'Holders Revenue 30d',
+			(protocol) => protocol.total30d,
+			definitions.holdersRevenue.chain['30d'],
+			180
+		)
 	],
 	'App Revenue': [
 		NameColumn('revenue'),
-		{
-			id: 'total24h',
-			header: 'App Revenue 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.appRevenue.chain['24h']
-			},
-			size: 180
-		},
-		{
-			id: 'total7d',
-			header: 'App Revenue 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.appRevenue.chain['7d']
-			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'App Revenue 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.appRevenue.chain['30d']
-			},
-			size: 180
-		}
+		metricColumn(
+			'total24h',
+			'App Revenue 24h',
+			(protocol) => protocol.total24h,
+			definitions.appRevenue.chain['24h'],
+			180
+		),
+		metricColumn('total7d', 'App Revenue 7d', (protocol) => protocol.total7d, definitions.appRevenue.chain['7d'], 180),
+		metricColumn(
+			'total30d',
+			'App Revenue 30d',
+			(protocol) => protocol.total30d,
+			definitions.appRevenue.chain['30d'],
+			180
+		)
 	],
 	'App Fees': [
 		NameColumn('fees'),
-		{
-			id: 'total24h',
-			header: 'App Fees 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.appFees.chain['24h']
-			},
-			size: 180
-		},
-		{
-			id: 'total7d',
-			header: 'App Fees 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.appFees.chain['7d']
-			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'App Fees 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.appFees.chain['30d']
-			},
-			size: 180
-		}
+		metricColumn('total24h', 'App Fees 24h', (protocol) => protocol.total24h, definitions.appFees.chain['24h'], 180),
+		metricColumn('total7d', 'App Fees 7d', (protocol) => protocol.total7d, definitions.appFees.chain['7d'], 180),
+		metricColumn('total30d', 'App Fees 30d', (protocol) => protocol.total30d, definitions.appFees.chain['30d'], 180)
 	],
 	'Options Premium Volume': [
 		NameColumn('options/premium-volume'),
-		{
-			id: 'total24h',
-			header: 'Premium Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.optionsPremium.chain['24h']
-			},
-			size: 180
-		},
-		{
-			id: 'total7d',
-			header: 'Premium Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.optionsPremium.chain['7d']
-			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'Premium Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.optionsPremium.chain['30d']
-			},
-			size: 180
-		}
+		metricColumn(
+			'total24h',
+			'Premium Volume 24h',
+			(protocol) => protocol.total24h,
+			definitions.optionsPremium.chain['24h'],
+			180
+		),
+		metricColumn(
+			'total7d',
+			'Premium Volume 7d',
+			(protocol) => protocol.total7d,
+			definitions.optionsPremium.chain['7d'],
+			180
+		),
+		metricColumn(
+			'total30d',
+			'Premium Volume 30d',
+			(protocol) => protocol.total30d,
+			definitions.optionsPremium.chain['30d'],
+			180
+		)
 	],
 	'Options Notional Volume': [
 		NameColumn('options/notional-volume'),
-		{
-			id: 'total24h',
-			header: 'Notional Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.optionsNotional.chain['24h']
-			},
-			size: 180
-		},
-		{
-			id: 'total7d',
-			header: 'Notional Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.optionsNotional.chain['7d']
-			},
-			size: 180
-		},
-		{
-			id: 'total30d',
-			header: 'Notional Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.optionsNotional.chain['30d']
-			},
-			size: 180
-		}
+		metricColumn(
+			'total24h',
+			'Notional Volume 24h',
+			(protocol) => protocol.total24h,
+			definitions.optionsNotional.chain['24h'],
+			180
+		),
+		metricColumn(
+			'total7d',
+			'Notional Volume 7d',
+			(protocol) => protocol.total7d,
+			definitions.optionsNotional.chain['7d'],
+			180
+		),
+		metricColumn(
+			'total30d',
+			'Notional Volume 30d',
+			(protocol) => protocol.total30d,
+			definitions.optionsNotional.chain['30d'],
+			180
+		)
 	],
 	'DEX Volume': [
 		NameColumn('dexs'),
-		{
-			id: 'total24h',
-			header: 'DEX Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.dexs.chain['24h']
-			},
-			size: 152
-		},
-		{
-			id: 'total7d',
-			header: 'DEX Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.dexs.chain['7d']
-			},
-			size: 152
-		},
-		{
-			id: 'total30d',
-			header: 'DEX Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.dexs.chain['30d']
-			},
-			size: 152
-		}
+		metricColumn('total24h', 'DEX Volume 24h', (protocol) => protocol.total24h, definitions.dexs.chain['24h'], 152),
+		metricColumn('total7d', 'DEX Volume 7d', (protocol) => protocol.total7d, definitions.dexs.chain['7d'], 152),
+		metricColumn('total30d', 'DEX Volume 30d', (protocol) => protocol.total30d, definitions.dexs.chain['30d'], 152)
 	],
 	'Perp Volume': [
 		NameColumn('perps'),
-		{
-			id: 'total24h',
-			header: 'Perp Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.perps.chain['24h']
-			},
-			size: 160
-		},
-		{
-			id: 'total7d',
-			header: 'Perp Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.perps.chain['7d']
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: 'Perp Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.perps.chain['30d']
-			},
-			size: 160
-		},
-		{
-			header: 'Open Interest',
-			id: 'open_interest',
-			accessorFn: (protocol) => protocol.openInterest,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.openInterest.chain
-			},
-			size: 160
-		}
+		metricColumn('total24h', 'Perp Volume 24h', (protocol) => protocol.total24h, definitions.perps.chain['24h'], 160),
+		metricColumn('total7d', 'Perp Volume 7d', (protocol) => protocol.total7d, definitions.perps.chain['7d'], 160),
+		metricColumn('total30d', 'Perp Volume 30d', (protocol) => protocol.total30d, definitions.perps.chain['30d'], 160),
+		metricColumn(
+			'openInterest',
+			'Open Interest',
+			(protocol) => protocol.openInterest,
+			definitions.openInterest.chain,
+			160
+		)
 	],
 	'Normalized Volume': [
 		NameColumn('normalized-volume'),
-		{
-			id: 'total24h',
-			header: 'Normalized Volume 24h',
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.normalizedVolume.chain['24h']
-			},
-			size: 160
-		},
-		{
-			id: 'activeLiquidity',
-			header: 'Active Liquidity',
-			accessorFn: (protocol) => protocol.activeLiquidity,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.activeLiquidity.chain
-			},
-			size: 160
-		},
-		{
-			id: 'total7d',
-			header: 'Normalized Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.normalizedVolume.chain['7d']
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: 'Normalized Volume 30d',
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.normalizedVolume.chain['30d']
-			},
-			size: 160
-		}
+		metricColumn(
+			'total24h',
+			'Normalized Volume 24h',
+			(protocol) => protocol.total24h,
+			definitions.normalizedVolume.chain['24h'],
+			160
+		),
+		metricColumn(
+			'activeLiquidity',
+			'Active Liquidity',
+			(protocol) => protocol.activeLiquidity,
+			definitions.activeLiquidity.chain,
+			160
+		),
+		metricColumn(
+			'total7d',
+			'Normalized Volume 7d',
+			(protocol) => protocol.total7d,
+			definitions.normalizedVolume.chain['7d'],
+			160
+		),
+		metricColumn(
+			'total30d',
+			'Normalized Volume 30d',
+			(protocol) => protocol.total30d,
+			definitions.normalizedVolume.chain['30d'],
+			160
+		)
 	],
 	'Perp Aggregator Volume': [
 		NameColumn('perps-aggregators'),
-		{
-			id: 'total24h',
-			header: () => (
-				<>
-					<span className="md:hidden">Perp Agg Vol 24h</span>
-					<span className="hidden md:block">Perp Aggregator Volume 24h</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['24h']
-			},
-			size: 160
-		},
-		{
-			id: 'total7d',
-			header: 'Perp Aggregator Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['7d']
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: () => (
-				<>
-					<span className="md:hidden">Perps Agg Vol 30d</span>
-					<span className="hidden md:block">Perps Aggregator Volume 30d</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.perpsAggregators.chain['30d']
-			},
-			size: 160
-		}
+		metricColumn(
+			'total24h',
+			<>
+				<span className="md:hidden">Perp Agg Vol 24h</span>
+				<span className="hidden md:block">Perp Aggregator Volume 24h</span>
+			</>,
+			(protocol) => protocol.total24h,
+			definitions.perpsAggregators.chain['24h'],
+			160,
+			'Perp Aggregator Volume 24h'
+		),
+		metricColumn(
+			'total7d',
+			'Perp Aggregator Volume 7d',
+			(protocol) => protocol.total7d,
+			definitions.perpsAggregators.chain['7d'],
+			160
+		),
+		metricColumn(
+			'total30d',
+			<>
+				<span className="md:hidden">Perps Agg Vol 30d</span>
+				<span className="hidden md:block">Perps Aggregator Volume 30d</span>
+			</>,
+			(protocol) => protocol.total30d,
+			definitions.perpsAggregators.chain['30d'],
+			160,
+			'Perp Aggregator Volume 30d'
+		)
 	],
 	'Bridge Aggregator Volume': [
 		NameColumn('bridge-aggregators'),
-		{
-			id: 'total24h',
-			header: () => (
-				<>
-					<span className="md:hidden">Bridge Agg Vol 24h</span>
-					<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['24h']
-			},
-			size: 160
-		},
-		{
-			id: 'total7d',
-			header: 'Bridge Aggregator Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['7d']
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: () => (
-				<>
-					<span className="md:hidden">Bridge Agg Vol 30d</span>
-					<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.bridgeAggregators.chain['30d']
-			},
-			size: 160
-		}
+		metricColumn(
+			'total24h',
+			<>
+				<span className="md:hidden">Bridge Agg Vol 24h</span>
+				<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
+			</>,
+			(protocol) => protocol.total24h,
+			definitions.bridgeAggregators.chain['24h'],
+			160,
+			'Bridge Aggregator Volume 24h'
+		),
+		metricColumn(
+			'total7d',
+			'Bridge Aggregator Volume 7d',
+			(protocol) => protocol.total7d,
+			definitions.bridgeAggregators.chain['7d'],
+			160
+		),
+		metricColumn(
+			'total30d',
+			<>
+				<span className="md:hidden">Bridge Agg Vol 30d</span>
+				<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
+			</>,
+			(protocol) => protocol.total30d,
+			definitions.bridgeAggregators.chain['30d'],
+			160,
+			'Bridge Aggregator Volume 30d'
+		)
 	],
 	'DEX Aggregator Volume': [
 		NameColumn('dex-aggregators'),
-		{
-			id: 'total24h',
-			header: () => (
-				<>
-					<span className="md:hidden">DEX Agg Vol 24h</span>
-					<span className="hidden md:block">DEX Aggregator Volume 24h</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total24h,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['24h']
-			},
-			size: 160
-		},
-		{
-			id: 'total7d',
-			header: 'DEX Aggregator Volume 7d',
-			accessorFn: (protocol) => protocol.total7d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['7d']
-			},
-			size: 160
-		},
-		{
-			id: 'total30d',
-			header: () => (
-				<>
-					<span className="md:hidden">DEX Agg Vol 30d</span>
-					<span className="hidden md:block">DEX Aggregator Volume 30d</span>
-				</>
-			),
-			accessorFn: (protocol) => protocol.total30d,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-			meta: {
-				align: 'center',
-				headerHelperText: definitions.dexAggregators.chain['30d']
-			},
-			size: 160
-		}
+		metricColumn(
+			'total24h',
+			<>
+				<span className="md:hidden">DEX Agg Vol 24h</span>
+				<span className="hidden md:block">DEX Aggregator Volume 24h</span>
+			</>,
+			(protocol) => protocol.total24h,
+			definitions.dexAggregators.chain['24h'],
+			160,
+			'DEX Aggregator Volume 24h'
+		),
+		metricColumn(
+			'total7d',
+			'DEX Aggregator Volume 7d',
+			(protocol) => protocol.total7d,
+			definitions.dexAggregators.chain['7d'],
+			160
+		),
+		metricColumn(
+			'total30d',
+			<>
+				<span className="md:hidden">DEX Agg Vol 30d</span>
+				<span className="hidden md:block">DEX Aggregator Volume 30d</span>
+			</>,
+			(protocol) => protocol.total30d,
+			definitions.dexAggregators.chain['30d'],
+			160,
+			'DEX Aggregator Volume 30d'
+		)
 	]
 }

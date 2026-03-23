@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import type { IResponseCGMarketsAPI } from '~/api/types'
 import { CompareTokens } from '~/containers/CompareTokens'
 import { getCompareTokensPageData } from '~/containers/CompareTokens/queries'
-import type { Protocol } from '~/containers/CompareTokens/types'
+import type { CompareTokenProtocol } from '~/containers/CompareTokens/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('compare-tokens', async () => {
@@ -19,13 +19,12 @@ export default function Compare({
 	protocols
 }: {
 	coinsData: Array<IResponseCGMarketsAPI & { label: string; value: string }>
-	protocols: Protocol[]
+	protocols: CompareTokenProtocol[]
 }) {
 	return (
 		<Layout
-			title={`Compare Tokens - DefiLlama`}
-			description={`Compare tokens with price, fdv, volume and other metrics on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare tokens, compare tokens on blockchain`}
+			title="Compare Crypto Tokens - Price, FDV & Market Data - DefiLlama"
+			description="Compare crypto tokens side-by-side with price, FDV, volume, and other metrics on DefiLlama."
 			canonicalUrl={`/compare-tokens`}
 		>
 			<CompareTokens coinsData={coinsData} protocols={protocols} />

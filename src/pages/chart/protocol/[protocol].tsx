@@ -1,31 +1,40 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import { type ComponentType, lazy, Suspense, useEffect, useMemo } from 'react'
-import { maxAgeForNext } from '~/api'
+import { DWMC_GROUPING_OPTIONS_LOWERCASE, type LowercaseDwmcGrouping } from '~/components/ECharts/ChartGroupingSelector'
 import { LocalLoader } from '~/components/Loaders'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { BAR_CHARTS, protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { getProtocolOverviewPageData } from '~/containers/ProtocolOverview/queries'
 import type { IProtocolOverviewPageData, IToggledMetrics } from '~/containers/ProtocolOverview/types'
 import { useFetchProtocolChartData } from '~/containers/ProtocolOverview/useFetchProtocolChartData'
 import { TVL_SETTINGS, FEES_SETTINGS } from '~/contexts/LocalStorage'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
-const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/ProtocolCoreChart')) as ComponentType<any>
+const ProtocolCoreChart = lazy(() => import('~/containers/ProtocolOverview/Chart')) as ComponentType<any>
 
-const groupByOptions = ['daily', 'weekly', 'monthly', 'cumulative'] as const
-
+const normalizeChartInterval = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
+	}
+	return null
+}
 export const getStaticProps = withPerformanceLogging(
 	'chart/protocol/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocol = params.protocol
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
@@ -36,28 +45,30 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const data = await getProtocolOverviewPageData({
 			protocolId: metadata[0],
 			currentProtocolMetadata: metadata[1],
-			chainMetadata: metadataCache.chainMetadata
+			chainMetadata: metadataCache.chainMetadata,
+			tokenlist: metadataCache.tokenlist,
+			cgExchangeIdentifiers: metadataCache.cgExchangeIdentifiers
 		})
 
 		if (!data) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return { props: data, revalidate: maxAgeForNext([22]) }
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -67,7 +78,7 @@ export async function getStaticPaths() {
 	return { paths: [], fallback: 'blocking' }
 }
 
-export default function ProtocolChart(props: IProtocolOverviewPageData) {
+export default function ProtocolChartPage(props: IProtocolOverviewPageData) {
 	const router = useRouter()
 
 	const queryParamsString = useMemo(() => {
@@ -112,11 +123,7 @@ export default function ProtocolChart(props: IProtocolOverviewPageData) {
 			toggledMetrics,
 			toggledCharts,
 			hasAtleasOneBarChart,
-			groupBy: hasAtleasOneBarChart
-				? typeof queryParams.groupBy === 'string' && groupByOptions.includes(queryParams.groupBy as any)
-					? (queryParams.groupBy as any)
-					: 'daily'
-				: 'daily',
+			groupBy: hasAtleasOneBarChart ? (normalizeChartInterval(queryParams.groupBy) ?? 'daily') : 'daily',
 			tvlSettings,
 			feesSettings
 		}

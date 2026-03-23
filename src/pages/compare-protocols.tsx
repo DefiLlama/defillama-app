@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { CompareProtocols } from '~/containers/CompareProtocols'
 import { getCompareProtocolsPageData } from '~/containers/CompareProtocols/queries'
 import type { CompareProtocolsProps } from '~/containers/CompareProtocols/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('comparison', async () => {
@@ -19,9 +19,8 @@ const pageName = ['Compare Protocols']
 export default function CompareProtocolsPage({ protocols, protocolsList }: CompareProtocolsProps) {
 	return (
 		<Layout
-			title={`Compare Protocols - DefiLlama`}
-			description={`Compare protocols on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare protocols, compare protocols on blockchain`}
+			title="Protocol Comparison - DeFi Metrics - DefiLlama"
+			description="Compare DeFi protocols side-by-side by TVL, fees, revenue, and user metrics. Analyze protocol performance across chains and categories. Advanced comparison tool for DeFi investment research."
 			canonicalUrl={`/compare-protocols`}
 			pageName={pageName}
 			metricFilters={tvlOptions}

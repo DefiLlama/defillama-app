@@ -1,14 +1,15 @@
 import { lazy, Suspense, useMemo } from 'react'
+import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { CHART_COLORS } from '~/constants/colors'
 import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
-import { download, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
+import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
 import type { YieldsChartConfig } from '../types'
-import { ChartPngExportButton } from './ProTable/ChartPngExportButton'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 import { useYieldChartTransformations } from './useYieldChartTransformations'
 
@@ -215,10 +216,10 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 				<div className="flex flex-col gap-1">
 					<h3 className="text-sm font-semibold pro-text1">{poolName}</h3>
 					<p className="text-xs pro-text2">
-						{project} - {chain} {chartType !== 'tvl-apy' && <span className="pro-text3">({chartTitle})</span>}
+						{project} - {chain} {chartType !== 'tvl-apy' ? <span className="pro-text3">({chartTitle})</span> : null}
 					</p>
 				</div>
-				{currentChartData && currentChartData.length > 0 && (
+				{currentChartData && currentChartData.length > 0 ? (
 					<div className="flex gap-2">
 						<ChartPngExportButton chartInstance={chartInstance} filename={imageFilename} title={imageTitle} smol />
 						<ProTableCSVButton
@@ -227,10 +228,10 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							className="flex items-center gap-1 rounded-md border border-(--form-control-border) px-1.5 py-1 text-xs hover:border-transparent hover:not-disabled:pro-btn-blue focus-visible:border-transparent focus-visible:not-disabled:pro-btn-blue disabled:border-(--cards-border) disabled:text-(--text-disabled)"
 						/>
 					</div>
-				)}
+				) : null}
 			</div>
 
-			{chartType === 'tvl-apy' && latestData.apy !== null && latestData.tvl !== null && (
+			{chartType === 'tvl-apy' && latestData.apy !== null && latestData.tvl !== null ? (
 				<div className="mb-2 flex gap-4">
 					<div className="flex flex-col">
 						<span className="text-[10px] pro-text3 uppercase">Latest APY</span>
@@ -245,7 +246,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 						</span>
 					</div>
 				</div>
-			)}
+			) : null}
 
 			<div className="flex-1">
 				<Suspense
@@ -255,7 +256,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 						</div>
 					}
 				>
-					{chartType === 'tvl-apy' && (
+					{chartType === 'tvl-apy' ? (
 						<MultiSeriesChart2
 							height="320px"
 							dataset={tvlApyDataset}
@@ -266,8 +267,8 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							hideDefaultLegend={false}
 							onReady={handleChartReady}
 						/>
-					)}
-					{chartType === 'supply-apy' && (
+					) : null}
+					{chartType === 'supply-apy' ? (
 						<BarChart
 							height="320px"
 							chartData={supplyApyBarData}
@@ -277,8 +278,8 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							valueSymbol="%"
 							onReady={handleChartReady}
 						/>
-					)}
-					{chartType === 'supply-apy-7d' && (
+					) : null}
+					{chartType === 'supply-apy-7d' ? (
 						<AreaChart
 							height="320px"
 							chartData={supplyApy7dData}
@@ -287,8 +288,8 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							color={CHART_COLORS[0]}
 							onReady={handleChartReady}
 						/>
-					)}
-					{chartType === 'borrow-apy' && (
+					) : null}
+					{chartType === 'borrow-apy' ? (
 						<BarChart
 							height="320px"
 							chartData={borrowApyBarData}
@@ -298,8 +299,8 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							valueSymbol="%"
 							onReady={handleChartReady}
 						/>
-					)}
-					{chartType === 'net-borrow-apy' && (
+					) : null}
+					{chartType === 'net-borrow-apy' ? (
 						<AreaChart
 							height="320px"
 							chartData={netBorrowApyData}
@@ -308,8 +309,8 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							color={CHART_COLORS[0]}
 							onReady={handleChartReady}
 						/>
-					)}
-					{chartType === 'pool-liquidity' && (
+					) : null}
+					{chartType === 'pool-liquidity' ? (
 						<AreaChart
 							height="320px"
 							chartData={poolLiquidityData}
@@ -320,7 +321,7 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 							stackColors={liquidityChartColors}
 							onReady={handleChartReady}
 						/>
-					)}
+					) : null}
 				</Suspense>
 			</div>
 		</div>

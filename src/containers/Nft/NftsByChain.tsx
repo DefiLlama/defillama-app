@@ -1,4 +1,4 @@
-import type { ColumnDef, SortingState } from '@tanstack/react-table'
+import { createColumnHelper, type SortingState } from '@tanstack/react-table'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -22,27 +22,29 @@ export function NftsByChain({ chains }: INftsByChainProps) {
 			placeholder={'Search protocols...'}
 			columnToSearch={'name'}
 			header="Protocol Rankings"
+			headingAs="h1"
+			csvFileName="nft-chains"
 			sortingState={DEFAULT_SORTING_STATE}
 		/>
 	)
 }
 
 const DEFAULT_SORTING_STATE: SortingState = [{ id: 'total24h', desc: true }]
+const columnHelper = createColumnHelper<INftChainRow>()
 
-const columns: ColumnDef<INftChainRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		accessorFn: (chain) => chain.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue<string>()
+			const value = getValue()
 
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} data-lgonly />
 
 					<BasicLink
 						href={`/chain/${slug(value)}`}
@@ -54,19 +56,15 @@ const columns: ColumnDef<INftChainRow>[] = [
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('total24h', {
 		id: 'total24h',
 		header: 'NFT Volume 24h',
-		accessorFn: (chain) => chain.total24h,
-		cell: (info) => {
-			const value = info.getValue<number>()
-			return <>{value != null ? formattedNum(value, true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Sum of volume across all NFT exchanges on the chain in the last 24 hours'
 		},
 		size: 128
-	}
+	})
 ]

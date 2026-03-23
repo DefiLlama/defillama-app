@@ -3,14 +3,8 @@ import { useMemo } from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
 import { toYearMonth } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { IRaise } from './types'
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
 
 interface UseRaisesDataParams {
 	raises: IRaise[]
@@ -160,8 +154,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }: Us
 
 				let raiseIncludesChain = false
 
-				for (const chain of raise.chains) {
-					if (selectedChainsSet!.has(chain)) {
+				for (const raiseChain of raise.chains) {
+					if (selectedChainsSet!.has(raiseChain)) {
 						raiseIncludesChain = true
 						break
 					}
@@ -247,8 +241,8 @@ export function useRaisesData({ raises, investors, rounds, sectors, chains }: Us
 		for (const category in raisesByCategory) {
 			finalRaisesByCategory.push({ name: category, value: raisesByCategory[category] })
 		}
-		for (const round in investmentByRounds) {
-			finalInvestmentByRounds.push({ name: round, value: investmentByRounds[round] })
+		for (const roundLabel in investmentByRounds) {
+			finalInvestmentByRounds.push({ name: roundLabel, value: investmentByRounds[roundLabel] })
 		}
 		for (const date in fundingRoundsByMonth) {
 			finalFundingRoundsByMonth.push([new Date(date).getTime(), fundingRoundsByMonth[date]])

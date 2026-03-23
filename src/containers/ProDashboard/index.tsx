@@ -4,6 +4,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import { AppMetadataProvider } from './AppMetadataContext'
 import { ChartGrid } from './components/ChartGrid'
 import { CopyDashboardLinkButton } from './components/CopyDashboardLinkButton'
@@ -11,6 +12,7 @@ import { CustomTimePeriodPicker } from './components/CustomTimePeriodPicker'
 import { EmptyState } from './components/EmptyState'
 import { LikeDashboardButton } from './components/LikeDashboardButton'
 import type { UnifiedTableFocusSection } from './components/UnifiedTable/types'
+import { useFreeTierStatus } from './hooks'
 import {
 	type AIGeneratedData,
 	type TimePeriod,
@@ -18,6 +20,7 @@ import {
 	useProDashboardDashboard,
 	useProDashboardItemsState,
 	useProDashboardPermissions,
+	useProDashboardServerAppMetadata,
 	useProDashboardTime,
 	useProDashboardUI
 } from './ProDashboardAPIContext'
@@ -25,9 +28,7 @@ import type { DashboardItemConfig } from './types'
 
 const DemoPreview = lazy(() => import('./components/DemoPreview').then((m) => ({ default: m.DemoPreview })))
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
+import { DashboardPaywallModal, type PaywallReason } from './components/DashboardPaywallModal'
 const AddChartModal = lazy(() => import('./components/AddChartModal').then((m) => ({ default: m.AddChartModal })))
 const CreateDashboardPicker = lazy(() =>
 	import('./components/CreateDashboardPicker').then((m) => ({ default: m.CreateDashboardPicker }))
@@ -45,12 +46,25 @@ const Rating = lazy(() => import('./components/Rating').then((m) => ({ default: 
 
 function ProDashboardContent() {
 	const [showAddModal, setShowAddModal] = useState<boolean>(false)
-	const [editItem, setEditItem] = useState<DashboardItemConfig | null>(null)
-	const [initialUnifiedFocusSection, setInitialUnifiedFocusSection] = useState<UnifiedTableFocusSection | undefined>()
+	const [editModalState, setEditModalState] = useState<{
+		item: DashboardItemConfig | null
+		focusSection?: UnifiedTableFocusSection
+	}>({ item: null, focusSection: undefined })
 	const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false)
 	const { isAuthenticated, hasActiveSubscription } = useAuthContext()
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const { canCreateDashboard } = useFreeTierStatus()
+	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
+		open: false,
+		reason: 'pro-feature'
+	})
+	const paywallDialogStore = Ariakit.useDialogStore({
+		open: paywallState.open,
+		setOpen: (open) => setPaywallState((prev) => ({ ...prev, open }))
+	})
+	const showPaywall = (reason: PaywallReason) => {
+		setSignupSource('pro-dashboard')
+		setPaywallState({ open: true, reason })
+	}
 	const { items } = useProDashboardItemsState()
 	const { protocolsLoading } = useProDashboardCatalog()
 	const { timePeriod, customTimePeriod, setTimePeriod, setCustomTimePeriod } = useProDashboardTime()
@@ -118,8 +132,7 @@ function ProDashboardContent() {
 	}
 
 	const handleEditItemModal = (item: DashboardItemConfig, focusSection?: UnifiedTableFocusSection) => {
-		setEditItem(item)
-		setInitialUnifiedFocusSection(focusSection)
+		setEditModalState({ item, focusSection })
 		setShowAddModal(true)
 	}
 
@@ -170,7 +183,7 @@ function ProDashboardContent() {
 						</span>
 						<p className="text-sm text-(--text-form)">{dashboardDescription}</p>
 					</div>
-					{dashboardTags.length > 0 && (
+					{dashboardTags.length > 0 ? (
 						<div className="flex flex-nowrap items-start gap-1 text-(--text-disabled)">
 							<Tooltip content="Tags">
 								<Icon name="tag" height={16} width={16} className="mt-1" />
@@ -183,7 +196,7 @@ function ProDashboardContent() {
 								))}
 							</div>
 						</div>
-					)}
+					) : null}
 				</div>
 				<div className="col-span-full flex flex-col gap-2 md:col-span-4 md:gap-4">
 					<div className="flex flex-wrap items-center justify-end gap-2">
@@ -192,10 +205,10 @@ function ProDashboardContent() {
 								{isReadOnly ? (
 									<button
 										onClick={() => {
-											if (hasActiveSubscription) {
-												copyDashboard()
+											if (canCreateDashboard) {
+												void copyDashboard()
 											} else {
-												subscribeModalStore.show()
+												showPaywall('dashboard-limit')
 											}
 										}}
 										className="flex items-center gap-1 rounded-md pro-btn-blue-outline px-4 py-1"
@@ -206,7 +219,11 @@ function ProDashboardContent() {
 								) : null}
 								<button
 									onClick={() => {
-										createDashboardDialogStore.show()
+										if (canCreateDashboard) {
+											createDashboardDialogStore.show()
+										} else {
+											showPaywall('dashboard-limit')
+										}
 									}}
 									className="flex items-center gap-1 rounded-md pro-btn-purple-outline px-4 py-1"
 								>
@@ -236,11 +253,11 @@ function ProDashboardContent() {
 				</div>
 			</div>
 
-			{currentDashboard?.aiGenerated && (
+			{currentDashboard?.aiGenerated ? (
 				<AIGenerationHistory aiGenerated={currentDashboard.aiGenerated as AIGeneratedData} />
-			)}
+			) : null}
 
-			{currentRatingSession && !isReadOnly && (
+			{currentRatingSession && !isReadOnly ? (
 				<Suspense fallback={<></>}>
 					<Rating
 						sessionId={currentRatingSession.sessionId}
@@ -252,9 +269,9 @@ function ProDashboardContent() {
 						onDismiss={dismissRating}
 					/>
 				</Suspense>
-			)}
+			) : null}
 
-			{!isReadOnly && (
+			{!isReadOnly ? (
 				<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 					<Tooltip
 						content={!hasChartItems ? 'Add chart items to enable time period selection' : null}
@@ -285,7 +302,7 @@ function ProDashboardContent() {
 						</div>
 					</Tooltip>
 					<div className="order-3 flex items-center gap-2">
-						{dashboardId && (
+						{dashboardId ? (
 							<button
 								onClick={() => setShowSettingsModal(true)}
 								className="hidden rounded-md pro-glass pro-hover-bg p-2 transition-colors md:flex"
@@ -293,27 +310,35 @@ function ProDashboardContent() {
 							>
 								<Icon name="settings" height={20} width={20} className="pro-text1" />
 							</button>
-						)}
-						{items.length > 0 && (
+						) : null}
+						{items.length > 0 ? (
 							<button
 								className="hidden animate-ai-glow items-center gap-2 rounded-md pro-btn-blue-outline px-4 py-2 text-base whitespace-nowrap md:flex"
-								onClick={() => setShowIterateDashboardModal(true)}
+								onClick={() => {
+									if (hasActiveSubscription) {
+										setShowIterateDashboardModal(true)
+									} else {
+										showPaywall('llamaai')
+									}
+								}}
 								title="Edit with LlamaAI"
 							>
 								<Icon name="sparkles" height={16} width={16} />
 								Edit with LlamaAI
 							</button>
-						)}
-						{canUndo && (
+						) : null}
+						{canUndo ? (
 							<button
 								className="hidden items-center gap-2 rounded-md border pro-border pro-hover-bg px-4 py-2 text-base whitespace-nowrap pro-text2 transition-colors hover:pro-text1 md:flex"
-								onClick={undoAIGeneration}
+								onClick={() => {
+									void undoAIGeneration()
+								}}
 								title="Undo AI changes"
 							>
 								<Icon name="arrow-left" height={16} width={16} />
 								Undo
 							</button>
-						)}
+						) : null}
 
 						<button
 							className="hidden items-center gap-2 rounded-md pro-btn-blue px-4 py-2 text-base whitespace-nowrap md:flex"
@@ -325,30 +350,33 @@ function ProDashboardContent() {
 						</button>
 					</div>
 				</div>
-			)}
+			) : null}
 
-			{items.length > 0 && <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} />}
+			{items.length > 0 ? <ChartGrid onAddChartClick={openAddModal} onEditItem={handleEditItemModal} /> : null}
 
 			<Suspense fallback={<></>}>
 				<AddChartModal
 					isOpen={showAddModal}
 					onClose={() => {
 						setShowAddModal(false)
-						setEditItem(null)
-						setInitialUnifiedFocusSection(undefined)
+						setEditModalState({ item: null, focusSection: undefined })
 					}}
-					editItem={editItem}
-					initialUnifiedFocusSection={initialUnifiedFocusSection}
+					editItem={editModalState.item}
+					initialUnifiedFocusSection={editModalState.focusSection}
 				/>
 			</Suspense>
 
-			{!protocolsLoading && items.length === 0 && (
+			{!protocolsLoading && items.length === 0 ? (
 				<EmptyState
 					onAddChart={openAddModal}
-					onGenerateWithAI={() => setShowIterateDashboardModal(true)}
+					onGenerateWithAI={
+						hasActiveSubscription
+							? () => setShowIterateDashboardModal(true)
+							: () => showPaywall('llamaai')
+					}
 					isReadOnly={isReadOnly}
 				/>
-			)}
+			) : null}
 
 			<Suspense fallback={<></>}>
 				<DashboardSettingsModal
@@ -363,20 +391,29 @@ function ProDashboardContent() {
 					onVisibilityChange={setDashboardVisibility}
 					onTagsChange={setDashboardTags}
 					onDescriptionChange={setDashboardDescription}
-					onSave={saveDashboard}
+					onSave={(overrides) => {
+						void saveDashboard(overrides)
+					}}
 					onDelete={deleteDashboard}
 				/>
 			</Suspense>
 
 			<Suspense fallback={<></>}>
-				<CreateDashboardPicker dialogStore={createDashboardDialogStore} onCreate={handleCreateDashboard} />
+				<CreateDashboardPicker
+					dialogStore={createDashboardDialogStore}
+					onCreate={(data) => {
+						void handleCreateDashboard(data)
+					}}
+				/>
 			</Suspense>
 
 			<Suspense fallback={<></>}>
 				<GenerateDashboardModal
 					isOpen={showGenerateDashboardModal}
 					onClose={() => setShowGenerateDashboardModal(false)}
-					onGenerate={handleGenerateDashboard}
+					onGenerate={(prompt) => {
+						void handleGenerateDashboard(prompt)
+					}}
 				/>
 			</Suspense>
 
@@ -393,22 +430,23 @@ function ProDashboardContent() {
 						items,
 						aiGenerated: currentDashboard?.aiGenerated
 					}}
-					onGenerate={handleIterateDashboard}
+					onGenerate={(prompt) => {
+						void handleIterateDashboard(prompt)
+					}}
 				/>
 			</Suspense>
 
-			{shouldRenderModal ? (
-				<Suspense fallback={<></>}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
+			{paywallState.open ? (
+				<DashboardPaywallModal dialogStore={paywallDialogStore} reason={paywallState.reason} />
 			) : null}
 		</div>
 	)
 }
 
 export default function ProDashboard() {
+	const serverAppMetadata = useProDashboardServerAppMetadata()
 	return (
-		<AppMetadataProvider>
+		<AppMetadataProvider initialData={serverAppMetadata}>
 			<ProDashboardContent />
 		</AppMetadataProvider>
 	)

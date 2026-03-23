@@ -1,15 +1,21 @@
 import * as Ariakit from '@ariakit/react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 
+export interface ShareData {
+	isPublic: boolean
+	shareToken?: string
+}
+
 interface ShareModalContentProps {
-	shareData?: { isPublic: boolean; shareToken?: string }
+	shareData?: ShareData
 }
 
 export function ShareModalContent({ shareData }: ShareModalContentProps) {
 	const [copied, setCopied] = useState(false)
 	const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const shareLinkInputId = useId()
 	const shareLink = shareData?.shareToken ? `${window.location.origin}/ai/chat/shared/${shareData.shareToken}` : ''
 
 	useEffect(() => {
@@ -43,16 +49,21 @@ export function ShareModalContent({ shareData }: ShareModalContentProps) {
 				Your conversation is now public. Anyone with the link can view it.
 			</p>
 			<div className="flex flex-col gap-2">
-				<label className="text-xs text-[#666] dark:text-[#919296]">Share Link</label>
+				<label htmlFor={shareLinkInputId} className="text-xs text-[#666] dark:text-[#919296]">
+					Share Link
+				</label>
 				<div className="flex gap-2">
 					<input
+						id={shareLinkInputId}
 						type="text"
 						value={shareLink}
 						readOnly
 						className="flex-1 rounded border border-[#e6e6e6] bg-(--app-bg) px-3 py-2 text-sm dark:border-[#222324]"
 					/>
 					<button
-						onClick={handleCopy}
+						onClick={() => {
+							void handleCopy()
+						}}
 						data-umami-event="llamaai-copy-share-link"
 						className="rounded border border-[#e6e6e6] px-3 py-2 text-sm hover:bg-[#f7f7f7] dark:border-[#222324] dark:hover:bg-[#222324]"
 					>

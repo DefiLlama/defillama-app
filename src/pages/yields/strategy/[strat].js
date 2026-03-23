@@ -395,8 +395,19 @@ const PageView = () => {
 }
 
 export default function YieldPoolPage(props) {
+	const { query } = useRouter()
+	const strat = typeof query.strat === 'string' ? query.strat : Array.isArray(query.strat) ? query.strat[0] : undefined
+
 	return (
-		<Layout title={`Yields - DefiLlama`}>
+		<Layout
+			title={strat ? `Strategy: ${strat} - DefiLlama Yield` : ''}
+			description={
+				strat
+					? `Explore lend-borrow-farm strategies for ${strat} across all tracked pools on DefiLlama. Calculates total Strategy APY from individual yield components at each step.`
+					: ''
+			}
+			canonicalUrl={strat ? `/yields/strategy/${strat}` : null}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

@@ -1,24 +1,25 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { OraclesByChain } from '~/containers/Oracles/OraclesByChain'
 import { getOraclesListPageData } from '~/containers/Oracles/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Oracles', 'ranked by', 'TVS']
 
 export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({ params }) => {
 	if (!params?.chain) {
-		return { notFound: true, props: null }
+		return { notFound: true }
 	}
 
 	const chain = Array.isArray(params.chain) ? params.chain[0] : params.chain
 	const data = await getOraclesListPageData({ chain })
 
 	if (!data) {
-		return { notFound: true, props: null }
+		return { notFound: true }
 	}
 
 	return {
@@ -27,11 +28,11 @@ export const getStaticProps = withPerformanceLogging('oracles/[chain]', async ({
 	}
 })
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -45,9 +46,8 @@ export default function OraclesPage(props: InferGetStaticPropsType<typeof getSta
 	const canonicalUrl = props.chain ? `/oracles/chain/${slug(props.chain)}` : '/oracles'
 	return (
 		<Layout
-			title="Oracles - DefiLlama"
-			description="Track total value secured by oracles on all chains. View protocols secured by the oracle, breakdown by chain, and DeFi oracles on DefiLlama."
-			keywords="oracles, oracles on all chains, oracles on DeFi protocols, DeFi oracles, protocols secured by the oracle"
+			title={`${props.chain} DeFi Oracles - Total Value Secured - DefiLlama`}
+			description={`Track Total Value Secured (TVS) by oracle on ${props.chain}. Compare protocols secured, where oracle failure would equal TVS.`}
 			canonicalUrl={canonicalUrl}
 			metricFilters={tvlOptions}
 			pageName={pageName}

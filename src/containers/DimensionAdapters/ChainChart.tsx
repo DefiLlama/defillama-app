@@ -1,25 +1,33 @@
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { LoadingDots } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
-import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import type { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, getNDistinctColors, lastDayOfWeek, slug } from '~/utils'
-import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import { getErrorMessage } from '~/utils/error'
+import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
+import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
+import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
+import { getChartDataByChainAndInterval } from './utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const INTERVALS_LIST_ADAPTER_BY_CHAIN = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-const LINE_DIMENSIONS = new Set(['Open Interest', 'Active Liquidity'])
-type AdapterByChainInterval = (typeof INTERVALS_LIST_ADAPTER_BY_CHAIN)[number]
-type ChainsByAdapterInterval = AdapterByChainInterval
+const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
+type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
 const CHART_TYPES_CHAINS_BY_ADAPTER = ['Volume', 'Dominance'] as const
 type ChainsByAdapterChartType = (typeof CHART_TYPES_CHAINS_BY_ADAPTER)[number]
 
@@ -27,42 +35,84 @@ export const AdapterByChainChart = ({
 	chartData,
 	adapterType,
 	chain,
-	chartName
-}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain'> & { chartName: string }) => {
+	chartName,
+	dataType
+}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType'> & { chartName: string }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
-	const metricDimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
 
-	const chartInterval = React.useMemo<AdapterByChainInterval>(() => {
+	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
+		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
-		const matchedInterval = INTERVALS_LIST_ADAPTER_BY_CHAIN.find((interval) => interval.toLowerCase() === groupByParam)
-		return matchedInterval ?? 'Daily'
+		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
+		return matchedInterval?.value ?? 'daily'
 	}, [router.query.groupBy])
+	const chartViewMode = React.useMemo<AdapterByChainViewMode>(() => {
+		const chartViewParam = readSingleQueryValue(router.query.chartView)?.toLowerCase()
+		return chartViewParam === 'breakdown' ? 'Breakdown' : 'Combined'
+	}, [router.query.chartView])
 
-	const onChangeChartInterval = (nextInterval: AdapterByChainInterval) => {
-		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+	const { breakdownChartData, breakdownProtocolDimensions, isBreakdownLoading, breakdownError } =
+		useAdapterByChainBreakdownChartData({
+			adapterType,
+			chain,
+			dataType,
+			enabled: chartViewMode === 'Breakdown'
+		})
+
+	const selectedProtocols = React.useMemo(() => {
+		if (chartViewMode !== 'Breakdown' || breakdownProtocolDimensions.length === 0) return []
+		const protocolsQuery = router.query.chartProtocols
+		const excludeProtocolsQuery = router.query.excludeChartProtocols
+		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
+		const baseSelectedProtocols =
+			protocolsQuery != null
+				? parseArrayParam(protocolsQuery, breakdownProtocolDimensions)
+				: breakdownProtocolDimensions
+
+		return excludedProtocolsSet.size > 0
+			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
+			: baseSelectedProtocols
+	}, [chartViewMode, breakdownProtocolDimensions, router.query.chartProtocols, router.query.excludeChartProtocols])
+
+	const activeChartData = chartViewMode === 'Breakdown' && breakdownChartData ? breakdownChartData : chartData
+	const metricDimensions = activeChartData.dimensions.filter((d) => d !== 'timestamp')
+
+	const dimensionsToRender = React.useMemo(() => {
+		if (chartViewMode !== 'Breakdown' || !breakdownChartData) {
+			return metricDimensions
+		}
+
+		const selectedProtocolsSet = new Set(selectedProtocols)
+		return breakdownProtocolDimensions.filter((d) => selectedProtocolsSet.has(d))
+	}, [metricDimensions, chartViewMode, breakdownChartData, selectedProtocols, breakdownProtocolDimensions])
+
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
+	}
+	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
+		void pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
 	}
 
+	const isBreakdownMode = chartViewMode === 'Breakdown' && breakdownChartData != null
 	const finalCharts = React.useMemo(() => {
-		const isDaily = chartInterval === 'Daily'
-		const groupBy =
-			chartInterval === 'Weekly'
-				? 'weekly'
-				: chartInterval === 'Monthly'
-					? 'monthly'
-					: chartInterval === 'Cumulative'
-						? 'cumulative'
-						: 'daily'
-		const isCumulative = chartInterval === 'Cumulative'
-		const seriesDefinitions = metricDimensions.map((dimension, index) => {
+		const isDaily = chartInterval === 'daily'
+
+		const isCumulative = chartInterval === 'cumulative'
+		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			const type = isCumulative || isIntrinsicLineSeries ? ('line' as const) : ('bar' as const)
+			// Snapshot metrics (Open Interest, Active Liquidity) take last-value-per-period;
+			// flow metrics (fees, volume) sum per period. In breakdown mode dimensions are
+			// protocol names, so fall back to chartName to inherit the metric's semantics.
+			const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
+			const type = isSnapshotMetric || isCumulative ? ('line' as const) : ('bar' as const)
+			const stack = isBreakdownMode && !isSnapshotMetric ? 'protocol-breakdown' : undefined
 			if (isDaily) {
-				return { dimension, seriesName, type, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
+				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
 
-			const rawData = chartData.source
+			const rawData = activeChartData.source
 				.map((row) => {
 					const timestamp = Number(row.timestamp)
 					const value = row[dimension] as number | null
@@ -70,33 +120,39 @@ export const AdapterByChainChart = ({
 				})
 				.filter((item): item is [number, number] => item != null)
 
-			// Keep math behavior by source metric type (bar vs line), while allowing
-			// cumulative mode to render bars as lines.
-			const data = isIntrinsicLineSeries
+			// Snapshot metrics (OI, Active Liquidity) are point-in-time values — summing
+			// them is meaningless, so they always use formatLineChart (last-value-per-period).
+			// When chartInterval is 'cumulative', formatLineChart falls through to daily
+			// passthrough which is correct: "cumulative OI" has no meaning, so we just
+			// show the raw snapshot values alongside any cumulative flow series.
+			// Flow metrics (fees, volume) sum per period via formatBarChart, which also
+			// handles cumulative running totals.
+			const data = isSnapshotMetric
 				? formatLineChart({
 						data: rawData,
-						groupBy,
+						groupBy: chartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 				: formatBarChart({
 						data: rawData,
-						groupBy,
+						groupBy: chartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 
-			return { dimension, seriesName, type, data, color: CHART_COLORS[index % CHART_COLORS.length] }
+			return { dimension, seriesName, type, stack, data, color: CHART_COLORS[index % CHART_COLORS.length] }
 		})
 
 		if (isDaily) {
 			return {
-				dataset: chartData,
+				dataset: activeChartData,
 				charts: seriesDefinitions.map((series, index) => ({
 					type: series.type,
 					name: series.seriesName,
 					encode: { x: 'timestamp', y: series.seriesName },
 					color: series.color,
+					...(series.stack ? { stack: series.stack } : {}),
 					...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 				}))
 			}
@@ -114,8 +170,7 @@ export const AdapterByChainChart = ({
 		const sourceData = ensureChronologicalRows(Array.from(sourceDataByTimestamp.values())).map((row) => {
 			const normalizedRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
 			for (const series of seriesDefinitions) {
-				normalizedRow[series.seriesName] =
-					typeof row[series.seriesName] === 'number' ? (row[series.seriesName] as number) : null
+				normalizedRow[series.seriesName] = row[series.seriesName] ?? null
 			}
 			return normalizedRow
 		})
@@ -131,24 +186,36 @@ export const AdapterByChainChart = ({
 				name: series.seriesName,
 				encode: { x: 'timestamp', y: series.seriesName },
 				color: series.color,
+				...(series.stack ? { stack: series.stack } : {}),
 				...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 			}))
 		}
-	}, [chartData, chartInterval, metricDimensions])
+	}, [activeChartData, chartInterval, chartName, isBreakdownMode, dimensionsToRender])
+	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
 
 	const multiChart = React.useMemo<MultiChartConfig | null>(() => {
 		if (!dashboardChartType) return null
 
-		const grouping =
-			chartInterval === 'Daily'
-				? 'day'
-				: chartInterval === 'Weekly'
-					? 'week'
-					: chartInterval === 'Monthly'
-						? 'month'
-						: 'day'
+		let grouping: MultiChartConfig['grouping']
+		switch (chartInterval) {
+			case 'weekly':
+				grouping = 'week'
+				break
+			case 'monthly':
+				grouping = 'month'
+				break
+			case 'quarterly':
+				grouping = 'quarter'
+				break
+			case 'yearly':
+				grouping = 'year'
+				break
+			default:
+				grouping = 'day'
+				break
+		}
 
 		return {
 			id: generateItemId('multi', `${chain}-${adapterType}`),
@@ -165,47 +232,144 @@ export const AdapterByChainChart = ({
 				}
 			],
 			grouping,
-			showCumulative: chartInterval === 'Cumulative'
+			showCumulative: chartInterval === 'cumulative'
 		}
 	}, [chain, adapterType, dashboardChartType, chartInterval, chartName])
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-					{chartName === 'Open Interest'
-						? null
-						: INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-								<Tooltip
-									content={dataInterval}
-									render={<button />}
-									className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-									onClick={() => onChangeChartInterval(dataInterval)}
-									data-active={dataInterval === chartInterval}
-									key={`${dataInterval}-${chartName}-${chain}`}
-								>
-									{dataInterval.slice(0, 1).toUpperCase()}
-								</Tooltip>
-							))}
+				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
+					{CHART_VIEW_MODES_ADAPTER_BY_CHAIN.map((mode) => (
+						<button
+							key={`adapter-by-chain-chart-view-mode-${mode}`}
+							className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+							data-active={mode === chartViewMode}
+							onClick={() => onChangeChartViewMode(mode)}
+						>
+							{mode}
+						</button>
+					))}
 				</div>
+				{chartViewMode === 'Breakdown' && breakdownProtocolDimensions.length > 0 ? (
+					<SelectWithCombobox
+						allValues={breakdownProtocolDimensions}
+						selectedValues={selectedProtocols}
+						includeQueryKey="chartProtocols"
+						excludeQueryKey="excludeChartProtocols"
+						defaultSelectedValues={breakdownProtocolDimensions}
+						label="Protocols"
+						labelType="smol"
+						variant="filter"
+						portal
+					/>
+				) : null}
+				{LINE_DIMENSIONS.has(chartName) ? null : (
+					<ChartGroupingSelector
+						value={chartInterval}
+						onValueChange={onChangeChartInterval}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+						buttonClassName="font-medium data-[active=true]:font-medium"
+					/>
+				)}
 				{chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
 				<ChartExportButtons
 					chartInstance={exportChartInstance}
-					filename={`${slug(chain)}-${adapterType}-${chartName}`}
+					filename={`${chain}-${adapterType}-${chartName}`}
 					title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
 				/>
 			</div>
-			<React.Suspense fallback={<div className="min-h-[360px]" />}>
-				<MultiSeriesChart2
-					dataset={finalCharts.dataset}
-					charts={finalCharts.charts}
-					hideDefaultLegend={finalCharts.charts.length === 1}
-					groupBy={chartInterval === 'Weekly' ? 'weekly' : chartInterval === 'Monthly' ? 'monthly' : 'daily'}
-					onReady={handleChartReady}
-				/>
-			</React.Suspense>
+			{chartViewMode === 'Breakdown' && breakdownError ? (
+				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{breakdownError}</p>
+			) : chartViewMode === 'Breakdown' && isBreakdownLoading ? (
+				<p className="flex min-h-[360px] items-center justify-center gap-1">
+					Loading
+					<LoadingDots />
+				</p>
+			) : (
+				<React.Suspense fallback={<div className="min-h-[360px]" />}>
+					<MultiSeriesChart2
+						dataset={deferredFinalCharts.dataset}
+						charts={deferredFinalCharts.charts}
+						hideDefaultLegend={deferredFinalCharts.charts.length === 1}
+						groupBy={chartInterval}
+						showTotalInTooltip={isBreakdownMode}
+						onReady={handleChartReady}
+					/>
+				</React.Suspense>
+			)}
 		</div>
 	)
+}
+
+function useAdapterByChainBreakdownChartData({
+	adapterType,
+	chain,
+	dataType,
+	enabled
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chain: string
+	dataType: IAdapterByChainPageData['dataType']
+	enabled: boolean
+}) {
+	const safeDataType = dataType === 'dailyEarnings' ? undefined : (dataType ?? undefined)
+
+	const { data, isLoading, error } = useQuery({
+		queryKey: ['adapter-breakdown-chart', adapterType, chain, safeDataType],
+		queryFn: () => fetchAdapterChainChartDataByProtocolBreakdown({ adapterType, chain, dataType: safeDataType }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled
+	})
+
+	const breakdownError = error ? getErrorMessage(error) : null
+
+	return React.useMemo(() => {
+		if (!data || data.length === 0) {
+			return {
+				breakdownChartData: null,
+				breakdownProtocolDimensions: [],
+				isBreakdownLoading: isLoading && enabled,
+				breakdownError
+			}
+		}
+
+		const protocolValuesByTimestamp = new Map<number, Record<string, number>>()
+		const protocolTotals = new Map<string, number>()
+
+		for (const [timestamp, protocolValues] of data) {
+			const valuesAtTimestamp: Record<string, number> = {}
+			for (const [protocolName, value] of Object.entries(protocolValues)) {
+				valuesAtTimestamp[protocolName] = value
+				protocolTotals.set(protocolName, (protocolTotals.get(protocolName) ?? 0) + value)
+			}
+			protocolValuesByTimestamp.set(timestamp * 1e3, valuesAtTimestamp)
+		}
+
+		const allProtocols = Array.from(protocolTotals.entries())
+			.toSorted((a, b) => b[1] - a[1])
+			.map(([name]) => name)
+
+		const sortedTimestamps = Array.from(protocolValuesByTimestamp.keys()).sort((a, b) => a - b)
+
+		const source = sortedTimestamps.map((timestamp) => {
+			const row: Record<string, number | null> = { timestamp }
+			const valuesAtTimestamp = protocolValuesByTimestamp.get(timestamp)
+			for (const protocolName of allProtocols) {
+				row[protocolName] = valuesAtTimestamp?.[protocolName] ?? null
+			}
+			return row
+		})
+
+		const breakdownChartData: MultiSeriesChart2Dataset = {
+			source,
+			dimensions: ['timestamp', ...allProtocols]
+		}
+
+		return { breakdownChartData, breakdownProtocolDimensions: allProtocols, isBreakdownLoading: false, breakdownError }
+	}, [data, isLoading, enabled, breakdownError])
 }
 
 export const ChainsByAdapterChart = ({
@@ -214,30 +378,18 @@ export const ChainsByAdapterChart = ({
 }: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains'>) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
-	const chartInterval = React.useMemo<ChainsByAdapterInterval>(() => {
+	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
+		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
-		const matchedInterval = INTERVALS_LIST_ADAPTER_BY_CHAIN.find((interval) => interval.toLowerCase() === groupByParam)
-		return matchedInterval ?? 'Daily'
+		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
+		return matchedInterval?.value ?? 'daily'
 	}, [router.query.groupBy])
 	const chartType = React.useMemo<ChainsByAdapterChartType>(() => {
 		const chartTypeParam = readSingleQueryValue(router.query.chartType)?.toLowerCase()
 		return chartTypeParam === 'dominance' ? 'Dominance' : 'Volume'
 	}, [router.query.chartType])
-	const effectiveInterval: ChainsByAdapterInterval = chartType === 'Dominance' ? 'Daily' : chartInterval
+	const effectiveInterval: LowercaseDwmcGrouping = chartType === 'Dominance' ? 'daily' : chartInterval
 	const selectedChains = React.useMemo(() => {
-		const parseArrayParam = (param: string | string[] | undefined, values: string[]): string[] => {
-			if (param === 'None') return []
-			if (!param) return values
-			const selected = Array.isArray(param) ? param.filter(Boolean) : [param].filter(Boolean)
-			const allowed = new Set(values)
-			return selected.filter((value) => allowed.has(value))
-		}
-		const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-			if (!param) return new Set()
-			if (typeof param === 'string') return new Set([param])
-			return new Set(param)
-		}
-
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
 		const excludedChainsSet = parseExcludeParam(excludeChainsQuery)
@@ -248,15 +400,16 @@ export const ChainsByAdapterChart = ({
 			: baseSelectedChains
 	}, [allChains, router.query.chains, router.query.excludeChains])
 
-	const { dataset, charts } = React.useMemo(() => {
+	const chainsByAdapterChartData = React.useMemo(() => {
 		return getChartDataByChainAndInterval({ chartData, chartInterval: effectiveInterval, selectedChains, chartType })
 	}, [chartData, effectiveInterval, selectedChains, chartType])
+	const deferredChartData = React.useDeferredValue(chainsByAdapterChartData)
 
-	const onChangeChartInterval = (nextInterval: ChainsByAdapterInterval) => {
-		pushShallowQuery(router, { groupBy: nextInterval === 'Daily' ? undefined : nextInterval })
+	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartType = (nextChartType: ChainsByAdapterChartType) => {
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			chartType: nextChartType === 'Volume' ? undefined : nextChartType,
 			groupBy: nextChartType === 'Dominance' ? undefined : readSingleQueryValue(router.query.groupBy)
 		})
@@ -267,20 +420,13 @@ export const ChainsByAdapterChart = ({
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
 				{chartType === 'Dominance' ? <div className="mr-auto" /> : null}
 				{chartType === 'Dominance' ? null : (
-					<div className="mr-auto flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-(--text-form)">
-						{INTERVALS_LIST_ADAPTER_BY_CHAIN.map((dataInterval) => (
-							<Tooltip
-								content={dataInterval}
-								render={<button />}
-								className="shrink-0 px-2 py-1 text-sm font-medium whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:text-(--link-text)"
-								onClick={() => onChangeChartInterval(dataInterval)}
-								data-active={dataInterval === chartInterval}
-								key={`chains-by-adapter-${dataInterval}`}
-							>
-								{dataInterval.slice(0, 1).toUpperCase()}
-							</Tooltip>
-						))}
-					</div>
+					<ChartGroupingSelector
+						value={chartInterval}
+						onValueChange={onChangeChartInterval}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+						className="mr-auto"
+						buttonClassName="font-medium data-[active=true]:font-medium"
+					/>
 				)}
 				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
 					{CHART_TYPES_CHAINS_BY_ADAPTER.map((currentChartType) => (
@@ -313,8 +459,8 @@ export const ChainsByAdapterChart = ({
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
 				<MultiSeriesChart2
-					dataset={dataset}
-					charts={charts}
+					dataset={deferredChartData.dataset}
+					charts={deferredChartData.charts}
 					{...(chartType === 'Dominance' ? { valueSymbol: '%', solidChartAreaStyle: true } : {})}
 					{...(chartType === 'Dominance'
 						? {
@@ -328,162 +474,13 @@ export const ChainsByAdapterChart = ({
 						: {})}
 					{...(chartType === 'Dominance'
 						? {}
-						: { groupBy: chartInterval === 'Weekly' ? 'weekly' : chartInterval === 'Monthly' ? 'monthly' : 'daily' })}
+						: {
+								groupBy: chartInterval
+							})}
+					showTotalInTooltip={chartType !== 'Dominance'}
 					onReady={handleChartReady}
 				/>
 			</React.Suspense>
 		</div>
 	)
-}
-
-const getChartDataByChainAndInterval = ({
-	chartData,
-	chartInterval,
-	selectedChains,
-	chartType
-}: {
-	chartData: IChainsByAdapterPageData['chartData']
-	chartInterval: ChainsByAdapterInterval
-	selectedChains: string[]
-	chartType: ChainsByAdapterChartType
-}) => {
-	const isCumulative = chartInterval === 'Cumulative'
-	const isDominance = chartType === 'Dominance'
-
-	// 1) Aggregate selected chains into final interval buckets first.
-	const groupedValuesByDate = new Map<number, Record<string, number>>()
-	for (const row of chartData.source) {
-		const timestampInSec = Math.floor(Number(row.timestamp) / 1e3)
-		const finalDate =
-			chartInterval === 'Weekly'
-				? lastDayOfWeek(timestampInSec) * 1e3
-				: chartInterval === 'Monthly'
-					? firstDayOfMonth(timestampInSec) * 1e3
-					: timestampInSec * 1e3
-
-		const groupedValues = groupedValuesByDate.get(finalDate) ?? {}
-		for (const chain of selectedChains) {
-			const chainValue = row[chain]
-			if (typeof chainValue === 'number' && Number.isFinite(chainValue)) {
-				groupedValues[chain] = (groupedValues[chain] ?? 0) + chainValue
-			}
-		}
-		groupedValuesByDate.set(finalDate, groupedValues)
-	}
-
-	// 2) Rank top-10 within each grouped bucket.
-	const sortedDates = Array.from(groupedValuesByDate.entries())
-		.filter(([, groupedValues]) => Object.keys(groupedValues).length > 0)
-		.map(([date]) => date)
-		.sort((a, b) => a - b)
-	const rankedTopByDate = new Map<number, Record<string, number>>()
-	const othersByDate = new Map<number, number>()
-	const uniqTopChains = new Set<string>()
-	let hasOthersData = false
-
-	for (const finalDate of sortedDates) {
-		const groupedValues = groupedValuesByDate.get(finalDate) ?? {}
-		const sortedTopItems = selectedChains
-			.map((chain) => [chain, groupedValues[chain] ?? 0] as [string, number])
-			.toSorted((a, b) => b[1] - a[1])
-
-		const topValues: Record<string, number> = {}
-		let others = 0
-		for (let index = 0; index < sortedTopItems.length; index++) {
-			const [chain, value] = sortedTopItems[index] as [string, number]
-			if (index < 10) {
-				topValues[chain] = value
-				uniqTopChains.add(chain)
-			} else {
-				others += value
-			}
-		}
-
-		rankedTopByDate.set(finalDate, topValues)
-		if (others > 0) {
-			othersByDate.set(finalDate, others)
-			hasOthersData = true
-		}
-	}
-
-	// 3) Build per-series time arrays with explicit zeroes for continuity.
-	const finalData: Record<string, Array<[number, number]>> = {}
-	const seriesToRender = hasOthersData ? [...uniqTopChains, 'Others'] : [...uniqTopChains]
-	for (const chain of seriesToRender) {
-		finalData[chain] = sortedDates.map((date) => {
-			if (chain === 'Others') return [date, othersByDate.get(date) ?? 0]
-			return [date, rankedTopByDate.get(date)?.[chain] ?? 0]
-		})
-	}
-
-	const zeroesByChain: Record<string, number> = {}
-	for (const chain in finalData) {
-		if (chain === 'Others') continue
-		zeroesByChain[chain] = Math.max(
-			finalData[chain].findIndex((date) => date[1] !== 0),
-			0
-		)
-	}
-
-	const zeroValues = Object.values(zeroesByChain)
-	const startingZeroDatesToSlice = zeroValues.length > 0 ? Math.min(...zeroValues) : 0
-	for (const chain in finalData) {
-		finalData[chain] = finalData[chain].slice(startingZeroDatesToSlice)
-		if (!isCumulative) continue
-		let cumulative = 0
-		finalData[chain] = finalData[chain].map(([timestamp, value]) => {
-			cumulative += value
-			return [timestamp, cumulative]
-		})
-	}
-
-	const seriesNames = seriesToRender
-	const allColors = getNDistinctColors(seriesNames.length || 1)
-	const stackColors = Object.fromEntries(seriesNames.map((chain, i) => [chain, allColors[i]]))
-
-	const rowMap = new Map<number, Record<string, number>>()
-	for (const chain of seriesNames) {
-		for (const [timestamp, value] of finalData[chain]) {
-			const row = rowMap.get(timestamp) ?? { timestamp }
-			row[chain] = value
-			rowMap.set(timestamp, row)
-		}
-	}
-
-	const source = ensureChronologicalRows(Array.from(rowMap.values()))
-	const finalSource = isDominance
-		? source.map((row) => {
-				const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
-				let total = 0
-				for (const chain of seriesNames) {
-					const value = row[chain]
-					if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-						total += value
-					}
-				}
-
-				for (const chain of seriesNames) {
-					const value = row[chain]
-					if (typeof value === 'number' && Number.isFinite(value) && total > 0) {
-						nextRow[chain] = (value / total) * 100
-					} else {
-						nextRow[chain] = 0
-					}
-				}
-				return nextRow
-			})
-		: source
-
-	const chartsConfig = seriesNames.map((chain) => ({
-		type: isDominance ? ('line' as const) : isCumulative ? ('line' as const) : ('bar' as const),
-		name: chain,
-		encode: { x: 'timestamp', y: chain },
-		...(isDominance || !isCumulative ? { stack: 'chain' as const } : {}),
-		color: stackColors[chain]
-	}))
-
-	return {
-		dataset: { source: finalSource, dimensions: ['timestamp', ...seriesNames] },
-		charts: chartsConfig
-	}
 }

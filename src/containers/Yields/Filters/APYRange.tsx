@@ -21,18 +21,23 @@ export function APYRange({ nestedMenu, placement }: IAPYRange) {
 		const eventData: Record<string, number> = {}
 		if (minApy) eventData.min = Number(minApy)
 		if (maxApy) eventData.max = Number(maxApy)
-		if (Object.keys(eventData).length > 0) {
+		let hasEventData = false
+		for (const _key in eventData) {
+			hasEventData = true
+			break
+		}
+		if (hasEventData) {
 			trackYieldsEvent(YIELDS_EVENTS.FILTER_APY_RANGE, eventData)
 		}
 
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			minApy: minApy || undefined,
 			maxApy: maxApy || undefined
 		})
 	}
 
 	const handleClear = () => {
-		pushShallowQuery(router, { minApy: undefined, maxApy: undefined })
+		void pushShallowQuery(router, { minApy: undefined, maxApy: undefined })
 	}
 
 	const minApy = readSingleQueryValue(router.query.minApy)

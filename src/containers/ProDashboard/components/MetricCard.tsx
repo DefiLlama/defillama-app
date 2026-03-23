@@ -207,8 +207,8 @@ export function MetricCard({ metric }: MetricCardProps) {
 
 		return (
 			<div className="flex h-full flex-1 flex-col items-center justify-center gap-3 text-center">
-				<div className="text-4xl leading-tight font-semibold">{displayValue}</div>
-				{chartSeries.length > 1 && (
+				<p className="text-4xl leading-tight font-semibold">{displayValue}</p>
+				{chartSeries.length > 1 ? (
 					<Suspense fallback={<div className="h-16 w-full max-w-[280px]" />}>
 						<div className="w-full max-w-[280px]">
 							{chartType === 'bar' ? (
@@ -218,17 +218,17 @@ export function MetricCard({ metric }: MetricCardProps) {
 							)}
 						</div>
 					</Suspense>
-				)}
-				{deltaText && metric.aggregator !== 'growth' && (
-					<div
+				) : null}
+				{deltaText && metric.aggregator !== 'growth' ? (
+					<p
 						className={`text-xs font-semibold tracking-wide uppercase ${
 							deltaPositive ? 'text-(--success)' : deltaNegative ? 'text-(--error)' : 'text-(--text-form)'
 						}`}
 					>
 						{deltaText}
-					</div>
-				)}
-				<div className="max-w-[420px] text-sm text-(--text-secondary)">{summaryText}</div>
+					</p>
+				) : null}
+				<p className="max-w-[420px] text-sm text-(--text-secondary)">{summaryText}</p>
 			</div>
 		)
 	}, [
@@ -250,7 +250,7 @@ export function MetricCard({ metric }: MetricCardProps) {
 			<div className="flex items-start justify-between gap-4">
 				<div className="flex items-center gap-1">
 					{iconUrl ? (
-						<img src={iconUrl} alt={displayTitle} className="h-5 w-5 shrink-0 rounded-full" />
+						<img src={iconUrl} alt={displayTitle} width={20} height={20} className="h-5 w-5 shrink-0 rounded-full" />
 					) : (
 						<div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-300 text-xs font-semibold text-gray-600">
 							{displayTitle?.charAt(0)?.toUpperCase()}
@@ -258,14 +258,14 @@ export function MetricCard({ metric }: MetricCardProps) {
 					)}
 					<div className="flex flex-col">
 						<h2 className="text-base leading-tight font-semibold text-(--text-primary)">{displayTitle}</h2>
-						{hasCustomLabel && <div className="text-[11px] leading-tight pro-text3">{baseTitle}</div>}
+						{hasCustomLabel ? <p className="text-[11px] leading-tight pro-text3">{baseTitle}</p> : null}
 					</div>
 				</div>
-				{!isReadOnly && (
+				{!isReadOnly ? (
 					<div className="text-[11px] tracking-wide text-(--text-form)">
 						{windowBadge} · {aggregatorBadge}
 					</div>
-				)}
+				) : null}
 			</div>
 
 			<div className="flex h-full flex-1 items-center justify-center pt-4">{content}</div>

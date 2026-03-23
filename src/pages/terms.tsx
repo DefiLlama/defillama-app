@@ -2,7 +2,10 @@ import { SubscribeLayout2 } from './subscription/fulfillment-policies'
 
 export default function TermsOfUse() {
 	return (
-		<SubscribeLayout2>
+		<SubscribeLayout2
+			title="Terms of Use - DefiLlama"
+			description="DefiLlama terms of use for accessing DeFi analytics, dashboards, and data services."
+		>
 			<div className="mx-auto mb-[64px] flex w-full max-w-3xl flex-col gap-8 text-[#d5d5d5]">
 				<h1 className="text-center text-3xl font-bold text-white">TERMS OF USE</h1>
 				<p className="text-center">Effective Date: 24 June 2025</p>

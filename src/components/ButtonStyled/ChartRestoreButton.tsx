@@ -21,7 +21,7 @@ export function ChartRestoreButton({
 	const handleRestore = () => {
 		const instance = chartInstance()
 		if (!instance) return
-		instance.dispatchAction({ type: 'restore' } as any)
+		instance.dispatchAction({ type: 'restore' })
 	}
 
 	return (

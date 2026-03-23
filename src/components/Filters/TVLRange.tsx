@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import type { FormEvent } from 'react'
 import { FilterBetweenRange } from '~/components/Filters/FilterBetweenRange'
+import type { FormSubmitEvent } from '~/types/forms'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 
 export function TVLRange({
@@ -19,7 +19,7 @@ export function TVLRange({
 }) {
 	const router = useRouter()
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+	const handleSubmit = (e: FormSubmitEvent) => {
 		e.preventDefault()
 		const form = e.currentTarget
 		const minTvl = form.min?.value
@@ -27,7 +27,7 @@ export function TVLRange({
 
 		onValueChange?.(minTvl ? Number(minTvl) : null, maxTvl ? Number(maxTvl) : null)
 
-		pushShallowQuery(router, {
+		void pushShallowQuery(router, {
 			minTvl: minTvl || undefined,
 			maxTvl: maxTvl || undefined
 		})
@@ -38,7 +38,7 @@ export function TVLRange({
 
 	const handleClear = () => {
 		onValueChange?.(null, null)
-		pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
+		void pushShallowQuery(router, { minTvl: undefined, maxTvl: undefined })
 	}
 
 	const min = typeof minTvl === 'string' && minTvl !== '' ? Number(minTvl) : null

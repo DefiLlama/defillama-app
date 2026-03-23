@@ -1,172 +1,75 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { createColumnHelper } from '@tanstack/react-table'
+import { useRouter } from 'next/router'
+import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { formatTooltipChartDate } from '~/components/ECharts/formatters'
-import { ensureChronologicalRows } from '~/components/ECharts/utils'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import { buildTimeSeriesChart } from '~/components/ECharts/timeSeriesChartBuilder'
 import { BasicLink } from '~/components/Link'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
+import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { IDATOverviewPageProps } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-const GROUP_BY = ['Daily', 'Weekly', 'Monthly'] as const
-type GroupByType = (typeof GROUP_BY)[number]
-
-function isGroupByType(value: string): value is GroupByType {
-	return (GROUP_BY as readonly string[]).includes(value)
-}
-
-/** Narrow an unknown echarts tooltip param to a record, or return undefined. */
-function asRecord(value: unknown): Record<string, unknown> | undefined {
-	return typeof value === 'object' && value != null ? (value as Record<string, unknown>) : undefined
-}
-
 const DEFAULT_SORTING_STATE = [{ id: 'totalUsdValue', desc: true }]
 
-function prepareInstitutionsCsv(institutions: IDATOverviewPageProps['institutions']) {
-	const headers = [
-		'Institution',
-		'Ticker',
-		'Type',
-		'Cost Basis',
-		"Today's Holdings Value",
-		'Stock Price',
-		'24h Price Change (%)',
-		'Realized mNAV',
-		'Realistic mNAV',
-		'Max mNAV',
-		'Asset Breakdown'
-	]
-
-	const rows = institutions.map((institution) => {
-		const assetBreakdownStr = institution.holdings
-			.map((asset) => {
-				const parts = [`${asset.name} (${asset.ticker})`]
-				if (asset.usdValue != null) parts.push(`Value: $${asset.usdValue.toLocaleString()}`)
-				if (asset.amount != null) parts.push(`Amount: ${asset.amount.toLocaleString()} ${asset.ticker}`)
-				if (asset.dominance != null) parts.push(`${asset.dominance}%`)
-				return parts.join(' - ')
-			})
-			.join(' | ')
-
-		return [
-			institution.name,
-			institution.ticker,
-			institution.type,
-			institution.totalCost ?? '',
-			institution.totalUsdValue ?? '',
-			institution.price ?? '',
-			institution.priceChange24h ?? '',
-			institution.realized_mNAV ?? '',
-			institution.realistic_mNAV ?? '',
-			institution.max_mNAV ?? '',
-			assetBreakdownStr
-		]
-	})
-
-	const date = new Date().toISOString().split('T')[0]
-	return {
-		filename: `digital-asset-treasuries-${date}.csv`,
-		rows: [headers, ...rows]
+const normalizeChartGroup = (value: string | null | undefined): LowercaseDwmcGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWMC_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmcGrouping
 	}
+	return null
 }
 
 export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDATOverviewPageProps) {
-	const [groupBy, setGroupBy] = useState<GroupByType>('Weekly')
-
-	const chartOptions = useMemo(() => {
-		const groupByLower: 'daily' | 'weekly' | 'monthly' =
-			groupBy === 'Daily' ? 'daily' : groupBy === 'Monthly' ? 'monthly' : 'weekly'
-		return {
-			tooltip: {
-				formatter: (params: unknown) => {
-					const paramsArray = Array.isArray(params) ? params : [params]
-					const firstParam = asRecord(paramsArray[0])
-					if (!firstParam) return ''
-					const data = asRecord(firstParam.data) ?? {}
-					const valueArray = Array.isArray(firstParam.value) ? firstParam.value : undefined
-					const firstTimestamp = data.timestamp ?? valueArray?.[0] ?? firstParam.axisValue
-					const chartdate = formatTooltipChartDate(Number(firstTimestamp), groupByLower)
-					let vals = ''
-					let total = 0
-					for (const param of paramsArray) {
-						const p = asRecord(param)
-						if (!p) continue
-						const pData = asRecord(p.data) ?? {}
-						const pValueArray = Array.isArray(p.value) ? p.value : undefined
-						const seriesValue = (typeof p.seriesName === 'string' ? pData[p.seriesName] : undefined) ?? pValueArray?.[1]
-						if (!seriesValue) continue
-						const numericValue = typeof seriesValue === 'number' ? seriesValue : Number(seriesValue)
-						if (!numericValue) continue
-						total += numericValue
-						const marker = typeof p.marker === 'string' ? p.marker : ''
-						const seriesName = typeof p.seriesName === 'string' ? p.seriesName : ''
-						vals += `<li style="list-style:none;">${marker} ${seriesName}: ${formattedNum(numericValue, true)}</li>`
-					}
-					vals += `<li style="list-style:none;">Total: ${formattedNum(total, true)}</li>`
-					return chartdate + vals
-				}
-			}
-		}
-	}, [groupBy])
+	const router = useRouter()
+	const groupBy = normalizeChartGroup(readSingleQueryValue(router.query.groupBy)) ?? 'weekly'
 
 	const { chartData } = useMemo(() => {
-		const assetKeys = Object.keys(dailyFlowsByAsset)
-		const rowMap = new Map<number, Record<string, number | null>>()
-
-		if (['Weekly', 'Monthly'].includes(groupBy)) {
-			for (const asset of assetKeys) {
-				const sumByDate: Record<number, { purchasePrice: number; assetQuantity: number }> = {}
-				for (const [date, purchasePrice, assetQuantity] of dailyFlowsByAsset[asset].data) {
-					if (date == null) continue
-					const dateKey =
-						groupBy === 'Monthly' ? firstDayOfMonth(date / 1000) * 1000 : lastDayOfWeek(date / 1000) * 1000
-					sumByDate[dateKey] = sumByDate[dateKey] ?? { purchasePrice: 0, assetQuantity: 0 }
-					sumByDate[dateKey].purchasePrice += purchasePrice ?? 0
-					sumByDate[dateKey].assetQuantity += assetQuantity ?? 0
-				}
-				for (const dateStr in sumByDate) {
-					const dateNum = +dateStr
-					const row = rowMap.get(dateNum) ?? { timestamp: dateNum }
-					row[dailyFlowsByAsset[asset].name] = sumByDate[dateNum].purchasePrice
-					rowMap.set(dateNum, row)
-				}
-			}
-		} else {
-			for (const asset of assetKeys) {
-				for (const [date, purchasePrice] of dailyFlowsByAsset[asset].data) {
-					if (date == null) continue
-					const row = rowMap.get(date) ?? { timestamp: date }
-					row[dailyFlowsByAsset[asset].name] = purchasePrice
-					rowMap.set(date, row)
-				}
-			}
+		const assetKeys: string[] = []
+		for (const asset in dailyFlowsByAsset) {
+			assetKeys.push(asset)
 		}
 
-		const source = ensureChronologicalRows(Array.from(rowMap.values()))
-		const seriesNames = assetKeys.map((a) => dailyFlowsByAsset[a].name)
-		const dimensions = ['timestamp', ...seriesNames]
-		const charts = assetKeys.map((asset) => ({
-			type: 'bar' as const,
-			name: dailyFlowsByAsset[asset].name,
-			encode: { x: 'timestamp', y: dailyFlowsByAsset[asset].name },
-			stack: dailyFlowsByAsset[asset].stack,
-			color: dailyFlowsByAsset[asset].color
-		}))
+		if (groupBy === 'cumulative') {
+			return {
+				chartData: buildTimeSeriesChart({
+					kind: 'cumulativeLines',
+					series: assetKeys.map((asset) => {
+						const item = dailyFlowsByAsset[asset]
+						return {
+							name: item.name,
+							color: item.color,
+							points: item.points
+						}
+					})
+				})
+			}
+		}
 
 		return {
-			chartData: { dataset: { source, dimensions }, charts }
+			chartData: buildTimeSeriesChart({
+				kind: 'periodBars',
+				groupBy,
+				series: assetKeys.map((asset) => dailyFlowsByAsset[asset])
+			})
 		}
 	}, [dailyFlowsByAsset, groupBy])
+	const deferredChartData = useDeferredValue(chartData)
 
 	const { chartInstance, handleChartReady } = useGetChartInstance()
-	const handlePrepareInstitutionsCsv = () => prepareInstitutionsCsv(institutions)
+
+	const onChangeGroupBy = (nextGroupBy: LowercaseDwmcGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextGroupBy === 'weekly' ? undefined : nextGroupBy })
+	}
 
 	return (
 		<>
@@ -174,12 +77,10 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex flex-wrap items-center justify-between gap-2 p-2 pb-0">
 					<h1 className="text-lg font-semibold">DAT Inflows by Asset</h1>
-					<TagGroup
-						selectedValue={groupBy}
-						setValue={(period) => {
-							if (isGroupByType(period)) setGroupBy(period)
-						}}
-						values={GROUP_BY}
+					<ChartGroupingSelector
+						value={groupBy}
+						onValueChange={onChangeGroupBy}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
 						className="ml-auto"
 					/>
 					<ChartExportButtons
@@ -190,10 +91,11 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 				</div>
 				<Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={chartData.dataset}
-						charts={chartData.charts}
+						dataset={deferredChartData.dataset}
+						charts={deferredChartData.charts}
+						groupBy={groupBy}
 						valueSymbol="$"
-						chartOptions={chartOptions}
+						showTotalInTooltip
 						onReady={handleChartReady}
 					/>
 				</Suspense>
@@ -204,7 +106,7 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 				placeholder="Search institutions"
 				columnToSearch="name"
 				sortingState={DEFAULT_SORTING_STATE}
-				customFilters={<CSVDownloadButton prepareCsv={handlePrepareInstitutionsCsv} />}
+				csvFileName="digital-asset-treasuries"
 			/>
 		</>
 	)
@@ -212,13 +114,14 @@ export function DATOverview({ allAssets, institutions, dailyFlowsByAsset }: IDAT
 
 // ── Table columns ───────────────────────────────────────────────────────
 
-const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
-	{
+const columnHelper = createColumnHelper<IDATOverviewPageProps['institutions'][0]>()
+
+const overviewColumns = [
+	columnHelper.accessor('name', {
 		header: 'Institution',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const name = getValue<string>()
+			const name = getValue()
 
 			return (
 				<span className="relative flex items-center gap-2">
@@ -237,68 +140,60 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		meta: {
 			align: 'start'
 		}
-	},
-	{
-		header: 'Assets',
-		accessorKey: 'holdings',
-		enableSorting: false,
-		cell: (info) => {
-			const assetBreakdown = info.getValue<IDATOverviewPageProps['institutions'][0]['holdings']>()
+	}),
+	columnHelper.accessor(
+		(row) => row.holdings.map((asset) => `${asset.name} (${(Number(asset.dominance) || 0).toFixed(2)}%)`).join(', '),
+		{
+			id: 'holdings',
+			header: 'Assets',
+			enableSorting: false,
+			cell: (info) => {
+				const assetBreakdown = info.row.original.holdings
 
-			return (
-				<Tooltip
-					content={<AssetTooltipContent assetBreakdown={assetBreakdown} protocolName={info.row.original.name} />}
-					render={<button />}
-					className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white"
-				>
-					{assetBreakdown.map((asset) => {
-						return (
-							<div
-								key={asset.name + asset.dominance + info.row.original.name}
-								style={{ width: `${asset.dominance}%`, background: asset.color }}
-								className="h-5"
-							/>
-						)
-					})}
-				</Tooltip>
-			)
-		},
-		size: 120,
-		meta: {
-			align: 'end'
+				return (
+					<Tooltip
+						content={<AssetTooltipContent assetBreakdown={assetBreakdown} protocolName={info.row.original.name} />}
+						render={<button />}
+						className="ml-auto flex h-5 w-full! flex-nowrap items-center bg-white"
+					>
+						{assetBreakdown.map((asset) => {
+							return (
+								<div
+									key={asset.name + asset.dominance + info.row.original.name}
+									style={{ width: `${asset.dominance}%`, background: asset.color }}
+									className="h-5"
+								/>
+							)
+						})}
+					</Tooltip>
+				)
+			},
+			size: 120,
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
+	),
+	columnHelper.accessor('totalCost', {
 		header: 'Cost Basis',
-		accessorKey: 'totalCost',
-		cell: ({ getValue }) => {
-			const totalCost = getValue<number>()
-			if (totalCost == null) return null
-			return <>{formattedNum(totalCost, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalUsdValue', {
 		header: "Today's Holdings Value",
-		accessorKey: 'totalUsdValue',
-		cell: ({ getValue }) => {
-			const totalUsdValue = getValue<number>()
-			if (totalUsdValue == null) return null
-			return <>{formattedNum(totalUsdValue, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 196,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('price', {
 		header: 'Stock Price',
-		accessorKey: 'price',
 		cell: ({ getValue, row }) => {
-			const price = getValue<number>()
+			const price = getValue()
 			if (price == null) return null
 			const priceChange24h = row.original.priceChange24h
 			if (priceChange24h == null) return <>{formattedNum(price, true)}</>
@@ -322,52 +217,37 @@ const overviewColumns: ColumnDef<IDATOverviewPageProps['institutions'][0]>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('realized_mNAV', {
 		header: 'Realized mNAV',
-		accessorKey: 'realized_mNAV',
-		cell: ({ getValue }) => {
-			const realized_mNAV = getValue<number>()
-			if (realized_mNAV == null) return null
-			return <>{formattedNum(realized_mNAV, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value based only on the current outstanding common shares, with no dilution considered.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('realistic_mNAV', {
 		header: 'Realistic mNAV',
-		accessorKey: 'realistic_mNAV',
-		cell: ({ getValue }) => {
-			const realistic_mNAV = getValue<number>()
-			if (realistic_mNAV == null) return null
-			return <>{formattedNum(realistic_mNAV, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value adjusted for expected dilution from in-the-money options and convertibles that are likely to be exercised'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('max_mNAV', {
 		header: 'Max mNAV',
-		accessorKey: 'max_mNAV',
-		cell: ({ getValue }) => {
-			const max_mNAV = getValue<number>()
-			if (max_mNAV == null) return null
-			return <>{formattedNum(max_mNAV, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 120,
 		meta: {
 			align: 'end',
 			headerHelperText:
 				'Market Net Asset Value under the fully diluted scenario, assuming every warrant, option, and convertible is exercised (the most conservative/worst-case view)'
 		}
-	}
+	})
 ]
 
 // ── Tooltip helpers ─────────────────────────────────────────────────────

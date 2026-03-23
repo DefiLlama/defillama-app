@@ -2,7 +2,7 @@ import { useRouter } from 'next/router'
 import { SubscribeHome } from '~/containers/Subscribtion/Home'
 import { SubscribeLayout } from '~/containers/Subscribtion/Layout'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { safeInternalPath } from '~/utils/url'
+import { safeInternalPath } from '~/utils/routerQuery'
 
 export default function Subscribe() {
 	const router = useRouter()
@@ -10,7 +10,7 @@ export default function Subscribe() {
 
 	return (
 		<WalletProvider>
-			<SubscribeLayout>
+			<SubscribeLayout description="Unlock LlamaAI, advanced DeFi analytics, custom dashboards, CSV downloads, and pro-level data with DefiLlama Pro.">
 				<SubscribeHome returnUrl={returnUrl} />
 			</SubscribeLayout>
 		</WalletProvider>

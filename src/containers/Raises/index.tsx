@@ -1,11 +1,9 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Announcement } from '~/components/Announcement'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import type { IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { RaisesFilters } from '~/containers/Raises/Filters'
 import { formattedNum } from '~/utils'
-import { prepareRaisesCsv } from './download'
 import { useRaisesData } from './hooks'
 import { RaisesTable } from './Table'
 import type { IRaise } from './types'
@@ -41,10 +39,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 		sectors,
 		chains
 	})
-
-	const prepareCsv = () => {
-		return prepareRaisesCsv({ raises: filteredRaisesList })
-	}
+	const deferredMonthlyInvestmentChart = React.useDeferredValue(monthlyInvestmentChart)
 
 	return (
 		<>
@@ -68,6 +63,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 			</Announcement>
 			<RaisesFilters
 				header={investorName ? `${investorName} raises` : 'Raises'}
+				headingAs="h1"
 				rounds={rounds}
 				selectedRounds={selectedRounds}
 				sectors={sectors}
@@ -89,14 +85,13 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 						<span className="text-(--text-label)">Total Funding Amount</span>
 						<span className="font-jetbrains text-2xl font-semibold">${formattedNum(totalAmountRaised)}</span>
 					</p>
-					<CSVDownloadButton prepareCsv={prepareCsv} smol className="mt-auto mr-auto" />
 				</div>
 
 				<div className="col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<React.Suspense fallback={<div className="min-h-[398px]" />}>
 						<MultiSeriesChart2
-							dataset={monthlyInvestmentChart.dataset}
-							charts={monthlyInvestmentChart.charts}
+							dataset={deferredMonthlyInvestmentChart.dataset}
+							charts={deferredMonthlyInvestmentChart.charts}
 							valueSymbol="$"
 							groupBy="monthly"
 							exportButtons="auto"
@@ -105,7 +100,7 @@ const RaisesContainer = ({ raises, investors, rounds, sectors, chains, investorN
 				</div>
 			</div>
 
-			<RaisesTable raises={filteredRaisesList} prepareCsv={prepareCsv} />
+			<RaisesTable raises={filteredRaisesList} />
 		</>
 	)
 }

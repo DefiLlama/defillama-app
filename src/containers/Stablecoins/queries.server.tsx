@@ -1,4 +1,4 @@
-import { fetchLlamaConfig } from '~/api'
+import { fetchBlockExplorers, fetchLlamaConfig } from '~/api'
 import {
 	formatPeggedAssetsData,
 	formatPeggedChainsData,
@@ -11,6 +11,7 @@ import {
 } from '~/containers/Stablecoins/utils'
 import { getPercentChange, slug } from '~/utils'
 import { postRuntimeLogs } from '~/utils/async'
+import { getBlockExplorerNew } from '~/utils/blockExplorers'
 import { getObjectCache, setObjectCache } from '~/utils/cache-client'
 import {
 	fetchStablecoinAssetApi,
@@ -176,12 +177,20 @@ const normalizeStablecoinBridges = (value: unknown): StablecoinBridges => {
 			normalizedSources[sourceChain] = { amount }
 		}
 
-		if (Object.keys(normalizedSources).length > 0) {
+		let hasNormalizedSources = false
+		for (const _sourceChain in normalizedSources) {
+			hasNormalizedSources = true
+			break
+		}
+		if (hasNormalizedSources) {
 			normalized[bridgeId] = normalizedSources
 		}
 	}
 
-	return Object.keys(normalized).length > 0 ? normalized : null
+	for (const _bridgeId in normalized) {
+		return normalized
+	}
+	return null
 }
 
 const readStablecoinBridgesFromChart = (
@@ -283,8 +292,8 @@ export async function getStablecoinsByChainPageData(chain: string | null): Promi
 		const [{ peggedAssets, chains }, chainData, priceData, rateData] = await Promise.all([
 			getStablecoinAssets(),
 			fetchStablecoinChartApi(chainLabel),
-			getStablecoinPrices(),
-			getStablecoinRates()
+			getStablecoinPrices().catch(() => null),
+			getStablecoinRates().catch(() => null)
 		])
 		const breakdown = chainData.breakdown
 		if (!breakdown) {
@@ -357,15 +366,16 @@ export async function getStablecoinChainsPageData(): Promise<PeggedChainsPageDat
 		const peggedDomDataByChain = chainList.map((chain) => dominanceMap[chain])
 
 		const chainDominances: Record<string, { symbol: string; mcap: number }> = {}
-		peggedDomDataByChain.forEach((charts, i) => {
-			if (!charts) return
+		for (let i = 0; i < peggedDomDataByChain.length; i++) {
+			const charts = peggedDomDataByChain[i]
+			if (!charts) continue
 			const lastChart = charts[charts.length - 1]
-			if (!lastChart) return
+			if (!lastChart) continue
 			const greatestChainMcap = lastChart.greatestMcap
-			if (!greatestChainMcap) return
+			if (!greatestChainMcap) continue
 			const chainName = chainList[i]
 			chainDominances[chainName] = greatestChainMcap
-		})
+		}
 
 		const chainCirculatings = formatPeggedChainsData({
 			chainList,
@@ -419,11 +429,12 @@ export const getStablecoinAssetPageData = async (
 		return null
 	}
 	return withStablecoinsCache(`asset:${peggedID}`, async () => {
-		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo] = await Promise.all([
+		const [res, { chainCoingeckoIds }, recentCoinsData, bridgeInfo, blockExplorersData] = await Promise.all([
 			fetchStablecoinAssetApi(peggedID),
-			getStablecoinConfigData(),
-			fetchStablecoinRecentCoinsDataApi(),
-			getStablecoinBridgeInfo()
+			getStablecoinConfigData().catch(() => ({ chainCoingeckoIds: {} })),
+			fetchStablecoinRecentCoinsDataApi().catch(() => ({})),
+			getStablecoinBridgeInfo().catch(() => null),
+			fetchBlockExplorers().catch(() => [])
 		])
 		if (!res) return null
 
@@ -434,7 +445,10 @@ export const getStablecoinAssetPageData = async (
 		const unreleased = readStablecoinNumericFromChart(peggedChart, 0, 'totalUnreleased', pegType)
 		const mcap = readStablecoinNumericFromChart(peggedChart, 0, 'totalCirculatingUSD', pegType)
 
-		const chainsUnique: string[] = Object.keys(res.chainBalances ?? {})
+		const chainsUnique: string[] = []
+		for (const chainName in res.chainBalances ?? {}) {
+			chainsUnique.push(chainName)
+		}
 		const chainsData: StablecoinChainBalanceToken[][] = chainsUnique.map(
 			(elem) => res.chainBalances[elem]?.tokens ?? []
 		)
@@ -442,7 +456,7 @@ export const getStablecoinAssetPageData = async (
 		const chainCirculatings = chainsUnique
 			.map((chainName, i) => {
 				const circulating = readStablecoinNumericFromChart(chainsData[i], 0, 'circulating', pegType)
-				const unreleased = readStablecoinNumericFromChart(chainsData[i], 0, 'unreleased', pegType)
+				const chainUnreleased = readStablecoinNumericFromChart(chainsData[i], 0, 'unreleased', pegType)
 				const bridgedTo = readStablecoinNumericFromChart(chainsData[i], 0, 'bridgedTo', pegType)
 				const bridges = readStablecoinBridgesFromChart(chainsData[i], 0, 'bridgedTo')
 				const circulatingPrevDay = readStablecoinNumericFromChart(chainsData[i], 1, 'circulating', pegType)
@@ -454,7 +468,7 @@ export const getStablecoinAssetPageData = async (
 
 				return {
 					circulating,
-					unreleased,
+					unreleased: chainUnreleased,
 					change_1d,
 					change_7d,
 					change_1m,
@@ -469,6 +483,12 @@ export const getStablecoinAssetPageData = async (
 			})
 			.sort((a, b) => (b.circulating ?? 0) - (a.circulating ?? 0))
 
+		const explorerResult = getBlockExplorerNew({
+			apiResponse: blockExplorersData,
+			address: res.address ?? '',
+			urlType: 'token'
+		})
+
 		return {
 			props: {
 				chainsUnique,
@@ -477,7 +497,9 @@ export const getStablecoinAssetPageData = async (
 				totalCirculating,
 				unreleased,
 				mcap,
-				bridgeInfo
+				bridgeInfo,
+				blockExplorerUrl: explorerResult?.url ?? null,
+				blockExplorerName: explorerResult?.name ?? null
 			}
 		}
 	})

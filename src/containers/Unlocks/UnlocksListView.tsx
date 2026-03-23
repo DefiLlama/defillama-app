@@ -3,7 +3,7 @@ import type { Dayjs } from 'dayjs'
 import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { DailyUnlocks } from './calendarTypes'
 
 interface UnlocksListViewProps {
@@ -45,11 +45,15 @@ export const UnlocksListView: React.FC<UnlocksListViewProps> = ({ events }) => {
 						) : null}
 					</h3>
 					<div className="flex flex-col gap-1">
-						{dailyEvents.map((event, i) => (
-							<BasicLink key={i} href={`/unlocks/${slug(event.protocol)}`} target="_blank">
+						{dailyEvents.map((event, index) => (
+							<BasicLink
+								key={`${event.protocol}-${event.value}-${index}`}
+								href={`/unlocks/${slug(event.protocol)}`}
+								target="_blank"
+							>
 								<div className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) p-2 hover:bg-(--link-hover-bg)">
 									<span className="flex items-center gap-2 text-sm font-medium">
-										<TokenLogo logo={tokenIconUrl(event.protocol)} size={20} />
+										<TokenLogo name={event.protocol} kind="token" size={20} alt={`Logo of ${event.protocol}`} />
 										{event.protocol}
 									</span>
 									<span className="text-sm font-medium text-(--text-secondary)">{formattedNum(event.value, true)}</span>

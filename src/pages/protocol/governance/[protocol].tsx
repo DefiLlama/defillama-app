@@ -1,5 +1,5 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import GovernanceProject from '~/containers/Governance/GovernanceProject'
 import { getGovernanceDetailsPageData } from '~/containers/Governance/queries'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
@@ -7,6 +7,7 @@ import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -14,12 +15,14 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/governance/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const { protocol } = params
 		const normalizedName = slug(protocol)
-		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+		const metadataModule = await import('~/utils/metadata')
+		await metadataModule.refreshMetadataIfStale()
+		const metadataCache = metadataModule.default
 		const { protocolMetadata } = metadataCache
 		let metadata: [string, IProtocolMetadata] | undefined
 		for (const key in protocolMetadata) {
@@ -30,37 +33,48 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].governance) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
-		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
-		const governanceProps = await getGovernanceDetailsPageData({
-			governanceIDs: protocolData.governanceID ?? [],
-			projectName: protocolData.name
-		})
+		const tokenlistSymbol = protocolData.gecko_id
+			? metadataCache.tokenlist[protocolData.gecko_id]?.symbol?.toUpperCase()
+			: undefined
+		const symbol = tokenlistSymbol ?? (protocolData.symbol && protocolData.symbol !== '-' ? protocolData.symbol : null)
+		const seoTitle = `${protocolData.name} Governance Proposals & Voting - DefiLlama`
+		const seoDescription = `Track ${protocolData.name}${symbol ? ` (${symbol})` : ''} governance proposals, voting results, and on-chain participation on DefiLlama.`
+
+		const [metrics, governanceProps] = await Promise.all([
+			Promise.resolve(getProtocolMetricFlags({ protocolData, metadata: metadata[1] })),
+			getGovernanceDetailsPageData({
+				governanceIDs: protocolData.governanceID ?? [],
+				projectName: protocolData.name
+			})
+		])
 
 		return {
 			props: {
 				name: protocolData.name,
-				symbol: protocolData.symbol ?? null,
+				symbol,
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
 				governanceData: governanceProps.governanceData,
 				governanceTypes: governanceProps.governanceTypes,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -79,6 +93,8 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 			metrics={props.metrics}
 			tab="governance"
 			warningBanners={props.warningBanners}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			{props.governanceData?.length ? (
 				<GovernanceProject

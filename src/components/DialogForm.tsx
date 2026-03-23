@@ -41,7 +41,8 @@ export function DialogForm({
 					e.preventDefault()
 					const form = e.target as HTMLFormElement
 					const formData = new FormData(form)
-					const name = formData.get('name') as string
+					const nameValue = formData.get('name')
+					const name = typeof nameValue === 'string' ? nameValue : ''
 					onSubmit(name)
 					setOpen(false)
 					form.reset()

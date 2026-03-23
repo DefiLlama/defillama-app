@@ -1,3 +1,5 @@
+import { trackUmamiEvent } from './umami'
+
 export const YIELDS_EVENTS = {
 	// Filters
 	FILTER_CHAIN: 'yields-filter-chain',
@@ -33,16 +35,8 @@ export const YIELDS_EVENTS = {
 
 type YieldsEventName = (typeof YIELDS_EVENTS)[keyof typeof YIELDS_EVENTS]
 
-declare global {
-	interface Window {
-		umami?: { track: (eventName: string, data?: Record<string, string | number | boolean>) => void }
-	}
-}
-
 export function trackYieldsEvent(eventName: YieldsEventName, data?: Record<string, string | number | boolean>): void {
-	if (typeof window !== 'undefined' && window.umami) {
-		window.umami.track(eventName, data)
-	}
+	trackUmamiEvent(eventName, data)
 }
 
 // Debounced version for range inputs

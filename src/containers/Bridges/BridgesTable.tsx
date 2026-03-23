@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -11,12 +11,14 @@ import {
 } from '@tanstack/react-table'
 import * as React from 'react'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type BridgesTableRow = {
 	displayName: string
@@ -29,26 +31,42 @@ type BridgesTableRow = {
 	txsPrevDay?: number
 }
 
-const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
-	{
+export type BridgesTableHandle = {
+	prepareCsv: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+}
+
+type BridgesTableProps = {
+	data: BridgesTableRow[]
+	searchValue?: string
+	csvFileName?: string
+}
+
+const columnHelper = createColumnHelper<BridgesTableRow>()
+
+const bridgesColumn = [
+	columnHelper.accessor('displayName', {
 		header: 'Name',
-		accessorKey: 'displayName',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const linkValue = slug(value)
 			const rowValues = row.original
 			const icon = rowValues.icon
-			let iconLink
-			if (icon) {
-				const [iconType, iconName] = icon.split(':')
-				iconLink = iconType === 'chain' ? chainIconUrl(iconName) : tokenIconUrl(iconName)
-			}
+			const colonIdx = icon ? icon.indexOf(':') : -1
+			const iconType = colonIdx > 0 ? icon!.slice(0, colonIdx) : undefined
+			const iconName = colonIdx > 0 ? icon!.slice(colonIdx + 1) : icon
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					{icon && <TokenLogo logo={iconLink} data-lgonly />}
+					{iconName ? (
+						<TokenLogo
+							name={iconName}
+							kind={iconType === 'chain' ? 'chain' : 'token'}
+							alt={`Logo of ${value}`}
+							data-lgonly
+						/>
+					) : null}
 					<BasicLink
 						href={`/bridge/${linkValue}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -59,62 +77,56 @@ const bridgesColumn: ColumnDef<BridgesTableRow>[] = [
 			)
 		},
 		size: 240
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/bridges" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => `/bridges/${slug(chain)}`)} />,
 		size: 200,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Chains are ordered by bridge volume on each chain'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('lastDailyVolume', {
 		header: '24h Volume',
-		accessorKey: 'lastDailyVolume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('weeklyVolume', {
 		header: '7d Volume',
-		accessorKey: 'weeklyVolume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('monthlyVolume', {
 		header: '1m Volume',
-		accessorKey: 'monthlyVolume',
 		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('txsPrevDay', {
 		header: '24h # of Txs',
-		accessorKey: 'txsPrevDay',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 // key: min width of window/screen
@@ -154,7 +166,10 @@ const bridgesColumnSizes: ColumnSizesByBreakpoint = {
 	}
 }
 
-export function BridgesTable({ data, searchValue = '' }: { data: BridgesTableRow[]; searchValue?: string }) {
+export const BridgesTable = React.forwardRef<BridgesTableHandle, BridgesTableProps>(function BridgesTable(
+	{ data, searchValue = '', csvFileName = 'bridges' },
+	ref
+) {
 	const [sorting, setSorting] = React.useState<SortingState>([{ id: 'lastDailyVolume', desc: true }])
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -172,10 +187,11 @@ export function BridgesTable({ data, searchValue = '' }: { data: BridgesTableRow
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getSortedRowModel: getSortedRowModel()
@@ -193,5 +209,13 @@ export function BridgesTable({ data, searchValue = '' }: { data: BridgesTableRow
 		columnOrders: bridgesColumnOrders
 	})
 
+	React.useImperativeHandle(
+		ref,
+		() => ({
+			prepareCsv: () => prepareTableCsv({ instance, filename: csvFileName })
+		}),
+		[csvFileName, instance]
+	)
+
 	return <VirtualTable instance={instance} />
-}
+})

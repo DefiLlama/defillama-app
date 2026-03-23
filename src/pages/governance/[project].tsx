@@ -1,9 +1,10 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import GovernanceProject from '~/containers/Governance/GovernanceProject'
 import { getGovernanceDetailsPageData } from '~/containers/Governance/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
@@ -24,11 +25,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -42,8 +43,7 @@ export default function GovernanceProjectPage({ projectName, governanceData, gov
 	return (
 		<Layout
 			title={`${projectName} Governance - DefiLlama`}
-			description={`${projectName} Governance on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${projectName} governance, governance on blockchain`}
+			description={`Track ${projectName} governance proposals, voting activity, and DAO decisions on DefiLlama.`}
 			canonicalUrl={`/governance/${slug(projectName)}`}
 		>
 			{governanceData?.length ? (

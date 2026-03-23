@@ -1,6 +1,17 @@
 import Head from 'next/head'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
-import { chainIconUrl, slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
+import { chainIconUrl, tokenIconUrl } from '~/utils/icons'
+
+const FEES_PAGE_TYPE: string = ADAPTER_TYPES.FEES
+const VOLUME_PAGE_TYPES = new Set<string>([
+	ADAPTER_TYPES.DEXS,
+	ADAPTER_TYPES.AGGREGATORS,
+	ADAPTER_TYPES.PERPS,
+	ADAPTER_TYPES.PERPS_AGGREGATOR,
+	ADAPTER_TYPES.OPTIONS,
+	ADAPTER_TYPES.BRIDGE_AGGREGATORS
+])
 
 interface ILinkPreviewCardProps {
 	cardName?: string
@@ -18,7 +29,7 @@ interface ILinkPreviewCardProps {
 	isCEX?: boolean
 }
 
-// page title, description, keywords
+// page title and description
 // cardName ? optional
 // value name & tvl ? optional
 
@@ -55,6 +66,7 @@ export const LinkPreviewCard = ({
 		cardSrc.pathname = `${encodeURIComponent(text)}.jpeg`
 
 		cardSrc.searchParams.append('theme', 'dark')
+		const pageTypeValue = pageType ?? ''
 
 		let valueHeader: string
 		if (nftPage) {
@@ -69,16 +81,9 @@ export const LinkPreviewCard = ({
 			} else {
 				valueHeader = `Next Unlock`
 			}
-		} else if (pageType === ADAPTER_TYPES.FEES) {
+		} else if (pageTypeValue === FEES_PAGE_TYPE) {
 			valueHeader = '24h fees'
-		} else if (
-			pageType === ADAPTER_TYPES.DEXS ||
-			pageType === ADAPTER_TYPES.AGGREGATORS ||
-			pageType === ADAPTER_TYPES.PERPS ||
-			pageType === ADAPTER_TYPES.PERPS_AGGREGATOR ||
-			pageType === ADAPTER_TYPES.OPTIONS ||
-			pageType === ADAPTER_TYPES.BRIDGE_AGGREGATORS
-		) {
+		} else if (VOLUME_PAGE_TYPES.has(pageTypeValue)) {
 			valueHeader = '24h volume'
 		} else {
 			valueHeader = isCEX ? 'Total Assets' : 'Total Value Locked'
@@ -129,28 +134,29 @@ export const LinkPreviewCard = ({
 
 export interface ISEOProps {
 	title: string
-	description?: string
-	keywords?: string
-	canonicalUrl?: string
+	description: string | null | undefined
+	canonicalUrl: string | null | undefined
+	noIndex?: boolean
 }
 
-export function SEO({ title, description, keywords, canonicalUrl }: ISEOProps) {
-	const url = `https://defillama.com${slug(canonicalUrl ?? '')}`
+export function SEO({ title, description, canonicalUrl, noIndex }: ISEOProps) {
+	const normalizedCanonicalUrl = slug(canonicalUrl ?? '')
+	const url = `https://defillama.com${normalizedCanonicalUrl}`
 	return (
 		<Head>
-			<link rel="canonical" href={url} />
+			{canonicalUrl != null ? <link rel="canonical" href={url} /> : null}
+			{noIndex ? <meta name="robots" content="noindex" /> : null}
 			<title>{title}</title>
 			{description ? <meta name="description" content={description} /> : null}
-			{keywords ? <meta name="keywords" content={keywords} /> : null}
 			<meta property="og:title" content={title} />
 			<meta property="og:type" content="website" />
-			<meta property="og:url" content={url} />
+			{canonicalUrl != null ? <meta property="og:url" content={url} /> : null}
 			<meta property="og:site_name" content="DefiLlama" />
 			{description ? <meta property="og:description" content={description} /> : null}
 			{/* <meta property="og:image" content={cardURL} /> */}
 			<meta name="twitter:card" content="summary_large_image" />
 			<meta property="twitter:domain" content="defillama.com" />
-			<meta property="twitter:url" content={url} />
+			{canonicalUrl != null ? <meta property="twitter:url" content={url} /> : null}
 			<meta name="twitter:title" content={title} />
 			<meta name="twitter:site" content="@DefiLlama" />
 			<meta name="twitter:creator" content="@DefiLlama" />

@@ -30,25 +30,26 @@ export const cexDatasetColumns: ColumnDef<ICexRow>[] = [
 		accessorFn: (row) => row.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
+			const index = row.index
 			const name = getValue() as string
 			const coinSymbol = row.original.coinSymbol
 
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<span className="vf-row-index shrink-0" aria-hidden="true" />
+					<span className="shrink-0">{index + 1}</span>
 
 					<BasicLink
 						href={`/cex/${row.original.slug || name}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{name}
-						{coinSymbol && coinSymbol !== '-' && <span className="text-(--text-tertiary)"> ({coinSymbol})</span>}
+						{coinSymbol && coinSymbol !== '-' ? <span className="text-(--text-tertiary)"> ({coinSymbol})</span> : null}
 					</BasicLink>
-					{row.original.walletsLink && (
+					{row.original.walletsLink ? (
 						<a href={row.original.walletsLink} target="_blank" rel="noopener noreferrer" className="ml-1">
 							<Icon name="external-link" height={14} width={14} />
 						</a>
-					)}
+					) : null}
 				</span>
 			)
 		},

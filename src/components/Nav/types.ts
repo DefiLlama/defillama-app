@@ -1,7 +1,9 @@
+import type { IIcon } from '~/components/Icon'
+
 export type TNavLink = {
 	name: string
 	route: string
-	icon?: string
+	icon?: IIcon['name']
 	attention?: boolean
 	freeTrial?: boolean
 	isNew?: boolean

@@ -1,6 +1,7 @@
 import { removedCategoriesFromChainTvlSet } from '~/constants'
+import type { RawChainAsset } from '~/containers/BridgedTVL/api.types'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
-import type { IChainAsset, IFormattedChainAsset, ILiteProtocol } from './types'
+import type { IFormattedChainAsset, ILiteProtocol } from './types'
 
 const excludedCategoriesSet = new Set(['Canonical Bridge', 'Staking Pool'])
 
@@ -31,7 +32,7 @@ export const toStrikeTvl = (protocol, toggledSettings) => {
 	return false
 }
 
-export function formatChainAssets(chainAsset: IChainAsset | null) {
+export function formatChainAssets(chainAsset: RawChainAsset | null) {
 	if (!chainAsset) return null
 
 	const acc = {} as IFormattedChainAsset

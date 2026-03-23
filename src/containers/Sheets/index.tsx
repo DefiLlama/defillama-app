@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { useAuthContext } from '../Subscribtion/auth'
+import { setSignupSource } from '../Subscribtion/signupSource'
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
@@ -27,9 +28,23 @@ const highlightFormula = (formula: string) => {
 	return (
 		<span>
 			{parts.map((part, i) => {
-				if (part.startsWith('=')) return <span key={i} className="text-[#2172E5]">{part}</span>
-				if (part.startsWith('"')) return <span key={i} className="text-[#4ade80]">{part}</span>
-				return <span key={i} className="text-[#8a8c90]">{part}</span>
+				if (part.startsWith('='))
+					return (
+						<span key={i} className="text-[#2172E5]">
+							{part}
+						</span>
+					)
+				if (part.startsWith('"'))
+					return (
+						<span key={i} className="text-[#4ade80]">
+							{part}
+						</span>
+					)
+				return (
+					<span key={i} className="text-[#8a8c90]">
+						{part}
+					</span>
+				)
 			})}
 		</span>
 	)
@@ -44,10 +59,34 @@ const heroRows = [
 
 const marketMetricsTable = {
 	rows: [
-		{ num: '1', cells: [{ value: '=DEFILLAMA("tvl", "aave")', variant: 'formula' as const }, { value: '$27.0B', variant: 'value' as const }] },
-		{ num: '2', cells: [{ value: '=DEFILLAMA("fees-24h", "gmx")', variant: 'formula' as const }, { value: '$87.9K', variant: 'value' as const }] },
-		{ num: '3', cells: [{ value: '=DEFILLAMA("mcap", "sky")', variant: 'formula' as const }, { value: '$1.5B', variant: 'value' as const }] },
-		{ num: '4', cells: [{ value: '=DEFILLAMA("volume-7d", "uniswap")', variant: 'formula' as const }, { value: '$13.5B', variant: 'value' as const }] }
+		{
+			num: '1',
+			cells: [
+				{ value: '=DEFILLAMA("tvl", "aave")', variant: 'formula' as const },
+				{ value: '$27.0B', variant: 'value' as const }
+			]
+		},
+		{
+			num: '2',
+			cells: [
+				{ value: '=DEFILLAMA("fees-24h", "gmx")', variant: 'formula' as const },
+				{ value: '$87.9K', variant: 'value' as const }
+			]
+		},
+		{
+			num: '3',
+			cells: [
+				{ value: '=DEFILLAMA("mcap", "sky")', variant: 'formula' as const },
+				{ value: '$1.5B', variant: 'value' as const }
+			]
+		},
+		{
+			num: '4',
+			cells: [
+				{ value: '=DEFILLAMA("volume-7d", "uniswap")', variant: 'formula' as const },
+				{ value: '$13.5B', variant: 'value' as const }
+			]
+		}
 	]
 }
 
@@ -90,10 +129,34 @@ const yieldsTable = {
 
 const stablecoinsTable = {
 	rows: [
-		{ num: '1', cells: [{ value: '=DEFILLAMA_STABLECOIN_MCAP("USDT", "Tron")', variant: 'formula' as const }, { value: '$83.8B', variant: 'value' as const }] },
-		{ num: '2', cells: [{ value: '=DEFILLAMA_STABLECOIN_MCAP("USDC")', variant: 'formula' as const }, { value: '$73.7B', variant: 'value' as const }] },
-		{ num: '3', cells: [{ value: '=DEFILLAMA_STABLECOIN_MCAP("DAI")', variant: 'formula' as const }, { value: '$4.4B', variant: 'value' as const }] },
-		{ num: '4', cells: [{ value: '=DEFILLAMA_STABLECOIN_MCAP("all", "Ethereum")', variant: 'formula' as const }, { value: '$159.4B', variant: 'value' as const }] }
+		{
+			num: '1',
+			cells: [
+				{ value: '=DEFILLAMA_STABLECOIN_MCAP("USDT", "Tron")', variant: 'formula' as const },
+				{ value: '$83.8B', variant: 'value' as const }
+			]
+		},
+		{
+			num: '2',
+			cells: [
+				{ value: '=DEFILLAMA_STABLECOIN_MCAP("USDC")', variant: 'formula' as const },
+				{ value: '$73.7B', variant: 'value' as const }
+			]
+		},
+		{
+			num: '3',
+			cells: [
+				{ value: '=DEFILLAMA_STABLECOIN_MCAP("DAI")', variant: 'formula' as const },
+				{ value: '$4.4B', variant: 'value' as const }
+			]
+		},
+		{
+			num: '4',
+			cells: [
+				{ value: '=DEFILLAMA_STABLECOIN_MCAP("all", "Ethereum")', variant: 'formula' as const },
+				{ value: '$159.4B', variant: 'value' as const }
+			]
+		}
 	]
 }
 
@@ -176,39 +239,41 @@ const HeroMock = () => {
 	return (
 		<div className="overflow-hidden rounded-2xl border border-[#39393E]/40 bg-[#1a1b1f] shadow-[0_4px_20px_rgba(33,114,229,0.15),0_8px_32px_rgba(0,0,0,0.3)]">
 			<div className="flex items-center gap-2.5 border-b border-[#39393E]/40 px-4 py-2 text-xs">
-			<span className="min-w-[36px] rounded border border-[#39393E] bg-[#222429] px-2 py-[3px] text-center font-mono text-[11px] text-[#8a8c90]">
-				B2
-			</span>
-			<span className="min-w-0 max-w-full truncate font-mono text-xs">{highlightFormula('=DEFILLAMA("tvl", "ethereum")')}</span>
-		</div>
+				<span className="min-w-[36px] rounded border border-[#39393E] bg-[#222429] px-2 py-[3px] text-center font-mono text-[11px] text-[#8a8c90]">
+					B2
+				</span>
+				<span className="max-w-full min-w-0 truncate font-mono text-xs">
+					{highlightFormula('=DEFILLAMA("tvl", "ethereum")')}
+				</span>
+			</div>
 			<div className="grid border-b border-[#39393E]/40 bg-[#222429]/50" style={{ gridTemplateColumns: heroGridCols }}>
-			<div className="border-r border-[#39393E]/40 px-3 py-2.5" />
-			<div className="flex items-center border-r border-[#39393E]/40 px-3 py-2.5 text-[11px] font-semibold tracking-[0.5px] text-[#8a8c90] uppercase">
-				A
+				<div className="border-r border-[#39393E]/40 px-3 py-2.5" />
+				<div className="flex items-center border-r border-[#39393E]/40 px-3 py-2.5 text-[11px] font-semibold tracking-[0.5px] text-[#8a8c90] uppercase">
+					A
+				</div>
+				<div className="flex items-center px-3 py-2.5 text-[11px] font-semibold tracking-[0.5px] text-[#8a8c90] uppercase">
+					B
+				</div>
 			</div>
-			<div className="flex items-center px-3 py-2.5 text-[11px] font-semibold tracking-[0.5px] text-[#8a8c90] uppercase">
-				B
-			</div>
-		</div>
-		{heroRows.map((row) => (
+			{heroRows.map((row) => (
 				<div
 					key={row.num}
 					className="grid border-b border-[#39393E]/40 last:border-b-0"
 					style={{ gridTemplateColumns: heroGridCols }}
 				>
-				<div className="flex items-center justify-center border-r border-[#39393E]/40 bg-[#222429]/30 px-3 py-2.5 font-mono text-[11px] text-[#8a8c90]">
-					{row.num}
-				</div>
+					<div className="flex items-center justify-center border-r border-[#39393E]/40 bg-[#222429]/30 px-3 py-2.5 font-mono text-[11px] text-[#8a8c90]">
+						{row.num}
+					</div>
 					<div className="flex min-w-0 items-center overflow-hidden border-r border-[#39393E]/40 px-3 py-2.5 font-mono text-xs">
-						<span className="block min-w-0 max-w-full truncate whitespace-nowrap">{highlightFormula(row.formula)}</span>
+						<span className="block max-w-full min-w-0 truncate whitespace-nowrap">{highlightFormula(row.formula)}</span>
+					</div>
+					<div
+						className={`flex items-center px-3 py-2.5 font-mono text-xs font-semibold text-[#4ade80] ${row.selected ? 'rounded-sm ring-2 ring-[#2172E5] ring-inset' : ''}`}
+					>
+						{row.value}
+					</div>
 				</div>
-				<div
-					className={`flex items-center px-3 py-2.5 font-mono text-xs font-semibold text-[#4ade80] ${row.selected ? 'rounded-sm ring-2 ring-[#2172E5] ring-inset' : ''}`}
-				>
-					{row.value}
-				</div>
-			</div>
-		))}
+			))}
 		</div>
 	)
 }
@@ -233,7 +298,7 @@ const ShowcaseSection = ({
 			className={`grid grid-cols-1 items-center gap-8 md:gap-[60px] ${reversed ? 'md:grid-cols-[45fr_55fr]' : 'md:grid-cols-[55fr_45fr]'}`}
 		>
 			<div className={reversed ? 'md:order-2' : ''}>
-				<div className="mb-3 text-[13px] font-semibold tracking-[2px] text-[#2172E5] uppercase">{overline}</div>
+				<p className="mb-3 text-[13px] font-semibold tracking-[2px] text-[#2172E5] uppercase">{overline}</p>
 				<h2 className="mb-3.5 text-[28px] leading-[1.25] font-bold tracking-[-0.02em]">{heading}</h2>
 				<p className="mb-6 text-[15px] leading-relaxed text-[#b4b7bc]">{description}</p>
 				<ul className="flex flex-col gap-3">
@@ -270,9 +335,7 @@ const MockTable = ({
 	const colCount = headers ? headers.labels.length : rows[0].cells.length
 	const valueColTrack = colCount <= 2 ? '96px' : 'minmax(92px, 0.8fr)'
 	const gridCols =
-		colCount === 1
-			? '28px minmax(0, 1fr)'
-			: `28px repeat(${colCount - 1}, minmax(0, 1fr)) ${valueColTrack}`
+		colCount === 1 ? '28px minmax(0, 1fr)' : `28px repeat(${colCount - 1}, minmax(0, 1fr)) ${valueColTrack}`
 	const hasRightSeparator = (cells: MockCell[], index: number) => {
 		let occupiedColumns = 0
 		for (let i = 0; i <= index; i++) {
@@ -283,14 +346,17 @@ const MockTable = ({
 
 	return (
 		<div className="overflow-hidden rounded-xl border border-[#39393E]/40 bg-[#1a1b1f] shadow-[0_4px_24px_rgba(0,0,0,0.2)]">
-			{formulaBar && (
+			{formulaBar ? (
 				<div className="grid grid-cols-[28px_1fr] border-b border-[#39393E]/40">
 					<div className="border-r border-[#39393E]/40 bg-[#222429]/30 px-2.5 py-2" />
-					<div className="flex items-center px-2.5 py-2 font-mono text-[11px]">{highlightFormula(formulaBar)}</div>
+					<p className="flex items-center px-2.5 py-2 font-mono text-[11px]">{highlightFormula(formulaBar)}</p>
 				</div>
-			)}
-			{headers && (
-				<div className="border-b border-[#39393E]/40 bg-[#222429]/40" style={{ display: 'grid', gridTemplateColumns: gridCols }}>
+			) : null}
+			{headers ? (
+				<div
+					className="border-b border-[#39393E]/40 bg-[#222429]/40"
+					style={{ display: 'grid', gridTemplateColumns: gridCols }}
+				>
 					<div className="flex items-center justify-center border-r border-[#39393E]/40 bg-[#222429]/30 px-2.5 py-[7px] font-mono text-[10px] text-[#8a8c90]">
 						{headers.num}
 					</div>
@@ -303,7 +369,7 @@ const MockTable = ({
 						</div>
 					))}
 				</div>
-			)}
+			) : null}
 			{rows.map((row) => (
 				<div
 					key={row.num}
@@ -324,22 +390,22 @@ const MockTable = ({
 					))}
 				</div>
 			))}
-			{footer && (
+			{footer ? (
 				<div className="border-t border-[#39393E]/40" style={{ display: 'grid', gridTemplateColumns: gridCols }}>
 					<div className="flex items-center justify-center border-r border-[#39393E]/40 bg-[#222429]/30 px-2.5 py-[7px] font-mono text-[10px] text-[#8a8c90]">
 						{footer.num}
 					</div>
-						{footer.cells.map((cell, i) => (
-							<div
-								key={i}
-								className={`flex min-w-0 items-center overflow-hidden px-2.5 py-[7px] font-mono text-[11px] whitespace-nowrap ${cellClass(cell.variant)} ${hasRightSeparator(footer.cells, i) ? 'border-r border-[#39393E]/40' : ''}`}
-								style={cell.colSpan ? { gridColumn: `span ${cell.colSpan}` } : undefined}
-							>
-								{cell.variant === 'formula' ? highlightFormula(cell.value) : cell.value}
-							</div>
-						))}
+					{footer.cells.map((cell, i) => (
+						<div
+							key={i}
+							className={`flex min-w-0 items-center overflow-hidden px-2.5 py-[7px] font-mono text-[11px] whitespace-nowrap ${cellClass(cell.variant)} ${hasRightSeparator(footer.cells, i) ? 'border-r border-[#39393E]/40' : ''}`}
+							style={cell.colSpan ? { gridColumn: `span ${cell.colSpan}` } : undefined}
+						>
+							{cell.variant === 'formula' ? highlightFormula(cell.value) : cell.value}
+						</div>
+					))}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }
@@ -359,6 +425,8 @@ const TemplatesSection = () => (
 					href={tpl.href}
 					target="_blank"
 					rel="noopener noreferrer"
+					data-umami-event="sheets-templates-click"
+					data-umami-event-template={tpl.title}
 					className="flex flex-col gap-2.5 rounded-2xl border border-[#39393E]/40 bg-[#1a1b1f] p-7 transition-all hover:border-[#2172E5] hover:shadow-[0_4px_20px_rgba(33,114,229,0.15)]"
 				>
 					<div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#2172E5]/10 [&>svg]:h-5 [&>svg]:w-5 [&>svg]:fill-none [&>svg]:stroke-[#2172E5] [&>svg]:[stroke-width:1.8] [&>svg]:[stroke-linecap:round] [&>svg]:[stroke-linejoin:round]">
@@ -381,6 +449,7 @@ export default function SheetsContainer() {
 
 	const onGoogleSheetsButtonClick = () => {
 		if (!isAuthenticated || !hasActiveSubscription) {
+			setSignupSource('sheets')
 			subscribeModalStore.show()
 			return
 		}
@@ -389,6 +458,7 @@ export default function SheetsContainer() {
 
 	const onExcelButtonClick = () => {
 		if (!isAuthenticated || !hasActiveSubscription) {
+			setSignupSource('sheets')
 			subscribeModalStore.show()
 			return
 		}
@@ -409,6 +479,7 @@ export default function SheetsContainer() {
 					<div className="mt-1 flex flex-col gap-3 sm:flex-row">
 						<button
 							onClick={onGoogleSheetsButtonClick}
+							data-umami-event="sheets-google-sheets-click"
 							className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1a3a2a] px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-px hover:bg-[#224a35] hover:shadow-[0_4px_16px_rgba(52,168,83,0.2)]"
 						>
 							<img src="/assets/google-sheets.svg" alt="" className="h-[18px] w-[18px]" />
@@ -416,6 +487,7 @@ export default function SheetsContainer() {
 						</button>
 						<button
 							onClick={onExcelButtonClick}
+							data-umami-event="sheets-excel-addin-click"
 							className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#162e22] px-6 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-px hover:bg-[#1e3d2d] hover:shadow-[0_4px_16px_rgba(33,115,70,0.2)]"
 						>
 							<img src="/assets/microsoft-excel-v2.svg" alt="" className="h-[18px] w-[18px]" />

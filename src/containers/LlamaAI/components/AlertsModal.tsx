@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { memo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 interface Alert {
 	id: string
@@ -204,25 +205,25 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	const alertsQueryKey = [ALERTS_QUERY_KEY, user?.id ?? null]
 
+	useEffect(() => {
+		if (isOpen) trackUmamiEvent('llamaai-alerts-open')
+	}, [isOpen])
+
 	const {
-		data: alerts = [],
+		data: alerts,
 		isLoading,
 		error: alertsError
 	} = useQuery<Alert[]>({
 		queryKey: alertsQueryKey,
 		queryFn: async () => {
 			if (!authorizedFetch) return []
-			try {
-				const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
-				if (!res.ok) {
-					throw new Error('Failed to fetch alerts')
-				}
-				const data = await res.json()
-				return data.alerts || []
-			} catch (error) {
-				console.log('Failed to fetch alerts:', error)
+			const res = await authorizedFetch(`${MCP_SERVER}/alerts`)
+			if (!res) throw new Error('Not authenticated')
+			if (!res.ok) {
 				throw new Error('Failed to fetch alerts')
 			}
+			const data = await res.json()
+			return Array.isArray(data.alerts) ? data.alerts : []
 		},
 		enabled: isOpen && isAuthenticated && !!user
 	})
@@ -230,7 +231,7 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 	return (
 		<Ariakit.DialogProvider store={dialogStore}>
 			<Ariakit.Dialog
-				className="dialog max-h-[85vh] max-w-lg gap-0 overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl dark:border-[#39393E] dark:bg-[#222429]"
+				className="dialog max-h-[85vh] max-w-lg gap-0 overflow-hidden rounded-2xl border border-[#E6E6E6] bg-[#FFFFFF] p-0 shadow-xl max-sm:max-h-[calc(100dvh-80px)] max-sm:rounded-b-none dark:border-[#39393E] dark:bg-[#222429]"
 				backdrop={<div className="backdrop fixed inset-0 bg-black/60 backdrop-blur-sm" />}
 				portal
 				unmountOnHide
@@ -248,16 +249,16 @@ export const AlertsModal = memo(function AlertsModal({ dialogStore }: AlertsModa
 				</div>
 
 				<div className="thin-scrollbar max-h-[calc(85vh-73px)] overflow-y-auto">
-					{alertsError && (
+					{alertsError ? (
 						<div className="px-5 py-3 text-xs text-red-500">
 							{alertsError instanceof Error ? alertsError.message : 'Failed to fetch alerts'}
 						</div>
-					)}
+					) : null}
 					{isLoading ? (
 						<div className="flex items-center justify-center py-16">
 							<LoadingSpinner size={24} />
 						</div>
-					) : alerts.length === 0 ? (
+					) : !alerts || alerts.length === 0 ? (
 						alertsError ? null : (
 							<div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
 								<div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f7f7f7] dark:bg-[#333]">
@@ -329,6 +330,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ enabled })
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}
@@ -349,7 +351,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			}
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 
@@ -359,6 +361,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				throw new Error('Not authenticated')
 			}
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${alertId}`, { method: 'DELETE' })
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to delete alert')
 			}
@@ -382,7 +385,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 			setIsDeleting(false)
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 
@@ -397,7 +400,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 	>({
 		mutationFn: async ({
 			alertId,
-			title,
+			title: nextTitle,
 			alertConfig
 		}: {
 			alertId: string
@@ -411,16 +414,17 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					title,
+					title: nextTitle,
 					alertConfig
 				})
 			})
+			if (!res) throw new Error('Not authenticated')
 			if (!res.ok) {
 				throw new Error('Failed to update alert')
 			}
 			return alertConfig
 		},
-		onSuccess: (_data, { alertId, title, alertConfig }) => {
+		onSuccess: (_data, { alertId, title: nextTitle, alertConfig }) => {
 			const tzLabel = getTimezoneLabel(alertConfig.timezone)
 			const newExpression =
 				alertConfig.frequency === 'weekly'
@@ -428,12 +432,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 					: `Daily at ${alertConfig.hour}:00 ${tzLabel}`
 			queryClient.setQueryData(alertsQueryKey, (old: Alert[] | undefined) => {
 				if (!old) return []
-				return old.map((item) => (item.id === alertId ? { ...item, title, schedule_expression: newExpression } : item))
+				return old.map((item) =>
+					item.id === alertId ? { ...item, title: nextTitle, schedule_expression: newExpression } : item
+				)
 			})
 			setIsEditing(false)
 		},
 		onSettled: () => {
-			queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
+			void queryClient.invalidateQueries({ queryKey: [ALERTS_QUERY_KEY] })
 		}
 	})
 
@@ -478,7 +484,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						</button>
 					</div>
 				</div>
-				{deleteErrorMessage && <p className="text-center text-xs text-red-500">{deleteErrorMessage}</p>}
+				{deleteErrorMessage ? <p className="text-center text-xs text-red-500">{deleteErrorMessage}</p> : null}
 			</div>
 		)
 	}
@@ -489,9 +495,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				<div className="min-w-0 flex-1">
 					<div className="flex items-center gap-2">
 						<h3 className="truncate text-sm font-medium text-black dark:text-white">{alert.title}</h3>
-						{alert.last_run_status === 'error' && (
+						{alert.last_run_status === 'error' ? (
 							<span className="shrink-0 rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] text-red-500">Error</span>
-						)}
+						) : null}
 					</div>
 					<p className="mt-0.5 text-xs text-[#666] dark:text-[#919296]">
 						{formatScheduleExpression(alert.schedule_expression)}
@@ -526,7 +532,10 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 						<Icon name="trash-2" className="h-3.5 w-3.5" />
 					</button>
 					<button
-						onClick={() => toggleAlertMutation.mutate({ alertId: alert.id, enabled: !alert.enabled })}
+						onClick={() => {
+							trackUmamiEvent('llamaai-alert-toggle')
+							toggleAlertMutation.mutate({ alertId: alert.id, enabled: !alert.enabled })
+						}}
 						className={`ml-1 flex h-7 w-12 items-center rounded-full px-0.5 transition-colors ${alert.enabled ? 'bg-[#2172E5]' : 'bg-[#ccc] dark:bg-[#444]'}`}
 						title={alert.enabled ? 'Disable' : 'Enable'}
 					>
@@ -537,9 +546,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 				</div>
 			</div>
 
-			{toggleErrorMessage && !isEditing && <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p>}
+			{toggleErrorMessage && !isEditing ? <p className="mt-2 text-xs text-red-500">{toggleErrorMessage}</p> : null}
 
-			{isEditing && (
+			{isEditing ? (
 				<div className="mt-4 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-[#fafafa] p-3 dark:border-[#333] dark:bg-[#1a1a1a]">
 					<input
 						value={title}
@@ -556,7 +565,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							<option value="daily">Daily</option>
 							<option value="weekly">Weekly</option>
 						</select>
-						{frequency === 'weekly' && (
+						{frequency === 'weekly' ? (
 							<select
 								value={dayOfWeek}
 								onChange={(e) => setDayOfWeek(Number(e.target.value))}
@@ -568,7 +577,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 									</option>
 								))}
 							</select>
-						)}
+						) : null}
 						<span className="text-sm text-(--text3)">at</span>
 						<select
 							key={`hour-${timezone}`}
@@ -577,7 +586,7 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							className="rounded-md border border-[#e6e6e6] bg-white px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden dark:border-[#333] dark:bg-[#222]"
 						>
 							{Array.from({ length: 24 }, (_, i) => (
-								<option key={`${timezone}-${i}`} value={i} disabled={blockedHours.includes(i)}>
+								<option key={`hour-${i}`} value={i} disabled={blockedHours.includes(i)}>
 									{i.toString().padStart(2, '0')}:00{blockedHours.includes(i) ? ' (blocked)' : ''}
 								</option>
 							))}
@@ -607,13 +616,14 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							Cancel
 						</button>
 						<button
-							onClick={() =>
+							onClick={() => {
+								trackUmamiEvent('llamaai-alert-edit')
 								updateAlertMutation.mutate({
 									alertId: alert.id,
 									title,
 									alertConfig: { frequency, hour, dayOfWeek, timezone }
 								})
-							}
+							}}
 							disabled={updateAlertMutation.isPending || !title.trim()}
 							className="flex items-center gap-1.5 rounded-md bg-[#2172E5] px-3 py-1.5 text-xs text-white hover:bg-[#1a5cc7] disabled:opacity-50"
 						>
@@ -625,9 +635,9 @@ const AlertRow = memo(function AlertRow({ alert }: AlertRowProps) {
 							Save
 						</button>
 					</div>
-					{updateErrorMessage && <p className="text-center text-xs text-red-500">{updateErrorMessage}</p>}
+					{updateErrorMessage ? <p className="text-center text-xs text-red-500">{updateErrorMessage}</p> : null}
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 })

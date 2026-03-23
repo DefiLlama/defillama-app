@@ -1,15 +1,19 @@
-import { V2_SERVER_URL } from '~/constants'
+import { SERVER_URL, V2_SERVER_URL } from '~/constants'
 import { fetchJson } from '~/utils/async'
 import type {
 	IProtocolChainBreakdownChart,
 	IProtocolChainBreakdownValue,
+	IProtocolMiniResponse,
 	IProtocolTokenBreakdownChart,
 	IProtocolTokenBreakdownValue,
 	IProtocolValueChart,
 	IProtocolChartV2Params,
-	IProtocolTvlMetrics
+	IProtocolMetricsV2
 } from './api.types'
 import type { IProtocolExpenses } from './api.types'
+
+const PROTOCOL_API_URL = `${SERVER_URL}/updatedProtocol`
+const PROTOCOL_API_MINI_URL = `${SERVER_URL}/_fe/updatedProtocol-mini`
 
 const appendOptionalQueryParams = (url: string, params: Pick<IProtocolChartV2Params, 'key' | 'currency'>) => {
 	const parsedUrl = new URL(url, 'http://placeholder')
@@ -74,10 +78,8 @@ const normalizeProtocolTokenBreakdownChart = (values: unknown): IProtocolTokenBr
 /**
  * Fetch aggregate TVL metrics for a protocol.
  */
-export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolTvlMetrics | null> => {
-	return fetchJson(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`)
-		.then((data) => data as IProtocolTvlMetrics)
-		.catch(() => null)
+export const fetchProtocolOverviewMetrics = async (protocol: string): Promise<IProtocolMetricsV2 | null> => {
+	return fetchJson<IProtocolMetricsV2>(`${V2_SERVER_URL}/metrics/tvl/protocol/${protocol}`).catch(() => null)
 }
 
 /**
@@ -93,9 +95,8 @@ const fetchProtocolValueChart = async ({
 	currency?: string
 }): Promise<IProtocolValueChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	return fetchJson(finalUrl)
-		.then((values) => normalizeProtocolValueChart(values))
-		.catch(() => null)
+	const values = await fetchJson<unknown>(finalUrl)
+	return normalizeProtocolValueChart(values)
 }
 
 /**
@@ -111,9 +112,8 @@ const fetchProtocolChainBreakdownChart = async ({
 	currency?: string
 }): Promise<IProtocolChainBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	return fetchJson(finalUrl)
-		.then((values) => normalizeProtocolChainBreakdownChart(values))
-		.catch(() => null)
+	const values = await fetchJson<unknown>(finalUrl)
+	return normalizeProtocolChainBreakdownChart(values)
 }
 
 /**
@@ -129,9 +129,8 @@ const fetchProtocolTokenBreakdownChart = async ({
 	currency?: string
 }): Promise<IProtocolTokenBreakdownChart | null> => {
 	const finalUrl = appendOptionalQueryParams(path, { key, currency })
-	return fetchJson(finalUrl)
-		.then((values) => normalizeProtocolTokenBreakdownChart(values))
-		.catch(() => null)
+	const values = await fetchJson<unknown>(finalUrl)
+	return normalizeProtocolTokenBreakdownChart(values)
 }
 
 type ProtocolChartNamespace = 'tvl' | 'treasury'
@@ -370,4 +369,14 @@ export async function fetchProtocolExpenses(): Promise<IProtocolExpenses[]> {
 	return fetchJson<IProtocolExpenses[]>(
 		'https://raw.githubusercontent.com/DefiLlama/defillama-server/master/defi/src/operationalCosts/output/expenses.json'
 	)
+}
+
+export async function fetchProtocolBySlug<TProtocolResponse = unknown>(
+	protocolSlug: string
+): Promise<TProtocolResponse> {
+	return fetchJson<TProtocolResponse>(`${PROTOCOL_API_URL}/${encodeURIComponent(protocolSlug)}`)
+}
+
+export async function fetchProtocolMiniBySlug(protocolSlug: string): Promise<IProtocolMiniResponse> {
+	return fetchJson<IProtocolMiniResponse>(`${PROTOCOL_API_MINI_URL}/${encodeURIComponent(protocolSlug)}`)
 }

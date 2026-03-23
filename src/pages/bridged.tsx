@@ -1,12 +1,14 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { BridgedTVLChainsList } from '~/containers/BridgedTVL/BridgedTVLChainsList'
 import { getBridgedTVLByChain } from '~/containers/BridgedTVL/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridged', async () => {
-	const data = await getBridgedTVLByChain()
+	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
+
+	const data = await getBridgedTVLByChain({ chainMetadata: metadataCache.chainMetadata })
 
 	return {
 		props: data,
@@ -19,9 +21,8 @@ const pageName = ['Chains', 'ranked by', 'Bridged TVL']
 export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`Bridged TVL - DefiLlama`}
+			title={`Bridged TVL Across All Chains - DefiLlama`}
 			description={`Track the total value of all tokens held on each blockchain network. Monitor bridged TVL across chains and compare token holdings between different blockchains on DefiLlama.`}
-			keywords="bridged TVL, blockchain TVL, token holdings, total value on blockchain, total value on chain"
 			canonicalUrl="/bridged"
 			pageName={pageName}
 		>

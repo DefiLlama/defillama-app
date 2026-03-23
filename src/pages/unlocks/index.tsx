@@ -1,12 +1,17 @@
 import dayjs from 'dayjs'
-import weekOfYear from 'dayjs/plugin/weekOfYear'
 import { useRouter } from 'next/router'
 import * as React from 'react'
 import { lazy, useMemo } from 'react'
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWM_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import { buildTimeSeriesChart } from '~/components/ECharts/timeSeriesChartBuilder'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { formatBarChart, getBucketTimestampSec } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { TagGroup } from '~/components/TagGroup'
@@ -19,21 +24,19 @@ import { useWatchlistManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import Layout from '~/layout'
 import { formattedNum } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-
-dayjs.extend(weekOfYear)
 
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
-const calculateUnlockStatistics = (data) => {
+const calculateUnlockStatistics = (data, nowSec: number) => {
 	let upcomingUnlocks30dValue = 0
 	let upcomingUnlocks7dValue = 0
-	const now = Date.now() / 1000
-	const thirtyDaysLater = now + 30 * 24 * 60 * 60
-	const sevenDaysLater = now + 7 * 24 * 60 * 60
+	const thirtyDaysLater = nowSec + 30 * 24 * 60 * 60
+	const sevenDaysLater = nowSec + 7 * 24 * 60 * 60
 
 	if (data) {
 		for (const protocol of data) {
@@ -52,10 +55,10 @@ const calculateUnlockStatistics = (data) => {
 				}
 
 				const valueUSD = totalTokens * protocol.tPrice
-				if (event.timestamp >= now && event.timestamp <= thirtyDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= thirtyDaysLater) {
 					upcomingUnlocks30dValue += valueUSD
 				}
-				if (event.timestamp >= now && event.timestamp <= sevenDaysLater) {
+				if (event.timestamp >= nowSec && event.timestamp <= sevenDaysLater) {
 					upcomingUnlocks7dValue += valueUSD
 				}
 			}
@@ -69,15 +72,30 @@ const calculateUnlockStatistics = (data) => {
 	}
 }
 
+const buildChartProtocols = (protocols: any[]) => {
+	return protocols.map((protocol) => ({
+		name: protocol.name,
+		tPrice: protocol.tPrice,
+		events: Array.isArray(protocol.events)
+			? protocol.events.map((event) => ({
+					...event,
+					timestamp:
+						typeof event?.timestamp === 'number' ? getBucketTimestampSec(event.timestamp, 'daily') : event?.timestamp
+				}))
+			: []
+	}))
+}
+
 export const getStaticProps = withPerformanceLogging('unlocks', async () => {
+	const generatedAtSec = Math.floor(Date.now() / 1000)
 	const data = await getAllProtocolEmissions({
-		endDate: Date.now() / 1000 + 30 * 24 * 60 * 60
+		endDate: generatedAtSec + 30 * 24 * 60 * 60
 	})
-	const unlockStats = calculateUnlockStatistics(data)
 	return {
 		props: {
 			data,
-			unlockStats
+			chartProtocols: buildChartProtocols(data),
+			generatedAtSec
 		},
 		revalidate: maxAgeForNext([22])
 	}
@@ -85,47 +103,38 @@ export const getStaticProps = withPerformanceLogging('unlocks', async () => {
 
 const pageName = ['Protocols', 'ranked by', 'Token Unlocks']
 
-const TIME_PERIODS = ['Daily', 'Weekly', 'Monthly'] as const
-type TimePeriod = (typeof TIME_PERIODS)[number]
-
 const VIEW_MODES = ['Total View', 'Breakdown View'] as const
 type ViewMode = (typeof VIEW_MODES)[number]
 
 const END_TIMESTAMP = dayjs('2031-01-01').unix()
-const SECONDS_PER_DAY = 86400
-
-function bucketTimestamp(ts: number, timePeriod: TimePeriod): number {
-	if (timePeriod === 'Daily') {
-		return Math.floor(ts / SECONDS_PER_DAY) * SECONDS_PER_DAY
-	}
-	if (timePeriod === 'Monthly') {
-		const d = dayjs.unix(ts)
-		return d.startOf('month').unix()
-	}
-	// Weekly — locale-aware week start requires dayjs
-	return dayjs.unix(ts).startOf('week').unix()
-}
 
 const EMPTY_CHART_RESULT = {
 	dataset: { source: [], dimensions: ['timestamp'] } satisfies MultiSeriesChart2Dataset,
 	charts: [] as NonNullable<IMultiSeriesChart2Props['charts']>
 }
 
-function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
+const normalizeChartGroup = (value: string | null | undefined): LowercaseDwmGrouping | null => {
+	const normalizedValue = value?.toLowerCase() ?? null
+	if (DWM_GROUPING_OPTIONS_LOWERCASE.some((option) => option.value === normalizedValue)) {
+		return normalizedValue as LowercaseDwmGrouping
+	}
+	return null
+}
+
+function UpcomingUnlockVolumeChart({ protocols, initialNowSec }: { protocols: any[]; initialNowSec: number }) {
 	const router = useRouter()
 
 	const updateQueryParam = React.useCallback(
 		(key: string, value: string, defaultValue: string) => {
-			pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
+			void pushShallowQuery(router, { [key]: value === defaultValue ? undefined : value })
 		},
 		[router]
 	)
 
 	const chartGroupParam = readSingleQueryValue(router.query.chartGroup)
-	const timePeriod: TimePeriod =
-		chartGroupParam && (TIME_PERIODS as readonly string[]).includes(chartGroupParam)
-			? (chartGroupParam as TimePeriod)
-			: 'Weekly'
+	const timePeriod: LowercaseDwmGrouping =
+		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
+		normalizeChartGroup(chartGroupParam) ?? 'daily'
 
 	const chartViewParam = readSingleQueryValue(router.query.chartView)
 	const viewMode: ViewMode =
@@ -136,18 +145,14 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	const isFullView = false
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
-	const { dataset, charts } = useMemo(() => {
+	const now = initialNowSec
+	const unlockChartData = useMemo(() => {
 		if (!protocols || protocols.length === 0) return EMPTY_CHART_RESULT
-
-		const now = Date.now() / 1000
 		const endTs = isFullView ? Infinity : END_TIMESTAMP
 		const isTotalView = viewMode === 'Total View'
 
-		// Total View: bucket -> aggregated value
-		const totalMap = isTotalView ? new Map<number, number>() : null
-		// Breakdown View: bucket -> { protocolName -> value }
-		const breakdownMap = !isTotalView ? new Map<number, Record<string, number>>() : null
-		const allProtocolNames = !isTotalView ? new Set<string>() : null
+		const totalByTimestamp = new Map<number, number>()
+		const protocolSeries = new Map<string, Map<number, number>>()
 
 		for (const protocol of protocols) {
 			if (!protocol.events || protocol.tPrice == null || protocol.tPrice <= 0) continue
@@ -168,28 +173,24 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 
 				const valueUSD = totalTokens * price
 				if (valueUSD <= 0) continue
-
-				const key = bucketTimestamp(ts, timePeriod)
-
-				if (totalMap) {
-					totalMap.set(key, (totalMap.get(key) || 0) + valueUSD)
-				} else {
-					const record = breakdownMap!.get(key) || {}
-					record[name] = (record[name] || 0) + valueUSD
-					breakdownMap!.set(key, record)
-					allProtocolNames!.add(name)
-				}
+				totalByTimestamp.set(ts, (totalByTimestamp.get(ts) ?? 0) + valueUSD)
+				const series = protocolSeries.get(name) ?? new Map<number, number>()
+				series.set(ts, (series.get(ts) ?? 0) + valueUSD)
+				protocolSeries.set(name, series)
 			}
 		}
 
-		if (totalMap) {
+		if (isTotalView) {
 			const seriesName = 'Total Upcoming Unlock Value'
-			const source = Array.from(totalMap.entries())
-				.sort((a, b) => a[0] - b[0])
-				.map(([date, total]) => ({
-					timestamp: date * 1e3,
-					[seriesName]: total
-				}))
+			const formattedSeries = formatBarChart({
+				data: Array.from(totalByTimestamp.entries()).sort((a, b) => a[0] - b[0]),
+				groupBy: timePeriod,
+				denominationPriceHistory: null
+			})
+			const source = formattedSeries.map(([timestamp, total]) => ({
+				timestamp,
+				[seriesName]: total
+			}))
 
 			return {
 				dataset: { source, dimensions: ['timestamp', seriesName] } satisfies MultiSeriesChart2Dataset,
@@ -204,41 +205,38 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 			}
 		}
 
-		const sortedNames = Array.from(allProtocolNames!).sort()
-		const source = Array.from(breakdownMap!.entries())
-			.sort((a, b) => a[0] - b[0])
-			.map(([date, protocolValues]) => ({
-				timestamp: date * 1e3,
-				...protocolValues
-			}))
+		const sortedNames = Array.from(protocolSeries.keys()).sort()
 
-		return {
-			dataset: { source, dimensions: ['timestamp', ...sortedNames] } satisfies MultiSeriesChart2Dataset,
-			charts: sortedNames.map((name, i) => ({
-				type: 'bar' as const,
+		return buildTimeSeriesChart({
+			kind: 'periodBars',
+			groupBy: timePeriod,
+			series: sortedNames.map((name, i) => ({
 				name,
-				encode: { x: 'timestamp', y: name },
+				color: CHART_COLORS[i % CHART_COLORS.length],
 				stack: 'A',
-				color: CHART_COLORS[i % CHART_COLORS.length]
+				points: Array.from(protocolSeries.get(name)?.entries() ?? [])
+					.sort((a, b) => a[0] - b[0])
+					.map(([timestamp, value]) => [timestamp * 1e3, value] as const)
 			}))
-		}
-	}, [protocols, timePeriod, isFullView, viewMode])
+		})
+	}, [protocols, timePeriod, isFullView, viewMode, now])
+	const deferredChartData = React.useDeferredValue(unlockChartData)
 
 	return (
 		<>
-			{dataset.source.length > 0 ? (
+			{unlockChartData.dataset.source.length > 0 ? (
 				<>
 					<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Upcoming Unlocks</h2>
-						<TagGroup
-							selectedValue={timePeriod}
-							setValue={(value: TimePeriod) => updateQueryParam('chartGroup', value, 'Weekly')}
-							values={TIME_PERIODS as unknown as string[]}
+						<ChartGroupingSelector
+							value={timePeriod}
+							onValueChange={(value) => updateQueryParam('chartGroup', value, 'daily')}
+							options={DWM_GROUPING_OPTIONS_LOWERCASE}
 						/>
 						<TagGroup
 							selectedValue={viewMode}
-							setValue={(value: ViewMode) => updateQueryParam('chartView', value, 'Total View')}
-							values={VIEW_MODES as unknown as string[]}
+							setValue={(value) => updateQueryParam('chartView', value, 'Total View')}
+							values={VIEW_MODES}
 						/>
 						<ChartExportButtons
 							chartInstance={exportChartInstance}
@@ -248,10 +246,10 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 					</div>
 					<React.Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={dataset}
-							charts={charts}
+							dataset={deferredChartData.dataset}
+							charts={deferredChartData.charts}
 							hideDefaultLegend={viewMode === 'Total View'}
-							groupBy={timePeriod.toLowerCase() as 'daily' | 'weekly' | 'monthly'}
+							groupBy={timePeriod}
 							valueSymbol="$"
 							onReady={handleChartReady}
 						/>
@@ -266,20 +264,29 @@ function UpcomingUnlockVolumeChart({ protocols }: { protocols: any[] }) {
 	)
 }
 
-export default function Protocols({ data, unlockStats }) {
-	const [projectName, setProjectName] = React.useState('')
+export default function Protocols({
+	data,
+	chartProtocols,
+	generatedAtSec
+}: {
+	data: any[]
+	chartProtocols: any[]
+	generatedAtSec: number
+}) {
 	const { savedProtocols } = useWatchlistManager('defi')
 	const router = useRouter()
 
 	const showOnlyWatchlist = readSingleQueryValue(router.query.watchlist) === 'true'
 
-	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = unlockStats
+	const { upcomingUnlocks7dValue, upcomingUnlocks30dValue, totalProtocols } = useMemo(
+		() => calculateUnlockStatistics(data, generatedAtSec),
+		[data, generatedAtSec]
+	)
 
 	return (
 		<Layout
-			title={`Unlocks - DefiLlama`}
-			description={`Unlocks by protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`unlocks, defi unlocks, upcoming token unlocks, token emissions, emissions`}
+			title="Token Unlocks & Vesting Schedules - DefiLlama"
+			description="Track upcoming token unlocks and vesting schedules for 500+ DeFi protocols. Monitor unlock dates, amounts, and price impact. Real-time token unlock calendar with 7-day and 30-day unlock analytics."
 			canonicalUrl={`/unlocks`}
 			pageName={pageName}
 		>
@@ -319,7 +326,7 @@ export default function Protocols({ data, unlockStats }) {
 					</BasicLink>
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-					<UpcomingUnlockVolumeChart protocols={data} />
+					<UpcomingUnlockVolumeChart protocols={chartProtocols} initialNowSec={generatedAtSec} />
 				</div>
 			</div>
 
@@ -328,6 +335,7 @@ export default function Protocols({ data, unlockStats }) {
 					data={data}
 					period={1}
 					title="24h Top Unlocks"
+					initialNowSec={generatedAtSec}
 					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				/>
 
@@ -335,23 +343,19 @@ export default function Protocols({ data, unlockStats }) {
 					data={data}
 					period={30}
 					title="30d Top Unlocks"
+					initialNowSec={generatedAtSec}
 					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				/>
 
 				<PastUnlockPriceImpact
 					data={data}
 					title="Post Unlock Price Impact"
+					initialNowSec={generatedAtSec}
 					className="col-span-1 flex flex-col gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3"
 				/>
 			</div>
 
-			<UnlocksTable
-				protocols={data}
-				showOnlyWatchlist={showOnlyWatchlist}
-				projectName={projectName}
-				setProjectName={setProjectName}
-				savedProtocols={savedProtocols}
-			/>
+			<UnlocksTable protocols={data} showOnlyWatchlist={showOnlyWatchlist} savedProtocols={savedProtocols} />
 		</Layout>
 	)
 }

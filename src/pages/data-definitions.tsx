@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import Layout from '~/layout'
@@ -25,9 +24,8 @@ const Definition = ({ header, id, children }: { header: string; id: string; chil
 export default function DataDefinitions() {
 	return (
 		<Layout
-			title="DeFi Data Definitions (TVL, Fees, Revenue, DEX Volume) - DefiLlama"
-			description={`Glossary of DeFi metrics: TVL, Fees, Revenue, FDV, DEX Volume, Stablecoin Market Cap, Treasuries and more.`}
-			keywords={`data definitions DefiLlama, DeFi data definitions, TVL definition, crypto data definitions`}
+			title="DeFi Data Definitions & Metrics Glossary - DefiLlama"
+			description="Glossary of DeFi metrics including TVL, Fees, Revenue, FDV, DEX Volume, Holders Revenue, App Fees, and REV."
 			canonicalUrl={`/data-definitions`}
 		>
 			<h1 className="rounded-md bg-(--cards-bg) p-3 text-xl font-semibold">Data Definitions</h1>

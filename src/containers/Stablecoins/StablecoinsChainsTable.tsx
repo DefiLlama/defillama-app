@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -10,26 +10,28 @@ import {
 	useReactTable
 } from '@tanstack/react-table'
 import * as React from 'react'
+import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupChainsPegged } from '~/containers/Stablecoins/hooks'
 import { CHAINS_CATEGORY_GROUP_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { chainIconUrl, formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 
 type StablecoinsByChainRow = ReturnType<typeof useGroupChainsPegged>[number]
 type DominanceCell = NonNullable<StablecoinsByChainRow['dominance']>
+const columnHelper = createColumnHelper<StablecoinsByChainRow>()
 
-const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
-	{
+const stablecoinsByChainColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 			const isSubRow = value.startsWith('Bridged from')
 
 			return (
@@ -37,7 +39,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					{row.subRows?.length > 0 && (
+					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-0.5"
 							{...{
@@ -56,7 +58,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 								</>
 							)}
 						</button>
-					)}
+					) : null}
 
 					{isSubRow ? (
 						<>
@@ -66,9 +68,9 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 					) : (
 						<>
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(value)} data-lgonly />
+							<TokenLogo name={value} kind="chain" data-lgonly alt={`Logo of ${value}`} />
 							<BasicLink
-								href={`/stablecoins/${value}`}
+								href={`/stablecoins/${slug(value)}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 							>
 								{value}
@@ -79,78 +81,79 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinsByChainRow>[] = [
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcap', {
 		header: 'Stables Mcap',
-		accessorKey: 'mcap',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 132,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Dominant Stablecoin',
-		accessorKey: 'dominance',
-		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as DominanceCell | null
-
-			if (!value) {
-				return null
-			}
-
-			return (
-				<div className="flex w-full items-center justify-end gap-1">
-					<span>{`${value.name}${value.value ? ':' : ''}`}</span>
-					<span>{renderPercentChange(value.value, true)}</span>
-				</div>
-			)
+	}),
+	columnHelper.accessor(
+		(row) => {
+			const value = row.dominance
+			if (!value) return ''
+			return `${value.name}${value.value != null ? `: ${value.value}%` : ''}`
 		},
-		size: 170,
-		meta: {
-			align: 'end'
+		{
+			id: 'dominance',
+			header: 'Dominant Stablecoin',
+			enableSorting: false,
+			cell: ({ row }) => {
+				const value = row.original.dominance as DominanceCell | null
+
+				if (!value) {
+					return null
+				}
+
+				return (
+					<div className="flex w-full items-center justify-end gap-1">
+						<span>{`${value.name}${value.value ? ':' : ''}`}</span>
+						<span>
+							<PercentChange percent={value.value} noSign />
+						</span>
+					</div>
+				)
+			},
+			size: 170,
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
+	),
+	columnHelper.accessor('minted', {
 		header: 'Total Mcap Issued On',
-		accessorKey: 'minted',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 180,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('bridgedTo', {
 		header: 'Total Mcap Bridged To',
-		accessorKey: 'bridgedTo',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 185,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Stables Mcap / DeFi Tvl',
-		accessorKey: 'mcaptvl',
-		cell: ({ getValue }) => {
-			const value = getValue()
-			return <>{value != null && formattedNum(value, false)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), false) : null),
 		size: 195,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[] }) {
@@ -169,17 +172,18 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
+		enableSortingRemoval: false,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
 		getSubRows: (row: StablecoinsByChainRow) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	const [groupTvls, updater] = useLocalStorageSettingsManager('tvl_chains')
 
 	const setAggrOptions: React.Dispatch<React.SetStateAction<string[]>> = (action) => {
@@ -209,10 +213,7 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
@@ -226,6 +227,7 @@ export function StablecoinsChainsTable({ data }: { data: StablecoinsByChainRow[]
 					labelType="smol"
 					variant="filter-responsive"
 				/>
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'stablecoins-chains' })} smol />
 			</div>
 			<VirtualTable instance={instance} />
 		</div>

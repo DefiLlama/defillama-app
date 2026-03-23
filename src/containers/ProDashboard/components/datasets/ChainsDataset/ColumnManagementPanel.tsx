@@ -139,14 +139,14 @@ export function ColumnManagementPanel({
 									<div className="flex items-center gap-2">
 										<Icon name="check" height={12} width={12} className="text-(--success)" />
 										<span className="text-xs pro-text1">{column.name}</span>
-										{columnId.endsWith('_share') && (
+										{columnId.endsWith('_share') ? (
 											<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 												%
 											</span>
-										)}
+										) : null}
 									</div>
 									<div className="flex items-center gap-1">
-										{moveColumnUp && !isFirst && (
+										{moveColumnUp && !isFirst ? (
 											<button
 												onClick={() => moveColumnUp(columnId)}
 												className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -154,8 +154,8 @@ export function ColumnManagementPanel({
 											>
 												<Icon name="chevron-up" height={10} width={10} />
 											</button>
-										)}
-										{moveColumnDown && !isLast && (
+										) : null}
+										{moveColumnDown && !isLast ? (
 											<button
 												onClick={() => moveColumnDown(columnId)}
 												className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -163,7 +163,7 @@ export function ColumnManagementPanel({
 											>
 												<Icon name="chevron-down" height={10} width={10} />
 											</button>
-										)}
+										) : null}
 										<button
 											onClick={() => toggleColumnVisibility(columnId)}
 											className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -199,11 +199,11 @@ export function ColumnManagementPanel({
 											>
 												<Icon name="plus" height={10} width={10} className="pro-text3" />
 												<span className="text-xs pro-text1">{column.name}</span>
-												{column.id.endsWith('_share') && (
+												{column.id.endsWith('_share') ? (
 													<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 														%
 													</span>
-												)}
+												) : null}
 											</button>
 										))}
 								</div>

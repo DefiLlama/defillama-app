@@ -24,7 +24,7 @@ export default function Collection() {
 		isLoading: fetchingData,
 		error
 	} = useQuery({
-		queryKey: ['collection-data', collection],
+		queryKey: ['nft', 'collection', collection],
 		queryFn: () => (collection ? getNFTRoyaltyHistory(collection) : null),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -36,13 +36,15 @@ export default function Collection() {
 		dataset: { source: [], dimensions: ['timestamp', 'Earnings'] },
 		charts: []
 	}
+	const collectionDescription = collection
+		? `Track NFT royalties for ${collection}. Compare 30d and lifetime earnings with historical charts.`
+		: `Track NFT royalty earnings by collection. Compare 30d and lifetime royalties with historical charts.`
 
 	if (fetchingData) {
 		return (
 			<Layout
 				title={'NFT Royalties - DefiLlama'}
-				description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-				keywords=""
+				description={collectionDescription}
 				canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
@@ -56,8 +58,7 @@ export default function Collection() {
 		return (
 			<Layout
 				title={'NFT Royalties - DefiLlama'}
-				description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-				keywords=""
+				description={collectionDescription}
 				canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 			>
 				<div className="m-auto flex min-h-[360px] items-center justify-center">
@@ -72,14 +73,13 @@ export default function Collection() {
 	return (
 		<Layout
 			title={props.name + ' Royalties - DefiLlama'}
-			description={`NFT Royalties by Collection. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords=""
+			description={`Track NFT royalties for ${props.name}. Compare 30d and lifetime earnings with historical charts.`}
 			canonicalUrl={collection ? `/nfts/royalties/${collection}` : `/nfts/royalties`}
 		>
 			<div className="relative isolate grid grid-cols-2 gap-2 *:last:col-span-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
 					<h1 className="flex items-center gap-2 text-xl">
-						<TokenLogo logo={props.logo} fallbackLogo={props.fallbackLogo} size={48} />
+						<TokenLogo src={props.logo} fallbackSrc={props.fallbackLogo} alt={`Logo of ${props.name}`} size={48} />
 						<FormattedName text={props.name} fontWeight={700} />
 					</h1>
 

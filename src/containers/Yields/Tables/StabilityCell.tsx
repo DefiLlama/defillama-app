@@ -3,6 +3,8 @@ import { lazy, Suspense, useState } from 'react'
 import { LockIcon } from '~/components/LockIcon'
 import { Tooltip } from '~/components/Tooltip'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { useIsClient } from '~/hooks/useIsClient'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
 
 const SubscribeProModal = lazy(() =>
@@ -35,9 +37,14 @@ interface StabilityCellProps {
 }
 
 export function StabilityHeader() {
+	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
+	if (!isClient) {
+		return <span>Yield Score</span>
+	}
 
 	if (hasActiveSubscription) {
 		return <span>Yield Score</span>
@@ -49,6 +56,7 @@ export function StabilityHeader() {
 				onClick={(e) => {
 					e.stopPropagation()
 					trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'header' })
+					setSignupSource('yield-score')
 					setShouldRenderModal(true)
 				}}
 				className="cursor-pointer"
@@ -65,9 +73,15 @@ export function StabilityHeader() {
 }
 
 export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellProps) {
+	const isClient = useIsClient()
 	const { hasActiveSubscription } = useAuthContext()
 	const [shouldRenderModal, setShouldRenderModal] = useState(false)
 	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+
+	// Keep SSR/client-hydration output deterministic before auth state is available.
+	if (!isClient) {
+		return <span className="ml-auto opacity-30">—</span>
+	}
 
 	if (!hasActiveSubscription) {
 		const redactedTooltip = (
@@ -105,6 +119,7 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 					<button
 						onClick={() => {
 							trackYieldsEvent(YIELDS_EVENTS.YIELD_SCORE_CLICK, { source: 'cell' })
+							setSignupSource('yield-score')
 							setShouldRenderModal(true)
 						}}
 						className="ml-auto flex cursor-pointer flex-col items-end gap-1.5"
@@ -138,18 +153,18 @@ export function StabilityCell({ cv30d, apyMedian30d, apyStd30d }: StabilityCellP
 				{label} <span className="opacity-70">{cv30d.toFixed(2)}</span>
 			</span>
 			<div className="flex flex-col gap-0.5">
-				{apyMedian30d != null && (
+				{apyMedian30d != null ? (
 					<div className="flex justify-between gap-4">
 						<span className="opacity-70">Median APY</span>
 						<span>{formatPct(apyMedian30d)}</span>
 					</div>
-				)}
-				{apyStd30d != null && (
+				) : null}
+				{apyStd30d != null ? (
 					<div className="flex justify-between gap-4">
 						<span className="opacity-70">Standard Deviation (σ)</span>
 						<span>{formatPct(apyStd30d)}</span>
 					</div>
-				)}
+				) : null}
 			</div>
 			<span className="text-[10px] opacity-50">Score = σ / avg · lower is more stable</span>
 		</div>

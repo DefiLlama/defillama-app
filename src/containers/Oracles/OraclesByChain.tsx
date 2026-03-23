@@ -1,7 +1,8 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -202,6 +203,8 @@ export const OraclesByChain = ({
 					columnToSearch="name"
 					placeholder="Search oracles..."
 					header="Oracle Rankings"
+					headingAs="h1"
+					csvFileName="oracle-rankings"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>
@@ -210,14 +213,14 @@ export const OraclesByChain = ({
 }
 
 type IOracleTableRow = OraclesByChainPageData['tableData'][number]
+const columnHelper = createColumnHelper<IOracleTableRow>()
 
-const columns: ColumnDef<IOracleTableRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const name = getValue<string>()
+			const name = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<BasicLink
@@ -229,17 +232,16 @@ const columns: ColumnDef<IOracleTableRow>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
 		size: 200,
 		cell: ({ row }) => {
 			const chains = row.original.chains ?? []
 			return (
 				<div className="flex items-center justify-end gap-1 overflow-hidden">
-					<IconsRow links={chains} url="/oracles/chain" iconType="chain" />
+					<IconsRow items={toChainIconItems(chains, (chain) => chainHref('/oracles/chain', chain))} />
 				</div>
 			)
 		},
@@ -247,27 +249,22 @@ const columns: ColumnDef<IOracleTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Chains secured by the oracle'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('protocolsSecured', {
 		header: 'Protocols',
-		accessorKey: 'protocolsSecured',
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVS',
-		accessorKey: 'tvl',
 		enableSorting: true,
 		size: 140,
-		cell: ({ getValue }) => {
-			const value = getValue<number>()
-			return <span>{formattedNum(value, true)}</span>
-		},
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Total Value Secured by the Oracle'
 		}
-	}
+	})
 ]

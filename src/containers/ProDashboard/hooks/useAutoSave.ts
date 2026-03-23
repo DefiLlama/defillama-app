@@ -30,6 +30,7 @@ interface UseAutoSaveOptions {
 		}
 	}) => Promise<any>
 	cleanItemsForSaving: (items: DashboardItemConfig[]) => DashboardItemConfig[]
+	isFreeUser: boolean
 	delay?: number
 }
 
@@ -70,7 +71,7 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 		const token = pb.authStore.token
 
 		if (pending && token) {
-			fetch(`${AUTH_SERVER}/dashboards/${pending.dashboardId}`, {
+			void fetch(`${AUTH_SERVER}/dashboards/${pending.dashboardId}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -119,6 +120,7 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 			customTimePeriod,
 			cleanItemsForSaving,
 			updateDashboard,
+			isFreeUser,
 			delay = 800
 		} = optionsRef.current
 
@@ -139,7 +141,7 @@ export function useAutoSave(options: UseAutoSaveOptions) {
 			dashboardName,
 			timePeriod: overrides?.timePeriod ?? timePeriod,
 			customTimePeriod: overrides?.customTimePeriod !== undefined ? overrides.customTimePeriod : customTimePeriod,
-			visibility: dashboardVisibility,
+			visibility: isFreeUser ? 'public' : dashboardVisibility,
 			tags: dashboardTags,
 			description: dashboardDescription,
 			aiGenerated: currentDashboard?.aiGenerated ?? null

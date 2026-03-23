@@ -1,24 +1,23 @@
 import * as Ariakit from '@ariakit/react'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
-import { useMyDashboards } from '~/containers/ProDashboard/hooks'
+import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
 import {
 	ProDashboardAPIProvider,
 	useProDashboardDashboard,
 	useProDashboardUI
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import Layout from '~/layout'
 
-const SubscribeProModal = lazy(() =>
-	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
-)
+import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
 		default: m.CreateDashboardPicker
@@ -42,9 +41,8 @@ function ProPageContent() {
 	if (loaders.userLoading) {
 		return (
 			<Layout
-				title="DefiLlama - Pro Dashboard"
-				description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-				keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
+				title="DefiLlama Pro - Advanced DeFi Analytics Dashboard"
+				description="Build custom no-code DeFi dashboards with DefiLlama Pro. Combine TVL, fees, volume, and protocol metrics into personalized analytics views."
 				canonicalUrl={`/pro`}
 			>
 				<ProDashboardLoader />
@@ -54,9 +52,8 @@ function ProPageContent() {
 
 	return (
 		<Layout
-			title="DefiLlama - Pro Dashboard"
-			description={`Pro Dashboard on DefiLlama. Custom no-code dashboards with TVL, Fees, Volume, and other metrics. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`pro dashboard, defi pro dashboard, custom dashboard`}
+			title="DefiLlama Pro - Advanced DeFi Analytics Dashboard"
+			description="Build custom no-code DeFi dashboards with DefiLlama Pro. Combine TVL, fees, volume, and protocol metrics into personalized analytics views."
 			canonicalUrl={`/pro`}
 		>
 			<ProContent hasActiveSubscription={hasActiveSubscription} isAuthenticated={isAuthenticated} />
@@ -65,6 +62,19 @@ function ProPageContent() {
 }
 
 const tabs = ['my-dashboards', 'discover', 'favorites'] as const
+
+function getDashboardPagesToShow(selectedPage: number, totalPages: number): number[] {
+	if (totalPages < 1) return []
+	const clampedSelectedPage = Math.max(1, Math.min(selectedPage, totalPages))
+	const pagesToShow =
+		clampedSelectedPage === 1
+			? [1, 2, Math.min(3, totalPages)]
+			: clampedSelectedPage === totalPages
+				? [Math.max(1, totalPages - 2), Math.max(1, totalPages - 1), totalPages]
+				: [clampedSelectedPage - 1, clampedSelectedPage, clampedSelectedPage + 1]
+
+	return pagesToShow.filter((n, i, arr) => n >= 1 && n <= totalPages && arr.indexOf(n) === i)
+}
 
 function ProContent({
 	hasActiveSubscription,
@@ -77,13 +87,24 @@ function ProContent({
 	const { tab } = router.query
 	const activeTab = typeof tab === 'string' && tabs.includes(tab as any) ? tab : 'discover'
 
-	const [shouldRenderModal, setShouldRenderModal] = useState(false)
-	const subscribeModalStore = Ariakit.useDialogStore({ open: shouldRenderModal, setOpen: setShouldRenderModal })
+	const [paywallState, setPaywallState] = useState<{ open: boolean; reason: PaywallReason }>({
+		open: false,
+		reason: 'pro-feature'
+	})
+	const paywallDialogStore = Ariakit.useDialogStore({
+		open: paywallState.open,
+		setOpen: (open) => setPaywallState((prev) => ({ ...prev, open }))
+	})
+	const showPaywall = (reason: PaywallReason) => {
+		setSignupSource('pro-dashboard')
+		setPaywallState({ open: true, reason })
+	}
 	const { deleteDashboard, handleCreateDashboard, handleGenerateDashboard } = useProDashboardDashboard()
 	const { createDashboardDialogStore, showGenerateDashboardModal, setShowGenerateDashboardModal } = useProDashboardUI()
+	const { canCreateDashboard } = useFreeTierStatus()
 	const [comparisonPreset, setComparisonPreset] = useState<ComparisonPreset | null>(null)
 	const createDialogOpen = Ariakit.useStoreState(createDashboardDialogStore, 'open')
-	const [dialogWasOpen, setDialogWasOpen] = useState(false)
+	const dialogWasOpenRef = useRef(false)
 
 	const selectedPage =
 		typeof router.query.page === 'string' && !Number.isNaN(Number(router.query.page)) ? parseInt(router.query.page) : 1
@@ -96,15 +117,23 @@ function ProContent({
 	} = useMyDashboards({ page: selectedPage, limit: 20, enabled: activeTab === 'my-dashboards' })
 
 	useEffect(() => {
-		if (createDialogOpen && !dialogWasOpen) {
-			setDialogWasOpen(true)
+		if (createDialogOpen && !dialogWasOpenRef.current) {
+			dialogWasOpenRef.current = true
 			return
 		}
-		if (!createDialogOpen && dialogWasOpen) {
-			setComparisonPreset(null)
-			setDialogWasOpen(false)
+		if (!createDialogOpen && dialogWasOpenRef.current) {
+			let cancelled = false
+			queueMicrotask(() => {
+				if (cancelled) return
+				setComparisonPreset(null)
+			})
+			dialogWasOpenRef.current = false
+
+			return () => {
+				cancelled = true
+			}
 		}
-	}, [createDialogOpen, dialogWasOpen])
+	}, [createDialogOpen])
 
 	useEffect(() => {
 		if (!router.isReady) return
@@ -117,11 +146,19 @@ function ProContent({
 			.map((item) => item.trim())
 			.filter(Boolean)
 		const { comparison: _comparison, items: _items, step: _step, ...rest } = router.query
+		let cancelled = false
 		if (parsedItems.length > 0) {
-			setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			queueMicrotask(() => {
+				if (cancelled) return
+				setComparisonPreset({ comparisonType: 'protocols', items: parsedItems })
+			})
 		}
 		createDashboardDialogStore.show()
-		router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+		void router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true })
+
+		return () => {
+			cancelled = true
+		}
 	}, [comparisonPreset, createDashboardDialogStore, router, router.isReady, router.query])
 
 	const handleDeleteDashboard = async (dashboardId: string) => {
@@ -136,30 +173,33 @@ function ProContent({
 						href={`/pro?tab=discover`}
 						shallow
 						data-active={activeTab === 'discover'}
+						data-umami-event="dashboard-open-discover"
 						className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 					>
 						Discover
 					</BasicLink>
-					{isAuthenticated && hasActiveSubscription && (
+					{isAuthenticated ? (
 						<BasicLink
 							href={`/pro?tab=my-dashboards`}
 							shallow
 							data-active={activeTab === 'my-dashboards'}
+							data-umami-event="dashboard-open-my-dashboards"
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							My Dashboards
 						</BasicLink>
-					)}
-					{isAuthenticated && (
+					) : null}
+					{isAuthenticated ? (
 						<BasicLink
 							href={`/pro?tab=favorites`}
 							shallow
 							data-active={activeTab === 'favorites'}
+							data-umami-event="dashboard-open-favorites"
 							className="shrink-0 border-b-2 border-(--form-control-border) px-4 py-1.75 whitespace-nowrap hover:bg-(--btn-hover-bg) focus-visible:bg-(--btn-hover-bg) data-[active=true]:border-(--old-blue)"
 						>
 							Favorites
 						</BasicLink>
-					)}
+					) : null}
 				</div>
 				<div className="ml-auto flex flex-wrap justify-end gap-2">
 					{
@@ -169,8 +209,9 @@ function ProContent({
 									? () => router.push('/pro/preview')
 									: hasActiveSubscription
 										? () => setShowGenerateDashboardModal(true)
-										: () => subscribeModalStore.show()
+										: () => showPaywall('llamaai')
 							}
+							data-umami-event="dashboard-llamaai-generate"
 							className="flex items-center gap-1 rounded-md pro-btn-blue px-4 py-2"
 						>
 							<Icon name="sparkles" height={16} width={16} />
@@ -181,10 +222,11 @@ function ProContent({
 						onClick={
 							!isAuthenticated
 								? () => router.push('/pro/preview')
-								: hasActiveSubscription
+								: canCreateDashboard
 									? () => createDashboardDialogStore.show()
-									: () => subscribeModalStore.show()
+									: () => showPaywall('dashboard-limit')
 						}
+						data-umami-event="dashboard-create"
 						className="flex items-center gap-1 rounded-md pro-btn-purple px-4 py-2"
 					>
 						<Icon name="plus" height={16} width={16} />
@@ -197,20 +239,26 @@ function ProContent({
 			{activeTab === 'my-dashboards' ? (
 				<Suspense fallback={<></>}>
 					<>
-						{!isLoadingMyDashboards && (
+						{!isLoadingMyDashboards ? (
 							<p className="-mb-2 text-xs text-(--text-label)">
 								Showing {myDashboards.length} of {myDashboardsTotalItems} dashboards
 							</p>
-						)}
+						) : null}
 
 						<DashboardList
 							dashboards={myDashboards}
 							isLoading={isLoadingMyDashboards}
 							onCreateNew={() => createDashboardDialogStore.show()}
-							onDeleteDashboard={isAuthenticated ? handleDeleteDashboard : undefined}
+							onDeleteDashboard={
+								isAuthenticated
+									? (dashboardId) => {
+											void handleDeleteDashboard(dashboardId)
+										}
+									: undefined
+							}
 						/>
 
-						{myDashboardsTotalPages > 1 && (
+						{myDashboardsTotalPages > 1 ? (
 							<div className="mt-4 flex flex-nowrap items-center justify-center gap-2 overflow-x-auto">
 								<button
 									onClick={() => goToPage(1)}
@@ -228,31 +276,19 @@ function ProContent({
 									<Icon name="chevron-left" height={16} width={16} />
 								</button>
 
-								{(() => {
-									const totalPages = myDashboardsTotalPages
-									const pagesToShow =
-										selectedPage === 1
-											? [1, 2, Math.min(3, totalPages)]
-											: selectedPage === totalPages
-												? [Math.max(1, totalPages - 2), Math.max(1, totalPages - 1), totalPages]
-												: [selectedPage - 1, selectedPage, selectedPage + 1]
-
-									return pagesToShow
-										.filter((n, i, arr) => n >= 1 && n <= totalPages && arr.indexOf(n) === i)
-										.map((pageNum) => {
-											const isActive = selectedPage === pageNum
-											return (
-												<button
-													key={`my-dashboard-page-${pageNum}`}
-													onClick={() => goToPage(pageNum)}
-													data-active={isActive}
-													className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-												>
-													{pageNum}
-												</button>
-											)
-										})
-								})()}
+								{getDashboardPagesToShow(selectedPage, myDashboardsTotalPages).map((pageNum) => {
+									const isActive = selectedPage === pageNum
+									return (
+										<button
+											key={`my-dashboard-page-${pageNum}`}
+											onClick={() => goToPage(pageNum)}
+											data-active={isActive}
+											className="h-[32px] min-w-[32px] shrink-0 rounded-md px-2 py-1.5 data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
+										>
+											{pageNum}
+										</button>
+									)
+								})}
 
 								<button
 									onClick={() => goToPage(Math.min(myDashboardsTotalPages, selectedPage + 1))}
@@ -269,7 +305,7 @@ function ProContent({
 									<Icon name="chevrons-right" height={16} width={16} />
 								</button>
 							</div>
-						)}
+						) : null}
 					</>
 				</Suspense>
 			) : activeTab === 'favorites' ? (
@@ -285,7 +321,9 @@ function ProContent({
 			<Suspense fallback={<></>}>
 				<CreateDashboardPicker
 					dialogStore={createDashboardDialogStore}
-					onCreate={handleCreateDashboard}
+					onCreate={(data) => {
+						void handleCreateDashboard(data)
+					}}
 					comparisonPreset={comparisonPreset}
 				/>
 			</Suspense>
@@ -294,14 +332,14 @@ function ProContent({
 				<GenerateDashboardModal
 					isOpen={showGenerateDashboardModal}
 					onClose={() => setShowGenerateDashboardModal(false)}
-					onGenerate={handleGenerateDashboard}
+					onGenerate={(prompt) => {
+						void handleGenerateDashboard(prompt)
+					}}
 				/>
 			</Suspense>
 
-			{shouldRenderModal ? (
-				<Suspense fallback={<></>}>
-					<SubscribeProModal dialogStore={subscribeModalStore} />
-				</Suspense>
+			{paywallState.open ? (
+				<DashboardPaywallModal dialogStore={paywallDialogStore} reason={paywallState.reason} />
 			) : null}
 		</div>
 	)

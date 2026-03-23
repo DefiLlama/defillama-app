@@ -5,6 +5,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from '~/components/Loaders'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 export function YieldsSearch({
 	lend = false,
@@ -52,9 +53,9 @@ export function YieldsSearch({
 		<div className="relative flex flex-col rounded-md">
 			<Ariakit.ComboboxProvider
 				defaultValue={value ?? ''}
-				setValue={(value) => {
+				setValue={(nextValue) => {
 					React.startTransition(() => {
-						setSearchValue(value)
+						setSearchValue(nextValue)
 					})
 				}}
 				open={open}
@@ -77,8 +78,8 @@ export function YieldsSearch({
 
 					<input
 						placeholder={lend ? 'Collateral Token' : 'Token to Borrow'}
-						onChange={(e) => {
-							setSearchValue?.(e.target.value)
+						onInput={(e) => {
+							setSearchValue(e.currentTarget.value)
 						}}
 						className="mb-4 rounded-md border border-(--form-control-border) bg-white p-4 text-base text-black sm:hidden dark:bg-[#22242a] dark:text-white"
 					/>
@@ -120,7 +121,7 @@ interface IInputProps {
 function Input({ placeholder, onSearchTermChange, open, setOpen }: IInputProps) {
 	return (
 		<>
-			<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
+			<button onClick={() => setOpen((prev) => !prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 				{open ? (
 					<>
 						<span className="sr-only">Close Search</span>
@@ -150,9 +151,7 @@ const Row = ({ data, lend, setOpen }) => {
 	const [loading, setLoading] = React.useState(false)
 	const router = useRouter()
 
-	const { lend: _lendQuery, borrow: _borrow, ...queryParams } = router.query
-
-	const [targetParam, restParam] = lend ? ['lend', 'borrow'] : ['borrow', 'lend']
+	const targetParam = lend ? 'lend' : 'borrow'
 
 	return (
 		<Ariakit.ComboboxItem
@@ -163,23 +162,12 @@ const Row = ({ data, lend, setOpen }) => {
 					token: data.symbol,
 					type: lend ? 'lend' : 'borrow'
 				})
-				router
-					.push(
-						{
-							pathname: router.pathname,
-							query: {
-								[targetParam]: data.symbol,
-								[restParam]: router.query[restParam] || '',
-								...queryParams
-							}
-						},
-						undefined,
-						{ shallow: true }
-					)
-					.then(() => {
-						setLoading(false)
-						setOpen(false)
-					})
+				void pushShallowQuery(router, {
+					[targetParam]: data.symbol
+				}).then(() => {
+					setLoading(false)
+					setOpen(false)
+				})
 			}}
 			focusOnHover
 			disabled={loading}

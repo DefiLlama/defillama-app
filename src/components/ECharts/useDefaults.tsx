@@ -70,7 +70,7 @@ interface IUseDefaultsProps {
 	unlockTokenSymbol?: string
 	isThemeDark: boolean
 	hideOthersInTooltip?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	alwaysShowTooltip?: boolean
 	showAggregateInTooltip?: boolean
 	xAxisType?: 'time' | 'category'
@@ -205,7 +205,7 @@ export function useDefaults({
 				const mcap = params.filter((param) => param.seriesName === 'Mcap')?.[0]?.value[1]
 				const tvl = params.filter((param) => param.seriesName === 'TVL')?.[0]?.value[1]
 
-				if (mcap && mcap != '-' && tvl) {
+				if (mcap && mcap !== '-' && tvl) {
 					vals += `<li style="list-style:none">Mcap/TVL&nbsp;&nbsp;${Number(mcap / tvl).toFixed(2)}</li>`
 				}
 
@@ -471,7 +471,3 @@ export function useDefaults({
 
 	return defaults
 }
-
-// Re-export formatters for backward compatibility
-// New code should import directly from '~/components/ECharts/formatters'
-export { formatTooltipValue, formatTooltipChartDate, formatChartEmphasisDate } from './formatters'

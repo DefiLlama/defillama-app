@@ -1,5 +1,5 @@
 import * as echarts from 'echarts/core'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
@@ -20,6 +20,7 @@ export default function AreaChart({
 	stackColors,
 	valueSymbol = '',
 	title,
+	headingAs,
 	color,
 	hallmarks,
 	customLegendName,
@@ -32,7 +33,8 @@ export default function AreaChart({
 	isStackedChart,
 	hideGradient = false,
 	hideOthersInTooltip,
-	hideLegend = true,
+	hideDefaultLegend,
+	hideLegend: hideLegendProp,
 	hideDataZoom = false,
 	hideDownloadButton = false,
 	containerClassName,
@@ -44,11 +46,17 @@ export default function AreaChart({
 	...props
 }: IChartProps) {
 	const id = useId()
+	const hideLegend = hideLegendProp ?? hideDefaultLegend ?? true
 	const shouldEnableCSVDownload = !hideDownloadButton
 	const shouldEnableImageExport = enableImageExport ?? shouldEnableCSVDownload
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 
 	const [legendOptions, setLegendOptions] = useState(customLegendOptions)
+	const [prevCustomLegendOptions, setPrevCustomLegendOptions] = useState(customLegendOptions)
+	if (customLegendOptions !== prevCustomLegendOptions) {
+		setPrevCustomLegendOptions(customLegendOptions)
+		setLegendOptions(customLegendOptions)
+	}
 
 	const chartsStack = stacks || customLegendOptions
 
@@ -69,7 +77,7 @@ export default function AreaChart({
 		const chartColor = color || stringToColour()
 
 		if (!chartsStack || chartsStack.length === 0) {
-			const series = {
+			const lineSeries = {
 				name: '',
 				type: 'line',
 				stack: 'value',
@@ -157,17 +165,17 @@ export default function AreaChart({
 			}
 
 			for (const [date, value] of chartData ?? []) {
-				series.data.push([+date * 1e3, value])
+				lineSeries.data.push([+date * 1e3, value])
 			}
 
-			return series
+			return lineSeries
 		} else {
-			const series = {}
-			let index = 0
+			const stackedSeries = {}
+			let seriesIndex = 0
 			for (const token of chartsStack) {
 				const stackColor = stackColors?.[token]
 
-				series[token] = {
+				stackedSeries[token] = {
 					name: token,
 					type: 'line',
 					emphasis: {
@@ -177,7 +185,7 @@ export default function AreaChart({
 					symbol: 'none',
 					connectNulls,
 					itemStyle: {
-						color: stackColor ? stackColor : index === 0 ? chartColor : null
+						color: stackColor ? stackColor : seriesIndex === 0 ? chartColor : null
 					},
 					stack: isStackedChart ? 'Total' : undefined,
 					lineStyle: undefined,
@@ -190,7 +198,7 @@ export default function AreaChart({
 										? new echarts.graphic.LinearGradient(0, 0, 0, 1, [
 												{
 													offset: 0,
-													color: stackColor ? stackColor : index === 0 ? chartColor : 'transparent'
+													color: stackColor ? stackColor : seriesIndex === 0 ? chartColor : 'transparent'
 												},
 												{
 													offset: 1,
@@ -238,7 +246,7 @@ export default function AreaChart({
 										])
 									}
 								: {
-										data: hallmarks.map(([date, event], index) => [
+										data: hallmarks.map(([date, event], hallmarkIndex) => [
 											{
 												name: event,
 												xAxis: +date * 1e3,
@@ -254,37 +262,44 @@ export default function AreaChart({
 												name: 'end',
 												xAxis: +date * 1e3,
 												yAxis: 'max',
-												y: Math.max(hallmarks.length * 40 - index * 40, 40)
+												y: Math.max(hallmarks.length * 40 - hallmarkIndex * 40, 40)
 											}
 										])
 									}
 					})
 				}
-				index++
+				seriesIndex++
 			}
 
+			const legendOptionsSet = legendOptions ? new Set(legendOptions) : null
 			for (const { date, ...item } of chartData) {
-				const sumOfTheDay = Object.values(item).reduce((acc: number, curr: number) => (acc += curr), 0) as number
+				let sumOfTheDay = 0
+				for (const stack of chartsStack) {
+					const rawValue = item[stack]
+					if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+						sumOfTheDay += rawValue
+					}
+				}
 
 				for (const stack of chartsStack) {
-					if ((legendOptions && customLegendName ? legendOptions.includes(stack) : true) && series[stack]) {
+					if ((legendOptionsSet && customLegendName ? legendOptionsSet.has(stack) : true) && stackedSeries[stack]) {
 						const rawValue = item[stack] || 0
 
 						const value = expandTo100Percent ? (sumOfTheDay ? (rawValue / sumOfTheDay) * 100 : 0) : rawValue
 						if (expandTo100Percent) {
-							series[stack].stack = 'A'
-							series[stack].areaStyle = {}
-							series[stack].lineStyle = {
-								...series[stack].lineStyle,
+							stackedSeries[stack].stack = 'A'
+							stackedSeries[stack].areaStyle = {}
+							stackedSeries[stack].lineStyle = {
+								...stackedSeries[stack].lineStyle,
 								width: 0
 							}
 						}
-						series[stack].data.push([+date * 1e3, value])
+						stackedSeries[stack].data.push([+date * 1e3, value])
 					}
 				}
 			}
 
-			return Object.values(series)
+			return Object.values(stackedSeries)
 		}
 	}, [
 		chartData,
@@ -302,21 +317,17 @@ export default function AreaChart({
 	])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
-	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
 	const hasNotifiedReadyRef = useRef(false)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
 	const exportFilename = imageExportFilename || (title ? slug(title) : 'chart')
 	const exportTitle = imageExportTitle || title
-	const updateExportInstanceRef = useRef((instance: echarts.ECharts | null) => {
-		if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
-	})
-	updateExportInstanceRef.current = (instance: echarts.ECharts | null) => {
-		if (shouldEnableImageExport || shouldEnableCSVDownload) handleChartReady(instance)
-	}
+	const shouldSyncChartInstance = shouldEnableImageExport || shouldEnableCSVDownload
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -325,36 +336,39 @@ export default function AreaChart({
 		let instance = echarts.getInstanceByDom(chartDom)
 		const isNewInstance = !instance
 		if (!instance) {
-			instance = echarts.init(chartDom)
+			instance = echarts.init(chartDom, null, { renderer: 'canvas' })
 		}
 		chartRef.current = instance
-		updateExportInstanceRef.current(instance)
+		if (shouldSyncChartInstance) {
+			handleChartReady(instance)
+		}
 
-		if (onReadyRef.current && isNewInstance) {
-			onReadyRef.current(instance)
+		if (isNewInstance) {
+			emitReady(instance)
 			hasNotifiedReadyRef.current = true
 		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'dataZoom') {
 				if (Array.isArray(chartOptions[option])) {
-					if (defaultChartSettings[option]) {
-						defaultChartSettings[option] = [
-							{ ...defaultChartSettings[option][0], ...(chartOptions[option][0] ?? {}) },
-							{ ...defaultChartSettings[option][1], ...(chartOptions[option][1] ?? {}) }
+					if (settings[option]) {
+						settings[option] = [
+							{ ...settings[option][0], ...(chartOptions[option][0] ?? {}) },
+							{ ...settings[option][1], ...(chartOptions[option][1] ?? {}) }
 						]
 					} else {
-						defaultChartSettings[option] = chartOptions[option]
+						settings[option] = chartOptions[option]
 					}
 				}
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
-		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = defaultChartSettings
+		const { grid, graphic, tooltip, xAxis, yAxis, dataZoom, legend } = settings
 
 		instance.setOption({
 			graphic,
@@ -380,15 +394,28 @@ export default function AreaChart({
 			dataZoom: hideDataZoom ? [] : [...dataZoom],
 			series
 		})
-	}, [defaultChartSettings, series, chartOptions, expandTo100Percent, hideLegend, hideDataZoom, id, chartsStack])
+	}, [
+		defaultChartSettings,
+		series,
+		chartOptions,
+		expandTo100Percent,
+		hideLegend,
+		hideDataZoom,
+		id,
+		chartsStack,
+		shouldSyncChartInstance,
+		handleChartReady
+	])
 
 	useChartCleanup(id, () => {
 		chartRef.current = null
 		if (hasNotifiedReadyRef.current) {
-			onReadyRef.current?.(null)
+			emitReady(null)
 			hasNotifiedReadyRef.current = false
 		}
-		updateExportInstanceRef.current(null)
+		if (shouldSyncChartInstance) {
+			handleChartReady(null)
+		}
 	})
 
 	const legendTitle = customLegendName === 'Category' && legendOptions.length > 1 ? 'Categories' : customLegendName
@@ -405,6 +432,7 @@ export default function AreaChart({
 				showHeader ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						customComponents={
 							customLegendName && customLegendOptions?.length > 1 ? (
 								<SelectWithCombobox

@@ -1,5 +1,4 @@
-import { keepNeededProperties } from '~/api/shared'
-import { formatNum, formattedNum, getPercentChange, slug } from '~/utils'
+import { formatNum, formattedNum, getPercentChange, keepNeededProperties, slug } from '~/utils'
 import type { StablecoinChartPoint, StablecoinListAsset, StablecoinPricesResponse } from './api.types'
 
 interface IStablecoinToken {
@@ -223,7 +222,9 @@ export function getPrevStablecoinTotalFromChart(
 		if (!issuanceTotals || typeof issuanceTotals !== 'object') return null
 		const totalsRecord = issuanceTotals as Record<string, unknown>
 		let total = 0
-		for (const value of Object.values(totalsRecord)) {
+		for (const key in totalsRecord) {
+			if (!Object.hasOwn(totalsRecord, key)) continue
+			const value = totalsRecord[key]
 			const numeric = typeof value === 'number' ? value : Number(value)
 			if (Number.isFinite(numeric)) total += numeric
 		}
@@ -263,8 +264,10 @@ export const getStablecoinTopTokenFromChartData = (
 	let topSymbol = DEFAULT_TOP_TOKEN.symbol
 	let topMcap = DEFAULT_TOP_TOKEN.mcap
 
-	for (const [key, rawValue] of Object.entries(latestRow)) {
+	for (const key in latestRow) {
+		if (!Object.prototype.hasOwnProperty.call(latestRow, key)) continue
 		if (key === 'date') continue
+		const rawValue = latestRow[key]
 		const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
 		if (!Number.isFinite(value) || value <= topMcap) continue
 		topMcap = value
@@ -378,7 +381,7 @@ export const buildStablecoinChartData = ({
 
 						unformattedTotalData[date] = (unformattedTotalData[date] ?? 0) + mcap
 
-						if (stackedDatasetObject[date] == undefined) {
+						if (stackedDatasetObject[date] == null) {
 							stackedDatasetObject[date] = {}
 						}
 						const unreleasedValue =
@@ -457,7 +460,12 @@ export const buildStablecoinChartData = ({
 				zeroUsdInflows++
 			}
 
-			if (Object.keys(tokenDayDifference).length === 0) {
+			let hasTokenDayDifference = false
+			for (const _token in tokenDayDifference) {
+				hasTokenDayDifference = true
+				break
+			}
+			if (!hasTokenDayDifference) {
 				zeroTokenInflows++
 			}
 
@@ -560,15 +568,15 @@ export const formatPeggedAssetsData = ({
 		formattedPegged.change_1m = getPercentChange(formattedPegged.mcap, mcapPrevMonth)
 
 		const change_1d_nol =
-			formattedPegged.mcap && mcapPrevDay
+			formattedPegged.mcap != null && mcapPrevDay != null
 				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevDay)), true)
 				: null
 		const change_7d_nol =
-			formattedPegged.mcap && mcapPrevWeek
+			formattedPegged.mcap != null && mcapPrevWeek != null
 				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevWeek)), true)
 				: null
 		const change_1m_nol =
-			formattedPegged.mcap && mcapPrevMonth
+			formattedPegged.mcap != null && mcapPrevMonth != null
 				? formattedNum(String(Number(formattedPegged.mcap) - Number(mcapPrevMonth)), true)
 				: null
 
@@ -674,7 +682,7 @@ export const formatPeggedChainsData = ({
 			: null
 
 		let mcaptvl = mcap && latestChainTVL ? +(formatNum(mcap / latestChainTVL) ?? 0) : null
-		if (mcaptvl == 0) {
+		if (mcaptvl === 0) {
 			mcaptvl = null
 		}
 

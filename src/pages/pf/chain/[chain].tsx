@@ -1,22 +1,23 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
 const type = 'P/F'
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -57,10 +58,9 @@ const pageName = ['Protocols', 'ranked by', type]
 const FeesOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`P/F - ${props.chain} - DefiLlama`}
-			description={`P/F by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`p/f by protocol on ${props.chain}`}
-			canonicalUrl={`/pf/chain/${props.chain}`}
+			title={`Price to Fees (P/F) Ratio on ${props.chain} - DefiLlama`}
+			description={`Compare Price to Fees (P/F) ratios for DeFi protocols on ${props.chain}. Evaluate valuations relative to fees generated.`}
+			canonicalUrl={`/pf/chain/${slug(props.chain)}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Metrics"
 			pageName={pageName}

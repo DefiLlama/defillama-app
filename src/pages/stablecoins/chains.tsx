@@ -1,12 +1,12 @@
 import type { GetStaticProps, InferGetStaticPropsType } from 'next'
 import type { ComponentProps } from 'react'
-import { maxAgeForNext } from '~/api'
 import { CHART_COLORS } from '~/constants/colors'
 import { ChainsWithStablecoins } from '~/containers/Stablecoins/ChainsWithStablecoins'
 import { getStablecoinChainsPageData } from '~/containers/Stablecoins/queries.server'
 import { buildStablecoinChartData, getPrevStablecoinTotalFromChart } from '~/containers/Stablecoins/utils'
 import Layout from '~/layout'
 import { formattedNum, getPercentChange } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type StablecoinChainsPageProps = ComponentProps<typeof ChainsWithStablecoins>
@@ -88,9 +88,8 @@ const pageName = ['Chains', 'ranked by', 'Stablecoins Supply']
 export default function StablecoinChainsPage(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Stablecoins Circulating - DefiLlama"
-			description="Stablecoins Circulating by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="stablecoins circulating by chain, stablecoins supply by chain, stablecoins market cap by chain"
+			title={`Stablecoins by Chain - Market Cap & Supply - DefiLlama`}
+			description={`Compare stablecoin market cap, circulating supply, and usage across blockchains. Analyze stablecoin distribution, inflows, and trends by chain with transparent data from DefiLlama.`}
 			canonicalUrl="/stablecoins/chains"
 			pageName={pageName}
 		>

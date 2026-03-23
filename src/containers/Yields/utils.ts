@@ -375,7 +375,7 @@ export const findStrategyPools = ({ pools, tokenToLend, tokenToBorrow, allPools,
 	}
 	// keep looping strategies only if no tokenToBorrow is given or if they both match
 	const loopPoolsFiltered =
-		tokenToBorrow !== tokenToLend && tokenToBorrow.length > 0
+		tokenToBorrow !== tokenToLend && tokenToBorrow?.length > 0
 			? []
 			: loopPools
 					.filter((p) => matchesToken(p.symbol, tokenToLend))
@@ -624,8 +624,18 @@ export const lockupsCollateral = [
 ]
 export const badDebt = ['moonwell-apollo', 'inverse-finance', 'venus', 'iron-bank']
 
+export const exploitedProjects = ['resolv-protocol']
+export const exploitedTokens = ['USR']
+
+export function isExploitedPool(project: string, symbol: string): boolean {
+	return exploitedProjects.includes(project) || exploitedTokens.some((t) => symbol?.toUpperCase().includes(t))
+}
+
 export const disclaimer =
 	"DefiLlama doesn't audit nor endorse any of the protocols listed, we just focus on providing accurate data. Ape at your own risk."
+
+export const exploitWarning =
+	"USR is depegging following an exploit on Resolv (unauthorized minting of 50M unbacked USR). Protocol functions are paused. Follow Resolv's X for updates."
 
 export const earlyExit =
 	'Rewards are calculated assuming an early exit penalty applies. So this is the minimum APY you can expect when claiming your rewards early.'

@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { fileURLToPath } from 'url'
-import { LIQUIDATIONS_HISTORICAL_R2_PATH } from '../../constants'
+import { getLiquidationsHistoricalBaseUrl } from './api'
 import { DEFAULT_ASSETS_LIST_RAW } from './constants'
 
 type TotalsBySymbol = Record<string, number>
@@ -160,13 +160,14 @@ function replaceExportedConstArray(source: string, constName: string, newArray: 
 }
 
 async function getTotalsBySymbol(symbols: string[]): Promise<TotalsBySymbol> {
+	const baseUrl = getLiquidationsHistoricalBaseUrl()
 	const entries = await mapLimit(symbols, 10, async (symbol) => {
 		const key = symbol.toLowerCase()
 		try {
 			const data = await fetchJson<{
 				currentPrice: number
 				positions: Array<{ liqPrice: number; collateralValue: number }>
-			}>(`${LIQUIDATIONS_HISTORICAL_R2_PATH}/${key}/latest.json`)
+			}>(`${baseUrl}/${key}/latest.json`)
 			const currentPrice = typeof data.currentPrice === 'number' ? data.currentPrice : 0
 			const positions = Array.isArray(data.positions) ? data.positions : []
 			const valid = positions.filter((p) => p.liqPrice <= currentPrice && p.liqPrice > currentPrice / 1_000_000)

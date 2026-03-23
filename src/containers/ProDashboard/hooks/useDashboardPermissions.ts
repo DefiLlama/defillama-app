@@ -12,23 +12,26 @@ export function useDashboardPermissions(dashboard: Dashboard | null): DashboardP
 	const { user, isAuthenticated, hasActiveSubscription } = useAuthContext()
 
 	return useMemo<DashboardPermissions>(() => {
+		// New dashboard (no existing dashboard loaded)
 		if (!dashboard) {
 			return {
-				isReadOnly: !hasActiveSubscription,
-				isOwner: hasActiveSubscription,
+				isReadOnly: !isAuthenticated,
+				isOwner: isAuthenticated,
 				dashboardOwnerId: null
 			}
 		}
 
+		// Public dashboards: any authenticated owner can edit (free or subscribed)
 		if (dashboard.visibility === 'public') {
 			const isOwner = isAuthenticated && user?.id === dashboard.user
 			return {
 				isReadOnly: !isOwner,
-				isOwner: isOwner && hasActiveSubscription,
+				isOwner,
 				dashboardOwnerId: dashboard.user
 			}
 		}
 
+		// Private dashboards: still require subscription for edit access
 		const isOwner = isAuthenticated && user?.id === dashboard.user
 		return {
 			isReadOnly: !isOwner || !hasActiveSubscription,

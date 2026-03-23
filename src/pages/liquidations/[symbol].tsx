@@ -1,8 +1,8 @@
 import type { GetStaticPaths, GetStaticProps, NextPage } from 'next'
-import { maxAgeForNext } from '~/api'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { LinkPreviewCard } from '~/components/SEO'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { LiquidationsContainer } from '~/containers/Liquidations'
 import {
 	getLatestLiquidationsChartData,
@@ -13,7 +13,9 @@ import { LiqPositionsTable, LiqProtocolsTable } from '~/containers/Liquidations/
 import { type ChartData, buildLiquidationsChartSeries } from '~/containers/Liquidations/utils'
 import { LIQS_SETTINGS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, liquidationsIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { liquidationsIconUrl } from '~/utils/icons'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 type LiquidationsNavLink = { label: string; to: string; symbol: string }
@@ -40,7 +42,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -75,15 +77,14 @@ const LiquidationsHomePage: NextPage<{
 	return (
 		<Layout
 			title={`${nameAndSymbol} Liquidation Levels - DefiLlama`}
-			description={`${nameAndSymbol} Liquidation Levels on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${nameAndSymbol.toLowerCase()} liquidation levels, liquidation levels on blockchain`}
+			description={`Track ${nameAndSymbol} liquidation levels across DeFi lending protocols. View at-risk positions and liquidation thresholds.`}
 			canonicalUrl={`/liquidations/${data.symbol.toLowerCase()}`}
 			pageName={pageName}
 		>
 			<LinkPreviewCard
 				liqsPage
 				cardName={nameAndSymbol}
-				logo={'https://defillama.com' + liquidationsIconUrl(data.symbol.toLowerCase(), true)}
+				logo={`https://defillama.com${liquidationsIconUrl(data.symbol, 64)}`}
 				tvl={formattedNum(data.totalLiquidable, true)}
 			/>
 

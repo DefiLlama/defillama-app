@@ -2,7 +2,7 @@ import { PieChart as EPieChart } from 'echarts/charts'
 import { GraphicComponent, GridComponent, LegendComponent, TitleComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useId, useMemo, useRef } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
@@ -11,8 +11,8 @@ import { useMedia } from '~/hooks/useMedia'
 import { formattedNum } from '~/utils'
 import { ChartContainer } from '../ChartContainer'
 import { ChartHeader } from '../ChartHeader'
+import { formatTooltipValue } from '../formatters'
 import type { IPieChartProps } from '../types'
-import { formatTooltipValue } from '../useDefaults'
 
 echarts.use([
 	CanvasRenderer,
@@ -29,6 +29,7 @@ export default function PieChart({
 	stackColors,
 	chartData,
 	title,
+	headingAs,
 	valueSymbol = '$',
 	radius = null,
 	showLegend = false,
@@ -68,6 +69,9 @@ export default function PieChart({
 		exportButtonsConfig?.filename || (title ? title.replace(/\s+/g, '-').toLowerCase() : 'pie-chart')
 	const exportTitle = exportButtonsConfig?.pngTitle || title
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const emitReady = useEffectEvent((instance: echarts.ECharts | null) => {
+		onReady?.(instance)
+	})
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
@@ -108,18 +112,26 @@ export default function PieChart({
 			}
 
 		const fontSize = typeof legendTextStyle?.fontSize === 'number' ? legendTextStyle.fontSize : 12
-		const fontFamily = (legendTextStyle as any)?.fontFamily || 'sans-serif'
-		const fontWeight = (legendTextStyle as any)?.fontWeight || 400
+		const fontFamilyRaw = legendTextStyle?.fontFamily
+		const fontWeightRaw = legendTextStyle?.fontWeight
+		const fontFamily = typeof fontFamilyRaw === 'string' ? fontFamilyRaw : 'sans-serif'
+		const fontWeight = typeof fontWeightRaw === 'number' || typeof fontWeightRaw === 'string' ? fontWeightRaw : 400
 		// Keep this small so we don't over-truncate names.
 		const iconAndPaddingPx = 22
+		const fallbackWidth = (text: string) => text.length * fontSize * 0.58
+		const measureCtx =
+			typeof document === 'undefined'
+				? null
+				: (() => {
+						const canvas = document.createElement('canvas')
+						return canvas.getContext('2d')
+					})()
+		if (measureCtx) {
+			measureCtx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
+		}
 
 		const safeMeasure = (text: string) => {
-			if (typeof document === 'undefined') return text.length * fontSize * 0.58
-			const canvas = document.createElement('canvas')
-			const ctx = canvas.getContext('2d')
-			if (!ctx) return text.length * fontSize * 0.58
-			ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
-			return ctx.measureText(text).width
+			return measureCtx ? measureCtx.measureText(text).width : fallbackWidth(text)
 		}
 
 		const truncateToWidth = (text: string, maxWidthPx: number) => {
@@ -171,7 +183,7 @@ export default function PieChart({
 		return {
 			legendBoxWidth: boxWidth,
 			legendLabelByName: out,
-			legendAlign: (needsTruncation ? 'left' : 'right') as 'left' | 'right'
+			legendAlign: needsTruncation ? 'left' : 'right'
 		}
 	}, [showLegend, isSmall, legendPosition, legendTextStyle, toRight, chartData, percentByName])
 
@@ -235,50 +247,118 @@ export default function PieChart({
 		return series
 	}, [isDark, showLegend, chartData, radius, stackColors, isSmall, reservedRight, formatPercent, customLabel])
 
+	const isChartDisposed = (inst: echarts.ECharts | null) => {
+		if (!inst) return true
+		if (typeof inst.isDisposed !== 'function') {
+			if (process.env.NODE_ENV === 'development') {
+				console.warn('ECharts instance missing isDisposed method — treating as disposed')
+			}
+			return true
+		}
+		return inst.isDisposed()
+	}
+
+	const computePieCenterPx = (inst: echarts.ECharts, reserved: number) => {
+		const w = inst.getWidth()
+		const h = inst.getHeight()
+		const availableW = Math.max(1, w - reserved)
+
+		// Center within the drawable pie area (excluding reserved legend width).
+		// This keeps the pie visually centered and avoids big left-side dead space,
+		// especially for small legends (e.g. the unlocked donut).
+		const cx = Math.round(availableW / 2)
+		const cy = Math.round(h / 2)
+		return { cx, cy, w, h }
+	}
+
 	useEffect(() => {
-		// create instance
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
+		handleChartReady(instance)
+		emitReady(instance)
 
-		if (onReady) {
-			onReady(instance)
+		return () => {
+			chartRef.current = null
+			instance.dispose()
+			handleChartReady(null)
+			emitReady(null)
 		}
+	}, [id, handleChartReady])
 
-		const getReservedRight = () => {
-			return reservedRight
-		}
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance || isChartDisposed(instance)) return
 
-		const computePieCenterPx = () => {
-			const inst = chartRef.current
-			if (!inst) return null
-			const reserved = getReservedRight()
-			const w = inst.getWidth()
-			const h = inst.getHeight()
-			const availableW = Math.max(1, w - reserved)
+		instance.setOption({
+			tooltip: {
+				trigger: 'item',
+				confine: true,
+				formatter: (params: any) => {
+					if (formatTooltip) return formatTooltip(params)
+					const p = Array.isArray(params) ? params[0] : params
+					const rawValue = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
+					const formattedValue = formatTooltipValue(rawValue, valueSymbol)
+					return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${formattedValue}</b> (${params.percent}%)`
+				}
+			},
+			grid: {
+				left: 0,
+				outerBoundsMode: 'same',
+				outerBoundsContain: 'axisLabel',
+				bottom: 0,
+				top: 0,
+				right: 0
+			},
+			legend: {
+				show: showLegend,
+				type: 'scroll',
+				right: 12,
+				orient: 'vertical', // Default
+				data: chartData.map((item) => item.name),
+				icon: 'circle',
+				itemWidth: 10,
+				itemHeight: 10,
+				itemGap: 10,
+				// If everything fits, right-align looks cleaner. If truncated, left-align maximizes readable label length.
+				align: legendAlign,
+				textStyle: {
+					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)', // Default color
+					...(legendTextStyle || {}) // Apply overrides from prop
+				},
+				formatter: function (name: string) {
+					return legendLabelByName[name] ?? String(name)
+				},
+				...(legendBoxWidth > 0 ? { width: legendBoxWidth } : {}),
+				...legendPosition // Apply overrides from prop (left/right/top/bottom/orient)
+			},
+			series
+		})
+	}, [
+		series,
+		isDark,
+		valueSymbol,
+		showLegend,
+		chartData,
+		legendPosition,
+		legendTextStyle,
+		formatTooltip,
+		legendBoxWidth,
+		legendLabelByName,
+		legendAlign
+	])
 
-			// Center within the drawable pie area (excluding reserved legend width).
-			// This keeps the pie visually centered and avoids big left-side dead space,
-			// especially for small legends (e.g. the unlocked donut).
-			const cx = Math.round(availableW / 2)
-			const cy = Math.round(h / 2)
-			return { cx, cy, w, h, availableW }
-		}
+	useEffect(() => {
+		const instance = chartRef.current
+		if (!instance || isChartDisposed(instance)) return
 
 		const setWatermark = () => {
-			// If we got disposed/unmounted, bail out (resize can race with cleanup/RAF).
-			if (!chartRef.current || typeof (chartRef.current as any).getWidth !== 'function') return
-			// ECharts exposes `isDisposed()` on instances.
-			if (typeof (chartRef.current as any).isDisposed === 'function' && (chartRef.current as any).isDisposed()) return
+			if (!chartRef.current || isChartDisposed(chartRef.current)) return
 
-			const center = computePieCenterPx()
-			if (!center) return
-			const { cx, cy, w, h } = center
-
+			const { cx, cy, w, h } = computePieCenterPx(chartRef.current, reservedRight)
 			// Keep the watermark consistent with MultiSeriesChart2 (40px high on desktop),
 			// and only scale down when the chart is extremely small.
-			const reservedRight = getReservedRight()
 			const minDim = Math.max(1, Math.min(h, w - reservedRight))
 			// Match MultiSeriesChart2: 40px-high watermark with natural aspect ratio.
 			const baseHeight = 40
@@ -321,15 +401,22 @@ export default function PieChart({
 		}
 
 		const setPieCenter = () => {
-			const inst = chartRef.current
-			if (!inst) return
-			if (typeof (inst as any).isDisposed === 'function' && (inst as any).isDisposed()) return
-			if (!showLegend || isSmall || reservedRight <= 0) return
+			if (!chartRef.current || isChartDisposed(chartRef.current)) return
 
-			const center = computePieCenterPx()
-			if (!center) return
+			if (!showLegend || isSmall || reservedRight <= 0) {
+				chartRef.current.setOption(
+					{
+						series: {
+							center: ['50%', '50%']
+						}
+					},
+					{ lazyUpdate: true }
+				)
+				return
+			}
 
-			inst.setOption(
+			const center = computePieCenterPx(chartRef.current, reservedRight)
+			chartRef.current.setOption(
 				{
 					series: {
 						// Keep y centered; x is computed in pixels for consistent gap control.
@@ -340,99 +427,25 @@ export default function PieChart({
 			)
 		}
 
-		instance.setOption({
-			tooltip: {
-				trigger: 'item',
-				confine: true,
-				formatter: (params: any) => {
-					if (formatTooltip) return formatTooltip(params)
-					const p = Array.isArray(params) ? params[0] : params
-					const rawValue = typeof p?.value === 'number' ? p.value : Number(p?.value ?? 0)
-					const formattedValue = formatTooltipValue(rawValue, valueSymbol)
-					return `${p?.marker ?? ''}${p?.name ?? ''}: <b>${formattedValue}</b> (${params.percent}%)`
-				}
-			},
-			grid: {
-				left: 0,
-				outerBoundsMode: 'same',
-				outerBoundsContain: 'axisLabel',
-				bottom: 0,
-				top: 0,
-				right: 0
-			},
-			legend: {
-				show: showLegend,
-				type: 'scroll',
-				right: 12,
-				orient: 'vertical', // Default
-				data: chartData.map((item) => item.name),
-				icon: 'circle',
-				itemWidth: 10,
-				itemHeight: 10,
-				itemGap: 10,
-				// If everything fits, right-align looks cleaner. If truncated, left-align maximizes readable label length.
-				align: legendAlign,
-				textStyle: {
-					color: isDark ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 0, 0, 1)', // Default color
-					...(legendTextStyle || {}) // Apply overrides from prop
-				},
-				formatter: function (name) {
-					return legendLabelByName[name] ?? String(name)
-				},
-				...(legendBoxWidth > 0 ? { width: legendBoxWidth } : {}),
-				...legendPosition // Apply overrides from prop (left/right/top/bottom/orient)
-			},
-			series
-		})
+		const syncLayout = () => {
+			setPieCenter()
+			setWatermark()
+		}
 
-		// Apply layout after options are applied, and keep it stable on resize.
-		setPieCenter()
-		setWatermark()
+		syncLayout()
+
 		let raf = 0
 		const onResize = () => {
 			if (raf) cancelAnimationFrame(raf)
-			raf = requestAnimationFrame(() => {
-				setPieCenter()
-				setWatermark()
-			})
+			raf = requestAnimationFrame(syncLayout)
 		}
 		window.addEventListener('resize', onResize)
-
-		handleChartReady(instance)
 
 		return () => {
 			window.removeEventListener('resize', onResize)
 			if (raf) cancelAnimationFrame(raf)
-			chartRef.current = null
-			instance.dispose()
-			handleChartReady(null)
-			if (onReady) {
-				onReady(null)
-			}
 		}
-	}, [
-		id,
-		series,
-		isDark,
-		title,
-		valueSymbol,
-		showLegend,
-		chartData,
-		legendPosition,
-		legendTextStyle,
-		toRight,
-		formatTooltip,
-		customLabel,
-		radius,
-		isSmall,
-		legendBoxWidth,
-		legendLabelByName,
-		legendAlign,
-		reservedRight,
-		handleChartReady,
-		onReady,
-		percentByName
-	])
+	}, [showLegend, isSmall, reservedRight, isDark])
 
 	return (
 		<ChartContainer
@@ -443,6 +456,7 @@ export default function PieChart({
 				title || imageExportEnabled || csvDownloadEnabled ? (
 					<ChartHeader
 						title={title}
+						headingAs={headingAs}
 						className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0"
 						exportButtons={
 							<ChartExportButtons

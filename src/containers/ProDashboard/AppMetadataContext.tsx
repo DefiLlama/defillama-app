@@ -1,5 +1,5 @@
-import * as React from 'react'
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { createContext, useCallback, useContext, useMemo, useState } from 'react'
 import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
@@ -64,57 +64,59 @@ async function fetchJson<T>(url: string): Promise<T> {
 	return res.json()
 }
 
-export function AppMetadataProvider({ children }: { children: React.ReactNode }) {
-	const [protocolsRaw, setProtocolsRaw] = useState<Record<string, any> | null>(null)
-	const [chainsRaw, setChainsRaw] = useState<Record<string, any> | null>(null)
-	const [pfPsProtocols, setPfPsProtocols] = useState<{ pf: Set<string>; ps: Set<string> }>({
-		pf: new Set(),
-		ps: new Set()
-	})
-	const [loading, setLoading] = useState(true)
-	const [error, setError] = useState<string | undefined>(undefined)
-
-	useEffect(() => {
-		let cancelled = false
-		setLoading(true)
-		setError(undefined)
-
-		const fetchPfPs = async (): Promise<{ pf: string[]; ps: string[] }> => {
-			try {
-				const res = await fetch('/api/dashboard/pf-ps-protocols')
-				if (!res.ok) return { pf: [], ps: [] }
-				return res.json()
-			} catch {
-				return { pf: [], ps: [] }
+export function AppMetadataProvider({
+	children,
+	initialData
+}: {
+	children: React.ReactNode
+	initialData?: {
+		protocols: Record<string, any>
+		chains: Record<string, any>
+		pfPs: { pf: string[]; ps: string[] }
+	} | null
+}) {
+	const [mountedAt] = useState(Date.now)
+	const {
+		data: rawData,
+		isLoading: loading,
+		error: queryError
+	} = useQuery({
+		queryKey: ['pro-dashboard', 'app-metadata'],
+		queryFn: async () => {
+			const fetchPfPs = async (): Promise<{ pf: string[]; ps: string[] }> => {
+				try {
+					const res = await fetch('/api/dashboard/pf-ps-protocols')
+					if (!res.ok) return { pf: [], ps: [] }
+					return res.json()
+				} catch {
+					return { pf: [], ps: [] }
+				}
 			}
-		}
 
-		Promise.all([
-			fetchJson<Record<string, any>>('https://api.llama.fi/config/smol/appMetadata-protocols.json'),
-			fetchJson<Record<string, any>>('https://api.llama.fi/config/smol/appMetadata-chains.json'),
-			fetchPfPs()
-		])
-			.then(([protocols, chains, pfPs]) => {
-				if (cancelled) return
-				setProtocolsRaw(protocols)
-				setChainsRaw(chains)
-				setPfPsProtocols({
-					pf: new Set(pfPs.pf || []),
-					ps: new Set(pfPs.ps || [])
-				})
-			})
-			.catch((e) => {
-				if (cancelled) return
-				setError(String(e?.message || e))
-			})
-			.finally(() => {
-				if (cancelled) return
-				setLoading(false)
-			})
-		return () => {
-			cancelled = true
-		}
-	}, [])
+			const [protocols, chains, pfPs] = await Promise.all([
+				fetchJson<Record<string, any>>('https://api.llama.fi/config/smol/appMetadata-protocols.json'),
+				fetchJson<Record<string, any>>('https://api.llama.fi/config/smol/appMetadata-chains.json'),
+				fetchPfPs()
+			])
+
+			return { protocols, chains, pfPs }
+		},
+		initialData: initialData ?? undefined,
+		staleTime: initialData ? Infinity : 0,
+		initialDataUpdatedAt: initialData ? mountedAt : undefined
+	})
+
+	const error = queryError ? String(queryError.message) : undefined
+	const protocolsRaw = rawData?.protocols ?? null
+	const chainsRaw = rawData?.chains ?? null
+	const pfPsRaw = rawData?.pfPs
+	const pfPsProtocols = useMemo(
+		() => ({
+			pf: new Set<string>(pfPsRaw?.pf || []),
+			ps: new Set<string>(pfPsRaw?.ps || [])
+		}),
+		[pfPsRaw]
+	)
 
 	const { protocolsBySlug, chainsByName } = useMemo(() => {
 		const protocolsBySlug = new Map<string, ProtocolRecord>()

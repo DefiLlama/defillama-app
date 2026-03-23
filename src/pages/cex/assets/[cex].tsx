@@ -1,7 +1,6 @@
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { createAggregateTooltipFormatter, createInflowsTooltipFormatter } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
@@ -9,14 +8,17 @@ import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { oldBlue } from '~/constants/colors'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
@@ -38,7 +40,7 @@ export const getStaticProps = withPerformanceLogging(
 	'cex/assets/[cex]',
 	async ({ params }: GetStaticPropsContext<{ cex: string }>) => {
 		if (!params?.cex) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const exchangeName = params.cex
@@ -55,7 +57,7 @@ export const getStaticProps = withPerformanceLogging(
 		const protocolData = await fetchProtocolOverviewMetrics(exchangeName)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		return {
@@ -72,11 +74,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -111,7 +113,7 @@ function ChainsChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Chains</h1>
+				<h2 className="mr-auto text-base font-semibold">Chains</h2>
 				{allChains.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allChains}
@@ -162,7 +164,7 @@ function TokenValuesUSDChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Token Values (USD)</h1>
+				<h2 className="mr-auto text-base font-semibold">Token Values (USD)</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -215,7 +217,7 @@ function TokensBreakdownPieChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Tokens Breakdown</h1>
+				<h2 className="mr-auto text-base font-semibold">Tokens Breakdown</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -259,7 +261,7 @@ function TokenBalancesRawChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Token Balances (Raw Quantities)</h1>
+				<h2 className="mr-auto text-base font-semibold">Token Balances (Raw Quantities)</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -297,7 +299,7 @@ function USDInflowsChartCard({ protocolName, dataset }: { protocolName: string; 
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">USD Inflows</h1>
+				<h2 className="mr-auto text-base font-semibold">USD Inflows</h2>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -336,7 +338,7 @@ function InflowsByTokenChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Inflows by Token</h1>
+				<h2 className="mr-auto text-base font-semibold">Inflows by Token</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -402,9 +404,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 
 	const toggleIncludeOwnTokens = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const nextIncludeOwnTokens = event.currentTarget.checked
-		const { includeOwnTokens: _inc, ...restQuery } = router.query
-		const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		void pushShallowQuery(router, { includeOwnTokens: nextIncludeOwnTokens ? 'true' : undefined })
 	}
 	const hasBreakdownMetrics =
 		(chainsDataset && chainsUnique?.length > 1) ||
@@ -425,7 +425,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 		>
 			<div className="col-span-full flex items-center justify-end rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="mr-auto flex items-center gap-2">
-					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 					<h1 className="text-xl font-bold">{props.name}</h1>
 				</div>
 
@@ -440,7 +440,7 @@ export default function Protocols(props: CexAssetsPageProps) {
 				) : null}
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			) : !hasBreakdownMetrics ? (

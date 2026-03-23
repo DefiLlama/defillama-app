@@ -3,12 +3,13 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { PaymentButton } from '~/containers/Subscribtion/Crypto'
 import { SignInForm, SignInModal } from '~/containers/Subscribtion/SignIn'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
 import { WalletProvider } from '~/layout/WalletProvider'
-import { BasicLink } from '../Link'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 import { QuestionHelper } from '../QuestionHelper'
 
 const StripeCheckoutModal = lazy(() =>
@@ -20,6 +21,7 @@ interface SubscribeProCardProps {
 	active?: boolean
 	returnUrl?: string
 	onCancelSubscription?: () => void
+	isCancelPending?: boolean
 	billingInterval?: 'year' | 'month'
 	currentBillingInterval?: 'year' | 'month'
 	isTrialAvailable?: boolean
@@ -55,18 +57,18 @@ function SubscribeProCardContent({
 					</span>
 					<span className="ml-1 text-[#8a8c90]">{displayPeriod}</span>
 				</div>
-				{showTrialAvailable && (
+				{showTrialAvailable ? (
 					<div className="flex items-center">
 						<span className="text-sm font-bold">Free 7-day trial available</span>
 					</div>
-				)}
-				{billingInterval === 'year' && (
+				) : null}
+				{billingInterval === 'year' ? (
 					<span className="text-sm text-[#8a8c90]">${(yearlyPrice / 12).toFixed(2)}/month</span>
-				)}
+				) : null}
 			</div>
-			{billingInterval === 'month' && (
+			{billingInterval === 'month' ? (
 				<p className="relative z-10 mt-1 text-center font-medium text-[#8a8c90]">Multiple payment options</p>
-			)}
+			) : null}
 			<div className="mx-auto mb-auto flex w-full flex-col gap-3 py-6 max-sm:text-sm">
 				<h3 className="font-semibold">Access to:</h3>
 				<ul className="flex flex-col gap-3">
@@ -195,7 +197,9 @@ function EndTrialModal({ isOpen, onClose }: EndTrialModalProps) {
 			</div>
 			<div className="mt-2 flex flex-col gap-3">
 				<button
-					onClick={handleEndTrial}
+					onClick={() => {
+						void handleEndTrial()
+					}}
 					disabled={isEndTrialLoading}
 					className="w-full rounded-lg bg-[#5C5CF9] px-4 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0] disabled:cursor-not-allowed disabled:opacity-70"
 				>
@@ -217,6 +221,7 @@ export function SubscribeProCard({
 	context = 'page',
 	active = false,
 	onCancelSubscription,
+	isCancelPending = false,
 	returnUrl: _returnUrl,
 	billingInterval = 'month',
 	currentBillingInterval
@@ -243,7 +248,7 @@ export function SubscribeProCard({
 				{active ? (
 					<div className="flex flex-col gap-2">
 						<span className="text-center font-bold text-green-400">Current Plan</span>
-						{(currentBillingInterval === 'month' || !currentBillingInterval) && (
+						{currentBillingInterval === 'month' || !currentBillingInterval ? (
 							<div className="flex flex-col gap-2">
 								<button
 									className="w-full rounded-lg border border-[#5C5CF9] bg-[#5C5CF9] px-4 py-3 font-medium text-white shadow-xs transition-all duration-200 hover:bg-[#4A4AF0] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
@@ -254,28 +259,30 @@ export function SubscribeProCard({
 								</button>
 								<p className="text-center text-xs text-[#8a8c90]">Switch to annual billing and get 2 months free</p>
 							</div>
-						)}
-						{isTrial && (
+						) : null}
+						{isTrial ? (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#5C5CF9] px-4 py-2 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 								onClick={() => setIsEndingTrialModalOpen(true)}
 							>
 								Upgrade to Full Access
 							</button>
-						)}
-						{onCancelSubscription && (
+						) : null}
+						{isCancelPending ? (
+							<p className="mt-2 text-center text-sm text-yellow-400">Cancellation scheduled</p>
+						) : onCancelSubscription ? (
 							<button
 								className="mt-2 w-full rounded-lg bg-[#222429] px-4 py-2 text-white transition-colors hover:bg-[#39393E]"
 								onClick={onCancelSubscription}
 							>
 								Cancel Subscription
 							</button>
-						)}
+						) : null}
 					</div>
 				) : (
 					<>
 						<SignInModal text="Already a subscriber? Sign In" />
-						{isAuthenticated && isTrialAvailable && (
+						{isAuthenticated && isTrialAvailable ? (
 							<div className="flex flex-col gap-1.5">
 								<button
 									onClick={() => setIsTrialModalOpen(true)}
@@ -285,22 +292,22 @@ export function SubscribeProCard({
 									<QuestionHelper text="CSV downloads are disabled during the trial period." />
 								</button>
 							</div>
-						)}
+						) : null}
 						<div
 							className={`grid gap-3 max-sm:w-full max-sm:grid-cols-1 ${billingInterval === 'year' ? 'grid-cols-1' : 'grid-cols-2'}`}
 						>
 							{context === 'account' ? (
 								<>
-									{billingInterval === 'month' && (
+									{billingInterval === 'month' ? (
 										<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
-									)}
+									) : null}
 									<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
 								</>
 							) : (
 								<>
-									{billingInterval === 'month' && (
+									{billingInterval === 'month' ? (
 										<PaymentButton paymentMethod="llamapay" type="llamafeed" billingInterval={billingInterval} />
-									)}
+									) : null}
 									<PaymentButton paymentMethod="stripe" type="llamafeed" billingInterval={billingInterval} />
 								</>
 							)}
@@ -308,7 +315,7 @@ export function SubscribeProCard({
 					</>
 				)}
 			</div>
-			{isUpgradeModalOpen && (
+			{isUpgradeModalOpen ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isUpgradeModalOpen}
@@ -316,10 +323,11 @@ export function SubscribeProCard({
 						paymentMethod="stripe"
 						type="llamafeed"
 						billingInterval="year"
+						isUpgradeFlow
 					/>
 				</Suspense>
-			)}
-			{isTrialModalOpen && (
+			) : null}
+			{isTrialModalOpen ? (
 				<Suspense fallback={<></>}>
 					<StripeCheckoutModal
 						isOpen={isTrialModalOpen}
@@ -330,7 +338,7 @@ export function SubscribeProCard({
 						isTrial
 					/>
 				</Suspense>
-			)}
+			) : null}
 			<EndTrialModal isOpen={isEndingTrialModalOpen} onClose={() => setIsEndingTrialModalOpen(false)} />
 		</>
 	)
@@ -348,10 +356,12 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 	const [isSignInModalOpen, setIsSignInModalOpen] = useState(false)
 
 	useEffect(() => {
-		if (dialogStore?.getState()?.open && typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('subscribe-modal-open')
+		if (dialogStore?.getState()?.open) {
+			trackUmamiEvent('subscribe-modal-open', {
+				page: router?.asPath
+			})
 		}
-	}, [dialogStore])
+	}, [dialogStore, router?.asPath])
 
 	const finalReturnUrl = returnUrl ?? router.asPath
 
@@ -359,43 +369,49 @@ export function SubscribeProModal({ dialogStore, returnUrl, ...props }: Subscrib
 		<WalletProvider>
 			<Ariakit.DialogProvider store={dialogStore}>
 				<Ariakit.Dialog
-					className="dialog flex max-h-[90dvh] max-w-md flex-col overflow-y-auto rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
+					className="dialog flex max-h-[85dvh] max-w-md flex-col overflow-hidden rounded-xl border border-[#39393E] bg-[#1a1b1f] p-4 text-white shadow-2xl max-sm:drawer max-sm:rounded-b-none sm:p-6"
 					portal
 					unmountOnHide
 					onClose={() => setIsSignInModalOpen(false)}
 				>
-					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col">
+					<span className="mx-auto flex h-full w-full max-w-[440px] flex-col overflow-hidden">
 						{isSignInModalOpen ? (
-							<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
+							<div className="min-h-0 flex-1 overflow-y-auto">
+								<SignInForm text="Already a subscriber? Sign In" dialogStore={dialogStore} returnUrl={finalReturnUrl} />
+							</div>
 						) : (
 							<>
-								<Ariakit.DialogDismiss className="ml-auto rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
+								<Ariakit.DialogDismiss className="ml-auto shrink-0 rounded-full p-1.5 text-[#8a8c90] transition-colors hover:bg-[#39393E] hover:text-white">
 									<Icon name="x" height={18} width={18} />
 									<span className="sr-only">Close</span>
 								</Ariakit.DialogDismiss>
-								<SubscribeProCardContent
-									isAuthenticated={isAuthenticated}
-									isTrialActive={isTrial}
-									billingInterval={props.billingInterval}
-									isTrialAvailable={true}
-								/>
-								<div className="flex flex-col gap-3">
+								<div className="min-h-0 flex-1 overflow-y-auto">
+									<SubscribeProCardContent
+										isAuthenticated={isAuthenticated}
+										isTrialActive={isTrial}
+										billingInterval={props.billingInterval}
+										// Intentionally force the promotional trial copy in the modal; the main
+										// SubscribeProCard path uses useSubscribe() to determine actual eligibility.
+										isTrialAvailable={true}
+									/>
+								</div>
+								<div className="flex shrink-0 flex-col gap-3 pt-3">
 									<BasicLink
 										href="/subscription"
 										data-umami-event="subscribe-modal-goto-page"
-										className="mt-3 block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
+										className="block w-full rounded-lg bg-[#5C5CF9] px-4 py-2 text-center font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 									>
 										Unlock Pro Features
 									</BasicLink>
 
-									{!isAuthenticated && (
+									{!isAuthenticated ? (
 										<button
 											className="mx-auto w-full flex-1 rounded-lg border border-[#39393E] py-2 text-center font-medium transition-colors hover:bg-[#2a2b30] disabled:cursor-not-allowed"
 											onClick={() => setIsSignInModalOpen(true)}
 										>
 											Already a subscriber? Sign In
 										</button>
-									)}
+									) : null}
 								</div>
 							</>
 						)}

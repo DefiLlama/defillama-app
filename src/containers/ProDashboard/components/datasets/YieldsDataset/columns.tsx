@@ -1,8 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems, yieldsChainHref } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
-import { formattedNum, renderPercentChange, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
 
 interface IYieldsRow {
 	pool: string
@@ -44,14 +46,22 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			const pool = getValue() as string
 			return (
 				<span className="relative flex items-center gap-2 pl-6">
-					<TokenLogo size={20} logo={tokenIconUrl(row.original.project)} data-lgonly />
+					<TokenLogo
+						size={20}
+						name={row.original.project}
+						kind="token"
+						alt={`Logo of ${row.original.project}`}
+						data-lgonly
+					/>
 					<BasicLink
 						href={`/yields/pool/${row.original.configID}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 					>
 						{pool}
 					</BasicLink>
-					{row.original.poolMeta && <span className="text-xs text-(--text-secondary)">{row.original.poolMeta}</span>}
+					{row.original.poolMeta ? (
+						<span className="text-xs text-(--text-secondary)">{row.original.poolMeta}</span>
+					) : null}
 				</span>
 			)
 		},
@@ -77,7 +87,9 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		header: 'Chain',
 		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+		cell: (info) => (
+			<IconsRow items={toChainIconItems(info.getValue() as Array<string>, (chain) => yieldsChainHref(chain))} />
+		),
 		size: 60,
 		meta: {
 			align: 'end'
@@ -100,7 +112,11 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apy',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{renderPercentChange(value, true, 700)}</>
+			return (
+				<>
+					<PercentChange percent={value} noSign fontWeight={700} />
+				</>
+			)
 		},
 		size: 100,
 		meta: {
@@ -112,7 +128,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyBase',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -127,10 +143,10 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 			const symbols = row.original.rewardTokensSymbols
 			return (
 				<span className="flex items-center justify-end gap-1">
-					{value ? renderPercentChange(value, true) : '-'}
-					{symbols && symbols.length > 0 && (
+					{value ? <PercentChange percent={value} noSign /> : '-'}
+					{symbols && symbols.length > 0 ? (
 						<span className="text-xs text-(--text-secondary)">({symbols.join(', ')})</span>
-					)}
+					) : null}
 				</span>
 			)
 		},
@@ -144,7 +160,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change1d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value) : '-'}</>
+			return <>{value ? <PercentChange percent={value} /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -156,7 +172,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'change7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value) : '-'}</>
+			return <>{value ? <PercentChange percent={value} /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -168,7 +184,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'il7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -180,7 +196,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyBase7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 120,
 		meta: {
@@ -192,7 +208,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyNet7d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 120,
 		meta: {
@@ -204,7 +220,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		accessorKey: 'apyMean30d',
 		cell: ({ getValue }) => {
 			const value = getValue() as number
-			return <>{value ? renderPercentChange(value, true) : '-'}</>
+			return <>{value ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 130,
 		meta: {
@@ -241,7 +257,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? renderPercentChange(value, true) : '-'}</>
+			return <>{value !== null ? <PercentChange percent={value} noSign /> : '-'}</>
 		},
 		size: 100,
 		meta: {
@@ -294,7 +310,7 @@ export const yieldsDatasetColumns: ColumnDef<IYieldsRow>[] = [
 		sortDescFirst: true,
 		cell: ({ getValue }) => {
 			const value = getValue() as number | null
-			return <>{value !== null ? renderPercentChange(value * 100, true) : '-'}</>
+			return <>{value !== null ? <PercentChange percent={value * 100} noSign /> : '-'}</>
 		},
 		size: 80,
 		meta: {

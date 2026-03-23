@@ -22,9 +22,10 @@ export function useProtocolsFilterState(options: { key: string; name: string }[]
 
 	const setSelectedValues = (values: string[]) => {
 		const newValues: Partial<Record<TvlSettingsKey | FeesSettingKey, boolean>> = {}
+		const selectedValuesSet = new Set(values)
 		for (const o of options) {
 			if (!isMetricSettingKey(o.key)) continue
-			newValues[o.key] = values.includes(o.key)
+			newValues[o.key] = selectedValuesSet.has(o.key)
 		}
 		updateAllSettingsInLsAndUrl(newValues)
 	}

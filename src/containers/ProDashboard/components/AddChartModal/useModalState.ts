@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react'
 import type { ChartConfig, DashboardItemConfig, MetricAggregator, MetricChartType } from '../../types'
 import { initializeFromEditItem, modalReducer } from './modalReducer'
-import type { ChartBuilderConfig, ChartModeType, ChartTabType, CombinedTableType, MainTabType } from './types'
+import type {
+	ChartBuilderConfig,
+	ChartModeType,
+	ChartTabType,
+	CombinedTableType,
+	MainTabType,
+	ModalState
+} from './types'
 
 export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: boolean) {
 	const [state, dispatch] = useReducer(modalReducer, editItem, initializeFromEditItem)
@@ -42,6 +49,12 @@ export function useModalState(editItem?: DashboardItemConfig | null, isOpen?: bo
 				dispatch({ type: 'SET_SELECTED_DATASET_CHAIN', payload: chain }),
 			setSelectedDatasetTimeframe: (timeframe: string | null) =>
 				dispatch({ type: 'SET_SELECTED_DATASET_TIMEFRAME', payload: timeframe }),
+			setSelectedCexAnalyticsView: (view: ModalState['selectedCexAnalyticsView']) =>
+				dispatch({ type: 'SET_SELECTED_CEX_ANALYTICS_VIEW', payload: view }),
+			setSelectedCexAnalyticsMetric: (metric: ModalState['selectedCexAnalyticsMetric']) =>
+				dispatch({ type: 'SET_SELECTED_CEX_ANALYTICS_METRIC', payload: metric }),
+			setSelectedCexAnalyticsTopN: (topN: number) =>
+				dispatch({ type: 'SET_SELECTED_CEX_ANALYTICS_TOP_N', payload: topN }),
 			setSelectedTokens: (tokens: string[]) => dispatch({ type: 'SET_SELECTED_TOKENS', payload: tokens }),
 			setIncludeCex: (include: boolean) => dispatch({ type: 'SET_INCLUDE_CEX', payload: include }),
 			setChartBuilderName: (name: string) => dispatch({ type: 'SET_CHART_BUILDER_NAME', payload: name }),

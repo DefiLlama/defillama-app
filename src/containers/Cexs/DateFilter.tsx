@@ -29,10 +29,10 @@ const isAtMidnight = (timestamp: number | null) => {
 
 export const DateFilter = ({ startDate, endDate }: { startDate: number | null; endDate: number | null }) => {
 	const router = useRouter()
-	const [localStartDate, setLocalStartDate] = useState(formatDateForInput(startDate))
-	const [localEndDate, setLocalEndDate] = useState(formatDateForInput(endDate))
-	const [localStartHour, setLocalStartHour] = useState(getHourFromTimestamp(startDate))
-	const [localEndHour, setLocalEndHour] = useState(getHourFromTimestamp(endDate))
+	const [localStartDate, setLocalStartDate] = useState(() => formatDateForInput(startDate))
+	const [localEndDate, setLocalEndDate] = useState(() => formatDateForInput(endDate))
+	const [localStartHour, setLocalStartHour] = useState(() => getHourFromTimestamp(startDate))
+	const [localEndHour, setLocalEndHour] = useState(() => getHourFromTimestamp(endDate))
 	const maxDate = getTodayString()
 
 	const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +70,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 		setLocalEndDate('')
 		setLocalStartHour('0')
 		setLocalEndHour('0')
-		router.push(
+		void router.push(
 			{
 				pathname: '/cexs'
 			},
@@ -122,16 +122,18 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 						onSubmit={(e) => {
 							e.preventDefault()
 							const form = e.target as HTMLFormElement
-							const startDate = form.startDate?.value
-							const endDate = form.endDate?.value
+							const startDateInput = form.startDate?.value
+							const endDateInput = form.endDate?.value
 							const startHour = parseInt(form.startHour?.value ?? '0', 10)
 							const endHour = parseInt(form.endHour?.value ?? '0', 10)
 
 							// Create timestamps in milliseconds
-							const startTimestamp = new Date(`${startDate}T${startHour.toString().padStart(2, '0')}:00:00Z`).getTime()
-							const endTimestamp = new Date(`${endDate}T${endHour.toString().padStart(2, '0')}:00:00Z`).getTime()
+							const startTimestamp = new Date(
+								`${startDateInput}T${startHour.toString().padStart(2, '0')}:00:00Z`
+							).getTime()
+							const endTimestamp = new Date(`${endDateInput}T${endHour.toString().padStart(2, '0')}:00:00Z`).getTime()
 
-							router.push(
+							void router.push(
 								{
 									pathname: '/cexs',
 									query: { startDate: startTimestamp, endDate: endTimestamp }
@@ -166,7 +168,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								onChange={handleStartHourChange}
 							>
 								{Array.from({ length: 24 }, (_, i) => (
-									<option key={i} value={i}>
+									<option key={`start-${i}`} value={i}>
 										{i.toString().padStart(2, '0')}:00
 									</option>
 								))}
@@ -193,7 +195,7 @@ export const DateFilter = ({ startDate, endDate }: { startDate: number | null; e
 								onChange={handleEndHourChange}
 							>
 								{Array.from({ length: 24 }, (_, i) => (
-									<option key={i} value={i}>
+									<option key={`end-${i}`} value={i}>
 										{i.toString().padStart(2, '0')}:00
 									</option>
 								))}

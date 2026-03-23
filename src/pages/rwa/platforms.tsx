@@ -1,9 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAPlatformsTable } from '~/containers/RWA/Platforms'
 import { getRWAPlatformsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () => {
@@ -34,17 +35,17 @@ export const getStaticProps = withPerformanceLogging(`rwa/platforms`, async () =
 	}
 })
 
-const pageName = ['RWA Platforms']
+const pageName = ['RWA']
 
 export default function RWAPlatformsPage({ platforms, platformLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Platforms - DefiLlama"
-			description={`Real World Assets by platform on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, rwa platforms, rwa onchain by platform`}
+			title="RWA Platforms - Real World Asset Analytics - DefiLlama"
+			description={`Discover RWA platforms that enable the issuance, custody, trading, or management of tokenized real-world assets across blockchains.`}
 			pageName={pageName}
-			canonicalUrl={`/rwa/platform`}
+			canonicalUrl={`/rwa/platforms`}
 		>
+			<RWATabNav active="platforms" />
 			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
 			<RWAPlatformsTable platforms={platforms} chartDatasets={chartDatasets} />
 		</Layout>

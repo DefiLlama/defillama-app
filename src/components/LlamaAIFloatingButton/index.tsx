@@ -4,6 +4,8 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { useSuggestedQuestions } from '~/containers/LlamaAI/hooks/useSuggestedQuestions'
 import { useMedia } from '~/hooks/useMedia'
+import type { FormSubmitEvent } from '~/types/forms'
+import { trackUmamiEvent } from '~/utils/analytics/umami'
 
 const PENDING_PROMPT_KEY = 'llamaai-pending-prompt'
 const PENDING_PAGE_CONTEXT_KEY = 'llamaai-pending-page-context'
@@ -54,6 +56,21 @@ export function consumePendingPrompt(): string | null {
 		localStorage.removeItem(PENDING_PROMPT_KEY)
 	}
 	return prompt
+}
+
+const PENDING_SUGGESTED_KEY = 'llamaai-pending-suggested'
+
+export function setPendingSuggestedFlag() {
+	if (typeof window !== 'undefined') {
+		localStorage.setItem(PENDING_SUGGESTED_KEY, 'true')
+	}
+}
+
+export function consumePendingSuggestedFlag(): boolean {
+	if (typeof window === 'undefined') return false
+	const val = localStorage.getItem(PENDING_SUGGESTED_KEY)
+	if (val) localStorage.removeItem(PENDING_SUGGESTED_KEY)
+	return val === 'true'
 }
 
 export function setPendingPageContext(
@@ -107,24 +124,22 @@ export function LlamaAIFloatingButton() {
 		if (!suggestedData?.categories) return FALLBACK_SUGGESTIONS
 
 		const allPrompts: string[] = []
-		Object.values(suggestedData.categories).forEach((prompts) => {
+		for (const prompts of Object.values(suggestedData.categories)) {
 			if (Array.isArray(prompts)) {
 				allPrompts.push(...prompts.slice(0, 2))
 			}
-		})
+		}
 
 		return allPrompts.length > 0 ? allPrompts.slice(0, 4) : FALLBACK_SUGGESTIONS
 	}, [entityContext, entityData, suggestedData])
 
 	const handleSubmit = useCallback(
-		(e?: React.FormEvent) => {
+		(e?: FormSubmitEvent) => {
 			e?.preventDefault()
 			const prompt = value.trim()
 			if (!prompt) return
 
-			if (typeof window !== 'undefined' && (window as any).umami) {
-				;(window as any).umami.track('llamaai-fab-submit', { page: router.asPath })
-			}
+			trackUmamiEvent('llamaai-fab-submit', { page: router.asPath })
 
 			setPendingPrompt(prompt)
 			setPendingPageContext({
@@ -132,7 +147,7 @@ export function LlamaAIFloatingButton() {
 				entityType: entityContext?.entityType,
 				route: router.asPath
 			})
-			router.push('/ai/chat')
+			void router.push('/ai/chat')
 			setIsOpen(false)
 			setValue('')
 		},
@@ -153,9 +168,7 @@ export function LlamaAIFloatingButton() {
 	)
 
 	const handleButtonClick = useCallback(() => {
-		if (typeof window !== 'undefined' && (window as any).umami) {
-			;(window as any).umami.track('llamaai-fab-click', { page: router.asPath })
-		}
+		trackUmamiEvent('llamaai-fab-click', { page: router.asPath })
 		setIsOpen(true)
 	}, [router.asPath])
 

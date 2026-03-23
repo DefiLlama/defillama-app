@@ -72,7 +72,7 @@ export const CopyDashboardLinkButton = ({
 			>
 				<div className="flex flex-col gap-3">
 					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-(--text-label)">Share Link</label>
+						<p className="text-xs font-medium text-(--text-label)">Share Link</p>
 						<div className="flex gap-2">
 							<input
 								type="text"
@@ -81,7 +81,9 @@ export const CopyDashboardLinkButton = ({
 								className="flex-1 rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs"
 							/>
 							<button
-								onClick={handleCopyLink}
+								onClick={() => {
+									void handleCopyLink()
+								}}
 								className="flex items-center gap-1.5 rounded-md border pro-border pro-hover-bg px-2.5 py-1.5 text-xs pro-text2 transition-colors hover:pro-text1"
 								title="Copy link"
 							>
@@ -95,7 +97,7 @@ export const CopyDashboardLinkButton = ({
 					</div>
 
 					<div className="flex flex-col gap-1.5">
-						<label className="text-xs font-medium text-(--text-label)">Share on</label>
+						<p className="text-xs font-medium text-(--text-label)">Share on</p>
 						<div className="flex gap-2">
 							<button
 								onClick={() => handleShareTo('twitter')}

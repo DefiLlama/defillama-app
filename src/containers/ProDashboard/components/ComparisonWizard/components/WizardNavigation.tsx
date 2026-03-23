@@ -55,9 +55,9 @@ export function WizardNavigation({
 							>
 								{STEP_LABELS[step]}
 							</span>
-							{index < WIZARD_STEPS.length - 1 && (
+							{index < WIZARD_STEPS.length - 1 ? (
 								<div className={`h-px w-8 ${isCompleted ? 'bg-(--primary)/40' : 'bg-(--cards-border)'}`} />
-							)}
+							) : null}
 						</div>
 					)
 				})}

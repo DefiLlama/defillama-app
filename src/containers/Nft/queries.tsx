@@ -19,13 +19,12 @@ import {
 import type { RawNftCollection } from './api.types'
 import { NFT_MINT_EARNINGS } from './mintEarnings'
 
-type VolumeChartEntry = {
+export type VolumeChartEntry = {
 	volumeUSD?: number
 	volume?: number
 }
 
-// oxlint-disable-next-line no-unused-vars
-const getNFTStatistics = (chart: VolumeChartEntry[]) => {
+export const getNFTStatistics = (chart: VolumeChartEntry[]) => {
 	const { totalVolume, totalVolumeUSD } = (chart.length > 0
 		? chart.reduce(
 				(volumes, data) => {
@@ -69,7 +68,7 @@ type ExtendedNftCollection = RawNftCollection & {
 
 export const getNFTData = async (): Promise<NftDataResult> => {
 	try {
-		const [collections, volumes] = await Promise.all([fetchNftCollections(), fetchNftVolumes()])
+		const [collections, volumes] = await Promise.all([fetchNftCollections(), fetchNftVolumes().catch(() => [])])
 		const volumeByCollection = new Map(volumes.map((volume) => [volume.collection, volume] as const))
 
 		const data = collections.map((collection) => {
@@ -147,7 +146,10 @@ export const getNFTMarketplacesData = async () => {
 	const [volumeData, dominance, volumeChartStacks] = formatNftVolume(volumeSorted, 'sum')
 	const [tradeData, dominanceTrade, tradeChartStacks] = formatNftVolume(volumeSorted, 'count')
 
-	const marketplaces = Object.keys(volumeChartStacks)
+	const marketplaces: string[] = []
+	for (const marketplace in volumeChartStacks) {
+		marketplaces.push(marketplace)
+	}
 	const colors: Record<string, string> = {}
 	const allColors = getNDistinctColors(marketplaces.length)
 	for (let i = 0; i < marketplaces.length; i++) {
@@ -181,15 +183,32 @@ export const getNFTMarketplacesData = async () => {
 export const getNFTCollectionEarnings = async () => {
 	try {
 		const [parentCompanies, royalties, collections] = await Promise.all([
-			fetchParentCompanies(),
+			fetchParentCompanies().catch(() => []),
 			fetchNftRoyalties(),
 			fetchNftCollections()
 		])
 
+		// Build lookup maps for O(1) collection access instead of O(n) .find() calls
+		const royaltiesByCollection = new Map<string, (typeof royalties)[0]>()
+		for (const royalty of royalties) {
+			const collectionId = `0x${royalty.collection}`
+			if (!royaltiesByCollection.has(collectionId)) {
+				royaltiesByCollection.set(collectionId, royalty)
+			}
+		}
+
+		const mintEarningsByContract = new Map<string, (typeof NFT_MINT_EARNINGS)[0]>()
+		for (const earning of NFT_MINT_EARNINGS) {
+			if (!mintEarningsByContract.has(earning.contractAddress)) {
+				mintEarningsByContract.set(earning.contractAddress, earning)
+			}
+		}
+
 		const collectionEarnings = collections
 			.map((c) => {
-				const royalty = royalties.find((r) => `0x${r.collection}` === c.collectionId)
-				const mintEarnings = NFT_MINT_EARNINGS.find((r) => r.contractAddress === c.collectionId)
+				// O(1) Map lookups instead of O(n) .find() calls
+				const royalty = royaltiesByCollection.get(c.collectionId)
+				const mintEarnings = mintEarningsByContract.get(c.collectionId)
 
 				if (!royalty && !mintEarnings) return null
 
@@ -217,8 +236,9 @@ export const getNFTCollectionEarnings = async () => {
 				duplicateCollections.add(address)
 				return address
 			})
+			const subCollectionSet = new Set(subCollections)
 
-			const subCollectionEarnings = collectionEarnings.filter((c) => subCollections.includes(c.defillamaId))
+			const subCollectionEarnings = collectionEarnings.filter((c) => subCollectionSet.has(c.defillamaId))
 
 			let total24h = 0
 			let total7d = 0
@@ -267,7 +287,7 @@ export const getNFTCollectionEarnings = async () => {
 export const getNFTRoyaltyHistory = async (slug: string) => {
 	try {
 		const [royaltyChart, collection, royalty] = await Promise.all([
-			fetchNftRoyaltyHistory(slug),
+			fetchNftRoyaltyHistory(slug).catch(() => []),
 			fetchNftCollection(slug),
 			fetchNftRoyalty(slug)
 		])
@@ -360,10 +380,10 @@ export const getNFTCollection = async (slug: string) => {
 	try {
 		const [data, sales, stats, floorHistory, orderbook] = await Promise.all([
 			fetchNftCollection(slug),
-			fetchNftCollectionSales(slug),
-			fetchNftCollectionStats(slug),
-			fetchNftCollectionFloorHistory(slug),
-			fetchNftCollectionOrderbook(slug)
+			fetchNftCollectionSales(slug).catch(() => []),
+			fetchNftCollectionStats(slug).catch(() => []),
+			fetchNftCollectionFloorHistory(slug).catch(() => []),
+			fetchNftCollectionOrderbook(slug).catch(() => null)
 		])
 
 		const salesExOutliers = flagOutliers(sales).filter((i) => i[2] === false)

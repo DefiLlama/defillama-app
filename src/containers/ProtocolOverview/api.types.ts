@@ -1,71 +1,4 @@
-type TokenRightLabel = 'Governance' | 'Treasury' | 'Revenue'
-
-interface ITokenRight {
-	label: TokenRightLabel | (string & {})
-	hasRight: boolean
-	details?: string
-}
-
-type GovernanceRights = 'NONE' | 'LIMITED' | 'FULL'
-type FeeSwitchStatus = 'ON' | 'OFF' | 'PENDING' | 'UNKNOWN'
-
-interface IGovernanceLink {
-	label: string
-	url: string
-}
-
-interface IGovernanceData {
-	rights: GovernanceRights
-	details?: string
-	feeSwitchStatus?: FeeSwitchStatus
-	feeSwitchDetails?: string
-	links?: IGovernanceLink[]
-}
-
-type BuybacksStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-type DividendsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-type BurnsStatus = 'ACTIVE' | 'INACTIVE' | 'NONE' | 'UNKNOWN'
-
-interface IHoldersRevenueAndValueAccrual {
-	buybacks?: BuybacksStatus
-	dividends?: DividendsStatus
-	burns?: BurnsStatus
-	burnSources?: string[]
-	primaryValueAccrual?: string
-}
-
-type FundraisingType = 'EQUITY' | 'TOKEN' | 'NONE' | 'UNKNOWN'
-type EquityRevenueCaptureStatus = 'ACTIVE' | 'INACTIVE' | 'PARTIAL' | 'UNKNOWN'
-
-interface ITokenAlignmentLink {
-	label: string
-	url: string
-}
-
-interface ITokenAlignment {
-	fundraising?: FundraisingType
-	raiseDetailsLink?: ITokenAlignmentLink
-	associatedEntities?: string[]
-	equityRevenueCapture?: EquityRevenueCaptureStatus
-	equityStatement?: string
-}
-
-interface IProtocolResource {
-	label: string
-	address?: string
-	url?: string
-	note?: string
-}
-
-export interface ITokenRights {
-	rights?: ITokenRight[]
-	governanceData?: IGovernanceData
-	holdersRevenueAndValueAccrual?: IHoldersRevenueAndValueAccrual
-	tokenAlignment?: ITokenAlignment
-	resources?: IProtocolResource[]
-}
-
-export interface IRaise {
+export interface IProtocolRaise {
 	round: string
 	amount: number
 	valuation: string
@@ -120,7 +53,7 @@ export interface IProtocolMetricsV2 {
 	isParentProtocol?: boolean
 	mcap: number | null
 	methodology?: string
-	raises?: Array<IRaise>
+	raises?: Array<IProtocolRaise>
 	otherProtocols?: Array<string>
 	hallmarks?: Array<[number, string]> | Array<[[number, number], string]>
 	stablecoins?: Array<string>
@@ -129,8 +62,9 @@ export interface IProtocolMetricsV2 {
 	rugged?: boolean
 	deadUrl?: boolean
 	warningBanners?: Array<IProtocolWarningBanner>
-	tokenRights?: ITokenRights
 	wrongLiquidity?: boolean
+	tvlCodePath?: string
+	treasuryCodePath?: string
 }
 
 export interface IProtocolOverviewMetricsV1 extends IProtocolMetricsV2 {
@@ -161,10 +95,6 @@ type IProtocolTokenBreakdownChartRaw = IProtocolTokenBreakdownChartRawPoint[]
 type IProtocolTokenBreakdownChartPoint = [number, IProtocolTokenBreakdownValue]
 export type IProtocolTokenBreakdownChart = IProtocolTokenBreakdownChartPoint[]
 
-export type IProtocolTvlMetrics = IProtocolMetricsV2
-// oxlint-disable-next-line no-unused-vars
-type IProtocolTreasuryMetrics = IProtocolMetricsV2
-
 export interface IProtocolChartV2Params {
 	protocol: string
 	key?: string
@@ -179,4 +109,9 @@ export interface IProtocolExpenses {
 	sources?: Array<string> | null
 	notes?: Array<string> | null
 	lastUpdate?: string | null
+}
+
+export interface IProtocolMiniResponse {
+	chainTvls: Record<string, { tvl: [number, number][] }>
+	tvl: [number, number][]
 }

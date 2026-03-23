@@ -2,7 +2,7 @@ import * as React from 'react'
 import { BasicLink } from '~/components/Link'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { ProtocolEmissionWithHistory } from './types'
 
 interface TopUnlocksProps {
@@ -10,9 +10,15 @@ interface TopUnlocksProps {
 	period: number
 	title?: string
 	className?: string
+	initialNowSec?: number
 }
 
-export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className }) => {
+export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, className, initialNowSec }) => {
+	const [now] = React.useState(() =>
+		typeof initialNowSec === 'number' && Number.isFinite(initialNowSec)
+			? Math.floor(initialNowSec)
+			: Math.floor(Date.now() / 1000)
+	)
 	const { topUnlocks } = React.useMemo(() => {
 		const protocolUnlocks = new Map<
 			string,
@@ -22,8 +28,6 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				value: number
 			}
 		>()
-
-		const now = Date.now() / 1000
 		const startTime = now - period * 24 * 60 * 60
 
 		if (data) {
@@ -60,7 +64,7 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 				.sort((a, b) => b.value - a.value)
 				.slice(0, 3)
 		}
-	}, [data, period])
+	}, [data, period, now])
 
 	return (
 		<div className={`text-(--text-primary) ${className ?? ''}`}>
@@ -74,7 +78,7 @@ export const TopUnlocks: React.FC<TopUnlocksProps> = ({ data, period, title, cla
 			{topUnlocks.map((unlock) => (
 				<div key={unlock.name} className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
-						<TokenLogo logo={tokenIconUrl(`${unlock.name}`)} />
+						<TokenLogo name={unlock.name} kind="token" alt={`Logo of ${unlock.name}`} />
 						<BasicLink
 							href={`/unlocks/${slug(unlock.name)}`}
 							className="overflow-hidden text-ellipsis whitespace-nowrap text-(--text-primary) hover:underline"

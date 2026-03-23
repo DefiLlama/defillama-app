@@ -47,7 +47,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 
 	const setQueryParams = React.useCallback(
 		(updates: Record<string, string | undefined>) => {
-			pushShallowQuery(router, updates)
+			void pushShallowQuery(router, updates)
 		},
 		[router]
 	)
@@ -192,7 +192,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 						</button>
 					</div>
 					<button
-						onClick={() => router.push({ pathname: router.pathname }, undefined, { shallow: true })}
+						onClick={() => {
+							void router.push({ pathname: router.pathname }, undefined, { shallow: true })
+						}}
 						className="shrink-0 rounded-md border border-(--form-control-border) px-2.5 py-1.5 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)"
 					>
 						Reset
@@ -200,9 +202,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 				</div>
 				<TagGroup
 					selectedValue={viewMode}
-					setValue={(value: string) => {
-						const newValue = value as (typeof VIEW_MODES)[number]
-						setQueryParams({ view: newValue === 'Month' ? undefined : newValue })
+					setValue={(value) => {
+						setQueryParams({ view: value === 'Month' ? undefined : value })
 					}}
 					values={[...VIEW_MODES]}
 					className="ml-auto"
@@ -270,7 +271,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ initialUnlocksData, 
 					) : null}
 					<div className="grid grid-cols-7 py-1 text-center text-xs font-medium text-(--text-secondary)">
 						{DAYS_OF_WEEK.map((day) => (
-							<div key={day}>{day}</div>
+							<span key={day} role="columnheader">
+								{day}
+							</span>
 						))}
 					</div>
 					<div className="grid grid-cols-7 grid-rows-6 gap-px border border-(--cards-border) bg-(--cards-border)">

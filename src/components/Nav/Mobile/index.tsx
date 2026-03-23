@@ -1,11 +1,8 @@
-import * as React from 'react'
-import { lazy } from 'react'
 import { BasicLink } from '~/components/Link'
+import { MobileSearch } from '~/components/Search'
 import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
 import { Menu } from './Menu'
 import { Settings } from './Settings'
-
-const MobileSearch = lazy(() => import('~/components/Search').then((m) => ({ default: m.MobileSearch }))) as React.FC
 
 export const MobileNav = ({
 	mainLinks,
@@ -13,7 +10,8 @@ export const MobileNav = ({
 	userDashboards,
 	footerLinks,
 	metricFilters,
-	oldMetricLinks
+	oldMetricLinks,
+	asPath
 }: {
 	mainLinks: TNavLinks
 	pinnedPages: Array<TNavLink>
@@ -21,11 +19,12 @@ export const MobileNav = ({
 	footerLinks: TNavLinks
 	metricFilters?: { name: string; key: string }[]
 	oldMetricLinks: Array<TOldNavLink>
+	asPath: string
 }) => {
 	return (
 		<nav className="col-span-full flex items-center gap-2 bg-[linear-gradient(168deg,#344179_3.98%,#445ed0_100%)] px-4 py-3 lg:hidden">
 			<BasicLink href="/" className="mr-auto shrink-0">
-				<span className="sr-only">Navigate to Home Page</span>
+				<span className="sr-only">Navigate to DeFi Dashboard</span>
 				<img
 					src="/assets/defillama.webp"
 					alt=""
@@ -33,12 +32,12 @@ export const MobileNav = ({
 					width={105}
 					className="mr-auto object-contain object-left"
 					fetchPriority="high"
+					loading="eager"
+					decoding="sync"
 				/>
 			</BasicLink>
 
-			<React.Suspense fallback={<></>}>
-				<MobileSearch />
-			</React.Suspense>
+			<MobileSearch />
 
 			<Settings metricFilters={metricFilters} />
 
@@ -48,6 +47,7 @@ export const MobileNav = ({
 				userDashboards={userDashboards}
 				footerLinks={footerLinks}
 				oldMetricLinks={oldMetricLinks}
+				asPath={asPath}
 			/>
 		</nav>
 	)

@@ -8,6 +8,7 @@ import { SubscribeEnterpriseCard } from '~/components/SubscribeCards/SubscribeEn
 import { SubscribeProCard } from '~/components/SubscribeCards/SubscribeProCard'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { useSubscribe } from '~/containers/Subscribtion/useSubscribe'
+import { useIsClient } from '~/hooks/useIsClient'
 import { AccountStatus } from './components/AccountStatus'
 import { EmailVerificationWarning } from './components/EmailVerificationWarning'
 import { ReturnModal } from './components/ReturnModal'
@@ -22,20 +23,17 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 		useSubscribe()
 	const [billingInterval, setBillingInterval] = useState<'year' | 'month'>('month')
 	const isSubscribed = subscription?.status === 'active'
-	const [isClient, setIsClient] = useState(false)
+	const isClient = useIsClient()
 	// oxlint-disable-next-line no-unused-vars
 	const [showEmailForm, setShowEmailForm] = useState(false)
 	const [showReturnModal, setShowReturnModal] = useState(false)
-	const [hasShownModal, setHasShownModal] = useState(false)
+	const handledReturnUrlRef = useRef<string | undefined>(undefined)
 
 	const pricingContainer = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
-		setIsClient(true)
-	}, [])
-
-	useEffect(() => {
-		if (isAuthenticated && returnUrl && !hasShownModal && !loaders.userLoading) {
+		let cancelled = false
+		if (isAuthenticated && returnUrl && handledReturnUrlRef.current !== returnUrl && !loaders.userLoading) {
 			const justSignedUp = sessionStorage.getItem('just_signed_up') === 'true'
 			const accountAge = user?.created ? Date.now() - new Date(user.created).getTime() : Infinity
 			const isRecentAccount = accountAge < 10000
@@ -45,17 +43,21 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 			}
 
 			if (!justSignedUp && !isRecentAccount) {
-				setShowReturnModal(true)
-				setHasShownModal(true)
+				queueMicrotask(() => {
+					if (cancelled) return
+					setShowReturnModal(true)
+				})
 			}
+
+			handledReturnUrlRef.current = returnUrl
 		}
-	}, [isAuthenticated, returnUrl, hasShownModal, loaders.userLoading, user?.created])
 
-	useEffect(() => {
-		setHasShownModal(false)
-	}, [returnUrl])
+		return () => {
+			cancelled = true
+		}
+	}, [isAuthenticated, returnUrl, loaders.userLoading, user?.created])
 
-	const handleResendVerification = async () => {
+	const handleResendVerification = () => {
 		if (user?.email) {
 			resendVerification(user.email)
 		}
@@ -89,7 +91,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					/>
 				</div>
 				<h1 className="text-center text-[2rem] font-extrabold">DefiLlama</h1>
-				{!isSubscribed && (
+				{!isSubscribed ? (
 					<div className="mx-auto flex max-w-[600px] flex-col gap-4">
 						<p className="text-center text-[#919296]">
 							Upgrade now for access to LlamaAI, Pro dashboard builder, increased API limits, premium API endpoints and
@@ -111,7 +113,9 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 								</button>
 								<p className="mt-2 text-center text-xs text-[#8a8c90]">Cancel anytime • Crypto and Card payments</p>
 								<button
-									onClick={() => router.push('/account')}
+									onClick={() => {
+										void router.push('/account')
+									}}
 									className="mt-3 flex w-full items-center justify-center gap-2 text-sm text-[#8a8c90] transition-colors hover:text-white"
 								>
 									<Icon name="settings" height={14} width={14} />
@@ -130,9 +134,9 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							</div>
 						)}
 					</div>
-				)}
+				) : null}
 
-				{isAuthenticated && !user?.verified && !isWalletUser && user?.email && (
+				{isAuthenticated && !user?.verified && !isWalletUser && user?.email ? (
 					<div className="mx-auto w-full max-w-3xl">
 						<EmailVerificationWarning
 							email={user.email}
@@ -140,7 +144,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							isLoading={loaders.resendVerification}
 						/>
 					</div>
-				)}
+				) : null}
 
 				<div
 					className="relative -bottom-15 z-0 mx-auto -mb-[45px] h-[64px] w-[90%] rounded-[50%]"
@@ -150,7 +154,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					}}
 				/>
 
-				{isAuthenticated && isSubscribed && (
+				{isAuthenticated && isSubscribed ? (
 					<div className="mx-auto mt-6 mb-6 flex w-full max-w-[600px] flex-col items-center gap-4">
 						<div className="flex flex-col items-center gap-4 rounded-xl border border-[#39393E] bg-[#1a1b1f] p-8 text-center">
 							<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
@@ -159,14 +163,16 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 							<h2 className="text-2xl font-bold text-white">You're subscribed!</h2>
 							<p className="text-[#8a8c90]">Manage your subscription and view your account details.</p>
 							<button
-								onClick={() => router.push('/account')}
+								onClick={() => {
+									void router.push('/account')
+								}}
 								className="rounded-lg bg-[#5C5CF9] px-8 py-3 font-medium text-white transition-colors hover:bg-[#4A4AF0]"
 							>
 								Go to Account
 							</button>
 						</div>
 					</div>
-				)}
+				) : null}
 
 				<div className="relative">
 					<div className="relative z-10 mb-6 flex items-center justify-center">
@@ -230,7 +236,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 						</span>
 					</div>
 
-					{isAuthenticated && user && !isSubscribed && (
+					{isAuthenticated && user && !isSubscribed ? (
 						<div className="relative z-10 mt-8 w-full">
 							<h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-white">
 								<Icon name="users" height={18} width={18} className="text-[#5C5CF9]" />
@@ -246,7 +252,7 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 								getPortalSessionUrl={getPortalSessionUrl}
 							/>
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 			<div className="mx-auto mb-[64px] flex w-full max-w-6xl flex-col items-center justify-center gap-[64px] px-5 xl:max-w-7xl 2xl:max-w-[1440px]">
@@ -287,9 +293,9 @@ export function SubscribeHome({ returnUrl }: { returnUrl?: string }) {
 					<img src="/assets/trusts-llama/coinbase.svg" alt="Coinbase" className="h-7 object-contain" />
 				</div>
 			</div>
-			{returnUrl && (
+			{returnUrl ? (
 				<ReturnModal isOpen={showReturnModal} onClose={() => setShowReturnModal(false)} returnUrl={returnUrl} />
-			)}
+			) : null}
 		</>
 	)
 }

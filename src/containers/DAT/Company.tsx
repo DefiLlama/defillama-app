@@ -1,4 +1,4 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import dayjs from 'dayjs'
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
@@ -9,7 +9,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, slug } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { IDATCompanyPageProps } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'report_date', desc: true }]
@@ -52,7 +52,7 @@ function getSourceType(sourceType: string): string {
 }
 
 export function DATCompany(props: IDATCompanyPageProps) {
-	const [selectedAsset, setSelectedAsset] = useState<string>(props.assets[0] ?? '')
+	const [selectedAsset, setSelectedAsset] = useState<string | null>(() => props.assets[0] ?? null)
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const chartData = useMemo(() => {
 		return props.chartByAsset.find((asset) => asset.ticker === selectedAsset)
@@ -204,7 +204,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 				</div>
 				<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex items-center justify-end gap-2 p-2 pb-0">
-						<h1 className="mr-auto text-base font-semibold">Cumulative Holdings Over Time</h1>
+						<h2 className="mr-auto text-base font-semibold">Cumulative Holdings Over Time</h2>
 						{props.assets.length > 1 ? (
 							<TagGroup
 								selectedValue={selectedAsset}
@@ -215,7 +215,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 						) : null}
 						<ChartExportButtons
 							chartInstance={chartInstance}
-							filename={`${slug(props.name)}-holdings`}
+							filename={`${props.name}-holdings`}
 							title="Cumulative Holdings Over Time"
 						/>
 					</div>
@@ -248,7 +248,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-mnav`,
+									filename: `${props.name}-mnav`,
 									pngTitle: 'mNAV'
 								}}
 							/>
@@ -267,7 +267,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-fully-diluted-shares`,
+									filename: `${props.name}-fully-diluted-shares`,
 									pngTitle: 'Fully Diluted Shares'
 								}}
 							/>
@@ -294,7 +294,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 								exportButtons={{
 									png: true,
 									csv: true,
-									filename: `${slug(props.name)}-total-asset-value`,
+									filename: `${props.name}-total-asset-value`,
 									pngTitle: 'Total Asset Value'
 								}}
 							/>
@@ -307,6 +307,7 @@ export function DATCompany(props: IDATCompanyPageProps) {
 				columns={columns}
 				placeholder="Search assets"
 				columnToSearch="assetName"
+				csvFileName={`${props.name}-transactions`}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
@@ -314,99 +315,76 @@ export function DATCompany(props: IDATCompanyPageProps) {
 }
 
 type TransactionRow = IDATCompanyPageProps['transactions'][number]
+const columnHelper = createColumnHelper<TransactionRow>()
 
-const columns: ColumnDef<TransactionRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('assetName', {
 		header: 'Asset',
-		accessorKey: 'assetName',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			return <>{getValue<string>()}</>
-		}
-	},
-	{
-		header: 'Amount',
-		id: 'amount',
-		accessorFn: (row) => {
+		cell: (info) => info.getValue()
+	}),
+	columnHelper.accessor(
+		(row) => {
 			return row.type === 'sale' ? -Number(row.amount) : Number(row.amount)
 		},
-		cell: ({ getValue, row }) => {
-			const value = getValue<number>()
-			return (
-				<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
-					{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)} ${row.original.assetTicker}`}
-				</span>
-			)
-		},
-		meta: {
-			align: 'end'
+		{
+			id: 'amount',
+			header: 'Amount',
+			cell: ({ getValue, row }) => {
+				const value = getValue()
+				return (
+					<span className={value < 0 ? 'text-(--error)' : 'text-(--success)'}>
+						{`${value < 0 ? '-' : '+'}${formattedNum(Math.abs(value), false)} ${row.original.assetTicker}`}
+					</span>
+				)
+			},
+			meta: {
+				align: 'end'
+			}
 		}
-	},
-	{
+	),
+	columnHelper.accessor('avg_price', {
 		header: 'Avg Purchase Price',
-		accessorKey: 'avg_price',
-		cell: ({ getValue }) => {
-			const v = getValue<string | null>()
-			if (v == null) return null
-			return <>{formattedNum(v, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('usd_value', {
 		header: 'USD Value',
-		accessorKey: 'usd_value',
-		cell: ({ getValue }) => {
-			const v = getValue<string | null>()
-			if (v == null) return null
-			return <>{formattedNum(v, true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('report_date', {
 		header: 'Report Date',
-		accessorKey: 'report_date',
-		cell: ({ getValue }) => {
-			const v = getValue<string | null>()
-			if (v == null) return null
-			return <>{dayjs(v).format('MMM D, YYYY')}</>
-		},
+		cell: (info) => (info.getValue() != null ? dayjs(info.getValue()).format('MMM D, YYYY') : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('type', {
 		header: 'Type',
-		accessorKey: 'type',
-		cell: ({ getValue }) => {
-			return <>{getType(getValue<string>())}</>
-		},
+		cell: (info) => getType(info.getValue()),
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('source_type', {
 		header: 'Source Type',
-		accessorKey: 'source_type',
-		cell: ({ getValue }) => {
-			return <>{getSourceType(getValue<string>())}</>
-		},
+		cell: (info) => getSourceType(info.getValue()),
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('source_url', {
 		header: 'Source URL',
-		accessorKey: 'source_url',
 		cell: ({ getValue }) => {
-			const url = getValue<string>()
+			const url = getValue()
 			if (!url) return null
-
 			return (
 				<a
 					className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
@@ -420,12 +398,11 @@ const columns: ColumnDef<TransactionRow>[] = [
 			)
 		},
 		enableSorting: false
-	},
-	{
+	}),
+	columnHelper.accessor('source_note', {
 		header: 'Source Note',
-		accessorKey: 'source_note',
 		cell: ({ getValue }) => {
-			const v = getValue<string>()
+			const v = getValue()
 			return (
 				<Tooltip className="inline overflow-hidden text-ellipsis whitespace-nowrap" content={v}>
 					{v}
@@ -434,7 +411,7 @@ const columns: ColumnDef<TransactionRow>[] = [
 		},
 		enableSorting: false,
 		size: 1000
-	}
+	})
 ]
 
 /** Narrow an unknown echarts tooltip param to a record, or return undefined. */

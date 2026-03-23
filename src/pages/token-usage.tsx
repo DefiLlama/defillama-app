@@ -1,7 +1,7 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -16,15 +16,27 @@ import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Switch } from '~/components/Switch'
 import { VirtualTable } from '~/components/Table/Table'
+import { prepareTableCsv } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
 import { fetchCoins } from '~/containers/LlamaAI/hooks/useGetEntities'
-import { useDebounce } from '~/hooks/useDebounce'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 import Layout from '~/layout'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
-import { fetchJson } from '~/utils/async'
+import { formattedNum } from '~/utils'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const pageName = ['Token', 'usage in', 'Protocols']
+
+type TokenUsagePageRow = {
+	name: string
+	amountUsd: number
+	category?: string
+	logo?: string
+	slug?: string
+	misrepresentedTokens?: boolean
+}
+
+const columnHelper = createColumnHelper<TokenUsagePageRow>()
 
 export default function Tokens() {
 	const router = useRouter()
@@ -34,7 +46,7 @@ export default function Tokens() {
 	const includeCentraliseExchanges = includecex === 'true'
 
 	const { data: protocols, isLoading } = useQuery({
-		queryKey: ['protocols-by-token', tokenSymbol],
+		queryKey: ['token-usage', 'protocols-by-token', tokenSymbol],
 		queryFn: () => fetchProtocols(tokenSymbol),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false
@@ -42,31 +54,33 @@ export default function Tokens() {
 
 	const filteredProtocols = useMemo(() => {
 		return (
-			protocols?.filter((protocol) =>
-				!protocol.misrepresentedTokens && protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true
+			protocols?.filter(
+				(protocol) =>
+					!protocol.misrepresentedTokens &&
+					(protocol.category?.toLowerCase() === 'cex' ? includeCentraliseExchanges : true)
 			) ?? []
 		)
 	}, [protocols, includeCentraliseExchanges])
-
-	const prepareCsv = () => {
-		const data = filteredProtocols.map((p) => {
-			return {
-				Protocol: p.name,
-				'Amount (USD)': p.amountUsd,
-				Category: p.category
-			}
-		})
-		const headers = ['Protocol', 'Category', 'Amount (USD)']
-		const rows = [headers, ...data.map((row) => headers.map((header) => row[header]))]
-
-		return { filename: `protocols-by-token-${tokenSymbol}.csv`, rows: rows as (string | number | boolean)[][] }
-	}
+	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
+	const tableInstance = useReactTable({
+		data: filteredProtocols,
+		columns,
+		state: {
+			sorting
+		},
+		defaultColumn: {
+			sortUndefined: 'last'
+		},
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		getCoreRowModel: getCoreRowModel(),
+		getSortedRowModel: getSortedRowModel()
+	})
 
 	return (
 		<Layout
-			title="Token Usage - DefiLlama"
-			description={`Token usage in protocols. Checkout how a token is used in protocols on chain as well as CEXs. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`token usage, defi token usage, token usage in protocols, token usage in protocols on chain, token usage on cexes`}
+			title="DeFi Token Usage Tracker - DefiLlama"
+			description="Track how tokens are used across DeFi protocols and CEXs. View token utility, protocol integrations, and on-chain usage data."
 			canonicalUrl={`/token-usage`}
 			pageName={pageName}
 		>
@@ -93,18 +107,21 @@ export default function Tokens() {
 									label="Include CEXs"
 									value="includeCentraliseExchanges"
 									checked={includeCentraliseExchanges}
-									onChange={() =>
-										router.push(
-											{
-												pathname: router.pathname,
-												query: { ...router.query, includecex: !includeCentraliseExchanges }
-											},
-											undefined,
-											{ shallow: true }
-										)
-									}
+									onChange={() => {
+										void pushShallowQuery(router, {
+											includecex: !includeCentraliseExchanges ? 'true' : undefined
+										})
+									}}
 								/>
-								<CSVDownloadButton prepareCsv={prepareCsv} />
+								<CSVDownloadButton
+									prepareCsv={() =>
+										prepareTableCsv({
+											instance: tableInstance,
+											filename: `protocols-by-token-${tokenSymbol}`
+										})
+									}
+									smol
+								/>
 							</div>
 						</div>
 
@@ -116,7 +133,7 @@ export default function Tokens() {
 								/>
 							}
 						>
-							<Table data={filteredProtocols} />
+							<VirtualTable instance={tableInstance} />
 						</Suspense>
 					</>
 				)}
@@ -125,10 +142,10 @@ export default function Tokens() {
 	)
 }
 
-const fetchProtocols = async (tokenSymbol) => {
+const fetchProtocols = async (tokenSymbol: string | null): Promise<TokenUsagePageRow[] | null> => {
 	if (!tokenSymbol) return null
 	try {
-		const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${tokenSymbol.toUpperCase()}`)
+		const data = await fetchProtocolsByToken(tokenSymbol)
 		return (
 			data?.map((p) => ({ ...p, amountUsd: Object.values(p.amountUsd).reduce((s: number, a: number) => s + a, 0) })) ??
 			[]
@@ -138,71 +155,55 @@ const fetchProtocols = async (tokenSymbol) => {
 	}
 }
 
-function Table({ data }: { data: Array<{ name: string; amountUsd: number }> }) {
-	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
-
-	const instance = useReactTable({
-		data,
-		columns: columns,
-		state: {
-			sorting
-		},
-		defaultColumn: {
-			sortUndefined: 'last'
-		},
-		onSortingChange: setSorting,
-		getCoreRowModel: getCoreRowModel(),
-		getSortedRowModel: getSortedRowModel()
-	})
-
-	return <VirtualTable instance={instance} />
-}
-
-const columns: ColumnDef<{ name: string; amountUsd: number }>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue() as string
+		cell: ({ getValue, row }) => {
+			const value = getValue()
+			const href = row.original.slug ? `/protocol/${row.original.slug}` : null
 
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
-					<BasicLink
-						href={`/protocol/${slug(value)}`}
-						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
-					>{`${value}`}</BasicLink>
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${value}`} />
+					{href ? (
+						<BasicLink
+							href={href}
+							className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
+						>
+							{value}
+						</BasicLink>
+					) : (
+						<span className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">{value}</span>
+					)}
 				</span>
 			)
 		}
-	},
-	{
-		header: () => 'Category',
-		accessorKey: 'category',
+	}),
+	columnHelper.accessor('category', {
+		header: 'Category',
 		enableSorting: false,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: () => 'Amount',
-		accessorKey: 'amountUsd',
-		cell: ({ getValue }) => <>{formattedNum(getValue(), true)}</>,
+	}),
+	columnHelper.accessor('amountUsd', {
+		header: 'Amount',
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const Search = () => {
 	const router = useRouter()
 
 	const [searchValue, setSearchValue] = useState('')
-	const debouncedSearchValue = useDebounce(searchValue, 200)
+	const debouncedSearchValue = useDebouncedValue(searchValue, 200)
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['search-tokens', debouncedSearchValue],
+		queryKey: ['token-usage', 'search-tokens', debouncedSearchValue],
 		queryFn: () => fetchCoins(debouncedSearchValue, 20),
 		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false
@@ -215,16 +216,16 @@ const Search = () => {
 	return (
 		<Ariakit.ComboboxProvider
 			resetValueOnHide
-			setValue={(value) => {
+			setValue={(nextValue) => {
 				startTransition(() => {
-					setSearchValue(value)
+					setSearchValue(nextValue)
 				})
 			}}
 			open={open}
 			setOpen={setOpen}
 		>
 			<span className="relative isolate w-full lg:max-w-[50vw]">
-				<button onClick={(prev) => setOpen(!prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
+				<button onClick={() => setOpen((prev) => !prev)} className="absolute top-1 bottom-1 left-2 my-auto opacity-50">
 					{open ? (
 						<>
 							<span className="sr-only">Close Search</span>
@@ -260,12 +261,12 @@ const Search = () => {
 					<p className="px-3 py-6 text-center text-(--text-primary)">No results found</p>
 				) : (
 					<Ariakit.ComboboxList ref={comboboxRef}>
-						{data.map((data) => (
+						{data.map((tokenResult) => (
 							<Ariakit.ComboboxItem
-								key={`token-usage-${data.name}`}
-								value={data.name}
+								key={`token-usage-${tokenResult.name}`}
+								value={tokenResult.name}
 								onClick={() => {
-									router.push(`/token-usage?token=${data.name}`, undefined, { shallow: true }).then(() => {
+									void pushShallowQuery(router, { token: tokenResult.name }).then(() => {
 										setOpen(false)
 									})
 								}}
@@ -274,8 +275,10 @@ const Search = () => {
 								setValueOnClick={true}
 								className="flex cursor-pointer items-center gap-4 px-3 py-2 text-base text-(--text-primary) outline-hidden hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) aria-disabled:opacity-50 data-active-item:bg-(--primary-hover)"
 							>
-								{data?.logo ? <TokenLogo logo={data?.logo} /> : null}
-								<span>{data.name}</span>
+								{tokenResult?.logo ? (
+									<TokenLogo src={tokenResult?.logo} alt={`Logo of ${tokenResult?.name ?? ''}`} />
+								) : null}
+								<span>{tokenResult.name}</span>
 							</Ariakit.ComboboxItem>
 						))}
 					</Ariakit.ComboboxList>

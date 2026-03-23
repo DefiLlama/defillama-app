@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { PremiumFeatureGate } from '../PremiumFeatureGate'
 
 interface SavedChart {
 	id: string
@@ -21,13 +22,13 @@ interface LlamaAITabProps {
 }
 
 export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
-	const { authorizedFetch, user } = useAuthContext()
+	const { authorizedFetch, user, hasActiveSubscription } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [searchQuery, setSearchQuery] = useState('')
 	const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
 	const { data, isLoading, error } = useQuery({
-		queryKey: ['saved-charts-list', user?.id],
+		queryKey: ['pro-dashboard', 'saved-charts-list', user?.id],
 		queryFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/charts`)
 			if (!res.ok) throw new Error('Failed to load charts')
@@ -44,7 +45,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 			if (!res.ok) throw new Error('Failed to delete chart')
 		},
 		onSuccess: (_, chartId) => {
-			queryClient.invalidateQueries({ queryKey: ['saved-charts-list'] })
+			void queryClient.invalidateQueries({ queryKey: ['pro-dashboard', 'saved-charts-list'] })
 			if (selectedChart?.id === chartId) onChartSelect(null)
 			setDeleteConfirmId(null)
 		}
@@ -56,6 +57,10 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 				<p className="text-sm pro-text2">Sign in to access your saved LlamaAI charts</p>
 			</div>
 		)
+	}
+
+	if (!hasActiveSubscription) {
+		return <PremiumFeatureGate featureName="LlamaAI Charts" paywallReason="llamaai">{null}</PremiumFeatureGate>
 	}
 
 	if (isLoading) {
@@ -122,9 +127,9 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 						<div className="flex items-start justify-between gap-2">
 							<h4 className="line-clamp-1 font-medium pro-text1">{chart.title}</h4>
 							<div className="flex shrink-0 items-center gap-1">
-								{selectedChart?.id === chart.id && (
+								{selectedChart?.id === chart.id ? (
 									<Icon name="check" height={16} width={16} className="text-(--primary)" />
-								)}
+								) : null}
 								<button
 									onClick={(e) => {
 										e.stopPropagation()
@@ -137,7 +142,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 							</div>
 						</div>
 						<p className="line-clamp-2 text-xs pro-text3">{chart.original_query}</p>
-						{chart.session_id && (
+						{chart.session_id ? (
 							<a
 								href={`/ai/chat/${chart.session_id}`}
 								target="_blank"
@@ -147,21 +152,26 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 							>
 								View chat →
 							</a>
-						)}
+						) : null}
 					</button>
 				))}
 			</div>
 
-			{filteredCharts?.length === 0 && searchQuery && (
+			{filteredCharts?.length === 0 && searchQuery ? (
 				<p className="py-8 text-center text-sm pro-text3">No charts match your search</p>
-			)}
+			) : null}
 
-			{deleteConfirmId && (
+			{deleteConfirmId ? (
 				<div
 					className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+					role="presentation"
 					onClick={() => setDeleteConfirmId(null)}
 				>
-					<div className="pro-card mx-4 w-full max-w-sm rounded-lg p-4" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="pro-card mx-4 w-full max-w-sm rounded-lg p-4"
+						role="presentation"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<h3 className="font-medium pro-text1">Delete chart?</h3>
 						<p className="mt-2 text-sm pro-text3">
 							This will permanently delete the chart. Dashboards using it will show an error.
@@ -183,7 +193,7 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 						</div>
 					</div>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

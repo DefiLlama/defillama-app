@@ -1,19 +1,25 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems, toTokenIconItems } from '~/components/IconsRow/utils'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsOptimizerTableRow } from './types'
 
-const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
-	{
+const columnHelper = createColumnHelper<IYieldsOptimizerTableRow>()
+
+//  TODO fix types
+
+const columns = [
+	columnHelper.accessor('pool', {
+		id: 'pool',
 		header: 'Pool',
-		accessorKey: 'pool',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const name = `${row.original.symbol} ➞ ${row.original.borrow.symbol}`
@@ -23,10 +29,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			)
 		},
 		size: 400
-	},
-	{
+	}),
+	columnHelper.accessor('project', {
+		id: 'project',
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
-		accessorKey: 'project',
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
@@ -34,26 +40,25 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 				project={row.original.projectName}
 				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
 				borrow={true}
 			/>
 		),
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
+		id: 'chains',
 		header: 'Chain',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => (
-			<IconsRow disableLinks links={info.row.original.chains as Array<string>} url="/yields?chain" iconType="chain" />
-		),
+		cell: (info) => <IconsRow items={toChainIconItems(info.getValue())} />,
 		meta: {
 			align: 'end'
 		},
 		size: 60
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).borrowAvailableUsd as number | null, {
+		id: 'borrowAvailableUsd',
 		header: 'Available',
-		accessorKey: 'borrowAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
 			const value = info.row.original.borrow.totalAvailableUsd
@@ -71,10 +76,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('lendUSDAmount', {
+		id: 'lendUSDAmount',
 		header: 'You Lend',
-		accessorKey: 'lendUSDAmount',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -91,10 +96,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('borrowUSDAmount', {
+		id: 'borrowUSDAmount',
 		header: 'You Borrow',
-		accessorKey: 'borrowUSDAmount',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -111,16 +116,15 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).borrowBase as number | null, {
+		id: 'borrowBase',
 		header: 'Base Borrow APY',
-		accessorKey: 'borrowBase',
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{renderPercentChange(info.getValue(), true, 400, true)}
+				<ColoredAPY data-variant={(info.getValue() ?? 0) > 0 ? 'positive' : 'borrow'}>
+					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -128,15 +132,15 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).totalBase as number | null, {
+		id: 'totalBase',
 		header: 'Base APY',
-		accessorKey: 'totalBase',
 		enableSorting: true,
 		cell: ({ getValue }) => {
 			return (
-				<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-					{renderPercentChange(getValue(), true, 700, true)}
+				<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+					{formatPercentChangeText(getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -144,22 +148,22 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).lendingBase as number | null, {
+		id: 'lendingBase',
 		header: 'Base Supply APY',
-		accessorKey: 'lendingBase',
 		enableSorting: true,
 		cell: ({ getValue }) => {
-			return <ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).totalReward as number | null, {
+		id: 'totalReward',
 		header: 'Net APY',
-		accessorKey: 'totalReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			return (
@@ -167,13 +171,13 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 					{lockupsRewards.includes(row.original.projectName) ? (
 						<span className="flex w-full items-center justify-end gap-1">
 							<QuestionHelper text={earlyExit} />
-							<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-								{renderPercentChange(getValue(), true, 700, true)}
+							<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+								{formatPercentChangeText(getValue(), true)}
 							</ColoredAPY>
 						</span>
 					) : (
-						<ColoredAPY data-variant={getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-							{renderPercentChange(getValue(), true, 700, true)}
+						<ColoredAPY data-variant={(getValue() ?? 0) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+							{formatPercentChangeText(getValue(), true)}
 						</ColoredAPY>
 					)}
 				</>
@@ -184,10 +188,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			align: 'end',
 			headerHelperText: 'Lending Reward - Borrowing Cost * LTV'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).lendingReward as number | null, {
+		id: 'lendingReward',
 		header: 'Net Supply APY',
-		accessorKey: 'lendingReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewardTokensNames ?? []
@@ -195,13 +199,11 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			return (
 				<span className="flex w-full items-center justify-end gap-1">
 					<IconsRow
-						disableLinks
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
+						items={toTokenIconItems(rewards, {
+							titles: row.original.rewardTokensSymbols
+						})}
 					/>
-					<ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</span>
 			)
 		},
@@ -210,15 +212,15 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			align: 'end',
 			headerHelperText: 'Total reward APY for lending.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).borrowReward as number | null, {
+		id: 'borrowReward',
 		header: 'Net Borrow APY',
-		accessorKey: 'borrowReward',
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'}>
-					{renderPercentChange(info.getValue(), true, 400, true)}
+				<ColoredAPY data-variant={(info.getValue() ?? 0) > 0 ? 'positive' : 'borrow'}>
+					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -227,10 +229,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			align: 'end',
 			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+		id: 'ltv',
 		header: 'LTV',
-		accessorKey: 'ltv',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -248,10 +250,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalSupplyUsd', {
+		id: 'totalSupplyUsd',
 		header: 'Supplied',
-		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -268,10 +270,10 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalBorrowUsd', {
+		id: 'totalBorrowUsd',
 		header: 'Borrowed',
-		accessorKey: 'totalBorrowUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -289,7 +291,7 @@ const columns: ColumnDef<IYieldsOptimizerTableRow, number>[] = [
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
-	}
+	})
 ]
 
 // key: min width of window/screen

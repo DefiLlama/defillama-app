@@ -3,6 +3,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { formatValue } from '../../utils'
 import { useAuthContext } from '../Subscribtion/auth'
+import { setSignupSource } from '../Subscribtion/signupSource'
 import { AVAILABLE_FIELDS, AVAILABLE_FUNCTIONS, replaceAliases } from './customColumnsUtils'
 import { evaluateFormula } from './formula.service'
 
@@ -59,15 +60,17 @@ export function CustomColumnModal({
 	const isOpen = Ariakit.useStoreState(dialogStore, 'open')
 	useEffect(() => {
 		if (isOpen) {
-			setState({
-				name: initialName,
-				formula: initialFormula,
-				formatType: initialFormatType,
-				error: null,
-				showSuggestions: false,
-				suggestions: [],
-				highlighted: 0,
-				fieldWarning: null
+			queueMicrotask(() => {
+				setState({
+					name: initialName,
+					formula: initialFormula,
+					formatType: initialFormatType,
+					error: null,
+					showSuggestions: false,
+					suggestions: [],
+					highlighted: 0,
+					fieldWarning: null
+				})
 			})
 		}
 	}, [isOpen, initialName, initialFormula, initialFormatType])
@@ -173,6 +176,7 @@ export function CustomColumnModal({
 			return
 		}
 		if (!isAuthenticated || !hasActiveSubscription) {
+			setSignupSource('custom-columns')
 			subscribeModalStore.show()
 			return
 		}
@@ -247,24 +251,23 @@ export function CustomColumnModal({
 							value={state.name}
 							onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
 							placeholder="Custom Column"
-							autoFocus
 						/>
 					</label>
 					<label className="flex flex-col gap-1">
 						<span>Formula</span>
 						<div className="relative">
-							{state.fieldWarning && !state.error && (
+							{state.fieldWarning && !state.error ? (
 								<div className="mb-2 flex items-center gap-2 rounded-sm border border-yellow-400 bg-yellow-100 px-3 py-2 text-sm font-semibold text-yellow-700">
 									<Icon name="help-circle" height={18} width={18} />
 									<span>{state.fieldWarning}</span>
 								</div>
-							)}
-							{state.error && (
+							) : null}
+							{state.error ? (
 								<div className="mb-2 flex items-center gap-2 rounded-sm border border-red-400 bg-red-100 px-3 py-2 text-sm font-semibold text-red-700">
 									<Icon name="alert-triangle" height={18} width={18} />
 									<span>{state.error}</span>
 								</div>
-							)}
+							) : null}
 							<input
 								ref={inputRef}
 								className={`w-full rounded-md border bg-white p-2 text-black disabled:opacity-50 dark:bg-black dark:text-white ${
@@ -276,7 +279,7 @@ export function CustomColumnModal({
 								placeholder="e.g. revenue_30d / tvl"
 								autoComplete="off"
 							/>
-							{state.showSuggestions && (
+							{state.showSuggestions ? (
 								<ul className="absolute right-0 left-0 z-10 mt-1 max-h-40 overflow-y-auto rounded-lg border border-(--divider) bg-(--cards-bg) shadow-sm">
 									{state.suggestions.map((s, i) => (
 										<li
@@ -298,7 +301,7 @@ export function CustomColumnModal({
 										</li>
 									))}
 								</ul>
-							)}
+							) : null}
 						</div>
 					</label>
 					<label className="flex flex-col gap-1">
@@ -316,7 +319,7 @@ export function CustomColumnModal({
 								<option value="string">String</option>
 								<option value="boolean">Boolean (checkmark)</option>
 							</select>
-							{state.formatType === 'auto' && state.formula.trim() && !hasFormulaError && (
+							{state.formatType === 'auto' && state.formula.trim() && !hasFormulaError ? (
 								<div className="mt-1 text-sm text-(--text-secondary)">
 									Auto will format as:{' '}
 									{(() => {
@@ -334,7 +337,7 @@ export function CustomColumnModal({
 										return 'Unknown'
 									})()}
 								</div>
-							)}
+							) : null}
 						</div>
 					</label>
 					<div className="flex flex-col gap-1">
@@ -352,12 +355,12 @@ export function CustomColumnModal({
 							))}
 						</ul>
 					</div>
-					{state.formula.trim() && !hasFormulaError && (
+					{state.formula.trim() && !hasFormulaError ? (
 						<div className="mb-2 text-sm">
 							<span className="font-semibold text-(--text-secondary)">Preview: </span>
 							<span className="rounded-sm bg-(--bg-main) px-2 py-1 text-(--text-primary)">{preview}</span>
 						</div>
-					)}
+					) : null}
 					<div className="text-sm text-(--text-secondary)">
 						<a
 							href="https://docs.llama.fi/analysts/custom-columns"

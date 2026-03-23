@@ -1,10 +1,11 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ForksByProtocol } from '~/containers/Forks/ForksByProtocol'
 import { getForksByProtocolPageData } from '~/containers/Forks/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Forks']
@@ -27,11 +28,11 @@ export const getStaticProps = withPerformanceLogging('forks/[fork]', async ({ pa
 	}
 })
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -46,9 +47,12 @@ export default function ForkPage(props: InferGetStaticPropsType<typeof getStatic
 
 	return (
 		<Layout
-			title={`${fork ?? 'Forks'} - DefiLlama`}
-			description={`Protocols rankings by their forks value. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`forks by protocol, protocol forks, forks on blockchain`}
+			title={fork ? `${fork} Protocol Forks - DefiLlama` : 'Protocols Ranked by Forks - DefiLlama'}
+			description={
+				fork
+					? `Fork analytics for ${fork}, comparing original vs forked TVL, fork counts, and market dominance.`
+					: `Fork analytics for DeFi protocols, comparing original vs forked TVL, fork counts, and market dominance.`
+			}
 			canonicalUrl={fork ? `/forks/${slug(fork)}` : '/forks'}
 			metricFilters={tvlOptions}
 			pageName={pageName}

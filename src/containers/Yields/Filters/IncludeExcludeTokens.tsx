@@ -5,6 +5,7 @@ import { startTransition, useDeferredValue, useMemo, useRef, useState } from 're
 import { Icon } from '~/components/Icon'
 import { TokenLogo } from '~/components/TokenLogo'
 import { trackYieldsEvent, YIELDS_EVENTS } from '~/utils/analytics/yields'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const POPULAR_PAIRS = ['USDC-ETH', 'USDC-WETH', 'USDC-USDT', 'USDC-WBTC']
 
@@ -16,12 +17,17 @@ export function IncludeExcludeTokens({
 }) {
 	const router = useRouter()
 
-	const { token, excludeToken, exactToken, token_pair } = router.query
+	const { token: includeTokenQuery, excludeToken, exactToken, token_pair, attribute } = router.query
 
-	const tokensToInclude = token ? (typeof token === 'string' ? [token] : [...token]) : []
+	const tokensToInclude = includeTokenQuery
+		? typeof includeTokenQuery === 'string'
+			? [includeTokenQuery]
+			: [...includeTokenQuery]
+		: []
 	const tokensToExclude = excludeToken ? (typeof excludeToken === 'string' ? [excludeToken] : [...excludeToken]) : []
 	const tokensThatMatchExactly = exactToken ? (typeof exactToken === 'string' ? [exactToken] : [...exactToken]) : []
 	const pairTokens = token_pair ? (typeof token_pair === 'string' ? [token_pair] : [...token_pair]) : []
+	const currentAttributes = attribute ? (typeof attribute === 'string' ? [attribute] : [...attribute]) : []
 
 	const dialogStore = Ariakit.useDialogStore()
 
@@ -35,13 +41,20 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_INCLUDE, { token })
 		}
 
-		router
-			.push({ pathname: router.pathname, query: { ...router.query, token: tokenQueryParams } }, undefined, {
-				shallow: true
-			})
-			.then(() => {
+		const updates: Record<string, string | string[]> = { token: tokenQueryParams }
+		if (action !== 'delete') {
+			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
+		} else if (tokenQueryParams.length === 0 && tokensThatMatchExactly.length === 0) {
+			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+		}
+
+		if (action === 'delete') {
+			void pushShallowQuery(router, updates)
+		} else {
+			void pushShallowQuery(router, updates).then(() => {
 				dialogStore.toggle()
 			})
+		}
 	}
 
 	const handleTokenExclude = (token: string, action?: 'delete') => {
@@ -52,13 +65,13 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXCLUDE, { token })
 		}
 
-		router
-			.push({ pathname: router.pathname, query: { ...router.query, excludeToken: tokenQueryParams } }, undefined, {
-				shallow: true
-			})
-			.then(() => {
+		if (action === 'delete') {
+			void pushShallowQuery(router, { excludeToken: tokenQueryParams })
+		} else {
+			void pushShallowQuery(router, { excludeToken: tokenQueryParams }).then(() => {
 				dialogStore.toggle()
 			})
+		}
 	}
 
 	const handleTokenExact = (token: string, action?: 'delete') => {
@@ -69,13 +82,20 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_EXACT, { token })
 		}
 
-		router
-			.push({ pathname: router.pathname, query: { ...router.query, exactToken: tokenQueryParams } }, undefined, {
-				shallow: true
-			})
-			.then(() => {
+		const updates: Record<string, string | string[]> = { exactToken: tokenQueryParams }
+		if (action !== 'delete') {
+			updates.attribute = Array.from(new Set([...currentAttributes, 'no_il', 'single_exposure']))
+		} else if (tokenQueryParams.length === 0 && tokensToInclude.length === 0) {
+			updates.attribute = currentAttributes.filter((a) => a !== 'no_il' && a !== 'single_exposure')
+		}
+
+		if (action === 'delete') {
+			void pushShallowQuery(router, updates)
+		} else {
+			void pushShallowQuery(router, updates).then(() => {
 				dialogStore.toggle()
 			})
+		}
 	}
 
 	const [searchValue, setSearchValue] = useState('')
@@ -118,9 +138,7 @@ export function IncludeExcludeTokens({
 			trackYieldsEvent(YIELDS_EVENTS.SEARCH_TOKEN_PAIR, { pair })
 		}
 
-		router.push({ pathname: router.pathname, query: { ...router.query, token_pair: pairQueryParams } }, undefined, {
-			shallow: true
-		})
+		void pushShallowQuery(router, { token_pair: pairQueryParams })
 	}
 
 	const tokensComboboxRef = useRef<HTMLDivElement>(null)
@@ -164,10 +182,10 @@ export function IncludeExcludeTokens({
 				className="relative hidden flex-col rounded-md bg-(--btn-bg) text-xs data-[alwaysdisplay=true]:flex sm:flex"
 				{...props}
 			>
-				{(tokensToInclude.length > 0 ||
-					tokensToExclude.length > 0 ||
-					tokensThatMatchExactly.length > 0 ||
-					pairTokens.length > 0) && (
+				{tokensToInclude.length > 0 ||
+				tokensToExclude.length > 0 ||
+				tokensThatMatchExactly.length > 0 ||
+				pairTokens.length > 0 ? (
 					<div className="flex flex-wrap items-center gap-4 p-2">
 						{tokensToInclude.map((token) => (
 							<button
@@ -213,7 +231,7 @@ export function IncludeExcludeTokens({
 							</button>
 						))}
 					</div>
-				)}
+				) : null}
 				<Ariakit.DialogDisclosure className="flex items-center gap-2 p-2">
 					<Icon name="search" height={16} width={16} />
 					<span>Search by token or pair (e.g. USDC-ETH)</span>
@@ -242,8 +260,8 @@ export function IncludeExcludeTokens({
 						aria-label="Close modal"
 						onClick={() => {
 							setNewPairTokens([])
-							setTab('Tokens')
-							setSearchValue('')
+							startTransition(() => setTab('Tokens'))
+							startTransition(() => setSearchValue(''))
 						}}
 					>
 						<Icon name="x" height={20} width={20} />
@@ -254,9 +272,7 @@ export function IncludeExcludeTokens({
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
-								startTransition(() => {
-									setSearchValue(value)
-								})
+								startTransition(() => setSearchValue(value))
 							}}
 						>
 							<div className="relative">
@@ -268,7 +284,6 @@ export function IncludeExcludeTokens({
 								/>
 								<Ariakit.Combobox
 									autoSelect
-									autoFocus
 									placeholder="Search for a token to filter by..."
 									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
 								/>
@@ -278,7 +293,7 @@ export function IncludeExcludeTokens({
 									onClick={() => {
 										handlePairTokens(pairHint.pair!)
 										dialogStore.toggle()
-										setSearchValue('')
+										startTransition(() => setSearchValue(''))
 									}}
 									className="flex items-center gap-2 rounded-md bg-[#fff7ed] px-3 py-2 text-sm text-[#ea580c] hover:bg-[#fed7aa]/40 dark:bg-[#1f1b1b] dark:text-[#fb923c] dark:hover:bg-[#2a2020]"
 								>
@@ -303,9 +318,13 @@ export function IncludeExcludeTokens({
 											}}
 											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
-											{(token?.logo || token?.fallbackLogo) && (
-												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
-											)}
+											{token?.logo || token?.fallbackLogo ? (
+												<TokenLogo
+													src={token?.logo}
+													fallbackSrc={token?.fallbackLogo}
+													alt={`Logo of ${token.symbol}`}
+												/>
+											) : null}
 											<span>{`${token.symbol}`}</span>
 											<div className="mt-1 flex w-full flex-nowrap items-center gap-1 sm:mt-0 sm:ml-auto sm:w-min">
 												<button
@@ -388,8 +407,8 @@ export function IncludeExcludeTokens({
 												handlePairTokens(pair)
 												dialogStore.toggle()
 												setNewPairTokens([])
-												setTab('Tokens')
-												setSearchValue('')
+												startTransition(() => setTab('Tokens'))
+												startTransition(() => setSearchValue(''))
 											}}
 											className="rounded-md border border-(--form-control-border) px-2.5 py-1 text-xs font-medium text-(--text-form) hover:bg-(--link-hover-bg)"
 										>
@@ -402,9 +421,7 @@ export function IncludeExcludeTokens({
 						<Ariakit.ComboboxProvider
 							value={searchValue}
 							setValue={(value) => {
-								startTransition(() => {
-									setSearchValue(value)
-								})
+								startTransition(() => setSearchValue(value))
 							}}
 						>
 							<div className="relative">
@@ -416,7 +433,6 @@ export function IncludeExcludeTokens({
 								/>
 								<Ariakit.Combobox
 									autoSelect
-									autoFocus
 									placeholder="Search for a token to add to current pair..."
 									className="dark:placeholder:[#919296] min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black outline-hidden placeholder:text-[#666] dark:text-white"
 								/>
@@ -428,7 +444,7 @@ export function IncludeExcludeTokens({
 											key={token.name}
 											onClick={() => {
 												setNewPairTokens((prev) => [...prev, token.symbol])
-												setSearchValue('')
+												startTransition(() => setSearchValue(''))
 												// scroll to top of dialog
 												const dialogElement = dialogStore.getState().contentElement
 												if (dialogElement) {
@@ -437,9 +453,13 @@ export function IncludeExcludeTokens({
 											}}
 											className="flex cursor-pointer flex-wrap items-center gap-1 overflow-hidden rounded-md bg-(--cards-bg) p-2 px-4 py-2 text-sm hover:bg-(--link-button)"
 										>
-											{(token?.logo || token?.fallbackLogo) && (
-												<TokenLogo logo={token?.logo} fallbackLogo={token?.fallbackLogo} />
-											)}
+											{token?.logo || token?.fallbackLogo ? (
+												<TokenLogo
+													src={token?.logo}
+													fallbackSrc={token?.fallbackLogo}
+													alt={`Logo of ${token.symbol}`}
+												/>
+											) : null}
 											<span>{`${token.symbol}`}</span>
 										</Ariakit.ComboboxItem>
 									))}
@@ -460,8 +480,8 @@ export function IncludeExcludeTokens({
 											handlePairTokens(newPairTokens.join('-'))
 											dialogStore.toggle()
 											setNewPairTokens([])
-											setTab('Tokens')
-											setSearchValue('')
+											startTransition(() => setTab('Tokens'))
+											startTransition(() => setSearchValue(''))
 										}}
 										disabled={newPairTokens.length < 2}
 									>

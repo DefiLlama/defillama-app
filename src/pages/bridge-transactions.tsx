@@ -1,7 +1,7 @@
-import { maxAgeForNext } from '~/api'
 import { getBridges } from '~/containers/Bridges/queries.server'
 import { BridgeTransactionsPage } from '~/containers/Bridges/Transactions'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('bridge-transactions', async () => {
@@ -19,8 +19,7 @@ export default function BridgeTransactions({ bridges }) {
 	return (
 		<Layout
 			title={`Bridge Transactions - DefiLlama`}
-			description={`Download transaction data across different time periods by bridge on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`bridge transactions, cross-chain transfers, bridge data download`}
+			description="Download cross-chain bridge transaction data by protocol and time period. Export bridge transfer records for analysis on DefiLlama."
 			canonicalUrl={`/bridge-transactions`}
 			pageName={pageName}
 		>

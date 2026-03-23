@@ -28,6 +28,9 @@ type ModalAction =
 	| { type: 'SET_SELECTED_TABLE_TYPE'; payload: CombinedTableType }
 	| { type: 'SET_SELECTED_DATASET_CHAIN'; payload: string | null }
 	| { type: 'SET_SELECTED_DATASET_TIMEFRAME'; payload: string | null }
+	| { type: 'SET_SELECTED_CEX_ANALYTICS_VIEW'; payload: ModalState['selectedCexAnalyticsView'] }
+	| { type: 'SET_SELECTED_CEX_ANALYTICS_METRIC'; payload: ModalState['selectedCexAnalyticsMetric'] }
+	| { type: 'SET_SELECTED_CEX_ANALYTICS_TOP_N'; payload: number }
 	| { type: 'SET_SELECTED_TOKENS'; payload: string[] }
 	| { type: 'SET_INCLUDE_CEX'; payload: boolean }
 	| { type: 'SET_CHART_BUILDER_NAME'; payload: string }
@@ -141,6 +144,9 @@ const INITIAL_MODAL_STATE: ModalState = {
 	selectedTableType: 'protocols',
 	selectedDatasetChain: null,
 	selectedDatasetTimeframe: null,
+	selectedCexAnalyticsView: 'starter',
+	selectedCexAnalyticsMetric: 'derivatives',
+	selectedCexAnalyticsTopN: 8,
 	selectedTokens: [],
 	includeCex: false,
 	chartBuilderName: '',
@@ -261,14 +267,24 @@ export function initializeFromEditItem(editItem: DashboardItemConfig | null | un
 	}
 
 	if (editItem.kind === 'table') {
+		const normalizedDatasetType = editItem.datasetType === 'cex' ? 'cex-analytics' : editItem.datasetType
+		const normalizedCexAnalyticsView =
+			(editItem.cexAnalyticsView as string | undefined) === 'efficiency'
+				? 'comparison'
+				: editItem.cexAnalyticsView || 'comparison'
 		return {
 			...base,
 			selectedMainTab: 'table',
 			selectedChains: editItem.chains || [],
 			selectedTableType:
-				editItem.tableType === 'dataset' ? ((editItem.datasetType || 'stablecoins') as CombinedTableType) : 'protocols',
+				editItem.tableType === 'dataset'
+					? ((normalizedDatasetType || 'stablecoins') as CombinedTableType)
+					: 'protocols',
 			selectedDatasetChain: editItem.datasetChain || null,
 			selectedDatasetTimeframe: editItem.datasetTimeframe || null,
+			selectedCexAnalyticsView: normalizedCexAnalyticsView,
+			selectedCexAnalyticsMetric: editItem.cexAnalyticsMetric || 'derivatives',
+			selectedCexAnalyticsTopN: editItem.cexAnalyticsTopN || 8,
 			selectedTokens: editItem.tokenSymbols || [],
 			includeCex: editItem.includeCex || false
 		}
@@ -489,6 +505,15 @@ export function modalReducer(state: ModalState, action: ModalAction): ModalState
 
 		case 'SET_SELECTED_DATASET_TIMEFRAME':
 			return { ...state, selectedDatasetTimeframe: action.payload }
+
+		case 'SET_SELECTED_CEX_ANALYTICS_VIEW':
+			return { ...state, selectedCexAnalyticsView: action.payload }
+
+		case 'SET_SELECTED_CEX_ANALYTICS_METRIC':
+			return { ...state, selectedCexAnalyticsMetric: action.payload }
+
+		case 'SET_SELECTED_CEX_ANALYTICS_TOP_N':
+			return { ...state, selectedCexAnalyticsTopN: action.payload }
 
 		case 'SET_SELECTED_TOKENS':
 			return { ...state, selectedTokens: action.payload }

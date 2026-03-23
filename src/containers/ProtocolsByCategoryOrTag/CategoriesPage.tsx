@@ -1,42 +1,30 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
+import { getCategoryRoute } from '~/constants'
 import { TVL_SETTINGS_KEYS, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { formattedNum, getPercentChange, renderPercentChange, slug } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
 import { categoriesPageExcludedExtraTvls } from './constants'
 import type { IProtocolsCategoriesPageData, IProtocolsCategoriesTableRow } from './types'
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
+const columnHelper = createColumnHelper<IProtocolsCategoriesTableRow>()
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
 
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
-	return columnId
-}
-
-function getCsvCellValue(value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
-}
-
-const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
-	{
+const categoriesColumns = [
+	columnHelper.accessor('name', {
 		header: 'Category',
-		accessorKey: 'name',
 		enableSorting: false,
 		size: 240,
 		cell: ({ getValue, row }) => {
-			const categoryName = getValue<string>()
+			const categoryName = getValue()
 
 			return (
 				<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-8' : 'pl-4'}`}>
@@ -62,7 +50,7 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 					) : null}
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 					<BasicLink
-						href={`/protocols/${slug(categoryName)}`}
+						href={getCategoryRoute(slug(categoryName))}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
 						{categoryName}
@@ -70,77 +58,65 @@ const categoriesColumns: ColumnDef<IProtocolsCategoriesTableRow>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('protocols', {
 		header: 'Protocols',
-		accessorKey: 'protocols',
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'Combined TVL',
-		id: 'tvl',
-		accessorFn: (row) => row.tvl,
 		size: 135,
 		meta: {
 			align: 'end'
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<number>()
+			const value = getValue()
 			return formattedNum(value, true)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		id: 'change_1d',
-		accessorFn: (row) => row.change_1d,
 		size: 140,
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
-	},
-	{
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d TVL Change',
-		id: 'change_7d',
-		accessorFn: (row) => row.change_7d,
 		size: 140,
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
-	},
-	{
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m TVL Change',
-		id: 'change_1m',
-		accessorFn: (row) => row.change_1m,
 		size: 140,
 		meta: {
 			align: 'end'
 		},
-		cell: ({ getValue }) => <>{renderPercentChange(getValue<number | null>())}</>
-	},
-	{
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />
+	}),
+	columnHelper.accessor('revenue', {
 		header: 'Combined 24h Revenue',
-		id: 'revenue',
-		accessorFn: (row) => row.revenue,
 		size: 200,
 		meta: {
 			align: 'end'
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<number>()
+			const value = getValue()
 			return formattedNum(value, true)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('description', {
 		header: 'Description',
-		accessorKey: 'description',
 		enableSorting: false,
 		size: 1600
-	}
+	})
 ]
 
 export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
@@ -149,8 +125,9 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 	const { chartInstance, handleChartReady } = useGetChartInstance()
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
-	const enabledTvls = TVL_SETTINGS_KEYS.filter(
-		(key) => extraTvlsEnabled[key] && !categoriesPageExcludedExtraTvls.has(key)
+	const enabledTvls = React.useMemo(
+		() => TVL_SETTINGS_KEYS.filter((key) => extraTvlsEnabled[key] && !categoriesPageExcludedExtraTvls.has(key)),
+		[extraTvlsEnabled]
 	)
 
 	const finalCharts = React.useMemo(() => {
@@ -188,6 +165,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 
 		return { dataset: { source, dimensions }, charts }
 	}, [categories, categoryColors, chartSource, enabledTvls, extraTvlCharts, selectedCategories])
+	const deferredFinalCharts = React.useDeferredValue(finalCharts)
 
 	const finalCategoriesList = React.useMemo(() => {
 		if (enabledTvls.length === 0) return tableData
@@ -245,13 +223,12 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 				</div>
 				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={finalCharts.dataset}
-						charts={finalCharts.charts}
+						dataset={deferredFinalCharts.dataset}
+						charts={deferredFinalCharts.charts}
 						valueSymbol="$"
 						solidChartAreaStyle
 						onReady={handleChartReady}
 						showTotalInTooltip
-						tooltipTotalPosition="top"
 					/>
 				</React.Suspense>
 			</div>
@@ -269,23 +246,7 @@ export function ProtocolsCategoriesPage(props: IProtocolsCategoriesPageData) {
 					columns={categoriesColumns}
 					columnToSearch="name"
 					placeholder="Search category..."
-					customFilters={({ instance }) => (
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const visibleColumns = instance.getAllLeafColumns().filter((column) => column.getIsVisible())
-								const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
-
-								return {
-									filename: 'protocol-categories.csv',
-									rows: [headers, ...rows]
-								}
-							}}
-							smol
-						/>
-					)}
+					csvFileName="protocol-categories"
 					sortingState={DEFAULT_SORTING_STATE}
 				/>
 			</React.Suspense>

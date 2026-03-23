@@ -1,71 +1,83 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems, toTokenIconItems, yieldsChainHref, yieldsProjectHref } from '~/components/IconsRow/utils'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
-import { earlyExit, lockupsRewards } from '~/containers/Yields/utils'
-import { formattedNum, renderPercentChange } from '~/utils'
+import { Tooltip } from '~/components/Tooltip'
+import { earlyExit, isExploitedPool, lockupsRewards } from '~/containers/Yields/utils'
+import { formattedNum } from '~/utils'
 import { ColoredAPY } from './ColoredAPY'
 import { NameYield, NameYieldPool } from './Name'
 import { YieldsTableWrapper } from './shared'
 import type { IYieldsTableProps, IYieldTableRow } from './types'
 
-const columns: ColumnDef<IYieldTableRow>[] = [
-	{
+const columnHelper = createColumnHelper<IYieldTableRow>()
+
+const columns = [
+	columnHelper.accessor('pool', {
+		id: 'pool',
 		header: 'Pool',
-		accessorKey: 'pool',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
+			const value = getValue<string>()
+			const exploited = isExploitedPool(row.original.projectslug, value)
 			return (
-				<NameYieldPool
-					value={getValue() as string}
-					configID={row.original.configID}
-					url={row.original.url}
-					borrow={true}
-				/>
+				<span className="flex items-center gap-1">
+					<NameYieldPool value={value} configID={row.original.configID} url={row.original.url} borrow={true} />
+					{exploited ? (
+						<Tooltip content="This pool involves a protocol or token affected by an exploit. Proceed with extreme caution.">
+							<span className="shrink-0 rounded bg-red-500/15 px-1 py-0.5 text-[10px] leading-none font-semibold tracking-wide text-red-600 uppercase dark:text-red-400">
+								exploit
+							</span>
+						</Tooltip>
+					) : null}
+				</span>
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('project', {
+		id: 'project',
 		header: () => <span style={{ paddingLeft: '32px' }}>Project</span>,
-		accessorKey: 'project',
 		enableSorting: false,
 		cell: ({ row }) => (
 			<NameYield
 				project={row.original.project}
 				projectslug={row.original.project}
 				airdrop={row.original.airdrop}
+				raiseValuation={row.original.raiseValuation}
 				borrow={true}
 			/>
 		),
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
+		id: 'chains',
 		header: 'Chain',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: (info) => <IconsRow links={info.getValue() as Array<string>} url="/yields?chain" iconType="chain" />,
+		cell: (info) => <IconsRow items={toChainIconItems(info.getValue(), (chain) => yieldsChainHref(chain))} />,
 		meta: {
 			align: 'end'
 		},
 		size: 60
-	},
-	{
+	}),
+	columnHelper.accessor('apyBase', {
+		id: 'apyBase',
 		header: 'Supply Base',
-		accessorKey: 'apyBase',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="supply">{renderPercentChange(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="supply">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Base rate lenders earn which is generated from the borrow side.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyReward', {
+		id: 'apyReward',
 		header: 'Supply Reward',
-		accessorKey: 'apyReward',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
@@ -74,12 +86,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 				<div className="flex w-full items-center justify-end gap-1">
 					{lockupsRewards.includes(row.original.project) ? <QuestionHelper text={earlyExit} /> : null}
 					<IconsRow
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
+						items={toTokenIconItems(rewards, {
+							titles: row.original.rewardTokensSymbols,
+							getHref: (reward) => yieldsProjectHref(reward)
+						})}
 					/>
-					<ColoredAPY data-variant="supply">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="supply">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</div>
 			)
 		},
@@ -88,15 +100,15 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Incentive reward APY for lending.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyBorrow', {
+		id: 'apyBorrow',
 		header: 'Net Borrow',
-		accessorKey: 'apyBorrow',
 		enableSorting: true,
 		cell: (info) => {
 			return (
-				<ColoredAPY data-variant={(info.getValue() as number) > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
-					{renderPercentChange(info.getValue(), true, 700, true)}
+				<ColoredAPY data-variant={info.getValue() > 0 ? 'positive' : 'borrow'} style={{ '--weight': 700 }}>
+					{formatPercentChangeText(info.getValue(), true)}
 				</ColoredAPY>
 			)
 		},
@@ -105,23 +117,23 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Total net APY for borrowing (Base + Reward).'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).apyBaseBorrow as number | null, {
+		id: 'apyBaseBorrow',
 		header: 'Borrow Base',
-		accessorKey: 'apyBaseBorrow',
 		enableSorting: true,
 		cell: (info) => {
-			return <ColoredAPY data-variant="borrow">{renderPercentChange(info.getValue(), true, 400, true)}</ColoredAPY>
+			return <ColoredAPY data-variant="borrow">{formatPercentChangeText(info.getValue(), true)}</ColoredAPY>
 		},
 		size: 140,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Interest borrowers pay to lenders.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('apyRewardBorrow', {
+		id: 'apyRewardBorrow',
 		header: 'Borrow Reward',
-		accessorKey: 'apyRewardBorrow',
 		enableSorting: true,
 		cell: ({ getValue, row }) => {
 			const rewards = row.original.rewards ?? []
@@ -134,12 +146,12 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 						<QuestionHelper text={'Pre-mined rewards, no available token yet!'} />
 					) : null}
 					<IconsRow
-						links={rewards}
-						url="/yields?project"
-						iconType="token"
-						yieldRewardsSymbols={row.original.rewardTokensSymbols}
+						items={toTokenIconItems(rewards, {
+							titles: row.original.rewardTokensSymbols,
+							getHref: (reward) => yieldsProjectHref(reward)
+						})}
 					/>
-					<ColoredAPY data-variant="borrow">{renderPercentChange(getValue(), true, 400, true)}</ColoredAPY>
+					<ColoredAPY data-variant="borrow">{formatPercentChangeText(getValue(), true)}</ColoredAPY>
 				</div>
 			) : null
 		},
@@ -148,10 +160,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Incentive reward APY for borrowing.'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).ltv as number | null, {
+		id: 'ltv',
 		header: 'LTV',
-		accessorKey: 'ltv',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -169,10 +181,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Max loan to value (collateral factor)'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalSupplyUsd', {
+		id: 'totalSupplyUsd',
 		header: 'Supplied',
-		accessorKey: 'totalSupplyUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -189,10 +201,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalBorrowUsd', {
+		id: 'totalBorrowUsd',
 		header: 'Borrowed',
-		accessorKey: 'totalBorrowUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -210,10 +222,10 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 			align: 'end',
 			headerHelperText: 'Amount of borrowed collateral'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => (row as any).totalAvailableUsd as number | null, {
+		id: 'totalAvailableUsd',
 		header: 'Available',
-		accessorKey: 'totalAvailableUsd',
 		enableSorting: true,
 		cell: (info) => {
 			return (
@@ -238,7 +250,7 @@ const columns: ColumnDef<IYieldTableRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const columnOrders: ColumnOrdersByBreakpoint = {

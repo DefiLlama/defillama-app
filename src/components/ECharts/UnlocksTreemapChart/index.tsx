@@ -3,11 +3,12 @@ import { TreemapChart as EChartTreemap } from 'echarts/charts'
 import { TitleComponent, ToolboxComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
+import { startTransition, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { TagGroup } from '~/components/TagGroup'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartResize } from '~/hooks/useChartResize'
-import { formattedNum, tokenIconUrl } from '~/utils'
+import { formattedNum } from '~/utils'
+import { tokenIconUrl } from '~/utils/icons'
 
 echarts.use([TitleComponent, TooltipComponent, ToolboxComponent, EChartTreemap, CanvasRenderer])
 
@@ -50,13 +51,13 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	const id = useId()
 	const [isDark] = useDarkModeManager()
 	const [timeView, setTimeView] = useState<TimeView>('Current Year')
-	const [selectedDate, setSelectedDate] = useState(dayjs())
+	const [selectedDate, setSelectedDate] = useState(() => dayjs())
 	const chartRef = useRef<echarts.ECharts | null>(null)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const currentYear = filterYear || dayjs().year()
+	const currentYear = filterYear ?? dayjs().year()
 
 	const protocolLabel = (protocol: string, value: number, iconUrl: string) => ({
 		show: true,
@@ -250,7 +251,7 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 	useEffect(() => {
 		const el = document.getElementById(id)
 		if (!el) return
-		const instance = echarts.getInstanceByDom(el) || echarts.init(el)
+		const instance = echarts.getInstanceByDom(el) || echarts.init(el, null, { renderer: 'canvas' })
 		chartRef.current = instance
 
 		const option = {
@@ -443,7 +444,11 @@ export default function UnlocksTreemapChart({ unlocksData, height = '600px', fil
 					</div>
 				) : null}
 
-				<TagGroup selectedValue={timeView} setValue={(period) => setTimeView(period as TimeView)} values={TIME_VIEWS} />
+				<TagGroup
+					selectedValue={timeView}
+					setValue={(period) => startTransition(() => setTimeView(period))}
+					values={TIME_VIEWS}
+				/>
 			</div>
 
 			<div id={id} style={{ width: '100%', height: height }} />

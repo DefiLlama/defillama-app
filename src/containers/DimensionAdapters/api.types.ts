@@ -1,7 +1,4 @@
-import { ADAPTER_TYPES } from './constants'
-
-// oxlint-disable-next-line no-unused-vars
-type AdapterType = `${ADAPTER_TYPES}`
+import type { ChartTimeGrouping } from '~/components/ECharts/types'
 
 // Full type for single protocol metrics response
 export interface IAdapterProtocolMetrics {
@@ -42,7 +39,7 @@ export interface IAdapterProtocolMetrics {
 	governanceID: Array<string> | null
 	treasury: string | null
 	cmcId: string | null
-	defaultChartView?: 'daily' | 'weekly' | 'monthly' | null
+	defaultChartView?: ChartTimeGrouping | null
 	hasLabelBreakdown?: boolean
 	twitter?: string
 	stablecoins?: Array<string>
@@ -53,35 +50,6 @@ export interface IAdapterProtocolMetrics {
 	forkedFrom?: Array<string> | null
 	audits?: string | null
 	audit_links?: Array<string> | null
-	tokenRights?: {
-		rights: Array<{
-			label: string
-			hasRight: boolean
-			details: string
-		}>
-		governanceData: {
-			rights: string
-			details: string
-			feeSwitchStatus: string
-			feeSwitchDetails: string
-		}
-		holdersRevenueAndValueAccrual: {
-			buybacks: string
-			dividends: string
-			burns: string
-			primaryValueAccrual: string
-		}
-		tokenAlignment: {
-			fundraising: string
-			raiseDetailsLink: {
-				label: string
-				url: string
-			}
-			associatedEntities: Array<string>
-			equityRevenueCapture: string
-			equityStatement: string
-		}
-	}
 	childProtocols?: Array<{
 		name: string
 		defillamaId: string
@@ -89,7 +57,7 @@ export interface IAdapterProtocolMetrics {
 		methodologyURL: string
 		methodology: Record<string, string>
 		breakdownMethodology: Record<string, Record<string, string>>
-		defaultChartView?: 'daily' | 'weekly' | 'monthly' | null
+		defaultChartView?: ChartTimeGrouping | null
 	}>
 }
 

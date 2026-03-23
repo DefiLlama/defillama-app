@@ -1,10 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { getYieldPageData } from '~/containers/Yields/queries/index'
 import { YieldsProjectsTable } from '~/containers/Yields/Tables/Projects'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const noAirdropProjects = new Set(['fraxlend', 'origin-dollar', 'origin-ether'])
@@ -59,7 +59,7 @@ const pageName = ['Yields: All Projects']
 
 export default function Protocols({ projects }) {
 	const prepareCsv = () => ({
-		filename: 'yields-projects.csv',
+		filename: 'yields-projects',
 		rows: [
 			['Project', 'Airdrop', 'Category', 'Pools', 'Combined TVL', 'Audits', 'Median APY'],
 			...projects.map((p) => [
@@ -76,13 +76,14 @@ export default function Protocols({ projects }) {
 
 	return (
 		<Layout
-			title={`Projects - DefiLlama Yield`}
-			description={`Projects by APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`projects by apy values, defi projects with yields, defi projects by apy`}
+			title={`DeFi Yield Projects & Protocols - DefiLlama`}
+			description="Compare DeFi projects by yield performance. View APY rankings, pool counts, and TVL for yield-generating protocols across all chains."
 			canonicalUrl={`/yields/projects`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<div className="flex items-center justify-end p-3">

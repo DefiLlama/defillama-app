@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
+import { Announcement } from '~/components/Announcement'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
@@ -103,14 +104,14 @@ const PageView = (_props) => {
 
 	// prepare csv data
 	const prepareCsv = () => {
-		if (!chart?.data || !query?.pool) return { filename: `yields.csv`, rows: [] }
+		if (!chart?.data || !query?.pool) return { filename: `yields`, rows: [] }
 		const rows = [['APY', 'APY_BASE', 'APY_REWARD', 'TVL', 'DATE']]
 
 		for (const item of chart?.data ?? EMPTY_CHART_DATA) {
 			rows.push([item.apy, item.apyBase, item.apyReward, item.tvlUsd, item.timestamp])
 		}
 
-		return { filename: `${query.pool}.csv`, rows: rows as (string | number | boolean)[][] }
+		return { filename: `${query.pool}`, rows: rows as (string | number | boolean)[][] }
 	}
 
 	const apy = poolData.apy?.toFixed(2) ?? 0
@@ -272,6 +273,12 @@ const PageView = (_props) => {
 			poolLiquidityDataset
 		}
 	}, [chart, chartBorrow, category])
+	const deferredTvlApyDataset = useDeferredValue(tvlApyDataset)
+	const deferredSupplyApyBarDataset = useDeferredValue(supplyApyBarDataset)
+	const deferredSupplyApy7dDataset = useDeferredValue(supplyApy7dDataset)
+	const deferredBorrowApyBarDataset = useDeferredValue(borrowApyBarDataset)
+	const deferredNetBorrowApyDataset = useDeferredValue(netBorrowApyDataset)
+	const deferredPoolLiquidityDataset = useDeferredValue(poolLiquidityDataset)
 
 	const liquidityCharts = useMemo(() => {
 		return LIQUIDITY_LEGEND_OPTIONS.map((name) => ({
@@ -318,12 +325,12 @@ const PageView = (_props) => {
 							<span className="font-semibold">30d Avg APY</span>
 							<span className="ml-auto font-jetbrains text-(--apy-pink)">{isLoading ? null : `${apyMean30d}%`}</span>
 						</p>
-						{poolConfigId && (
+						{poolConfigId ? (
 							<p className="flex items-center justify-between gap-1">
 								<span className="font-semibold">Yield Score</span>
 								<StabilityCell cv30d={cv30d} apyMedian30d={apyMedian30d} apyStd30d={apyStd30d} />
 							</p>
-						)}
+						) : null}
 						<p className="flex items-center justify-between gap-1">
 							<span className="font-semibold">Total Value Locked</span>
 							<span className="ml-auto font-jetbrains text-(--apy-blue)">
@@ -355,7 +362,7 @@ const PageView = (_props) => {
 					</div>
 					<Suspense fallback={<div className="min-h-[360px]" />}>
 						<MultiSeriesChart2
-							dataset={tvlApyDataset}
+							dataset={deferredTvlApyDataset}
 							charts={tvlApyCharts}
 							chartOptions={tvlApyChartOptions}
 							valueSymbol=""
@@ -386,7 +393,7 @@ const PageView = (_props) => {
 								</div>
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={supplyApyBarDataset}
+										dataset={deferredSupplyApyBarDataset}
 										charts={BASE_REWARD_BAR_CHARTS}
 										valueSymbol="%"
 										hideDefaultLegend={false}
@@ -408,7 +415,7 @@ const PageView = (_props) => {
 								</div>
 								<Suspense fallback={<div className="min-h-[360px]" />}>
 									<MultiSeriesChart2
-										dataset={supplyApy7dDataset}
+										dataset={deferredSupplyApy7dDataset}
 										charts={SINGLE_APY_LINE_CHARTS}
 										valueSymbol="%"
 										onReady={handleSupplyApy7dReady}
@@ -439,7 +446,7 @@ const PageView = (_props) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={borrowApyBarDataset}
+									dataset={deferredBorrowApyBarDataset}
 									charts={BASE_REWARD_BAR_CHARTS}
 									valueSymbol="%"
 									hideDefaultLegend={false}
@@ -461,7 +468,7 @@ const PageView = (_props) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={netBorrowApyDataset}
+									dataset={deferredNetBorrowApyDataset}
 									charts={SINGLE_APY_LINE_CHARTS}
 									valueSymbol="%"
 									onReady={handleNetBorrowApyReady}
@@ -492,7 +499,7 @@ const PageView = (_props) => {
 							</div>
 							<Suspense fallback={<div className="min-h-[360px]" />}>
 								<MultiSeriesChart2
-									dataset={poolLiquidityDataset}
+									dataset={deferredPoolLiquidityDataset}
 									charts={liquidityCharts}
 									valueSymbol="$"
 									selectedCharts={new Set(selectedLiquiditySeries)}
@@ -587,8 +594,15 @@ const liquidityChartColors: Record<string, string> = {
 const LIQUIDITY_LEGEND_OPTIONS: string[] = ['Supplied', 'Borrowed', 'Available']
 
 export default function YieldPoolPage(props) {
+	const { query } = useRouter()
+	const pool = typeof query.pool === 'string' ? query.pool : Array.isArray(query.pool) ? query.pool[0] : undefined
+
 	return (
-		<Layout title={`Yields - DefiLlama`}>
+		<Layout
+			title={pool ? `Yields ${pool} - DefiLlama` : ''}
+			description={pool ? `Compare APY rates, TVL, and pool metrics for ${pool} on DefiLlama.` : ''}
+			canonicalUrl={pool ? `/yields/pool/${pool}` : null}
+		>
 			<PageView {...props} />
 		</Layout>
 	)

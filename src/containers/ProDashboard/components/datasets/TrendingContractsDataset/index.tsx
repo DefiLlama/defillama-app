@@ -16,7 +16,7 @@ import * as React from 'react'
 import { useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
 import { TableBody } from '../../ProTable/TableBody'
@@ -26,6 +26,15 @@ import { useTrendingContractsData } from './useTrendingContractsData'
 
 const TIME_VALUES = ['1d', '7d', '30d'] as const
 const CHAIN_VALUES = ['Ethereum', 'Arbitrum', 'Polygon', 'Optimism', 'Base'] as const
+
+type TimeValue = (typeof TIME_VALUES)[number]
+type ChainValue = (typeof CHAIN_VALUES)[number]
+
+const toTimeValue = (s: string): TimeValue =>
+	(TIME_VALUES as readonly string[]).includes(s) ? (s as TimeValue) : TIME_VALUES[0]
+const toChainValue = (s: string): ChainValue =>
+	(CHAIN_VALUES as readonly string[]).includes(s) ? (s as ChainValue) : CHAIN_VALUES[0]
+
 const EMPTY_RESULTS: any[] = []
 const TRENDING_CONTRACTS_COLUMNS_BY_CHAIN = {
 	ethereum: trendingContractsColumns('ethereum'),
@@ -60,8 +69,8 @@ export function TrendingContractsDataset({
 		pageSize: 10
 	})
 
-	const [timeframe, setTimeframe] = React.useState(initialTimeframe)
-	const [chain, setChain] = React.useState(initialChain)
+	const [timeframe, setTimeframe] = React.useState(() => toTimeValue(initialTimeframe))
+	const [chain, setChain] = React.useState(() => toChainValue(initialChain))
 
 	const activeChain = chain.toLowerCase()
 	const { data, isLoading, error } = useTrendingContractsData(activeChain, timeframe)
@@ -84,6 +93,7 @@ export function TrendingContractsDataset({
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -112,7 +122,7 @@ export function TrendingContractsDataset({
 		instance.setColumnOrder(defaultOrder)
 	}, [width, instance])
 
-	const [contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
+	const [_contractSearch, setContractSearch] = useTableSearch({ instance, columnToSearch: 'contract' })
 
 	if (isLoading) {
 		return (
@@ -153,22 +163,18 @@ export function TrendingContractsDataset({
 					<div className="flex flex-wrap items-center justify-end gap-2">
 						<TagGroup
 							selectedValue={timeframe}
-							setValue={(val: string) => {
+							setValue={(val) => {
 								setTimeframe(val)
-								if (onTimeframeChange) {
-									onTimeframeChange(val)
-								}
+								onTimeframeChange?.(val)
 							}}
 							values={TIME_VALUES}
 							variant="pro"
 						/>
 						<TagGroup
 							selectedValue={chain}
-							setValue={(val: string) => {
+							setValue={(val) => {
 								setChain(val)
-								if (onChainChange) {
-									onChainChange(val)
-								}
+								onChainChange?.(val)
 							}}
 							values={CHAIN_VALUES}
 							variant="pro"
@@ -210,8 +216,7 @@ export function TrendingContractsDataset({
 						<input
 							type="text"
 							placeholder="Search contracts..."
-							value={contractSearch}
-							onChange={(e) => setContractSearch(e.target.value)}
+							onInput={(e) => setContractSearch(e.currentTarget.value)}
 							className="rounded-md border pro-border bg-(--bg-glass) px-3 py-1.5 text-sm pro-text1 transition-colors focus:border-(--primary) focus:outline-hidden"
 						/>
 					</div>

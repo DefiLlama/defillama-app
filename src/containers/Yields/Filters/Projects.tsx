@@ -36,11 +36,11 @@ export function YieldProjects({
 			excludeQueryKey={excludeQueryKey}
 			onValuesChange={(values) => {
 				const prevSet = prevSelectionRef.current
-				values.forEach((project) => {
-					if (!prevSet.has(project)) {
-						trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, { project })
+				for (const projectName of values) {
+					if (!prevSet.has(projectName)) {
+						trackYieldsEvent(YIELDS_EVENTS.FILTER_PROJECT, { project: projectName })
 					}
-				})
+				}
 				prevSelectionRef.current = new Set(values)
 			}}
 		/>

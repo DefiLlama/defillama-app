@@ -2,13 +2,13 @@ import { useQuery } from '@tanstack/react-query'
 import type { GetStaticPropsContext } from 'next'
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
 import { TokenLogo } from '~/components/TokenLogo'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import {
 	fetchProtocolOverviewMetrics,
 	fetchProtocolTreasuryTokenBreakdownChart
@@ -19,9 +19,11 @@ import type { IProtocolPageMetrics } from '~/containers/ProtocolOverview/types'
 import { useProtocolBreakdownCharts } from '~/containers/ProtocolOverview/useProtocolBreakdownCharts'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
+import { pushShallowQuery } from '~/utils/routerQuery'
 
 const EMPTY_TOGGLE_OPTIONS = []
 
@@ -37,6 +39,8 @@ interface TreasuryPageProps {
 	category: string | null
 	metrics: IProtocolPageMetrics
 	warningBanners: ReturnType<typeof getProtocolWarningBanners>
+	seoTitle: string
+	seoDescription: string
 }
 
 function updateSelectionOnListChange(selected: string[], all: string[]) {
@@ -74,7 +78,7 @@ function TokensBreakdownPieChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Tokens Breakdown</h1>
+				<h2 className="mr-auto text-base font-semibold">Tokens Breakdown</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -114,7 +118,7 @@ function HistoricalTreasuryChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">Historical Treasury</h1>
+				<h2 className="mr-auto text-base font-semibold">Historical Treasury</h2>
 				<ChartExportButtons chartInstance={chartInstance} filename={exportFilenameBase} title={exportTitle} />
 			</div>
 			<React.Suspense fallback={<div className="min-h-[360px]" />}>
@@ -161,7 +165,7 @@ function TokensMultiSeriesChartCard({
 	return (
 		<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 			<div className="flex flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<h1 className="mr-auto text-base font-semibold">{title}</h1>
+				<h2 className="mr-auto text-base font-semibold">{title}</h2>
 				{allTokens.length > 1 ? (
 					<SelectWithCombobox
 						allValues={allTokens}
@@ -192,7 +196,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/treasury[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -207,16 +211,18 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].treasury) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		if (!protocolData) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Treasury Holdings & Assets - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} treasury holdings, asset composition, and own-token vs stablecoin breakdown on DefiLlama.`
 
 		return {
 			props: {
@@ -224,18 +230,20 @@ export const getStaticProps = withPerformanceLogging(
 				otherProtocols: protocolData?.otherProtocols ?? [],
 				category: protocolData?.category ?? null,
 				metrics,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -257,6 +265,7 @@ export default function Protocols(props: TreasuryPageProps) {
 
 	const {
 		isLoading,
+		errors,
 		valueDataset,
 		valueCharts,
 		tokensUnique,
@@ -270,11 +279,11 @@ export default function Protocols(props: TreasuryPageProps) {
 		keys: extraKeys,
 		includeBase: true,
 		source: 'treasury',
-		inflows: props.metrics?.inflows
+		inflows: true
 	})
 
 	const { data: ownTokensBreakdown } = useQuery({
-		queryKey: ['protocolTreasuryOwnTokensAvailable', protocol],
+		queryKey: ['protocol-overview', 'treasury-own-tokens', protocol],
 		queryFn: () => fetchProtocolTreasuryTokenBreakdownChart({ protocol, key: 'OwnTokens' }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
@@ -283,18 +292,11 @@ export default function Protocols(props: TreasuryPageProps) {
 	})
 
 	const hasOwnTokens = (ownTokensBreakdown?.length ?? 0) > 0
-	const hasBreakdownMetrics =
-		(tokenBreakdownPieChart?.length ?? 0) > 0 ||
-		!!valueDataset ||
-		(tokenRawDataset && tokensUnique.length > 0) ||
-		(tokenUSDDataset && tokensUnique.length > 0)
 
 	const toggleIncludeOwnTokens = React.useCallback(
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const nextIncludeOwnTokens = event.currentTarget.checked
-			const { includeOwnTokens: _inc, ...restQuery } = router.query
-			const nextQuery = nextIncludeOwnTokens ? { ...restQuery, includeOwnTokens: 'true' } : restQuery
-			router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+			void pushShallowQuery(router, { includeOwnTokens: nextIncludeOwnTokens ? 'true' : undefined })
 		},
 		[router]
 	)
@@ -308,10 +310,12 @@ export default function Protocols(props: TreasuryPageProps) {
 			tab="treasury"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
 			<div className="col-span-full flex flex-wrap items-center justify-end gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 				<div className="mr-auto flex items-center gap-2">
-					<TokenLogo logo={tokenIconUrl(props.name)} size={24} />
+					<TokenLogo name={props.name} kind="token" size={24} alt={`Logo of ${props.name}`} />
 					<h1 className="text-xl font-bold">{props.name} Treasury</h1>
 				</div>
 				{hasOwnTokens ? (
@@ -325,12 +329,8 @@ export default function Protocols(props: TreasuryPageProps) {
 				) : null}
 			</div>
 			{isLoading ? (
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
-				</div>
-			) : !hasBreakdownMetrics ? (
-				<div className="col-span-full flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
-					<p className="text-(--text-label)">Breakdown metrics are not available</p>
 				</div>
 			) : (
 				<div className="grid grid-cols-2 gap-2">
@@ -378,6 +378,24 @@ export default function Protocols(props: TreasuryPageProps) {
 					) : null}
 				</div>
 			)}
+			{errors.length > 0 ? (
+				<div className="col-span-full flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p className="text-(--error)">
+						Failed to fetch{' '}
+						{Array.from(new Set(errors.map((e) => CHART_CATEGORY_LABELS[e.category])))
+							.filter(Boolean)
+							.join(', ')}{' '}
+						APIs
+					</p>
+				</div>
+			) : null}
 		</ProtocolOverviewLayout>
 	)
+}
+
+const CHART_CATEGORY_LABELS: Record<string, string> = {
+	tvl: 'historical treasury',
+	'chain-breakdown': 'chain breakdown',
+	'token-breakdown-usd': 'token breakdown (USD)',
+	'token-breakdown-raw': 'token breakdown (raw quantities)'
 }

@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { getAllCGTokensList, maxAgeForNext } from '~/api'
+import { startTransition, useState } from 'react'
+import { fetchAllCGTokensList } from '~/api'
 import { Announcement } from '~/components/Announcement'
 import YieldPageLoop from '~/containers/Yields/indexLoop'
 import { calculateLoopAPY, getLendBorrowData } from '~/containers/Yields/queries/index'
 import { disclaimer } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields/loop', async () => {
@@ -12,7 +13,7 @@ export const getStaticProps = withPerformanceLogging('yields/loop', async () => 
 		props: { ...data }
 	} = await getLendBorrowData()
 
-	const cgTokens = await getAllCGTokensList()
+	const cgTokens = await fetchAllCGTokensList()
 
 	const tokens = []
 
@@ -63,12 +64,13 @@ export default function YieldBorrow(data) {
 	return (
 		<Layout
 			title={`Lend/Borrow rates - DefiLlama Yield`}
-			description={`Pools by leveraged lending APY values. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`pools by leveraged lending apy values, leveraged yields, loop yields`}
+			description="Compare leveraged lending and borrowing rates across DeFi protocols. Find the best lend/borrow rate spreads for looping strategies."
 			canonicalUrl={`/yields/loop`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
 
 			<p className="rounded-md bg-(--cards-bg) p-3 text-center whitespace-pre-line">
 				This page displays leveraged lending APY values. The way this works:
@@ -79,12 +81,12 @@ export default function YieldBorrow(data) {
 				<br />
 				3. deposit the borrowed amount M into pool X
 				<button
-					onClick={() => setMethodologyActivated((prev) => !prev)}
+					onClick={() => startTransition(() => setMethodologyActivated((prev) => !prev))}
 					className="mx-auto block font-medium text-(--blue) hover:underline"
 				>
 					Example
 				</button>
-				{methodologyActivated && methodologyMessage}
+				{methodologyActivated ? methodologyMessage : null}
 			</p>
 			<YieldPageLoop {...data} />
 		</Layout>

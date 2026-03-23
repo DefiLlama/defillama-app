@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.PERPS_AGGREGATOR
@@ -30,9 +30,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const PerpsAggregatorsVolumeOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
+			title="Perps Aggregator Rankings - Futures Routing - DefiLlama"
+			description="Track perps aggregator volume by protocol, the notional volume of leveraged trades routed through aggregators."
 			canonicalUrl={`/perps-aggregators`}
 			pageName={pageName}
 		>

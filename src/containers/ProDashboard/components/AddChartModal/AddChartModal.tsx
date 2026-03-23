@@ -18,7 +18,7 @@ const EMPTY_CHART_TYPES: string[] = []
 const PRIMARY_TABLE_TYPES: CombinedTableType[] = [
 	'protocols',
 	'stablecoins',
-	'cex',
+	'cex-analytics',
 	'token-usage',
 	'yields',
 	'trending-contracts',
@@ -71,7 +71,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 				/>
 
 				<div className="-mx-4 flex flex-1 flex-col overflow-y-auto px-4 md:mx-0 md:px-0">
-					{state.selectedMainTab === 'charts' && (
+					{state.selectedMainTab === 'charts' ? (
 						<ChartTab
 							chartMode={state.chartMode}
 							onChartModeChange={actions.setChartMode}
@@ -158,9 +158,9 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							timePeriod={computed.timePeriod}
 							customTimePeriod={computed.customTimePeriod}
 						/>
-					)}
+					) : null}
 
-					{state.selectedMainTab === 'metric' && (
+					{state.selectedMainTab === 'metric' ? (
 						<MetricTab
 							metricSubjectType={state.metricSubjectType}
 							metricChain={state.metricChain}
@@ -179,9 +179,9 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onLabelChange={actions.setMetricLabel}
 							onChartTypeChange={actions.setMetricChartType}
 						/>
-					)}
+					) : null}
 
-					{state.selectedMainTab === 'table' && (
+					{state.selectedMainTab === 'table' ? (
 						<UnifiedTableTab
 							onClose={onClose}
 							chainOptions={computed.chainOptions ?? EMPTY_CHAIN_OPTIONS}
@@ -195,30 +195,37 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onDatasetChainChange={actions.handleDatasetChainChange}
 							selectedDatasetTimeframe={state.selectedDatasetTimeframe}
 							onDatasetTimeframeChange={actions.setSelectedDatasetTimeframe}
+							selectedCexAnalyticsView={state.selectedCexAnalyticsView}
+							onCexAnalyticsViewChange={actions.setSelectedCexAnalyticsView}
+							selectedCexAnalyticsMetric={state.selectedCexAnalyticsMetric}
+							onCexAnalyticsMetricChange={actions.setSelectedCexAnalyticsMetric}
+							selectedCexAnalyticsTopN={state.selectedCexAnalyticsTopN}
+							onCexAnalyticsTopNChange={actions.setSelectedCexAnalyticsTopN}
 							selectedTokens={state.selectedTokens}
 							onTokensChange={actions.handleTokensChange}
 							includeCex={state.includeCex}
 							onIncludeCexChange={actions.setIncludeCex}
 							protocolsLoading={computed.protocolsLoading}
 							legacyTableTypes={legacyTableTypes}
+							isEditingItem={Boolean(editItem)}
 						/>
-					)}
+					) : null}
 
-					{state.selectedMainTab === 'text' && (
+					{state.selectedMainTab === 'text' ? (
 						<TextTab
 							textTitle={state.textTitle}
 							textContent={state.textContent}
 							onTextTitleChange={actions.setTextTitle}
 							onTextContentChange={actions.setTextContent}
 						/>
-					)}
+					) : null}
 
-					{state.selectedMainTab === 'llamaai' && (
+					{state.selectedMainTab === 'llamaai' ? (
 						<LlamaAITab selectedChart={state.selectedLlamaAIChart} onChartSelect={actions.setSelectedLlamaAIChart} />
-					)}
+					) : null}
 				</div>
 
-				{(state.selectedMainTab !== 'table' || state.selectedTableType !== 'protocols') && (
+				{state.selectedMainTab !== 'table' || state.selectedTableType !== 'protocols' ? (
 					<div className="shrink-0">
 						<SubmitButton
 							editItem={editItem}
@@ -259,7 +266,7 @@ export function AddChartModal({ isOpen, onClose, editItem, initialUnifiedFocusSe
 							onSubmit={actions.handleSubmit}
 						/>
 					</div>
-				)}
+				) : null}
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

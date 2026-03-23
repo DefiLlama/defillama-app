@@ -1,3 +1,5 @@
+'use no memo'
+
 import type { SortingState, VisibilityState } from '@tanstack/react-table'
 import type { CustomColumnDefinition } from '../../../types'
 import { validateCustomColumnOnLoad } from '../utils/customColumns'

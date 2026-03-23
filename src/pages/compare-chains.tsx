@@ -1,8 +1,8 @@
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { CompareChains } from '~/containers/CompareChains'
 import { getCompareChainsPageData } from '~/containers/CompareChains/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('compare-chains', async () => {
@@ -22,9 +22,8 @@ export default function CompareChainsPage({
 }) {
 	return (
 		<Layout
-			title={`Compare Chains - DefiLlama`}
-			description={`Compare chains on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`compare chain, compare blockchain`}
+			title="Chain Comparison - TVL, Fees & Activity - DefiLlama"
+			description="Compare blockchains side-by-side by TVL, fees, DeFi activity, and protocol counts. Analyze chain performance metrics for Ethereum, Solana, Base, Arbitrum, and 500+ networks. Chain comparison analytics."
 			canonicalUrl={`/compare-chains`}
 			metricFilters={tvlOptions}
 			pageName={pageName}

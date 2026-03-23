@@ -2,24 +2,16 @@ import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	getCoreRowModel,
 	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	useReactTable,
-	type ColumnDef,
 	type SortingState
 } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-import { getAnnualizedRatio } from '~/api/categories/adaptors'
+import { startTransition, useMemo, useState, type ReactNode } from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { FullOldViewButton } from '~/components/ButtonStyled/FullOldViewButton'
 import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
@@ -29,16 +21,18 @@ import { QuestionHelper } from '~/components/QuestionHelper'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { VirtualTable } from '~/components/Table/Table'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
 import { chainCharts } from '~/containers/ChainOverview/constants'
 import { protocolCharts } from '~/containers/ProtocolOverview/constants'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { setStorageItem } from '~/contexts/localStorageStore'
 import { definitions } from '~/public/definitions'
-import { chainIconUrl, formattedNum, slug } from '~/utils'
+import { formattedNum, slug, getAnnualizedRatio } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import { AdapterByChainChart } from './ChainChart'
 import type { IAdapterByChainPageData, IProtocol } from './types'
 
@@ -99,6 +93,7 @@ const pageTypeByDefinition: Partial<Record<TPageType, Record<string, string>>> =
 	'Options Notional Volume': definitions.optionsNotional.chain,
 	Earnings: definitions.earnings.chain
 }
+
 const getProtocolsByCategory = (
 	protocols: IAdapterByChainPageData['protocols'],
 	categoriesToFilter: Array<string>
@@ -133,12 +128,16 @@ const getProtocolsByCategory = (
 
 export function AdapterByChain(props: IProps) {
 	const router = useRouter()
+	const isChain = props.chain !== 'All'
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 	const categoryParam = router.query.category
 	const excludeCategoryParam = router.query.excludeCategory
 	const hasCategoryParam = Object.prototype.hasOwnProperty.call(router.query, 'category')
+	const columnsByType = useMemo(() => getColumnsByType(isChain), [isChain])
+	const tableColumns = useMemo(() => columnsByType[props.type], [columnsByType, props.type])
+	const columnsOptions = useMemo(() => getColumnsOptions(props.type, columnsByType), [props.type, columnsByType])
 
-	const { selectedCategories, protocols, columnsOptions } = useMemo(() => {
+	const { selectedCategories, protocols } = useMemo(() => {
 		const excludeSet = parseExcludeParam(excludeCategoryParam)
 
 		let selectedCategories =
@@ -179,7 +178,7 @@ export function AdapterByChain(props: IProps) {
 							(enabledSettings.tokentax ? (p.tokenTax?.total30d ?? 0) : 0)
 						const total30d = baseTotal30d != null ? baseTotal30d + extra30d : extra30d !== 0 ? extra30d : null
 
-						const pfOrPs = p.mcap && total30d ? getAnnualizedRatio(p.mcap, total30d) : null
+						const pfOrPs = p.mcap != null && total30d != null ? getAnnualizedRatio(p.mcap, total30d) : null
 
 						// Only aggregate child protocols when bribes/tokentax is enabled
 						const childProtocols: IProtocol['childProtocols'] =
@@ -192,7 +191,8 @@ export function AdapterByChain(props: IProps) {
 										const cpTotal30d =
 											cpBaseTotal30d != null ? cpBaseTotal30d + cpExtra30d : cpExtra30d !== 0 ? cpExtra30d : null
 
-										const cpPfOrPs = cp.mcap && cpTotal30d ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
+										const cpPfOrPs =
+											cp.mcap != null && cpTotal30d != null ? getAnnualizedRatio(cp.mcap, cpTotal30d) : null
 
 										return {
 											...cp,
@@ -253,8 +253,7 @@ export function AdapterByChain(props: IProps) {
 
 		return {
 			selectedCategories,
-			protocols: finalProtocols,
-			columnsOptions: getColumnsOptions(props.type)
+			protocols: finalProtocols
 		}
 	}, [
 		categoryParam,
@@ -263,7 +262,6 @@ export function AdapterByChain(props: IProps) {
 		props.categories,
 		props.protocols,
 		props.adapterType,
-		props.type,
 		enabledSettings.bribes,
 		enabledSettings.tokentax
 	])
@@ -275,7 +273,7 @@ export function AdapterByChain(props: IProps) {
 
 	const instance = useReactTable({
 		data: protocols,
-		columns: getColumnsByType(props.chain !== 'All')[props.type] as any,
+		columns: tableColumns,
 		state: {
 			sorting,
 			columnFilters,
@@ -285,42 +283,25 @@ export function AdapterByChain(props: IProps) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
+		enableSortingRemoval: false,
 		filterFromLeafRows: true,
 		getSubRows: (row: IAdapterByChainPageData['protocols'][0]) => row.childProtocols,
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
-		onColumnSizingChange: setColumnSizing,
-		onColumnOrderChange: setColumnOrder,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => startTransition(() => setColumnFilters(updater)),
+		onColumnSizingChange: (updater) => startTransition(() => setColumnSizing(updater)),
+		onColumnOrderChange: (updater) => startTransition(() => setColumnOrder(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnSizes,
 		columnOrders
 	})
-	const prepareCsv = (): { filename: string; rows: Array<Array<string | number | boolean>> } => {
-		const visibleColumns = instance.getVisibleLeafColumns()
-		const headers = visibleColumns.map((col) =>
-			typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
-		)
-
-		const rows = [headers]
-		instance.getFilteredRowModel().rows.forEach((row) => {
-			const cells = visibleColumns.map((col) => {
-				const value = row.getValue(col.id)
-				return value === null || value === undefined ? '' : String(value)
-			})
-			rows.push(cells)
-		})
-
-		return { filename: `${props.type}-${props.chain}-protocols.csv`, rows }
-	}
-
 	const metricName = props.type
 	const columnsKey = `columns-${props.type}`
 
@@ -339,25 +320,34 @@ export function AdapterByChain(props: IProps) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.chains} activeLink={props.chain} />
-			{props.entityQuestions && props.entityQuestions.length > 0 && (
+			{props.entityQuestions && props.entityQuestions.length > 0 ? (
 				<EntityQuestionsStrip
 					questions={props.entityQuestions}
 					entitySlug={pageSlugByType[props.type] || slug(props.type)}
 					entityType="page"
 					entityName={props.type}
 				/>
-			)}
+			) : null}
 			{props.adapterType !== 'fees' ? (
 				<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 					<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 xl:col-span-1">
-						{props.chain !== 'All' && (
+						{props.chain !== 'All' ? (
 							<h1 className="flex flex-nowrap items-center gap-2">
-								<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
+								<TokenLogo name={props.chain} kind="chain" size={24} alt={`Logo of ${props.chain}`} />
 								<span className="text-xl font-semibold">{props.chain}</span>
 							</h1>
+						) : props.total24h != null ? (
+							<div className="flex flex-col">
+								<h1 className="text-(--text-label)">{metricName} (24h)</h1>
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+									{formattedNum(props.total24h, true)}
+								</p>
+							</div>
+						) : (
+							<h1 className="text-(--text-label)">{metricName}</h1>
 						)}
 
-						{props.total24h != null ? (
+						{props.chain !== 'All' && props.total24h != null ? (
 							<p className="flex flex-col">
 								<span className="flex flex-col">
 									{(() => {
@@ -439,6 +429,7 @@ export function AdapterByChain(props: IProps) {
 						adapterType={props.adapterType}
 						chain={props.chain}
 						chartName={props.type}
+						dataType={props.dataType}
 					/>
 				</div>
 			) : null}
@@ -453,10 +444,7 @@ export function AdapterByChain(props: IProps) {
 							className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 						/>
 						<input
-							value={projectName}
-							onChange={(e) => {
-								setProjectName(e.target.value)
-							}}
+							onInput={(e) => setProjectName(e.currentTarget.value)}
 							placeholder="Search..."
 							className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 						/>
@@ -470,7 +458,7 @@ export function AdapterByChain(props: IProps) {
 						labelType="smol"
 						variant="filter-responsive"
 					/>
-					{props.categories.length > 0 && (
+					{props.categories.length > 0 ? (
 						<SelectWithCombobox
 							allValues={props.categories}
 							selectedValues={selectedCategories}
@@ -481,9 +469,12 @@ export function AdapterByChain(props: IProps) {
 							labelType="smol"
 							variant="filter-responsive"
 						/>
-					)}
+					) : null}
 					{SUPPORTED_OLD_VIEWS.includes(props.type) ? <FullOldViewButton /> : null}
-					<CSVDownloadButton prepareCsv={prepareCsv} />
+					<CSVDownloadButton
+						prepareCsv={() => prepareTableCsv({ instance, filename: `${props.type}-${props.chain}-protocols` })}
+						smol
+					/>
 				</div>
 				<VirtualTable instance={instance} rowSize={64} compact />
 			</div>
@@ -545,7 +536,7 @@ const chainChartsKeys: Partial<Record<IProps['type'], (typeof chainCharts)[keyof
 	'Perp Volume': 'perpsVolume'
 }
 
-const getColumnsOptions = (type: IProps['type']) =>
+const getColumnsOptions = (type: IProps['type'], columnsByType: ReturnType<typeof getColumnsByType>) =>
 	columnsByType[type].map((c) => {
 		let headerName: string
 		if (typeof c.header === 'function') {
@@ -597,21 +588,24 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
 	</span>
 )
 
-const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['protocols'][0]> => {
-	return {
+type AdapterProtocolRow = IAdapterByChainPageData['protocols'][0]
+
+const columnHelper = createColumnHelper<AdapterProtocolRow>()
+
+const NameColumn = (type: IProps['type']) =>
+	columnHelper.accessor('name', {
 		id: 'name',
 		header: 'Name',
-		accessorFn: (protocol) => protocol.name,
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			const basePath =
 				row.original.category &&
@@ -651,7 +645,7 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-					<TokenLogo logo={row.original.logo} data-lgonly />
+					<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 					<span className="-my-2 flex flex-col">
 						<BasicLink
@@ -661,936 +655,531 @@ const NameColumn = (type: IProps['type']): ColumnDef<IAdapterByChainPageData['pr
 							{value}
 						</BasicLink>
 
-						{row.original.chains && (
+						{row.original.chains ? (
 							<Tooltip
 								content={<ProtocolChainsComponent chains={row.original.chains} />}
 								className="text-[0.7rem] text-(--text-disabled)"
 							>
 								{`${row.original.chains.length} chain${row.original.chains.length > 1 ? 's' : ''}`}
 							</Tooltip>
-						)}
+						) : null}
 					</span>
 				</span>
 			)
 		},
 		size: 280
-	}
-}
+	})
 
-const getColumnsByType = (
-	isChain: boolean = false
-): Record<IProps['type'], ColumnDef<IAdapterByChainPageData['protocols'][0]>[]> => {
+const categoryColumn = (align?: 'center') =>
+	columnHelper.accessor('category', {
+		header: 'Category',
+		enableSorting: false,
+		cell: ({ getValue }) =>
+			getValue() ? (
+				<BasicLink href={getCategoryRoute(slug(getValue()))} className="text-sm font-medium text-(--link-text)">
+					{getValue()}
+				</BasicLink>
+			) : (
+				''
+			),
+		size: 128,
+		meta: align ? { align } : undefined
+	})
+
+const definitionColumn = columnHelper.accessor((protocol) => protocol.methodology ?? null, {
+	id: 'definition',
+	header: 'Definition',
+	cell: ({ getValue }) => (
+		<Tooltip content={getValue()} className="flex-1">
+			<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">{getValue()}</span>
+		</Tooltip>
+	),
+	enableSorting: false,
+	size: 400
+})
+
+const centeredMetricColumn = (
+	id: string,
+	header: string | (() => ReactNode),
+	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
+	headerHelperText: string,
+	size: number,
+	csvHeader?: string
+) =>
+	columnHelper.accessor(accessor, {
+		id,
+		header,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: {
+			align: 'center',
+			headerHelperText,
+			...(csvHeader ? { csvHeader } : {})
+		},
+		size
+	})
+
+const endMetricColumn = (
+	id: string,
+	header: string | (() => ReactNode),
+	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
+	headerHelperText: string,
+	size: number
+) =>
+	columnHelper.accessor(accessor, {
+		id,
+		header,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
+		meta: {
+			align: 'end',
+			headerHelperText
+		},
+		size
+	})
+
+const doubleCountedMetricColumn = (
+	id: string,
+	header: string | (() => ReactNode),
+	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
+	headerHelperText: string,
+	size: number,
+	csvHeader?: string
+) =>
+	columnHelper.accessor(accessor, {
+		id,
+		header,
+		cell: (info) => {
+			if (info.getValue() != null && info.row.original.doublecounted) {
+				return (
+					<span className="flex items-center justify-end gap-1">
+						<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
+						<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+					</span>
+				)
+			}
+			return info.getValue() != null ? formattedNum(info.getValue(), true) : null
+		},
+		meta: {
+			align: 'center',
+			headerHelperText,
+			...(csvHeader ? { csvHeader } : {})
+		},
+		size
+	})
+
+const reportedPerpVolumeColumn = (
+	id: string,
+	header: string,
+	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
+	headerHelperText: string,
+	size: number
+) =>
+	columnHelper.accessor(accessor, {
+		id,
+		header,
+		cell: (info) => {
+			if (info.getValue() == null) return null
+			const helpers: string[] = []
+			if (info.row.original.zeroFeePerp) {
+				helpers.push('This protocol charges no fees for most of its users')
+			}
+			if (info.row.original.doublecounted) {
+				helpers.push(
+					"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
+				)
+			}
+
+			if (helpers.length > 0) {
+				return (
+					<span className="flex items-center justify-end gap-1">
+						{helpers.map((helper) => (
+							<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
+						))}
+						<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
+							{formattedNum(info.getValue(), true)}
+						</span>
+					</span>
+				)
+			}
+
+			return <>{formattedNum(info.getValue(), true)}</>
+		},
+		meta: {
+			align: 'center',
+			headerHelperText
+		},
+		size
+	})
+
+const openInterestMetricColumn = (
+	id: string,
+	header: string,
+	accessor: (protocol: AdapterProtocolRow) => number | null | undefined,
+	headerHelperText: string,
+	size: number,
+	align: 'center' | 'end' = 'center'
+) =>
+	columnHelper.accessor(accessor, {
+		id,
+		header,
+		cell: (info) => {
+			if (info.getValue() != null && info.row.original.doublecounted) {
+				return (
+					<span className="flex items-center justify-end gap-1">
+						<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its open interest is excluded from totals to avoid double-counting the underlying protocol's open interest" />
+						<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
+					</span>
+				)
+			}
+			return info.getValue() != null ? formattedNum(info.getValue(), true) : null
+		},
+		meta: {
+			align,
+			headerHelperText
+		},
+		size
+	})
+
+const pfOrPsColumn = (label: 'P/F' | 'P/S', headerHelperText: string) =>
+	columnHelper.accessor((protocol) => protocol.pfOrPs, {
+		id: 'pfOrPs',
+		header: label,
+		cell: (info) => (info.getValue() != null ? info.getValue() : null),
+		meta: {
+			align: 'center',
+			headerHelperText
+		},
+		size: 120
+	})
+
+const getColumnsByType = (isChain: boolean = false) => {
 	return {
 		Fees: [
 			NameColumn('Fees'),
-			{
-				id: 'category',
-				header: 'Category',
-				accessorFn: (protocol) => protocol.category,
-				enableSorting: false,
-				cell: ({ getValue }) =>
-					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						''
-					),
-				size: 128
-			},
-			{
-				id: 'definition',
-				header: 'Definition',
-				accessorFn: (protocol) => protocol.methodology ?? null,
-				cell: ({ getValue }) => (
-					<Tooltip content={getValue() as string} className="flex-1">
-						<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">
-							{getValue() as string}
-						</span>
-					</Tooltip>
-				),
-				enableSorting: false,
-				size: 400
-			},
-			{
-				id: 'total24h',
-				header: 'Fees 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.fees.protocol['24h']
-				},
-				size: 128
-			},
-			{
-				id: 'total7d',
-				header: 'Fees 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.fees.protocol['7d']
-				},
-				size: 128
-			},
-			{
-				id: 'total30d',
-				header: 'Fees 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.fees.protocol['30d']
-				},
-				size: 128
-			}
+			categoryColumn(),
+			definitionColumn,
+			centeredMetricColumn(
+				'total24h',
+				'Fees 24h',
+				(protocol) => protocol.total24h,
+				definitions.fees.protocol['24h'],
+				128
+			),
+			centeredMetricColumn('total7d', 'Fees 7d', (protocol) => protocol.total7d, definitions.fees.protocol['7d'], 128),
+			centeredMetricColumn(
+				'total30d',
+				'Fees 30d',
+				(protocol) => protocol.total30d,
+				definitions.fees.protocol['30d'],
+				128
+			)
 		],
 		Revenue: [
 			NameColumn('Revenue'),
-			{
-				id: 'category',
-				header: 'Category',
-				accessorFn: (protocol) => protocol.category,
-				enableSorting: false,
-				cell: ({ getValue }) =>
-					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						''
-					),
-				size: 128
-			},
-			{
-				id: 'definition',
-				header: 'Definition',
-				accessorFn: (protocol) => protocol.methodology ?? null,
-				cell: ({ getValue }) => (
-					<Tooltip content={getValue() as string} className="flex-1">
-						<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">
-							{getValue() as string}
-						</span>
-					</Tooltip>
-				),
-				enableSorting: false,
-				size: 400
-			},
-			{
-				id: 'total24h',
-				header: 'Revenue 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.revenue.protocol['24h']
-				},
-				size: 128
-			},
-			{
-				id: 'total7d',
-				header: 'Revenue 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.revenue.protocol['7d']
-				},
-				size: 128
-			},
-			{
-				id: 'total30d',
-				header: 'Revenue 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.revenue.protocol['30d']
-				},
-				size: 128
-			}
+			categoryColumn(),
+			definitionColumn,
+			centeredMetricColumn(
+				'total24h',
+				'Revenue 24h',
+				(protocol) => protocol.total24h,
+				definitions.revenue.protocol['24h'],
+				128
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Revenue 7d',
+				(protocol) => protocol.total7d,
+				definitions.revenue.protocol['7d'],
+				128
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Revenue 30d',
+				(protocol) => protocol.total30d,
+				definitions.revenue.protocol['30d'],
+				128
+			)
 		],
 		'Holders Revenue': [
 			NameColumn('Holders Revenue'),
-			{
-				id: 'category',
-				header: 'Category',
-				accessorFn: (protocol) => protocol.category,
-				enableSorting: false,
-				cell: ({ getValue }) =>
-					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						''
-					),
-				size: 128
-			},
-			{
-				id: 'definition',
-				header: 'Definition',
-				accessorFn: (protocol) => protocol.methodology ?? null,
-				cell: ({ getValue }) => (
-					<Tooltip content={getValue() as string} className="flex-1">
-						<span className="line-clamp-2 min-w-0 overflow-hidden text-ellipsis whitespace-normal">
-							{getValue() as string}
-						</span>
-					</Tooltip>
-				),
-				enableSorting: false,
-				size: 400
-			},
-			{
-				id: 'total24h',
-				header: 'Holders Revenue 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.holdersRevenue.protocol['24h']
-				},
-				size: 180
-			},
-			{
-				id: 'total7d',
-				header: 'Holders Revenue 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.holdersRevenue.protocol['7d']
-				},
-				size: 180
-			},
-			{
-				id: 'total30d',
-				header: 'Holders Revenue 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.holdersRevenue.protocol['30d']
-				},
-				size: 180
-			}
+			categoryColumn(),
+			definitionColumn,
+			centeredMetricColumn(
+				'total24h',
+				'Holders Revenue 24h',
+				(protocol) => protocol.total24h,
+				definitions.holdersRevenue.protocol['24h'],
+				180
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Holders Revenue 7d',
+				(protocol) => protocol.total7d,
+				definitions.holdersRevenue.protocol['7d'],
+				180
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Holders Revenue 30d',
+				(protocol) => protocol.total30d,
+				definitions.holdersRevenue.protocol['30d'],
+				180
+			)
 		],
 		'Options Premium Volume': [
 			NameColumn('Options Premium Volume'),
-			{
-				id: 'total24h',
-				header: 'Premium Volume 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.optionsPremium.protocol['24h']
-				},
-				size: 180
-			},
-			{
-				id: 'total7d',
-				header: 'Premium Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.optionsPremium.protocol['7d']
-				},
-				size: 180
-			},
-			{
-				id: 'total30d',
-				header: 'Premium Volume 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.optionsPremium.protocol['30d']
-				},
-				size: 180
-			}
+			centeredMetricColumn(
+				'total24h',
+				'Premium Volume 24h',
+				(protocol) => protocol.total24h,
+				definitions.optionsPremium.protocol['24h'],
+				180
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Premium Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.optionsPremium.protocol['7d'],
+				180
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Premium Volume 30d',
+				(protocol) => protocol.total30d,
+				definitions.optionsPremium.protocol['30d'],
+				180
+			)
 		],
 		'Options Notional Volume': [
 			NameColumn('Options Notional Volume'),
-			{
-				id: 'total24h',
-				header: 'Notional Volume 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.optionsNotional.protocol['24h']
-				},
-				size: 180
-			},
-			{
-				id: 'total7d',
-				header: 'Notional Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.optionsNotional.protocol['7d']
-				},
-				size: 180
-			},
-			{
-				id: 'total30d',
-				header: 'Notional Volume 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.optionsNotional.protocol['30d']
-				},
-				size: 180
-			}
+			centeredMetricColumn(
+				'total24h',
+				'Notional Volume 24h',
+				(protocol) => protocol.total24h,
+				definitions.optionsNotional.protocol['24h'],
+				180
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Notional Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.optionsNotional.protocol['7d'],
+				180
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Notional Volume 30d',
+				(protocol) => protocol.total30d,
+				definitions.optionsNotional.protocol['30d'],
+				180
+			)
 		],
 		'DEX Volume': [
 			NameColumn('DEX Volume'),
-			{
-				id: 'total24h',
-				header: 'DEX Volume 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => {
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
-							</span>
-						)
-					}
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.dexs.protocol['24h']
-				},
-				size: 152
-			},
-			{
-				id: 'total7d',
-				header: 'DEX Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => {
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
-							</span>
-						)
-					}
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.dexs.protocol['7d']
-				},
-				size: 152
-			},
-			{
-				id: 'total30d',
-				header: 'DEX Volume 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => {
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
-							</span>
-						)
-					}
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.dexs.protocol['30d']
-				},
-				size: 152
-			}
+			doubleCountedMetricColumn(
+				'total24h',
+				'DEX Volume 24h',
+				(protocol) => protocol.total24h,
+				definitions.dexs.protocol['24h'],
+				152
+			),
+			doubleCountedMetricColumn(
+				'total7d',
+				'DEX Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.dexs.protocol['7d'],
+				152
+			),
+			doubleCountedMetricColumn(
+				'total30d',
+				'DEX Volume 30d',
+				(protocol) => protocol.total30d,
+				definitions.dexs.protocol['30d'],
+				152
+			)
 		],
 		'Perp Volume': [
 			NameColumn('Perp Volume'),
-			{
-				header: 'Normalized Volume 24h',
-				id: 'normalizedVolume24h',
-				accessorFn: (protocol) => protocol.normalizedVolume24h,
-				cell: (info) => {
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
-							</span>
-						)
-					}
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.normalizedVolume.protocol['24h']
-				},
-				size: 180
-			},
-			{
-				id: 'total24h',
-				header: 'Reported Volume 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => {
-					if (info.getValue() == null) return null
-					const helpers = []
-					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol charges no fees for most of its users')
-					}
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						helpers.push(
-							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						)
-					}
-
-					if (helpers.length > 0) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								{helpers.map((helper) => (
-									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-								))}
-								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-									{formattedNum(info.getValue(), true)}
-								</span>
-							</span>
-						)
-					}
-
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.perps.protocol['24h']
-				},
-				size: 160
-			},
-			{
-				header: 'Open Interest',
-				id: 'openInterest',
-				accessorFn: (protocol) => protocol.openInterest,
-				cell: (info) => {
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its open interest is excluded from totals to avoid double-counting the underlying protocol's open interest" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
-							</span>
-						)
-					}
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.openInterest.protocol
-				},
-				size: 160
-			},
-			{
-				id: 'total7d',
-				header: 'Reported Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => {
-					if (info.getValue() == null) return null
-					const helpers = []
-					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol charges no fees for most of its users')
-					}
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						helpers.push(
-							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						)
-					}
-
-					if (helpers.length > 0) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								{helpers.map((helper) => (
-									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-								))}
-								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-									{formattedNum(info.getValue(), true)}
-								</span>
-							</span>
-						)
-					}
-
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.perps.protocol['7d']
-				},
-				size: 160
-			},
-			{
-				id: 'total30d',
-				header: 'Reported Volume 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => {
-					if (info.getValue() == null) return null
-					const helpers = []
-					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol charges no fees for most of its users')
-					}
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						helpers.push(
-							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						)
-					}
-
-					if (helpers.length > 0) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								{helpers.map((helper) => (
-									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-								))}
-								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-									{formattedNum(info.getValue(), true)}
-								</span>
-							</span>
-						)
-					}
-
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.perps.protocol['30d']
-				},
-				size: 160
-			}
+			doubleCountedMetricColumn(
+				'normalizedVolume24h',
+				'Normalized Volume 24h',
+				(protocol) => protocol.normalizedVolume24h,
+				definitions.normalizedVolume.protocol['24h'],
+				180
+			),
+			reportedPerpVolumeColumn(
+				'total24h',
+				'Reported Volume 24h',
+				(protocol) => protocol.total24h,
+				definitions.perps.protocol['24h'],
+				160
+			),
+			openInterestMetricColumn(
+				'openInterest',
+				'Open Interest',
+				(protocol) => protocol.openInterest,
+				definitions.openInterest.protocol,
+				160
+			),
+			reportedPerpVolumeColumn(
+				'total7d',
+				'Reported Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.perps.protocol['7d'],
+				160
+			),
+			reportedPerpVolumeColumn(
+				'total30d',
+				'Reported Volume 30d',
+				(protocol) => protocol.total30d,
+				definitions.perps.protocol['30d'],
+				160
+			)
 		],
 		'Open Interest': [
 			NameColumn('Open Interest'),
-			{
-				id: 'total24h',
-				header: 'Open Interest',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'end',
-					headerHelperText: definitions.openInterest.protocol
-				},
-				size: 160
-			}
+			endMetricColumn(
+				'total24h',
+				'Open Interest',
+				(protocol) => protocol.total24h,
+				definitions.openInterest.protocol,
+				160
+			)
 		],
 		'Normalized Volume': [
 			NameColumn('Normalized Volume'),
-			{
-				id: 'total24h',
-				header: 'Normalized Volume 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => {
-					if (info.getValue() == null) return null
-					const helpers = []
-					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol charges no fees for most of its users')
-					}
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						helpers.push(
-							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						)
-					}
-
-					if (helpers.length > 0) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								{helpers.map((helper) => (
-									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-								))}
-								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-									{formattedNum(info.getValue(), true)}
-								</span>
-							</span>
-						)
-					}
-
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.normalizedVolume.protocol['24h']
-				},
-				size: 160
-			},
-			{
-				id: 'activeLiquidity',
-				header: 'Active Liquidity',
-				accessorFn: (protocol) => protocol.activeLiquidity,
-				cell: (info) => {
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								<QuestionHelper text="This protocol is a wrapper interface over another protocol. Its active liquidity is excluded from totals to avoid double-counting the underlying protocol's active liquidity" />
-								<span className="text-(--text-disabled)">{formattedNum(info.getValue(), true)}</span>
-							</span>
-						)
-					}
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.activeLiquidity.protocol
-				},
-				size: 160
-			},
-			{
-				id: 'total7d',
-				header: 'Normalized Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => {
-					if (info.getValue() == null) return null
-					const helpers = []
-					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol charges no fees for most of its users')
-					}
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						helpers.push(
-							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						)
-					}
-
-					if (helpers.length > 0) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								{helpers.map((helper) => (
-									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-								))}
-								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-									{formattedNum(info.getValue(), true)}
-								</span>
-							</span>
-						)
-					}
-
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.normalizedVolume.protocol['7d']
-				},
-				size: 160
-			},
-			{
-				id: 'total30d',
-				header: 'Normalized Volume 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => {
-					if (info.getValue() == null) return null
-					const helpers = []
-					if (info.row.original.zeroFeePerp) {
-						helpers.push('This protocol charges no fees for most of its users')
-					}
-					if (info.getValue() != null && info.row.original.doublecounted) {
-						helpers.push(
-							"This protocol is a wrapper interface over another protocol. Its volume is excluded from totals to avoid double-counting the underlying protocol's volume"
-						)
-					}
-
-					if (helpers.length > 0) {
-						return (
-							<span className="flex items-center justify-end gap-1">
-								{helpers.map((helper) => (
-									<QuestionHelper key={`${info.row.original.name}-${helper}`} text={helper} />
-								))}
-								<span className={info.row.original.doublecounted ? 'text-(--text-disabled)' : ''}>
-									{formattedNum(info.getValue(), true)}
-								</span>
-							</span>
-						)
-					}
-
-					return <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>
-				},
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.normalizedVolume.protocol['30d']
-				},
-				size: 160
-			}
+			reportedPerpVolumeColumn(
+				'total24h',
+				'Normalized Volume 24h',
+				(protocol) => protocol.total24h,
+				definitions.normalizedVolume.protocol['24h'],
+				180
+			),
+			doubleCountedMetricColumn(
+				'activeLiquidity',
+				'Active Liquidity',
+				(protocol) => protocol.activeLiquidity,
+				definitions.activeLiquidity.protocol,
+				180
+			),
+			reportedPerpVolumeColumn(
+				'total7d',
+				'Normalized Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.normalizedVolume.protocol['7d'],
+				180
+			),
+			reportedPerpVolumeColumn(
+				'total30d',
+				'Normalized Volume 30d',
+				(protocol) => protocol.total30d,
+				definitions.normalizedVolume.protocol['30d'],
+				180
+			)
 		],
 		'Perp Aggregator Volume': [
 			NameColumn('Perp Aggregator Volume'),
-			{
-				id: 'total24h',
-				header: () => (
-					<>
-						<span className="md:hidden">Perp Agg Vol 24h</span>
-						<span className="hidden md:block">Perp Aggregator Volume 24h</span>
-					</>
-				),
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['24h']
-				},
-				size: 160
-			},
-			{
-				id: 'total7d',
-				header: 'Perp Aggregator Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['7d']
-				},
-				size: 160
-			},
-			{
-				id: 'total30d',
-				header: () => (
-					<>
-						<span className="md:hidden">Perp Agg Vol 30d</span>
-						<span className="hidden md:block">Perp Aggregator Volume 30d</span>
-					</>
-				),
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.perpsAggregators.protocol['30d']
-				},
-				size: 160
-			}
+			centeredMetricColumn(
+				'total24h',
+				'Perp Agg Vol 24h',
+				(protocol) => protocol.total24h,
+				definitions.perpsAggregators.protocol['24h'],
+				160,
+				'Perp Aggregator Volume 24h'
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Perp Agg Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.perpsAggregators.protocol['7d'],
+				160
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Perp Agg Vol 30d',
+				(protocol) => protocol.total30d,
+				definitions.perpsAggregators.protocol['30d'],
+				160,
+				'Perp Aggregator Volume 30d'
+			)
 		],
 		'Bridge Aggregator Volume': [
 			NameColumn('Bridge Aggregator Volume'),
-			{
-				id: 'total24h',
-				header: () => (
-					<>
-						<span className="md:hidden">Bridge Agg Vol 24h</span>
-						<span className="hidden md:block">Bridge Aggregator Volume 24h</span>
-					</>
-				),
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['24h']
-				},
-				size: 160
-			},
-			{
-				id: 'total7d',
-				header: 'Bridge Aggregator Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['7d']
-				},
-				size: 160
-			},
-			{
-				id: 'total30d',
-				header: () => (
-					<>
-						<span className="md:hidden">Bridge Agg Vol 30d</span>
-						<span className="hidden md:block">Bridge Aggregator Volume 30d</span>
-					</>
-				),
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.bridgeAggregators.chain['30d']
-				},
-				size: 160
-			}
+			centeredMetricColumn(
+				'total24h',
+				'Bridge Agg Vol 24h',
+				(protocol) => protocol.total24h,
+				definitions.bridgeAggregators.chain['24h'],
+				160,
+				'Bridge Aggregator Volume 24h'
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Bridge Aggregator Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.bridgeAggregators.chain['7d'],
+				160
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Bridge Agg Vol 30d',
+				(protocol) => protocol.total30d,
+				definitions.bridgeAggregators.chain['30d'],
+				160,
+				'Bridge Aggregator Volume 30d'
+			)
 		],
 		'DEX Aggregator Volume': [
 			NameColumn('DEX Aggregator Volume'),
-			{
-				id: 'total24h',
-				header: () => (
-					<>
-						<span className="md:hidden">DEX Agg Vol 24h</span>
-						<span className="hidden md:block">DEX Aggregator Volume 24h</span>
-					</>
-				),
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['24h']
-				},
-				size: 160
-			},
-			{
-				id: 'total7d',
-				header: 'DEX Aggregator Volume 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['7d']
-				},
-				size: 160
-			},
-			{
-				id: 'total30d',
-				header: () => (
-					<>
-						<span className="md:hidden">DEX Agg Vol 30d</span>
-						<span className="hidden md:block">DEX Aggregator Volume 30d</span>
-					</>
-				),
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.dexAggregators.protocol['30d']
-				},
-				size: 160
-			}
+			centeredMetricColumn(
+				'total24h',
+				'DEX Agg Vol 24h',
+				(protocol) => protocol.total24h,
+				definitions.dexAggregators.protocol['24h'],
+				160,
+				'DEX Aggregator Volume 24h'
+			),
+			centeredMetricColumn(
+				'total7d',
+				'DEX Aggregator Volume 7d',
+				(protocol) => protocol.total7d,
+				definitions.dexAggregators.protocol['7d'],
+				160
+			),
+			centeredMetricColumn(
+				'total30d',
+				'DEX Agg Vol 30d',
+				(protocol) => protocol.total30d,
+				definitions.dexAggregators.protocol['30d'],
+				160,
+				'DEX Aggregator Volume 30d'
+			)
 		],
 		Earnings: [
 			NameColumn('Earnings'),
-			{
-				id: 'category',
-				header: 'Category',
-				accessorFn: (protocol) => protocol.category,
-				enableSorting: false,
-				cell: ({ getValue }) =>
-					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						''
-					),
-				size: 128
-			},
-			{
-				id: 'total24h',
-				header: 'Earnings 24h',
-				accessorFn: (protocol) => protocol.total24h,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: isChain ? definitions.earnings.chain['24h'] : definitions.earnings.protocol['24h']
-				},
-				size: 160
-			},
-			{
-				id: 'total7d',
-				header: 'Earnings 7d',
-				accessorFn: (protocol) => protocol.total7d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: isChain ? definitions.earnings.chain['7d'] : definitions.earnings.protocol['7d']
-				},
-				size: 160
-			},
-			{
-				id: 'total30d',
-				header: 'Earnings 30d',
-				accessorFn: (protocol) => protocol.total30d,
-				cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: isChain ? definitions.earnings.chain['30d'] : definitions.earnings.protocol['30d']
-				},
-				size: 160
-			}
+			categoryColumn(),
+			centeredMetricColumn(
+				'total24h',
+				'Earnings 24h',
+				(protocol) => protocol.total24h,
+				isChain ? definitions.earnings.chain['24h'] : definitions.earnings.protocol['24h'],
+				160
+			),
+			centeredMetricColumn(
+				'total7d',
+				'Earnings 7d',
+				(protocol) => protocol.total7d,
+				isChain ? definitions.earnings.chain['7d'] : definitions.earnings.protocol['7d'],
+				160
+			),
+			centeredMetricColumn(
+				'total30d',
+				'Earnings 30d',
+				(protocol) => protocol.total30d,
+				isChain ? definitions.earnings.chain['30d'] : definitions.earnings.protocol['30d'],
+				160
+			)
 		],
-		'P/F': [
-			NameColumn('Fees'),
-			{
-				id: 'category',
-				header: 'Category',
-				accessorFn: (protocol) => protocol.category,
-				enableSorting: false,
-				cell: ({ getValue }) =>
-					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						''
-					),
-				meta: {
-					align: 'center'
-				},
-				size: 128
-			},
-			{
-				id: 'pfOrPs',
-				header: 'P/F',
-				accessorFn: (protocol) => protocol.pfOrPs,
-				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.fees.protocol['pf']
-				},
-				size: 120
-			}
-		],
-		'P/S': [
-			NameColumn('Revenue'),
-			{
-				id: 'category',
-				header: 'Category',
-				accessorFn: (protocol) => protocol.category,
-				enableSorting: false,
-				cell: ({ getValue }) =>
-					getValue() ? (
-						<BasicLink
-							href={`/protocols/${slug(getValue() as string)}`}
-							className="text-sm font-medium text-(--link-text)"
-						>
-							{getValue() as string}
-						</BasicLink>
-					) : (
-						''
-					),
-				meta: {
-					align: 'center'
-				},
-				size: 128
-			},
-			{
-				id: 'pfOrPs',
-				header: 'P/S',
-				accessorFn: (protocol) => protocol.pfOrPs,
-				cell: (info) => <>{info.getValue() != null ? info.getValue() : null}</>,
-				meta: {
-					align: 'center',
-					headerHelperText: definitions.revenue.protocol['ps']
-				},
-				size: 120
-			}
-		]
+		'P/F': [NameColumn('Fees'), categoryColumn('center'), pfOrPsColumn('P/F', definitions.fees.protocol['pf'])],
+		'P/S': [NameColumn('Revenue'), categoryColumn('center'), pfOrPsColumn('P/S', definitions.revenue.protocol['ps'])]
 	}
 }
-
-const columnsByType = getColumnsByType()

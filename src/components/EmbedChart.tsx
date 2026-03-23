@@ -26,13 +26,15 @@ export function EmbedChart() {
 		}
 
 		const extras = []
-		for (const option of Object.keys(tvlSettings) as Array<keyof typeof tvlSettings>) {
+		for (const option in tvlSettings) {
+			if (!Object.prototype.hasOwnProperty.call(tvlSettings, option)) continue
 			if (tvlSettings[option]) {
 				extras.push(`include_${option}_in_tvl=true`)
 			}
 		}
 
-		for (const option of Object.keys(feesSettings) as Array<keyof typeof feesSettings>) {
+		for (const option in feesSettings) {
+			if (!Object.prototype.hasOwnProperty.call(feesSettings, option)) continue
 			if (feesSettings[option]) {
 				extras.push(`include_${option}_in_fees=true`)
 			}

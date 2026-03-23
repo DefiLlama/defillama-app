@@ -3,7 +3,9 @@ import { useProtocolsFilterState } from '~/components/Filters/useProtocolFilterS
 import { Icon } from '~/components/Icon'
 import { DARK_MODE, useDarkModeManager } from '~/contexts/LocalStorage'
 
-export function Settings({ metricFilters = [] }: { metricFilters?: { name: string; key: string }[] }) {
+const EMPTY_FILTERS: { name: string; key: string }[] = []
+
+export function Settings({ metricFilters = EMPTY_FILTERS }: { metricFilters?: { name: string; key: string }[] }) {
 	const [darkMode, toggleDarkMode] = useDarkModeManager()
 
 	const { selectedValues, setSelectedValues } = useProtocolsFilterState(metricFilters)
@@ -15,7 +17,7 @@ export function Settings({ metricFilters = [] }: { metricFilters?: { name: strin
 				<Icon name="settings" height={16} width={16} />
 			</Ariakit.Select>
 			<Ariakit.SelectPopover
-				unmountOnHide
+				unmountOnHide={false}
 				hideOnInteractOutside
 				gutter={6}
 				wrapperProps={{
@@ -27,7 +29,7 @@ export function Settings({ metricFilters = [] }: { metricFilters?: { name: strin
 					<Icon name="x" className="h-5 w-5" />
 				</Ariakit.PopoverDismiss>
 
-				<h1 className="mx-3 my-2 text-(--text-secondary)">Settings</h1>
+				<h2 className="mx-3 my-2 text-(--text-secondary)">Settings</h2>
 				<hr className="border-black/20 dark:border-white/20" />
 				{metricFilters.map((option) => (
 					<Ariakit.SelectItem

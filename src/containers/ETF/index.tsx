@@ -1,13 +1,19 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
+import {
+	ChartGroupingSelector,
+	DWMC_GROUPING_OPTIONS_LOWERCASE,
+	type LowercaseDwmcGrouping
+} from '~/components/ECharts/ChartGroupingSelector'
+import { getBucketTimestampSec } from '~/components/ECharts/utils'
 import { IconsRow } from '~/components/IconsRow'
+import { toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
 import { Select } from '~/components/Select/Select'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
-import { TagGroup } from '~/components/TagGroup'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, lastDayOfWeek } from '~/utils'
+import { formattedNum } from '~/utils'
 import type { ETFOverviewProps, IETFSnapshotRow } from './types'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -18,21 +24,13 @@ const ASSETS = [
 	{ key: 'solana', name: 'Solana', iconUrl: 'https://icons.llamao.fi/icons/protocols/solana' }
 ] as const
 
-const GROUP_BY_LIST = ['Daily', 'Weekly', 'Monthly', 'Cumulative'] as const
-type GroupBy = (typeof GROUP_BY_LIST)[number]
-
-const GROUP_BY_TO_CHART_GROUP: Record<GroupBy, 'daily' | 'weekly' | 'monthly'> = {
-	Daily: 'daily',
-	Weekly: 'weekly',
-	Monthly: 'monthly',
-	Cumulative: 'daily'
-}
+type GroupBy = LowercaseDwmcGrouping
 
 const ASSET_VALUES = ['Bitcoin', 'Ethereum', 'Solana'] as const
 const DEFAULT_SORTING_STATE = [{ id: 'aum', desc: true }]
 
 export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETFOverviewProps) => {
-	const [groupBy, setGroupBy] = React.useState<GroupBy>('Weekly')
+	const [groupBy, setGroupBy] = React.useState<GroupBy>('weekly')
 	const [tickers, setTickers] = React.useState<string[]>(['Bitcoin', 'Ethereum', 'Solana'])
 	const setTickersFromSelect: React.Dispatch<React.SetStateAction<Array<string> | string>> = React.useCallback(
 		(next) => {
@@ -62,11 +60,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 		// without Bitcoin are dropped, while `totalBitcoin`/`totalEthereum`/`totalSolana` stay aligned.
 		for (const [flowDate, flowEntry] of Object.entries(flows)) {
 			const date =
-				groupBy === 'Daily' || groupBy === 'Cumulative'
-					? flowDate
-					: groupBy === 'Weekly'
-						? lastDayOfWeek(+flowDate)
-						: firstDayOfMonth(+flowDate)
+				groupBy === 'daily' || groupBy === 'cumulative' ? flowDate : getBucketTimestampSec(+flowDate, groupBy)
 
 			bitcoin[date] = (bitcoin[date] ?? 0) + (flowEntry['Bitcoin'] ?? 0) + totalBitcoin
 			if (flowEntry['Ethereum'] != null) {
@@ -76,14 +70,14 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				solana[date] = (solana[date] ?? 0) + (flowEntry['Solana'] ?? 0) + totalSolana
 			}
 
-			if (groupBy === 'Cumulative') {
+			if (groupBy === 'cumulative') {
 				totalBitcoin += flowEntry['Bitcoin'] ?? 0
 				totalEthereum += flowEntry['Ethereum'] ?? 0
 				totalSolana += flowEntry['Solana'] ?? 0
 			}
 		}
 
-		const seriesType: 'line' | 'bar' = groupBy === 'Cumulative' ? 'line' : 'bar'
+		const seriesType: 'line' | 'bar' = groupBy === 'cumulative' ? 'line' : 'bar'
 		const source: Array<Record<string, number | null>> = []
 		for (const [date] of Object.entries(bitcoin)) {
 			source.push({
@@ -170,7 +164,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				<div className="flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-2">
 					<div className="flex flex-wrap justify-end gap-2 p-2 pb-0">
 						<h2 className="mr-auto text-lg font-semibold">Flows (Source: Farside)</h2>
-						<TagGroup setValue={(val) => setGroupBy(val as GroupBy)} values={GROUP_BY_LIST} selectedValue={groupBy} />
+						<ChartGroupingSelector value={groupBy} setValue={setGroupBy} options={DWMC_GROUPING_OPTIONS_LOWERCASE} />
 						<Select
 							allValues={ASSET_VALUES}
 							selectedValues={tickers}
@@ -186,7 +180,7 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 						<MultiSeriesChart2
 							dataset={finalCharts.dataset}
 							charts={finalCharts.charts}
-							groupBy={GROUP_BY_TO_CHART_GROUP[groupBy]}
+							groupBy={groupBy}
 							onReady={handleChartReady}
 						/>
 					</React.Suspense>
@@ -198,16 +192,18 @@ export const ETFOverview = ({ snapshot, flows, totalsByAsset, lastUpdated }: ETF
 				columnToSearch={'ticker'}
 				placeholder={'Search ETF...'}
 				header="Exchange Traded Funds"
+				csvFileName="etf-overview"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
 	)
 }
 
-const columns: ColumnDef<IETFSnapshotRow>[] = [
-	{
+const columnHelper = createColumnHelper<IETFSnapshotRow>()
+
+const columns = [
+	columnHelper.accessor('ticker', {
 		header: 'Ticker',
-		accessorKey: 'ticker',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			return (
@@ -217,36 +213,33 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 						href={row.original.url}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string | null>()}
+						{getValue()}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('issuer', {
 		header: 'Issuer',
-		accessorKey: 'issuer',
 		meta: {
 			align: 'end'
 		},
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor('chain', {
 		header: 'Coin',
-		accessorKey: 'chain',
 		enableSorting: true,
-		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="" iconType="chain" disableLinks={true} />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue())} />,
 		meta: {
 			align: 'end'
 		},
 		size: 160
-	},
-	{
+	}),
+	columnHelper.accessor('flows', {
 		header: 'Flows',
-		accessorKey: 'flows',
 		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
+			const value = getValue()
 			const formattedValue = value != null ? formattedNum(value, true) : null
 
 			return (
@@ -263,29 +256,21 @@ const columns: ColumnDef<IETFSnapshotRow>[] = [
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('aum', {
 		header: 'AUM',
-		accessorKey: 'aum',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? formattedNum(value, true) : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	},
-	{
+	}),
+	columnHelper.accessor('volume', {
 		header: 'Volume',
-		accessorKey: 'volume',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? formattedNum(value, true) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 120
-	}
+	})
 ]

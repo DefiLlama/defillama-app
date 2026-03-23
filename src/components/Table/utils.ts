@@ -1,6 +1,7 @@
 import type { ColumnOrderState, ColumnSizingState, Table } from '@tanstack/react-table'
 import { startTransition, useDeferredValue, useEffect, useState } from 'react'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
+import type { CsvCell } from '~/utils/csvCell'
 
 type BreakpointMap<T> = Record<number, T>
 export type ColumnSizesByBreakpoint = BreakpointMap<ColumnSizingState>
@@ -27,22 +28,28 @@ const isColumnOrderEqual = (current: ColumnOrderState, next: ColumnOrderState) =
 
 const isColumnSizingEqual = (current: ColumnSizingState, next: ColumnSizingState) => {
 	if (current === next) return true
-	const currentKeys = Object.keys(current)
-	const nextKeys = Object.keys(next)
-	if (currentKeys.length !== nextKeys.length) return false
-	for (const key of currentKeys) {
+	let currentKeyCount = 0
+	for (const key in current) {
+		currentKeyCount++
 		if (current[key] !== next[key]) return false
 	}
+
+	let nextKeyCount = 0
+	for (const _key in next) {
+		nextKeyCount++
+	}
+
+	if (currentKeyCount !== nextKeyCount) return false
 	return true
 }
 
 const getSizingForKeys = (
-	keys: string[],
+	keysSource: ColumnSizingState,
 	currentSizing?: ColumnSizingState,
 	columns?: Array<{ id: string; getSize?: () => number }>
 ) => {
 	const sizing: ColumnSizingState = {}
-	for (const key of keys) {
+	for (const key in keysSource) {
 		const value = currentSizing?.[key]
 		if (value != null) {
 			sizing[key] = value
@@ -50,7 +57,7 @@ const getSizingForKeys = (
 	}
 	if (columns) {
 		const columnsById = new Map(columns.map((col) => [col.id, col]))
-		for (const key of keys) {
+		for (const key in keysSource) {
 			if (sizing[key] == null) {
 				const size = columnsById.get(key)?.getSize?.()
 				if (size != null) {
@@ -106,7 +113,7 @@ function sortColumnSizesAndOrders({
 
 	if (columnSizes && currentSizing != null) {
 		const size = getBreakpointValue(columnSizes)
-		const effectiveSizing = size ? getSizingForKeys(Object.keys(size), currentSizing, columns) : currentSizing
+		const effectiveSizing = size ? getSizingForKeys(size, currentSizing, columns) : currentSizing
 		if (size !== undefined && effectiveSizing != null && !isColumnSizingEqual(effectiveSizing, size)) {
 			instance.setColumnSizing(size)
 		}
@@ -160,4 +167,44 @@ export function useSortColumnSizesAndOrders({
 	useEffect(() => {
 		sortColumnSizesAndOrders({ instance, columnSizes, columnOrders, width })
 	}, [instance, columnSizes, columnOrders, width])
+}
+
+export function prepareTableCsv<T>({ instance, filename }: { instance: Table<T>; filename: string }): {
+	filename: string
+	rows: Array<Array<CsvCell>>
+} {
+	const columns = instance.getVisibleLeafColumns().filter((column) => !column.columnDef.meta?.hidden)
+	const tableRows = instance.getRowModel().rows
+	if (columns.length === 0) return { filename, rows: [] }
+
+	const headers = columns.map((column) => {
+		const csvHeader = (column.columnDef.meta as { csvHeader?: unknown } | undefined)?.csvHeader
+		if (typeof csvHeader === 'string' && csvHeader.length > 0) return csvHeader
+		const header = column.columnDef.header
+		if (typeof header === 'string') return header
+		if (typeof header === 'number') return String(header)
+		return column.columnDef.id ?? column.id
+	})
+
+	const rows: Array<Array<CsvCell>> = tableRows.map((row) =>
+		columns.map((column) => {
+			const value = row.getValue(column.id)
+			if (value == null) return ''
+			if (typeof value === 'number') return Number.isFinite(value) ? value : ''
+			if (typeof value === 'string' || typeof value === 'boolean') return value
+			if (Array.isArray(value)) {
+				return value
+					.filter(
+						(item): item is CsvCell =>
+							(typeof item === 'number' && Number.isFinite(item)) ||
+							typeof item === 'string' ||
+							typeof item === 'boolean'
+					)
+					.join(', ')
+			}
+			return ''
+		})
+	)
+
+	return { filename, rows: [headers, ...rows] }
 }

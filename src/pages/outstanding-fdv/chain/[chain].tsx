@@ -1,16 +1,17 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsAdjustedFDVsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -48,10 +49,9 @@ const pageName = ['Protocols', 'ranked by', 'Outstanding FDV']
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Outstanding FDV - DefiLlama"
-			description={`Outstanding FDV by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`outstanding fdv by protocol on ${props.chain}`}
-			canonicalUrl={`/outstanding-fdv/chain/${props.chain}`}
+			title={`${props.chain} Outstanding FDV Rankings - DefiLlama`}
+			description={`Track DeFi protocol outstanding FDV rankings on ${props.chain}. Compare outstanding fully diluted valuations (circulating supply only) for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto oFDV analytics.`}
+			canonicalUrl={`/outstanding-fdv/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ProtocolsWithTokens {...props} />

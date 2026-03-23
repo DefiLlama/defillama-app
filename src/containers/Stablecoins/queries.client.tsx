@@ -31,7 +31,7 @@ const buildStablecoinMcapSeries = async (chain: string): Promise<StablecoinMcapS
 
 export const useGetStabelcoinsChartDataByChain = (chain?: string) => {
 	const { data, isLoading, error } = useQuery({
-		queryKey: [`stablecoinsChartDataByChain/${chain}`],
+		queryKey: ['stablecoins', 'chart-by-chain', chain],
 		queryFn: chain ? () => buildStablecoinMcapSeries(chain) : () => null,
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,

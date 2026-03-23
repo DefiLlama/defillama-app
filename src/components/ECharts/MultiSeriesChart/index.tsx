@@ -1,15 +1,16 @@
 import * as echarts from 'echarts/core'
-import { useCallback, useEffect, useId, useMemo, useRef } from 'react'
+import { useEffect, useId, useMemo, useRef } from 'react'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { useChartCleanup } from '~/hooks/useChartCleanup'
 import { useChartResize } from '~/hooks/useChartResize'
 import { ChartContainer } from '../ChartContainer'
-import { formatTooltipValue, useDefaults } from '../useDefaults'
+import { formatTooltipValue } from '../formatters'
+import { useDefaults } from '../useDefaults'
 import { mergeDeep } from '../utils'
 
 interface IMultiSeriesChartProps {
 	series?: Array<{
-		data: Array<[number, number]>
+		data: Array<[number | string, number | null]>
 		type: 'line' | 'bar'
 		name: string
 		color: string
@@ -24,7 +25,7 @@ interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly'
+	groupBy?: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
 	valueSymbol?: string
 	yAxisSymbols?: string[]
 	alwaysShowTooltip?: boolean
@@ -59,10 +60,7 @@ export default function MultiSeriesChart({
 	const defaultChartSettings = useDefaults({
 		valueSymbol,
 		xAxisType,
-		groupBy:
-			typeof groupBy === 'string' && ['daily', 'weekly', 'monthly', 'quarterly'].includes(groupBy)
-				? (groupBy as 'daily' | 'weekly' | 'monthly' | 'quarterly')
-				: 'daily',
+		groupBy: groupBy ?? 'daily',
 		isThemeDark,
 		alwaysShowTooltip,
 		showAggregateInTooltip
@@ -82,7 +80,10 @@ export default function MultiSeriesChart({
 					itemStyle: {
 						color: serie.color
 					},
-					data: serie.data?.map(([x, y]: [any, number]) => (xAxisType === 'time' ? [+x * 1e3, y] : [x, y])) || [],
+					data:
+						serie.data?.map(([x, y]: [number | string, number | null]) =>
+							xAxisType === 'time' ? [+x * 1e3, y] : [x, y]
+						) || [],
 					metricType: serie.metricType,
 					yAxisIndex: serie.yAxisIndex,
 					...(serie.logo && {
@@ -116,17 +117,15 @@ export default function MultiSeriesChart({
 	}, [series, isThemeDark, xAxisType])
 
 	const chartRef = useRef<echarts.ECharts | null>(null)
+	const hasNotifiedReadyRef = useRef(false)
+	const onReadyRef = useRef(onReady)
 
 	// Stable resize listener - never re-attaches when dependencies change
 	useChartResize(chartRef)
 
-	const onReadyRef = useRef(onReady)
-	onReadyRef.current = onReady
-
-	const updateChartInstance = useCallback((instance: echarts.ECharts | null) => {
-		chartRef.current = instance
-		onReadyRef.current?.(instance)
-	}, [])
+	useEffect(() => {
+		onReadyRef.current = onReady
+	}, [onReady])
 
 	useEffect(() => {
 		const chartDom = document.getElementById(id)
@@ -134,28 +133,33 @@ export default function MultiSeriesChart({
 
 		let instance = echarts.getInstanceByDom(chartDom)
 		if (!instance) {
-			instance = echarts.init(chartDom)
+			instance = echarts.init(chartDom, null, { renderer: 'canvas' })
 		}
 
-		updateChartInstance(instance)
+		chartRef.current = instance
+		if (instance && !hasNotifiedReadyRef.current && onReadyRef.current) {
+			onReadyRef.current(instance)
+			hasNotifiedReadyRef.current = true
+		}
 
+		const settings = { ...defaultChartSettings }
 		for (const option in chartOptions) {
 			if (option === 'overrides') {
-				defaultChartSettings['tooltip'] = { ...defaultChartSettings['inflowsTooltip'] }
-			} else if (defaultChartSettings[option]) {
-				defaultChartSettings[option] = mergeDeep(defaultChartSettings[option], chartOptions[option])
+				settings['tooltip'] = { ...settings['inflowsTooltip'] }
+			} else if (settings[option]) {
+				settings[option] = mergeDeep(settings[option], chartOptions[option])
 			} else {
-				defaultChartSettings[option] = { ...chartOptions[option] }
+				settings[option] = { ...chartOptions[option] }
 			}
 		}
 
 		if (showAggregateInTooltip && !chartOptions?.tooltip?.formatter) {
-			defaultChartSettings.tooltip = {
-				...defaultChartSettings.aggregateTooltip
+			settings.tooltip = {
+				...settings.aggregateTooltip
 			}
 		}
 
-		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = defaultChartSettings
+		const { graphic, tooltip, xAxis, yAxis, dataZoom, legend, grid } = settings
 
 		const metricTypes = new Set(processedSeries.flatMap((s: any) => (s.metricType ? [s.metricType] : [])))
 		const uniqueMetricTypes = Array.from(metricTypes)
@@ -172,12 +176,19 @@ export default function MultiSeriesChart({
 
 		if (needMultipleAxes) {
 			const axisCount = Math.max(uniqueMetricTypes.length, maxExplicitAxisIndex + 1, 2)
+			const yAxisBase = yAxis && typeof yAxis === 'object' ? (Array.isArray(yAxis) ? yAxis[0] || {} : yAxis) : {}
+			const yAxisAxisLabel = yAxisBase.axisLabel && typeof yAxisBase.axisLabel === 'object' ? yAxisBase.axisLabel : {}
+			const existingFormatter =
+				typeof yAxisAxisLabel.formatter === 'function' || typeof yAxisAxisLabel.formatter === 'string'
+					? yAxisAxisLabel.formatter
+					: null
 			finalYAxis = Array.from({ length: Math.min(axisCount, 3) }, (_, index) => ({
-				...yAxis,
+				...yAxisBase,
 				axisLabel: {
-					...(yAxis as any).axisLabel,
+					...yAxisAxisLabel,
 					margin: 4,
-					formatter: (value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol)
+					formatter:
+						existingFormatter ?? ((value: number) => formatTooltipValue(value, yAxisSymbols[index] ?? valueSymbol))
 				},
 				position: index === 0 ? 'left' : index === 1 ? 'right' : 'left',
 				offset: index === 2 ? 40 : 0
@@ -264,13 +275,18 @@ export default function MultiSeriesChart({
 		alwaysShowTooltip,
 		series,
 		id,
-		updateChartInstance,
 		showAggregateInTooltip,
 		valueSymbol,
 		yAxisSymbols
 	])
 
-	useChartCleanup(id, () => updateChartInstance(null))
+	useChartCleanup(id, () => {
+		chartRef.current = null
+		if (hasNotifiedReadyRef.current) {
+			onReadyRef.current?.(null)
+			hasNotifiedReadyRef.current = false
+		}
+	})
 
 	return <ChartContainer id={id} chartClassName="my-auto h-[360px]" chartStyle={height ? { height } : undefined} />
 }

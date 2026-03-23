@@ -7,6 +7,8 @@ import {
 import type { CustomTimePeriod, DashboardAction, DashboardState, TimePeriod } from './dashboardReducer'
 import type { Dashboard } from './services/DashboardAPI'
 import {
+	type CexAnalyticsMetric,
+	type CexAnalyticsView,
 	type AdvancedTvlChartConfig,
 	type AdvancedTvlChartType,
 	type BorrowedChartConfig,
@@ -14,6 +16,7 @@ import {
 	CHART_TYPES,
 	type ChartBuilderConfig,
 	type ChartConfig,
+	type DashboardGrouping,
 	type DashboardItemConfig,
 	type IncomeStatementConfig,
 	type LlamaAIChartConfig,
@@ -271,6 +274,7 @@ export function useDashboardActions(
 			datasetType?:
 				| 'stablecoins'
 				| 'cex'
+				| 'cex-analytics'
 				| 'revenue'
 				| 'holders-revenue'
 				| 'earnings'
@@ -287,13 +291,22 @@ export function useDashboardActions(
 			datasetChain?: string,
 			tokenSymbol?: string | string[],
 			includeCex?: boolean,
-			datasetTimeframe?: string
+			datasetTimeframe?: string,
+			cexAnalyticsView?: CexAnalyticsView,
+			cexAnalyticsMetric?: CexAnalyticsMetric,
+			cexAnalyticsTopN?: number
 		) => {
 			if (isReadOnlyUntilDashboardLoaded) return
 
 			const chainIdentifier = chains.length > 1 ? 'multi' : chains[0] || 'table'
+			const datasetIdentifier =
+				tableType === 'dataset'
+					? [datasetType, datasetChain, datasetTimeframe, cexAnalyticsView, cexAnalyticsMetric, cexAnalyticsTopN]
+							.filter(Boolean)
+							.join('-') || chainIdentifier
+					: chainIdentifier
 			const newTable: ProtocolsTableConfig = {
-				id: generateItemId('table', chainIdentifier),
+				id: generateItemId('table', datasetIdentifier),
 				kind: 'table',
 				tableType,
 				chains,
@@ -307,6 +320,11 @@ export function useDashboardActions(
 					}),
 					...(datasetType === 'trending-contracts' && {
 						datasetTimeframe: datasetTimeframe || '1d'
+					}),
+					...(datasetType === 'cex-analytics' && {
+						cexAnalyticsView: cexAnalyticsView || 'comparison',
+						cexAnalyticsMetric: cexAnalyticsMetric || 'derivatives',
+						cexAnalyticsTopN: cexAnalyticsTopN || 8
 					})
 				})
 			}
@@ -546,7 +564,7 @@ export function useDashboardActions(
 	)
 
 	const handleGroupingChange = useCallback(
-		(chartId: string, newGrouping: 'day' | 'week' | 'month' | 'quarter') => {
+		(chartId: string, newGrouping: DashboardGrouping) => {
 			if (isReadOnlyUntilDashboardLoaded) return
 
 			dispatchItemsAndSave((prev) =>

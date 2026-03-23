@@ -5,6 +5,7 @@ export interface IYieldTableRow {
 	projectslug: string
 	project: string
 	airdrop?: boolean
+	raiseValuation?: number | null
 	chains: Array<string>
 	tvl: number
 	apy: number
@@ -31,6 +32,8 @@ export interface IYieldTableRow {
 	apyMedian30d?: number | null
 	apyStd30d?: number | null
 	cv30d?: number | null
+	pegDeviation?: number | null
+	pegPrice?: number | null
 }
 
 export interface IYieldsProjectsTableRow {

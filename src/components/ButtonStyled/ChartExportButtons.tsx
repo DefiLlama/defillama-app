@@ -1,6 +1,6 @@
 import type * as echarts from 'echarts/core'
 import { ChartCsvExportButton } from './ChartCsvExportButton'
-import { ChartPngExportButton } from './ChartPngExportButton'
+import { ChartPngExportButton, type PngExportProfile } from './ChartPngExportButton'
 
 interface ChartExportButtonsProps {
 	chartInstance: () => echarts.ECharts | null
@@ -12,6 +12,8 @@ interface ChartExportButtonsProps {
 	smol?: boolean
 	showCsv?: boolean
 	showPng?: boolean
+	prepareCsvDirect?: () => { filename: string; rows: Array<Array<string | number | boolean>> }
+	pngProfile?: PngExportProfile
 }
 
 export function ChartExportButtons({
@@ -23,12 +25,20 @@ export function ChartExportButtons({
 	className,
 	smol,
 	showCsv = true,
-	showPng = true
+	showPng = true,
+	prepareCsvDirect,
+	pngProfile
 }: ChartExportButtonsProps) {
 	return (
 		<>
 			{showCsv ? (
-				<ChartCsvExportButton chartInstance={chartInstance} filename={filename} className={className} smol={smol} />
+				<ChartCsvExportButton
+					chartInstance={chartInstance}
+					filename={filename}
+					className={className}
+					smol={smol}
+					prepareCsvDirect={prepareCsvDirect}
+				/>
 			) : null}
 			{showPng ? (
 				<ChartPngExportButton
@@ -39,6 +49,7 @@ export function ChartExportButtons({
 					expandLegend={expandLegend}
 					className={className}
 					smol={smol}
+					pngProfile={pngProfile}
 				/>
 			) : null}
 		</>

@@ -1,9 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { Announcement } from '~/components/Announcement'
+import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import YieldPage from '~/containers/Yields'
 import { getLendBorrowData, getYieldPageData } from '~/containers/Yields/queries/index'
-import { disclaimer } from '~/containers/Yields/utils'
+import { disclaimer, exploitWarning } from '~/containers/Yields/utils'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging('yields', async () => {
@@ -24,8 +25,12 @@ export const getStaticProps = withPerformanceLogging('yields', async () => {
 		}
 	})
 
+	const { questions: entityQuestions } = await fetchEntityQuestions('yields', 'page').catch(() => ({
+		questions: [] as string[]
+	}))
+
 	return {
-		props: { ...data.props },
+		props: { ...data.props, entityQuestions },
 		revalidate: maxAgeForNext([23])
 	}
 })
@@ -35,13 +40,17 @@ const pageName = ['Yields: All Pools']
 export default function ApyHomePage(data) {
 	return (
 		<Layout
-			title={`Yield Rankings - DefiLlama`}
-			description={`Yield Rankings on DefiLlama. Pools by APY, TVL, and other metrics on all chains. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`yield rankings, defi yield rankings, pools by apy, pools by tvl, pools by other metrics`}
+			title="Yield Farming Rankings - Best DeFi APY Pools - DefiLlama"
+			description="Find the best DeFi yield farming opportunities across all chains. Compare APY rates, TVL, and pool metrics for 10,000+ yield pools on Ethereum, Solana, Base, and 500+ networks. Real-time yield analytics."
 			canonicalUrl={`/yields`}
 			pageName={pageName}
 		>
-			<Announcement>{disclaimer}</Announcement>
+			<Announcement announcementId="yields-disclaimer" version="2026-03">
+				{disclaimer}
+			</Announcement>
+			<Announcement announcementId="resolv-exploit" version="2026-03" warning>
+				{exploitWarning}
+			</Announcement>
 			<YieldPage {...data} />
 		</Layout>
 	)

@@ -26,7 +26,7 @@ export function SelectionFooter({
 
 	return (
 		<div className="shrink-0 space-y-2">
-			{chartCreationMode === 'combined' && (
+			{chartCreationMode === 'combined' ? (
 				<input
 					type="text"
 					value={unifiedChartName}
@@ -34,7 +34,7 @@ export function SelectionFooter({
 					placeholder="Chart name..."
 					className="w-full rounded border border-(--form-control-border) bg-(--bg-input) px-2 py-1.5 text-xs pro-text1 placeholder:pro-text3 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 				/>
-			)}
+			) : null}
 			<div className="flex thin-scrollbar flex-wrap items-center gap-2">
 				<label className="flex shrink-0 cursor-pointer items-center gap-1.5 text-xs pro-text2">
 					<input

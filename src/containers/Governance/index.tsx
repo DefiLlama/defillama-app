@@ -1,8 +1,7 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
-	getExpandedRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	type SortingState,
@@ -14,7 +13,7 @@ import { BasicLink } from '~/components/Link'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { capitalizeFirstLetter, slug, tokenIconUrl } from '~/utils'
+import { slug } from '~/utils'
 import type { GovernanceOverviewItem } from './types'
 
 export default function Governance({ data }: { data: GovernanceOverviewItem[] }) {
@@ -31,16 +30,15 @@ export default function Governance({ data }: { data: GovernanceOverviewItem[] })
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
-		getRowCanExpand: () => true
+		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -56,79 +54,58 @@ export default function Governance({ data }: { data: GovernanceOverviewItem[] })
 					/>
 					<input
 						name="search"
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 			</div>
-			<VirtualTable instance={instance} renderSubComponent={renderSubComponent} />
+			<VirtualTable instance={instance} />
 		</div>
 	)
 }
 
-const RenderSubComponent = ({ row }: { row: { original: GovernanceOverviewItem } }) => {
-	const subRowEntries = Object.entries(row.original.subRowData)
+const columnHelper = createColumnHelper<GovernanceOverviewItem>()
 
-	return (
-		<span className="flex flex-col gap-1 pl-[72px]">
-			{subRowEntries.map(([type, value]) => (
-				<span key={row.original.name + type + String(value)}>
-					{capitalizeFirstLetter(type) + ' Proposals : ' + value}
-				</span>
-			))}
-		</span>
-	)
-}
-
-const renderSubComponent = ({ row }: { row: { original: GovernanceOverviewItem } }) => <RenderSubComponent row={row} />
-
-const governanceColumns: ColumnDef<GovernanceOverviewItem>[] = [
-	{
+const governanceColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
+			const value = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(getValue())} data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly />
 					<BasicLink
-						href={`/governance/${slug(getValue())}`}
+						href={`/governance/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
 					>
-						{getValue<string>()}
+						{value}
 					</BasicLink>
 				</span>
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('proposalsCount', {
 		header: 'Proposals',
-		accessorKey: 'proposalsCount',
 		size: 100,
 		meta: { align: 'end' }
-	},
-	{
-		accessorKey: 'successfulProposals',
+	}),
+	columnHelper.accessor('successfulProposals', {
 		header: 'Successful Proposals',
 		size: 180,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('proposalsInLast30Days', {
 		header: 'Proposals in last 30 days',
-		accessorKey: 'proposalsInLast30Days',
 		size: 200,
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('successfulProposalsInLast30Days', {
 		header: 'Successful Proposals in last 30 days',
-		accessorKey: 'successfulProposalsInLast30Days',
 		size: 280,
 		meta: { align: 'end' }
-	}
+	})
 ]

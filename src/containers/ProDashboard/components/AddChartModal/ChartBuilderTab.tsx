@@ -1,10 +1,11 @@
 import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
-import { CHAINS_API_V2, PROTOCOLS_API } from '~/constants'
+import { fetchChainsCategories } from '~/containers/Chains/api'
 import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/ProDashboardAPIContext'
 import { filterDataByTimePeriod } from '~/containers/ProDashboard/queries'
+import { fetchProtocols } from '~/containers/Protocols/api'
 import { useAppMetadata } from '../../AppMetadataContext'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
 import ProtocolSplitCharts from '../../services/ProtocolSplitCharts'
@@ -140,20 +141,18 @@ export function ChartBuilderTab({
 	const { loading: metaLoading, error: metaError, hasProtocolBuilderMetric } = useAppMetadata()
 	const { getProtocolInfo } = useProDashboardCatalog()
 	const { data: protocols } = useQuery({
-		queryKey: ['protocols'],
+		queryKey: ['pro-dashboard', 'protocols'],
 		queryFn: async () => {
-			const response = await fetch(PROTOCOLS_API)
-			const data = await response.json()
+			const data = await fetchProtocols()
 			return data.protocols ?? EMPTY_PROTOCOLS
 		},
 		staleTime: 60 * 60 * 1000
 	})
 
 	const { data: chainCategoriesList } = useQuery({
-		queryKey: ['chains2-categories'],
+		queryKey: ['pro-dashboard', 'chain-categories'],
 		queryFn: async () => {
-			const res = await fetch(CHAINS_API_V2)
-			const data = await res.json()
+			const data = await fetchChainsCategories()
 			return (data?.categories as string[]) ?? EMPTY_CATEGORIES
 		},
 		staleTime: 60 * 60 * 1000
@@ -196,6 +195,7 @@ export function ChartBuilderTab({
 
 	const { data: previewData, isLoading: previewLoading } = useQuery({
 		queryKey: [
+			'pro-dashboard',
 			'chartBuilder',
 			chartBuilder.mode,
 			chartBuilder.metric,
@@ -281,11 +281,13 @@ export function ChartBuilderTab({
 		refetchOnWindowFocus: false
 	})
 
-	const seriesColors = useRef<Record<string, string>>(chartBuilder.seriesColors || {})
+	const seriesColors = chartBuilder.seriesColors
 	let hasCustomSeriesColors = false
-	for (const _ in seriesColors.current) {
-		hasCustomSeriesColors = true
-		break
+	if (seriesColors) {
+		for (const _ in seriesColors) {
+			hasCustomSeriesColors = true
+			break
+		}
 	}
 
 	const visibleSeries = useMemo(() => {
@@ -310,7 +312,7 @@ export function ChartBuilderTab({
 
 	const resolveSeriesColor = useCallback(
 		(seriesName: string, fallback?: string) => {
-			const override = seriesColors[seriesName]
+			const override = seriesColors?.[seriesName]
 			if (override) {
 				return override
 			}
@@ -677,7 +679,9 @@ export function ChartBuilderTab({
 										placeholder={chainFilterMode === 'exclude' ? 'Select chains to exclude...' : 'Select chains...'}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
-										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+										renderIcon={(option) =>
+											option.value === 'All' ? null : getItemIconUrl('chain', null, option.value)
+										}
 									/>
 								</div>
 
@@ -724,7 +728,7 @@ export function ChartBuilderTab({
 
 								<div className="mb-1">
 									<Ariakit.CheckboxProvider value={chartBuilder.groupByParent || false}>
-										<label className="flex cursor-pointer items-center gap-1.5">
+										<div className="flex cursor-pointer items-center gap-1.5">
 											<Ariakit.Checkbox
 												onChange={(e) =>
 													onChartBuilderChange({
@@ -734,7 +738,7 @@ export function ChartBuilderTab({
 												className="flex h-3 w-3 shrink-0 items-center justify-center rounded-[2px] border pro-border data-checked:border-pro-blue-100 data-checked:bg-pro-blue-400 dark:data-checked:border-pro-blue-300/20 dark:data-checked:bg-pro-blue-300/20"
 											/>
 											<span className="text-[10px] pro-text2">Group by parent protocol</span>
-										</label>
+										</div>
 									</Ariakit.CheckboxProvider>
 								</div>
 							</>
@@ -778,10 +782,12 @@ export function ChartBuilderTab({
 										placeholder={chainFilterMode === 'exclude' ? 'Select chains to exclude...' : 'Select chains...'}
 										isLoading={protocolsLoading || chainOptions.length === 0}
 										maxSelections={10}
-										renderIcon={(option) => getItemIconUrl('chain', null, option.value)}
+										renderIcon={(option) =>
+											option.value === 'All' ? null : getItemIconUrl('chain', null, option.value)
+										}
 									/>
 								</div>
-								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol && (
+								{!isChainOnlyMetric && chartBuilder.metric !== 'tvl' && !chartBuilder.protocol ? (
 									<div className="mb-1.5">
 										<div className="mb-1 flex items-center justify-between">
 											<span className="text-[10px] font-medium pro-text2">Protocol Categories Filter</span>
@@ -804,7 +810,7 @@ export function ChartBuilderTab({
 											maxSelections={5}
 										/>
 									</div>
-								)}
+								) : null}
 								<div className="mb-1.5">
 									<div className="mb-1 flex items-center justify-between">
 										<span className="text-[10px] font-medium pro-text2">Chain Categories Filter</span>
@@ -834,7 +840,7 @@ export function ChartBuilderTab({
 										isLoading={false}
 									/>
 								</div>
-								{(!chartBuilder.chainCategories || chartBuilder.chainCategories.length === 0) && (
+								{!chartBuilder.chainCategories || chartBuilder.chainCategories.length === 0 ? (
 									<div className="mb-1">
 										<Ariakit.CheckboxProvider value={chartBuilder.hideOthers || false}>
 											<label className="flex cursor-pointer items-center gap-1.5">
@@ -852,7 +858,7 @@ export function ChartBuilderTab({
 											</label>
 										</Ariakit.CheckboxProvider>
 									</div>
-								)}
+								) : null}
 							</>
 						)}
 					</div>
@@ -877,7 +883,7 @@ export function ChartBuilderTab({
 						</div>
 					</div>
 
-					{chartBuilder.chartType === 'treemap' && !isTvlMetric && (
+					{chartBuilder.chartType === 'treemap' && !isTvlMetric ? (
 						<div className="border-t pro-border pt-1.5">
 							<AriakitSelect
 								label="Treemap value"
@@ -888,7 +894,7 @@ export function ChartBuilderTab({
 								isLoading={false}
 							/>
 						</div>
-					)}
+					) : null}
 
 					<div className="border-t pro-border pt-1.5">
 						<h4 className="mb-1 text-[11px] font-medium pro-text2">Display value as</h4>
@@ -1025,7 +1031,7 @@ export function ChartBuilderTab({
 						)}
 					</div>
 
-					{visibleSeries.length > 0 && (
+					{visibleSeries.length > 0 ? (
 						<div className="mt-2 flex flex-col gap-1">
 							<div className="flex items-center justify-between gap-2">
 								<h4 className="text-[11px] font-medium pro-text2">Series Colors</h4>
@@ -1043,7 +1049,7 @@ export function ChartBuilderTab({
 							<div className="flex thin-scrollbar items-center gap-2 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) px-2 py-2">
 								{visibleSeries.map((series) => {
 									const activeColor = resolveSeriesColor(series.name, series.color)
-									const hasOverride = !!seriesColors[series.name]
+									const hasOverride = !!seriesColors?.[series.name]
 									return (
 										<div
 											key={series.name}
@@ -1074,7 +1080,7 @@ export function ChartBuilderTab({
 								})}
 							</div>
 						</div>
-					)}
+					) : null}
 
 					<div className="mt-2 shrink-0 rounded pro-bg2 p-2">
 						<div className="flex items-start gap-1">
@@ -1088,29 +1094,31 @@ export function ChartBuilderTab({
 												: 'All Protocols'
 										} across different chains`
 									: ` breakdown by top ${chartBuilder.limit} protocols`}
-								{chartBuilder.mode === 'chains' &&
-									chartBuilder.chains.length > 0 &&
-									` ${chainFilterMode === 'exclude' ? 'excluding' : 'on'} ${chartBuilder.chains.join(', ')}`}
+								{chartBuilder.mode === 'chains' && chartBuilder.chains.length > 0
+									? ` ${chainFilterMode === 'exclude' ? 'excluding' : 'on'} ${chartBuilder.chains.join(', ')}`
+									: null}
+								{chartBuilder.mode === 'protocol' && chartBuilder.chains.length > 0
+									? ` ${chainFilterMode === 'exclude' ? 'excluding' : 'on'} ${chartBuilder.chains.join(', ')}`
+									: null}
 								{chartBuilder.mode === 'protocol' &&
-									chartBuilder.chains.length > 0 &&
-									` ${chainFilterMode === 'exclude' ? 'excluding' : 'on'} ${chartBuilder.chains.join(', ')}`}
+								chartBuilder.chainCategories &&
+								chartBuilder.chainCategories.length > 0
+									? ` ${chainCategoryFilterMode === 'exclude' ? 'excluding' : 'in'} ${chartBuilder.chainCategories.join(
+											', '
+										)} chain categories`
+									: null}
 								{chartBuilder.mode === 'protocol' &&
-									chartBuilder.chainCategories &&
-									chartBuilder.chainCategories.length > 0 &&
-									` ${chainCategoryFilterMode === 'exclude' ? 'excluding' : 'in'} ${chartBuilder.chainCategories.join(
-										', '
-									)} chain categories`}
-								{chartBuilder.mode === 'protocol' &&
-									chartBuilder.protocolCategories &&
-									chartBuilder.protocolCategories.length > 0 &&
-									` ${
-										protocolCategoryFilterMode === 'exclude' ? 'excluding' : 'focusing on'
-									} ${chartBuilder.protocolCategories.join(', ')} protocol categories`}
-								{chartBuilder.mode === 'chains' &&
-									chartBuilder.categories.length > 0 &&
-									` ${
-										categoryFilterMode === 'exclude' ? 'excluding' : 'in'
-									} ${chartBuilder.categories.join(', ')} categories`}
+								chartBuilder.protocolCategories &&
+								chartBuilder.protocolCategories.length > 0
+									? ` ${
+											protocolCategoryFilterMode === 'exclude' ? 'excluding' : 'focusing on'
+										} ${chartBuilder.protocolCategories.join(', ')} protocol categories`
+									: null}
+								{chartBuilder.mode === 'chains' && chartBuilder.categories.length > 0
+									? ` ${categoryFilterMode === 'exclude' ? 'excluding' : 'in'} ${chartBuilder.categories.join(
+											', '
+										)} categories`
+									: null}
 								. Data is displayed as{' '}
 								{chartBuilder.displayAs === 'percentage' ? 'percentage of total' : 'absolute values'}.
 							</p>

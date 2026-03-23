@@ -23,6 +23,7 @@ interface ISelectWithComboboxBase {
 	portal?: boolean
 	onValuesChange?: (values: string[], label: string) => void
 	defaultSelectedValues?: string[]
+	unmountOnHide?: boolean
 }
 
 interface ISelectWithComboboxUrlParams extends ISelectWithComboboxBase {
@@ -56,7 +57,8 @@ export function SelectWithCombobox({
 	includeQueryKey,
 	excludeQueryKey,
 	onValuesChange,
-	defaultSelectedValues
+	defaultSelectedValues,
+	unmountOnHide = true
 }: ISelectWithCombobox) {
 	const router = useRouter()
 	const valuesAreAnArrayOfStrings = typeof allValues[0] === 'string'
@@ -87,19 +89,18 @@ export function SelectWithCombobox({
 	// If includeQueryKey is provided, use URL-based functions; otherwise derive from setSelectedValues
 	const setSelectedValues: (values: string[]) => void = includeQueryKey
 		? (values: string[]) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), values, defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), values, defaultSelectedValues)
 		: setSelectedValuesFromState
 	const clearAll = includeQueryKey
 		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), 'None', defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), 'None', defaultSelectedValues)
 		: () => setSelectedValuesFromState([])
 	const toggleAll = includeQueryKey
-		? () =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), null, defaultSelectedValues)
+		? () => updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), null, defaultSelectedValues)
 		: () => setSelectedValuesFromState(getAllKeys())
 	const selectOnlyOne = includeQueryKey
 		? (value: string) =>
-				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey!, getAllKeys(), [value], defaultSelectedValues)
+				updateQueryFromSelected(router, includeQueryKey, excludeQueryKey, getAllKeys(), [value], defaultSelectedValues)
 		: (value: string) => setSelectedValuesFromState([value])
 
 	const [searchValue, setSearchValue] = React.useState('')
@@ -170,7 +171,6 @@ export function SelectWithCombobox({
 					<NestedMenu label={label} render={<Ariakit.Select />}>
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="m-3 mb-0 rounded-md bg-white px-3 py-2 text-base dark:bg-black"
 						/>
 						{showCheckboxes ? (
@@ -189,7 +189,7 @@ export function SelectWithCombobox({
 									key={getOptionKey(option)}
 									render={<Ariakit.SelectItem value={getOptionKey(option)} />}
 									hideOnClick={false}
-									className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+									className="flex shrink-0 cursor-pointer items-center justify-start gap-4 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 								>
 									{isStringValue(option) ? (
 										<span>{option}</span>
@@ -276,7 +276,7 @@ export function SelectWithCombobox({
 					<Ariakit.SelectArrow />
 				</Ariakit.Select>
 				<Ariakit.SelectPopover
-					unmountOnHide
+					unmountOnHide={unmountOnHide}
 					hideOnInteractOutside
 					gutter={6}
 					wrapperProps={{
@@ -292,7 +292,6 @@ export function SelectWithCombobox({
 					<span className="relative mb-2 p-3">
 						<Ariakit.Combobox
 							placeholder="Search..."
-							autoFocus
 							className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
 						/>
 					</span>
@@ -316,7 +315,7 @@ export function SelectWithCombobox({
 										<Ariakit.SelectItem
 											key={`${label}-${getOptionKey(option)}`}
 											value={getOptionKey(option)}
-											className="group flex shrink-0 cursor-pointer items-center justify-start gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+											className="group flex shrink-0 cursor-pointer items-center justify-start gap-2 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md last-of-type:border-b-0 hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 											render={<Ariakit.ComboboxItem />}
 										>
 											{isStringValue(option) ? (

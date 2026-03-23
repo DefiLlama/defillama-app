@@ -1,16 +1,17 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ProtocolsWithTokens } from '~/containers/Protocols/ProtocolsWithTokens'
 import { getProtocolsMarketCapsByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -48,10 +49,9 @@ const pageName = ['Protocols', 'ranked by', 'Market Cap']
 export default function ProtocolsMarketCapsByChain(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Market Caps - DefiLlama"
-			description={`${props.chain} Market Caps by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${props.chain} market caps, defi ${props.chain} market caps`}
-			canonicalUrl={`/mcaps/chain/${props.chain}`}
+			title={`${props.chain} Market Cap Rankings - DeFi Protocols - DefiLlama`}
+			description={`Track DeFi protocol market cap rankings on ${props.chain}. Compare token market capitalization for all protocols in the ${props.chain} ecosystem. Real-time ${props.chain} crypto market cap analytics.`}
+			canonicalUrl={`/mcaps/chain/${slug(props.chain)}`}
 			pageName={pageName}
 		>
 			<ProtocolsWithTokens {...props} />

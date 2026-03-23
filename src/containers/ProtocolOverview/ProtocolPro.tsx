@@ -1,6 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import * as React from 'react'
 
 interface SortableItemProps {
 	id: string
@@ -32,32 +31,4 @@ export function SortableItem({ id, isTable, children, ...rest }: SortableItemPro
 			{children}
 		</div>
 	)
-}
-// oxlint-disable-next-line no-unused-vars
-const ChartTypes = {
-	tvl: 'TVL',
-	mcap: 'MCAP',
-	tokenPrice: 'Token Price',
-	fdv: 'FDV',
-	volume: 'Volume',
-	derivativesVolume: 'Perps Volume',
-	chainFees: 'Fees',
-	revenue: 'Revenue',
-	unlocks: 'Unlocks',
-	activeUsers: 'Active Addresses',
-	newUsers: 'New Addresses',
-	transactions: 'Transactions',
-	gasUsed: 'Gas Used',
-	governance: 'Governance',
-	treasury: 'Treasury',
-	bridgeVolume: 'Bridge Volume',
-	tokenVolume: 'Token Volume',
-	tokenLiquidity: 'Token Liquidity',
-	twitter: 'Tweets',
-	devMetrics: 'Devs',
-	contributersMetrics: 'Contributers',
-	contributersCommits: 'Contributers Commits',
-	devCommits: 'Devs Commits',
-	staking: 'Staking',
-	borrowed: 'Borrowed'
 }

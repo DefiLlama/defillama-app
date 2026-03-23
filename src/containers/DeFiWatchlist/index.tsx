@@ -7,32 +7,37 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
+import { formatPercentChangeText } from '~/components/PercentChange'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { TokenLogo } from '~/components/TokenLogo'
-import { ICONS_CDN } from '~/constants'
+import { ChainProtocolsTable } from '~/containers/ChainOverview/Table'
+import type { IChainOverviewData } from '~/containers/ChainOverview/types'
+import { useGroupAndFormatChains } from '~/containers/ChainsByCategory'
 import { ChainsByCategoryTable } from '~/containers/ChainsByCategory/Table'
+import { applyProtocolTvlSettings } from '~/containers/Protocols/utils'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+import { WatchListTabs } from '~/containers/Yields/Watchlist'
 import { DEFAULT_PORTFOLIO_NAME, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formatProtocolsList2 } from '~/hooks/data/defi'
 import { useBookmarks } from '~/hooks/useBookmarks'
 import { useEmailNotifications, type NotificationSettings } from '~/hooks/useEmailNotifications'
 import { useIsClient } from '~/hooks/useIsClient'
-import { renderPercentChange, toNumberOrNullFromQueryParam } from '~/utils'
 import { mapAPIMetricToUI, mapUIMetricToAPI } from '~/utils/notificationMetrics'
-import { ChainProtocolsTable } from '../ChainOverview/Table'
-import type { IProtocol } from '../ChainOverview/types'
-import { useGroupAndFormatChains } from '../ChainsByCategory'
-import { useAuthContext } from '../Subscribtion/auth'
-import { WatchListTabs } from '../Yields/Watchlist'
+import { parseNumberQueryParam } from '~/utils/routerQuery'
+import type { IChainsByCategoryData } from '../ChainsByCategory/types'
 import { chainMetrics, protocolMetrics } from './constants'
-
-const EMPTY_PROTOCOLS: IProtocol[] = []
-const EMPTY_CHAINS: Array<{ name: string }> = []
 
 const SubscribeProModal = lazy(() =>
 	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
 )
 
-export function DefiWatchlistContainer({ protocols, chains }) {
+export function DefiWatchlistContainer({
+	protocols,
+	chains
+}: {
+	protocols: IChainOverviewData['protocols']
+	chains: IChainsByCategoryData['chains']
+}) {
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl')
 
 	const { selectedPortfolio, savedProtocols, addProtocol, removeProtocol, isLoadingWatchlist } = useBookmarks('defi')
@@ -40,23 +45,23 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	const { savedProtocols: savedChains, addProtocol: addChain, removeProtocol: removeChain } = useBookmarks('chains')
 
 	const { protocolOptions, savedProtocolsList, selectedProtocolNames } = useMemo(() => {
-		const resolvedProtocols = protocols ?? EMPTY_PROTOCOLS
 		return {
-			protocolOptions: resolvedProtocols.map((c) => ({ key: c.name, name: c.name })),
-			savedProtocolsList: resolvedProtocols.filter(
-				(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
-			),
+			protocolOptions: protocols?.map((c) => ({ key: c.name, name: c.name })) ?? [],
+			savedProtocolsList:
+				protocols?.filter(
+					(c) => savedProtocols.has(c.name) || c.childProtocols?.some((cp) => savedProtocols.has(cp.name))
+				) ?? [],
 			selectedProtocolNames: Array.from(savedProtocols)
 		}
 	}, [protocols, savedProtocols])
 
 	const router = useRouter()
 
-	const minTvl = toNumberOrNullFromQueryParam(router.query.minTvl)
-	const maxTvl = toNumberOrNullFromQueryParam(router.query.maxTvl)
+	const minTvl = parseNumberQueryParam(router.query.minTvl)
+	const maxTvl = parseNumberQueryParam(router.query.maxTvl)
 
 	const protocolsTableData = useMemo(() => {
-		return formatProtocolsList2({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
+		return applyProtocolTvlSettings({ protocols: savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl })
 	}, [savedProtocolsList, extraTvlsEnabled, minTvl, maxTvl])
 
 	const handleProtocolSelection = (selectedValues: string[]) => {
@@ -71,10 +76,9 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	}
 
 	const { chainOptions, savedChainsList, selectedChainNames } = useMemo(() => {
-		const resolvedChains = chains ?? EMPTY_CHAINS
 		return {
-			chainOptions: resolvedChains.map((c) => ({ key: c.name, name: c.name })),
-			savedChainsList: resolvedChains.filter((c) => savedChains.has(c.name)),
+			chainOptions: chains?.map((c) => ({ key: c.name, name: c.name })) ?? [],
+			savedChainsList: chains?.filter((c) => savedChains.has(c.name)) ?? [],
 			selectedChainNames: Array.from(savedChains)
 		}
 	}, [chains, savedChains])
@@ -94,7 +98,7 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 		return (
 			<>
 				<WatchListTabs />
-				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+				<div className="flex min-h-[360px] flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 					<LocalLoader />
 				</div>
 			</>
@@ -111,7 +115,7 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 					filteredProtocols={protocolsTableData as any}
 					filteredChains={chainsTableData}
 				/>
-				{protocolsTableData.length > 0 && <TopMovers protocols={protocolsTableData} />}
+				{protocolsTableData.length > 0 ? <TopMovers protocols={protocolsTableData} /> : null}
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
 					<div className="flex flex-wrap items-center gap-2 p-2">
 						<div className="mr-auto">
@@ -174,10 +178,12 @@ export function DefiWatchlistContainer({ protocols, chains }) {
 	)
 }
 
+const EMPTY_ARRAY: any[] = []
+
 function PortfolioNotifications({
 	selectedPortfolio,
-	filteredProtocols = [],
-	filteredChains = []
+	filteredProtocols = EMPTY_ARRAY,
+	filteredChains = EMPTY_ARRAY
 }: {
 	selectedPortfolio: string
 	filteredProtocols?: any[]
@@ -202,11 +208,30 @@ function PortfolioNotifications({
 	const { protocolsCount, protocolsFirstMetrics, chainsCount, chainsFirstMetrics } = useMemo(() => {
 		const protocols = preferences?.settings?.protocols
 		const chains = preferences?.settings?.chains
+		let protocolsCount = 0
+		let protocolsFirstMetrics = ''
+		let chainsCount = 0
+		let chainsFirstMetrics = ''
+
+		for (const protocolId in protocols ?? {}) {
+			protocolsCount++
+			if (protocolsCount === 1) {
+				protocolsFirstMetrics = protocols[protocolId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
+		for (const chainId in chains ?? {}) {
+			chainsCount++
+			if (chainsCount === 1) {
+				chainsFirstMetrics = chains[chainId]?.map(mapAPIMetricToUI).join(', ') ?? ''
+			}
+		}
+
 		return {
-			protocolsCount: protocols ? Object.keys(protocols).length : 0,
-			protocolsFirstMetrics: protocols ? Object.values(protocols)[0]?.map(mapAPIMetricToUI).join(', ') : '',
-			chainsCount: chains ? Object.keys(chains).length : 0,
-			chainsFirstMetrics: chains ? Object.values(chains)[0]?.map(mapAPIMetricToUI).join(', ') : ''
+			protocolsCount,
+			protocolsFirstMetrics,
+			chainsCount,
+			chainsFirstMetrics
 		}
 	}, [preferences?.settings?.protocols, preferences?.settings?.chains])
 
@@ -226,6 +251,7 @@ function PortfolioNotifications({
 		}
 
 		if (!isAuthenticated || !hasActiveSubscription) {
+			setSignupSource('watchlist')
 			subscribeModalStore.show()
 		} else {
 			dialogStore.toggle()
@@ -268,28 +294,45 @@ function PortfolioNotifications({
 	}
 
 	const handleFormSubmit = async () => {
-		try {
+		const buildAndSavePreferences = async () => {
 			const values = formStore.getState().values
-			const { protocolMetrics, chainMetrics } = values
+			const selectedProtocolMetrics = values.protocolMetrics
+			const selectedChainMetrics = values.chainMetrics
 
 			const settings: NotificationSettings = {}
 
-			if (protocolMetrics?.length > 0 && filteredProtocols.length > 0) {
-				settings.protocols = {}
-				for (const protocol of filteredProtocols) {
-					const identifier = protocol.slug
-					settings.protocols![identifier] = protocolMetrics.map(mapUIMetricToAPI)
+			if (selectedProtocolMetrics.length > 0 && filteredProtocols.length > 0) {
+				const mappedProtocolMetrics = selectedProtocolMetrics.map(mapUIMetricToAPI)
+				const protocolsMap: NotificationSettings['protocols'] = {}
+				let protocolCount = 0
+				for (let i = 0; i < filteredProtocols.length; i++) {
+					const identifier = filteredProtocols[i].slug
+					if (!identifier) continue
+					protocolsMap[identifier] = mappedProtocolMetrics
+					protocolCount++
+				}
+				if (protocolCount > 0) {
+					settings.protocols = protocolsMap
 				}
 			}
 
-			if (chainMetrics?.length > 0 && filteredChains.length > 0) {
-				settings.chains = {}
-				for (const chain of filteredChains) {
-					settings.chains![chain.name] = chainMetrics.map(mapUIMetricToAPI)
+			if (selectedChainMetrics.length > 0 && filteredChains.length > 0) {
+				const mappedChainMetrics = selectedChainMetrics.map(mapUIMetricToAPI)
+				const chainsMap: NotificationSettings['chains'] = {}
+				let chainCount = 0
+				for (let i = 0; i < filteredChains.length; i++) {
+					if (!filteredChains[i].name) continue
+					chainsMap[filteredChains[i].name] = mappedChainMetrics
+					chainCount++
+				}
+				if (chainCount > 0) {
+					settings.chains = chainsMap
 				}
 			}
 
-			if (!settings.protocols && !settings.chains) {
+			const hasProtocols = settings.protocols != null
+			const hasChains = settings.chains != null
+			if (!hasProtocols && !hasChains) {
 				toast.error('Unable to save: no valid settings configured')
 				return
 			}
@@ -301,20 +344,20 @@ function PortfolioNotifications({
 			})
 
 			dialogStore.hide()
-		} catch (error) {
-			console.log('Error saving notification preferences:', error)
-			toast.error('Failed to save notification preferences')
 		}
+		await buildAndSavePreferences().catch(() => {
+			// Error toast handled by mutation's onError
+		})
 	}
 
-	const handleDisableNotifications = async () => {
-		updateStatus({ portfolioName: selectedPortfolio, active: false }).then(() => {
+	const handleDisableNotifications = () => {
+		void updateStatus({ portfolioName: selectedPortfolio, active: false }).then(() => {
 			dialogStore.hide()
 		})
 	}
 
-	const handleDeleteNotifications = async () => {
-		deletePreferences({ portfolioName: selectedPortfolio }).then(() => {
+	const handleDeleteNotifications = () => {
+		void deletePreferences({ portfolioName: selectedPortfolio }).then(() => {
 			dialogStore.hide()
 		})
 	}
@@ -349,30 +392,30 @@ function PortfolioNotifications({
 					</p>
 				</div>
 
-				{preferences?.settings && (
+				{preferences?.settings ? (
 					<div className="mb-3 rounded-md bg-(--bg-glass) p-3">
 						<div className="space-y-1 text-xs text-(--text-secondary)">
-							{protocolsCount > 0 && (
-								<div>
+							{protocolsCount > 0 ? (
+								<p>
 									<span className="font-medium">Tracking {protocolsCount} protocol(s)</span>
 									{' - '}
 									<span>{protocolsFirstMetrics}</span>
-								</div>
-							)}
-							{chainsCount > 0 && (
-								<div>
+								</p>
+							) : null}
+							{chainsCount > 0 ? (
+								<p>
 									<span className="font-medium">Tracking {chainsCount} chain(s)</span>
 									{' - '}
 									<span>{chainsFirstMetrics}</span>
-								</div>
-							)}
+								</p>
+							) : null}
 							<div className="mt-1 text-xs opacity-75">
 								<Icon name="calendar" height={12} width={12} className="mr-1 inline" />
 								Delivered weekly to your email
 							</div>
 						</div>
 					</div>
-				)}
+				) : null}
 
 				<div className="flex flex-wrap items-center gap-2">
 					<button
@@ -384,9 +427,9 @@ function PortfolioNotifications({
 						<span>{preferences ? 'Update settings' : 'Set up notifications'}</span>
 					</button>
 
-					{preferences && (
+					{preferences ? (
 						<>
-							{preferences.active && (
+							{preferences.active ? (
 								<button
 									onClick={handleDisableNotifications}
 									disabled={loaders.userLoading || isUpdatingStatus}
@@ -396,10 +439,12 @@ function PortfolioNotifications({
 									<Icon name="pause" height={14} width={14} />
 									<span>{isUpdatingStatus ? 'Disabling...' : 'Disable'}</span>
 								</button>
-							)}
-							{!preferences.active && (
+							) : null}
+							{!preferences.active ? (
 								<button
-									onClick={() => updateStatus({ portfolioName: selectedPortfolio, active: true })}
+									onClick={() => {
+										void updateStatus({ portfolioName: selectedPortfolio, active: true })
+									}}
 									disabled={loaders.userLoading || isUpdatingStatus}
 									className="flex items-center gap-2 rounded-md border border-green-200 px-2 py-1.5 text-xs text-green-600 hover:bg-green-50 focus-visible:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-800 dark:text-green-400 dark:hover:bg-green-900/20 dark:focus-visible:bg-green-900/20"
 									title="Re-enable notifications"
@@ -407,7 +452,7 @@ function PortfolioNotifications({
 									<Icon name="check-circle" height={14} width={14} />
 									<span>{isUpdatingStatus ? 'Enabling...' : 'Enable'}</span>
 								</button>
-							)}
+							) : null}
 							<button
 								onClick={handleDeleteNotifications}
 								disabled={loaders.userLoading || isDeleting}
@@ -418,7 +463,7 @@ function PortfolioNotifications({
 								<span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
 							</button>
 						</>
-					)}
+					) : null}
 				</div>
 			</div>
 			{shouldRenderModal ? (
@@ -432,8 +477,8 @@ function PortfolioNotifications({
 					<div>
 						<h2 className="text-lg font-medium">
 							Email Notification Settings
-							{preferences &&
-								(preferences.active ? (
+							{preferences ? (
+								preferences.active ? (
 									<span className="ml-2 inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-normal text-green-700 dark:bg-green-900/30 dark:text-green-400">
 										<Icon name="check" height={12} width={12} />
 										Active
@@ -443,7 +488,8 @@ function PortfolioNotifications({
 										<Icon name="pause" height={12} width={12} />
 										Disabled
 									</span>
-								))}
+								)
+							) : null}
 						</h2>
 						<p className="mt-1 text-xs text-(--text-secondary)">
 							Configure weekly email alerts for "{selectedPortfolio}" portfolio
@@ -458,7 +504,7 @@ function PortfolioNotifications({
 					store={formStore}
 					onSubmit={(e) => {
 						e.preventDefault()
-						handleFormSubmit()
+						void handleFormSubmit()
 					}}
 					className="max-h-[calc(70dvh-140px)] overflow-y-auto"
 				>
@@ -535,7 +581,7 @@ function PortfolioNotifications({
 						<div className="flex items-center gap-2">
 							{preferences ? (
 								<>
-									{preferences.active && (
+									{preferences.active ? (
 										<button
 											type="button"
 											onClick={handleDisableNotifications}
@@ -545,7 +591,7 @@ function PortfolioNotifications({
 											<Icon name="pause" height={14} width={14} />
 											<span>{isUpdatingStatus ? 'Disabling...' : 'Disable'}</span>
 										</button>
-									)}
+									) : null}
 									<button
 										type="button"
 										onClick={handleDeleteNotifications}
@@ -632,7 +678,7 @@ function PortfolioSelection() {
 					<Icon name="folder-plus" height={14} width={14} />
 					<span>New</span>
 				</button>
-				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME && (
+				{selectedPortfolio !== DEFAULT_PORTFOLIO_NAME ? (
 					<button
 						onClick={handleRemovePortfolio}
 						className="flex items-center gap-1 rounded-md border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 focus-visible:bg-red-50 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20 dark:focus-visible:bg-red-900/20"
@@ -641,20 +687,21 @@ function PortfolioSelection() {
 						<Icon name="trash-2" height={14} width={14} />
 						<span>Delete</span>
 					</button>
-				)}
+				) : null}
 			</div>
 		</div>
 	)
 }
 
 type TopMoversProps = {
-	protocols: Array<IProtocol & { slug?: string }>
+	protocols: IChainOverviewData['protocols']
 }
 
 function TopMovers({ protocols }: TopMoversProps) {
 	const [showPositive, setShowPositive] = useState(true)
 	const [showNegative, setShowNegative] = useState(true)
 	const [selectedChains, setSelectedChains] = useState<string[]>([])
+	const selectedChainsSet = useMemo(() => new Set(selectedChains), [selectedChains])
 
 	const availableChains = useMemo(() => {
 		const chainSet = new Set<string>()
@@ -681,8 +728,13 @@ function TopMovers({ protocols }: TopMoversProps) {
 					chains: p.chains || []
 				}))
 
-			if (selectedChains.length > 0) {
-				candidates = candidates.filter((p) => p.chains.some((chain) => selectedChains.includes(chain)))
+			if (selectedChainsSet.size > 0) {
+				candidates = candidates.filter((protocolEntry) => {
+					for (const chain of protocolEntry.chains) {
+						if (selectedChainsSet.has(chain)) return true
+					}
+					return false
+				})
 			}
 
 			if (!showPositive && !showNegative) {
@@ -698,7 +750,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 		}
 
 		return movers
-	}, [protocols, showPositive, showNegative, selectedChains])
+	}, [protocols, showPositive, showNegative, selectedChainsSet])
 
 	const chainOptions = useMemo(() => {
 		return availableChains.map((chain) => ({
@@ -731,7 +783,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 					<span className="text-xs font-medium text-(--error)">Negative</span>
 				</label>
 
-				{availableChains.length > 0 && (
+				{availableChains.length > 0 ? (
 					<SelectWithCombobox
 						allValues={chainOptions}
 						selectedValues={selectedChains}
@@ -745,7 +797,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 						variant="filter"
 						portal
 					/>
-				)}
+				) : null}
 			</div>
 
 			<div className="grid grid-cols-1 gap-4 p-3 pt-1 sm:grid-cols-3">
@@ -763,10 +815,11 @@ function TopMovers({ protocols }: TopMoversProps) {
 										className="flex items-center justify-between gap-3 border-b border-(--divider) py-2 last:border-b-0"
 									>
 										<span className="flex min-w-0 items-center gap-2">
-											<TokenLogo
-												logo={mover.slug ? `${ICONS_CDN}/protocols/${mover.slug}?w=48&h=48` : undefined}
-												size={20}
-											/>
+											{mover.slug ? (
+												<TokenLogo name={mover.slug} kind="token" alt={`Logo of ${mover.name}`} size={20} />
+											) : (
+												<TokenLogo src={undefined} alt={`Logo of ${mover.name}`} size={20} />
+											)}
 											{mover.slug ? (
 												<BasicLink
 													href={`/protocol/${mover.slug}`}
@@ -787,7 +840,7 @@ function TopMovers({ protocols }: TopMoversProps) {
 														: 'text-(--text-secondary)'
 											}`}
 										>
-											{renderPercentChange(mover.change, false, 400, true)}
+											{formatPercentChangeText(mover.change)}
 										</span>
 									</div>
 								))}

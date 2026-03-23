@@ -70,16 +70,16 @@ export function GroupingOptions({ rowHeaders, onToggleRowHeader }: GroupingOptio
 							}`}
 						>
 							<span className="flex items-center gap-1.5">
-								{option.icon && (
+								{option.icon ? (
 									<Icon
 										height={13}
 										width={13}
 										name={option.icon}
 										className={active ? 'text-(--primary)' : 'text-(--text-tertiary)'}
 									/>
-								)}
+								) : null}
 								<span className="text-[10px] font-semibold text-(--text-primary)">{option.label}</span>
-								{active && <Icon name="check" height={11} width={11} className="text-(--primary)" />}
+								{active ? <Icon name="check" height={11} width={11} className="text-(--primary)" /> : null}
 							</span>
 							<p className="text-[10px] leading-tight text-(--text-secondary)">{option.description}</p>
 						</button>

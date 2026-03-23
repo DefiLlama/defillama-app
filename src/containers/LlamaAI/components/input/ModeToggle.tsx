@@ -1,13 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { Icon } from '~/components/Icon'
 import { Tooltip } from '~/components/Tooltip'
-
-export interface ResearchUsage {
-	remainingUsage: number
-	limit: number
-	period: 'lifetime' | 'daily' | 'unlimited' | 'blocked'
-	resetTime: string | null
-}
+import type { ResearchUsage } from '~/containers/LlamaAI/types'
 
 interface ModeToggleProps {
 	isResearchMode: boolean
@@ -17,7 +11,10 @@ interface ModeToggleProps {
 
 export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }: ModeToggleProps) {
 	return (
-		<div className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]">
+		<div
+			data-walkthrough="mode-toggle"
+			className="flex items-center rounded-lg border border-[#EEE] bg-white p-0.5 dark:border-[#232628] dark:bg-[#131516]"
+		>
 			<Tooltip
 				content={
 					<div className="flex max-w-[200px] flex-col gap-1">
@@ -49,7 +46,7 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 							{researchUsage?.period === 'unlimited'
 								? 'Unlimited reports'
 								: researchUsage?.period === 'blocked'
-									? 'Sign in to use research'
+									? 'Subscribe to Pro to use research'
 									: researchUsage
 										? `${researchUsage.remainingUsage}/${researchUsage.limit} remaining${researchUsage.period === 'daily' ? ' today' : ''}`
 										: '5 reports/day · Free trial: 3 total'}
@@ -68,11 +65,11 @@ export function ModeToggle({ isResearchMode, setIsResearchMode, researchUsage }:
 			>
 				<Icon name="search" height={12} width={12} />
 				<span>Research</span>
-				{researchUsage && researchUsage.limit > 0 && researchUsage.period !== 'unlimited' && (
+				{researchUsage && researchUsage.limit > 0 && researchUsage.period !== 'unlimited' ? (
 					<span className="text-[10px] opacity-70">
 						{researchUsage.remainingUsage}/{researchUsage.limit}
 					</span>
-				)}
+				) : null}
 			</Tooltip>
 		</div>
 	)

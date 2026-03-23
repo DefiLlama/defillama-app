@@ -7,7 +7,11 @@ export default function Sheets() {
 	return (
 		<>
 			<Head>
-				<title>DefiLlama Sheets</title>
+				<title>DefiLlama Sheets - DeFi Data in Google Sheets</title>
+				<meta
+					name="description"
+					content="Access DeFi data directly in Google Sheets. Pull TVL, fees, revenue, and token data with DefiLlama's Sheets integration."
+				/>
 				<link rel="icon" type="image/png" href="/favicon-32x32.png" />
 			</Head>
 			<LinkPreviewCard />
@@ -22,12 +26,14 @@ export default function Sheets() {
 						<nav className="flex items-center gap-1.5">
 							<BasicLink
 								href="https://docs.llama.fi/spreadsheet-functions/function-reference"
+								data-umami-event="sheets-functions-reference-click"
 								className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-[#b4b7bc] transition-colors hover:bg-[#222429] hover:text-white"
 							>
 								Functions Reference
 							</BasicLink>
 							<BasicLink
 								href="https://docs.llama.fi/spreadsheet-functions/templates"
+								data-umami-event="sheets-templates-click-header"
 								className="rounded-lg px-3.5 py-1.5 text-[13px] font-medium text-[#b4b7bc] transition-colors hover:bg-[#222429] hover:text-white"
 							>
 								Templates
@@ -49,7 +55,10 @@ export default function Sheets() {
 				<footer className="mt-10 border-t border-[#39393E]/40">
 					<p className="mx-auto max-w-[1200px] px-4 pt-6 text-center text-[13px] text-[#8a8c90] sm:px-6 md:px-8">
 						If you have any questions or feedback, send it to{' '}
-						<a href="mailto:support@defillama.com" className="text-[#b4b7bc] underline transition-colors hover:text-white">
+						<a
+							href="mailto:support@defillama.com"
+							className="text-[#b4b7bc] underline transition-colors hover:text-white"
+						>
 							support@defillama.com
 						</a>
 					</p>

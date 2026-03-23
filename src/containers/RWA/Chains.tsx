@@ -1,38 +1,40 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
+import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
 import { definitions } from './definitions'
-import { toBooleanParam } from './hooks'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
 
-const columns: ColumnDef<{
+type RWAChainsTableRow = {
 	chain: string
 	totalOnChainMcap: number
 	totalActiveMcap: number
 	totalDefiActiveTvl: number
 	totalAssetIssuers: number
 	totalAssetCount: number
-}>[] = [
-	{
+}
+
+const columnHelper = createColumnHelper<RWAChainsTableRow>()
+
+const columns = [
+	columnHelper.accessor('chain', {
 		id: 'chain',
 		header: 'Name',
-		accessorKey: 'chain',
 		enableSorting: false,
 		cell: (info) => {
-			const chain = info.getValue() as string
+			const chain = info.getValue()
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={chainIconUrl(chain)} data-lgonly />
+					<TokenLogo name={chain} kind="chain" data-lgonly alt={`Logo of ${chain}`} />
 					<BasicLink
 						href={`/rwa/chain/${rwaSlug(chain)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -43,47 +45,42 @@ const columns: ColumnDef<{
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('totalAssetIssuers', {
 		id: 'totalAssetIssuers',
 		header: definitions.totalAssetIssuers.label,
-		accessorKey: 'totalAssetIssuers',
-		cell: (info) => formattedNum(info.getValue() as number, false),
+		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
 		size: 168
-	},
-	{
+	}),
+	columnHelper.accessor('totalAssetCount', {
 		id: 'totalAssetCount',
 		header: definitions.totalAssetCount.label,
-		accessorKey: 'totalAssetCount',
-		cell: (info) => formattedNum(info.getValue() as number, false),
+		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 148
-	},
-	{
+	}),
+	columnHelper.accessor('totalDefiActiveTvl', {
 		id: 'totalDefiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
-		accessorKey: 'totalDefiActiveTvl',
-		cell: (info) => formattedNum(info.getValue() as number, true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
 		size: 148
-	},
-	{
+	}),
+	columnHelper.accessor('totalActiveMcap', {
 		id: 'totalActiveMcap',
 		header: definitions.totalActiveMcap.label,
-		accessorKey: 'totalActiveMcap',
-		cell: (info) => formattedNum(info.getValue() as number, true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
 		size: 228
-	},
-	{
+	}),
+	columnHelper.accessor('totalOnChainMcap', {
 		id: 'totalOnChainMcap',
 		header: definitions.totalOnChainMcap.label,
-		accessorKey: 'totalOnChainMcap',
-		cell: (info) => formattedNum(info.getValue() as number, true),
+		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
-	}
+	})
 ]
 
 const columnSizes: ColumnSizesByBreakpoint = {
@@ -102,27 +99,15 @@ export function RWAChainsTable({
 	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
 	const governanceQ = router.query.includeGovernance as string | string[] | undefined
 
-	const includeStablecoins = stablecoinsQ != null ? toBooleanParam(stablecoinsQ) : false
-	const includeGovernance = governanceQ != null ? toBooleanParam(governanceQ) : false
+	const includeStablecoins = stablecoinsQ != null ? isTrueQueryParam(stablecoinsQ) : false
+	const includeGovernance = governanceQ != null ? isTrueQueryParam(governanceQ) : false
 
 	const onToggleStablecoins = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (!includeStablecoins) {
-			nextQuery.includeStablecoins = 'true'
-		} else {
-			delete nextQuery.includeStablecoins
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		void pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
 	}, [includeStablecoins, router])
 
 	const onToggleGovernance = useCallback(() => {
-		const nextQuery: Record<string, any> = { ...router.query }
-		if (!includeGovernance) {
-			nextQuery.includeGovernance = 'true'
-		} else {
-			delete nextQuery.includeGovernance
-		}
-		router.push({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+		void pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
 	}, [includeGovernance, router])
 
 	const data = useMemo(() => {
@@ -200,6 +185,12 @@ export function RWAChainsTable({
 		: includeGovernance
 			? chartDatasets.includeGovernance
 			: chartDatasets.base
+	const csvFileName = (() => {
+		const parts = ['rwa-chains']
+		if (includeStablecoins) parts.push('stablecoins')
+		if (includeGovernance) parts.push('governance')
+		return `${parts.join('-')}.csv`
+	})()
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -226,31 +217,9 @@ export function RWAChainsTable({
 				placeholder="Search chains..."
 				columnToSearch="chain"
 				header="Chains"
+				headingAs="h1"
 				columnSizes={columnSizes}
-				customFilters={({ instance }) => (
-					<>
-						<CSVDownloadButton
-							prepareCsv={() => {
-								const filenameParts = ['rwa-chains']
-								if (includeStablecoins) filenameParts.push('stablecoins')
-								if (includeGovernance) filenameParts.push('governance')
-								const filename = `${filenameParts.join('-')}.csv`
-
-								const headers = columns.map((c) => (typeof c.header === 'string' ? c.header : (c.id ?? '')))
-								const columnIds = columns.map((c) => c.id as string)
-
-								const rows = instance
-									.getRowModel()
-									.rows.map((row) =>
-										columnIds.map((columnId) => (row.getValue(columnId) ?? '') as string | number | boolean)
-									)
-
-								return { filename, rows: [headers, ...rows] }
-							}}
-							smol
-						/>
-					</>
-				)}
+				csvFileName={csvFileName}
 				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
 			/>
 		</div>

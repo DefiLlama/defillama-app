@@ -2,8 +2,8 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { isChainsCategoryGroupKey, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-// oxlint-disable-next-line no-unused-vars
-import { capitalizeFirstLetter, formatNum, getDominancePercent } from '~/utils'
+import { capitalizeFirstLetter, getDominancePercent } from '~/utils'
+import { parseExcludeParam } from '~/utils/routerQuery'
 import type { StablecoinFilterOption } from './Filters'
 
 interface IPegged {
@@ -203,7 +203,7 @@ export const useCalcGroupExtraPeggedByDay = (chains: IStackedDatasetPoint[], inc
 		return data.map(({ date, ...values }): IExtraPeggedByDayPoint => {
 			const shares: Record<string, number> = {}
 
-			for (const key of Object.keys(values)) {
+			for (const key in values) {
 				shares[key] = getDominancePercent(values[key], daySum[date] ?? 0)
 			}
 
@@ -260,16 +260,21 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 			}
 
 			let addedChildren = false
+			// O(1) Set lookup for already added children (built once per parent)
+			const alreadyAddedNames = new Set((finalData[parentName]?.subRows ?? []).map((p) => p.name))
+
 			for (const type in groupData[parentName]) {
 				if (!isChainsCategoryGroupKey(type) || groupsEnabled[type] !== true) {
 					continue
 				}
+
 				for (const child of groupData[parentName][type]) {
 					const childData = chainsByName.get(child)
 
-					const alreadyAdded = (finalData[parentName]?.subRows ?? []).find((p) => p.name === child)
+					// O(1) Set lookup instead of O(n) .find()
+					const alreadyAdded = alreadyAddedNames.has(child)
 
-					if (childData && alreadyAdded === undefined) {
+					if (childData && !alreadyAdded) {
 						mcap = (mcap ?? 0) + (childData.mcap ?? 0)
 						unreleased = (unreleased ?? 0) + (childData.unreleased ?? 0)
 						bridgedTo = (bridgedTo ?? 0) + (childData.bridgedTo ?? 0)
@@ -290,6 +295,7 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 							subRows: [...subChains, childData]
 						}
 						addedChains.add(child)
+						alreadyAddedNames.add(child)
 						addedChildren = true
 					}
 				}
@@ -308,7 +314,12 @@ export const useGroupChainsPegged = (chains: StablecoinsChainsRow[], groupData: 
 				finalData[item.name] = item
 			}
 		}
-		return Object.values(finalData).sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
+		// Iterate own keys only to avoid inherited enumerable properties.
+		const finalDataArray: (typeof finalData)[string][] = []
+		for (const key of Object.keys(finalData)) {
+			finalDataArray.push(finalData[key])
+		}
+		return finalDataArray.sort((a, b) => (b.mcap ?? 0) - (a.mcap ?? 0))
 	}, [chains, groupData, groupsEnabled])
 
 	return data
@@ -344,21 +355,30 @@ export const useGroupBridgeData = (
 					}
 				}
 			} else {
-				const parentBridgeIDsArray = Object.keys(parentBridges)
+				const parentBridgeIDsArray: string[] = []
+				for (const parentBridgeId in parentBridges) {
+					parentBridgeIDsArray.push(parentBridgeId)
+				}
 				const parentFirstBridgeID = parentBridgeIDsArray[0]
 				const parentFirstBridgeInfo = bridgeInfoObject[parentFirstBridgeID] ?? { name: 'not-found' }
-				const parentFirstBridgeSourcesArray = Object.keys(parentBridges[parentFirstBridgeID])
+				const parentFirstBridgeSourcesArray: string[] = []
+				for (const sourceChain in parentBridges[parentFirstBridgeID]) {
+					parentFirstBridgeSourcesArray.push(sourceChain)
+				}
 				if (
 					parentBridgeIDsArray.length === 1 &&
 					parentFirstBridgeSourcesArray.length === 1 &&
 					parent.bridgedAmount === parent.circulating
 				) {
 					let childData: StablecoinUsageByChainRow
+					const resolvedBridgeInfo =
+						parentFirstBridgeInfo.name === 'Natively Issued'
+							? { ...parentFirstBridgeInfo, name: '-' }
+							: parentFirstBridgeInfo
 					if (parentFirstBridgeInfo.name === 'Natively Issued') {
-						parentFirstBridgeInfo.name = '-'
 						childData = {
 							...parent,
-							bridgeInfo: parentFirstBridgeInfo,
+							bridgeInfo: resolvedBridgeInfo,
 							bridgedAmount: percentBridgedtoDisplay,
 							name: `Natively Issued`
 						}
@@ -366,14 +386,14 @@ export const useGroupBridgeData = (
 						const sourceChain = parentFirstBridgeSourcesArray[0] ?? 'not-found'
 						childData = {
 							...parent,
-							bridgeInfo: parentFirstBridgeInfo,
+							bridgeInfo: resolvedBridgeInfo,
 							bridgedAmount: percentBridgedtoDisplay,
 							name: `Bridged from ${capitalizeFirstLetter(sourceChain)}`
 						}
 					}
 					finalData[parent.name] = {
 						...parent,
-						bridgeInfo: parentFirstBridgeInfo,
+						bridgeInfo: resolvedBridgeInfo,
 						bridgedAmount: percentBridgedtoDisplay,
 						subRows: [childData]
 					}
@@ -423,26 +443,15 @@ export const useGroupBridgeData = (
 				}
 			}
 		}
-		return Object.values(finalData)
-			.filter((chain) => chain.name)
-			.sort((a, b) => b.circulating - a.circulating)
+		// Iterate own keys only to avoid inherited enumerable properties.
+		const finalDataArray: (typeof finalData)[string][] = []
+		for (const key of Object.keys(finalData)) {
+			finalDataArray.push(finalData[key])
+		}
+		return finalDataArray.filter((chain) => chain.name).sort((a, b) => b.circulating - a.circulating)
 	}, [chains, bridgeInfoObject])
 
 	return data
-}
-
-export const parseBooleanQueryParam = (value: string | string[] | undefined): boolean => {
-	if (Array.isArray(value)) return value.some((v) => parseBooleanQueryParam(v))
-	if (typeof value !== 'string') return false
-	const normalized = value.trim().toLowerCase()
-	return normalized === 'true' || normalized === '1' || normalized === 'yes'
-}
-
-// Helper to parse exclude query param to Set
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
 }
 
 export const useFormatStablecoinQueryParams = ({

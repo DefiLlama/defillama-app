@@ -1,13 +1,14 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import { lazy, Suspense } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { getCategoryRoute } from '~/constants'
+import { formattedNum, slug } from '~/utils'
 import type { ExtraTvlMetric, IExtraTvlByChainPageData, IExtraTvlProtocolRow } from './types'
 
 const MultiSeriesChart2 = lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
@@ -29,19 +30,6 @@ const METRIC_LABELS: Record<ExtraTvlMetric, { header: string; headerHelperText: 
 
 const DEFAULT_SORTING_STATE = [{ id: 'value', desc: true }]
 
-function getCsvHeaderLabel(columnId: string, header: unknown): string {
-	if (typeof header === 'string') return header
-	if (typeof header === 'number' || typeof header === 'boolean') return String(header)
-	return columnId
-}
-
-function getCsvCellValue(value: unknown): string | number | boolean {
-	if (value == null) return ''
-	if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return value
-	if (Array.isArray(value)) return value.join(', ')
-	return JSON.stringify(value)
-}
-
 export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 	const metricInfo = METRIC_LABELS[props.metric]
 
@@ -52,19 +40,28 @@ export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 				<div className="col-span-3 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 text-base xl:col-span-1">
 					{props.chain !== 'All' ? (
 						<h1 className="flex flex-nowrap items-center gap-2">
-							<TokenLogo logo={chainIconUrl(props.chain)} size={24} />
+							<TokenLogo name={props.chain} kind="chain" size={24} alt={`Logo of ${props.chain}`} />
 							<span className="text-xl font-semibold">{props.chain}</span>
 						</h1>
 					) : null}
 					<div className="flex flex-wrap items-end justify-between gap-4">
-						<p className="flex flex-col">
-							<span className="flex flex-col">
-								<span>{metricInfo.header}</span>
-								<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+						{props.chain === 'All' ? (
+							<div className="flex flex-col">
+								<h1 className="text-(--text-label)">{metricInfo.header}</h1>
+								<p className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
 									{formattedNum(props.totalValue, true)}
+								</p>
+							</div>
+						) : (
+							<p className="flex flex-col">
+								<span className="flex flex-col">
+									<span>{metricInfo.header}</span>
+									<span className="min-h-8 overflow-hidden font-jetbrains text-2xl font-semibold text-ellipsis whitespace-nowrap">
+										{formattedNum(props.totalValue, true)}
+									</span>
 								</span>
-							</span>
-						</p>
+							</p>
+						)}
 						{props.change24h != null ? (
 							<p className="relative bottom-0.5 flex flex-nowrap items-center gap-2 text-sm">
 								<span
@@ -91,25 +88,7 @@ export function ExtraTvlByChain(props: IExtraTvlByChainPageData) {
 				placeholder={'Search protocols...'}
 				columnToSearch={'name'}
 				compact
-				customFilters={({ instance }) => (
-					<CSVDownloadButton
-						prepareCsv={() => {
-							const visibleColumns = instance
-								.getAllLeafColumns()
-								.filter((column) => column.getIsVisible() && !column.columnDef.meta?.hidden)
-							const headers = visibleColumns.map((column) => getCsvHeaderLabel(column.id, column.columnDef.header))
-							const rows = instance
-								.getRowModel()
-								.rows.map((row) => visibleColumns.map((column) => getCsvCellValue(row.getValue(column.id))))
-
-							return {
-								filename: `protocols-${props.metric}-${slug(props.chain)}.csv`,
-								rows: [headers, ...rows]
-							}
-						}}
-						smol
-					/>
-				)}
+				csvFileName={`protocols-${props.metric}-${props.chain}`}
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</>
@@ -120,7 +99,7 @@ const ProtocolChainsComponent = ({ chains }: { chains: string[] }) => (
 	<span className="flex flex-col gap-1">
 		{chains.map((chain) => (
 			<span key={`chain${chain}-of-protocol`} className="flex items-center gap-1">
-				<TokenLogo logo={chainIconUrl(chain)} size={14} />
+				<TokenLogo name={chain} kind="chain" size={14} alt={`Logo of ${chain}`} />
 				<span>{chain}</span>
 			</span>
 		))}
@@ -133,18 +112,19 @@ const METRIC_CHART_PARAMS: Record<ExtraTvlMetric, string> = {
 	pool2: 'pool2=true'
 }
 
-function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[] {
+const columnHelper = createColumnHelper<IExtraTvlProtocolRow>()
+
+function buildColumns(metric: ExtraTvlMetric) {
 	const metricInfo = METRIC_LABELS[metric]
 	const chartParam = METRIC_CHART_PARAMS[metric]
 
 	return [
-		{
+		columnHelper.accessor('name', {
 			id: 'name',
 			header: 'Name',
-			accessorFn: (protocol) => protocol.name,
 			enableSorting: false,
 			cell: ({ getValue, row }) => {
-				const value = getValue<string>()
+				const value = getValue()
 
 				return (
 					<span className={`relative flex items-center gap-2 ${row.depth > 0 ? 'pl-12' : 'pl-6'}`}>
@@ -171,7 +151,7 @@ function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[]
 
 						<span className="vf-row-index shrink-0" aria-hidden="true" />
 
-						<TokenLogo logo={row.original.logo} data-lgonly />
+						<TokenLogo src={row.original.logo} data-lgonly alt={`Logo of ${row.original.name}`} />
 
 						<span className="-my-2 flex flex-col">
 							<BasicLink
@@ -192,46 +172,42 @@ function buildColumns(metric: ExtraTvlMetric): ColumnDef<IExtraTvlProtocolRow>[]
 				)
 			},
 			size: 280
-		},
-		{
+		}),
+		columnHelper.accessor('category', {
 			id: 'category',
 			header: 'Category',
-			accessorFn: (protocol) => protocol.category,
 			enableSorting: false,
 			cell: ({ getValue }) => {
-				const value = getValue<string | null>()
-				return value ? (
-					<BasicLink href={`/protocols/${slug(value)}`} className="text-sm font-medium text-(--link-text)">
+				const value = getValue()
+				if (!value) return null
+				return (
+					<BasicLink href={getCategoryRoute(slug(value))} className="text-sm font-medium text-(--link-text)">
 						{value}
 					</BasicLink>
-				) : (
-					''
 				)
 			},
 			size: 128,
 			meta: {
 				align: 'end'
 			}
-		},
-		{
+		}),
+		columnHelper.accessor('value', {
 			id: 'value',
 			header: metricInfo.header,
-			accessorFn: (protocol) => protocol.value,
-			cell: (info) => <>{info.getValue() != null ? formattedNum(info.getValue(), true) : null}</>,
+			cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 			meta: {
 				align: 'end',
 				headerHelperText: metricInfo.headerHelperText
 			},
 			size: 128
-		},
-		{
+		}),
+		columnHelper.accessor('change_1m', {
 			header: 'Change 30d',
-			accessorKey: 'change_1m',
-			cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+			cell: (info) => <PercentChange percent={info.getValue()} />,
 			size: 110,
 			meta: {
 				align: 'end'
 			}
-		}
+		})
 	]
 }

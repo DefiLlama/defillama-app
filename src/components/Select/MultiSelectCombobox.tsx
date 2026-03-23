@@ -2,6 +2,7 @@ import * as Ariakit from '@ariakit/react'
 import { matchSorter } from 'match-sorter'
 import { startTransition, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { focusFirstNewItem } from '~/utils/focusFirstNewItem'
 import type { MultiSelectOption } from './types'
 
 export const MultiSelectCombobox = ({
@@ -38,15 +39,7 @@ export const MultiSelectCombobox = ({
 		e.stopPropagation()
 		const previousCount = viewableMatches
 		setViewableMatches((prev) => prev + 20)
-
-		// Focus on the first newly loaded item after a brief delay
-		setTimeout(() => {
-			const items = comboboxRef.current?.querySelectorAll('[role="option"]')
-			if (items && items.length > previousCount) {
-				const firstNewItem = items[previousCount] as HTMLElement
-				firstNewItem?.focus()
-			}
-		}, 0)
+		focusFirstNewItem(comboboxRef, '[role="option"]', previousCount)
 	}
 
 	return (
@@ -106,11 +99,7 @@ export const MultiSelectCombobox = ({
 					<input
 						placeholder="Search..."
 						className="w-full rounded-md bg-white px-3 py-1 text-base dark:bg-black"
-						onChange={(e) => {
-							startTransition(() => {
-								setSearchValue(e.target.value)
-							})
-						}}
+						onInput={(e) => setSearchValue(e.currentTarget.value)}
 					/>
 				</span>
 
@@ -120,7 +109,7 @@ export const MultiSelectCombobox = ({
 							key={`multi-select-${item.value}`}
 							value={item.value}
 							hideOnClick
-							className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
+							className="group flex shrink-0 cursor-pointer items-center gap-2 border-b border-(--form-control-border) px-3 py-2 cv-auto-37 last-of-type:rounded-b-md hover:bg-(--primary-hover) focus-visible:bg-(--primary-hover) data-active-item:bg-(--primary-hover)"
 						>
 							{item.logo ? <img src={item.logo} alt={item.label} className="h-5 w-5 shrink-0 rounded-full" /> : null}
 							<span>{item.label}</span>

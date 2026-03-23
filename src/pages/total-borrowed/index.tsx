@@ -1,8 +1,8 @@
 import type { InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { ExtraTvlByChain } from '~/containers/Protocols/ExtraTvlByChain'
 import { getExtraTvlByChain } from '~/containers/Protocols/queries'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`total-borrowed/index`, async () => {
@@ -26,9 +26,8 @@ const pageName = ['Protocols', 'ranked by', 'Total Value Borrowed']
 export default function TotalBorrowed(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title="Total Borrowed - DefiLlama"
-			description={`Total Borrowed by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`total value borrowed by protocol`}
+			title="Total Value Borrowed Rankings - DeFi Lending TVL - DefiLlama"
+			description="Track total value borrowed across DeFi lending protocols. Compare borrowed TVL in Aave, Compound, MakerDAO, and 100+ lending protocols on Ethereum, Solana, Base, and all major chains. Real-time DeFi borrowing analytics."
 			canonicalUrl={`/total-borrowed`}
 			pageName={pageName}
 		>

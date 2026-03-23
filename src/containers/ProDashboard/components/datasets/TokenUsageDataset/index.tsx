@@ -8,11 +8,12 @@ import {
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { components } from 'react-select'
 import { ReactSelect } from '~/components/MultiSelect/ReactSelect'
 import { SortIcon } from '~/components/Table/SortIcon'
-import { download, formattedNum } from '~/utils'
+import { formattedNum } from '~/utils'
+import { download } from '~/utils/download'
 import { reactSelectStyles } from '../../../utils/reactSelectStyles'
 import { LoadingSpinner } from '../../LoadingSpinner'
 import { ProTableCSVButton } from '../../ProTable/CsvButton'
@@ -47,14 +48,7 @@ interface TokenUsageDatasetProps {
 const TokenOptionComponent = ({ innerProps, label, data }: any) => (
 	<div {...innerProps} className="flex cursor-pointer items-center gap-2 p-2">
 		{data.logo ? (
-			<img
-				src={data.logo?.replace('/0/', '')}
-				alt=""
-				className="h-5 w-5 rounded-full"
-				onError={(e) => {
-					e.currentTarget.style.display = 'none'
-				}}
-			/>
+			<img src={data.logo?.replace('/0/', '')} alt="" width={20} height={20} className="h-5 w-5 rounded-full" />
 		) : (
 			<div className="h-5 w-5 rounded-full bg-(--bg-tertiary)" />
 		)}
@@ -90,7 +84,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	const [sorting, setSorting] = useState<SortingState>([{ desc: true, id: 'amountUsd' }])
 	const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 25 })
 	const [tokenSearchInput, setTokenSearchInput] = useState('')
-	const [localIncludeCex, setLocalIncludeCex] = useState(config.includeCex ?? false)
+	const includeCex = config.includeCex ?? false
 
 	const tokenSymbols = config.tokenSymbols ?? EMPTY_TOKEN_SYMBOLS
 
@@ -99,11 +93,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 		[tokenSymbols]
 	)
 
-	useEffect(() => {
-		setLocalIncludeCex(config.includeCex ?? false)
-	}, [config.includeCex])
-
-	const { data: rawDataResponse, isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, localIncludeCex)
+	const { data: rawDataResponse, isLoading, isError, refetch } = useTokenUsageData(tokenSymbols, includeCex)
 	const { data: tokenOptionsResponse, isLoading: isLoadingTokens } = useTokenSearch(tokenSearchInput)
 	const { data: defaultTokensResponse } = useTokenSearch('')
 
@@ -130,6 +120,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 			globalFilter: search
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onPaginationChange: setPagination,
 		onGlobalFilterChange: setSearch,
 		getCoreRowModel: getCoreRowModel(),
@@ -151,10 +142,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 	}
 
 	const handleIncludeCexChange = () => {
-		setLocalIncludeCex(!localIncludeCex)
 		onConfigChange({
 			...config,
-			includeCex: !localIncludeCex
+			includeCex: !includeCex
 		})
 	}
 
@@ -345,7 +335,9 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				<div className="flex min-h-[500px] flex-1 flex-col items-center justify-center gap-4">
 					<p className="mb-2 text-sm pro-text2">Failed to load token usage data</p>
 					<button
-						onClick={() => refetch()}
+						onClick={() => {
+							void refetch()
+						}}
 						className="rounded-sm bg-(--primary) px-4 py-2 text-white hover:bg-(--primary-hover)"
 					>
 						Try again
@@ -426,15 +418,15 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							</div>
 						))}
 
-						{tokenSymbols.length <= 2 && (
+						{tokenSymbols.length <= 2 ? (
 							<div className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">Total Combined</div>
 								<div className="text-lg font-semibold pro-text1">{formattedNum(totalAmount, true)}</div>
 								<div className="text-xs text-(--text-tertiary)">All tokens</div>
 							</div>
-						)}
+						) : null}
 
-						{tokenSymbols.length <= 3 && (
+						{tokenSymbols.length <= 3 ? (
 							<div className="border border-(--divider) p-3">
 								<div className="mb-1 text-xs text-(--text-tertiary)">Unique Protocols</div>
 								<div className="text-lg font-semibold pro-text1">{protocolCount}</div>
@@ -445,10 +437,10 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									})()}
 								</div>
 							</div>
-						)}
+						) : null}
 					</div>
 
-					{protocolOverlap && (
+					{protocolOverlap ? (
 						<div className="mb-4 border border-(--divider) p-3">
 							<div className="mb-2 text-xs text-(--text-tertiary)">Protocol Distribution</div>
 							<div className="flex flex-wrap items-center gap-4">
@@ -483,7 +475,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 								<div className="ml-auto text-sm text-(--text-tertiary)">Total: {protocolCount} protocols</div>
 							</div>
 						</div>
-					)}
+					) : null}
 				</>
 			)}
 
@@ -531,30 +523,37 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 							/>
 						</div>
 						<div className="order-1 flex items-center gap-2 sm:order-2 sm:gap-3">
-							<div
-								className="flex h-[38px] cursor-pointer items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
+							<button
+								type="button"
+								className="flex h-[38px] items-center gap-2 border border-(--divider) px-2 text-sm transition-colors hover:border-(--text-tertiary) sm:px-3"
 								onClick={handleIncludeCexChange}
 							>
 								<div className="relative h-4 w-4">
-									<input type="checkbox" checked={localIncludeCex} readOnly className="sr-only" />
+									<input type="checkbox" checked={includeCex} readOnly className="sr-only" />
 									<div
 										className={`h-4 w-4 border-2 transition-all ${
-											localIncludeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
+											includeCex ? 'border-(--primary) bg-(--primary)' : 'border-(--text-tertiary) bg-transparent'
 										}`}
 									>
-										{localIncludeCex && (
-											<svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+										{includeCex ? (
+											<svg
+												className="h-3 w-3 text-white"
+												fill="currentColor"
+												viewBox="0 0 20 20"
+												aria-hidden="true"
+												focusable="false"
+											>
 												<path
 													fillRule="evenodd"
 													d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
 													clipRule="evenodd"
 												/>
 											</svg>
-										)}
+										) : null}
 									</div>
 								</div>
 								<span className="text-xs font-medium whitespace-nowrap pro-text1 sm:text-sm">Include CEXs</span>
-							</div>
+							</button>
 							<ProTableCSVButton
 								onClick={downloadCSV}
 								className="flex h-[38px] items-center gap-2 border pro-border bg-(--bg-main) px-3 text-sm text-(--text-primary) transition-colors hover:bg-(--bg-tertiary) disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#070e0f]"
@@ -584,16 +583,29 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 									<th
 										key={header.id}
 										colSpan={header.colSpan}
+										{...(header.column.getCanSort()
+											? {
+													'aria-sort':
+														header.column.getIsSorted() === 'asc'
+															? 'ascending'
+															: header.column.getIsSorted() === 'desc'
+																? 'descending'
+																: 'none'
+												}
+											: {})}
 										className="border-r border-b border-(--divider) bg-transparent px-2 py-2 font-medium last:border-r-0"
 									>
-										{header.isPlaceholder ? null : (
-											<a
-												style={{ display: 'flex', gap: '4px', cursor: 'pointer' }}
+										{header.isPlaceholder ? null : header.column.getCanSort() ? (
+											<button
+												type="button"
+												className="flex items-center gap-1 bg-transparent p-0 text-left"
 												onClick={() => header.column.toggleSorting()}
 											>
 												{flexRender(header.column.columnDef.header, header.getContext())}
-												{header.column.getCanSort() && <SortIcon dir={header.column.getIsSorted()} />}
-											</a>
+												<SortIcon dir={header.column.getIsSorted()} />
+											</button>
+										) : (
+											<span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
 										)}
 									</th>
 								))}
@@ -614,7 +626,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 				</table>
 			</div>
 
-			{table.getPageCount() > 1 && (
+			{table.getPageCount() > 1 ? (
 				<div className="mt-2 flex w-full items-center justify-between px-2 py-2">
 					<div className="flex items-center gap-2">
 						<button
@@ -661,7 +673,7 @@ export default function TokenUsageDataset({ config, onConfigChange }: TokenUsage
 						))}
 					</select>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

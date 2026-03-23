@@ -95,7 +95,7 @@ const ColumnButton = ({
 					<span className="text-xs pro-text1">{metadata.name}</span>
 				</div>
 				<div className="flex items-center gap-1">
-					{moveColumnUp && !isFirst && (
+					{moveColumnUp && !isFirst ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
@@ -106,8 +106,8 @@ const ColumnButton = ({
 						>
 							<Icon name="chevron-up" height={10} width={10} />
 						</button>
-					)}
-					{moveColumnDown && !isLast && (
+					) : null}
+					{moveColumnDown && !isLast ? (
 						<button
 							onClick={(e) => {
 								e.stopPropagation()
@@ -118,7 +118,7 @@ const ColumnButton = ({
 						>
 							<Icon name="chevron-down" height={10} width={10} />
 						</button>
-					)}
+					) : null}
 					<button
 						onClick={(e) => {
 							e.stopPropagation()

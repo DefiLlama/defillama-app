@@ -1,4 +1,3 @@
-import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
@@ -6,6 +5,7 @@ import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/querie
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
@@ -50,9 +50,8 @@ const pageName = ['Protocols', 'ranked by', type]
 const RevenueOnAllChains = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`${type} by Protocol - DefiLlama`}
-			description={`${type} by Protocol. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by protocol`}
+			title="Protocol Revenue Rankings - DeFi Fees Retained - DefiLlama"
+			description="Track protocol revenue, the subset of fees retained by DeFi protocols. Compare revenue from trading, lending, and staking across protocols."
 			canonicalUrl={`/revenue`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Revenue"

@@ -25,9 +25,9 @@ export function ImagePreviewModal({ imageUrl, onClose }: ImagePreviewModalProps)
 					<Icon name="x" height={20} width={20} />
 					<span className="sr-only">Close preview</span>
 				</Ariakit.DialogDismiss>
-				{imageUrl && (
+				{imageUrl ? (
 					<img src={imageUrl} alt="Preview" className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain" />
-				)}
+				) : null}
 			</Ariakit.Dialog>
 		</Ariakit.DialogProvider>
 	)

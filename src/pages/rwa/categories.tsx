@@ -1,9 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWACategoriesTable } from '~/containers/RWA/Categories'
 import { getRWACategoriesOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () => {
@@ -33,17 +34,17 @@ export const getStaticProps = withPerformanceLogging(`rwa/categories`, async () 
 	}
 })
 
-const pageName = ['RWA Categories']
+const pageName = ['RWA']
 
 export default function RWACategoriesPage({ categories, categoryLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Categories - DefiLlama"
-			description={`Real World Assets by category on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, rwa categories, rwa onchain by category`}
+			title="Real World Asset (RWA) by Category Dashboard & Analytics - DefiLlama"
+			description={`Explore Real World Asset (RWA) categories, high-level economic groupings that classify the type of underlying asset or financial product represented onchain.`}
 			pageName={pageName}
 			canonicalUrl={`/rwa/categories`}
 		>
+			<RWATabNav active="categories" />
 			<RowLinksWithDropdown links={categoryLinks} activeLink={'All'} />
 			<RWACategoriesTable categories={categories} chartDatasets={chartDatasets} />
 		</Layout>

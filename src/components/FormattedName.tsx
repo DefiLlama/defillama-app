@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type { CSSProperties } from 'react'
 import { Tooltip } from '~/components/Tooltip'
 
 interface WrapperProps {
@@ -17,12 +17,17 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 		return null
 	}
 
+	const textStyle: CSSProperties & Record<'--text-size' | '--weight', string | number> = {
+		'--text-size': fontSize ?? 'inherit',
+		'--weight': fontWeight
+	}
+
 	if (typeof maxCharacters === 'number' && text.length > maxCharacters) {
 		return (
 			<Tooltip content={text}>
 				<span
 					data-link={link ?? false}
-					style={{ '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 } as React.CSSProperties}
+					style={textStyle}
 					className="cursor-pointer overflow-hidden font-(--weight) text-ellipsis whitespace-nowrap text-(--text-size) data-[link=true]:text-(--blue)"
 				>
 					{text}
@@ -34,7 +39,7 @@ export const FormattedName = ({ text, maxCharacters, fontSize, fontWeight = 400,
 	return (
 		<span
 			data-link={link ?? false}
-			style={{ '--text-size': fontSize ?? 'inherit', '--weight': fontWeight ?? 400 } as React.CSSProperties}
+			style={textStyle}
 			className="overflow-hidden font-(--weight) text-ellipsis whitespace-nowrap text-(--text-size) data-[link=true]:text-(--blue)"
 		>
 			{text}

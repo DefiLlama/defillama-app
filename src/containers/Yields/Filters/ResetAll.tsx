@@ -12,12 +12,16 @@ export function ResetAllYieldFilters({
 	const router = useRouter()
 
 	const handleClick = () => {
-		router.push(pathname, undefined, { shallow: true })
+		void router.push(pathname, undefined, { shallow: true })
 		resetContext?.()
 	}
 
 	// Check if any filters are active
-	const hasActiveFilters = Object.keys(router.query).length > 0
+	let hasActiveFilters = false
+	for (const _key in router.query) {
+		hasActiveFilters = true
+		break
+	}
 
 	return (
 		<button

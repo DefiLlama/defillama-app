@@ -1,8 +1,10 @@
 import { useRouter } from 'next/router'
 import * as React from 'react'
-import { Announcement } from '~/components/Announcement'
+import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { LocalLoader } from '~/components/Loaders'
+import { useEntityQuestions } from '~/containers/LlamaAI/hooks/useEntityQuestions'
 import { YieldFiltersV2 } from './Filters'
+import { getYieldsQuestionContext } from './getYieldsQuestionContext'
 import { useFormatYieldQueryParams } from './hooks'
 import { useVolatility } from './queries/client'
 import { YieldsPoolsTable } from './Tables/Pools'
@@ -34,9 +36,12 @@ const YieldPage = ({
 	tokenSymbolsList,
 	usdPeggedSymbols,
 	tokenCategories,
-	evmChains
+	evmChains,
+	stablecoinInfoBySymbol,
+	entityQuestions: baseQuestions
 }) => {
-	const { query, pathname, push } = useRouter()
+	const router = useRouter()
+	const { pathname } = router
 
 	const [loading, setLoading] = React.useState(true)
 	const { data: volatility } = useVolatility()
@@ -55,6 +60,15 @@ const YieldPage = ({
 		minApy,
 		maxApy
 	} = useFormatYieldQueryParams({ projectList, chainList, categoryList, evmChains })
+
+	const filterContext = React.useMemo(() => getYieldsQuestionContext(router.query), [router.query])
+	const { data: filteredQuestionsData, isFetching: isQuestionsLoading } = useEntityQuestions(
+		'yields',
+		'page',
+		!!filterContext,
+		filterContext ?? undefined
+	)
+	const questions = filteredQuestionsData?.questions?.length ? filteredQuestionsData.questions : baseQuestions
 
 	React.useEffect(() => {
 		const timer = setTimeout(() => setLoading(false), 1000)
@@ -92,6 +106,8 @@ const YieldPage = ({
 		const selectedChainsSet = new Set(selectedChains)
 		const selectedCategoriesSet = new Set(selectedCategories)
 
+		const scInfo = stablecoinInfoBySymbol || {}
+
 		return pools.reduce((acc, curr) => {
 			const toFilter = toFilterPool({
 				curr,
@@ -113,12 +129,32 @@ const YieldPage = ({
 			})
 
 			if (toFilter) {
+				// Match pool tokens to stablecoin peg data (pick largest absolute deviation)
+				const poolTokens =
+					curr.symbol
+						?.split('(')[0]
+						.split('-')
+						.map((s) => s.toLowerCase().trim()) || []
+				let pegInfo = null
+				let maxAbs = -1
+				for (const t of poolTokens) {
+					const info = scInfo[t]
+					if (info) {
+						const abs = info.pegDeviation != null ? Math.abs(info.pegDeviation) : -1
+						if (abs > maxAbs) {
+							maxAbs = abs
+							pegInfo = info
+						}
+					}
+				}
+
 				return acc.concat({
 					pool: curr.symbol,
 					configID: curr.pool,
 					projectslug: curr.project,
 					project: curr.projectName,
 					airdrop: curr.airdrop,
+					raiseValuation: curr.raiseValuation,
 					chains: [curr.chain],
 					tvl: curr.tvlUsd,
 					apy: curr.apy,
@@ -152,7 +188,9 @@ const YieldPage = ({
 					poolMeta: curr.poolMeta,
 					apyMedian30d: volatility?.[curr.pool]?.[1] ?? null,
 					apyStd30d: volatility?.[curr.pool]?.[2] ?? null,
-					cv30d: volatility?.[curr.pool]?.[3] ?? null
+					cv30d: volatility?.[curr.pool]?.[3] ?? null,
+					pegDeviation: pegInfo?.pegDeviation ?? null,
+					pegPrice: pegInfo?.price ?? null
 				})
 			} else return acc
 		}, [])
@@ -173,7 +211,8 @@ const YieldPage = ({
 		pairTokens,
 		usdPeggedSymbols,
 		tokenCategories,
-		volatility
+		volatility,
+		stablecoinInfoBySymbol
 	])
 	const prepareCsv = () => {
 		const headers = [
@@ -213,7 +252,7 @@ const YieldPage = ({
 			return {
 				Pool: row.pool,
 				Project: row.project,
-				Chain: row.chains,
+				Chain: row.chains?.join(', '),
 				TVL: row.tvl,
 				APY: row.apy,
 				'APY Base': row.apyBase,
@@ -246,37 +285,13 @@ const YieldPage = ({
 		})
 
 		return {
-			filename: 'yields.csv',
+			filename: 'yields',
 			rows: [headers].concat(csvData.map((row) => headers.map((header) => row[header])))
 		}
 	}
 
 	return (
 		<>
-			{includeTokens.length > 0 &&
-				(!selectedAttributes.includes('no_il') || !selectedAttributes.includes('single_exposure')) && (
-					<Announcement notCancellable>
-						Do you want to see only pools that have a single token? Click{' '}
-						<a
-							className="font-medium text-(--blue) underline"
-							onClick={() => {
-								push(
-									{
-										pathname,
-										query: {
-											...query,
-											attribute: ['no_il', 'single_exposure']
-										}
-									},
-									undefined,
-									{ shallow: true }
-								)
-							}}
-						>
-							here
-						</a>
-					</Announcement>
-				)}
 			<YieldFiltersV2
 				header="Yield Rankings"
 				poolsNumber={poolsData.length}
@@ -303,6 +318,16 @@ const YieldPage = ({
 				prepareCsv={prepareCsv}
 				showPresetFilters
 			/>
+
+			{questions?.length > 0 || isQuestionsLoading ? (
+				<EntityQuestionsStrip
+					questions={questions ?? []}
+					entitySlug="yields"
+					entityType="page"
+					entityName="Yields"
+					isLoading={isQuestionsLoading}
+				/>
+			) : null}
 
 			{loading ? (
 				<div className="m-auto flex min-h-[360px] items-center justify-center">

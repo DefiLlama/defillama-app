@@ -36,11 +36,11 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 						/>
 						<div className="flex flex-col gap-1">
 							<div className="-mt-0.5 flex flex-wrap items-center gap-2 text-xs">
-								<h1 className="text-sm font-medium">
+								<h2 className="text-sm font-medium">
 									{session.mode === 'create' ? 'Initial Generation' : 'Iteration'} #{sessions.length - index}
-								</h1>
+								</h2>
 								<p className="text-(--text-form)">{new Date(session.timestamp).toLocaleDateString()}</p>
-								{session.rating !== undefined && session.rating !== -1 && (
+								{session.rating !== undefined && session.rating !== -1 ? (
 									<p className="flex items-center gap-1">
 										<span className="sr-only">Rating: </span>
 										{session.rating === -99 ? (
@@ -55,7 +55,7 @@ export function AIGenerationHistory({ aiGenerated }: AIGenerationHistoryProps) {
 											</>
 										)}
 									</p>
-								)}
+								) : null}
 							</div>
 							<p>
 								<span className="font-medium">Prompt: </span>

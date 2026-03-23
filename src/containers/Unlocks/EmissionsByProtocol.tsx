@@ -1,10 +1,11 @@
-import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { lazy, memo, Suspense, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { useGeckoId, usePriceChart } from '~/api/client'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import type { IMultiSeriesChart2Props, IPieChartProps, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
+import { BasicLink } from '~/components/Link'
 import { LoadingDots, LocalLoader } from '~/components/Loaders'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
 import { Switch } from '~/components/Switch'
@@ -13,7 +14,8 @@ import { TokenLogo } from '~/components/TokenLogo'
 import { useGetProtocolEmissions } from '~/containers/Unlocks/queries.client'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug, tokenIconUrl } from '~/utils'
+import { useNowSeconds } from '~/hooks/useNowSeconds'
+import { capitalizeFirstLetter, firstDayOfMonth, formattedNum, lastDayOfWeek, slug } from '~/utils'
 import { pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
 import type { EmissionsChartConfig, EmissionsDataset } from './api.types'
 import { Pagination } from './Pagination'
@@ -87,31 +89,13 @@ const getExtendedColors = (baseColors: Record<string, string>, isPriceEnabled: b
 	return extended
 }
 
+const EXCLUDED_CHART_CATEGORIES = new Set(['Market Cap', 'Price'])
+
 const MultiSeriesChart2 = lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
 const PieChart = lazy(() => import('~/components/ECharts/PieChart')) as React.FC<IPieChartProps>
-
-type ScheduleChartProps = Pick<
-	IMultiSeriesChart2Props,
-	| 'dataset'
-	| 'charts'
-	| 'hallmarks'
-	| 'expandTo100Percent'
-	| 'solidChartAreaStyle'
-	| 'valueSymbol'
-	| 'onReady'
-	| 'hideDefaultLegend'
->
-
-const ScheduleChart = memo(function ScheduleChart(props: ScheduleChartProps) {
-	return (
-		<Suspense fallback={<div className="min-h-[360px]" />}>
-			<MultiSeriesChart2 {...props} />
-		</Suspense>
-	)
-})
 
 type InitialTokenMarketData = {
 	price?: number | null
@@ -122,6 +106,35 @@ type InitialTokenMarketData = {
 	circSupply?: number | null
 	maxSupply?: number | null
 	maxSupplyInfinite?: boolean | null
+}
+
+function toNumberOrUndefined(val: unknown): number | undefined {
+	return typeof val === 'number' ? val : undefined
+}
+
+const MS_24H = 24 * 60 * 60 * 1000
+
+function findPriceAtLeast24hAgo(prices: Array<[number, number]> | undefined): number | undefined {
+	if (!prices || prices.length < 2) return undefined
+	const latestTs = prices[prices.length - 1][0]
+	const target = latestTs - MS_24H
+	for (let i = prices.length - 2; i >= 0; i--) {
+		if (prices[i][0] <= target) {
+			return prices[i][1]
+		}
+	}
+	return undefined
+}
+
+function resolveTokenMaxSupply(
+	initial: InitialTokenMarketData | null | undefined,
+	chartMarketData: { max_supply_infinite?: boolean; max_supply?: number } | undefined,
+	metaMaxSupply: number | undefined
+): number | undefined {
+	if (initial?.maxSupplyInfinite === true) return Infinity
+	if (initial?.maxSupply != null) return initial.maxSupply
+	if (chartMarketData?.max_supply_infinite) return Infinity
+	return chartMarketData?.max_supply ?? metaMaxSupply ?? undefined
 }
 
 export function EmissionsByProtocol({
@@ -135,10 +148,14 @@ export function EmissionsByProtocol({
 	initialTokenMarketData?: InitialTokenMarketData | null
 	disableClientTokenStatsFetch?: boolean
 }) {
+	const router = useRouter()
+	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
+
 	return (
 		<div className="col-span-full flex flex-col gap-2 xl:col-span-1">
-			{!isEmissionsPage && <h3>Emissions</h3>}
+			{!isEmissionsPage ? <h3>Emissions</h3> : null}
 			<ChartContainer
+				key={chartKey}
 				data={data}
 				isEmissionsPage={isEmissionsPage}
 				initialTokenMarketData={initialTokenMarketData}
@@ -204,6 +221,14 @@ type DataType = (typeof DATA_TYPES)[number]
 const TIME_GROUPINGS = ['D', 'W', 'M', 'Q', 'Y'] as const
 type TimeGrouping = (typeof TIME_GROUPINGS)[number]
 
+const CHART_GROUP_BY: Record<TimeGrouping, NonNullable<IMultiSeriesChart2Props['groupBy']>> = {
+	D: 'daily',
+	W: 'weekly',
+	M: 'monthly',
+	Q: 'quarterly',
+	Y: 'yearly'
+}
+
 function getQuarterStart(timestampMs: number): number {
 	const date = new Date(timestampMs)
 	const quarter = Math.floor(date.getUTCMonth() / 3)
@@ -221,20 +246,11 @@ function groupChartDataByTime(
 ): Array<{ timestamp: number } & Record<string, number | null>> {
 	if (groupBy === 'D') return chartData
 
-	// Most series (unlock amounts, allocations) are additive within a time bucket, but
-	// some series (e.g. Price/Market Cap) are not and should not be summed.
-	const NON_ADDITIVE_STRATEGIES: Record<string, 'avg' | 'last'> = {
-		Price: 'avg',
-		'Market Cap': 'avg'
-	}
+	const sorted = ensureChronologicalRows(chartData)
 
 	const grouped: Record<number, Record<string, number | null>> = {}
-	const avgSums: Record<number, Record<string, number>> = {}
-	const avgCounts: Record<number, Record<string, number>> = {}
-	const lastValues: Record<number, Record<string, number>> = {}
-	const lastTimestamps: Record<number, Record<string, number>> = {}
 
-	for (const entry of chartData) {
+	for (const entry of sorted) {
 		const ts = entry.timestamp
 		let groupKey: number
 
@@ -263,47 +279,7 @@ function groupChartDataByTime(
 			if (key === 'timestamp') continue
 			const value = entry[key]
 			if (typeof value !== 'number' || !Number.isFinite(value)) continue
-
-			const strategy = NON_ADDITIVE_STRATEGIES[key]
-			if (strategy === 'avg') {
-				if (!avgSums[groupKey]) avgSums[groupKey] = {}
-				if (!avgCounts[groupKey]) avgCounts[groupKey] = {}
-				avgSums[groupKey][key] = (avgSums[groupKey][key] ?? 0) + value
-				avgCounts[groupKey][key] = (avgCounts[groupKey][key] ?? 0) + 1
-				continue
-			}
-
-			if (strategy === 'last') {
-				if (!lastValues[groupKey]) lastValues[groupKey] = {}
-				if (!lastTimestamps[groupKey]) lastTimestamps[groupKey] = {}
-
-				const prevTs = lastTimestamps[groupKey][key]
-				if (prevTs == null || ts >= prevTs) {
-					lastTimestamps[groupKey][key] = ts
-					lastValues[groupKey][key] = value
-				}
-				continue
-			}
-
-			// Additive series: sum within the bucket.
-			grouped[groupKey][key] = (grouped[groupKey][key] ?? 0) + value
-		}
-	}
-
-	// Merge non-additive results into the grouped output.
-	for (const groupKey in avgSums) {
-		const sums = avgSums[groupKey]
-		const counts = avgCounts[groupKey]
-		for (const key in sums) {
-			const count = counts?.[key] ?? 0
-			if (count > 0) grouped[groupKey][key] = sums[key] / count
-		}
-	}
-
-	for (const groupKey in lastValues) {
-		const values = lastValues[groupKey]
-		for (const key in values) {
-			grouped[groupKey][key] = values[key]
+			grouped[groupKey][key] = value
 		}
 	}
 
@@ -346,20 +322,16 @@ const sortPieChartDataDesc = <T extends { name: string; value: number }>(items: 
 		(a, b) => (Number(b.value) || 0) - (Number(a.value) || 0) || String(a.name).localeCompare(String(b.name))
 	)
 
+const getDesktopPieLegendPosition = (itemsCount: number) =>
+	itemsCount <= 8
+		? { right: 12, top: 'middle' as const, orient: 'vertical' as const }
+		: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
+
 const EMPTY_STRING_LIST: string[] = []
 const EMPTY_STACK_COLORS: Record<string, string> = {}
 const EMPTY_ALLOCATION: Record<string, number> = {}
 const EMPTY_TOKEN_ALLOCATION = { current: EMPTY_ALLOCATION, final: EMPTY_ALLOCATION }
 const EMPTY_CHART_DATA: Array<{ timestamp: number; [key: string]: number | null }> = []
-
-const chunkArray = <T,>(items: T[], size = 1): T[][] => {
-	if (!Number.isFinite(size) || size < 1) return []
-	const result: T[][] = []
-	for (let i = 0; i < items.length; i += size) {
-		result.push(items.slice(i, i + size))
-	}
-	return result
-}
 
 const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K): Record<K, T[]> => {
 	const grouped = {} as Record<K, T[]>
@@ -375,9 +347,6 @@ const groupByKey = <T, K extends PropertyKey>(items: T[], getKey: (item: T) => K
 	return grouped
 }
 
-const areArraysEqual = (left: string[], right: string[]) =>
-	left.length === right.length && left.every((value, index) => value === right[index])
-
 const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string) => {
 	let total = 0
 	for (const [key, value] of Object.entries(data)) {
@@ -388,6 +357,198 @@ const sumValuesExcludingKey = (data: Record<string, unknown>, keyToSkip: string)
 		}
 	}
 	return total
+}
+
+function TokenHeader({
+	name,
+	tokenPrice,
+	percentChange
+}: {
+	name: string
+	tokenPrice: number | undefined
+	percentChange: number | null
+}) {
+	return (
+		<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<TokenLogo name={name} kind="token" alt={`Logo of ${name}`} />
+			<h1 className="text-xl font-semibold">{name}</h1>
+
+			{tokenPrice != null ? (
+				<>
+					<span className="mx-1 h-5 w-px bg-(--cards-border)" />
+					<span className="text-base font-semibold">${formattedNum(tokenPrice)}</span>
+					{percentChange !== null ? (
+						<span
+							className="text-sm font-medium"
+							style={{
+								color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
+							}}
+						>
+							{percentChange > 0 ? '+' : null}
+							{percentChange}%
+						</span>
+					) : null}
+				</>
+			) : null}
+		</div>
+	)
+}
+
+function TokenStats({
+	tokenCircSupply,
+	tokenMaxSupply,
+	tokenMcap,
+	tokenVolume,
+	symbol
+}: {
+	tokenCircSupply: number | undefined
+	tokenMaxSupply: number | undefined
+	tokenMcap: number | undefined
+	tokenVolume: number | undefined
+	symbol: string | null | undefined
+}) {
+	if (tokenCircSupply == null && tokenMaxSupply == null && tokenMcap == null && tokenVolume == null) return null
+	return (
+		<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
+			{tokenCircSupply != null ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">Circ. Supply</span>
+					<span className="text-sm font-medium">
+						{formattedNum(tokenCircSupply)} {symbol}
+					</span>
+				</div>
+			) : null}
+
+			{tokenMaxSupply != null ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">Max Supply</span>
+					<span className="text-sm font-medium">
+						{tokenMaxSupply !== Infinity ? formattedNum(tokenMaxSupply) : '∞'} {symbol}
+					</span>
+				</div>
+			) : null}
+
+			{tokenMcap != null ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">MCap</span>
+					<span className="text-sm font-medium">${formattedNum(tokenMcap)}</span>
+				</div>
+			) : null}
+
+			{tokenVolume != null ? (
+				<div className="flex items-baseline gap-1.5">
+					<span className="text-sm text-(--text-label)">Vol 24h</span>
+					<span className="text-sm font-medium">${formattedNum(tokenVolume)}</span>
+				</div>
+			) : null}
+		</div>
+	)
+}
+
+function TokenAllocationBars({
+	tokenAllocation,
+	stackColors
+}: {
+	tokenAllocation: { current: Record<string, number>; final: Record<string, number> }
+	stackColors: Record<string, string>
+}) {
+	return (
+		<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+			<h3 className="text-base font-semibold">Token Allocation</h3>
+			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+				{(['current', 'final'] as const).map((phase) => {
+					const entries = phase === 'current' ? tokenAllocation.current : tokenAllocation.final
+					if (!entries) return null
+					const sorted = Object.entries(entries).sort(([, a], [, b]) => b - a)
+					return (
+						<div key={phase} className="flex flex-col gap-1.5">
+							<span className="text-xs font-medium tracking-wide text-(--text-label) uppercase">{phase}</span>
+							{sorted.map(([cat, perc]) => (
+								<div key={cat} className="flex flex-col gap-0.5">
+									<div className="flex items-baseline justify-between text-sm">
+										<span>{capitalizeFirstLetter(cat)}</span>
+										<span className="font-medium tabular-nums">{perc}%</span>
+									</div>
+									<div className="h-1.5 w-full overflow-hidden rounded-full bg-(--cards-border)">
+										<div
+											className="h-full rounded-full"
+											style={{
+												width: `${Math.min(perc, 100)}%`,
+												backgroundColor: stackColors[cat] ?? stackColors[capitalizeFirstLetter(cat)] ?? '#6b7280'
+											}}
+										/>
+									</div>
+								</div>
+							))}
+						</div>
+					)
+				})}
+			</div>
+		</div>
+	)
+}
+
+function safeHostname(url: string): string {
+	try {
+		return new URL(url).hostname
+	} catch {
+		return url.length > 40 ? url.slice(0, 40) + '…' : url
+	}
+}
+
+function SourcesNotesSection({
+	sources,
+	notes,
+	futures
+}: {
+	sources: Array<string> | undefined
+	notes: Array<string> | undefined
+	futures: { openInterest?: number; fundingRate?: number } | undefined
+}) {
+	if (!sources?.length && !notes?.length && futures?.openInterest == null && futures?.fundingRate == null) return null
+	return (
+		<div className="flex flex-wrap gap-2 *:flex-1">
+			{sources && sources.length > 0 ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Sources</h3>
+					<ul className="list-disc space-y-1 pl-4 text-sm">
+						{sources.map((source) => (
+							<li key={source}>
+								<BasicLink
+									href={source}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
+								>
+									<span>{safeHostname(source)}</span>
+									<Icon name="external-link" height={14} width={14} />
+								</BasicLink>
+							</li>
+						))}
+					</ul>
+				</div>
+			) : null}
+			{notes && notes.length > 0 ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Notes</h3>
+					<ul className="list-disc space-y-1 pl-4 text-sm text-(--text-secondary)">
+						{notes.map((note) => (
+							<li key={note}>{note}</li>
+						))}
+					</ul>
+				</div>
+			) : null}
+			{futures?.openInterest != null || futures?.fundingRate != null ? (
+				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
+					<h3 className="text-base font-semibold">Futures</h3>
+					<div className="flex flex-col gap-1 text-sm">
+						{futures.openInterest != null ? <p>{`Open Interest: $${formattedNum(futures.openInterest)}`}</p> : null}
+						{futures.fundingRate != null ? <p>{`Funding Rate: ${futures.fundingRate}%`}</p> : null}
+					</div>
+				</div>
+			) : null}
+		</div>
+	)
 }
 
 const ChartContainer = ({
@@ -423,33 +584,28 @@ const ChartContainer = ({
 
 	const setQueryParam = (key: string, value: string | undefined) => pushShallowQuery(router, { [key]: value })
 
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+	const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+		const initialCategoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
+		if (allocationMode === 'standard' && data.categoriesBreakdown) {
+			return Object.keys(data.categoriesBreakdown)
+		} else if (initialCategoriesFromData.length > 0) {
+			return initialCategoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
+		}
+		return []
+	})
 
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
 	const categoriesFromData = data.categories?.[dataType] ?? EMPTY_STRING_LIST
 	const stackColors = data.stackColors?.[dataType] ?? EMPTY_STACK_COLORS
-	const { tokenAllocation, tokenAllocationCurrentChunks, tokenAllocationFinalChunks } = useMemo(() => {
-		const allocation = data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION
-		return {
-			tokenAllocation: allocation,
-			tokenAllocationCurrentChunks: chunkArray(Object.entries(allocation.current ?? EMPTY_ALLOCATION)),
-			tokenAllocationFinalChunks: chunkArray(Object.entries(allocation.final ?? EMPTY_ALLOCATION))
-		}
-	}, [data.tokenAllocation, dataType])
+	const tokenAllocation = useMemo(
+		() => data.tokenAllocation?.[dataType] ?? EMPTY_TOKEN_ALLOCATION,
+		[data.tokenAllocation, dataType]
+	)
 	const rawChartData = data.chartData?.[dataType] ?? EMPTY_CHART_DATA
 	const pieChartDataRaw = data.pieChartData?.[dataType]
 	const hallmarks = data.hallmarks?.[dataType] ?? []
 
-	useEffect(() => {
-		if (categoriesFromData.length > 0) {
-			setSelectedCategories((current) => {
-				const newCategories = categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-				if (current.length !== newCategories.length) return newCategories
-				return areArraysEqual([...current].sort(), [...newCategories].sort()) ? current : newCategories
-			})
-		}
-	}, [categoriesFromData])
 	const { data: geckoId } = useGeckoId(data.geckoId ? null : (data.token ?? null))
 
 	const shouldPrefetchTokenStats = !(disableClientTokenStatsFetch ?? false)
@@ -463,33 +619,31 @@ const ChartContainer = ({
 	const isPriceAndMcapLoading =
 		isPriceAndMcapRequested && !isPriceAndMcapActive && (priceChart.isLoading || priceChart.isFetching)
 
-	const tokenMaxSupplyFromChart = priceChart.data?.data.coinData.market_data?.max_supply_infinite
-		? Infinity
-		: (priceChart.data?.data.coinData.market_data?.max_supply ?? undefined)
-	const tokenCircSupplyFromChart = priceChart.data?.data.coinData.market_data?.circulating_supply ?? undefined
-	const tokenPriceFromChartRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 1]?.[1]
-	const tokenMcapFromChartRaw = priceChart.data?.data.mcaps?.[priceChart.data?.data.mcaps?.length - 1]?.[1]
-	const tokenVolumeFromChartRaw = priceChart.data?.data.volumes?.[priceChart.data?.data.volumes?.length - 1]?.[1]
-	const ystdPriceRaw = priceChart.data?.data.prices?.[priceChart.data?.data.prices?.length - 2]?.[1]
+	const chartMarketData = priceChart.data?.data?.coinData?.market_data
+	const chartPrices = priceChart.data?.data?.prices
+	const chartMcaps = priceChart.data?.data?.mcaps
+	const chartVolumes = priceChart.data?.data?.volumes
 
-	const tokenPriceFromChart = typeof tokenPriceFromChartRaw === 'number' ? tokenPriceFromChartRaw : undefined
-	const tokenMcapFromChart = typeof tokenMcapFromChartRaw === 'number' ? tokenMcapFromChartRaw : undefined
-	const tokenVolumeFromChart = typeof tokenVolumeFromChartRaw === 'number' ? tokenVolumeFromChartRaw : undefined
-	const ystdPrice = typeof ystdPriceRaw === 'number' ? ystdPriceRaw : undefined
-
-	const tokenPrice = tokenPriceFromChart ?? initialTokenMarketData?.price ?? data?.tokenPrice?.price ?? undefined
-	const tokenMcap = tokenMcapFromChart ?? initialTokenMarketData?.mcap ?? data?.meta?.mcap ?? undefined
-	const tokenVolume = tokenVolumeFromChart ?? initialTokenMarketData?.volume24h ?? undefined
+	const tokenPrice =
+		initialTokenMarketData?.price ??
+		toNumberOrUndefined(chartPrices?.[chartPrices.length - 1]?.[1]) ??
+		data?.tokenPrice?.price ??
+		undefined
+	const tokenMcap =
+		initialTokenMarketData?.mcap ??
+		toNumberOrUndefined(chartMcaps?.[chartMcaps.length - 1]?.[1]) ??
+		data?.meta?.mcap ??
+		undefined
+	const tokenVolume =
+		initialTokenMarketData?.volume24h ?? toNumberOrUndefined(chartVolumes?.[chartVolumes.length - 1]?.[1]) ?? undefined
 	const tokenCircSupply =
-		tokenCircSupplyFromChart ?? initialTokenMarketData?.circSupply ?? data?.meta?.circSupply ?? undefined
-	const tokenMaxSupply =
-		initialTokenMarketData?.maxSupplyInfinite === true
-			? Infinity
-			: (tokenMaxSupplyFromChart ?? initialTokenMarketData?.maxSupply ?? data?.meta?.maxSupply ?? undefined)
+		initialTokenMarketData?.circSupply ?? chartMarketData?.circulating_supply ?? data?.meta?.circSupply ?? undefined
+	const tokenMaxSupply = resolveTokenMaxSupply(initialTokenMarketData, chartMarketData, data?.meta?.maxSupply)
 
+	const ystdPrice = findPriceAtLeast24hAgo(chartPrices)
 	const percentChangeFromChart =
 		tokenPrice != null && ystdPrice != null ? +(((tokenPrice - ystdPrice) / ystdPrice) * 100).toFixed(2) : null
-	const percentChange = percentChangeFromChart ?? initialTokenMarketData?.priceChangePercent ?? null
+	const percentChange = initialTokenMarketData?.priceChangePercent ?? percentChangeFromChart ?? null
 
 	const priceChartForOverlay = isPriceAndMcapActive ? priceChart.data?.data : null
 	const normilizePriceChart = useMemo(() => {
@@ -509,30 +663,31 @@ const ChartContainer = ({
 		return result
 	}, [priceChartForOverlay])
 
-	const groupedEvents = groupByKey(data.events ?? [], (event) => event.timestamp)
+	const groupedEvents = useMemo(() => groupByKey(data.events ?? [], (event) => event.timestamp), [data.events])
 
+	const nowSec = useNowSeconds()
+	const currentMinuteSec = Math.floor(nowSec / 60) * 60
 	const sortedEvents = useMemo(() => {
-		const now = Date.now() / 1e3
 		const entries = Object.entries(groupedEvents)
 
-		const upcomingEvents = entries.filter(([ts]) => +ts > now).sort(([a], [b]) => +a - +b) // near to far
+		const upcomingEvents = entries.filter(([ts]) => +ts > currentMinuteSec).sort(([a], [b]) => +a - +b) // near to far
 
 		const pastEvents =
 			upcomingEvents.length > 0
-				? entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +a - +b) // oldest to newest
-				: entries.filter(([ts]) => +ts <= now).sort(([a], [b]) => +b - +a) // newest to oldest
+				? entries.filter(([ts]) => +ts <= currentMinuteSec).sort(([a], [b]) => +a - +b) // oldest to newest
+				: entries.filter(([ts]) => +ts <= currentMinuteSec).sort(([a], [b]) => +b - +a) // newest to oldest
 
 		return upcomingEvents.length > 0 ? [...pastEvents, ...upcomingEvents] : pastEvents
-	}, [groupedEvents])
+	}, [groupedEvents, currentMinuteSec])
 
 	const upcomingEventIndex = useMemo(() => {
 		const index = sortedEvents.findIndex((events) => {
 			const event = events[1][0]
 			const { timestamp } = event
-			return +timestamp > Date.now() / 1e3
+			return +timestamp > currentMinuteSec
 		})
 		return index === -1 ? 0 : index
-	}, [sortedEvents])
+	}, [sortedEvents, currentMinuteSec])
 
 	const paginationItems = useMemo(
 		() =>
@@ -586,8 +741,8 @@ const ChartContainer = ({
 
 	const availableCategories =
 		allocationMode === 'standard'
-			? Object.keys(data.categoriesBreakdown || {})
-			: categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
+			? Object.keys(data.categoriesBreakdown ?? {})
+			: categoriesFromData.filter((cat) => !EXCLUDED_CHART_CATEGORIES.has(cat))
 
 	const displayData = useMemo(() => {
 		let result = chartData
@@ -596,17 +751,6 @@ const ChartContainer = ({
 		}
 		return groupChartDataByTime(result || [], timeGrouping)
 	}, [allocationMode, chartData, data.categoriesBreakdown, timeGrouping])
-
-	useEffect(() => {
-		setSelectedCategories(() => {
-			if (allocationMode === 'standard' && data.categoriesBreakdown) {
-				return Object.keys(data.categoriesBreakdown)
-			} else if (categoriesFromData.length > 0) {
-				return categoriesFromData.filter((cat) => !['Market Cap', 'Price'].includes(cat))
-			}
-			return []
-		})
-	}, [allocationMode, data.categoriesBreakdown, categoriesFromData])
 
 	const groupAllocation = useMemo(() => {
 		const finalAllocation = tokenAllocation?.final
@@ -633,11 +777,12 @@ const ChartContainer = ({
 
 	const pieChartDataAllocation = useMemo(() => {
 		const source = pieChartDataRaw ?? []
+		const selectedCategoriesSet = new Set(selectedCategories)
 		const filtered: Array<{ name: string; value: number }> = []
 		for (const item of source) {
 			if (!item) continue
 			if (typeof item.value !== 'number') continue
-			if (!selectedCategories.includes(item.name)) continue
+			if (!selectedCategoriesSet.has(item.name)) continue
 			filtered.push({ name: item.name, value: item.value })
 		}
 		return sortPieChartDataDesc(filtered)
@@ -645,28 +790,21 @@ const ChartContainer = ({
 
 	const pieChartDataAllocationMode = allocationMode === 'current' ? pieChartDataAllocation : groupAllocation
 
-	const formattedPieChartDataAllocationMode = useMemo(
-		() => pieChartDataAllocationMode.map((item) => ({ ...item, name: formatUnlockLabel(item.name) })),
-		[pieChartDataAllocationMode]
+	const formattedPieChartDataAllocationMode = pieChartDataAllocationMode.map((item) => ({
+		...item,
+		name: formatUnlockLabel(item.name)
+	}))
+
+	const allocationPieStackColors = allocationMode === 'standard' ? standardGroupColors : stackColors
+
+	const formattedAllocationPieStackColors = Object.fromEntries(
+		Object.entries(allocationPieStackColors).map(([label, color]) => [formatUnlockLabel(label), color])
 	)
 
-	const allocationPieStackColors = useMemo(
-		() => (allocationMode === 'standard' ? standardGroupColors : stackColors),
-		[allocationMode, stackColors]
-	)
-
-	const formattedAllocationPieStackColors = useMemo(
-		() =>
-			Object.fromEntries(
-				Object.entries(allocationPieStackColors).map(([label, color]) => [formatUnlockLabel(label), color])
-			),
-		[allocationPieStackColors]
-	)
-
-	const formattedAvailableCategories = useMemo(
-		() => availableCategories.map((category) => ({ key: category, name: formatUnlockLabel(category) })),
-		[availableCategories]
-	)
+	const formattedAvailableCategories = availableCategories.map((category) => ({
+		key: category,
+		name: formatUnlockLabel(category)
+	}))
 
 	const chartConfig = useMemo(() => {
 		let stacks = selectedCategories
@@ -718,11 +856,11 @@ const ChartContainer = ({
 				if (!overlaySet.has(s)) sum += Number(entry[s]) || 0
 			}
 			for (const s of stacks) {
-				const raw = Number(entry[s]) || 0
 				if (overlaySet.has(s)) {
-					// Preserve original dollar value for overlay series
-					row[s] = raw
+					const val = entry[s]
+					row[s] = typeof val === 'number' && Number.isFinite(val) ? val : null
 				} else {
+					const raw = Number(entry[s]) || 0
 					row[s] = sum > 0 ? (raw / sum) * 100 : 0
 				}
 			}
@@ -762,14 +900,10 @@ const ChartContainer = ({
 			]),
 		[unlockedPercent]
 	)
-
-	const getDesktopPieLegendPosition = (itemsCount: number) => {
-		// When there are only a few legend items, center it vertically.
-		// When there are many, constrain height so the legend can scroll.
-		return itemsCount <= 8
-			? { right: 12, top: 'middle' as const, orient: 'vertical' as const }
-			: { right: 12, top: 12, bottom: 12, orient: 'vertical' as const }
-	}
+	const scheduleChartData = useMemo(() => ({ dataset, charts }), [dataset, charts])
+	const deferredScheduleChartData = useDeferredValue(scheduleChartData)
+	const deferredAllocationPieChartData = useDeferredValue(formattedPieChartDataAllocationMode)
+	const deferredUnlockedPieChartData = useDeferredValue(unlockedPieChartData)
 
 	const pieChartLegendTextStyle = useMemo(() => ({ fontSize: width < 640 ? 12 : 14 }), [width])
 
@@ -789,7 +923,7 @@ const ChartContainer = ({
 		() => ({
 			png: true,
 			csv: true,
-			filename: `${slug(data.name)}-allocation`,
+			filename: `${data.name}-allocation`,
 			pngTitle: `${data.name} Allocation`
 		}),
 		[data.name]
@@ -799,96 +933,41 @@ const ChartContainer = ({
 		() => ({
 			png: true,
 			csv: true,
-			filename: `${slug(data.name)}-unlocked`,
+			filename: `${data.name}-unlocked`,
 			pngTitle: `${data.name} Unlocked ${unlockedPercent.toFixed(2)}%`
 		}),
 		[data.name, unlockedPercent]
 	)
 
-	const hasGroupAllocationData = (() => {
-		if (!data.categoriesBreakdown || typeof data.categoriesBreakdown !== 'object') return false
-		for (const _ in data.categoriesBreakdown) {
-			return true
-		}
-		return false
-	})()
+	const hasGroupAllocationData = data.categoriesBreakdown != null && Object.keys(data.categoriesBreakdown).length > 0
 
 	if (!data) return null
 
 	return (
 		<>
-			{isEmissionsPage ? (
-				<div className="flex w-full items-center gap-3 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<TokenLogo logo={tokenIconUrl(data.name)} />
-					<h1 className="text-xl font-semibold">{data.name}</h1>
+			{isEmissionsPage ? <TokenHeader name={data.name} tokenPrice={tokenPrice} percentChange={percentChange} /> : null}
 
-					{tokenPrice != null ? (
-						<>
-							<span className="mx-1 h-5 w-px bg-(--cards-border)" />
-							<span className="text-base font-semibold">${formattedNum(tokenPrice)}</span>
-							{percentChange !== null ? (
-								<span
-									className="text-sm font-medium"
-									style={{
-										color: percentChange > 0 ? 'rgba(18, 182, 0, 0.7)' : 'rgba(211, 0, 0, 0.7)'
-									}}
-								>
-									{percentChange > 0 && '+'}
-									{percentChange}%
-								</span>
-							) : null}
-						</>
-					) : null}
-				</div>
-			) : null}
-
-			{data?.tokenPrice?.price || data?.meta?.circSupply || data?.meta?.maxSupply || tokenMcap || tokenVolume ? (
-				<div className="flex min-h-[46px] w-full flex-wrap items-center gap-x-6 gap-y-2 rounded-md border border-(--cards-border) bg-(--cards-bg) px-4 py-3">
-					{tokenCircSupply ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">Circ. Supply</span>
-							<span className="text-sm font-medium">
-								{formattedNum(tokenCircSupply)} {data.tokenPrice.symbol}
-							</span>
-						</div>
-					) : null}
-
-					{tokenMaxSupply ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">Max Supply</span>
-							<span className="text-sm font-medium">
-								{tokenMaxSupply != Infinity ? formattedNum(tokenMaxSupply) : '∞'} {data.tokenPrice.symbol}
-							</span>
-						</div>
-					) : null}
-
-					{tokenMcap ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">MCap</span>
-							<span className="text-sm font-medium">${formattedNum(tokenMcap)}</span>
-						</div>
-					) : null}
-
-					{tokenVolume ? (
-						<div className="flex items-baseline gap-1.5">
-							<span className="text-sm text-(--text-label)">Vol 24h</span>
-							<span className="text-sm font-medium">${formattedNum(tokenVolume)}</span>
-						</div>
-					) : null}
-				</div>
-			) : null}
+			<TokenStats
+				tokenCircSupply={tokenCircSupply}
+				tokenMaxSupply={tokenMaxSupply}
+				tokenMcap={tokenMcap}
+				tokenVolume={tokenVolume}
+				symbol={data.tokenPrice?.symbol}
+			/>
 
 			{data.chartData?.realtime?.length > 0 ? (
 				<TagGroup
 					selectedValue={dataType}
-					setValue={(period) => setQueryParam('dataType', period === 'documented' ? undefined : period)}
+					setValue={(period) => {
+						void setQueryParam('dataType', period === 'documented' ? undefined : period)
+					}}
 					values={DATA_TYPES}
 					className="ml-auto"
 				/>
 			) : null}
 
 			<div className="flex flex-col gap-2">
-				{categoriesFromData.length > 0 && rawChartData.length > 0 && (
+				{categoriesFromData.length > 0 && rawChartData.length > 0 ? (
 					<div className="relative rounded-md border border-(--cards-border) bg-(--cards-bg)">
 						<div className="flex flex-wrap items-center justify-end gap-2 p-2">
 							<h3 className="mr-auto text-base font-semibold">Schedule</h3>
@@ -896,7 +975,9 @@ const ChartContainer = ({
 								<Switch
 									label="Group Allocation"
 									value="group-allocation"
-									onChange={() => setQueryParam('groupAllocation', allocationMode === 'current' ? 'true' : undefined)}
+									onChange={() => {
+										void setQueryParam('groupAllocation', allocationMode === 'current' ? 'true' : undefined)
+									}}
 									help="Group token allocations into standardized categories."
 									checked={allocationMode === 'standard'}
 								/>
@@ -904,21 +985,27 @@ const ChartContainer = ({
 							<Switch
 								label="Bar Chart"
 								value="bar-chart"
-								onChange={() => setQueryParam('chartType', chartType === 'line' ? 'bar' : undefined)}
+								onChange={() => {
+									void setQueryParam('chartType', chartType === 'line' ? 'bar' : undefined)
+								}}
 								checked={chartType === 'bar'}
 							/>
 							{resolvedGeckoId ? (
 								<Switch
 									label="Price & MCap"
 									value="show=price-and-mcap"
-									onChange={() => setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')}
+									onChange={() => {
+										void setQueryParam('priceMcap', isPriceAndMcapRequested ? undefined : 'true')
+									}}
 									checked={isPriceAndMcapRequested}
 									isLoading={isPriceAndMcapLoading}
 								/>
 							) : null}
 							<TagGroup
 								selectedValue={timeGrouping}
-								setValue={(v) => setQueryParam('groupBy', v === 'D' ? undefined : v)}
+								setValue={(v) => {
+									void setQueryParam('groupBy', v === 'D' ? undefined : v)
+								}}
 								values={TIME_GROUPINGS}
 							/>
 							<SelectWithCombobox
@@ -931,7 +1018,7 @@ const ChartContainer = ({
 							/>
 							<ChartExportButtons
 								chartInstance={exportChartInstance}
-								filename={`${slug(data.name)}-unlock-schedule`}
+								filename={`${data.name}-unlock-schedule`}
 								title={`${data.name} Unlock Schedule`}
 							/>
 						</div>
@@ -943,28 +1030,32 @@ const ChartContainer = ({
 								</p>
 							</div>
 						) : (
-							<ScheduleChart
-								dataset={dataset}
-								charts={charts}
-								hallmarks={hallmarks}
-								expandTo100Percent={chartType === 'bar'}
-								solidChartAreaStyle
-								valueSymbol={data.tokenPrice?.symbol ?? ''}
-								onReady={handleChartReady}
-								hideDefaultLegend={false}
-							/>
+							<Suspense fallback={<div className="min-h-[360px]" />}>
+								<MultiSeriesChart2
+									dataset={deferredScheduleChartData.dataset}
+									charts={deferredScheduleChartData.charts}
+									hallmarks={hallmarks}
+									expandTo100Percent={chartType === 'bar'}
+									solidChartAreaStyle
+									valueSymbol={data.tokenPrice?.symbol ?? ''}
+									groupBy={CHART_GROUP_BY[timeGrouping]}
+									showTotalInTooltip
+									onReady={handleChartReady}
+									hideDefaultLegend={false}
+								/>
+							</Suspense>
 						)}
 					</div>
-				)}
+				) : null}
 
 				<div className="grid grid-cols-2 gap-2">
-					{data.pieChartData?.[dataType] && data.stackColors[dataType] && (
+					{data.pieChartData?.[dataType] && data.stackColors[dataType] ? (
 						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
 									showLegend
 									title="Allocation"
-									chartData={formattedPieChartDataAllocationMode}
+									chartData={deferredAllocationPieChartData}
 									stackColors={formattedAllocationPieStackColors}
 									valueSymbol={data.tokenPrice?.symbol ?? ''}
 									legendPosition={allocationPieChartLegendPosition}
@@ -978,9 +1069,9 @@ const ChartContainer = ({
 								/>
 							</Suspense>
 						</div>
-					)}
+					) : null}
 
-					{unlockedPercent > 0 && (
+					{unlockedPercent > 0 ? (
 						<div className="relative col-span-full flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg) xl:col-span-1 xl:[&:last-child:nth-child(2n-1)]:col-span-full">
 							<Suspense fallback={<div className="min-h-[398px]" />}>
 								<PieChart
@@ -989,50 +1080,21 @@ const ChartContainer = ({
 									legendPosition={unlockedPieChartLegendPosition}
 									legendTextStyle={pieChartLegendTextStyle}
 									radius={unlockedPieChartRadius}
-									chartData={unlockedPieChartData}
+									chartData={deferredUnlockedPieChartData}
 									stackColors={unlockedPieChartStackColors}
 									valueSymbol="%"
 									exportButtons={unlockedExportButtons}
 								/>
 							</Suspense>
 						</div>
-					)}
+					) : null}
 				</div>
 			</div>
 
-			{data.token && tokenAllocationCurrentChunks.length > 0 && tokenAllocationFinalChunks.length > 0 ? (
-				<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-					<h3 className="text-base font-semibold">Token Allocation</h3>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						{(['current', 'final'] as const).map((phase) => {
-							const entries = phase === 'current' ? tokenAllocation.current : tokenAllocation.final
-							if (!entries) return null
-							const sorted = Object.entries(entries).sort(([, a], [, b]) => b - a)
-							return (
-								<div key={phase} className="flex flex-col gap-1.5">
-									<span className="text-xs font-medium tracking-wide text-(--text-label) uppercase">{phase}</span>
-									{sorted.map(([cat, perc]) => (
-										<div key={cat} className="flex flex-col gap-0.5">
-											<div className="flex items-baseline justify-between text-sm">
-												<span>{capitalizeFirstLetter(cat)}</span>
-												<span className="font-medium tabular-nums">{perc}%</span>
-											</div>
-											<div className="h-1.5 w-full overflow-hidden rounded-full bg-(--cards-border)">
-												<div
-													className="h-full rounded-full"
-													style={{
-														width: `${Math.min(perc, 100)}%`,
-														backgroundColor: stackColors[cat] ?? stackColors[capitalizeFirstLetter(cat)] ?? '#6b7280'
-													}}
-												/>
-											</div>
-										</div>
-									))}
-								</div>
-							)
-						})}
-					</div>
-				</div>
+			{data.token &&
+			Object.keys(tokenAllocation.current).length > 0 &&
+			Object.keys(tokenAllocation.final).length > 0 ? (
+				<TokenAllocationBars tokenAllocation={tokenAllocation} stackColors={stackColors} />
 			) : null}
 
 			{data.events?.length > 0 ? (
@@ -1042,47 +1104,7 @@ const ChartContainer = ({
 				</div>
 			) : null}
 
-			<div className="flex flex-wrap gap-2 *:flex-1">
-				{data.sources?.length > 0 ? (
-					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h3 className="text-base font-semibold">Sources</h3>
-						<ul className="list-disc space-y-1 pl-4 text-sm">
-							{data.sources.map((source) => (
-								<li key={source}>
-									<Link
-										href={source}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="inline-flex items-center gap-1 text-sm font-medium text-(--link-text) hover:underline"
-									>
-										<span>{new URL(source).hostname}</span>
-										<Icon name="external-link" height={14} width={14} />
-									</Link>
-								</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-				{data.notes?.length > 0 ? (
-					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h3 className="text-base font-semibold">Notes</h3>
-						<ul className="list-disc space-y-1 pl-4 text-sm text-(--text-secondary)">
-							{data.notes.map((note) => (
-								<li key={note}>{note}</li>
-							))}
-						</ul>
-					</div>
-				) : null}
-				{data.futures?.openInterest || data.futures?.fundingRate ? (
-					<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
-						<h3 className="text-base font-semibold">Futures</h3>
-						<div className="flex flex-col gap-1 text-sm">
-							{data.futures.openInterest ? <p>{`Open Interest: $${formattedNum(data.futures.openInterest)}`}</p> : null}
-							{data.futures.fundingRate ? <p>{`Funding Rate: ${data.futures.fundingRate}%`}</p> : null}
-						</div>
-					</div>
-				) : null}
-			</div>
+			<SourcesNotesSection sources={data.sources} notes={data.notes} futures={data.futures} />
 		</>
 	)
 }
@@ -1100,6 +1122,8 @@ export const UnlocksCharts = ({
 	disableClientTokenStatsFetch?: boolean
 	isEmissionsPage?: boolean
 }) => {
+	const router = useRouter()
+	const chartKey = `${router.query.dataType ?? 'documented'}-${router.query.groupAllocation ?? 'false'}`
 	const shouldFetch = !initialData
 	const { data = null, isLoading, error } = useGetProtocolEmissions(shouldFetch ? slug(protocolName) : null)
 
@@ -1122,6 +1146,7 @@ export const UnlocksCharts = ({
 
 	return (
 		<ChartContainer
+			key={chartKey}
 			data={resolvedData}
 			isEmissionsPage={isEmissionsPage}
 			initialTokenMarketData={initialTokenMarketData}

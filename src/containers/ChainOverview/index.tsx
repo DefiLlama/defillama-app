@@ -3,7 +3,7 @@ import { EntityQuestionsStrip } from '~/components/EntityQuestionsStrip'
 import { Icon } from '~/components/Icon'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { TokenLogo } from '~/components/TokenLogo'
-import { chainIconUrl, slug } from '~/utils'
+import { slug } from '~/utils'
 import { SmolStats } from './SmolStats'
 import { Stats } from './Stats'
 import type { IChainOverviewData } from './types'
@@ -14,26 +14,24 @@ export function ChainOverview(props: IChainOverviewData) {
 	return (
 		<>
 			<RowLinksWithDropdown links={props.allChains} activeLink={props.metadata.name} />
-			{props.metadata.name !== 'All' && (
+			{props.metadata.name !== 'All' ? (
 				<EntityQuestionsStrip
 					questions={props.entityQuestions || []}
 					entitySlug={slug(props.metadata.name)}
 					entityType="chain"
 					entityName={props.metadata.name}
 				/>
-			)}
+			) : null}
 			{props.isDataAvailable ? (
 				<>
 					<Stats {...props} />
-					<Suspense fallback={<div className="min-h-[815px] md:min-h-[469px] xl:min-h-[269px]"></div>}>
-						<SmolStats {...props} />
-					</Suspense>
+					<SmolStats {...props} />
 				</>
 			) : (
 				<>
 					<div className="flex flex-1 flex-col gap-10 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 						<h1 className="flex flex-nowrap items-center gap-2">
-							<TokenLogo logo={chainIconUrl(props.metadata.name)} size={24} />
+							<TokenLogo name={props.metadata.name} kind="chain" size={24} alt={`Logo of ${props.metadata.name}`} />
 							<span className="text-xl font-semibold">{props.metadata.name}</span>
 						</h1>
 						<p className="my-auto py-10 text-center text-sm text-(--text-form)">
@@ -88,16 +86,16 @@ export function ChainOverview(props: IChainOverviewData) {
 const linksToOtherLlamaApps = [
 	{
 		name: 'LlamaSearch',
-		description: 'Fastest way to find any crypto project',
+		description: 'Find official links to projects',
 		href: 'https://search.defillama.com',
 		icon: (
 			<img
-				src="/assets/logo_white.webp"
+				src="/assets/llamasearch.svg"
 				loading="lazy"
 				alt=""
 				height={44}
-				width={44}
-				className="z-10 h-[44px] w-[44px] object-contain"
+				width={39.28}
+				className="z-10 object-contain"
 			/>
 		),
 		background: <span className="llama-app-background" />
@@ -107,7 +105,7 @@ const linksToOtherLlamaApps = [
 		description: 'No fees DEX aggregator',
 		href: 'https://swap.defillama.com',
 		icon: (
-			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},
@@ -125,7 +123,7 @@ const linksToOtherLlamaApps = [
 		description: 'Access to all our data',
 		href: 'https://defillama.com/pro-api/docs',
 		icon: (
-			<img src="/assets/llamaswap.png" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
+			<img src="/assets/llamaswap.svg" loading="lazy" alt="" height={44} width={44} className="z-10 object-contain" />
 		),
 		background: <span className="llama-app-background" />
 	},

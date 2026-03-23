@@ -1,8 +1,8 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnSizingState,
+	createColumnHelper,
 	type ExpandedState,
 	getCoreRowModel,
 	getExpandedRowModel,
@@ -14,21 +14,22 @@ import {
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint, ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import type { useGroupBridgeData } from '~/containers/Stablecoins/hooks'
-import { chainIconUrl, formattedNum, renderPercentChange } from '~/utils'
+import { formattedNum } from '~/utils'
 
 type StablecoinByChainRow = ReturnType<typeof useGroupBridgeData>[number]
 type BridgeInfoCell = StablecoinByChainRow['bridgeInfo']
+const columnHelper = createColumnHelper<StablecoinByChainRow>()
 
-const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
-	{
-		header: 'Name',
+const stablecoinsByChainColumns = [
+	columnHelper.accessor((row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`, {
 		id: 'name',
-		accessorFn: (row) => `${row.name}${row.symbol && row.symbol !== '-' ? ` (${row.symbol})` : ''}`,
+		header: 'Name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const isSubRow = row.original.name.startsWith('Bridged from')
@@ -38,7 +39,7 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 					className="relative flex items-center gap-2"
 					style={{ paddingLeft: row.depth ? row.depth * 48 : row.depth === 0 ? 24 : 0 }}
 				>
-					{row.subRows?.length > 0 && (
+					{row.subRows?.length > 0 ? (
 						<button
 							className="absolute -left-0.5"
 							{...{
@@ -57,22 +58,22 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 								</>
 							)}
 						</button>
-					)}
+					) : null}
 
 					{isSubRow ? (
 						<>
 							<span>-</span>
-							<span>{getValue() as string}</span>
+							<span>{getValue()}</span>
 						</>
 					) : (
 						<>
 							<span className="vf-row-index shrink-0" aria-hidden="true" />
-							<TokenLogo logo={chainIconUrl(row.original.name)} data-lgonly />
+							<TokenLogo name={row.original.name} kind="chain" data-lgonly alt={`Logo of ${row.original.name}`} />
 							<BasicLink
 								href={`/stablecoins/${row.original.name}`}
 								className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
 							>
-								{getValue() as string}
+								{getValue()}
 							</BasicLink>
 						</>
 					)}
@@ -80,10 +81,9 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('bridgeInfo', {
 		header: 'Bridge',
-		accessorKey: 'bridgeInfo',
 		enableSorting: false,
 		cell: ({ getValue }) => {
 			const value = getValue() as BridgeInfoCell
@@ -104,51 +104,46 @@ const stablecoinsByChainColumns: ColumnDef<StablecoinByChainRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('bridgedAmount', {
 		header: 'Bridged Amount',
-		accessorKey: 'bridgedAmount',
 		size: 145,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d Change',
-		accessorKey: 'change_1d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 110,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_7d', {
 		header: '7d Change',
-		accessorKey: 'change_7d',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 110,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('change_1m', {
 		header: '1m Change',
-		accessorKey: 'change_1m',
-		cell: (info) => <>{renderPercentChange(info.getValue())}</>,
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		size: 110,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('circulating', {
 		header: 'Total Circulating',
-		accessorKey: 'circulating',
-		cell: (info) => <>{formattedNum(info.getValue())}</>,
+		cell: (info) => formattedNum(info.getValue()),
 		size: 145,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const assetsByChainColumnOrders: ColumnOrdersByBreakpoint = {
@@ -198,19 +193,20 @@ export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainR
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onExpandedChange: setExpanded,
+		enableSortingRemoval: false,
+		onExpandedChange: (updater) => React.startTransition(() => setExpanded(updater)),
 		getSubRows: (row: StablecoinByChainRow) => row.subRows,
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnSizingChange: setColumnSizing,
-		onColumnFiltersChange: setColumnFilters,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnSizingChange: (updater) => React.startTransition(() => setColumnSizing(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getExpandedRowModel: getExpandedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnSizes: assetsByChainColumnSizes,
@@ -230,10 +226,7 @@ export function StablecoinByChainUsageTable({ data }: { data: StablecoinByChainR
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

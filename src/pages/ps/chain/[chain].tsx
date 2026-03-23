@@ -1,23 +1,24 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
 import { feesOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { AdapterByChain } from '~/containers/DimensionAdapters/AdapterByChain'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getAdapterByChainPageData } from '~/containers/DimensionAdapters/queries'
 import type { IAdapterByChainPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.FEES
 const dataType = ADAPTER_DATA_TYPES.DAILY_REVENUE
 const type = 'P/S'
 
-export const getStaticPaths = async () => {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -59,10 +60,9 @@ const pageName = ['Protocols', 'ranked by', type]
 const RevenueOnChain = (props: IAdapterByChainPageData) => {
 	return (
 		<Layout
-			title={`P/S by Protocol on ${props.chain} - DefiLlama`}
-			description={`P/S by Protocol on ${props.chain}. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`p/s by protocol on ${props.chain}`}
-			canonicalUrl={`/ps/chain/${props.chain}`}
+			title={`Price to Sales (P/S) Ratio on ${props.chain} - DefiLlama`}
+			description={`Compare Price to Sales (P/S) ratios for DeFi protocols on ${props.chain}. Identify undervalued protocols by revenue multiples.`}
+			canonicalUrl={`/ps/chain/${slug(props.chain)}`}
 			metricFilters={feesOptions}
 			metricFiltersLabel="Include in Metrics"
 			pageName={pageName}

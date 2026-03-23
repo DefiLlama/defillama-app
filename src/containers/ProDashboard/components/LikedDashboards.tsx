@@ -34,7 +34,7 @@ export function LikedDashboards() {
 				))}
 			</div>
 
-			{totalPages > 1 && (
+			{totalPages > 1 ? (
 				<div className="mt-8 flex items-center justify-center gap-2">
 					<button
 						onClick={() => goToPage(Math.max(1, page - 1))}
@@ -77,7 +77,7 @@ export function LikedDashboards() {
 						<Icon name="chevron-right" height={16} width={16} />
 					</button>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

@@ -7,11 +7,20 @@ export function useStreamNotification() {
 	const hasBadgeRef = useRef(false)
 	const audioRef = useRef<HTMLAudioElement | null>(null)
 
+	// Preload the notification sound once so later completion notifications can play immediately.
 	useEffect(() => {
-		audioRef.current = new Audio('/assets/notification.mp3')
-		audioRef.current.load()
+		const audio = new Audio('/assets/notification.mp3')
+		audioRef.current = audio
+		audio.load()
+		return () => {
+			audio.pause()
+			audio.removeAttribute('src')
+			audio.load()
+			audioRef.current = null
+		}
 	}, [])
 
+	// Restore the original tab title/favicon after the user returns to the tab.
 	const clearBadge = useCallback(() => {
 		if (!hasBadgeRef.current) return
 		hasBadgeRef.current = false
@@ -20,6 +29,7 @@ export function useStreamNotification() {
 		if (link && originalFaviconRef.current) link.href = originalFaviconRef.current
 	}, [])
 
+	// Mark the tab as unread while a completed response is waiting in a background tab.
 	const setBadge = useCallback(() => {
 		if (hasBadgeRef.current) return
 		hasBadgeRef.current = true
@@ -30,15 +40,22 @@ export function useStreamNotification() {
 		if (link) link.href = '/favicon-badge.png'
 	}, [])
 
+	// Track whether the page is hidden so notifications only fire when the user is away.
 	useEffect(() => {
 		const handler = () => {
 			isHiddenRef.current = document.hidden
 			if (!document.hidden) clearBadge()
 		}
+		isHiddenRef.current = document.hidden
+		if (!document.hidden) clearBadge()
 		document.addEventListener('visibilitychange', handler)
-		return () => document.removeEventListener('visibilitychange', handler)
+		return () => {
+			document.removeEventListener('visibilitychange', handler)
+			if (hasBadgeRef.current) clearBadge()
+		}
 	}, [clearBadge])
 
+	// Reset and replay the short audio cue when a background response completes.
 	const playSound = useCallback(() => {
 		if (!audioRef.current) return
 		audioRef.current.currentTime = 0
@@ -50,30 +67,38 @@ export function useStreamNotification() {
 		})
 	}, [])
 
+	// Use the browser notification API as a secondary signal when permission is available.
 	const showNotification = useCallback(() => {
 		const notification = new Notification('LlamaAI', {
 			body: 'Llama has answered your question!',
 			icon: '/favicon-badge.png'
 		})
+		notification.onclick = () => {
+			window.focus()
+			window.parent?.focus?.()
+			notification.close()
+		}
 		void notification
-		playSound()
-	}, [playSound])
+	}, [])
 
+	// Notify only when the page is hidden; foreground completions do not need browser-level alerts.
 	const notify = useCallback(() => {
 		if (!isHiddenRef.current) return
 
 		setBadge()
+		playSound()
 
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'granted') {
 			showNotification()
 		} else if (Notification.permission === 'default') {
-			Notification.requestPermission().then((permission) => {
+			void Notification.requestPermission().then((permission) => {
 				if (permission === 'granted') showNotification()
 			})
 		}
-	}, [showNotification, setBadge])
+	}, [playSound, setBadge, showNotification])
 
+	// Prime both audio playback and notification permission early from an explicit user gesture.
 	const requestPermission = useCallback(() => {
 		if (audioRef.current) {
 			const vol = audioRef.current.volume
@@ -87,6 +112,11 @@ export function useStreamNotification() {
 					audioRef.current.volume = vol
 				})
 				.catch((error) => {
+					if (audioRef.current) {
+						audioRef.current.pause()
+						audioRef.current.currentTime = 0
+						audioRef.current.volume = vol
+					}
 					// Expected when autoplay is blocked - silently ignore
 					if (error.name !== 'NotAllowedError') {
 						console.log('Failed to initialize audio:', error)
@@ -95,7 +125,7 @@ export function useStreamNotification() {
 		}
 		if (typeof Notification === 'undefined') return
 		if (Notification.permission === 'default') {
-			Notification.requestPermission().then((permission) => {
+			void Notification.requestPermission().then((permission) => {
 				if (permission === 'denied') {
 					console.log('Notification permission was denied by user')
 				}

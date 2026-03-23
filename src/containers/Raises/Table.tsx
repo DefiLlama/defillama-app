@@ -1,7 +1,8 @@
 import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
-	type ColumnDef,
+	type Table,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -12,12 +13,14 @@ import * as React from 'react'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { VirtualTable } from '~/components/Table/Table'
 import type { ColumnOrdersByBreakpoint } from '~/components/Table/utils'
-import { useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useSortColumnSizesAndOrders, useTableSearch } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
-import { toNiceDayMonthYear } from '~/utils'
+import { formattedNum, toNiceDayMonthYear } from '~/utils'
 import type { IRaise } from './types'
+import { formatRaiseAmount } from './utils'
 
 const columnResizeMode = 'onChange'
 
@@ -25,74 +28,51 @@ const handleDownloadJson = () => {
 	window.open('https://api.llama.fi/raises', '_blank', 'noopener,noreferrer')
 }
 
-const formatRaise = (n: number) => {
-	if (n >= 1e3) {
-		return `${n / 1e3}b`
-	}
-	return `${n}m`
-}
+const columnHelper = createColumnHelper<IRaise>()
 
-export const raisesColumns: ColumnDef<IRaise>[] = [
-	{
+export const raisesColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		size: 180
-	},
-	{
+	}),
+	columnHelper.accessor('date', {
 		size: 120,
 		header: 'Date',
-		accessorKey: 'date',
-		cell: ({ getValue }) => <>{toNiceDayMonthYear(getValue<number>())}</>
-	},
-	{
+		cell: (info) => toNiceDayMonthYear(info.getValue())
+	}),
+	columnHelper.accessor((row) => formatRaiseAmount(row.amount), {
+		id: 'amount',
 		header: 'Amount Raised',
-		accessorKey: 'amount',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? '$' + formatRaise(value) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 140
-	},
-	{ header: 'Round', accessorKey: 'round', enableSorting: false, size: 140 },
-	{
+	}),
+	columnHelper.accessor('round', { header: 'Round', enableSorting: false, size: 140 }),
+	columnHelper.accessor('category', {
 		header: 'Category',
-		accessorKey: 'category',
 		size: 160,
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue<string>()
-			return <Tooltip content={value}>{value}</Tooltip>
-		}
-	},
-	{
+		cell: (info) => <Tooltip content={info.getValue()}>{info.getValue()}</Tooltip>
+	}),
+	columnHelper.accessor('sector', {
 		header: 'Description',
-		accessorKey: 'sector',
 		size: 140,
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const value = getValue<string>()
-			return <Tooltip content={value}>{value}</Tooltip>
-		}
-	},
-	{
+		cell: (info) => <Tooltip content={info.getValue()}>{info.getValue()}</Tooltip>
+	}),
+	columnHelper.accessor('leadInvestors', {
 		header: 'Lead Investor',
-		accessorKey: 'leadInvestors',
 		size: 120,
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const formattedValue = getValue<string[]>().join(', ')
-			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
-		}
-	},
-	{
+		cell: (info) => <Tooltip content={info.getValue().join(', ')}>{info.getValue().join(', ')}</Tooltip>
+	}),
+	columnHelper.accessor('source', {
 		header: 'Link',
-		accessorKey: 'source',
 		size: 60,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<a
-				href={getValue<string>()}
+				href={getValue()}
 				target="_blank"
 				rel="noopener noreferrer"
 				className="flex shrink-0 items-center justify-center rounded-md bg-(--link-button) p-1.5 hover:bg-(--link-button-hover)"
@@ -101,33 +81,25 @@ export const raisesColumns: ColumnDef<IRaise>[] = [
 				<span className="sr-only">open in new tab</span>
 			</a>
 		)
-	},
-	{
+	}),
+	columnHelper.accessor((row) => formatRaiseAmount(row.valuation), {
+		id: 'valuation',
 		header: 'Valuation',
-		accessorKey: 'valuation',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? '$' + formatRaise(value) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
 		size: 80
-	},
-	{
+	}),
+	columnHelper.accessor('otherInvestors', {
 		header: 'Other Investors',
-		accessorKey: 'otherInvestors',
 		size: 400,
 		enableSorting: false,
-		cell: ({ getValue }) => {
-			const formattedValue = getValue<string[]>().join(', ')
-			return <Tooltip content={formattedValue}>{formattedValue}</Tooltip>
-		}
-	}
+		cell: (info) => <Tooltip content={info.getValue().join(', ')}>{info.getValue().join(', ')}</Tooltip>
+	})
 ]
 
 export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
@@ -159,13 +131,37 @@ export const raisesColumnOrders: ColumnOrdersByBreakpoint = {
 	]
 }
 
-export function RaisesTable({
-	raises,
-	prepareCsv
-}: {
-	raises: IRaise[]
-	prepareCsv: () => { filename: string; rows: (string | number | boolean)[][] }
-}) {
+const prepareRaisesCsv = (instance: Table<IRaise>) => {
+	const csv = prepareTableCsv({ instance, filename: 'raises' })
+	if (csv.rows.length === 0) return csv
+
+	const headers = csv.rows[0] as string[]
+	const dateIdx = headers.indexOf('Date')
+	const newHeaders = [...headers]
+
+	if (dateIdx !== -1) {
+		newHeaders.splice(dateIdx, 1, 'Timestamp', 'Date')
+	}
+
+	return {
+		...csv,
+		rows: [
+			newHeaders,
+			...csv.rows.slice(1).map((row) => {
+				const newRow = [...row]
+				if (dateIdx !== -1 && typeof newRow[dateIdx] === 'number') {
+					const ts = newRow[dateIdx] as number
+					const d = new Date(ts * 1000)
+					const formatted = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`
+					newRow.splice(dateIdx, 1, ts, formatted)
+				}
+				return newRow
+			})
+		]
+	}
+}
+
+export function RaisesTable({ raises }: { raises: IRaise[] }) {
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 	const [sorting, setSorting] = React.useState<SortingState>([{ desc: true, id: 'date' }])
 	const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([])
@@ -182,15 +178,16 @@ export function RaisesTable({
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnOrderChange: setColumnOrder,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnOrderChange: (updater) => React.startTransition(() => setColumnOrder(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 	useSortColumnSizesAndOrders({
 		instance,
 		columnOrders: raisesColumnOrders
@@ -209,10 +206,7 @@ export function RaisesTable({
 					/>
 					<input
 						name="search"
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
@@ -229,7 +223,7 @@ export function RaisesTable({
 				<CSVDownloadButton onClick={handleDownloadJson} isLoading={false}>
 					Download.json
 				</CSVDownloadButton>
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={() => prepareRaisesCsv(instance)} smol />
 			</div>
 
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />

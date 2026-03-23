@@ -13,15 +13,15 @@ export function EmptyState({ onAddChart, onGenerateWithAI, isReadOnly = false }:
 		<div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) px-1 py-12">
 			<Icon name="bar-chart-2" height={48} width={48} className="text-(--text-label)" />
 			<h1 className="text-3xl font-bold">{isReadOnly ? 'This dashboard is empty' : 'No charts added yet'}</h1>
-			{!isReadOnly && (
+			{!isReadOnly ? (
 				<p className="text-center text-base text-(--text-label)">
 					Start building your dashboard by adding charts
 					{showAIGeneration ? ' manually or generate with LlamaAI' : ' manually'}
 				</p>
-			)}
-			{!isReadOnly && (
+			) : null}
+			{!isReadOnly ? (
 				<div className="mt-7 flex flex-col justify-center gap-4 sm:flex-row">
-					{showAIGeneration && (
+					{showAIGeneration ? (
 						<button
 							className="flex items-center gap-1 rounded-md pro-btn-blue px-6 py-3 font-medium"
 							onClick={onGenerateWithAI}
@@ -29,7 +29,7 @@ export function EmptyState({ onAddChart, onGenerateWithAI, isReadOnly = false }:
 							<Icon name="sparkles" height={20} width={20} />
 							Generate with LlamaAI
 						</button>
-					)}
+					) : null}
 					<button
 						className="flex items-center gap-1 rounded-md pro-btn-purple px-6 py-3 font-medium"
 						onClick={onAddChart}
@@ -38,7 +38,7 @@ export function EmptyState({ onAddChart, onGenerateWithAI, isReadOnly = false }:
 						Add Your First Chart
 					</button>
 				</div>
-			)}
+			) : null}
 		</div>
 	)
 }

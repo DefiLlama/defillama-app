@@ -1,18 +1,19 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag'
 import { getProtocolCategoryPresentation } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { getProtocolsByCategoryOrTag } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import Layout from '~/layout'
-import { capitalizeFirstLetter, slug } from '~/utils'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(
 	'protocols/[category]/[chain]',
 	async ({ params }: GetStaticPropsContext<{ category: string; chain: string }>) => {
 		if (!params?.category || !params?.chain) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const category = params.category
@@ -65,11 +66,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -86,17 +87,16 @@ export default function Protocols(props: InferGetStaticPropsType<typeof getStati
 	const presentation = getProtocolCategoryPresentation({
 		label: categoryLabel,
 		effectiveCategory: props.effectiveCategory,
-		isTagPage: !!props.tag && !props.category
+		isTagPage: !!props.tag && !props.category,
+		chain: props.chain
 	})
-	const title = `${capitalizeFirstLetter(presentation.seoLabel)} ${presentation.titleSuffix} - DefiLlama`
-	const description = `${presentation.seoLabel} Rankings on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`
-	const keywords = `${presentation.seoLabel} rankings, defi ${presentation.seoLabel} rankings`.toLowerCase()
+	const title = presentation.seoTitle
+	const description = presentation.seoDescription
 	const canonicalChainSuffix = props.chain ? `/${props.chain}` : ''
 	return (
 		<Layout
 			title={title}
 			description={description}
-			keywords={keywords}
 			canonicalUrl={`/protocols/${props.category ? props.category : props.tag}${canonicalChainSuffix}`}
 			metricFilters={toggleOptions}
 		>

@@ -1,47 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import { SEARCH_API_TOKEN, SEARCH_API_URL } from '~/constants'
-import { useDebounce } from '~/hooks/useDebounce'
-import { handleSimpleFetchResponse } from '~/utils/async'
+import { searchApi } from '~/api'
+import { useDebouncedValue } from '~/hooks/useDebounce'
 
-interface EntityResult {
+export interface EntityResult {
 	id: string
 	name: string
 	logo: string | null
 	type: string
 }
 
-interface SearchQuery {
-	indexUid: string
-	limit: number
-	offset: number
-	q: string
-	filter: Array<string | string[]>
-}
-
-/**
- * Generic search API helper for DefiLlama multi-search endpoint.
- */
-async function searchApi(query: SearchQuery): Promise<EntityResult[]> {
-	const response = await fetch(SEARCH_API_URL, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${SEARCH_API_TOKEN}`
-		},
-		body: JSON.stringify({ queries: [query] })
-	})
-		.then(handleSimpleFetchResponse)
-		.then((res) => res.json())
-		.then((res) => res?.results?.[0]?.hits ?? [])
-
-	return response
-}
-
 /**
  * Fetch entities (chains, protocols, stablecoins, categories) matching the query.
  */
 async function fetchEntities(query: string): Promise<EntityResult[]> {
-	return searchApi({
+	return searchApi<EntityResult>({
 		indexUid: 'pages',
 		limit: 10,
 		offset: 0,
@@ -58,7 +30,7 @@ async function fetchEntities(query: string): Promise<EntityResult[]> {
  * Fetch coins/tokens matching the query.
  */
 export async function fetchCoins(query: string, limit: number = 10): Promise<EntityResult[]> {
-	const hits = await searchApi({
+	const hits = await searchApi<EntityResult>({
 		indexUid: 'pages',
 		limit,
 		offset: 0,
@@ -82,7 +54,7 @@ export async function fetchCoins(query: string, limit: number = 10): Promise<Ent
  * - $ prefix: fetches coins/tokens
  */
 export function useGetEntities(q: string) {
-	const debouncedQuery = useDebounce(q, 200)
+	const debouncedQuery = useDebouncedValue(q, 200)
 
 	const isCoins = debouncedQuery.startsWith('$')
 	const isEntities = debouncedQuery.startsWith('@')
@@ -90,7 +62,7 @@ export function useGetEntities(q: string) {
 	const isBareTrigger = debouncedQuery === '$' || debouncedQuery === '@'
 
 	return useQuery({
-		queryKey: ['get-entities', debouncedQuery],
+		queryKey: ['llamaai', 'entities', debouncedQuery],
 		queryFn: () => (isCoins ? fetchCoins(queryWithoutTrigger) : fetchEntities(queryWithoutTrigger)),
 		// Fetch defaults when user typed a bare trigger (@ / $), otherwise only fetch when there's a query
 		enabled: queryWithoutTrigger.length > 0 || isBareTrigger,

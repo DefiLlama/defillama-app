@@ -1,16 +1,17 @@
 import {
-	type ColumnDef,
+	createColumnHelper,
 	getCoreRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
 import type { InferGetStaticPropsType } from 'next'
-import { useMemo, useState } from 'react'
-import { maxAgeForNext } from '~/api'
+import { startTransition, useMemo, useState } from 'react'
 import { Bookmark } from '~/components/Bookmark'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { splitArrayByFalsyValues } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
@@ -18,7 +19,8 @@ import { fetchProtocols } from '~/containers/Protocols/api'
 import type { ProtocolsResponse } from '~/containers/Protocols/api.types'
 import { TVL_SETTINGS_KEYS_SET, useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import Layout from '~/layout'
-import { formattedNum, getPercentChange, renderPercentChange, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, getPercentChange, slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const GAINERS_SORTING_STATE: SortingState = [{ id: 'change_1d', desc: true }]
@@ -41,13 +43,14 @@ type ProtocolRow = ProtocolBaseRow & {
 	mcaptvl: number | null
 }
 
-const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
-	{
+const columnHelper = createColumnHelper<ProtocolRow>()
+
+const topGainersAndLosersColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const value = getValue() as string
+			const value = getValue()
 
 			return (
 				<span
@@ -56,7 +59,7 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 				>
 					<Bookmark readableName={value} data-lgonly data-bookmark />
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(value)} data-lgonly />
+					<TokenLogo name={value} kind="token" data-lgonly alt={`Logo of ${value}`} />
 					<BasicLink
 						href={`/protocol/${slug(value)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -65,48 +68,42 @@ const topGainersAndLosersColumns: ColumnDef<ProtocolRow>[] = [
 			)
 		},
 		size: 260
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue() as Array<string>} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
 		meta: {
 			align: 'end',
 			headerHelperText: "Chains are ordered by protocol's highest TVL on each chain"
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => {
-			return <>{formattedNum(getValue(), true)}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: {
 			align: 'end'
 		},
 		size: 100
-	},
-	{
+	}),
+	columnHelper.accessor('change_1d', {
 		header: '1d TVL Change',
-		accessorKey: 'change_1d',
-		cell: ({ getValue }) => <>{renderPercentChange(getValue())}</>,
+		cell: ({ getValue }) => <PercentChange percent={getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change in TVL in the last 24 hours'
 		},
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('mcaptvl', {
 		header: 'Mcap/TVL',
-		accessorKey: 'mcaptvl',
-		cell: (info) => info.getValue<number | null>(),
+		cell: (info) => info.getValue(),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 function TopGainersAndLosersTable({ data, sortingState }: { data: Array<ProtocolRow>; sortingState: SortingState }) {
@@ -121,7 +118,8 @@ function TopGainersAndLosersTable({ data, sortingState }: { data: Array<Protocol
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => startTransition(() => setSorting(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
@@ -211,18 +209,18 @@ export default function TopGainersLosers({ protocols }: InferGetStaticPropsType<
 	return (
 		<Layout
 			title={`Top Gainers and Losers - DefiLlama`}
-			description={`Top Gainers and Losers by their TVL. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`top gainers, top losers, defi top gainers, defi top losers, top gainers and losers by tvl`}
+			description="Track the top DeFi TVL gainers and losers by 24h change. Compare protocol TVL, 1d TVL change, chains, and Mcap/TVL."
 			canonicalUrl={`/top-gainers-and-losers`}
 		>
+			<h1 className="text-xl font-semibold">Top Gainers and Losers</h1>
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h1 className="p-3 text-xl font-semibold">Top Gainers</h1>
-				<TopGainersAndLosersTable data={topGainers} sortingState={GAINERS_SORTING_STATE} />
+				<h2 className="p-3 text-xl font-semibold">Top Gainers</h2>
+				<TopGainersAndLosersTable key="gainers-change_1d" data={topGainers} sortingState={GAINERS_SORTING_STATE} />
 			</div>
 
 			<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<h1 className="p-3 text-xl font-semibold">Top Losers</h1>
-				<TopGainersAndLosersTable data={topLosers} sortingState={LOSERS_SORTING_STATE} />
+				<h2 className="p-3 text-xl font-semibold">Top Losers</h2>
+				<TopGainersAndLosersTable key="losers-change_1d" data={topLosers} sortingState={LOSERS_SORTING_STATE} />
 			</div>
 		</Layout>
 	)

@@ -1,12 +1,17 @@
+'use no memo'
+
 import { type ColumnDef, type Row, type CellContext } from '@tanstack/react-table'
 import { type ReactNode } from 'react'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
+import { getCategoryRoute } from '~/constants'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
-import { chainIconUrl, formattedNum, renderPercentChange, slug } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import type { CustomColumnDefinition, UnifiedRowHeaderType } from '../../../types'
 import { getChainMetricsByName } from '../core/chainMetricsStore'
 import { ROW_HEADER_GROUPING_COLUMN_IDS } from '../core/grouping'
@@ -20,14 +25,6 @@ import type { MetricGroup, NormalizedRow, NumericMetrics } from '../types'
 import { createCustomColumnDef, validateCustomColumnOnLoad } from '../utils/customColumns'
 import { COLUMN_DICTIONARY_BY_ID } from './ColumnDictionary'
 import { isColumnSupported } from './metricCapabilities'
-
-declare module '@tanstack/table-core' {
-	// oxlint-disable-next-line no-unused-vars
-	interface ColumnMeta<TData, TValue> {
-		align?: 'start' | 'center' | 'end'
-		hidden?: boolean
-	}
-}
 
 const renderDash = () => <span className="pro-text3">-</span>
 
@@ -50,14 +47,22 @@ const renderPercent = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{renderPercentChange(value, true)}</span>
+	return (
+		<span className="pro-text2">
+			<PercentChange percent={value} noSign />
+		</span>
+	)
 }
 
 const renderPercentChangeCell = (value: number | null | undefined) => {
 	if (value == null) {
 		return renderDash()
 	}
-	return <span className="pro-text2">{renderPercentChange(value, false)}</span>
+	return (
+		<span className="pro-text2">
+			<PercentChange percent={value} />
+		</span>
+	)
 }
 
 const renderRatio = (value: number | null | undefined) => {
@@ -248,8 +253,6 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					!shouldShowChainIcon &&
 					display.header !== 'category' &&
 					(display.groupKind === 'parent' || display.header === 'protocol' || display.header === 'parent-protocol')
-				const chainIcon = shouldShowChainIcon ? chainIconUrl(display.label) : null
-				const iconSource = shouldShowChainIcon ? chainIcon : (display.iconUrl ?? baseRow?.logo ?? undefined)
 				const isChainOrCategoryGroup = display.header === 'chain' || display.header === 'category'
 				const protocolCountValue = isChainOrCategoryGroup && row.getIsGrouped() ? (row.subRows?.length ?? null) : null
 
@@ -271,16 +274,25 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 						) : (
 							<span className="w-4" />
 						)}
-						{display.header !== 'category' &&
-							(shouldShowProtocolLogo || shouldShowChainIcon ? (
-								<TokenLogo logo={iconSource ?? undefined} size={24} />
+						{display.header !== 'category' ? (
+							shouldShowProtocolLogo || shouldShowChainIcon ? (
+								shouldShowChainIcon ? (
+									<TokenLogo name={display.label} kind="chain" alt={`Logo of ${display.label}`} size={24} />
+								) : (
+									<TokenLogo
+										src={display.iconUrl ?? baseRow?.logo ?? undefined}
+										alt={`Logo of ${display.label}`}
+										size={24}
+									/>
+								)
 							) : (
 								<span className="inline-block h-6 w-6 shrink-0" />
-							))}
+							)
+						) : null}
 						<span className="font-medium text-(--text-primary)">{display.label}</span>
-						{protocolCountValue && protocolCountValue > 1 && (
+						{protocolCountValue && protocolCountValue > 1 ? (
 							<span className="text-xs text-(--text-tertiary)">{protocolCountValue} protocols</span>
-						)}
+						) : null}
 					</div>
 				)
 			}
@@ -306,7 +318,10 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 					return renderDash()
 				}
 				return (
-					<BasicLink href={`/protocols/${category}`} className="text-sm font-medium text-(--link-text) hover:underline">
+					<BasicLink
+						href={getCategoryRoute(slug(category))}
+						className="text-sm font-medium text-(--link-text) hover:underline"
+					>
 						{category}
 					</BasicLink>
 				)
@@ -332,7 +347,7 @@ export const getUnifiedTableColumns = (customColumns?: CustomColumnDefinition[])
 				if (!chains.length) {
 					return renderDash()
 				}
-				return <IconsRow links={chains} url="/chain" iconType="chain" />
+				return <IconsRow items={toChainIconItems(chains, (chain) => chainHref('/chain', chain))} />
 			}
 		},
 		{

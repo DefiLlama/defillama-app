@@ -1,51 +1,54 @@
-import { useRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { Account } from '../Account'
 import { PremiumHeader } from '../PremiumHeader'
+import { LinkToPage } from '../shared'
 import { ThemeSwitch } from '../ThemeSwitch'
 import type { TNavLink, TNavLinks, TOldNavLink } from '../types'
-import { LinkToPage } from './shared'
-
-const PinnedPages = React.lazy(() => import('./PinnedPages').then((mod) => ({ default: mod.PinnedPages })))
+import { PinnedPages } from './PinnedPages'
 
 export function DesktopNav({
 	mainLinks,
 	pinnedPages,
 	userDashboards,
 	footerLinks,
-	oldMetricLinks
+	oldMetricLinks,
+	asPath
 }: {
 	mainLinks: TNavLinks
 	pinnedPages: Array<TNavLink>
 	userDashboards: Array<TNavLink>
 	footerLinks: TNavLinks
 	oldMetricLinks: Array<TOldNavLink>
+	asPath: string
 }) {
-	const { asPath } = useRouter()
-
 	return (
 		<span className="col-span-1 max-lg:hidden">
 			<nav className="sticky top-0 bottom-0 left-0 isolate col-span-1 flex thin-scrollbar h-screen flex-col gap-1 overflow-y-auto bg-(--app-bg) py-4 *:pl-4">
 				<BasicLink href="/" className="mb-4 w-fit shrink-0">
-					<span className="sr-only">Navigate to Home Page</span>
-					<img
-						src="/assets/defillama.webp"
-						height={53}
-						width={155}
-						className="mr-auto hidden object-contain object-left dark:block"
-						alt=""
-						fetchPriority="high"
-					/>
-					<img
-						src="/assets/defillama-dark.webp"
-						height={53}
-						width={155}
-						className="mr-auto object-contain object-left dark:hidden"
-						alt=""
-						fetchPriority="high"
-					/>
+					<span className="sr-only">Navigate to DeFi Dashboard</span>
+					<span className="relative block h-[53px] w-[155px]">
+						<img
+							src="/assets/defillama.webp"
+							height={53}
+							width={155}
+							className="invisible absolute inset-0 object-contain object-left dark:visible"
+							alt=""
+							fetchPriority="high"
+							loading="eager"
+							decoding="sync"
+						/>
+						<img
+							src="/assets/defillama-dark.webp"
+							height={53}
+							width={155}
+							className="visible absolute inset-0 object-contain object-left dark:invisible"
+							alt=""
+							loading="eager"
+							decoding="sync"
+						/>
+					</span>
 				</BasicLink>
 
 				<div className="flex flex-1 flex-col gap-1 overflow-y-auto">
@@ -82,11 +85,11 @@ export function DesktopNav({
 												<Icon name="chevron-down" className="h-4 w-4 shrink-0 group-open/second:rotate-180" />
 											</summary>
 											<div className="border-l border-black/20 pl-2 dark:border-white/20">
-												{pages.map(({ name, route }) => (
+												{pages.map(({ name: pageName, route: pageRoute }) => (
 													<LinkToPage
-														key={`old-desktop-nav-${name}-${route}`}
-														route={route}
-														name={name}
+														key={`old-desktop-nav-${pageName}-${pageRoute}`}
+														route={pageRoute}
+														name={pageName}
 														asPath={asPath}
 													/>
 												))}
@@ -100,11 +103,7 @@ export function DesktopNav({
 						</div>
 					</details>
 
-					{pinnedPages.length > 0 ? (
-						<React.Suspense>
-							<PinnedPages pinnedPages={pinnedPages} asPath={asPath} />
-						</React.Suspense>
-					) : null}
+					{pinnedPages.length > 0 ? <PinnedPages pinnedPages={pinnedPages} asPath={asPath} /> : null}
 
 					{userDashboards.length > 0 ? (
 						<div className="group">
@@ -126,7 +125,7 @@ export function DesktopNav({
 
 				<div className="sticky bottom-0 flex w-full flex-col gap-2 bg-(--app-bg)">
 					<hr className="-ml-1.5 border-black/20 pb-1 dark:border-white/20" />
-					<Account />
+					<Account asPath={asPath} />
 					<ThemeSwitch />
 				</div>
 			</nav>

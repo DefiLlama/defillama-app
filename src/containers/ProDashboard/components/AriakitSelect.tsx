@@ -1,5 +1,5 @@
 import { Popover, PopoverDisclosure, usePopoverStore } from '@ariakit/react'
-import { useMemo } from 'react'
+import { useId, useMemo } from 'react'
 import { Icon } from '~/components/Icon'
 import { LoadingSpinner } from './LoadingSpinner'
 
@@ -30,6 +30,7 @@ export function AriakitSelect({
 	className = ''
 }: AriakitSelectProps) {
 	const popover = usePopoverStore({ placement: 'bottom-start' })
+	const disclosureId = useId()
 
 	const selectedLabel = useMemo(() => {
 		if (!selectedValue) return placeholder
@@ -39,7 +40,11 @@ export function AriakitSelect({
 
 	return (
 		<div className={className}>
-			{label && <label className="mb-1 block text-[11px] font-medium pro-text2">{label}</label>}
+			{label ? (
+				<label htmlFor={disclosureId} className="mb-1 block text-[11px] font-medium pro-text2">
+					{label}
+				</label>
+			) : null}
 			{isLoading ? (
 				<div className="flex h-9 items-center justify-center rounded-md border border-(--form-control-border) bg-(--bg-input)">
 					<LoadingSpinner size="sm" />
@@ -47,6 +52,7 @@ export function AriakitSelect({
 			) : (
 				<>
 					<PopoverDisclosure
+						id={disclosureId}
 						store={popover}
 						className="flex w-full items-center justify-between rounded-md border border-(--form-control-border) bg-(--bg-input) px-2.5 py-1.5 text-xs transition-colors hover:border-(--primary)/40 focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					>
@@ -63,9 +69,9 @@ export function AriakitSelect({
 						style={{ width: 'var(--popover-anchor-width)' }}
 					>
 						<div className="thin-scrollbar max-h-[280px] overflow-y-auto p-1">
-							{options.length === 0 && (
-								<div className="px-3 py-2 text-center text-xs pro-text3">No options available.</div>
-							)}
+							{options.length === 0 ? (
+								<p className="px-3 py-2 text-center text-xs pro-text3">No options available.</p>
+							) : null}
 							{options.map((option) => {
 								const isActive = option.value === selectedValue
 								return (
@@ -88,12 +94,12 @@ export function AriakitSelect({
 										}`}
 									>
 										<div className="flex items-center gap-2">
-											{option.icon && <Icon name={option.icon as any} width={14} height={14} />}
+											{option.icon ? <Icon name={option.icon as any} width={14} height={14} /> : null}
 											<span className="truncate">{option.label}</span>
 										</div>
-										{isActive && (
+										{isActive ? (
 											<Icon name="check" width={12} height={12} className="ml-2 shrink-0 text-(--primary)" />
-										)}
+										) : null}
 									</button>
 								)
 							})}

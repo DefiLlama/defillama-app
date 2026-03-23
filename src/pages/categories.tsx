@@ -1,10 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
 import { ProtocolsCategoriesPage } from '~/containers/ProtocolsByCategoryOrTag/CategoriesPage'
 import { categoriesPageExcludedExtraTvls } from '~/containers/ProtocolsByCategoryOrTag/constants'
 import { getProtocolsCategoriesPageData } from '~/containers/ProtocolsByCategoryOrTag/queries'
 import type { IProtocolsCategoriesPageData } from '~/containers/ProtocolsByCategoryOrTag/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Protocol Categories']
@@ -22,9 +22,8 @@ export const getStaticProps = withPerformanceLogging('categories', async () => {
 export default function CategoriesPage(props: IProtocolsCategoriesPageData) {
 	return (
 		<Layout
-			title="Categories - DefiLlama"
-			description="Combined TVL, Revenue and other metrics by category of all protocols that are tracked by DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency."
-			keywords="protocols categories, defi categories"
+			title="Protocol Categories - DeFi TVL & Revenue Sectors - DefiLlama"
+			description="Explore DeFi protocol categories: DEXs, Lending, Yield, Derivatives, and more. Compare sector TVL, revenue, and growth metrics. Category rankings and market share analytics for DeFi sectors."
 			canonicalUrl="/categories"
 			metricFilters={finalTvlOptions}
 			pageName={pageName}

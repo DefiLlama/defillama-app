@@ -4,7 +4,6 @@ import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type Dashboard, dashboardAPI } from '../services/DashboardAPI'
 
 const EMPTY_DASHBOARDS: Dashboard[] = []
-const EMPTY_TAGS: string[] = []
 
 interface SearchParams {
 	query?: string
@@ -16,6 +15,29 @@ interface SearchParams {
 	limit?: number
 }
 
+const POPULAR_TAGS = [
+	'analytics',
+	'finance',
+	'marketing',
+	'hr',
+	'sales',
+	'kpi',
+	'metrics',
+	'reporting',
+	'real-time',
+	'daily',
+	'weekly',
+	'monthly',
+	'revenue',
+	'costs',
+	'performance',
+	'trends',
+	'defi',
+	'trading',
+	'portfolio',
+	'risk'
+]
+
 export function useDashboardDiscovery(params: SearchParams) {
 	const queryClient = useQueryClient()
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
@@ -23,7 +45,7 @@ export function useDashboardDiscovery(params: SearchParams) {
 	const isSearchMode = !!(params.query || params.tags?.length)
 
 	const discoverQuery = useQuery({
-		queryKey: ['dashboard-discover', isSearchMode, params.page, params.limit, params.sortBy, params.timeFrame],
+		queryKey: ['pro-dashboard', 'dashboard-discover', params.page, params.limit, params.sortBy, params.timeFrame],
 		queryFn: async () => {
 			if (isSearchMode) return null
 
@@ -52,42 +74,13 @@ export function useDashboardDiscovery(params: SearchParams) {
 	})
 
 	const searchQuery = useQuery({
-		queryKey: ['dashboard-search', isSearchMode, params],
+		queryKey: ['pro-dashboard', 'dashboard-search', params],
 		queryFn: async () => {
 			if (!isSearchMode) return null
 			return await dashboardAPI.searchDashboards(params, isAuthenticated ? authorizedFetch : undefined)
 		},
 		staleTime: 1000 * 60 * 2,
 		enabled: isSearchMode
-	})
-
-	const { data: popularTagsData } = useQuery({
-		queryKey: ['popular-tags'],
-		queryFn: async () => {
-			return [
-				'analytics',
-				'finance',
-				'marketing',
-				'hr',
-				'sales',
-				'kpi',
-				'metrics',
-				'reporting',
-				'real-time',
-				'daily',
-				'weekly',
-				'monthly',
-				'revenue',
-				'costs',
-				'performance',
-				'trends',
-				'defi',
-				'trading',
-				'portfolio',
-				'risk'
-			]
-		},
-		staleTime: 1000 * 60 * 60
 	})
 
 	const likeMutation = useMutation({
@@ -98,40 +91,35 @@ export function useDashboardDiscovery(params: SearchParams) {
 			return await dashboardAPI.likeDashboard(dashboardId, authorizedFetch)
 		},
 		onSuccess: (data, dashboardId) => {
-			queryClient.setQueryData(['dashboard-discover'], (oldData: any) => {
+			const updateLikeCount = (oldData: any) => {
 				if (!oldData) return oldData
 				return {
 					...oldData,
-					items: oldData.items.map((d: Dashboard) => (d.id === dashboardId ? { ...d, likeCount: data.likeCount } : d))
+					items: oldData.items.map((d: Dashboard) =>
+						d.id === dashboardId ? { ...d, likeCount: data.likeCount, liked: data.liked } : d
+					)
 				}
-			})
-			queryClient.setQueryData(['dashboard-search'], (oldData: any) => {
-				if (!oldData) return oldData
-				return {
-					...oldData,
-					items: oldData.items.map((d: Dashboard) => (d.id === dashboardId ? { ...d, likeCount: data.likeCount } : d))
-				}
-			})
+			}
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard-discover'] }, updateLikeCount)
+			queryClient.setQueriesData({ queryKey: ['pro-dashboard', 'dashboard-search'] }, updateLikeCount)
 			toast.success(data.liked ? 'Dashboard liked!' : 'Like removed')
 		},
-		onError: (error: any) => {
-			toast.error(error.message || 'Failed to update like')
+		onError: (error: unknown) => {
+			toast.error(error instanceof Error ? error.message : 'Failed to update like')
 		}
 	})
 
 	const activeQuery = isSearchMode ? searchQuery : discoverQuery
 	const data = activeQuery.data
-	const dashboards = data?.items ?? EMPTY_DASHBOARDS
-	const popularTags = popularTagsData ?? EMPTY_TAGS
 
 	return {
-		dashboards,
+		dashboards: data?.items ?? EMPTY_DASHBOARDS,
 		isLoading: activeQuery.isLoading,
 		error: activeQuery.error as Error | null,
 		totalPages: data?.totalPages || 1,
 		totalItems: data?.totalItems || 0,
 		currentPage: data?.page || 1,
-		popularTags,
+		popularTags: POPULAR_TAGS,
 		likeDashboard: likeMutation.mutate,
 		isLiking: likeMutation.isPending
 	}

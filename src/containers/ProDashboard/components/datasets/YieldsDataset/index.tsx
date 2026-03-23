@@ -27,7 +27,8 @@ export function YieldsDataset({
 	const { data, isLoading, error } = useYieldsData(chains)
 	const { handleTableColumnsChange, handleTableFiltersChange } = useProDashboardEditorActions()
 
-	const uniqueTableId = React.useMemo(() => tableId || `yields-table-${Date.now()}`, [tableId])
+	const [fallbackTableId] = React.useState(() => `yields-table-${Date.now()}`)
+	const uniqueTableId = tableId || fallbackTableId
 
 	const {
 		table,
@@ -73,8 +74,8 @@ export function YieldsDataset({
 		}, [handleTableColumnsChange, uniqueTableId]),
 		onFiltersChange: React.useMemo(() => {
 			if (!uniqueTableId) return undefined
-			return (filters: YieldsFilters) => {
-				handleTableFiltersChange(uniqueTableId, filters)
+			return (nextFilters: YieldsFilters) => {
+				handleTableFiltersChange(uniqueTableId, nextFilters)
 			}
 		}, [handleTableFiltersChange, uniqueTableId])
 	})

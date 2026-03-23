@@ -1,12 +1,25 @@
+import * as Ariakit from '@ariakit/react'
 import type { ColumnOrderState, SortingState, VisibilityState } from '@tanstack/react-table'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
 import { Icon } from '~/components/Icon'
+import { useAuthContext } from '~/containers/Subscribtion/auth'
+import { setSignupSource } from '~/containers/Subscribtion/signupSource'
+
+const SubscribeProModal = lazy(() =>
+	import('~/components/SubscribeCards/SubscribeProCard').then((m) => ({ default: m.SubscribeProModal }))
+)
 import { UNIFIED_TABLE_COLUMN_DICTIONARY } from '~/containers/ProDashboard/components/UnifiedTable/config/ColumnDictionary'
 import {
 	UNIFIED_TABLE_PRESETS,
 	UNIFIED_TABLE_PRESETS_BY_ID
 } from '~/containers/ProDashboard/components/UnifiedTable/config/PresetRegistry'
-import type { TableFilters, UnifiedRowHeaderType, UnifiedTableConfig } from '~/containers/ProDashboard/types'
+import type {
+	CexAnalyticsMetric,
+	CexAnalyticsView,
+	TableFilters,
+	UnifiedRowHeaderType,
+	UnifiedTableConfig
+} from '~/containers/ProDashboard/types'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import type { UnifiedTableFocusSection } from '../../UnifiedTable/types'
 import { applyPresetToConfig, normalizeSorting } from '../../UnifiedTable/utils/configHelpers'
@@ -41,12 +54,19 @@ interface UnifiedTableTabProps {
 	onDatasetChainChange: (value: string | null) => void
 	selectedDatasetTimeframe: string | null
 	onDatasetTimeframeChange: (timeframe: string) => void
+	selectedCexAnalyticsView: 'starter' | CexAnalyticsView
+	onCexAnalyticsViewChange: (view: 'starter' | CexAnalyticsView) => void
+	selectedCexAnalyticsMetric: CexAnalyticsMetric
+	onCexAnalyticsMetricChange: (metric: CexAnalyticsMetric) => void
+	selectedCexAnalyticsTopN: number
+	onCexAnalyticsTopNChange: (topN: number) => void
 	selectedTokens: string[]
 	onTokensChange: (tokens: string[]) => void
 	includeCex: boolean
 	onIncludeCexChange: (include: boolean) => void
 	protocolsLoading: boolean
 	legacyTableTypes?: CombinedTableType[]
+	isEditingItem?: boolean
 }
 
 const PROTOCOL_ROW_HEADER_ORDER: UnifiedRowHeaderType[] = ['chain', 'category', 'parent-protocol']
@@ -124,11 +144,11 @@ const TABLE_TYPE_CARDS: Array<{
 		tags: ['APY', 'TVL', 'IL Risk']
 	},
 	{
-		value: 'cex',
-		label: 'CEX',
-		description: 'Centralized exchange assets, flows, and trading metrics',
+		value: 'cex-analytics',
+		label: 'CEXs',
+		description: 'Spot volume, derivatives volume, open interest, leverage, and CEX efficiency.',
 		icon: 'credit-card',
-		tags: ['Assets', 'Flows', 'Volume']
+		tags: ['Spot', 'Derivatives', 'Open Interest', 'Leverage']
 	},
 	{
 		value: 'chains',
@@ -174,12 +194,19 @@ function TabContent({
 	onDatasetChainChange,
 	selectedDatasetTimeframe,
 	onDatasetTimeframeChange,
+	selectedCexAnalyticsView,
+	onCexAnalyticsViewChange,
+	selectedCexAnalyticsMetric,
+	onCexAnalyticsMetricChange,
+	selectedCexAnalyticsTopN,
+	onCexAnalyticsTopNChange,
 	selectedTokens,
 	onTokensChange,
 	includeCex,
 	onIncludeCexChange,
 	protocolsLoading,
-	legacyTableTypes
+	legacyTableTypes,
+	isEditingItem
 }: UnifiedTableTabProps) {
 	const { handleAddUnifiedTable, handleEditItem } = useProDashboardEditorActions()
 	const {
@@ -197,13 +224,16 @@ function TabContent({
 		},
 		derived: { draftConfig }
 	} = useUnifiedTableWizardContext()
+	const { hasActiveSubscription } = useAuthContext()
+	const [shouldRenderSubscribeModal, setShouldRenderSubscribeModal] = useState(false)
+	const subscribeModalStore = Ariakit.useDialogStore({
+		open: shouldRenderSubscribeModal,
+		setOpen: setShouldRenderSubscribeModal
+	})
 	const isEditing = Boolean(editItem)
 	const isEditingUnifiedTable = editItem?.kind === 'unified-table'
 	const [showTypeSelector, setShowTypeSelector] = useState(!isEditing && selectedTableType === 'protocols')
 
-	const [localOrder, setLocalOrder] = useState<ColumnOrderState>(columnOrder)
-	const [localVisibility, setLocalVisibility] = useState<VisibilityState>({ ...columnVisibility })
-	const [localSorting, setLocalSorting] = useState<SortingState>(sorting)
 	const initialTab = useMemo<TabKey>(() => {
 		if (focusedSectionOnly === 'filters') return 'filters'
 		if (focusedSectionOnly === 'columns') return 'columns'
@@ -213,22 +243,6 @@ function TabContent({
 		return 'setup'
 	}, [focusedSectionOnly, initialFocusSection])
 	const [activeTab, setActiveTab] = useState<TabKey>(initialTab)
-
-	useEffect(() => {
-		setLocalOrder(columnOrder)
-	}, [columnOrder])
-
-	useEffect(() => {
-		setLocalVisibility({ ...columnVisibility })
-	}, [columnVisibility])
-
-	useEffect(() => {
-		setLocalSorting(sorting)
-	}, [sorting])
-
-	useEffect(() => {
-		setActiveTab((current) => (current === initialTab ? current : initialTab))
-	}, [initialTab])
 
 	const activePreset = UNIFIED_TABLE_PRESETS_BY_ID.get(activePresetId)
 
@@ -335,10 +349,9 @@ function TabContent({
 			})
 			const baseOrderSet = new Set(presetConfig.columnOrder)
 			const mergedOrder = [...presetConfig.columnOrder, ...customColumnIds.filter((id) => !baseOrderSet.has(id))]
-			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, localVisibility[id] ?? true]))
-			setLocalOrder(mergedOrder)
-			setLocalVisibility({ ...presetConfig.columnVisibility, ...customVisibility })
-			setLocalSorting(presetConfig.sorting)
+			const customVisibility = Object.fromEntries(customColumnIds.map((id) => [id, columnVisibility[id] ?? true]))
+			setColumns(mergedOrder, { ...presetConfig.columnVisibility, ...customVisibility })
+			setSorting(presetConfig.sorting)
 		}
 	}
 
@@ -348,13 +361,10 @@ function TabContent({
 	}
 
 	const handleColumnChange = (order: ColumnOrderState, visibility: VisibilityState) => {
-		setLocalOrder(order)
-		setLocalVisibility(visibility)
 		setColumns(order, visibility)
 	}
 
 	const handleSortingChange = (newSorting: SortingState) => {
-		setLocalSorting(newSorting)
 		setSorting(newSorting)
 	}
 
@@ -396,14 +406,11 @@ function TabContent({
 	)
 
 	const isModified =
-		!arraysEqual(localOrder, presetDefaults.order) ||
-		!visibilityEqual(localVisibility, presetDefaults.visibility) ||
-		!sortingEqual(localSorting, presetDefaults.sorting)
+		!arraysEqual(columnOrder, presetDefaults.order) ||
+		!visibilityEqual(columnVisibility, presetDefaults.visibility) ||
+		!sortingEqual(sorting, presetDefaults.sorting)
 
-	const visibleColumnsCount = useMemo(
-		() => localOrder.filter((id) => id !== 'name' && (localVisibility[id] ?? true)).length,
-		[localOrder, localVisibility]
-	)
+	const visibleColumnsCount = columnOrder.filter((id) => id !== 'name' && (columnVisibility[id] ?? true)).length
 
 	const handleAdd = () => {
 		if (editItem) {
@@ -425,12 +432,6 @@ function TabContent({
 		}
 		if (preset.sortBy) {
 			setSorting([
-				{
-					id: preset.sortBy.field,
-					desc: preset.sortBy.direction === 'desc'
-				}
-			])
-			setLocalSorting([
 				{
 					id: preset.sortBy.field,
 					desc: preset.sortBy.direction === 'desc'
@@ -520,17 +521,16 @@ function TabContent({
 		return tabOptions
 	}, [tabOptions, focusedSectionOnly])
 
-	useEffect(() => {
-		if (availableTabs.length === 0) return
-		if (!availableTabs.some((tab) => tab.key === activeTab)) {
-			setActiveTab(availableTabs[0].key)
-		}
-	}, [availableTabs, activeTab])
+	const effectiveActiveTab = useMemo<TabKey>(() => {
+		if (!availableTabs.length) return activeTab
+		if (availableTabs.some((tab) => tab.key === activeTab)) return activeTab
+		return availableTabs[0].key
+	}, [activeTab, availableTabs])
 
 	const tabContent: Record<TabKey, React.ReactNode> = {
 		setup: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection title="Grouping" isDefaultExpanded badge="Protocols" className="shadow-sm">
+				<CollapsibleSection title="Grouping" badge="Protocols" className="shadow-sm">
 					<div className="flex flex-col gap-3">
 						<div>
 							<h4 className="mb-2 text-xs font-semibold text-(--text-secondary)">Configure Grouping</h4>
@@ -539,9 +539,9 @@ function TabContent({
 					</div>
 				</CollapsibleSection>
 
-				<CollapsibleSection title="Data Views" isDefaultExpanded badge={activePreset?.name} className="shadow-sm">
+				<CollapsibleSection title="Data Views" badge={activePreset?.name} className="shadow-sm">
 					<div className="flex flex-col gap-3">
-						{recommendedPresets.length > 0 && (
+						{recommendedPresets.length > 0 ? (
 							<div className="flex flex-col gap-2">
 								<div className="flex items-center justify-between">
 									<h4 className="text-xs font-semibold text-(--text-secondary)">Recommended Data Views</h4>
@@ -553,7 +553,7 @@ function TabContent({
 									presets={recommendedPresets}
 								/>
 							</div>
-						)}
+						) : null}
 						<div className="flex flex-col gap-2">
 							<h4 className="text-xs font-semibold text-(--text-secondary)">All Data Views</h4>
 							{otherPresets.length > 0 ? (
@@ -570,12 +570,7 @@ function TabContent({
 		),
 		columns: (
 			<div className="flex flex-col gap-3">
-				<CollapsibleSection
-					title="Columns"
-					isDefaultExpanded
-					badge={`${visibleColumnsCount} selected`}
-					className="shadow-sm"
-				>
+				<CollapsibleSection title="Columns" badge={`${visibleColumnsCount} selected`} className="shadow-sm">
 					<div className="flex flex-col gap-2">
 						<div className="flex flex-wrap items-center justify-end gap-2 text-xs">
 							<button
@@ -592,14 +587,14 @@ function TabContent({
 							</button>
 						</div>
 						<ColumnManager
-							columnOrder={localOrder}
-							columnVisibility={localVisibility}
+							columnOrder={columnOrder}
+							columnVisibility={columnVisibility}
 							onChange={handleColumnChange}
 							customColumns={customColumns}
 							onAddCustomColumn={addCustomColumn}
 							onUpdateCustomColumn={updateCustomColumn}
 							onRemoveCustomColumn={removeCustomColumn}
-							sorting={localSorting}
+							sorting={sorting}
 							onSortingChange={handleSortingChange}
 							onSortingReset={() => handleSortingChange(presetSortingFallback)}
 						/>
@@ -608,7 +603,7 @@ function TabContent({
 			</div>
 		),
 		filters: (
-			<CollapsibleSection title="Filters" isDefaultExpanded badge={totalFilterCount || undefined} className="shadow-sm">
+			<CollapsibleSection title="Filters" badge={totalFilterCount || undefined} className="shadow-sm">
 				<div className="flex flex-col gap-5">
 					<div className="space-y-2">
 						<div className="flex items-center justify-between">
@@ -659,6 +654,11 @@ function TabContent({
 	}
 
 	const handleSelectTableType = (type: CombinedTableType) => {
+		if (type === 'token-usage' && !hasActiveSubscription) {
+			setSignupSource('pro-dashboard')
+			subscribeModalStore.show()
+			return
+		}
 		onTableTypeChange(type)
 		setShowTypeSelector(false)
 	}
@@ -705,29 +705,41 @@ function TabContent({
 				<div className="mt-4">
 					<span className="mb-2.5 block text-xs font-medium tracking-wide pro-text2 uppercase">Other datasets</span>
 					<div className="grid grid-cols-2 gap-2">
-						{otherCards.map((card) => (
-							<button
-								key={card.value}
-								type="button"
-								onClick={() => handleSelectTableType(card.value)}
-								className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
-							>
-								<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
-									<Icon
-										name={card.icon}
-										height={16}
-										width={16}
-										className="text-(--text-secondary) group-hover:text-(--primary)"
-									/>
-								</div>
-								<div className="min-w-0 flex-1">
-									<span className="text-sm font-medium pro-text1">{card.label}</span>
-									<p className="mt-0.5 line-clamp-1 text-xs pro-text2">{card.description}</p>
-								</div>
-							</button>
-						))}
+						{otherCards.map((card) => {
+							const isProLocked = card.value === 'token-usage' && !hasActiveSubscription
+							return (
+								<button
+									key={card.value}
+									type="button"
+									onClick={() => handleSelectTableType(card.value)}
+									className="group flex items-start gap-2.5 rounded-lg border pro-border p-3 text-left transition-all hover:border-(--primary)/50 hover:bg-(--cards-bg-alt)"
+								>
+									<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-(--cards-bg-alt) transition-colors group-hover:bg-(--primary)/10">
+										<Icon
+											name={isProLocked ? 'file-lock-2' : card.icon}
+											height={16}
+											width={16}
+											className="text-(--text-secondary) group-hover:text-(--primary)"
+										/>
+									</div>
+									<div className="min-w-0 flex-1">
+										<span className="text-sm font-medium pro-text1">
+											{card.label}
+											{isProLocked ? <span className="ml-1 text-xs font-normal opacity-60">(Pro)</span> : null}
+										</span>
+										<p className="mt-0.5 line-clamp-1 text-xs pro-text2">{card.description}</p>
+									</div>
+								</button>
+							)
+						})}
 					</div>
 				</div>
+
+				{shouldRenderSubscribeModal ? (
+					<Suspense fallback={<></>}>
+						<SubscribeProModal dialogStore={subscribeModalStore} />
+					</Suspense>
+				) : null}
 			</div>
 		)
 	}
@@ -743,6 +755,12 @@ function TabContent({
 				onDatasetChainChange={onDatasetChainChange}
 				selectedDatasetTimeframe={selectedDatasetTimeframe}
 				onDatasetTimeframeChange={onDatasetTimeframeChange}
+				selectedCexAnalyticsView={selectedCexAnalyticsView}
+				onCexAnalyticsViewChange={onCexAnalyticsViewChange}
+				selectedCexAnalyticsMetric={selectedCexAnalyticsMetric}
+				onCexAnalyticsMetricChange={onCexAnalyticsMetricChange}
+				selectedCexAnalyticsTopN={selectedCexAnalyticsTopN}
+				onCexAnalyticsTopNChange={onCexAnalyticsTopNChange}
 				selectedTableType={selectedTableType}
 				onTableTypeChange={onTableTypeChange}
 				selectedTokens={selectedTokens}
@@ -751,6 +769,7 @@ function TabContent({
 				onIncludeCexChange={onIncludeCexChange}
 				legacyTableTypes={legacyTableTypes}
 				onBackToTypeSelector={handleBackToTypeSelector}
+				isEditing={isEditingItem}
 			/>
 		)
 	}
@@ -758,7 +777,7 @@ function TabContent({
 	return (
 		<div className="flex flex-col">
 			<header className="flex shrink-0 flex-col gap-1 pb-3">
-				{!isEditingUnifiedTable && (
+				{!isEditingUnifiedTable ? (
 					<button
 						type="button"
 						onClick={() => setShowTypeSelector(true)}
@@ -767,13 +786,13 @@ function TabContent({
 						<span>←</span>
 						<span>Back to table type selection</span>
 					</button>
-				)}
+				) : null}
 			</header>
 
-			{availableTabs.length > 0 && (
+			{availableTabs.length > 0 ? (
 				<div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-(--cards-border) bg-(--cards-bg-alt) p-1 shadow-sm">
 					{availableTabs.map((tab) => {
-						const isActive = tab.key === activeTab
+						const isActive = tab.key === effectiveActiveTab
 						return (
 							<button
 								key={tab.key}
@@ -802,14 +821,14 @@ function TabContent({
 						)
 					})}
 				</div>
-			)}
+			) : null}
 
 			<div
 				className="thin-scrollbar flex-1 overflow-y-auto pr-1"
 				style={{ height: 'clamp(420px, 65vh, 720px)' }}
 				data-unified-table-scroll="true"
 			>
-				<div className="flex h-full flex-col gap-3">{tabContent[activeTab]}</div>
+				<div className="flex h-full flex-col gap-3">{tabContent[effectiveActiveTab]}</div>
 			</div>
 
 			<div className="sticky bottom-0 z-10 flex shrink-0 items-center justify-end gap-3 border-t border-(--cards-border) bg-(--cards-bg) pt-3 pb-2 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.25)]">
@@ -834,10 +853,17 @@ function TabContent({
 }
 
 export function UnifiedTableTab(props: UnifiedTableTabProps) {
-	const { editItem, focusedSectionOnly, ...rest } = props
+	const { editItem, focusedSectionOnly, initialFocusSection, ...rest } = props
+	const tabResetKey = `${editItem?.id ?? 'new'}-${focusedSectionOnly ?? 'all'}-${initialFocusSection ?? 'default'}`
 	return (
 		<UnifiedTableWizardProvider initialConfig={editItem}>
-			<TabContent {...rest} editItem={editItem} focusedSectionOnly={focusedSectionOnly} />
+			<TabContent
+				key={tabResetKey}
+				{...rest}
+				editItem={editItem}
+				focusedSectionOnly={focusedSectionOnly}
+				initialFocusSection={initialFocusSection}
+			/>
 		</UnifiedTableWizardProvider>
 	)
 }

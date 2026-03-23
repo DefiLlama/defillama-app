@@ -1,13 +1,14 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import type { CSSProperties } from 'react'
 import { useMemo } from 'react'
-import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { Tooltip } from '~/components/Tooltip'
-import { formattedNum, getDominancePercent, tokenIconUrl } from '~/utils'
+import { formattedNum, getDominancePercent } from '~/utils'
 import type { ITreasuryRow } from './types'
+
+const columnHelper = createColumnHelper<ITreasuryRow>()
 
 export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boolean }) {
 	const tableColumns = useMemo(
@@ -21,43 +22,6 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 		[entity]
 	)
 
-	const prepareCsv = () => {
-		const headers = [
-			'Name',
-			'Category',
-			'Own Tokens',
-			'Stablecoins',
-			'Major Tokens',
-			'Other Tokens',
-			'Total excl. own tokens',
-			'Total Treasury',
-			'Mcap',
-			'Change 1d',
-			'Change 7d',
-			'Change 1m'
-		]
-		const dataToDownload = data.map((row) => {
-			const csvRow: Record<string, string | number> = {
-				Name: row.name,
-				Category: row.category,
-				'Own Tokens': row.ownTokens,
-				Stablecoins: row.stablecoins,
-				'Major Tokens': row.majors,
-				'Other Tokens': row.others,
-				'Total excl. own tokens': row.coreTvl,
-				'Total Treasury': row.tvl,
-				Mcap: row.mcap ?? '',
-				'Change 1d': row.change_1d ?? '',
-				'Change 7d': row.change_7d ?? '',
-				'Change 1m': row.change_1m ?? ''
-			}
-			return csvRow
-		})
-		const dataRows: (string | number)[][] = dataToDownload.map((row) => headers.map((header) => row[header]))
-		const rows: (string | number)[][] = [headers, ...dataRows]
-		return { filename: 'treasuries.csv', rows }
-	}
-
 	const sortingState = entity ? [{ id: 'tvl', desc: true }] : [{ id: 'coreTvl', desc: true }]
 
 	return (
@@ -67,29 +31,25 @@ export function Treasuries({ data, entity }: { data: ITreasuryRow[]; entity: boo
 			columnToSearch={'name'}
 			placeholder={'Search projects...'}
 			header={'Treasuries'}
+			headingAs="h1"
 			sortingState={sortingState}
-			customFilters={
-				<>
-					<CSVDownloadButton prepareCsv={prepareCsv} />
-				</>
-			}
+			csvFileName="treasuries"
 		/>
 	)
 }
 
-const columns: ColumnDef<ITreasuryRow>[] = [
-	{
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
-			const name = getValue<string>().split(' (treasury)')[0]
+			const name = getValue().split(' (treasury)')[0]
 			const slug = row.original.slug.split('-(treasury)')[0]
 
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+					<TokenLogo name={name} kind="token" data-lgonly alt={`Logo of ${name}`} />
 					<BasicLink
 						href={`/protocol/${slug}?treasury=true&tvl=false`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text)"
@@ -100,14 +60,13 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 			)
 		},
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('tokenBreakdowns', {
+		id: 'tokenBreakdowns',
 		header: 'Breakdown',
-		accessorKey: 'tokenBreakdowns',
-		id: 'tokenBreakdowns0',
 		enableSorting: false,
 		cell: (info) => {
-			const breakdown = info.getValue<ITreasuryRow['tokenBreakdowns']>()
+			const breakdown = info.getValue()
 			const entries = Object.entries(breakdown) as Array<[keyof ITreasuryRow['tokenBreakdowns'], number]>
 			let totalBreakdown = 0
 
@@ -124,7 +83,7 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 			const dominance = Array.from(breakdownDominance.entries()).sort((a, b) => b[1] - a[1])
 
 			if (totalBreakdown < 1) {
-				return <></>
+				return null
 			}
 
 			return (
@@ -151,91 +110,69 @@ const columns: ColumnDef<ITreasuryRow>[] = [
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Stablecoins',
-		accessorKey: 'stablecoins',
+	}),
+	columnHelper.accessor('stablecoins', {
 		id: 'stablecoins',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Stablecoins',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 115,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Majors (BTC, ETH)',
-		accessorKey: 'majors',
+	}),
+	columnHelper.accessor('majors', {
 		id: 'majors',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Majors (BTC, ETH)',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 160,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('ownTokens', {
 		header: 'Own Tokens',
-		accessorKey: 'ownTokens',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Others',
-		accessorKey: 'others',
+	}),
+	columnHelper.accessor('others', {
 		id: 'others',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Others',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 100,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Total excl. own tokens',
-		accessorKey: 'coreTvl',
+	}),
+	columnHelper.accessor('coreTvl', {
 		id: 'coreTvl',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Total excl. own tokens',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 185,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Total Treasury',
-		accessorKey: 'tvl',
+	}),
+	columnHelper.accessor('tvl', {
 		id: 'tvl',
-		cell: (info) => {
-			return <>{formattedNum(info.getValue(), true)}</>
-		},
+		header: 'Total Treasury',
+		cell: (info) => formattedNum(info.getValue(), true),
 		size: 135,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
-		header: 'Mcap',
-		accessorKey: 'mcap',
+	}),
+	columnHelper.accessor('mcap', {
 		id: 'mcap',
-		cell: (info) => {
-			const value = info.getValue<number | null>()
-			return <>{value === null ? null : formattedNum(value, true)}</>
-		},
+		header: 'Mcap',
+		cell: (info) => (info.getValue() === null ? null : formattedNum(info.getValue(), true)),
 		size: 128,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 const BREAKDOWN_COLORS: Record<string, string> = {

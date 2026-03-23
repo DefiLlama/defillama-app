@@ -1,13 +1,14 @@
 import * as Ariakit from '@ariakit/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { useRouter } from 'next/router'
-import { type FormEvent, useState } from 'react'
+import { useId, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { LocalLoader } from '~/components/Loaders'
 import { Turnstile } from '~/components/Turnstile'
 import { type PromotionalEmailsValue, useAuthContext } from '~/containers/Subscribtion/auth'
+import type { FormSubmitEvent } from '~/types/forms'
 
 export const SignInModal = ({
 	text,
@@ -71,6 +72,7 @@ export const SignInModal = ({
 				unmountOnHide
 			>
 				<SignInForm
+					key={`signin-${defaultFlow}`}
 					text={text}
 					showOnlyAuthDialog={showOnlyAuthDialog}
 					pendingActionMessage={pendingActionMessage}
@@ -83,7 +85,7 @@ export const SignInModal = ({
 }
 
 export const SignInForm = ({
-	text,
+	text: _text,
 	showOnlyAuthDialog = false,
 	pendingActionMessage,
 	defaultFlow = 'signin',
@@ -100,6 +102,14 @@ export const SignInForm = ({
 	const { openConnectModal } = useConnectModal()
 	const { address } = useAccount()
 	const router = useRouter()
+	const idPrefix = useId()
+	const signInEmailInputId = `${idPrefix}-signin-email`
+	const signInPasswordInputId = `${idPrefix}-signin-password`
+	const forgotEmailInputId = `${idPrefix}-forgot-email`
+	const signUpEmailInputId = `${idPrefix}-signup-email`
+	const signUpPasswordInputId = `${idPrefix}-signup-password`
+	const signUpConfirmInputId = `${idPrefix}-signup-confirm`
+	const promotionalEmailsCheckboxId = `${idPrefix}-promotional-emails`
 
 	const [selectedTabId, setSelectedTabId] = useState<'signin' | 'signup'>(
 		defaultFlow === 'signup' ? 'signup' : 'signin'
@@ -123,12 +133,12 @@ export const SignInForm = ({
 		useAuthContext()
 	const { signMessageAsync } = useSignMessage()
 
-	const handleEmailSignIn = async (e: FormEvent<HTMLFormElement>) => {
+	const handleEmailSignIn = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 		try {
 			await login(email, password)
 			if (returnUrl) {
-				router.push(returnUrl)
+				void router.push(returnUrl)
 			}
 			dialogStore.hide()
 		} catch (error) {
@@ -154,7 +164,7 @@ export const SignInForm = ({
 		return true
 	}
 
-	const handleEmailSignUp = async (e: FormEvent<HTMLFormElement>) => {
+	const handleEmailSignUp = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 
 		setEmailError('')
@@ -177,7 +187,7 @@ export const SignInForm = ({
 			setTurnstileToken('')
 
 			if (returnUrl) {
-				router.push(returnUrl)
+				void router.push(returnUrl)
 			}
 
 			dialogStore.hide()
@@ -203,7 +213,7 @@ export const SignInForm = ({
 		}
 	}
 
-	const handleForgotPassword = async (e: FormEvent<HTMLFormElement>) => {
+	const handleForgotPassword = async (e: FormSubmitEvent) => {
 		e.preventDefault()
 		try {
 			await resetPasswordMutation.mutateAsync(email)
@@ -218,7 +228,7 @@ export const SignInForm = ({
 			try {
 				await signInWithEthereumMutation.mutateAsync({ address, signMessageFunction: signMessageAsync })
 				if (returnUrl) {
-					router.push(returnUrl)
+					void router.push(returnUrl)
 				}
 				dialogStore.hide()
 			} catch (error) {
@@ -268,12 +278,9 @@ export const SignInForm = ({
 			<Ariakit.TabPanel tabId="signin">
 				{flow !== 'forgot' ? (
 					<>
-						<form className="flex flex-col gap-3 sm:gap-4" onSubmit={handleEmailSignIn}>
+						<form className="flex flex-col gap-3 sm:gap-4" onSubmit={(e) => void handleEmailSignIn(e)}>
 							<div className="space-y-1">
-								<label
-									htmlFor={`${text || 'default'}-signin-email`}
-									className="text-xs font-medium text-[#b4b7bc] sm:text-sm"
-								>
+								<label htmlFor={signInEmailInputId} className="text-xs font-medium text-[#b4b7bc] sm:text-sm">
 									Email
 								</label>
 								<div className="relative">
@@ -281,7 +288,7 @@ export const SignInForm = ({
 										<Icon name="mail" height={16} width={16} />
 									</div>
 									<input
-										id={`${text || 'default'}-signin-email`}
+										id={signInEmailInputId}
 										type="email"
 										required
 										className="w-full rounded-lg border border-[#39393E] bg-[#222429] py-2 pr-2.5 pl-[36px] text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden sm:py-2.5"
@@ -292,7 +299,7 @@ export const SignInForm = ({
 							</div>
 
 							<div className="space-y-1">
-								<label htmlFor="signin-password" className="text-xs font-medium text-[#b4b7bc] sm:text-sm">
+								<label htmlFor={signInPasswordInputId} className="text-xs font-medium text-[#b4b7bc] sm:text-sm">
 									Password
 								</label>
 								<div className="relative">
@@ -300,7 +307,7 @@ export const SignInForm = ({
 										<Icon name="key" height={16} width={16} />
 									</div>
 									<input
-										id="signin-password"
+										id={signInPasswordInputId}
 										type="password"
 										required
 										className="w-full rounded-lg border border-[#39393E] bg-[#222429] py-2 pr-2.5 pl-[36px] text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5C] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden sm:py-2.5"
@@ -363,7 +370,7 @@ export const SignInForm = ({
 						<div className="flex w-full flex-col gap-2 sm:gap-3">
 							<button
 								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-								onClick={handleWalletSignIn}
+								onClick={() => void handleWalletSignIn()}
 								disabled={signInWithEthereumMutation.isPending}
 							>
 								<Icon name="wallet" height={16} width={16} />
@@ -378,7 +385,9 @@ export const SignInForm = ({
 
 							<button
 								className="relative flex w-full items-center justify-center gap-2 rounded-lg border border-[#39393E] bg-[#222429] py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-[#2a2b30] disabled:cursor-not-allowed disabled:opacity-50 sm:py-3"
-								onClick={() => signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())}
+								onClick={() => {
+									void signInWithGithubMutation.mutateAsync().then(() => dialogStore.hide())
+								}}
 								disabled={signInWithGithubMutation.isPending}
 							>
 								<Icon name="github" height={16} width={16} />
@@ -392,14 +401,14 @@ export const SignInForm = ({
 							) : null}
 						</div>
 
-						{pendingActionMessage && (
+						{pendingActionMessage ? (
 							<div className="mt-3 mb-3 rounded-lg border border-[#5C5CF9]/30 bg-[#5C5CF9]/10 p-2.5 sm:mt-4 sm:mb-4 sm:p-3">
 								<p className="text-center text-xs text-[#b4b7bc] sm:text-sm">{pendingActionMessage}</p>
 							</div>
-						)}
+						) : null}
 					</>
 				) : (
-					<form className="flex flex-col gap-4" onSubmit={handleForgotPassword}>
+					<form className="flex flex-col gap-4" onSubmit={(e) => void handleForgotPassword(e)}>
 						<div className="mb-1">
 							<p className="rounded-lg border border-[#39393E] bg-[#222429] p-3 text-xs text-[#b4b7bc]">
 								Enter your email address and we'll send you a link to reset your password.
@@ -407,7 +416,7 @@ export const SignInForm = ({
 						</div>
 
 						<div className="space-y-1.5">
-							<label htmlFor={`${text || 'default'}-forgot-email`} className="text-sm font-medium text-[#b4b7bc]">
+							<label htmlFor={forgotEmailInputId} className="text-sm font-medium text-[#b4b7bc]">
 								Email
 							</label>
 							<div className="relative">
@@ -415,7 +424,7 @@ export const SignInForm = ({
 									<Icon name="mail" height={16} width={16} />
 								</div>
 								<input
-									id={`${text || 'default'}-forgot-email`}
+									id={forgotEmailInputId}
 									type="email"
 									required
 									className="w-full rounded-lg border border-[#39393E] bg-[#222429] p-3 pl-10 text-white transition-all duration-200 placeholder:text-[#8a8c90] focus:border-[#5C5CF9] focus:ring-1 focus:ring-[#5C5CF9] focus:outline-hidden"
@@ -475,9 +484,9 @@ export const SignInForm = ({
 				)}
 			</Ariakit.TabPanel>
 			<Ariakit.TabPanel tabId="signup">
-				<form className="flex flex-col gap-4" onSubmit={handleEmailSignUp}>
+				<form className="flex flex-col gap-4" onSubmit={(e) => void handleEmailSignUp(e)}>
 					<div className="space-y-1.5">
-						<label htmlFor={`${text || 'default'}-signup-email`} className="text-sm font-medium text-[#b4b7bc]">
+						<label htmlFor={signUpEmailInputId} className="text-sm font-medium text-[#b4b7bc]">
 							Email
 						</label>
 						<div className="relative">
@@ -485,7 +494,7 @@ export const SignInForm = ({
 								<Icon name="mail" height={16} width={16} />
 							</div>
 							<input
-								id={`${text || 'default'}-signup-email`}
+								id={signUpEmailInputId}
 								type="email"
 								required
 								className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
@@ -498,11 +507,11 @@ export const SignInForm = ({
 								}}
 							/>
 						</div>
-						{emailError && <p className="mt-1 text-xs text-red-500">{emailError}</p>}
+						{emailError ? <p className="mt-1 text-xs text-red-500">{emailError}</p> : null}
 					</div>
 
 					<div className="space-y-1.5">
-						<label htmlFor="signup-password" className="text-sm font-medium text-[#b4b7bc]">
+						<label htmlFor={signUpPasswordInputId} className="text-sm font-medium text-[#b4b7bc]">
 							Password
 						</label>
 						<div className="relative">
@@ -510,7 +519,7 @@ export const SignInForm = ({
 								<Icon name="key" height={16} width={16} />
 							</div>
 							<input
-								id="signup-password"
+								id={signUpPasswordInputId}
 								type="password"
 								required
 								className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
@@ -530,11 +539,11 @@ export const SignInForm = ({
 								}}
 							/>
 						</div>
-						{passwordError && <p className="mt-1 text-xs text-red-500">{passwordError}</p>}
+						{passwordError ? <p className="mt-1 text-xs text-red-500">{passwordError}</p> : null}
 					</div>
 
 					<div className="space-y-1.5">
-						<label htmlFor="signup-confirm" className="text-sm font-medium text-[#b4b7bc]">
+						<label htmlFor={signUpConfirmInputId} className="text-sm font-medium text-[#b4b7bc]">
 							Confirm Password
 						</label>
 						<div className="relative">
@@ -542,7 +551,7 @@ export const SignInForm = ({
 								<Icon name="key" height={16} width={16} />
 							</div>
 							<input
-								id="signup-confirm"
+								id={signUpConfirmInputId}
 								type="password"
 								required
 								className={`w-full rounded-lg border bg-[#222429] p-3 pl-10 ${
@@ -555,7 +564,7 @@ export const SignInForm = ({
 								}}
 							/>
 						</div>
-						{confirmPasswordError && <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p>}
+						{confirmPasswordError ? <p className="mt-1 text-xs text-red-500">{confirmPasswordError}</p> : null}
 					</div>
 
 					<label className="flex items-center gap-2">
@@ -580,17 +589,19 @@ export const SignInForm = ({
 						</span>
 					</label>
 
-					<label className="flex items-start gap-2">
+					<div className="flex items-start gap-2">
 						<input
+							id={promotionalEmailsCheckboxId}
 							type="checkbox"
 							className="mt-0.5 h-4 w-4 shrink-0"
-							checked={promotionalEmails === 'on'}
+							checked={promotionalEmails !== 'off'}
 							onChange={(e) => setPromotionalEmails(e.target.checked ? 'on' : 'off')}
 						/>
-						<span className="text-sm text-[#b4b7bc]">
-							Receive emails about upcoming DefiLlama products and new releases
-						</span>
-					</label>
+						<label htmlFor={promotionalEmailsCheckboxId} className="text-sm text-[#b4b7bc]">
+							Get early access announcements, new feature releases, and DeFi data insights from the DefiLlama team.
+							Unsubscribe anytime
+						</label>
+					</div>
 
 					<div className="mt-4">
 						<Turnstile

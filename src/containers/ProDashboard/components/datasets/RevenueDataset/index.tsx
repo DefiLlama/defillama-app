@@ -15,7 +15,7 @@ import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { useTableSearch } from '~/components/Table/utils'
 import { useBreakpointWidth } from '~/hooks/useBreakpointWidth'
-import { downloadCSV } from '~/utils'
+import { downloadCSV } from '~/utils/download'
 import { useProDashboardEditorActions } from '../../../ProDashboardAPIContext'
 import type { TableFilters } from '../../../types'
 import { CategoryFilterModal } from '../../CategoryFilterModal'
@@ -173,6 +173,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 			pagination
 		},
 		onSortingChange: setSorting,
+		enableSortingRemoval: false,
 		onColumnOrderChange: setColumnOrder,
 		onColumnSizingChange: setColumnSizing,
 		onColumnFiltersChange: setColumnFilters,
@@ -201,7 +202,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 		instance.setColumnOrder(defaultOrder)
 	}, [width, instance])
 
-	const [protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_protocolName, setProtocolName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	if (isLoading) {
 		return (
@@ -283,8 +284,7 @@ export function RevenueDataset({ chains, tableId, filters }: RevenueDatasetProps
 						<input
 							type="text"
 							placeholder="Search protocols..."
-							value={protocolName}
-							onChange={(e) => setProtocolName(e.target.value)}
+							onInput={(e) => setProtocolName(e.currentTarget.value)}
 							className="border pro-border pro-bg1 px-3 py-1.5 text-sm pro-text1 focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 						/>
 					</div>

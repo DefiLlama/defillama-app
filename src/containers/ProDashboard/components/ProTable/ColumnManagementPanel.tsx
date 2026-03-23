@@ -1,9 +1,15 @@
+'use no memo'
+
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { protocolsByChainTableColumns, TABLE_CATEGORIES } from '~/components/Table/Defi/Protocols'
 import { Tooltip } from '~/components/Tooltip'
 import type { CustomView } from '../../types'
 import { CustomColumnPanel } from './CustomColumnPanel'
+import { SHARE_METRIC_DEFINITIONS } from './proTable.constants'
+import { protocolsByChainTableColumns, TABLE_CATEGORIES } from './useProTableColumns'
+
+const EMPTY_CUSTOM_COLUMNS: CustomColumn[] = []
+const EMPTY_CUSTOM_VIEWS: CustomView[] = []
 
 const metricDescriptions: Record<string, string> = {
 	name: 'Protocol name',
@@ -107,8 +113,26 @@ interface ColumnManagementPanelProps {
 	activeViewId?: string
 }
 
+interface ColumnListItem {
+	key: string
+	name: string
+	category?: string
+}
+
+interface ColumnButtonProps {
+	column: ColumnListItem
+	isActive: boolean
+	isCustom?: boolean
+	currentColumns: Record<string, boolean>
+	columnOrder: string[]
+	moveColumnUp?: (columnKey: string) => void
+	moveColumnDown?: (columnKey: string) => void
+	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
+	customColumns: CustomColumn[]
+}
+
 // Helper component for column buttons
-const ColumnButton = ({
+const ColumnButton = React.memo(function ColumnButton({
 	column,
 	isActive,
 	isCustom,
@@ -118,17 +142,7 @@ const ColumnButton = ({
 	moveColumnDown,
 	toggleColumnVisibility,
 	customColumns
-}: {
-	column: any
-	isActive: boolean
-	isCustom?: boolean
-	currentColumns: Record<string, boolean>
-	columnOrder: string[]
-	moveColumnUp: (columnKey: string) => void
-	moveColumnDown: (columnKey: string) => void
-	toggleColumnVisibility: (columnKey: string, isVisible: boolean) => void
-	customColumns: CustomColumn[]
-}) => {
+}: ColumnButtonProps) {
 	const description = isCustom
 		? customColumns.find((c) => c.id === column.key)?.expression || 'Custom column'
 		: metricDescriptions[column.key] || ''
@@ -145,15 +159,15 @@ const ColumnButton = ({
 					<div className="flex items-center gap-2">
 						<Icon name="check" height={12} width={12} className="text-(--success)" />
 						<span className="text-xs pro-text1">{column.name}</span>
-						{isCustom && <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span>}
-						{column.key?.endsWith('_share') && (
+						{isCustom ? <span className="rounded-md bg-(--primary) px-1 py-0.5 text-xs text-white">Custom</span> : null}
+						{column.key?.endsWith('_share') ? (
 							<span className="rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 								%
 							</span>
-						)}
+						) : null}
 					</div>
 					<div className="flex items-center gap-1">
-						{moveColumnUp && !isFirst && (
+						{moveColumnUp && !isFirst ? (
 							<button
 								onClick={() => moveColumnUp(column.key)}
 								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -161,8 +175,8 @@ const ColumnButton = ({
 							>
 								<Icon name="chevron-up" height={10} width={10} />
 							</button>
-						)}
-						{moveColumnDown && !isLast && (
+						) : null}
+						{moveColumnDown && !isLast ? (
 							<button
 								onClick={() => moveColumnDown(column.key)}
 								className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -170,7 +184,7 @@ const ColumnButton = ({
 							>
 								<Icon name="chevron-down" height={10} width={10} />
 							</button>
-						)}
+						) : null}
 						<button
 							onClick={() => toggleColumnVisibility(column.key, false)}
 							className="rounded-md p-1 pro-text3 transition-colors hover:pro-text1"
@@ -191,15 +205,15 @@ const ColumnButton = ({
 			>
 				<Icon name="plus" height={10} width={10} className="pro-text3" />
 				<span className="text-xs pro-text1">{column.name}</span>
-				{column.key?.endsWith('_share') && (
+				{column.key?.endsWith('_share') ? (
 					<span className="ml-auto rounded-md bg-pro-blue-100 px-1 py-0.5 text-xs text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 						%
 					</span>
-				)}
+				) : null}
 			</button>
 		</Tooltip>
 	)
-}
+})
 
 export function ColumnManagementPanel({
 	showColumnPanel,
@@ -212,11 +226,11 @@ export function ColumnManagementPanel({
 	toggleColumnVisibility,
 	moveColumnUp,
 	moveColumnDown,
-	customColumns = [],
+	customColumns = EMPTY_CUSTOM_COLUMNS,
 	onAddCustomColumn,
 	onRemoveCustomColumn,
 	onUpdateCustomColumn,
-	customViews = [],
+	customViews = EMPTY_CUSTOM_VIEWS,
 	onLoadView,
 	onDeleteView,
 	activeViewId
@@ -229,25 +243,7 @@ export function ColumnManagementPanel({
 	}, [searchTerm])
 
 	const percentageShareColumns = React.useMemo(() => {
-		const usdValuedMetrics = [
-			{ key: 'tvl', name: 'TVL % Share', category: TABLE_CATEGORIES.TVL },
-			{ key: 'mcap', name: 'Market Cap % Share', category: TABLE_CATEGORIES.TVL },
-			{ key: 'fees_24h', name: 'Fees 24h % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'fees_7d', name: 'Fees 7d % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'fees_30d', name: 'Fees 30d % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'fees_1y', name: 'Fees 1y % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'average_1y', name: 'Monthly Avg 1Y Fees % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'revenue_24h', name: 'Revenue 24h % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'revenue_7d', name: 'Revenue 7d % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'revenue_30d', name: 'Revenue 30d % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'revenue_1y', name: 'Revenue 1y % Share', category: TABLE_CATEGORIES.REVENUE },
-			{ key: 'volume_24h', name: 'Volume 24h % Share', category: TABLE_CATEGORIES.VOLUME },
-			{ key: 'volume_7d', name: 'Volume 7d % Share', category: TABLE_CATEGORIES.VOLUME },
-			{ key: 'cumulativeFees', name: 'Cumulative Fees % Share', category: TABLE_CATEGORIES.FEES },
-			{ key: 'cumulativeVolume', name: 'Cumulative Volume % Share', category: TABLE_CATEGORIES.VOLUME }
-		]
-
-		return usdValuedMetrics.map((metric) => ({
+		return SHARE_METRIC_DEFINITIONS.map((metric) => ({
 			key: `${metric.key}_share`,
 			name: metric.name,
 			category: 'PERCENTAGE_SHARE' as const
@@ -267,6 +263,20 @@ export function ColumnManagementPanel({
 	const allColumnsForDisplay = React.useMemo(() => {
 		return [...protocolsByChainTableColumns, ...percentageShareColumns, ...customColumnsForStandardView]
 	}, [customColumnsForStandardView, percentageShareColumns])
+
+	const columnsByKey = React.useMemo(() => {
+		return new Map(allColumnsForDisplay.map((column) => [column.key, column]))
+	}, [allColumnsForDisplay])
+
+	const customColumnIdSet = React.useMemo(() => new Set(customColumns.map((column) => column.id)), [customColumns])
+
+	const visibleColumnOrder = React.useMemo(() => {
+		return columnOrder.filter((columnId) => currentColumns[columnId])
+	}, [columnOrder, currentColumns])
+
+	const visibleColumnCount = React.useMemo(() => {
+		return Object.values(currentColumns).filter(Boolean).length
+	}, [currentColumns])
 
 	// Filter percentage share columns by search term
 	const filteredPercentageColumns = React.useMemo(() => {
@@ -338,16 +348,16 @@ export function ColumnManagementPanel({
 						>
 							<span className="flex items-center gap-1">
 								Saved Views
-								{customViews.length > 0 && (
+								{customViews.length > 0 ? (
 									<span className="ml-1 rounded-full bg-pro-blue-100 px-1.5 py-0.5 text-[10px] text-pro-blue-400 dark:bg-pro-blue-300/20 dark:text-pro-blue-200">
 										{customViews.length}
 									</span>
-								)}
+								) : null}
 							</span>
 						</button>
 					</div>
 				</div>
-				{activeTab === 'columns' && (
+				{activeTab === 'columns' ? (
 					<div className="flex items-center gap-2">
 						<button
 							onClick={() => {
@@ -365,10 +375,10 @@ export function ColumnManagementPanel({
 							Hide All
 						</button>
 					</div>
-				)}
+				) : null}
 			</div>
 
-			{activeTab === 'columns' && (
+			{activeTab === 'columns' ? (
 				<>
 					{/* Search Columns */}
 					<div className="relative mb-3">
@@ -392,31 +402,29 @@ export function ColumnManagementPanel({
 						<div>
 							<h5 className="mb-2 flex items-center gap-2 text-xs font-medium tracking-wide pro-text2 uppercase">
 								<Icon name="eye" height={12} width={12} />
-								Active Columns ({Object.values(currentColumns).filter(Boolean).length})
+								Active Columns ({visibleColumnCount})
 							</h5>
 							<p className="mb-3 text-xs pro-text3">Use arrows to reorder • Click × to hide</p>
 							<div className="thin-scrollbar max-h-60 space-y-1 overflow-y-auto">
-								{columnOrder
-									.filter((key) => currentColumns[key])
-									.map((columnKey) => {
-										const column = allColumnsForDisplay.find((col) => col.key === columnKey)
-										if (!column) return null
-										const isCustom = customColumns.some((customCol) => customCol.id === columnKey)
-										return (
-											<ColumnButton
-												key={columnKey}
-												column={column}
-												isActive={true}
-												isCustom={isCustom}
-												currentColumns={currentColumns}
-												columnOrder={columnOrder}
-												moveColumnUp={moveColumnUp}
-												moveColumnDown={moveColumnDown}
-												toggleColumnVisibility={toggleColumnVisibility}
-												customColumns={customColumns}
-											/>
-										)
-									})}
+								{visibleColumnOrder.map((columnKey) => {
+									const column = columnsByKey.get(columnKey)
+									if (!column) return null
+									const isCustom = customColumnIdSet.has(columnKey)
+									return (
+										<ColumnButton
+											key={columnKey}
+											column={column}
+											isActive={true}
+											isCustom={isCustom}
+											currentColumns={currentColumns}
+											columnOrder={columnOrder}
+											moveColumnUp={moveColumnUp}
+											moveColumnDown={moveColumnDown}
+											toggleColumnVisibility={toggleColumnVisibility}
+											customColumns={customColumns}
+										/>
+									)
+								})}
 							</div>
 						</div>
 
@@ -458,18 +466,18 @@ export function ColumnManagementPanel({
 						</div>
 					</div>
 				</>
-			)}
+			) : null}
 
-			{activeTab === 'custom' && onAddCustomColumn && onRemoveCustomColumn && onUpdateCustomColumn && (
+			{activeTab === 'custom' && onAddCustomColumn && onRemoveCustomColumn && onUpdateCustomColumn ? (
 				<CustomColumnPanel
 					customColumns={customColumns}
 					onAddCustomColumn={onAddCustomColumn}
 					onRemoveCustomColumn={onRemoveCustomColumn}
 					onUpdateCustomColumn={onUpdateCustomColumn}
 				/>
-			)}
+			) : null}
 
-			{activeTab === 'views' && (
+			{activeTab === 'views' ? (
 				<div className="space-y-4">
 					{customViews.length === 0 ? (
 						<div className="py-8 text-center pro-text3">
@@ -492,17 +500,17 @@ export function ColumnManagementPanel({
 									<button onClick={() => onLoadView?.(view.id)} className="flex flex-1 flex-col items-start gap-1">
 										<div className="flex items-center gap-2">
 											<span className="text-sm font-medium pro-text1">{view.name}</span>
-											{activeViewId === view.id && (
+											{activeViewId === view.id ? (
 												<span className="rounded-md bg-pro-green-100 px-1.5 py-0.5 text-xs text-pro-green-400 dark:bg-pro-green-300/20 dark:text-pro-green-200">
 													Active
 												</span>
-											)}
+											) : null}
 										</div>
 										<div className="flex items-center gap-3 text-xs pro-text3">
 											<span>{view.columnOrder?.length || 0} columns</span>
-											{view.customColumns && view.customColumns.length > 0 && (
+											{view.customColumns && view.customColumns.length > 0 ? (
 												<span>{view.customColumns.length} custom columns</span>
-											)}
+											) : null}
 											<span>Created {new Date(view.createdAt).toLocaleDateString()}</span>
 										</div>
 									</button>
@@ -525,14 +533,12 @@ export function ColumnManagementPanel({
 						</div>
 					)}
 				</div>
-			)}
+			) : null}
 
 			<div className="mt-4 flex items-center justify-between border-t pro-divider pt-3 text-xs">
 				<span className="pro-text3">
 					{activeTab === 'columns'
-						? `${Object.values(currentColumns).filter(Boolean).length} of ${
-								protocolsByChainTableColumns.length
-							} columns visible`
+						? `${visibleColumnCount} of ${protocolsByChainTableColumns.length} columns visible`
 						: activeTab === 'custom'
 							? `${customColumns.length} custom columns`
 							: `${customViews.length} saved views`}

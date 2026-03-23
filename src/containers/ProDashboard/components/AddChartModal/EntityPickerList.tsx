@@ -1,6 +1,6 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { matchSorter } from 'match-sorter'
-import { useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { LocalLoader } from '~/components/Loaders'
 import { getItemIconUrl } from '../../utils'
@@ -30,12 +30,13 @@ export function EntityPickerList({
 	isLoading = false
 }: EntityPickerListProps) {
 	const [search, setSearch] = useState('')
+	const deferredSearch = useDeferredValue(search)
 	const listRef = useRef<HTMLDivElement | null>(null)
 
 	const filteredEntities = useMemo(() => {
-		if (!search) return entities
-		return matchSorter(entities, search, { keys: ['label'] })
-	}, [entities, search])
+		if (!deferredSearch) return entities
+		return matchSorter(entities, deferredSearch, { keys: ['label'] })
+	}, [entities, deferredSearch])
 
 	const virtualizer = useVirtualizer({
 		count: filteredEntities.length,
@@ -69,7 +70,7 @@ export function EntityPickerList({
 						className="w-full rounded-md border border-(--form-control-border) bg-(--bg-input) py-1.5 pr-2.5 pl-8 text-xs transition-colors focus:border-(--primary) focus:ring-1 focus:ring-(--primary) focus:outline-hidden"
 					/>
 				</div>
-				{selectedEntities.length > 0 && (
+				{selectedEntities.length > 0 ? (
 					<div className="ml-3 flex items-center gap-2">
 						<span className="text-xs font-medium text-(--text-secondary)">{selectedEntities.length} selected</span>
 						<button
@@ -80,7 +81,7 @@ export function EntityPickerList({
 							Clear
 						</button>
 					</div>
-				)}
+				) : null}
 			</div>
 
 			<div ref={listRef} className="thin-scrollbar flex-1 overflow-y-auto bg-(--cards-bg-alt)/30">
@@ -125,19 +126,18 @@ export function EntityPickerList({
 												: 'border-(--form-control-border) bg-(--bg-input)'
 										}`}
 									>
-										{isSelected && <Icon name="check" width={10} height={10} className="text-white" />}
+										{isSelected ? <Icon name="check" width={10} height={10} className="text-white" /> : null}
 									</div>
 
-									{iconUrl && (
+									{iconUrl ? (
 										<img
 											src={iconUrl}
 											alt={entity.label}
+											width={20}
+											height={20}
 											className="h-5 w-5 shrink-0 rounded-full object-cover ring-1 ring-(--cards-border)"
-											onError={(e) => {
-												e.currentTarget.style.display = 'none'
-											}}
 										/>
-									)}
+									) : null}
 
 									<span className={`truncate ${isSelected ? 'font-medium text-(--primary)' : 'text-(--text-primary)'}`}>
 										{entity.label}

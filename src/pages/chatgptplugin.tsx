@@ -3,9 +3,8 @@ import Layout from '~/layout'
 function PluginPage() {
 	return (
 		<Layout
-			title="DefiLlama - ChatGPT Plugin"
-			description={`DefiLlama ChatGPT plugin. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`defillama chatgpt plugin, defillama chatgpt`}
+			title="DefiLlama ChatGPT Plugin - DeFi Data Assistant"
+			description="Access DefiLlama DeFi data through the ChatGPT plugin. Query TVL, protocol stats, chain data, and more using natural language."
 			canonicalUrl={`/chatgptplugin`}
 		>
 			<h1 className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-3 text-xl font-semibold">

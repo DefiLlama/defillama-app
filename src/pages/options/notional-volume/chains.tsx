@@ -1,9 +1,9 @@
-import { maxAgeForNext } from '~/api'
 import { ChainsByAdapter } from '~/containers/DimensionAdapters/ChainsByAdapter'
 import { ADAPTER_DATA_TYPES, ADAPTER_TYPES } from '~/containers/DimensionAdapters/constants'
 import { getChainsByAdapterPageData } from '~/containers/DimensionAdapters/queries'
 import type { IChainsByAdapterPageData } from '~/containers/DimensionAdapters/types'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const adapterType = ADAPTER_TYPES.OPTIONS
@@ -25,9 +25,8 @@ const pageName = ['Chains', 'ranked by', type]
 const OptionsNotionalVolumeByChain = (props: IChainsByAdapterPageData) => {
 	return (
 		<Layout
-			title={`${type} by Chain - DefiLlama`}
-			description={`${type} by Chain. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`${type} by chain`}
+			title="Options Notional Volume by Chain - DefiLlama"
+			description="Compare options notional volume by chain, the sum of the notional value traded on DeFi options exchanges."
 			canonicalUrl={`/options/notional-volume/chains`}
 			pageName={pageName}
 		>

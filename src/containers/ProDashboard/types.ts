@@ -1,5 +1,7 @@
 const dashboardBlue = '#326abd'
 
+export type DashboardGrouping = 'day' | 'week' | 'month' | 'quarter' | 'year'
+
 export interface Chain {
 	gecko_id: string
 	tvl: number
@@ -9,13 +11,15 @@ export interface Chain {
 }
 
 export type StoredColSpan = 0.5 | 1 | 1.5 | 2
+export type CexAnalyticsView = 'summary' | 'comparison' | 'spot-vs-derivatives' | 'market-share'
+export type CexAnalyticsMetric = 'spot' | 'derivatives'
 
 export interface MultiChartConfig {
 	id: string
 	kind: 'multi'
 	name?: string
 	items: ChartConfig[]
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	grouping?: DashboardGrouping
 	colSpan?: StoredColSpan
 	showCumulative?: boolean
 	showPercentage?: boolean
@@ -118,7 +122,7 @@ export interface ChartBuilderConfig {
 		additionalFilters?: Record<string, any>
 		seriesColors?: Record<string, string>
 	}
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	grouping?: DashboardGrouping
 	colSpan?: StoredColSpan
 }
 
@@ -260,7 +264,7 @@ export interface ChartConfig {
 	isLoading?: boolean
 	hasError?: boolean
 	refetch?: () => void
-	grouping?: 'day' | 'week' | 'month' | 'quarter'
+	grouping?: DashboardGrouping
 	geckoId?: string | null
 	dataType?: UnlocksDataType
 	colSpan?: StoredColSpan
@@ -418,6 +422,7 @@ export interface ProtocolsTableConfig {
 	datasetType?:
 		| 'stablecoins'
 		| 'cex'
+		| 'cex-analytics'
 		| 'revenue'
 		| 'holders-revenue'
 		| 'earnings'
@@ -435,6 +440,9 @@ export interface ProtocolsTableConfig {
 	tokenSymbols?: string[]
 	includeCex?: boolean
 	datasetTimeframe?: string
+	cexAnalyticsView?: CexAnalyticsView
+	cexAnalyticsMetric?: CexAnalyticsMetric
+	cexAnalyticsTopN?: number
 }
 
 export interface CustomColumnDefinition {
@@ -648,6 +656,45 @@ export interface DexItem extends BaseDatasetItem {
 
 // oxlint-disable-next-line typescript/no-empty-object-type
 export interface AggregatorItem extends BaseDatasetItem {}
+
+export interface CexAnalyticsSnapshotRow {
+	venue: string
+	spotVolume24h: number
+	derivativesVolume24h: number
+	spotShare: number
+	derivativesShare: number
+	derivativesToSpotRatio: number | null
+	openInterest: number | null
+	avgLeverage: number | null
+	cleanTvl: number | null
+	volumeToTvl: number | null
+}
+
+export interface CexAnalyticsSummary {
+	totalSpotVolume: number
+	totalDerivativesVolume: number
+	totalOpenInterest: number
+	totalCleanTvl: number
+	weightedAvgLeverage: number | null
+	loadedAt: string | null
+}
+
+export interface CexAnalyticsSnapshotResponse {
+	rows: CexAnalyticsSnapshotRow[]
+	summary: CexAnalyticsSummary
+}
+
+export interface CexAnalyticsTotalsPoint {
+	date: number
+	spotVolume: number
+	derivativesVolume: number
+}
+
+export interface CexAnalyticsMarketSharePoint {
+	date: number
+	venue: string
+	share: number
+}
 
 // oxlint-disable-next-line no-unused-vars
 const isMulti = (x: DashboardItemConfig): x is MultiChartConfig => x.kind === 'multi'

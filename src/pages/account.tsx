@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query'
-import Router, { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 import { Icon } from '~/components/Icon'
 import { AccountInfo } from '~/containers/Subscribtion/AccountInfo'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -10,42 +11,75 @@ import { WalletProvider } from '~/layout/WalletProvider'
 
 export default function Account() {
 	const router = useRouter()
-	const { success } = router.query
+	const success = Array.isArray(router.query.success) ? router.query.success[0] : router.query.success
+	const topupSuccess = Array.isArray(router.query.topup) ? router.query.topup[0] : router.query.topup
 	const queryClient = useQueryClient()
 	const { isAuthenticated } = useAuthContext()
 	const { hasActiveSubscription, isSubscriptionLoading } = useSubscribe()
-	const [showSuccessModal, setShowSuccessModal] = useState(false)
-	const [hasProcessedSuccess, setHasProcessedSuccess] = useState(false)
-	const [hasShownSuccessModal, setHasShownSuccessModal] = useState(false)
+	const successProcessedRef = useRef(false)
+	const topupProcessedRef = useRef(false)
+	const successFlowIdRef = useRef(0)
+	const [activeFlowId, setActiveFlowId] = useState<number | null>(null)
 
 	useEffect(() => {
-		if (success === 'true' && isAuthenticated && !hasProcessedSuccess) {
-			queryClient.invalidateQueries({ queryKey: ['subscription'] })
-			setHasProcessedSuccess(true)
-			Router.replace('/account', undefined, { shallow: true })
+		if (success !== 'true') {
+			successProcessedRef.current = false
 		}
-	}, [success, isAuthenticated, hasProcessedSuccess, queryClient, router.query, router.pathname])
+	}, [success])
 
 	useEffect(() => {
-		if (hasProcessedSuccess && !isSubscriptionLoading && hasActiveSubscription && !hasShownSuccessModal) {
-			setShowSuccessModal(true)
-			setHasShownSuccessModal(true)
+		if (topupSuccess !== 'success' || !isAuthenticated || topupProcessedRef.current) return
+
+		topupProcessedRef.current = true
+		void queryClient.invalidateQueries({ queryKey: ['ai-balance'] })
+		toast.success('Top-up successful! Your LlamaAI Balance has been updated.')
+
+		const { topup: _ignored, ...nextQuery } = router.query
+		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
+	}, [topupSuccess, isAuthenticated, queryClient, router])
+
+	useEffect(() => {
+		if (topupSuccess !== 'success') {
+			topupProcessedRef.current = false
 		}
-	}, [hasProcessedSuccess, isSubscriptionLoading, hasActiveSubscription, hasShownSuccessModal])
+	}, [topupSuccess])
+
+	useEffect(() => {
+		if (success !== 'true' || !isAuthenticated || successProcessedRef.current) return
+
+		successProcessedRef.current = true
+		successFlowIdRef.current += 1
+		setActiveFlowId(successFlowIdRef.current)
+		void queryClient.invalidateQueries({ queryKey: ['subscription'] })
+
+		const { success: _ignoredSuccess, ...nextQuery } = router.query
+		void router.replace(
+			{
+				pathname: router.pathname,
+				query: nextQuery
+			},
+			undefined,
+			{ shallow: true }
+		)
+	}, [success, isAuthenticated, queryClient, router])
+
+	const showSuccessModal = activeFlowId != null && !isSubscriptionLoading && hasActiveSubscription
 
 	const handleCloseSuccessModal = () => {
-		setShowSuccessModal(false)
-		setHasProcessedSuccess(false)
+		setActiveFlowId(null)
 	}
 
 	return (
 		<WalletProvider>
-			<SubscribeLayout>
+			<SubscribeLayout
+				title="My Account - DefiLlama Pro"
+				description="Manage your DefiLlama Pro subscription, billing, and account settings."
+			>
 				<div className="mx-auto w-full max-w-[1200px] px-5">
 					<AccountInfo />
 				</div>
 
-				{showSuccessModal && (
+				{showSuccessModal ? (
 					<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
 						<div className="relative w-full max-w-md rounded-xl border border-[#39393E] bg-[#1a1b1f] p-6 shadow-2xl">
 							<div className="flex flex-col items-center gap-6 py-6">
@@ -65,7 +99,7 @@ export default function Account() {
 							</div>
 						</div>
 					</div>
-				)}
+				) : null}
 			</SubscribeLayout>
 		</WalletProvider>
 	)

@@ -1,4 +1,4 @@
-import { V2_SERVER_URL } from '~/constants'
+import { COINGECKO_KEY, V2_SERVER_URL } from '~/constants'
 import { slug } from '~/utils'
 import { fetchJson } from '~/utils/async'
 import type {
@@ -124,8 +124,7 @@ export async function fetchAdapterProtocolChartDataByBreakdownType({
 /**
  * Fetch adapter chain chart data broken down by protocol.
  */
-// oxlint-disable-next-line no-unused-vars
-async function fetchAdapterChainChartDataByProtocolBreakdown({
+export async function fetchAdapterChainChartDataByProtocolBreakdown({
 	adapterType,
 	chain,
 	dataType
@@ -134,7 +133,10 @@ async function fetchAdapterChainChartDataByProtocolBreakdown({
 	chain: string
 	dataType?: `${ADAPTER_DATA_TYPES}`
 }): Promise<IAdapterBreakdownChartData> {
-	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
+	let totalDataChartUrl =
+		chain && chain !== 'All'
+			? `${V2_SERVER_URL}/chart/${adapterType}/chain/${slug(chain)}/protocol-breakdown`
+			: `${V2_SERVER_URL}/chart/${adapterType}/protocol-breakdown`
 
 	if (dataType) {
 		totalDataChartUrl += `?dataType=${dataType}`
@@ -160,16 +162,16 @@ interface CoinGeckoBtcPrice {
 export async function fetchCexVolume(): Promise<number | null> {
 	try {
 		const [cexs, btcPriceRes] = await Promise.all([
-			fetchJson<CoinGeckoExchange[]>(
-				`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
-					'https://api.coingecko.com/api/v3/exchanges?per_page=250'
-				)}`
-			),
-			fetchJson<CoinGeckoBtcPrice>(
-				`https://api.llama.fi/cachedExternalResponse?url=${encodeURIComponent(
-					'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd'
-				)}`
-			)
+			fetchJson<CoinGeckoExchange[]>('https://pro-api.coingecko.com/api/v3/exchanges?per_page=250', {
+				headers: {
+					'x-cg-pro-api-key': COINGECKO_KEY
+				}
+			}),
+			fetchJson<CoinGeckoBtcPrice>('https://pro-api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd', {
+				headers: {
+					'x-cg-pro-api-key': COINGECKO_KEY
+				}
+			})
 		])
 
 		// Validate BTC price exists and is a number

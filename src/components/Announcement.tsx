@@ -1,85 +1,60 @@
-import { useRouter } from 'next/router'
-import type { NextRouter } from 'next/router'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
-import { getStorageItem, setStorageItem, subscribeToStorageKey } from '~/contexts/localStorageStore'
+import { createAnnouncementDismissalToken, dismissAnnouncement, isAnnouncementDismissed } from '~/utils/cookies'
 
-// change 'value' for new announcements
-const ANNOUNCEMENT = {
-	defi: {
-		key: 'defi-flag-announcement',
-		value: 'defi6'
-	},
-	yields: {
-		key: 'yield-flag-announcement',
-		value: 'yield3'
-	},
-	dexs: {
-		key: 'dexs-daily--data-explanation',
-		value: 'dexsDailyData'
-	},
-	fees: {
-		key: 'fees-daily--data-explanation',
-		value: 'feesDailyData'
-	},
-	options: {
-		key: 'options-daily--data-explanation',
-		value: 'optionsDailyData'
-	}
-}
-
-const getAnnouncementKey = (router: NextRouter) => {
-	if (router.pathname.startsWith('/yields')) return 'yields'
-	else if (router.pathname.startsWith('/dexs')) return 'dexs'
-	else if (router.pathname.startsWith('/fees')) return 'fees'
-	else if (router.pathname.startsWith('/options')) return 'options'
-	else return 'defi'
-}
-
-export function Announcement({
-	children,
-	notCancellable,
-	warning = false
-}: {
+type DismissibleAnnouncementProps = {
 	children: React.ReactNode
-	notCancellable?: boolean
+	announcementId: string
+	version: string
+	notCancellable?: false
 	warning?: boolean
-}) {
-	const router = useRouter()
+}
 
-	const { key, value } = ANNOUNCEMENT[getAnnouncementKey(router)]
+type PermanentAnnouncementProps = {
+	children: React.ReactNode
+	notCancellable: true
+	warning?: boolean
+	announcementId?: never
+	version?: never
+}
 
-	const routeAnnouncementKey = router.pathname + key
-	const routeAnnouncementValue = router.pathname + value
+type AnnouncementProps = DismissibleAnnouncementProps | PermanentAnnouncementProps
+
+export function Announcement(props: AnnouncementProps) {
+	const { children, notCancellable, warning = false } = props
+	const dismissalToken = props.notCancellable
+		? null
+		: createAnnouncementDismissalToken(props.announcementId, props.version)
+	const [isDismissed, setIsDismissed] = React.useState(false)
+
+	React.useEffect(() => {
+		setIsDismissed(dismissalToken ? isAnnouncementDismissed(dismissalToken) : false)
+	}, [dismissalToken])
+
+	if (isDismissed) {
+		return null
+	}
 
 	const closeAnnouncement = () => {
-		setStorageItem(routeAnnouncementKey, JSON.stringify({ value: routeAnnouncementValue }))
+		if (!dismissalToken) return
+		dismissAnnouncement(dismissalToken)
+		setIsDismissed(true)
 	}
 
-	const store = React.useSyncExternalStore(
-		(callback) => subscribeToStorageKey(routeAnnouncementKey, callback),
-		() => getStorageItem(routeAnnouncementKey, null),
-		() => null
-	)
-
-	let announcementValue: string | undefined
-	if (typeof store === 'string') {
-		try {
-			const parsed = JSON.parse(store) as { value?: string }
-			announcementValue = parsed?.value
-		} catch {
-			announcementValue = undefined
-		}
-	}
-
-	if (!notCancellable && announcementValue === routeAnnouncementValue) {
-		return null
+	const wrapperStyle: React.CSSProperties & Record<'--link-bg', string> = {
+		'--link-bg': warning ? 'hsl(45deg 80% 50% / 18%)' : 'hsl(215deg 79% 51% / 12%)'
 	}
 
 	return (
 		<div
-			className="flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm"
-			style={{ '--bg': warning ? '#41440d' : 'hsl(215deg 79% 51% / 12%)' } as React.CSSProperties}
+			className={[
+				'flex min-h-[38px] items-center justify-between gap-2 rounded-md border border-(--link-bg) bg-(--link-bg) p-1.5 text-sm',
+				warning ? 'text-amber-900 dark:text-amber-200' : '',
+				dismissalToken ? `announcement-token--${dismissalToken}` : ''
+			]
+				.filter(Boolean)
+				.join(' ')}
+			style={wrapperStyle}
 		>
 			<span className="flex-1 text-center">{children}</span>
 			{!notCancellable ? (

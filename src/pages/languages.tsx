@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { maxAgeForNext } from '~/api'
 import type {
 	IMultiSeriesChart2Props,
 	MultiSeriesChart2Dataset,
@@ -9,6 +8,7 @@ import { SERVER_URL } from '~/constants'
 import Layout from '~/layout'
 import { getDominancePercent, getNDistinctColors } from '~/utils'
 import { fetchJson } from '~/utils/async'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const MultiSeriesChart2 = React.lazy(
@@ -107,9 +107,8 @@ const pageName = ['TVL', 'by', 'Smart Contract Languages']
 export default function Protocols({ tvlDataset, tvlCharts, dominanceDataset, dominanceCharts, osDataset, osCharts }) {
 	return (
 		<Layout
-			title={`Languages - DefiLlama`}
-			description={`TVL breakdown by smart contract languages that the protocols smart contracts are written in. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`languages, smart contract languages, tvl by language`}
+			title={`DeFi Programming Languages by TVL - DefiLlama`}
+			description={`TVL breakdown by smart contract programming languages. Track which languages power the most value in DeFi - Solidity, Rust, Move, and more. Real-time language dominance analytics.`}
 			canonicalUrl={`/languages`}
 			pageName={pageName}
 		>

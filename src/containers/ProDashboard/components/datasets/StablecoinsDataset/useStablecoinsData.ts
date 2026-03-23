@@ -20,7 +20,7 @@ const toFiniteNumber = (value: unknown, fallback: number): number => {
 
 export function useStablecoinsData(chain: string) {
 	return useQuery({
-		queryKey: ['stablecoins-overview', chain],
+		queryKey: ['pro-dashboard', 'stablecoins-overview', chain],
 		queryFn: async () => {
 			// Fetch all required data in parallel
 			const [peggedData, chainData, priceData, rateData] = await Promise.all([

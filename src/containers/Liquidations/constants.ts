@@ -1,4 +1,4 @@
-import { liquidationsIconUrl } from '~/utils'
+import { liquidationsIconUrl } from '~/utils/icons'
 
 export const LIQUIDATIONS_TOTAL_BINS = 100
 
@@ -165,8 +165,7 @@ export const DEFAULT_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 // Disabled assets that are intentionally excluded from the default list.
 // Keep these here (not as commented-out entries in `DEFAULT_ASSETS_LIST_RAW`) so the updater script
 // can refresh ordering without dropping them.
-// oxlint-disable-next-line no-unused-vars
-const DISABLED_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
+export const DISABLED_ASSETS_LIST_RAW: { name: string; symbol: string }[] = [
 	{
 		name: 'Binance Beacon ETH',
 		symbol: 'BETH'
@@ -197,7 +196,7 @@ export const DEFAULT_ASSETS_LIST = DEFAULT_ASSETS_LIST_RAW.map(({ name, symbol }
 	name,
 	symbol,
 	route: `/liquidations/${symbol.toLowerCase()}`,
-	logo: liquidationsIconUrl(symbol.toLowerCase()),
+	logo: liquidationsIconUrl(symbol),
 	label: `${name} (${symbol.toUpperCase()})`,
 	to: `/liquidations/${symbol.toLowerCase()}`
 }))
@@ -233,5 +232,5 @@ const buildProtocolNamesMapReverse = (): { [name: string]: string } => {
 	}
 	return result
 }
-// oxlint-disable-next-line no-unused-vars
-const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()
+
+export const PROTOCOL_NAMES_MAP_REVERSE = buildProtocolNamesMapReverse()

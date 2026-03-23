@@ -16,18 +16,17 @@ export interface IDATInstitutionOverview extends Omit<IDATInstitutionMetadata, '
 	}>
 }
 
-export interface IDATDailyFlowByAsset {
+export interface IDATOverviewFlowSeries {
 	name: string
-	stack: string
-	type: string
+	stack: 'asset'
 	color: string
-	data: Array<[number, number | null, number | null]>
+	points: ReadonlyArray<readonly [number, number]>
 }
 
 export interface IDATOverviewPageProps {
 	allAssets: Array<{ label: string; to: string }>
 	institutions: IDATInstitutionOverview[]
-	dailyFlowsByAsset: Record<string, IDATDailyFlowByAsset>
+	dailyFlowsByAsset: Record<string, IDATOverviewFlowSeries>
 }
 
 // ── By-asset page (digital-asset-treasuries/[asset]) ────────────────────

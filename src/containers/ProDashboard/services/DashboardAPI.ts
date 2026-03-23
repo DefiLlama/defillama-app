@@ -47,25 +47,28 @@ interface LiteDashboard {
 	name: string
 }
 
-interface DashboardError {
-	message: string
+export class DashboardError extends Error {
 	status: number
+
+	constructor(message: string, status: number) {
+		super(message)
+		this.name = 'DashboardError'
+		this.status = status
+		Object.setPrototypeOf(this, DashboardError.prototype)
+	}
 }
 
 class DashboardAPIService {
 	private async handleResponse<T>(response: Response): Promise<T> {
 		if (!response.ok) {
-			const error: DashboardError = {
-				message: response.statusText || 'An error occurred',
-				status: response.status
-			}
+			let message = response.statusText || 'An error occurred'
 
 			try {
 				const errorData = await response.json()
-				error.message = errorData.message || error.message
+				message = errorData.message || message
 			} catch {}
 
-			throw error
+			throw new DashboardError(message, response.status)
 		}
 
 		return response.json()

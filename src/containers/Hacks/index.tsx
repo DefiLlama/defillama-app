@@ -1,6 +1,6 @@
 import {
-	type ColumnDef,
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
@@ -11,17 +11,19 @@ import { useRouter } from 'next/router'
 import * as React from 'react'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
-import { preparePieChartData } from '~/components/ECharts/formatters'
 import type { IMultiSeriesChart2Props, IPieChartProps } from '~/components/ECharts/types'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { Icon } from '~/components/Icon'
 import { IconsRow } from '~/components/IconsRow'
+import { chainHref, toChainIconItems } from '~/components/IconsRow/utils'
 import { VirtualTable } from '~/components/Table/Table'
-import { useTableSearch } from '~/components/Table/utils'
+import { prepareTableCsv, useTableSearch } from '~/components/Table/utils'
 import { TagGroup } from '~/components/TagGroup'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
-import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear, toNumberOrNullFromQueryParam } from '~/utils'
+import { firstDayOfMonth, formattedNum, toNiceDayMonthAndYear } from '~/utils'
+import { isParamNone, parseArrayParam, parseExcludeParam, parseNumberQueryParam } from '~/utils/routerQuery'
 import { HacksFilters } from './Filters'
 import type { IHacksPageData } from './types'
 
@@ -47,35 +49,15 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getFilteredRowModel: getFilteredRowModel(),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel()
 	})
 
-	const [projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
-
-	const prepareCsv = () => {
-		const rows: Array<Array<string | number | boolean>> = [
-			['Name', 'Date', 'Amount', 'Chains', 'Classification', 'Target', 'Technique', 'Bridge', 'Language', 'Link']
-		]
-		for (const { name, date, amount, chains, classification, target, technique, bridge, language, link } of data) {
-			rows.push([
-				name,
-				date,
-				amount,
-				chains?.join(',') ?? '',
-				classification,
-				target,
-				technique,
-				bridge,
-				language,
-				link
-			])
-		}
-		return { filename: 'hacks.csv', rows }
-	}
+	const [_projectName, setProjectName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -90,16 +72,13 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 					/>
 					<input
 						name="search"
-						value={projectName}
-						onChange={(e) => {
-							setProjectName(e.target.value)
-						}}
+						onInput={(e) => setProjectName(e.currentTarget.value)}
 						placeholder="Search projects..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>
 				</label>
 
-				<CSVDownloadButton prepareCsv={prepareCsv} />
+				<CSVDownloadButton prepareCsv={() => prepareTableCsv({ instance, filename: 'hacks' })} smol />
 			</div>
 			<VirtualTable instance={instance} columnResizeMode={columnResizeMode} />
 		</div>
@@ -108,10 +87,9 @@ function HacksTable({ data }: { data: IHacksPageData['data'] }) {
 
 const chartTypeList = ['Monthly Sum', 'Total Hacked by Technique']
 
-const getTimeSinceSeconds = (timeQuery: string | undefined): number | null => {
+const getTimeSinceSeconds = (timeQuery: string | undefined, nowSec: number): number | null => {
 	if (typeof timeQuery !== 'string') return null
 
-	const nowSec = Math.floor(Date.now() / 1000)
 	switch (timeQuery) {
 		case '7d':
 			return nowSec - 7 * 24 * 60 * 60
@@ -179,27 +157,6 @@ const applyFilters = (
 	})
 }
 
-const toArrayParam = (p: string | string[] | undefined): string[] => {
-	if (!p) return []
-	return Array.isArray(p) ? p.filter(Boolean) : [p].filter(Boolean)
-}
-
-const isParamNone = (param: string | string[] | undefined) =>
-	param === 'None' || (Array.isArray(param) && param.includes('None'))
-
-const parseArrayParam = (param: string | string[] | undefined, allValues: string[]): string[] => {
-	if (!param) return allValues
-	const values = toArrayParam(param).filter((v) => v !== 'None')
-	const valid = new Set(allValues)
-	return values.filter((value) => valid.has(value))
-}
-
-const parseExcludeParam = (param: string | string[] | undefined): Set<string> => {
-	if (!param) return new Set()
-	if (typeof param === 'string') return new Set([param])
-	return new Set(param)
-}
-
 export const HacksContainer = ({
 	data,
 	monthlyHacksChartData,
@@ -212,6 +169,7 @@ export const HacksContainer = ({
 	classificationOptions
 }: IHacksPageData) => {
 	const [chartType, setChartType] = React.useState('Monthly Sum')
+	const [nowSec] = React.useState(() => Math.floor(Date.now() / 1000))
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const router = useRouter()
 	const {
@@ -244,8 +202,8 @@ export const HacksContainer = ({
 		return excludeSet.size > 0 ? selected.filter((c) => !excludeSet.has(c)) : selected
 	}, [classQ, excludeClass, classificationOptions])
 
-	const minLostVal = toNumberOrNullFromQueryParam(minLost)
-	const maxLostVal = toNumberOrNullFromQueryParam(maxLost)
+	const minLostVal = parseNumberQueryParam(minLost)
+	const maxLostVal = parseNumberQueryParam(maxLost)
 
 	const hasActiveFilters =
 		typeof chainQ !== 'undefined' ||
@@ -270,7 +228,7 @@ export const HacksContainer = ({
 		const chainKeys = chainFilterEnabled ? new Set(selectedChains) : undefined
 		const techKeys = techFilterEnabled ? new Set(selectedTechniques) : undefined
 		const classKeys = classFilterEnabled ? new Set(selectedClassifications) : undefined
-		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined)
+		const since = getTimeSinceSeconds(typeof timeQ === 'string' ? timeQ : undefined, nowSec)
 
 		return applyFilters(data ?? [], {
 			chainKeys,
@@ -296,7 +254,8 @@ export const HacksContainer = ({
 		selectedClassifications,
 		timeQ,
 		minLostVal,
-		maxLostVal
+		maxLostVal,
+		nowSec
 	])
 
 	const derivedStats = React.useMemo(() => {
@@ -356,6 +315,8 @@ export const HacksContainer = ({
 	const displayTotalRugs = derivedStats?.totalRugs ?? totalRugs
 	const displayMonthlyHacksChartData = derivedStats?.monthlyHacksChartData ?? monthlyHacksChartData
 	const displayPieChartData = derivedStats?.pieChartData ?? pieChartData
+	const deferredMonthlyHacksChartData = React.useDeferredValue(displayMonthlyHacksChartData)
+	const deferredPieChartData = React.useDeferredValue(displayPieChartData)
 
 	return (
 		<>
@@ -369,10 +330,10 @@ export const HacksContainer = ({
 			/>
 			<div className="relative isolate grid grid-cols-2 gap-2 xl:grid-cols-3">
 				<div className="col-span-2 flex w-full flex-col gap-6 overflow-x-auto rounded-md border border-(--cards-border) bg-(--cards-bg) p-5 xl:col-span-1">
-					<p className="flex flex-col">
-						<span className="text-(--text-label)">Total Value Hacked (USD)</span>
-						<span className="font-jetbrains text-2xl font-semibold">{displayTotalHacked}</span>
-					</p>
+					<div className="flex flex-col">
+						<h1 className="text-(--text-label)">Total Value Hacked (USD)</h1>
+						<p className="font-jetbrains text-2xl font-semibold">{displayTotalHacked}</p>
+					</div>
 					<p className="flex flex-col">
 						<span className="text-(--text-label)">Total Value Hacked in DeFi (USD)</span>
 						<span className="font-jetbrains text-2xl font-semibold">{displayTotalHackedDefi}</span>
@@ -394,15 +355,15 @@ export const HacksContainer = ({
 					{chartType === 'Monthly Sum' ? (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
 							<MultiSeriesChart2
-								dataset={displayMonthlyHacksChartData.dataset}
-								charts={displayMonthlyHacksChartData.charts}
+								dataset={deferredMonthlyHacksChartData.dataset}
+								charts={deferredMonthlyHacksChartData.charts}
 								groupBy="monthly"
 								onReady={handleChartReady}
 							/>
 						</React.Suspense>
 					) : (
 						<React.Suspense fallback={<div className="min-h-[360px]" />}>
-							<PieChart chartData={displayPieChartData} onReady={handleChartReady} />
+							<PieChart chartData={deferredPieChartData} onReady={handleChartReady} />
 						</React.Suspense>
 					)}
 				</div>
@@ -412,38 +373,32 @@ export const HacksContainer = ({
 	)
 }
 
-const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
-	{
+const columnHelper = createColumnHelper<IHacksPageData['data'][0]>()
+
+const hacksColumns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		size: 200
-	},
-	{
-		cell: ({ getValue }) => <>{toNiceDayMonthAndYear(getValue<number>())}</>,
+	}),
+	columnHelper.accessor('date', {
+		cell: ({ getValue }) => toNiceDayMonthAndYear(getValue()),
 		size: 120,
-		header: 'Date',
-		accessorKey: 'date'
-	},
-	{
+		header: 'Date'
+	}),
+	columnHelper.accessor('amount', {
 		header: 'Amount lost',
-		accessorKey: 'amount',
-		cell: ({ getValue }) => {
-			const val = getValue<number | null>()
-			return <>{val != null ? formattedNum(val, true) : ''}</>
-		},
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('chains', {
 		header: 'Chains',
-		accessorKey: 'chains',
 		enableSorting: false,
-		cell: ({ getValue }) => <IconsRow links={getValue<string[]>()} url="/chain" iconType="chain" />,
+		cell: ({ getValue }) => <IconsRow items={toChainIconItems(getValue(), (chain) => chainHref('/chain', chain))} />,
 		size: 60
-	},
-	{
+	}),
+	columnHelper.accessor('classification', {
 		header: 'Classification',
-		accessorKey: 'classification',
 		enableSorting: false,
 		size: 140,
 		meta: {
@@ -451,43 +406,39 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				'Classified based on whether the hack targeted a weakness in Infrastructure, Smart Contract Language, Protocol Logic or the interaction between multiple protocols (Ecosystem)'
 		},
 		cell: ({ getValue }) => {
-			const value = getValue<string>()
+			const value = getValue()
 			return (
 				<Tooltip content={value} className="inline text-ellipsis">
 					{value}
 				</Tooltip>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('technique', {
 		header: 'Technique',
-		accessorKey: 'technique',
 		enableSorting: false,
 		size: 200,
 		cell: ({ getValue }) => {
-			const value = getValue<string>()
+			const value = getValue()
 			return (
 				<Tooltip content={value} className="inline text-ellipsis">
 					{value}
 				</Tooltip>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('language', {
 		header: 'Language',
-		accessorKey: 'language',
-		cell: ({ getValue }) => <>{getValue<string>()}</>,
 		size: 140
-	},
-	{
+	}),
+	columnHelper.accessor('link', {
 		header: 'Link',
-		accessorKey: 'link',
 		size: 40,
 		enableSorting: false,
 		cell: ({ getValue }) => (
 			<a
 				className="flex items-center justify-center gap-4 rounded-md bg-(--btn2-bg) p-1.5 hover:bg-(--btn2-hover-bg)"
-				href={getValue<string>()}
+				href={getValue()}
 				target="_blank"
 				rel="noopener noreferrer"
 			>
@@ -495,5 +446,5 @@ const hacksColumns: ColumnDef<IHacksPageData['data'][0]>[] = [
 				<span className="sr-only">open in new tab</span>
 			</a>
 		)
-	}
+	})
 ]

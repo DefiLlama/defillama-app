@@ -1,6 +1,6 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { useProDashboardCatalog } from '../../ProDashboardAPIContext'
-import { CHART_TYPES, type ChartConfig } from '../../types'
+import { CHART_TYPES, type ChartConfig, type DashboardGrouping } from '../../types'
 import { EXTENDED_COLOR_PALETTE } from '../../utils/colorManager'
 
 const MultiSeriesChart = lazy(() => import('~/components/ECharts/MultiSeriesChart'))
@@ -14,19 +14,18 @@ interface CombinedChartPreviewProps {
 	composerItems: ChartConfig[]
 }
 
-const mapGroupingToGroupBy = (
-	grouping: 'day' | 'week' | 'month' | 'quarter'
-): 'daily' | 'weekly' | 'monthly' | 'quarterly' => {
+const mapGroupingToGroupBy = (grouping: DashboardGrouping): 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly' => {
 	if (grouping === 'week') return 'weekly'
 	if (grouping === 'month') return 'monthly'
 	if (grouping === 'quarter') return 'quarterly'
+	if (grouping === 'year') return 'yearly'
 	return 'daily'
 }
 
 export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProps) {
 	const { getProtocolInfo } = useProDashboardCatalog()
 
-	const previewGrouping = useMemo<'day' | 'week' | 'month' | 'quarter'>(() => {
+	const previewGrouping = useMemo<DashboardGrouping>(() => {
 		const definedGroupings = composerItems
 			.map((item) => item.grouping)
 			.filter((grouping): grouping is NonNullable<typeof grouping> => Boolean(grouping))
@@ -97,10 +96,10 @@ export function CombinedChartPreview({ composerItems }: CombinedChartPreviewProp
 		return (
 			<div className="flex h-full w-full items-center justify-center">
 				<div className="rounded-md border border-(--cards-border) bg-(--cards-bg) p-4 text-center">
-					<div className="mb-2 text-sm pro-text2">Chart Preview</div>
-					<div className="text-xs pro-text3">
+					<p className="mb-2 text-sm pro-text2">Chart Preview</p>
+					<p className="text-xs pro-text3">
 						{composerItems.length} chart{composerItems.length > 1 ? 's' : ''} selected
-					</div>
+					</p>
 					<div className="mt-3 space-y-1">
 						{composerItems.map((item) => (
 							<div key={item.id} className="text-xs pro-text3">

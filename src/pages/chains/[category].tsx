@@ -1,10 +1,12 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
-import { maxAgeForNext } from '~/api'
 import { tvlOptions } from '~/components/Filters/options'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { ChainsByCategory } from '~/containers/ChainsByCategory'
 import { getChainsByCategory } from '~/containers/ChainsByCategory/queries'
 import { fetchEntityQuestions } from '~/containers/LlamaAI/api'
 import Layout from '~/layout'
+import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 const pageName = ['Chains']
@@ -13,12 +15,12 @@ export const getStaticProps = withPerformanceLogging(
 	'chains/[category]',
 	async ({ params }: GetStaticPropsContext<{ category: string }>) => {
 		if (!params?.category) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const { category } = params
 		const metadataCache = await import('~/utils/metadata').then((m) => m.default)
-		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category })
+		const data = await getChainsByCategory({ chainMetadata: metadataCache.chainMetadata, category: slug(category) })
 		const { questions: entityQuestions } = await fetchEntityQuestions('chains', 'page', {
 			category,
 			totalChains: data.chains.length,
@@ -28,9 +30,9 @@ export const getStaticProps = withPerformanceLogging(
 				change_1d: c.change_1d ?? null,
 				change_7d: c.change_7d ?? null,
 				protocols: c.protocols ?? null,
-				totalVolume24h: c.totalVolume24h ?? null,
-				totalFees24h: c.totalFees24h ?? null,
-				totalRevenue24h: c.totalRevenue24h ?? null,
+				dexVolume24h: c.dexVolume24h ?? null,
+				fees24h: c.fees24h ?? null,
+				revenue24h: c.revenue24h ?? null,
 				stablesMcap: c.stablesMcap ?? null
 			}))
 		})
@@ -41,11 +43,11 @@ export const getStaticProps = withPerformanceLogging(
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -58,10 +60,9 @@ export async function getStaticPaths() {
 export default function Chains(props: InferGetStaticPropsType<typeof getStaticProps>) {
 	return (
 		<Layout
-			title={`${props.category} Chains DeFi TVL - DefiLlama`}
+			title={`${props.categoryName} Chains DeFi TVL - DefiLlama`}
 			description={props.description}
-			keywords={props.keywords}
-			canonicalUrl={`/chains${props.category === 'All' ? '' : `/${props.category}`}`}
+			canonicalUrl={`/chains${props.categoryName === 'All' ? '' : `/${props.category}`}`}
 			metricFilters={tvlOptions}
 			metricFiltersLabel="Include in TVL"
 			pageName={pageName}

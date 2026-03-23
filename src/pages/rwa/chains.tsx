@@ -1,9 +1,10 @@
-import { maxAgeForNext } from '~/api'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
 import { RWAChainsTable } from '~/containers/RWA/Chains'
 import { getRWAChainsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
+import { RWATabNav } from '~/containers/RWA/TabNav'
 import Layout from '~/layout'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import { withPerformanceLogging } from '~/utils/perf'
 
 export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
@@ -34,17 +35,17 @@ export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
 	}
 })
 
-const pageName = ['RWA Chains']
+const pageName = ['RWA']
 
 export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 	return (
 		<Layout
-			title="RWA Chains - DefiLlama"
-			description={`Real World Assets by chain on DefiLlama. DefiLlama is committed to providing accurate data without ads or sponsored content, as well as transparency.`}
-			keywords={`real world assets, rwa chains, rwa onchain by chain`}
+			title="RWA by Chain - Real World Assets Analytics - DefiLlama"
+			description="Compare RWA adoption across blockchains. Track Active Mcap, Onchain Mcap, and DeFi Active TVL by chain."
 			pageName={pageName}
 			canonicalUrl={`/rwa/chains`}
 		>
+			<RWATabNav active="chains" />
 			<RowLinksWithDropdown links={chainLinks} activeLink={'All'} />
 			<RWAChainsTable chains={chains} chartDatasets={chartDatasets} />
 		</Layout>

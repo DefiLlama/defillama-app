@@ -1,6 +1,6 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import { createColumnHelper } from '@tanstack/react-table'
 import * as React from 'react'
-import { preparePieChartData } from '~/components/ECharts/formatters'
+import { preparePieChartData } from '~/components/ECharts/utils'
 import { BasicLink } from '~/components/Link'
 import { LoadingDots } from '~/components/Loaders'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
@@ -8,7 +8,7 @@ import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import { TokenLogo } from '~/components/TokenLogo'
 import { CHART_COLORS } from '~/constants/colors'
 import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
-import { formattedNum, slug, tokenIconUrl } from '~/utils'
+import { formattedNum, slug } from '~/utils'
 import { useForksOverviewExtraSeries } from './queries.client'
 import { getEnabledExtraApiKeys, getForkToOriginalTvlPercent } from './tvl'
 import type { ForkOverviewPageData } from './types'
@@ -24,17 +24,18 @@ interface IForksRow {
 	ftot: number | null
 }
 
-const forksColumn: ColumnDef<IForksRow>[] = [
-	{
+const columnHelper = createColumnHelper<IForksRow>()
+
+const forksColumn = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ getValue }) => {
-			const name = getValue<string>()
+			const name = getValue()
 			return (
 				<span className="relative flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={tokenIconUrl(name)} data-lgonly />
+					<TokenLogo name={name} kind="token" data-lgonly alt={`Logo of ${name}`} />
 					<BasicLink
 						href={`/forks/${slug(name)}`}
 						className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -44,27 +45,21 @@ const forksColumn: ColumnDef<IForksRow>[] = [
 				</span>
 			)
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('forkedProtocols', {
 		header: 'Forked Protocols',
-		accessorKey: 'forkedProtocols',
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('tvl', {
 		header: 'Forks TVL',
-		accessorKey: 'tvl',
-		cell: ({ getValue }) => <>{formattedNum(getValue<number>(), true)}</>,
+		cell: (info) => (info.getValue() != null ? formattedNum(info.getValue(), true) : null),
 		meta: { align: 'end' }
-	},
-	{
+	}),
+	columnHelper.accessor('ftot', {
 		header: 'Forks TVL / Original TVL',
-		accessorKey: 'ftot',
-		cell: ({ getValue }) => {
-			const value = getValue<number | null>()
-			return <>{value != null ? `${formattedNum(value)}%` : null}</>
-		},
+		cell: (info) => (info.getValue() != null ? `${formattedNum(info.getValue())}%` : null),
 		meta: { align: 'end' }
-	}
+	})
 ]
 
 const DEFAULT_SORTING_STATE = [{ id: 'tvl', desc: true }]
@@ -111,11 +106,11 @@ export const ForksOverview = ({
 	const { tableData, tokenTvls, dominanceDataset, dominanceCharts, chartColors } = React.useMemo(() => {
 		const latestData = mergedChartData.length > 0 ? mergedChartData[mergedChartData.length - 1] : null
 		const chartForkKeys = new Set(forks)
-		mergedChartData.forEach((entry) => {
-			Object.keys(entry).forEach((key) => {
+		for (const entry of mergedChartData) {
+			for (const key in entry) {
 				if (key !== 'timestamp') chartForkKeys.add(key)
-			})
-		})
+			}
+		}
 		const sortedChartForks = Array.from(chartForkKeys).sort(
 			(a, b) => Number(latestData?.[b] ?? 0) - Number(latestData?.[a] ?? 0)
 		)
@@ -147,11 +142,12 @@ export const ForksOverview = ({
 		const tokenTvls = preparePieChartData({ data: tvls, limit: 5 })
 		const chartColors: Record<string, string> = { ...forkColors }
 
-		sortedChartForks.forEach((name, index) => {
+		for (let index = 0; index < sortedChartForks.length; index++) {
+			const name = sortedChartForks[index]
 			if (!chartColors[name]) {
 				chartColors[name] = CHART_COLORS[index % CHART_COLORS.length]
 			}
-		})
+		}
 
 		const dominanceDataset = {
 			source: mergedChartData.map((entry) => {
@@ -166,9 +162,9 @@ export const ForksOverview = ({
 				const totalTvl = valuesInRow.reduce((sum, [, value]) => sum + value, 0)
 				if (totalTvl <= 0) return row
 
-				valuesInRow.forEach(([forkName, value]) => {
+				for (const [forkName, value] of valuesInRow) {
 					row[forkName] = (value / totalTvl) * 100
-				})
+				}
 
 				return row
 			}),
@@ -244,6 +240,8 @@ export const ForksOverview = ({
 							placeholder="Search protocols..."
 							columnToSearch="name"
 							header="Protocol Rankings"
+							headingAs="h1"
+							csvFileName="forks-overview"
 							sortingState={DEFAULT_SORTING_STATE}
 						/>
 					</React.Suspense>

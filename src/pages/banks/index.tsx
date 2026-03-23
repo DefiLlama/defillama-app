@@ -1,4 +1,4 @@
-import { type ColumnDef, sortingFns } from '@tanstack/react-table'
+import { createColumnHelper, sortingFns } from '@tanstack/react-table'
 import * as React from 'react'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -11,50 +11,52 @@ const MultiSeriesChart2 = React.lazy(
 	() => import('~/components/ECharts/MultiSeriesChart2')
 ) as React.FC<IMultiSeriesChart2Props>
 
-const banksTableColumns: ColumnDef<any>[] = [
-	{
+type BankRow = Record<string, string | number> & {
+	'1': string
+	'4': string
+	'6': number
+	'7': number
+	date: number
+}
+
+const columnHelper = createColumnHelper<BankRow>()
+
+const banksTableColumns = [
+	columnHelper.accessor('1', {
 		header: 'Name',
-		accessorKey: '1',
 		enableSorting: false,
 		size: 220
-	},
-	{
+	}),
+	columnHelper.accessor('date', {
 		header: 'Closing date',
-		accessorKey: 'date',
 		sortingFn: sortingFns.datetime,
-		cell: ({ getValue }) => {
-			return <>{getValue() ? toNiceDateYear(getValue() as number) : ''}</>
-		},
+		cell: (info) => (info.getValue() ? toNiceDateYear(info.getValue()) : ''),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => row['6'] * 1e6, {
+		id: 'assets',
 		header: 'Assets',
-		accessorKey: '6',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedNum((getValue() as number) * 1e6, true) : ''}</>
-		},
+		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : ''),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor((row) => row['7'] * 1e6, {
+		id: 'assets-inflation-adjusted',
 		header: 'Assets (inflation adjusted)',
-		accessorKey: '7',
-		cell: ({ getValue }) => {
-			return <>{getValue() ? formattedNum((getValue() as number) * 1e6, true) : ''}</>
-		},
+		cell: (info) => (info.getValue() ? formattedNum(info.getValue(), true) : ''),
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
-const tableData = data.banks.map((b: any) => {
-	b.date = new Date(b[4]).getTime() / 1e3
-	return b
-})
+const tableData: BankRow[] = data.banks.map((bank) => ({
+	...(bank as unknown as BankRow),
+	date: new Date(String(bank['4'])).getTime() / 1e3
+}))
 
 const chartData: Array<[number, number]> = []
 for (const year in data.years) {
@@ -78,7 +80,11 @@ const chartCharts: IMultiSeriesChart2Props['charts'] = [
 
 const Banks = () => {
 	return (
-		<Layout title="Bank Failures - DefiLlama">
+		<Layout
+			title="Historical Bank Failures Database - DefiLlama"
+			description="Historical US bank failures database with closing dates, assets at failure, and inflation-adjusted annual totals."
+			canonicalUrl={'/banks'}
+		>
 			<div className="relative col-span-2 rounded-md border border-(--cards-border) bg-(--cards-bg)">
 				<React.Suspense fallback={<div className="min-h-[398px]" />}>
 					<MultiSeriesChart2
@@ -95,6 +101,7 @@ const Banks = () => {
 				columns={banksTableColumns}
 				placeholder="Search banks..."
 				columnToSearch={'1'}
+				csvFileName="banks"
 				sortingState={DEFAULT_SORTING_STATE}
 			/>
 		</Layout>

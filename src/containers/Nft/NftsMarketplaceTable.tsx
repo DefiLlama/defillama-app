@@ -1,18 +1,18 @@
 import {
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { renderPercentChange } from '~/utils'
 
 interface INftMarketplace {
 	exchangeName: string
@@ -46,10 +46,11 @@ const EthVolumeCell = ({ value }: { value: unknown }) => {
 	)
 }
 
-const columns: ColumnDef<INftMarketplace>[] = [
-	{
+const columnHelper = createColumnHelper<INftMarketplace>()
+
+const columns = [
+	columnHelper.accessor('exchangeName', {
 		header: 'Name',
-		accessorKey: 'exchangeName',
 		enableSorting: false,
 		cell: ({ getValue, row }) => {
 			const name = String(getValue())
@@ -58,74 +59,65 @@ const columns: ColumnDef<INftMarketplace>[] = [
 			return (
 				<span className="flex items-center gap-2">
 					<span className="vf-row-index shrink-0" aria-hidden="true" />
-					<TokenLogo logo={`https://icons.llamao.fi/icons/protocols/${icon}`} data-lgonly />
+					<TokenLogo src={`https://icons.llamao.fi/icons/protocols/${icon}`} alt={`Logo of ${name}`} data-lgonly />
 					<span className="overflow-hidden text-ellipsis whitespace-nowrap hover:underline">{name}</span>
 				</span>
 			)
 		},
 		size: 280
-	},
-	{
+	}),
+	columnHelper.accessor('weeklyChange', {
 		header: 'Volume change',
-		accessorKey: 'weeklyChange',
 		size: 160,
-		cell: (info) => <>{info.getValue() != null ? renderPercentChange(info.getValue()) : null}</>,
+		cell: (info) => (info.getValue() != null ? <PercentChange percent={info.getValue()} /> : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'Change of last 7d volume over the previous 7d volume'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('1DayVolume', {
 		header: 'Volume 1d',
-		accessorKey: '1DayVolume',
 		size: 130,
 		cell: (info) => <EthVolumeCell value={info.getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: '24h rolling volume'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('7DayVolume', {
 		header: 'Volume 7d',
-		accessorKey: '7DayVolume',
 		size: 130,
 		cell: (info) => <EthVolumeCell value={info.getValue()} />,
 		meta: {
 			align: 'end',
 			headerHelperText: '7day rolling volume'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('pctOfTotal', {
 		header: 'Market Share',
-		accessorKey: 'pctOfTotal',
 		size: 150,
-		cell: (info) => {
-			const numericValue = Number(info.getValue())
-			return <>{Number.isFinite(numericValue) ? numericValue.toFixed(2) + '%' : null}</>
-		},
+		cell: (info) => (Number.isFinite(Number(info.getValue())) ? `${Number(info.getValue()).toFixed(2)}%` : null),
 		meta: {
 			align: 'end',
 			headerHelperText: 'based on Volume 1d'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('1DayNbTrades', {
 		header: 'Trades 1d',
-		accessorKey: '1DayNbTrades',
 		size: 130,
 		meta: {
 			align: 'end',
 			headerHelperText: '24h rolling trades'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('7DayNbTrades', {
 		header: 'Trades 7d',
-		accessorKey: '7DayNbTrades',
 		size: 130,
 		meta: {
 			align: 'end',
 			headerHelperText: '7day rolling trades'
 		}
-	}
+	})
 ]
 
 export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> }) {
@@ -142,14 +134,15 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [marketplaceName, setMarketplaceName] = useTableSearch({ instance, columnToSearch: 'exchangeName' })
+	const [_marketplaceName, setMarketplaceName] = useTableSearch({ instance, columnToSearch: 'exchangeName' })
 
 	return (
 		<>
@@ -163,10 +156,7 @@ export function NftsMarketplaceTable({ data }: { data: Array<INftMarketplace> })
 						className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
 					/>
 					<input
-						value={marketplaceName}
-						onChange={(e) => {
-							setMarketplaceName(e.target.value)
-						}}
+						onInput={(e) => setMarketplaceName(e.currentTarget.value)}
 						placeholder="Search marketplace..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

@@ -2,9 +2,10 @@ import { useMutation } from '@tanstack/react-query'
 import { memo, useState } from 'react'
 import { Icon } from '~/components/Icon'
 import { MCP_SERVER } from '~/constants'
+import type { AlertIntent } from '~/containers/LlamaAI/types'
+import { assertResponse } from '~/containers/LlamaAI/utils/assertResponse'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { handleSimpleFetchResponse } from '~/utils/async'
-import type { AlertIntent } from '../types'
 
 export const AlertArtifactLoading = memo(function AlertArtifactLoading() {
 	return (
@@ -31,6 +32,7 @@ interface AlertArtifactProps {
 	alertIntent: AlertIntent
 	messageId?: string
 	savedAlertIds?: string[]
+	defaultTitle?: string
 }
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -60,10 +62,11 @@ export const AlertArtifact = memo(function AlertArtifact({
 	alertId,
 	alertIntent,
 	messageId,
-	savedAlertIds
+	savedAlertIds,
+	defaultTitle
 }: AlertArtifactProps) {
 	const { authorizedFetch, isAuthenticated } = useAuthContext()
-	const [title, setTitle] = useState(alertId.replace(/_/g, ' '))
+	const [title, setTitle] = useState(defaultTitle || alertId.replace(/_/g, ' '))
 	const [frequency, setFrequency] = useState<'daily' | 'weekly'>(alertIntent.frequency ?? 'daily')
 	const [hour, setHour] = useState(alertIntent.hour ?? 9)
 	const [dayOfWeek, setDayOfWeek] = useState(alertIntent.dayOfWeek ?? 1)
@@ -85,12 +88,16 @@ export const AlertArtifact = memo(function AlertArtifact({
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(payload)
-			}).then(handleSimpleFetchResponse)
+			})
+				.then((response) => assertResponse(response, 'Failed to save alert'))
+				.then(handleSimpleFetchResponse)
 		},
 		onSuccess: () => {
 			setSaved(true)
 		}
 	})
+
+	const canSave = !!messageId && !isSaving && !saved && !!title.trim()
 
 	const handleSave = () => {
 		if (!messageId) return
@@ -111,22 +118,42 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="text-sm font-medium text-(--text1)">Sign in to save alerts</span>
-					<span className="text-xs text-(--text3)">Scheduled alerts require authentication</span>
+					<h3 className="m-0 text-sm font-medium text-(--text1)">Sign in to save alerts</h3>
+					<p className="m-0 text-xs text-(--text3)">Scheduled alerts require authentication.</p>
 				</div>
 			</div>
 		)
 	}
 
 	return (
-		<div className="my-2 flex flex-col gap-3 rounded-lg border border-[#e6e6e6] bg-white p-3 dark:border-[#222324] dark:bg-[#181A1C]">
+		<div
+			className={`my-2 flex flex-col gap-3 rounded-lg border p-3 ${
+				saved
+					? 'border-[#e6e6e6] bg-white dark:border-[#222324] dark:bg-[#181A1C]'
+					: 'animate-[alertPulse_2s_ease-in-out_infinite] border-amber-500/50 bg-white dark:bg-[#181A1C]'
+			}`}
+			style={
+				!saved
+					? ({
+							'--tw-shadow': '0 0 0 0 rgba(245, 158, 11, 0)',
+							animation: 'alertPulse 2s ease-in-out infinite'
+						} as React.CSSProperties)
+					: undefined
+			}
+		>
+			<style>{`
+				@keyframes alertPulse {
+					0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.15); }
+					50% { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1); }
+				}
+			`}</style>
 			<div className="flex items-center gap-3">
 				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/10">
 					<Icon name="calendar-plus" className="h-5 w-5 text-amber-500" />
 				</div>
 				<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-					<span className="text-sm font-medium text-(--text1)">Schedule Alert</span>
-					<span className="text-xs text-(--text3)">Get this data delivered to your inbox</span>
+					<h3 className="m-0 text-sm font-medium text-(--text1)">Schedule Alert</h3>
+					<p className="m-0 text-xs text-(--text3)">Get this data delivered to your inbox</p>
 				</div>
 			</div>
 
@@ -149,7 +176,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 					<option value="weekly">Weekly</option>
 				</select>
 
-				{frequency === 'weekly' && (
+				{frequency === 'weekly' ? (
 					<select
 						value={dayOfWeek}
 						onChange={(e) => setDayOfWeek(Number(e.target.value))}
@@ -162,7 +189,7 @@ export const AlertArtifact = memo(function AlertArtifact({
 							</option>
 						))}
 					</select>
-				)}
+				) : null}
 
 				<span className="text-sm text-(--text3)">at</span>
 
@@ -173,34 +200,45 @@ export const AlertArtifact = memo(function AlertArtifact({
 					className="rounded-md border border-[#e6e6e6] bg-transparent px-3 py-2 text-sm text-(--text1) focus:border-[#2172E5] focus:outline-hidden disabled:opacity-50 dark:border-[#222324]"
 				>
 					{Array.from({ length: 24 }, (_, i) => (
-						<option key={i} value={i}>
+						<option key={`alert-hour-${i}`} value={i}>
 							{i.toString().padStart(2, '0')}:00
 						</option>
 					))}
 				</select>
 
 				<span className="text-xs text-(--text3)">({getTimezoneLabel(timezone)})</span>
-
-				<button
-					onClick={handleSave}
-					disabled={isSaving || saved || !title.trim()}
-					className="ml-auto flex items-center gap-1.5 rounded-md bg-[#2172E5] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50"
-				>
-					{saved ? (
-						<>
-							<Icon name="check" className="h-4 w-4" />
-							<span>Saved</span>
-						</>
-					) : isSaving ? (
-						<span>Saving...</span>
-					) : (
-						<>
-							<Icon name="calendar-plus" className="h-4 w-4" />
-							<span>Save Alert</span>
-						</>
-					)}
-				</button>
 			</div>
+
+			{!saved ? (
+				<p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+					<Icon name="alert-triangle" className="h-3.5 w-3.5 shrink-0" />
+					Action required — confirm your alert settings and save
+				</p>
+			) : null}
+
+			<button
+				onClick={handleSave}
+				disabled={!canSave}
+				className={`flex w-full items-center justify-center gap-1.5 rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
+					saved
+						? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+						: 'bg-[#2172E5] text-white hover:bg-[#1a5cc7] disabled:cursor-not-allowed disabled:opacity-50'
+				}`}
+			>
+				{saved ? (
+					<>
+						<Icon name="check" className="h-4 w-4" />
+						<span>Saved</span>
+					</>
+				) : isSaving ? (
+					<span>Saving...</span>
+				) : (
+					<>
+						<Icon name="calendar-plus" className="h-4 w-4" />
+						<span>Save Alert</span>
+					</>
+				)}
+			</button>
 			{saveErrorMessage ? <p className="text-center text-xs text-(--error)">{saveErrorMessage}</p> : null}
 		</div>
 	)

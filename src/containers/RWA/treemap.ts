@@ -1,8 +1,8 @@
 import { CHART_COLORS } from '~/constants/colors'
 import type { IRWAAssetsOverview, IRWAProject } from './api.types'
+import type { RWAOverviewMode } from './constants'
+import { computeWeightedGroups } from './grouping'
 import { rwaSlug } from './rwaSlug'
-
-type RWAOverviewMode = 'chain' | 'category' | 'platform'
 
 export type RWAChartType = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 export type RwaTreemapParentGrouping = 'category' | 'assetClass' | 'assetName' | 'platform' | 'chain'
@@ -220,6 +220,16 @@ const getAssetGroupsByGrouping = (
 	}
 }
 
+const getWeightedAssetGroupsByGrouping = (
+	asset: IRWAProject,
+	grouping: RwaTreemapParentGrouping | RwaTreemapNestedBy
+): Array<{ label: string; weight: number }> => {
+	return computeWeightedGroups(getAssetGroupsByGrouping(asset, grouping)).map(({ value, weight }) => ({
+		label: value,
+		weight
+	}))
+}
+
 const sanitizeTreemapLabel = (value: string): string => {
 	const trimmed = value.trim()
 	if (!trimmed) return ''
@@ -350,7 +360,7 @@ export const buildRwaNestedTreemapTreeData = ({
 	const nestedTotals = new Map<string, Map<string, number>>()
 
 	for (const asset of assets) {
-		const childGroups = getAssetGroupsByGrouping(asset, childGrouping)
+		const childGroups = getWeightedAssetGroupsByGrouping(asset, childGrouping)
 		if (childGroups.length === 0) continue
 
 		if (parentGrouping === 'chain') {
@@ -359,8 +369,8 @@ export const buildRwaNestedTreemapTreeData = ({
 
 			for (const { label: parentGroup, value: metricValue } of metricByChain) {
 				const childTotals = nestedTotals.get(parentGroup) ?? new Map<string, number>()
-				for (const childGroup of childGroups) {
-					childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue)
+				for (const { label: childGroup, weight: childWeight } of childGroups) {
+					childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue * childWeight)
 				}
 				nestedTotals.set(parentGroup, childTotals)
 			}
@@ -370,15 +380,13 @@ export const buildRwaNestedTreemapTreeData = ({
 		const metricValue = getRwaMetricValue(asset, metric)
 		if (!Number.isFinite(metricValue) || metricValue <= 0) continue
 
-		const parentGroups = getAssetGroupsByGrouping(asset, parentGrouping)
+		const parentGroups = getWeightedAssetGroupsByGrouping(asset, parentGrouping)
 		if (parentGroups.length === 0) continue
 
-		// Intentional full-count behavior: if an asset belongs to multiple parent/child groups,
-		// we add the full metric to each membership. To migrate to split-even, divide metricValue here.
-		for (const parentGroup of parentGroups) {
+		for (const { label: parentGroup, weight: parentWeight } of parentGroups) {
 			const childTotals = nestedTotals.get(parentGroup) ?? new Map<string, number>()
-			for (const childGroup of childGroups) {
-				childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue)
+			for (const { label: childGroup, weight: childWeight } of childGroups) {
+				childTotals.set(childGroup, (childTotals.get(childGroup) ?? 0) + metricValue * parentWeight * childWeight)
 			}
 			nestedTotals.set(parentGroup, childTotals)
 		}
@@ -386,17 +394,21 @@ export const buildRwaNestedTreemapTreeData = ({
 
 	if (nestedTotals.size === 0) return []
 
-	const parentRows = Array.from(nestedTotals.entries())
-		.map(([parentLabel, childTotals]) => {
-			const childRows = Array.from(childTotals.entries())
-				.filter(([, value]) => Number.isFinite(value) && value > 0)
-				.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-
-			const parentTotal = childRows.reduce((sum, [, value]) => sum + value, 0)
-			return { parentLabel, parentTotal, childRows }
-		})
-		.filter((row) => row.parentTotal > 0)
-		.sort((a, b) => b.parentTotal - a.parentTotal || a.parentLabel.localeCompare(b.parentLabel))
+	const parentRows: Array<{ parentLabel: string; parentTotal: number; childRows: Array<[string, number]> }> = []
+	for (const [parentLabel, childTotals] of nestedTotals.entries()) {
+		const childRows: Array<[string, number]> = []
+		let parentTotal = 0
+		for (const [childLabel, value] of childTotals.entries()) {
+			if (!Number.isFinite(value) || value <= 0) continue
+			childRows.push([childLabel, value])
+			parentTotal += value
+		}
+		childRows.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+		if (parentTotal > 0) {
+			parentRows.push({ parentLabel, parentTotal, childRows })
+		}
+	}
+	parentRows.sort((a, b) => b.parentTotal - a.parentTotal || a.parentLabel.localeCompare(b.parentLabel))
 
 	if (parentRows.length === 0) return []
 

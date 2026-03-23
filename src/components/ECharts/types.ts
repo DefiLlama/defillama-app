@@ -1,17 +1,20 @@
-import * as echarts from 'echarts/core'
+import type * as echarts from 'echarts/core'
 
 type Value = string | number | boolean
 
 type EChartsFormatterParams = Record<string, unknown>
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ChartDataItem = any
+
+export type ChartTimeGrouping = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
+export type ChartTimeGroupingWithCumulative = ChartTimeGrouping | 'cumulative'
 
 export interface IChartProps {
 	chartData: ChartDataItem[]
 	stacks?: Array<string>
 	valueSymbol?: string
 	title?: string
+	headingAs?: 'h1' | 'h2'
 	color?: string
 	hallmarks?: [number, string][]
 	style?: React.CSSProperties
@@ -37,7 +40,7 @@ export interface IChartProps {
 	hideGradient?: boolean
 	unlockTokenSymbol?: string
 	isThemeDark?: boolean
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: ChartTimeGrouping
 	customYAxis?: Array<string>
 	hideOthersInTooltip?: boolean
 	hideDataZoom?: boolean
@@ -71,11 +74,33 @@ export interface ISingleSeriesChartProps extends Omit<
 	symbolOnChart?: 'circle' | 'rect' | 'roundRect' | 'triangle' | 'diamond' | 'pin' | 'arrow' | 'none'
 }
 
-export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent'> {
+export interface IBarChartProps extends Omit<IChartProps, 'stacks' | 'expandTo100Percent' | 'groupBy'> {
 	stacks?: {
 		[stack: string]: string
 	}
+	groupBy?: ChartTimeGrouping
 	orientation?: 'vertical' | 'horizontal'
+}
+
+export interface IHBarChartProps {
+	categories: string[]
+	values: number[]
+	title?: string
+	valueSymbol?: string
+	height?: string
+	color?: string
+	colors?: string[]
+	onReady?: (instance: echarts.ECharts | null) => void
+}
+
+export type TreemapVariant = 'yields' | 'narrative' | 'rwa'
+
+export interface ITreemapChartProps {
+	treeData: any[]
+	variant?: TreemapVariant
+	height?: string
+	onReady?: (instance: echarts.ECharts | null) => void
+	valueLabel?: string
 }
 
 export type MultiSeriesChart2Dataset = {
@@ -136,7 +161,7 @@ type MultiSeriesChart2BaseProps = {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: ChartTimeGroupingWithCumulative
 	hallmarks?: [number, string][]
 	expandTo100Percent?: boolean
 	valueSymbol?: string
@@ -154,6 +179,7 @@ type MultiSeriesChart2BaseProps = {
 	// Canonical (and only) input shape.
 	dataset: MultiSeriesChart2Dataset
 	title?: string
+	headingAs?: 'h1' | 'h2'
 }
 
 export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
@@ -171,7 +197,7 @@ export type IMultiSeriesChart2Props = MultiSeriesChart2BaseProps & {
 	showTotalInTooltip?: boolean
 	/**
 	 * Placement for the total line when `showTotalInTooltip` is enabled.
-	 * Defaults to `'bottom'`.
+	 * Defaults to `'top'`.
 	 */
 	tooltipTotalPosition?: 'top' | 'bottom'
 	/**
@@ -196,11 +222,15 @@ export interface ICandlestickChartProps {
 
 export interface IMultiSeriesChartProps {
 	series?: Array<{
-		data: Array<[number, number]>
+		data: Array<[number | string, number | null]>
 		type: 'line' | 'bar'
 		name: string
 		color: string
 		logo?: string
+		stack?: string
+		areaStyle?: unknown
+		metricType?: string
+		yAxisIndex?: number
 	}>
 	chartOptions?: {
 		[key: string]: {
@@ -208,7 +238,7 @@ export interface IMultiSeriesChartProps {
 		}
 	}
 	height?: string
-	groupBy?: 'daily' | 'weekly' | 'monthly'
+	groupBy?: ChartTimeGrouping
 	hallmarks?: [number, string][]
 	valueSymbol?: string
 	yAxisSymbols?: string[]
@@ -222,6 +252,7 @@ export interface IMultiSeriesChartProps {
 
 export interface IPieChartProps {
 	title?: string
+	headingAs?: 'h1' | 'h2'
 	chartData: Array<{ name: string; value: number }>
 	height?: string
 	stackColors?: {
@@ -258,10 +289,12 @@ export interface IScatterChartProps {
 	tooltipFormatter?: (params: EChartsFormatterParams) => string
 	showLabels?: boolean
 	entityType?: 'protocol' | 'chain'
+	onReady?: (instance: echarts.ECharts | null) => void
 }
 
 export interface ISankeyChartProps {
 	title?: string
+	headingAs?: 'h1' | 'h2'
 	height?: string
 	nodes: Array<{
 		name: string

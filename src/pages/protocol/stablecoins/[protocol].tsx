@@ -1,12 +1,13 @@
 import type { GetStaticPropsContext } from 'next'
-import { maxAgeForNext } from '~/api'
+import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { fetchProtocolOverviewMetrics } from '~/containers/ProtocolOverview/api'
 import { ProtocolOverviewLayout } from '~/containers/ProtocolOverview/Layout'
 import { getProtocolMetricFlags } from '~/containers/ProtocolOverview/queries'
-import { StablecoinInfo } from '~/containers/ProtocolOverview/Stablecoin'
 import { getProtocolWarningBanners } from '~/containers/ProtocolOverview/utils'
 import { getStablecoinAssetPageData } from '~/containers/Stablecoins/queries.server'
+import { PeggedAssetInfo } from '~/containers/Stablecoins/StablecoinOverview'
 import { slug } from '~/utils'
+import { maxAgeForNext } from '~/utils/maxAgeForNext'
 import type { IProtocolMetadata } from '~/utils/metadata/types'
 import { withPerformanceLogging } from '~/utils/perf'
 
@@ -16,7 +17,7 @@ export const getStaticProps = withPerformanceLogging(
 	'protocol/stablecoins/[protocol]',
 	async ({ params }: GetStaticPropsContext<{ protocol: string }>) => {
 		if (!params?.protocol) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 		const { protocol } = params
 		const normalizedName = slug(protocol)
@@ -31,12 +32,14 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		if (!metadata || !metadata[1].stablecoins) {
-			return { notFound: true, props: null }
+			return { notFound: true }
 		}
 
 		const protocolData = await fetchProtocolOverviewMetrics(protocol)
 
 		const metrics = getProtocolMetricFlags({ protocolData, metadata: metadata[1] })
+		const seoTitle = `${protocolData.name} Stablecoin Data & Reserves - DefiLlama`
+		const seoDescription = `Track ${protocolData.name} stablecoin market cap, peg stability, chain distribution, and reserves on DefiLlama.`
 
 		const stablecoinData =
 			Array.isArray(protocolData?.stablecoins) && protocolData.stablecoins.length > 0
@@ -50,18 +53,20 @@ export const getStaticProps = withPerformanceLogging(
 				category: protocolData?.category ?? null,
 				metrics,
 				stablecoinData: stablecoinData?.props ?? null,
-				warningBanners: getProtocolWarningBanners(protocolData)
+				warningBanners: getProtocolWarningBanners(protocolData),
+				seoTitle,
+				seoDescription
 			},
 			revalidate: maxAgeForNext([22])
 		}
 	}
 )
 
-export async function getStaticPaths() {
+export const getStaticPaths = () => {
 	// When this is true (in preview environments) don't
 	// prerender any static pages
 	// (faster builds, but slower initial page load)
-	if (process.env.SKIP_BUILD_STATIC_GENERATION) {
+	if (SKIP_BUILD_STATIC_GENERATION) {
 		return {
 			paths: [],
 			fallback: 'blocking'
@@ -81,8 +86,16 @@ export default function Protocols({ clientSide: _clientSide, protocolData: _prot
 			tab="stablecoins"
 			warningBanners={props.warningBanners}
 			toggleOptions={EMPTY_TOGGLE_OPTIONS}
+			seoTitle={props.seoTitle}
+			seoDescription={props.seoDescription}
 		>
-			<StablecoinInfo data={props.stablecoinData} />
+			{props.stablecoinData ? (
+				<PeggedAssetInfo {...props.stablecoinData} />
+			) : (
+				<div className="flex flex-1 items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+					<p>Failed to fetch</p>
+				</div>
+			)}
 		</ProtocolOverviewLayout>
 	)
 }

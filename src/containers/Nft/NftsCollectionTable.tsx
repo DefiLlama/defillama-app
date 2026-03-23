@@ -1,19 +1,20 @@
 import {
 	type ColumnFiltersState,
+	createColumnHelper,
 	getCoreRowModel,
 	getFilteredRowModel,
 	getSortedRowModel,
 	type SortingState,
 	useReactTable
 } from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
 import * as React from 'react'
 import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
+import { PercentChange } from '~/components/PercentChange'
 import { VirtualTable } from '~/components/Table/Table'
 import { useTableSearch } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
-import { renderPercentChange, slug } from '~/utils'
+import { slug } from '~/utils'
 
 interface INftCollection {
 	name: string
@@ -46,17 +47,18 @@ const EthValueCell = ({ value }: { value: unknown }) =>
 		</span>
 	) : null
 
-const columns: ColumnDef<INftCollection>[] = [
-	{
+const columnHelper = createColumnHelper<INftCollection>()
+
+const columns = [
+	columnHelper.accessor('name', {
 		header: 'Name',
-		accessorKey: 'name',
 		enableSorting: false,
 		cell: ({ row }) => {
 			const item = row.original
 
 			return (
 				<span className="flex items-center gap-2">
-					<TokenLogo logo={item.image} fallbackLogo={item?.image} />
+					<TokenLogo src={item.image} alt={`Logo of ${item.name}`} />
 					<BasicLink
 						href={`/nfts/collection/${slug(item.collectionId)}`}
 						className="text-sm font-medium text-ellipsis whitespace-nowrap text-(--link-text) hover:underline"
@@ -65,77 +67,69 @@ const columns: ColumnDef<INftCollection>[] = [
 			)
 		},
 		size: 200
-	},
-	{
+	}),
+	columnHelper.accessor('floorPrice', {
 		header: 'Floor Price',
-		accessorKey: 'floorPrice',
 		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('floorPricePctChange1Day', {
 		header: '1d Change',
-		accessorKey: 'floorPricePctChange1Day',
 		size: 120,
-		cell: (info) => renderPercentChange(info.getValue()),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('floorPricePctChange7Day', {
 		header: '7d Change',
-		accessorKey: 'floorPricePctChange7Day',
 		size: 120,
-		cell: (info) => renderPercentChange(info.getValue()),
+		cell: (info) => <PercentChange percent={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('volume1d', {
 		header: 'Volume 1d',
-		accessorKey: 'volume1d',
 		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('volume7d', {
 		header: 'Volume 7d',
-		accessorKey: 'volume7d',
 		size: 120,
 		cell: (info) => <EthValueCell value={info.getValue()} />,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('sales1d', {
 		header: 'Sales 1d',
-		accessorKey: 'sales1d',
 		size: 120,
-		cell: (info) => <>{info.getValue() != null ? String(info.getValue()) : null}</>,
+		cell: (info) => (info.getValue() != null ? info.getValue() : null),
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('totalSupply', {
 		header: 'Total Supply',
-		accessorKey: 'totalSupply',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	},
-	{
+	}),
+	columnHelper.accessor('onSaleCount', {
 		header: 'On Sale',
-		accessorKey: 'onSaleCount',
 		size: 120,
 		meta: {
 			align: 'end'
 		}
-	}
+	})
 ]
 
 export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
@@ -152,14 +146,15 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 		defaultColumn: {
 			sortUndefined: 'last'
 		},
-		onSortingChange: setSorting,
-		onColumnFiltersChange: setColumnFilters,
+		enableSortingRemoval: false,
+		onSortingChange: (updater) => React.startTransition(() => setSorting(updater)),
+		onColumnFiltersChange: (updater) => React.startTransition(() => setColumnFilters(updater)),
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel()
 	})
 
-	const [collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
+	const [_collectionName, setCollectionName] = useTableSearch({ instance, columnToSearch: 'name' })
 
 	return (
 		<div className="rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -175,10 +170,7 @@ export function NftsCollectionTable({ data }: { data: Array<INftCollection> }) {
 					/>
 					<input
 						name="search"
-						value={collectionName}
-						onChange={(e) => {
-							setCollectionName(e.target.value)
-						}}
+						onInput={(e) => setCollectionName(e.currentTarget.value)}
 						placeholder="Search collections..."
 						className="w-full rounded-md border border-(--form-control-border) bg-white p-1 pl-7 text-black dark:bg-black dark:text-white"
 					/>

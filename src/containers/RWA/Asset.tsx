@@ -5,7 +5,8 @@ import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
 import { CHART_COLORS } from '~/constants/colors'
-import { chainIconUrl, formattedNum, getBlockExplorer } from '~/utils'
+import { formattedNum } from '~/utils'
+import { chainIconUrl } from '~/utils/icons'
 import type { IRWAAssetData } from './api.types'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
@@ -35,7 +36,7 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 					: 'border-(--cards-border) bg-(--cards-bg)'
 			}`}
 		>
-			<div className="flex flex-col gap-1">
+			<p className="flex flex-col gap-1">
 				<span
 					className={`font-medium ${
 						isBoolean
@@ -47,8 +48,8 @@ const ClassificationItem = ({ label, value, positive, description }: Classificat
 				>
 					{label}
 				</span>
-				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
-			</div>
+				{description ? <span className="text-sm text-(--text-disabled)">{description}</span> : null}
+			</p>
 			{isBoolean ? (
 				<Icon
 					name={positive ? 'check-circle' : 'x'}
@@ -79,14 +80,14 @@ const KYCItem = ({
 				required ? 'border-amber-600/30 bg-amber-600/10' : 'border-green-600/30 bg-green-600/10'
 			}`}
 		>
-			<div className="flex flex-col gap-1">
+			<p className="flex flex-col gap-1">
 				<span
 					className={`font-medium ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
 				>
 					{label}
 				</span>
-				{description && <span className="text-sm text-(--text-disabled)">{description}</span>}
-			</div>
+				{description ? <span className="text-sm text-(--text-disabled)">{description}</span> : null}
+			</p>
 			<Icon
 				name={required ? 'alert-triangle' : 'check-circle'}
 				className={`h-5 w-5 shrink-0 ${required ? 'text-amber-700 dark:text-amber-400' : 'text-green-700 dark:text-green-400'}`}
@@ -102,14 +103,13 @@ const SectionCard = ({ title, children }: { title: React.ReactNode; children: Re
 	</div>
 )
 
-const ContractItem = ({ chain, address }: { chain: string; address: string }) => {
+const ContractItem = ({ address, explorerUrl }: { address: string; explorerUrl?: string }) => {
 	const truncatedAddress = address.length > 10 ? `${address.slice(0, 4)}...${address.slice(-4)}` : address
-	const { blockExplorerLink } = getBlockExplorer(`${chain.toLowerCase()}:${address}`)
 	return (
 		<div className="flex items-center">
-			{blockExplorerLink ? (
+			{explorerUrl ? (
 				<a
-					href={blockExplorerLink}
+					href={explorerUrl}
 					target="_blank"
 					rel="noopener noreferrer"
 					className="flex items-center gap-1 text-xs break-all hover:underline"
@@ -131,15 +131,17 @@ const ChainBadge = ({
 	chain,
 	isPrimary = false,
 	showPrimaryStyle = true,
-	contracts
+	contracts,
+	contractUrls
 }: {
 	chain: string
 	isPrimary?: boolean
 	showPrimaryStyle?: boolean
 	contracts?: string[]
+	contractUrls?: Record<string, string>
 }) => {
 	return (
-		<div className="flex items-center gap-1.5 rounded-md border p-2">
+		<div className="flex items-center gap-1.5 rounded-md border border-(--cards-border) p-2">
 			<img src={chainIconUrl(chain)} alt={chain} className="h-5 w-5 rounded-full" loading="lazy" />
 			<div className="flex flex-col">
 				<div className="flex items-center gap-1.5">
@@ -153,7 +155,7 @@ const ChainBadge = ({
 				{contracts && contracts.length > 0 ? (
 					<>
 						{contracts.map((address) => (
-							<ContractItem key={`${chain}-${address}`} chain={chain} address={address} />
+							<ContractItem key={`${chain}-${address}`} address={address} explorerUrl={contractUrls?.[address]} />
 						))}
 					</>
 				) : null}
@@ -168,6 +170,22 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 	const onChainMcap = asset.onChainMcap ?? null
 	const activeMcap = asset.activeMcap ?? null
 	const defiActiveTv = asset.defiActiveTvl ?? null
+	const oracleProvider =
+		typeof asset.oracleProvider === 'string' && asset.oracleProvider.trim().length > 0 ? asset.oracleProvider : null
+	const oracleProofLink =
+		typeof asset.oracleProofLink === 'string' && asset.oracleProofLink.trim().length > 0 ? asset.oracleProofLink : null
+	const rwaGithub = typeof asset.rwaGithub === 'string' && asset.rwaGithub.trim().length > 0 ? asset.rwaGithub : null
+	const discord = typeof asset.discord === 'string' && asset.discord.trim().length > 0 ? asset.discord : null
+	const telegram = typeof asset.telegram === 'string' && asset.telegram.trim().length > 0 ? asset.telegram : null
+	const hasDiscord = asset.discord === true || discord !== null
+	const hasTelegram = asset.telegram === true || telegram !== null
+	const dateOfLastAttestation =
+		typeof asset.dateOfLastAttestation === 'string' && asset.dateOfLastAttestation.trim().length > 0
+			? asset.dateOfLastAttestation
+			: null
+	const attestationFrequency = Array.isArray(asset.attestationFrequency)
+		? asset.attestationFrequency.filter(Boolean).join('; ')
+		: asset.attestationFrequency || null
 	const chartDimensions = (asset.chartDataset?.dimensions ?? []) as string[]
 	const timeSeriesCharts =
 		chartDimensions.length > 0
@@ -187,7 +205,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 			<div className="flex flex-col gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-3">
 				<div className="flex flex-wrap items-center gap-2">
 					<h1 className="text-xl font-bold">{displayName}</h1>
-					{asset.ticker && <span className="text-(--text-disabled)">({asset.ticker})</span>}
+					{asset.ticker ? <p className="text-(--text-disabled)">({asset.ticker})</p> : null}
 				</div>
 				<div className="flex flex-wrap items-center gap-2">
 					{asset.website ? (
@@ -230,6 +248,51 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								<Icon name="external-link" className="h-3 w-3" />
 								Twitter
 							</a>
+						)
+					) : null}
+					{rwaGithub ? (
+						<a
+							href={rwaGithub}
+							target="_blank"
+							rel="noopener noreferrer"
+							className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+						>
+							<Icon name="external-link" className="h-3 w-3" />
+							GitHub
+						</a>
+					) : null}
+					{hasDiscord ? (
+						discord ? (
+							<a
+								href={discord}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Discord
+							</a>
+						) : (
+							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
+								Discord
+							</span>
+						)
+					) : null}
+					{hasTelegram ? (
+						telegram ? (
+							<a
+								href={telegram}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="flex items-center gap-1 rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap hover:bg-(--btn2-hover-bg) focus-visible:bg-(--btn2-hover-bg)"
+							>
+								<Icon name="external-link" className="h-3 w-3" />
+								Telegram
+							</a>
+						) : (
+							<span className="rounded-full border border-(--primary) px-2 py-1 text-xs font-medium whitespace-nowrap">
+								Telegram
+							</span>
 						)
 					) : null}
 				</div>
@@ -371,10 +434,10 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 										{asset.assetClass.map((ac, idx) => (
 											<span key={ac} className="flex items-center gap-0.5">
 												{ac}
-												{asset.assetClassDescriptions?.[ac] && (
+												{asset.assetClassDescriptions?.[ac] ? (
 													<QuestionHelper text={asset.assetClassDescriptions[ac]} />
-												)}
-												{idx < asset.assetClass!.length - 1 && ','}
+												) : null}
+												{idx < asset.assetClass!.length - 1 ? ',' : null}
 											</span>
 										))}
 									</span>
@@ -400,7 +463,9 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								<span className={`flex items-center gap-1 font-medium ${asset.trueRWA ? 'text-(--success)' : ''}`}>
 									{asset.rwaClassification || '-'}
-									{asset.rwaClassificationDescription && <QuestionHelper text={asset.rwaClassificationDescription} />}
+									{asset.rwaClassificationDescription ? (
+										<QuestionHelper text={asset.rwaClassificationDescription} />
+									) : null}
 								</span>
 							</p>
 							<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
@@ -412,15 +477,15 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								<span className="flex items-center gap-1 font-medium">
 									{asset.accessModel || '-'}
-									{asset.accessModelDescription && <QuestionHelper text={asset.accessModelDescription} />}
+									{asset.accessModelDescription ? <QuestionHelper text={asset.accessModelDescription} /> : null}
 								</span>
 							</p>
-							{asset.parentPlatform && (
+							{asset.parentPlatform ? (
 								<p className="flex flex-col gap-1 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
 									<span className="text-(--text-label)">Parent Platform</span>
 									<span className="font-medium">{asset.parentPlatform}</span>
 								</p>
-							)}
+							) : null}
 						</div>
 					</SectionCard>
 
@@ -480,7 +545,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 								<span className="font-medium">{asset.issuer || '-'}</span>
 							</p>
-							{asset.isin && (
+							{asset.isin ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
 										content={definitions.isin.description}
@@ -490,8 +555,8 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									</Tooltip>
 									<span className="font-mono font-medium">{asset.isin}</span>
 								</p>
-							)}
-							{asset.issuerRegistryInfo && asset.issuerRegistryInfo.length > 0 && (
+							) : null}
+							{asset.issuerRegistryInfo && asset.issuerRegistryInfo.length > 0 ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
 										content={definitions.registryInformation.description}
@@ -501,7 +566,7 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 									</Tooltip>
 									<span className="font-medium">{asset.issuerRegistryInfo.join('; ')}</span>
 								</p>
-							)}
+							) : null}
 							{asset.issuerSourceLink ? (
 								<p className="flex flex-col gap-1">
 									<Tooltip
@@ -527,8 +592,35 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 						</div>
 					</SectionCard>
 
+					{/* Oracle Metadata */}
+					{oracleProvider || oracleProofLink ? (
+						<SectionCard title="Oracle">
+							{oracleProofLink ? (
+								<a
+									href={oracleProofLink}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
+								>
+									<span className="flex items-center gap-2">
+										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
+										<span className="flex flex-col">
+											<span className="text-sm font-medium">{oracleProvider || 'Oracle Proof'}</span>
+											<span className="text-xs text-(--text-disabled)">View oracle proof details</span>
+										</span>
+									</span>
+									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
+								</a>
+							) : (
+								<p className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2">
+									<span className="text-sm font-medium">{oracleProvider}</span>
+								</p>
+							)}
+						</SectionCard>
+					) : null}
+
 					{/* Attestations */}
-					{attestationLinks.length > 0 && (
+					{attestationLinks.length > 0 || dateOfLastAttestation || attestationFrequency ? (
 						<SectionCard
 							title={
 								<Tooltip content={definitions.attestations.description} className="underline decoration-dotted">
@@ -536,26 +628,38 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								</Tooltip>
 							}
 						>
-							{attestationLinks.map((link, idx) => (
+							{dateOfLastAttestation ? (
+								<p className="mb-2 flex flex-col gap-1">
+									<span className="text-(--text-label)">Date of Last Attestation</span>
+									<span className="font-medium">{dateOfLastAttestation}</span>
+								</p>
+							) : null}
+							{attestationFrequency ? (
+								<p className="mb-2 flex flex-col gap-1">
+									<span className="text-(--text-label)">Attestation Frequency</span>
+									<span className="font-medium">{attestationFrequency}</span>
+								</p>
+							) : null}
+							{attestationLinks.map((link) => (
 								<a
-									key={idx}
+									key={link}
 									href={link}
 									target="_blank"
 									rel="noopener noreferrer"
 									className="flex items-center justify-between gap-2 rounded-md border border-(--cards-border) bg-(--cards-bg) p-2 hover:bg-(--link-hover-bg)"
 								>
-									<div className="flex items-center gap-2">
+									<span className="flex items-center gap-2">
 										<Icon name="check-circle" className="h-4 w-4 text-(--text-label)" />
-										<div className="flex flex-col">
+										<span className="flex flex-col">
 											<span className="text-sm font-medium">View Attestations</span>
 											<span className="text-xs text-(--text-disabled)">Third-party verification reports</span>
-										</div>
-									</div>
+										</span>
+									</span>
 									<Icon name="external-link" className="h-3 w-3 text-(--text-disabled)" />
 								</a>
 							))}
 						</SectionCard>
-					)}
+					) : null}
 				</div>
 			</div>
 
@@ -564,14 +668,14 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 				<SectionCard title="Notes">
 					<ul className="list-disc space-y-1 pl-5 text-sm text-(--text-secondary)">
 						{asset.descriptionNotes.map((note, idx) => (
-							<li key={`${keyBase}-note-${idx}`}>{note}</li>
+							<li key={`${keyBase}-note-${idx}-${note.slice(0, 50)}`}>{note}</li>
 						))}
 					</ul>
 				</SectionCard>
 			) : null}
 
 			{/* Chain Availability (moved to last) */}
-			{asset.chain && asset.chain.length > 0 && (
+			{asset.chain && asset.chain.length > 0 ? (
 				<SectionCard title="Chains">
 					<div className="mt-1 grid grid-cols-2 gap-1.5 xl:grid-cols-3 2xl:grid-cols-4">
 						{asset.chain.map((chain) => (
@@ -580,11 +684,12 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 								chain={chain}
 								isPrimary={chain === asset.primaryChain}
 								contracts={asset.contracts?.[chain]}
+								contractUrls={asset.contractUrls?.[chain]}
 							/>
 						))}
 					</div>
 				</SectionCard>
-			)}
+			) : null}
 		</div>
 	)
 }

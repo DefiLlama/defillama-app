@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { PROTOCOLS_BY_TOKEN_API } from '~/constants'
-import { fetchJson } from '~/utils/async'
+import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 
 export interface TokenUsageData {
 	name: string
@@ -14,7 +13,15 @@ export interface TokenUsageData {
 
 export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = false) {
 	return useQuery<TokenUsageData[]>({
-		queryKey: ['token-usage', tokenSymbols.map((t) => t?.toUpperCase()).sort(), includeCex],
+		queryKey: [
+			'pro-dashboard',
+			'token-usage',
+			tokenSymbols
+				.filter((t) => t != null)
+				.map((t) => t.toUpperCase())
+				.sort(),
+			includeCex
+		],
 		queryFn: async () => {
 			if (!tokenSymbols || tokenSymbols.length === 0) {
 				return []
@@ -22,7 +29,7 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 
 			try {
 				const promises = tokenSymbols.map(async (symbol) => {
-					const data = await fetchJson(`${PROTOCOLS_BY_TOKEN_API}/${symbol.toUpperCase()}`)
+					const data = await fetchProtocolsByToken(symbol)
 					return { symbol, data }
 				})
 
@@ -71,7 +78,7 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 			}
 		},
 		enabled: tokenSymbols.length > 0,
-		staleTime: 5 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000
+		staleTime: Infinity,
+		retry: 1
 	})
 }
