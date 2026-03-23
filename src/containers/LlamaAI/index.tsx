@@ -1715,8 +1715,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 
 	return (
 		<div
-			className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"
-			style={{ height: viewportHeight ? `${viewportHeight - 68}px` : 'calc(100dvh - 68px)' }}
+			className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:bottom-0 max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"
+			style={viewportHeight ? { height: `${viewportHeight - 68}px` } : undefined}
 		>
 			{!readOnly ? (
 				sidebarVisible ? (

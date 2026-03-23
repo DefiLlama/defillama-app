@@ -108,7 +108,12 @@ export default function SharedConversationPage({ shareToken: ssrToken, sessionTi
 
 	if (error || !session) {
 		return (
-			<Layout title="Conversation Not Found - DefiLlama" description="The requested conversation could not be found" canonicalUrl={null} noIndex={true}>
+			<Layout
+				title="Conversation Not Found - DefiLlama"
+				description="The requested conversation could not be found"
+				canonicalUrl={null}
+				noIndex={true}
+			>
 				<div className="isolate flex flex-1 flex-col items-center justify-center rounded-md border border-(--cards-border) bg-(--cards-bg) p-1">
 					<div className="text-center">
 						<div className="mb-2 text-lg text-(--error)">{error?.message ?? 'Conversation not found'}</div>

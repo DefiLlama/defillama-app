@@ -169,7 +169,7 @@ export function PromptInput({
 			textarea.setSelectionRange(pendingSelection.selectionStart, pendingSelection.selectionEnd)
 		} catch {}
 		pendingSelectionRef.current = null
-	}, [value, promptInputRef])
+	}, [value, promptInputRef, isMobile])
 
 	useEffect(() => {
 		valueRef.current = value
