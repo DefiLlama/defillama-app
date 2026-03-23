@@ -33,7 +33,7 @@ describe('formatBarChart', () => {
 		expect(formatBarChart({ data: [], groupBy: 'daily', denominationPriceHistory: null })).toEqual([])
 	})
 
-	it('normalizes daily timestamps to UTC day boundaries and converts sec → ms', () => {
+	it('preserves hourly timestamps in daily mode and converts sec → ms', () => {
 		expect(
 			formatBarChart({
 				data: [
@@ -44,8 +44,27 @@ describe('formatBarChart', () => {
 				denominationPriceHistory: null
 			})
 		).toEqual([
-			[toMs(2024, 1, 1), 10],
+			[toMs(2024, 1, 1) + 13 * 60 * 60 * 1e3, 10],
 			[toMs(2024, 1, 2), 20]
+		])
+	})
+
+	it('keeps same-day hourly points distinct in daily mode (regression: no midnight snapping)', () => {
+		const h6 = toSec(2024, 1, 1) + 6 * 3600
+		const h18 = toSec(2024, 1, 1) + 18 * 3600
+		const result = formatBarChart({
+			data: [
+				[h6, 10],
+				[h18, 20]
+			],
+			groupBy: 'daily',
+			denominationPriceHistory: null
+		})
+		expect(result).toHaveLength(2)
+		expect(result[0][0]).not.toBe(result[1][0])
+		expect(result).toEqual([
+			[h6 * 1e3, 10],
+			[h18 * 1e3, 20]
 		])
 	})
 
@@ -233,7 +252,7 @@ describe('formatBarChart', () => {
 })
 
 describe('formatLineChart', () => {
-	it('normalizes daily timestamps to UTC day boundaries', () => {
+	it('preserves hourly timestamps in daily mode', () => {
 		expect(
 			formatLineChart({
 				data: [
@@ -244,8 +263,27 @@ describe('formatLineChart', () => {
 				denominationPriceHistory: null
 			})
 		).toEqual([
-			[toMs(2024, 1, 1), 10],
+			[toMs(2024, 1, 1) + 13 * 60 * 60 * 1e3, 10],
 			[toMs(2024, 1, 2), 20]
+		])
+	})
+
+	it('keeps same-day hourly points distinct in daily mode (regression: no midnight snapping)', () => {
+		const h6 = toSec(2024, 1, 1) + 6 * 3600
+		const h18 = toSec(2024, 1, 1) + 18 * 3600
+		const result = formatLineChart({
+			data: [
+				[h6, 10],
+				[h18, 20]
+			],
+			groupBy: 'daily',
+			denominationPriceHistory: null
+		})
+		expect(result).toHaveLength(2)
+		expect(result[0][0]).not.toBe(result[1][0])
+		expect(result).toEqual([
+			[h6 * 1e3, 10],
+			[h18 * 1e3, 20]
 		])
 	})
 
