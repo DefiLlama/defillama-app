@@ -9,7 +9,7 @@ interface IToFilterPool {
 	includeTokens: string[]
 	exactTokens: string[]
 	selectedCategoriesSet: Set<string>
-	excludeTokensSet: Set<string> // Keep this since token matching is substring-based
+	excludeTokensSet: Set<string>
 	pathname: string
 	minTvl: number | null
 	maxTvl: number | null
@@ -143,10 +143,9 @@ export function toFilterPool({
 					})
 				: true
 
-		// Keep exclude-token matching aligned with the default include-token substring behavior.
 		let hasExcludedToken = false
 		for (const token of excludeTokensSet) {
-			if (tokensInPool.some((poolToken) => poolToken.includes(token))) {
+			if (tokensInPoolSet.has(token)) {
 				hasExcludedToken = true
 				break
 			}
