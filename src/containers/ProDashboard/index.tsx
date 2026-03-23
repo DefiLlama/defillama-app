@@ -370,9 +370,7 @@ function ProDashboardContent() {
 				<EmptyState
 					onAddChart={openAddModal}
 					onGenerateWithAI={
-						hasActiveSubscription
-							? () => setShowIterateDashboardModal(true)
-							: () => showPaywall('llamaai')
+						hasActiveSubscription ? () => setShowIterateDashboardModal(true) : () => showPaywall('llamaai')
 					}
 					isReadOnly={isReadOnly}
 				/>

@@ -5,6 +5,7 @@ import { Icon } from '~/components/Icon'
 import { BasicLink } from '~/components/Link'
 import { AppMetadataProvider } from '~/containers/ProDashboard/AppMetadataContext'
 import type { ComparisonPreset } from '~/containers/ProDashboard/components/ComparisonWizard/types'
+import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 import { LikedDashboards } from '~/containers/ProDashboard/components/LikedDashboards'
 import { ProDashboardLoader } from '~/containers/ProDashboard/components/ProDashboardLoader'
 import { useFreeTierStatus, useMyDashboards } from '~/containers/ProDashboard/hooks'
@@ -16,8 +17,6 @@ import {
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { setSignupSource } from '~/containers/Subscribtion/signupSource'
 import Layout from '~/layout'
-
-import { DashboardPaywallModal, type PaywallReason } from '~/containers/ProDashboard/components/DashboardPaywallModal'
 const CreateDashboardPicker = lazy(() =>
 	import('~/containers/ProDashboard/components/CreateDashboardPicker').then((m) => ({
 		default: m.CreateDashboardPicker

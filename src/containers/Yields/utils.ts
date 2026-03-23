@@ -143,9 +143,10 @@ export function toFilterPool({
 					})
 				: true
 
+		// Keep exclude-token matching aligned with the default include-token substring behavior.
 		let hasExcludedToken = false
 		for (const token of excludeTokensSet) {
-			if (tokensInPoolSet.has(token)) {
+			if (tokensInPool.some((poolToken) => poolToken.includes(token))) {
 				hasExcludedToken = true
 				break
 			}

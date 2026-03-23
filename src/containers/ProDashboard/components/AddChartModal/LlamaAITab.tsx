@@ -60,7 +60,11 @@ export function LlamaAITab({ selectedChart, onChartSelect }: LlamaAITabProps) {
 	}
 
 	if (!hasActiveSubscription) {
-		return <PremiumFeatureGate featureName="LlamaAI Charts" paywallReason="llamaai">{null}</PremiumFeatureGate>
+		return (
+			<PremiumFeatureGate featureName="LlamaAI Charts" paywallReason="llamaai">
+				{null}
+			</PremiumFeatureGate>
+		)
 	}
 
 	if (isLoading) {
