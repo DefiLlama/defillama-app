@@ -120,7 +120,8 @@ export const AlertArtifact = memo(function AlertArtifact({
 		setTestError(null)
 		try {
 			const res = await authorizedFetch(`${MCP_SERVER}/alerts/${testId}/test`, { method: 'POST' })
-			const data = await res.json()
+			assertResponse(res, 'Test failed')
+			const data = await res!.json()
 			if (!data.success) throw new Error(data.error || 'Test failed')
 			setTestStatus('success')
 		} catch (e) {
