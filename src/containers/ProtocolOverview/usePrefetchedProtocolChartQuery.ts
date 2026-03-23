@@ -10,6 +10,13 @@ interface IUsePrefetchedProtocolChartQueryParams {
 	queryFn: () => Promise<Array<[number, number]> | null>
 }
 
+/**
+ * Returns SSR-prefetched chart data when available, otherwise fetches client-side.
+ * Skips the network request entirely if prefetched data exists for the given label.
+ *
+ * The returned object is a new reference every render — always destructure
+ * immediately. Never pass it directly as a prop or into a dependency array.
+ */
 export function usePrefetchedProtocolChartQuery({
 	label,
 	queryKey,
