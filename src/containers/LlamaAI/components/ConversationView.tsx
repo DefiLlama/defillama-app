@@ -60,7 +60,8 @@ interface ConversationViewProps {
 
 // Keep the active exchange tall enough that scrolling to its bottom places the
 // submitted prompt slightly below the top edge on both mobile and desktop.
-const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS = 'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
+const ACTIVE_EXCHANGE_MIN_HEIGHT_CLASS =
+	'min-h-[calc(100dvh-265px)] lg:min-h-[calc(100dvh-225px)]'
 
 function ConversationMessageItem({
 	message,

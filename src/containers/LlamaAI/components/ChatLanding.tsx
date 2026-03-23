@@ -55,7 +55,7 @@ export function ChatLanding({
 
 	return (
 		<div className="mx-auto flex h-full w-full max-w-3xl flex-col gap-2.5 overflow-hidden">
-			<div className="mt-[100px] flex shrink-0 flex-col items-center justify-center gap-2.5 max-lg:mt-[50px]">
+			<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5">
 				<img src="/assets/llamaai/llama-ai.svg" alt="LlamaAI" className="object-contain" width={64} height={77} />
 				<h1 className="text-center text-2xl font-semibold">{title}</h1>
 			</div>

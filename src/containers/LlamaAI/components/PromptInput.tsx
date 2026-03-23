@@ -149,7 +149,7 @@ export function PromptInput({
 		if (!textarea) return
 
 		if (value) {
-			setInputSize(promptInputRef, highlightRef)
+			setInputSize(promptInputRef, highlightRef, isMobile ? 3 : 5)
 		} else {
 			textarea.style.height = ''
 			textarea.style.overflowY = 'hidden'

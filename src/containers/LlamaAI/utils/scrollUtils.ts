@@ -29,7 +29,8 @@ function getCachedStyleValues(textarea: HTMLTextAreaElement) {
 
 export function setInputSize(
 	promptInputRef: React.RefObject<HTMLTextAreaElement | null>,
-	highlightRef: React.RefObject<HTMLDivElement | null>
+	highlightRef: React.RefObject<HTMLDivElement | null>,
+	maxRows = 5
 ) {
 	try {
 		const textarea = promptInputRef?.current
@@ -37,7 +38,6 @@ export function setInputSize(
 
 		// Use cached style values to avoid expensive getComputedStyle calls
 		const { lineHeight, paddingTop, paddingBottom } = getCachedStyleValues(textarea)
-		const maxRows = 5
 		const maxHeight = lineHeight * maxRows + paddingTop + paddingBottom
 
 		// Batch: reset height, read scrollHeight, set final height in single frame

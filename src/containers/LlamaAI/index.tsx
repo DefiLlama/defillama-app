@@ -42,6 +42,7 @@ import {
 } from '~/containers/LlamaAI/fetchAgenticResponse'
 import type { AgenticSSECallbacks, CsvExport, SpawnProgressData } from '~/containers/LlamaAI/fetchAgenticResponse'
 import { useChatScroll } from '~/containers/LlamaAI/hooks/useChatScroll'
+import { useVisualViewport } from '~/containers/LlamaAI/hooks/useVisualViewport'
 import { useSessionList } from '~/containers/LlamaAI/hooks/useSessionList'
 import { useSessionMutations } from '~/containers/LlamaAI/hooks/useSessionMutations'
 import { useSidebarVisibility } from '~/containers/LlamaAI/hooks/useSidebarVisibility'
@@ -673,6 +674,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const scrollContainerRef = useRef<HTMLDivElement>(null)
+	const { keyboardOpen, viewportHeight } = useVisualViewport()
 	const promptInputRef = useRef<HTMLTextAreaElement>(null)
 	const toolCallIdRef = useRef(0)
 	const promptSubmissionLockRef = useRef(false)
@@ -845,7 +847,8 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		items: effectiveMessages,
 		hasMessages,
 		paginationState,
-		onLoadMoreMessages: handleLoadMoreMessagesEvent
+		onLoadMoreMessages: handleLoadMoreMessagesEvent,
+		keyboardOpen
 	})
 
 	// Trigger the sidebar open/close animation before toggling visibility.
@@ -1711,7 +1714,10 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 	}
 
 	return (
-		<div className="relative isolate flex h-[calc(100dvh-68px)] flex-nowrap overflow-hidden max-lg:flex-col lg:h-[calc(100dvh-72px)]">
+		<div
+			className="isolate flex flex-nowrap overflow-hidden max-lg:fixed max-lg:inset-x-0 max-lg:top-[68px] max-lg:z-10 max-lg:flex-col lg:relative lg:h-[calc(100dvh-72px)]"
+			style={{ height: viewportHeight ? `${viewportHeight - 68}px` : 'calc(100dvh - 68px)' }}
+		>
 			{!readOnly ? (
 				sidebarVisible ? (
 					<>
