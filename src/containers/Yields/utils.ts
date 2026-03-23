@@ -9,7 +9,7 @@ interface IToFilterPool {
 	includeTokens: string[]
 	exactTokens: string[]
 	selectedCategoriesSet: Set<string>
-	excludeTokensSet: Set<string> // Keep this since token matching is substring-based
+	excludeTokensSet: Set<string>
 	pathname: string
 	minTvl: number | null
 	maxTvl: number | null
@@ -143,11 +143,16 @@ export function toFilterPool({
 					})
 				: true
 
-		// Check if any excludeToken exists in tokensInPoolSet using Set intersection
-		const excludeToken = !Array.from(excludeTokensSet).some((token: string) => tokensInPoolSet.has(token))
+		let hasExcludedToken = false
+		for (const token of excludeTokensSet) {
+			if (tokensInPoolSet.has(token)) {
+				hasExcludedToken = true
+				break
+			}
+		}
 
 		// selectedChainsSet already has excludes filtered out at hook level
-		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && excludeToken
+		toFilter = toFilter && selectedChainsSet.has(curr.chain) && includeToken && !hasExcludedToken
 	} else {
 		const exactToken = exactTokens.find((token) => {
 			if (tokensInPoolSet.has(token)) {

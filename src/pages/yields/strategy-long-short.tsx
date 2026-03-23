@@ -27,11 +27,11 @@ export const getStaticProps = withPerformanceLogging('yields/strategy-long-short
 		)
 		.map((p) => ({ ...p, symbol: p.symbol?.toUpperCase() }))
 
-	const poolsUniqueSymbols = [...new Set(filteredPools.map((p) => p.symbol))]
+	const poolsUniqueSymbols = new Set(filteredPools.map((p) => p.symbol))
 
 	const perps = (await getPerpData()).filter((m) => m.fundingRate > 0)
 	// filter search token to only include what we have in pool arrays
-	const cgTokens = (await fetchAllCGTokensList()).filter((t) => poolsUniqueSymbols.includes(t.symbol?.toUpperCase()))
+	const cgTokens = (await fetchAllCGTokensList()).filter((t) => poolsUniqueSymbols.has(t.symbol?.toUpperCase()))
 	const tokens = []
 	const tokenSymbolsList = []
 
