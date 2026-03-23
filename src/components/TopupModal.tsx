@@ -107,7 +107,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 									<p className="text-xs text-[#b4b7bc] sm:text-sm">
 										Top up{' '}
 										<span className="font-jetbrains font-semibold text-[#5C5CF9]">${parsedAmount.toFixed(2)}</span> to
-										your LlamaAI Balance
+										your LlamaAI Premium Data Balance
 									</p>
 								</div>
 							</div>
@@ -140,7 +140,7 @@ export function TopupModal({ isOpen, onClose }: TopupModalProps) {
 								<Icon name="package" height={22} width={22} />
 							</div>
 							<div>
-								<h2 className="text-lg font-bold text-white sm:text-xl">Top Up LlamaAI Balance</h2>
+								<h2 className="text-lg font-bold text-white sm:text-xl">Top Up LlamaAI Premium Data Balance</h2>
 								<p className="text-xs text-[#b4b7bc] sm:text-sm">Add credits to access premium data</p>
 							</div>
 						</div>

@@ -32,7 +32,7 @@ export default function Account() {
 
 		topupProcessedRef.current = true
 		void queryClient.invalidateQueries({ queryKey: ['ai-balance'] })
-		toast.success('Top-up successful! Your LlamaAI Balance has been updated.')
+		toast.success('Top-up successful! Your LlamaAI Premium Data Balance has been updated.')
 
 		const { topup: _ignored, ...nextQuery } = router.query
 		void router.replace({ pathname: router.pathname, query: nextQuery }, undefined, { shallow: true })
