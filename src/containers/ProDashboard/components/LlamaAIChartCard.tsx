@@ -12,29 +12,38 @@ interface LlamaAIChartCardProps {
 }
 
 export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
-	const { authorizedFetch } = useAuthContext()
+	const { authorizedFetch, user } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [isRefreshing, setIsRefreshing] = useState(false)
+	const [refreshError, setRefreshError] = useState<string | null>(null)
+
+	const queryKey = ['pro-dashboard', 'saved-chart', user?.id, config.savedChartId]
 
 	const { data, isLoading, error, refetch } = useQuery({
-		queryKey: ['pro-dashboard', 'saved-chart', config.savedChartId],
+		queryKey,
 		queryFn: async () => {
 			const res = await authorizedFetch(`${MCP_SERVER}/charts/${config.savedChartId}`)
 			if (!res?.ok) throw new Error('Failed to load chart')
 			return res.json()
 		},
 		staleTime: 1000 * 60 * 60,
-		refetchOnMount: 'always'
+		refetchOnMount: 'always',
+		enabled: !!user
 	})
 
 	const handleOwnerRefresh = async () => {
 		setIsRefreshing(true)
+		setRefreshError(null)
 		try {
 			const res = await authorizedFetch(`${MCP_SERVER}/charts/${config.savedChartId}?refresh=true`)
-			if (res?.ok) {
-				const freshData = await res.json()
-				queryClient.setQueryData(['pro-dashboard', 'saved-chart', config.savedChartId], freshData)
+			if (!res?.ok) {
+				setRefreshError(`Refresh failed${res ? ` (${res.status})` : ''}`)
+				return
 			}
+			const freshData = await res.json()
+			queryClient.setQueryData(queryKey, freshData)
+		} catch (e) {
+			setRefreshError(e instanceof Error ? e.message : 'Refresh failed')
 		} finally {
 			setIsRefreshing(false)
 		}
@@ -77,11 +86,14 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		<div className="flex flex-col gap-2 p-2">
 			<div className="flex items-center justify-between">
 				<h3 className="font-medium">{config.title || data.title}</h3>
-				{isStale && data.dataFreshness?.cachedAt ? (
+				{isStale ? (
 					<div className="flex items-center gap-2">
-						<span className="text-xs text-(--text-form)">
-							Updated {new Date(data.dataFreshness.cachedAt).toLocaleDateString()}
-						</span>
+						{data.dataFreshness?.cachedAt ? (
+							<span className="text-xs text-(--text-form)">
+								Updated {new Date(data.dataFreshness.cachedAt).toLocaleDateString()}
+							</span>
+						) : null}
+						{refreshError ? <span className="text-xs text-[#EB5757]">{refreshError}</span> : null}
 						{isOwner && isPremium ? (
 							<button
 								className="text-xs text-(--link-text) hover:underline disabled:opacity-50"
