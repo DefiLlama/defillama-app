@@ -22,6 +22,14 @@ const baseChainRows = [
 	{ name: 'Base', logo: '', total24h: 60, total7d: null, total30d: null }
 ]
 
+const sparseChartData = {
+	dimensions: ['timestamp', 'Ethereum', 'Solana'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), Ethereum: 10 },
+		{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 }
+	]
+}
+
 describe('normalizeChainsByAdapterChartState', () => {
 	it('returns the default bar state when no query params are present', () => {
 		expect(
@@ -136,6 +144,28 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(day2.Solana).toBeCloseTo(66.6666666667)
 		expect(day3.Ethereum).toBe(100)
 		expect(day3.Solana).toBe(0)
+	})
+
+	it('keeps missing chain values null so tooltips do not show fake zeroes', () => {
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: sparseChartData,
+			selectedChains: ['Ethereum', 'Solana'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'absolute',
+				barLayout: 'stacked',
+				groupBy: 'daily'
+			},
+			latestChainRows: baseChainRows
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.dataset.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: null },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 }
+		])
 	})
 
 	it('builds grouped relative lines normalized to share', () => {

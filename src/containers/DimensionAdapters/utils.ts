@@ -413,12 +413,12 @@ function buildDenseRowsFromGroupedSeries(
 	groupedSeries: Map<string, Array<[number, number | null]>>,
 	seriesNames: string[]
 ): MultiSeriesChart2Dataset {
-	const rowMap = new Map<number, Record<string, number>>()
+	const rowMap = new Map<number, Record<string, number | null>>()
 
 	for (const chain of seriesNames) {
 		for (const [timestamp, value] of groupedSeries.get(chain) ?? []) {
 			const row = rowMap.get(timestamp) ?? { timestamp }
-			row[chain] = value ?? 0
+			row[chain] = value
 			rowMap.set(timestamp, row)
 		}
 	}
@@ -426,7 +426,7 @@ function buildDenseRowsFromGroupedSeries(
 	const source = ensureChronologicalRows(Array.from(rowMap.values()))
 	for (const row of source) {
 		for (const chain of seriesNames) {
-			if (!(chain in row)) row[chain] = 0
+			if (!(chain in row)) row[chain] = null
 		}
 	}
 
@@ -440,15 +440,19 @@ function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesName
 	return {
 		dimensions: dataset.dimensions,
 		source: dataset.source.map((row) => {
-			const nextRow: Record<string, number> = { timestamp: Number(row.timestamp) }
+			const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
 			let total = 0
 			for (const chain of seriesNames) {
-				const value = typeof row[chain] === 'number' ? row[chain] : Number(row[chain] ?? 0)
-				if (Number.isFinite(value) && value > 0) total += value
+				const value = row[chain]
+				if (typeof value === 'number' && Number.isFinite(value) && value > 0) total += value
 			}
 			for (const chain of seriesNames) {
-				const value = typeof row[chain] === 'number' ? row[chain] : Number(row[chain] ?? 0)
-				nextRow[chain] = total > 0 && Number.isFinite(value) ? (value / total) * 100 : 0
+				const value = row[chain]
+				if (typeof value !== 'number' || !Number.isFinite(value)) {
+					nextRow[chain] = null
+					continue
+				}
+				nextRow[chain] = total > 0 ? (value / total) * 100 : 0
 			}
 			return nextRow
 		})
