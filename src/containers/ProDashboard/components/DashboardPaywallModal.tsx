@@ -10,30 +10,53 @@ interface DashboardPaywallModalProps {
 	reason?: PaywallReason
 }
 
-const REASON_CONFIG: Record<PaywallReason, { icon: IIcon['name']; title: string; description: string; features: string[] }> = {
+const REASON_CONFIG: Record<
+	PaywallReason,
+	{ icon: IIcon['name']; title: string; description: string; features: string[] }
+> = {
 	'dashboard-limit': {
 		icon: 'layout-grid',
 		title: 'Dashboard Limit Reached',
 		description: `Free accounts can create up to ${FREE_TIER_MAX_DASHBOARDS} dashboard${FREE_TIER_MAX_DASHBOARDS === 1 ? '' : 's'}. Upgrade to Pro for unlimited dashboards and more.`,
-		features: ['Unlimited dashboards', 'Private dashboards', 'LlamaAI charts & generation', 'Custom columns & Token Usage tables']
+		features: [
+			'Unlimited dashboards',
+			'Private dashboards',
+			'LlamaAI charts & generation',
+			'Custom columns & Token Usage tables'
+		]
 	},
 	llamaai: {
 		icon: 'sparkles',
 		title: 'LlamaAI is a Pro Feature',
 		description: 'Generate and edit dashboards with AI, add saved LlamaAI charts, and more.',
-		features: ['Generate dashboards with AI', 'Edit existing dashboards with AI', 'Add saved LlamaAI charts', 'Unlimited dashboards']
+		features: [
+			'Generate dashboards with AI',
+			'Edit existing dashboards with AI',
+			'Add saved LlamaAI charts',
+			'Unlimited dashboards'
+		]
 	},
 	'private-dashboard': {
 		icon: 'key',
 		title: 'Private Dashboards Require Pro',
 		description: 'Free accounts can only create public dashboards. Upgrade to keep your dashboards private.',
-		features: ['Private dashboards', 'Unlimited dashboards', 'LlamaAI charts & generation', 'Custom columns & Token Usage tables']
+		features: [
+			'Private dashboards',
+			'Unlimited dashboards',
+			'LlamaAI charts & generation',
+			'Custom columns & Token Usage tables'
+		]
 	},
 	'pro-feature': {
 		icon: 'file-lock-2',
 		title: 'Pro Feature',
 		description: 'This feature requires a Pro subscription. Upgrade to unlock the full dashboard experience.',
-		features: ['Unlimited dashboards', 'Private dashboards', 'LlamaAI charts & generation', 'Custom columns & Token Usage tables']
+		features: [
+			'Unlimited dashboards',
+			'Private dashboards',
+			'LlamaAI charts & generation',
+			'Custom columns & Token Usage tables'
+		]
 	}
 }
 
@@ -63,7 +86,7 @@ export function DashboardPaywallModal({ dialogStore, reason = 'pro-feature' }: D
 					</div>
 
 					<div className="w-full rounded-lg bg-[#242529] p-4">
-						<p className="mb-2.5 text-left text-xs font-medium uppercase tracking-wide text-[#8a8c90]">
+						<p className="mb-2.5 text-left text-xs font-medium tracking-wide text-[#8a8c90] uppercase">
 							Included with Pro
 						</p>
 						<ul className="space-y-2">
