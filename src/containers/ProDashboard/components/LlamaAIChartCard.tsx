@@ -74,7 +74,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		)
 	}
 
-	if (!data) {
+	if (!data && user) {
 		return <p className="flex min-h-[300px] items-center justify-center text-(--text-form)">Chart not found</p>
 	}
 
@@ -86,7 +86,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		<div className="flex flex-col gap-2 p-2">
 			<div className="flex items-center justify-between">
 				<h3 className="font-medium">{config.title || data.title}</h3>
-				{isStale ? (
+				{data.dataFreshness && isStale ? (
 					<div className="flex items-center gap-2">
 						{data.dataFreshness?.cachedAt ? (
 							<span className="text-xs text-(--text-form)">
