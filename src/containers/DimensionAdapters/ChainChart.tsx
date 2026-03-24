@@ -126,6 +126,32 @@ function getChartHeight(chartState: ChainsByAdapterChartState): string {
 	}
 }
 
+function getAdapterByChainChartKindQueryUpdate({
+	nextChartKind,
+	currentGroupByParam,
+	currentChartKind
+}: {
+	nextChartKind: ChainsByAdapterChartKind
+	currentGroupByParam: string | undefined
+	currentChartKind: ChainsByAdapterChartState['chartKind']
+}): Record<string, string | string[] | undefined> {
+	const nextUpdates = getChartKindQueryUpdate(nextChartKind, currentGroupByParam)
+	const enteringLatestValueChart = nextChartKind === 'Treemap' || nextChartKind === 'HBar'
+	const leavingLatestValueChart = currentChartKind === 'treemap' || currentChartKind === 'hbar'
+
+	if (enteringLatestValueChart || leavingLatestValueChart) {
+		return {
+			...nextUpdates,
+			chartProtocols: undefined,
+			excludeChartProtocols: undefined,
+			latestProtocols: undefined,
+			excludeLatestProtocols: undefined
+		}
+	}
+
+	return nextUpdates
+}
+
 export const AdapterByChainChart = ({
 	chartData,
 	adapterType,
@@ -138,6 +164,13 @@ export const AdapterByChainChart = ({
 }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
+	const [isRouteReady, setIsRouteReady] = React.useState(false)
+
+	React.useEffect(() => {
+		if (router.isReady) {
+			setIsRouteReady(true)
+		}
+	}, [router.isReady])
 
 	const combinedChartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
@@ -165,13 +198,16 @@ export const AdapterByChainChart = ({
 			router.query.valueMode
 		]
 	)
+	const isLatestValueBreakdownChart =
+		chartViewMode === 'Breakdown' &&
+		(breakdownChartState.chartKind === 'treemap' || breakdownChartState.chartKind === 'hbar')
 
 	const { breakdownChartData, breakdownProtocolDimensions, isBreakdownLoading, breakdownError } =
 		useAdapterByChainBreakdownChartData({
 			adapterType,
 			chain,
 			dataType,
-			enabled: chartViewMode === 'Breakdown'
+			enabled: chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart
 		})
 
 	const selectedBreakdownProtocols = React.useMemo(() => {
@@ -203,6 +239,14 @@ export const AdapterByChainChart = ({
 			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
 			: baseSelectedProtocols
 	}, [chartViewMode, latestValueProtocolDimensions, router.query.latestProtocols, router.query.excludeLatestProtocols])
+	const areAllLatestValueProtocolsSelected = React.useMemo(() => {
+		if (chartViewMode !== 'Breakdown') return false
+		if (latestValueProtocolDimensions.length === 0) return false
+		if (selectedLatestValueProtocols.length !== latestValueProtocolDimensions.length) return false
+
+		const selectedLatestValueProtocolsSet = new Set(selectedLatestValueProtocols)
+		return latestValueProtocolDimensions.every((protocolName) => selectedLatestValueProtocolsSet.has(protocolName))
+	}, [chartViewMode, latestValueProtocolDimensions, selectedLatestValueProtocols])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
@@ -214,7 +258,14 @@ export const AdapterByChainChart = ({
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartKind = (nextChartKind: ChainsByAdapterChartKind) => {
-		void pushShallowQuery(router, getChartKindQueryUpdate(nextChartKind, readSingleQueryValue(router.query.groupBy)))
+		void pushShallowQuery(
+			router,
+			getAdapterByChainChartKindQueryUpdate({
+				nextChartKind,
+				currentGroupByParam: readSingleQueryValue(router.query.groupBy),
+				currentChartKind: breakdownChartState.chartKind
+			})
+		)
 	}
 	const onChangeValueMode = (nextValueMode: ChainsByAdapterValueMode) => {
 		void pushShallowQuery(router, {
@@ -324,9 +375,17 @@ export const AdapterByChainChart = ({
 				selectedBreakdownProtocols,
 				state: breakdownChartState,
 				protocols,
-				selectedLatestValueProtocols
+				selectedLatestValueProtocols,
+				useAllLatestValueProtocols: areAllLatestValueProtocolsSelected
 			}),
-		[breakdownChartData, breakdownChartState, protocols, selectedBreakdownProtocols, selectedLatestValueProtocols]
+		[
+			areAllLatestValueProtocolsSelected,
+			breakdownChartData,
+			breakdownChartState,
+			protocols,
+			selectedBreakdownProtocols,
+			selectedLatestValueProtocols
+		]
 	)
 	const deferredBreakdownPresentation = React.useDeferredValue(breakdownPresentation)
 
@@ -481,6 +540,18 @@ export const AdapterByChainChart = ({
 		}
 	}, [breakdownChartState, chain, chartName])
 
+	if (!isRouteReady) {
+		return (
+			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+				<div
+					style={{
+						minHeight: CHAINS_BY_ADAPTER_CHART_HEIGHT
+					}}
+				/>
+			</div>
+		)
+	}
+
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-start gap-2 p-2 pb-0">
@@ -596,9 +667,9 @@ export const AdapterByChainChart = ({
 					)}
 				</div>
 			</div>
-			{chartViewMode === 'Breakdown' && breakdownError ? (
+			{chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart && breakdownError ? (
 				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{breakdownError}</p>
-			) : chartViewMode === 'Breakdown' && isBreakdownLoading ? (
+			) : chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart && isBreakdownLoading ? (
 				<p className="flex min-h-[360px] items-center justify-center gap-1">
 					Loading
 					<LoadingDots />

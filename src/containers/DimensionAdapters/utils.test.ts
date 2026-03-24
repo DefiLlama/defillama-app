@@ -4,6 +4,7 @@ import {
 	buildAdapterByChainChartPresentation,
 	buildChainsByAdapterChartPresentation,
 	normalizeChainsByAdapterChartState,
+	resolveBreakdownProtocolsToLatestValueProtocols,
 	type ChainsByAdapterChartState
 } from './utils'
 
@@ -386,7 +387,8 @@ describe('buildAdapterByChainChartPresentation', () => {
 			selectedBreakdownProtocols: ['Hyperliquid Perps', 'Hyperliquid Spot', 'dYdX', 'GMX'],
 			state: { chartKind: 'hbar' },
 			protocols: adapterProtocols,
-			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX', 'GMX']
+			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX', 'GMX'],
+			useAllLatestValueProtocols: false
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -396,5 +398,30 @@ describe('buildAdapterByChainChartPresentation', () => {
 		expect(presentation.data[0].value).toBe(70)
 		expect(presentation.data[1].value).toBe(30)
 		expect(presentation.data[2].value).toBe(10)
+	})
+
+	it('uses all top-level latest-value rows when the latest-value selector is fully selected', () => {
+		const presentation = buildAdapterByChainChartPresentation({
+			chartData: adapterBreakdownChartData,
+			selectedBreakdownProtocols: ['Hyperliquid Perps', 'dYdX', 'GMX'],
+			state: { chartKind: 'hbar' },
+			protocols: adapterProtocols,
+			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX', 'GMX'],
+			useAllLatestValueProtocols: true
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX', 'GMX'])
+		expect(presentation.data[0].value).toBe(70)
+	})
+})
+
+describe('resolveBreakdownProtocolsToLatestValueProtocols', () => {
+	it('maps exact parent matches and known child matches to top-level table protocol names', () => {
+		expect(
+			resolveBreakdownProtocolsToLatestValueProtocols(adapterProtocols, ['Hyperliquid Perps', 'dYdX', 'Unknown'])
+		).toEqual(['Hyperliquid', 'dYdX'])
 	})
 })

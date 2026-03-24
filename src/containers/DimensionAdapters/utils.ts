@@ -675,6 +675,30 @@ function getAdapterByChainLatestProtocolRows(protocols: IProtocol[]): BreakdownL
 	return protocols.map((protocol) => ({ name: protocol.name, total24h: protocol.total24h }))
 }
 
+export function resolveBreakdownProtocolsToLatestValueProtocols(
+	protocols: IProtocol[],
+	selectedBreakdownProtocols: string[]
+): string[] {
+	const selectedBreakdownProtocolsSet = new Set(selectedBreakdownProtocols)
+	const resolvedProtocols: string[] = []
+
+	for (const protocol of protocols) {
+		if (selectedBreakdownProtocolsSet.has(protocol.name)) {
+			resolvedProtocols.push(protocol.name)
+			continue
+		}
+
+		for (const childProtocol of protocol.childProtocols ?? []) {
+			if (selectedBreakdownProtocolsSet.has(childProtocol.name)) {
+				resolvedProtocols.push(protocol.name)
+				break
+			}
+		}
+	}
+
+	return resolvedProtocols
+}
+
 export function buildChainsByAdapterChartPresentation({
 	chartData,
 	selectedChains,
@@ -699,19 +723,21 @@ export function buildAdapterByChainChartPresentation({
 	selectedBreakdownProtocols,
 	state,
 	protocols,
-	selectedLatestValueProtocols
+	selectedLatestValueProtocols,
+	useAllLatestValueProtocols = false
 }: {
 	chartData: MultiSeriesChart2Dataset
 	selectedBreakdownProtocols: string[]
 	state: ChainsByAdapterChartState
 	protocols: IProtocol[]
 	selectedLatestValueProtocols: string[]
+	useAllLatestValueProtocols?: boolean
 }): ChainsByAdapterChartPresentation {
 	if (state.chartKind === 'treemap' || state.chartKind === 'hbar') {
 		const selectedLatestValueProtocolsSet = new Set(selectedLatestValueProtocols)
-		const latestRows = getAdapterByChainLatestProtocolRows(protocols).filter((row) =>
-			selectedLatestValueProtocolsSet.has(row.name)
-		)
+		const latestRows = useAllLatestValueProtocols
+			? getAdapterByChainLatestProtocolRows(protocols)
+			: getAdapterByChainLatestProtocolRows(protocols).filter((row) => selectedLatestValueProtocolsSet.has(row.name))
 		const selectedLatestProtocolNames = latestRows.map((row) => row.name)
 
 		return state.chartKind === 'treemap'
