@@ -1,3 +1,4 @@
+import * as Ariakit from '@ariakit/react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import * as React from 'react'
@@ -12,6 +13,7 @@ import {
 } from '~/components/ECharts/ChartGroupingSelector'
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { ensureChronologicalRows, formatBarChart, formatLineChart } from '~/components/ECharts/utils'
+import { Icon } from '~/components/Icon'
 import { LoadingDots } from '~/components/Loaders'
 import { Select } from '~/components/Select/Select'
 import { SelectWithCombobox } from '~/components/Select/SelectWithCombobox'
@@ -19,17 +21,25 @@ import { CHART_COLORS } from '~/constants/colors'
 import type { MultiChartConfig } from '~/containers/ProDashboard/types'
 import { getAdapterDashboardType } from '~/containers/ProDashboard/utils/adapterChartMapping'
 import { generateItemId } from '~/containers/ProDashboard/utils/dashboardUtils'
+import { useLocalStorageSettingsManager } from '~/contexts/LocalStorage'
 import { useGetChartInstance } from '~/hooks/useGetChartInstance'
 import { slug } from '~/utils'
 import { getErrorMessage } from '~/utils/error'
 import { parseArrayParam, parseExcludeParam, pushShallowQuery, readSingleQueryValue } from '~/utils/routerQuery'
-import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
+import {
+	fetchAdapterChainChartData,
+	fetchAdapterChainChartDataByProtocolBreakdown,
+	fetchAdapterChartDataByChainBreakdown
+} from './api'
 import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 import {
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
+	mergeBreakdownCharts,
+	mergeNamedDimensionChartDataset,
+	mergeSingleDimensionChartDataset,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
 } from './utils'
@@ -67,9 +77,51 @@ const CHART_VIEW_MODE_OPTIONS = [
 	{ key: 'Breakdown', name: 'Breakdown' }
 ] as const
 const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
+const FEES_CHART_NAMES = new Set(['Fees', 'Revenue', 'Holders Revenue'])
+const FEES_EXTRA_METRIC_LABEL = {
+	dailyBribesRevenue: 'Bribes Revenue',
+	dailyTokenTaxes: 'Token Tax'
+} as const
+
+type FeesExtraMetric = keyof typeof FEES_EXTRA_METRIC_LABEL
+type FeesChartMode = { kind: 'plain' } | { kind: 'fees'; extras: FeesExtraMetric[] }
+type BreakdownChartDataState =
+	| { kind: 'loading' }
+	| { kind: 'error'; message: string }
+	| {
+			kind: 'ready'
+			chartData: MultiSeriesChart2Dataset
+			protocolDimensions: string[]
+			failedMetrics: FeesExtraMetric[]
+	  }
 
 function assertNever(value: never): never {
 	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
+}
+
+function getFeesChartMode({
+	adapterType,
+	chartName,
+	bribes,
+	tokentax
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	chartName: string
+	bribes: boolean
+	tokentax: boolean
+}): FeesChartMode {
+	if (adapterType !== 'fees' || !FEES_CHART_NAMES.has(chartName)) {
+		return { kind: 'plain' }
+	}
+
+	const extras: FeesExtraMetric[] = []
+	if (bribes) extras.push('dailyBribesRevenue')
+	if (tokentax) extras.push('dailyTokenTaxes')
+	if (extras.length === 0) {
+		return { kind: 'plain' }
+	}
+
+	return { kind: 'fees', extras }
 }
 
 function getChartKindQueryUpdate(
@@ -164,12 +216,24 @@ export const AdapterByChainChart = ({
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 	const [isRouteReady, setIsRouteReady] = React.useState(false)
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
 
 	React.useEffect(() => {
 		if (router.isReady) {
 			setIsRouteReady(true)
 		}
 	}, [router.isReady])
+
+	const feesChartMode = React.useMemo(
+		() =>
+			getFeesChartMode({
+				adapterType,
+				chartName,
+				bribes: feesSettings.bribes,
+				tokentax: feesSettings.tokentax
+			}),
+		[adapterType, chartName, feesSettings.bribes, feesSettings.tokentax]
+	)
 
 	const combinedChartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
@@ -201,17 +265,89 @@ export const AdapterByChainChart = ({
 		chartViewMode === 'Breakdown' &&
 		(breakdownChartState.chartKind === 'treemap' || breakdownChartState.chartKind === 'hbar')
 
-	const { breakdownChartData, breakdownProtocolDimensions, isBreakdownLoading, breakdownError } =
-		useAdapterByChainBreakdownChartData({
-			adapterType,
-			chain,
-			dataType,
-			enabled: chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart
-		})
+	const { data: combinedBribesChart, error: combinedBribesChartError } = useQuery({
+		queryKey: ['adapter-chain-chart', adapterType, chain, 'dailyBribesRevenue'],
+		queryFn: () =>
+			fetchAdapterChainChartData({
+				adapterType,
+				chain,
+				dataType: 'dailyBribesRevenue'
+			}),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled:
+			chartViewMode === 'Combined' &&
+			feesChartMode.kind === 'fees' &&
+			feesChartMode.extras.includes('dailyBribesRevenue')
+	})
+
+	const { data: combinedTokenTaxChart, error: combinedTokenTaxChartError } = useQuery({
+		queryKey: ['adapter-chain-chart', adapterType, chain, 'dailyTokenTaxes'],
+		queryFn: () =>
+			fetchAdapterChainChartData({
+				adapterType,
+				chain,
+				dataType: 'dailyTokenTaxes'
+			}),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled:
+			chartViewMode === 'Combined' && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
+	})
+
+	const breakdownChartDataState = useAdapterByChainBreakdownChartData({
+		adapterType,
+		chartName,
+		chain,
+		dataType,
+		enabled: chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart,
+		feesChartMode
+	})
+
+	const combinedChartData = React.useMemo(() => {
+		switch (feesChartMode.kind) {
+			case 'plain':
+				return chartData
+			case 'fees':
+				return mergeSingleDimensionChartDataset({
+					chartData,
+					extraCharts: [combinedBribesChart ?? [], combinedTokenTaxChart ?? []]
+				})
+			default:
+				return assertNever(feesChartMode)
+		}
+	}, [chartData, combinedBribesChart, combinedTokenTaxChart, feesChartMode])
+
+	const failedMetrics = React.useMemo(() => {
+		if (chartViewMode === 'Breakdown') {
+			return breakdownChartDataState.kind === 'ready' ? breakdownChartDataState.failedMetrics : []
+		}
+
+		if (feesChartMode.kind === 'plain') {
+			return []
+		}
+
+		const nextFailedMetrics: FeesExtraMetric[] = []
+		if (feesChartMode.extras.includes('dailyBribesRevenue') && combinedBribesChartError) {
+			nextFailedMetrics.push('dailyBribesRevenue')
+		}
+		if (feesChartMode.extras.includes('dailyTokenTaxes') && combinedTokenTaxChartError) {
+			nextFailedMetrics.push('dailyTokenTaxes')
+		}
+
+		return nextFailedMetrics
+	}, [breakdownChartDataState, chartViewMode, combinedBribesChartError, combinedTokenTaxChartError, feesChartMode])
 
 	const protocolOptions = React.useMemo(
-		() => (isLatestValueBreakdownChart ? protocols.map((protocol) => protocol.name) : breakdownProtocolDimensions),
-		[breakdownProtocolDimensions, isLatestValueBreakdownChart, protocols]
+		() =>
+			isLatestValueBreakdownChart
+				? protocols.map((protocol) => protocol.name)
+				: breakdownChartDataState.kind === 'ready'
+					? breakdownChartDataState.protocolDimensions
+					: [],
+		[breakdownChartDataState, isLatestValueBreakdownChart, protocols]
 	)
 	const selectedProtocols = React.useMemo(() => {
 		if (chartViewMode !== 'Breakdown' || protocolOptions.length === 0) return []
@@ -260,7 +396,7 @@ export const AdapterByChainChart = ({
 		})
 	}
 
-	const combinedMetricDimensions = chartData.dimensions.filter((d) => d !== 'timestamp')
+	const combinedMetricDimensions = combinedChartData.dimensions.filter((d) => d !== 'timestamp')
 	const combinedFinalCharts = React.useMemo(() => {
 		const isDaily = combinedChartInterval === 'daily'
 		const isCumulative = combinedChartInterval === 'cumulative'
@@ -274,7 +410,7 @@ export const AdapterByChainChart = ({
 				return { dimension, seriesName, type, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
 
-			const rawData = chartData.source
+			const rawData = combinedChartData.source
 				.map((row) => {
 					const timestamp = Number(row.timestamp)
 					const value = row[dimension] as number | null
@@ -301,7 +437,7 @@ export const AdapterByChainChart = ({
 
 		if (isDaily) {
 			return {
-				dataset: chartData,
+				dataset: combinedChartData,
 				charts: seriesDefinitions.map((series, index) => ({
 					type: series.type,
 					name: series.seriesName,
@@ -343,9 +479,11 @@ export const AdapterByChainChart = ({
 				...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 			}))
 		}
-	}, [chartData, chartName, combinedChartInterval, combinedMetricDimensions])
+	}, [combinedChartData, chartName, combinedChartInterval, combinedMetricDimensions])
 	const deferredCombinedFinalCharts = React.useDeferredValue(combinedFinalCharts)
 
+	const breakdownChartData =
+		breakdownChartDataState.kind === 'ready' ? breakdownChartDataState.chartData : EMPTY_DATASET
 	const breakdownPresentation = React.useMemo(() => {
 		switch (breakdownChartState.chartKind) {
 			case 'treemap':
@@ -358,7 +496,7 @@ export const AdapterByChainChart = ({
 			case 'line':
 			case 'bar':
 				return buildAdapterByChainBreakdownPresentation({
-					chartData: breakdownChartData ?? EMPTY_DATASET,
+					chartData: breakdownChartData,
 					state: breakdownChartState,
 					selectedProtocols
 				})
@@ -532,7 +670,7 @@ export const AdapterByChainChart = ({
 	}
 
 	return (
-		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+		<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-start gap-2 p-2 pb-0">
 				<Select
 					allValues={CHART_VIEW_MODE_OPTIONS}
@@ -628,9 +766,13 @@ export const AdapterByChainChart = ({
 					)}
 				</div>
 			</div>
-			{chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart && breakdownError ? (
-				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{breakdownError}</p>
-			) : chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart && isBreakdownLoading ? (
+			{chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart && breakdownChartDataState.kind === 'error' ? (
+				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">
+					{breakdownChartDataState.message}
+				</p>
+			) : chartViewMode === 'Breakdown' &&
+			  !isLatestValueBreakdownChart &&
+			  breakdownChartDataState.kind === 'loading' ? (
 				<p className="flex min-h-[360px] items-center justify-center gap-1">
 					Loading
 					<LoadingDots />
@@ -692,21 +834,26 @@ export const AdapterByChainChart = ({
 					/>
 				</React.Suspense>
 			)}
+			<FailedFeesMetricsPopover failedMetrics={failedMetrics} />
 		</div>
 	)
 }
 
 function useAdapterByChainBreakdownChartData({
 	adapterType,
+	chartName,
 	chain,
 	dataType,
-	enabled
+	enabled,
+	feesChartMode
 }: {
 	adapterType: `${ADAPTER_TYPES}`
+	chartName: string
 	chain: string
 	dataType: IAdapterByChainPageData['dataType']
 	enabled: boolean
-}) {
+	feesChartMode: FeesChartMode
+}): BreakdownChartDataState {
 	const safeDataType = dataType === 'dailyEarnings' ? undefined : (dataType ?? undefined)
 
 	const { data, isLoading, error } = useQuery({
@@ -718,22 +865,55 @@ function useAdapterByChainBreakdownChartData({
 		enabled
 	})
 
-	const breakdownError = error ? getErrorMessage(error) : null
+	const { data: bribesData, error: bribesError } = useQuery({
+		queryKey: ['adapter-breakdown-chart', adapterType, chain, chartName, 'dailyBribesRevenue'],
+		queryFn: () =>
+			fetchAdapterChainChartDataByProtocolBreakdown({
+				adapterType,
+				chain,
+				dataType: 'dailyBribesRevenue'
+			}),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: enabled && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
+	})
+
+	const { data: tokenTaxData, error: tokenTaxError } = useQuery({
+		queryKey: ['adapter-breakdown-chart', adapterType, chain, chartName, 'dailyTokenTaxes'],
+		queryFn: () =>
+			fetchAdapterChainChartDataByProtocolBreakdown({
+				adapterType,
+				chain,
+				dataType: 'dailyTokenTaxes'
+			}),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: enabled && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
+	})
 
 	return React.useMemo(() => {
-		if (!data || data.length === 0) {
-			return {
-				breakdownChartData: null,
-				breakdownProtocolDimensions: [],
-				isBreakdownLoading: isLoading && enabled,
-				breakdownError
-			}
+		if (!enabled) {
+			return { kind: 'ready', chartData: EMPTY_DATASET, protocolDimensions: [], failedMetrics: [] }
 		}
 
+		if (isLoading) {
+			return { kind: 'loading' }
+		}
+
+		if (error) {
+			return { kind: 'error', message: getErrorMessage(error) }
+		}
+
+		const mergedData = mergeBreakdownCharts({
+			chart: data ?? [],
+			extraCharts: [bribesData ?? [], tokenTaxData ?? []]
+		})
 		const protocolValuesByTimestamp = new Map<number, Record<string, number>>()
 		const protocolTotals = new Map<string, number>()
 
-		for (const [timestamp, protocolValues] of data) {
+		for (const [timestamp, protocolValues] of mergedData) {
 			const valuesAtTimestamp: Record<string, number> = {}
 			for (const [protocolName, value] of Object.entries(protocolValues)) {
 				valuesAtTimestamp[protocolName] = value
@@ -762,18 +942,45 @@ function useAdapterByChainBreakdownChartData({
 			dimensions: ['timestamp', ...allProtocols]
 		}
 
-		return { breakdownChartData, breakdownProtocolDimensions: allProtocols, isBreakdownLoading: false, breakdownError }
-	}, [data, isLoading, enabled, breakdownError])
+		const failedMetrics: FeesExtraMetric[] = []
+		if (feesChartMode.kind === 'fees') {
+			if (feesChartMode.extras.includes('dailyBribesRevenue') && bribesError) {
+				failedMetrics.push('dailyBribesRevenue')
+			}
+			if (feesChartMode.extras.includes('dailyTokenTaxes') && tokenTaxError) {
+				failedMetrics.push('dailyTokenTaxes')
+			}
+		}
+
+		return {
+			kind: 'ready',
+			chartData: breakdownChartData,
+			protocolDimensions: allProtocols,
+			failedMetrics
+		}
+	}, [bribesData, bribesError, data, enabled, error, feesChartMode, isLoading, tokenTaxData, tokenTaxError])
 }
 
 export const ChainsByAdapterChart = ({
+	adapterType,
 	chartData,
 	allChains,
 	chains,
 	chartName
-}: Pick<IChainsByAdapterPageData, 'chartData' | 'allChains' | 'chains'> & { chartName: string }) => {
+}: Pick<IChainsByAdapterPageData, 'adapterType' | 'chartData' | 'allChains' | 'chains'> & { chartName: string }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
+	const [feesSettings] = useLocalStorageSettingsManager('fees')
+	const feesChartMode = React.useMemo(
+		() =>
+			getFeesChartMode({
+				adapterType,
+				chartName,
+				bribes: feesSettings.bribes,
+				tokentax: feesSettings.tokentax
+			}),
+		[adapterType, chartName, feesSettings.bribes, feesSettings.tokentax]
+	)
 	const chartState = React.useMemo(
 		() =>
 			normalizeChainsByAdapterChartState({
@@ -791,6 +998,7 @@ export const ChainsByAdapterChart = ({
 			router.query.valueMode
 		]
 	)
+	const usesTimeSeriesData = chartState.chartKind === 'bar' || chartState.chartKind === 'line'
 	const selectedChains = React.useMemo(() => {
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
@@ -802,10 +1010,67 @@ export const ChainsByAdapterChart = ({
 			: baseSelectedChains
 	}, [allChains, router.query.chains, router.query.excludeChains])
 
+	const { data: bribesChartData, error: bribesChartError } = useQuery({
+		queryKey: ['adapter-chain-breakdown-chart', adapterType, chartName, 'dailyBribesRevenue'],
+		queryFn: () => fetchAdapterChartDataByChainBreakdown({ adapterType, dataType: 'dailyBribesRevenue' }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: usesTimeSeriesData && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
+	})
+
+	const { data: tokenTaxChartData, error: tokenTaxChartError } = useQuery({
+		queryKey: ['adapter-chain-breakdown-chart', adapterType, chartName, 'dailyTokenTaxes'],
+		queryFn: () => fetchAdapterChartDataByChainBreakdown({ adapterType, dataType: 'dailyTokenTaxes' }),
+		staleTime: 60 * 60 * 1000,
+		refetchOnWindowFocus: false,
+		retry: 0,
+		enabled: usesTimeSeriesData && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
+	})
+
+	const mergedChartData = React.useMemo(() => {
+		if (!usesTimeSeriesData) {
+			return chartData
+		}
+
+		switch (feesChartMode.kind) {
+			case 'plain':
+				return chartData
+			case 'fees':
+				return mergeNamedDimensionChartDataset({
+					chartData,
+					extraCharts: [bribesChartData ?? [], tokenTaxChartData ?? []]
+				})
+			default:
+				return assertNever(feesChartMode)
+		}
+	}, [bribesChartData, chartData, feesChartMode, tokenTaxChartData, usesTimeSeriesData])
+
+	const failedMetrics = React.useMemo(() => {
+		if (!usesTimeSeriesData || feesChartMode.kind === 'plain') {
+			return []
+		}
+
+		const nextFailedMetrics: FeesExtraMetric[] = []
+		if (feesChartMode.extras.includes('dailyBribesRevenue') && bribesChartError) {
+			nextFailedMetrics.push('dailyBribesRevenue')
+		}
+		if (feesChartMode.extras.includes('dailyTokenTaxes') && tokenTaxChartError) {
+			nextFailedMetrics.push('dailyTokenTaxes')
+		}
+
+		return nextFailedMetrics
+	}, [bribesChartError, feesChartMode, tokenTaxChartError, usesTimeSeriesData])
+
 	const chartPresentation = React.useMemo(
 		() =>
-			buildChainsByAdapterChartPresentation({ chartData, selectedChains, state: chartState, latestChainRows: chains }),
-		[chartData, selectedChains, chartState, chains]
+			buildChainsByAdapterChartPresentation({
+				chartData: mergedChartData,
+				selectedChains,
+				state: chartState,
+				latestChainRows: chains
+			}),
+		[mergedChartData, selectedChains, chartState, chains]
 	)
 	const deferredChartPresentation = React.useDeferredValue(chartPresentation)
 
@@ -936,7 +1201,7 @@ export const ChainsByAdapterChart = ({
 		deferredChartPresentation.data.length > 0
 
 	return (
-		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
+		<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-start gap-2 p-2 pb-0">
 				<Select
 					allValues={CHART_KIND_OPTIONS}
@@ -1041,6 +1306,37 @@ export const ChainsByAdapterChart = ({
 					/>
 				)}
 			</React.Suspense>
+			<FailedFeesMetricsPopover failedMetrics={failedMetrics} />
 		</div>
+	)
+}
+
+function FailedFeesMetricsPopover({ failedMetrics }: { failedMetrics: FeesExtraMetric[] }) {
+	if (failedMetrics.length === 0) {
+		return null
+	}
+
+	return (
+		<Ariakit.PopoverProvider>
+			<Ariakit.PopoverDisclosure className="absolute right-2 bottom-2 z-10 flex items-center justify-center rounded-full border border-(--cards-border) bg-(--bg-main) p-1.5 text-(--error) hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg)">
+				<Icon name="alert-triangle" className="h-3.5 w-3.5" />
+				<span className="sr-only">Show failed metric APIs</span>
+			</Ariakit.PopoverDisclosure>
+			<Ariakit.Popover
+				unmountOnHide
+				hideOnInteractOutside
+				gutter={6}
+				className="z-10 mr-1 flex max-h-[calc(100dvh-80px)] w-[min(calc(100vw-16px),300px)] flex-col gap-1 overflow-auto overscroll-contain rounded-md border border-[hsl(204,20%,88%)] bg-(--bg-main) p-2 text-xs dark:border-[hsl(204,3%,32%)]"
+			>
+				<p className="font-medium text-(--error)">Failed to load data for:</p>
+				<ul className="pl-4">
+					{failedMetrics.map((metric) => (
+						<li key={metric} className="list-disc">
+							{FEES_EXTRA_METRIC_LABEL[metric]}
+						</li>
+					))}
+				</ul>
+			</Ariakit.Popover>
+		</Ariakit.PopoverProvider>
 	)
 }

@@ -4,6 +4,9 @@ import {
 	buildAdapterByChainBreakdownPresentation,
 	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
+	mergeBreakdownCharts,
+	mergeNamedDimensionChartDataset,
+	mergeSingleDimensionChartDataset,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
 } from './utils'
@@ -380,5 +383,83 @@ describe('buildAdapterByChainLatestValuePresentation', () => {
 		expect(presentation.data[0].value).toBe(70)
 		expect(presentation.data[1].value).toBe(30)
 		expect(presentation.data[2].value).toBe(10)
+	})
+})
+
+describe('mergeSingleDimensionChartDataset', () => {
+	it('adds bribes and token tax data into the base series', () => {
+		expect(
+			mergeSingleDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Fees'],
+					source: [
+						{ timestamp: toMs(2024, 1, 1), Fees: 10 },
+						{ timestamp: toMs(2024, 1, 2), Fees: 20 }
+					]
+				},
+				extraCharts: [
+					[
+						[Math.floor(toMs(2024, 1, 1) / 1e3), 1],
+						[Math.floor(toMs(2024, 1, 2) / 1e3), 2]
+					],
+					[
+						[Math.floor(toMs(2024, 1, 1) / 1e3), 3],
+						[Math.floor(toMs(2024, 1, 2) / 1e3), 4]
+					]
+				]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Fees: 14 },
+			{ timestamp: toMs(2024, 1, 2), Fees: 26 }
+		])
+	})
+})
+
+describe('mergeBreakdownCharts', () => {
+	it('adds extra protocol values by timestamp and protocol name', () => {
+		expect(
+			mergeBreakdownCharts({
+				chart: [
+					[1, { A: 10, B: 20 }],
+					[2, { A: 30 }]
+				],
+				extraCharts: [
+					[
+						[1, { A: 1, C: 2 }],
+						[2, { B: 3 }]
+					],
+					[[2, { A: 4 }]]
+				]
+			})
+		).toEqual([
+			[1, { A: 11, B: 20, C: 2 }],
+			[2, { A: 34, B: 3 }]
+		])
+	})
+})
+
+describe('mergeNamedDimensionChartDataset', () => {
+	it('adds extra chain values into the matching named dimensions', () => {
+		expect(
+			mergeNamedDimensionChartDataset({
+				chartData: {
+					dimensions: ['timestamp', 'Ethereum', 'Solana'],
+					source: [
+						{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+						{ timestamp: toMs(2024, 1, 2), Ethereum: 30, Solana: 40 }
+					]
+				},
+				extraCharts: [
+					[
+						[Math.floor(toMs(2024, 1, 1) / 1e3), { ethereum: 1, solana: 2 }],
+						[Math.floor(toMs(2024, 1, 2) / 1e3), { Ethereum: 3 }]
+					],
+					[[Math.floor(toMs(2024, 1, 2) / 1e3), { Solana: 4 }]]
+				]
+			}).source
+		).toEqual([
+			{ timestamp: toMs(2024, 1, 1), Ethereum: 10, Solana: 20 },
+			{ timestamp: toMs(2024, 1, 2), Ethereum: 33, Solana: 44 }
+		])
 	})
 })

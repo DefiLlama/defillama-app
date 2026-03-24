@@ -32,6 +32,39 @@ import {
 	type OpenInterestData
 } from './utils'
 
+const FEES_CHART_ROUTES = new Set(['fees', 'revenue', 'holders-revenue'])
+
+function buildChainsChartData({
+	rawChartData,
+	allChains
+}: {
+	rawChartData: Array<[number, Record<string, number>]>
+	allChains: string[]
+}): MultiSeriesChart2Dataset {
+	const chartDimensions = ['timestamp', ...allChains]
+	return {
+		dimensions: chartDimensions,
+		source: rawChartData
+			.map(([timestamp, chainValues]) => {
+				const normalizedTimestamp = timestamp < 1e12 ? timestamp * 1e3 : timestamp
+				const row: Record<string, number | null> = { timestamp: normalizedTimestamp }
+
+				for (const chain of allChains) {
+					row[chain] = null
+				}
+
+				for (const chainKey in chainValues) {
+					if (chainKey in row) {
+						row[chainKey] = chainValues[chainKey]
+					}
+				}
+
+				return row
+			})
+			.sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+	}
+}
+
 export async function getAdapterChainOverview({
 	adapterType,
 	chain,
@@ -102,6 +135,8 @@ export const getAdapterByChainPageData = async ({
 	hasOpenInterest?: boolean
 	metricName: string
 }): Promise<IAdapterByChainPageData | null> => {
+	const showFeesChart = FEES_CHART_ROUTES.has(route)
+
 	const [
 		data,
 		protocolsData,
@@ -126,7 +161,7 @@ export const getAdapterByChainPageData = async ({
 			adapterType,
 			chain,
 			dataType,
-			excludeTotalDataChart: adapterType === 'fees'
+			excludeTotalDataChart: adapterType === 'fees' && !showFeesChart
 		}),
 		fetchProtocols().catch(() => ({ protocols: [], parentProtocols: [] })),
 		adapterType === 'fees'
@@ -578,16 +613,13 @@ export const getAdapterByChainPageData = async ({
 		}
 	}
 
-	const chartData =
-		adapterType === 'fees'
-			? ({ source: [], dimensions: ['timestamp', 'value'] } as MultiSeriesChart2Dataset)
-			: buildAdapterByChainChartDataset({
-					adapterType,
-					metricName,
-					primaryChartData: data.totalDataChart ?? [],
-					openInterestChartData: openInterestData?.totalDataChart ?? [],
-					activeLiquidityChartData: activeLiquidityData?.totalDataChart ?? []
-				})
+	const chartData = buildAdapterByChainChartDataset({
+		adapterType,
+		metricName,
+		primaryChartData: data.totalDataChart ?? [],
+		openInterestChartData: openInterestData?.totalDataChart ?? [],
+		activeLiquidityChartData: activeLiquidityData?.totalDataChart ?? []
+	})
 
 	return {
 		chain,
@@ -632,12 +664,15 @@ export const getChainsByFeesAdapterPageData = async ({
 			allChainsSet.add(currentChainMetadata.name)
 		}
 
-		const [chainsData, bribesData, tokenTaxesData] = await Promise.all([
+		const [chainsData, rawChartData, bribesData, tokenTaxesData] = await Promise.all([
 			fetchAdapterChainMetrics({
 				adapterType,
 				dataType,
 				chain: 'All'
 			}).then((res) => res.protocols.filter((p) => p.protocolType === 'chain' && allChainsSet.has(p.name))),
+			fetchJson<Array<[number, Record<string, number>]>>(
+				`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown?dataType=${dataType}`
+			).catch(() => []),
 			fetchAdapterChainMetrics({
 				adapterType,
 				dataType: 'dailyBribesRevenue',
@@ -690,13 +725,17 @@ export const getChainsByFeesAdapterPageData = async ({
 				}
 			})
 			.sort((a, b) => (b.total24h ?? 0) - (a.total24h ?? 0))
+		const allChains = chains.map((c) => c.name)
 
 		return {
 			adapterType,
 			dataType: dataType ?? null,
-			chartData: { source: [], dimensions: ['timestamp'] },
+			chartData: buildChainsChartData({
+				rawChartData,
+				allChains
+			}),
 			chains,
-			allChains: chains.map((c) => c.name)
+			allChains
 		}
 	} catch (error) {
 		postRuntimeLogs(getErrorMessage(error))
@@ -760,9 +799,11 @@ export const getChainsByAdapterPageData = async ({
 				dataType,
 				chainMetadata
 			}),
-			adapterType === 'fees'
+			adapterType === 'fees' && dataType !== 'dailyHoldersRevenue'
 				? Promise.resolve([])
-				: fetchJson(`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown`).catch(() => []),
+				: fetchJson<Array<[number, Record<string, number>]>>(
+						`${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown${dataType ? `?dataType=${dataType}` : ''}`
+					).catch(() => []),
 			getOptionalOverview({
 				enabled: adapterType === 'fees',
 				adapterType,
@@ -793,48 +834,7 @@ export const getChainsByAdapterPageData = async ({
 		> = {}
 		const openInterestByChain: Record<string, number | null> = {}
 		const activeLiquidityByChain: Record<string, number | null> = {}
-		const chartDimensions = ['timestamp', ...allChains]
-		const chainNameByKey = Object.entries(chainMetadata).reduce(
-			(acc, [metadataKey, chain]) => {
-				const displayName = chain.name
-				if (!displayName) return acc
-				acc[displayName] = displayName
-				acc[displayName.toLowerCase()] = displayName
-				acc[slug(displayName)] = displayName
-				acc[String(chain.id)] = displayName
-				acc[metadataKey] = displayName
-				acc[metadataKey.toLowerCase()] = displayName
-				acc[slug(metadataKey)] = displayName
-				return acc
-			},
-			{} as Record<string, string>
-		)
-		const chartData: MultiSeriesChart2Dataset = {
-			dimensions: chartDimensions,
-			source: rawChartData
-				.map(([timestamp, chainValues]) => {
-					const numericTimestamp = Number(timestamp)
-					if (!Number.isFinite(numericTimestamp)) return null
-					const normalizedTimestamp = numericTimestamp < 1e12 ? numericTimestamp * 1e3 : numericTimestamp
-					const row: Record<string, number | null> = { timestamp: normalizedTimestamp }
-					for (const chain of allChains) {
-						row[chain] = null
-					}
-					for (const chainKey in chainValues) {
-						const displayName =
-							chainNameByKey[chainKey] ??
-							chainNameByKey[chainKey.toLowerCase()] ??
-							chainNameByKey[slug(chainKey)] ??
-							chainKey
-						if (displayName in row && typeof chainValues[chainKey] === 'number') {
-							row[displayName] = chainValues[chainKey]
-						}
-					}
-					return row
-				})
-				.filter((row): row is Record<string, number | null> => row != null)
-				.sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
-		}
+		const chartData = buildChainsChartData({ rawChartData, allChains })
 
 		for (const chain in bribesData) {
 			bribesByChain[chain] = {
