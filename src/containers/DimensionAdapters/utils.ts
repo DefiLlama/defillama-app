@@ -310,9 +310,16 @@ export type ChainsByAdapterChartPresentation =
 	| ChainsByAdapterTreemapPresentation
 	| ChainsByAdapterHBarPresentation
 
+type ChainsByAdapterBarState = Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
+type ChainsByAdapterLineState = Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
+
 const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGrouping = 'daily'
 const VALID_BAR_GROUPINGS = new Set<ChartTimeGrouping>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
 const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
+
+function assertNever(value: never): never {
+	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
+}
 
 function toValidChartGrouping(value: string | undefined | null): ChartTimeGrouping | null {
 	if (!value) return null
@@ -367,17 +374,17 @@ export function normalizeChainsByAdapterChartState({
 
 function createSeriesUniverse({
 	chartData,
-	selectedEntities
+	selectedNames
 }: {
 	chartData: MultiSeriesChart2Dataset
-	selectedEntities: string[]
+	selectedNames: string[]
 }) {
 	const entityTotals = new Map<string, number>()
 	const entitySeries = new Map<string, Array<[number, number]>>()
 
 	for (const row of chartData.source) {
 		const timestamp = Number(row.timestamp)
-		for (const entity of selectedEntities) {
+		for (const entity of selectedNames) {
 			const value = row[entity]
 			if (typeof value === 'number') {
 				entityTotals.set(entity, (entityTotals.get(entity) ?? 0) + value)
@@ -418,12 +425,12 @@ function createSeriesUniverse({
 
 	const topSeriesNames = Array.from(topSeries.keys())
 	const topColors = getNDistinctColors(topSeriesNames.length || 1)
-	const topColorByChain = Object.fromEntries(topSeriesNames.map((chain, i) => [chain, topColors[i]]))
+	const topColorBySeriesName = Object.fromEntries(topSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
 
 	return {
 		topSeries,
 		topSeriesNames,
-		topColorByChain
+		topColorBySeriesName
 	}
 }
 
@@ -480,13 +487,13 @@ function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesName
 function buildBarPresentation({
 	topSeries,
 	topSeriesNames,
-	topColorByChain,
+	topColorBySeriesName,
 	state
 }: {
 	topSeries: Map<string, Array<[number, number]>>
 	topSeriesNames: string[]
-	topColorByChain: Record<string, string>
-	state: Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
+	topColorBySeriesName: Record<string, string>
+	state: ChainsByAdapterBarState
 }): ChainsByAdapterBarPresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
@@ -514,7 +521,7 @@ function buildBarPresentation({
 			name: seriesName,
 			encode: { x: 'timestamp', y: seriesName },
 			...(state.barLayout === 'stacked' ? { stack: 'chain' as const } : {}),
-			color: topColorByChain[seriesName]
+			color: topColorBySeriesName[seriesName]
 		})),
 		valueMode: state.valueMode,
 		barLayout: state.barLayout,
@@ -526,13 +533,13 @@ function buildBarPresentation({
 function buildLinePresentation({
 	topSeries,
 	topSeriesNames,
-	topColorByChain,
+	topColorBySeriesName,
 	state
 }: {
 	topSeries: Map<string, Array<[number, number]>>
 	topSeriesNames: string[]
-	topColorByChain: Record<string, string>
-	state: Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
+	topColorBySeriesName: Record<string, string>
+	state: ChainsByAdapterLineState
 }): ChainsByAdapterLinePresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
@@ -558,7 +565,7 @@ function buildLinePresentation({
 			type: 'line',
 			name: seriesName,
 			encode: { x: 'timestamp', y: seriesName },
-			color: topColorByChain[seriesName],
+			color: topColorBySeriesName[seriesName],
 			stack: 'chain'
 		})),
 		groupBy: state.groupBy
@@ -566,10 +573,10 @@ function buildLinePresentation({
 }
 
 function buildTreemapPresentation({
-	selectedEntities,
+	selectedNames,
 	latestRows
 }: {
-	selectedEntities: string[]
+	selectedNames: string[]
 	latestRows: BreakdownLatestValueRow[]
 }): ChainsByAdapterLatestValueDatum[] {
 	const latestValuesByName = new Map<string, number>()
@@ -580,12 +587,12 @@ function buildTreemapPresentation({
 		}
 	}
 
-	const values = selectedEntities
-		.map((entityName) => {
-			const rawValue = latestValuesByName.get(entityName) ?? 0
+	const values = selectedNames
+		.map((name) => {
+			const rawValue = latestValuesByName.get(name) ?? 0
 			const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
 			return {
-				name: entityName,
+				name,
 				value: Number.isFinite(value) ? value : 0
 			}
 		})
@@ -605,13 +612,13 @@ function buildTreemapPresentation({
 }
 
 function buildHBarPresentation({
-	selectedEntities,
+	selectedNames,
 	latestRows
 }: {
-	selectedEntities: string[]
+	selectedNames: string[]
 	latestRows: BreakdownLatestValueRow[]
 }): ChainsByAdapterLatestValueDatum[] {
-	const rankedValues = buildTreemapPresentation({ selectedEntities, latestRows })
+	const rankedValues = buildTreemapPresentation({ selectedNames, latestRows })
 
 	if (rankedValues.length <= MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS) {
 		return rankedValues
@@ -637,66 +644,8 @@ function buildHBarPresentation({
 	}))
 }
 
-function buildBreakdownChartPresentation({
-	chartData,
-	selectedEntities,
-	state,
-	latestRows
-}: {
-	chartData: MultiSeriesChart2Dataset
-	selectedEntities: string[]
-	state: ChainsByAdapterChartState
-	latestRows: BreakdownLatestValueRow[]
-}): ChainsByAdapterChartPresentation {
-	if (state.chartKind === 'treemap') {
-		return {
-			kind: 'treemap',
-			data: buildTreemapPresentation({ selectedEntities, latestRows })
-		}
-	}
-
-	if (state.chartKind === 'hbar') {
-		return {
-			kind: 'hbar',
-			data: buildHBarPresentation({ selectedEntities, latestRows })
-		}
-	}
-
-	const { topSeries, topSeriesNames, topColorByChain } = createSeriesUniverse({ chartData, selectedEntities })
-
-	if (state.chartKind === 'line') {
-		return buildLinePresentation({ topSeries, topSeriesNames, topColorByChain, state })
-	}
-
-	return buildBarPresentation({ topSeries, topSeriesNames, topColorByChain, state })
-}
-
 function getAdapterByChainLatestProtocolRows(protocols: IProtocol[]): BreakdownLatestValueRow[] {
 	return protocols.map((protocol) => ({ name: protocol.name, total24h: protocol.total24h }))
-}
-
-export function resolveBreakdownProtocolsToLatestValueProtocols(
-	protocols: IProtocol[],
-	selectedBreakdownProtocols: string[]
-): string[] {
-	const selectedBreakdownProtocolsSet = new Set(selectedBreakdownProtocols)
-	const resolvedProtocols: string[] = []
-
-	for (const protocol of protocols) {
-		if (selectedBreakdownProtocolsSet.has(protocol.name)) {
-			resolvedProtocols.push(protocol.name)
-			continue
-		}
-
-		for (const childProtocol of protocol.childProtocols ?? []) {
-			if (selectedBreakdownProtocolsSet.has(childProtocol.name)) {
-				resolvedProtocols.push(protocol.name)
-				break
-			}
-		}
-	}
-
-	return resolvedProtocols
 }
 
 export function buildChainsByAdapterChartPresentation({
@@ -710,51 +659,82 @@ export function buildChainsByAdapterChartPresentation({
 	state: ChainsByAdapterChartState
 	latestChainRows: IChainsByAdapterPageData['chains']
 }): ChainsByAdapterChartPresentation {
-	return buildBreakdownChartPresentation({
-		chartData,
-		selectedEntities: selectedChains,
-		state,
-		latestRows: latestChainRows
-	})
+	switch (state.chartKind) {
+		case 'treemap':
+			return {
+				kind: 'treemap',
+				data: buildTreemapPresentation({ selectedNames: selectedChains, latestRows: latestChainRows })
+			}
+		case 'hbar':
+			return {
+				kind: 'hbar',
+				data: buildHBarPresentation({ selectedNames: selectedChains, latestRows: latestChainRows })
+			}
+		case 'line': {
+			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+				chartData,
+				selectedNames: selectedChains
+			})
+			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		}
+		case 'bar': {
+			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+				chartData,
+				selectedNames: selectedChains
+			})
+			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		}
+		default:
+			return assertNever(state)
+	}
 }
 
-export function buildAdapterByChainChartPresentation({
+export function buildAdapterByChainBreakdownPresentation({
 	chartData,
-	selectedBreakdownProtocols,
-	state,
-	protocols,
-	selectedLatestValueProtocols,
-	useAllLatestValueProtocols = false
+	selectedProtocols,
+	state
 }: {
 	chartData: MultiSeriesChart2Dataset
-	selectedBreakdownProtocols: string[]
-	state: ChainsByAdapterChartState
-	protocols: IProtocol[]
-	selectedLatestValueProtocols: string[]
-	useAllLatestValueProtocols?: boolean
-}): ChainsByAdapterChartPresentation {
-	if (state.chartKind === 'treemap' || state.chartKind === 'hbar') {
-		const selectedLatestValueProtocolsSet = new Set(selectedLatestValueProtocols)
-		const latestRows = useAllLatestValueProtocols
-			? getAdapterByChainLatestProtocolRows(protocols)
-			: getAdapterByChainLatestProtocolRows(protocols).filter((row) => selectedLatestValueProtocolsSet.has(row.name))
-		const selectedLatestProtocolNames = latestRows.map((row) => row.name)
+	selectedProtocols: string[]
+	state: ChainsByAdapterBarState | ChainsByAdapterLineState
+}): ChainsByAdapterBarPresentation | ChainsByAdapterLinePresentation {
+	const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+		chartData,
+		selectedNames: selectedProtocols
+	})
 
-		return state.chartKind === 'treemap'
-			? {
-					kind: 'treemap',
-					data: buildTreemapPresentation({ selectedEntities: selectedLatestProtocolNames, latestRows })
-				}
-			: {
-					kind: 'hbar',
-					data: buildHBarPresentation({ selectedEntities: selectedLatestProtocolNames, latestRows })
-				}
+	switch (state.chartKind) {
+		case 'line':
+			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		case 'bar':
+			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		default:
+			return assertNever(state)
+	}
+}
+
+export function buildAdapterByChainLatestValuePresentation({
+	chartKind,
+	protocols,
+	selectedProtocols
+}: {
+	chartKind: 'treemap' | 'hbar'
+	protocols: IProtocol[]
+	selectedProtocols: string[]
+}): ChainsByAdapterTreemapPresentation | ChainsByAdapterHBarPresentation {
+	const latestRows = getAdapterByChainLatestProtocolRows(protocols).filter((row) =>
+		selectedProtocols.includes(row.name)
+	)
+
+	if (chartKind === 'treemap') {
+		return {
+			kind: 'treemap',
+			data: buildTreemapPresentation({ selectedNames: selectedProtocols, latestRows })
+		}
 	}
 
-	return buildBreakdownChartPresentation({
-		chartData,
-		selectedEntities: selectedBreakdownProtocols,
-		state,
-		latestRows: getAdapterByChainLatestProtocolRows(protocols)
-	})
+	return {
+		kind: 'hbar',
+		data: buildHBarPresentation({ selectedNames: selectedProtocols, latestRows })
+	}
 }

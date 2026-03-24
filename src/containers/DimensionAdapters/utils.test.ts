@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { IProtocol } from './types'
 import {
-	buildAdapterByChainChartPresentation,
+	buildAdapterByChainBreakdownPresentation,
+	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
 	normalizeChainsByAdapterChartState,
-	resolveBreakdownProtocolsToLatestValueProtocols,
 	type ChainsByAdapterChartState
 } from './utils'
 
@@ -294,19 +294,17 @@ describe('buildChainsByAdapterChartPresentation', () => {
 	})
 })
 
-describe('buildAdapterByChainChartPresentation', () => {
+describe('buildAdapterByChainBreakdownPresentation', () => {
 	it('builds relative separate bars from selected protocol breakdown series', () => {
-		const presentation = buildAdapterByChainChartPresentation({
+		const presentation = buildAdapterByChainBreakdownPresentation({
 			chartData: adapterBreakdownChartData,
-			selectedBreakdownProtocols: ['Hyperliquid Perps', 'dYdX'],
+			selectedProtocols: ['Hyperliquid Perps', 'dYdX'],
 			state: {
 				chartKind: 'bar',
 				valueMode: 'relative',
 				barLayout: 'separate',
 				groupBy: 'daily'
-			},
-			protocols: adapterProtocols,
-			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX']
+			}
 		})
 
 		expect(presentation.kind).toBe('bar')
@@ -319,14 +317,14 @@ describe('buildAdapterByChainChartPresentation', () => {
 			{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 100, dYdX: 0 }
 		])
 	})
+})
 
+describe('buildAdapterByChainLatestValuePresentation', () => {
 	it('builds treemap data from selected top-level table rows only', () => {
-		const presentation = buildAdapterByChainChartPresentation({
-			chartData: adapterBreakdownChartData,
-			selectedBreakdownProtocols: ['Hyperliquid Perps', 'dYdX', 'Unknown'],
-			state: { chartKind: 'treemap' },
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'treemap',
 			protocols: adapterProtocols,
-			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX']
+			selectedProtocols: ['Hyperliquid', 'dYdX']
 		})
 
 		expect(presentation.kind).toBe('treemap')
@@ -338,12 +336,10 @@ describe('buildAdapterByChainChartPresentation', () => {
 	})
 
 	it('does not fall back to child-only breakdown names for latest-value charts', () => {
-		const presentation = buildAdapterByChainChartPresentation({
-			chartData: adapterBreakdownChartData,
-			selectedBreakdownProtocols: ['Hyperliquid Perps'],
-			state: { chartKind: 'hbar' },
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
 			protocols: [makeProtocolRow('Hyperliquid', 70), makeProtocolRow('dYdX', 30), makeProtocolRow('GMX', 10)],
-			selectedLatestValueProtocols: []
+			selectedProtocols: []
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -356,22 +352,11 @@ describe('buildAdapterByChainChartPresentation', () => {
 		const manyProtocols = Array.from({ length: 11 }, (_, index) =>
 			makeProtocolRow(`Protocol ${index + 1}`, 110 - index * 10)
 		)
-		const manyProtocolChartData = {
-			dimensions: ['timestamp', ...manyProtocols.map((protocol) => protocol.name)],
-			source: [
-				Object.fromEntries([
-					['timestamp', toMs(2024, 1, 1)],
-					...manyProtocols.map((protocol, index) => [protocol.name, 110 - index * 10])
-				])
-			]
-		}
 
-		const presentation = buildAdapterByChainChartPresentation({
-			chartData: manyProtocolChartData,
-			selectedBreakdownProtocols: manyProtocols.map((protocol) => protocol.name),
-			state: { chartKind: 'hbar' },
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
 			protocols: manyProtocols,
-			selectedLatestValueProtocols: manyProtocols.map((protocol) => protocol.name)
+			selectedProtocols: manyProtocols.map((protocol) => protocol.name)
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -382,13 +367,10 @@ describe('buildAdapterByChainChartPresentation', () => {
 	})
 
 	it('uses the selected top-level latest-value protocols directly', () => {
-		const presentation = buildAdapterByChainChartPresentation({
-			chartData: adapterBreakdownChartData,
-			selectedBreakdownProtocols: ['Hyperliquid Perps', 'Hyperliquid Spot', 'dYdX', 'GMX'],
-			state: { chartKind: 'hbar' },
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
 			protocols: adapterProtocols,
-			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX', 'GMX'],
-			useAllLatestValueProtocols: false
+			selectedProtocols: ['Hyperliquid', 'dYdX', 'GMX']
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -398,30 +380,5 @@ describe('buildAdapterByChainChartPresentation', () => {
 		expect(presentation.data[0].value).toBe(70)
 		expect(presentation.data[1].value).toBe(30)
 		expect(presentation.data[2].value).toBe(10)
-	})
-
-	it('uses all top-level latest-value rows when the latest-value selector is fully selected', () => {
-		const presentation = buildAdapterByChainChartPresentation({
-			chartData: adapterBreakdownChartData,
-			selectedBreakdownProtocols: ['Hyperliquid Perps', 'dYdX', 'GMX'],
-			state: { chartKind: 'hbar' },
-			protocols: adapterProtocols,
-			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX', 'GMX'],
-			useAllLatestValueProtocols: true
-		})
-
-		expect(presentation.kind).toBe('hbar')
-		if (presentation.kind !== 'hbar') return
-
-		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX', 'GMX'])
-		expect(presentation.data[0].value).toBe(70)
-	})
-})
-
-describe('resolveBreakdownProtocolsToLatestValueProtocols', () => {
-	it('maps exact parent matches and known child matches to top-level table protocol names', () => {
-		expect(
-			resolveBreakdownProtocolsToLatestValueProtocols(adapterProtocols, ['Hyperliquid Perps', 'dYdX', 'Unknown'])
-		).toEqual(['Hyperliquid', 'dYdX'])
 	})
 })

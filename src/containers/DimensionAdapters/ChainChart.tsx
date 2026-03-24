@@ -27,7 +27,8 @@ import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
 import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 import {
-	buildAdapterByChainChartPresentation,
+	buildAdapterByChainBreakdownPresentation,
+	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
@@ -143,9 +144,7 @@ function getAdapterByChainChartKindQueryUpdate({
 		return {
 			...nextUpdates,
 			chartProtocols: undefined,
-			excludeChartProtocols: undefined,
-			latestProtocols: undefined,
-			excludeLatestProtocols: undefined
+			excludeChartProtocols: undefined
 		}
 	}
 
@@ -210,43 +209,22 @@ export const AdapterByChainChart = ({
 			enabled: chartViewMode === 'Breakdown' && !isLatestValueBreakdownChart
 		})
 
-	const selectedBreakdownProtocols = React.useMemo(() => {
-		if (chartViewMode !== 'Breakdown' || breakdownProtocolDimensions.length === 0) return []
+	const protocolOptions = React.useMemo(
+		() => (isLatestValueBreakdownChart ? protocols.map((protocol) => protocol.name) : breakdownProtocolDimensions),
+		[breakdownProtocolDimensions, isLatestValueBreakdownChart, protocols]
+	)
+	const selectedProtocols = React.useMemo(() => {
+		if (chartViewMode !== 'Breakdown' || protocolOptions.length === 0) return []
 		const protocolsQuery = router.query.chartProtocols
 		const excludeProtocolsQuery = router.query.excludeChartProtocols
 		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
 		const baseSelectedProtocols =
-			protocolsQuery != null
-				? parseArrayParam(protocolsQuery, breakdownProtocolDimensions)
-				: breakdownProtocolDimensions
+			protocolsQuery != null ? parseArrayParam(protocolsQuery, protocolOptions) : protocolOptions
 
 		return excludedProtocolsSet.size > 0
 			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
 			: baseSelectedProtocols
-	}, [chartViewMode, breakdownProtocolDimensions, router.query.chartProtocols, router.query.excludeChartProtocols])
-	const latestValueProtocolDimensions = React.useMemo(() => protocols.map((protocol) => protocol.name), [protocols])
-	const selectedLatestValueProtocols = React.useMemo(() => {
-		if (chartViewMode !== 'Breakdown' || latestValueProtocolDimensions.length === 0) return []
-		const protocolsQuery = router.query.latestProtocols
-		const excludeProtocolsQuery = router.query.excludeLatestProtocols
-		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
-		const baseSelectedProtocols =
-			protocolsQuery != null
-				? parseArrayParam(protocolsQuery, latestValueProtocolDimensions)
-				: latestValueProtocolDimensions
-
-		return excludedProtocolsSet.size > 0
-			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
-			: baseSelectedProtocols
-	}, [chartViewMode, latestValueProtocolDimensions, router.query.latestProtocols, router.query.excludeLatestProtocols])
-	const areAllLatestValueProtocolsSelected = React.useMemo(() => {
-		if (chartViewMode !== 'Breakdown') return false
-		if (latestValueProtocolDimensions.length === 0) return false
-		if (selectedLatestValueProtocols.length !== latestValueProtocolDimensions.length) return false
-
-		const selectedLatestValueProtocolsSet = new Set(selectedLatestValueProtocols)
-		return latestValueProtocolDimensions.every((protocolName) => selectedLatestValueProtocolsSet.has(protocolName))
-	}, [chartViewMode, latestValueProtocolDimensions, selectedLatestValueProtocols])
+	}, [chartViewMode, protocolOptions, router.query.chartProtocols, router.query.excludeChartProtocols])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
@@ -368,25 +346,26 @@ export const AdapterByChainChart = ({
 	}, [chartData, chartName, combinedChartInterval, combinedMetricDimensions])
 	const deferredCombinedFinalCharts = React.useDeferredValue(combinedFinalCharts)
 
-	const breakdownPresentation = React.useMemo(
-		() =>
-			buildAdapterByChainChartPresentation({
-				chartData: breakdownChartData ?? EMPTY_DATASET,
-				selectedBreakdownProtocols,
-				state: breakdownChartState,
-				protocols,
-				selectedLatestValueProtocols,
-				useAllLatestValueProtocols: areAllLatestValueProtocolsSelected
-			}),
-		[
-			areAllLatestValueProtocolsSelected,
-			breakdownChartData,
-			breakdownChartState,
-			protocols,
-			selectedBreakdownProtocols,
-			selectedLatestValueProtocols
-		]
-	)
+	const breakdownPresentation = React.useMemo(() => {
+		switch (breakdownChartState.chartKind) {
+			case 'treemap':
+			case 'hbar':
+				return buildAdapterByChainLatestValuePresentation({
+					chartKind: breakdownChartState.chartKind,
+					protocols,
+					selectedProtocols
+				})
+			case 'line':
+			case 'bar':
+				return buildAdapterByChainBreakdownPresentation({
+					chartData: breakdownChartData ?? EMPTY_DATASET,
+					state: breakdownChartState,
+					selectedProtocols
+				})
+			default:
+				return assertNever(breakdownChartState)
+		}
+	}, [breakdownChartData, breakdownChartState, protocols, selectedProtocols])
 	const deferredBreakdownPresentation = React.useDeferredValue(breakdownPresentation)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
@@ -619,31 +598,13 @@ export const AdapterByChainChart = ({
 				) : null}
 				{chartViewMode === 'Combined' && chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
 				<div className="ml-auto flex items-center justify-end gap-2">
-					{chartViewMode === 'Breakdown' &&
-					breakdownChartState.chartKind !== 'treemap' &&
-					breakdownChartState.chartKind !== 'hbar' &&
-					breakdownProtocolDimensions.length > 0 ? (
+					{chartViewMode === 'Breakdown' && protocolOptions.length > 0 ? (
 						<SelectWithCombobox
-							allValues={breakdownProtocolDimensions}
-							selectedValues={selectedBreakdownProtocols}
+							allValues={protocolOptions}
+							selectedValues={selectedProtocols}
 							includeQueryKey="chartProtocols"
 							excludeQueryKey="excludeChartProtocols"
-							defaultSelectedValues={breakdownProtocolDimensions}
-							label="Protocols"
-							labelType="smol"
-							variant="filter"
-							portal
-						/>
-					) : null}
-					{chartViewMode === 'Breakdown' &&
-					(breakdownChartState.chartKind === 'treemap' || breakdownChartState.chartKind === 'hbar') &&
-					latestValueProtocolDimensions.length > 0 ? (
-						<SelectWithCombobox
-							allValues={latestValueProtocolDimensions}
-							selectedValues={selectedLatestValueProtocols}
-							includeQueryKey="latestProtocols"
-							excludeQueryKey="excludeLatestProtocols"
-							defaultSelectedValues={latestValueProtocolDimensions}
+							defaultSelectedValues={protocolOptions}
 							label="Protocols"
 							labelType="smol"
 							variant="filter"
