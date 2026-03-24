@@ -188,19 +188,24 @@ export interface IRWAAssetsOverview {
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
+export type RWATickerChartTarget =
+	| { kind: 'all' }
+	| { kind: 'chain'; slug: string }
+	| { kind: 'category'; slug: string }
+	| { kind: 'platform'; slug: string }
 
 export type IRWAInitialChartDataset = Record<
-	'onChainMcap' | 'activeMcap' | 'defiActiveTvl',
+	RWAChartMetricKey,
 	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
 >
 
 export interface IRWAChartDataByTicker {
-	onChainMcap: Array<{ timestamp: number } & Record<string, number>>
-	activeMcap: Array<{ timestamp: number } & Record<string, number>>
-	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
+	onChainMcap: IRWAChartMetricRows
+	activeMcap: IRWAChartMetricRows
+	defiActiveTvl: IRWAChartMetricRows
 }
-
-export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
 export type IRWABreakdownChartRow = { timestamp: number } & Record<string, number>
 

@@ -13,12 +13,12 @@ import {
 	isTrueQueryParam,
 	pushShallowQuery
 } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWATickerChartTarget } from './api.types'
 import {
-	aggregateRwaChartData,
-	emptyChartDatasets,
-	type RWAChartAggregationMode,
-	type RWAChartDatasetsByMetric
+	aggregateRwaMetricData,
+	emptyChartDataset,
+	type RWAChartDataset,
+	type RWAChartAggregationMode
 } from './chartAggregation'
 import { getDefaultSelectedTypes, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups, toUniqueNonEmptyValues } from './grouping'
@@ -1112,69 +1112,86 @@ export function hasActiveChartFilters(query: NextRouter['query']): boolean {
 	return false
 }
 
-async function fetchRwaTickerChartData(params: {
-	chainSlug: string | null
-	categorySlug: string | null
-	platformSlug: string | null
-}): Promise<IRWAChartDataByTicker> {
-	const searchParams = new URLSearchParams()
-	if (params.chainSlug) searchParams.set('chain', params.chainSlug)
-	else if (params.categorySlug) searchParams.set('category', params.categorySlug)
-	else if (params.platformSlug) searchParams.set('platform', params.platformSlug)
+function assert(condition: unknown, message: string): asserts condition {
+	if (!condition) {
+		throw new Error(message)
+	}
+}
 
-	return fetchJson<IRWAChartDataByTicker>(`/api/rwa/ticker-breakdown?${searchParams.toString()}`)
+function assertNever(value: never): never {
+	throw new Error(`Unexpected value: ${String(value)}`)
+}
+
+async function fetchRwaTickerChartData(params: {
+	key: RWAChartMetricKey
+	target: RWATickerChartTarget
+}): Promise<IRWAChartMetricRows> {
+	const searchParams = new URLSearchParams({ key: params.key })
+
+	switch (params.target.kind) {
+		case 'all':
+			break
+		case 'chain':
+			searchParams.set('chain', params.target.slug)
+			break
+		case 'category':
+			searchParams.set('category', params.target.slug)
+			break
+		case 'platform':
+			searchParams.set('platform', params.target.slug)
+			break
+		default:
+			assertNever(params.target)
+	}
+
+	return fetchJson<IRWAChartMetricRows>(`/api/rwa/ticker-breakdown?${searchParams.toString()}`)
 }
 
 export function useRwaChartDataset({
-	initialChartDataset,
+	selectedMetric,
+	initialDataset,
 	filteredAssets,
 	mode,
-	chainSlug,
-	categorySlug,
-	platformSlug,
+	target,
 	hasActiveFilters
 }: {
-	initialChartDataset: RWAChartDatasetsByMetric | null
+	selectedMetric: RWAChartMetricKey
+	initialDataset: RWAChartDataset
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
-	chainSlug: string | null
-	categorySlug: string | null
-	platformSlug: string | null
+	target: RWATickerChartTarget
 	hasActiveFilters: boolean
 }): {
-	chartDatasetByMode: RWAChartDatasetsByMetric
+	chartDataset: RWAChartDataset
 	isChartLoading: boolean
 	chartError: string | null
 } {
+	const targetValue = target.kind === 'all' ? 'all' : target.slug
+	const shouldFetch = selectedMetric !== 'activeMcap' || hasActiveFilters
 	const {
-		data: tickerData,
+		data: tickerRows,
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['rwa-ticker-chart', chainSlug, categorySlug, platformSlug],
-		queryFn: () => fetchRwaTickerChartData({ chainSlug, categorySlug, platformSlug }),
+		queryKey: ['rwa-ticker-chart', target.kind, targetValue, selectedMetric],
+		queryFn: () => fetchRwaTickerChartData({ key: selectedMetric, target }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: hasActiveFilters
+		enabled: shouldFetch
 	})
 
-	const filteredDataset = useMemo(() => {
-		if (!hasActiveFilters || !tickerData) return null
-		return aggregateRwaChartData(filteredAssets, tickerData, mode)
-	}, [hasActiveFilters, tickerData, filteredAssets, mode])
+	assert(initialDataset.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 
-	if (!hasActiveFilters) {
-		return {
-			chartDatasetByMode: initialChartDataset ?? emptyChartDatasets(),
-			isChartLoading: false,
-			chartError: null
-		}
-	}
+	const chartDataset = useMemo(() => {
+		if (!shouldFetch) return initialDataset
+		if (!tickerRows) return emptyChartDataset()
+		return aggregateRwaMetricData(filteredAssets, tickerRows, mode)
+	}, [shouldFetch, initialDataset, tickerRows, filteredAssets, mode])
 
 	return {
-		chartDatasetByMode: filteredDataset ?? emptyChartDatasets(),
-		isChartLoading: isLoading,
+		chartDataset,
+		isChartLoading: shouldFetch && isLoading,
 		chartError: error ? getErrorMessage(error) : null
 	}
 }

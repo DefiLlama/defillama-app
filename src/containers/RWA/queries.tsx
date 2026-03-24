@@ -27,7 +27,12 @@ import type {
 	IRWAPlatformsOverviewRow
 } from './api.types'
 import { toBreakdownChartDataset } from './breakdownDataset'
-import { aggregateRwaChartData, applyDefaultAssetFilters, type RWAChartAggregationMode } from './chartAggregation'
+import {
+	aggregateRwaMetricData,
+	applyDefaultAssetFilters,
+	emptyChartDataset,
+	type RWAChartAggregationMode
+} from './chartAggregation'
 import { definitions } from './definitions'
 import { rwaSlug } from './rwaSlug'
 
@@ -538,7 +543,11 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			categorySlug: selectedCategory
 		})
 		const initialChartDataset = chartDataMs
-			? aggregateRwaChartData(defaultFilteredAssets, chartDataMs, aggregationMode)
+			? {
+					onChainMcap: emptyChartDataset(),
+					activeMcap: aggregateRwaMetricData(defaultFilteredAssets, chartDataMs.activeMcap, aggregationMode),
+					defiActiveTvl: emptyChartDataset()
+				}
 			: null
 
 		return {

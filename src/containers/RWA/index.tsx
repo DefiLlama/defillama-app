@@ -17,9 +17,9 @@ import { CHART_COLORS } from '~/constants/colors'
 import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { formattedNum, slug } from '~/utils'
 import { pushShallowQuery, toQueryString } from '~/utils/routerQuery'
-import type { IRWAAssetsOverview } from './api.types'
+import type { IRWAAssetsOverview, RWATickerChartTarget } from './api.types'
 import { RWAAssetsTable } from './AssetsTable'
-import type { RWAChartAggregationMode } from './chartAggregation'
+import { emptyChartDatasets, type RWAChartAggregationMode } from './chartAggregation'
 import type { RWAOverviewMode } from './constants'
 import { definitions } from './definitions'
 import { RWAOverviewFilters } from './Filters'
@@ -162,18 +162,19 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		})
 
 	const activeFilters = hasActiveChartFilters(router.query)
+	const initialChartDataset = props.initialChartDataset ?? emptyChartDatasets()
+	const chartTarget = getTickerChartTarget(props)
 	const chartAggregationMode: RWAChartAggregationMode = isCategoryMode
 		? 'assetClass'
 		: isPlatformMode
 			? 'assetName'
 			: 'category'
-	const { chartDatasetByMode, isChartLoading, chartError } = useRwaChartDataset({
-		initialChartDataset: props.initialChartDataset,
+	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
+		selectedMetric: chartTypeKey,
+		initialDataset: initialChartDataset[chartTypeKey],
 		filteredAssets,
 		mode: chartAggregationMode,
-		chainSlug: props.chainSlug,
-		categorySlug: props.categorySlug,
-		platformSlug: props.platformSlug,
+		target: chartTarget,
 		hasActiveFilters: activeFilters
 	})
 
@@ -352,7 +353,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const { chartInstance: treemapChartInstance, handleChartReady: handleTreemapChartReady } = useChartImageExport()
 	const treemapChartFilename = `rwa-treemap-${slug(chartMetricLabel)}-${rwaSlug(selectedModeLabel)}`
 
-	const selectedTimeSeriesDataset = chartDatasetByMode[chartTypeKey] ?? chartDatasetByMode.onChainMcap
+	const selectedTimeSeriesDataset = chartDataset
 	const selectedPieChartData =
 		chartTypeKey === 'onChainMcap'
 			? onChainPieChartData
@@ -794,6 +795,13 @@ const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
 	if (props.categoryLinks.length > 0) return 'category'
 	if (props.platformLinks.length > 0) return 'platform'
 	return 'chain'
+}
+
+const getTickerChartTarget = (props: IRWAAssetsOverview): RWATickerChartTarget => {
+	if (props.categorySlug) return { kind: 'category', slug: props.categorySlug }
+	if (props.platformSlug) return { kind: 'platform', slug: props.platformSlug }
+	if (props.chainSlug) return { kind: 'chain', slug: props.chainSlug }
+	return { kind: 'all' }
 }
 
 const getModeLinks = (

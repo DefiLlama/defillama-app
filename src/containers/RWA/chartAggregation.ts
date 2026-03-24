@@ -1,8 +1,8 @@
-import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartDataByTicker, IRWAChartMetricRows, RWAChartMetricKey } from './api.types'
 import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
 import { computeWeightedGroups } from './grouping'
 
-export type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+export type RWAChartMetric = RWAChartMetricKey
 
 export type RWAChartRow = { timestamp: number } & Record<string, number>
 
@@ -140,6 +140,21 @@ export function aggregateRwaChartData(
 			source: defiActiveTvl,
 			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
 		}
+	}
+}
+
+export function aggregateRwaMetricData(
+	assets: IRWAAssetsOverview['assets'],
+	rows: IRWAChartMetricRows,
+	mode: RWAChartAggregationMode
+): RWAChartDataset {
+	const tickerToGroups = buildTickerGroupMapping(assets, mode)
+	const seenGroups = new Set<string>()
+	const source = aggregateMetricRows(rows, tickerToGroups, seenGroups)
+
+	return {
+		source,
+		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenGroups)]
 	}
 }
 
