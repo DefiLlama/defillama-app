@@ -6,9 +6,9 @@ import {
 	fetchRWAActiveTVLs,
 	fetchRWAChainBreakdownChartData,
 	fetchRWACategoryBreakdownChartData,
+	fetchRWAPlatformBreakdownChartData,
 	fetchRWAStats,
 	fetchRWAChartDataByTicker,
-	fetchRWAPlatformBreakdownChartData,
 	fetchRWAAssetDataById,
 	fetchRWAAssetChartData,
 	toUnixMsTimestamp
@@ -27,8 +27,7 @@ import type {
 	IRWACategoriesOverview,
 	IRWACategoriesOverviewRow,
 	IRWAPlatformsOverview,
-	IRWAPlatformsOverviewRow,
-	RWAChartMetricKey
+	IRWAPlatformsOverviewRow
 } from './api.types'
 import {
 	aggregateRwaChartData,
@@ -633,8 +632,6 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 	}
 }
 
-const RWA_CHART_METRIC_KEYS: RWAChartMetricKey[] = ['onChainMcap', 'activeMcap', 'defiActiveTvl']
-
 const emptyRwaBreakdownDataset = () => ({ source: [], dimensions: ['timestamp'] })
 
 function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
@@ -670,12 +667,46 @@ function toBreakdownChartDataset(rows: IRWABreakdownChartResponse | null) {
 	}
 }
 
-async function fetchBreakdownDatasetsByMetric(
-	fetcher: (params: IRWABreakdownChartParams) => Promise<IRWABreakdownChartResponse | null>,
+async function fetchChainBreakdownDatasetsByMetric(
 	params: Omit<IRWABreakdownChartParams, 'key'> = {}
 ): Promise<IRWABreakdownDatasetsByMetric> {
-	const requests = RWA_CHART_METRIC_KEYS.map((key) => fetcher({ ...params, key }))
-	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all(requests)
+	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all([
+		fetchRWAChainBreakdownChartData({ ...params, key: 'onChainMcap' }),
+		fetchRWAChainBreakdownChartData({ ...params, key: 'activeMcap' }),
+		fetchRWAChainBreakdownChartData({ ...params, key: 'defiActiveTvl' })
+	])
+
+	return {
+		onChainMcap: toBreakdownChartDataset(onChainMcapRows),
+		activeMcap: toBreakdownChartDataset(activeMcapRows),
+		defiActiveTvl: toBreakdownChartDataset(defiActiveTvlRows)
+	}
+}
+
+async function fetchCategoryBreakdownDatasetsByMetric(
+	params: Omit<IRWABreakdownChartParams, 'key'> = {}
+): Promise<IRWABreakdownDatasetsByMetric> {
+	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all([
+		fetchRWACategoryBreakdownChartData({ ...params, key: 'onChainMcap' }),
+		fetchRWACategoryBreakdownChartData({ ...params, key: 'activeMcap' }),
+		fetchRWACategoryBreakdownChartData({ ...params, key: 'defiActiveTvl' })
+	])
+
+	return {
+		onChainMcap: toBreakdownChartDataset(onChainMcapRows),
+		activeMcap: toBreakdownChartDataset(activeMcapRows),
+		defiActiveTvl: toBreakdownChartDataset(defiActiveTvlRows)
+	}
+}
+
+async function fetchPlatformBreakdownDatasetsByMetric(
+	params: Omit<IRWABreakdownChartParams, 'key'> = {}
+): Promise<IRWABreakdownDatasetsByMetric> {
+	const [onChainMcapRows, activeMcapRows, defiActiveTvlRows] = await Promise.all([
+		fetchRWAPlatformBreakdownChartData({ ...params, key: 'onChainMcap' }),
+		fetchRWAPlatformBreakdownChartData({ ...params, key: 'activeMcap' }),
+		fetchRWAPlatformBreakdownChartData({ ...params, key: 'defiActiveTvl' })
+	])
 
 	return {
 		onChainMcap: toBreakdownChartDataset(onChainMcapRows),
@@ -693,13 +724,10 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
 		stablecoinAndGovernanceChartDatasets
 	] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeStablecoin: true }),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, { includeGovernance: true }),
-		fetchBreakdownDatasetsByMetric(fetchRWAChainBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchChainBreakdownDatasetsByMetric(),
+		fetchChainBreakdownDatasetsByMetric({ includeStablecoin: true }),
+		fetchChainBreakdownDatasetsByMetric({ includeGovernance: true }),
+		fetchChainBreakdownDatasetsByMetric({ includeStablecoin: true, includeGovernance: true })
 	])
 
 	if (!data?.byChain) {
@@ -730,10 +758,7 @@ export async function getRWAChainsOverview(): Promise<IRWAChainsOverview> {
 export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview> {
 	const [data, chartDatasets] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWACategoryBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchCategoryBreakdownDatasetsByMetric({ includeStablecoin: true, includeGovernance: true })
 	])
 
 	if (!data?.byCategory) {
@@ -759,10 +784,7 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> {
 	const [data, chartDatasets] = await Promise.all([
 		fetchRWAStats(),
-		fetchBreakdownDatasetsByMetric(fetchRWAPlatformBreakdownChartData, {
-			includeStablecoin: true,
-			includeGovernance: true
-		})
+		fetchPlatformBreakdownDatasetsByMetric({ includeStablecoin: true, includeGovernance: true })
 	])
 
 	if (!data?.byPlatform) {

@@ -369,24 +369,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		const seenScheduleKeys = new Set<string>()
 		for (const item of items) {
 			if (item.kind === 'unlocks-pie') {
-				const config = item as UnlocksPieConfig
-				const cacheKey = JSON.stringify(['pro-dashboard', 'unlocks-pie', config.protocol])
+				const unlocksPieConfig = item as UnlocksPieConfig
+				const cacheKey = JSON.stringify(['pro-dashboard', 'unlocks-pie', unlocksPieConfig.protocol])
 				if (!seenPieKeys.has(cacheKey)) {
 					seenPieKeys.add(cacheKey)
 					emissionTasks.push({
 						key: cacheKey,
-						fn: () => withTimeout(getProtocolEmissionsPieData(slug(config.protocol)), 10_000)
+						fn: () => withTimeout(getProtocolEmissionsPieData(slug(unlocksPieConfig.protocol)), 10_000)
 					})
 				}
 			} else if (item.kind === 'unlocks-schedule') {
-				const config = item as UnlocksScheduleConfig
-				const resolvedDataType = config.dataType === 'realtime' ? 'documented' : config.dataType
-				const cacheKey = JSON.stringify(['pro-dashboard', 'unlocks-schedule', config.protocol, resolvedDataType])
+				const unlocksScheduleConfig = item as UnlocksScheduleConfig
+				const resolvedDataType =
+					unlocksScheduleConfig.dataType === 'realtime' ? 'documented' : unlocksScheduleConfig.dataType
+				const cacheKey = JSON.stringify([
+					'pro-dashboard',
+					'unlocks-schedule',
+					unlocksScheduleConfig.protocol,
+					resolvedDataType
+				])
 				if (!seenScheduleKeys.has(cacheKey)) {
 					seenScheduleKeys.add(cacheKey)
 					emissionTasks.push({
 						key: cacheKey,
-						fn: () => withTimeout(getProtocolEmissionsScheduleData(slug(config.protocol)), 10_000)
+						fn: () => withTimeout(getProtocolEmissionsScheduleData(slug(unlocksScheduleConfig.protocol)), 10_000)
 					})
 				}
 			}

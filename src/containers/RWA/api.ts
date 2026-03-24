@@ -66,25 +66,6 @@ export async function fetchRWAChartDataByTicker({
 	})
 }
 
-type RWABreakdownChartType = 'chain' | 'category' | 'platform'
-
-function createRWABreakdownChartUrl(chartType: RWABreakdownChartType, params: IRWABreakdownChartParams = {}): string {
-	const searchParams = new URLSearchParams()
-
-	if (params.key && params.key !== 'onChainMcap') {
-		searchParams.set('key', params.key)
-	}
-	if (params.includeStablecoin) {
-		searchParams.set('includeStablecoin', 'true')
-	}
-	if (params.includeGovernance) {
-		searchParams.set('includeGovernance', 'true')
-	}
-
-	const queryString = searchParams.toString()
-	return `${RWA_SERVER_URL}/chart/${chartType}-breakdown${queryString ? `?${queryString}` : ''}`
-}
-
 function normalizeRWABreakdownChartRows(rows: IRWABreakdownChartResponse): IRWABreakdownChartResponse {
 	const normalizedRows: IRWABreakdownChartResponse = []
 
@@ -107,26 +88,24 @@ function normalizeRWABreakdownChartRows(rows: IRWABreakdownChartResponse): IRWAB
 	return normalizedRows.toSorted((a, b) => a.timestamp - b.timestamp)
 }
 
-async function fetchRWABreakdownChartData(
-	chartType: RWABreakdownChartType,
-	params: IRWABreakdownChartParams = {}
-): Promise<IRWABreakdownChartResponse | null> {
-	const url = createRWABreakdownChartUrl(chartType, params)
-	return fetchJson<IRWABreakdownChartResponse>(url)
-		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
-		.catch((error) => {
-			console.error(`Failed to fetch RWA ${chartType} breakdown chart data:`, error)
-			return null
-		})
-}
-
 /**
  * Fetch chain-level RWA breakdown chart data.
  */
 export async function fetchRWAChainBreakdownChartData(
 	params: IRWABreakdownChartParams = {}
 ): Promise<IRWABreakdownChartResponse | null> {
-	return fetchRWABreakdownChartData('chain', params)
+	const searchParams = new URLSearchParams()
+	if (params.key && params.key !== 'onChainMcap') searchParams.set('key', params.key)
+	if (params.includeStablecoin) searchParams.set('includeStablecoin', 'true')
+	if (params.includeGovernance) searchParams.set('includeGovernance', 'true')
+	const qs = searchParams.toString()
+	const url = `${RWA_SERVER_URL}/chart/chain-breakdown${qs ? `?${qs}` : ''}`
+	return fetchJson<IRWABreakdownChartResponse>(url)
+		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error('Failed to fetch RWA chain breakdown chart data:', error)
+			return null
+		})
 }
 
 /**
@@ -135,7 +114,18 @@ export async function fetchRWAChainBreakdownChartData(
 export async function fetchRWACategoryBreakdownChartData(
 	params: IRWABreakdownChartParams = {}
 ): Promise<IRWABreakdownChartResponse | null> {
-	return fetchRWABreakdownChartData('category', params)
+	const searchParams = new URLSearchParams()
+	if (params.key && params.key !== 'onChainMcap') searchParams.set('key', params.key)
+	if (params.includeStablecoin) searchParams.set('includeStablecoin', 'true')
+	if (params.includeGovernance) searchParams.set('includeGovernance', 'true')
+	const qs = searchParams.toString()
+	const url = `${RWA_SERVER_URL}/chart/category-breakdown${qs ? `?${qs}` : ''}`
+	return fetchJson<IRWABreakdownChartResponse>(url)
+		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error('Failed to fetch RWA category breakdown chart data:', error)
+			return null
+		})
 }
 
 /**
@@ -144,7 +134,18 @@ export async function fetchRWACategoryBreakdownChartData(
 export async function fetchRWAPlatformBreakdownChartData(
 	params: IRWABreakdownChartParams = {}
 ): Promise<IRWABreakdownChartResponse | null> {
-	return fetchRWABreakdownChartData('platform', params)
+	const searchParams = new URLSearchParams()
+	if (params.key && params.key !== 'onChainMcap') searchParams.set('key', params.key)
+	if (params.includeStablecoin) searchParams.set('includeStablecoin', 'true')
+	if (params.includeGovernance) searchParams.set('includeGovernance', 'true')
+	const qs = searchParams.toString()
+	const url = `${RWA_SERVER_URL}/chart/platform-breakdown${qs ? `?${qs}` : ''}`
+	return fetchJson<IRWABreakdownChartResponse>(url)
+		.then((rows) => normalizeRWABreakdownChartRows(rows ?? []))
+		.catch((error) => {
+			console.error('Failed to fetch RWA platform breakdown chart data:', error)
+			return null
+		})
 }
 
 /**
