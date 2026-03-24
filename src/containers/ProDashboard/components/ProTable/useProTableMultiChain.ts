@@ -1,7 +1,8 @@
 'use no memo'
 
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { useMemo, useRef } from 'react'
+import { useContext, useMemo, useRef } from 'react'
+import { StreamDoneContext } from '../../queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
 import { fetchJson } from '~/utils/async'
@@ -77,11 +78,13 @@ const finalizeAggregatedProtocol = (entry: Record<string | symbol, any>, options
 }
 
 export function useGetProtocolsListMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const { data: allProtocolsData, isLoading: isLoadingAll } = useQuery({
 		queryKey: ['protocols-lite'],
 		queryFn: () => fetchProtocols(),
 		staleTime: Infinity,
-		retry: 0
+		retry: 0,
+		enabled: streamDone
 	})
 
 	const { fullProtocolsList, parentProtocols } = useMemo(() => {
@@ -155,6 +158,7 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 }
 
 export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const shouldFetchAll = chains.length === 0 || chains.includes('All')
 	const chainsToFetch = shouldFetchAll ? ['All'] : chains
 
@@ -166,7 +170,8 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 					(data) => ({ chain, protocols: data?.protocols ?? [] })
 				),
 			staleTime: Infinity,
-			retry: 1
+			retry: 1,
+			enabled: streamDone
 		}))
 	})
 
@@ -236,6 +241,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 }
 
 export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const shouldFetchAll = chains.length === 0 || chains.includes('All')
 	const chainsToFetch = shouldFetchAll ? ['All'] : chains
 
@@ -244,7 +250,8 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 			queryKey: ['pro-dashboard', 'protocols-fees-revenue-by-chain', chain],
 			queryFn: () => getFeesAndRevenueProtocolsByChain({ chain }).then((data) => ({ chain, protocols: data ?? [] })),
 			staleTime: Infinity,
-			retry: 1
+			retry: 1,
+			enabled: streamDone
 		}))
 	})
 
@@ -339,6 +346,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 }
 
 export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const shouldFetchAll = chains.length === 0 || chains.includes('All')
 	const chainsToFetch = shouldFetchAll ? ['All'] : chains
 
@@ -350,7 +358,8 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 					(data) => ({ chain, protocols: data?.protocols ?? [] })
 				),
 			staleTime: Infinity,
-			retry: 1
+			retry: 1,
+			enabled: streamDone
 		}))
 	})
 
@@ -416,6 +425,7 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 }
 
 export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const shouldFetchAll = chains.length === 0 || chains.includes('All')
 	const chainsToFetch = shouldFetchAll ? ['All'] : chains
 
@@ -424,7 +434,8 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 			queryKey: ['pro-dashboard', 'protocols-open-interest-by-chain', chain],
 			queryFn: () => getOpenInterestByChain({ chain }).then((data) => ({ chain, protocols: data?.protocols ?? [] })),
 			staleTime: Infinity,
-			retry: 1
+			retry: 1,
+			enabled: streamDone
 		}))
 	})
 
@@ -488,6 +499,7 @@ const buildChainsQuery = (chains: string[]) => {
 }
 
 export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-earnings-multi-chain',
@@ -497,11 +509,13 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
-		retry: 1
+		retry: 1,
+		enabled: streamDone
 	})
 }
 
 export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-aggregators-multi-chain',
@@ -511,11 +525,13 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
-		retry: 1
+		retry: 1,
+		enabled: streamDone
 	})
 }
 
 export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-bridge-aggregators-multi-chain',
@@ -525,11 +541,13 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
-		retry: 1
+		retry: 1,
+		enabled: streamDone
 	})
 }
 
 export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
+	const streamDone = useContext(StreamDoneContext)
 	const queryKey = [
 		'pro-dashboard',
 		'protocols-options-multi-chain',
@@ -539,6 +557,7 @@ export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
-		retry: 1
+		retry: 1,
+		enabled: streamDone
 	})
 }

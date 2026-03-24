@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
+import { useContext } from 'react'
+import { StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { fetchProtocolsByToken } from '~/containers/TokenUsage/api'
 
 export interface TokenUsageData {
@@ -12,6 +14,7 @@ export interface TokenUsageData {
 }
 
 export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = false) {
+	const streamDone = useContext(StreamDoneContext)
 	return useQuery<TokenUsageData[]>({
 		queryKey: [
 			'pro-dashboard',
@@ -77,7 +80,7 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 				throw error
 			}
 		},
-		enabled: tokenSymbols.length > 0,
+		enabled: streamDone && tokenSymbols.length > 0,
 		staleTime: Infinity,
 		retry: 1
 	})

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, type ReactElement } from 'react'
+import { lazy, Suspense, useContext, useMemo, type ReactElement } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
@@ -11,7 +11,7 @@ import { download } from '~/utils/download'
 import { BORROWED_CHART_OPTIONS, BORROWED_CHART_TYPE_LABELS } from '../borrowedChartConstants'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod } from '../queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '../queries'
 import type { BorrowedChartConfig } from '../types'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -35,7 +35,8 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { timePeriod, customTimePeriod } = useProDashboardTime()
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
-	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocol, true)
+	const streamDone = useContext(StreamDoneContext)
+	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocol, true, undefined, streamDone)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }

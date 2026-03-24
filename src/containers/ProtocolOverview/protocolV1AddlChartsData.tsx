@@ -646,14 +646,16 @@ const buildProtocolV1AddlChartsData = ({
 export const useFetchProtocolV1AddlChartsData = (
 	protocolName: string,
 	isBorrowed = false,
-	tokenToExclude?: string | null
+	tokenToExclude?: string | null,
+	enabled = true
 ) => {
 	const { data: addlProtocolData, isLoading } = useQuery<IProtocolOverviewMetricsV1>({
 		queryKey: ['protocol-overview-v1', protocolName, 'metrics'],
 		queryFn: () => fetchProtocolBySlug<IProtocolOverviewMetricsV1>(protocolName),
 		staleTime: Infinity,
 		refetchOnWindowFocus: false,
-		retry: 0
+		retry: 0,
+		enabled
 	})
 	const [extraTvlsEnabled] = useLocalStorageSettingsManager('tvl_fees')
 

@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useMemo } from 'react'
+import { lazy, Suspense, useCallback, useContext, useMemo } from 'react'
 import type { IPieChartProps } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
 import { getProtocolEmissionsPieData } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { download } from '~/utils/download'
+import { StreamDoneContext } from '../queries'
 import type { UnlocksPieConfig } from '../types'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -24,10 +25,11 @@ interface UnlocksPieCardProps {
 export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 	const { protocol, protocolName, chartType } = config
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data, isLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'unlocks-pie', protocol],
 		queryFn: () => getProtocolEmissionsPieData(slug(protocol)),
-		enabled: Boolean(protocol),
+		enabled: streamDone && Boolean(protocol),
 		staleTime: 60 * 60 * 1000
 	})
 

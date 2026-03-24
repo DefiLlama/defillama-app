@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { lazy, Suspense, useCallback, useMemo, useState } from 'react'
+import { lazy, Suspense, useCallback, useContext, useMemo, useState } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IMultiSeriesChart2Props, MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { LocalLoader } from '~/components/Loaders'
@@ -9,7 +9,7 @@ import { useChartImageExport } from '~/hooks/useChartImageExport'
 import { slug, toNiceCsvDate, toNiceDayMonthYear } from '~/utils'
 import { download } from '~/utils/download'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { filterDataByTimePeriod } from '../queries'
+import { filterDataByTimePeriod, StreamDoneContext } from '../queries'
 import type { UnlocksScheduleConfig } from '../types'
 import { ProTableCSVButton } from './ProTable/CsvButton'
 
@@ -35,10 +35,11 @@ export function UnlocksScheduleCard({ config }: UnlocksScheduleCardProps) {
 		[todayTimestamp]
 	)
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data, isLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'unlocks-schedule', protocol, resolvedDataType],
 		queryFn: () => getProtocolEmissionsScheduleData(slug(protocol)),
-		enabled: Boolean(protocol),
+		enabled: streamDone && Boolean(protocol),
 		staleTime: 60 * 60 * 1000
 	})
 

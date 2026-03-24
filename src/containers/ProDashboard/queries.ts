@@ -1,6 +1,6 @@
 import { useQueries, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { useMemo, useRef } from 'react'
+import { createContext, useContext, useMemo, useRef } from 'react'
 import { fetchChainsList } from '~/containers/Chains/api'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { sluggifyProtocol } from '~/utils/cache-client'
@@ -10,6 +10,13 @@ import ChainCharts from './services/ChainCharts'
 import ProtocolCharts from './services/ProtocolCharts'
 import { CHART_TYPES, getChainChartTypes, getProtocolChartTypes } from './types'
 import { groupData } from './utils'
+
+/**
+ * When false, query hooks skip their own client-side fetches (the stream is providing data).
+ * When true (stream finished or no stream), queries fire as fallback.
+ * Default true so hooks work normally outside the streaming provider.
+ */
+export const StreamDoneContext = createContext(true)
 
 // oxlint-disable-next-line no-unused-vars
 function generateChartKey(
@@ -466,9 +473,11 @@ function useChains() {
 	})
 }
 
-export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: any[] } | null) {
+export function useProtocolsAndChains() {
+	const streamDone = useContext(StreamDoneContext)
 	return useQuery({
 		queryKey: ['pro-dashboard', 'protocols-and-chains'],
+		enabled: streamDone,
 		queryFn: async () => {
 			const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
@@ -518,13 +527,11 @@ export function useProtocolsAndChains(serverData?: { protocols: any[]; chains: a
 				chains: transformedChains.sort((a, b) => b.tvl - a.tvl)
 			}
 		},
-		staleTime: serverData ? Infinity : 1000 * 60 * 60,
+		staleTime: 1000 * 60 * 60,
 		gcTime: 1000 * 60 * 60 * 24,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
-		refetchOnReconnect: false,
-		initialData: serverData ?? undefined,
-		initialDataUpdatedAt: serverData ? Date.now() : undefined
+		refetchOnReconnect: false
 	})
 }
 
@@ -541,20 +548,14 @@ function computeGrouped(
 	return result
 }
 
-export function useChartsData(
-	charts,
-	timePeriod?: TimePeriod,
-	customPeriod?: CustomTimePeriod | null,
-	serverChartData?: Record<string, [number, number][]> | null
-) {
+export function useChartsData(charts, timePeriod?: TimePeriod, customPeriod?: CustomTimePeriod | null) {
+	const streamDone = useContext(StreamDoneContext)
 	const { data: parentMapping } = useParentChildMapping()
 	const groupingCacheRef = useRef<Map<string, { data: any; grouping: any; result: any }>>(new Map())
 	return useQueries({
 		queries: charts.map((chart) => {
 			const itemType = chart.protocol ? 'protocol' : 'chain'
 			const item = chart.protocol || chart.chain
-
-			const chartServerData = serverChartData?.[chart.id]
 
 			return {
 				// queryKey is time-period-independent: the API always returns the full dataset,
@@ -575,11 +576,9 @@ export function useChartsData(
 					undefined,
 					chart.dataType
 				),
-				staleTime: chartServerData ? Infinity : 1000 * 60 * 5,
+				staleTime: 1000 * 60 * 5,
 				gcTime: 1000 * 60 * 30,
 				refetchOnWindowFocus: false,
-				initialData: chartServerData ?? undefined,
-				initialDataUpdatedAt: chartServerData ? Date.now() : undefined,
 				select: (data) => {
 					const filtered = filterDataByTimePeriod(data, timePeriod || 'all', customPeriod)
 					const chartTypeDetails = CHART_TYPES[chart.type]
@@ -589,6 +588,7 @@ export function useChartsData(
 					return filtered
 				},
 				enabled:
+					streamDone &&
 					!!item &&
 					((itemType === 'protocol' &&
 						(!['tokenMcap', 'tokenPrice', 'tokenVolume'].includes(chart.type) || !!chart.geckoId)) ||

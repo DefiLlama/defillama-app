@@ -55,7 +55,7 @@ export interface ProDashboardServerProps {
 	emissionData: Record<string, any>
 }
 
-async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
+export async function fetchDashboardConfig(dashboardId: string, authToken: string | null): Promise<Dashboard | null> {
 	try {
 		const url = `${AUTH_SERVER}/dashboards/${dashboardId}`
 		const fetchFn = authToken ? createServerAuthorizedFetch(authToken) : fetch
@@ -67,7 +67,7 @@ async function fetchDashboardConfig(dashboardId: string, authToken: string | nul
 	}
 }
 
-async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: any[] } | null> {
+export async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: any[] } | null> {
 	try {
 		const [protocolsData, chainsData] = await Promise.all([fetchProtocols(), fetchChainsList()])
 
@@ -122,7 +122,7 @@ async function fetchProtocolsAndChains(): Promise<{ protocols: any[]; chains: an
 	}
 }
 
-async function fetchAppMetadata(): Promise<ProDashboardServerProps['appMetadata']> {
+export async function fetchAppMetadata(): Promise<ProDashboardServerProps['appMetadata']> {
 	try {
 		const [protocols, chains, pfPs] = await Promise.all([
 			fetch(`${CONFIG_API}/smol/appMetadata-protocols.json`).then((r) => (r.ok ? r.json() : null)),
@@ -137,7 +137,7 @@ async function fetchAppMetadata(): Promise<ProDashboardServerProps['appMetadata'
 	}
 }
 
-function extractChartItems(items: DashboardItemConfig[]): ChartConfig[] {
+export function extractChartItems(items: DashboardItemConfig[]): ChartConfig[] {
 	const chartItems: ChartConfig[] = []
 	for (const item of items) {
 		if (item.kind === 'chart') chartItems.push(item)
@@ -146,7 +146,7 @@ function extractChartItems(items: DashboardItemConfig[]): ChartConfig[] {
 	return chartItems
 }
 
-function extractYieldsItems(items: DashboardItemConfig[]): YieldsChartConfig[] {
+export function extractYieldsItems(items: DashboardItemConfig[]): YieldsChartConfig[] {
 	return items.filter((item): item is YieldsChartConfig => item.kind === 'yields')
 }
 
@@ -308,11 +308,11 @@ const protocolChartFetchers: Record<
 	psRatio: (item) => fetchPfPsChartData(item, 'ps')
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 	return Promise.race([promise, new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))])
 }
 
-async function fetchSingleChartData(
+export async function fetchSingleChartData(
 	chart: ChartConfig,
 	timePeriod: TimePeriod,
 	customTimePeriod: CustomTimePeriod | null

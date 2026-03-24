@@ -16,9 +16,8 @@ import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
 import { type CustomTimePeriod, dashboardReducer, initDashboardState, type TimePeriod } from './dashboardReducer'
 import { useAutoSave, useDashboardAPI, useDashboardPermissions, useFreeTierStatus } from './hooks'
-import { useChartsData, useProtocolsAndChains } from './queries'
-import type { ProDashboardServerProps } from './queries.server'
-import type { TableServerData } from './server/tableQueries'
+import { useDashboardStream } from './hooks/useDashboardStream'
+import { StreamDoneContext, useChartsData, useProtocolsAndChains } from './queries'
 import type { Dashboard } from './services/DashboardAPI'
 import type {
 	CexAnalyticsMetric,
@@ -43,7 +42,6 @@ const EMPTY_PROTOCOLS: Protocol[] = []
 const EMPTY_CHAINS: Chain[] = []
 const EMPTY_CHART_DATA: ChartConfig['data'] = []
 const NOOP = () => {}
-const PROTOCOLS_LIST_QUERY_KEY = ['protocols-lite']
 
 export type { TimePeriod, CustomTimePeriod } from './dashboardReducer'
 
@@ -270,131 +268,59 @@ const ProDashboardEditorActionsContext = createContext<ProDashboardEditorActions
 const ProDashboardItemsStateContext = createContext<ProDashboardItemsStateContextType | undefined>(undefined)
 const ProDashboardChartsDataContext = createContext<ProDashboardChartsDataContextType | undefined>(undefined)
 const ProDashboardUIContext = createContext<ProDashboardUIContextType | undefined>(undefined)
-const ProDashboardServerAppMetadataContext = createContext<ProDashboardServerProps['appMetadata'] | undefined>(
-	undefined
-)
-
-function seedTableDataIntoCache(
-	queryClient: ReturnType<typeof useQueryClient>,
-	tableData: TableServerData,
-	now: number
-) {
-	if (tableData.protocolsList) {
-		queryClient.setQueryData(PROTOCOLS_LIST_QUERY_KEY, tableData.protocolsList, { updatedAt: now })
-	}
-	for (const [chain, data] of Object.entries(tableData.volumeByChain)) {
-		queryClient.setQueryData(['pro-dashboard', 'protocols-volume-by-chain', chain], data, { updatedAt: now })
-	}
-	for (const [chain, data] of Object.entries(tableData.feesByChain)) {
-		queryClient.setQueryData(['pro-dashboard', 'protocols-fees-revenue-by-chain', chain], data, { updatedAt: now })
-	}
-	for (const [chain, data] of Object.entries(tableData.perpsByChain)) {
-		queryClient.setQueryData(['pro-dashboard', 'protocols-perps-volume-by-chain', chain], data, { updatedAt: now })
-	}
-	for (const [chain, data] of Object.entries(tableData.openInterestByChain)) {
-		queryClient.setQueryData(['pro-dashboard', 'protocols-open-interest-by-chain', chain], data, { updatedAt: now })
-	}
-	for (const [keyJson, data] of Object.entries(tableData.datasetsByQueryKey)) {
-		try {
-			const queryKey = JSON.parse(keyJson)
-			queryClient.setQueryData(queryKey, data, { updatedAt: now })
-		} catch {}
-	}
-	for (const [keyJson, data] of Object.entries(tableData.tokenUsageByQueryKey)) {
-		try {
-			const queryKey = JSON.parse(keyJson)
-			queryClient.setQueryData(queryKey, data, { updatedAt: now })
-		} catch {}
-	}
-}
+const ProDashboardServerAppMetadataContext = createContext<
+	| { protocols: Record<string, any>; chains: Record<string, any>; pfPs: { pf: string[]; ps: string[] } }
+	| null
+	| undefined
+>(undefined)
 
 export function ProDashboardAPIProvider({
 	children,
-	initialDashboardId,
-	serverData
+	initialDashboardId
 }: {
 	children: ReactNode
 	initialDashboardId?: string
-	serverData?: ProDashboardServerProps | null
+}) {
+	const stream = useDashboardStream(initialDashboardId)
+	const streamDone = !initialDashboardId || stream.isDone
+
+	// Wrap in StreamDoneContext FIRST so all hooks inside the inner component read the correct value
+	return (
+		<StreamDoneContext.Provider value={streamDone}>
+			<ProDashboardAPIProviderInner stream={stream} streamDone={streamDone} initialDashboardId={initialDashboardId}>
+				{children}
+			</ProDashboardAPIProviderInner>
+		</StreamDoneContext.Provider>
+	)
+}
+
+function ProDashboardAPIProviderInner({
+	children,
+	stream,
+	streamDone,
+	initialDashboardId
+}: {
+	children: ReactNode
+	stream: ReturnType<typeof useDashboardStream>
+	streamDone: boolean
+	initialDashboardId?: string
 }) {
 	const queryClient = useQueryClient()
-	const [seedTimestamp] = useState(() => Date.now())
-
-	const hasSeededServerDataRef = useRef(false)
-
-	useIsomorphicLayoutEffect(() => {
-		if (hasSeededServerDataRef.current || !serverData) {
-			return
-		}
-
-		const now = seedTimestamp
-
-		if (serverData.tableData) {
-			seedTableDataIntoCache(queryClient, serverData.tableData, now)
-		}
-
-		if (serverData.yieldsChartData) {
-			for (const [poolConfigId, data] of Object.entries(serverData.yieldsChartData)) {
-				queryClient.setQueryData(['yield-pool-chart-data', poolConfigId], data.chart ?? null, { updatedAt: now })
-				queryClient.setQueryData(['yield-lend-borrow-chart', poolConfigId], data.lendBorrow ?? null, {
-					updatedAt: now
-				})
-			}
-		}
-
-		if (serverData.protocolFullData) {
-			for (const [protocol, data] of Object.entries(serverData.protocolFullData)) {
-				queryClient.setQueryData(['protocol-overview-v1', protocol, 'metrics'], data, { updatedAt: now })
-			}
-		}
-
-		if (serverData.metricData) {
-			for (const [keyJson, data] of Object.entries(serverData.metricData)) {
-				try {
-					const queryKey = JSON.parse(keyJson)
-					queryClient.setQueryData(queryKey, data, { updatedAt: now })
-				} catch {}
-			}
-		}
-
-		if (serverData.advancedTvlBasicData) {
-			for (const [protocol, data] of Object.entries(serverData.advancedTvlBasicData)) {
-				queryClient.setQueryData(['advanced-tvl-basic', protocol], data, { updatedAt: now })
-			}
-		}
-
-		if (serverData.unifiedTableData) {
-			for (const [keyJson, data] of Object.entries(serverData.unifiedTableData)) {
-				try {
-					const queryKey = JSON.parse(keyJson)
-					queryClient.setQueryData(queryKey, data, { updatedAt: now })
-				} catch {}
-			}
-		}
-
-		if (serverData.stablecoinsChartData) {
-			for (const [chain, data] of Object.entries(serverData.stablecoinsChartData)) {
-				queryClient.setQueryData(['stablecoins-chart-data', chain], data, { updatedAt: now })
-			}
-		}
-
-		if (serverData.emissionData) {
-			for (const [keyJson, data] of Object.entries(serverData.emissionData)) {
-				try {
-					const queryKey = JSON.parse(keyJson)
-					queryClient.setQueryData(queryKey, data, { updatedAt: now })
-				} catch {}
-			}
-		}
-
-		hasSeededServerDataRef.current = true
-	}, [queryClient, seedTimestamp, serverData])
 
 	const { isAuthenticated, hasActiveSubscription, user } = useAuthContext()
 	const { canCreateDashboard, isFreeUser } = useFreeTierStatus()
-	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains(
-		serverData?.protocolsAndChains
+	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains()
+
+	// Seed dashboard into cache with auth-aware key when stream delivers it
+	const dashboardQueryKey = useMemo(
+		() => ['pro-dashboard', 'dashboard', initialDashboardId, isAuthenticated, user?.id],
+		[initialDashboardId, isAuthenticated, user?.id]
 	)
+	useEffect(() => {
+		if (stream.dashboard !== undefined) {
+			queryClient.setQueryData(dashboardQueryKey, stream.dashboard, { updatedAt: Date.now() })
+		}
+	}, [stream.dashboard, queryClient, dashboardQueryKey])
 
 	const protocols = protocolsAndChains?.protocols ?? EMPTY_PROTOCOLS
 	const rawChains = protocolsAndChains?.chains ?? EMPTY_CHAINS
@@ -521,9 +447,9 @@ export function ProDashboardAPIProvider({
 		}
 	}, [isAuthenticated, currentDashboard, user])
 
-	// Load initial dashboard
-	const { data: currentDashboard2 = null, isLoading: isLoadingDashboard } = useQuery({
-		queryKey: ['pro-dashboard', 'dashboard', initialDashboardId, isAuthenticated, user?.id],
+	// Load initial dashboard — stream seeds this cache key, queryFn fires as fallback after stream
+	const { data: currentDashboard2 = null, isLoading: isQueryLoadingDashboard } = useQuery({
+		queryKey: dashboardQueryKey,
 		queryFn: async () => {
 			if (!initialDashboardId) {
 				return null
@@ -537,12 +463,12 @@ export function ProDashboardAPIProvider({
 			}
 			return dashboard
 		},
-		staleTime: serverData?.dashboard ? Infinity : 1000 * 60 * 5,
-		refetchOnMount: !serverData?.dashboard,
-		enabled: !!initialDashboardId,
-		initialData: serverData?.dashboard ?? undefined,
-		initialDataUpdatedAt: serverData?.dashboard ? seedTimestamp : undefined
+		staleTime: 1000 * 60 * 5,
+		refetchOnMount: false,
+		enabled: streamDone && !!initialDashboardId
 	})
+	// Loading until dashboard config arrives from stream (or query fallback)
+	const isLoadingDashboard = (!!initialDashboardId && stream.dashboard === undefined && !streamDone) || isQueryLoadingDashboard
 
 	useEffect(() => {
 		if (
@@ -995,7 +921,7 @@ export function ProDashboardAPIProvider({
 		return chartItems
 	}, [items])
 
-	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod, serverData?.chartData)
+	const chartQueries = useChartsData(allChartItems, timePeriod, customTimePeriod)
 
 	const queryById = useMemo(() => {
 		const map = new Map<string, any>()
@@ -1326,7 +1252,7 @@ export function ProDashboardAPIProvider({
 							<ProDashboardItemsStateContext.Provider value={itemsStateContextValue}>
 								<ProDashboardChartsDataContext.Provider value={chartsDataContextValue}>
 									<ProDashboardUIContext.Provider value={uiContextValue}>
-										<ProDashboardServerAppMetadataContext.Provider value={serverData?.appMetadata}>
+										<ProDashboardServerAppMetadataContext.Provider value={stream.appMetadata}>
 											{children}
 										</ProDashboardServerAppMetadataContext.Provider>
 									</ProDashboardUIContext.Provider>

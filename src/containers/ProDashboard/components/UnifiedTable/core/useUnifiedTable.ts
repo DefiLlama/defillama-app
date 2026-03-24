@@ -1,6 +1,7 @@
 'use no memo'
 
 import { useQuery } from '@tanstack/react-query'
+import { useContext } from 'react'
 import {
 	type ColumnOrderState,
 	getCoreRowModel,
@@ -16,6 +17,7 @@ import {
 } from '@tanstack/react-table'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
+import { StreamDoneContext } from '../../../queries'
 import type { UnifiedRowHeaderType, UnifiedTableConfig } from '../../../types'
 import { getUnifiedTableColumns } from '../config/ColumnRegistry'
 import type { NormalizedRow } from '../types'
@@ -110,11 +112,13 @@ export function useUnifiedTable({
 	const paramsKey = JSON.stringify({ chains: paramsChains })
 	const headersKey = sanitizedHeaders.join('|')
 
+	const streamDone = useContext(StreamDoneContext)
 	const { data, isLoading } = useQuery({
 		queryKey: ['pro-dashboard', 'unified-table', paramsKey, headersKey],
 		queryFn: () => fetchUnifiedTableRows(config, sanitizedHeaders),
 		staleTime: Infinity,
-		retry: 1
+		retry: 1,
+		enabled: streamDone
 	})
 
 	useEffect(() => {
