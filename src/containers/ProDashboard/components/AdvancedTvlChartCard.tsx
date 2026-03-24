@@ -88,7 +88,11 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		staleTime: Infinity
 	})
 
-	const { data: addlData, historicalChainTvls, isLoading: isAddlLoading } = useFetchProtocolV1AddlChartsData(protocol, false, undefined, streamDone)
+	const {
+		data: addlData,
+		historicalChainTvls,
+		isLoading: isAddlLoading
+	} = useFetchProtocolV1AddlChartsData(protocol, false, undefined, streamDone)
 
 	const isLoading = chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading
 

@@ -468,7 +468,8 @@ function ProDashboardAPIProviderInner({
 		enabled: streamDone && !!initialDashboardId
 	})
 	// Loading until dashboard config arrives from stream (or query fallback)
-	const isLoadingDashboard = (!!initialDashboardId && stream.dashboard === undefined && !streamDone) || isQueryLoadingDashboard
+	const isLoadingDashboard =
+		(!!initialDashboardId && stream.dashboard === undefined && !streamDone) || isQueryLoadingDashboard
 
 	useEffect(() => {
 		if (

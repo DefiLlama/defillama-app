@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useContext, useMemo } from 'react'
-import { StreamDoneContext } from '~/containers/ProDashboard/queries'
 import { preparePieChartData } from '~/components/ECharts/utils'
+import { StreamDoneContext } from '~/containers/ProDashboard/queries'
 import {
 	fetchStablecoinAssetsApi,
 	fetchStablecoinChartApi,

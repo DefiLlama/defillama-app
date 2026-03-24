@@ -36,7 +36,11 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const streamDone = useContext(StreamDoneContext)
-	const { data: addlData, historicalChainTvls, isLoading } = useFetchProtocolV1AddlChartsData(protocol, true, undefined, streamDone)
+	const {
+		data: addlData,
+		historicalChainTvls,
+		isLoading
+	} = useFetchProtocolV1AddlChartsData(protocol, true, undefined, streamDone)
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }

@@ -27,6 +27,7 @@ import { fetchAdapterChainChartDataByProtocolBreakdown } from './api'
 import { LINE_DIMENSIONS, type ADAPTER_TYPES } from './constants'
 import type { IAdapterByChainPageData, IChainsByAdapterPageData } from './types'
 import {
+	buildAdapterByChainChartPresentation,
 	buildChainsByAdapterChartPresentation,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
@@ -60,6 +61,11 @@ const BAR_LAYOUT_OPTIONS = [
 	{ key: 'Stacked', name: 'Stacked' },
 	{ key: 'Separate', name: 'Separate' }
 ] as const
+const CHART_VIEW_MODE_OPTIONS = [
+	{ key: 'Combined', name: 'Combined' },
+	{ key: 'Breakdown', name: 'Breakdown' }
+] as const
+const EMPTY_DATASET: MultiSeriesChart2Dataset = { source: [], dimensions: ['timestamp'] }
 
 function assertNever(value: never): never {
 	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
@@ -125,13 +131,15 @@ export const AdapterByChainChart = ({
 	adapterType,
 	chain,
 	chartName,
-	dataType
-}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType'> & { chartName: string }) => {
+	dataType,
+	protocols
+}: Pick<IAdapterByChainPageData, 'chartData' | 'adapterType' | 'chain' | 'dataType' | 'protocols'> & {
+	chartName: string
+}) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
 
-	const chartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
-		// Preserve existing shared/bookmarked URLs that still use title-cased values like `Weekly`.
+	const combinedChartInterval = React.useMemo<LowercaseDwmcGrouping>(() => {
 		const groupByParam = readSingleQueryValue(router.query.groupBy)?.toLowerCase()
 		const matchedInterval = DWMC_GROUPING_OPTIONS_LOWERCASE.find((option) => option.value === groupByParam)
 		return matchedInterval?.value ?? 'daily'
@@ -140,6 +148,23 @@ export const AdapterByChainChart = ({
 		const chartViewParam = readSingleQueryValue(router.query.chartView)?.toLowerCase()
 		return chartViewParam === 'breakdown' ? 'Breakdown' : 'Combined'
 	}, [router.query.chartView])
+	const breakdownChartState = React.useMemo(
+		() =>
+			normalizeChainsByAdapterChartState({
+				chartKindParam: readSingleQueryValue(router.query.chartKind),
+				valueModeParam: readSingleQueryValue(router.query.valueMode),
+				barLayoutParam: readSingleQueryValue(router.query.barLayout),
+				groupByParam: readSingleQueryValue(router.query.groupBy),
+				legacyChartTypeParam: readSingleQueryValue(router.query.chartType)
+			}),
+		[
+			router.query.barLayout,
+			router.query.chartKind,
+			router.query.chartType,
+			router.query.groupBy,
+			router.query.valueMode
+		]
+	)
 
 	const { breakdownChartData, breakdownProtocolDimensions, isBreakdownLoading, breakdownError } =
 		useAdapterByChainBreakdownChartData({
@@ -163,45 +188,57 @@ export const AdapterByChainChart = ({
 			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
 			: baseSelectedProtocols
 	}, [chartViewMode, breakdownProtocolDimensions, router.query.chartProtocols, router.query.excludeChartProtocols])
-
-	const activeChartData = chartViewMode === 'Breakdown' && breakdownChartData ? breakdownChartData : chartData
-	const metricDimensions = activeChartData.dimensions.filter((d) => d !== 'timestamp')
-
-	const dimensionsToRender = React.useMemo(() => {
-		if (chartViewMode !== 'Breakdown' || !breakdownChartData) {
-			return metricDimensions
-		}
+	const areAllBreakdownProtocolsSelected = React.useMemo(() => {
+		if (chartViewMode !== 'Breakdown') return false
+		if (breakdownProtocolDimensions.length === 0) return false
+		if (selectedProtocols.length !== breakdownProtocolDimensions.length) return false
 
 		const selectedProtocolsSet = new Set(selectedProtocols)
-		return breakdownProtocolDimensions.filter((d) => selectedProtocolsSet.has(d))
-	}, [metricDimensions, chartViewMode, breakdownChartData, selectedProtocols, breakdownProtocolDimensions])
+		return breakdownProtocolDimensions.every((protocolName) => selectedProtocolsSet.has(protocolName))
+	}, [chartViewMode, breakdownProtocolDimensions, selectedProtocols])
 
-	const onChangeChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
+	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
 	}
 	const onChangeChartViewMode = (nextChartViewMode: AdapterByChainViewMode) => {
 		void pushShallowQuery(router, { chartView: nextChartViewMode === 'Combined' ? undefined : nextChartViewMode })
 	}
+	const onChangeBreakdownChartInterval = (nextInterval: LowercaseDwmGrouping) => {
+		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
+	}
+	const onChangeChartKind = (nextChartKind: ChainsByAdapterChartKind) => {
+		void pushShallowQuery(router, getChartKindQueryUpdate(nextChartKind, readSingleQueryValue(router.query.groupBy)))
+	}
+	const onChangeValueMode = (nextValueMode: ChainsByAdapterValueMode) => {
+		void pushShallowQuery(router, {
+			chartKind: undefined,
+			chartType: undefined,
+			valueMode: nextValueMode === 'Absolute' ? undefined : nextValueMode.toLowerCase()
+		})
+	}
+	const onChangeBarLayout = (nextBarLayout: ChainsByAdapterBarLayout) => {
+		void pushShallowQuery(router, {
+			chartKind: undefined,
+			chartType: undefined,
+			barLayout: nextBarLayout === 'Stacked' ? undefined : nextBarLayout.toLowerCase()
+		})
+	}
 
-	const isBreakdownMode = chartViewMode === 'Breakdown' && breakdownChartData != null
-	const finalCharts = React.useMemo(() => {
-		const isDaily = chartInterval === 'daily'
-
-		const isCumulative = chartInterval === 'cumulative'
-		const seriesDefinitions = dimensionsToRender.map((dimension, index) => {
+	const combinedMetricDimensions = chartData.dimensions.filter((d) => d !== 'timestamp')
+	const combinedFinalCharts = React.useMemo(() => {
+		const isDaily = combinedChartInterval === 'daily'
+		const isCumulative = combinedChartInterval === 'cumulative'
+		const seriesDefinitions = combinedMetricDimensions.map((dimension, index) => {
 			const seriesName = dimension
 			const isIntrinsicLineSeries = LINE_DIMENSIONS.has(dimension)
-			// Snapshot metrics (Open Interest, Active Liquidity) take last-value-per-period;
-			// flow metrics (fees, volume) sum per period. In breakdown mode dimensions are
-			// protocol names, so fall back to chartName to inherit the metric's semantics.
 			const isSnapshotMetric = isIntrinsicLineSeries || LINE_DIMENSIONS.has(chartName)
 			const type = isSnapshotMetric || isCumulative ? ('line' as const) : ('bar' as const)
-			const stack = isBreakdownMode && !isSnapshotMetric ? 'protocol-breakdown' : undefined
+
 			if (isDaily) {
-				return { dimension, seriesName, type, stack, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
+				return { dimension, seriesName, type, data: [], color: CHART_COLORS[index % CHART_COLORS.length] }
 			}
 
-			const rawData = activeChartData.source
+			const rawData = chartData.source
 				.map((row) => {
 					const timestamp = Number(row.timestamp)
 					const value = row[dimension] as number | null
@@ -209,39 +246,31 @@ export const AdapterByChainChart = ({
 				})
 				.filter((item): item is [number, number] => item != null)
 
-			// Snapshot metrics (OI, Active Liquidity) are point-in-time values — summing
-			// them is meaningless, so they always use formatLineChart (last-value-per-period).
-			// When chartInterval is 'cumulative', formatLineChart falls through to daily
-			// passthrough which is correct: "cumulative OI" has no meaning, so we just
-			// show the raw snapshot values alongside any cumulative flow series.
-			// Flow metrics (fees, volume) sum per period via formatBarChart, which also
-			// handles cumulative running totals.
 			const data = isSnapshotMetric
 				? formatLineChart({
 						data: rawData,
-						groupBy: chartInterval,
+						groupBy: combinedChartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 				: formatBarChart({
 						data: rawData,
-						groupBy: chartInterval,
+						groupBy: combinedChartInterval,
 						dateInMs: true,
 						denominationPriceHistory: null
 					})
 
-			return { dimension, seriesName, type, stack, data, color: CHART_COLORS[index % CHART_COLORS.length] }
+			return { dimension, seriesName, type, data, color: CHART_COLORS[index % CHART_COLORS.length] }
 		})
 
 		if (isDaily) {
 			return {
-				dataset: activeChartData,
+				dataset: chartData,
 				charts: seriesDefinitions.map((series, index) => ({
 					type: series.type,
 					name: series.seriesName,
 					encode: { x: 'timestamp', y: series.seriesName },
 					color: series.color,
-					...(series.stack ? { stack: series.stack } : {}),
 					...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 				}))
 			}
@@ -275,20 +304,31 @@ export const AdapterByChainChart = ({
 				name: series.seriesName,
 				encode: { x: 'timestamp', y: series.seriesName },
 				color: series.color,
-				...(series.stack ? { stack: series.stack } : {}),
 				...(index > 0 && series.type === 'line' ? { yAxisIndex: 1, hideAreaStyle: true } : {})
 			}))
 		}
-	}, [activeChartData, chartInterval, chartName, isBreakdownMode, dimensionsToRender])
-	const deferredFinalCharts = React.useDeferredValue(finalCharts)
+	}, [chartData, chartName, combinedChartInterval, combinedMetricDimensions])
+	const deferredCombinedFinalCharts = React.useDeferredValue(combinedFinalCharts)
+
+	const breakdownPresentation = React.useMemo(
+		() =>
+			buildAdapterByChainChartPresentation({
+				chartData: breakdownChartData ?? EMPTY_DATASET,
+				selectedProtocols,
+				state: breakdownChartState,
+				protocols,
+				useAllProtocolsForLatestValueCharts: areAllBreakdownProtocolsSelected
+			}),
+		[areAllBreakdownProtocolsSelected, breakdownChartData, breakdownChartState, protocols, selectedProtocols]
+	)
+	const deferredBreakdownPresentation = React.useDeferredValue(breakdownPresentation)
 
 	const dashboardChartType = getAdapterDashboardType(adapterType)
-
 	const multiChart = React.useMemo<MultiChartConfig | null>(() => {
 		if (!dashboardChartType) return null
 
 		let grouping: MultiChartConfig['grouping']
-		switch (chartInterval) {
+		switch (combinedChartInterval) {
 			case 'weekly':
 				grouping = 'week'
 				break
@@ -321,25 +361,187 @@ export const AdapterByChainChart = ({
 				}
 			],
 			grouping,
-			showCumulative: chartInterval === 'cumulative'
+			showCumulative: combinedChartInterval === 'cumulative'
 		}
-	}, [chain, adapterType, dashboardChartType, chartInterval, chartName])
+	}, [chain, adapterType, dashboardChartType, combinedChartInterval, chartName])
+
+	const breakdownMultiSeriesChartOptions = React.useMemo(() => {
+		switch (deferredBreakdownPresentation.kind) {
+			case 'treemap':
+			case 'hbar':
+				return undefined
+			case 'bar': {
+				const baseOptions =
+					deferredBreakdownPresentation.valueMode === 'relative'
+						? {
+								yAxis: {
+									min: 0,
+									max: 100
+								}
+							}
+						: {}
+				if (deferredBreakdownPresentation.charts.length <= 1) {
+					return Object.keys(baseOptions).length > 0 ? baseOptions : undefined
+				}
+				return {
+					...baseOptions,
+					legend: {
+						top: 12
+					},
+					grid: {
+						top: 40
+					}
+				}
+			}
+			case 'line':
+				if (deferredBreakdownPresentation.charts.length <= 1) {
+					return {
+						yAxis: {
+							min: 0,
+							max: 100
+						}
+					}
+				}
+				return {
+					yAxis: {
+						min: 0,
+						max: 100
+					},
+					legend: {
+						top: 12
+					},
+					grid: {
+						top: 40
+					}
+				}
+			default:
+				return assertNever(deferredBreakdownPresentation)
+		}
+	}, [deferredBreakdownPresentation])
+
+	const breakdownChartKindLabel =
+		breakdownChartState.chartKind === 'treemap'
+			? 'Treemap Chart'
+			: breakdownChartState.chartKind === 'hbar'
+				? 'HBar Chart'
+				: breakdownChartState.chartKind === 'line'
+					? 'Line Chart'
+					: 'Bar Chart'
+	const breakdownBarValueModeLabel =
+		breakdownChartState.chartKind === 'bar'
+			? breakdownChartState.valueMode === 'relative'
+				? 'Relative (%)'
+				: 'Absolute ($)'
+			: null
+	const breakdownBarLayoutLabel =
+		breakdownChartState.chartKind === 'bar'
+			? breakdownChartState.barLayout === 'separate'
+				? 'Separate'
+				: 'Stacked'
+			: null
+	const breakdownChartHeight = getChartHeight(breakdownChartState)
+	const canExportBreakdownChart =
+		(deferredBreakdownPresentation.kind !== 'treemap' && deferredBreakdownPresentation.kind !== 'hbar') ||
+		deferredBreakdownPresentation.data.length > 0
+	const breakdownExportConfig = React.useMemo(() => {
+		const chartBaseTitle = `${chain === 'All' ? 'All Chains' : chain} - ${chartName} by Protocol`
+		const chainSlug = slug(chain === 'All' ? 'all-chains' : chain)
+
+		if (breakdownChartState.chartKind === 'line') {
+			return {
+				filename: `${chainSlug}-${slug(chartName)}-by-protocol-line-relative-${breakdownChartState.groupBy}`,
+				title: `${chartBaseTitle} - Dominance Line (${breakdownChartState.groupBy})`
+			}
+		}
+		if (breakdownChartState.chartKind === 'treemap') {
+			return {
+				filename: `${chainSlug}-${slug(chartName)}-by-protocol-treemap-latest`,
+				title: `${chartBaseTitle} - Treemap (Latest)`
+			}
+		}
+		if (breakdownChartState.chartKind === 'hbar') {
+			return {
+				filename: `${chainSlug}-${slug(chartName)}-by-protocol-hbar-latest`,
+				title: `${chartBaseTitle} - HBar (Latest)`
+			}
+		}
+
+		return {
+			filename: `${chainSlug}-${slug(chartName)}-by-protocol-bar-${breakdownChartState.valueMode}-${breakdownChartState.barLayout}-${breakdownChartState.groupBy}`,
+			title: `${chartBaseTitle} - Bar (${breakdownChartState.valueMode === 'absolute' ? 'Absolute' : 'Relative'}, ${
+				breakdownChartState.barLayout === 'stacked' ? 'Stacked' : 'Separate'
+			}, ${breakdownChartState.groupBy})`
+		}
+	}, [breakdownChartState, chain, chartName])
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
-				<div className="flex w-fit flex-nowrap items-center overflow-x-auto rounded-md border border-(--form-control-border) text-xs font-medium text-(--text-form)">
-					{CHART_VIEW_MODES_ADAPTER_BY_CHAIN.map((mode) => (
-						<button
-							key={`adapter-by-chain-chart-view-mode-${mode}`}
-							className="shrink-0 px-3 py-1.5 whitespace-nowrap hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
-							data-active={mode === chartViewMode}
-							onClick={() => onChangeChartViewMode(mode)}
-						>
-							{mode}
-						</button>
-					))}
-				</div>
+				<Select
+					allValues={CHART_VIEW_MODE_OPTIONS as any}
+					selectedValues={chartViewMode}
+					setSelectedValues={(value: string) => onChangeChartViewMode(value as AdapterByChainViewMode)}
+					label={chartViewMode}
+					labelType="none"
+					variant="filter"
+				/>
+				{chartViewMode === 'Breakdown' ? (
+					<Select
+						allValues={CHART_KIND_OPTIONS as any}
+						selectedValues={
+							breakdownChartState.chartKind === 'treemap'
+								? 'Treemap'
+								: breakdownChartState.chartKind === 'hbar'
+									? 'HBar'
+									: breakdownChartState.chartKind === 'line'
+										? 'Line'
+										: 'Bar'
+						}
+						setSelectedValues={(value: string) => onChangeChartKind(value as ChainsByAdapterChartKind)}
+						label={breakdownChartKindLabel}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				{chartViewMode === 'Breakdown' && breakdownChartState.chartKind === 'bar' ? (
+					<Select
+						allValues={BAR_VALUE_MODE_OPTIONS as any}
+						selectedValues={breakdownChartState.valueMode === 'relative' ? 'Relative' : 'Absolute'}
+						setSelectedValues={(value: string) => onChangeValueMode(value as ChainsByAdapterValueMode)}
+						label={breakdownBarValueModeLabel ?? 'Absolute'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				{chartViewMode === 'Breakdown' && breakdownChartState.chartKind === 'bar' ? (
+					<Select
+						allValues={BAR_LAYOUT_OPTIONS as any}
+						selectedValues={breakdownChartState.barLayout === 'separate' ? 'Separate' : 'Stacked'}
+						setSelectedValues={(value: string) => onChangeBarLayout(value as ChainsByAdapterBarLayout)}
+						label={breakdownBarLayoutLabel ?? 'Stacked'}
+						labelType="none"
+						variant="filter"
+					/>
+				) : null}
+				{chartViewMode === 'Breakdown' &&
+				breakdownChartState.chartKind !== 'treemap' &&
+				breakdownChartState.chartKind !== 'hbar' ? (
+					<ChartGroupingSelector
+						value={breakdownChartState.groupBy}
+						onValueChange={onChangeBreakdownChartInterval}
+						options={DWM_GROUPING_OPTIONS_LOWERCASE}
+					/>
+				) : null}
+				{chartViewMode === 'Combined' && !LINE_DIMENSIONS.has(chartName) ? (
+					<ChartGroupingSelector
+						value={combinedChartInterval}
+						onValueChange={onChangeCombinedChartInterval}
+						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
+					/>
+				) : null}
+				{chartViewMode === 'Combined' && chain ? (
+					<AddToDashboardButton chartConfig={multiChart} smol className="ml-auto" />
+				) : null}
 				{chartViewMode === 'Breakdown' && breakdownProtocolDimensions.length > 0 ? (
 					<SelectWithCombobox
 						allValues={breakdownProtocolDimensions}
@@ -351,22 +553,24 @@ export const AdapterByChainChart = ({
 						labelType="smol"
 						variant="filter"
 						portal
+						triggerProps={{ style: { marginLeft: 'auto' } }}
 					/>
 				) : null}
-				{LINE_DIMENSIONS.has(chartName) ? null : (
-					<ChartGroupingSelector
-						value={chartInterval}
-						onValueChange={onChangeChartInterval}
-						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
-						buttonClassName="font-medium data-[active=true]:font-medium"
+				{chartViewMode === 'Breakdown' ? (
+					canExportBreakdownChart ? (
+						<ChartExportButtons
+							chartInstance={exportChartInstance}
+							filename={breakdownExportConfig.filename}
+							title={breakdownExportConfig.title}
+						/>
+					) : null
+				) : (
+					<ChartExportButtons
+						chartInstance={exportChartInstance}
+						filename={`${chain}-${adapterType}-${chartName}`}
+						title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
 					/>
 				)}
-				{chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
-				<ChartExportButtons
-					chartInstance={exportChartInstance}
-					filename={`${chain}-${adapterType}-${chartName}`}
-					title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
-				/>
 			</div>
 			{chartViewMode === 'Breakdown' && breakdownError ? (
 				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{breakdownError}</p>
@@ -375,14 +579,59 @@ export const AdapterByChainChart = ({
 					Loading
 					<LoadingDots />
 				</p>
+			) : chartViewMode === 'Breakdown' ? (
+				<React.Suspense
+					fallback={
+						<div
+							style={{
+								height: breakdownChartHeight
+							}}
+						/>
+					}
+				>
+					{deferredBreakdownPresentation.kind === 'treemap' ? (
+						<TreeMapBuilderChart
+							data={deferredBreakdownPresentation.data}
+							height={breakdownChartHeight}
+							onReady={handleChartReady}
+						/>
+					) : deferredBreakdownPresentation.kind === 'hbar' ? (
+						<HBarChart
+							categories={deferredBreakdownPresentation.data.map((item) => item.name)}
+							values={deferredBreakdownPresentation.data.map((item) => item.value)}
+							colors={deferredBreakdownPresentation.data.map((item) => item.itemStyle.color)}
+							height={breakdownChartHeight}
+							valueSymbol="$"
+							onReady={handleChartReady}
+						/>
+					) : (
+						<MultiSeriesChart2
+							dataset={deferredBreakdownPresentation.dataset}
+							charts={deferredBreakdownPresentation.charts}
+							height={breakdownChartHeight}
+							valueSymbol={
+								deferredBreakdownPresentation.kind === 'bar' && deferredBreakdownPresentation.valueMode === 'absolute'
+									? '$'
+									: '%'
+							}
+							solidChartAreaStyle={deferredBreakdownPresentation.kind === 'line'}
+							{...(breakdownMultiSeriesChartOptions ? { chartOptions: breakdownMultiSeriesChartOptions } : {})}
+							groupBy={deferredBreakdownPresentation.groupBy}
+							hideDefaultLegend={deferredBreakdownPresentation.charts.length === 1}
+							showTotalInTooltip={
+								deferredBreakdownPresentation.kind === 'bar' ? deferredBreakdownPresentation.showTotalInTooltip : false
+							}
+							onReady={handleChartReady}
+						/>
+					)}
+				</React.Suspense>
 			) : (
 				<React.Suspense fallback={<div className="min-h-[360px]" />}>
 					<MultiSeriesChart2
-						dataset={deferredFinalCharts.dataset}
-						charts={deferredFinalCharts.charts}
-						hideDefaultLegend={deferredFinalCharts.charts.length === 1}
-						groupBy={chartInterval}
-						showTotalInTooltip={isBreakdownMode}
+						dataset={deferredCombinedFinalCharts.dataset}
+						charts={deferredCombinedFinalCharts.charts}
+						hideDefaultLegend={deferredCombinedFinalCharts.charts.length === 1}
+						groupBy={combinedChartInterval}
 						onReady={handleChartReady}
 					/>
 				</React.Suspense>
@@ -674,7 +923,6 @@ export const ChainsByAdapterChart = ({
 						value={chartState.groupBy}
 						onValueChange={onChangeChartInterval}
 						options={DWM_GROUPING_OPTIONS_LOWERCASE}
-						buttonClassName="font-medium data-[active=true]:font-medium"
 					/>
 				) : null}
 				<SelectWithCombobox

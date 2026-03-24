@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { StreamDoneContext } from './queries'
 import { getDisplayAliases } from '~/utils/chainNormalizer'
 import type { ChartBuilderConfig } from './components/AddChartModal/types'
+import { StreamDoneContext } from './queries'
 import { getChainChartTypes, getProtocolChartTypes } from './types'
 
 type BuilderMetric = ChartBuilderConfig['metric']
