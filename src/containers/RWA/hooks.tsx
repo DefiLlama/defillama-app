@@ -1112,6 +1112,10 @@ export function hasActiveChartFilters(query: NextRouter['query']): boolean {
 	return false
 }
 
+export function getRwaTickerChartQueryKey(target: RWATickerChartTarget, selectedMetric: RWAChartMetricKey) {
+	return ['rwa-ticker-chart', target.kind, target.kind === 'all' ? 'all' : target.slug, selectedMetric] as const
+}
+
 function assert(condition: unknown, message: string): asserts condition {
 	if (!condition) {
 		throw new Error(message)
@@ -1153,45 +1157,43 @@ export function useRwaChartDataset({
 	filteredAssets,
 	mode,
 	target,
-	hasActiveFilters
+	useInitialDataset
 }: {
 	selectedMetric: RWAChartMetricKey
 	initialDataset: RWAChartDataset
 	filteredAssets: IRWAAssetsOverview['assets']
 	mode: RWAChartAggregationMode
 	target: RWATickerChartTarget
-	hasActiveFilters: boolean
+	useInitialDataset: boolean
 }): {
 	chartDataset: RWAChartDataset
 	isChartLoading: boolean
 	chartError: string | null
 } {
-	const targetValue = target.kind === 'all' ? 'all' : target.slug
-	const shouldFetch = selectedMetric !== 'activeMcap' || hasActiveFilters
 	const {
 		data: tickerRows,
 		isLoading,
 		error
 	} = useQuery({
-		queryKey: ['rwa-ticker-chart', target.kind, targetValue, selectedMetric],
+		queryKey: getRwaTickerChartQueryKey(target, selectedMetric),
 		queryFn: () => fetchRwaTickerChartData({ key: selectedMetric, target }),
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 1,
-		enabled: shouldFetch
+		enabled: !useInitialDataset
 	})
 
 	assert(initialDataset.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
 
 	const chartDataset = useMemo(() => {
-		if (!shouldFetch) return initialDataset
+		if (useInitialDataset) return initialDataset
 		if (!tickerRows) return emptyChartDataset()
 		return aggregateRwaMetricData(filteredAssets, tickerRows, mode)
-	}, [shouldFetch, initialDataset, tickerRows, filteredAssets, mode])
+	}, [useInitialDataset, initialDataset, tickerRows, filteredAssets, mode])
 
 	return {
 		chartDataset,
-		isChartLoading: shouldFetch && isLoading,
+		isChartLoading: !useInitialDataset && isLoading,
 		chartError: error ? getErrorMessage(error) : null
 	}
 }

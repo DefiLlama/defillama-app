@@ -64,16 +64,6 @@
       "oldName": "Top Protocols"
     },
     {
-      "name": "Forks",
-      "route": "/forks",
-      "category": "Total Value Locked",
-      "description": "Sum of TVL across all forks of a protocol",
-      "totalTrackedKey": "forks.protocols",
-      "tab": "Protocols",
-      "oldCategory": "Market Overview",
-      "oldName": "Forks"
-    },
-    {
       "name": "Bridged TVL by Chain",
       "route": "/bridged",
       "category": "Total Value Locked",
@@ -82,6 +72,16 @@
       "tab": "Chains",
       "oldCategory": "Market Overview",
       "oldName": "Bridged TVL"
+    },
+    {
+      "name": "Forks",
+      "route": "/forks",
+      "category": "Total Value Locked",
+      "description": "Sum of TVL across all forks of a protocol",
+      "totalTrackedKey": "forks.protocols",
+      "tab": "Protocols",
+      "oldCategory": "Market Overview",
+      "oldName": "Forks"
     },
     {
       "name": "Total Staked by Protocol",

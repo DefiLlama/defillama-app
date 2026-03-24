@@ -34,6 +34,7 @@ import {
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import { definitions } from './definitions'
+import { getRwaPlatforms, matchesRwaPlatform, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
@@ -258,8 +259,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
 			for (const item of data) {
-				const platform = item.parentPlatform
-				if (platform && rwaSlug(platform) === selectedPlatform) {
+				const platform = getRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
+				if (platform) {
 					actualPlatformName = platform
 					break
 				}
@@ -309,9 +310,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const hasCategoryMatch = selectedCategory
 				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
 				: true
-			const hasPlatformMatch = selectedPlatform
-				? !!item.parentPlatform && rwaSlug(item.parentPlatform) === selectedPlatform
-				: true
+			const hasPlatformMatch = selectedPlatform ? matchesRwaPlatform(item.parentPlatform, selectedPlatform) : true
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
@@ -441,16 +440,8 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 						categories.set(category, (categories.get(category) ?? 0) + effectiveOnChainMcap)
 					}
 				}
-				const platformRaw = asset.parentPlatform as unknown
-				const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
-				const normalizedPlatforms = Array.from(
-					new Set(
-						platformCandidates
-							.map((platform) => (typeof platform === 'string' ? platform.trim() : ''))
-							.filter((platform): platform is string => platform.length > 0)
-					)
-				)
-				for (const platform of normalizedPlatforms) {
+				for (const platform of getRwaPlatforms(asset.parentPlatform)) {
+					if (platform === UNKNOWN_PLATFORM) continue
 					platforms.set(platform, (platforms.get(platform) ?? 0) + effectiveOnChainMcap)
 				}
 				if (asset.rwaClassification) {

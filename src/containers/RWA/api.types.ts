@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
 type RWAContractsByChain = Record<string, string[]>
@@ -33,7 +34,7 @@ export interface IFetchedRWAProject {
 	transferable?: boolean | null
 	selfCustody?: boolean | null
 	descriptionNotes?: string[] | null
-	parentPlatform?: string | null
+	parentPlatform?: RWAParentPlatform
 	stablecoin?: boolean | null
 	governance?: boolean | null
 	defiActiveTvl?: RWATvlByChain | null

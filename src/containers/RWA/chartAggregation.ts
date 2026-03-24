@@ -1,6 +1,6 @@
 import type { IRWAAssetsOverview, IRWAChartDataByTicker, IRWAChartMetricRows, RWAChartMetricKey } from './api.types'
 import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
-import { computeWeightedGroups } from './grouping'
+import { computeWeightedGroups, getRwaPlatforms } from './grouping'
 
 export type RWAChartMetric = RWAChartMetricKey
 
@@ -10,7 +10,11 @@ export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
-export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName'
+export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform'
+
+function assertNever(value: never): never {
+	throw new Error(`Unexpected value: ${String(value)}`)
+}
 
 export function emptyChartDataset(): RWAChartDataset {
 	return { source: [], dimensions: ['timestamp'] }
@@ -31,13 +35,23 @@ function buildTickerGroupMapping(
 		if (!ticker) continue
 
 		let weightedGroups: ReturnType<typeof computeWeightedGroups>
-		if (mode === 'category') {
-			weightedGroups = computeWeightedGroups(asset.category)
-		} else if (mode === 'assetClass') {
-			weightedGroups = computeWeightedGroups(asset.assetClass)
-		} else {
-			const name = (asset.assetName || asset.ticker || '').trim()
-			weightedGroups = computeWeightedGroups(name ? [name] : [])
+		switch (mode) {
+			case 'category':
+				weightedGroups = computeWeightedGroups(asset.category)
+				break
+			case 'assetClass':
+				weightedGroups = computeWeightedGroups(asset.assetClass)
+				break
+			case 'assetName': {
+				const name = (asset.assetName || asset.ticker || '').trim()
+				weightedGroups = computeWeightedGroups(name ? [name] : [])
+				break
+			}
+			case 'platform':
+				weightedGroups = computeWeightedGroups(getRwaPlatforms(asset.parentPlatform))
+				break
+			default:
+				assertNever(mode)
 		}
 
 		if (weightedGroups.length === 0) continue
