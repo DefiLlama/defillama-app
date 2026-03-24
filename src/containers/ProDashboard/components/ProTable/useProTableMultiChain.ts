@@ -2,10 +2,10 @@
 
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useContext, useMemo, useRef } from 'react'
-import { StreamDoneContext } from '../../queries'
 import { fetchProtocols } from '~/containers/Protocols/api'
 import { basicPropertiesToKeep, formatProtocolsData } from '~/containers/Protocols/utils.old'
 import { fetchJson } from '~/utils/async'
+import { StreamDoneContext } from '../../queries'
 import {
 	getDexVolumeByChain,
 	getFeesAndRevenueProtocolsByChain,

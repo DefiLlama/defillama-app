@@ -1,7 +1,6 @@
 'use no memo'
 
 import { useQuery } from '@tanstack/react-query'
-import { useContext } from 'react'
 import {
 	type ColumnOrderState,
 	getCoreRowModel,
@@ -15,6 +14,7 @@ import {
 	type VisibilityState,
 	type Table
 } from '@tanstack/react-table'
+import { useContext } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { ChainMetrics } from '~/server/unifiedTable/protocols'
 import { StreamDoneContext } from '../../../queries'

@@ -132,7 +132,9 @@ export function useDashboardStream(dashboardId: string | undefined): DashboardSt
 						break
 
 					case 'advancedTvlBasicData':
-						queryClient.setQueryData(['pro-dashboard', 'advanced-tvl-basic', chunk.id], chunk.data ?? [], { updatedAt: now })
+						queryClient.setQueryData(['pro-dashboard', 'advanced-tvl-basic', chunk.id], chunk.data ?? [], {
+							updatedAt: now
+						})
 						break
 
 					case 'unifiedTableData':

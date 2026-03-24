@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import type { IProtocol } from './types'
 import {
+	buildAdapterByChainBreakdownPresentation,
+	buildAdapterByChainLatestValuePresentation,
 	buildChainsByAdapterChartPresentation,
 	normalizeChainsByAdapterChartState,
 	type ChainsByAdapterChartState
@@ -29,6 +32,40 @@ const sparseChartData = {
 		{ timestamp: toMs(2024, 1, 2), Ethereum: 10, Solana: 20 }
 	]
 }
+
+const adapterBreakdownChartData = {
+	dimensions: ['timestamp', 'Hyperliquid Perps', 'dYdX', 'GMX'],
+	source: [
+		{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 10, dYdX: 20, GMX: 0 },
+		{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 20, dYdX: 10, GMX: 10 },
+		{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 30, dYdX: 0, GMX: 10 }
+	]
+}
+
+const makeProtocolRow = (name: string, total24h: number | null, childProtocols?: IProtocol[]) =>
+	({
+		name,
+		slug: name.toLowerCase().replace(/\s+/g, '-'),
+		logo: '',
+		chains: [],
+		category: null,
+		total24h,
+		total7d: null,
+		total30d: null,
+		total1y: null,
+		totalAllTime: null,
+		mcap: null,
+		...(childProtocols ? { childProtocols } : {})
+	}) satisfies IProtocol
+
+const adapterProtocols = [
+	makeProtocolRow('Hyperliquid', 70, [
+		makeProtocolRow('Hyperliquid Perps', 55),
+		makeProtocolRow('Hyperliquid Spot', 15)
+	]),
+	makeProtocolRow('dYdX', 30),
+	makeProtocolRow('GMX', 10)
+]
 
 describe('normalizeChainsByAdapterChartState', () => {
 	it('returns the default bar state when no query params are present', () => {
@@ -254,5 +291,94 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[8].value).toBe(20)
 		expect(presentation.data[9].value).toBe(15)
 		expect(presentation.data[9].share).toBeCloseTo((15 / 555) * 100)
+	})
+})
+
+describe('buildAdapterByChainBreakdownPresentation', () => {
+	it('builds relative separate bars from selected protocol breakdown series', () => {
+		const presentation = buildAdapterByChainBreakdownPresentation({
+			chartData: adapterBreakdownChartData,
+			selectedProtocols: ['Hyperliquid Perps', 'dYdX'],
+			state: {
+				chartKind: 'bar',
+				valueMode: 'relative',
+				barLayout: 'separate',
+				groupBy: 'daily'
+			}
+		})
+
+		expect(presentation.kind).toBe('bar')
+		if (presentation.kind !== 'bar') return
+
+		expect(presentation.charts.every((chart) => chart.stack == null)).toBe(true)
+		expect(presentation.dataset.source).toEqual([
+			{ timestamp: toMs(2024, 1, 1), 'Hyperliquid Perps': 33.33333333333333, dYdX: 66.66666666666666 },
+			{ timestamp: toMs(2024, 1, 2), 'Hyperliquid Perps': 66.66666666666666, dYdX: 33.33333333333333 },
+			{ timestamp: toMs(2024, 1, 3), 'Hyperliquid Perps': 100, dYdX: 0 }
+		])
+	})
+})
+
+describe('buildAdapterByChainLatestValuePresentation', () => {
+	it('builds treemap data from selected top-level table rows only', () => {
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'treemap',
+			protocols: adapterProtocols,
+			selectedProtocols: ['Hyperliquid', 'dYdX']
+		})
+
+		expect(presentation.kind).toBe('treemap')
+		if (presentation.kind !== 'treemap') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX'])
+		expect(presentation.data[0].value).toBe(70)
+		expect(presentation.data[1].value).toBe(30)
+	})
+
+	it('does not fall back to child-only breakdown names for latest-value charts', () => {
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			protocols: [makeProtocolRow('Hyperliquid', 70), makeProtocolRow('dYdX', 30), makeProtocolRow('GMX', 10)],
+			selectedProtocols: []
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data).toEqual([])
+	})
+
+	it('builds hbar data from selected protocols and groups overflow into Others', () => {
+		const manyProtocols = Array.from({ length: 11 }, (_, index) =>
+			makeProtocolRow(`Protocol ${index + 1}`, 110 - index * 10)
+		)
+
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			protocols: manyProtocols,
+			selectedProtocols: manyProtocols.map((protocol) => protocol.name)
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.at(-1)?.name).toBe('Others')
+		expect(presentation.data.at(-1)?.value).toBe(30)
+	})
+
+	it('uses the selected top-level latest-value protocols directly', () => {
+		const presentation = buildAdapterByChainLatestValuePresentation({
+			chartKind: 'hbar',
+			protocols: adapterProtocols,
+			selectedProtocols: ['Hyperliquid', 'dYdX', 'GMX']
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX', 'GMX'])
+		expect(presentation.data[0].value).toBe(70)
+		expect(presentation.data[1].value).toBe(30)
+		expect(presentation.data[2].value).toBe(10)
 	})
 })

@@ -7,7 +7,7 @@ import { ensureChronologicalRows, formatBarChart } from '~/components/ECharts/ut
 import { getNDistinctColors, slug } from '~/utils'
 import type { IAdapterChainMetrics } from './api.types'
 import type { ADAPTER_TYPES } from './constants'
-import type { IChainsByAdapterPageData } from './types'
+import type { IChainsByAdapterPageData, IProtocol } from './types'
 
 export type BribesData = {
 	total24h: number | null
@@ -272,6 +272,11 @@ export type ChainsByAdapterLatestValueDatum = {
 	itemStyle: { color: string }
 }
 
+type BreakdownLatestValueRow = {
+	name: string
+	total24h: number | null
+}
+
 type ChainsByAdapterBarPresentation = {
 	kind: 'bar'
 	dataset: MultiSeriesChart2Dataset
@@ -305,9 +310,16 @@ export type ChainsByAdapterChartPresentation =
 	| ChainsByAdapterTreemapPresentation
 	| ChainsByAdapterHBarPresentation
 
+type ChainsByAdapterBarState = Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
+type ChainsByAdapterLineState = Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
+
 const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGrouping = 'daily'
 const VALID_BAR_GROUPINGS = new Set<ChartTimeGrouping>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
 const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
+
+function assertNever(value: never): never {
+	throw new Error(`Unhandled chains by adapter chart state: ${JSON.stringify(value)}`)
+}
 
 function toValidChartGrouping(value: string | undefined | null): ChartTimeGrouping | null {
 	if (!value) return null
@@ -362,46 +374,46 @@ export function normalizeChainsByAdapterChartState({
 
 function createSeriesUniverse({
 	chartData,
-	selectedChains
+	selectedNames
 }: {
-	chartData: IChainsByAdapterPageData['chartData']
-	selectedChains: string[]
+	chartData: MultiSeriesChart2Dataset
+	selectedNames: string[]
 }) {
-	const chainTotals = new Map<string, number>()
-	const chainSeries = new Map<string, Array<[number, number]>>()
+	const entityTotals = new Map<string, number>()
+	const entitySeries = new Map<string, Array<[number, number]>>()
 
 	for (const row of chartData.source) {
 		const timestamp = Number(row.timestamp)
-		for (const chain of selectedChains) {
-			const value = row[chain]
+		for (const entity of selectedNames) {
+			const value = row[entity]
 			if (typeof value === 'number') {
-				chainTotals.set(chain, (chainTotals.get(chain) ?? 0) + value)
-				let series = chainSeries.get(chain)
+				entityTotals.set(entity, (entityTotals.get(entity) ?? 0) + value)
+				let series = entitySeries.get(entity)
 				if (!series) {
 					series = []
-					chainSeries.set(chain, series)
+					entitySeries.set(entity, series)
 				}
 				series.push([timestamp, value])
 			}
 		}
 	}
 
-	const ranked = Array.from(chainTotals.entries()).toSorted((a, b) => b[1] - a[1])
-	const topChainNames = ranked.slice(0, 10).map(([chain]) => chain)
-	const otherChainNames = ranked.slice(10).map(([chain]) => chain)
+	const ranked = Array.from(entityTotals.entries()).toSorted((a, b) => b[1] - a[1])
+	const topEntityNames = ranked.slice(0, 10).map(([entity]) => entity)
+	const otherEntityNames = ranked.slice(10).map(([entity]) => entity)
 	const topSeries = new Map<string, Array<[number, number]>>()
 
-	for (const chain of topChainNames) {
-		const series = chainSeries.get(chain)
+	for (const entity of topEntityNames) {
+		const series = entitySeries.get(entity)
 		if (series) {
-			topSeries.set(chain, series)
+			topSeries.set(entity, series)
 		}
 	}
 
-	if (otherChainNames.length > 0) {
+	if (otherEntityNames.length > 0) {
 		const othersMap = new Map<number, number>()
-		for (const chain of otherChainNames) {
-			for (const [ts, value] of chainSeries.get(chain) ?? []) {
+		for (const entity of otherEntityNames) {
+			for (const [ts, value] of entitySeries.get(entity) ?? []) {
 				othersMap.set(ts, (othersMap.get(ts) ?? 0) + value)
 			}
 		}
@@ -413,12 +425,12 @@ function createSeriesUniverse({
 
 	const topSeriesNames = Array.from(topSeries.keys())
 	const topColors = getNDistinctColors(topSeriesNames.length || 1)
-	const topColorByChain = Object.fromEntries(topSeriesNames.map((chain, i) => [chain, topColors[i]]))
+	const topColorBySeriesName = Object.fromEntries(topSeriesNames.map((seriesName, i) => [seriesName, topColors[i]]))
 
 	return {
 		topSeries,
 		topSeriesNames,
-		topColorByChain
+		topColorBySeriesName
 	}
 }
 
@@ -428,18 +440,18 @@ function buildDenseRowsFromGroupedSeries(
 ): MultiSeriesChart2Dataset {
 	const rowMap = new Map<number, Record<string, number | null>>()
 
-	for (const chain of seriesNames) {
-		for (const [timestamp, value] of groupedSeries.get(chain) ?? []) {
+	for (const seriesName of seriesNames) {
+		for (const [timestamp, value] of groupedSeries.get(seriesName) ?? []) {
 			const row = rowMap.get(timestamp) ?? { timestamp }
-			row[chain] = value
+			row[seriesName] = value
 			rowMap.set(timestamp, row)
 		}
 	}
 
 	const source = ensureChronologicalRows(Array.from(rowMap.values()))
 	for (const row of source) {
-		for (const chain of seriesNames) {
-			if (!(chain in row)) row[chain] = null
+		for (const seriesName of seriesNames) {
+			if (!(seriesName in row)) row[seriesName] = null
 		}
 	}
 
@@ -455,17 +467,17 @@ function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesName
 		source: dataset.source.map((row) => {
 			const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
 			let total = 0
-			for (const chain of seriesNames) {
-				const value = row[chain]
+			for (const seriesName of seriesNames) {
+				const value = row[seriesName]
 				if (typeof value === 'number' && Number.isFinite(value) && value > 0) total += value
 			}
-			for (const chain of seriesNames) {
-				const value = row[chain]
+			for (const seriesName of seriesNames) {
+				const value = row[seriesName]
 				if (typeof value !== 'number' || !Number.isFinite(value)) {
-					nextRow[chain] = null
+					nextRow[seriesName] = null
 					continue
 				}
-				nextRow[chain] = total > 0 ? (value / total) * 100 : 0
+				nextRow[seriesName] = total > 0 ? (value / total) * 100 : 0
 			}
 			return nextRow
 		})
@@ -475,21 +487,21 @@ function normalizeDatasetToPercent(dataset: MultiSeriesChart2Dataset, seriesName
 function buildBarPresentation({
 	topSeries,
 	topSeriesNames,
-	topColorByChain,
+	topColorBySeriesName,
 	state
 }: {
 	topSeries: Map<string, Array<[number, number]>>
 	topSeriesNames: string[]
-	topColorByChain: Record<string, string>
-	state: Extract<ChainsByAdapterChartState, { chartKind: 'bar' }>
+	topColorBySeriesName: Record<string, string>
+	state: ChainsByAdapterBarState
 }): ChainsByAdapterBarPresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
-	for (const chain of topSeriesNames) {
+	for (const seriesName of topSeriesNames) {
 		groupedSeries.set(
-			chain,
+			seriesName,
 			formatBarChart({
-				data: topSeries.get(chain) ?? [],
+				data: topSeries.get(seriesName) ?? [],
 				groupBy: state.groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
@@ -504,12 +516,12 @@ function buildBarPresentation({
 	return {
 		kind: 'bar',
 		dataset: finalDataset,
-		charts: topSeriesNames.map((chain) => ({
+		charts: topSeriesNames.map((seriesName) => ({
 			type: 'bar',
-			name: chain,
-			encode: { x: 'timestamp', y: chain },
+			name: seriesName,
+			encode: { x: 'timestamp', y: seriesName },
 			...(state.barLayout === 'stacked' ? { stack: 'chain' as const } : {}),
-			color: topColorByChain[chain]
+			color: topColorBySeriesName[seriesName]
 		})),
 		valueMode: state.valueMode,
 		barLayout: state.barLayout,
@@ -521,21 +533,21 @@ function buildBarPresentation({
 function buildLinePresentation({
 	topSeries,
 	topSeriesNames,
-	topColorByChain,
+	topColorBySeriesName,
 	state
 }: {
 	topSeries: Map<string, Array<[number, number]>>
 	topSeriesNames: string[]
-	topColorByChain: Record<string, string>
-	state: Extract<ChainsByAdapterChartState, { chartKind: 'line' }>
+	topColorBySeriesName: Record<string, string>
+	state: ChainsByAdapterLineState
 }): ChainsByAdapterLinePresentation {
 	const groupedSeries = new Map<string, Array<[number, number | null]>>()
 
-	for (const chain of topSeriesNames) {
+	for (const seriesName of topSeriesNames) {
 		groupedSeries.set(
-			chain,
+			seriesName,
 			formatBarChart({
-				data: topSeries.get(chain) ?? [],
+				data: topSeries.get(seriesName) ?? [],
 				groupBy: state.groupBy,
 				dateInMs: true,
 				denominationPriceHistory: null
@@ -549,11 +561,11 @@ function buildLinePresentation({
 	return {
 		kind: 'line',
 		dataset: relativeDataset,
-		charts: topSeriesNames.map((chain) => ({
+		charts: topSeriesNames.map((seriesName) => ({
 			type: 'line',
-			name: chain,
-			encode: { x: 'timestamp', y: chain },
-			color: topColorByChain[chain],
+			name: seriesName,
+			encode: { x: 'timestamp', y: seriesName },
+			color: topColorBySeriesName[seriesName],
 			stack: 'chain'
 		})),
 		groupBy: state.groupBy
@@ -561,26 +573,26 @@ function buildLinePresentation({
 }
 
 function buildTreemapPresentation({
-	selectedChains,
-	latestChainRows
+	selectedNames,
+	latestRows
 }: {
-	selectedChains: string[]
-	latestChainRows: IChainsByAdapterPageData['chains']
+	selectedNames: string[]
+	latestRows: BreakdownLatestValueRow[]
 }): ChainsByAdapterLatestValueDatum[] {
-	const latestValuesByChain = new Map<string, number>()
-	for (const row of latestChainRows) {
+	const latestValuesByName = new Map<string, number>()
+	for (const row of latestRows) {
 		const value = row.total24h
 		if (typeof value === 'number' && Number.isFinite(value)) {
-			latestValuesByChain.set(row.name, value)
+			latestValuesByName.set(row.name, value)
 		}
 	}
 
-	const values = selectedChains
-		.map((chain) => {
-			const rawValue = latestValuesByChain.get(chain) ?? 0
+	const values = selectedNames
+		.map((name) => {
+			const rawValue = latestValuesByName.get(name) ?? 0
 			const value = typeof rawValue === 'number' ? rawValue : Number(rawValue)
 			return {
-				name: chain,
+				name,
 				value: Number.isFinite(value) ? value : 0
 			}
 		})
@@ -600,13 +612,13 @@ function buildTreemapPresentation({
 }
 
 function buildHBarPresentation({
-	selectedChains,
-	latestChainRows
+	selectedNames,
+	latestRows
 }: {
-	selectedChains: string[]
-	latestChainRows: IChainsByAdapterPageData['chains']
+	selectedNames: string[]
+	latestRows: BreakdownLatestValueRow[]
 }): ChainsByAdapterLatestValueDatum[] {
-	const rankedValues = buildTreemapPresentation({ selectedChains, latestChainRows })
+	const rankedValues = buildTreemapPresentation({ selectedNames, latestRows })
 
 	if (rankedValues.length <= MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS) {
 		return rankedValues
@@ -632,6 +644,10 @@ function buildHBarPresentation({
 	}))
 }
 
+function getAdapterByChainLatestProtocolRows(protocols: IProtocol[]): BreakdownLatestValueRow[] {
+	return protocols.map((protocol) => ({ name: protocol.name, total24h: protocol.total24h }))
+}
+
 export function buildChainsByAdapterChartPresentation({
 	chartData,
 	selectedChains,
@@ -643,25 +659,82 @@ export function buildChainsByAdapterChartPresentation({
 	state: ChainsByAdapterChartState
 	latestChainRows: IChainsByAdapterPageData['chains']
 }): ChainsByAdapterChartPresentation {
-	if (state.chartKind === 'treemap') {
+	switch (state.chartKind) {
+		case 'treemap':
+			return {
+				kind: 'treemap',
+				data: buildTreemapPresentation({ selectedNames: selectedChains, latestRows: latestChainRows })
+			}
+		case 'hbar':
+			return {
+				kind: 'hbar',
+				data: buildHBarPresentation({ selectedNames: selectedChains, latestRows: latestChainRows })
+			}
+		case 'line': {
+			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+				chartData,
+				selectedNames: selectedChains
+			})
+			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		}
+		case 'bar': {
+			const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+				chartData,
+				selectedNames: selectedChains
+			})
+			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		}
+		default:
+			return assertNever(state)
+	}
+}
+
+export function buildAdapterByChainBreakdownPresentation({
+	chartData,
+	selectedProtocols,
+	state
+}: {
+	chartData: MultiSeriesChart2Dataset
+	selectedProtocols: string[]
+	state: ChainsByAdapterBarState | ChainsByAdapterLineState
+}): ChainsByAdapterBarPresentation | ChainsByAdapterLinePresentation {
+	const { topSeries, topSeriesNames, topColorBySeriesName } = createSeriesUniverse({
+		chartData,
+		selectedNames: selectedProtocols
+	})
+
+	switch (state.chartKind) {
+		case 'line':
+			return buildLinePresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		case 'bar':
+			return buildBarPresentation({ topSeries, topSeriesNames, topColorBySeriesName, state })
+		default:
+			return assertNever(state)
+	}
+}
+
+export function buildAdapterByChainLatestValuePresentation({
+	chartKind,
+	protocols,
+	selectedProtocols
+}: {
+	chartKind: 'treemap' | 'hbar'
+	protocols: IProtocol[]
+	selectedProtocols: string[]
+}): ChainsByAdapterTreemapPresentation | ChainsByAdapterHBarPresentation {
+	const latestRows = getAdapterByChainLatestProtocolRows(protocols).filter((row) =>
+		selectedProtocols.includes(row.name)
+	)
+
+	if (chartKind === 'treemap') {
 		return {
 			kind: 'treemap',
-			data: buildTreemapPresentation({ selectedChains, latestChainRows })
+			data: buildTreemapPresentation({ selectedNames: selectedProtocols, latestRows })
 		}
 	}
 
-	if (state.chartKind === 'hbar') {
-		return {
-			kind: 'hbar',
-			data: buildHBarPresentation({ selectedChains, latestChainRows })
-		}
+	return {
+		kind: 'hbar',
+		data: buildHBarPresentation({ selectedNames: selectedProtocols, latestRows })
 	}
-
-	const { topSeries, topSeriesNames, topColorByChain } = createSeriesUniverse({ chartData, selectedChains })
-
-	if (state.chartKind === 'line') {
-		return buildLinePresentation({ topSeries, topSeriesNames, topColorByChain, state })
-	}
-
-	return buildBarPresentation({ topSeries, topSeriesNames, topColorByChain, state })
 }
