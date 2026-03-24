@@ -33,11 +33,12 @@ import {
 } from './utils'
 
 const MultiSeriesChart2 = React.lazy(() => import('~/components/ECharts/MultiSeriesChart2'))
+const HBarChart = React.lazy(() => import('~/components/ECharts/HBarChart'))
 const TreeMapBuilderChart = React.lazy(() => import('~/components/ECharts/TreeMapBuilderChart'))
 
 const CHART_VIEW_MODES_ADAPTER_BY_CHAIN = ['Combined', 'Breakdown'] as const
 type AdapterByChainViewMode = (typeof CHART_VIEW_MODES_ADAPTER_BY_CHAIN)[number]
-const CHART_KINDS_CHAINS_BY_ADAPTER = ['Bar', 'Line', 'Treemap'] as const
+const CHART_KINDS_CHAINS_BY_ADAPTER = ['Bar', 'Line', 'Treemap', 'HBar'] as const
 type ChainsByAdapterChartKind = (typeof CHART_KINDS_CHAINS_BY_ADAPTER)[number]
 const BAR_VALUE_MODES_CHAINS_BY_ADAPTER = ['Absolute', 'Relative'] as const
 type ChainsByAdapterValueMode = (typeof BAR_VALUE_MODES_CHAINS_BY_ADAPTER)[number]
@@ -48,7 +49,8 @@ const CHAINS_BY_ADAPTER_TREEMAP_HEIGHT = '520px'
 const CHART_KIND_OPTIONS = [
 	{ key: 'Bar', name: 'Bar Chart' },
 	{ key: 'Line', name: 'Line Chart' },
-	{ key: 'Treemap', name: 'Treemap Chart' }
+	{ key: 'Treemap', name: 'Treemap Chart' },
+	{ key: 'HBar', name: 'HBar Chart' }
 ] as const
 const BAR_VALUE_MODE_OPTIONS = [
 	{ key: 'Absolute', name: 'Absolute ($)' },
@@ -92,6 +94,14 @@ function getChartKindQueryUpdate(
 				barLayout: undefined,
 				groupBy: undefined
 			}
+		case 'HBar':
+			return {
+				chartKind: 'hbar',
+				chartType: undefined,
+				valueMode: undefined,
+				barLayout: undefined,
+				groupBy: undefined
+			}
 		default:
 			return assertNever(nextChartKind)
 	}
@@ -103,6 +113,7 @@ function getChartHeight(chartState: ChainsByAdapterChartState): string {
 		case 'line':
 			return CHAINS_BY_ADAPTER_CHART_HEIGHT
 		case 'treemap':
+		case 'hbar':
 			return CHAINS_BY_ADAPTER_TREEMAP_HEIGHT
 		default:
 			return assertNever(chartState)
@@ -533,6 +544,12 @@ export const ChainsByAdapterChart = ({
 				title: `${chartBaseTitle} - Treemap (Latest)`
 			}
 		}
+		if (chartState.chartKind === 'hbar') {
+			return {
+				filename: `${slug(chartName)}-by-chain-hbar-latest`,
+				title: `${chartBaseTitle} - HBar (Latest)`
+			}
+		}
 
 		return {
 			filename: `${slug(chartName)}-by-chain-bar-${chartState.valueMode}-${chartState.barLayout}-${chartState.groupBy}`,
@@ -545,6 +562,7 @@ export const ChainsByAdapterChart = ({
 	const multiSeriesChartOptions = React.useMemo(() => {
 		switch (deferredChartPresentation.kind) {
 			case 'treemap':
+			case 'hbar':
 				return undefined
 			case 'bar': {
 				const baseOptions =
@@ -596,13 +614,21 @@ export const ChainsByAdapterChart = ({
 	}, [deferredChartPresentation])
 
 	const chartKindLabel =
-		chartState.chartKind === 'treemap' ? 'Treemap Chart' : chartState.chartKind === 'line' ? 'Line Chart' : 'Bar Chart'
+		chartState.chartKind === 'treemap'
+			? 'Treemap Chart'
+			: chartState.chartKind === 'hbar'
+				? 'HBar Chart'
+				: chartState.chartKind === 'line'
+					? 'Line Chart'
+					: 'Bar Chart'
 	const barValueModeLabel =
 		chartState.chartKind === 'bar' ? (chartState.valueMode === 'relative' ? 'Relative (%)' : 'Absolute ($)') : null
 	const barLayoutLabel =
 		chartState.chartKind === 'bar' ? (chartState.barLayout === 'separate' ? 'Separate' : 'Stacked') : null
 	const chartHeight = getChartHeight(chartState)
-	const canExportChart = deferredChartPresentation.kind !== 'treemap' || deferredChartPresentation.data.length > 0
+	const canExportChart =
+		(deferredChartPresentation.kind !== 'treemap' && deferredChartPresentation.kind !== 'hbar') ||
+		deferredChartPresentation.data.length > 0
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -610,7 +636,13 @@ export const ChainsByAdapterChart = ({
 				<Select
 					allValues={CHART_KIND_OPTIONS as any}
 					selectedValues={
-						chartState.chartKind === 'treemap' ? 'Treemap' : chartState.chartKind === 'line' ? 'Line' : 'Bar'
+						chartState.chartKind === 'treemap'
+							? 'Treemap'
+							: chartState.chartKind === 'hbar'
+								? 'HBar'
+								: chartState.chartKind === 'line'
+									? 'Line'
+									: 'Bar'
 					}
 					setSelectedValues={(value: string) => onChangeChartKind(value as ChainsByAdapterChartKind)}
 					label={chartKindLabel}
@@ -637,7 +669,7 @@ export const ChainsByAdapterChart = ({
 						variant="filter"
 					/>
 				) : null}
-				{chartState.chartKind !== 'treemap' ? (
+				{chartState.chartKind !== 'treemap' && chartState.chartKind !== 'hbar' ? (
 					<ChartGroupingSelector
 						value={chartState.groupBy}
 						onValueChange={onChangeChartInterval}
@@ -676,6 +708,15 @@ export const ChainsByAdapterChart = ({
 			>
 				{deferredChartPresentation.kind === 'treemap' ? (
 					<TreeMapBuilderChart data={deferredChartPresentation.data} height={chartHeight} onReady={handleChartReady} />
+				) : deferredChartPresentation.kind === 'hbar' ? (
+					<HBarChart
+						categories={deferredChartPresentation.data.map((item) => item.name)}
+						values={deferredChartPresentation.data.map((item) => item.value)}
+						colors={deferredChartPresentation.data.map((item) => item.itemStyle.color)}
+						height={chartHeight}
+						valueSymbol="$"
+						onReady={handleChartReady}
+					/>
 				) : (
 					<MultiSeriesChart2
 						dataset={deferredChartPresentation.dataset}

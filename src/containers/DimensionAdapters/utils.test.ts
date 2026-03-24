@@ -80,6 +80,15 @@ describe('normalizeChainsByAdapterChartState', () => {
 				groupByParam: 'yearly'
 			})
 		).toEqual({ chartKind: 'line', groupBy: 'yearly' })
+
+		expect(
+			normalizeChainsByAdapterChartState({
+				chartKindParam: 'hbar',
+				valueModeParam: 'relative',
+				barLayoutParam: 'separate',
+				groupByParam: 'monthly'
+			})
+		).toEqual({ chartKind: 'hbar' })
 	})
 })
 
@@ -203,5 +212,47 @@ describe('buildChainsByAdapterChartPresentation', () => {
 		expect(presentation.data[0].share).toBe(60)
 		expect(presentation.data[1].value).toBe(40)
 		expect(presentation.data[1].share).toBe(40)
+	})
+
+	it('builds hbar data from the latest-value ranking and groups overflow into Others', () => {
+		const extendedChainRows = [
+			{ name: 'Chain 1', logo: '', total24h: 100, total7d: null, total30d: null },
+			{ name: 'Chain 2', logo: '', total24h: 90, total7d: null, total30d: null },
+			{ name: 'Chain 3', logo: '', total24h: 80, total7d: null, total30d: null },
+			{ name: 'Chain 4', logo: '', total24h: 70, total7d: null, total30d: null },
+			{ name: 'Chain 5', logo: '', total24h: 60, total7d: null, total30d: null },
+			{ name: 'Chain 6', logo: '', total24h: 50, total7d: null, total30d: null },
+			{ name: 'Chain 7', logo: '', total24h: 40, total7d: null, total30d: null },
+			{ name: 'Chain 8', logo: '', total24h: 30, total7d: null, total30d: null },
+			{ name: 'Chain 9', logo: '', total24h: 20, total7d: null, total30d: null },
+			{ name: 'Chain 10', logo: '', total24h: 10, total7d: null, total30d: null },
+			{ name: 'Chain 11', logo: '', total24h: 5, total7d: null, total30d: null }
+		]
+		const presentation = buildChainsByAdapterChartPresentation({
+			chartData: baseChartData,
+			selectedChains: extendedChainRows.map((row) => row.name),
+			state: { chartKind: 'hbar' },
+			latestChainRows: extendedChainRows
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data.map((item) => item.name)).toEqual([
+			'Chain 1',
+			'Chain 2',
+			'Chain 3',
+			'Chain 4',
+			'Chain 5',
+			'Chain 6',
+			'Chain 7',
+			'Chain 8',
+			'Chain 9',
+			'Others'
+		])
+		expect(presentation.data[0].value).toBe(100)
+		expect(presentation.data[8].value).toBe(20)
+		expect(presentation.data[9].value).toBe(15)
+		expect(presentation.data[9].share).toBeCloseTo((15 / 555) * 100)
 	})
 })
