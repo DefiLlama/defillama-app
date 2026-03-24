@@ -243,7 +243,7 @@ export function buildAdapterByChainChartDataset({
 	}
 }
 
-export type ChainsByAdapterChartKind = 'bar' | 'line' | 'treemap'
+export type ChainsByAdapterChartKind = 'bar' | 'line' | 'treemap' | 'hbar'
 export type ChainsByAdapterValueMode = 'absolute' | 'relative'
 export type ChainsByAdapterBarLayout = 'stacked' | 'separate'
 
@@ -261,8 +261,11 @@ export type ChainsByAdapterChartState =
 	| {
 			chartKind: 'treemap'
 	  }
+	| {
+			chartKind: 'hbar'
+	  }
 
-export type ChainsByAdapterTreemapDatum = {
+export type ChainsByAdapterLatestValueDatum = {
 	name: string
 	value: number
 	share: number
@@ -288,16 +291,23 @@ type ChainsByAdapterLinePresentation = {
 
 type ChainsByAdapterTreemapPresentation = {
 	kind: 'treemap'
-	data: ChainsByAdapterTreemapDatum[]
+	data: ChainsByAdapterLatestValueDatum[]
+}
+
+type ChainsByAdapterHBarPresentation = {
+	kind: 'hbar'
+	data: ChainsByAdapterLatestValueDatum[]
 }
 
 export type ChainsByAdapterChartPresentation =
 	| ChainsByAdapterBarPresentation
 	| ChainsByAdapterLinePresentation
 	| ChainsByAdapterTreemapPresentation
+	| ChainsByAdapterHBarPresentation
 
 const DEFAULT_CHAINS_BY_ADAPTER_GROUP_BY: ChartTimeGrouping = 'daily'
 const VALID_BAR_GROUPINGS = new Set<ChartTimeGrouping>(['daily', 'weekly', 'monthly', 'quarterly', 'yearly'])
+const MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS = 9
 
 function toValidChartGrouping(value: string | undefined | null): ChartTimeGrouping | null {
 	if (!value) return null
@@ -331,6 +341,9 @@ export function normalizeChainsByAdapterChartState({
 	}
 	if (normalizedChartKind === 'treemap') {
 		return { chartKind: 'treemap' }
+	}
+	if (normalizedChartKind === 'hbar') {
+		return { chartKind: 'hbar' }
 	}
 	if (legacyChartTypeParam?.toLowerCase() === 'dominance') {
 		return {
@@ -553,7 +566,7 @@ function buildTreemapPresentation({
 }: {
 	selectedChains: string[]
 	latestChainRows: IChainsByAdapterPageData['chains']
-}): ChainsByAdapterTreemapPresentation {
+}): ChainsByAdapterLatestValueDatum[] {
 	const latestValuesByChain = new Map<string, number>()
 	for (const row of latestChainRows) {
 		const value = row.total24h
@@ -577,16 +590,46 @@ function buildTreemapPresentation({
 	const total = values.reduce((sum, item) => sum + item.value, 0)
 	const colors = getNDistinctColors(values.length || 1)
 
-	return {
-		kind: 'treemap',
-		data: values.map((item, index) => ({
-			...item,
-			share: total > 0 ? (item.value / total) * 100 : 0,
-			itemStyle: {
-				color: colors[index]
-			}
-		}))
+	return values.map((item, index) => ({
+		...item,
+		share: total > 0 ? (item.value / total) * 100 : 0,
+		itemStyle: {
+			color: colors[index]
+		}
+	}))
+}
+
+function buildHBarPresentation({
+	selectedChains,
+	latestChainRows
+}: {
+	selectedChains: string[]
+	latestChainRows: IChainsByAdapterPageData['chains']
+}): ChainsByAdapterLatestValueDatum[] {
+	const rankedValues = buildTreemapPresentation({ selectedChains, latestChainRows })
+
+	if (rankedValues.length <= MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS) {
+		return rankedValues
 	}
+
+	const topValues = rankedValues.slice(0, MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS)
+	const othersValue = rankedValues.slice(MAX_CHAINS_BY_ADAPTER_HBAR_ITEMS).reduce((sum, item) => sum + item.value, 0)
+
+	if (othersValue <= 0) {
+		return topValues
+	}
+
+	const limitedValues = [...topValues, { name: 'Others', value: othersValue }]
+	const total = limitedValues.reduce((sum, item) => sum + item.value, 0)
+	const colors = getNDistinctColors(limitedValues.length)
+
+	return limitedValues.map((item, index) => ({
+		...item,
+		share: total > 0 ? (item.value / total) * 100 : 0,
+		itemStyle: {
+			color: colors[index]
+		}
+	}))
 }
 
 export function buildChainsByAdapterChartPresentation({
@@ -601,7 +644,17 @@ export function buildChainsByAdapterChartPresentation({
 	latestChainRows: IChainsByAdapterPageData['chains']
 }): ChainsByAdapterChartPresentation {
 	if (state.chartKind === 'treemap') {
-		return buildTreemapPresentation({ selectedChains, latestChainRows })
+		return {
+			kind: 'treemap',
+			data: buildTreemapPresentation({ selectedChains, latestChainRows })
+		}
+	}
+
+	if (state.chartKind === 'hbar') {
+		return {
+			kind: 'hbar',
+			data: buildHBarPresentation({ selectedChains, latestChainRows })
+		}
 	}
 
 	const { topSeries, topSeriesNames, topColorByChain } = createSeriesUniverse({ chartData, selectedChains })
