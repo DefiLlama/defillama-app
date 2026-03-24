@@ -99,6 +99,19 @@ function aggregateMetricRows(
 	return out
 }
 
+function buildAggregatedRwaDataset(
+	rows: IRWAChartMetricRows,
+	tickerToGroups: Map<string, Map<string, number>>
+): RWAChartDataset {
+	const seenGroups = new Set<string>()
+	const source = aggregateMetricRows(rows, tickerToGroups, seenGroups)
+
+	return {
+		source,
+		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenGroups)]
+	}
+}
+
 export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
 	if (arr.length === 0) return arr
@@ -133,27 +146,10 @@ export function aggregateRwaChartData(
 ): RWAChartDatasetsByMetric {
 	const tickerToGroups = buildTickerGroupMapping(assets, mode)
 
-	const seenOnChain = new Set<string>()
-	const seenActive = new Set<string>()
-	const seenDefi = new Set<string>()
-
-	const onChainMcap = aggregateMetricRows(chartDataByTicker.onChainMcap, tickerToGroups, seenOnChain)
-	const activeMcap = aggregateMetricRows(chartDataByTicker.activeMcap, tickerToGroups, seenActive)
-	const defiActiveTvl = aggregateMetricRows(chartDataByTicker.defiActiveTvl, tickerToGroups, seenDefi)
-
 	return {
-		onChainMcap: {
-			source: onChainMcap,
-			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
-		},
-		activeMcap: {
-			source: activeMcap,
-			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
-		},
-		defiActiveTvl: {
-			source: defiActiveTvl,
-			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
-		}
+		onChainMcap: buildAggregatedRwaDataset(chartDataByTicker.onChainMcap, tickerToGroups),
+		activeMcap: buildAggregatedRwaDataset(chartDataByTicker.activeMcap, tickerToGroups),
+		defiActiveTvl: buildAggregatedRwaDataset(chartDataByTicker.defiActiveTvl, tickerToGroups)
 	}
 }
 
@@ -163,13 +159,7 @@ export function aggregateRwaMetricData(
 	mode: RWAChartAggregationMode
 ): RWAChartDataset {
 	const tickerToGroups = buildTickerGroupMapping(assets, mode)
-	const seenGroups = new Set<string>()
-	const source = aggregateMetricRows(rows, tickerToGroups, seenGroups)
-
-	return {
-		source,
-		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenGroups)]
-	}
+	return buildAggregatedRwaDataset(rows, tickerToGroups)
 }
 
 /**

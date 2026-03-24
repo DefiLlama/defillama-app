@@ -59,6 +59,7 @@ const MultiSeriesChart2 = lazy(
 ) as React.FC<IMultiSeriesChart2Props>
 const HBarChart = lazy(() => import('~/components/ECharts/HBarChart')) as React.FC<IHBarChartProps>
 const TreemapChart = lazy(() => import('~/components/ECharts/TreemapChart')) as React.FC<ITreemapChartProps>
+const EMPTY_INITIAL_CHART_DATASET = emptyChartDatasets()
 
 export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const router = useRouter()
@@ -171,7 +172,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		})
 
 	const activeFilters = hasActiveChartFilters(router.query)
-	const initialChartDataset = props.initialChartDataset ?? emptyChartDatasets()
+	const initialChartDataset = props.initialChartDataset ?? EMPTY_INITIAL_CHART_DATASET
 	const chartTarget = getTickerChartTarget(props)
 	const { chartDataset, isChartLoading, chartError } = useRwaChartDataset({
 		selectedMetric: chartTypeKey,
