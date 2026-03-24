@@ -297,14 +297,15 @@ describe('buildAdapterByChainChartPresentation', () => {
 	it('builds relative separate bars from selected protocol breakdown series', () => {
 		const presentation = buildAdapterByChainChartPresentation({
 			chartData: adapterBreakdownChartData,
-			selectedProtocols: ['Hyperliquid Perps', 'dYdX'],
+			selectedBreakdownProtocols: ['Hyperliquid Perps', 'dYdX'],
 			state: {
 				chartKind: 'bar',
 				valueMode: 'relative',
 				barLayout: 'separate',
 				groupBy: 'daily'
 			},
-			protocols: adapterProtocols
+			protocols: adapterProtocols,
+			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX']
 		})
 
 		expect(presentation.kind).toBe('bar')
@@ -318,12 +319,13 @@ describe('buildAdapterByChainChartPresentation', () => {
 		])
 	})
 
-	it('builds treemap data from top-level table rows when child breakdown protocols are selected', () => {
+	it('builds treemap data from selected top-level table rows only', () => {
 		const presentation = buildAdapterByChainChartPresentation({
 			chartData: adapterBreakdownChartData,
-			selectedProtocols: ['Hyperliquid Perps', 'dYdX', 'Unknown'],
+			selectedBreakdownProtocols: ['Hyperliquid Perps', 'dYdX', 'Unknown'],
 			state: { chartKind: 'treemap' },
-			protocols: adapterProtocols
+			protocols: adapterProtocols,
+			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX']
 		})
 
 		expect(presentation.kind).toBe('treemap')
@@ -332,6 +334,21 @@ describe('buildAdapterByChainChartPresentation', () => {
 		expect(presentation.data.map((item) => item.name)).toEqual(['Hyperliquid', 'dYdX'])
 		expect(presentation.data[0].value).toBe(70)
 		expect(presentation.data[1].value).toBe(30)
+	})
+
+	it('does not fall back to child-only breakdown names for latest-value charts', () => {
+		const presentation = buildAdapterByChainChartPresentation({
+			chartData: adapterBreakdownChartData,
+			selectedBreakdownProtocols: ['Hyperliquid Perps'],
+			state: { chartKind: 'hbar' },
+			protocols: [makeProtocolRow('Hyperliquid', 70), makeProtocolRow('dYdX', 30), makeProtocolRow('GMX', 10)],
+			selectedLatestValueProtocols: []
+		})
+
+		expect(presentation.kind).toBe('hbar')
+		if (presentation.kind !== 'hbar') return
+
+		expect(presentation.data).toEqual([])
 	})
 
 	it('builds hbar data from selected protocols and groups overflow into Others', () => {
@@ -350,9 +367,10 @@ describe('buildAdapterByChainChartPresentation', () => {
 
 		const presentation = buildAdapterByChainChartPresentation({
 			chartData: manyProtocolChartData,
-			selectedProtocols: manyProtocols.map((protocol) => protocol.name),
+			selectedBreakdownProtocols: manyProtocols.map((protocol) => protocol.name),
 			state: { chartKind: 'hbar' },
-			protocols: manyProtocols
+			protocols: manyProtocols,
+			selectedLatestValueProtocols: manyProtocols.map((protocol) => protocol.name)
 		})
 
 		expect(presentation.kind).toBe('hbar')
@@ -362,13 +380,13 @@ describe('buildAdapterByChainChartPresentation', () => {
 		expect(presentation.data.at(-1)?.value).toBe(30)
 	})
 
-	it('uses all top-level table protocols for latest-value charts when the full breakdown selector is active', () => {
+	it('uses the selected top-level latest-value protocols directly', () => {
 		const presentation = buildAdapterByChainChartPresentation({
 			chartData: adapterBreakdownChartData,
-			selectedProtocols: ['Hyperliquid Perps', 'dYdX', 'GMX'],
+			selectedBreakdownProtocols: ['Hyperliquid Perps', 'Hyperliquid Spot', 'dYdX', 'GMX'],
 			state: { chartKind: 'hbar' },
 			protocols: adapterProtocols,
-			useAllProtocolsForLatestValueCharts: true
+			selectedLatestValueProtocols: ['Hyperliquid', 'dYdX', 'GMX']
 		})
 
 		expect(presentation.kind).toBe('hbar')

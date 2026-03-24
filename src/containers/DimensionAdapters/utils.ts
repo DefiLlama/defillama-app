@@ -675,17 +675,6 @@ function getAdapterByChainLatestProtocolRows(protocols: IProtocol[]): BreakdownL
 	return protocols.map((protocol) => ({ name: protocol.name, total24h: protocol.total24h }))
 }
 
-function getAdapterByChainSelectedLatestProtocolNames(protocols: IProtocol[], selectedProtocols: string[]): string[] {
-	const selectedProtocolsSet = new Set(selectedProtocols)
-
-	return protocols
-		.filter((protocol) => {
-			if (selectedProtocolsSet.has(protocol.name)) return true
-			return protocol.childProtocols?.some((childProtocol) => selectedProtocolsSet.has(childProtocol.name)) ?? false
-		})
-		.map((protocol) => protocol.name)
-}
-
 export function buildChainsByAdapterChartPresentation({
 	chartData,
 	selectedChains,
@@ -707,22 +696,23 @@ export function buildChainsByAdapterChartPresentation({
 
 export function buildAdapterByChainChartPresentation({
 	chartData,
-	selectedProtocols,
+	selectedBreakdownProtocols,
 	state,
 	protocols,
-	useAllProtocolsForLatestValueCharts = false
+	selectedLatestValueProtocols
 }: {
 	chartData: MultiSeriesChart2Dataset
-	selectedProtocols: string[]
+	selectedBreakdownProtocols: string[]
 	state: ChainsByAdapterChartState
 	protocols: IProtocol[]
-	useAllProtocolsForLatestValueCharts?: boolean
+	selectedLatestValueProtocols: string[]
 }): ChainsByAdapterChartPresentation {
 	if (state.chartKind === 'treemap' || state.chartKind === 'hbar') {
-		const selectedLatestProtocolNames = useAllProtocolsForLatestValueCharts
-			? protocols.map((protocol) => protocol.name)
-			: getAdapterByChainSelectedLatestProtocolNames(protocols, selectedProtocols)
-		const latestRows = getAdapterByChainLatestProtocolRows(protocols)
+		const selectedLatestValueProtocolsSet = new Set(selectedLatestValueProtocols)
+		const latestRows = getAdapterByChainLatestProtocolRows(protocols).filter((row) =>
+			selectedLatestValueProtocolsSet.has(row.name)
+		)
+		const selectedLatestProtocolNames = latestRows.map((row) => row.name)
 
 		return state.chartKind === 'treemap'
 			? {
@@ -737,7 +727,7 @@ export function buildAdapterByChainChartPresentation({
 
 	return buildBreakdownChartPresentation({
 		chartData,
-		selectedEntities: selectedProtocols,
+		selectedEntities: selectedBreakdownProtocols,
 		state,
 		latestRows: getAdapterByChainLatestProtocolRows(protocols)
 	})

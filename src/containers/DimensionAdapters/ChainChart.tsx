@@ -174,7 +174,7 @@ export const AdapterByChainChart = ({
 			enabled: chartViewMode === 'Breakdown'
 		})
 
-	const selectedProtocols = React.useMemo(() => {
+	const selectedBreakdownProtocols = React.useMemo(() => {
 		if (chartViewMode !== 'Breakdown' || breakdownProtocolDimensions.length === 0) return []
 		const protocolsQuery = router.query.chartProtocols
 		const excludeProtocolsQuery = router.query.excludeChartProtocols
@@ -188,14 +188,21 @@ export const AdapterByChainChart = ({
 			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
 			: baseSelectedProtocols
 	}, [chartViewMode, breakdownProtocolDimensions, router.query.chartProtocols, router.query.excludeChartProtocols])
-	const areAllBreakdownProtocolsSelected = React.useMemo(() => {
-		if (chartViewMode !== 'Breakdown') return false
-		if (breakdownProtocolDimensions.length === 0) return false
-		if (selectedProtocols.length !== breakdownProtocolDimensions.length) return false
+	const latestValueProtocolDimensions = React.useMemo(() => protocols.map((protocol) => protocol.name), [protocols])
+	const selectedLatestValueProtocols = React.useMemo(() => {
+		if (chartViewMode !== 'Breakdown' || latestValueProtocolDimensions.length === 0) return []
+		const protocolsQuery = router.query.latestProtocols
+		const excludeProtocolsQuery = router.query.excludeLatestProtocols
+		const excludedProtocolsSet = parseExcludeParam(excludeProtocolsQuery)
+		const baseSelectedProtocols =
+			protocolsQuery != null
+				? parseArrayParam(protocolsQuery, latestValueProtocolDimensions)
+				: latestValueProtocolDimensions
 
-		const selectedProtocolsSet = new Set(selectedProtocols)
-		return breakdownProtocolDimensions.every((protocolName) => selectedProtocolsSet.has(protocolName))
-	}, [chartViewMode, breakdownProtocolDimensions, selectedProtocols])
+		return excludedProtocolsSet.size > 0
+			? baseSelectedProtocols.filter((protocolName) => !excludedProtocolsSet.has(protocolName))
+			: baseSelectedProtocols
+	}, [chartViewMode, latestValueProtocolDimensions, router.query.latestProtocols, router.query.excludeLatestProtocols])
 
 	const onChangeCombinedChartInterval = (nextInterval: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: nextInterval === 'daily' ? undefined : nextInterval })
@@ -314,12 +321,12 @@ export const AdapterByChainChart = ({
 		() =>
 			buildAdapterByChainChartPresentation({
 				chartData: breakdownChartData ?? EMPTY_DATASET,
-				selectedProtocols,
+				selectedBreakdownProtocols,
 				state: breakdownChartState,
 				protocols,
-				useAllProtocolsForLatestValueCharts: areAllBreakdownProtocolsSelected
+				selectedLatestValueProtocols
 			}),
-		[areAllBreakdownProtocolsSelected, breakdownChartData, breakdownChartState, protocols, selectedProtocols]
+		[breakdownChartData, breakdownChartState, protocols, selectedBreakdownProtocols, selectedLatestValueProtocols]
 	)
 	const deferredBreakdownPresentation = React.useDeferredValue(breakdownPresentation)
 
@@ -476,9 +483,9 @@ export const AdapterByChainChart = ({
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
+			<div className="flex flex-row flex-wrap items-center justify-start gap-2 p-2 pb-0">
 				<Select
-					allValues={CHART_VIEW_MODE_OPTIONS as any}
+					allValues={CHART_VIEW_MODE_OPTIONS}
 					selectedValues={chartViewMode}
 					setSelectedValues={(value: string) => onChangeChartViewMode(value as AdapterByChainViewMode)}
 					label={chartViewMode}
@@ -487,7 +494,7 @@ export const AdapterByChainChart = ({
 				/>
 				{chartViewMode === 'Breakdown' ? (
 					<Select
-						allValues={CHART_KIND_OPTIONS as any}
+						allValues={CHART_KIND_OPTIONS}
 						selectedValues={
 							breakdownChartState.chartKind === 'treemap'
 								? 'Treemap'
@@ -505,7 +512,7 @@ export const AdapterByChainChart = ({
 				) : null}
 				{chartViewMode === 'Breakdown' && breakdownChartState.chartKind === 'bar' ? (
 					<Select
-						allValues={BAR_VALUE_MODE_OPTIONS as any}
+						allValues={BAR_VALUE_MODE_OPTIONS}
 						selectedValues={breakdownChartState.valueMode === 'relative' ? 'Relative' : 'Absolute'}
 						setSelectedValues={(value: string) => onChangeValueMode(value as ChainsByAdapterValueMode)}
 						label={breakdownBarValueModeLabel ?? 'Absolute'}
@@ -515,7 +522,7 @@ export const AdapterByChainChart = ({
 				) : null}
 				{chartViewMode === 'Breakdown' && breakdownChartState.chartKind === 'bar' ? (
 					<Select
-						allValues={BAR_LAYOUT_OPTIONS as any}
+						allValues={BAR_LAYOUT_OPTIONS}
 						selectedValues={breakdownChartState.barLayout === 'separate' ? 'Separate' : 'Stacked'}
 						setSelectedValues={(value: string) => onChangeBarLayout(value as ChainsByAdapterBarLayout)}
 						label={breakdownBarLayoutLabel ?? 'Stacked'}
@@ -539,38 +546,55 @@ export const AdapterByChainChart = ({
 						options={DWMC_GROUPING_OPTIONS_LOWERCASE}
 					/>
 				) : null}
-				{chartViewMode === 'Combined' && chain ? (
-					<AddToDashboardButton chartConfig={multiChart} smol className="ml-auto" />
-				) : null}
-				{chartViewMode === 'Breakdown' && breakdownProtocolDimensions.length > 0 ? (
-					<SelectWithCombobox
-						allValues={breakdownProtocolDimensions}
-						selectedValues={selectedProtocols}
-						includeQueryKey="chartProtocols"
-						excludeQueryKey="excludeChartProtocols"
-						defaultSelectedValues={breakdownProtocolDimensions}
-						label="Protocols"
-						labelType="smol"
-						variant="filter"
-						portal
-						triggerProps={{ style: { marginLeft: 'auto' } }}
-					/>
-				) : null}
-				{chartViewMode === 'Breakdown' ? (
-					canExportBreakdownChart ? (
+				{chartViewMode === 'Combined' && chain ? <AddToDashboardButton chartConfig={multiChart} smol /> : null}
+				<div className="ml-auto flex items-center justify-end gap-2">
+					{chartViewMode === 'Breakdown' &&
+					breakdownChartState.chartKind !== 'treemap' &&
+					breakdownChartState.chartKind !== 'hbar' &&
+					breakdownProtocolDimensions.length > 0 ? (
+						<SelectWithCombobox
+							allValues={breakdownProtocolDimensions}
+							selectedValues={selectedBreakdownProtocols}
+							includeQueryKey="chartProtocols"
+							excludeQueryKey="excludeChartProtocols"
+							defaultSelectedValues={breakdownProtocolDimensions}
+							label="Protocols"
+							labelType="smol"
+							variant="filter"
+							portal
+						/>
+					) : null}
+					{chartViewMode === 'Breakdown' &&
+					(breakdownChartState.chartKind === 'treemap' || breakdownChartState.chartKind === 'hbar') &&
+					latestValueProtocolDimensions.length > 0 ? (
+						<SelectWithCombobox
+							allValues={latestValueProtocolDimensions}
+							selectedValues={selectedLatestValueProtocols}
+							includeQueryKey="latestProtocols"
+							excludeQueryKey="excludeLatestProtocols"
+							defaultSelectedValues={latestValueProtocolDimensions}
+							label="Protocols"
+							labelType="smol"
+							variant="filter"
+							portal
+						/>
+					) : null}
+					{chartViewMode === 'Breakdown' ? (
+						canExportBreakdownChart ? (
+							<ChartExportButtons
+								chartInstance={exportChartInstance}
+								filename={breakdownExportConfig.filename}
+								title={breakdownExportConfig.title}
+							/>
+						) : null
+					) : (
 						<ChartExportButtons
 							chartInstance={exportChartInstance}
-							filename={breakdownExportConfig.filename}
-							title={breakdownExportConfig.title}
+							filename={`${chain}-${adapterType}-${chartName}`}
+							title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
 						/>
-					) : null
-				) : (
-					<ChartExportButtons
-						chartInstance={exportChartInstance}
-						filename={`${chain}-${adapterType}-${chartName}`}
-						title={`${chain === 'All' ? 'All Chains' : chain} - ${chartName}`}
-					/>
-				)}
+					)}
+				</div>
 			</div>
 			{chartViewMode === 'Breakdown' && breakdownError ? (
 				<p className="flex min-h-[360px] items-center justify-center text-xs text-(--error)">{breakdownError}</p>
@@ -881,9 +905,9 @@ export const ChainsByAdapterChart = ({
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-			<div className="flex flex-row flex-wrap items-center justify-end gap-2 p-2 pb-0">
+			<div className="flex flex-row flex-wrap items-center justify-start gap-2 p-2 pb-0">
 				<Select
-					allValues={CHART_KIND_OPTIONS as any}
+					allValues={CHART_KIND_OPTIONS}
 					selectedValues={
 						chartState.chartKind === 'treemap'
 							? 'Treemap'
@@ -900,7 +924,7 @@ export const ChainsByAdapterChart = ({
 				/>
 				{chartState.chartKind === 'bar' ? (
 					<Select
-						allValues={BAR_VALUE_MODE_OPTIONS as any}
+						allValues={BAR_VALUE_MODE_OPTIONS}
 						selectedValues={chartState.valueMode === 'relative' ? 'Relative' : 'Absolute'}
 						setSelectedValues={(value: string) => onChangeValueMode(value as ChainsByAdapterValueMode)}
 						label={barValueModeLabel ?? 'Absolute'}
@@ -910,7 +934,7 @@ export const ChainsByAdapterChart = ({
 				) : null}
 				{chartState.chartKind === 'bar' ? (
 					<Select
-						allValues={BAR_LAYOUT_OPTIONS as any}
+						allValues={BAR_LAYOUT_OPTIONS}
 						selectedValues={chartState.barLayout === 'separate' ? 'Separate' : 'Stacked'}
 						setSelectedValues={(value: string) => onChangeBarLayout(value as ChainsByAdapterBarLayout)}
 						label={barLayoutLabel ?? 'Stacked'}
@@ -925,25 +949,26 @@ export const ChainsByAdapterChart = ({
 						options={DWM_GROUPING_OPTIONS_LOWERCASE}
 					/>
 				) : null}
-				<SelectWithCombobox
-					allValues={allChains}
-					selectedValues={selectedChains}
-					includeQueryKey="chains"
-					excludeQueryKey="excludeChains"
-					defaultSelectedValues={allChains}
-					label="Chains"
-					labelType="smol"
-					variant="filter"
-					triggerProps={{ style: { marginLeft: 'auto' } }}
-					portal
-				/>
-				{canExportChart ? (
-					<ChartExportButtons
-						chartInstance={exportChartInstance}
-						filename={exportConfig.filename}
-						title={exportConfig.title}
+				<div className="ml-auto flex items-center justify-end gap-2">
+					<SelectWithCombobox
+						allValues={allChains}
+						selectedValues={selectedChains}
+						includeQueryKey="chains"
+						excludeQueryKey="excludeChains"
+						defaultSelectedValues={allChains}
+						label="Chains"
+						labelType="smol"
+						variant="filter"
+						portal
 					/>
-				) : null}
+					{canExportChart ? (
+						<ChartExportButtons
+							chartInstance={exportChartInstance}
+							filename={exportConfig.filename}
+							title={exportConfig.title}
+						/>
+					) : null}
+				</div>
 			</div>
 			<React.Suspense
 				fallback={
