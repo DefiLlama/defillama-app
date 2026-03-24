@@ -46,13 +46,6 @@ const columns = [
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 148
 	}),
-	columnHelper.accessor('defiActiveTvl', {
-		id: 'defiActiveTvl',
-		header: definitions.totalDefiActiveTvl.label,
-		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 148
-	}),
 	columnHelper.accessor('activeMcap', {
 		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
@@ -66,6 +59,13 @@ const columns = [
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
+	}),
+	columnHelper.accessor('defiActiveTvl', {
+		id: 'defiActiveTvl',
+		header: definitions.totalDefiActiveTvl.label,
+		cell: (info) => formattedNum(info.getValue(), true),
+		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
+		size: 148
 	})
 ]
 
@@ -95,7 +95,7 @@ export function RWACategoriesTable({
 				headingAs="h1"
 				columnSizes={columnSizes}
 				csvFileName="rwa-categories"
-				sortingState={[{ id: 'onChainMcap', desc: true }]}
+				sortingState={[{ id: 'activeMcap', desc: true }]}
 			/>
 		</div>
 	)

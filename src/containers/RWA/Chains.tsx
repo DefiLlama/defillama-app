@@ -61,13 +61,6 @@ const columns = [
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 148
 	}),
-	columnHelper.accessor('totalDefiActiveTvl', {
-		id: 'totalDefiActiveTvl',
-		header: definitions.totalDefiActiveTvl.label,
-		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 148
-	}),
 	columnHelper.accessor('totalActiveMcap', {
 		id: 'totalActiveMcap',
 		header: definitions.totalActiveMcap.label,
@@ -81,6 +74,13 @@ const columns = [
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
+	}),
+	columnHelper.accessor('totalDefiActiveTvl', {
+		id: 'totalDefiActiveTvl',
+		header: definitions.totalDefiActiveTvl.label,
+		cell: (info) => formattedNum(info.getValue(), true),
+		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
+		size: 148
 	})
 ]
 
@@ -215,7 +215,7 @@ export function RWAChainsTable({
 				headingAs="h1"
 				columnSizes={columnSizes}
 				csvFileName={csvFileName}
-				sortingState={[{ id: 'totalOnChainMcap', desc: true }]}
+				sortingState={[{ id: 'totalActiveMcap', desc: true }]}
 			/>
 		</div>
 	)
