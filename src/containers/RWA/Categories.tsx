@@ -1,9 +1,10 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
-import type { IRWABreakdownDatasetsByMetric, IRWACategoriesOverviewRow } from './api.types'
+import type { IRWACategoriesOverviewRow, RWAOverviewPage } from './api.types'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
@@ -45,13 +46,6 @@ const columns = [
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
 		size: 148
 	}),
-	columnHelper.accessor('defiActiveTvl', {
-		id: 'defiActiveTvl',
-		header: definitions.totalDefiActiveTvl.label,
-		cell: (info) => formattedNum(info.getValue(), true),
-		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 148
-	}),
 	columnHelper.accessor('activeMcap', {
 		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
@@ -65,6 +59,13 @@ const columns = [
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
 		size: 168
+	}),
+	columnHelper.accessor('defiActiveTvl', {
+		id: 'defiActiveTvl',
+		header: definitions.totalDefiActiveTvl.label,
+		cell: (info) => formattedNum(info.getValue(), true),
+		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
+		size: 148
 	})
 ]
 
@@ -75,14 +76,16 @@ const columnSizes: ColumnSizesByBreakpoint = {
 
 export function RWACategoriesTable({
 	categories,
-	chartDatasets
+	initialChartDataset,
+	page
 }: {
 	categories: IRWACategoriesOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
+	page: RWAOverviewPage
 }) {
 	return (
 		<div className="flex flex-col gap-2">
-			<RWAOverviewBreakdownChart datasets={chartDatasets} stackLabel="Categories" />
+			<RWAOverviewBreakdownChart page={page} initialChartDataset={initialChartDataset} stackLabel="Categories" />
 			<TableWithSearch
 				data={categories}
 				columns={columns}
@@ -92,7 +95,7 @@ export function RWACategoriesTable({
 				headingAs="h1"
 				columnSizes={columnSizes}
 				csvFileName="rwa-categories"
-				sortingState={[{ id: 'onChainMcap', desc: true }]}
+				sortingState={[{ id: 'activeMcap', desc: true }]}
 			/>
 		</div>
 	)

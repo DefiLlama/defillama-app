@@ -1,4 +1,5 @@
 import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
+import type { RWAParentPlatform } from './grouping'
 
 type RWANumberMap = Record<string, number>
 type RWAContractsByChain = Record<string, string[]>
@@ -33,7 +34,7 @@ export interface IFetchedRWAProject {
 	transferable?: boolean | null
 	selfCustody?: boolean | null
 	descriptionNotes?: string[] | null
-	parentPlatform?: string | null
+	parentPlatform?: RWAParentPlatform
 	stablecoin?: boolean | null
 	governance?: boolean | null
 	defiActiveTvl?: RWATvlByChain | null
@@ -188,19 +189,24 @@ export interface IRWAAssetsOverview {
 }
 
 export type IRWAInitialChartDatasetRow = { timestamp: number } & Record<string, number>
+export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+export type IRWAChartMetricRows = Array<{ timestamp: number } & Record<string, number>>
+export type RWATickerChartTarget =
+	| { kind: 'all' }
+	| { kind: 'chain'; slug: string }
+	| { kind: 'category'; slug: string }
+	| { kind: 'platform'; slug: string }
 
 export type IRWAInitialChartDataset = Record<
-	'onChainMcap' | 'activeMcap' | 'defiActiveTvl',
+	RWAChartMetricKey,
 	{ source: IRWAInitialChartDatasetRow[]; dimensions: string[] }
 >
 
 export interface IRWAChartDataByTicker {
-	onChainMcap: Array<{ timestamp: number } & Record<string, number>>
-	activeMcap: Array<{ timestamp: number } & Record<string, number>>
-	defiActiveTvl: Array<{ timestamp: number } & Record<string, number>>
+	onChainMcap: IRWAChartMetricRows
+	activeMcap: IRWAChartMetricRows
+	defiActiveTvl: IRWAChartMetricRows
 }
-
-export type RWAChartMetricKey = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
 
 export type IRWABreakdownChartRow = { timestamp: number } & Record<string, number>
 
@@ -212,14 +218,11 @@ export type IRWABreakdownChartParams = {
 	includeGovernance?: boolean
 }
 
-export type IRWABreakdownDatasetsByMetric = Record<RWAChartMetricKey, MultiSeriesChart2Dataset>
-
-export type IRWAChainBreakdownDatasetsByToggle = {
-	base: IRWABreakdownDatasetsByMetric
-	includeStablecoin: IRWABreakdownDatasetsByMetric
-	includeGovernance: IRWABreakdownDatasetsByMetric
-	includeStablecoinAndGovernance: IRWABreakdownDatasetsByMetric
-}
+export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind: 'platform' }
+export type RWAOverviewBreakdownRequest =
+	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
+	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
 export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
@@ -227,17 +230,17 @@ export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform
 
 export type IRWAChainsOverview = {
 	rows: IRWAChainsOverviewRow[]
-	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWACategoriesOverview = {
 	rows: IRWACategoriesOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWAPlatformsOverview = {
 	rows: IRWAPlatformsOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export interface IRWAAssetData extends IRWAProject {

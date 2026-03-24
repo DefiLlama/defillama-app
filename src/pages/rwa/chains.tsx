@@ -10,7 +10,7 @@ import { withPerformanceLogging } from '~/utils/perf'
 export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
-	const { rows: chains, chartDatasets } = await getRWAChainsOverview()
+	const { rows: chains, initialChartDataset } = await getRWAChainsOverview()
 
 	if (!chains) {
 		throw new Error('chains not found in RWA list')
@@ -28,7 +28,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
 	return {
 		props: {
 			chains,
-			chartDatasets,
+			initialChartDataset,
 			chainLinks: [{ label: 'All', to: '/rwa/chains' }, ...chainLinks]
 		},
 		revalidate: maxAgeForNext([22])
@@ -37,7 +37,7 @@ export const getStaticProps = withPerformanceLogging(`rwa/chains`, async () => {
 
 const pageName = ['RWA']
 
-export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
+export default function RWAChainsPage({ chains, chainLinks, initialChartDataset }) {
 	return (
 		<Layout
 			title="RWA by Chain - Real World Assets Analytics - DefiLlama"
@@ -47,7 +47,7 @@ export default function RWAChainsPage({ chains, chainLinks, chartDatasets }) {
 		>
 			<RWATabNav active="chains" />
 			<RowLinksWithDropdown links={chainLinks} activeLink={'All'} />
-			<RWAChainsTable chains={chains} chartDatasets={chartDatasets} />
+			<RWAChainsTable chains={chains} initialChartDataset={initialChartDataset} page={{ kind: 'chain' }} />
 		</Layout>
 	)
 }

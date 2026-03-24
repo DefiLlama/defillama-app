@@ -1,8 +1,8 @@
-import type { IRWAAssetsOverview, IRWAChartDataByTicker } from './api.types'
+import type { IRWAAssetsOverview, IRWAChartDataByTicker, IRWAChartMetricRows, RWAChartMetricKey } from './api.types'
 import { isTypeIncludedByDefault, type RWAOverviewMode } from './constants'
-import { computeWeightedGroups } from './grouping'
+import { computeWeightedGroups, getRwaPlatforms } from './grouping'
 
-export type RWAChartMetric = 'onChainMcap' | 'activeMcap' | 'defiActiveTvl'
+export type RWAChartMetric = RWAChartMetricKey
 
 export type RWAChartRow = { timestamp: number } & Record<string, number>
 
@@ -10,7 +10,11 @@ export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
-export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName'
+export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform'
+
+function assertNever(value: never): never {
+	throw new Error(`Unexpected value: ${String(value)}`)
+}
 
 export function emptyChartDataset(): RWAChartDataset {
 	return { source: [], dimensions: ['timestamp'] }
@@ -31,13 +35,23 @@ function buildTickerGroupMapping(
 		if (!ticker) continue
 
 		let weightedGroups: ReturnType<typeof computeWeightedGroups>
-		if (mode === 'category') {
-			weightedGroups = computeWeightedGroups(asset.category)
-		} else if (mode === 'assetClass') {
-			weightedGroups = computeWeightedGroups(asset.assetClass)
-		} else {
-			const name = (asset.assetName || asset.ticker || '').trim()
-			weightedGroups = computeWeightedGroups(name ? [name] : [])
+		switch (mode) {
+			case 'category':
+				weightedGroups = computeWeightedGroups(asset.category)
+				break
+			case 'assetClass':
+				weightedGroups = computeWeightedGroups(asset.assetClass)
+				break
+			case 'assetName': {
+				const name = (asset.assetName || asset.ticker || '').trim()
+				weightedGroups = computeWeightedGroups(name ? [name] : [])
+				break
+			}
+			case 'platform':
+				weightedGroups = computeWeightedGroups(getRwaPlatforms(asset.parentPlatform))
+				break
+			default:
+				assertNever(mode)
 		}
 
 		if (weightedGroups.length === 0) continue
@@ -85,6 +99,19 @@ function aggregateMetricRows(
 	return out
 }
 
+function buildAggregatedRwaDataset(
+	rows: IRWAChartMetricRows,
+	tickerToGroups: Map<string, Map<string, number>>
+): RWAChartDataset {
+	const seenGroups = new Set<string>()
+	const source = aggregateMetricRows(rows, tickerToGroups, seenGroups)
+
+	return {
+		source,
+		dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(source, seenGroups)]
+	}
+}
+
 export function sortKeysByLatestTimestampValue(rows: RWAChartRow[], keys: Iterable<string>): string[] {
 	const arr = Array.from(keys).filter(Boolean)
 	if (arr.length === 0) return arr
@@ -119,28 +146,20 @@ export function aggregateRwaChartData(
 ): RWAChartDatasetsByMetric {
 	const tickerToGroups = buildTickerGroupMapping(assets, mode)
 
-	const seenOnChain = new Set<string>()
-	const seenActive = new Set<string>()
-	const seenDefi = new Set<string>()
-
-	const onChainMcap = aggregateMetricRows(chartDataByTicker.onChainMcap, tickerToGroups, seenOnChain)
-	const activeMcap = aggregateMetricRows(chartDataByTicker.activeMcap, tickerToGroups, seenActive)
-	const defiActiveTvl = aggregateMetricRows(chartDataByTicker.defiActiveTvl, tickerToGroups, seenDefi)
-
 	return {
-		onChainMcap: {
-			source: onChainMcap,
-			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(onChainMcap, seenOnChain)]
-		},
-		activeMcap: {
-			source: activeMcap,
-			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(activeMcap, seenActive)]
-		},
-		defiActiveTvl: {
-			source: defiActiveTvl,
-			dimensions: ['timestamp', ...sortKeysByLatestTimestampValue(defiActiveTvl, seenDefi)]
-		}
+		onChainMcap: buildAggregatedRwaDataset(chartDataByTicker.onChainMcap, tickerToGroups),
+		activeMcap: buildAggregatedRwaDataset(chartDataByTicker.activeMcap, tickerToGroups),
+		defiActiveTvl: buildAggregatedRwaDataset(chartDataByTicker.defiActiveTvl, tickerToGroups)
 	}
+}
+
+export function aggregateRwaMetricData(
+	assets: IRWAAssetsOverview['assets'],
+	rows: IRWAChartMetricRows,
+	mode: RWAChartAggregationMode
+): RWAChartDataset {
+	const tickerToGroups = buildTickerGroupMapping(assets, mode)
+	return buildAggregatedRwaDataset(rows, tickerToGroups)
 }
 
 /**
