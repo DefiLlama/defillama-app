@@ -36,14 +36,22 @@ const assets: IRWAAssetsOverview['assets'] = [
 	}
 ]
 
-function DatasetProbe({ mode }: { mode: RWAChartAggregationMode }) {
+function DatasetProbe({
+	mode,
+	initialDataset = { source: [], dimensions: ['timestamp'] },
+	useInitialDataset = false
+}: {
+	mode: RWAChartAggregationMode
+	initialDataset?: { source: Array<{ timestamp: number }>; dimensions: string[] }
+	useInitialDataset?: boolean
+}) {
 	const { chartDataset } = useRwaChartDataset({
 		selectedMetric: 'onChainMcap',
-		initialDataset: { source: [], dimensions: ['timestamp'] },
+		initialDataset,
 		filteredAssets: assets,
 		mode,
 		target: { kind: 'all' },
-		useInitialDataset: false
+		useInitialDataset
 	})
 
 	return React.createElement('pre', null, chartDataset.dimensions.join('|'))
@@ -71,6 +79,32 @@ describe('useRwaChartDataset', () => {
 		})
 		expect(useQueryMock.mock.calls[1][0]).toMatchObject({
 			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap')
+		})
+	})
+
+	it('returns the prerendered dataset when runtime fetching is disabled', () => {
+		useQueryMock.mockReturnValue({
+			data: undefined,
+			isLoading: false,
+			error: null
+		})
+
+		const markup = renderToStaticMarkup(
+			React.createElement(DatasetProbe, {
+				mode: 'category',
+				initialDataset: {
+					source: [{ timestamp: 1 }],
+					dimensions: ['timestamp', 'Prerendered']
+				},
+				useInitialDataset: true
+			})
+		)
+
+		expect(markup).toContain('timestamp|Prerendered')
+		expect(useQueryMock).toHaveBeenCalledTimes(1)
+		expect(useQueryMock.mock.calls[0][0]).toMatchObject({
+			queryKey: getRwaTickerChartQueryKey({ kind: 'all' }, 'onChainMcap'),
+			enabled: false
 		})
 	})
 })

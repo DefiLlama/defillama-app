@@ -34,11 +34,14 @@ import {
 	type RWAChartAggregationMode
 } from './chartAggregation'
 import { definitions } from './definitions'
-import { getRwaPlatforms, matchesRwaPlatform, UNKNOWN_PLATFORM } from './grouping'
+import { getRwaPlatforms, UNKNOWN_PLATFORM } from './grouping'
 import { rwaSlug } from './rwaSlug'
 
 type ChainMetricBreakdown = Record<string, number | string> | null
 type DefiMetricBreakdown = Record<string, Record<string, number | string>> | null
+
+const getRealRwaPlatforms = (value: Parameters<typeof getRwaPlatforms>[0]) =>
+	getRwaPlatforms(value).filter((platform) => platform !== UNKNOWN_PLATFORM && rwaSlug(platform) !== 'unknown')
 
 type AggregatedRwaMetrics = {
 	totals: {
@@ -259,7 +262,7 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 		let actualPlatformName: string | null = null
 		if (selectedPlatform) {
 			for (const item of data) {
-				const platform = getRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
+				const platform = getRealRwaPlatforms(item.parentPlatform).find((value) => rwaSlug(value) === selectedPlatform)
 				if (platform) {
 					actualPlatformName = platform
 					break
@@ -310,7 +313,9 @@ export async function getRWAAssetsOverview(params?: RWAAssetsOverviewParams): Pr
 			const hasCategoryMatch = selectedCategory
 				? (item.category ?? []).some((c) => c && rwaSlug(c) === selectedCategory)
 				: true
-			const hasPlatformMatch = selectedPlatform ? matchesRwaPlatform(item.parentPlatform, selectedPlatform) : true
+			const hasPlatformMatch = selectedPlatform
+				? getRealRwaPlatforms(item.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
+				: true
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
 			const hasChainInTvl = selectedChain
