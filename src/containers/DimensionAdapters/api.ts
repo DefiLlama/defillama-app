@@ -145,6 +145,25 @@ export async function fetchAdapterChainChartDataByProtocolBreakdown({
 	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
 }
 
+/**
+ * Fetch adapter chart data broken down by chain.
+ */
+export async function fetchAdapterChartDataByChainBreakdown({
+	adapterType,
+	dataType
+}: {
+	adapterType: `${ADAPTER_TYPES}`
+	dataType?: `${ADAPTER_DATA_TYPES}`
+}): Promise<IAdapterBreakdownChartData> {
+	let totalDataChartUrl = `${V2_SERVER_URL}/chart/${adapterType}/chain-breakdown`
+
+	if (dataType) {
+		totalDataChartUrl += `?dataType=${dataType}`
+	}
+
+	return fetchJson<IAdapterBreakdownChartData>(totalDataChartUrl, { timeout: 30_000 })
+}
+
 interface CoinGeckoExchange {
 	trust_score: number
 	trade_volume_24h_btc: number

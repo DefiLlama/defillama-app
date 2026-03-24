@@ -243,6 +243,126 @@ export function buildAdapterByChainChartDataset({
 	}
 }
 
+function assert(condition: unknown, message: string): asserts condition {
+	if (!condition) {
+		throw new Error(message)
+	}
+}
+
+function toChartTimestamp(timestamp: number) {
+	return timestamp < 1e12 ? timestamp * 1e3 : timestamp
+}
+
+export function mergeSingleDimensionChartDataset({
+	chartData,
+	extraCharts
+}: {
+	chartData: MultiSeriesChart2Dataset
+	extraCharts: Array<Array<[number, number]>>
+}): MultiSeriesChart2Dataset {
+	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
+	assert(chartData.dimensions.length === 2, 'Expected a single chart dimension')
+
+	const dimension = chartData.dimensions[1]
+	const rows = new Map<number, number | null>()
+
+	for (const row of chartData.source) {
+		const value = row[dimension]
+		rows.set(Number(row.timestamp), typeof value === 'number' ? value : null)
+	}
+
+	for (const extraChart of extraCharts) {
+		for (const [timestamp, value] of extraChart) {
+			const chartTimestamp = toChartTimestamp(timestamp)
+			rows.set(chartTimestamp, (rows.get(chartTimestamp) ?? 0) + value)
+		}
+	}
+
+	return {
+		dimensions: ['timestamp', dimension],
+		source: Array.from(rows.entries())
+			.sort((a, b) => a[0] - b[0])
+			.map(([timestamp, value]) => ({
+				timestamp,
+				[dimension]: value
+			}))
+	}
+}
+
+export function mergeBreakdownCharts({
+	chart,
+	extraCharts
+}: {
+	chart: Array<[number, Record<string, number>]>
+	extraCharts: Array<Array<[number, Record<string, number>]>>
+}): Array<[number, Record<string, number>]> {
+	const rows = new Map<number, Record<string, number>>()
+
+	const mergeChart = (input: Array<[number, Record<string, number>]>) => {
+		for (const [timestamp, values] of input) {
+			const row = rows.get(timestamp) ?? {}
+			for (const key in values) {
+				row[key] = (row[key] ?? 0) + values[key]
+			}
+			rows.set(timestamp, row)
+		}
+	}
+
+	mergeChart(chart)
+	for (const extraChart of extraCharts) {
+		mergeChart(extraChart)
+	}
+
+	return Array.from(rows.entries()).sort((a, b) => a[0] - b[0])
+}
+
+export function mergeNamedDimensionChartDataset({
+	chartData,
+	extraCharts
+}: {
+	chartData: MultiSeriesChart2Dataset
+	extraCharts: Array<Array<[number, Record<string, number>]>>
+}): MultiSeriesChart2Dataset {
+	assert(chartData.dimensions[0] === 'timestamp', 'Expected timestamp dimension')
+
+	const dimensions = chartData.dimensions.filter((dimension) => dimension !== 'timestamp')
+	const rows = new Map<number, Record<string, number | null>>()
+
+	for (const row of chartData.source) {
+		const nextRow: Record<string, number | null> = { timestamp: Number(row.timestamp) }
+		for (const dimension of dimensions) {
+			const value = row[dimension]
+			nextRow[dimension] = typeof value === 'number' ? value : null
+		}
+		rows.set(Number(row.timestamp), nextRow)
+	}
+
+	for (const extraChart of extraCharts) {
+		for (const [timestamp, values] of extraChart) {
+			const chartTimestamp = toChartTimestamp(timestamp)
+			const row = rows.get(chartTimestamp) ?? { timestamp: chartTimestamp }
+
+			for (const dimension of dimensions) {
+				if (!(dimension in row)) {
+					row[dimension] = null
+				}
+			}
+
+			for (const key in values) {
+				if (!(key in row)) continue
+				row[key] = (row[key] ?? 0) + values[key]
+			}
+
+			rows.set(chartTimestamp, row)
+		}
+	}
+
+	return {
+		dimensions: chartData.dimensions,
+		source: Array.from(rows.values()).sort((a, b) => Number(a.timestamp) - Number(b.timestamp))
+	}
+}
+
 export type ChainsByAdapterChartKind = 'bar' | 'line' | 'treemap' | 'hbar'
 export type ChainsByAdapterValueMode = 'absolute' | 'relative'
 export type ChainsByAdapterBarLayout = 'stacked' | 'separate'

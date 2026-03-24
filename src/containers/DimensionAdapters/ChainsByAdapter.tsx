@@ -44,6 +44,8 @@ interface IProps extends IChainsByAdapterPageData {
 	type: TPageType
 }
 
+const FEES_CHART_PAGE_TYPES: TPageType[] = ['Fees', 'Revenue', 'Holders Revenue']
+
 export function ChainsByAdapter(props: IProps) {
 	const [enabledSettings] = useLocalStorageSettingsManager('fees')
 
@@ -104,6 +106,7 @@ export function ChainsByAdapter(props: IProps) {
 		instance,
 		columnSizes
 	})
+	const showChartPanel = props.adapterType !== 'fees' || FEES_CHART_PAGE_TYPES.includes(props.type)
 
 	return (
 		<>
@@ -120,8 +123,9 @@ export function ChainsByAdapter(props: IProps) {
 					</a>
 				</Announcement>
 			) : null}
-			{props.adapterType !== 'fees' ? (
+			{showChartPanel ? (
 				<ChainsByAdapterChart
+					adapterType={props.adapterType}
 					chartData={props.chartData}
 					allChains={props.allChains}
 					chains={chains}
