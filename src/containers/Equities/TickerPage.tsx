@@ -214,7 +214,7 @@ export function EquityTickerPage(props: IEquityTickerPageProps) {
 							<MetricRow
 								label={defs.volume.label}
 								tooltip={defs.volume.description}
-								value={abbreviateNumber(props.summary.volume, 2)}
+								value={abbreviateNumber(props.summary.volume * props.summary.currentPrice, 2, '$')}
 							/>
 							<MetricRow
 								label={defs.trailingPE.label}
