@@ -1,6 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useCallback, useMemo } from 'react'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { Switch } from '~/components/Switch'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
@@ -8,7 +9,7 @@ import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { TokenLogo } from '~/components/TokenLogo'
 import { formattedNum } from '~/utils'
 import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
-import type { IRWAChainBreakdownDatasetsByToggle, IRWAChainsOverviewRow } from './api.types'
+import type { IRWAChainsOverviewRow, RWAOverviewPage } from './api.types'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
@@ -90,10 +91,12 @@ const columnSizes: ColumnSizesByBreakpoint = {
 
 export function RWAChainsTable({
 	chains,
-	chartDatasets
+	initialChartDataset,
+	page
 }: {
 	chains: IRWAChainsOverviewRow[]
-	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+	initialChartDataset: MultiSeriesChart2Dataset
+	page: RWAOverviewPage
 }) {
 	const router = useRouter()
 	const stablecoinsQ = router.query.includeStablecoins as string | string[] | undefined
@@ -177,14 +180,6 @@ export function RWAChainsTable({
 			}
 		})
 	}, [chains, includeGovernance, includeStablecoins])
-
-	const selectedChartDatasets = includeStablecoins
-		? includeGovernance
-			? chartDatasets.includeStablecoinAndGovernance
-			: chartDatasets.includeStablecoin
-		: includeGovernance
-			? chartDatasets.includeGovernance
-			: chartDatasets.base
 	const csvFileName = (() => {
 		const parts = ['rwa-chains']
 		if (includeStablecoins) parts.push('stablecoins')
@@ -210,7 +205,7 @@ export function RWAChainsTable({
 					onChange={onToggleGovernance}
 				/>
 			</div>
-			<RWAOverviewBreakdownChart datasets={selectedChartDatasets} stackLabel="Chains" />
+			<RWAOverviewBreakdownChart page={page} initialChartDataset={initialChartDataset} stackLabel="Chains" />
 			<TableWithSearch
 				data={data}
 				columns={columns}

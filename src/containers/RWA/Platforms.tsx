@@ -1,9 +1,10 @@
 import { createColumnHelper } from '@tanstack/react-table'
+import type { MultiSeriesChart2Dataset } from '~/components/ECharts/types'
 import { BasicLink } from '~/components/Link'
 import { TableWithSearch } from '~/components/Table/TableWithSearch'
 import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { formattedNum } from '~/utils'
-import type { IRWABreakdownDatasetsByMetric, IRWAPlatformsOverviewRow } from './api.types'
+import type { IRWAPlatformsOverviewRow, RWAOverviewPage } from './api.types'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
 import { rwaSlug } from './rwaSlug'
@@ -68,14 +69,16 @@ const columnSizes: ColumnSizesByBreakpoint = {
 
 export function RWAPlatformsTable({
 	platforms,
-	chartDatasets
+	initialChartDataset,
+	page
 }: {
 	platforms: IRWAPlatformsOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
+	page: RWAOverviewPage
 }) {
 	return (
 		<div className="flex flex-col gap-2">
-			<RWAOverviewBreakdownChart datasets={chartDatasets} stackLabel="Platforms" />
+			<RWAOverviewBreakdownChart page={page} initialChartDataset={initialChartDataset} stackLabel="Platforms" />
 			<TableWithSearch
 				data={platforms}
 				columns={columns}

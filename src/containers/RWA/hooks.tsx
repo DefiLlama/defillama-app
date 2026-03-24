@@ -1122,7 +1122,7 @@ async function fetchRwaTickerChartData(params: {
 	else if (params.categorySlug) searchParams.set('category', params.categorySlug)
 	else if (params.platformSlug) searchParams.set('platform', params.platformSlug)
 
-	return fetchJson<IRWAChartDataByTicker>(`/api/rwa/chart-data?${searchParams.toString()}`)
+	return fetchJson<IRWAChartDataByTicker>(`/api/rwa/ticker-breakdown?${searchParams.toString()}`)
 }
 
 export function useRwaChartDataset({

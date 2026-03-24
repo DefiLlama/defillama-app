@@ -212,14 +212,11 @@ export type IRWABreakdownChartParams = {
 	includeGovernance?: boolean
 }
 
-export type IRWABreakdownDatasetsByMetric = Record<RWAChartMetricKey, MultiSeriesChart2Dataset>
-
-export type IRWAChainBreakdownDatasetsByToggle = {
-	base: IRWABreakdownDatasetsByMetric
-	includeStablecoin: IRWABreakdownDatasetsByMetric
-	includeGovernance: IRWABreakdownDatasetsByMetric
-	includeStablecoinAndGovernance: IRWABreakdownDatasetsByMetric
-}
+export type RWAOverviewPage = { kind: 'chain' } | { kind: 'category' } | { kind: 'platform' }
+export type RWAOverviewBreakdownRequest =
+	| { breakdown: 'chain'; key: RWAChartMetricKey; includeStablecoin: boolean; includeGovernance: boolean }
+	| { breakdown: 'category'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
+	| { breakdown: 'platform'; key: RWAChartMetricKey; includeStablecoin: true; includeGovernance: true }
 
 export type IRWAChainsOverviewRow = NonNullable<IRWAStatsResponse['byChain']>[string] & { chain: string }
 export type IRWACategoriesOverviewRow = NonNullable<IRWAStatsResponse['byCategory']>[string] & { category: string }
@@ -227,17 +224,17 @@ export type IRWAPlatformsOverviewRow = NonNullable<IRWAStatsResponse['byPlatform
 
 export type IRWAChainsOverview = {
 	rows: IRWAChainsOverviewRow[]
-	chartDatasets: IRWAChainBreakdownDatasetsByToggle
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWACategoriesOverview = {
 	rows: IRWACategoriesOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export type IRWAPlatformsOverview = {
 	rows: IRWAPlatformsOverviewRow[]
-	chartDatasets: IRWABreakdownDatasetsByMetric
+	initialChartDataset: MultiSeriesChart2Dataset
 }
 
 export interface IRWAAssetData extends IRWAProject {
