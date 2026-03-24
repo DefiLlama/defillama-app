@@ -215,14 +215,7 @@ export const AdapterByChainChart = ({
 }) => {
 	const router = useRouter()
 	const { chartInstance: exportChartInstance, handleChartReady } = useGetChartInstance()
-	const [isRouteReady, setIsRouteReady] = React.useState(false)
 	const [feesSettings] = useLocalStorageSettingsManager('fees')
-
-	React.useEffect(() => {
-		if (router.isReady) {
-			setIsRouteReady(true)
-		}
-	}, [router.isReady])
 
 	const feesChartMode = React.useMemo(
 		() =>
@@ -656,18 +649,6 @@ export const AdapterByChainChart = ({
 			}, ${breakdownChartState.groupBy})`
 		}
 	}, [breakdownChartState, chain, chartName])
-
-	if (!isRouteReady) {
-		return (
-			<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
-				<div
-					style={{
-						minHeight: CHAINS_BY_ADAPTER_CHART_HEIGHT
-					}}
-				/>
-			</div>
-		)
-	}
 
 	return (
 		<div className="relative col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
