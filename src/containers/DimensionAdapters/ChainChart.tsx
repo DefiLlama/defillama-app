@@ -998,6 +998,7 @@ export const ChainsByAdapterChart = ({
 			router.query.valueMode
 		]
 	)
+	const usesTimeSeriesData = chartState.chartKind === 'bar' || chartState.chartKind === 'line'
 	const selectedChains = React.useMemo(() => {
 		const chainsQuery = router.query.chains
 		const excludeChainsQuery = router.query.excludeChains
@@ -1015,7 +1016,7 @@ export const ChainsByAdapterChart = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
+		enabled: usesTimeSeriesData && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyBribesRevenue')
 	})
 
 	const { data: tokenTaxChartData, error: tokenTaxChartError } = useQuery({
@@ -1024,10 +1025,14 @@ export const ChainsByAdapterChart = ({
 		staleTime: 60 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		retry: 0,
-		enabled: feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
+		enabled: usesTimeSeriesData && feesChartMode.kind === 'fees' && feesChartMode.extras.includes('dailyTokenTaxes')
 	})
 
 	const mergedChartData = React.useMemo(() => {
+		if (!usesTimeSeriesData) {
+			return chartData
+		}
+
 		switch (feesChartMode.kind) {
 			case 'plain':
 				return chartData
@@ -1039,10 +1044,10 @@ export const ChainsByAdapterChart = ({
 			default:
 				return assertNever(feesChartMode)
 		}
-	}, [bribesChartData, chartData, feesChartMode, tokenTaxChartData])
+	}, [bribesChartData, chartData, feesChartMode, tokenTaxChartData, usesTimeSeriesData])
 
 	const failedMetrics = React.useMemo(() => {
-		if (feesChartMode.kind === 'plain') {
+		if (!usesTimeSeriesData || feesChartMode.kind === 'plain') {
 			return []
 		}
 
@@ -1055,7 +1060,7 @@ export const ChainsByAdapterChart = ({
 		}
 
 		return nextFailedMetrics
-	}, [bribesChartError, feesChartMode, tokenTaxChartError])
+	}, [bribesChartError, feesChartMode, tokenTaxChartError, usesTimeSeriesData])
 
 	const chartPresentation = React.useMemo(
 		() =>
