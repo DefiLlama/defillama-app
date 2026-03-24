@@ -12,7 +12,7 @@ interface LlamaAIChartCardProps {
 }
 
 export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
-	const { authorizedFetch, user } = useAuthContext()
+	const { authorizedFetch, user, loaders } = useAuthContext()
 	const queryClient = useQueryClient()
 	const [isRefreshing, setIsRefreshing] = useState(false)
 	const [refreshError, setRefreshError] = useState<string | null>(null)
@@ -22,20 +22,21 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 	const { data, isLoading, error, refetch } = useQuery({
 		queryKey,
 		queryFn: async () => {
-			const res = await authorizedFetch(`${MCP_SERVER}/charts/${config.savedChartId}`)
+			const url = `${MCP_SERVER}/charts/${config.savedChartId}`
+			const res = user ? await authorizedFetch(url) : await fetch(url)
 			if (!res?.ok) throw new Error('Failed to load chart')
 			return res.json()
 		},
 		staleTime: 1000 * 60 * 60,
 		refetchOnMount: 'always',
-		enabled: !!user
+		enabled: !loaders.userLoading
 	})
 
 	const handleOwnerRefresh = async () => {
 		setIsRefreshing(true)
 		setRefreshError(null)
 		try {
-			const res = await authorizedFetch(`${MCP_SERVER}/charts/${config.savedChartId}?refresh=true`)
+			const res = await fetch(`${MCP_SERVER}/charts/${config.savedChartId}?refresh=false`)
 			if (!res?.ok) {
 				setRefreshError(`Refresh failed${res ? ` (${res.status})` : ''}`)
 				return
@@ -49,7 +50,7 @@ export default function LlamaAIChartCard({ config }: LlamaAIChartCardProps) {
 		}
 	}
 
-	if (isLoading) {
+	if (isLoading || loaders.userLoading) {
 		return (
 			<div className="flex min-h-[300px] items-center justify-center">
 				<LoadingSpinner />
