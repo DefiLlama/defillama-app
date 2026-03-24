@@ -1,6 +1,7 @@
 import * as Ariakit from '@ariakit/react'
+import { matchSorter } from 'match-sorter'
 import { useRouter } from 'next/router'
-import { lazy, Suspense, useDeferredValue, useMemo } from 'react'
+import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
@@ -24,6 +25,15 @@ import { type ChainChartLabels, chainCharts, chainOverviewChartColors } from './
 import type { IChainOverviewData } from './types'
 
 const ChainCoreChart: any = lazy(() => import('~/containers/ChainOverview/Chart'))
+
+type ChainMetricOption = {
+	id: ChainChartLabels
+	label: string
+	active: boolean
+}
+
+const getChainMetricLabel = (chart: ChainChartLabels, tokenSymbol?: string | null) =>
+	chart.includes('Token') ? chart.replace('Token', tokenSymbol ? `$${tokenSymbol}` : 'Token') : chart
 
 interface ChainChartPanelProps {
 	charts: IChainOverviewData['charts']
@@ -88,6 +98,8 @@ export function ChainChartPanel({
 	const canAddToDashboard = metadata.name !== 'All' && multiChart && toggledCharts.length > 0 && denomination === 'USD'
 
 	const metricsDialogStore = Ariakit.useDialogStore()
+	const [metricsSearchValue, setMetricsSearchValue] = useState('')
+	const deferredMetricsSearchValue = useDeferredValue(metricsSearchValue)
 	const prepareCsv = () => prepareChartCsv(chartRenderModel.chartData, `${chain}.csv`)
 
 	const { chartInstance: chainChartInstance, handleChartReady } = useChartImageExport()
@@ -97,6 +109,23 @@ export function ChainChartPanel({
 	const updateGroupBy = (newGroupBy: LowercaseDwmcGrouping) => {
 		void pushShallowQuery(router, { groupBy: newGroupBy })
 	}
+
+	const filteredMetricOptions = useMemo(() => {
+		const options: ChainMetricOption[] = charts.map((chart) => ({
+			id: chart,
+			label: getChainMetricLabel(chart, chainTokenInfo?.token_symbol),
+			active: toggledCharts.includes(chart)
+		}))
+
+		if (!deferredMetricsSearchValue) {
+			return options
+		}
+
+		return matchSorter(options, deferredMetricsSearchValue, {
+			keys: ['label', 'id'],
+			threshold: matchSorter.rankings.CONTAINS
+		})
+	}, [charts, chainTokenInfo?.token_symbol, toggledCharts, deferredMetricsSearchValue])
 
 	return (
 		<div className="col-span-2 flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
@@ -115,34 +144,49 @@ export function ChainChartPanel({
 										<Icon name="x" className="h-5 w-5" />
 									</Ariakit.DialogDismiss>
 								</span>
+								<label className="relative">
+									<span className="sr-only">Search metrics</span>
+									<Icon
+										name="search"
+										height={16}
+										width={16}
+										className="absolute top-0 bottom-0 left-2 my-auto text-(--text-tertiary)"
+									/>
+									<input
+										type="text"
+										name="search"
+										inputMode="search"
+										placeholder="Search..."
+										autoFocus
+										value={metricsSearchValue}
+										className="min-h-8 w-full rounded-md border-(--bg-input) bg-(--bg-input) p-1.5 pl-7 text-base text-black placeholder:text-[#666] dark:text-white dark:placeholder-[#919296]"
+										onInput={(e) => setMetricsSearchValue(e.currentTarget.value)}
+									/>
+								</label>
 								<div className="flex flex-wrap gap-2">
-									{charts.map((tchart) => (
+									{filteredMetricOptions.map((option) => (
 										<button
-											key={`add-chain-metric-${chainCharts[tchart]}`}
+											key={`add-chain-metric-${chainCharts[option.id]}`}
 											onClick={() => {
 												void pushShallowQuery(router, {
-													[chainCharts[tchart]]: toggledCharts.includes(tchart) ? 'false' : 'true'
+													[chainCharts[option.id]]: option.active ? 'false' : 'true'
 												})
 												metricsDialogStore.toggle()
 											}}
-											data-active={toggledCharts.includes(tchart)}
+											data-active={option.active}
 											className="flex items-center gap-1 rounded-full border border-(--old-blue) px-2 py-1 hover:bg-(--link-hover-bg) focus-visible:bg-(--link-hover-bg) data-[active=true]:bg-(--old-blue) data-[active=true]:text-white"
 										>
-											<span>
-												{tchart.includes('Token')
-													? tchart.replace(
-															'Token',
-															chainTokenInfo?.token_symbol ? `$${chainTokenInfo?.token_symbol}` : 'Token'
-														)
-													: tchart}
-											</span>
-											{toggledCharts.includes(tchart) ? (
+											<span>{option.label}</span>
+											{option.active ? (
 												<Icon name="x" className="h-3.5 w-3.5" />
 											) : (
 												<Icon name="plus" className="h-3.5 w-3.5" />
 											)}
 										</button>
 									))}
+									{filteredMetricOptions.length === 0 ? (
+										<p className="py-2 text-sm text-(--text-tertiary)">No metrics found.</p>
+									) : null}
 								</div>
 							</Ariakit.Dialog>
 						</Ariakit.DialogProvider>
