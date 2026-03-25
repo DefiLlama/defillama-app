@@ -183,14 +183,30 @@ export const datasets: DatasetDefinition[] = [
 		fields: ['category', 'onChainMcap', 'activeMcap', 'defiActiveTvl', 'assetCount', 'assetIssuers'],
 		extractItems: (json) => {
 			const byCategory: Record<string, any> = json?.byCategory ?? {}
-			return Object.entries(byCategory).map(([category, stats]: [string, any]) => ({
-				category,
-				onChainMcap: stats.onChainMcap ?? 0,
-				activeMcap: stats.activeMcap ?? 0,
-				defiActiveTvl: stats.defiActiveTvl ?? 0,
-				assetCount: stats.assetCount ?? 0,
-				assetIssuers: stats.assetIssuers ?? 0
-			}))
+			return Object.entries(byCategory).map(([category, stats]) => {
+				const buckets = [stats.base, stats.stablecoinsOnly, stats.governanceOnly, stats.stablecoinsAndGovernance]
+				let onChainMcap = 0
+				let activeMcap = 0
+				let defiActiveTvl = 0
+				let assetCount = 0
+				const issuerSet = new Set<string>()
+				for (const b of buckets) {
+					if (!b) continue
+					onChainMcap += b.onChainMcap ?? 0
+					activeMcap += b.activeMcap ?? 0
+					defiActiveTvl += b.defiActiveTvl ?? 0
+					assetCount += b.assetCount ?? 0
+					for (const issuer of b.assetIssuers ?? []) issuerSet.add(issuer)
+				}
+				return {
+					category,
+					onChainMcap,
+					activeMcap,
+					defiActiveTvl,
+					assetCount,
+					assetIssuers: issuerSet.size
+				}
+			})
 		}
 	},
 	{
