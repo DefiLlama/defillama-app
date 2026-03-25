@@ -287,16 +287,19 @@ export default function MCPContainer() {
 			<section className="mx-auto max-w-[1100px] px-4 pb-10 pt-14 sm:px-6 md:px-8">
 				<div className="grid items-center gap-10 md:grid-cols-[1fr_1fr] md:gap-12">
 					<div>
-						<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-(--old-blue)">MCP Server</p>
+						<p className="mb-3 text-xs font-semibold uppercase tracking-widest text-(--old-blue)">DefiLlama MCP Server</p>
 						<h1 className="mb-4 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-[2.75rem]">
 							DeFi Data for{' '}
 							<span className="bg-linear-to-r from-(--old-blue) to-[#8A8AFF] bg-clip-text text-transparent">
 								AI Agents
 							</span>
 						</h1>
-						<p className="mb-6 max-w-lg text-[15px] leading-relaxed text-(--text-tertiary)">
+						<p className="mb-2 max-w-lg text-[15px] leading-relaxed text-(--text-tertiary)">
 							Connect your AI agent to DefiLlama data. Ask questions about TVL, yields, token prices, protocol metrics,
-							stablecoins, bridges, ETFs, and more — your agent gets the answers directly. Uses your API plan credits.
+							stablecoins, bridges, ETFs, and more — your agent gets the answers directly.
+						</p>
+						<p className="mb-6 text-[13px] text-(--text-disabled)">
+							Requires an API plan — uses the same credits as your API key.
 						</p>
 						<div className="flex flex-wrap gap-3">
 							<button
@@ -332,7 +335,7 @@ export default function MCPContainer() {
 						accessible through natural language.
 					</FeatureCard>
 					<FeatureCard icon={<span>🔑</span>} title="One-Click Setup">
-						Add the URL, log in once, done. Works with Claude, Cursor, VS Code, Windsurf, and any MCP-compatible client.
+						Add the URL, log in once, done. Works with Claude, Cursor, VS Code, OpenClaw, and any MCP-compatible client.
 						Token refreshes silently.
 					</FeatureCard>
 					<FeatureCard icon={<span>💳</span>} title="Uses Your API Credits">
@@ -347,7 +350,7 @@ export default function MCPContainer() {
 				<SectionHeader
 					overline="Quick Start"
 					title="Paste This Into Your Agent"
-					description="Copy the prompt below and send it to your AI agent. It will read the instructions and set everything up."
+					description="Copy this prompt and send it to your AI agent — it handles the rest."
 				/>
 
 				<CopyBox
@@ -465,8 +468,8 @@ export default function MCPContainer() {
 				<div className="mt-8">
 					<h3 className="mb-3 text-sm font-semibold text-(--text-secondary)">Install skills manually</h3>
 					<p className="mb-4 text-[13px] leading-relaxed text-(--text-tertiary)">
-						If you used the quick start prompt above, skills are already installed. Otherwise, copy the skills from the
-						repo into your agent's skills directory:
+						If you used the quick start prompt above, skills are already installed. Otherwise, install them
+						manually for your agent:
 					</p>
 					<div className="grid gap-4 md:grid-cols-2">
 						<CodeBlock label="Claude Code">{`git clone https://github.com/DefiLlama/defillama-skills /tmp/defillama-skills
@@ -479,7 +482,7 @@ cp -r /tmp/defillama-skills/skills/* ~/.openclaw/skills/`}</CodeBlock>
 
 			{/* CTA */}
 			<section className="mx-auto max-w-[1100px] px-4 py-16 text-center sm:px-6 md:px-8">
-				<h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">Connect Your AI Agent to DeFi Data</h2>
+				<h2 className="mb-3 text-2xl font-bold tracking-tight sm:text-3xl">Ready to get started?</h2>
 				<p className="mb-6 text-(--text-tertiary)">Requires an API plan. Uses the same credits as your API key.</p>
 				<button
 					onClick={handleGetStarted}
