@@ -83,6 +83,7 @@ export default function LlamaAIPage() {
 			description="Get AI-powered answers about chains, protocols, metrics like TVL, fees, revenue, and compare them based on your prompts"
 			canonicalUrl={null}
 			noIndex={true}
+			hideDesktopSearchLlamaAiButton
 		>
 			<AgenticChat />
 		</Layout>
