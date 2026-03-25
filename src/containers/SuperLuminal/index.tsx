@@ -8,7 +8,6 @@ import {
 	useProDashboardDashboard,
 	useProDashboardItemsState
 } from '~/containers/ProDashboard/ProDashboardAPIContext'
-import type { ProDashboardServerProps } from '~/containers/ProDashboard/queries.server'
 import { useDarkModeManager } from '~/contexts/LocalStorage'
 import { SUPERLUMINAL_PROJECTS } from './config'
 import { CustomServerDataContext } from './CustomServerDataContext'
@@ -135,23 +134,39 @@ function useProjectModules(projects: typeof ALL_PROJECTS) {
 	return { tabsByProject, headersByProject, loadingProjects }
 }
 
+function DashboardTabInner({ visible }: { visible: boolean }) {
+	const { items } = useProDashboardItemsState()
+	const { protocolsLoading } = useProDashboardCatalog()
+	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
+	const dashboardReady = !isLoadingDashboard && !!currentDashboard
+
+	return (
+		<div className={visible ? '' : 'hidden'}>
+			{dashboardReady && items.length > 0 && (
+				<div className="w-full">
+					<ChartGrid onAddChartClick={NOOP} />
+				</div>
+			)}
+			{dashboardReady && !protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
+		</div>
+	)
+}
+
 function SuperLuminalContent({
 	tabs,
 	activeTab,
 	displayName,
+	dashboardId,
 	hasCustomHeader
 }: {
 	tabs: DashboardTabConfig[]
 	activeTab: string
 	displayName: string
+	dashboardId: string
 	hasCustomHeader?: boolean
 }) {
-	const { items } = useProDashboardItemsState()
-	const { protocolsLoading } = useProDashboardCatalog()
-	const { isLoadingDashboard, currentDashboard } = useProDashboardDashboard()
-
 	const prevTab = useRef(activeTab)
-	const [visitedTabsBase, setVisitedTabsBase] = useState<Set<string>>(() => new Set(['dashboard', activeTab]))
+	const [visitedTabsBase, setVisitedTabsBase] = useState<Set<string>>(() => new Set([activeTab]))
 
 	// Always include current activeTab synchronously — no blink waiting for useEffect
 	const visitedTabs = visitedTabsBase.has(activeTab) ? visitedTabsBase : new Set([...visitedTabsBase, activeTab])
@@ -169,7 +184,7 @@ function SuperLuminalContent({
 		}
 	}, [activeTab])
 
-	const dashboardReady = !isLoadingDashboard && !!currentDashboard
+	const dashboardVisited = visitedTabs.has('dashboard')
 
 	return (
 		<>
@@ -181,14 +196,11 @@ function SuperLuminalContent({
 				</header>
 			)}
 
-			<div className={activeTab === 'dashboard' ? '' : 'hidden'}>
-				{dashboardReady && items.length > 0 && (
-					<div className="w-full">
-						<ChartGrid onAddChartClick={NOOP} />
-					</div>
-				)}
-				{dashboardReady && !protocolsLoading && items.length === 0 && <EmptyState onAddChart={NOOP} isReadOnly />}
-			</div>
+			{dashboardVisited && (
+				<ProDashboardAPIProvider key={dashboardId} initialDashboardId={dashboardId}>
+					<DashboardTabInner visible={activeTab === 'dashboard'} />
+				</ProDashboardAPIProvider>
+			)}
 
 			{tabs.map((tab) => {
 				if (tab.id === 'dashboard') return null
@@ -261,11 +273,9 @@ function CustomOnlyContent({
 
 function SuperLuminalShell({
 	protocol,
-	serverDataByDashboardId,
 	customServerData
 }: {
 	protocol?: string
-	serverDataByDashboardId?: Record<string, ProDashboardServerProps>
 	customServerData?: Record<string, unknown>
 }) {
 	const [isDark, toggleTheme] = useDarkModeManager()
@@ -274,7 +284,7 @@ function SuperLuminalShell({
 	const visibleProjects = protocol ? ALL_PROJECTS.filter((p) => p.id === protocol) : ALL_PROJECTS
 	const defaultProject = visibleProjects[0]?.id ?? ALL_PROJECTS[0].id
 
-	const { tabsByProject, headersByProject } = useProjectModules(visibleProjects)
+	const { tabsByProject, headersByProject, loadingProjects } = useProjectModules(visibleProjects)
 	const [activeTab, setActiveTab] = useState<string | null>(null)
 	const [activeProject, setActiveProject] = useState(defaultProject)
 	const [expandedProject, setExpandedProject] = useState<string | null>(defaultProject)
@@ -294,10 +304,12 @@ function SuperLuminalShell({
 	const displayName = activeProjectConfig?.name ?? 'Dashboard'
 	const tabs = tabsByProject[activeProject] ?? DEFAULT_TABS
 	const HeaderComponent = headersByProject[activeProject]
-	const showGlobalLoader = !!HeaderComponent && !contentReadyProjects.has(activeProject)
-
 	// Derive the effective tab: use activeTab if set and valid, otherwise first tab
 	const resolvedTab = activeTab && tabs.some((t) => t.id === activeTab) ? activeTab : tabs[0]?.id ?? 'dashboard'
+
+	// Only show the global loader when the active tab is the pro dashboard (Overview) tab.
+	// Custom tabs handle their own loading state and should not be blocked by the stream.
+	const showGlobalLoader = !!HeaderComponent && !contentReadyProjects.has(activeProject) && resolvedTab === 'dashboard'
 
 	// Auto-select first tab once tabs load (only if user hasn't manually selected)
 	useEffect(() => {
@@ -457,14 +469,8 @@ function SuperLuminalShell({
 						<ProjectComingSoon />
 					) : activeProjectConfig?.customOnly ? (
 						<CustomOnlyContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
-					) : (
-						<ProDashboardAPIProvider
-							key={dashboardId}
-							initialDashboardId={dashboardId}
-							serverData={serverDataByDashboardId?.[dashboardId]}
-						>
-							<SuperLuminalContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} hasCustomHeader={!!HeaderComponent} />
-						</ProDashboardAPIProvider>
+					) : loadingProjects.has(activeProject) ? null : (
+						<SuperLuminalContent tabs={tabs} activeTab={resolvedTab} displayName={displayName} dashboardId={dashboardId} hasCustomHeader={!!HeaderComponent} />
 					)}
 				</ContentReadyContext.Provider>
 			</div>
@@ -475,18 +481,15 @@ function SuperLuminalShell({
 
 export default function SuperLuminalDashboard({
 	protocol,
-	serverDataByDashboardId,
 	customServerData
 }: {
 	protocol?: string
-	serverDataByDashboardId?: Record<string, ProDashboardServerProps>
 	customServerData?: Record<string, unknown>
 }) {
 	return (
 		<AppMetadataProvider>
 			<SuperLuminalShell
 				protocol={protocol}
-				serverDataByDashboardId={serverDataByDashboardId}
 				customServerData={customServerData}
 			/>
 		</AppMetadataProvider>

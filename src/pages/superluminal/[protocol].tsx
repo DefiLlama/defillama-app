@@ -2,8 +2,6 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { getProDashboardServerData } from '~/containers/ProDashboard/queries.server'
-import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import {
 	isSuperLuminalEnabled,
 	SUPERLUMINAL_PROJECTS,
@@ -18,45 +16,24 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 	const protocol = context.params?.protocol as string
 
 	if (!isSuperLuminalEnabled() || !protocol || !SUPERLUMINAL_PROTOCOL_IDS.includes(protocol)) {
-		return { props: { protocol: protocol || '', serverDataByDashboardId: {} } }
+		return { props: { protocol: protocol || '' } }
 	}
 
 	const project = SUPERLUMINAL_PROJECTS.find((p) => p.id === protocol)
 	if (!project?.dashboardId) {
-		return { props: { protocol, serverDataByDashboardId: {} } }
-	}
-
-	const authToken = getAuthTokenFromRequest(context.req)
-
-	if (authToken) {
-		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
-	} else {
-		context.res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
+		return { props: { protocol } }
 	}
 
 	try {
-		const [serverData, customServerData] = await Promise.all([
-			project.customOnly
-				? Promise.resolve(null)
-				: getProDashboardServerData({ dashboardId: project.dashboardId, authToken, skipTableData: true }),
-			fetchCustomServerData(project.dashboardId)
-		])
-
-		return {
-			props: {
-				protocol,
-				serverDataByDashboardId: serverData ? { [project.dashboardId]: serverData } : {},
-				customServerData
-			}
-		}
+		const customServerData = await fetchCustomServerData(project.dashboardId)
+		return { props: { protocol, customServerData } }
 	} catch {
-		return { props: { protocol, serverDataByDashboardId: {}, customServerData: {} } }
+		return { props: { protocol, customServerData: {} } }
 	}
 }
 
 export default function SuperLuminalProtocolPage({
 	protocol,
-	serverDataByDashboardId,
 	customServerData
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	if (!isSuperLuminalEnabled() || !protocol) {
@@ -82,7 +59,7 @@ export default function SuperLuminalProtocolPage({
 					</div>
 				}
 			>
-				<SuperLuminalDashboard protocol={protocol} serverDataByDashboardId={serverDataByDashboardId} customServerData={customServerData} />
+				<SuperLuminalDashboard protocol={protocol} customServerData={customServerData} />
 			</Suspense>
 			<Toast />
 		</>
