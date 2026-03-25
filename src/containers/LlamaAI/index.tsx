@@ -622,7 +622,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 		isUpdatingTitle,
 		bulkDeleteSessions
 	} = useSessionMutations()
-	const { sidebarVisible, toggleSidebar } = useSidebarVisibility()
+	const { sidebarVisible, toggleSidebar, hideSidebar } = useSidebarVisibility()
 	const { notify, requestPermission } = useStreamNotification()
 	const alertsModalStore = Ariakit.useDialogStore()
 	const settingsModalStore = Ariakit.useDialogStore()
@@ -1821,6 +1821,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 								onOpenAlerts={alertsModalStore.show}
 								quotedText={quotedText}
 								onClearQuotedText={() => setQuotedText(null)}
+								onTableFullscreenOpen={hideSidebar}
 							/>
 						</div>
 					</div>
@@ -1875,6 +1876,7 @@ export function AgenticChat({ initialSessionId, sharedSession, readOnly = false 
 						onOpenAlerts={alertsModalStore.show}
 						quotedText={quotedText}
 						onClearQuotedText={() => setQuotedText(null)}
+						onTableFullscreenOpen={hideSidebar}
 					/>
 				)}
 			</div>

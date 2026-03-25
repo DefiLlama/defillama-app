@@ -333,7 +333,8 @@ function MessageContentBlock({
 	sessionId,
 	onActionClick,
 	nextUserMessage,
-	hackerMode
+	hackerMode,
+	onTableFullscreenOpen
 }: {
 	block: MessageRenderBlock
 	artifact?: ArtifactRecord
@@ -342,6 +343,7 @@ function MessageContentBlock({
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
 	hackerMode?: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	if (block.type === 'action-group') {
 		return <ActionButtonGroup actions={block.actions} onActionClick={onActionClick} nextUserMessage={nextUserMessage} />
@@ -354,6 +356,7 @@ function MessageContentBlock({
 				citations={block.citations}
 				isStreaming={isStreaming}
 				hackerMode={hackerMode}
+				onTableFullscreenOpen={onTableFullscreenOpen}
 			/>
 		)
 	}
@@ -373,7 +376,8 @@ function InlineContent({
 	onActionClick,
 	nextUserMessage,
 	hackerMode,
-	showToolDetails = false
+	showToolDetails = false,
+	onTableFullscreenOpen
 }: {
 	message: Message
 	toolExecutions?: ToolExecution[]
@@ -383,6 +387,7 @@ function InlineContent({
 	nextUserMessage?: string
 	hackerMode?: boolean
 	showToolDetails?: boolean
+	onTableFullscreenOpen?: () => void
 }) {
 	const includeFallbackArtifacts = !isStreaming || !message.content?.trim()
 	const { artifactsById, blocks } = useMemo(
@@ -402,6 +407,7 @@ function InlineContent({
 						onActionClick={onActionClick}
 						nextUserMessage={nextUserMessage}
 						hackerMode={hackerMode}
+						onTableFullscreenOpen={onTableFullscreenOpen}
 					/>
 				</div>
 			))}
@@ -636,7 +642,8 @@ export function MessageBubble({
 	readOnly = false,
 	isLlama = false,
 	onActionClick,
-	nextUserMessage
+	nextUserMessage,
+	onTableFullscreenOpen
 }: {
 	message: Message
 	sessionId: string | null
@@ -645,6 +652,7 @@ export function MessageBubble({
 	isLlama?: boolean
 	onActionClick?: (message: string) => void
 	nextUserMessage?: string
+	onTableFullscreenOpen?: () => void
 }) {
 	const [previewImage, setPreviewImage] = useState<string | null>(null)
 	const hackerMode = useHackerMode()
@@ -708,6 +716,7 @@ export function MessageBubble({
 				nextUserMessage={nextUserMessage}
 				hackerMode={hackerMode}
 				showToolDetails={isLlama}
+				onTableFullscreenOpen={onTableFullscreenOpen}
 			/>
 			{message.id && !isDraft ? (
 				<ResponseControls
