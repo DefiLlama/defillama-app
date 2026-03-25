@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { CopyHelper } from '~/components/Copy'
 import { Icon } from '~/components/Icon'
+import { LoadingDots } from '~/components/Loaders'
 import { Menu } from '~/components/Menu'
 import { QuestionHelper } from '~/components/QuestionHelper'
 import { Tooltip } from '~/components/Tooltip'
@@ -714,31 +715,28 @@ export const RWAAssetPage = ({ asset }: { asset: IRWAAssetData }) => {
 					{asset.nativeYieldPoolId && (isLoadingYieldChart || nativeYieldDataset) ? (
 						<div className="relative flex flex-col rounded-md border border-(--cards-border) bg-(--cards-bg)">
 							<div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-[#cc3e82] to-transparent" />
-							<div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 pb-2">
-								<div className="flex flex-col gap-0.5">
-									<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
-										Native Yield
-									</span>
-									{asset.nativeYieldCurrent != null ? (
-										<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
-											{asset.nativeYieldCurrent.toFixed(2)}%
-										</span>
-									) : null}
-								</div>
-								<span className="mb-1 text-xs text-(--text-disabled)">
-									Historical APY from {asset.issuer ?? 'issuer'}
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pt-4 pb-2">
+								<span className="text-xs font-medium tracking-wide uppercase text-(--text-disabled)">
+									Native Yield
 								</span>
+								{asset.nativeYieldCurrent != null ? (
+									<span className="font-jetbrains text-3xl font-bold tracking-tight text-[#cc3e82]">
+										{asset.nativeYieldCurrent.toFixed(2)}%
+									</span>
+								) : null}
 							</div>
 							<div className="flex-1">
 								{isLoadingYieldChart ? (
-									<div className="flex h-full min-h-[200px] items-center justify-center text-(--text-disabled)">
-										Loading chart...
-									</div>
+									<p className="flex min-h-[360px] items-center justify-center gap-1">
+										Loading
+										<LoadingDots />
+									</p>
 								) : (
-									<Suspense fallback={<div className="min-h-[200px]" />}>
+									<Suspense fallback={<div className="min-h-[360px]" />}>
 										<MultiSeriesChart2
 											charts={NATIVE_YIELD_CHARTS}
 											dataset={nativeYieldDataset!}
+											title={`Historical APY from ${asset.issuer ?? 'issuer'}`}
 											valueSymbol="%"
 											hideDefaultLegend={false}
 											exportButtons={{

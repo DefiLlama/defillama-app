@@ -167,7 +167,7 @@ const compactColumnOrders: ColumnOrdersByBreakpoint = {
 }
 
 const compactColumnSizes: ColumnSizesByBreakpoint = {
-	0: { pool: 160, project: 200, chains: 36, tvl: 90, apy: 70 },
+	0: { pool: 160, project: 140, chains: 36, tvl: 90, apy: 90 },
 	640: { pool: 220, project: 220, chains: 36, tvl: 90, apy: 70 }
 }
 
@@ -179,6 +179,7 @@ export function RWAYieldsTable({ data, compact }: { data: IYieldTableRow[]; comp
 			columnSizes={compact ? compactColumnSizes : columnSizes}
 			columnOrders={compact ? compactColumnOrders : columnOrders}
 			sortingState={[{ id: 'tvl', desc: true }]}
+			skipVirtualization
 		/>
 	)
 }
