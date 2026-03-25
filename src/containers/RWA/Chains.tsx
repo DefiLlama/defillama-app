@@ -89,7 +89,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { chain: 220 }
 }
 
-export function RWAChainsTable({
+export function RWAChains({
 	chains,
 	initialChartDataset,
 	page

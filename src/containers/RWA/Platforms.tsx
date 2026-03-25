@@ -67,7 +67,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { platform: 240 }
 }
 
-export function RWAPlatformsTable({
+export function RWAPlatforms({
 	platforms,
 	initialChartDataset,
 	page

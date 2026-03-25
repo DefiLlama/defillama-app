@@ -24,7 +24,9 @@ import type {
 	IRWACategoriesOverview,
 	IRWACategoriesOverviewRow,
 	IRWAPlatformsOverview,
-	IRWAPlatformsOverviewRow
+	IRWAPlatformsOverviewRow,
+	RWAStatsBucket,
+	RWAStatsSegmented
 } from './api.types'
 import { toBreakdownChartDataset } from './breakdownDataset'
 import {
@@ -669,9 +671,12 @@ export async function getRWACategoriesOverview(): Promise<IRWACategoriesOverview
 	const rows: IRWACategoriesOverviewRow[] = []
 	for (const category in data.byCategory) {
 		const stats = data.byCategory[category]
-
+		// TEMPORARY: Handle both old flat API shape and new segmented shape.
+		// Once API migration is complete, this can be simplified to always use mergeSegmentedStats.
+		const flat = isSegmentedStats(stats) ? mergeSegmentedStats(stats) : stats
 		rows.push({
-			...stats,
+			...flat,
+			assetIssuers: typeof flat.assetIssuers === 'number' ? flat.assetIssuers : flat.assetIssuers.length,
 			category
 		})
 	}
@@ -695,9 +700,14 @@ export async function getRWAPlatformsOverview(): Promise<IRWAPlatformsOverview> 
 	const rows: IRWAPlatformsOverviewRow[] = []
 	for (const platform in data.byPlatform) {
 		const stats = data.byPlatform[platform]
-
+		// TEMPORARY: Handle both old flat API shape and new segmented shape.
+		// Once API migration is complete, this can be simplified to always use mergeSegmentedStats.
+		const flat = isSegmentedStats(stats) ? mergeSegmentedStats(stats) : stats
 		rows.push({
-			...stats,
+			onChainMcap: flat.onChainMcap,
+			activeMcap: flat.activeMcap,
+			defiActiveTvl: flat.defiActiveTvl,
+			assetCount: flat.assetCount,
 			platform
 		})
 	}
@@ -820,4 +830,57 @@ function isEmptyObject(value: unknown): boolean {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) return false
 	for (const _key in value) return false
 	return true
+}
+
+/**
+ * Runtime guard: detects whether a stats entry uses the new segmented format
+ * (base/stablecoinsOnly/governanceOnly/stablecoinsAndGovernance) or the old
+ * flat format (direct numeric fields).
+ *
+ * TEMPORARY: Remove once the API migration is complete and byCategory/byPlatform
+ * always return the segmented shape.
+ */
+function isSegmentedStats(stats: RWAStatsBucket | RWAStatsSegmented): stats is RWAStatsSegmented {
+	return 'base' in stats && typeof stats.base === 'object'
+}
+
+/**
+ * Merges all 4 segmented buckets into flat totals.
+ * Used for categories/platforms pages which don't expose stablecoin/governance
+ * toggles -- they always show the combined total across all asset classifications.
+ *
+ * For assetIssuers:
+ *   - If buckets contain string arrays (new API), deduplicates across buckets
+ *     and returns the unique count.
+ *   - If buckets contain numbers (fallback), sums them.
+ *
+ * TEMPORARY: Remove once the API migration is complete and all consumers
+ * are updated to handle the segmented format natively.
+ */
+function mergeSegmentedStats(stats: RWAStatsSegmented): {
+	onChainMcap: number
+	activeMcap: number
+	defiActiveTvl: number
+	assetCount: number
+	assetIssuers: number
+} {
+	const buckets = [stats.base, stats.stablecoinsOnly, stats.governanceOnly, stats.stablecoinsAndGovernance]
+	let onChainMcap = 0
+	let activeMcap = 0
+	let defiActiveTvl = 0
+	let assetCount = 0
+	const issuerSet = new Set<string>()
+	let issuerSum = 0
+	for (const b of buckets) {
+		onChainMcap += b.onChainMcap
+		activeMcap += b.activeMcap
+		defiActiveTvl += b.defiActiveTvl
+		assetCount += b.assetCount
+		if (Array.isArray(b.assetIssuers)) {
+			for (const issuer of b.assetIssuers) issuerSet.add(issuer)
+		} else {
+			issuerSum += b.assetIssuers
+		}
+	}
+	return { onChainMcap, activeMcap, defiActiveTvl, assetCount, assetIssuers: issuerSet.size || issuerSum }
 }

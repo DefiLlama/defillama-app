@@ -1,5 +1,5 @@
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { RWACategoriesTable } from '~/containers/RWA/Categories'
+import { RWACategories } from '~/containers/RWA/Categories'
 import { getRWACategoriesOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { RWATabNav } from '~/containers/RWA/TabNav'
@@ -46,11 +46,7 @@ export default function RWACategoriesPage({ categories, categoryLinks, initialCh
 		>
 			<RWATabNav active="categories" />
 			<RowLinksWithDropdown links={categoryLinks} activeLink={'All'} />
-			<RWACategoriesTable
-				categories={categories}
-				initialChartDataset={initialChartDataset}
-				page={{ kind: 'category' }}
-			/>
+			<RWACategories categories={categories} initialChartDataset={initialChartDataset} page={{ kind: 'category' }} />
 		</Layout>
 	)
 }

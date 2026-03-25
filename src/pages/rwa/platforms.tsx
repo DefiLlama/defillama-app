@@ -1,5 +1,5 @@
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { RWAPlatformsTable } from '~/containers/RWA/Platforms'
+import { RWAPlatforms } from '~/containers/RWA/Platforms'
 import { getRWAPlatformsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { RWATabNav } from '~/containers/RWA/TabNav'
@@ -47,7 +47,7 @@ export default function RWAPlatformsPage({ platforms, platformLinks, initialChar
 		>
 			<RWATabNav active="platforms" />
 			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
-			<RWAPlatformsTable platforms={platforms} initialChartDataset={initialChartDataset} page={{ kind: 'platform' }} />
+			<RWAPlatforms platforms={platforms} initialChartDataset={initialChartDataset} page={{ kind: 'platform' }} />
 		</Layout>
 	)
 }

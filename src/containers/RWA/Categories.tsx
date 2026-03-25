@@ -74,7 +74,7 @@ const columnSizes: ColumnSizesByBreakpoint = {
 	640: { category: 240 }
 }
 
-export function RWACategoriesTable({
+export function RWACategories({
 	categories,
 	initialChartDataset,
 	page

@@ -1,5 +1,5 @@
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
-import { RWAChainsTable } from '~/containers/RWA/Chains'
+import { RWAChains } from '~/containers/RWA/Chains'
 import { getRWAChainsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { RWATabNav } from '~/containers/RWA/TabNav'
@@ -47,7 +47,7 @@ export default function RWAChainsPage({ chains, chainLinks, initialChartDataset 
 		>
 			<RWATabNav active="chains" />
 			<RowLinksWithDropdown links={chainLinks} activeLink={'All'} />
-			<RWAChainsTable chains={chains} initialChartDataset={initialChartDataset} page={{ kind: 'chain' }} />
+			<RWAChains chains={chains} initialChartDataset={initialChartDataset} page={{ kind: 'chain' }} />
 		</Layout>
 	)
 }
