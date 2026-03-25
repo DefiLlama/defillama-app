@@ -484,32 +484,28 @@ function Filters({
 					maxInputProps={ratioPercentInputProps}
 				/>
 			))}
-			{modes.isChainMode ? (
-				<Checkbox
-					variant={nestedMenu ? 'filter-borderless' : 'filter'}
-					value="includeStablecoins"
-					checked={selections.includeStablecoins}
-					onChange={() => {
-						const next = !selections.includeStablecoins
-						actions.setIncludeStablecoins(next)
-					}}
-				>
-					Stablecoins
-				</Checkbox>
-			) : null}
-			{modes.isChainMode ? (
-				<Checkbox
-					variant={nestedMenu ? 'filter-borderless' : 'filter'}
-					value="includeGovernance"
-					checked={selections.includeGovernance}
-					onChange={() => {
-						const next = !selections.includeGovernance
-						actions.setIncludeGovernance(next)
-					}}
-				>
-					Governance Tokens
-				</Checkbox>
-			) : null}
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeStablecoins"
+				checked={selections.includeStablecoins}
+				onChange={() => {
+					const next = !selections.includeStablecoins
+					actions.setIncludeStablecoins(next)
+				}}
+			>
+				Stablecoins
+			</Checkbox>
+			<Checkbox
+				variant={nestedMenu ? 'filter-borderless' : 'filter'}
+				value="includeGovernance"
+				checked={selections.includeGovernance}
+				onChange={() => {
+					const next = !selections.includeGovernance
+					actions.setIncludeGovernance(next)
+				}}
+			>
+				Governance Tokens
+			</Checkbox>
 			<button
 				onClick={() => {
 					const resetUpdates: Record<string, undefined> = {}

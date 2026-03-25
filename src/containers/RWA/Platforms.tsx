@@ -10,7 +10,7 @@ import { isTrueQueryParam, pushShallowQuery } from '~/utils/routerQuery'
 import type { IRWAPlatformsOverviewRow } from './api.types'
 import { definitions } from './definitions'
 import { RWAOverviewBreakdownChart } from './OverviewBreakdownChart'
-import { getRWAPlatformsTableData } from './platformTableData'
+import { getRWAOverviewCsvFileName, getRWAOverviewInclusion, getRWAOverviewTableData } from './overviewTableData'
 import { rwaSlug } from './rwaSlug'
 
 type RWAPlatformsTableRow = {
@@ -88,13 +88,22 @@ export function RWAPlatforms({
 }) {
 	const router = useRouter()
 	const includeStablecoins = isTrueQueryParam(router.query.includeStablecoins)
+	const includeGovernance = isTrueQueryParam(router.query.includeGovernance)
+	const inclusion = getRWAOverviewInclusion(includeStablecoins, includeGovernance)
 
 	const onToggleStablecoins = () => {
 		void pushShallowQuery(router, { includeStablecoins: includeStablecoins ? undefined : 'true' })
 	}
 
-	const data = getRWAPlatformsTableData(platforms, includeStablecoins)
-	const csvFileName = includeStablecoins ? 'rwa-platforms-stablecoins' : 'rwa-platforms'
+	const onToggleGovernance = () => {
+		void pushShallowQuery(router, { includeGovernance: includeGovernance ? undefined : 'true' })
+	}
+
+	const data = platforms.map((row) => ({
+		platform: row.platform,
+		...getRWAOverviewTableData(row, inclusion)
+	}))
+	const csvFileName = getRWAOverviewCsvFileName('rwa-platforms', inclusion)
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -105,6 +114,13 @@ export function RWAPlatforms({
 					checked={includeStablecoins}
 					help="Include stablecoin-token assets in platform totals/columns."
 					onChange={onToggleStablecoins}
+				/>
+				<Switch
+					label="Governance Tokens"
+					value="includeGovernance"
+					checked={includeGovernance}
+					help="Include governance-token assets in platform totals/columns."
+					onChange={onToggleGovernance}
 				/>
 			</div>
 			<RWAOverviewBreakdownChart
