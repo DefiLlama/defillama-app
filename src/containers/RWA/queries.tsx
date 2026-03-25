@@ -30,6 +30,7 @@ import type {
 	IRWAAssetGroupsOverviewRow,
 	RWATickerChartTarget
 } from './api.types'
+import { UNKNOWN_RWA_ASSET_GROUP, appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from './assetGroup'
 import { toBreakdownChartDataset } from './breakdownDataset'
 import {
 	aggregateRwaMetricData,
@@ -224,6 +225,14 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		])
 
 		assert(data, 'Failed to get RWA assets list')
+		const hasUnknownAssetGroup = data.some(
+			(item) => normalizeRwaAssetGroup(item.assetGroup) === UNKNOWN_RWA_ASSET_GROUP
+		)
+		// Only expose the synthetic Unknown filter/route when the current dataset actually contains
+		// assets without an assetGroup value.
+		const assetGroupValues = hasUnknownAssetGroup
+			? appendUnknownRwaAssetGroup(params.rwaList.assetGroups)
+			: params.rwaList.assetGroups
 
 		const chartDataMs: IRWAChartDataByTicker | null = chartData
 			? {
@@ -294,9 +303,12 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualAssetGroupName: string | null = null
 		if (selectedAssetGroup) {
-			for (const assetGroup of params.rwaList.assetGroups) {
-				if (rwaSlug(assetGroup) === selectedAssetGroup) {
-					actualAssetGroupName = assetGroup
+			// Resolve the display label from the same set of filterable values used by the overview,
+			// including the synthetic Unknown bucket when missing assetGroup values exist in the API data.
+			for (const assetGroup of assetGroupValues) {
+				const normalizedAssetGroup = normalizeRwaAssetGroup(assetGroup)
+				if (rwaSlug(normalizedAssetGroup) === selectedAssetGroup) {
+					actualAssetGroupName = normalizedAssetGroup
 					break
 				}
 			}
@@ -350,7 +362,8 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 				? getRealRwaPlatforms(item.parentPlatform).some((platform) => rwaSlug(platform) === selectedPlatform)
 				: true
 			const hasAssetGroupMatch = selectedAssetGroup
-				? typeof item.assetGroup === 'string' && rwaSlug(item.assetGroup) === selectedAssetGroup
+				? // Match missing/blank asset groups through the same normalized Unknown bucket used in the filters.
+					rwaSlug(normalizeRwaAssetGroup(item.assetGroup)) === selectedAssetGroup
 				: true
 
 			// Check if asset has actual TVL on the selected chain (from TVL data, not just chain array)
@@ -486,9 +499,9 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					if (platform === UNKNOWN_PLATFORM) continue
 					platforms.set(platform, (platforms.get(platform) ?? 0) + effectiveOnChainMcap)
 				}
-				if (typeof asset.assetGroup === 'string') {
-					assetGroups.set(asset.assetGroup, (assetGroups.get(asset.assetGroup) ?? 0) + effectiveOnChainMcap)
-				}
+				// Preserve assets with blank assetGroup values by assigning them to the normalized Unknown bucket.
+				const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
+				assetGroups.set(assetGroup, (assetGroups.get(assetGroup) ?? 0) + effectiveOnChainMcap)
 				if (asset.rwaClassification) {
 					rwaClassifications.set(
 						asset.rwaClassification,
@@ -552,10 +565,13 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			label: platform,
 			to: `/rwa/platform/${rwaSlug(platform)}`
 		}))
-		const assetGroupNavValues = params.rwaList.assetGroups.map((assetGroup) => ({
-			label: assetGroup,
-			to: `/rwa/asset-group/${rwaSlug(assetGroup)}`
-		}))
+		const assetGroupNavValues = assetGroupValues.map((assetGroup) => {
+			const normalizedAssetGroup = normalizeRwaAssetGroup(assetGroup)
+			return {
+				label: normalizedAssetGroup,
+				to: `/rwa/asset-group/${rwaSlug(normalizedAssetGroup)}`
+			}
+		})
 
 		// Pre-aggregate chart data server-side so we don't ship the huge ticker-level payload to the client.
 		const isChainMode = !selectedCategory && !selectedPlatform && !selectedAssetGroup
@@ -791,7 +807,7 @@ export async function getRWAAssetGroupsOverview(): Promise<IRWAAssetGroupsOvervi
 			assetCount += b.assetCount
 		}
 		rows.push({
-			assetGroup,
+			assetGroup: normalizeRwaAssetGroup(assetGroup),
 			onChainMcap,
 			activeMcap,
 			defiActiveTvl,

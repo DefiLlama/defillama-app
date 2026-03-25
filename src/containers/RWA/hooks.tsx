@@ -14,6 +14,7 @@ import {
 	pushShallowQuery
 } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWATickerChartTarget } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	aggregateRwaMetricData,
 	emptyChartDataset,
@@ -640,7 +641,7 @@ export const useFilteredRwaAssets = ({
 			}
 
 			const assetType = asset.type || 'Unknown'
-			const assetGroup = typeof asset.assetGroup === 'string' ? asset.assetGroup : ''
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
 			const platformRaw = asset.parentPlatform as unknown
 			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
 			const normalizedPlatforms = toUniqueNonEmptyValues(
@@ -653,7 +654,9 @@ export const useFilteredRwaAssets = ({
 				(normalizedPlatforms.length > 0
 					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
 					: true) &&
-				(selectedAssetGroupsSet.size > 0 ? assetGroup.length > 0 && selectedAssetGroupsSet.has(assetGroup) : true) &&
+				// Asset groups are now fully normalized up-front, so an empty selection should mean
+				// "show no asset groups" rather than falling back to "show everything".
+				selectedAssetGroupsSet.has(assetGroup) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&

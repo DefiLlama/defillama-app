@@ -1,5 +1,10 @@
 import type { InferGetStaticPropsType } from 'next'
 import { RowLinksWithDropdown } from '~/components/RowLinksWithDropdown'
+import {
+	UNKNOWN_RWA_ASSET_GROUP,
+	appendUnknownRwaAssetGroup,
+	normalizeRwaAssetGroup
+} from '~/containers/RWA/assetGroup'
 import { RWAAssetGroups } from '~/containers/RWA/AssetGroups'
 import { getRWAAssetGroupsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
@@ -12,11 +17,17 @@ export const getStaticProps = withPerformanceLogging(`rwa/asset-groups`, async (
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	const { rows: assetGroups, initialChartDataset } = await getRWAAssetGroupsOverview()
+	const assetGroupValues = assetGroups.some((row) => row.assetGroup === UNKNOWN_RWA_ASSET_GROUP)
+		? appendUnknownRwaAssetGroup(rwaList.assetGroups)
+		: rwaList.assetGroups
 
-	const assetGroupLinks = rwaList.assetGroups.map((assetGroup) => ({
-		label: assetGroup,
-		to: `/rwa/asset-group/${rwaSlug(assetGroup)}`
-	}))
+	const assetGroupLinks = assetGroupValues.map((assetGroup) => {
+		const normalizedAssetGroup = normalizeRwaAssetGroup(assetGroup)
+		return {
+			label: normalizedAssetGroup,
+			to: `/rwa/asset-group/${rwaSlug(normalizedAssetGroup)}`
+		}
+	})
 
 	return {
 		props: {

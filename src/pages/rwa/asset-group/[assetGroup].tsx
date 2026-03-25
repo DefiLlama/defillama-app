@@ -1,6 +1,7 @@
 import type { GetStaticPropsContext, InferGetStaticPropsType } from 'next'
 import { SKIP_BUILD_STATIC_GENERATION } from '~/constants'
 import { RWAOverview } from '~/containers/RWA'
+import { appendUnknownRwaAssetGroup, normalizeRwaAssetGroup } from '~/containers/RWA/assetGroup'
 import { getRWAAssetsOverview } from '~/containers/RWA/queries'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { RWATabNav } from '~/containers/RWA/TabNav'
@@ -19,7 +20,9 @@ export async function getStaticPaths() {
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	return {
-		paths: rwaList.assetGroups.slice(0, 10).map((assetGroup) => ({ params: { assetGroup: rwaSlug(assetGroup) } })),
+		paths: appendUnknownRwaAssetGroup(rwaList.assetGroups)
+			.slice(0, 10)
+			.map((assetGroup) => ({ params: { assetGroup: rwaSlug(normalizeRwaAssetGroup(assetGroup)) } })),
 		fallback: 'blocking'
 	}
 }
@@ -36,9 +39,10 @@ export const getStaticProps = withPerformanceLogging(
 		const rwaList = metadataCache.rwaList
 
 		let assetGroupName = null
-		for (const assetGroup of rwaList.assetGroups) {
-			if (rwaSlug(assetGroup) === assetGroupSlug) {
-				assetGroupName = assetGroup
+		for (const assetGroup of appendUnknownRwaAssetGroup(rwaList.assetGroups)) {
+			const normalizedAssetGroup = normalizeRwaAssetGroup(assetGroup)
+			if (rwaSlug(normalizedAssetGroup) === assetGroupSlug) {
+				assetGroupName = normalizedAssetGroup
 				break
 			}
 		}
@@ -48,7 +52,7 @@ export const getStaticProps = withPerformanceLogging(
 		}
 
 		const props = await getRWAAssetsOverview({ assetGroup: assetGroupSlug, rwaList })
-		if (!props) {
+		if (!props || props.assets.length === 0) {
 			return { notFound: true }
 		}
 

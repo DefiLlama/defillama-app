@@ -24,6 +24,7 @@ import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { formatNum, formattedNum, slug } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
 
@@ -185,12 +186,11 @@ const columns = [
 		},
 		size: 240
 	}),
-	columnHelper.accessor((asset) => (typeof asset.assetGroup === 'string' ? asset.assetGroup : null), {
+	columnHelper.accessor((asset) => normalizeRwaAssetGroup(asset.assetGroup), {
 		id: 'assetGroup',
 		header: 'Asset Group',
 		cell: (info) => {
 			const value = info.getValue()
-			if (!value) return null
 			return <span className="overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
 		size: 168,
