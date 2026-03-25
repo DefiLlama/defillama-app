@@ -2,40 +2,15 @@ import type { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { lazy, Suspense } from 'react'
 import { SEO } from '~/components/SEO'
 import { Toast } from '~/components/Toast'
-import { getProDashboardServerData } from '~/containers/ProDashboard/queries.server'
-import { getAuthTokenFromRequest } from '~/containers/ProDashboard/server/auth'
 import { isSuperLuminalEnabled, SUPERLUMINAL_PROJECTS } from '~/containers/SuperLuminal/config'
 import { Logo } from '~/containers/SuperLuminal/Logo'
 import { fetchCustomServerData } from '~/containers/SuperLuminal/serverDataRegistry'
 
 const SuperLuminalDashboard = lazy(() => import('~/containers/SuperLuminal'))
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps: GetServerSideProps = async () => {
 	if (!isSuperLuminalEnabled()) {
-		return { props: { serverDataByDashboardId: {} } }
-	}
-
-	const authToken = getAuthTokenFromRequest(context.req)
-
-	if (authToken) {
-		context.res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
-	} else {
-		context.res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600')
-	}
-
-	const serverDataByDashboardId: Record<string, any> = {}
-
-	const results = await Promise.allSettled(
-		SUPERLUMINAL_PROJECTS.filter((p) => p.dashboardId && !p.customOnly).map(async (project) => ({
-			dashboardId: project.dashboardId,
-			data: await getProDashboardServerData({ dashboardId: project.dashboardId, authToken, skipTableData: true })
-		}))
-	)
-
-	for (const result of results) {
-		if (result.status === 'fulfilled') {
-			serverDataByDashboardId[result.value.dashboardId] = result.value.data
-		}
+		return { props: {} }
 	}
 
 	let customServerData: Record<string, unknown> = {}
@@ -48,11 +23,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 		}
 	} catch {}
 
-	return { props: { serverDataByDashboardId, customServerData } }
+	return { props: { customServerData } }
 }
 
 export default function SuperLuminalAllPage({
-	serverDataByDashboardId,
 	customServerData
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
 	if (!isSuperLuminalEnabled()) {
@@ -74,7 +48,7 @@ export default function SuperLuminalAllPage({
 					</div>
 				}
 			>
-				<SuperLuminalDashboard serverDataByDashboardId={serverDataByDashboardId} customServerData={customServerData} />
+				<SuperLuminalDashboard customServerData={customServerData} />
 			</Suspense>
 			<Toast />
 		</>

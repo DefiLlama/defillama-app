@@ -1,13 +1,6 @@
 import { lazy, useMemo } from 'react'
 import type { IBarChartProps, IChartProps } from '~/components/ECharts/types'
-import {
-	useDistActualRevenue,
-	useDistRevenueProjection,
-	useDistSusdsTvl,
-	useDistXrSusds,
-	useDistXrSusdc,
-	useDistStakedUsdsTvl
-} from './distributionApi'
+import { useDistributionData } from './distributionApi'
 
 const BarChart = lazy(() => import('~/components/ECharts/BarChart')) as React.FC<IBarChartProps>
 const AreaChart = lazy(() => import('~/components/ECharts/AreaChart')) as React.FC<IChartProps>
@@ -43,144 +36,103 @@ function makeStacks(keys: string[]): Record<string, string> {
 }
 
 export default function DistributionRewards() {
-	const {
-		chartData: actualRevData,
-		keys: actualRevKeys,
-		colors: actualRevColors,
-		isLoading: actualRevLoading
-	} = useDistActualRevenue()
-	const { chartData: projData, keys: projKeys, colors: projColors, isLoading: projLoading } = useDistRevenueProjection()
-	const {
-		chartData: susdsTvlData,
-		keys: susdsTvlKeys,
-		colors: susdsTvlColors,
-		isLoading: susdsTvlLoading
-	} = useDistSusdsTvl()
-	const {
-		chartData: xrSusdsData,
-		keys: xrSusdsKeys,
-		colors: xrSusdsColors,
-		isLoading: xrSusdsLoading
-	} = useDistXrSusds()
-	const {
-		chartData: xrSusdcData,
-		keys: xrSusdcKeys,
-		colors: xrSusdcColors,
-		isLoading: xrSusdcLoading
-	} = useDistXrSusdc()
-	const {
-		chartData: stakedUsdsTvlData,
-		keys: stakedUsdsTvlKeys,
-		colors: stakedUsdsTvlColors,
-		isLoading: stakedUsdsTvlLoading
-	} = useDistStakedUsdsTvl()
+	const { data, isLoading } = useDistributionData()
 
-	const actualRevStacks = useMemo(() => makeStacks(actualRevKeys), [actualRevKeys])
-	const projStacks = useMemo(() => makeStacks(projKeys), [projKeys])
-	const xrSusdsStacks = useMemo(() => makeStacks(xrSusdsKeys), [xrSusdsKeys])
-	const xrSusdcStacks = useMemo(() => makeStacks(xrSusdcKeys), [xrSusdcKeys])
+	const actualRevStacks = useMemo(() => makeStacks(data?.actualRevenue.keys ?? []), [data?.actualRevenue.keys])
+	const projStacks = useMemo(() => makeStacks(data?.revenueProjection.keys ?? []), [data?.revenueProjection.keys])
+	const xrSusdsStacks = useMemo(() => makeStacks(data?.xrSusds.keys ?? []), [data?.xrSusds.keys])
+	const xrSusdcStacks = useMemo(() => makeStacks(data?.xrSusdc.keys ?? []), [data?.xrSusdc.keys])
+
+	if (isLoading || !data) {
+		return (
+			<div className="flex flex-col gap-4">
+				<CardSkeleton title="Actual Revenue - User" />
+				<CardSkeleton title="Revenue Projection - User" />
+				<CardSkeleton title="sUSDS & sUSDC TVL by Spark Referrals" />
+				<CardSkeleton title="XR Rewards - sUSDS Crosschain" />
+				<CardSkeleton title="XR Rewards - sUSDC Crosschain" />
+				<CardSkeleton title="Staked USDS TVL by Spark Referrals" />
+			</div>
+		)
+	}
 
 	return (
 		<div className="flex flex-col gap-4">
-			{actualRevLoading ? (
-				<CardSkeleton title="Actual Revenue - User" />
-			) : (
-				<ChartCard title="Actual Revenue - User">
-					<BarChart
-						chartData={actualRevData}
-						stacks={actualRevStacks}
-						stackColors={actualRevColors}
-						valueSymbol="$"
-						title=""
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
+			<ChartCard title="Actual Revenue - User">
+				<BarChart
+					chartData={data.actualRevenue.chartData}
+					stacks={actualRevStacks}
+					stackColors={data.actualRevenue.colors}
+					valueSymbol="$"
+					title=""
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+				/>
+			</ChartCard>
 
-			{projLoading ? (
-				<CardSkeleton title="Revenue Projection - User" />
-			) : (
-				<ChartCard title="Revenue Projection - User">
-					<BarChart
-						chartData={projData}
-						stacks={projStacks}
-						stackColors={projColors}
-						valueSymbol="$"
-						title=""
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
+			<ChartCard title="Revenue Projection - User">
+				<BarChart
+					chartData={data.revenueProjection.chartData}
+					stacks={projStacks}
+					stackColors={data.revenueProjection.colors}
+					valueSymbol="$"
+					title=""
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+				/>
+			</ChartCard>
 
-			{susdsTvlLoading ? (
-				<CardSkeleton title="sUSDS & sUSDC TVL by Spark Referrals" />
-			) : (
-				<ChartCard title="sUSDS & sUSDC TVL by Spark Referrals">
-					<AreaChart
-						chartData={susdsTvlData}
-						stacks={susdsTvlKeys}
-						stackColors={susdsTvlColors}
-						valueSymbol="$"
-						title=""
-						isStackedChart={true}
-						hideGradient={true}
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
+			<ChartCard title="sUSDS & sUSDC TVL by Spark Referrals">
+				<AreaChart
+					chartData={data.susdsTvl.chartData}
+					stacks={data.susdsTvl.keys}
+					stackColors={data.susdsTvl.colors}
+					valueSymbol="$"
+					title=""
+					isStackedChart={true}
+					hideGradient={true}
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+				/>
+			</ChartCard>
 
-			{xrSusdsLoading ? (
-				<CardSkeleton title="XR Rewards - sUSDS Crosschain" />
-			) : (
-				<ChartCard title="XR Rewards - sUSDS Crosschain">
-					<BarChart
-						chartData={xrSusdsData}
-						stacks={xrSusdsStacks}
-						stackColors={xrSusdsColors}
-						valueSymbol="$"
-						title=""
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
+			<ChartCard title="XR Rewards - sUSDS Crosschain">
+				<BarChart
+					chartData={data.xrSusds.chartData}
+					stacks={xrSusdsStacks}
+					stackColors={data.xrSusds.colors}
+					valueSymbol="$"
+					title=""
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+				/>
+			</ChartCard>
 
-			{xrSusdcLoading ? (
-				<CardSkeleton title="XR Rewards - sUSDC Crosschain" />
-			) : (
-				<ChartCard title="XR Rewards - sUSDC Crosschain">
-					<BarChart
-						chartData={xrSusdcData}
-						stacks={xrSusdcStacks}
-						stackColors={xrSusdcColors}
-						valueSymbol="$"
-						title=""
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
+			<ChartCard title="XR Rewards - sUSDC Crosschain">
+				<BarChart
+					chartData={data.xrSusdc.chartData}
+					stacks={xrSusdcStacks}
+					stackColors={data.xrSusdc.colors}
+					valueSymbol="$"
+					title=""
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+				/>
+			</ChartCard>
 
-			{stakedUsdsTvlLoading ? (
-				<CardSkeleton title="Staked USDS TVL by Spark Referrals" />
-			) : (
-				<ChartCard title="Staked USDS TVL by Spark Referrals">
-					<AreaChart
-						chartData={stakedUsdsTvlData}
-						stacks={stakedUsdsTvlKeys}
-						stackColors={stakedUsdsTvlColors}
-						valueSymbol="$"
-						title=""
-						isStackedChart={true}
-						hideGradient={true}
-						height="400px"
-						chartOptions={SCROLL_LEGEND}
-					/>
-				</ChartCard>
-			)}
+			<ChartCard title="Staked USDS TVL by Spark Referrals">
+				<AreaChart
+					chartData={data.stakedUsdsTvl.chartData}
+					stacks={data.stakedUsdsTvl.keys}
+					stackColors={data.stakedUsdsTvl.colors}
+					valueSymbol="$"
+					title=""
+					isStackedChart={true}
+					hideGradient={true}
+					height="400px"
+					chartOptions={SCROLL_LEGEND}
+				/>
+			</ChartCard>
 		</div>
 	)
 }
