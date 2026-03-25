@@ -109,7 +109,7 @@ export async function fetchCoreMetadata(): Promise<{
 	const CHAINS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-chains.json`
 	const CATEGORIES_AND_TAGS_DATA_URL = `${API_SERVER_URL}/config/smol/appMetadata-categoriesAndTags.json`
 	const CEXS_DATA_URL = `${API_SERVER_URL}/cexs`
-	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list`
+	const RWA_LIST_DATA_URL = `${RWA_SERVER_URL}/list?rwa=123`
 	const TOKENLIST_DATA_URL = `${DATASETS_SERVER_URL}/tokenlist/sorted.json`
 	const BRIDGES_DATA_URL = `${BRIDGES_SERVER_URL}/bridges?includeChains=true`
 
