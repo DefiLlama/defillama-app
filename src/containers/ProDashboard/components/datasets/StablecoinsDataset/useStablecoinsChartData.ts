@@ -201,7 +201,6 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			chartData.tokenInflowNames,
 			chainsCirculatingValues,
 			dataWithExtraPeggedAndDominanceByDay,
-			rawData?.peggedAssetNames,
 			totalMcapCurrent,
 			isLoading,
 			streamDone,

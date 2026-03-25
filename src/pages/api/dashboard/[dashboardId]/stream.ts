@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
-import type { NormalizedRow } from '~/containers/ProDashboard/components/UnifiedTable/types'
 import { sanitizeRowHeaders } from '~/containers/ProDashboard/components/UnifiedTable/utils/rowHeaders'
-import type { CustomTimePeriod, TimePeriod } from '~/containers/ProDashboard/dashboardReducer'
 import { getChartQueryKey } from '~/containers/ProDashboard/queries'
 import {
 	extractChartItems,
@@ -11,15 +9,13 @@ import {
 	fetchDashboardConfig,
 	fetchProtocolsAndChains,
 	fetchSingleChartData,
-	withTimeout,
-	type ProDashboardServerProps
+	withTimeout
 } from '~/containers/ProDashboard/queries.server'
 import { fetchTableServerData } from '~/containers/ProDashboard/server/tableQueries'
 import ProtocolCharts from '~/containers/ProDashboard/services/ProtocolCharts'
 import type {
 	AdvancedTvlChartConfig,
 	ChartConfig,
-	DashboardItemConfig,
 	MetricConfig,
 	StablecoinsChartConfig,
 	UnifiedTableConfig,
@@ -35,7 +31,7 @@ import {
 } from '~/containers/Stablecoins/api'
 import { formatPeggedAssetsData } from '~/containers/Stablecoins/utils'
 import { getProtocolEmissionsPieData, getProtocolEmissionsScheduleData } from '~/containers/Unlocks/queries'
-import { fetchProtocolsTable, type ChainMetrics } from '~/server/unifiedTable/protocols'
+import { fetchProtocolsTable } from '~/server/unifiedTable/protocols'
 import { slug } from '~/utils'
 
 export const config = {
@@ -77,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		let dashboard: Awaited<ReturnType<typeof fetchDashboardConfig>> = null
 		let protocolsAndChainsData: Awaited<ReturnType<typeof fetchProtocolsAndChains>> = null
 
-		const [dashboardResult, protocolsResult, metadataResult] = await Promise.allSettled([
+		const [dashboardResult, protocolsResult] = await Promise.allSettled([
 			fetchDashboardConfig(dashboardId, authToken).then((d) => {
 				writeLine({ type: 'dashboard', data: d })
 				dashboard = d
@@ -103,9 +99,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 			res.end()
 			return
 		}
-
-		const timePeriod = (dashboard!.data.timePeriod || '365d') as TimePeriod
-		const customTimePeriod = (dashboard!.data.customTimePeriod || null) as CustomTimePeriod | null
 
 		// Phase 2: fire all item-level fetches in parallel, stream each as it resolves
 		const phase2Promises: Promise<void>[] = []

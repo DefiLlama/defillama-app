@@ -9,8 +9,7 @@ import {
 	useLayoutEffect,
 	useMemo,
 	useReducer,
-	useRef,
-	useState
+	useRef
 } from 'react'
 import toast from 'react-hot-toast'
 import { useAuthContext } from '~/containers/Subscribtion/auth'
@@ -307,7 +306,7 @@ function ProDashboardAPIProviderInner({
 }) {
 	const queryClient = useQueryClient()
 
-	const { isAuthenticated, hasActiveSubscription, user } = useAuthContext()
+	const { isAuthenticated, user } = useAuthContext()
 	const { canCreateDashboard, isFreeUser } = useFreeTierStatus()
 	const { data: protocolsAndChains, isLoading: protocolsLoading } = useProtocolsAndChains()
 
