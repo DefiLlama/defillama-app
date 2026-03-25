@@ -1,14 +1,17 @@
+import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useMemo } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
 import type { IBarChartProps, IChartProps, IMultiSeriesChart2Props } from '~/components/ECharts/types'
 import { CHART_COLORS } from '~/constants/colors'
-import { useYieldChartData, useYieldChartLendBorrow } from '~/containers/Yields/queries/client'
+import { YIELD_CHART_API, YIELD_CHART_LEND_BORROW_API } from '~/constants'
 import { formattedNum } from '~/utils'
+import { fetchJson } from '~/utils/async'
 import { download } from '~/utils/download'
 import { useChartImageExport } from '../hooks/useChartImageExport'
 import { useProDashboardTime } from '../ProDashboardAPIContext'
-import { StreamDoneContext } from '../queries'
+import { ProxyAuthTokenContext, StreamDoneContext } from '../queries'
+import { fetchYieldsLendBorrowViaProxy, fetchYieldsViaProxy } from '../services/fetchViaProxy'
 import type { YieldsChartConfig } from '../types'
 import { LoadingSpinner } from './LoadingSpinner'
 import { ProTableCSVButton } from './ProTable/CsvButton'
@@ -55,15 +58,41 @@ export function YieldsChartCard({ config }: YieldsChartCardProps) {
 	const { chartInstance, handleChartReady } = useChartImageExport()
 
 	const streamDone = useContext(StreamDoneContext)
+	const authToken = useContext(ProxyAuthTokenContext)
 	const gatedPoolId = streamDone ? poolConfigId : null
-	const { data: chart, isLoading: fetchingChartData, isError: chartError } = useYieldChartData(gatedPoolId)
+	const {
+		data: chart,
+		isLoading: fetchingChartData,
+		isError: chartError
+	} = useQuery({
+		queryKey: ['yield-pool-chart-data', gatedPoolId],
+		queryFn: () =>
+			authToken
+				? fetchYieldsViaProxy(gatedPoolId!, authToken)
+				: fetchJson(`${YIELD_CHART_API}/${gatedPoolId}`),
+		staleTime: Infinity,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!gatedPoolId
+	})
 
 	const needsBorrowData = ['borrow-apy', 'net-borrow-apy', 'pool-liquidity'].includes(chartType)
+	const borrowPoolId = streamDone && needsBorrowData ? poolConfigId : null
 	const {
 		data: borrowChart,
 		isLoading: fetchingBorrowData,
 		isError: borrowError
-	} = useYieldChartLendBorrow(streamDone && needsBorrowData ? poolConfigId : null)
+	} = useQuery({
+		queryKey: ['yield-lend-borrow-chart', borrowPoolId],
+		queryFn: () =>
+			authToken
+				? fetchYieldsLendBorrowViaProxy(borrowPoolId!, authToken)
+				: fetchJson(`${YIELD_CHART_LEND_BORROW_API}/${borrowPoolId}`),
+		staleTime: Infinity,
+		refetchOnWindowFocus: false,
+		retry: 1,
+		enabled: !!borrowPoolId
+	})
 
 	const {
 		tvlApyData,
