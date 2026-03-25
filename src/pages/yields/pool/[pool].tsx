@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router'
 import { lazy, Suspense, useDeferredValue, useMemo, useState } from 'react'
 import { AddToDashboardButton } from '~/components/AddToDashboard'
-import { Announcement } from '~/components/Announcement'
 import { ChartExportButtons } from '~/components/ButtonStyled/ChartExportButtons'
 import { CSVDownloadButton } from '~/components/ButtonStyled/CsvButton'
 import { formatTvlApyTooltip } from '~/components/ECharts/formatters'
