@@ -12,10 +12,8 @@ export const getStaticProps = withPerformanceLogging(`rwa/asset-groups`, async (
 	const metadataCache = await import('~/utils/metadata').then((m) => m.default)
 	const rwaList = metadataCache.rwaList
 	const { rows: assetGroups, initialChartDataset } = await getRWAAssetGroupsOverview()
-	const assetGroupNames =
-		rwaList.assetGroups.length > 0 ? rwaList.assetGroups : assetGroups.map((row) => row.assetGroup)
 
-	const assetGroupLinks = assetGroupNames.map((assetGroup) => ({
+	const assetGroupLinks = rwaList.assetGroups.map((assetGroup) => ({
 		label: assetGroup,
 		to: `/rwa/asset-group/${rwaSlug(assetGroup)}`
 	}))

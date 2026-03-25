@@ -294,18 +294,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 
 		let actualAssetGroupName: string | null = null
 		if (selectedAssetGroup) {
-			const assetGroupCandidates =
-				params.rwaList.assetGroups.length > 0
-					? params.rwaList.assetGroups
-					: Array.from(
-							new Set(
-								data
-									.map((item) => item.assetGroup)
-									.filter((assetGroup): assetGroup is string => typeof assetGroup === 'string' && assetGroup.length > 0)
-							)
-						)
-
-			for (const assetGroup of assetGroupCandidates) {
+			for (const assetGroup of params.rwaList.assetGroups) {
 				if (rwaSlug(assetGroup) === selectedAssetGroup) {
 					actualAssetGroupName = assetGroup
 					break
@@ -550,7 +539,6 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 		const formattedAssetGroups = Array.from(assetGroups.entries())
 			.sort((a, b) => b[1] - a[1])
 			.map(([key]) => key)
-		const assetGroupNames = params.rwaList.assetGroups.length > 0 ? params.rwaList.assetGroups : formattedAssetGroups
 
 		const chainNavValues = params.rwaList.chains.map((chain) => ({
 			label: chain,
@@ -564,7 +552,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 			label: platform,
 			to: `/rwa/platform/${rwaSlug(platform)}`
 		}))
-		const assetGroupNavValues = assetGroupNames.map((assetGroup) => ({
+		const assetGroupNavValues = params.rwaList.assetGroups.map((assetGroup) => ({
 			label: assetGroup,
 			to: `/rwa/asset-group/${rwaSlug(assetGroup)}`
 		}))
@@ -646,10 +634,7 @@ export async function getRWAAssetsOverview(params: RWAAssetsOverviewParams): Pro
 					? [{ label: 'All', to: '/rwa/platforms' }, ...platformNavValues]
 					: [],
 			selectedPlatform: actualPlatformName ?? 'All',
-			assetGroupLinks:
-				selectedAssetGroup && assetGroupNavValues.length > 0
-					? [{ label: 'All', to: '/rwa/asset-groups' }, ...assetGroupNavValues]
-					: [],
+			assetGroupLinks: selectedAssetGroup ? [{ label: 'All', to: '/rwa/asset-groups' }, ...assetGroupNavValues] : [],
 			selectedAssetGroup: actualAssetGroupName ?? 'All',
 			totals: {
 				onChainMcap: totalOnChainMcap,
