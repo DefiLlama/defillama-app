@@ -37,28 +37,28 @@ const columns = [
 		header: definitions.totalAssetCount.label,
 		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
-		size: 148
+		size: 160
 	}),
 	columnHelper.accessor('activeMcap', {
 		id: 'activeMcap',
 		header: definitions.totalActiveMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
-		size: 228
+		size: 200
 	}),
 	columnHelper.accessor('onChainMcap', {
 		id: 'onChainMcap',
 		header: definitions.totalOnChainMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
-		size: 168
+		size: 208
 	}),
 	columnHelper.accessor('defiActiveTvl', {
 		id: 'defiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 148
+		size: 140
 	})
 ]
 

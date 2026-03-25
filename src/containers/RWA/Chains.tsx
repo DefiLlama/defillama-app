@@ -52,35 +52,35 @@ const columns = [
 		header: definitions.totalAssetIssuers.label,
 		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetIssuers.description },
-		size: 168
+		size: 140
 	}),
 	columnHelper.accessor('totalAssetCount', {
 		id: 'totalAssetCount',
 		header: definitions.totalAssetCount.label,
 		cell: (info) => formattedNum(info.getValue(), false),
 		meta: { align: 'end', headerHelperText: definitions.totalAssetCount.description },
-		size: 148
+		size: 160
 	}),
 	columnHelper.accessor('totalActiveMcap', {
 		id: 'totalActiveMcap',
 		header: definitions.totalActiveMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalActiveMcap.description },
-		size: 228
+		size: 200
 	}),
 	columnHelper.accessor('totalOnChainMcap', {
 		id: 'totalOnChainMcap',
 		header: definitions.totalOnChainMcap.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalOnChainMcap.description },
-		size: 168
+		size: 208
 	}),
 	columnHelper.accessor('totalDefiActiveTvl', {
 		id: 'totalDefiActiveTvl',
 		header: definitions.totalDefiActiveTvl.label,
 		cell: (info) => formattedNum(info.getValue(), true),
 		meta: { align: 'end', headerHelperText: definitions.totalDefiActiveTvl.description },
-		size: 148
+		size: 140
 	})
 ]
 
