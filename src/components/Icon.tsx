@@ -101,7 +101,8 @@ const ICON_NAMES = [
 	'graduation-cap',
 	'circle-x',
 	'landmark',
-	'expand'
+	'expand',
+	'shrink'
 ] as const
 
 type Name = (typeof ICON_NAMES)[number]
@@ -112,7 +113,7 @@ export interface IIcon extends SVGProps<SVGSVGElement> {
 export function Icon({ name, ...props }: IIcon) {
 	return (
 		<svg {...props}>
-			<use href={`/icons/v36.svg#${name}`} />
+			<use href={`/icons/v37.svg#${name}`} />
 		</svg>
 	)
 }
