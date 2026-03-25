@@ -69,6 +69,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	const isChainMode = mode === 'chain'
 	const isCategoryMode = mode === 'category'
 	const isPlatformMode = mode === 'platform'
+	const isAssetGroupMode = mode === 'assetGroup'
 	const timeSeriesChartBreakdown =
 		typeof router.query.timeSeriesChartBreakdown === 'string' ? router.query.timeSeriesChartBreakdown : null
 	const nonTimeSeriesChartBreakdown =
@@ -97,6 +98,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -137,6 +139,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		rwaClassifications: props.rwaClassifications,
 		accessModels: props.accessModels,
 		issuers: props.issuers,
+		assetGroups: props.assetGroups,
 		defaultIncludeStablecoins: !isChainMode,
 		defaultIncludeGovernance: !isChainMode,
 		mode
@@ -149,6 +152,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			selectedAssetNames,
 			selectedCategories,
 			selectedPlatforms,
+			selectedAssetGroups,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -216,9 +220,11 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assetNameDefiActiveTvlPieChartData,
 		assetNamePieChartStackColors
 	} = useRwaAssetNamePieChartData({
-		enabled: isPlatformMode,
+		enabled: isPlatformMode || isAssetGroupMode,
 		assets: filteredAssets,
-		selectedAssetNames
+		selectedAssetNames: isAssetGroupMode
+			? filteredAssets.map((asset) => asset.assetName || asset.ticker)
+			: selectedAssetNames
 	})
 
 	const {
@@ -231,7 +237,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		assets: filteredAssets
 	})
 
-	const canBreakdownByChain = isCategoryMode || isPlatformMode || props.selectedChain === 'All'
+	const canBreakdownByChain = isCategoryMode || isPlatformMode || isAssetGroupMode || props.selectedChain === 'All'
 	const {
 		chainOnChainMcapPieChartData,
 		chainActiveMcapPieChartData,
@@ -281,7 +287,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 				}
 			}
 
-			if (isPlatformMode) {
+			if (isPlatformMode || isAssetGroupMode) {
 				return {
 					onChainPieChartData: assetNameOnChainMcapPieChartData,
 					activeMcapPieChartData: assetNameActiveMcapPieChartData,
@@ -316,6 +322,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 			isChainMode,
 			isCategoryMode,
 			isPlatformMode,
+			isAssetGroupMode,
 			canBreakdownByChain,
 			nonTimeSeriesChartBreakdown,
 			chainOnChainMcapPieChartData,
@@ -327,7 +334,13 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 	// Preserve filter/toggle query params only in chain mode.
 	// (The chain/category/platform itself is in the pathname, so we strip the dynamic param from the query object.)
 	const navLinks = useMemo(() => {
-		const baseLinks = getModeLinks(mode, props.chainLinks, props.categoryLinks, props.platformLinks)
+		const baseLinks = getModeLinks(
+			mode,
+			props.chainLinks,
+			props.categoryLinks,
+			props.platformLinks,
+			props.assetGroupLinks
+		)
 
 		// Only preserve query filters/toggles on chain mode. In category/platform mode, links should be "clean".
 		const shouldPreserveQuery = isChainMode
@@ -337,7 +350,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 		const qs = toQueryString(restQuery as Record<string, string | string[] | undefined>)
 		if (!qs) return baseLinks
 		return baseLinks.map((link) => ({ ...link, to: `${link.to}${qs}` }))
-	}, [isChainMode, mode, props.categoryLinks, props.platformLinks, props.chainLinks, router.query])
+	}, [
+		isChainMode,
+		mode,
+		props.assetGroupLinks,
+		props.categoryLinks,
+		props.platformLinks,
+		props.chainLinks,
+		router.query
+	])
 
 	const showFilters = props.assets.length > 1
 
@@ -633,13 +654,15 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					mode,
 					isChainMode,
 					isCategoryMode,
-					isPlatformMode
+					isPlatformMode,
+					isAssetGroupMode
 				}}
 				options={{
 					assetNames: props.assetNames,
 					typeOptions: props.typeOptions,
 					categoriesOptions: props.categoriesOptions,
 					platforms: props.platforms,
+					assetGroups: props.assetGroups,
 					assetClassOptions: props.assetClassOptions,
 					rwaClassificationOptions: props.rwaClassificationOptions,
 					accessModelOptions: props.accessModelOptions,
@@ -650,6 +673,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 					selectedTypes,
 					selectedCategories,
 					selectedPlatforms,
+					selectedAssetGroups,
 					selectedAssetClasses,
 					selectedRwaClassifications,
 					selectedAccessModels,
@@ -818,6 +842,7 @@ export const RWAOverview = (props: IRWAAssetsOverview) => {
 }
 
 const getRWAOverviewMode = (props: IRWAAssetsOverview): RWAOverviewMode => {
+	if (props.assetGroupLinks.length > 0) return 'assetGroup'
 	if (props.categoryLinks.length > 0) return 'category'
 	if (props.platformLinks.length > 0) return 'platform'
 	return 'chain'
@@ -832,6 +857,7 @@ const getRwaChartAggregationMode = (state: RWATimeSeriesChartState): RWAChartAgg
 		case 'chain':
 		case 'category':
 		case 'platform':
+		case 'assetGroup':
 			return state.breakdown
 		default:
 			return assertNever(state)
@@ -839,6 +865,7 @@ const getRwaChartAggregationMode = (state: RWATimeSeriesChartState): RWAChartAgg
 }
 
 const getTickerChartTarget = (props: IRWAAssetsOverview): RWATickerChartTarget => {
+	if (props.assetGroupSlug) return { kind: 'assetGroup', slug: props.assetGroupSlug }
 	if (props.categorySlug) return { kind: 'category', slug: props.categorySlug }
 	if (props.platformSlug) return { kind: 'platform', slug: props.platformSlug }
 	if (props.chainSlug) return { kind: 'chain', slug: props.chainSlug }
@@ -849,14 +876,17 @@ const getModeLinks = (
 	mode: RWAOverviewMode,
 	chainLinks: IRWAAssetsOverview['chainLinks'],
 	categoryLinks: IRWAAssetsOverview['categoryLinks'],
-	platformLinks: IRWAAssetsOverview['platformLinks']
+	platformLinks: IRWAAssetsOverview['platformLinks'],
+	assetGroupLinks: IRWAAssetsOverview['assetGroupLinks']
 ) => {
+	if (mode === 'assetGroup') return assetGroupLinks
 	if (mode === 'category') return categoryLinks
 	if (mode === 'platform') return platformLinks
 	return chainLinks
 }
 
 const getSelectedModeLabel = (mode: RWAOverviewMode, props: IRWAAssetsOverview) => {
+	if (mode === 'assetGroup') return props.selectedAssetGroup
 	if (mode === 'category') return props.selectedCategory
 	if (mode === 'platform') return props.selectedPlatform
 	return props.selectedChain
@@ -871,6 +901,7 @@ const getRwaExportChartTitle = ({
 	metricLabel: string
 	selectedModeLabel: string
 }) => {
+	if (mode === 'assetGroup') return `RWA ${metricLabel} in ${selectedModeLabel}`
 	if (mode === 'category') return `RWA ${metricLabel} by Category`
 	if (!selectedModeLabel || selectedModeLabel === 'All') return `RWA ${metricLabel}`
 	return `RWA ${metricLabel} on ${selectedModeLabel}`

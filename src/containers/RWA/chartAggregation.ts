@@ -10,7 +10,8 @@ export type RWAChartDataset = { source: RWAChartRow[]; dimensions: string[] }
 
 export type RWAChartDatasetsByMetric = Record<RWAChartMetric, RWAChartDataset>
 
-export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform'
+export type RWAChartAggregationMode = 'category' | 'assetClass' | 'assetName' | 'platform' | 'assetGroup'
+const UNKNOWN_ASSET_GROUP = 'Unknown'
 
 function assertNever(value: never): never {
 	throw new Error(`Unexpected value: ${String(value)}`)
@@ -50,6 +51,14 @@ function buildTickerGroupMapping(
 			case 'platform':
 				weightedGroups = computeWeightedGroups(getRwaPlatforms(asset.parentPlatform))
 				break
+			case 'assetGroup': {
+				const assetGroup =
+					typeof asset.assetGroup === 'string' && asset.assetGroup.trim().length > 0
+						? asset.assetGroup
+						: UNKNOWN_ASSET_GROUP
+				weightedGroups = computeWeightedGroups([assetGroup])
+				break
+			}
 			default:
 				assertNever(mode)
 		}

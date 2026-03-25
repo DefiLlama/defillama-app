@@ -48,6 +48,8 @@ function buildRequest(
 			return { breakdown: 'category', key: chartType, includeStablecoin: true, includeGovernance: true }
 		case 'platform':
 			return { breakdown: 'platform', key: chartType, includeStablecoin: true, includeGovernance: true }
+		case 'assetGroup':
+			return { breakdown: 'assetGroup', key: chartType, includeStablecoin: true, includeGovernance: true }
 		default:
 			return assertNever(page)
 	}

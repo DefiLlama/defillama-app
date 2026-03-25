@@ -237,6 +237,12 @@ async function buildRWAAssetRoutes() {
 			if (categorySlug) routes.push(`rwa/category/${categorySlug}`)
 		}
 	}
+	if (rwaList?.assetGroups) {
+		for (const assetGroup of rwaList.assetGroups) {
+			const assetGroupSlug = rwaSlug(assetGroup)
+			if (assetGroupSlug) routes.push(`rwa/asset-group/${assetGroupSlug}`)
+		}
+	}
 	return routes
 }
 

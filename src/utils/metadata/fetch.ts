@@ -138,6 +138,7 @@ export async function fetchCoreMetadata(): Promise<{
 				platforms: [],
 				chains: [],
 				categories: [],
+				assetGroups: [],
 				idMap: {}
 			}),
 			fetchWithDevFallback<RawTokenListItem[]>(TOKENLIST_DATA_URL, []),

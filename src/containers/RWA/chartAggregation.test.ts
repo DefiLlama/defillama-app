@@ -54,4 +54,40 @@ describe('aggregateRwaMetricData', () => {
 			dimensions: ['timestamp', 'Centrifuge', 'Maple', 'Unknown']
 		})
 	})
+
+	it('buckets missing assetGroup values into Unknown instead of dropping them', () => {
+		expect(
+			aggregateRwaMetricData(
+				[
+					{
+						id: '1',
+						ticker: 'AAA',
+						assetName: 'Alpha',
+						assetGroup: 'Stablecoins',
+						parentPlatform: 'Centrifuge',
+						trueRWA: false,
+						onChainMcap: null,
+						activeMcap: null,
+						defiActiveTvl: null
+					},
+					{
+						id: '2',
+						ticker: 'BBB',
+						assetName: 'Beta',
+						assetGroup: null,
+						parentPlatform: 'Maple',
+						trueRWA: false,
+						onChainMcap: null,
+						activeMcap: null,
+						defiActiveTvl: null
+					}
+				],
+				[{ timestamp: 1, AAA: 100, BBB: 50 }],
+				'assetGroup'
+			)
+		).toEqual({
+			source: [{ timestamp: 1, Stablecoins: 100, Unknown: 50 }],
+			dimensions: ['timestamp', 'Stablecoins', 'Unknown']
+		})
+	})
 })

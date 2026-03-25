@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import {
+	fetchRWAAssetGroupBreakdownChartData,
 	fetchRWAChainBreakdownChartData,
 	fetchRWACategoryBreakdownChartData,
 	fetchRWAPlatformBreakdownChartData
@@ -47,6 +48,11 @@ function parseRequest(req: NextApiRequest): RWAOverviewBreakdownRequest | null {
 		return { breakdown, key, includeStablecoin: true, includeGovernance: true }
 	}
 
+	if (breakdown === 'assetGroup') {
+		if (!includeStablecoin || !includeGovernance) return null
+		return { breakdown, key, includeStablecoin: true, includeGovernance: true }
+	}
+
 	return null
 }
 
@@ -69,6 +75,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 					return fetchRWACategoryBreakdownChartData(request)
 				case 'platform':
 					return fetchRWAPlatformBreakdownChartData(request)
+				case 'assetGroup':
+					return fetchRWAAssetGroupBreakdownChartData(request)
 				default:
 					return assertNever(request)
 			}
