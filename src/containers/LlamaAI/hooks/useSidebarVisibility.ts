@@ -30,10 +30,19 @@ export function useSidebarVisibility() {
 		}
 	}, [isMobile])
 
+	const hideSidebar = useCallback(() => {
+		if (isMobile) {
+			setSidebarHiddenMobile('true')
+		} else {
+			setStorageItem(SIDEBAR_STORAGE_KEY, 'true')
+		}
+	}, [isMobile])
+
 	return {
 		sidebarVisible: isMobile ? sidebarHiddenMobile !== 'true' : sidebarHiddenDesktop !== 'true',
 		toggleSidebar: isMobile ? toggleSidebarMobile : toggleSidebarDesktop,
 		hideOnMobile,
+		hideSidebar,
 		isMobile
 	}
 }
