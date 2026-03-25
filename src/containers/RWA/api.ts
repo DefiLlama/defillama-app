@@ -27,14 +27,14 @@ function assertNever(value: never): never {
  * Fetch current active TVL values for RWA projects.
  */
 export async function fetchRWAActiveTVLs(): Promise<Array<IFetchedRWAProject>> {
-	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current?z=0`)
+	return fetchJson<Array<IFetchedRWAProject>>(`${RWA_SERVER_URL}/current`)
 }
 
 /**
  * Fetch aggregate stats for the RWA dashboard.
  */
 export async function fetchRWAStats(): Promise<IRWAStatsResponse> {
-	return fetchJson<IRWAStatsResponse>(`${RWA_SERVER_URL}/stats?z=0`)
+	return fetchJson<IRWAStatsResponse>(`${RWA_SERVER_URL}/stats`)
 }
 
 /**
