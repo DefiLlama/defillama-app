@@ -2,15 +2,30 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { ensureChronologicalRows } from '~/components/ECharts/utils'
 import { RWA_SERVER_URL } from '~/constants'
 import { toUnixMsTimestamp } from '~/containers/RWA/api'
-import type { IRWAChartDataByTicker, IRWAChartMetricRows, RWAChartMetricKey } from '~/containers/RWA/api.types'
+import type {
+	IRWAChartDataByTicker,
+	IRWAChartMetricRows,
+	RWAChartMetricKey,
+	RWATickerChartTarget
+} from '~/containers/RWA/api.types'
 import { rwaSlug } from '~/containers/RWA/rwaSlug'
 import { fetchJson } from '~/utils/async'
 
-function buildTickerBreakdownUrl(chain?: string, category?: string, platform?: string): string {
-	if (chain) return `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(chain))}/ticker-breakdown`
-	if (category) return `${RWA_SERVER_URL}/chart/category/${encodeURIComponent(rwaSlug(category))}/ticker-breakdown`
-	if (platform) return `${RWA_SERVER_URL}/chart/platform/${encodeURIComponent(rwaSlug(platform))}/ticker-breakdown`
-	return `${RWA_SERVER_URL}/chart/chain/all/ticker-breakdown`
+function buildTickerBreakdownUrl(target: RWATickerChartTarget): string {
+	switch (target.kind) {
+		case 'all':
+			return `${RWA_SERVER_URL}/chart/chain/all/ticker-breakdown`
+		case 'chain':
+			return `${RWA_SERVER_URL}/chart/chain/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+		case 'category':
+			return `${RWA_SERVER_URL}/chart/category/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+		case 'platform':
+			return `${RWA_SERVER_URL}/chart/platform/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+		case 'assetGroup':
+			return `${RWA_SERVER_URL}/chart/assetGroup/${encodeURIComponent(rwaSlug(target.slug))}/ticker-breakdown`
+		default:
+			return assertNever(target)
+	}
 }
 
 function normalizeTickerBreakdownData(raw: IRWAChartDataByTicker): IRWAChartDataByTicker {
@@ -34,6 +49,32 @@ function parseChartMetricKey(value: string | string[] | undefined): RWAChartMetr
 	return null
 }
 
+function parseTarget(req: NextApiRequest): RWATickerChartTarget | null {
+	const rawChain = req.query.chain
+	const rawCategory = req.query.category
+	const rawPlatform = req.query.platform
+	const rawAssetGroup = req.query.assetGroup
+
+	if (
+		Array.isArray(rawChain) ||
+		Array.isArray(rawCategory) ||
+		Array.isArray(rawPlatform) ||
+		Array.isArray(rawAssetGroup)
+	) {
+		return null
+	}
+
+	const targets = [
+		rawChain ? ({ kind: 'chain', slug: rawChain } as const) : null,
+		rawCategory ? ({ kind: 'category', slug: rawCategory } as const) : null,
+		rawPlatform ? ({ kind: 'platform', slug: rawPlatform } as const) : null,
+		rawAssetGroup ? ({ kind: 'assetGroup', slug: rawAssetGroup } as const) : null
+	].filter((target) => target !== null)
+
+	if (targets.length > 1) return null
+	return targets[0] ?? { kind: 'all' }
+}
+
 function getMetricRows(data: IRWAChartDataByTicker, key: RWAChartMetricKey): IRWAChartMetricRows {
 	switch (key) {
 		case 'onChainMcap':
@@ -52,25 +93,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 		return res.status(405).json({ error: 'Method not allowed' })
 	}
 
-	const rawChain = req.query.chain
-	const rawCategory = req.query.category
-	const rawPlatform = req.query.platform
-
-	if (Array.isArray(rawChain) || Array.isArray(rawCategory) || Array.isArray(rawPlatform)) {
-		return res.status(400).json({ error: 'Duplicate query parameters are not allowed' })
-	}
-
-	const chain = typeof rawChain === 'string' ? rawChain : undefined
-	const category = typeof rawCategory === 'string' ? rawCategory : undefined
-	const platform = typeof rawPlatform === 'string' ? rawPlatform : undefined
+	const target = parseTarget(req)
 	const key = parseChartMetricKey(req.query.key)
 
-	const paramCount = Number(!!chain) + Number(!!category) + Number(!!platform)
-	if (paramCount > 1) return res.status(400).json({ error: 'Provide at most one of chain, category, or platform' })
+	if (target == null) {
+		return res.status(400).json({ error: 'Provide at most one of chain, category, platform, or assetGroup' })
+	}
 	if (key == null) return res.status(400).json({ error: 'Missing or invalid key' })
 
 	try {
-		const raw = await fetchJson<IRWAChartDataByTicker>(buildTickerBreakdownUrl(chain, category, platform), {
+		const raw = await fetchJson<IRWAChartDataByTicker>(buildTickerBreakdownUrl(target), {
 			timeout: 30_000
 		})
 		const normalized = normalizeTickerBreakdownData(raw)

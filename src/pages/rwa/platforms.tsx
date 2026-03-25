@@ -47,7 +47,7 @@ export default function RWAPlatformsPage({ platforms, platformLinks, initialChar
 		>
 			<RWATabNav active="platforms" />
 			<RowLinksWithDropdown links={platformLinks} activeLink={'All'} />
-			<RWAPlatforms platforms={platforms} initialChartDataset={initialChartDataset} page={{ kind: 'platform' }} />
+			<RWAPlatforms platforms={platforms} initialChartDataset={initialChartDataset} />
 		</Layout>
 	)
 }

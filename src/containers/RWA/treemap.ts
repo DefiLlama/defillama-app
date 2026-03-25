@@ -76,6 +76,7 @@ export const getRwaTreemapParentGrouping = ({
 	if (mode === 'chain' && nonTimeSeriesChartBreakdown === 'assetClass') return 'assetClass'
 	if (mode === 'category') return 'assetClass'
 	if (mode === 'platform') return 'assetName'
+	if (mode === 'assetGroup') return 'assetName'
 	return 'category'
 }
 

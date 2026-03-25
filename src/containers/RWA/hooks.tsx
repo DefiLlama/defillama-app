@@ -14,6 +14,7 @@ import {
 	pushShallowQuery
 } from '~/utils/routerQuery'
 import type { IRWAAssetsOverview, IRWAChartMetricRows, RWAChartMetricKey, RWATickerChartTarget } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import {
 	aggregateRwaMetricData,
 	emptyChartDataset,
@@ -93,6 +94,7 @@ export const useRWATableQueryParams = ({
 	types,
 	categories,
 	platforms,
+	assetGroups,
 	assetClasses,
 	rwaClassifications,
 	accessModels,
@@ -105,6 +107,7 @@ export const useRWATableQueryParams = ({
 	types: string[]
 	categories: string[]
 	platforms: string[]
+	assetGroups: string[]
 	assetClasses: string[]
 	rwaClassifications: string[]
 	accessModels: string[]
@@ -123,6 +126,8 @@ export const useRWATableQueryParams = ({
 		excludeCategories: excludeCategoriesQ,
 		platforms: platformsQ,
 		excludePlatforms: excludePlatformsQ,
+		assetGroups: assetGroupsQ,
+		excludeAssetGroups: excludeAssetGroupsQ,
 		assetClasses: assetClassesQ,
 		excludeAssetClasses: excludeAssetClassesQ,
 		rwaClassifications: rwaClassificationsQ,
@@ -154,6 +159,7 @@ export const useRWATableQueryParams = ({
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -190,6 +196,7 @@ export const useRWATableQueryParams = ({
 		const typesValidSet = new Set(types)
 		const categoriesValidSet = new Set(categories)
 		const platformsValidSet = new Set(platforms)
+		const assetGroupsValidSet = new Set(assetGroups)
 		const assetClassesValidSet = new Set(assetClasses)
 		const rwaClassificationsValidSet = new Set(rwaClassifications)
 		const accessModelsValidSet = new Set(accessModels)
@@ -200,6 +207,7 @@ export const useRWATableQueryParams = ({
 		const excludeTypesSet = parseExcludeParam(excludeTypesQ)
 		const excludeCategoriesSet = parseExcludeParam(excludeCategoriesQ)
 		const excludePlatformsSet = parseExcludeParam(excludePlatformsQ)
+		const excludeAssetGroupsSet = parseExcludeParam(excludeAssetGroupsQ)
 		const excludeAssetClassesSet = parseExcludeParam(excludeAssetClassesQ)
 		const excludeRwaClassificationsSet = parseExcludeParam(excludeRwaClassificationsQ)
 		const excludeAccessModelsSet = parseExcludeParam(excludeAccessModelsQ)
@@ -247,6 +255,17 @@ export const useRWATableQueryParams = ({
 					: platforms
 		const selectedPlatforms =
 			excludePlatformsSet.size > 0 ? basePlatforms.filter((p) => !excludePlatformsSet.has(p)) : basePlatforms
+
+		const baseAssetGroups =
+			assetGroupsQ != null
+				? parseArrayParam(assetGroupsQ, assetGroups, assetGroupsValidSet)
+				: excludeAssetGroupsSet.size > 0
+					? assetGroups
+					: assetGroups
+		const selectedAssetGroups =
+			excludeAssetGroupsSet.size > 0
+				? baseAssetGroups.filter((assetGroup) => !excludeAssetGroupsSet.has(assetGroup))
+				: baseAssetGroups
 
 		const baseAssetClasses =
 			assetClassesQ != null
@@ -302,6 +321,7 @@ export const useRWATableQueryParams = ({
 			selectedTypes,
 			selectedCategories,
 			selectedPlatforms,
+			selectedAssetGroups,
 			selectedAssetClasses,
 			selectedRwaClassifications,
 			selectedAccessModels,
@@ -331,6 +351,8 @@ export const useRWATableQueryParams = ({
 		excludeCategoriesQ,
 		platformsQ,
 		excludePlatformsQ,
+		assetGroupsQ,
+		excludeAssetGroupsQ,
 		assetClassesQ,
 		excludeAssetClassesQ,
 		rwaClassificationsQ,
@@ -360,6 +382,7 @@ export const useRWATableQueryParams = ({
 		types,
 		categories,
 		platforms,
+		assetGroups,
 		assetClasses,
 		rwaClassifications,
 		accessModels,
@@ -415,6 +438,7 @@ export const useRWATableQueryParams = ({
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -477,6 +501,7 @@ export const useFilteredRwaAssets = ({
 	selectedTypes,
 	selectedCategories,
 	selectedPlatforms,
+	selectedAssetGroups,
 	selectedAssetClasses,
 	selectedRwaClassifications,
 	selectedAccessModels,
@@ -503,6 +528,7 @@ export const useFilteredRwaAssets = ({
 	selectedTypes: string[]
 	selectedCategories: string[]
 	selectedPlatforms: string[]
+	selectedAssetGroups: string[]
 	selectedAssetClasses: string[]
 	selectedRwaClassifications: string[]
 	selectedAccessModels: string[]
@@ -548,6 +574,7 @@ export const useFilteredRwaAssets = ({
 		const selectedTypesSet = new Set(selectedTypes)
 		const selectedCategoriesSet = new Set(selectedCategories)
 		const selectedPlatformsSet = new Set(selectedPlatforms)
+		const selectedAssetGroupsSet = new Set(selectedAssetGroups)
 		const selectedAssetClassesSet = new Set(selectedAssetClasses)
 		const selectedRwaClassificationsSet = new Set(selectedRwaClassifications)
 		const selectedAccessModelsSet = new Set(selectedAccessModels)
@@ -614,6 +641,7 @@ export const useFilteredRwaAssets = ({
 			}
 
 			const assetType = asset.type || 'Unknown'
+			const assetGroup = normalizeRwaAssetGroup(asset.assetGroup)
 			const platformRaw = asset.parentPlatform as unknown
 			const platformCandidates = Array.isArray(platformRaw) ? platformRaw : [platformRaw]
 			const normalizedPlatforms = toUniqueNonEmptyValues(
@@ -626,6 +654,9 @@ export const useFilteredRwaAssets = ({
 				(normalizedPlatforms.length > 0
 					? normalizedPlatforms.some((platform) => selectedPlatformsSet.has(platform))
 					: true) &&
+				// Asset groups are now fully normalized up-front, so an empty selection should mean
+				// "show no asset groups" rather than falling back to "show everything".
+				selectedAssetGroupsSet.has(assetGroup) &&
 				(asset.assetClass?.length
 					? asset.assetClass.some((assetClass) => selectedAssetClassesSet.has(assetClass))
 					: true) &&
@@ -660,6 +691,7 @@ export const useFilteredRwaAssets = ({
 		selectedTypes,
 		selectedCategories,
 		selectedPlatforms,
+		selectedAssetGroups,
 		selectedAssetClasses,
 		selectedRwaClassifications,
 		selectedAccessModels,
@@ -1076,6 +1108,7 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 	'types',
 	'categories',
 	'platforms',
+	'assetGroups',
 	'assetClasses',
 	'rwaClassifications',
 	'accessModels',
@@ -1084,6 +1117,7 @@ const CHART_FILTER_QUERY_KEYS = new Set([
 	'excludeTypes',
 	'excludeCategories',
 	'excludePlatforms',
+	'excludeAssetGroups',
 	'excludeAssetClasses',
 	'excludeRwaClassifications',
 	'excludeAccessModels',
@@ -1143,6 +1177,9 @@ async function fetchRwaTickerChartData(params: {
 			break
 		case 'platform':
 			searchParams.set('platform', params.target.slug)
+			break
+		case 'assetGroup':
+			searchParams.set('assetGroup', params.target.slug)
 			break
 		default:
 			assertNever(params.target)

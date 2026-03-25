@@ -24,6 +24,7 @@ import type { ColumnSizesByBreakpoint } from '~/components/Table/utils'
 import { Tooltip } from '~/components/Tooltip'
 import { formatNum, formattedNum, slug } from '~/utils'
 import type { IRWAAssetsOverview } from './api.types'
+import { normalizeRwaAssetGroup } from './assetGroup'
 import { BreakdownTooltipContent } from './BreakdownTooltipContent'
 import { definitions } from './definitions'
 
@@ -185,38 +186,17 @@ const columns = [
 		},
 		size: 240
 	}),
-	columnHelper.accessor((asset) => asset.category, {
-		id: 'category',
-		header: definitions.category.label,
+	columnHelper.accessor((asset) => normalizeRwaAssetGroup(asset.assetGroup), {
+		id: 'assetGroup',
+		header: 'Asset Group',
 		cell: (info) => {
-			const value = info.getValue() ?? []
-			const tooltipContent = value
-				.map((category) => {
-					const description = definitions.category.values?.[category]
-					return `${category}:\n${description || '-'}`
-				})
-				.join('\n\n')
-			if (tooltipContent) {
-				return (
-					<Tooltip
-						content={tooltipContent}
-						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
-					>
-						{value.join(', ')}
-					</Tooltip>
-				)
-			}
-			return (
-				<span title={value.join(', ')} className="overflow-hidden text-ellipsis whitespace-nowrap">
-					{value.join(', ')}
-				</span>
-			)
+			const value = info.getValue()
+			return <span className="overflow-hidden text-ellipsis whitespace-nowrap">{value}</span>
 		},
 		size: 168,
 		enableSorting: false,
 		meta: {
-			align: 'end',
-			headerHelperText: definitions.category.description
+			align: 'end'
 		}
 	}),
 	columnHelper.accessor((asset) => asset.activeMcap?.total, {
@@ -280,6 +260,40 @@ const columns = [
 			meta: { align: 'end', headerHelperText: 'DeFi Active TVL / Active Mcap' }
 		}
 	),
+	columnHelper.accessor((asset) => asset.category, {
+		id: 'category',
+		header: definitions.category.label,
+		cell: (info) => {
+			const value = info.getValue() ?? []
+			const tooltipContent = value
+				.map((category) => {
+					const description = definitions.category.values?.[category]
+					return `${category}:\n${description || '-'}`
+				})
+				.join('\n\n')
+			if (tooltipContent) {
+				return (
+					<Tooltip
+						content={tooltipContent}
+						className="inline-block max-w-full justify-end overflow-hidden text-ellipsis whitespace-nowrap"
+					>
+						{value.join(', ')}
+					</Tooltip>
+				)
+			}
+			return (
+				<span title={value.join(', ')} className="overflow-hidden text-ellipsis whitespace-nowrap">
+					{value.join(', ')}
+				</span>
+			)
+		},
+		size: 168,
+		enableSorting: false,
+		meta: {
+			align: 'end',
+			headerHelperText: definitions.category.description
+		}
+	}),
 	columnHelper.accessor((asset) => asset.assetClass?.join(', ') ?? '', {
 		id: 'assetClass',
 		header: definitions.assetClass.label,
