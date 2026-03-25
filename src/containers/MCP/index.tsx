@@ -355,7 +355,7 @@ export default function MCPContainer() {
 
 				<CopyBox
 					label="Paste into Claude, Cursor, or any AI agent"
-					text="Read https://raw.githubusercontent.com/DefiLlama/defillama-mcp/master/skills/defillama-setup/SKILL.md and follow the instructions to connect to DefiLlama MCP"
+					text="Read https://raw.githubusercontent.com/DefiLlama/defillama-skills/refs/heads/master/defillama-setup/SKILL.md and follow the instructions to connect to DefiLlama MCP"
 				/>
 
 				<div className="mt-10">
