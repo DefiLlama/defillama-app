@@ -116,7 +116,7 @@ export function StablecoinsChartTab({
 		return (assetsList as StablecoinAssetInfo[]).map((asset) => ({
 			value: asset.name,
 			label: `${asset.name} (${asset.symbol})`,
-			logo: tokenIconUrl(asset.geckoId),
+			logo: asset.geckoId ? tokenIconUrl(asset.geckoId) : undefined,
 			description: formattedNum(asset.mcap, true),
 			extra: slug(asset.name)
 		}))
@@ -498,7 +498,12 @@ export function StablecoinsChartTab({
 							</p>
 						</div>
 
-						<div className="h-[320px]">{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}</div>
+						<div
+						key={stablecoinMode === 'chain' ? selectedStablecoinChartType : selectedStablecoinAssetChartType}
+						className="h-[320px]"
+					>
+						{stablecoinMode === 'chain' ? renderChainChart() : renderAssetChart()}
+					</div>
 					</div>
 				) : (
 					<div className="flex h-[320px] items-center justify-center text-center pro-text3">
