@@ -190,7 +190,7 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			tokenInflowNames: chartData.tokenInflowNames || [],
 			peggedAssetNames: rawData?.peggedAssetNames || [],
 			totalMcapCurrent,
-			isLoading,
+			isLoading: isLoading || (!streamDone && !rawData),
 			error
 		}),
 		[
@@ -204,6 +204,8 @@ export function useStablecoinsChartData(chain: string): UseStablecoinsChartDataR
 			rawData?.peggedAssetNames,
 			totalMcapCurrent,
 			isLoading,
+			streamDone,
+			rawData,
 			error
 		]
 	)

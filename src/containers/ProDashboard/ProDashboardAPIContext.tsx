@@ -939,7 +939,7 @@ function ProDashboardAPIProviderInner({
 		const resolveChartItem = (chartItem: ChartConfig) => {
 			const query = queryById.get(chartItem.id)
 			const data = query?.data ?? EMPTY_CHART_DATA
-			const isLoading = query?.isLoading ?? false
+			const isLoading = (query?.isLoading ?? false) || (!streamDone && !query?.data)
 			const hasError = query?.isError ?? false
 			const refetch = query?.refetch ?? NOOP
 			return {
@@ -965,7 +965,7 @@ function ProDashboardAPIProviderInner({
 
 			return item
 		})
-	}, [items, queryById])
+	}, [items, queryById, streamDone])
 
 	const handlersRef = useRef<{
 		handleAddChart: typeof handleAddChart

@@ -153,7 +153,7 @@ export function useGetProtocolsListMultiChain(chains: string[]) {
 	return {
 		fullProtocolsList,
 		parentProtocols,
-		isLoading: isLoadingAll
+		isLoading: isLoadingAll || !streamDone
 	}
 }
 
@@ -178,7 +178,7 @@ export function useGetProtocolsVolumeByMultiChain(chains: string[]) {
 	const queriesRef = useRef(queries)
 	queriesRef.current = queries
 
-	const isLoading = queries.some((q) => q.isLoading)
+	const isLoading = queries.some((q) => q.isLoading) || !streamDone
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
@@ -258,7 +258,7 @@ export function useGetProtocolsFeesAndRevenueByMultiChain(chains: string[]) {
 	const queriesRef = useRef(queries)
 	queriesRef.current = queries
 
-	const isLoading = queries.some((q) => q.isLoading)
+	const isLoading = queries.some((q) => q.isLoading) || !streamDone
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
@@ -366,7 +366,7 @@ export function useGetProtocolsPerpsVolumeByMultiChain(chains: string[]) {
 	const queriesRef = useRef(queries)
 	queriesRef.current = queries
 
-	const isLoading = queries.some((q) => q.isLoading)
+	const isLoading = queries.some((q) => q.isLoading) || !streamDone
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
@@ -442,7 +442,7 @@ export function useGetProtocolsOpenInterestByMultiChain(chains: string[]) {
 	const queriesRef = useRef(queries)
 	queriesRef.current = queries
 
-	const isLoading = queries.some((q) => q.isLoading)
+	const isLoading = queries.some((q) => q.isLoading) || !streamDone
 	const error = queries.find((q) => q.error)?.error
 
 	const dataKey = queries.map((q) => q.dataUpdatedAt).join(',')
@@ -505,13 +505,14 @@ export function useGetProtocolsEarningsByMultiChain(chains: string[]) {
 		'protocols-earnings-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
-	return useQuery({
+	const query = useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/earnings${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
 	})
+	return { ...query, isLoading: query.isLoading || !streamDone }
 }
 
 export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
@@ -521,13 +522,14 @@ export function useGetProtocolsAggregatorsByMultiChain(chains: string[]) {
 		'protocols-aggregators-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
-	return useQuery({
+	const query = useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
 	})
+	return { ...query, isLoading: query.isLoading || !streamDone }
 }
 
 export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
@@ -537,13 +539,14 @@ export function useGetProtocolsBridgeAggregatorsByMultiChain(chains: string[]) {
 		'protocols-bridge-aggregators-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
-	return useQuery({
+	const query = useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/bridge-aggregators${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
 	})
+	return { ...query, isLoading: query.isLoading || !streamDone }
 }
 
 export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
@@ -553,11 +556,12 @@ export function useGetProtocolsOptionsVolumeByMultiChain(chains: string[]) {
 		'protocols-options-multi-chain',
 		...(chains.includes('All') || chains.length === 0 ? ['All'] : [...chains].sort())
 	]
-	return useQuery({
+	const query = useQuery({
 		queryKey,
 		queryFn: () => fetchJson(`/api/datasets/options${buildChainsQuery(chains)}`) as Promise<any[]>,
 		staleTime: Infinity,
 		retry: 1,
 		enabled: streamDone
 	})
+	return { ...query, isLoading: query.isLoading || !streamDone }
 }

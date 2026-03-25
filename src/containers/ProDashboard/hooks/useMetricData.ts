@@ -275,7 +275,7 @@ export function useMetricData(metric: MetricConfig) {
 
 	return {
 		...result,
-		isLoading,
+		isLoading: isLoading || (!streamDone && !series),
 		isError
 	}
 }

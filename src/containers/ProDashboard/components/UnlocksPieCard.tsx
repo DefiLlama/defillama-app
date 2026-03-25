@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useCallback, useContext, useMemo } from 'react'
 import type { IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingSpinner } from './LoadingSpinner'
 import { getProtocolEmissionsPieData } from '~/containers/Unlocks/queries'
 import { slug } from '~/utils'
 import { download } from '~/utils/download'
@@ -78,10 +78,10 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 		download(csvFileName, csvContent)
 	}, [chartData, csvFileName, hasChartData])
 
-	if (isLoading) {
+	if (isLoading || !streamDone) {
 		return (
 			<div className="flex h-full min-h-[360px] items-center justify-center">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -108,7 +108,7 @@ export function UnlocksPieCard({ config }: UnlocksPieCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>

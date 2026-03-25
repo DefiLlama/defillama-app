@@ -1,7 +1,7 @@
 import { lazy, Suspense, useContext, useMemo, type ReactElement } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingSpinner } from './LoadingSpinner'
 import {
 	formatProtocolV1TvlsByChain,
 	useFetchProtocolV1AddlChartsData
@@ -139,10 +139,10 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 	const imageTitle = `${protocolName} - ${chartTypeLabel}`
 	const imageFilename = `${protocol.toLowerCase().replace(/\s+/g, '-')}-${chartType}`
 
-	if (isLoading) {
+	if (isLoading || !streamDone) {
 		return (
 			<div className="flex h-full min-h-[360px] items-center justify-center">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -154,7 +154,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>
@@ -178,7 +178,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>
@@ -202,7 +202,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>
@@ -218,7 +218,7 @@ export function BorrowedChartCard({ config }: BorrowedChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>

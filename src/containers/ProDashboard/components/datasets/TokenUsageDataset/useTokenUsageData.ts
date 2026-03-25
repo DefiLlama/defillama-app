@@ -15,7 +15,7 @@ export interface TokenUsageData {
 
 export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = false) {
 	const streamDone = useContext(StreamDoneContext)
-	return useQuery<TokenUsageData[]>({
+	const query = useQuery<TokenUsageData[]>({
 		queryKey: [
 			'pro-dashboard',
 			'token-usage',
@@ -84,4 +84,5 @@ export function useTokenUsageData(tokenSymbols: string[], includeCex: boolean = 
 		staleTime: Infinity,
 		retry: 1
 	})
+	return { ...query, isLoading: query.isLoading || !streamDone }
 }

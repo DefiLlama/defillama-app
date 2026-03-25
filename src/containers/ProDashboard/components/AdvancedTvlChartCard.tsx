@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense, useContext, useMemo } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingSpinner } from './LoadingSpinner'
 
 const dashboardBlue = '#326abd'
 import {
@@ -94,7 +94,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 		isLoading: isAddlLoading
 	} = useFetchProtocolV1AddlChartsData(protocol, false, undefined, streamDone)
 
-	const isLoading = chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading
+	const isLoading = (chartType === 'tvl' ? isBasicTvlLoading : isAddlLoading) || !streamDone
 
 	const { chainsSplit, chainsUnique } = useMemo(() => {
 		if (!historicalChainTvls) return { chainsSplit: null, chainsUnique: [] }
@@ -259,7 +259,7 @@ export function AdvancedTvlChartCard({ config }: AdvancedTvlChartCardProps) {
 	if (isLoading) {
 		return (
 			<div className="flex min-h-[402px] items-center justify-center md:min-h-[418px]">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}

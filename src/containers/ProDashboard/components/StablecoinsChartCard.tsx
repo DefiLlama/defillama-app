@@ -1,7 +1,7 @@
 import { lazy, Suspense, useMemo } from 'react'
 import { ChartPngExportButton } from '~/components/ButtonStyled/ChartPngExportButton'
 import type { IBarChartProps, IChartProps, IPieChartProps } from '~/components/ECharts/types'
-import { LocalLoader } from '~/components/Loaders'
+import { LoadingSpinner } from './LoadingSpinner'
 import { useStablecoinsChartData } from '~/containers/ProDashboard/components/datasets/StablecoinsDataset/useStablecoinsChartData'
 import { generateConsistentChartColor, STABLECOIN_TOKEN_COLORS } from '~/containers/ProDashboard/utils/colorManager'
 import { formattedNum, toNiceCsvDate } from '~/utils'
@@ -197,7 +197,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 	if (isLoading) {
 		return (
 			<div className="flex h-full min-h-[360px] items-center justify-center">
-				<LocalLoader />
+				<LoadingSpinner />
 			</div>
 		)
 	}
@@ -209,7 +209,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>
@@ -232,7 +232,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>
@@ -255,7 +255,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>
@@ -267,7 +267,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>
@@ -291,7 +291,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>
@@ -309,7 +309,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 					<Suspense
 						fallback={
 							<div className="flex h-[320px] items-center justify-center">
-								<LocalLoader />
+								<LoadingSpinner />
 							</div>
 						}
 					>
@@ -372,7 +372,7 @@ export function StablecoinsChartCard({ config }: StablecoinsChartCardProps) {
 				<Suspense
 					fallback={
 						<div className="flex h-[320px] items-center justify-center">
-							<LocalLoader />
+							<LoadingSpinner />
 						</div>
 					}
 				>

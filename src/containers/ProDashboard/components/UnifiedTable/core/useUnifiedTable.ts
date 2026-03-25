@@ -254,7 +254,7 @@ export function useUnifiedTable({
 
 	return {
 		table,
-		isLoading,
+		isLoading: isLoading || !streamDone,
 		rowHeaders: sanitizedHeaders,
 		leafRows: filteredRows,
 		columns,
