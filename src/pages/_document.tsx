@@ -1,5 +1,5 @@
 import { Head, Html, Main, NextScript } from 'next/document'
-import { getAnnouncementDismissalBootstrapScript, getThemeBootstrapScript } from '~/utils/cookies'
+import { getHeadBootstrapScript } from '~/utils/cookies'
 
 export default function Document() {
 	return (
@@ -18,12 +18,7 @@ export default function Document() {
 				<link href="/assets/defillama.webp" rel="preload" as="image" type="image/webp" />
 				<script
 					dangerouslySetInnerHTML={{
-						__html: getThemeBootstrapScript()
-					}}
-				/>
-				<script
-					dangerouslySetInnerHTML={{
-						__html: getAnnouncementDismissalBootstrapScript()
+						__html: getHeadBootstrapScript()
 					}}
 				/>
 			</Head>

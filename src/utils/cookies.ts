@@ -2,9 +2,14 @@ export const THEME_COOKIE_NAME = 'defillama-theme'
 export const ANNOUNCEMENT_DISMISSALS_COOKIE_NAME = 'defillama-dismissed-announcements'
 export const ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE = 'data-announcement-dismissals'
 export const ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN = '^[a-z0-9-]+(?:--[a-z0-9-]+)?$'
+export const LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME = 'llamaai-sidebar-hidden'
+export const LLAMAAI_FULLSCREEN_COOKIE_NAME = 'llamaai-fullscreen'
 const MAX_DISMISSED_ANNOUNCEMENT_TOKENS = 32
+const LLAMAAI_FULLSCREEN_ATTRIBUTE = 'data-llamaai-fullscreen'
+const LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE = 'data-llamaai-sidebar-hidden'
 
 type Theme = 'dark' | 'light'
+type LlamaAICookieName = typeof LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME | typeof LLAMAAI_FULLSCREEN_COOKIE_NAME
 
 const VALID_THEME_VALUES: ReadonlySet<string> = new Set<string>(['dark', 'light'])
 const VALID_ANNOUNCEMENT_TOKEN_REGEX = new RegExp(ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN)
@@ -36,6 +41,39 @@ const getCookieValue = (cookieString: string, cookieName: string): string | null
 	if (parts.length < 2 || !parts[1]) return null
 
 	return parts.slice(1).join('=')
+}
+
+const isInteractiveLlamaAIPath = (pathname: string): boolean => {
+	return pathname === '/ai/chat' || (pathname.startsWith('/ai/chat/') && !pathname.startsWith('/ai/chat/shared/'))
+}
+
+const syncLlamaAIChromeAttributesForPath = (pathname: string, fullscreen: boolean, sidebarHidden: boolean): void => {
+	if (typeof document === 'undefined') return
+
+	const root = document.documentElement
+
+	if (!isInteractiveLlamaAIPath(pathname)) {
+		clearLlamaAIChromeAttributes()
+		return
+	}
+
+	if (fullscreen) {
+		root.setAttribute(LLAMAAI_FULLSCREEN_ATTRIBUTE, 'true')
+	} else {
+		root.removeAttribute(LLAMAAI_FULLSCREEN_ATTRIBUTE)
+	}
+
+	if (sidebarHidden) {
+		root.setAttribute(LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE, 'true')
+	} else {
+		root.removeAttribute(LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE)
+	}
+}
+
+export const clearLlamaAIChromeAttributes = (): void => {
+	if (typeof document === 'undefined') return
+	document.documentElement.removeAttribute(LLAMAAI_FULLSCREEN_ATTRIBUTE)
+	document.documentElement.removeAttribute(LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE)
 }
 
 const sanitizeAnnouncementTokenPart = (value: string, fallback: string): string => {
@@ -90,44 +128,11 @@ export const syncAnnouncementDismissalStyles = (tokens: string[]): void => {
 	document.head.appendChild(style)
 }
 
-export const getThemeBootstrapScript = (cookieName: string = THEME_COOKIE_NAME): string => `
+export const getHeadBootstrapScript = (): string => `
 	(function() {
 		var VALID_THEME_VALUES = ['dark', 'light'];
+		var ANNOUNCEMENT_TOKEN_REGEX = new RegExp('${ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN}');
 
-		function sanitizeThemeValue(value) {
-			if (!value) return 'dark';
-			var trimmed = String(value).trim();
-			return VALID_THEME_VALUES.indexOf(trimmed) !== -1 ? trimmed : 'dark';
-		}
-
-		function getCookieValue(cookieString, targetCookieName) {
-			if (!cookieString) return null;
-			var cookies = cookieString.split(';');
-			var matchingCookie = cookies.find(function(cookie) {
-				return cookie.trim().startsWith(targetCookieName + '=');
-			});
-			if (!matchingCookie) return null;
-			var parts = matchingCookie.split('=');
-			if (parts.length < 2 || !parts[1]) return null;
-			return parts[1];
-		}
-
-		var theme = sanitizeThemeValue(getCookieValue(document.cookie, '${cookieName}'));
-
-		if (theme === 'light') {
-			document.documentElement.classList.remove('dark');
-			document.documentElement.classList.add('light');
-		} else {
-			document.documentElement.classList.remove('light');
-			document.documentElement.classList.add('dark');
-		}
-	})();
-`
-
-export const getAnnouncementDismissalBootstrapScript = (
-	cookieName: string = ANNOUNCEMENT_DISMISSALS_COOKIE_NAME
-): string => `
-	(function() {
 		function getCookieValue(cookieString, targetCookieName) {
 			if (!cookieString) return null;
 			var cookies = cookieString.split(';');
@@ -140,31 +145,71 @@ export const getAnnouncementDismissalBootstrapScript = (
 			return parts.slice(1).join('=');
 		}
 
-		var cookieValue = getCookieValue(document.cookie, '${cookieName}');
-		if (!cookieValue) return;
-
-		var tokens;
-		try {
-			tokens = decodeURIComponent(cookieValue).split(',');
-		} catch (_error) {
-			tokens = cookieValue.split(',');
+		function sanitizeThemeValue(value) {
+			if (!value) return 'dark';
+			var trimmed = String(value).trim();
+			return VALID_THEME_VALUES.indexOf(trimmed) !== -1 ? trimmed : 'dark';
 		}
 
-		var selectors = tokens
-			.map(function(token) {
-				var normalizedToken = token.trim();
-				if (!new RegExp('${ANNOUNCEMENT_DISMISSAL_TOKEN_PATTERN}').test(normalizedToken)) return '';
-				return '.announcement-token--' + normalizedToken + '{display:none!important;}';
-			})
-			.filter(Boolean)
-			.join('');
+		function isInteractiveLlamaAIPath(pathname) {
+			return pathname === '/ai/chat' || (pathname.startsWith('/ai/chat/') && !pathname.startsWith('/ai/chat/shared/'));
+		}
 
-		if (!selectors) return;
+		var root = document.documentElement;
+		var theme = sanitizeThemeValue(getCookieValue(document.cookie, '${THEME_COOKIE_NAME}'));
 
-		var style = document.createElement('style');
-		style.setAttribute('${ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE}', 'true');
-		style.textContent = selectors;
-		document.head.appendChild(style);
+		if (theme === 'light') {
+			root.classList.remove('dark');
+			root.classList.add('light');
+		} else {
+			root.classList.remove('light');
+			root.classList.add('dark');
+		}
+
+		var announcementCookieValue = getCookieValue(document.cookie, '${ANNOUNCEMENT_DISMISSALS_COOKIE_NAME}');
+		if (announcementCookieValue) {
+			var announcementTokens;
+			try {
+				announcementTokens = decodeURIComponent(announcementCookieValue).split(',');
+			} catch (_error) {
+				announcementTokens = announcementCookieValue.split(',');
+			}
+
+			var selectors = announcementTokens
+				.map(function(token) {
+					var normalizedToken = token.trim();
+					if (!ANNOUNCEMENT_TOKEN_REGEX.test(normalizedToken)) return '';
+					return '.announcement-token--' + normalizedToken + '{display:none!important;}';
+				})
+				.filter(Boolean)
+				.join('');
+
+			if (selectors) {
+				var style = document.createElement('style');
+				style.setAttribute('${ANNOUNCEMENT_DISMISSAL_STYLE_ATTRIBUTE}', 'true');
+				style.textContent = selectors;
+				document.head.appendChild(style);
+			}
+		}
+
+		var pathname = window.location.pathname;
+		if (!isInteractiveLlamaAIPath(pathname)) {
+			root.removeAttribute('${LLAMAAI_FULLSCREEN_ATTRIBUTE}');
+			root.removeAttribute('${LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE}');
+			return;
+		}
+
+		if (getCookieValue(document.cookie, '${LLAMAAI_FULLSCREEN_COOKIE_NAME}') === 'true') {
+			root.setAttribute('${LLAMAAI_FULLSCREEN_ATTRIBUTE}', 'true');
+		} else {
+			root.removeAttribute('${LLAMAAI_FULLSCREEN_ATTRIBUTE}');
+		}
+
+		if (getCookieValue(document.cookie, '${LLAMAAI_SIDEBAR_HIDDEN_COOKIE_NAME}') === 'true') {
+			root.setAttribute('${LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE}', 'true');
+		} else {
+			root.removeAttribute('${LLAMAAI_SIDEBAR_HIDDEN_ATTRIBUTE}');
+		}
 	})();
 `
 
@@ -194,6 +239,11 @@ export const getThemeCookie = (): Theme | null => {
 	}
 
 	return null
+}
+
+export const getLlamaAIBooleanCookie = (cookieName: LlamaAICookieName): boolean => {
+	if (typeof document === 'undefined') return false
+	return getCookieValue(document.cookie, cookieName) === 'true'
 }
 
 export const createAnnouncementDismissalToken = (announcementId: string, version: string): string => {
@@ -237,6 +287,24 @@ export const dismissAnnouncement = (token: string): void => {
 	const cookieString = `${ANNOUNCEMENT_DISMISSALS_COOKIE_NAME}=${encodeURIComponent(nextTokens.join(','))}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secureFlag}`
 	document.cookie = cookieString
 	syncAnnouncementDismissalStyles(nextTokens)
+}
+
+export const setLlamaAICookie = (cookieName: LlamaAICookieName, value: boolean): void => {
+	if (typeof document === 'undefined') return
+
+	const expires = new Date()
+	expires.setFullYear(expires.getFullYear() + 1)
+
+	const secureFlag = isSecureContext() ? '; Secure' : ''
+	const cookieString = `${cookieName}=${value ? 'true' : 'false'}; expires=${expires.toUTCString()}; path=/; SameSite=Lax${secureFlag}`
+
+	document.cookie = cookieString
+}
+
+export const syncLlamaAIChromeAttributes = (fullscreen: boolean, sidebarHidden: boolean): void => {
+	if (typeof window === 'undefined') return
+
+	syncLlamaAIChromeAttributesForPath(window.location.pathname, fullscreen, sidebarHidden)
 }
 
 export const parseThemeCookie = (cookieString: string, cookieName: string = THEME_COOKIE_NAME): Theme => {
